@@ -1,4 +1,4 @@
-package com.myapplication
+package at.asitplus.wallet.app.android
 
 import MainView
 import android.os.Bundle
