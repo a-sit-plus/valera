@@ -84,11 +84,6 @@ In `shared/src/commonMain/kotlin/App.kt`, you can find the shared root `@Composa
 It uses Gradle as the build system. You can add dependencies and change settings in `shared/build.gradle.kts`.
 The `shared` module builds into a Java library, an Android library, and an iOS framework.
 
-### `desktopApp`
-
-This is a Kotlin module that builds into a desktop application. It uses Gradle as the build system. The `desktopApp`
-module depends on and uses the `shared` module as a regular library.
-
 ### `androidApp`
 
 This is a Kotlin module that builds into an Android application. It uses Gradle as the build system.
@@ -100,19 +95,6 @@ This is an Xcode project that builds into an iOS application.
 It depends on and uses the `shared` module as a CocoaPods dependency.
 
 ## Run your application
-
-### On desktop
-
-To run your desktop application in Android Studio, select `desktopApp` in the list of run configurations and click **Run**:
-
-<img src="readme_images/run_on_desktop.png" height="60px"><br />
-
-<img src="readme_images/desktop_app_running.png" height="300px">
-
-You can also run Gradle tasks in the terminal:
-
-* `./gradlew run` to run application
-* `./gradlew package` to store native distribution into `build/compose/binaries`
 
 ### On Android
 
@@ -276,7 +258,7 @@ the same time:
    }
    ```
 
-3. Re-run the `desktopApp`, `androidApp`, and `iosApp` configurations. You'll see this change reflected in all three
+3. Re-run the `androidApp`, and `iosApp` configurations. You'll see this change reflected in all two
    apps:
 
    <img src="readme_images/text_field_added.png" height="350px">
