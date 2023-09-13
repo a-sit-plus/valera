@@ -4,7 +4,14 @@ import shared
 
 struct ComposeView: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIViewController {
-        Main_iosKt.MainViewController()
+        let keyChainService = RealKeyChainService()
+        do {
+            try keyChainService.generateKeyPair(algorithm: "EC", keySize: 256)
+        } catch {
+            print("Error from keyChainService.generateKeyPair")
+        }
+        let cryptoService = VcLibCryptoServiceCryptoKit(keyChainService: keyChainService)!
+        return Main_iosKt.MainViewController(cryptoService: cryptoService)
     }
 
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}

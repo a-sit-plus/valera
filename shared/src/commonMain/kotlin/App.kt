@@ -12,18 +12,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import at.asitplus.wallet.app.common.WalletMain
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-fun App() {
+fun App(walletMain: WalletMain) {
     MaterialTheme {
         var greetingText by remember { mutableStateOf("Hello, World!") }
         var showImage by remember { mutableStateOf(false) }
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
             Button(onClick = {
-                greetingText = "Hello, ${getPlatformName()}"
+                greetingText = "Hello, ${getPlatformName()} with ${walletMain.cryptoServiceIdentifier}"
                 showImage = !showImage
             }) {
                 Text(greetingText)

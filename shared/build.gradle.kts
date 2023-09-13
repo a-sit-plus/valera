@@ -7,8 +7,6 @@ plugins {
 kotlin {
     androidTarget()
 
-    jvm("desktop")
-
     listOf(
         iosX64(),
         iosArm64(),
@@ -17,6 +15,8 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "shared"
             isStatic = true
+            export("at.asitplus.wallet:vclib:3.0.1")
+            export("at.asitplus:kmmresult:1.5.3")
         }
     }
 
@@ -28,6 +28,7 @@ kotlin {
                 implementation(compose.material)
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
+                api("at.asitplus.wallet:vclib:3.0.1")
             }
         }
         val androidMain by getting {
@@ -45,11 +46,6 @@ kotlin {
             iosX64Main.dependsOn(this)
             iosArm64Main.dependsOn(this)
             iosSimulatorArm64Main.dependsOn(this)
-        }
-        val desktopMain by getting {
-            dependencies {
-                implementation(compose.desktop.common)
-            }
         }
     }
 }
@@ -71,5 +67,15 @@ android {
     }
     kotlin {
         jvmToolchain(17)
+    }
+}
+
+repositories {
+    mavenCentral()
+    google()
+    maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+    maven {
+        url = uri("https://raw.githubusercontent.com/a-sit-plus/kotlinx.serialization/mvn/repo")
+        name = "kotlinx-serialization"
     }
 }
