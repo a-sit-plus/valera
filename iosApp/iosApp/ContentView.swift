@@ -6,9 +6,9 @@ struct ComposeView: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIViewController {
         let keyChainService = RealKeyChainService()
         do {
-            try keyChainService.generateKeyPair(algorithm: "EC", keySize: 256)
+            try keyChainService.generateKeyPair()
         } catch {
-            print("Error from keyChainService.generateKeyPair")
+            NapierProxy.companion.e(msg: "Error from keyChainService.generateKeyPair")
         }
         let cryptoService = VcLibCryptoServiceCryptoKit(keyChainService: keyChainService)!
         return Main_iosKt.MainViewController(cryptoService: cryptoService)

@@ -17,6 +17,7 @@ kotlin {
             isStatic = true
             export("at.asitplus.wallet:vclib:3.0.1")
             export("at.asitplus:kmmresult:1.5.3")
+            export("io.github.aakira:napier:2.6.1")
         }
     }
 
@@ -29,6 +30,7 @@ kotlin {
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
                 api("at.asitplus.wallet:vclib:3.0.1")
+                api("io.github.aakira:napier:2.6.1")
             }
         }
         val androidMain by getting {

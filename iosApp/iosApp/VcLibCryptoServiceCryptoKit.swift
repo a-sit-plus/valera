@@ -2,8 +2,6 @@ import Foundation
 import CryptoKit
 import shared
 
-// KeyChainService.loadPrivateKey() provides a SecureEnclave.P256.Signing.PrivateKey?
-
 public class VcLibCryptoServiceCryptoKit: CryptoService {
  
     public var identifier: String
