@@ -6,15 +6,15 @@ import at.asitplus.wallet.lib.agent.CryptoService
  * Main class to hold all services needed in the compose app
  */
 class WalletMain(
-    val cryptoServiceSupplier: () -> CryptoService,
+    val objectFactory: ObjectFactory
 ) {
 
-    val cryptoService by lazy {
-        cryptoServiceSupplier.invoke()
+    suspend fun getCryptoServiceIdentifier(): String {
+        return objectFactory.loadCryptoService().identifier
     }
 
-    val cryptoServiceIdentifier by lazy {
-        cryptoService.identifier
-    }
+}
 
+interface ObjectFactory {
+    suspend fun loadCryptoService(): CryptoService
 }

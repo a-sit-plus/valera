@@ -5,7 +5,7 @@ import CryptoKit
 import shared
 
 public protocol KeyChainService {
-    func generateKeyPair() throws
+    func generateKeyPair() async throws
     func loadPrivateKey() -> SecureEnclave.P256.Signing.PrivateKey?
     func loadPrivateKey(authContext: LAContext?) -> SecureEnclave.P256.Signing.PrivateKey?
     func loadPublicKey() -> P256.Signing.PublicKey?
@@ -53,13 +53,13 @@ public class RealKeyChainService : KeyChainService {
         return nil
     }
 
-    public func generateKeyPair() throws {
+    public func generateKeyPair() async throws {
         NapierProxy.companion.i(msg: "generateKeyPair")
         clear()
-        //TODO guard let authContext = await authenticateUser(String(localized: "auth_create_key")) else {
-            //NapierProxy.companion.e(msg: "generateKeyPair: Cannot authenticate user")
-            //throw "user auth failed"
-        //}
+        guard let authContext = await authenticateUser(String("Create new key pair")) else {
+            NapierProxy.companion.e(msg: "generateKeyPair: Cannot authenticate user")
+            throw "user auth failed"
+        }
 
         //TODO let flags: SecAccessControlCreateFlags = [.privateKeyUsage, .biometryAny, .or, .devicePasscode]
         let flags: SecAccessControlCreateFlags = [.privateKeyUsage]
@@ -69,8 +69,8 @@ public class RealKeyChainService : KeyChainService {
             throw "cannot create key access flags"
         }
 
-        //TODO guard let privateKey = try? SecureEnclave.P256.Signing.PrivateKey(compactRepresentable: true, accessControl: access, authenticationContext: authContext) else {
-        guard let privateKey = try? SecureEnclave.P256.Signing.PrivateKey(compactRepresentable: true, accessControl: access, authenticationContext: nil) else {
+        guard let privateKey = try? SecureEnclave.P256.Signing.PrivateKey(compactRepresentable: true, accessControl: access, authenticationContext: authContext) else {
+        //guard let privateKey = try? SecureEnclave.P256.Signing.PrivateKey(compactRepresentable: true, accessControl: access, authenticationContext: nil) else {
             NapierProxy.companion.e(msg: "generateKeyPair: Can not create SecureEnclave key")
             throw "Can not create SecureEnclave key"
         }
@@ -93,11 +93,11 @@ public class RealKeyChainService : KeyChainService {
         }
 
         if DCAppAttestService.shared.isSupported {
-            //TODO guard let keyId = try? await DCAppAttestService.shared.generateKey() else {
-                //NapierProxy.companion.e(msg: "generateKeyPair: App Attest Service cannot generate keypair")
-                //throw "cannot attest key pair"
-            //}
-            //attestationKeyId = keyId
+            guard let keyId = try? await DCAppAttestService.shared.generateKey() else {
+                NapierProxy.companion.e(msg: "generateKeyPair: App Attest Service cannot generate keypair")
+                throw "cannot attest key pair"
+            }
+            attestationKeyId = keyId
         }
     }
 

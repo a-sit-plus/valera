@@ -9,10 +9,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import at.asitplus.wallet.app.common.WalletMain
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 
@@ -22,9 +24,12 @@ fun App(walletMain: WalletMain) {
     MaterialTheme {
         var greetingText by remember { mutableStateOf("Hello, World!") }
         var showImage by remember { mutableStateOf(false) }
+        val composableScope = rememberCoroutineScope()
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
             Button(onClick = {
-                greetingText = "Hello, ${getPlatformName()} with ${walletMain.cryptoServiceIdentifier}"
+                composableScope.launch {
+                    greetingText = "Hello, ${getPlatformName()} with ${walletMain.getCryptoServiceIdentifier()}"
+                }
                 showImage = !showImage
             }) {
                 Text(greetingText)
