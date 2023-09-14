@@ -61,8 +61,7 @@ public class RealKeyChainService : KeyChainService {
             throw "user auth failed"
         }
 
-        //TODO let flags: SecAccessControlCreateFlags = [.privateKeyUsage, .biometryAny, .or, .devicePasscode]
-        let flags: SecAccessControlCreateFlags = [.privateKeyUsage]
+        let flags: SecAccessControlCreateFlags = [.privateKeyUsage, .userPresence]
         var error: Unmanaged<CFError>?
         guard let access = SecAccessControlCreateWithFlags(kCFAllocatorDefault, kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly, flags, &error) else {
             NapierProxy.companion.e(msg: "generateKeyPair: Cannot create key access flags: \(error.debugDescription)")
@@ -70,7 +69,6 @@ public class RealKeyChainService : KeyChainService {
         }
 
         guard let privateKey = try? SecureEnclave.P256.Signing.PrivateKey(compactRepresentable: true, accessControl: access, authenticationContext: authContext) else {
-        //guard let privateKey = try? SecureEnclave.P256.Signing.PrivateKey(compactRepresentable: true, accessControl: access, authenticationContext: nil) else {
             NapierProxy.companion.e(msg: "generateKeyPair: Can not create SecureEnclave key")
             throw "Can not create SecureEnclave key"
         }

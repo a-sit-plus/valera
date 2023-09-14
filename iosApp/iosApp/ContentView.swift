@@ -19,14 +19,19 @@ struct ContentView: View {
 
 class SwiftObjectFactory: ObjectFactory {
 
-    func loadCryptoService() async throws -> CryptoService {
+    func loadCryptoService() async throws -> KmmResult<CryptoService> {
         let keyChainService = RealKeyChainService()
         do {
             try await keyChainService.generateKeyPair()
         } catch {
             NapierProxy.companion.e(msg: "Error from keyChainService.generateKeyPair")
+            return KmmResultFailure(KotlinThrowable(message: "Error from keyChainService.generateKeyPair"))
         }
-        return VcLibCryptoServiceCryptoKit(keyChainService: keyChainService)!
+        guard let cryptoService = VcLibCryptoServiceCryptoKit(keyChainService: keyChainService) else {
+            NapierProxy.companion.e(msg: "Error on creating VcLibCryptoServiceCryptoKit")
+            return KmmResultFailure(KotlinThrowable(message: "Error on creating VcLibCryptoServiceCryptoKit"))
+        }
+        return KmmResultSuccess(cryptoService)
     }
 
 }

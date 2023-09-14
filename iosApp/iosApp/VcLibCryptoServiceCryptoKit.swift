@@ -12,7 +12,7 @@ public class VcLibCryptoServiceCryptoKit: CryptoService {
     private let keyChainService: KeyChainService
 
     public init?(keyChainService: KeyChainService) {
-        guard let privateKey = keyChainService.loadPrivateKey(authContext: nil) else {
+        guard let privateKey = keyChainService.loadPrivateKey() else {
             return nil
         }
         self.keyChainService = keyChainService
