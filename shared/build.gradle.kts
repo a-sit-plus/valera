@@ -1,7 +1,10 @@
+import at.asitplus.gradle.*
+
 plugins {
     kotlin("multiplatform")
     id("com.android.library")
     id("org.jetbrains.compose")
+    id("at.asitplus.gradle.conventions")
 }
 
 kotlin {
@@ -17,7 +20,7 @@ kotlin {
             isStatic = true
             export("at.asitplus.wallet:vclib:3.0.1")
             export("at.asitplus:kmmresult:1.5.3")
-            export("io.github.aakira:napier:2.6.1")
+            export(napier())
         }
     }
 
@@ -30,7 +33,7 @@ kotlin {
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
                 api("at.asitplus.wallet:vclib:3.0.1")
-                api("io.github.aakira:napier:2.6.1")
+                api(napier())
             }
         }
         val androidMain by getting {
@@ -69,15 +72,5 @@ android {
     }
     kotlin {
         jvmToolchain(17)
-    }
-}
-
-repositories {
-    mavenCentral()
-    google()
-    maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
-    maven {
-        url = uri("https://raw.githubusercontent.com/a-sit-plus/kotlinx.serialization/mvn/repo")
-        name = "kotlinx-serialization"
     }
 }
