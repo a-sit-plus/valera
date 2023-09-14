@@ -3,6 +3,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Button
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,3 +47,6 @@ fun App(walletMain: WalletMain) {
 }
 
 expect fun getPlatformName(): String
+
+@Composable
+expect fun getColorScheme(): ColorScheme
