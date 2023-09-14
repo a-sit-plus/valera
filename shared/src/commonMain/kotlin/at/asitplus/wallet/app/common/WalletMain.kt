@@ -3,6 +3,7 @@ package at.asitplus.wallet.app.common
 import DataStoreService
 import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.CryptoService
+import io.github.aakira.napier.Napier
 
 /**
  * Main class to hold all services needed in the Compose App.
@@ -14,6 +15,7 @@ class WalletMain(
 
     suspend fun getCryptoServiceIdentifier(): String {
         val cryptoService = objectFactory.loadCryptoService().getOrElse {
+            Napier.w("cryptoService failed", it)
             return "null"
         }
         return cryptoService.identifier
