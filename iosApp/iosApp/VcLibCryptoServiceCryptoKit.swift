@@ -98,7 +98,7 @@ public class VcLibCryptoServiceCryptoKit: CryptoService {
     public func performKeyAgreement(ephemeralKey: JsonWebKey, algorithm: JweAlgorithm) -> KmmResult<KotlinByteArray> {
         switch algorithm {
         case .ecdhEs:
-            guard let privateKey = keyChainService.loadPrivateKey(authContext: nil) else {
+            guard let privateKey = keyChainService.loadPrivateKey() else {
                 return KmmResultFailure(KotlinThrowable(message: "Could not load private key"))
             }
             let ephemeralKeyBytes = ephemeralKey.toAnsiX963ByteArray()
@@ -121,7 +121,7 @@ public class VcLibCryptoServiceCryptoKit: CryptoService {
     }
 
     public func sign(input: KotlinByteArray) async throws -> KmmResult<KotlinByteArray> {
-        guard let privateKey = keyChainService.loadPrivateKey(authContext: nil) else {
+        guard let privateKey = keyChainService.loadPrivateKey() else {
             return KmmResultFailure(KotlinThrowable(message: "Could not load private key"))
         }
         guard let signature = try? privateKey.signature(for: input.data) else {

@@ -6,6 +6,7 @@ import shared
 
 public protocol KeyChainService {
     func generateKeyPair() throws
+    func loadPrivateKey() -> SecureEnclave.P256.Signing.PrivateKey?
     func loadPrivateKey(authContext: LAContext?) -> SecureEnclave.P256.Signing.PrivateKey?
     func loadPublicKey() -> P256.Signing.PublicKey?
     func loadPublicKeyData() -> Data?
@@ -111,6 +112,10 @@ public class RealKeyChainService : KeyChainService {
     private func clearKeychain(for alias: String) {
         clearCertificate(for: alias)
         clearGenericPassword(for: alias)
+    }
+
+    public func loadPrivateKey() -> SecureEnclave.P256.Signing.PrivateKey? {
+        return loadPrivateKey(authContext: nil)
     }
 
     public func loadPrivateKey(authContext: LAContext? = nil) -> SecureEnclave.P256.Signing.PrivateKey? {

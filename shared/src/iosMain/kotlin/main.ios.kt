@@ -4,4 +4,4 @@ import at.asitplus.wallet.lib.agent.CryptoService
 
 actual fun getPlatformName(): String = "iOS"
 
-fun MainViewController(cryptoService: CryptoService) = ComposeUIViewController { App(WalletMain(cryptoService)) }
+fun MainViewController(cryptoServiceSupplier: ()->CryptoService) = ComposeUIViewController { App(WalletMain(cryptoServiceSupplier)) }
