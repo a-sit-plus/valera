@@ -17,11 +17,12 @@ import at.asitplus.wallet.app.common.WalletMain
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
+import ui.theme.WalletTheme
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun App(walletMain: WalletMain) {
-    MaterialTheme {
+    WalletTheme {
         var greetingText by remember { mutableStateOf("Hello, World!") }
         var showImage by remember { mutableStateOf(false) }
         val composableScope = rememberCoroutineScope()
