@@ -8,11 +8,11 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import at.asitplus.KmmResult
+import at.asitplus.wallet.app.android.AndroidCryptoService
 import at.asitplus.wallet.app.android.AndroidKeyStoreService
 import at.asitplus.wallet.app.common.ObjectFactory
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.CryptoService
-import at.asitplus.wallet.lib.agent.DefaultCryptoService
 import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
 
@@ -53,6 +53,7 @@ class AndroidObjectFactory : ObjectFactory {
             ?: return KmmResult.failure(Throwable("Could not create key pair"))
         val certificate = keyStoreService.loadCertificate()
             ?: return KmmResult.failure(Throwable("Could not load certificate"))
-        return KmmResult.success(DefaultCryptoService(keyPair, certificate))
+        val cryptoService = AndroidCryptoService(keyPair, certificate)
+        return KmmResult.success(cryptoService)
     }
 }
