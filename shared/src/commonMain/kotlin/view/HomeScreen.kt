@@ -39,13 +39,13 @@ import org.jetbrains.compose.resources.painterResource
 
 var showCredentials = mutableStateOf(false)
 @Composable
-fun HomeScreen( onAbout: () -> Unit, onCredential: () -> Unit) {
+fun HomeScreen( onAbout: () -> Unit, onCredential: () -> Unit, onScanQrCode: () -> Unit) {
     Box(){
         Column(Modifier.fillMaxSize()) {
             Header(onAbout = onAbout)
             Column(Modifier.background(color = MaterialTheme.colorScheme.primaryContainer).fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
                 if (showCredentials.value == false){
-                    AddId()
+                    AddId(onScanQrCode)
                 } else {
                     ShowId(onCredential)
                 }
@@ -66,9 +66,9 @@ fun Header(onAbout: () -> Unit) {
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-fun AddId(){
+fun AddId(onScanQrCode: () -> Unit) {
     AddIdHeader()
-    AddIdBody()
+    AddIdBody(onScanQrCode)
 }
 
 @Composable
@@ -78,8 +78,8 @@ fun AddIdHeader(){
 }
 
 @Composable
-fun AddIdBody(){
-    AddIdCard()
+fun AddIdBody(onScanQrCode: () -> Unit) {
+    AddIdCard(onScanQrCode)
     Box(Modifier.fillMaxSize().padding(20.dp)){
         Box(Modifier.clip(shape = CircleShape).background(color = MaterialTheme.colorScheme.errorContainer).size(40.dp).clickable(onClick = { showCredentials.value = true}).align(Alignment.BottomEnd), contentAlignment = Alignment.Center){
             Icon(Icons.Default.Add, contentDescription = null, Modifier.size(30.dp), tint = MaterialTheme.colorScheme.error)
@@ -89,7 +89,7 @@ fun AddIdBody(){
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-fun AddIdCard() {
+fun AddIdCard(onScanQrCode: () -> Unit) {
     Box(Modifier.padding(start = 20.dp, end = 20.dp).shadow(elevation = 2.dp, shape = RoundedCornerShape(10.dp))){
         Box(Modifier.clip(shape = RoundedCornerShape(10.dp)).background(color = Color.White).fillMaxWidth().padding(20.dp)){
             Column {
@@ -99,7 +99,7 @@ fun AddIdCard() {
                 Spacer(Modifier.size(15.dp))
                 Text("To add an ID, login on https://abcd.at/xyz/ with a secondary deivce and scan the displayed QR code.")
                 Spacer(Modifier.size(30.dp))
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable(onClick = {}).fillMaxWidth()) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable(onClick = {onScanQrCode()}).fillMaxWidth()) {
                     Box(Modifier.size(30.dp), contentAlignment = Alignment.Center){
                         Image(painterResource("icons8-qr-code-64.png"), contentDescription = null, Modifier.height(30.dp))
                     }

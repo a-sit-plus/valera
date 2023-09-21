@@ -6,15 +6,19 @@ import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import at.asitplus.wallet.app.common.WalletMain
 import navigation.AboutPage
+import navigation.CameraPage
 import navigation.CredentialPage
 import navigation.HomePage
 import navigation.NavigationStack
 import navigation.Page
+import navigation.PayloadPage
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import ui.theme.WalletTheme
 import view.AboutScreen
+import view.CameraView
 import view.CredentialScreen
 import view.HomeScreen
+import view.PayloadScreen
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
@@ -45,13 +49,25 @@ fun nav() {
     AnimatedContent(targetState = navigationStack.lastWithIndex()) { (_, page) ->
         when (page) {
             is HomePage -> {
-                HomeScreen(onAbout = { navigationStack.push(AboutPage()) }, onCredential = {navigationStack.push(CredentialPage())})
+                HomeScreen(onAbout = { navigationStack.push(AboutPage()) }, onCredential = {navigationStack.push(CredentialPage())}, onScanQrCode = {navigationStack.push(CameraPage())})
             }
             is AboutPage -> {
                 AboutScreen()
             }
             is CredentialPage -> {
                 CredentialScreen()
+            }
+
+            is CameraPage -> {
+                CameraView(
+                    onFoundPayload = { info ->
+                        navigationStack.push(PayloadPage(info))
+                    }
+                )
+            }
+            is PayloadPage -> {
+                PayloadScreen(text = page.info, onContinueClick = {navigationStack.push(HomePage())})
+
             }
         }
     }

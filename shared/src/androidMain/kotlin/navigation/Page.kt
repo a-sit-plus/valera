@@ -11,3 +11,9 @@ actual class AboutPage : Page, Parcelable
 
 @Parcelize
 actual class CredentialPage : Page, Parcelable
+
+@Parcelize
+actual class CameraPage : Page, Parcelable
+
+@Parcelize
+actual class PayloadPage actual constructor(actual val info: String) : Page, Parcelable
