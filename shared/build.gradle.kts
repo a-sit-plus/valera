@@ -6,6 +6,7 @@ plugins {
     id("org.jetbrains.compose")
     id("at.asitplus.gradle.conventions")
     id("kotlin-parcelize")
+    kotlin("plugin.serialization")
 }
 
 kotlin {
@@ -34,6 +35,7 @@ kotlin {
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
                 api("at.asitplus.wallet:vclib:3.0.1")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
                 api(napier())
             }
         }
@@ -51,6 +53,7 @@ kotlin {
                 implementation("com.google.android.gms:play-services-location:21.0.1")
                 implementation("com.google.maps.android:maps-compose:2.11.2")
                 implementation("com.google.mlkit:barcode-scanning:17.2.0")
+
             }
         }
         val iosX64Main by getting

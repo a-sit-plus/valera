@@ -2,6 +2,8 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import at.asitplus.wallet.app.common.WalletMain
@@ -49,13 +51,16 @@ fun nav() {
     AnimatedContent(targetState = navigationStack.lastWithIndex()) { (_, page) ->
         when (page) {
             is HomePage -> {
-                HomeScreen(onAbout = { navigationStack.push(AboutPage()) }, onCredential = {navigationStack.push(CredentialPage())}, onScanQrCode = {navigationStack.push(CameraPage())})
+                HomeScreen( onAbout = { navigationStack.push(AboutPage()) },
+                            onCredential = { info ->
+                                navigationStack.push(CredentialPage(info))},
+                            onScanQrCode = {navigationStack.push(CameraPage())})
             }
             is AboutPage -> {
                 AboutScreen()
             }
             is CredentialPage -> {
-                CredentialScreen()
+                CredentialScreen(index = page.info)
             }
 
             is CameraPage -> {

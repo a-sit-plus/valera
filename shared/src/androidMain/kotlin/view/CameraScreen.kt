@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.android.gms.common.internal.FallbackServiceBroker
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
@@ -85,6 +86,8 @@ private fun CameraWithGrantedPermission(
     modifier: Modifier,
     onFoundPayload: (text: String) -> Unit
 ) {
+    var foundQrCode = remember { mutableStateOf(false)  }
+
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val viewScope = rememberCoroutineScope()
@@ -93,6 +96,8 @@ private fun CameraWithGrantedPermission(
     val previewView = remember { PreviewView(context) }
     val imageCapture: ImageCapture = remember { ImageCapture.Builder().build() }
     var isFrontCamera by rememberSaveable { mutableStateOf(false) }
+    var cameraProvider: ProcessCameraProvider? by remember { mutableStateOf(null) }
+
     val cameraSelector = remember(isFrontCamera) {
         val lensFacing =
             if (isFrontCamera) {
@@ -104,16 +109,21 @@ private fun CameraWithGrantedPermission(
             .requireLensFacing(lensFacing)
             .build()
     }
+    DisposableEffect(Unit) {
+        onDispose {
+            cameraProvider?.unbindAll()
+        }
+    }
 
     LaunchedEffect(isFrontCamera) {
-        val cameraProvider = suspendCoroutine<ProcessCameraProvider> { continuation ->
+        cameraProvider = suspendCoroutine<ProcessCameraProvider> { continuation ->
             ProcessCameraProvider.getInstance(context).also { cameraProvider ->
                 cameraProvider.addListener({
                     continuation.resume(cameraProvider.get())
                 }, executor)
             }
         }
-        cameraProvider.unbindAll()
+        cameraProvider?.unbindAll()
 
         val imageAnalysis = ImageAnalysis.Builder()
             .setTargetResolution(Size(1280, 720))
@@ -126,9 +136,15 @@ private fun CameraWithGrantedPermission(
                 scanner.process(inputImage)
                     .addOnCompleteListener {
                         imageProxy.close()
-                        if (it.isSuccessful) {
+                        if (it.isSuccessful && !foundQrCode.value) {
                             for (barcode in it.result as List<Barcode>) {
-                                onFoundPayload(barcode.url?.url.toString())
+
+                                val payload = barcode.rawValue.toString()
+                                println("Found Barcode!")
+                                foundQrCode.value = true
+                                credentialList.add(createCredential(payload))
+                                onFoundPayload(payload)
+                                break
                             }
                         } else {
                             it.exception?.printStackTrace()
@@ -137,7 +153,7 @@ private fun CameraWithGrantedPermission(
             }
         })
 
-        cameraProvider.bindToLifecycle(
+        cameraProvider?.bindToLifecycle(
             lifecycleOwner,
             cameraSelector,
             preview,

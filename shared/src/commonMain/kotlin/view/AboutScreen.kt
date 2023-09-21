@@ -29,7 +29,6 @@ import globalBack
 
 @Composable
 fun AboutScreen(){
-    val openDialog = remember { mutableStateOf(false)  }
     Column(
         modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.primaryContainer),
         verticalArrangement = Arrangement.Center,
