@@ -13,33 +13,43 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 
+var showCredentials = mutableStateOf(false)
 @Composable
-fun HomeScreen( onAbout: () -> Unit) {
+fun HomeScreen( onAbout: () -> Unit, onCredential: () -> Unit) {
     Box(){
         Column(Modifier.fillMaxSize()) {
             Header(onAbout = onAbout)
-            Body()
+            Column(Modifier.background(color = MaterialTheme.colorScheme.primaryContainer).fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+                if (showCredentials.value == false){
+                    AddId()
+                } else {
+                    ShowId(onCredential)
+                }
+            }
         }
     }
 }
@@ -56,13 +66,6 @@ fun Header(onAbout: () -> Unit) {
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-fun Body() {
-    Column(Modifier.background(color = MaterialTheme.colorScheme.primaryContainer).fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-        AddId()
-    }
-}
-
-@Composable
 fun AddId(){
     AddIdHeader()
     AddIdBody()
@@ -78,7 +81,7 @@ fun AddIdHeader(){
 fun AddIdBody(){
     AddIdCard()
     Box(Modifier.fillMaxSize().padding(20.dp)){
-        Box(Modifier.clip(shape = CircleShape).background(color = MaterialTheme.colorScheme.errorContainer).size(40.dp).clickable(onClick = {}).align(Alignment.BottomEnd), contentAlignment = Alignment.Center){
+        Box(Modifier.clip(shape = CircleShape).background(color = MaterialTheme.colorScheme.errorContainer).size(40.dp).clickable(onClick = { showCredentials.value = true}).align(Alignment.BottomEnd), contentAlignment = Alignment.Center){
             Icon(Icons.Default.Add, contentDescription = null, Modifier.size(30.dp), tint = MaterialTheme.colorScheme.error)
         }
     }
@@ -87,12 +90,12 @@ fun AddIdBody(){
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun AddIdCard() {
-    Box(Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp)){
+    Box(Modifier.padding(start = 20.dp, end = 20.dp).shadow(elevation = 2.dp, shape = RoundedCornerShape(10.dp))){
         Box(Modifier.clip(shape = RoundedCornerShape(10.dp)).background(color = Color.White).fillMaxWidth().padding(20.dp)){
             Column {
                 Text("Add ID", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                 Spacer(Modifier.size(15.dp))
-                Divider(color = Color(48, 68, 113), thickness = 1.dp)
+                Divider(color = Color.LightGray, thickness = 1.dp)
                 Spacer(Modifier.size(15.dp))
                 Text("To add an ID, login on https://abcd.at/xyz/ with a secondary deivce and scan the displayed QR code.")
                 Spacer(Modifier.size(30.dp))
@@ -127,7 +130,57 @@ fun AddIdText(){
         Text("Choose next step", color = MaterialTheme.colorScheme.primary, fontSize = 30.sp, fontWeight = FontWeight.Bold)
 
     }
+}
 
+@Composable
+fun ShowId(onCredential: () -> Unit) {
+    ShowIdHeader()
+    ShowIdCard(onCredential)
+
+}
+
+@Composable
+fun ShowIdHeader(){
+    Column(
+        modifier = Modifier.background(color = MaterialTheme.colorScheme.primaryContainer).padding(20.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("Wallet", color = MaterialTheme.colorScheme.primary, fontSize = 24.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 20.dp, bottom = 20.dp))
+
+    }
+}
+
+@Composable
+fun ShowIdCard(onCredential: () -> Unit) {
+    LazyRow {
+        items(3){
+            IdCard(onCredential ,modifier = Modifier.fillParentMaxWidth())
+        }
+    }
+}
+
+@OptIn(ExperimentalResourceApi::class)
+@Composable
+fun IdCard(onCredential: () -> Unit, modifier: Modifier) {
+    Box(modifier.padding(start = 20.dp, end = 20.dp).shadow(elevation = 2.dp, shape = RoundedCornerShape(10.dp)).clickable(onClick = {onCredential()} )){
+        Box(Modifier.clip(shape = RoundedCornerShape(10.dp)).background(color = Color.White).padding(20.dp)){
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("Credential", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                Spacer(Modifier.size(15.dp))
+                Divider(color = Color.LightGray, thickness = 1.dp)
+                Spacer(Modifier.size(15.dp))
+                Box(contentAlignment = Alignment.Center){
+                    Image(painterResource("3d-casual-life-smiling-face-with-smiling-eyes.png"), contentDescription = null, Modifier.fillMaxWidth(), contentScale = ContentScale.Crop)
+                }
+                Spacer(Modifier.size(30.dp))
+                Text("123 123", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                Spacer(Modifier.size(10.dp))
+                Text("IDAustria Credential", fontSize = 12.sp, color = Color.Black)
+
+            }
+        }
+    }
 }
 
 

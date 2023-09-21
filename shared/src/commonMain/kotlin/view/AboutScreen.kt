@@ -45,6 +45,7 @@ fun AboutScreen(){
                     Text("Version: 0.0.1")
                     Text("License: 123")
                     Text("Icons from: icons8.com")
+                    Text("Pictures from: icons8.com")
                 }
 
             }

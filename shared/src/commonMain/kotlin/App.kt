@@ -6,12 +6,14 @@ import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import at.asitplus.wallet.app.common.WalletMain
 import navigation.AboutPage
+import navigation.CredentialPage
 import navigation.HomePage
 import navigation.NavigationStack
 import navigation.Page
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import ui.theme.WalletTheme
 import view.AboutScreen
+import view.CredentialScreen
 import view.HomeScreen
 
 @OptIn(ExperimentalResourceApi::class)
@@ -43,10 +45,13 @@ fun nav() {
     AnimatedContent(targetState = navigationStack.lastWithIndex()) { (_, page) ->
         when (page) {
             is HomePage -> {
-                HomeScreen(onAbout = { navigationStack.push(AboutPage()) })
+                HomeScreen(onAbout = { navigationStack.push(AboutPage()) }, onCredential = {navigationStack.push(CredentialPage())})
             }
             is AboutPage -> {
                 AboutScreen()
+            }
+            is CredentialPage -> {
+                CredentialScreen()
             }
         }
     }
