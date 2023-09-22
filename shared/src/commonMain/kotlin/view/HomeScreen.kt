@@ -179,7 +179,7 @@ fun AddIdText(){
 
 @Composable
 fun ShowId(onCredential: (index: Int) -> Unit, onScanQrCode: () -> Unit) {
-    var openDialog = remember { mutableStateOf(false) }
+    val openDialog = remember { mutableStateOf(false) }
     ShowIdHeader()
     ShowIdCard(onCredential)
     Box(Modifier.fillMaxSize().padding(20.dp)){
