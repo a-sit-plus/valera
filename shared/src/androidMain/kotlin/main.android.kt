@@ -1,3 +1,4 @@
+import android.content.Context
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
@@ -32,8 +33,10 @@ actual fun getColorScheme(): ColorScheme{
     }
 }
 
-@Composable fun MainView() = App(WalletMain(objectFactory = object : ObjectFactory{
-    override suspend fun loadCryptoService(): KmmResult<CryptoService> {
-        return KmmResult.success(DefaultCryptoService())
-    }
-}))
+@Composable fun MainView() {
+    App(WalletMain(objectFactory = object : ObjectFactory{
+        override suspend fun loadCryptoService(): KmmResult<CryptoService> {
+            return KmmResult.success(DefaultCryptoService())
+        }
+    }), dataStoreService = DataStoreService(getDataStore(LocalContext.current)))
+}
