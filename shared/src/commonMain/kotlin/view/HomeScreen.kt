@@ -26,7 +26,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -62,7 +61,6 @@ fun HomeScreen( onAbout: () -> Unit, onCredential: (index: Int) -> Unit, onScanQ
     }
 }
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun Header(onAbout: () -> Unit) {
     Row(Modifier.padding(10.dp).height(80.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -114,7 +112,6 @@ fun AddDialog(openDialog: MutableState<Boolean>, onScanQrCode: () -> Unit){
     }
 }
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun AddId(onScanQrCode: () -> Unit) {
     AddIdHeader()

@@ -38,7 +38,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import com.google.android.gms.common.internal.FallbackServiceBroker
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
@@ -80,7 +79,6 @@ actual fun CameraView(onFoundPayload: (text: String) -> Unit){
 
 }
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 private fun CameraWithGrantedPermission(
     modifier: Modifier,

@@ -22,7 +22,6 @@ import view.CredentialScreen
 import view.HomeScreen
 import view.PayloadScreen
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun App(walletMain: WalletMain) {
     WalletTheme {
@@ -32,7 +31,6 @@ fun App(walletMain: WalletMain) {
 
 var globalBack: () -> Unit = {}
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun nav() {
     // Modified from https://github.com/JetBrains/compose-multiplatform/tree/master/examples/imageviewer
