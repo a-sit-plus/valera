@@ -26,13 +26,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import getDataStore
 import globalBack
 import kotlinx.serialization.Serializable
-import org.jetbrains.compose.resources.ExperimentalResourceApi
-import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
 

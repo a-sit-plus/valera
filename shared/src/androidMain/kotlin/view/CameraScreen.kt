@@ -41,10 +41,8 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
-import getDataStore
 import globalBack
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import java.util.*
 import java.util.concurrent.Executors
 import kotlin.coroutines.resume

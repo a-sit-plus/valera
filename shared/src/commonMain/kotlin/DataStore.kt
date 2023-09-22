@@ -8,12 +8,7 @@ import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.flow.first
 import okio.Path.Companion.toPath
 
-private lateinit var dataStore: DataStore<Preferences>
-
-private val lock = SynchronizedObject()
-
-class DataStoreService(dataStore: DataStore<Preferences>){
-    private var dataStore = dataStore
+class DataStoreService(private var dataStore: DataStore<Preferences>){
     suspend fun setData(value: String, key: String){
         val dataStoreKey = stringPreferencesKey(key)
 
@@ -45,3 +40,7 @@ fun getDataStore(producePath: () -> String): DataStore<Preferences> =
     }
 
 internal const val dataStoreFileName = "wallet.preferences_pb"
+
+private lateinit var dataStore: DataStore<Preferences>
+
+private val lock = SynchronizedObject()
