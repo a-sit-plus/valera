@@ -138,7 +138,6 @@ private fun CameraWithGrantedPermission(
                             for (barcode in it.result as List<Barcode>) {
 
                                 val payload = barcode.rawValue.toString()
-                                println("Found Barcode!")
                                 foundQrCode.value = true
                                 credentialList.value.add(createCredential(payload))
                                 onFoundPayload(payload)
