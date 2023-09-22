@@ -155,7 +155,7 @@ private fun BoxScope.AuthorizedCamera(onFoundPayload: (text: String) -> Unit){
 @OptIn(ExperimentalResourceApi::class, ExperimentalForeignApi::class, BetaInteropApi::class)
 @Composable
 private fun BoxScope.RealDeviceCamera(camera: AVCaptureDevice, onFoundPayload: (text: String) -> Unit){
-    var foundQrCode = remember { mutableStateOf(false)  }
+    val foundQrCode = remember { mutableStateOf(false)  }
 
     val capturePhotoOutput = remember { AVCapturePhotoOutput() }
     var actualOrientation by remember {
@@ -175,7 +175,7 @@ private fun BoxScope.RealDeviceCamera(camera: AVCaptureDevice, onFoundPayload: (
                     val readableObject = didOutputMetadataObjects.first() as AVMetadataMachineReadableCodeObject
                     if(readableObject.stringValue != null && !foundQrCode.value){
                         val payload = readableObject.stringValue.toString()
-                        credentialList.add(createCredential(payload))
+                        credentialList.value.add(createCredential(payload))
                         foundQrCode.value = true
                         onFoundPayload(payload)
                     }

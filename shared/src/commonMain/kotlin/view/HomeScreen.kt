@@ -44,7 +44,7 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 
 var showCredentials = mutableStateOf(false)
-var credentialList =  mutableStateListOf<Credential>()
+var credentialList =  mutableStateOf(mutableListOf<Credential>())
 
 @Composable
 fun HomeScreen( onAbout: () -> Unit, onCredential: (index: Int) -> Unit, onScanQrCode: () -> Unit) {
@@ -208,7 +208,7 @@ fun ShowIdHeader(){
 @Composable
 fun ShowIdCard(onCredential: (index: Int) -> Unit) {
     LazyRow {
-        items(credentialList.size){
+        items(credentialList.value.size){
             IdCard(onCredential, index = it, modifier = Modifier.fillParentMaxWidth())
         }
     }
@@ -217,7 +217,7 @@ fun ShowIdCard(onCredential: (index: Int) -> Unit) {
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun IdCard(onCredential: (index: Int) -> Unit, index: Int, modifier: Modifier) {
-    val name = credentialList[index].firstName + " " + credentialList[index].lastName
+    val name = credentialList.value[index].firstName + " " + credentialList.value[index].lastName
 
     Box(modifier.padding(start = 20.dp, end = 20.dp).shadow(elevation = 2.dp, shape = RoundedCornerShape(10.dp)).clickable(onClick = {onCredential(index)} )){
         Box(Modifier.clip(shape = RoundedCornerShape(10.dp)).background(color = Color.White).padding(20.dp)){

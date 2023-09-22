@@ -86,7 +86,7 @@ private fun CameraWithGrantedPermission(
     modifier: Modifier,
     onFoundPayload: (text: String) -> Unit
 ) {
-    var foundQrCode = remember { mutableStateOf(false)  }
+    val foundQrCode = remember { mutableStateOf(false)  }
 
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -142,7 +142,7 @@ private fun CameraWithGrantedPermission(
                                 val payload = barcode.rawValue.toString()
                                 println("Found Barcode!")
                                 foundQrCode.value = true
-                                credentialList.add(createCredential(payload))
+                                credentialList.value.add(createCredential(payload))
                                 onFoundPayload(payload)
                                 break
                             }

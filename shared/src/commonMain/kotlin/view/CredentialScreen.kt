@@ -53,9 +53,9 @@ fun createCredential(payload: String): Credential {
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun CredentialScreen(index: Int){
-    val firstName = credentialList[index].firstName
-    val lastName = credentialList[index].lastName
-    val birthDate = credentialList[index].birthDate
+    val firstName = credentialList.value[index].firstName
+    val lastName = credentialList.value[index].lastName
+    val birthDate = credentialList.value[index].birthDate
     Column() {
         Row(Modifier.padding(10.dp).height(80.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.Close, contentDescription = null, Modifier.size(30.dp).clickable(onClick = { globalBack() }), tint = Color.LightGray)
@@ -80,7 +80,10 @@ fun CredentialScreen(index: Int){
             }
             Column(modifier = Modifier.fillMaxWidth().padding(top = 40.dp), horizontalAlignment = Alignment.CenterHorizontally){
                 Button(onClick = {
-                    showCredentials.value = false
+                    credentialList.value.removeAt(index)
+                    if (credentialList.value.size == 0){
+                        showCredentials.value = false
+                    }
                     globalBack()
                 }) {
                     Text("Delete")
