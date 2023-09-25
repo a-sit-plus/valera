@@ -1,0 +1,24 @@
+name: Build Android App
+on: workflow_dispatch
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Build apk
+        run: ./gradlew :androidApp:assemble
+      - name: Upload apk debug
+        uses: actions/upload-artifact@v3
+        with:
+          name: Wallet App Android (debug)
+          path: |
+            androidApp/build/outputs/apk/debug/*.apk
+      - name: Upload apk release
+        uses: actions/upload-artifact@v3
+        with:
+          name: Wallet App Android (release)
+          path: |
+            androidApp/build/outputs/apk/release/*.apk
