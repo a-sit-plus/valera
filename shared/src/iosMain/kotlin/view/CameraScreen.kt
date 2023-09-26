@@ -1,5 +1,6 @@
 package view
 
+import Resources
 import globalBack
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -113,7 +114,7 @@ actual fun CameraView(onFoundPayload: (text: String) -> Unit){
             }
 
             false -> {
-                Text("Camera access denied", color = Color.White)
+                Text(Resources.CAMERA_ACCESS_DENIED, color = Color.White)
             }
 
             true -> {

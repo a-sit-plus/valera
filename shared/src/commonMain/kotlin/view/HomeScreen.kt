@@ -1,5 +1,6 @@
 package view
 
+import Resources
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -82,14 +83,15 @@ fun AddDialog(openDialog: MutableState<Boolean>, onScanQrCode: () -> Unit){
                         Spacer(Modifier.size(15.dp))
                         Divider(color = Color.LightGray, thickness = 1.dp)
                         Spacer(Modifier.size(15.dp))
-                        Text("To add an ID, login on https://abcd.at/xyz/ with a secondary deivce and scan the displayed QR code.")
+
+                        Text(Resources.ADD_ID_TEXT)
                         Spacer(Modifier.size(30.dp))
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable(onClick = {onScanQrCode()}).fillMaxWidth()) {
                             Box(Modifier.size(30.dp), contentAlignment = Alignment.Center){
                                 Image(painterResource("icons8-qr-code-64.png"), contentDescription = null, Modifier.height(30.dp))
                             }
                             Spacer(Modifier.size(10.dp))
-                            Text("Scan QR-Code", color = Color(48, 68, 113), fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                            Text(Resources.BUTTON_SCAN_QR, color = Color(48, 68, 113), fontSize = 15.sp, fontWeight = FontWeight.Bold)
                         }
                         Spacer(Modifier.size(30.dp))
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable(onClick = {}).fillMaxWidth()) {
@@ -97,7 +99,7 @@ fun AddDialog(openDialog: MutableState<Boolean>, onScanQrCode: () -> Unit){
                                 Image(painterResource("icons8-login-100.png"), contentDescription = null, Modifier.height(30.dp))
                             }
                             Spacer(Modifier.size(10.dp))
-                            Text("Login with ID Austria", color = Color(48, 68, 113), fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                            Text(Resources.BUTTON_LOGIN_ID_AUSTRIA, color = Color(48, 68, 113), fontSize = 15.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -139,14 +141,14 @@ fun AddIdCard(onScanQrCode: () -> Unit) {
                 Spacer(Modifier.size(15.dp))
                 Divider(color = Color.LightGray, thickness = 1.dp)
                 Spacer(Modifier.size(15.dp))
-                Text("To add an ID, login on https://abcd.at/xyz/ with a secondary deivce and scan the displayed QR code.")
+                Text(Resources.ADD_ID_TEXT)
                 Spacer(Modifier.size(30.dp))
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable(onClick = {onScanQrCode()}).fillMaxWidth()) {
                     Box(Modifier.size(30.dp), contentAlignment = Alignment.Center){
                         Image(painterResource("icons8-qr-code-64.png"), contentDescription = null, Modifier.height(30.dp))
                     }
                     Spacer(Modifier.size(10.dp))
-                    Text("Scan QR-Code", color = Color(48, 68, 113), fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    Text(Resources.BUTTON_SCAN_QR, color = Color(48, 68, 113), fontSize = 15.sp, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.size(30.dp))
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable(onClick = {}).fillMaxWidth()) {
@@ -154,7 +156,7 @@ fun AddIdCard(onScanQrCode: () -> Unit) {
                         Image(painterResource("icons8-login-100.png"), contentDescription = null, Modifier.height(30.dp))
                     }
                     Spacer(Modifier.size(10.dp))
-                    Text("Login with ID Austria", color = Color(48, 68, 113), fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    Text(Resources.BUTTON_LOGIN_ID_AUSTRIA, color = Color(48, 68, 113), fontSize = 15.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -169,7 +171,7 @@ fun AddIdText(){
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text("Wallet", color = MaterialTheme.colorScheme.primary, fontSize = 24.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 20.dp, bottom = 20.dp))
-        Text("Choose next step", color = MaterialTheme.colorScheme.primary, fontSize = 30.sp, fontWeight = FontWeight.Bold)
+        Text(Resources.CHOOSE_NEXT_STEP, color = MaterialTheme.colorScheme.primary, fontSize = 30.sp, fontWeight = FontWeight.Bold)
 
     }
 }
@@ -219,7 +221,7 @@ fun IdCard(onCredential: (index: Int) -> Unit, index: Int, modifier: Modifier) {
     Box(modifier.padding(start = 20.dp, end = 20.dp).shadow(elevation = 2.dp, shape = RoundedCornerShape(10.dp)).clickable(onClick = {onCredential(index)} )){
         Box(Modifier.clip(shape = RoundedCornerShape(10.dp)).background(color = Color.White).padding(20.dp)){
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Credential", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                Text(Resources.CREDENTIAL, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                 Spacer(Modifier.size(15.dp))
                 Divider(color = Color.LightGray, thickness = 1.dp)
                 Spacer(Modifier.size(15.dp))

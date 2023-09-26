@@ -1,5 +1,6 @@
 package view
 
+import Resources
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -41,9 +42,9 @@ fun AboutScreen(){
         Box(Modifier.fillMaxWidth().padding(20.dp)){
             Box(Modifier.clip(shape = RoundedCornerShape(10.dp)).background(color = Color.White).fillMaxWidth().padding(20.dp)){
                 Column {
-                    Text("Version: 0.0.1")
-                    Text("Icons from: icons8.com")
-                    Text("Pictures from: icons8.com")
+                    Text(Resources.VERSION + " : 0.0.1")
+                    Text(Resources.ICONS_FROM + " : icons8.com")
+                    Text(Resources.PICTURES_FROM+ " : icons8.com")
                 }
 
             }
@@ -53,7 +54,7 @@ fun AboutScreen(){
                 .padding(vertical = 24.dp),
             onClick = { globalBack() }
         ) {
-            Text("Close")
+            Text(Resources.BUTTON_CLOSE)
         }
     }
 }

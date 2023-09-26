@@ -1,5 +1,6 @@
 package view
 
+import Resources
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -16,7 +17,7 @@ fun PayloadScreen(text: String, onContinueClick: () -> Unit){
             showCredentials.value = true
             onContinueClick()
         }) {
-            Text("Continue")
+            Text(Resources.BUTTON_CONTINUE)
         }
     }
 

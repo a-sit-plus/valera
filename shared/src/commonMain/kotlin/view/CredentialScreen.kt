@@ -1,5 +1,6 @@
 package view
 
+import Resources
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -58,13 +59,13 @@ fun CredentialScreen(index: Int){
             Spacer(modifier = Modifier.size(20.dp))
             Column(modifier = Modifier.fillMaxWidth().padding(top = 40.dp, start = 20.dp), horizontalAlignment = Alignment.Start){
                 Text(firstName, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                Text("First name", fontSize = 15.sp, color = Color.Black)
+                Text(Resources.FIRST_NAME, fontSize = 15.sp, color = Color.Black)
                 Spacer(modifier = Modifier.size(10.dp))
                 Text(lastName, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                Text("Last name", fontSize = 15.sp, color = Color.Black)
+                Text(Resources.LAST_NAME, fontSize = 15.sp, color = Color.Black)
                 Spacer(modifier = Modifier.size(10.dp))
                 Text(birthDate, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                Text("Date of Birth", fontSize = 15.sp, color = Color.Black)
+                Text(Resources.BIRTH_DATE, fontSize = 15.sp, color = Color.Black)
             }
             Column(modifier = Modifier.fillMaxWidth().padding(top = 40.dp), horizontalAlignment = Alignment.CenterHorizontally){
                 Button(onClick = {
@@ -74,7 +75,7 @@ fun CredentialScreen(index: Int){
                     }
                     globalBack()
                 }) {
-                    Text("Delete")
+                    Text(Resources.BUTTON_DELETE)
                 }
             }
         }
