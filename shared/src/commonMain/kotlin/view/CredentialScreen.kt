@@ -28,15 +28,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import globalBack
 import kotlinx.serialization.Serializable
-import org.jetbrains.compose.resources.ExperimentalResourceApi
-import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
 
 @Serializable
 data class Credential(val firstName: String, val lastName: String, val birthDate: String)
 
-fun createCredential(payload: String): Credential {
+suspend fun createCredential(payload: String): Credential {
     return Json.decodeFromString<Credential>(payload)
 }
 

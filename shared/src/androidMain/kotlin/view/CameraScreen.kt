@@ -42,7 +42,7 @@ import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import globalBack
-import org.jetbrains.compose.resources.ExperimentalResourceApi
+import kotlinx.coroutines.launch
 import java.util.*
 import java.util.concurrent.Executors
 import kotlin.coroutines.resume
@@ -82,6 +82,8 @@ private fun CameraWithGrantedPermission(
     modifier: Modifier,
     onFoundPayload: (text: String) -> Unit
 ) {
+
+    val coroutineScope = rememberCoroutineScope()
     val foundQrCode = remember { mutableStateOf(false)  }
 
     val context = LocalContext.current
@@ -137,7 +139,10 @@ private fun CameraWithGrantedPermission(
 
                                 val payload = barcode.rawValue.toString()
                                 foundQrCode.value = true
-                                credentialList.value.add(createCredential(payload))
+                                coroutineScope.launch {
+                                    credentialList.value.add(createCredential(payload = payload))
+                                }
+
                                 onFoundPayload(payload)
                                 break
                             }

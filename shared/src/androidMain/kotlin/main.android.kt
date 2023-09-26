@@ -32,8 +32,10 @@ actual fun getColorScheme(): ColorScheme{
     }
 }
 
-@Composable fun MainView() = App(WalletMain(objectFactory = object : ObjectFactory{
-    override suspend fun loadCryptoService(): KmmResult<CryptoService> {
-        return KmmResult.success(DefaultCryptoService())
-    }
-}))
+@Composable fun MainView() {
+    App(WalletMain(objectFactory = object : ObjectFactory{
+        override suspend fun loadCryptoService(): KmmResult<CryptoService> {
+            return KmmResult.success(DefaultCryptoService())
+        }
+    }, dataStoreService = DataStoreService(getDataStore(LocalContext.current))))
+}

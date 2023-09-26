@@ -37,6 +37,9 @@ kotlin {
                 api("at.asitplus.wallet:vclib:3.0.1")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json")
                 api(napier())
+                implementation("androidx.datastore:datastore-preferences-core:1.1.0-alpha05")
+                implementation("androidx.datastore:datastore-core-okio:1.1.0-alpha05")
+                implementation("org.jetbrains.kotlinx:atomicfu:0.21.0")
             }
         }
         val androidMain by getting {

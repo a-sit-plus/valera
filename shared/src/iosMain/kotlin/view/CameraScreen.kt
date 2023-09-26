@@ -74,10 +74,12 @@ import platform.darwin.dispatch_get_main_queue
 import platform.darwin.dispatch_queue_t
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 // Modified from https://github.com/JetBrains/compose-multiplatform/blob/master/examples/imageviewer/shared/src/iosMain/kotlin/example/imageviewer/view/CameraView.ios.kt
@@ -156,6 +158,7 @@ private fun BoxScope.AuthorizedCamera(onFoundPayload: (text: String) -> Unit){
 @OptIn(ExperimentalResourceApi::class, ExperimentalForeignApi::class, BetaInteropApi::class)
 @Composable
 private fun BoxScope.RealDeviceCamera(camera: AVCaptureDevice, onFoundPayload: (text: String) -> Unit){
+    val coroutineScope = rememberCoroutineScope()
     val foundQrCode = remember { mutableStateOf(false)  }
 
     val capturePhotoOutput = remember { AVCapturePhotoOutput() }
@@ -176,7 +179,9 @@ private fun BoxScope.RealDeviceCamera(camera: AVCaptureDevice, onFoundPayload: (
                     val readableObject = didOutputMetadataObjects.first() as AVMetadataMachineReadableCodeObject
                     if(readableObject.stringValue != null && !foundQrCode.value){
                         val payload = readableObject.stringValue.toString()
-                        credentialList.value.add(createCredential(payload))
+                        coroutineScope.launch {
+                            credentialList.value.add(createCredential(payload = payload))
+                        }
                         foundQrCode.value = true
                         onFoundPayload(payload)
                     }
