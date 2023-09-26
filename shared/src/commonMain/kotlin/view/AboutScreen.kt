@@ -42,7 +42,6 @@ fun AboutScreen(){
             Box(Modifier.clip(shape = RoundedCornerShape(10.dp)).background(color = Color.White).fillMaxWidth().padding(20.dp)){
                 Column {
                     Text("Version: 0.0.1")
-                    Text("License: 123")
                     Text("Icons from: icons8.com")
                     Text("Pictures from: icons8.com")
                 }
