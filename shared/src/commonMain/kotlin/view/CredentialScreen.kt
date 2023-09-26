@@ -35,7 +35,6 @@ import kotlinx.serialization.json.*
 data class Credential(val firstName: String, val lastName: String, val birthDate: String)
 
 suspend fun createCredential(payload: String): Credential {
-    GlobalDataStoreService.setData(key = "payload", value = payload)
     return Json.decodeFromString<Credential>(payload)
 }
 

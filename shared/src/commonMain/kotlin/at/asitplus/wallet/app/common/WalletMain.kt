@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app.common
 
+import DataStoreService
 import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.CryptoService
 
@@ -7,7 +8,8 @@ import at.asitplus.wallet.lib.agent.CryptoService
  * Main class to hold all services needed in the Compose App.
  */
 class WalletMain(
-    val objectFactory: ObjectFactory
+    val objectFactory: ObjectFactory,
+    val dataStoreService: DataStoreService
 ) {
 
     suspend fun getCryptoServiceIdentifier(): String {
@@ -16,7 +18,6 @@ class WalletMain(
         }
         return cryptoService.identifier
     }
-
 }
 
 /**

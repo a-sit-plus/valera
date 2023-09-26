@@ -19,15 +19,11 @@ import view.HomeScreen
 import view.PayloadScreen
 
 @Composable
-fun App(walletMain: WalletMain, dataStoreService: DataStoreService) {
-    GlobalDataStoreService = dataStoreService
+fun App(walletMain: WalletMain) {
     WalletTheme {
         nav()
     }
 }
-
-lateinit var GlobalDataStoreService: DataStoreService
-
 var globalBack: () -> Unit = {}
 
 @Composable

@@ -11,17 +11,16 @@ import okio.Path.Companion.toPath
 class DataStoreService(private var dataStore: DataStore<Preferences>){
     suspend fun setData(value: String, key: String){
         val dataStoreKey = stringPreferencesKey(key)
-
         dataStore.edit {
             it[dataStoreKey] = value
         }
     }
 
-    suspend fun getData(key: String){
+    suspend fun getData(key: String): String?{
         val dataStoreKey = stringPreferencesKey(key)
         val preferences = dataStore.data.first()
         val value = preferences[dataStoreKey]
-
+        return value
     }
 }
 

@@ -37,5 +37,5 @@ actual fun getColorScheme(): ColorScheme{
         override suspend fun loadCryptoService(): KmmResult<CryptoService> {
             return KmmResult.success(DefaultCryptoService())
         }
-    }), dataStoreService = DataStoreService(getDataStore(LocalContext.current)))
+    }, dataStoreService = DataStoreService(getDataStore(LocalContext.current))))
 }
