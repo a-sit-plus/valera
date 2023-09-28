@@ -46,7 +46,7 @@ class AndroidCryptoService(private val keyPair: KeyPair, certificate: Certificat
 
     override suspend fun sign(input: ByteArray): KmmResult<ByteArray> =
         try {
-            val signed = Signature.getInstance(jwsAlgorithm.jcaName, "AndroidKeyStore").apply {
+            val signed = Signature.getInstance(jwsAlgorithm.jcaName).apply {
                 initSign(keyPair.private)
                 update(input)
             }.sign()
