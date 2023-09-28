@@ -1,0 +1,19 @@
+package navigation
+
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
+actual class HomePage : Page, Parcelable
+
+@Parcelize
+actual class AboutPage : Page, Parcelable
+
+@Parcelize
+actual class CredentialPage actual constructor(actual val info: Int) : Page, Parcelable
+
+@Parcelize
+actual class CameraPage : Page, Parcelable
+
+@Parcelize
+actual class PayloadPage actual constructor(actual val info: String) : Page, Parcelable

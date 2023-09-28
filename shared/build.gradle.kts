@@ -5,6 +5,8 @@ plugins {
     id("com.android.library")
     id("org.jetbrains.compose")
     id("at.asitplus.gradle.conventions")
+    id("kotlin-parcelize")
+    kotlin("plugin.serialization")
 }
 
 kotlin {
@@ -33,14 +35,25 @@ kotlin {
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
                 api("at.asitplus.wallet:vclib:3.0.1")
+                implementation(serialization("json"))
                 api(napier())
+                implementation("androidx.datastore:datastore-preferences-core:1.1.0-alpha05")
+                implementation("androidx.datastore:datastore-core-okio:1.1.0-alpha05")
+                implementation("org.jetbrains.kotlinx:atomicfu:0.21.0")
             }
         }
         val androidMain by getting {
             dependencies {
                 api("androidx.activity:activity-compose:1.7.2")
                 api("androidx.appcompat:appcompat:1.6.1")
-                api("androidx.core:core-ktx:1.10.1")
+                api("androidx.core:core-ktx:1.12.0")
+
+                implementation("androidx.camera:camera-camera2:1.2.3")
+                implementation("androidx.camera:camera-lifecycle:1.2.3")
+                implementation("androidx.camera:camera-view:1.2.3")
+                implementation("com.google.accompanist:accompanist-permissions:0.30.1")
+                implementation("com.google.mlkit:barcode-scanning:17.2.0")
+
             }
         }
         val iosX64Main by getting

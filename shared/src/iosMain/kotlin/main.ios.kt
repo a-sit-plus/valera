@@ -1,8 +1,21 @@
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.window.ComposeUIViewController
 import at.asitplus.wallet.app.common.ObjectFactory
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.lib.agent.CryptoService
 
 actual fun getPlatformName(): String = "iOS"
 
-fun MainViewController(objectFactory: ObjectFactory) = ComposeUIViewController { App(WalletMain(objectFactory)) }
+@Composable
+actual fun getColorScheme(): ColorScheme{
+    return if(isSystemInDarkTheme()){
+        darkColorScheme()
+    } else {
+        lightColorScheme()
+    }
+}
+
+fun MainViewController(objectFactory: ObjectFactory) = ComposeUIViewController { App(WalletMain(objectFactory, dataStoreService = DataStoreService(createDataStore()))) }
