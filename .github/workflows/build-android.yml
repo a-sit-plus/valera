@@ -8,8 +8,18 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: recursive
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Prepare files from secrets
+        run: |
+          echo "${{ secrets.ANDROID_CERT_CONTENT }}" | base64 -d - > androidApp/keystore.p12
       - name: Build apk
         run: ./gradlew :androidApp:assemble
+        env:
+          ANDROID_CERT_PASSWORD: ${{ secrets.ANDROID_CERT_PASSWORD }}
+          CI: true
       - name: Upload apk debug
         uses: actions/upload-artifact@v3
         with:

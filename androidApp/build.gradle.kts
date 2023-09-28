@@ -21,12 +21,25 @@ android {
 
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
 
+    signingConfigs {
+        if (System.getenv("CI") != null) {
+            create("github") {
+                storeFile = file("keystore.p12")
+                storePassword = System.getenv("ANDROID_CERT_PASSWORD")
+                keyAlias = "key0"
+                keyPassword = System.getenv("ANDROID_CERT_PASSWORD")
+            }
+        }
+    }
     defaultConfig {
         applicationId = "at.asitplus.wallet.app.android"
         minSdk = (findProperty("android.minSdk") as String).toInt()
         targetSdk = (findProperty("android.targetSdk") as String).toInt()
         versionCode = 1
         versionName = "1.0"
+        if (System.getenv("CI") != null) {
+            signingConfig = signingConfigs.getByName("github")
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

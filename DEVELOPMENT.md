@@ -17,3 +17,12 @@ Required secrets for GitHub Actions:
 - `APPLE_API_KEY_CONTENT` with the Base64-encoded content of the `p8` file from the App Store Connect API Key
 - `APPLE_CERT_CONTENT` with the Base64-encoded content of the `p12` certificate you've exported
 - `APPLE_CERT_PASSWORD` with the password of the certificate you've exported
+
+For Android we use a keystore to sign and build the app.
+
+Setup:
+ - Create a new keystore, e.g. from Android Studio
+
+Required secrets for GitHub Actions:
+ - `ANDROID_CERT_CONTENT` with the Base64-encoded content of the `p12` keystore you've created
+ - `ANDROID_CERT_PASSWORD` with the password for the keystore you've exported
