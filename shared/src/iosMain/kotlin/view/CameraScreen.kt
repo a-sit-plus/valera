@@ -79,6 +79,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
@@ -278,7 +280,9 @@ private fun BoxScope.RealDeviceCamera(camera: AVCaptureDevice, onFoundPayload: (
                 val cameraContainer = UIView()
                 cameraContainer.layer.addSublayer(cameraPreviewLayer)
                 cameraPreviewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill
-                captureSession.startRunning()
+                CoroutineScope(Dispatchers.Default).launch {
+                    captureSession.startRunning()
+                }
                 cameraContainer
             },
             onResize = { view: UIView, rect: CValue<CGRect> ->
