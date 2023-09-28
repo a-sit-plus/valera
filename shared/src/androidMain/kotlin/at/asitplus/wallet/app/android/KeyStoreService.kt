@@ -31,7 +31,7 @@ class AndroidKeyStoreService : KeyStoreService {
                 .setKeySize(256)
                 .setDigests(KeyProperties.DIGEST_SHA256)
                 .setCertificateNotBefore(Date())
-                .setUserAuthenticationRequired(true)
+                .setUserAuthenticationRequired(false)
                 .apply {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                         setUserAuthenticationParameters(0, AUTH_BIOMETRIC_STRONG or AUTH_DEVICE_CREDENTIAL)

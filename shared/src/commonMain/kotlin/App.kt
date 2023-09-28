@@ -4,6 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.lib.agent.CryptoService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import navigation.AboutPage
 import navigation.CameraPage
 import navigation.CredentialPage
@@ -18,8 +22,19 @@ import view.CredentialScreen
 import view.HomeScreen
 import view.PayloadScreen
 
+lateinit var globalCrypto: CryptoService
+lateinit var globalData: DataStoreService
+
+
 @Composable
 fun App(walletMain: WalletMain) {
+    CoroutineScope(Dispatchers.Default).launch{
+        walletMain.objectFactory.loadCryptoService().onSuccess {
+            globalCrypto = it
+        }
+        globalData = walletMain.dataStoreService
+    }
+
     WalletTheme {
         nav()
     }

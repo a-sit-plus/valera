@@ -22,6 +22,13 @@ class DataStoreService(private var dataStore: DataStore<Preferences>){
         val value = preferences[dataStoreKey]
         return value
     }
+
+    suspend fun delData(key: String){
+        val dataStoreKey = stringPreferencesKey(key)
+        dataStore.edit {
+            it.remove(dataStoreKey)
+        }
+    }
 }
 
 // Modified from https://github.com/android/kotlin-multiplatform-samples/tree/main
