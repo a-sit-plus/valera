@@ -30,6 +30,13 @@ android {
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
 
     signingConfigs {
+        create("release") {
+            storeFile =
+                file("signer.jks")
+            storePassword = "changeit"
+            keyAlias = "key1"
+            keyPassword = "changeit"
+        }
         if (System.getenv("CI") != null) {
             create("github") {
                 storeFile = file("keystore.p12")
