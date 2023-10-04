@@ -16,12 +16,27 @@ kotlin {
 }
 
 android {
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("signer.jks")
+            storePassword = "changeit"
+            keyAlias = "key1"
+            keyPassword = "changeit"
+        }
+    }
     compileSdk = (findProperty("android.compileSdk") as String).toInt()
     namespace = "at.asitplus.wallet.app.android"
 
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
 
     signingConfigs {
+        create("release") {
+            storeFile =
+                file("signer.jks")
+            storePassword = "changeit"
+            keyAlias = "key1"
+            keyPassword = "changeit"
+        }
         if (System.getenv("CI") != null) {
             create("github") {
                 storeFile = file("keystore.p12")
