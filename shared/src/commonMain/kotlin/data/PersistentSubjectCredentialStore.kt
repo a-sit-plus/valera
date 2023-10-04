@@ -12,6 +12,7 @@ import at.asitplus.wallet.lib.cbor.CoseKey
 import at.asitplus.wallet.lib.data.AtomicAttribute2023
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.VerifiableCredentialJws
+import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.iso.DrivingPrivilege
 import at.asitplus.wallet.lib.iso.ElementValue
 import at.asitplus.wallet.lib.iso.IsoDataModelConstants.DataElements
@@ -25,6 +26,10 @@ import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDate
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Serializer
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.minutes
 
@@ -73,21 +78,22 @@ suspend fun getCredentials(storageService: SubjectCredentialStore){
 class PersistentSubjectCredentialStore() : SubjectCredentialStore {
     private val dataStore = globalData
     private val dataKey = "VCs"
+    private val idHolders = runBlocking { importFromDataStore() }
 
     override suspend fun getAttachment(name: String): KmmResult<ByteArray> {
-        val attachment = getIdList().idHolders.firstNotNullOfOrNull { it.attachments[name] }
+        val attachment = idHolders.firstNotNullOfOrNull { it.attachments[name] }
         return attachment?.let { KmmResult.success(it) }
             ?: KmmResult.failure(Exception("Attachment $name not found"))
     }
 
     override suspend fun getAttachment(name: String, vcId: String): KmmResult<ByteArray> {
-        return getIdList().idHolders.firstOrNull { it.id == vcId }?.attachments?.get(name)
+        return idHolders.firstOrNull { it.id == vcId }?.attachments?.get(name)
             ?.let { KmmResult.success(it) }
             ?: KmmResult.failure(Exception("Attachment $name not found"))
     }
 
     override suspend fun getCredentials(requiredAttributeTypes: Collection<String>?): KmmResult<List<SubjectCredentialStore.StoreEntry>> {
-        val filtered = getIdList().idHolders
+        val filtered = idHolders
             .asSequence()
             .map { it.credentials }.flatten()
             .filter {
@@ -95,7 +101,7 @@ class PersistentSubjectCredentialStore() : SubjectCredentialStore {
                     it.attrTypes.any { it in types }
                 } ?: true
             }
-        val approved = getCredentialsInternal(getIdList().idHolders, requiredAttributeTypes)
+        val approved = getCredentialsInternal(idHolders, requiredAttributeTypes)
         return KmmResult.success(
             filtered.filter {
                 approved.contains(it.attrName) || it.attrTypes.any { approved.contains(it) }
@@ -125,26 +131,24 @@ class PersistentSubjectCredentialStore() : SubjectCredentialStore {
 
     override suspend fun storeAttachment(name: String, data: ByteArray, vcId: String) {
             Napier.d("storing attachment $name in VC $vcId")
-            val idList = getIdList()
-            val matchingHolder = idList.idHolders.getHolderFromVcId(vcId)
+            val matchingHolder = idHolders.getHolderFromVcId(vcId)
             if (matchingHolder != null) {
                 matchingHolder.attachments[name] = data
             } else {
                 Napier.e("No vc with ID $vcId found to store the attachment $name")
             }
-            setIdList(idList)
+        exportToDataStore()
         }
 
     override suspend fun storeCredential(vc: VerifiableCredentialJws, vcSerialized: String) {
         Napier.d("storing $vcSerialized")
-        val idList = getIdList()
-        val idHolder = idList.getOrCreate(vc.subject)
+        val idHolder = idHolders.find { credentials -> credentials.id == vc.subject } ?: IdHolder(vc.subject, idHolders.size.toLong()).also { creds -> idHolders.add(creds) }
         // TODO CK analyze usage of attrName
         val attrName = (vc.vc.credentialSubject as? AtomicAttribute2023)?.name
             ?: "NULL"
         val attrTypes = vc.vc.type
         idHolder.credentials.add(IdVc(attrName, attrTypes, vcSerialized, vc.serialize()))
-        setIdList(idList)
+        exportToDataStore()
     }
 
     override suspend fun storeCredential(issuerSigned: IssuerSigned) {
@@ -152,17 +156,18 @@ class PersistentSubjectCredentialStore() : SubjectCredentialStore {
         TODO("Not yet implemented")
     }
 
-    private suspend fun getIdList(): IdList {
-        return runBlocking {  dataStore.getData(dataKey)?.let { IdList.deserialize(it) } ?: IdList(arrayListOf()) }
+    private suspend fun exportToDataStore() {
+        runBlocking {
+            val json = jsonSerializer.encodeToString(idHolders)
+            dataStore.setData(value = json, key = dataKey)
+        }
     }
 
-    private suspend fun setIdList(idList: IdList) {
-        runBlocking { dataStore.setData(value = idList.serialize(), key = dataKey) }
+    private suspend fun importFromDataStore(): ArrayList<IdHolder> {
+        val input = dataStore.getData(dataKey)
+        return jsonSerializer.decodeFromString(input.toString()) ?: arrayListOf<IdHolder>()
     }
-
-
 }
-
 
 class DummyCredentialDataProvider(
     private val clock: Clock = Clock.System,
@@ -210,6 +215,7 @@ class DummyCredentialDataProvider(
                 )
             )
         }
+        
         if (attributeTypes.contains(ConstantIndex.MobileDrivingLicence2023.vcType) && subjectPublicKey != null) {
             val drivingPrivilege = DrivingPrivilege(
                 vehicleCategoryCode = "B",
