@@ -1,6 +1,7 @@
 package data
 
 import at.asitplus.KmmResult
+import at.asitplus.wallet.idaustria.IdAustriaCredential
 import at.asitplus.wallet.lib.agent.CredentialToBeIssued
 import at.asitplus.wallet.lib.agent.DefaultCryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
@@ -8,9 +9,9 @@ import at.asitplus.wallet.lib.agent.Issuer
 import at.asitplus.wallet.lib.agent.IssuerAgent
 import at.asitplus.wallet.lib.agent.IssuerCredentialDataProvider
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.cbor.CoseKey
 import at.asitplus.wallet.lib.data.AtomicAttribute2023
-import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.VerifiableCredentialJws
 import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.iso.DrivingPrivilege
@@ -51,7 +52,7 @@ suspend fun setCredentials(storageService: SubjectCredentialStore){
                 dataProvider = DummyCredentialDataProvider(), // TODO neu implementieren, mit IDAustriaCredential
             ).issueCredentialWithTypes(
                 holderAgent.identifier,
-                attributeTypes = listOf(ConstantIndex.AtomicAttribute2023.vcType) // hier auch IDAustriaCredential
+                attributeTypes = listOf(data.ConstantIndex.IdAustriaCredential.vcType) // hier auch IDAustriaCredential
             ).toStoreCredentialInput()
         )
     }
@@ -66,6 +67,9 @@ suspend fun getCredentials(storageService: SubjectCredentialStore){
                 is AtomicAttribute2023 -> {
                     println(subject.name)
                     println(subject.value)
+                }
+                is IdAustriaCredential -> {
+                    println(subject)
                 }
             }
 
@@ -170,7 +174,7 @@ class PersistentSubjectCredentialStore() : SubjectCredentialStore {
 }
 
 class DummyCredentialDataProvider(
-    private val clock: Clock = Clock.System,
+    private val clock: Clock = Clock.System
 ) : IssuerCredentialDataProvider {
 
     private val defaultLifetime = 1.minutes
@@ -237,11 +241,22 @@ class DummyCredentialDataProvider(
                     issuerSignedItems = issuerSignedItems,
                     subjectPublicKey = subjectPublicKey,
                     expiration = expiration,
-                    attributeType = ConstantIndex.MobileDrivingLicence2023.vcType,
+                    attributeType = at.asitplus.wallet.lib.data.ConstantIndex.MobileDrivingLicence2023.vcType,
                 )
             )
         }
-        return KmmResult.success(listOfAttributes)
+
+        if (attributeTypes.contains(data.ConstantIndex.IdAustriaCredential.vcType)) {
+            listOfAttributes.add(
+                CredentialToBeIssued.Vc(
+                    IdAustriaCredential(credentialId = subjectId, firstname = "Susanne", lastname = "Meier", dateOfBirth = LocalDate(1990,1,1), portrait = null),
+                    expiration,
+                    data.ConstantIndex.IdAustriaCredential.vcType,
+                )
+            )
+        }
+
+            return KmmResult.success(listOfAttributes)
     }
 
     private fun randomValue() = Random.nextBytes(32).encodeToString(Base16(strict = true))

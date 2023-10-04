@@ -1,10 +1,12 @@
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.LocalMinimumTouchTargetEnforcement
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.CryptoService
+import data.Initializer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -34,6 +36,7 @@ fun App(walletMain: WalletMain) {
         }
         globalData = walletMain.dataStoreService
     }
+    Initializer.initWithVcLib()
 
     WalletTheme {
         nav()
