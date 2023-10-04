@@ -1,3 +1,5 @@
+package data
+
 import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.CredentialToBeIssued
 import at.asitplus.wallet.lib.agent.DefaultCryptoService
@@ -15,16 +17,14 @@ import at.asitplus.wallet.lib.iso.ElementValue
 import at.asitplus.wallet.lib.iso.IsoDataModelConstants.DataElements
 import at.asitplus.wallet.lib.iso.IssuerSigned
 import at.asitplus.wallet.lib.iso.IssuerSignedItem
-import data.IdHolder
-import data.IdList
-import data.IdVc
+import globalCrypto
+import globalData
 import io.github.aakira.napier.Napier
 import io.matthewnelson.encoding.base16.Base16
 import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDate
-import kotlin.coroutines.suspendCoroutine
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.minutes
 
@@ -72,7 +72,7 @@ suspend fun getCredentials(storageService: SubjectCredentialStore){
 
 class PersistentSubjectCredentialStore() : SubjectCredentialStore {
     private val dataStore = globalData
-    private val KEY = "VCs"
+    private val dataKey = "VCs"
 
     override suspend fun getAttachment(name: String): KmmResult<ByteArray> {
         val attachment = getIdList().idHolders.firstNotNullOfOrNull { it.attachments[name] }
@@ -109,7 +109,7 @@ class PersistentSubjectCredentialStore() : SubjectCredentialStore {
                 .toList())
     }
 
-    private suspend fun getCredentialsInternal(
+    private fun getCredentialsInternal(
         idList: ArrayList<IdHolder>,
         requiredAttributeTypes: Collection<String>?
     ): Collection<String> {
@@ -125,26 +125,26 @@ class PersistentSubjectCredentialStore() : SubjectCredentialStore {
 
     override suspend fun storeAttachment(name: String, data: ByteArray, vcId: String) {
             Napier.d("storing attachment $name in VC $vcId")
-            val idList = getIdListForEdit()
+            val idList = getIdList()
             val matchingHolder = idList.idHolders.getHolderFromVcId(vcId)
             if (matchingHolder != null) {
                 matchingHolder.attachments[name] = data
             } else {
                 Napier.e("No vc with ID $vcId found to store the attachment $name")
             }
-            updateIdListAfterEdit(idList)
+            setIdList(idList)
         }
 
     override suspend fun storeCredential(vc: VerifiableCredentialJws, vcSerialized: String) {
         Napier.d("storing $vcSerialized")
-        val idList = getIdListForEdit()
+        val idList = getIdList()
         val idHolder = idList.getOrCreate(vc.subject)
         // TODO CK analyze usage of attrName
         val attrName = (vc.vc.credentialSubject as? AtomicAttribute2023)?.name
             ?: "NULL"
         val attrTypes = vc.vc.type
         idHolder.credentials.add(IdVc(attrName, attrTypes, vcSerialized, vc.serialize()))
-        updateIdListAfterEdit(idList)
+        setIdList(idList)
     }
 
     override suspend fun storeCredential(issuerSigned: IssuerSigned) {
@@ -152,18 +152,15 @@ class PersistentSubjectCredentialStore() : SubjectCredentialStore {
         TODO("Not yet implemented")
     }
 
-    private fun getIdListForEdit(): IdList {
-        return runBlocking {  dataStore.getData(KEY)?.let { IdList.deserialize(it) } ?: IdList(arrayListOf()) }
+    private suspend fun getIdList(): IdList {
+        return runBlocking {  dataStore.getData(dataKey)?.let { IdList.deserialize(it) } ?: IdList(arrayListOf()) }
     }
 
-    private fun updateIdListAfterEdit(idList: IdList) {
-        runBlocking { dataStore.setData(value = idList.serialize(), key = KEY) }
-
+    private suspend fun setIdList(idList: IdList) {
+        runBlocking { dataStore.setData(value = idList.serialize(), key = dataKey) }
     }
 
-    suspend fun getIdList(): IdList {
-        return getIdListForEdit()
-    }
+
 }
 
 

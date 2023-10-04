@@ -1,5 +1,4 @@
 package data
-import at.asitplus.digitalid.wallet.data.IdHolderCredentialFactory
 import at.asitplus.wallet.lib.data.VerifiableCredentialJws
 import kotlinx.serialization.Serializable
 import kotlin.jvm.Transient
@@ -9,13 +8,6 @@ data class IdHolder(
     val id: String, var pos: Long, val credentials: ArrayList<IdVc> = arrayListOf(),
     val attachments: HashMap<String, ByteArray> = hashMapOf()
 ) {
-
-    fun getIdHolderCredential(): IdHolderCredential? {
-        val list = credentials.map { it.vcJwsSerialized }
-            .map { VerifiableCredentialJws.deserialize(it) }
-        return IdHolderCredentialFactory.from(list)
-    }
-
     fun vcIdExist(vcId: String): Boolean{
         val list = credentials.map { it.vcJwsSerialized }
             .map { VerifiableCredentialJws.deserialize(it) }
@@ -26,8 +18,6 @@ data class IdHolder(
         }
         return false
     }
-
-    fun getPupilIdJwsSerialized(): String? = credentials.map { it.vcJwsSerialized }.firstOrNull()
 
     @Transient
     @kotlinx.serialization.Transient
@@ -45,21 +35,6 @@ data class IdHolder(
         .map { it?.vc?.credentialStatus?.id }
         .firstOrNull()
 }
-
-interface IdHolderCredential {
-
-    val displayName: String
-
-    val displayType: String
-
-    val id: String?
-
-    val vcId: String?
-
-    val attributeTypes: Array<String>
-
-}
-
 
 @Serializable
 data class IdVc(
