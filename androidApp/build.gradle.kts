@@ -16,6 +16,14 @@ kotlin {
 }
 
 android {
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("signer.jks")
+            storePassword = "changeit"
+            keyAlias = "key1"
+            keyPassword = "changeit"
+        }
+    }
     compileSdk = (findProperty("android.compileSdk") as String).toInt()
     namespace = "at.asitplus.wallet.app.android"
 
