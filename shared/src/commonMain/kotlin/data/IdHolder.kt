@@ -5,7 +5,7 @@ import kotlin.jvm.Transient
 
 @Serializable
 data class IdHolder(
-    val id: String, var pos: Long, val credentials: ArrayList<IdVc> = arrayListOf(),
+    val id: String, val credentials: ArrayList<IdVc> = arrayListOf(),
     val attachments: HashMap<String, ByteArray> = hashMapOf()
 ) {
     fun vcIdExist(vcId: String): Boolean{

@@ -51,7 +51,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
-import data.testDataStore
 import kotlinx.coroutines.runBlocking
 
 var showCredentials = mutableStateOf(false)
@@ -167,7 +166,7 @@ fun AddIdCard(onScanQrCode: () -> Unit) {
                     Text(Resources.BUTTON_SCAN_QR, color = Color(48, 68, 113), fontSize = 15.sp, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.size(30.dp))
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable(onClick = {CoroutineScope(Dispatchers.Default).launch { testDataStore() }}).fillMaxWidth()) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable(onClick = {CoroutineScope(Dispatchers.Default).launch { }}).fillMaxWidth()) {
                     Box(Modifier.size(30.dp), contentAlignment = Alignment.Center){
                         Image(painterResource("icons8-login-100.png"), contentDescription = null, Modifier.height(30.dp))
                     }

@@ -36,15 +36,6 @@ import kotlin.random.Random
 import kotlin.random.nextInt
 import kotlin.time.Duration.Companion.minutes
 
-
-suspend fun testDataStore(){
-
-    setCredentials(PersistentSubjectCredentialStore())
-    getCredentials(PersistentSubjectCredentialStore())
-
-
-}
-
 suspend fun setCredentials(storageService: SubjectCredentialStore){
     val holderAgent = HolderAgent.newDefaultInstance(cryptoService = globalCrypto, subjectCredentialStore =  storageService)
     runBlocking {
@@ -139,7 +130,7 @@ class PersistentSubjectCredentialStore() : SubjectCredentialStore {
         return content
     }
 
-    fun removeCredential(firstName: String, lastName: String){
+    fun removeCredential(id: String){
     }
 
     override suspend fun storeAttachment(name: String, data: ByteArray, vcId: String) {
@@ -155,7 +146,7 @@ class PersistentSubjectCredentialStore() : SubjectCredentialStore {
 
     override suspend fun storeCredential(vc: VerifiableCredentialJws, vcSerialized: String) {
         Napier.d("storing $vcSerialized")
-        val idHolder = idHolders.find { credentials -> credentials.id == vc.subject } ?: IdHolder(vc.subject, idHolders.size.toLong()).also { creds -> idHolders.add(creds) }
+        val idHolder = idHolders.find { credentials -> credentials.id == vc.subject } ?: IdHolder(vc.subject).also { creds -> idHolders.add(creds) }
         // TODO CK analyze usage of attrName
         val attrName = (vc.vc.credentialSubject as? AtomicAttribute2023)?.name
             ?: "NULL"
