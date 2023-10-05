@@ -10,6 +10,7 @@ import data.Initializer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import navigation.AboutPage
 import navigation.CameraPage
 import navigation.CredentialPage
@@ -35,6 +36,7 @@ fun App(walletMain: WalletMain) {
             globalCrypto = it
         }
         globalData = walletMain.dataStoreService
+        globalData.delData("VCs")
     }
     Initializer.initWithVcLib()
 

@@ -77,11 +77,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import data.PersistentSubjectCredentialStore
+import data.setCredentials
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 // Modified from https://github.com/JetBrains/compose-multiplatform/blob/master/examples/imageviewer/shared/src/iosMain/kotlin/example/imageviewer/view/CameraView.ios.kt
@@ -182,6 +185,7 @@ private fun BoxScope.RealDeviceCamera(camera: AVCaptureDevice, onFoundPayload: (
                     if(readableObject.stringValue != null && !foundQrCode.value){
                         val payload = readableObject.stringValue.toString()
                         foundQrCode.value = true
+                        runBlocking { setCredentials(PersistentSubjectCredentialStore()) }
                         onFoundPayload(payload)
                     }
                 } catch(e: Exception) {

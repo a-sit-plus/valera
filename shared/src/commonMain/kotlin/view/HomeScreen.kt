@@ -40,13 +40,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import at.asitplus.wallet.idaustria.IdAustriaCredential
+import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialSubject
+import at.asitplus.wallet.lib.data.dif.CredentialDefinition
+import data.PersistentSubjectCredentialStore
+import data.getCredentials
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import data.testDataStore
+import kotlinx.coroutines.runBlocking
 
 var showCredentials = mutableStateOf(false)
 var credentialList =  mutableStateOf(mutableListOf<CredentialSubject>())
@@ -60,6 +66,11 @@ fun HomeScreen( onAbout: () -> Unit, onCredential: (index: Int) -> Unit, onScanQ
                 if (showCredentials.value == false){
                     AddId(onScanQrCode)
                 } else {
+                    credentialList.value.clear()
+                    runBlocking { getCredentials(PersistentSubjectCredentialStore()).forEach { credential ->
+                            credentialList.value.add(credential)
+                        }
+                    }
                     ShowId(onCredential, onScanQrCode)
                 }
             }
@@ -221,8 +232,14 @@ fun ShowIdCard(onCredential: (index: Int) -> Unit) {
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun IdCard(onCredential: (index: Int) -> Unit, index: Int, modifier: Modifier) {
-    //val name = credentialList.value[index].firstName + " " + credentialList.value[index].lastName
-    val name = "TODO"
+    var name = ""
+    val credential = credentialList.value[index]
+    when(credential) {
+        is IdAustriaCredential -> {
+            name = credential.firstname + " " + credential.lastname
+        }
+    }
+
 
     Box(modifier.padding(start = 20.dp, end = 20.dp).shadow(elevation = 2.dp, shape = RoundedCornerShape(10.dp)).clickable(onClick = {onCredential(index)} )){
         Box(Modifier.clip(shape = RoundedCornerShape(10.dp)).background(color = Color.White).padding(20.dp)){

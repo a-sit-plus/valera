@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import at.asitplus.wallet.idaustria.IdAustriaCredential
 import globalBack
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
@@ -33,9 +34,19 @@ import kotlinx.serialization.json.*
 
 @Composable
 fun CredentialScreen(index: Int){
-    val firstName = "TODO" //credentialList.value[index].firstName
-    val lastName = "TODO" //credentialList.value[index].lastName
-    val birthDate = "TODO" //credentialList.value[index].birthDate
+    var firstName = ""
+    var lastName = ""
+    var birthDate = ""
+
+    val credential = credentialList.value[index]
+    when (credential){
+        is IdAustriaCredential -> {
+            firstName = credential.firstname
+            lastName = credential.lastname
+            birthDate = credential.dateOfBirth.toString()
+        }
+    }
+
     Column() {
         Row(Modifier.padding(10.dp).height(80.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.Close, contentDescription = null, Modifier.size(30.dp).clickable(onClick = { globalBack() }), tint = Color.LightGray)

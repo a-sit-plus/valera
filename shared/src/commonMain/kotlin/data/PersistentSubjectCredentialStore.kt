@@ -12,6 +12,7 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.cbor.CoseKey
 import at.asitplus.wallet.lib.data.AtomicAttribute2023
+import at.asitplus.wallet.lib.data.CredentialSubject
 import at.asitplus.wallet.lib.data.VerifiableCredentialJws
 import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.iso.DrivingPrivilege
@@ -37,7 +38,7 @@ import kotlin.time.Duration.Companion.minutes
 
 
 suspend fun testDataStore(){
-    globalData.delData("VCs")
+
     setCredentials(PersistentSubjectCredentialStore())
     getCredentials(PersistentSubjectCredentialStore())
 
@@ -59,17 +60,20 @@ suspend fun setCredentials(storageService: SubjectCredentialStore){
     }
 }
 
-suspend fun getCredentials(storageService: SubjectCredentialStore){
+suspend fun getCredentials(storageService: SubjectCredentialStore): ArrayList<CredentialSubject> {
+    val credentialList = ArrayList<CredentialSubject>()
     val storeEntries = storageService.getCredentials(null).getOrThrow()
     storeEntries.forEach {entry ->
         when(entry) {
             is SubjectCredentialStore.StoreEntry.Iso -> TODO()
             is SubjectCredentialStore.StoreEntry.Vc -> when (val subject = entry.vc.vc.credentialSubject) {
                 is AtomicAttribute2023 -> {
+                    credentialList.add(subject)
                     println(subject.name)
                     println(subject.value)
                 }
                 is IdAustriaCredential -> {
+                    credentialList.add(subject.copy() )
                     println(subject)
                 }
             }
@@ -77,6 +81,7 @@ suspend fun getCredentials(storageService: SubjectCredentialStore){
             else -> {}
         }
     }
+    return credentialList
 }
 
 
@@ -132,6 +137,9 @@ class PersistentSubjectCredentialStore() : SubjectCredentialStore {
                     .filter { it != "VerifiableCredential" }
                     .distinct().toList()
         return content
+    }
+
+    fun removeCredential(firstName: String, lastName: String){
     }
 
     override suspend fun storeAttachment(name: String, data: ByteArray, vcId: String) {
