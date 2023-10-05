@@ -32,6 +32,7 @@ import kotlinx.serialization.Serializer
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlin.random.Random
+import kotlin.random.nextInt
 import kotlin.time.Duration.Companion.minutes
 
 
@@ -247,9 +248,16 @@ class DummyCredentialDataProvider(
         }
 
         if (attributeTypes.contains(data.ConstantIndex.IdAustriaCredential.vcType)) {
+            val listFirstname = listOf("Max", "Susanne", "Peter", "Petra", "Hans", "Anna", "Martin", "Barbara")
+            val listLastname = listOf("Müller", "Schmidt", "Schneider", "Fischer", "Weber", "Meyer", "Becker", "Koch")
             listOfAttributes.add(
                 CredentialToBeIssued.Vc(
-                    IdAustriaCredential(credentialId = subjectId, firstname = "Susanne", lastname = "Meier", dateOfBirth = LocalDate(1990,1,1), portrait = null),
+                    IdAustriaCredential(
+                        credentialId = subjectId,
+                        firstname = listFirstname[Random.nextInt(listFirstname.size)],
+                        lastname = listLastname[Random.nextInt(listLastname.size)],
+                        dateOfBirth = LocalDate(Random.nextInt(from = 1900, until = 2000),1,1),
+                        portrait = null),
                     expiration,
                     data.ConstantIndex.IdAustriaCredential.vcType,
                 )
