@@ -31,18 +31,11 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
 
 
-@Serializable
-data class Credential(val firstName: String, val lastName: String, val birthDate: String)
-
-suspend fun createCredential(payload: String): Credential {
-    return Json.decodeFromString<Credential>(payload)
-}
-
 @Composable
 fun CredentialScreen(index: Int){
-    val firstName = credentialList.value[index].firstName
-    val lastName = credentialList.value[index].lastName
-    val birthDate = credentialList.value[index].birthDate
+    val firstName = "TODO" //credentialList.value[index].firstName
+    val lastName = "TODO" //credentialList.value[index].lastName
+    val birthDate = "TODO" //credentialList.value[index].birthDate
     Column() {
         Row(Modifier.padding(10.dp).height(80.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.Close, contentDescription = null, Modifier.size(30.dp).clickable(onClick = { globalBack() }), tint = Color.LightGray)

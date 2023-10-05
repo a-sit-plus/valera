@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import at.asitplus.wallet.lib.data.CredentialSubject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -48,7 +49,7 @@ import org.jetbrains.compose.resources.painterResource
 import data.testDataStore
 
 var showCredentials = mutableStateOf(false)
-var credentialList =  mutableStateOf(mutableListOf<Credential>())
+var credentialList =  mutableStateOf(mutableListOf<CredentialSubject>())
 
 @Composable
 fun HomeScreen( onAbout: () -> Unit, onCredential: (index: Int) -> Unit, onScanQrCode: () -> Unit) {
@@ -220,7 +221,8 @@ fun ShowIdCard(onCredential: (index: Int) -> Unit) {
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun IdCard(onCredential: (index: Int) -> Unit, index: Int, modifier: Modifier) {
-    val name = credentialList.value[index].firstName + " " + credentialList.value[index].lastName
+    //val name = credentialList.value[index].firstName + " " + credentialList.value[index].lastName
+    val name = "TODO"
 
     Box(modifier.padding(start = 20.dp, end = 20.dp).shadow(elevation = 2.dp, shape = RoundedCornerShape(10.dp)).clickable(onClick = {onCredential(index)} )){
         Box(Modifier.clip(shape = RoundedCornerShape(10.dp)).background(color = Color.White).padding(20.dp)){

@@ -139,10 +139,6 @@ private fun CameraWithGrantedPermission(
 
                                 val payload = barcode.rawValue.toString()
                                 foundQrCode.value = true
-                                coroutineScope.launch {
-                                    credentialList.value.add(createCredential(payload = payload))
-                                }
-
                                 onFoundPayload(payload)
                                 break
                             }

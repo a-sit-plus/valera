@@ -181,9 +181,6 @@ private fun BoxScope.RealDeviceCamera(camera: AVCaptureDevice, onFoundPayload: (
                     val readableObject = didOutputMetadataObjects.first() as AVMetadataMachineReadableCodeObject
                     if(readableObject.stringValue != null && !foundQrCode.value){
                         val payload = readableObject.stringValue.toString()
-                        coroutineScope.launch {
-                            credentialList.value.add(createCredential(payload = payload))
-                        }
                         foundQrCode.value = true
                         onFoundPayload(payload)
                     }
