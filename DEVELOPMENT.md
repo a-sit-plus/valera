@@ -1,5 +1,9 @@
 # Compose Multiplatform Wallet App
 
+## Local deployments
+
+To sign the Android App with the correct signer certificate (used for Key Attestation checks on the backend), add the property `android.cert.password` with the correct password to your `local.properties`. For CI deployments, see below.
+
 ## Deployments
 
 We use [fastlane](https://fastlane.tools/) to build the iOS App. The CI pipeline and secrets on this GitHub repository are already set up correctly. No need to do it again!

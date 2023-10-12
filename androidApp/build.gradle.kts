@@ -16,34 +16,23 @@ kotlin {
 }
 
 android {
-    signingConfigs {
-        getByName("debug") {
-            storeFile = file("signer.jks")
-            storePassword = "changeit"
-            keyAlias = "key1"
-            keyPassword = "changeit"
-        }
-    }
     compileSdk = (findProperty("android.compileSdk") as String).toInt()
     namespace = "at.asitplus.wallet.app.android"
 
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
 
     signingConfigs {
-        create("release") {
-            storeFile =
-                file("signer.jks")
-            storePassword = "changeit"
-            keyAlias = "key1"
-            keyPassword = "changeit"
+        getByName("debug") {
+            storeFile = file("keystore.p12")
+            storePassword = (findProperty("android.cert.password") as String?) ?: System.getenv("ANDROID_CERT_PASSWORD")
+            keyAlias = "key0"
+            keyPassword = findProperty("android.cert.password") as String? ?: System.getenv("ANDROID_CERT_PASSWORD")
         }
-        if (System.getenv("CI") != null) {
-            create("github") {
-                storeFile = file("keystore.p12")
-                storePassword = System.getenv("ANDROID_CERT_PASSWORD")
-                keyAlias = "key0"
-                keyPassword = System.getenv("ANDROID_CERT_PASSWORD")
-            }
+        create("release") {
+            storeFile = file("keystore.p12")
+            storePassword = findProperty("android.cert.password") as String? ?: System.getenv("ANDROID_CERT_PASSWORD")
+            keyAlias = "key0"
+            keyPassword = findProperty("android.cert.password") as String? ?: System.getenv("ANDROID_CERT_PASSWORD")
         }
     }
     defaultConfig {
@@ -52,8 +41,14 @@ android {
         targetSdk = (findProperty("android.targetSdk") as String).toInt()
         versionCode = 1
         versionName = "1.0"
-        if (System.getenv("CI") != null) {
-            signingConfig = signingConfigs.getByName("github")
+    }
+    buildTypes {
+        getByName("debug") {
+            isDebuggable = true
+            signingConfig = signingConfigs.getByName("debug")
+        }
+        getByName("release") {
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {

@@ -12,9 +12,6 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-      - name: Prepare files from secrets
-        run: |
-          echo "${{ secrets.ANDROID_CERT_CONTENT }}" | base64 -d - > androidApp/keystore.p12
       - name: Build apk
         run: ./gradlew :androidApp:assemble
         env:
