@@ -42,6 +42,7 @@ import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import data.PersistentSubjectCredentialStore
+import data.getCredentials
 import data.setCredentials
 import globalBack
 import kotlinx.coroutines.launch
@@ -143,6 +144,7 @@ private fun CameraWithGrantedPermission(
                                 val payload = barcode.rawValue.toString()
                                 foundQrCode.value = true
                                 runBlocking { setCredentials(PersistentSubjectCredentialStore()) }
+                                runBlocking { getCredentials(PersistentSubjectCredentialStore()) }
                                 onFoundPayload(payload)
                                 break
                             }

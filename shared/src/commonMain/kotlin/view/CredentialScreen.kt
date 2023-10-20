@@ -27,20 +27,29 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.idaustria.IdAustriaCredential
+import data.PersistentSubjectCredentialStore
+import data.getCredentials
+import data.getVcs
+import data.removeCredentialById
 import globalBack
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
 
 
 @Composable
 fun CredentialScreen(index: Int){
+    var credentials = runBlocking { getVcs(PersistentSubjectCredentialStore()) }
     var firstName = ""
     var lastName = ""
     var birthDate = ""
 
-    val credential = credentialList.value[index]
+    runBlocking { getVcs(PersistentSubjectCredentialStore()) }
+
+    val credential = credentials[index].credentialSubject
+    val vcId = credentials[index].id
     when (credential){
-        is IdAustriaCredential -> {
+        is IdAustriaCredential ->  {
             firstName = credential.firstname
             lastName = credential.lastname
             birthDate = credential.dateOfBirth.toString()
@@ -71,8 +80,9 @@ fun CredentialScreen(index: Int){
             }
             Column(modifier = Modifier.fillMaxWidth().padding(top = 40.dp), horizontalAlignment = Alignment.CenterHorizontally){
                 Button(onClick = {
-                    credentialList.value.removeAt(index)
-                    if (credentialList.value.size == 0){
+                    runBlocking { removeCredentialById(PersistentSubjectCredentialStore(), vcId) }
+                    credentials = runBlocking { getVcs(PersistentSubjectCredentialStore()) }
+                    if (credentials.size == 0){
                         showCredentials.value = false
                     }
                     globalBack()

@@ -54,7 +54,6 @@ import org.jetbrains.compose.resources.painterResource
 import kotlinx.coroutines.runBlocking
 
 var showCredentials = mutableStateOf(false)
-var credentialList =  mutableStateOf(mutableListOf<CredentialSubject>())
 
 @Composable
 fun HomeScreen( onAbout: () -> Unit, onCredential: (index: Int) -> Unit, onScanQrCode: () -> Unit) {
@@ -65,11 +64,6 @@ fun HomeScreen( onAbout: () -> Unit, onCredential: (index: Int) -> Unit, onScanQ
                 if (showCredentials.value == false){
                     AddId(onScanQrCode)
                 } else {
-                    credentialList.value.clear()
-                    runBlocking { getCredentials(PersistentSubjectCredentialStore()).forEach { credential ->
-                            credentialList.value.add(credential)
-                        }
-                    }
                     ShowId(onCredential, onScanQrCode)
                 }
             }
@@ -221,8 +215,9 @@ fun ShowIdHeader(){
 
 @Composable
 fun ShowIdCard(onCredential: (index: Int) -> Unit) {
+    val credentials = runBlocking { getCredentials(PersistentSubjectCredentialStore()) }
     LazyRow {
-        items(credentialList.value.size){
+        items(credentials.size){
             IdCard(onCredential, index = it, modifier = Modifier.fillParentMaxWidth())
         }
     }
@@ -231,8 +226,9 @@ fun ShowIdCard(onCredential: (index: Int) -> Unit) {
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun IdCard(onCredential: (index: Int) -> Unit, index: Int, modifier: Modifier) {
+    val credentials = runBlocking { getCredentials(PersistentSubjectCredentialStore()) }
     var name = ""
-    val credential = credentialList.value[index]
+    val credential = credentials[index]
     when(credential) {
         is IdAustriaCredential -> {
             name = credential.firstname + " " + credential.lastname
