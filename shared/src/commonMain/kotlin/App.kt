@@ -36,7 +36,6 @@ fun App(walletMain: WalletMain) {
             globalCrypto = it
         }
         globalData = walletMain.dataStoreService
-        globalData.delData("VCs")
     }
     Initializer.initWithVcLib()
 
