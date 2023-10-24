@@ -1,4 +1,4 @@
-package at.asitplus.wallet.idaustria
+package data.idaustria
 
 import at.asitplus.wallet.lib.data.CredentialSubject
 import at.asitplus.wallet.lib.jws.ByteArrayBase64UrlSerializer

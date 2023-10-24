@@ -1,4 +1,4 @@
-package data
+package data.storeage
 import at.asitplus.wallet.lib.data.VerifiableCredentialJws
 import kotlinx.serialization.Serializable
 import kotlin.jvm.Transient

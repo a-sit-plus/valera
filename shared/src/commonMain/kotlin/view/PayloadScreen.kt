@@ -14,7 +14,6 @@ fun PayloadScreen(text: String, onContinueClick: () -> Unit){
         Text(text, fontSize = 18.sp)
 
         Button(onClick = {
-            showCredentials.value = true
             onContinueClick()
         }) {
             Text(Resources.BUTTON_CONTINUE)

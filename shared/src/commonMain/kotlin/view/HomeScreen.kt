@@ -40,28 +40,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import at.asitplus.wallet.idaustria.IdAustriaCredential
-import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.data.CredentialSubject
-import at.asitplus.wallet.lib.data.dif.CredentialDefinition
-import data.PersistentSubjectCredentialStore
-import data.getCredentials
+import data.idaustria.IdAustriaCredential
+import data.storeage.PersistentSubjectCredentialStore
+import data.storeage.getCredentials
+import data.storeage.getVcs
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import kotlinx.coroutines.runBlocking
-
-var showCredentials = mutableStateOf(false)
-
 @Composable
 fun HomeScreen( onAbout: () -> Unit, onCredential: (index: Int) -> Unit, onScanQrCode: () -> Unit) {
     Box(){
         Column(Modifier.fillMaxSize()) {
             Header(onAbout = onAbout)
             Column(Modifier.background(color = MaterialTheme.colorScheme.primaryContainer).fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-                if (showCredentials.value == false){
+                if (runBlocking { getVcs(PersistentSubjectCredentialStore()) }.size == 0){
                     AddId(onScanQrCode)
                 } else {
                     ShowId(onCredential, onScanQrCode)

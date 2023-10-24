@@ -1,4 +1,4 @@
-package data
+package data.idaustria
 
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.SchemaIndex.BASE
@@ -10,6 +10,5 @@ object ConstantIndex {
         override val vcType: String = "IdAustria2023"
         override val credentialFormat: ConstantIndex.CredentialFormat = ConstantIndex.CredentialFormat.W3C_VC
     }
-
 }
 

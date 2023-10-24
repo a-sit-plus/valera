@@ -1,7 +1,6 @@
-package data
+package data.storeage
 
 import at.asitplus.KmmResult
-import at.asitplus.wallet.idaustria.IdAustriaCredential
 import at.asitplus.wallet.lib.agent.CredentialToBeIssued
 import at.asitplus.wallet.lib.agent.DefaultCryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
@@ -21,6 +20,7 @@ import at.asitplus.wallet.lib.iso.ElementValue
 import at.asitplus.wallet.lib.iso.IsoDataModelConstants.DataElements
 import at.asitplus.wallet.lib.iso.IssuerSigned
 import at.asitplus.wallet.lib.iso.IssuerSignedItem
+import data.idaustria.IdAustriaCredential
 import globalCrypto
 import globalData
 import io.github.aakira.napier.Napier
@@ -42,7 +42,7 @@ suspend fun setCredentials(storageService: SubjectCredentialStore){
                 dataProvider = DummyCredentialDataProvider(),
             ).issueCredentialWithTypes(
                 holderAgent.identifier,
-                attributeTypes = listOf(data.ConstantIndex.IdAustriaCredential.vcType)
+                attributeTypes = listOf(data.idaustria.ConstantIndex.IdAustriaCredential.vcType)
             ).toStoreCredentialInput()
         )
     }
@@ -75,12 +75,9 @@ suspend fun getCredentials(storageService: SubjectCredentialStore): ArrayList<Cr
             is SubjectCredentialStore.StoreEntry.Vc -> when (val subject = entry.vc.vc.credentialSubject) {
                 is AtomicAttribute2023 -> {
                     credentialList.add(subject)
-                    println(subject.name)
-                    println(subject.value)
                 }
                 is IdAustriaCredential -> {
                     credentialList.add(subject)
-                    println(subject)
                 }
             }
 
@@ -188,7 +185,6 @@ class PersistentSubjectCredentialStore() : SubjectCredentialStore {
         }
         if (found != null) {
             idHolder.credentials.remove(found)
-            println("Removed Credential with ID: $id")
             exportToDataStore()
         }
     }
@@ -267,7 +263,7 @@ class DummyCredentialDataProvider(
             )
         }
 
-        if (attributeTypes.contains(data.ConstantIndex.IdAustriaCredential.vcType)) {
+        if (attributeTypes.contains(data.idaustria.ConstantIndex.IdAustriaCredential.vcType)) {
             val listFirstname = listOf("Max", "Susanne", "Peter", "Petra", "Hans", "Anna", "Martin", "Barbara")
             val listLastname = listOf("Müller", "Schmidt", "Schneider", "Fischer", "Weber", "Meyer", "Becker", "Koch")
             listOfAttributes.add(
@@ -280,7 +276,7 @@ class DummyCredentialDataProvider(
                         portrait = null
                     ),
                     expiration,
-                    data.ConstantIndex.IdAustriaCredential.vcType,
+                    data.idaustria.ConstantIndex.IdAustriaCredential.vcType,
                 )
             )
         }
@@ -304,5 +300,4 @@ class DummyCredentialDataProvider(
             elementIdentifier = elementIdentifier,
             elementValue = ElementValue(drivingPrivilege = arrayOf(elementValue))
         )
-
 }

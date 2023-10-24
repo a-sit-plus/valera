@@ -26,15 +26,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import at.asitplus.wallet.idaustria.IdAustriaCredential
-import data.PersistentSubjectCredentialStore
-import data.getCredentials
-import data.getVcs
-import data.removeCredentialById
+import data.idaustria.IdAustriaCredential
+import data.storeage.PersistentSubjectCredentialStore
+import data.storeage.getVcs
+import data.storeage.removeCredentialById
 import globalBack
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.*
 
 
 @Composable
@@ -81,10 +78,6 @@ fun CredentialScreen(index: Int){
             Column(modifier = Modifier.fillMaxWidth().padding(top = 40.dp), horizontalAlignment = Alignment.CenterHorizontally){
                 Button(onClick = {
                     runBlocking { removeCredentialById(PersistentSubjectCredentialStore(), vcId) }
-                    credentials = runBlocking { getVcs(PersistentSubjectCredentialStore()) }
-                    if (credentials.size == 0){
-                        showCredentials.value = false
-                    }
                     globalBack()
                 }) {
                     Text(Resources.BUTTON_DELETE)

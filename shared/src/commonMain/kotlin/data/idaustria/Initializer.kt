@@ -1,6 +1,5 @@
-package data
+package data.idaustria
 
-import at.asitplus.wallet.idaustria.IdAustriaCredential
 import at.asitplus.wallet.lib.LibraryInitializer
 import at.asitplus.wallet.lib.data.CredentialSubject
 import kotlinx.serialization.modules.SerializersModule
