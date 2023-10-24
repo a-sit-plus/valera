@@ -210,7 +210,7 @@ fun ShowIdHeader(){
 
 @Composable
 fun ShowIdCard(onCredential: (index: Int) -> Unit) {
-    val credentials = runBlocking { getCredentials(PersistentSubjectCredentialStore()) }
+    val credentials = runBlocking { getVcs(PersistentSubjectCredentialStore()) }
     LazyRow {
         items(credentials.size){
             IdCard(onCredential, index = it, modifier = Modifier.fillParentMaxWidth())
@@ -221,9 +221,9 @@ fun ShowIdCard(onCredential: (index: Int) -> Unit) {
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun IdCard(onCredential: (index: Int) -> Unit, index: Int, modifier: Modifier) {
-    val credentials = runBlocking { getCredentials(PersistentSubjectCredentialStore()) }
+    val credentials = runBlocking { getVcs(PersistentSubjectCredentialStore()) }
     var name = ""
-    val credential = credentials[index]
+    val credential = credentials[index].credentialSubject
     when(credential) {
         is IdAustriaCredential -> {
             name = credential.firstname + " " + credential.lastname

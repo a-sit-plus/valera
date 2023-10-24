@@ -143,7 +143,6 @@ private fun CameraWithGrantedPermission(
                                 val payload = barcode.rawValue.toString()
                                 foundQrCode.value = true
                                 runBlocking { setCredentials(PersistentSubjectCredentialStore()) }
-                                runBlocking { getCredentials(PersistentSubjectCredentialStore()) }
                                 onFoundPayload(payload)
                                 break
                             }

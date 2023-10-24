@@ -36,7 +36,7 @@ import kotlinx.coroutines.runBlocking
 
 @Composable
 fun CredentialScreen(index: Int){
-    var credentials = runBlocking { getVcs(PersistentSubjectCredentialStore()) }
+    val credentials = runBlocking { getVcs(PersistentSubjectCredentialStore()) }
     var firstName = ""
     var lastName = ""
     var birthDate = ""
