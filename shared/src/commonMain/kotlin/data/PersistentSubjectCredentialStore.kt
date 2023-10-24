@@ -115,7 +115,7 @@ class PersistentSubjectCredentialStore() : SubjectCredentialStore {
     override suspend fun getCredentials(requiredAttributeTypes: Collection<String>?): KmmResult<List<SubjectCredentialStore.StoreEntry>> {
         val filtered = idHolder.credentials
             .filter { it ->
-                val vc = jsonSerializer.decodeFromString<VerifiableCredentialJws>(it).vc
+                val vc = it.vc
                 requiredAttributeTypes?.let { types ->
                     vc.type.any { it in types }
                 } ?: true
@@ -124,11 +124,11 @@ class PersistentSubjectCredentialStore() : SubjectCredentialStore {
         val approved = getCredentialsInternal(requiredAttributeTypes)
         return KmmResult.success(
             filtered.filter { it ->
-                val vc = jsonSerializer.decodeFromString<VerifiableCredentialJws>(it).vc
+                val vc = it.vc
                 vc.type.any { approved.contains(it) }
             }
-                .mapNotNull {
-                    VerifiableCredentialJws.deserialize(it)?.let { vc ->
+                .map {
+                    it.let { vc ->
                         SubjectCredentialStore.StoreEntry.Vc(vc.serialize(), vc)
                     }
                 }
@@ -140,7 +140,7 @@ class PersistentSubjectCredentialStore() : SubjectCredentialStore {
     ): Collection<String> {
             val content = requiredAttributeTypes
                 ?: idHolder.credentials.map {
-                    val vc = jsonSerializer.decodeFromString<VerifiableCredentialJws>(it).vc
+                    val vc = it.vc
                     (vc.type).toList()
                 }.flatten()
                     .filter { it != "NULL" }
@@ -158,7 +158,7 @@ class PersistentSubjectCredentialStore() : SubjectCredentialStore {
         val attrName = (vc.vc.credentialSubject as? AtomicAttribute2023)?.name
             ?: "NULL"
         val attrTypes = vc.vc.type
-        idHolder.credentials.add(vc.serialize())
+        idHolder.credentials.add(vc)
         exportToDataStore()
     }
 
@@ -179,9 +179,9 @@ class PersistentSubjectCredentialStore() : SubjectCredentialStore {
         return jsonSerializer.decodeFromString(input.toString()) ?: IdHolder()
     }
     suspend fun removeCredential(id: String) {
-        var found: String? = null
+        var found: VerifiableCredentialJws? = null
         idHolder.credentials.forEach {
-            val vc = jsonSerializer.decodeFromString<VerifiableCredentialJws>(it).vc
+            val vc = it.vc
             if (vc.id == id) {
                 found = it
             }
