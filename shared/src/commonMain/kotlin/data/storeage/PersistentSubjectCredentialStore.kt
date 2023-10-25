@@ -1,6 +1,8 @@
 package data.storeage
 
+import DataStoreService
 import at.asitplus.KmmResult
+import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.CredentialToBeIssued
 import at.asitplus.wallet.lib.agent.DefaultCryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
@@ -21,8 +23,6 @@ import at.asitplus.wallet.lib.iso.IsoDataModelConstants.DataElements
 import at.asitplus.wallet.lib.iso.IssuerSigned
 import at.asitplus.wallet.lib.iso.IssuerSignedItem
 import data.idaustria.IdAustriaCredential
-import globalCrypto
-import globalData
 import io.github.aakira.napier.Napier
 import io.matthewnelson.encoding.base16.Base16
 import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
@@ -33,36 +33,9 @@ import kotlinx.serialization.encodeToString
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.minutes
 
-suspend fun setCredentials(storageService: SubjectCredentialStore){
-    val holderAgent = HolderAgent.newDefaultInstance(cryptoService = globalCrypto, subjectCredentialStore =  storageService)
-    runBlocking {
-        holderAgent.storeCredentials(
-            IssuerAgent.newDefaultInstance(
-                DefaultCryptoService(),
-                dataProvider = DummyCredentialDataProvider(),
-            ).issueCredentialWithTypes(
-                holderAgent.identifier,
-                attributeTypes = listOf(data.idaustria.ConstantIndex.IdAustriaCredential.vcType)
-            ).toStoreCredentialInput()
-        )
-    }
-}
 
-suspend fun getVcs(storageService: SubjectCredentialStore): ArrayList<VerifiableCredential> {
-    val credentialList = ArrayList<VerifiableCredential>()
-    val storeEntries = storageService.getCredentials(null).getOrThrow()
-    storeEntries.forEach {entry ->
-        when(entry) {
-            is SubjectCredentialStore.StoreEntry.Iso -> TODO()
-            is SubjectCredentialStore.StoreEntry.Vc -> {
-                credentialList.add(entry.vc.vc)
-            }
 
-            else -> {}
-        }
-    }
-    return credentialList
-}
+
 
 
 
@@ -96,8 +69,7 @@ suspend fun removeCredentialById(storageService: SubjectCredentialStore, id: Str
 }
 
 
-class PersistentSubjectCredentialStore() : SubjectCredentialStore {
-    private val dataStore = globalData
+class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) : SubjectCredentialStore {
     private val dataKey = "VCs"
     private val idHolder: IdHolder = runBlocking { importFromDataStore() }
 

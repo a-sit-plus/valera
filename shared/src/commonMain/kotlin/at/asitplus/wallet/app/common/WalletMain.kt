@@ -3,16 +3,25 @@ package at.asitplus.wallet.app.common
 import DataStoreService
 import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.CryptoService
+import at.asitplus.wallet.lib.agent.DefaultCryptoService
+import at.asitplus.wallet.lib.agent.HolderAgent
+import at.asitplus.wallet.lib.agent.IssuerAgent
+import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.VerifiableCredential
+import data.storeage.DummyCredentialDataProvider
+import data.storeage.PersistentSubjectCredentialStore
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.runBlocking
+import navigation.CredentialPage
 
 /**
  * Main class to hold all services needed in the Compose App.
  */
 class WalletMain(
     val objectFactory: ObjectFactory,
-    val dataStoreService: DataStoreService
+    val dataStoreService: DataStoreService,
 ) {
-
+    lateinit var subjectCredentialStore: PersistentSubjectCredentialStore
     suspend fun getCryptoServiceIdentifier(): String {
         val cryptoService = objectFactory.loadCryptoService().getOrElse {
             Napier.w("cryptoService failed", it)
@@ -20,6 +29,40 @@ class WalletMain(
         }
         return cryptoService.identifier
     }
+
+    suspend fun getVcs(): ArrayList<VerifiableCredential> {
+        val credentialList = ArrayList<VerifiableCredential>()
+        val storeEntries = subjectCredentialStore.getCredentials(null).getOrThrow()
+        storeEntries.forEach {entry ->
+            when(entry) {
+                is SubjectCredentialStore.StoreEntry.Iso -> TODO()
+                is SubjectCredentialStore.StoreEntry.Vc -> {
+                    credentialList.add(entry.vc.vc)
+                }
+
+                else -> {}
+            }
+        }
+        return credentialList
+    }
+
+    suspend fun setCredentials(){
+        this.objectFactory.loadCryptoService().onSuccess {
+            val holderAgent = HolderAgent.newDefaultInstance(cryptoService = it, subjectCredentialStore =  subjectCredentialStore)
+            runBlocking {
+                holderAgent.storeCredentials(
+                    IssuerAgent.newDefaultInstance(
+                        DefaultCryptoService(),
+                        dataProvider = DummyCredentialDataProvider(),
+                    ).issueCredentialWithTypes(
+                        holderAgent.identifier,
+                        attributeTypes = listOf(data.idaustria.ConstantIndex.IdAustriaCredential.vcType)
+                    ).toStoreCredentialInput()
+                )
+            }
+        }
+    }
+
 }
 
 /**

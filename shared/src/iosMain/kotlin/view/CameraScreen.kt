@@ -77,8 +77,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import data.storeage.PersistentSubjectCredentialStore
-import data.storeage.setCredentials
+import at.asitplus.wallet.app.common.WalletMain
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineScope
@@ -90,7 +89,7 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 // Modified from https://github.com/JetBrains/compose-multiplatform/blob/master/examples/imageviewer/shared/src/iosMain/kotlin/example/imageviewer/view/CameraView.ios.kt
 
 @Composable
-actual fun CameraView(onFoundPayload: (text: String) -> Unit){
+actual fun CameraView(onFoundPayload: (text: String) -> Unit, walletMain: WalletMain){
     var cameraAccess: Boolean? by remember { mutableStateOf(null) }
     LaunchedEffect(Unit) {
         when (AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeVideo)) {
@@ -125,7 +124,7 @@ actual fun CameraView(onFoundPayload: (text: String) -> Unit){
             }
 
             true -> {
-                AuthorizedCamera(onFoundPayload)
+                AuthorizedCamera(onFoundPayload, walletMain)
             }
         }
     }
@@ -140,7 +139,7 @@ private val deviceTypes = listOf(
 )
 
 @Composable
-private fun BoxScope.AuthorizedCamera(onFoundPayload: (text: String) -> Unit){
+private fun BoxScope.AuthorizedCamera(onFoundPayload: (text: String) -> Unit, walletMain: WalletMain){
     val camera: AVCaptureDevice? = remember {
         AVCaptureDeviceDiscoverySession.discoverySessionWithDeviceTypes(
             deviceTypes = deviceTypes,
@@ -149,7 +148,7 @@ private fun BoxScope.AuthorizedCamera(onFoundPayload: (text: String) -> Unit){
         ).devices.firstOrNull() as? AVCaptureDevice
     }
     if (camera != null) {
-        RealDeviceCamera(camera, onFoundPayload)
+        RealDeviceCamera(camera, onFoundPayload, walletMain)
     } else {
         Text(
             """
@@ -162,8 +161,7 @@ private fun BoxScope.AuthorizedCamera(onFoundPayload: (text: String) -> Unit){
 
 @OptIn(ExperimentalResourceApi::class, ExperimentalForeignApi::class, BetaInteropApi::class)
 @Composable
-private fun BoxScope.RealDeviceCamera(camera: AVCaptureDevice, onFoundPayload: (text: String) -> Unit){
-    val coroutineScope = rememberCoroutineScope()
+private fun BoxScope.RealDeviceCamera(camera: AVCaptureDevice, onFoundPayload: (text: String) -> Unit, walletMain: WalletMain){
     val foundQrCode = remember { mutableStateOf(false)  }
 
     val capturePhotoOutput = remember { AVCapturePhotoOutput() }
@@ -172,6 +170,7 @@ private fun BoxScope.RealDeviceCamera(camera: AVCaptureDevice, onFoundPayload: (
             AVCaptureVideoOrientationPortrait
         )
     }
+
 
     val metaDelegate = remember {
         object : NSObject(), AVCaptureMetadataOutputObjectsDelegateProtocol {
@@ -185,7 +184,6 @@ private fun BoxScope.RealDeviceCamera(camera: AVCaptureDevice, onFoundPayload: (
                     if(readableObject.stringValue != null && !foundQrCode.value){
                         val payload = readableObject.stringValue.toString()
                         foundQrCode.value = true
-                        runBlocking { setCredentials(PersistentSubjectCredentialStore()) }
                         onFoundPayload(payload)
                     }
                 } catch(e: Exception) {

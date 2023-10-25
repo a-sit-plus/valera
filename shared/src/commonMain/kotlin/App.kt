@@ -9,6 +9,7 @@ import data.idaustria.Initializer
 import data.storeage.PersistentSubjectCredentialStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import navigation.AboutPage
 import navigation.CameraPage
@@ -24,28 +25,20 @@ import view.CredentialScreen
 import view.HomeScreen
 import view.PayloadScreen
 
-lateinit var globalCrypto: CryptoService
-lateinit var globalData: DataStoreService
-
-
 @Composable
 fun App(walletMain: WalletMain) {
-    CoroutineScope(Dispatchers.Default).launch{
-        walletMain.objectFactory.loadCryptoService().onSuccess {
-            globalCrypto = it
-        }
-        globalData = walletMain.dataStoreService
-    }
     Initializer.initWithVcLib()
 
+    walletMain.subjectCredentialStore = PersistentSubjectCredentialStore(walletMain.dataStoreService)
+
     WalletTheme {
-        nav()
+        nav(walletMain)
     }
 }
 var globalBack: () -> Unit = {}
 
 @Composable
-fun nav() {
+fun nav(walletMain: WalletMain) {
     // Modified from https://github.com/JetBrains/compose-multiplatform/tree/master/examples/imageviewer
 
     val navigationStack = rememberSaveable(
@@ -65,24 +58,26 @@ fun nav() {
                 HomeScreen( onAbout = { navigationStack.push(AboutPage()) },
                             onCredential = { info ->
                                 navigationStack.push(CredentialPage(info))},
-                            onScanQrCode = {navigationStack.push(CameraPage())})
+                            onScanQrCode = {navigationStack.push(CameraPage())},
+                            walletMain)
             }
             is AboutPage -> {
                 AboutScreen()
             }
             is CredentialPage -> {
-                CredentialScreen(index = page.info)
+                CredentialScreen(index = page.info, walletMain)
             }
 
             is CameraPage -> {
                 CameraView(
                     onFoundPayload = { info ->
                         navigationStack.push(PayloadPage(info))
-                    }
+                    },
+                    walletMain
                 )
             }
             is PayloadPage -> {
-                PayloadScreen(text = page.info, onContinueClick = {navigationStack.push(HomePage())})
+                PayloadScreen(text = page.info, onContinueClick = {navigationStack.push(HomePage())}, walletMain)
 
             }
         }

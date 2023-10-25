@@ -40,10 +40,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import at.asitplus.wallet.app.common.WalletMain
 import data.idaustria.IdAustriaCredential
 import data.storeage.PersistentSubjectCredentialStore
 import data.storeage.getCredentials
-import data.storeage.getVcs
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -51,15 +51,16 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import kotlinx.coroutines.runBlocking
 @Composable
-fun HomeScreen( onAbout: () -> Unit, onCredential: (index: Int) -> Unit, onScanQrCode: () -> Unit) {
+fun HomeScreen( onAbout: () -> Unit, onCredential: (index: Int) -> Unit, onScanQrCode: () -> Unit, walletMain: WalletMain) {
     Box(){
+        val credentials = runBlocking { walletMain.getVcs() }
         Column(Modifier.fillMaxSize()) {
             Header(onAbout = onAbout)
             Column(Modifier.background(color = MaterialTheme.colorScheme.primaryContainer).fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-                if (runBlocking { getVcs(PersistentSubjectCredentialStore()) }.size == 0){
+                if (credentials.size == 0){
                     AddId(onScanQrCode)
                 } else {
-                    ShowId(onCredential, onScanQrCode)
+                    ShowId(onCredential, onScanQrCode, walletMain)
                 }
             }
         }
@@ -181,10 +182,10 @@ fun AddIdText(){
 }
 
 @Composable
-fun ShowId(onCredential: (index: Int) -> Unit, onScanQrCode: () -> Unit) {
+fun ShowId(onCredential: (index: Int) -> Unit, onScanQrCode: () -> Unit, walletMain: WalletMain) {
     val openDialog = remember { mutableStateOf(false) }
     ShowIdHeader()
-    ShowIdCard(onCredential)
+    ShowIdCard(onCredential, walletMain)
     Box(Modifier.fillMaxSize().padding(20.dp)){
         Box(Modifier.clip(shape = CircleShape).background(color = MaterialTheme.colorScheme.errorContainer).size(40.dp).clickable(onClick = { openDialog.value = true }).align(Alignment.BottomEnd), contentAlignment = Alignment.Center){
             Icon(Icons.Default.Add, contentDescription = null, Modifier.size(30.dp), tint = MaterialTheme.colorScheme.error)
@@ -209,19 +210,19 @@ fun ShowIdHeader(){
 }
 
 @Composable
-fun ShowIdCard(onCredential: (index: Int) -> Unit) {
-    val credentials = runBlocking { getVcs(PersistentSubjectCredentialStore()) }
+fun ShowIdCard(onCredential: (index: Int) -> Unit, walletMain: WalletMain) {
+    val credentials = runBlocking { walletMain.getVcs() }
     LazyRow {
         items(credentials.size){
-            IdCard(onCredential, index = it, modifier = Modifier.fillParentMaxWidth())
+            IdCard(onCredential, index = it, modifier = Modifier.fillParentMaxWidth(), walletMain)
         }
     }
 }
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-fun IdCard(onCredential: (index: Int) -> Unit, index: Int, modifier: Modifier) {
-    val credentials = runBlocking { getVcs(PersistentSubjectCredentialStore()) }
+fun IdCard(onCredential: (index: Int) -> Unit, index: Int, modifier: Modifier, walletMain: WalletMain) {
+    val credentials = runBlocking { walletMain.getVcs() }
     var name = ""
     val credential = credentials[index].credentialSubject
     when(credential) {

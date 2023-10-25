@@ -26,22 +26,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import at.asitplus.wallet.app.common.WalletMain
 import data.idaustria.IdAustriaCredential
 import data.storeage.PersistentSubjectCredentialStore
-import data.storeage.getVcs
 import data.storeage.removeCredentialById
 import globalBack
 import kotlinx.coroutines.runBlocking
 
 
 @Composable
-fun CredentialScreen(index: Int){
-    val credentials = runBlocking { getVcs(PersistentSubjectCredentialStore()) }
+fun CredentialScreen(index: Int, walletMain: WalletMain){
+    val credentials = runBlocking { walletMain.getVcs() }
     var firstName = ""
     var lastName = ""
     var birthDate = ""
 
-    runBlocking { getVcs(PersistentSubjectCredentialStore()) }
+    runBlocking { walletMain.getVcs() }
 
     val credential = credentials[index].credentialSubject
     val vcId = credentials[index].id
@@ -77,7 +77,7 @@ fun CredentialScreen(index: Int){
             }
             Column(modifier = Modifier.fillMaxWidth().padding(top = 40.dp), horizontalAlignment = Alignment.CenterHorizontally){
                 Button(onClick = {
-                    runBlocking { removeCredentialById(PersistentSubjectCredentialStore(), vcId) }
+                    runBlocking { removeCredentialById(PersistentSubjectCredentialStore(walletMain.dataStoreService), vcId) }
                     globalBack()
                 }) {
                     Text(Resources.BUTTON_DELETE)

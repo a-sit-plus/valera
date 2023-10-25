@@ -36,14 +36,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import at.asitplus.wallet.app.common.WalletMain
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
-import data.storeage.PersistentSubjectCredentialStore
-import data.storeage.getCredentials
-import data.storeage.setCredentials
 import globalBack
 import kotlinx.coroutines.runBlocking
 import java.util.*
@@ -60,7 +58,7 @@ private val executor = Executors.newSingleThreadExecutor()
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-actual fun CameraView(onFoundPayload: (text: String) -> Unit){
+actual fun CameraView(onFoundPayload: (text: String) -> Unit, walletMain: WalletMain){
 
 
     val modifier = Modifier
@@ -70,7 +68,7 @@ actual fun CameraView(onFoundPayload: (text: String) -> Unit){
         )
     )
     if (cameraPermissionState.allPermissionsGranted) {
-        CameraWithGrantedPermission(modifier, onFoundPayload)
+        CameraWithGrantedPermission(modifier, onFoundPayload, walletMain)
     } else {
         LaunchedEffect(Unit) {
             println("Get Permission")
@@ -83,7 +81,8 @@ actual fun CameraView(onFoundPayload: (text: String) -> Unit){
 @Composable
 private fun CameraWithGrantedPermission(
     modifier: Modifier,
-    onFoundPayload: (text: String) -> Unit
+    onFoundPayload: (text: String) -> Unit,
+    walletMain: WalletMain
 ) {
 
     val coroutineScope = rememberCoroutineScope()
@@ -142,7 +141,6 @@ private fun CameraWithGrantedPermission(
 
                                 val payload = barcode.rawValue.toString()
                                 foundQrCode.value = true
-                                runBlocking { setCredentials(PersistentSubjectCredentialStore()) }
                                 onFoundPayload(payload)
                                 break
                             }
