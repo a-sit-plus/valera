@@ -1,4 +1,4 @@
-package data.storeage
+package data.storage
 
 import DataStoreService
 import at.asitplus.KmmResult

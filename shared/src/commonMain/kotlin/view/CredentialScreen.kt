@@ -28,8 +28,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.app.common.WalletMain
 import data.idaustria.IdAustriaCredential
-import data.storeage.PersistentSubjectCredentialStore
-import data.storeage.removeCredentialById
+import data.storage.PersistentSubjectCredentialStore
+import data.storage.removeCredentialById
 import globalBack
 import kotlinx.coroutines.runBlocking
 

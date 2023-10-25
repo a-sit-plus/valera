@@ -6,7 +6,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.CryptoService
 import data.idaustria.Initializer
-import data.storeage.PersistentSubjectCredentialStore
+import data.storage.PersistentSubjectCredentialStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope

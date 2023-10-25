@@ -8,8 +8,8 @@ import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.IssuerAgent
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.VerifiableCredential
-import data.storeage.DummyCredentialDataProvider
-import data.storeage.PersistentSubjectCredentialStore
+import data.storage.DummyCredentialDataProvider
+import data.storage.PersistentSubjectCredentialStore
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.runBlocking
 import navigation.CredentialPage
