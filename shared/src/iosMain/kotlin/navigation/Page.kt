@@ -4,7 +4,7 @@ actual class HomePage : Page
 
 actual class AboutPage : Page
 
-actual class CredentialPage actual constructor(actual val info: Int) : Page
+actual class CredentialPage actual constructor(actual val info: String) : Page
 
 actual class CameraPage : Page
 

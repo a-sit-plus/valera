@@ -33,16 +33,14 @@ import kotlinx.coroutines.runBlocking
 
 
 @Composable
-fun CredentialScreen(index: Int, walletMain: WalletMain){
-    val credentials = runBlocking { walletMain.getVcs() }
+fun CredentialScreen(id: String, walletMain: WalletMain){
     var firstName = ""
     var lastName = ""
     var birthDate = ""
 
-    runBlocking { walletMain.getVcs() }
-
-    val credential = credentials[index].credentialSubject
-    val vcId = credentials[index].id
+    val vc = runBlocking { walletMain.getCredentialById(id) }
+    val vcId = vc?.id
+    val credential = vc?.credentialSubject
     when (credential){
         is IdAustriaCredential ->  {
             firstName = credential.firstname
@@ -75,7 +73,11 @@ fun CredentialScreen(index: Int, walletMain: WalletMain){
             }
             Column(modifier = Modifier.fillMaxWidth().padding(top = 40.dp), horizontalAlignment = Alignment.CenterHorizontally){
                 Button(onClick = {
-                    runBlocking { walletMain.removeCredentialById(vcId) }
+                    runBlocking {
+                        if (vcId != null) {
+                            walletMain.removeCredentialById(vcId)
+                        }
+                    }
                     globalBack()
                 }) {
                     Text(Resources.BUTTON_DELETE)

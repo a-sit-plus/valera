@@ -66,6 +66,21 @@ class WalletMain(
         subjectCredentialStore.removeCredential(id)
     }
 
+    suspend fun getCredentialById(id: String): VerifiableCredential? {
+        val storeEntries = subjectCredentialStore.getCredentials(null).getOrThrow()
+        storeEntries.forEach {entry ->
+            when(entry) {
+                is SubjectCredentialStore.StoreEntry.Vc -> {
+                    if (entry.vc.vc.id == id){
+                        return entry.vc.vc
+                    }
+                }
+                else -> {}
+            }
+        }
+        return null
+    }
+
 }
 
 /**

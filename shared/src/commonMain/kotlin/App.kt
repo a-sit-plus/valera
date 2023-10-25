@@ -60,7 +60,7 @@ fun nav(walletMain: WalletMain) {
                 AboutScreen()
             }
             is CredentialPage -> {
-                CredentialScreen(index = page.info, walletMain)
+                CredentialScreen(id = page.info, walletMain)
             }
 
             is CameraPage -> {

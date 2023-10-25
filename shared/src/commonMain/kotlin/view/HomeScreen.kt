@@ -49,7 +49,7 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import kotlinx.coroutines.runBlocking
 @Composable
-fun HomeScreen( onAbout: () -> Unit, onCredential: (index: Int) -> Unit, onScanQrCode: () -> Unit, walletMain: WalletMain) {
+fun HomeScreen( onAbout: () -> Unit, onCredential: (id: String) -> Unit, onScanQrCode: () -> Unit, walletMain: WalletMain) {
     Box(){
         val credentials = runBlocking { walletMain.getVcs() }
         Column(Modifier.fillMaxSize()) {
@@ -180,7 +180,7 @@ fun AddIdText(){
 }
 
 @Composable
-fun ShowId(onCredential: (index: Int) -> Unit, onScanQrCode: () -> Unit, walletMain: WalletMain) {
+fun ShowId(onCredential: (id: String) -> Unit, onScanQrCode: () -> Unit, walletMain: WalletMain) {
     val openDialog = remember { mutableStateOf(false) }
     ShowIdHeader()
     ShowIdCard(onCredential, walletMain)
@@ -208,21 +208,20 @@ fun ShowIdHeader(){
 }
 
 @Composable
-fun ShowIdCard(onCredential: (index: Int) -> Unit, walletMain: WalletMain) {
+fun ShowIdCard(onCredential: (id: String) -> Unit, walletMain: WalletMain) {
     val credentials = runBlocking { walletMain.getVcs() }
     LazyRow {
         items(credentials.size){
-            IdCard(onCredential, index = it, modifier = Modifier.fillParentMaxWidth(), walletMain)
+            IdCard(onCredential, id = credentials[it].id, modifier = Modifier.fillParentMaxWidth(), walletMain)
         }
     }
 }
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-fun IdCard(onCredential: (index: Int) -> Unit, index: Int, modifier: Modifier, walletMain: WalletMain) {
-    val credentials = runBlocking { walletMain.getVcs() }
+fun IdCard(onCredential: (id: String) -> Unit, id: String, modifier: Modifier, walletMain: WalletMain) {
     var name = ""
-    val credential = credentials[index].credentialSubject
+    val credential = runBlocking { walletMain.getCredentialById(id) }?.credentialSubject
     when(credential) {
         is IdAustriaCredential -> {
             name = credential.firstname + " " + credential.lastname
@@ -230,7 +229,7 @@ fun IdCard(onCredential: (index: Int) -> Unit, index: Int, modifier: Modifier, w
     }
 
 
-    Box(modifier.padding(start = 20.dp, end = 20.dp).shadow(elevation = 2.dp, shape = RoundedCornerShape(10.dp)).clickable(onClick = {onCredential(index)} )){
+    Box(modifier.padding(start = 20.dp, end = 20.dp).shadow(elevation = 2.dp, shape = RoundedCornerShape(10.dp)).clickable(onClick = {onCredential(id)} )){
         Box(Modifier.clip(shape = RoundedCornerShape(10.dp)).background(color = Color.White).padding(20.dp)){
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(Resources.CREDENTIAL, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
