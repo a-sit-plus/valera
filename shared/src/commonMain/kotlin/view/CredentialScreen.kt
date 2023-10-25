@@ -28,8 +28,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.app.common.WalletMain
 import data.idaustria.IdAustriaCredential
-import data.storage.PersistentSubjectCredentialStore
-import data.storage.removeCredentialById
 import globalBack
 import kotlinx.coroutines.runBlocking
 
@@ -77,7 +75,7 @@ fun CredentialScreen(index: Int, walletMain: WalletMain){
             }
             Column(modifier = Modifier.fillMaxWidth().padding(top = 40.dp), horizontalAlignment = Alignment.CenterHorizontally){
                 Button(onClick = {
-                    runBlocking { removeCredentialById(PersistentSubjectCredentialStore(walletMain.dataStoreService), vcId) }
+                    runBlocking { walletMain.removeCredentialById(vcId) }
                     globalBack()
                 }) {
                     Text(Resources.BUTTON_DELETE)

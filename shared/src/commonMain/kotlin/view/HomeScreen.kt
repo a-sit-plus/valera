@@ -42,8 +42,6 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import at.asitplus.wallet.app.common.WalletMain
 import data.idaustria.IdAustriaCredential
-import data.storage.PersistentSubjectCredentialStore
-import data.storage.getCredentials
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

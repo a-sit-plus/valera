@@ -7,7 +7,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.app.common.WalletMain
-import data.storage.PersistentSubjectCredentialStore
 import kotlinx.coroutines.runBlocking
 
 @Composable

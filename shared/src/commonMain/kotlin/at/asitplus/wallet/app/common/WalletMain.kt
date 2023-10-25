@@ -12,7 +12,6 @@ import data.storage.DummyCredentialDataProvider
 import data.storage.PersistentSubjectCredentialStore
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.runBlocking
-import navigation.CredentialPage
 
 /**
  * Main class to hold all services needed in the Compose App.
@@ -61,6 +60,10 @@ class WalletMain(
                 )
             }
         }
+    }
+
+    suspend fun removeCredentialById(id: String) {
+        subjectCredentialStore.removeCredential(id)
     }
 
 }
