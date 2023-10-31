@@ -343,7 +343,7 @@
 					"-framework",
 					shared,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = at.asitplus.wallet.app;
+				PRODUCT_BUNDLE_IDENTIFIER = at.asitplus.wallet.compose;
 				PRODUCT_NAME = "${APP_NAME}";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
@@ -378,7 +378,7 @@
 					"-framework",
 					shared,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = at.asitplus.wallet.app;
+				PRODUCT_BUNDLE_IDENTIFIER = at.asitplus.wallet.compose;
 				PRODUCT_NAME = "${APP_NAME}";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
