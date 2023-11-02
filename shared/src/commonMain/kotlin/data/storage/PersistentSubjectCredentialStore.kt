@@ -14,30 +14,6 @@ import io.github.aakira.napier.Napier
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 
-suspend fun getCredentials(storageService: SubjectCredentialStore): ArrayList<CredentialSubject> {
-    val credentialList = ArrayList<CredentialSubject>()
-    val storeEntries = storageService.getCredentials(null).getOrThrow()
-    storeEntries.forEach {entry ->
-        when(entry) {
-            is SubjectCredentialStore.StoreEntry.Iso -> TODO()
-            is SubjectCredentialStore.StoreEntry.Vc -> when (val subject = entry.vc.vc.credentialSubject) {
-                is AtomicAttribute2023 -> {
-                    credentialList.add(subject)
-                }
-                is IdAustriaCredential -> {
-                    credentialList.add(subject)
-                }
-            }
-
-            else -> {}
-        }
-    }
-    return credentialList
-}
-
-
-
-
 class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) : SubjectCredentialStore {
     private val dataKey = "VCs"
     private val idHolder: IdHolder = runBlocking { importFromDataStore() }
