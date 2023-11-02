@@ -1,3 +1,4 @@
 TEAM_ID=9CYHJNG644
-BUNDLE_ID=at.asitplus.wallet.app.ios
-APP_NAME=Wallet
+BUNDLE_ID=at.asitplus.wallet.compose
+APP_NAME=Compose Wallet
+PRODUCT_NAME=Compose Wallet App
