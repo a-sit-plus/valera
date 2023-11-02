@@ -23,8 +23,7 @@ import view.PayloadScreen
 @Composable
 fun App(walletMain: WalletMain) {
     Initializer.initWithVcLib()
-
-    walletMain.subjectCredentialStore = PersistentSubjectCredentialStore(walletMain.dataStoreService)
+    walletMain.lateInit()
 
     WalletTheme {
         nav(walletMain)

@@ -21,6 +21,11 @@ class WalletMain(
     val dataStoreService: DataStoreService,
 ) {
     lateinit var subjectCredentialStore: PersistentSubjectCredentialStore
+
+    fun lateInit(){
+        this.subjectCredentialStore = PersistentSubjectCredentialStore(this.dataStoreService)
+    }
+
     suspend fun getCryptoServiceIdentifier(): String {
         val cryptoService = objectFactory.loadCryptoService().getOrElse {
             Napier.w("cryptoService failed", it)
