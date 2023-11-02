@@ -68,10 +68,6 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
 
     override suspend fun storeCredential(vc: VerifiableCredentialJws, vcSerialized: String) {
         Napier.d("storing $vcSerialized")
-        // TODO CK analyze usage of attrName
-        val attrName = (vc.vc.credentialSubject as? AtomicAttribute2023)?.name
-            ?: "NULL"
-        val attrTypes = vc.vc.type
         idHolder.credentials.add(vc)
         exportToDataStore()
     }
