@@ -11,8 +11,13 @@ We use [fastlane](https://fastlane.tools/) to build the iOS App. The CI pipeline
 Setup:
  - Get an Apple Development Account
  - Create an [App Store Connect API Key](https://developer.apple.com/documentation/appstoreconnectapi/creating_api_keys_for_app_store_connect_api) and download it
- - Run `cd iosApp; fastlane createCert` to create a new signing certificate and provisioning profile
- - Export the new certificate from your local keychain
+ - Run `cd iosApp; fastlane createcert` to create a new signing certificate and provisioning profile
+ 
+Export the new certificate from your local keychain:
+ - Open "Keychain Access"
+ - Look for the certificate expiring one year from now under "Certificates"
+ - Right click, export to a `p12` file
+ - Choose a password that will be stored in the secrets, see below
 
 Required secrets for GitHub Actions:
 - `APPLE_ID` with your Apple Development mail address
@@ -22,11 +27,10 @@ Required secrets for GitHub Actions:
 - `APPLE_CERT_CONTENT` with the Base64-encoded content of the `p12` certificate you've exported
 - `APPLE_CERT_PASSWORD` with the password of the certificate you've exported
 
-For Android we use a keystore to sign and build the app.
+For Android we use a keystore to sign and build the app. The keystore is checked in, the password needs to be set as a environment variable.
 
 Setup:
  - Create a new keystore, e.g. from Android Studio
 
 Required secrets for GitHub Actions:
- - `ANDROID_CERT_CONTENT` with the Base64-encoded content of the `p12` keystore you've created
  - `ANDROID_CERT_PASSWORD` with the password for the keystore you've exported
