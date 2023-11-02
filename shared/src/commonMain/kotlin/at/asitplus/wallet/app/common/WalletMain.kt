@@ -8,6 +8,7 @@ import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.IssuerAgent
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.VerifiableCredential
+import data.idaustria.Initializer
 import data.storage.DummyCredentialDataProvider
 import data.storage.PersistentSubjectCredentialStore
 import io.github.aakira.napier.Napier
@@ -20,17 +21,14 @@ class WalletMain(
     val objectFactory: ObjectFactory,
     val dataStoreService: DataStoreService,
 ) {
-    lateinit var subjectCredentialStore: PersistentSubjectCredentialStore
-
-    fun lateInit(){
-        this.subjectCredentialStore = PersistentSubjectCredentialStore(this.dataStoreService)
+    init {
+        Initializer.initWithVcLib()
     }
+    val cryptoService: CryptoService by lazy { objectFactory.loadCryptoService().getOrThrow()}
+
+    val subjectCredentialStore: PersistentSubjectCredentialStore by lazy { PersistentSubjectCredentialStore(this.dataStoreService) }
 
     suspend fun getCryptoServiceIdentifier(): String {
-        val cryptoService = objectFactory.loadCryptoService().getOrElse {
-            Napier.w("cryptoService failed", it)
-            return "null"
-        }
         return cryptoService.identifier
     }
 
@@ -51,19 +49,17 @@ class WalletMain(
     }
 
     suspend fun setCredentials(){
-        this.objectFactory.loadCryptoService().onSuccess {
-            val holderAgent = HolderAgent.newDefaultInstance(cryptoService = it, subjectCredentialStore =  subjectCredentialStore)
-            runBlocking {
-                holderAgent.storeCredentials(
-                    IssuerAgent.newDefaultInstance(
-                        DefaultCryptoService(),
-                        dataProvider = DummyCredentialDataProvider(),
-                    ).issueCredentialWithTypes(
-                        holderAgent.identifier,
-                        attributeTypes = listOf(data.idaustria.ConstantIndex.IdAustriaCredential.vcType)
-                    ).toStoreCredentialInput()
-                )
-            }
+        val holderAgent = HolderAgent.newDefaultInstance(cryptoService = this.cryptoService, subjectCredentialStore =  subjectCredentialStore)
+        runBlocking {
+            holderAgent.storeCredentials(
+                IssuerAgent.newDefaultInstance(
+                    DefaultCryptoService(),
+                    dataProvider = DummyCredentialDataProvider(),
+                ).issueCredentialWithTypes(
+                    holderAgent.identifier,
+                    attributeTypes = listOf(data.idaustria.ConstantIndex.IdAustriaCredential.vcType)
+                ).toStoreCredentialInput()
+            )
         }
     }
 
@@ -99,5 +95,5 @@ class WalletMain(
  * efficiently.
  */
 interface ObjectFactory {
-    suspend fun loadCryptoService(): KmmResult<CryptoService>
+    fun loadCryptoService(): KmmResult<CryptoService>
 }

@@ -22,8 +22,6 @@ import view.PayloadScreen
 
 @Composable
 fun App(walletMain: WalletMain) {
-    Initializer.initWithVcLib()
-    walletMain.lateInit()
 
     WalletTheme {
         nav(walletMain)

@@ -47,7 +47,7 @@ class AndroidObjectFactory : ObjectFactory {
         Napier.base(DebugAntilog())
     }
 
-    override suspend fun loadCryptoService(): KmmResult<CryptoService> {
+    override fun loadCryptoService(): KmmResult<CryptoService> {
         val keyStoreService = AndroidKeyStoreService()
         val keyPair = keyStoreService.loadKeyPair()
             ?: return KmmResult.failure(Throwable("Could not create key pair"))

@@ -30,9 +30,14 @@ public class RealKeyChainService : KeyChainService {
     private var privateKey: SecureEnclave.P256.Signing.PrivateKey?
     private var publicKey: P256.Signing.PublicKey?
 
-    public init() {
+    public init() throws {
         self.privateKey = loadPrivateKey()
         self.publicKey = loadPublicKey()
+        if (self.privateKey == nil) {
+            Task {
+                try await generateKeyPair()
+            }
+        }
     }
 
     public func attestKey(with challenge: Data, also clientData: Data) async -> [Data]? {
@@ -56,12 +61,13 @@ public class RealKeyChainService : KeyChainService {
     public func generateKeyPair() async throws {
         NapierProxy.companion.i(msg: "generateKeyPair")
         clear()
-        guard let authContext = await authenticateUser(String("Create new key pair")) else {
+        /*guard let authContext = await authenticateUser(String("Create new key pair")) else {
             NapierProxy.companion.e(msg: "generateKeyPair: Cannot authenticate user")
             throw "user auth failed"
-        }
+        }*/
 
-        let flags: SecAccessControlCreateFlags = [.privateKeyUsage, .userPresence]
+        let flags: SecAccessControlCreateFlags = [.privateKeyUsage]//, .userPresence]
+        let authContext : LAContext? = nil
         var error: Unmanaged<CFError>?
         guard let access = SecAccessControlCreateWithFlags(kCFAllocatorDefault, kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly, flags, &error) else {
             NapierProxy.companion.e(msg: "generateKeyPair: Cannot create key access flags: \(error.debugDescription)")
