@@ -101,7 +101,6 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
     }
 
     override suspend fun storeCredential(issuerSigned: IssuerSigned) {
-        println("TODO")
         TODO("Not yet implemented")
     }
 
