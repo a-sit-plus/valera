@@ -220,8 +220,8 @@ fun ShowIdCard(onCredential: (id: String) -> Unit, walletMain: WalletMain) {
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun IdCard(onCredential: (id: String) -> Unit, id: String, modifier: Modifier, walletMain: WalletMain) {
-    var name = ""
-    val credential = runBlocking { walletMain.getCredentialById(id) }?.credentialSubject
+    var name: String? = null
+    val credential = runBlocking { walletMain.subjectCredentialStore.getCredentialById(id) }?.credentialSubject
     when(credential) {
         is IdAustriaCredential -> {
             name = credential.firstname + " " + credential.lastname
@@ -240,7 +240,7 @@ fun IdCard(onCredential: (id: String) -> Unit, id: String, modifier: Modifier, w
                     Image(painterResource("3d-casual-life-smiling-face-with-smiling-eyes.png"), contentDescription = null, Modifier.size(150.dp), contentScale = ContentScale.Crop)
                 }
                 Spacer(Modifier.size(30.dp))
-                Text(name, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                Text(name ?: Resources.UNKNOWN, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                 Spacer(Modifier.size(10.dp))
                 Text("IDAustria Credential", fontSize = 12.sp, color = Color.Black)
 
