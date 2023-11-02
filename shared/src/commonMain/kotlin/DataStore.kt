@@ -23,7 +23,7 @@ class DataStoreService(private var dataStore: DataStore<Preferences>){
         return value
     }
 
-    suspend fun delData(key: String){
+    suspend fun deleteData(key: String){
         val dataStoreKey = stringPreferencesKey(key)
         dataStore.edit {
             it.remove(dataStoreKey)
