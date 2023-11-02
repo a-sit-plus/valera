@@ -52,12 +52,12 @@ fun CredentialScreen(id: String, walletMain: WalletMain){
     Column() {
         Row(Modifier.padding(10.dp).height(80.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.Close, contentDescription = null, Modifier.size(30.dp).clickable(onClick = { globalBack() }), tint = Color.LightGray)
-            Text(Resources.DEMOWALLET, color = MaterialTheme.colorScheme.primary, fontSize = 40.sp, fontWeight = FontWeight.Bold)
+            Text(Resources.DEMO_WALLET, color = MaterialTheme.colorScheme.primary, fontSize = 40.sp, fontWeight = FontWeight.Bold)
             Icon(Icons.Default.Info, contentDescription = null, Modifier.size(30.dp).clickable(onClick = { }), tint = Color.LightGray.copy(alpha = 0.0f))
         }
         Column(Modifier.background(color = MaterialTheme.colorScheme.primaryContainer).fillMaxSize()){
             Column(modifier = Modifier.fillMaxWidth().padding(top = 20.dp), horizontalAlignment = Alignment.CenterHorizontally){
-                Text("IDAustria Credential", fontSize = 25.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                Text(Resources.ID_AUSTRIA_CREDENTIAL, fontSize = 25.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                 Text("VerifiableCredential, IdAustria2023", fontSize = 15.sp, color = Color.Black)
             }
             Spacer(modifier = Modifier.size(20.dp))

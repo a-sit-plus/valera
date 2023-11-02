@@ -69,7 +69,7 @@ fun HomeScreen( onAbout: () -> Unit, onCredential: (id: String) -> Unit, onScanQ
 fun Header(onAbout: () -> Unit) {
     Row(Modifier.padding(10.dp).height(80.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         Icon(Icons.Default.Info, contentDescription = null, Modifier.size(30.dp).clickable(onClick = { onAbout() }), tint = Color.LightGray.copy(alpha = 0f))
-        Text("DemoWallet", color = MaterialTheme.colorScheme.primary, fontSize = 40.sp, fontWeight = FontWeight.Bold)
+        Text(Resources.DEMO_WALLET, color = MaterialTheme.colorScheme.primary, fontSize = 40.sp, fontWeight = FontWeight.Bold)
         Icon(Icons.Default.Info, contentDescription = null, Modifier.size(30.dp).clickable(onClick = { onAbout() }), tint = Color.LightGray)
     }
 }
@@ -82,7 +82,7 @@ fun AddDialog(openDialog: MutableState<Boolean>, onScanQrCode: () -> Unit){
             Box(Modifier.padding(start = 20.dp, end = 20.dp).shadow(elevation = 2.dp, shape = RoundedCornerShape(10.dp))){
                 Box(Modifier.clip(shape = RoundedCornerShape(10.dp)).background(color = Color.White).fillMaxWidth().padding(20.dp)){
                     Column {
-                        Text("Add ID", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        Text(Resources.ADD_ID, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                         Spacer(Modifier.size(15.dp))
                         Divider(color = Color.LightGray, thickness = 1.dp)
                         Spacer(Modifier.size(15.dp))
@@ -140,7 +140,7 @@ fun AddIdCard(onScanQrCode: () -> Unit) {
     Box(Modifier.padding(start = 20.dp, end = 20.dp).shadow(elevation = 2.dp, shape = RoundedCornerShape(10.dp))){
         Box(Modifier.clip(shape = RoundedCornerShape(10.dp)).background(color = Color.White).fillMaxWidth().padding(20.dp)){
             Column {
-                Text("Add ID", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                Text(Resources.ADD_ID, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                 Spacer(Modifier.size(15.dp))
                 Divider(color = Color.LightGray, thickness = 1.dp)
                 Spacer(Modifier.size(15.dp))
@@ -173,7 +173,7 @@ fun AddIdText(){
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Wallet", color = MaterialTheme.colorScheme.primary, fontSize = 24.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 20.dp, bottom = 20.dp))
+        Text(Resources.WALLET, color = MaterialTheme.colorScheme.primary, fontSize = 24.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 20.dp, bottom = 20.dp))
         Text(Resources.CHOOSE_NEXT_STEP, color = MaterialTheme.colorScheme.primary, fontSize = 30.sp, fontWeight = FontWeight.Bold)
 
     }
@@ -202,7 +202,7 @@ fun ShowIdHeader(){
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Wallet", color = MaterialTheme.colorScheme.primary, fontSize = 24.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 20.dp, bottom = 20.dp))
+        Text(Resources.WALLET, color = MaterialTheme.colorScheme.primary, fontSize = 24.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 20.dp, bottom = 20.dp))
 
     }
 }
@@ -242,7 +242,7 @@ fun IdCard(onCredential: (id: String) -> Unit, id: String, modifier: Modifier, w
                 Spacer(Modifier.size(30.dp))
                 Text(name ?: Resources.UNKNOWN, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                 Spacer(Modifier.size(10.dp))
-                Text("IDAustria Credential", fontSize = 12.sp, color = Color.Black)
+                Text(Resources.ID_AUSTRIA_CREDENTIAL, fontSize = 12.sp, color = Color.Black)
 
             }
         }
