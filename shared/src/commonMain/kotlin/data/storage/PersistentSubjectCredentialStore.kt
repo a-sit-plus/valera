@@ -5,6 +5,7 @@ import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.AtomicAttribute2023
 import at.asitplus.wallet.lib.data.CredentialSubject
+import at.asitplus.wallet.lib.data.VerifiableCredential
 import at.asitplus.wallet.lib.data.VerifiableCredentialJws
 import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.iso.IssuerSigned
@@ -127,5 +128,35 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
             idHolder.credentials.remove(found)
             exportToDataStore()
         }
+    }
+
+    suspend fun getVcs(): ArrayList<VerifiableCredential> {
+        val credentialList = ArrayList<VerifiableCredential>()
+        val storeEntries = getCredentials(null).getOrThrow()
+        storeEntries.forEach {entry ->
+            when(entry) {
+                is SubjectCredentialStore.StoreEntry.Iso -> TODO()
+                is SubjectCredentialStore.StoreEntry.Vc -> {
+                    credentialList.add(entry.vc.vc)
+                }
+
+                else -> {}
+            }
+        }
+        return credentialList
+    }
+    suspend fun getCredentialById(id: String): VerifiableCredential? {
+        val storeEntries = getCredentials(null).getOrThrow()
+        storeEntries.forEach {entry ->
+            when(entry) {
+                is SubjectCredentialStore.StoreEntry.Vc -> {
+                    if (entry.vc.vc.id == id){
+                        return entry.vc.vc
+                    }
+                }
+                else -> {}
+            }
+        }
+        return null
     }
 }

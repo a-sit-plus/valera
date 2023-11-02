@@ -38,7 +38,7 @@ fun CredentialScreen(id: String, walletMain: WalletMain){
     var lastName = ""
     var birthDate = ""
 
-    val vc = runBlocking { walletMain.getCredentialById(id) }
+    val vc = runBlocking { walletMain.subjectCredentialStore.getCredentialById(id) }
     val vcId = vc?.id
     val credential = vc?.credentialSubject
     when (credential){
@@ -75,7 +75,7 @@ fun CredentialScreen(id: String, walletMain: WalletMain){
                 Button(onClick = {
                     runBlocking {
                         if (vcId != null) {
-                            walletMain.removeCredentialById(vcId)
+                            walletMain.subjectCredentialStore.removeCredential(vcId)
                         }
                     }
                     globalBack()

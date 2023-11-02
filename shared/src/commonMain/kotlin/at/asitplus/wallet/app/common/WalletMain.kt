@@ -32,22 +32,9 @@ class WalletMain(
         return cryptoService.identifier
     }
 
-    suspend fun getVcs(): ArrayList<VerifiableCredential> {
-        val credentialList = ArrayList<VerifiableCredential>()
-        val storeEntries = subjectCredentialStore.getCredentials(null).getOrThrow()
-        storeEntries.forEach {entry ->
-            when(entry) {
-                is SubjectCredentialStore.StoreEntry.Iso -> TODO()
-                is SubjectCredentialStore.StoreEntry.Vc -> {
-                    credentialList.add(entry.vc.vc)
-                }
-
-                else -> {}
-            }
-        }
-        return credentialList
-    }
-
+    /**
+     * Temporary function to create a random credential
+     */
     suspend fun setCredentials(){
         val holderAgent = HolderAgent.newDefaultInstance(cryptoService = this.cryptoService, subjectCredentialStore =  subjectCredentialStore)
         runBlocking {
@@ -62,26 +49,6 @@ class WalletMain(
             )
         }
     }
-
-    suspend fun removeCredentialById(id: String) {
-        subjectCredentialStore.removeCredential(id)
-    }
-
-    suspend fun getCredentialById(id: String): VerifiableCredential? {
-        val storeEntries = subjectCredentialStore.getCredentials(null).getOrThrow()
-        storeEntries.forEach {entry ->
-            when(entry) {
-                is SubjectCredentialStore.StoreEntry.Vc -> {
-                    if (entry.vc.vc.id == id){
-                        return entry.vc.vc
-                    }
-                }
-                else -> {}
-            }
-        }
-        return null
-    }
-
 }
 
 /**

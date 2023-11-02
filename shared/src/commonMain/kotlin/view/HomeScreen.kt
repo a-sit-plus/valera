@@ -51,7 +51,7 @@ import kotlinx.coroutines.runBlocking
 @Composable
 fun HomeScreen( onAbout: () -> Unit, onCredential: (id: String) -> Unit, onScanQrCode: () -> Unit, walletMain: WalletMain) {
     Box(){
-        val credentials = runBlocking { walletMain.getVcs() }
+        val credentials = runBlocking { walletMain.subjectCredentialStore.getVcs() }
         Column(Modifier.fillMaxSize()) {
             Header(onAbout = onAbout)
             Column(Modifier.background(color = MaterialTheme.colorScheme.primaryContainer).fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -209,7 +209,7 @@ fun ShowIdHeader(){
 
 @Composable
 fun ShowIdCard(onCredential: (id: String) -> Unit, walletMain: WalletMain) {
-    val credentials = runBlocking { walletMain.getVcs() }
+    val credentials = runBlocking { walletMain.subjectCredentialStore.getVcs() }
     LazyRow {
         items(credentials.size){
             IdCard(onCredential, id = credentials[it].id, modifier = Modifier.fillParentMaxWidth(), walletMain)
