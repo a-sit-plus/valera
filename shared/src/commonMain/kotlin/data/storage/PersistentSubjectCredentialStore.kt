@@ -122,14 +122,11 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
     }
     suspend fun getCredentialById(id: String): VerifiableCredential? {
         val storeEntries = getCredentials(null).getOrThrow()
-        storeEntries.forEach {entry ->
-            when(entry) {
-                is SubjectCredentialStore.StoreEntry.Vc -> {
-                    if (entry.vc.vc.id == id){
-                        return entry.vc.vc
-                    }
+        storeEntries.forEach { entry ->
+            if (entry is SubjectCredentialStore.StoreEntry.Vc) {
+                if (entry.vc.vc.id == id){
+                    return entry.vc.vc
                 }
-                else -> {}
             }
         }
         return null
