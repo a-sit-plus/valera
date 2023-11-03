@@ -33,41 +33,8 @@ class DummyCredentialDataProvider(
         subjectPublicKey: CoseKey?,
         attributeTypes: Collection<String>
     ): KmmResult<List<CredentialToBeIssued>> {
-        val attributeType = ConstantIndex.AtomicAttribute2023.vcType
         val expiration = clock.now() + defaultLifetime
         val listOfAttributes = mutableListOf<CredentialToBeIssued>()
-        if (attributeTypes.contains(attributeType)) {
-            listOfAttributes.addAll(
-                listOf(
-                    CredentialToBeIssued.Vc(
-                        AtomicAttribute2023(subjectId, "given-name", "Susanne"),
-                        expiration,
-                        attributeType,
-                    ),
-                    CredentialToBeIssued.Vc(
-                        AtomicAttribute2023(subjectId, "family-name", "Meier"),
-                        expiration,
-                        attributeType,
-                    ),
-                    CredentialToBeIssued.Vc(
-                        AtomicAttribute2023(subjectId, "date-of-birth", "1990-01-01"),
-                        expiration,
-                        attributeType,
-                    ),
-                    CredentialToBeIssued.Vc(
-                        AtomicAttribute2023(subjectId, "identifier", randomValue()),
-                        expiration,
-                        attributeType,
-                    ),
-                    CredentialToBeIssued.Vc(
-                        AtomicAttribute2023(subjectId, "picture", randomValue()),
-                        expiration,
-                        attributeType,
-                        listOf(Issuer.Attachment("picture", "image/webp", byteArrayOf(32)))
-                    )
-                )
-            )
-        }
 
         if (attributeTypes.contains(data.idaustria.ConstantIndex.IdAustriaCredential.vcType)) {
             val listFirstname = listOf("Max", "Susanne", "Peter", "Petra", "Hans", "Anna", "Martin", "Barbara")
@@ -86,7 +53,6 @@ class DummyCredentialDataProvider(
                 )
             )
         }
-
         return KmmResult.success(listOfAttributes)
     }
 
