@@ -36,7 +36,7 @@ class WalletMain(
      * Temporary function to create a random credential
      */
     suspend fun setCredentials(){
-        val holderAgent = HolderAgent.newDefaultInstance(cryptoService = this.cryptoService, subjectCredentialStore =  subjectCredentialStore)
+        val holderAgent: HolderAgent by lazy { HolderAgent.newDefaultInstance(cryptoService = this.cryptoService, subjectCredentialStore =  subjectCredentialStore) }
         runBlocking {
             holderAgent.storeCredentials(
                 IssuerAgent.newDefaultInstance(
