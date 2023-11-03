@@ -50,7 +50,7 @@ import org.jetbrains.compose.resources.painterResource
 import kotlinx.coroutines.runBlocking
 @Composable
 fun HomeScreen( onAbout: () -> Unit, onCredential: (id: String) -> Unit, onScanQrCode: () -> Unit, walletMain: WalletMain) {
-    Box(){
+    Box{
         val credentials = runBlocking { walletMain.subjectCredentialStore.getVcs() }
         Column(Modifier.fillMaxSize()) {
             Header(onAbout = onAbout)
