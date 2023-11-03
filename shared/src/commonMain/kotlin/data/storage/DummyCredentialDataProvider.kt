@@ -5,13 +5,10 @@ import at.asitplus.wallet.lib.agent.CredentialToBeIssued
 import at.asitplus.wallet.lib.agent.IssuerCredentialDataProvider
 import at.asitplus.wallet.lib.cbor.CoseKey
 import data.idaustria.IdAustriaCredential
-import io.matthewnelson.encoding.base16.Base16
-import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDate
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.minutes
-
 /**
  * Temporary class to create random credentials
  */

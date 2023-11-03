@@ -37,7 +37,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import at.asitplus.wallet.app.common.WalletMain
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.mlkit.vision.barcode.BarcodeScanning
@@ -45,7 +44,6 @@ import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import globalBack
 import io.github.aakira.napier.Napier
-import kotlinx.coroutines.runBlocking
 import java.util.*
 import java.util.concurrent.Executors
 import kotlin.coroutines.resume
