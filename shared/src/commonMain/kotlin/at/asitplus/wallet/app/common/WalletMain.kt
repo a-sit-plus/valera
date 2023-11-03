@@ -28,10 +28,6 @@ class WalletMain(
 
     val subjectCredentialStore: PersistentSubjectCredentialStore by lazy { PersistentSubjectCredentialStore(this.dataStoreService) }
 
-    suspend fun getCryptoServiceIdentifier(): String {
-        return cryptoService.identifier
-    }
-
     /**
      * Temporary function to create a random credential
      */
