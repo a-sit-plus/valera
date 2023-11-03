@@ -48,11 +48,11 @@ class AndroidKeyStoreService : KeyStoreService {
 
     override fun loadCertificate(): Certificate? {
         try {
-            Napier.d("loadCertificate");
+            Napier.d("loadCertificate")
             val keyStore = KeyStore.getInstance("AndroidKeyStore").apply { load(null, null) }
             return keyStore.getCertificate(keyAlias)
         } catch (e: Throwable) {
-            Napier.e("loadCertificate: error", e);
+            Napier.e("loadCertificate: error", e)
             return null
         }
     }
