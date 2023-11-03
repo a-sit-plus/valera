@@ -78,6 +78,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.app.common.WalletMain
+import io.github.aakira.napier.Napier
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineScope
@@ -187,7 +188,7 @@ private fun BoxScope.RealDeviceCamera(camera: AVCaptureDevice, onFoundPayload: (
                         onFoundPayload(payload)
                     }
                 } catch(e: Exception) {
-
+                    Napier.w("RealDeviceCamera: error", throwable = e)
                 }
 
             }
