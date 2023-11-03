@@ -4,8 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import at.asitplus.wallet.app.common.WalletMain
-import data.idaustria.Initializer
-import data.storage.PersistentSubjectCredentialStore
 import navigation.AboutPage
 import navigation.CameraPage
 import navigation.CredentialPage
@@ -64,8 +62,7 @@ fun nav(walletMain: WalletMain) {
                 CameraView(
                     onFoundPayload = { info ->
                         navigationStack.push(PayloadPage(info))
-                    },
-                    walletMain
+                    }
                 )
             }
             is PayloadPage -> {

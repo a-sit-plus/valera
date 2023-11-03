@@ -44,6 +44,7 @@ import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import globalBack
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.runBlocking
 import java.util.*
 import java.util.concurrent.Executors
@@ -59,7 +60,7 @@ private val executor = Executors.newSingleThreadExecutor()
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-actual fun CameraView(onFoundPayload: (text: String) -> Unit, walletMain: WalletMain){
+actual fun CameraView(onFoundPayload: (text: String) -> Unit){
 
 
     val modifier = Modifier
@@ -69,7 +70,7 @@ actual fun CameraView(onFoundPayload: (text: String) -> Unit, walletMain: Wallet
         )
     )
     if (cameraPermissionState.allPermissionsGranted) {
-        CameraWithGrantedPermission(modifier, onFoundPayload, walletMain)
+        CameraWithGrantedPermission(modifier, onFoundPayload)
     } else {
         LaunchedEffect(Unit) {
             println("Get Permission")
@@ -82,16 +83,12 @@ actual fun CameraView(onFoundPayload: (text: String) -> Unit, walletMain: Wallet
 @Composable
 private fun CameraWithGrantedPermission(
     modifier: Modifier,
-    onFoundPayload: (text: String) -> Unit,
-    walletMain: WalletMain
+    onFoundPayload: (text: String) -> Unit
 ) {
-
-    val coroutineScope = rememberCoroutineScope()
     val foundQrCode = remember { mutableStateOf(false)  }
 
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    val viewScope = rememberCoroutineScope()
 
     val preview = Preview.Builder().build()
     val previewView = remember { PreviewView(context) }
@@ -146,7 +143,7 @@ private fun CameraWithGrantedPermission(
                                 break
                             }
                         } else {
-                            it.exception?.printStackTrace()
+                            Napier.w("CameraWithGrantedPermission: error", throwable = it.exception)
                         }
                     }
             }

@@ -58,7 +58,7 @@ fun CredentialScreen(id: String, walletMain: WalletMain){
         Column(Modifier.background(color = MaterialTheme.colorScheme.primaryContainer).fillMaxSize()){
             Column(modifier = Modifier.fillMaxWidth().padding(top = 20.dp), horizontalAlignment = Alignment.CenterHorizontally){
                 Text(Resources.ID_AUSTRIA_CREDENTIAL, fontSize = 25.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                Text("VerifiableCredential, IdAustria2023", fontSize = 15.sp, color = Color.Black)
+                Text(vc?.type.contentToString(), fontSize = 15.sp, color = Color.Black)
             }
             Spacer(modifier = Modifier.size(20.dp))
             Column(modifier = Modifier.fillMaxWidth().padding(top = 40.dp, start = 20.dp), horizontalAlignment = Alignment.Start){

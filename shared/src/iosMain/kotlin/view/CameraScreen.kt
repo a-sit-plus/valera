@@ -89,7 +89,7 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 // Modified from https://github.com/JetBrains/compose-multiplatform/blob/master/examples/imageviewer/shared/src/iosMain/kotlin/example/imageviewer/view/CameraView.ios.kt
 
 @Composable
-actual fun CameraView(onFoundPayload: (text: String) -> Unit, walletMain: WalletMain){
+actual fun CameraView(onFoundPayload: (text: String) -> Unit){
     var cameraAccess: Boolean? by remember { mutableStateOf(null) }
     LaunchedEffect(Unit) {
         when (AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeVideo)) {
@@ -124,7 +124,7 @@ actual fun CameraView(onFoundPayload: (text: String) -> Unit, walletMain: Wallet
             }
 
             true -> {
-                AuthorizedCamera(onFoundPayload, walletMain)
+                AuthorizedCamera(onFoundPayload)
             }
         }
     }
@@ -139,7 +139,7 @@ private val deviceTypes = listOf(
 )
 
 @Composable
-private fun BoxScope.AuthorizedCamera(onFoundPayload: (text: String) -> Unit, walletMain: WalletMain){
+private fun BoxScope.AuthorizedCamera(onFoundPayload: (text: String) -> Unit){
     val camera: AVCaptureDevice? = remember {
         AVCaptureDeviceDiscoverySession.discoverySessionWithDeviceTypes(
             deviceTypes = deviceTypes,
@@ -148,7 +148,7 @@ private fun BoxScope.AuthorizedCamera(onFoundPayload: (text: String) -> Unit, wa
         ).devices.firstOrNull() as? AVCaptureDevice
     }
     if (camera != null) {
-        RealDeviceCamera(camera, onFoundPayload, walletMain)
+        RealDeviceCamera(camera, onFoundPayload)
     } else {
         Text(
             """
@@ -161,7 +161,7 @@ private fun BoxScope.AuthorizedCamera(onFoundPayload: (text: String) -> Unit, wa
 
 @OptIn(ExperimentalResourceApi::class, ExperimentalForeignApi::class, BetaInteropApi::class)
 @Composable
-private fun BoxScope.RealDeviceCamera(camera: AVCaptureDevice, onFoundPayload: (text: String) -> Unit, walletMain: WalletMain){
+private fun BoxScope.RealDeviceCamera(camera: AVCaptureDevice, onFoundPayload: (text: String) -> Unit){
     val foundQrCode = remember { mutableStateOf(false)  }
 
     val capturePhotoOutput = remember { AVCapturePhotoOutput() }

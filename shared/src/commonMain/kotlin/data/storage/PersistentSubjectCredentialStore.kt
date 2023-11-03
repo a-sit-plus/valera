@@ -3,13 +3,10 @@ package data.storage
 import DataStoreService
 import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.data.AtomicAttribute2023
-import at.asitplus.wallet.lib.data.CredentialSubject
 import at.asitplus.wallet.lib.data.VerifiableCredential
 import at.asitplus.wallet.lib.data.VerifiableCredentialJws
 import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.iso.IssuerSigned
-import data.idaustria.IdAustriaCredential
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
