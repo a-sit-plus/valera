@@ -2,15 +2,8 @@ package data.storage
 
 import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.CredentialToBeIssued
-import at.asitplus.wallet.lib.agent.Issuer
 import at.asitplus.wallet.lib.agent.IssuerCredentialDataProvider
 import at.asitplus.wallet.lib.cbor.CoseKey
-import at.asitplus.wallet.lib.data.AtomicAttribute2023
-import at.asitplus.wallet.lib.data.ConstantIndex
-import at.asitplus.wallet.lib.iso.DrivingPrivilege
-import at.asitplus.wallet.lib.iso.ElementValue
-import at.asitplus.wallet.lib.iso.IsoDataModelConstants
-import at.asitplus.wallet.lib.iso.IssuerSignedItem
 import data.idaustria.IdAustriaCredential
 import io.matthewnelson.encoding.base16.Base16
 import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
