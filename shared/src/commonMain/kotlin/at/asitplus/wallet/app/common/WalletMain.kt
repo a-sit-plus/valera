@@ -22,14 +22,14 @@ class WalletMain(
         Initializer.initWithVcLib()
     }
     val cryptoService: CryptoService by lazy { objectFactory.loadCryptoService().getOrThrow()}
-
     val subjectCredentialStore: PersistentSubjectCredentialStore by lazy { PersistentSubjectCredentialStore(this.dataStoreService) }
-
+    val holderAgent: HolderAgent by lazy { HolderAgent.newDefaultInstance(cryptoService = this.cryptoService, subjectCredentialStore =  subjectCredentialStore) }
+    
     /**
      * Temporary function to create a random credential
      */
     suspend fun setCredentials(){
-        val holderAgent: HolderAgent by lazy { HolderAgent.newDefaultInstance(cryptoService = this.cryptoService, subjectCredentialStore =  subjectCredentialStore) }
+
         runBlocking {
             holderAgent.storeCredentials(
                 IssuerAgent.newDefaultInstance(
