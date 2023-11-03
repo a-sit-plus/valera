@@ -16,11 +16,10 @@ class DataStoreService(private var dataStore: DataStore<Preferences>){
         }
     }
 
-    suspend fun getData(key: String): String?{
+    suspend fun getData(key: String): String? {
         val dataStoreKey = stringPreferencesKey(key)
         val preferences = dataStore.data.first()
-        val value = preferences[dataStoreKey]
-        return value
+        return preferences[dataStoreKey]
     }
 
     suspend fun deleteData(key: String){
