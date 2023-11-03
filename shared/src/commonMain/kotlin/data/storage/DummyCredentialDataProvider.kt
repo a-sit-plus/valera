@@ -48,6 +48,4 @@ class DummyCredentialDataProvider(
         }
         return KmmResult.success(listOfAttributes)
     }
-
-    private fun randomValue() = Random.nextBytes(32).encodeToString(Base16(strict = true))
 }
