@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.lib.data.VerifiableCredential
 import data.idaustria.IdAustriaCredential
 import globalBack
 import kotlinx.coroutines.runBlocking
@@ -34,20 +35,20 @@ import kotlinx.coroutines.runBlocking
 
 @Composable
 fun CredentialScreen(id: String, walletMain: WalletMain){
-    var firstName: String? = null
-    var lastName: String? = null
-    var birthDate: String? = null
-
     val vc = runBlocking { walletMain.subjectCredentialStore.getCredentialById(id) }
-    val vcId = vc?.id
     val credential = vc?.credentialSubject
     when (credential){
         is IdAustriaCredential ->  {
-            firstName = credential.firstname
-            lastName = credential.lastname
-            birthDate = credential.dateOfBirth.toString()
+            IdAustriaCredentialScreen(credential, id, walletMain)
         }
     }
+}
+
+@Composable
+fun IdAustriaCredentialScreen(credential: IdAustriaCredential, vcId: String, walletMain: WalletMain) {
+    val firstName = credential.firstname
+    val lastName = credential.lastname
+    val birthDate = credential.dateOfBirth.toString()
 
     Column {
         Row(Modifier.padding(10.dp).height(80.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -58,25 +59,23 @@ fun CredentialScreen(id: String, walletMain: WalletMain){
         Column(Modifier.background(color = MaterialTheme.colorScheme.primaryContainer).fillMaxSize()){
             Column(modifier = Modifier.fillMaxWidth().padding(top = 20.dp), horizontalAlignment = Alignment.CenterHorizontally){
                 Text(Resources.ID_AUSTRIA_CREDENTIAL, fontSize = 25.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                Text(vc?.type.contentToString(), fontSize = 15.sp, color = Color.Black)
+                Text(Resources.TYPE_ID_AUSTRIA_CREDENTIAL, fontSize = 15.sp, color = Color.Black)
             }
             Spacer(modifier = Modifier.size(20.dp))
             Column(modifier = Modifier.fillMaxWidth().padding(top = 40.dp, start = 20.dp), horizontalAlignment = Alignment.Start){
-                Text(firstName ?: Resources.UNKNOWN, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                Text(firstName, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                 Text(Resources.FIRST_NAME, fontSize = 15.sp, color = Color.Black)
                 Spacer(modifier = Modifier.size(10.dp))
-                Text(lastName ?: Resources.UNKNOWN, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                Text(lastName, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                 Text(Resources.LAST_NAME, fontSize = 15.sp, color = Color.Black)
                 Spacer(modifier = Modifier.size(10.dp))
-                Text(birthDate ?: Resources.UNKNOWN, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                Text(birthDate, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                 Text(Resources.BIRTH_DATE, fontSize = 15.sp, color = Color.Black)
             }
             Column(modifier = Modifier.fillMaxWidth().padding(top = 40.dp), horizontalAlignment = Alignment.CenterHorizontally){
                 Button(onClick = {
                     runBlocking {
-                        if (vcId != null) {
-                            walletMain.subjectCredentialStore.removeCredential(vcId)
-                        }
+                        walletMain.subjectCredentialStore.removeCredential(vcId)
                     }
                     globalBack()
                 }) {
@@ -86,6 +85,5 @@ fun CredentialScreen(id: String, walletMain: WalletMain){
         }
 
     }
-
 
 }
