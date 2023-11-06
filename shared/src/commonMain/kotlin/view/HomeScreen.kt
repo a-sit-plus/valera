@@ -1,9 +1,11 @@
 package view
 
 import Resources
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -207,10 +210,12 @@ fun ShowIdHeader(){
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ShowIdCard(onCredential: (id: String) -> Unit, walletMain: WalletMain) {
     val credentials = runBlocking { walletMain.subjectCredentialStore.getVcs() }
-    LazyRow {
+    val state = rememberLazyListState()
+    LazyRow (flingBehavior = rememberSnapFlingBehavior(lazyListState = state), state = state) {
         items(credentials.size){
             IdCard(onCredential, id = credentials[it].id, modifier = Modifier.fillParentMaxWidth(), walletMain)
         }
