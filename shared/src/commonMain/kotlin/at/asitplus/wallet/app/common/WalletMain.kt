@@ -29,7 +29,6 @@ class WalletMain(
      * Temporary function to create a random credential
      */
     suspend fun setCredentials(){
-
         runBlocking {
             holderAgent.storeCredentials(
                 IssuerAgent.newDefaultInstance(
@@ -49,7 +48,7 @@ class WalletMain(
             runBlocking { subjectCredentialStore.removeCredential(it.id) }
         }
         runBlocking { dataStoreService.deleteData("VCs") }
-        TODO("Remove crypto key from device")
+        runBlocking { objectFactory.clear() }
     }
 }
 
@@ -65,4 +64,5 @@ class WalletMain(
  */
 interface ObjectFactory {
     fun loadCryptoService(): KmmResult<CryptoService>
+    fun clear()
 }

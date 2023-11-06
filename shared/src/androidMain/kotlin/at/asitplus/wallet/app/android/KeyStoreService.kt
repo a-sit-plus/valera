@@ -18,6 +18,8 @@ interface KeyStoreService {
     fun loadKeyPair(): KeyPair?
     fun loadCertificate(): Certificate?
 
+    fun clear()
+
 }
 
 class AndroidKeyStoreService : KeyStoreService {
@@ -55,5 +57,10 @@ class AndroidKeyStoreService : KeyStoreService {
             Napier.e("loadCertificate: error", e)
             return null
         }
+    }
+
+    override fun clear(){
+        val keyStore = KeyStore.getInstance("AndroidKeyStore").apply { load(null, null) }
+        keyStore.deleteEntry(keyAlias)
     }
 }
