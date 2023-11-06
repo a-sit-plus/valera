@@ -49,6 +49,7 @@ class WalletMain(
             runBlocking { subjectCredentialStore.removeCredential(it.id) }
         }
         runBlocking { dataStoreService.deleteData("VCs") }
+        TODO("Remove crypto key from device")
     }
 }
 
