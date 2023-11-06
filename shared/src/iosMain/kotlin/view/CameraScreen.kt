@@ -74,9 +74,9 @@ import platform.darwin.dispatch_get_main_queue
 import platform.darwin.dispatch_queue_t
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import io.github.aakira.napier.Napier
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineScope
@@ -159,8 +159,7 @@ private fun BoxScope.AuthorizedCamera(onFoundPayload: (text: String) -> Unit){
 
 @OptIn(ExperimentalResourceApi::class, ExperimentalForeignApi::class, BetaInteropApi::class)
 @Composable
-private fun BoxScope.RealDeviceCamera(camera: AVCaptureDevice, onFoundPayload: (text: String) -> Unit){
-    val coroutineScope = rememberCoroutineScope()
+private fun RealDeviceCamera(camera: AVCaptureDevice, onFoundPayload: (text: String) -> Unit){
     val foundQrCode = remember { mutableStateOf(false)  }
 
     val capturePhotoOutput = remember { AVCapturePhotoOutput() }
@@ -169,6 +168,7 @@ private fun BoxScope.RealDeviceCamera(camera: AVCaptureDevice, onFoundPayload: (
             AVCaptureVideoOrientationPortrait
         )
     }
+
 
     val metaDelegate = remember {
         object : NSObject(), AVCaptureMetadataOutputObjectsDelegateProtocol {
@@ -181,14 +181,11 @@ private fun BoxScope.RealDeviceCamera(camera: AVCaptureDevice, onFoundPayload: (
                     val readableObject = didOutputMetadataObjects.first() as AVMetadataMachineReadableCodeObject
                     if(readableObject.stringValue != null && !foundQrCode.value){
                         val payload = readableObject.stringValue.toString()
-                        coroutineScope.launch {
-                            credentialList.value.add(createCredential(payload = payload))
-                        }
                         foundQrCode.value = true
                         onFoundPayload(payload)
                     }
                 } catch(e: Exception) {
-
+                    Napier.w("RealDeviceCamera: error", throwable = e)
                 }
 
             }
@@ -268,7 +265,7 @@ private fun BoxScope.RealDeviceCamera(camera: AVCaptureDevice, onFoundPayload: (
         Box(modifier = Modifier.background(color = Color.White).height(80.dp), contentAlignment = Alignment.TopCenter){
             Row(Modifier.padding(10.dp).height(80.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.Close, contentDescription = null, Modifier.size(30.dp).clickable(onClick = { globalBack() }), tint = Color.LightGray)
-                Text("DemoWallet", color = MaterialTheme.colorScheme.primary, fontSize = 40.sp, fontWeight = FontWeight.Bold)
+                Text(Resources.DEMO_WALLET, color = MaterialTheme.colorScheme.primary, fontSize = 40.sp, fontWeight = FontWeight.Bold)
                 Icon(Icons.Default.Close, contentDescription = null, Modifier.size(30.dp).clickable(onClick = { }), tint = Color.LightGray.copy(alpha = 0.0f))
             }
         }

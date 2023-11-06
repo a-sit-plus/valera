@@ -26,50 +26,57 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import at.asitplus.wallet.app.common.WalletMain
+import data.idaustria.IdAustriaCredential
 import globalBack
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.*
+import kotlinx.coroutines.runBlocking
 
-
-@Serializable
-data class Credential(val firstName: String, val lastName: String, val birthDate: String)
-
-suspend fun createCredential(payload: String): Credential {
-    return Json.decodeFromString<Credential>(payload)
-}
 
 @Composable
-fun CredentialScreen(index: Int){
-    val firstName = credentialList.value[index].firstName
-    val lastName = credentialList.value[index].lastName
-    val birthDate = credentialList.value[index].birthDate
-    Column() {
+fun CredentialScreen(id: String, walletMain: WalletMain){
+    var firstName: String? = null
+    var lastName: String? = null
+    var birthDate: String? = null
+
+    val vc = runBlocking { walletMain.subjectCredentialStore.getCredentialById(id) }
+    val vcId = vc?.id
+    val credential = vc?.credentialSubject
+    when (credential){
+        is IdAustriaCredential ->  {
+            firstName = credential.firstname
+            lastName = credential.lastname
+            birthDate = credential.dateOfBirth.toString()
+        }
+    }
+
+    Column {
         Row(Modifier.padding(10.dp).height(80.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.Close, contentDescription = null, Modifier.size(30.dp).clickable(onClick = { globalBack() }), tint = Color.LightGray)
-            Text("DemoWallet", color = MaterialTheme.colorScheme.primary, fontSize = 40.sp, fontWeight = FontWeight.Bold)
+            Text(Resources.DEMO_WALLET, color = MaterialTheme.colorScheme.primary, fontSize = 40.sp, fontWeight = FontWeight.Bold)
             Icon(Icons.Default.Info, contentDescription = null, Modifier.size(30.dp).clickable(onClick = { }), tint = Color.LightGray.copy(alpha = 0.0f))
         }
         Column(Modifier.background(color = MaterialTheme.colorScheme.primaryContainer).fillMaxSize()){
             Column(modifier = Modifier.fillMaxWidth().padding(top = 20.dp), horizontalAlignment = Alignment.CenterHorizontally){
-                Text("IDAustria Credential", fontSize = 25.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                Text("VerifiableCredential, IdAustria2023", fontSize = 15.sp, color = Color.Black)
+                Text(Resources.ID_AUSTRIA_CREDENTIAL, fontSize = 25.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                Text(vc?.type.contentToString(), fontSize = 15.sp, color = Color.Black)
             }
             Spacer(modifier = Modifier.size(20.dp))
             Column(modifier = Modifier.fillMaxWidth().padding(top = 40.dp, start = 20.dp), horizontalAlignment = Alignment.Start){
-                Text(firstName, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                Text(firstName ?: Resources.UNKNOWN, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                 Text(Resources.FIRST_NAME, fontSize = 15.sp, color = Color.Black)
                 Spacer(modifier = Modifier.size(10.dp))
-                Text(lastName, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                Text(lastName ?: Resources.UNKNOWN, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                 Text(Resources.LAST_NAME, fontSize = 15.sp, color = Color.Black)
                 Spacer(modifier = Modifier.size(10.dp))
-                Text(birthDate, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                Text(birthDate ?: Resources.UNKNOWN, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                 Text(Resources.BIRTH_DATE, fontSize = 15.sp, color = Color.Black)
             }
             Column(modifier = Modifier.fillMaxWidth().padding(top = 40.dp), horizontalAlignment = Alignment.CenterHorizontally){
                 Button(onClick = {
-                    credentialList.value.removeAt(index)
-                    if (credentialList.value.size == 0){
-                        showCredentials.value = false
+                    runBlocking {
+                        if (vcId != null) {
+                            walletMain.subjectCredentialStore.removeCredential(vcId)
+                        }
                     }
                     globalBack()
                 }) {

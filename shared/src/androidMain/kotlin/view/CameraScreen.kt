@@ -1,5 +1,6 @@
 package view
 
+import Resources
 import android.util.Size
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
@@ -42,7 +43,7 @@ import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import globalBack
-import kotlinx.coroutines.launch
+import io.github.aakira.napier.Napier
 import java.util.*
 import java.util.concurrent.Executors
 import kotlin.coroutines.resume
@@ -82,13 +83,10 @@ private fun CameraWithGrantedPermission(
     modifier: Modifier,
     onFoundPayload: (text: String) -> Unit
 ) {
-
-    val coroutineScope = rememberCoroutineScope()
     val foundQrCode = remember { mutableStateOf(false)  }
 
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    val viewScope = rememberCoroutineScope()
 
     val preview = Preview.Builder().build()
     val previewView = remember { PreviewView(context) }
@@ -139,15 +137,11 @@ private fun CameraWithGrantedPermission(
 
                                 val payload = barcode.rawValue.toString()
                                 foundQrCode.value = true
-                                coroutineScope.launch {
-                                    credentialList.value.add(createCredential(payload = payload))
-                                }
-
                                 onFoundPayload(payload)
                                 break
                             }
                         } else {
-                            it.exception?.printStackTrace()
+                            Napier.w("CameraWithGrantedPermission: error", throwable = it.exception)
                         }
                     }
             }
@@ -175,7 +169,7 @@ private fun CameraWithGrantedPermission(
         Box(modifier = Modifier.background(color = Color.White).height(80.dp), contentAlignment = Alignment.TopCenter){
             Row(Modifier.padding(10.dp).height(80.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.Close, contentDescription = null, Modifier.size(30.dp).clickable(onClick = { globalBack() }), tint = Color.LightGray)
-                Text("DemoWallet", color = MaterialTheme.colorScheme.primary, fontSize = 40.sp, fontWeight = FontWeight.Bold)
+                Text(Resources.DEMO_WALLET, color = MaterialTheme.colorScheme.primary, fontSize = 40.sp, fontWeight = FontWeight.Bold)
                 Icon(Icons.Default.Close, contentDescription = null, Modifier.size(30.dp).clickable(onClick = { }), tint = Color.LightGray.copy(alpha = 0.0f))
             }
         }

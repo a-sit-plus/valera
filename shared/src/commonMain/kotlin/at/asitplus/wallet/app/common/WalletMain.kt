@@ -3,20 +3,44 @@ package at.asitplus.wallet.app.common
 import DataStoreService
 import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.CryptoService
+import at.asitplus.wallet.lib.agent.DefaultCryptoService
+import at.asitplus.wallet.lib.agent.HolderAgent
+import at.asitplus.wallet.lib.agent.IssuerAgent
+import data.idaustria.Initializer
+import data.storage.DummyCredentialDataProvider
+import data.storage.PersistentSubjectCredentialStore
+import kotlinx.coroutines.runBlocking
 
 /**
  * Main class to hold all services needed in the Compose App.
  */
 class WalletMain(
     val objectFactory: ObjectFactory,
-    val dataStoreService: DataStoreService
+    val dataStoreService: DataStoreService,
 ) {
+    init {
+        Initializer.initWithVcLib()
+    }
+    val cryptoService: CryptoService by lazy { objectFactory.loadCryptoService().getOrThrow()}
+    val subjectCredentialStore: PersistentSubjectCredentialStore by lazy { PersistentSubjectCredentialStore(this.dataStoreService) }
+    val holderAgent: HolderAgent by lazy { HolderAgent.newDefaultInstance(cryptoService = this.cryptoService, subjectCredentialStore =  subjectCredentialStore) }
+    
+    /**
+     * Temporary function to create a random credential
+     */
+    suspend fun setCredentials(){
 
-    suspend fun getCryptoServiceIdentifier(): String {
-        val cryptoService = objectFactory.loadCryptoService().getOrElse {
-            return "null"
+        runBlocking {
+            holderAgent.storeCredentials(
+                IssuerAgent.newDefaultInstance(
+                    DefaultCryptoService(),
+                    dataProvider = DummyCredentialDataProvider(),
+                ).issueCredentialWithTypes(
+                    holderAgent.identifier,
+                    attributeTypes = listOf(data.idaustria.ConstantIndex.IdAustriaCredential.vcType)
+                ).toStoreCredentialInput()
+            )
         }
-        return cryptoService.identifier
     }
 }
 
@@ -31,5 +55,5 @@ class WalletMain(
  * efficiently.
  */
 interface ObjectFactory {
-    suspend fun loadCryptoService(): KmmResult<CryptoService>
+    fun loadCryptoService(): KmmResult<CryptoService>
 }

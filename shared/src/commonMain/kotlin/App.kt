@@ -20,14 +20,15 @@ import view.PayloadScreen
 
 @Composable
 fun App(walletMain: WalletMain) {
+
     WalletTheme {
-        nav()
+        nav(walletMain)
     }
 }
 var globalBack: () -> Unit = {}
 
 @Composable
-fun nav() {
+fun nav(walletMain: WalletMain) {
     // Modified from https://github.com/JetBrains/compose-multiplatform/tree/master/examples/imageviewer
 
     val navigationStack = rememberSaveable(
@@ -47,13 +48,14 @@ fun nav() {
                 HomeScreen( onAbout = { navigationStack.push(AboutPage()) },
                             onCredential = { info ->
                                 navigationStack.push(CredentialPage(info))},
-                            onScanQrCode = {navigationStack.push(CameraPage())})
+                            onScanQrCode = {navigationStack.push(CameraPage())},
+                            walletMain)
             }
             is AboutPage -> {
                 AboutScreen()
             }
             is CredentialPage -> {
-                CredentialScreen(index = page.info)
+                CredentialScreen(id = page.info, walletMain)
             }
 
             is CameraPage -> {
@@ -64,7 +66,7 @@ fun nav() {
                 )
             }
             is PayloadPage -> {
-                PayloadScreen(text = page.info, onContinueClick = {navigationStack.push(HomePage())})
+                PayloadScreen(text = page.info, onContinueClick = {navigationStack.push(HomePage())}, walletMain)
 
             }
         }

@@ -40,22 +40,25 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import at.asitplus.wallet.app.common.WalletMain
+import data.idaustria.IdAustriaCredential
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
-
-var showCredentials = mutableStateOf(false)
-var credentialList =  mutableStateOf(mutableListOf<Credential>())
-
+import kotlinx.coroutines.runBlocking
 @Composable
-fun HomeScreen( onAbout: () -> Unit, onCredential: (index: Int) -> Unit, onScanQrCode: () -> Unit) {
-    Box(){
+fun HomeScreen( onAbout: () -> Unit, onCredential: (id: String) -> Unit, onScanQrCode: () -> Unit, walletMain: WalletMain) {
+    Box{
+        val credentials = runBlocking { walletMain.subjectCredentialStore.getVcs() }
         Column(Modifier.fillMaxSize()) {
             Header(onAbout = onAbout)
             Column(Modifier.background(color = MaterialTheme.colorScheme.primaryContainer).fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-                if (showCredentials.value == false){
+                if (credentials.size == 0){
                     AddId(onScanQrCode)
                 } else {
-                    ShowId(onCredential, onScanQrCode)
+                    ShowId(onCredential, onScanQrCode, walletMain)
                 }
             }
         }
@@ -66,7 +69,7 @@ fun HomeScreen( onAbout: () -> Unit, onCredential: (index: Int) -> Unit, onScanQ
 fun Header(onAbout: () -> Unit) {
     Row(Modifier.padding(10.dp).height(80.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         Icon(Icons.Default.Info, contentDescription = null, Modifier.size(30.dp).clickable(onClick = { onAbout() }), tint = Color.LightGray.copy(alpha = 0f))
-        Text("DemoWallet", color = MaterialTheme.colorScheme.primary, fontSize = 40.sp, fontWeight = FontWeight.Bold)
+        Text(Resources.DEMO_WALLET, color = MaterialTheme.colorScheme.primary, fontSize = 40.sp, fontWeight = FontWeight.Bold)
         Icon(Icons.Default.Info, contentDescription = null, Modifier.size(30.dp).clickable(onClick = { onAbout() }), tint = Color.LightGray)
     }
 }
@@ -79,7 +82,7 @@ fun AddDialog(openDialog: MutableState<Boolean>, onScanQrCode: () -> Unit){
             Box(Modifier.padding(start = 20.dp, end = 20.dp).shadow(elevation = 2.dp, shape = RoundedCornerShape(10.dp))){
                 Box(Modifier.clip(shape = RoundedCornerShape(10.dp)).background(color = Color.White).fillMaxWidth().padding(20.dp)){
                     Column {
-                        Text("Add ID", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        Text(Resources.ADD_ID, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                         Spacer(Modifier.size(15.dp))
                         Divider(color = Color.LightGray, thickness = 1.dp)
                         Spacer(Modifier.size(15.dp))
@@ -137,7 +140,7 @@ fun AddIdCard(onScanQrCode: () -> Unit) {
     Box(Modifier.padding(start = 20.dp, end = 20.dp).shadow(elevation = 2.dp, shape = RoundedCornerShape(10.dp))){
         Box(Modifier.clip(shape = RoundedCornerShape(10.dp)).background(color = Color.White).fillMaxWidth().padding(20.dp)){
             Column {
-                Text("Add ID", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                Text(Resources.ADD_ID, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                 Spacer(Modifier.size(15.dp))
                 Divider(color = Color.LightGray, thickness = 1.dp)
                 Spacer(Modifier.size(15.dp))
@@ -151,7 +154,7 @@ fun AddIdCard(onScanQrCode: () -> Unit) {
                     Text(Resources.BUTTON_SCAN_QR, color = Color(48, 68, 113), fontSize = 15.sp, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.size(30.dp))
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable(onClick = {}).fillMaxWidth()) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable(onClick = {CoroutineScope(Dispatchers.Default).launch { }}).fillMaxWidth()) {
                     Box(Modifier.size(30.dp), contentAlignment = Alignment.Center){
                         Image(painterResource("icons8-login-100.png"), contentDescription = null, Modifier.height(30.dp))
                     }
@@ -170,17 +173,17 @@ fun AddIdText(){
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Wallet", color = MaterialTheme.colorScheme.primary, fontSize = 24.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 20.dp, bottom = 20.dp))
+        Text(Resources.WALLET, color = MaterialTheme.colorScheme.primary, fontSize = 24.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 20.dp, bottom = 20.dp))
         Text(Resources.CHOOSE_NEXT_STEP, color = MaterialTheme.colorScheme.primary, fontSize = 30.sp, fontWeight = FontWeight.Bold)
 
     }
 }
 
 @Composable
-fun ShowId(onCredential: (index: Int) -> Unit, onScanQrCode: () -> Unit) {
+fun ShowId(onCredential: (id: String) -> Unit, onScanQrCode: () -> Unit, walletMain: WalletMain) {
     val openDialog = remember { mutableStateOf(false) }
     ShowIdHeader()
-    ShowIdCard(onCredential)
+    ShowIdCard(onCredential, walletMain)
     Box(Modifier.fillMaxSize().padding(20.dp)){
         Box(Modifier.clip(shape = CircleShape).background(color = MaterialTheme.colorScheme.errorContainer).size(40.dp).clickable(onClick = { openDialog.value = true }).align(Alignment.BottomEnd), contentAlignment = Alignment.Center){
             Icon(Icons.Default.Add, contentDescription = null, Modifier.size(30.dp), tint = MaterialTheme.colorScheme.error)
@@ -199,26 +202,34 @@ fun ShowIdHeader(){
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Wallet", color = MaterialTheme.colorScheme.primary, fontSize = 24.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 20.dp, bottom = 20.dp))
+        Text(Resources.WALLET, color = MaterialTheme.colorScheme.primary, fontSize = 24.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 20.dp, bottom = 20.dp))
 
     }
 }
 
 @Composable
-fun ShowIdCard(onCredential: (index: Int) -> Unit) {
+fun ShowIdCard(onCredential: (id: String) -> Unit, walletMain: WalletMain) {
+    val credentials = runBlocking { walletMain.subjectCredentialStore.getVcs() }
     LazyRow {
-        items(credentialList.value.size){
-            IdCard(onCredential, index = it, modifier = Modifier.fillParentMaxWidth())
+        items(credentials.size){
+            IdCard(onCredential, id = credentials[it].id, modifier = Modifier.fillParentMaxWidth(), walletMain)
         }
     }
 }
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-fun IdCard(onCredential: (index: Int) -> Unit, index: Int, modifier: Modifier) {
-    val name = credentialList.value[index].firstName + " " + credentialList.value[index].lastName
+fun IdCard(onCredential: (id: String) -> Unit, id: String, modifier: Modifier, walletMain: WalletMain) {
+    var name: String? = null
+    val credential = runBlocking { walletMain.subjectCredentialStore.getCredentialById(id) }?.credentialSubject
+    when(credential) {
+        is IdAustriaCredential -> {
+            name = credential.firstname + " " + credential.lastname
+        }
+    }
 
-    Box(modifier.padding(start = 20.dp, end = 20.dp).shadow(elevation = 2.dp, shape = RoundedCornerShape(10.dp)).clickable(onClick = {onCredential(index)} )){
+
+    Box(modifier.padding(start = 20.dp, end = 20.dp).shadow(elevation = 2.dp, shape = RoundedCornerShape(10.dp)).clickable(onClick = {onCredential(id)} )){
         Box(Modifier.clip(shape = RoundedCornerShape(10.dp)).background(color = Color.White).padding(20.dp)){
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(Resources.CREDENTIAL, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
@@ -229,9 +240,9 @@ fun IdCard(onCredential: (index: Int) -> Unit, index: Int, modifier: Modifier) {
                     Image(painterResource("3d-casual-life-smiling-face-with-smiling-eyes.png"), contentDescription = null, Modifier.size(150.dp), contentScale = ContentScale.Crop)
                 }
                 Spacer(Modifier.size(30.dp))
-                Text(name, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                Text(name ?: Resources.UNKNOWN, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                 Spacer(Modifier.size(10.dp))
-                Text("IDAustria Credential", fontSize = 12.sp, color = Color.Black)
+                Text(Resources.ID_AUSTRIA_CREDENTIAL, fontSize = 12.sp, color = Color.Black)
 
             }
         }
