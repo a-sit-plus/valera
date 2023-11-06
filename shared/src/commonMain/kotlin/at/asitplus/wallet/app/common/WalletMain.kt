@@ -44,7 +44,11 @@ class WalletMain(
     }
 
     fun resetApp(){
-        TODO("Add functionality")
+        val credentials = runBlocking { subjectCredentialStore.getVcs() }
+        credentials.forEach {
+            runBlocking { subjectCredentialStore.removeCredential(it.id) }
+        }
+        runBlocking { dataStoreService.deleteData("VCs") }
     }
 }
 
