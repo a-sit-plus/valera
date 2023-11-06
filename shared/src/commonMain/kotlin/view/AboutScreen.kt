@@ -76,10 +76,10 @@ fun AboutScreen(walletMain: WalletMain){
 fun ResetAlert(showAlert: MutableState<Boolean>, walletMain: WalletMain){
     AlertDialog(
         title = {
-            Text("Warning")
+            Text(Resources.WARNING)
         },
         text = {
-            Text("Really reset the App?")
+            Text(Resources.RESET_APP_ALERT_TEXT)
         },
         onDismissRequest = {
                            showAlert.value = false
@@ -91,7 +91,7 @@ fun ResetAlert(showAlert: MutableState<Boolean>, walletMain: WalletMain){
                     showAlert.value = false
                 }
             ) {
-                Text("Confirm")
+                Text(Resources.CONFIRM)
             }
         },
         dismissButton = {
@@ -100,7 +100,7 @@ fun ResetAlert(showAlert: MutableState<Boolean>, walletMain: WalletMain){
                     showAlert.value = false
                 }
             ) {
-                Text("Dismiss")
+                Text(Resources.DISMISS)
             }
         }
     )
