@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,10 +22,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import at.asitplus.wallet.app.common.WalletMain
 import globalBack
 
 @Composable
-fun AboutScreen(){
+fun AboutScreen(walletMain: WalletMain){
     Column(
         modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.primaryContainer),
         verticalArrangement = Arrangement.Center,
@@ -49,6 +52,14 @@ fun AboutScreen(){
             onClick = { globalBack() }
         ) {
             Text(Resources.BUTTON_CLOSE)
+        }
+        Button(
+            modifier = Modifier
+                .padding(vertical = 24.dp),
+            onClick = { walletMain.resetApp() },
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+        ) {
+            Text(Resources.RESET_APP)
         }
     }
 }

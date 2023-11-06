@@ -52,7 +52,7 @@ fun nav(walletMain: WalletMain) {
                             walletMain)
             }
             is AboutPage -> {
-                AboutScreen()
+                AboutScreen(walletMain)
             }
             is CredentialPage -> {
                 CredentialScreen(id = page.info, walletMain)

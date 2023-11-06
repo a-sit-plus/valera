@@ -21,4 +21,6 @@ object Resources {
     const val ADD_ID = "Add ID"
     const val COMPOSE_WALLET = "Compose Wallet"
     const val DEMO_APP = "Demo App"
+    const val RESET_APP = "Reset App"
+
 }

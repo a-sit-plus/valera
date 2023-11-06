@@ -42,6 +42,10 @@ class WalletMain(
             )
         }
     }
+
+    fun resetApp(){
+        TODO("Add functionality")
+    }
 }
 
 /**
