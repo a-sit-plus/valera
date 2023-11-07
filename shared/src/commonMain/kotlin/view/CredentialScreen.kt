@@ -37,15 +37,16 @@ import kotlinx.coroutines.runBlocking
 fun CredentialScreen(id: String, walletMain: WalletMain){
     val vc = runBlocking { walletMain.subjectCredentialStore.getCredentialById(id) }
     val credential = vc?.credentialSubject
+    val type = vc?.type?.filter { it != "VerifiableCredential" }?.joinToString(",") ?: Resources.UNKNOWN
     when (credential){
         is IdAustriaCredential ->  {
-            IdAustriaCredentialScreen(credential, id, walletMain)
+            IdAustriaCredentialScreen(credential, id, walletMain, type)
         }
     }
 }
 
 @Composable
-fun IdAustriaCredentialScreen(credential: IdAustriaCredential, vcId: String, walletMain: WalletMain) {
+fun IdAustriaCredentialScreen(credential: IdAustriaCredential, vcId: String, walletMain: WalletMain, type: String) {
     val firstName = credential.firstname
     val lastName = credential.lastname
     val birthDate = credential.dateOfBirth.toString()
@@ -59,7 +60,7 @@ fun IdAustriaCredentialScreen(credential: IdAustriaCredential, vcId: String, wal
         Column(Modifier.background(color = MaterialTheme.colorScheme.primaryContainer).fillMaxSize()){
             Column(modifier = Modifier.fillMaxWidth().padding(top = 20.dp), horizontalAlignment = Alignment.CenterHorizontally){
                 Text(Resources.ID_AUSTRIA_CREDENTIAL, fontSize = 25.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                Text(Resources.TYPE_ID_AUSTRIA_CREDENTIAL, fontSize = 15.sp, color = Color.Black)
+                Text(type, fontSize = 15.sp, color = Color.Black)
             }
             Spacer(modifier = Modifier.size(20.dp))
             Column(modifier = Modifier.fillMaxWidth().padding(top = 40.dp, start = 20.dp), horizontalAlignment = Alignment.Start){

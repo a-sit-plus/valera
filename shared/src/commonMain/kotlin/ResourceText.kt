@@ -17,10 +17,8 @@ object Resources {
     const val UNKNOWN = "Unknown"
     const val DEMO_WALLET = "DemoWallet"
     const val ID_AUSTRIA_CREDENTIAL = "IDAustria Credential"
-    const val TYPE_ID_AUSTRIA_CREDENTIAL = "VerifiableCredential, IdAustria2023"
     const val WALLET = "Wallet"
     const val ADD_ID = "Add ID"
     const val COMPOSE_WALLET = "Compose Wallet"
     const val DEMO_APP = "Demo App"
-
 }
