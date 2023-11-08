@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.app.common.WalletMain
 import globalBack
+import kotlinx.coroutines.runBlocking
 
 @Composable
 fun AboutScreen(walletMain: WalletMain){
@@ -87,7 +88,7 @@ fun ResetAlert(showAlert: MutableState<Boolean>, walletMain: WalletMain){
         confirmButton = {
             TextButton(
                 onClick = {
-                    walletMain.resetApp()
+                    runBlocking { walletMain.resetApp() }
                     showAlert.value = false
                 }
             ) {

@@ -9,7 +9,6 @@ import at.asitplus.wallet.lib.agent.IssuerAgent
 import data.idaustria.Initializer
 import data.storage.DummyCredentialDataProvider
 import data.storage.PersistentSubjectCredentialStore
-import kotlinx.coroutines.runBlocking
 
 /**
  * Main class to hold all services needed in the Compose App.
@@ -28,7 +27,6 @@ class WalletMain(
      * Temporary function to create a random credential
      */
     suspend fun setCredentials(){
-        runBlocking {
             holderAgent.storeCredentials(
                 IssuerAgent.newDefaultInstance(
                     DefaultCryptoService(),
@@ -38,16 +36,15 @@ class WalletMain(
                     attributeTypes = listOf(data.idaustria.ConstantIndex.IdAustriaCredential.vcType)
                 ).toStoreCredentialInput()
             )
-        }
     }
 
-    fun resetApp(){
-        val credentials = runBlocking { subjectCredentialStore.getVcs() }
+    suspend fun resetApp(){
+        val credentials = subjectCredentialStore.getVcs()
         credentials.forEach {
-            runBlocking { subjectCredentialStore.removeCredential(it.id) }
+            subjectCredentialStore.removeCredential(it.id)
         }
-        runBlocking { objectFactory.dataStoreService?.deleteData("VCs") }
-        runBlocking { objectFactory.clear() }
+        objectFactory.dataStoreService?.deleteData("VCs")
+        objectFactory.clear()
     }
 }
 
