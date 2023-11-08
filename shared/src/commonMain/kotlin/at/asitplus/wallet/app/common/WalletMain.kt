@@ -27,8 +27,8 @@ class WalletMain(
     }
     fun initialize(){
         cryptoService = objectFactory.loadCryptoService().getOrThrow()
-        subjectCredentialStore = PersistentSubjectCredentialStore(this.dataStoreService)
-        holderAgent = HolderAgent.newDefaultInstance(cryptoService = this.cryptoService, subjectCredentialStore = subjectCredentialStore)
+        subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
+        holderAgent = HolderAgent.newDefaultInstance(cryptoService = cryptoService, subjectCredentialStore = subjectCredentialStore)
         holderKeyService = objectFactory.loadHolderKeyService().getOrThrow()
     }
 
@@ -53,7 +53,7 @@ class WalletMain(
         credentials.forEach {
             subjectCredentialStore.removeCredential(it.id)
         }
-        this.dataStoreService.deleteData("VCs")
+        dataStoreService.deleteData("VCs")
         holderKeyService.clear()
     }
 }
