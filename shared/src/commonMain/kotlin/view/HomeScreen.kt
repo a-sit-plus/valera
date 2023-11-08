@@ -225,6 +225,17 @@ fun ShowIdCard(onCredential: (id: String) -> Unit, walletMain: WalletMain) {
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun IdCard(onCredential: (id: String) -> Unit, id: String, modifier: Modifier, walletMain: WalletMain) {
+    val credential = runBlocking { walletMain.subjectCredentialStore.getCredentialById(id) }?.credentialSubject
+    when(credential) {
+        is IdAustriaCredential -> {
+            IdAustriaCredentialCard(onCredential, id, modifier, walletMain)
+        }
+    }
+}
+
+@OptIn(ExperimentalResourceApi::class)
+@Composable
+fun IdAustriaCredentialCard(onCredential: (id: String) -> Unit, id: String, modifier: Modifier, walletMain: WalletMain) {
     var name: String? = null
     val credential = runBlocking { walletMain.subjectCredentialStore.getCredentialById(id) }?.credentialSubject
     when(credential) {
@@ -232,8 +243,6 @@ fun IdCard(onCredential: (id: String) -> Unit, id: String, modifier: Modifier, w
             name = credential.firstname + " " + credential.lastname
         }
     }
-
-
     Box(modifier.padding(start = 20.dp, end = 20.dp).shadow(elevation = 2.dp, shape = RoundedCornerShape(10.dp)).clickable(onClick = {onCredential(id)} )){
         Box(Modifier.clip(shape = RoundedCornerShape(10.dp)).background(color = Color.White).padding(20.dp)){
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -248,10 +257,7 @@ fun IdCard(onCredential: (id: String) -> Unit, id: String, modifier: Modifier, w
                 Text(name ?: Resources.UNKNOWN, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                 Spacer(Modifier.size(10.dp))
                 Text(Resources.ID_AUSTRIA_CREDENTIAL, fontSize = 12.sp, color = Color.Black)
-
             }
         }
     }
 }
-
-
