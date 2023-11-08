@@ -16,6 +16,7 @@ import data.storage.PersistentSubjectCredentialStore
 class WalletMain(
     val objectFactory: ObjectFactory,
     var dataStoreService: DataStoreService,
+    var holderKeyService: HolderKeyService?,
     var cryptoService: CryptoService? = null,
     var subjectCredentialStore: PersistentSubjectCredentialStore? = null,
     var holderAgent: HolderAgent? = null
@@ -69,6 +70,10 @@ class WalletMain(
  */
 interface ObjectFactory {
     fun loadCryptoService(): KmmResult<CryptoService>
+    fun clear()
+}
+
+interface HolderKeyService {
     fun clear()
 }
 

@@ -4,7 +4,13 @@ import shared
 
 struct ComposeView: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIViewController {
-        return Main_iosKt.MainViewController(objectFactory: SwiftObjectFactory())
+        var holderKeyService: HolderKeyService?
+        do {
+            holderKeyService = try RealKeyChainService()
+        } catch {
+            
+        }
+        return Main_iosKt.MainViewController(objectFactory: SwiftObjectFactory(), holderKeyService: holderKeyService)
     }
 
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}

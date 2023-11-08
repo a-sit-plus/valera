@@ -7,6 +7,7 @@ import android.security.keystore.KeyProperties.AUTH_BIOMETRIC_STRONG
 import android.security.keystore.KeyProperties.AUTH_DEVICE_CREDENTIAL
 import android.security.keystore.KeyProperties.PURPOSE_SIGN
 import android.security.keystore.KeyProperties.PURPOSE_VERIFY
+import at.asitplus.wallet.app.common.HolderKeyService
 import io.github.aakira.napier.Napier
 import java.security.KeyPair
 import java.security.KeyPairGenerator
@@ -22,7 +23,7 @@ interface KeyStoreService {
 
 }
 
-class AndroidKeyStoreService : KeyStoreService {
+class AndroidKeyStoreService : KeyStoreService, HolderKeyService {
 
     private val keyAlias = "binding"
 
