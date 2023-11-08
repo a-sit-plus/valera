@@ -30,7 +30,7 @@ public class RealKeyChainService : KeyChainService, HolderKeyService {
     private var privateKey: SecureEnclave.P256.Signing.PrivateKey?
     private var publicKey: P256.Signing.PublicKey?
 
-    public init() throws {
+    public func initialize() throws {
         self.privateKey = loadPrivateKey()
         self.publicKey = loadPublicKey()
         if (self.privateKey == nil) {

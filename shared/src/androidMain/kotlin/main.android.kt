@@ -10,6 +10,7 @@ import androidx.compose.ui.platform.LocalContext
 import at.asitplus.KmmResult
 import at.asitplus.wallet.app.android.AndroidCryptoService
 import at.asitplus.wallet.app.android.AndroidKeyStoreService
+import at.asitplus.wallet.app.common.HolderKeyService
 import at.asitplus.wallet.app.common.ObjectFactory
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.CryptoService
@@ -37,7 +38,7 @@ actual fun getColorScheme(): ColorScheme{
 
 @Composable
 fun MainView() {
-    App(WalletMain(objectFactory = AndroidObjectFactory(), DataStoreService(getDataStore(LocalContext.current)), holderKeyService = AndroidKeyStoreService()))
+    App(WalletMain(objectFactory = AndroidObjectFactory(), DataStoreService(getDataStore(LocalContext.current))))
 }
 
 class AndroidObjectFactory() : ObjectFactory {
@@ -54,5 +55,9 @@ class AndroidObjectFactory() : ObjectFactory {
             ?: return KmmResult.failure(Throwable("Could not load certificate"))
         val cryptoService = AndroidCryptoService(keyPair, certificate)
         return KmmResult.success(cryptoService)
+    }
+
+    override fun loadHolderKeyService(): KmmResult<HolderKeyService> {
+        return KmmResult.success(AndroidKeyStoreService())
     }
 }

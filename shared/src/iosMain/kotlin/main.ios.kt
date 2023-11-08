@@ -19,6 +19,6 @@ actual fun getColorScheme(): ColorScheme{
     }
 }
 
-fun MainViewController(objectFactory: ObjectFactory, holderKeyService: HolderKeyService?) = ComposeUIViewController {
-    App(WalletMain(objectFactory, DataStoreService(createDataStore()), holderKeyService))
+fun MainViewController(objectFactory: ObjectFactory) = ComposeUIViewController {
+    App(WalletMain(objectFactory, DataStoreService(createDataStore())))
 }
