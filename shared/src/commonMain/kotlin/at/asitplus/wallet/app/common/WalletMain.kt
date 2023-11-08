@@ -15,6 +15,7 @@ import data.storage.PersistentSubjectCredentialStore
  */
 class WalletMain(
     val objectFactory: ObjectFactory,
+    var dataStoreService: DataStoreService,
     var cryptoService: CryptoService? = null,
     var subjectCredentialStore: PersistentSubjectCredentialStore? = null,
     var holderAgent: HolderAgent? = null
@@ -24,7 +25,7 @@ class WalletMain(
     }
     fun initialize(){
         cryptoService = objectFactory.loadCryptoService().getOrThrow()
-        subjectCredentialStore = PersistentSubjectCredentialStore(objectFactory.dataStoreService)
+        subjectCredentialStore = PersistentSubjectCredentialStore(this.dataStoreService)
         holderAgent = HolderAgent.newDefaultInstance(cryptoService = this.cryptoService!!, subjectCredentialStore = subjectCredentialStore!!)
     }
 
@@ -51,7 +52,7 @@ class WalletMain(
                 subjectCredentialStore?.removeCredential(it.id)
             }
         }
-        objectFactory.dataStoreService?.deleteData("VCs")
+        this.dataStoreService.deleteData("VCs")
         objectFactory.clear()
     }
 }
@@ -67,8 +68,9 @@ class WalletMain(
  * efficiently.
  */
 interface ObjectFactory {
-    var dataStoreService: DataStoreService?
     fun loadCryptoService(): KmmResult<CryptoService>
     fun clear()
 }
+
+
 
