@@ -14,8 +14,8 @@ import data.storage.PersistentSubjectCredentialStore
  * Main class to hold all services needed in the Compose App.
  */
 class WalletMain(
-    val objectFactory: ObjectFactory,
-    private var dataStoreService: DataStoreService,
+    private val objectFactory: ObjectFactory,
+    private val dataStoreService: DataStoreService,
 ) {
     private lateinit var cryptoService: CryptoService
     lateinit var subjectCredentialStore: PersistentSubjectCredentialStore
