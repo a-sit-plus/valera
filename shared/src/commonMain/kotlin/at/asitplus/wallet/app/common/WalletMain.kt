@@ -15,12 +15,12 @@ import data.storage.PersistentSubjectCredentialStore
  */
 class WalletMain(
     val objectFactory: ObjectFactory,
-    var dataStoreService: DataStoreService,
+    private var dataStoreService: DataStoreService,
 ) {
-    lateinit var cryptoService: CryptoService
+    private lateinit var cryptoService: CryptoService
     lateinit var subjectCredentialStore: PersistentSubjectCredentialStore
-    lateinit var holderAgent: HolderAgent
-    lateinit var holderKeyService: HolderKeyService
+    private lateinit var holderAgent: HolderAgent
+    private lateinit var holderKeyService: HolderKeyService
 
     init {
         Initializer.initWithVcLib()

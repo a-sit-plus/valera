@@ -54,7 +54,7 @@ import kotlinx.coroutines.runBlocking
 @Composable
 fun HomeScreen( onAbout: () -> Unit, onCredential: (id: String) -> Unit, onScanQrCode: () -> Unit, walletMain: WalletMain) {
     Box{
-        val credentials = runBlocking { walletMain.subjectCredentialStore?.getVcs() }
+        val credentials = runBlocking { walletMain.subjectCredentialStore.getVcs() }
         Column(Modifier.fillMaxSize()) {
             Header(onAbout = onAbout)
             Column(Modifier.background(color = MaterialTheme.colorScheme.primaryContainer).fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -239,7 +239,7 @@ fun IdCard(onCredential: (id: String) -> Unit, id: String, modifier: Modifier, w
 @Composable
 fun IdAustriaCredentialCard(onCredential: (id: String) -> Unit, id: String, modifier: Modifier, walletMain: WalletMain) {
     var name: String? = null
-    val credential = runBlocking { walletMain.subjectCredentialStore?.getCredentialById(id) }?.credentialSubject
+    val credential = runBlocking { walletMain.subjectCredentialStore.getCredentialById(id) }?.credentialSubject
     when(credential) {
         is IdAustriaCredential -> {
             name = credential.firstname + " " + credential.lastname
