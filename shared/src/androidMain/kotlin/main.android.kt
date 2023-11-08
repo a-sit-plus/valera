@@ -55,11 +55,4 @@ class AndroidObjectFactory() : ObjectFactory {
         val cryptoService = AndroidCryptoService(keyPair, certificate)
         return KmmResult.success(cryptoService)
     }
-
-    override fun clear(){
-        val keyStoreService = AndroidKeyStoreService()
-        keyStoreService.clear()
-    }
-
-
 }

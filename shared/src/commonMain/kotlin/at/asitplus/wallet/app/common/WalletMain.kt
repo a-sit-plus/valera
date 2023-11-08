@@ -54,7 +54,7 @@ class WalletMain(
             }
         }
         this.dataStoreService.deleteData("VCs")
-        objectFactory.clear()
+        holderKeyService?.clear()
     }
 }
 
@@ -70,7 +70,6 @@ class WalletMain(
  */
 interface ObjectFactory {
     fun loadCryptoService(): KmmResult<CryptoService>
-    fun clear()
 }
 
 interface HolderKeyService {

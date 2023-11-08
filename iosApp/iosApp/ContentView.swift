@@ -41,15 +41,6 @@ class SwiftObjectFactory: ObjectFactory {
         }
 
     }
-    func clear(){
-        do {
-            let keyChainService = try RealKeyChainService()
-            keyChainService.clear()
-        }
-        catch {
-            NapierProxy.companion.e(msg: "Error on clearing key")
-        }
-    }
 
 }
 
