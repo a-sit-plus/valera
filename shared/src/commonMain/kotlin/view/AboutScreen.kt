@@ -83,7 +83,7 @@ fun ResetAlert(showAlert: MutableState<Boolean>, walletMain: WalletMain){
             Text(Resources.RESET_APP_ALERT_TEXT)
         },
         onDismissRequest = {
-                           showAlert.value = false
+            showAlert.value = false
         },
         confirmButton = {
             TextButton(
