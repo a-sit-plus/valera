@@ -18,6 +18,7 @@ struct ContentView: View {
 }
 
 class SwiftObjectFactory: ObjectFactory {
+    var dataStoreService: DataStoreService?
 
     func loadCryptoService() -> KmmResult<CryptoService> {
 

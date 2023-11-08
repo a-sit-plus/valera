@@ -37,11 +37,10 @@ actual fun getColorScheme(): ColorScheme{
 
 @Composable
 fun MainView() {
-    App(WalletMain(objectFactory = AndroidObjectFactory(),
-                   dataStoreService = DataStoreService(getDataStore(LocalContext.current))))
+    App(WalletMain(objectFactory = AndroidObjectFactory(DataStoreService(getDataStore(LocalContext.current)))))
 }
 
-class AndroidObjectFactory : ObjectFactory {
+class AndroidObjectFactory(override var dataStoreService: DataStoreService?) : ObjectFactory {
 
     init {
         Napier.base(DebugAntilog())

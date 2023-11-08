@@ -15,14 +15,13 @@ import kotlinx.coroutines.runBlocking
  * Main class to hold all services needed in the Compose App.
  */
 class WalletMain(
-    val objectFactory: ObjectFactory,
-    val dataStoreService: DataStoreService,
+    val objectFactory: ObjectFactory
 ) {
     init {
         Initializer.initWithVcLib()
     }
     val cryptoService: CryptoService by lazy { objectFactory.loadCryptoService().getOrThrow()}
-    val subjectCredentialStore: PersistentSubjectCredentialStore by lazy { PersistentSubjectCredentialStore(this.dataStoreService) }
+    val subjectCredentialStore: PersistentSubjectCredentialStore by lazy { PersistentSubjectCredentialStore(objectFactory.dataStoreService) }
     val holderAgent: HolderAgent by lazy { HolderAgent.newDefaultInstance(cryptoService = this.cryptoService, subjectCredentialStore =  subjectCredentialStore) }
     
     /**
@@ -47,7 +46,7 @@ class WalletMain(
         credentials.forEach {
             runBlocking { subjectCredentialStore.removeCredential(it.id) }
         }
-        runBlocking { dataStoreService.deleteData("VCs") }
+        runBlocking { objectFactory.dataStoreService?.deleteData("VCs") }
         runBlocking { objectFactory.clear() }
     }
 }
@@ -63,6 +62,7 @@ class WalletMain(
  * efficiently.
  */
 interface ObjectFactory {
+    var dataStoreService: DataStoreService?
     fun loadCryptoService(): KmmResult<CryptoService>
     fun clear()
 }
