@@ -92,7 +92,7 @@ fun ResetAlert(showAlert: MutableState<Boolean>, walletMain: WalletMain){
                     showAlert.value = false
                 }
             ) {
-                Text(Resources.CONFIRM)
+                Text(Resources.BUTTON_CONFIRM)
             }
         },
         dismissButton = {
@@ -101,7 +101,7 @@ fun ResetAlert(showAlert: MutableState<Boolean>, walletMain: WalletMain){
                     showAlert.value = false
                 }
             ) {
-                Text(Resources.DISMISS)
+                Text(Resources.BUTTON_DISMISS)
             }
         }
     )

@@ -24,6 +24,6 @@ object Resources {
     const val RESET_APP = "Reset App"
     const val WARNING = "Warning"
     const val RESET_APP_ALERT_TEXT = "Do you really want to reset the App?"
-    const val CONFIRM = "Confirm"
-    const val DISMISS = "Dismiss"
+    const val BUTTON_CONFIRM = "Confirm"
+    const val BUTTON_DISMISS = "Dismiss"
 }
