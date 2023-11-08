@@ -21,6 +21,12 @@ import view.PayloadScreen
 @Composable
 fun App(walletMain: WalletMain) {
 
+    try {
+        walletMain.initialize()
+    } catch (_: Exception){
+
+    }
+
     WalletTheme {
         nav(walletMain)
     }

@@ -14,34 +14,42 @@ import data.storage.PersistentSubjectCredentialStore
  * Main class to hold all services needed in the Compose App.
  */
 class WalletMain(
-    val objectFactory: ObjectFactory
+    val objectFactory: ObjectFactory,
+    var cryptoService: CryptoService? = null,
+    var subjectCredentialStore: PersistentSubjectCredentialStore? = null,
+    var holderAgent: HolderAgent? = null
 ) {
     init {
         Initializer.initWithVcLib()
     }
-    val cryptoService: CryptoService by lazy { objectFactory.loadCryptoService().getOrThrow()}
-    val subjectCredentialStore: PersistentSubjectCredentialStore by lazy { PersistentSubjectCredentialStore(objectFactory.dataStoreService) }
-    val holderAgent: HolderAgent by lazy { HolderAgent.newDefaultInstance(cryptoService = this.cryptoService, subjectCredentialStore =  subjectCredentialStore) }
+    fun initialize(){
+        cryptoService = objectFactory.loadCryptoService().getOrThrow()
+        subjectCredentialStore = PersistentSubjectCredentialStore(objectFactory.dataStoreService)
+        holderAgent = HolderAgent.newDefaultInstance(cryptoService = this.cryptoService!!, subjectCredentialStore = subjectCredentialStore!!)
+    }
+
     
     /**
      * Temporary function to create a random credential
      */
     suspend fun setCredentials(){
-            holderAgent.storeCredentials(
-                IssuerAgent.newDefaultInstance(
-                    DefaultCryptoService(),
-                    dataProvider = DummyCredentialDataProvider(),
-                ).issueCredentialWithTypes(
-                    holderAgent.identifier,
-                    attributeTypes = listOf(data.idaustria.ConstantIndex.IdAustriaCredential.vcType)
-                ).toStoreCredentialInput()
-            )
+        holderAgent?.storeCredentials(
+            IssuerAgent.newDefaultInstance(
+                DefaultCryptoService(),
+                dataProvider = DummyCredentialDataProvider(),
+            ).issueCredentialWithTypes(
+                holderAgent!!.identifier,
+                attributeTypes = listOf(data.idaustria.ConstantIndex.IdAustriaCredential.vcType)
+            ).toStoreCredentialInput()
+        )
     }
 
     suspend fun resetApp(){
-        val credentials = subjectCredentialStore.getVcs()
-        credentials.forEach {
-            subjectCredentialStore.removeCredential(it.id)
+        val credentials = subjectCredentialStore?.getVcs()
+        if (credentials != null) {
+            credentials.forEach {
+                subjectCredentialStore?.removeCredential(it.id)
+            }
         }
         objectFactory.dataStoreService?.deleteData("VCs")
         objectFactory.clear()
@@ -63,3 +71,4 @@ interface ObjectFactory {
     fun loadCryptoService(): KmmResult<CryptoService>
     fun clear()
 }
+
