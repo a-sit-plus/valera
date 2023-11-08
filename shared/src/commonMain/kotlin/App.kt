@@ -24,7 +24,7 @@ fun App(walletMain: WalletMain) {
     try {
         walletMain.initialize()
     } catch (_: Exception){
-
+        TODO("Display warning screen in case something goes wrong")
     }
 
     WalletTheme {
