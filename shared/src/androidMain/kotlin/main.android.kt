@@ -43,12 +43,13 @@ fun MainView() {
 
 class AndroidObjectFactory() : ObjectFactory {
 
+    val keyStoreService: AndroidKeyStoreService by lazy { AndroidKeyStoreService() }
+
     init {
         Napier.base(DebugAntilog())
     }
 
     override fun loadCryptoService(): KmmResult<CryptoService> {
-        val keyStoreService = AndroidKeyStoreService()
         val keyPair = keyStoreService.loadKeyPair()
             ?: return KmmResult.failure(Throwable("Could not create key pair"))
         val certificate = keyStoreService.loadCertificate()
@@ -58,6 +59,6 @@ class AndroidObjectFactory() : ObjectFactory {
     }
 
     override fun loadHolderKeyService(): KmmResult<HolderKeyService> {
-        return KmmResult.success(AndroidKeyStoreService())
+        return KmmResult.success(keyStoreService)
     }
 }

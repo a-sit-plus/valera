@@ -18,10 +18,11 @@ struct ContentView: View {
 }
 
 class SwiftObjectFactory: ObjectFactory {
+    lazy var keyChainService: RealKeyChainService = {RealKeyChainService()}()
+    
     func loadCryptoService() -> KmmResult<CryptoService> {
 
         do {
-            let keyChainService = RealKeyChainService()
             try keyChainService.initialize()
             guard let cryptoService = VcLibCryptoServiceCryptoKit(keyChainService: keyChainService) else {
                 NapierProxy.companion.e(msg: "Error on creating VcLibCryptoServiceCryptoKit")
@@ -36,7 +37,7 @@ class SwiftObjectFactory: ObjectFactory {
     }
 
     func loadHolderKeyService() -> KmmResult<HolderKeyService> {
-        return KmmResultSuccess(RealKeyChainService())
+        return KmmResultSuccess(keyChainService)
     }
 
 }
