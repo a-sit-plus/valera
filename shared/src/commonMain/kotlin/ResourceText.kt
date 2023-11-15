@@ -26,4 +26,5 @@ object Resources {
     const val RESET_APP_ALERT_TEXT = "Do you really want to reset the App?"
     const val BUTTON_CONFIRM = "Confirm"
     const val BUTTON_DISMISS = "Dismiss"
+    const val DATASTORE_KEY = "VCs"
 }

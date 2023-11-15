@@ -1,6 +1,7 @@
 package at.asitplus.wallet.app.common
 
 import DataStoreService
+import Resources
 import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.DefaultCryptoService
@@ -53,7 +54,7 @@ class WalletMain(
         credentials.forEach {
             subjectCredentialStore.removeCredential(it.id)
         }
-        dataStoreService.deleteData("VCs")
+        dataStoreService.deleteData(Resources.DATASTORE_KEY)
         holderKeyService.clear()
     }
 }
