@@ -59,10 +59,10 @@ fun HomeScreen( onAbout: () -> Unit, onCredential: (id: String) -> Unit, onScanQ
             Header(onAbout = onAbout)
             Column(Modifier.background(color = MaterialTheme.colorScheme.primaryContainer).fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
                 if (credentials.size == 0){
-                        AddId(onScanQrCode)
-                    } else {
-                        ShowId(onCredential, onScanQrCode, walletMain)
-                    }
+                    AddId(onScanQrCode)
+                } else {
+                    ShowId(onCredential, onScanQrCode, walletMain)
+                }
             }
         }
     }
