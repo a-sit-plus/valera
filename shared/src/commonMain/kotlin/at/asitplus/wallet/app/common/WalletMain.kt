@@ -26,6 +26,7 @@ class WalletMain(
     init {
         Initializer.initWithVcLib()
     }
+    @Throws(Throwable::class)
     fun initialize(){
         cryptoService = objectFactory.loadCryptoService().getOrThrow()
         subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
