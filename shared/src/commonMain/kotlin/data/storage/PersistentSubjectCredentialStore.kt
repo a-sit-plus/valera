@@ -11,7 +11,7 @@ import io.github.aakira.napier.Napier
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 
-class PersistentSubjectCredentialStore(private val dataStore: DataStoreService?) : SubjectCredentialStore {
+class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) : SubjectCredentialStore {
     private val dataKey = "VCs"
     private val idHolder: IdHolder = runBlocking { importFromDataStore() }
 
@@ -76,12 +76,12 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService?)
     private suspend fun exportToDataStore() {
         runBlocking {
             val json = jsonSerializer.encodeToString(idHolder)
-            dataStore?.setData(value = json, key = dataKey)
+            dataStore.setData(value = json, key = dataKey)
         }
     }
 
     private suspend fun importFromDataStore(): IdHolder {
-        val input = dataStore?.getData(dataKey)
+        val input = dataStore.getData(dataKey)
         return jsonSerializer.decodeFromString(input.toString()) ?: IdHolder()
     }
     suspend fun removeCredential(id: String) {
