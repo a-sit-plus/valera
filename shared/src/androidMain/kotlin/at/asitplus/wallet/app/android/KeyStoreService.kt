@@ -7,6 +7,7 @@ import android.security.keystore.KeyProperties.AUTH_BIOMETRIC_STRONG
 import android.security.keystore.KeyProperties.AUTH_DEVICE_CREDENTIAL
 import android.security.keystore.KeyProperties.PURPOSE_SIGN
 import android.security.keystore.KeyProperties.PURPOSE_VERIFY
+import at.asitplus.wallet.app.common.HolderKeyService
 import io.github.aakira.napier.Napier
 import java.security.KeyPair
 import java.security.KeyPairGenerator
@@ -18,9 +19,11 @@ interface KeyStoreService {
     fun loadKeyPair(): KeyPair?
     fun loadCertificate(): Certificate?
 
+    fun clear()
+
 }
 
-class AndroidKeyStoreService : KeyStoreService {
+class AndroidKeyStoreService : KeyStoreService, HolderKeyService {
 
     private val keyAlias = "binding"
 
@@ -55,5 +58,10 @@ class AndroidKeyStoreService : KeyStoreService {
             Napier.e("loadCertificate: error", e)
             return null
         }
+    }
+
+    override fun clear(){
+        val keyStore = KeyStore.getInstance("AndroidKeyStore").apply { load(null, null) }
+        keyStore.deleteEntry(keyAlias)
     }
 }

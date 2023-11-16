@@ -20,7 +20,7 @@ public protocol KeyChainService {
 
 extension String: Error {}
 
-public class RealKeyChainService : KeyChainService {
+public class RealKeyChainService : KeyChainService, HolderKeyService {
     private static let KEY_PAIR_ALIAS = "bindingKey"
     private static let BINDING_CERT_ALIAS = "bindingCert"
     private static let ATTESTED_PUBLIC_KEY_ALIAS = "attestedPublicKey"
@@ -30,7 +30,7 @@ public class RealKeyChainService : KeyChainService {
     private var privateKey: SecureEnclave.P256.Signing.PrivateKey?
     private var publicKey: P256.Signing.PublicKey?
 
-    public init() throws {
+    public func initialize() throws {
         self.privateKey = loadPrivateKey()
         self.publicKey = loadPublicKey()
         if (self.privateKey == nil) {

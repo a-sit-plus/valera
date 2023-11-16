@@ -4,6 +4,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.window.ComposeUIViewController
+import at.asitplus.wallet.app.common.HolderKeyService
 import at.asitplus.wallet.app.common.ObjectFactory
 import at.asitplus.wallet.app.common.WalletMain
 
@@ -18,4 +19,6 @@ actual fun getColorScheme(): ColorScheme{
     }
 }
 
-fun MainViewController(objectFactory: ObjectFactory) = ComposeUIViewController { App(WalletMain(objectFactory, dataStoreService = DataStoreService(createDataStore()))) }
+fun MainViewController(objectFactory: ObjectFactory) = ComposeUIViewController {
+    App(WalletMain(objectFactory, DataStoreService(createDataStore())))
+}

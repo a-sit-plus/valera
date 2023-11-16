@@ -34,7 +34,8 @@ import javax.crypto.spec.SecretKeySpec
  *
  * TODO Implement biometric collbacks
  */
-class AndroidCryptoService(private val keyPair: KeyPair, certificate: Certificate) : CryptoService {
+class AndroidCryptoService(private val keyPair: KeyPair, certificate: Certificate) :
+    CryptoService {
 
     private val ecCurve: EcCurve = SECP_256_R_1
     private val cryptoPublicKey: CryptoPublicKey

@@ -21,6 +21,12 @@ import view.PayloadScreen
 @Composable
 fun App(walletMain: WalletMain) {
 
+    try {
+        walletMain.initialize()
+    } catch (_: Exception){
+        TODO("Display warning screen in case something goes wrong")
+    }
+
     WalletTheme {
         nav(walletMain)
     }
@@ -52,7 +58,7 @@ fun nav(walletMain: WalletMain) {
                             walletMain)
             }
             is AboutPage -> {
-                AboutScreen()
+                AboutScreen(walletMain)
             }
             is CredentialPage -> {
                 CredentialScreen(id = page.info, walletMain)
