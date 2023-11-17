@@ -14,6 +14,8 @@ import at.asitplus.wallet.app.common.HolderKeyService
 import at.asitplus.wallet.app.common.ObjectFactory
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.CryptoService
+import data.storage.DataStoreService
+import data.storage.getDataStore
 import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
 

@@ -1,10 +1,9 @@
-
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
+import data.storage.DataStoreService
+import data.storage.createDataStore
 import io.kotest.common.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertIs
+
 class IosTests {
     @Test
     fun testDataStore() {

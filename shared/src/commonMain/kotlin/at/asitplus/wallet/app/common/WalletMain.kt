@@ -1,6 +1,6 @@
 package at.asitplus.wallet.app.common
 
-import DataStoreService
+import data.storage.DataStoreService
 import Resources
 import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.CryptoService
