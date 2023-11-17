@@ -1,9 +1,11 @@
+
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import at.asitplus.wallet.app.common.WalletMain
+import data.storage.DummyDataStoreService
 import org.junit.Rule
 import org.junit.Test
-import view.ShowIdHeader
 
 // Modified from https://developer.android.com/jetpack/compose/testing
 class InstrumentedTests {
@@ -17,7 +19,9 @@ class InstrumentedTests {
     fun test1() {
         // Start the app
         composeTestRule.setContent {
-            ShowIdHeader()
+            App(
+                WalletMain(objectFactory = AndroidObjectFactory(), realDataStoreService = DummyDataStoreService())
+            )
         }
         composeTestRule.onNodeWithText(Resources.WALLET).assertIsDisplayed()
     }

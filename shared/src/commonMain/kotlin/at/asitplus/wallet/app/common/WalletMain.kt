@@ -1,6 +1,5 @@
 package at.asitplus.wallet.app.common
 
-import data.storage.RealDataStoreService
 import Resources
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
