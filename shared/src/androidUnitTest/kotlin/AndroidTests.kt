@@ -3,7 +3,7 @@ import kotlin.test.assertIs
 
 
 class AndroidTests {
-    // Just an dummy test
+    // Just a dummy test
     @Test
     fun testObjectFactory() {
         val result = AndroidObjectFactory()
