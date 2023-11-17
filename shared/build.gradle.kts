@@ -42,6 +42,13 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:atomicfu:0.21.0")
             }
         }
+        
+        val commonTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+            }
+        }
+
         val androidMain by getting {
             dependencies {
                 api("androidx.activity:activity-compose:1.8.1")
