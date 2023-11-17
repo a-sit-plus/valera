@@ -1,6 +1,6 @@
 package at.asitplus.wallet.app.common
 
-import data.storage.DataStoreService
+import data.storage.RealDataStoreService
 import Resources
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
@@ -15,7 +15,7 @@ const val HOST = "https://wallet.a-sit.at"
  */
 class WalletMain(
     val objectFactory: ObjectFactory,
-    private val dataStoreService: DataStoreService,
+    private val realDataStoreService: DataStoreService,
     val platformAdapter: PlatformAdapter
 ) {
     private lateinit var cryptoService: CryptoService
@@ -31,7 +31,7 @@ class WalletMain(
     @Throws(Throwable::class)
     fun initialize(snackbarService: SnackbarService){
         cryptoService = objectFactory.loadCryptoService().getOrThrow()
-        subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
+        subjectCredentialStore = PersistentSubjectCredentialStore(realDataStoreService)
         holderAgent = HolderAgent.newDefaultInstance(cryptoService = cryptoService, subjectCredentialStore = subjectCredentialStore)
         holderKeyService = objectFactory.loadHolderKeyService().getOrThrow()
         provisioningService = ProvisioningService(platformAdapter, dataStoreService, cryptoService, holderAgent)
@@ -42,9 +42,9 @@ class WalletMain(
     suspend fun resetApp(){
         subjectCredentialStore.reset()
 
-        dataStoreService.deleteData(Resources.DATASTORE_KEY_VCS)
-        dataStoreService.deleteData(Resources.DATASTORE_KEY_XAUTH)
-        dataStoreService.deleteData(Resources.DATASTORE_KEY_COOKIES)
+        realDataStoreService.deleteData(Resources.DATASTORE_KEY_VCS)
+        realDataStoreService.deleteData(Resources.DATASTORE_KEY_XAUTH)
+        realDataStoreService.deleteData(Resources.DATASTORE_KEY_COOKIES)
 
         holderKeyService.clear()
     }
