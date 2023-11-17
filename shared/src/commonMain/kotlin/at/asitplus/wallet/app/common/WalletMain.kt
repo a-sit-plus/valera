@@ -1,6 +1,6 @@
 package at.asitplus.wallet.app.common
 
-import data.storage.DataStoreService
+import data.storage.RealDataStoreService
 import Resources
 import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.CryptoService
@@ -15,7 +15,7 @@ import data.storage.PersistentSubjectCredentialStore
  */
 class WalletMain(
     private val objectFactory: ObjectFactory,
-    private val dataStoreService: DataStoreService,
+    private val realDataStoreService: RealDataStoreService,
 ) {
     private lateinit var cryptoService: CryptoService
     lateinit var subjectCredentialStore: PersistentSubjectCredentialStore
@@ -28,7 +28,7 @@ class WalletMain(
     @Throws(Throwable::class)
     fun initialize(){
         cryptoService = objectFactory.loadCryptoService().getOrThrow()
-        subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
+        subjectCredentialStore = PersistentSubjectCredentialStore(realDataStoreService)
         holderAgent = HolderAgent.newDefaultInstance(cryptoService = cryptoService, subjectCredentialStore = subjectCredentialStore)
         holderKeyService = objectFactory.loadHolderKeyService().getOrThrow()
     }
@@ -55,7 +55,7 @@ class WalletMain(
         credentials.forEach {
             subjectCredentialStore.removeCredential(it.id)
         }
-        dataStoreService.deleteData(Resources.DATASTORE_KEY)
+        realDataStoreService.deleteData(Resources.DATASTORE_KEY)
         holderKeyService.clear()
     }
 }

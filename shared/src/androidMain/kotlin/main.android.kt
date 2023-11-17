@@ -14,7 +14,7 @@ import at.asitplus.wallet.app.common.HolderKeyService
 import at.asitplus.wallet.app.common.ObjectFactory
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.CryptoService
-import data.storage.DataStoreService
+import data.storage.RealDataStoreService
 import data.storage.getDataStore
 import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
@@ -40,7 +40,7 @@ actual fun getColorScheme(): ColorScheme{
 
 @Composable
 fun MainView() {
-    App(WalletMain(objectFactory = AndroidObjectFactory(), DataStoreService(getDataStore(LocalContext.current))))
+    App(WalletMain(objectFactory = AndroidObjectFactory(), RealDataStoreService(getDataStore(LocalContext.current))))
 }
 
 class AndroidObjectFactory() : ObjectFactory {
