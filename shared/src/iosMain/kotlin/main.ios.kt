@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.window.ComposeUIViewController
 import at.asitplus.wallet.app.common.ObjectFactory
 import at.asitplus.wallet.app.common.WalletMain
-import data.storage.DataStoreService
+import data.storage.RealDataStoreService
 import data.storage.createDataStore
 
 actual fun getPlatformName(): String = "iOS"
@@ -21,5 +21,5 @@ actual fun getColorScheme(): ColorScheme{
 }
 
 fun MainViewController(objectFactory: ObjectFactory) = ComposeUIViewController {
-    App(WalletMain(objectFactory, DataStoreService(createDataStore())))
+    App(WalletMain(objectFactory, RealDataStoreService(createDataStore())))
 }
