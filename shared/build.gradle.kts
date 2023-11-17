@@ -63,6 +63,13 @@ kotlin {
 
             }
         }
+
+        val androidInstrumentedTest by getting {
+            dependencies {
+                implementation("androidx.compose.ui:ui-test-junit4")
+                implementation("androidx.compose.ui:ui-test-manifest")
+            }
+        }
     }
 }
 
@@ -76,6 +83,7 @@ android {
 
     defaultConfig {
         minSdk = (findProperty("android.minSdk") as String).toInt()
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
