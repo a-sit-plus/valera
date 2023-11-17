@@ -2,7 +2,7 @@ import data.storage.IdHolder
 import kotlin.test.Test
 import kotlin.test.assertIs
 
-class CommonTests {
+class CommonUnitTests {
     // Just a dummy test
     @Test
     fun testIdHolder() {
