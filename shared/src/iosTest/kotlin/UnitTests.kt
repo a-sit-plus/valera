@@ -4,7 +4,7 @@ import io.kotest.common.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class IosTests {
+class UnitTests {
     @Test
     fun testDataStore() {
         val dataStore = createDataStore()
