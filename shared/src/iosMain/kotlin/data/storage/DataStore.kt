@@ -1,3 +1,5 @@
+package data.storage
+
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import kotlinx.cinterop.ExperimentalForeignApi

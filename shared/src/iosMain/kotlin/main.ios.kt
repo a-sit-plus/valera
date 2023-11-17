@@ -10,6 +10,8 @@ import at.asitplus.wallet.app.common.ObjectFactory
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.WalletMain
 import org.jetbrains.skia.Image
+import data.storage.DataStoreService
+import data.storage.createDataStore
 
 actual fun getPlatformName(): String = "iOS"
 
