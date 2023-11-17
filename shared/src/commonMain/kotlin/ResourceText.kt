@@ -27,4 +27,6 @@ object Resources {
     const val BUTTON_CONFIRM = "Confirm"
     const val BUTTON_DISMISS = "Dismiss"
     const val DATASTORE_KEY = "VCs"
+    const val DEBUG_DATASTORE_KEY = "DBGKEY"
+    const val DEBUG_DATASTORE_VALUE = "DBGVALUE"
 }
