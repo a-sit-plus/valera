@@ -1,7 +1,7 @@
 package data.storage
 
-class DummyDataStoreService: DataStoreService{
-    lateinit var memory: MutableMap<String, String>
+class DummyDataStoreService: DataStoreService {
+    var memory: MutableMap<String, String> = mutableMapOf()
     override suspend fun setData(value: String, key: String){
         memory = mutableMapOf(key to value)
     }

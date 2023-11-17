@@ -1,6 +1,5 @@
 package at.asitplus.wallet.app.common
 
-import data.storage.RealDataStoreService
 import Resources
 import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.CryptoService
@@ -15,7 +14,7 @@ import data.storage.PersistentSubjectCredentialStore
  */
 class WalletMain(
     private val objectFactory: ObjectFactory,
-    private val realDataStoreService: RealDataStoreService,
+    private val realDataStoreService: DataStoreService,
 ) {
     private lateinit var cryptoService: CryptoService
     lateinit var subjectCredentialStore: PersistentSubjectCredentialStore
