@@ -4,9 +4,10 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.window.ComposeUIViewController
-import at.asitplus.wallet.app.common.HolderKeyService
 import at.asitplus.wallet.app.common.ObjectFactory
 import at.asitplus.wallet.app.common.WalletMain
+import data.storage.DataStoreService
+import data.storage.createDataStore
 
 actual fun getPlatformName(): String = "iOS"
 
