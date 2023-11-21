@@ -43,9 +43,10 @@ class WalletMain(
             IssuerAgent.newDefaultInstance(
                 DefaultCryptoService(),
                 dataProvider = DummyCredentialDataProvider(),
-            ).issueCredentialWithTypes(
-                holderAgent.identifier,
-                attributeTypes = listOf(data.idaustria.ConstantIndex.IdAustriaCredential.vcType)
+            ).issueCredential(
+                subjectPublicKey = cryptoService.toPublicKey(),
+                attributeTypes = listOf(data.idaustria.ConstantIndex.IdAustriaCredential.vcType),
+                representation = at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.PLAIN_JWT
             ).toStoreCredentialInput()
         )
     }

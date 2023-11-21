@@ -3,8 +3,11 @@ package data.storage
 import DataStoreService
 import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.ConstantIndex
+import at.asitplus.wallet.lib.data.SelectiveDisclosureItem
 import at.asitplus.wallet.lib.data.VerifiableCredential
 import at.asitplus.wallet.lib.data.VerifiableCredentialJws
+import at.asitplus.wallet.lib.data.VerifiableCredentialSdJwt
 import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.iso.IssuerSigned
 import io.github.aakira.napier.Napier
@@ -40,7 +43,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
             }
                 .map {
                     it.let { vc ->
-                        SubjectCredentialStore.StoreEntry.Vc(vc.serialize(), vc)
+                        SubjectCredentialStore.StoreEntry.Vc(vc.serialize(), vc = vc, scheme = data.idaustria.ConstantIndex.IdAustriaCredential)
                     }
                 }
                 .toList())
@@ -63,13 +66,29 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
     override suspend fun storeAttachment(name: String, data: ByteArray, vcId: String) {
         }
 
-    override suspend fun storeCredential(vc: VerifiableCredentialJws, vcSerialized: String) {
+    override suspend fun storeCredential(
+        vc: VerifiableCredentialJws,
+        vcSerialized: String,
+        scheme: ConstantIndex.CredentialScheme
+    ) {
         Napier.d("storing $vcSerialized")
         idHolder.credentials.add(vc)
         exportToDataStore()
     }
 
-    override suspend fun storeCredential(issuerSigned: IssuerSigned) {
+    override suspend fun storeCredential(
+        vc: VerifiableCredentialSdJwt,
+        vcSerialized: String,
+        disclosures: Map<String, SelectiveDisclosureItem?>,
+        scheme: ConstantIndex.CredentialScheme
+    ) {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun storeCredential(
+        issuerSigned: IssuerSigned,
+        scheme: ConstantIndex.CredentialScheme
+    ) {
         TODO("Not yet implemented")
     }
 

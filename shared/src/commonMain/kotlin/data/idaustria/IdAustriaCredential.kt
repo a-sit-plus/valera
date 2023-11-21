@@ -10,27 +10,34 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 @SerialName("IdAustria2023")
-class IdAustriaCredential : CredentialSubject {
+data class IdAustriaCredential(
+
+    override val id: String,
+
     @SerialName("firstname")
-    val firstname: String
+    val firstname: String,
 
     @SerialName("lastname")
-    val lastname: String
+    val lastname: String,
 
     @SerialName("date-of-birth")
     @Serializable(with = LocalDateIso8601Serializer::class)
-    val dateOfBirth: LocalDate
+    val dateOfBirth: LocalDate,
 
     @SerialName("portrait")
     @Serializable(with = ByteArrayBase64UrlSerializer::class)
-    val portrait: ByteArray?
+    val portrait: ByteArray? = null
 
-    constructor(id: String, firstname: String, lastname: String, dateOfBirth: LocalDate, portrait: ByteArray?) : super(id = id) {
-        this.firstname = firstname
-        this.lastname = lastname
-        this.dateOfBirth = dateOfBirth
-        this.portrait = portrait
+) : CredentialSubject() {
+    override fun hashCode(): Int {
+        var result = id.hashCode()
+        result = 31 * result + firstname.hashCode()
+        result = 31 * result + lastname.hashCode()
+        result = 31 * result + dateOfBirth.hashCode()
+        result = 31 * result + (portrait?.contentHashCode() ?: 0)
+        return result
     }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || this::class != other::class) return false
@@ -41,16 +48,11 @@ class IdAustriaCredential : CredentialSubject {
         if (firstname != other.firstname) return false
         if (lastname != other.lastname) return false
         if (dateOfBirth != other.dateOfBirth) return false
+        if (portrait != null) {
+            if (other.portrait == null) return false
+            if (!portrait.contentEquals(other.portrait)) return false
+        } else if (other.portrait != null) return false
 
         return true
     }
-
-    override fun hashCode(): Int {
-        var result = id.hashCode()
-        result = 31 * result + firstname.hashCode()
-        result = 31 * result + lastname.hashCode()
-        result = 31 * result + dateOfBirth.hashCode()
-        return result
-    }
-
 }
