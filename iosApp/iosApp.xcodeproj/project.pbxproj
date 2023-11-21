@@ -13,8 +13,20 @@
 		33E9045A2AB1FBC000FCC5AC /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33E904572AB1FBC000FCC5AC /* Extensions.swift */; };
 		33E9045B2AB1FBC000FCC5AC /* KeyChainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33E904582AB1FBC000FCC5AC /* KeyChainService.swift */; };
 		33E9045C2AB1FBC000FCC5AC /* VcLibCryptoServiceCryptoKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33E904592AB1FBC000FCC5AC /* VcLibCryptoServiceCryptoKit.swift */; };
+		489BF7952B0CF65500423130 /* Compose_WalletUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 489BF7942B0CF65500423130 /* Compose_WalletUITests.swift */; };
+		489BF7972B0CF65500423130 /* Compose_WalletUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 489BF7962B0CF65500423130 /* Compose_WalletUITestsLaunchTests.swift */; };
 		7555FF83242A565900829871 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7555FF82242A565900829871 /* ContentView.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		489BF7982B0CF65500423130 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7555FF73242A565900829871 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7555FF7A242A565900829871;
+			remoteInfo = iosApp;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		058557BA273AAA24004C7B11 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -24,6 +36,9 @@
 		33E904582AB1FBC000FCC5AC /* KeyChainService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeyChainService.swift; sourceTree = "<group>"; };
 		33E904592AB1FBC000FCC5AC /* VcLibCryptoServiceCryptoKit.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VcLibCryptoServiceCryptoKit.swift; sourceTree = "<group>"; };
 		483243FF2B0E01780033904D /* iosApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = iosApp.entitlements; sourceTree = "<group>"; };
+		489BF7922B0CF65500423130 /* Compose WalletUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Compose WalletUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		489BF7942B0CF65500423130 /* Compose_WalletUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Compose_WalletUITests.swift; sourceTree = "<group>"; };
+		489BF7962B0CF65500423130 /* Compose_WalletUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Compose_WalletUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		7555FF7B242A565900829871 /* Compose Wallet.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Compose Wallet.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7555FF82242A565900829871 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		7555FF8C242A565B00829871 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -31,6 +46,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		489BF78F2B0CF65500423130 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F85CB1118929364A9C6EFABC /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -56,11 +78,21 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		489BF7932B0CF65500423130 /* Compose WalletUITests */ = {
+			isa = PBXGroup;
+			children = (
+				489BF7942B0CF65500423130 /* Compose_WalletUITests.swift */,
+				489BF7962B0CF65500423130 /* Compose_WalletUITestsLaunchTests.swift */,
+			);
+			path = "Compose WalletUITests";
+			sourceTree = "<group>";
+		};
 		7555FF72242A565900829871 = {
 			isa = PBXGroup;
 			children = (
 				AB1DB47929225F7C00F7AF9C /* Configuration */,
 				7555FF7D242A565900829871 /* iosApp */,
+				489BF7932B0CF65500423130 /* Compose WalletUITests */,
 				7555FF7C242A565900829871 /* Products */,
 				42799AB246E5F90AF97AA0EF /* Frameworks */,
 			);
@@ -70,6 +102,7 @@
 			isa = PBXGroup;
 			children = (
 				7555FF7B242A565900829871 /* Compose Wallet.app */,
+				489BF7922B0CF65500423130 /* Compose WalletUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -101,6 +134,25 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		489BF7912B0CF65500423130 /* Compose WalletUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 489BF79C2B0CF65500423130 /* Build configuration list for PBXNativeTarget "Compose WalletUITests" */;
+			buildPhases = (
+				489BF79D2B0CF69200423130 /* ShellScript */,
+				489BF78E2B0CF65500423130 /* Sources */,
+				489BF78F2B0CF65500423130 /* Frameworks */,
+				489BF7902B0CF65500423130 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				489BF7992B0CF65500423130 /* PBXTargetDependency */,
+			);
+			name = "Compose WalletUITests";
+			productName = "Compose WalletUITests";
+			productReference = 489BF7922B0CF65500423130 /* Compose WalletUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		7555FF7A242A565900829871 /* iosApp */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 7555FFA5242A565B00829871 /* Build configuration list for PBXNativeTarget "iosApp" */;
@@ -125,14 +177,16 @@
 		7555FF73242A565900829871 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 1130;
+				LastSwiftUpdateCheck = 1500;
 				LastUpgradeCheck = 1130;
 				ORGANIZATIONNAME = orgName;
 				TargetAttributes = {
+					489BF7912B0CF65500423130 = {
+						CreatedOnToolsVersion = 15.0.1;
+						TestTargetID = 7555FF7A242A565900829871;
+					};
 					7555FF7A242A565900829871 = {
 						CreatedOnToolsVersion = 11.3.1;
-						DevelopmentTeam = 9CYHJNG644;
-						ProvisioningStyle = Manual;
 					};
 				};
 			};
@@ -150,11 +204,19 @@
 			projectRoot = "";
 			targets = (
 				7555FF7A242A565900829871 /* iosApp */,
+				489BF7912B0CF65500423130 /* Compose WalletUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		489BF7902B0CF65500423130 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		7555FF79242A565900829871 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -185,9 +247,35 @@
 			shellPath = /bin/sh;
 			shellScript = "cd \"$SRCROOT/..\"\n./gradlew :shared:embedAndSignAppleFrameworkForXcode";
 		};
+		489BF79D2B0CF69200423130 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cd \"$SRCROOT/..\"\n./gradlew :shared:embedAndSignAppleFrameworkForXcode\n\n";
+		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		489BF78E2B0CF65500423130 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				489BF7972B0CF65500423130 /* Compose_WalletUITestsLaunchTests.swift in Sources */,
+				489BF7952B0CF65500423130 /* Compose_WalletUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		7555FF77242A565900829871 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -202,7 +290,75 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		489BF7992B0CF65500423130 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7555FF7A242A565900829871 /* iosApp */;
+			targetProxy = 489BF7982B0CF65500423130 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		489BF79A2B0CF65500423130 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 9CYHJNG644;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)";
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					shared,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "at.asitplus.wallet.compose.Compose-WalletUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = iosApp;
+			};
+			name = Debug;
+		};
+		489BF79B2B0CF65500423130 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 9CYHJNG644;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)";
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					shared,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "at.asitplus.wallet.compose.Compose-WalletUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = iosApp;
+			};
+			name = Release;
+		};
 		7555FFA3242A565B00829871 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = AB3632DC29227652001CCB65 /* Config.xcconfig */;
@@ -408,6 +564,13 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+			buildConfigurations = (
+				489BF79A2B0CF65500423130 /* Debug */,
+				489BF79B2B0CF65500423130 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		7555FF76242A565900829871 /* Build configuration list for PBXProject "iosApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
