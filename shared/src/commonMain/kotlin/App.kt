@@ -1,9 +1,15 @@
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import at.asitplus.wallet.app.common.WalletMain
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import navigation.AboutPage
 import navigation.CameraPage
 import navigation.CredentialPage
@@ -20,7 +26,12 @@ import view.PayloadScreen
 
 @Composable
 fun App(walletMain: WalletMain) {
-
+    val scope = rememberCoroutineScope()
+    val url = rememberSaveable{ mutableStateOf("")}
+    scope.launch {
+        delay(2000)
+        url.value = walletMain.objectFactory.appLink
+    }
     try {
         walletMain.initialize()
     } catch (_: Exception){

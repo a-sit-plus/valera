@@ -2,9 +2,12 @@ import UIKit
 import SwiftUI
 import shared
 
+var objectFactory = SwiftObjectFactory()
+
 struct ComposeView: UIViewControllerRepresentable {
+    
     func makeUIViewController(context: Context) -> UIViewController {
-        return Main_iosKt.MainViewController(objectFactory: SwiftObjectFactory())
+        return Main_iosKt.MainViewController(objectFactory: objectFactory)
     }
 
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
@@ -14,10 +17,15 @@ struct ContentView: View {
     var body: some View {
         ComposeView()
                 .ignoresSafeArea(.keyboard) // Compose has own keyboard handler
+                .onOpenURL { url in
+                    objectFactory.appLink = url.absoluteString
+                }
     }
 }
 
 class SwiftObjectFactory: ObjectFactory {
+    var appLink = ""
+    
     lazy var keyChainService: RealKeyChainService = {RealKeyChainService()}()
     
     func loadCryptoService() -> KmmResult<CryptoService> {
