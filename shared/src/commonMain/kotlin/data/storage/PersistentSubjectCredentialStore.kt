@@ -43,7 +43,11 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
             }
                 .map {
                     it.let { vc ->
-                        SubjectCredentialStore.StoreEntry.Vc(vc.serialize(), vc = vc, scheme = data.idaustria.ConstantIndex.IdAustriaCredential)
+                        SubjectCredentialStore.StoreEntry.Vc(
+                            vc.serialize(),
+                            vc = vc,
+                            scheme = at.asitplus.wallet.idaustria.ConstantIndex.IdAustriaCredential
+                        )
                     }
                 }
                 .toList())
@@ -52,19 +56,19 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
     private fun getCredentialsInternal(
         requiredAttributeTypes: Collection<String>?
     ): Collection<String> {
-            val content = requiredAttributeTypes
-                ?: idHolder.credentials.map {
-                    val vc = it.vc
-                    (vc.type).toList()
-                }.flatten()
-                    .filter { it != "NULL" }
-                    .filter { it != "VerifiableCredential" }
-                    .distinct().toList()
+        val content = requiredAttributeTypes
+            ?: idHolder.credentials.map {
+                val vc = it.vc
+                (vc.type).toList()
+            }.flatten()
+                .filter { it != "NULL" }
+                .filter { it != "VerifiableCredential" }
+                .distinct().toList()
         return content
     }
 
     override suspend fun storeAttachment(name: String, data: ByteArray, vcId: String) {
-        }
+    }
 
     override suspend fun storeCredential(
         vc: VerifiableCredentialJws,
@@ -103,6 +107,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         val input = dataStore.getData(dataKey)
         return jsonSerializer.decodeFromString(input.toString()) ?: IdHolder()
     }
+
     suspend fun removeCredential(id: String) {
         var found: VerifiableCredentialJws? = null
         idHolder.credentials.forEach {
@@ -120,8 +125,8 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
     suspend fun getVcs(): ArrayList<VerifiableCredential> {
         val credentialList = ArrayList<VerifiableCredential>()
         val storeEntries = getCredentials(null).getOrThrow()
-        storeEntries.forEach {entry ->
-            when(entry) {
+        storeEntries.forEach { entry ->
+            when (entry) {
                 is SubjectCredentialStore.StoreEntry.Iso -> TODO()
                 is SubjectCredentialStore.StoreEntry.Vc -> {
                     credentialList.add(entry.vc.vc)
@@ -132,11 +137,12 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         }
         return credentialList
     }
+
     suspend fun getCredentialById(id: String): VerifiableCredential? {
         val storeEntries = getCredentials(null).getOrThrow()
         storeEntries.forEach { entry ->
             if (entry is SubjectCredentialStore.StoreEntry.Vc) {
-                if (entry.vc.vc.id == id){
+                if (entry.vc.vc.id == id) {
                     return entry.vc.vc
                 }
             }

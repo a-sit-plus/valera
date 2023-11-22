@@ -7,7 +7,6 @@ import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.DefaultCryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.IssuerAgent
-import data.idaustria.Initializer
 import data.storage.DummyCredentialDataProvider
 import data.storage.PersistentSubjectCredentialStore
 
@@ -24,7 +23,7 @@ class WalletMain(
     private lateinit var holderKeyService: HolderKeyService
 
     init {
-        Initializer.initWithVcLib()
+        at.asitplus.wallet.idaustria.Initializer.initWithVcLib()
     }
     @Throws(Throwable::class)
     fun initialize(){
@@ -45,7 +44,7 @@ class WalletMain(
                 dataProvider = DummyCredentialDataProvider(),
             ).issueCredential(
                 subjectPublicKey = cryptoService.toPublicKey(),
-                attributeTypes = listOf(data.idaustria.ConstantIndex.IdAustriaCredential.vcType),
+                attributeTypes = listOf(at.asitplus.wallet.idaustria.ConstantIndex.IdAustriaCredential.vcType),
                 representation = at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.PLAIN_JWT
             ).toStoreCredentialInput()
         )

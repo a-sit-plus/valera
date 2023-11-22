@@ -1,11 +1,11 @@
 package data.storage
 
 import at.asitplus.KmmResult
+import at.asitplus.wallet.idaustria.IdAustriaCredential
 import at.asitplus.wallet.lib.CryptoPublicKey
 import at.asitplus.wallet.lib.agent.CredentialToBeIssued
 import at.asitplus.wallet.lib.agent.IssuerCredentialDataProvider
 import at.asitplus.wallet.lib.data.ConstantIndex
-import data.idaustria.IdAustriaCredential
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDate
 import kotlin.random.Random
@@ -27,7 +27,7 @@ class DummyCredentialDataProvider(
         val expiration = clock.now() + defaultLifetime
         val listOfAttributes = mutableListOf<CredentialToBeIssued>()
 
-        if (credentialScheme == data.idaustria.ConstantIndex.IdAustriaCredential) {
+        if (credentialScheme == at.asitplus.wallet.idaustria.ConstantIndex.IdAustriaCredential) {
             val listFirstname = listOf("Max", "Susanne", "Peter", "Petra", "Hans", "Anna", "Martin", "Barbara")
             val listLastname = listOf("Müller", "Schmidt", "Schneider", "Fischer", "Weber", "Meyer", "Becker", "Koch")
             listOfAttributes.add(
