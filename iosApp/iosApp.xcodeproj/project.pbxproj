@@ -484,7 +484,7 @@
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_ASSET_PATHS = "\"iosApp/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 9CYHJNG644;
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 9CYHJNG644;
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -525,7 +525,7 @@
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_ASSET_PATHS = "\"iosApp/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 9CYHJNG644;
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 9CYHJNG644;
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -560,7 +560,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		489BF79C2B0CF65500423130 /* Build configuration list for PBXNativeTarget "Compose WalletUITests" */ = {
+        489BF79A2B0CF65500423130 = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				489BF79A2B0CF65500423130 /* Debug */,
