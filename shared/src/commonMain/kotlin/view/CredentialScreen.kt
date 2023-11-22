@@ -27,8 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.lib.data.VerifiableCredential
-import data.idaustria.IdAustriaCredential
+import at.asitplus.wallet.idaustria.IdAustriaCredential
 import globalBack
 import kotlinx.coroutines.runBlocking
 

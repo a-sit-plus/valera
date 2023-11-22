@@ -1,4 +1,6 @@
-import at.asitplus.gradle.*
+
+import at.asitplus.gradle.napier
+import at.asitplus.gradle.serialization
 
 plugins {
     kotlin("multiplatform")
@@ -20,7 +22,8 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "shared"
             isStatic = true
-            export("at.asitplus.wallet:vclib:3.0.1")
+            export("at.asitplus.wallet:vclib:3.2.0")
+            export("at.asitplus.wallet:idacredential:3.2.1")
             export("at.asitplus:kmmresult:1.5.3")
             export(napier())
         }
@@ -34,7 +37,8 @@ kotlin {
                 implementation(compose.material3)
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
-                api("at.asitplus.wallet:vclib:3.0.1")
+                api("at.asitplus.wallet:vclib:3.2.0")
+                api("at.asitplus.wallet:idacredential:3.2.1")
                 implementation(serialization("json"))
                 api(napier())
                 implementation("androidx.datastore:datastore-preferences-core:1.1.0-alpha06")

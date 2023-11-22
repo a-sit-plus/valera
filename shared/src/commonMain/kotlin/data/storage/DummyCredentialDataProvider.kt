@@ -1,10 +1,11 @@
 package data.storage
 
 import at.asitplus.KmmResult
+import at.asitplus.wallet.idaustria.IdAustriaCredential
+import at.asitplus.wallet.lib.CryptoPublicKey
 import at.asitplus.wallet.lib.agent.CredentialToBeIssued
 import at.asitplus.wallet.lib.agent.IssuerCredentialDataProvider
-import at.asitplus.wallet.lib.cbor.CoseKey
-import data.idaustria.IdAustriaCredential
+import at.asitplus.wallet.lib.data.ConstantIndex
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDate
 import kotlin.random.Random
@@ -18,28 +19,28 @@ class DummyCredentialDataProvider(
 
     private val defaultLifetime = 1.minutes
 
-    override fun getCredentialWithType(
-        subjectId: String,
-        subjectPublicKey: CoseKey?,
-        attributeTypes: Collection<String>
+    override fun getCredential(
+        subjectPublicKey: CryptoPublicKey,
+        credentialScheme: ConstantIndex.CredentialScheme,
+        representation: ConstantIndex.CredentialRepresentation
     ): KmmResult<List<CredentialToBeIssued>> {
         val expiration = clock.now() + defaultLifetime
         val listOfAttributes = mutableListOf<CredentialToBeIssued>()
 
-        if (attributeTypes.contains(data.idaustria.ConstantIndex.IdAustriaCredential.vcType)) {
+        if (credentialScheme == at.asitplus.wallet.idaustria.ConstantIndex.IdAustriaCredential) {
             val listFirstname = listOf("Max", "Susanne", "Peter", "Petra", "Hans", "Anna", "Martin", "Barbara")
             val listLastname = listOf("Müller", "Schmidt", "Schneider", "Fischer", "Weber", "Meyer", "Becker", "Koch")
             listOfAttributes.add(
-                CredentialToBeIssued.Vc(
+                CredentialToBeIssued.VcJwt(
                     IdAustriaCredential(
-                        id = subjectId,
+                        id = subjectPublicKey.toJsonWebKey().identifier,
                         firstname = listFirstname[Random.nextInt(listFirstname.size)],
                         lastname = listLastname[Random.nextInt(listLastname.size)],
                         dateOfBirth = LocalDate(Random.nextInt(from = 1900, until = 2000),1,1),
                         portrait = null
                     ),
                     expiration,
-                    data.idaustria.ConstantIndex.IdAustriaCredential.vcType,
+                    null,
                 )
             )
         }
