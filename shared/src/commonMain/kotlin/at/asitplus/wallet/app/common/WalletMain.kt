@@ -33,8 +33,8 @@ class WalletMain(
         subjectCredentialStore = PersistentSubjectCredentialStore(realDataStoreService)
         holderAgent = HolderAgent.newDefaultInstance(cryptoService = cryptoService, subjectCredentialStore = subjectCredentialStore)
         holderKeyService = objectFactory.loadHolderKeyService().getOrThrow()
-        provisioningService = ProvisioningService(platformAdapter, dataStoreService, cryptoService, holderAgent)
-        presentationService = PresentationService(platformAdapter, dataStoreService, cryptoService, holderAgent)
+        provisioningService = ProvisioningService(platformAdapter, realDataStoreService, cryptoService, holderAgent)
+        presentationService = PresentationService(platformAdapter, realDataStoreService, cryptoService, holderAgent)
         this.snackbarService = snackbarService
     }
 

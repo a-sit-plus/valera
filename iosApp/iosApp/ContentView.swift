@@ -37,7 +37,6 @@ class SwiftObjectFactory: ObjectFactory {
     lazy var keyChainService: RealKeyChainService = {RealKeyChainService()}()
     
     func loadCryptoService() -> KmmResult<CryptoService> {
-
         do {
             try keyChainService.initialize()
             guard let cryptoService = VcLibCryptoServiceCryptoKit(keyChainService: keyChainService) else {
@@ -49,7 +48,6 @@ class SwiftObjectFactory: ObjectFactory {
             NapierProxy.companion.e(msg: "Error from keyChainService.generateKeyPair")
             return KmmResultFailure(KotlinThrowable(message: "Error from keyChainService.generateKeyPair"))
         }
-
     }
 
     func loadHolderKeyService() -> KmmResult<HolderKeyService> {
