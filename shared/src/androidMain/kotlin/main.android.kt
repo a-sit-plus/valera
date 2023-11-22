@@ -44,7 +44,7 @@ fun MainView(appLink: String) {
 }
 
 class AndroidObjectFactory() : ObjectFactory {
-    override var appLink = ""
+    override var appLink: String? = null
 
     val keyStoreService: AndroidKeyStoreService by lazy { AndroidKeyStoreService() }
 

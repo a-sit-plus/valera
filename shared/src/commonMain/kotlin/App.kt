@@ -30,7 +30,7 @@ fun App(walletMain: WalletMain) {
     val url = rememberSaveable{ mutableStateOf("")}
     scope.launch {
         delay(2000)
-        url.value = walletMain.objectFactory.appLink
+        url.value = walletMain.objectFactory.appLink ?: ""
     }
     try {
         walletMain.initialize()

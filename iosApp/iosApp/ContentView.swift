@@ -24,7 +24,7 @@ struct ContentView: View {
 }
 
 class SwiftObjectFactory: ObjectFactory {
-    var appLink = ""
+    var appLink: String?
     
     lazy var keyChainService: RealKeyChainService = {RealKeyChainService()}()
     
