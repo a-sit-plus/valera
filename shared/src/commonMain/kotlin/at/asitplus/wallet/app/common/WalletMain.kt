@@ -34,7 +34,6 @@ class WalletMain(
         holderKeyService = objectFactory.loadHolderKeyService().getOrThrow()
     }
 
-    
     /**
      * Temporary function to create a random credential
      */

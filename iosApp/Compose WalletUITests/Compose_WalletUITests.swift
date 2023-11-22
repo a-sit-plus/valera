@@ -24,14 +24,13 @@ final class Compose_WalletUITests: XCTestCase {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
 
-    func testExample() throws {
+    func testStartup() throws {
         // UI tests must launch the application that they test.
+        print(AppKt.iosTestValue)
         let app = XCUIApplication()
         app.launch()
-        sleep(10)
-        AppKt.iosTest()
-
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+        XCUIApplication().windows.children(matching: .other).element.tap()
+        // more is not possible, but will probaby be possible in 2024 with a Kotlin Multiplatform Accessibility update
     }
 
     func testLaunchPerformance() throws {

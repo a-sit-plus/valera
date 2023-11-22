@@ -18,14 +18,8 @@ import view.CredentialScreen
 import view.HomeScreen
 import view.PayloadScreen
 
-var iosTestVar: String = ""
-fun iosTest(){
-    println("Test variable: $iosTestVar")
-}
 @Composable
 fun App(walletMain: WalletMain) {
-    iosTestVar = "123"
-
     try {
         walletMain.initialize()
     } catch (_: Exception){
