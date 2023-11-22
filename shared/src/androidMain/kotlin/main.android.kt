@@ -37,8 +37,10 @@ actual fun getColorScheme(): ColorScheme{
 }
 
 @Composable
-fun MainView() {
-    App(WalletMain(objectFactory = AndroidObjectFactory(), DataStoreService(getDataStore(LocalContext.current))))
+fun MainView(appLink: String) {
+    val objectFactory = AndroidObjectFactory()
+    objectFactory.appLink = appLink
+    App(WalletMain(objectFactory = objectFactory, DataStoreService(getDataStore(LocalContext.current))))
 }
 
 class AndroidObjectFactory() : ObjectFactory {
