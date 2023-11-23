@@ -32,7 +32,7 @@ actual fun pollAppLink(url: MutableState<String?>, walletMain: WalletMain){
     CoroutineScope(Dispatchers.Default).launch {
         while (true){
             delay(250)
-            if (url.value != walletMain.objectFactory.appLink && walletMain.objectFactory.appLink != null){
+            if (walletMain.objectFactory.appLink != null){
                 url.value = walletMain.objectFactory.appLink
             }
         }
