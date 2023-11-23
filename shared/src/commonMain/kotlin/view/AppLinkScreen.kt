@@ -13,6 +13,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -20,10 +21,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import globalBack
 
 @Composable
-fun AppLinkScreen(url: String){
+fun AppLinkScreen(url: MutableState<String?>, onContinueClick: () -> Unit){
     Column(
         modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.primaryContainer),
         verticalArrangement = Arrangement.Center,
@@ -35,7 +35,7 @@ fun AppLinkScreen(url: String){
         Box(Modifier.fillMaxWidth().padding(20.dp)){
             Box(Modifier.clip(shape = RoundedCornerShape(10.dp)).background(color = Color.White).fillMaxWidth().padding(20.dp)){
                 Column {
-                    Text(Resources.URL + " : " + url)
+                    Text(Resources.URL + " : " + url.value)
                 }
 
             }
@@ -43,9 +43,11 @@ fun AppLinkScreen(url: String){
         Button(
             modifier = Modifier
                 .padding(vertical = 24.dp),
-            onClick = { globalBack() }
+            onClick = {
+                onContinueClick()
+            }
         ) {
-            Text(Resources.BUTTON_CLOSE)
+            Text(Resources.BUTTON_CONTINUE)
         }
     }
 }

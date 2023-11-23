@@ -6,6 +6,7 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.platform.LocalContext
 import at.asitplus.KmmResult
 import at.asitplus.wallet.app.android.AndroidCryptoService
@@ -16,6 +17,10 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.CryptoService
 import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 actual fun getPlatformName(): String = "Android"
 
@@ -37,7 +42,7 @@ actual fun getColorScheme(): ColorScheme{
 }
 
 @Composable
-fun MainView(appLink: String) {
+fun MainView(appLink: String?) {
     val objectFactory = AndroidObjectFactory()
     objectFactory.appLink = appLink
     App(WalletMain(objectFactory = objectFactory, DataStoreService(getDataStore(LocalContext.current))))
@@ -63,5 +68,14 @@ class AndroidObjectFactory() : ObjectFactory {
 
     override fun loadHolderKeyService(): KmmResult<HolderKeyService> {
         return KmmResult.success(keyStoreService)
+    }
+}
+
+actual fun pollAppLink(url: MutableState<String?>, walletMain: WalletMain){
+    CoroutineScope(Dispatchers.Default).launch {
+        delay(250)
+        if (walletMain.objectFactory.appLink != null){
+            url.value = walletMain.objectFactory.appLink
+        }
     }
 }
