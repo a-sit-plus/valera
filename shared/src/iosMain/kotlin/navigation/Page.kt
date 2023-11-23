@@ -10,4 +10,4 @@ actual class CameraPage : Page
 
 actual class PayloadPage actual constructor(actual val info: String) : Page
 
-actual class AppLinkPage actual constructor(actual val info: String) : Page
+actual class AppLinkPage : Page

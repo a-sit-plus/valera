@@ -192,7 +192,7 @@ fun ShowId(onCredential: (id: String) -> Unit, onScanQrCode: () -> Unit, walletM
             Icon(Icons.Default.Add, contentDescription = null, Modifier.size(30.dp), tint = MaterialTheme.colorScheme.error)
         }
     }
-    if (openDialog.value == true) {
+    if (openDialog.value) {
         AddDialog(openDialog, onScanQrCode)
     }
 
@@ -222,7 +222,6 @@ fun ShowIdCard(onCredential: (id: String) -> Unit, walletMain: WalletMain) {
     }
 }
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun IdCard(onCredential: (id: String) -> Unit, id: String, modifier: Modifier, walletMain: WalletMain) {
     val credential = runBlocking { walletMain.subjectCredentialStore.getCredentialById(id) }?.credentialSubject

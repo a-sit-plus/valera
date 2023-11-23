@@ -130,7 +130,7 @@ private fun CameraWithGrantedPermission(
             .setTargetResolution(Size(1280, 720))
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
             .build()
-        imageAnalysis.setAnalyzer(executor, ImageAnalysis.Analyzer { imageProxy: ImageProxy ->
+        imageAnalysis.setAnalyzer(executor, { imageProxy: ImageProxy ->
             imageProxy.image?.let { image ->
                 val inputImage = InputImage.fromMediaImage(image, imageProxy.imageInfo.rotationDegrees)
                 val scanner = BarcodeScanning.getClient()

@@ -49,12 +49,12 @@ fun navigator(walletMain: WalletMain, url: MutableState<String?>) {
         if (url.value == null) {
             defaultPage = HomePage()
         } else {
-            defaultPage = AppLinkPage(url.value ?: Resources.UNKNOWN)
+            defaultPage = AppLinkPage()
         }
 
         // Modified from https://github.com/JetBrains/compose-multiplatform/tree/master/examples/imageviewer
         val navigationStack = rememberSaveable(
-            saver = listSaver<NavigationStack<Page>, Page>(
+            saver = listSaver(
                 restore = { NavigationStack(*it.toTypedArray()) },
                 save = { it.stack },
             )

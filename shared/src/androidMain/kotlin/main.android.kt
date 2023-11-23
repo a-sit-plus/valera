@@ -48,7 +48,7 @@ fun MainView(appLink: String?) {
     App(WalletMain(objectFactory = objectFactory, DataStoreService(getDataStore(LocalContext.current))))
 }
 
-class AndroidObjectFactory() : ObjectFactory {
+class AndroidObjectFactory : ObjectFactory {
     override var appLink: String? = null
 
     val keyStoreService: AndroidKeyStoreService by lazy { AndroidKeyStoreService() }
