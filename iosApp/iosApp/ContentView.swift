@@ -24,7 +24,7 @@ struct ContentView: View {
 }
 
 class SwiftObjectFactory: ObjectFactory {
-    var appLink: String?
+    var appLink: String? // Currently the only way to pass the url to kotlin multiplatform
     
     lazy var keyChainService: RealKeyChainService = {RealKeyChainService()}()
     

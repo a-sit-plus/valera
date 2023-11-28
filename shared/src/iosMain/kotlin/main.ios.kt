@@ -28,6 +28,10 @@ fun MainViewController(objectFactory: ObjectFactory) = ComposeUIViewController {
     App(WalletMain(objectFactory, DataStoreService(createDataStore())))
 }
 
+
+/**
+ * Workaround to check when the Compose App gets opened in the event of an associated domain.
+ */
 actual fun pollAppLink(url: MutableState<String?>, walletMain: WalletMain){
     CoroutineScope(Dispatchers.Default).launch {
         while (true){
