@@ -2,6 +2,8 @@
 import at.asitplus.gradle.napier
 import at.asitplus.gradle.serialization
 
+val ktor_version: String by project
+
 plugins {
     kotlin("multiplatform")
     id("com.android.library")
@@ -45,6 +47,11 @@ kotlin {
                 implementation("androidx.datastore:datastore-preferences-core:1.1.0-alpha07")
                 implementation("androidx.datastore:datastore-core-okio:1.1.0-alpha07")
                 implementation("org.jetbrains.kotlinx:atomicfu:0.21.0")
+                implementation("io.ktor:ktor-client-core:$ktor_version")
+                implementation("io.ktor:ktor-client-cio:$ktor_version")
+                implementation ("io.ktor:ktor-client-logging:$ktor_version")
+                implementation ("io.ktor:ktor-client-content-negotiation:$ktor_version")
+                implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
             }
         }
         val androidMain by getting {
@@ -52,6 +59,13 @@ kotlin {
                 api("androidx.activity:activity-compose:1.8.1")
                 api("androidx.appcompat:appcompat:1.6.1")
                 api("androidx.core:core-ktx:1.12.0")
+
+                implementation("io.ktor:ktor-client-cio:$ktor_version")
+                implementation ("io.ktor:ktor-client-content-negotiation:$ktor_version")
+                implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktor_version")
+                implementation ("io.ktor:ktor-client-cio-jvm:$ktor_version")
+                implementation ("io.ktor:ktor-client-logging:$ktor_version")
+                implementation ("io.ktor:ktor-client-logging-jvm:$ktor_version")
 
                 implementation("androidx.camera:camera-camera2:1.3.0")
                 implementation("androidx.camera:camera-lifecycle:1.3.0")
@@ -69,6 +83,9 @@ kotlin {
             iosX64Main.dependsOn(this)
             iosArm64Main.dependsOn(this)
             iosSimulatorArm64Main.dependsOn(this)
+            dependencies {
+                implementation("io.ktor:ktor-client-darwin:$ktor_version")
+            }
         }
     }
 }
