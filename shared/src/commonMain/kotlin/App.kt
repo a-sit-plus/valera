@@ -103,7 +103,10 @@ fun navigator(walletMain: WalletMain, url: MutableState<String?>) {
                 }
 
                 is AppLinkPage -> {
-                    AppLinkScreen(url = url) { navigationStack.push(HomePage()) }
+                    AppLinkScreen(
+                        url = url,
+                        onContinueClick = { navigationStack.push(HomePage()) }
+                    )
 
                 }
             }
