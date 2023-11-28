@@ -76,6 +76,7 @@ actual fun pollAppLink(url: MutableState<String?>, walletMain: WalletMain){
         delay(250)
         if (walletMain.objectFactory.appLink != null){
             url.value = walletMain.objectFactory.appLink
+            walletMain.objectFactory.appLink = null
         }
     }
 }

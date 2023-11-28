@@ -45,6 +45,7 @@ fun AppLinkScreen(url: MutableState<String?>, onContinueClick: () -> Unit){
                 .padding(vertical = 24.dp),
             onClick = {
                 onContinueClick()
+                url.value = null
             }
         ) {
             Text(Resources.BUTTON_CONTINUE)
