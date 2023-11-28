@@ -6,6 +6,7 @@ import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.DefaultCryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.IssuerAgent
+import data.storage.DataStoreService
 import data.storage.DummyCredentialDataProvider
 import data.storage.PersistentSubjectCredentialStore
 
