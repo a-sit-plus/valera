@@ -19,7 +19,8 @@ const val HOST = "https://wallet.a-sit.at"
 
 class ProvisioningClient {
     private  val cookieStorage = AcceptAllCookiesStorage() // TODO: change to persistent cookie storage
-    private val client = HttpClient() {
+    private val client = HttpClient {
+        followRedirects = false
         install(ContentNegotiation) {
             json()
         }
@@ -39,6 +40,8 @@ class ProvisioningClient {
     suspend fun test(){
         println("Send Get")
         val response = client.get("$HOST/m1/oauth2/authorization/idaq")
+        val urlToOpen = response.headers.get("Location")
+        println(urlToOpen)
     }
 
 }
