@@ -45,21 +45,18 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.idaustria.IdAustriaCredential
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
-import kotlinx.coroutines.runBlocking
 @Composable
-fun HomeScreen( onAbout: () -> Unit, onCredential: (id: String) -> Unit, onScanQrCode: () -> Unit, walletMain: WalletMain) {
+fun HomeScreen( onAbout: () -> Unit, onCredential: (id: String) -> Unit, onScanQrCode: () -> Unit, walletMain: WalletMain, onOidc: () -> Unit) {
     Box{
         val credentials = runBlocking { walletMain.subjectCredentialStore.getVcs() }
         Column(Modifier.fillMaxSize()) {
             Header(onAbout = onAbout)
             Column(Modifier.background(color = MaterialTheme.colorScheme.primaryContainer).fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
                 if (credentials.size == 0){
-                    AddId(onScanQrCode)
+                    AddId(onScanQrCode, onOidc)
                 } else {
                     ShowId(onCredential, onScanQrCode, walletMain)
                 }
@@ -121,9 +118,9 @@ fun AddDialog(openDialog: MutableState<Boolean>, onScanQrCode: () -> Unit){
 }
 
 @Composable
-fun AddId(onScanQrCode: () -> Unit) {
+fun AddId(onScanQrCode: () -> Unit, onOidc: () -> Unit) {
     AddIdHeader()
-    AddIdBody(onScanQrCode)
+    AddIdBody(onScanQrCode, onOidc)
 }
 
 @Composable
@@ -133,13 +130,13 @@ fun AddIdHeader(){
 }
 
 @Composable
-fun AddIdBody(onScanQrCode: () -> Unit) {
-    AddIdCard(onScanQrCode)
+fun AddIdBody(onScanQrCode: () -> Unit, onOidc: () -> Unit) {
+    AddIdCard(onScanQrCode, onOidc)
 }
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-fun AddIdCard(onScanQrCode: () -> Unit) {
+fun AddIdCard(onScanQrCode: () -> Unit, onOidc: () -> Unit) {
     Box(Modifier.padding(start = 20.dp, end = 20.dp).shadow(elevation = 2.dp, shape = RoundedCornerShape(10.dp))){
         Box(Modifier.clip(shape = RoundedCornerShape(10.dp)).background(color = Color.White).fillMaxWidth().padding(20.dp)){
             Column {
@@ -157,7 +154,7 @@ fun AddIdCard(onScanQrCode: () -> Unit) {
                     Text(Resources.BUTTON_SCAN_QR, color = Color(48, 68, 113), fontSize = 15.sp, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.size(30.dp))
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable(onClick = {CoroutineScope(Dispatchers.Default).launch { }}).fillMaxWidth()) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable(onClick = {onOidc()}).fillMaxWidth()) {
                     Box(Modifier.size(30.dp), contentAlignment = Alignment.Center){
                         Image(painterResource("icons8-login-100.png"), contentDescription = null, Modifier.height(30.dp))
                     }

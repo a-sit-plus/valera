@@ -1,12 +1,15 @@
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
+import at.asitplus.wallet.app.common.ProvisioningClient
 import at.asitplus.wallet.app.common.WalletMain
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import navigation.AboutPage
 import navigation.AppLinkPage
 import navigation.CameraPage
@@ -71,7 +74,13 @@ fun navigator(walletMain: WalletMain) {
                             navigationStack.push(CredentialPage(info))
                         },
                         onScanQrCode = { navigationStack.push(CameraPage()) },
-                        walletMain
+                        onOidc = {
+                            CoroutineScope(Dispatchers.Default).launch {
+                                val client = ProvisioningClient()
+                                client.test()
+                            }
+                        },
+                        walletMain = walletMain
                     )
                 }
 
