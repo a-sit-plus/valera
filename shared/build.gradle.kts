@@ -38,6 +38,7 @@ kotlin {
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
                 api("at.asitplus.wallet:vclib:3.2.0")
+                api("at.asitplus.wallet:vclib-openid:3.2.0")
                 api("at.asitplus.wallet:idacredential:3.2.1")
                 implementation(serialization("json"))
                 api(napier())

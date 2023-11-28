@@ -71,7 +71,6 @@ class WalletMain(
  * efficiently.
  */
 interface ObjectFactory {
-    var appLink: String?
     fun loadCryptoService(): KmmResult<CryptoService>
     fun loadHolderKeyService(): KmmResult<HolderKeyService>
 }

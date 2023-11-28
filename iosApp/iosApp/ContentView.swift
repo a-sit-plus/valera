@@ -2,12 +2,10 @@ import UIKit
 import SwiftUI
 import shared
 
-var objectFactory = SwiftObjectFactory()
-
 struct ComposeView: UIViewControllerRepresentable {
     
     func makeUIViewController(context: Context) -> UIViewController {
-        return Main_iosKt.MainViewController(objectFactory: objectFactory)
+        return Main_iosKt.MainViewController(objectFactory: SwiftObjectFactory())
     }
 
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
@@ -18,14 +16,12 @@ struct ContentView: View {
         ComposeView()
                 .ignoresSafeArea(.keyboard) // Compose has own keyboard handler
                 .onOpenURL { url in
-                    objectFactory.appLink = url.absoluteString
+                    AppKt.appLink.setValue(url.absoluteString)
                 }
     }
 }
 
 class SwiftObjectFactory: ObjectFactory {
-    var appLink: String? // Currently the only way to pass the url to kotlin multiplatform
-    
     lazy var keyChainService: RealKeyChainService = {RealKeyChainService()}()
     
     func loadCryptoService() -> KmmResult<CryptoService> {

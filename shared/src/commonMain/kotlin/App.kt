@@ -25,12 +25,10 @@ import view.PayloadScreen
 
 var globalBack: () -> Unit = {}
 
+var appLink = mutableStateOf<String?>(null)
+
 @Composable
 fun App(walletMain: WalletMain) {
-
-    val url: MutableState<String?> = rememberSaveable { mutableStateOf(null) }
-    pollAppLink(url, walletMain)
-
     try {
         walletMain.initialize()
     } catch (_: Exception){
@@ -38,15 +36,15 @@ fun App(walletMain: WalletMain) {
     }
 
     WalletTheme {
-        navigator(walletMain, url)
+        navigator(walletMain)
     }
 }
 
 @Composable
-fun navigator(walletMain: WalletMain, url: MutableState<String?>) {
-    key(url.value) {
+fun navigator(walletMain: WalletMain) {
+    key(appLink.value) {
         val defaultPage: Page
-        if (url.value == null) {
+        if (appLink.value == null) {
             defaultPage = HomePage()
         } else {
             defaultPage = AppLinkPage()
@@ -104,7 +102,6 @@ fun navigator(walletMain: WalletMain, url: MutableState<String?>) {
 
                 is AppLinkPage -> {
                     AppLinkScreen(
-                        url = url,
                         onContinueClick = { navigationStack.push(HomePage()) }
                     )
 
@@ -119,5 +116,3 @@ expect fun getPlatformName(): String
 
 @Composable
 expect fun getColorScheme(): ColorScheme
-
-expect fun pollAppLink(url: MutableState<String?>, walletMain: WalletMain)
