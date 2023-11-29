@@ -15,12 +15,13 @@ import data.storage.PersistentSubjectCredentialStore
  */
 class WalletMain(
     val objectFactory: ObjectFactory,
-    private val dataStoreService: DataStoreService,
+    private val dataStoreService: DataStoreService
 ) {
     private lateinit var cryptoService: CryptoService
     lateinit var subjectCredentialStore: PersistentSubjectCredentialStore
     private lateinit var holderAgent: HolderAgent
     private lateinit var holderKeyService: HolderKeyService
+    lateinit var provisioningService: ProvisioningService
 
     init {
         at.asitplus.wallet.idaustria.Initializer.initWithVcLib()
@@ -31,6 +32,7 @@ class WalletMain(
         subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
         holderAgent = HolderAgent.newDefaultInstance(cryptoService = cryptoService, subjectCredentialStore = subjectCredentialStore)
         holderKeyService = objectFactory.loadHolderKeyService().getOrThrow()
+        provisioningService = ProvisioningService(objectFactory)
     }
 
     
@@ -57,6 +59,10 @@ class WalletMain(
         }
         dataStoreService.deleteData(Resources.DATASTORE_KEY)
         holderKeyService.clear()
+    }
+
+    suspend fun openUrl(){
+
     }
 }
 

@@ -5,7 +5,8 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
-import at.asitplus.wallet.app.common.ProvisioningClient
+import at.asitplus.wallet.app.common.ObjectFactory
+import at.asitplus.wallet.app.common.ProvisioningService
 import at.asitplus.wallet.app.common.WalletMain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -76,9 +77,8 @@ fun navigator(walletMain: WalletMain) {
                         onScanQrCode = { navigationStack.push(CameraPage()) },
                         onOidc = {
                             CoroutineScope(Dispatchers.Default).launch {
-                                val client = ProvisioningClient(walletMain)
-                                val url = client.step1()
-                                client.step2(url)
+                                val url = walletMain.provisioningService.step1()
+                                walletMain.provisioningService.step2(url)
                             }
                         },
                         walletMain = walletMain
@@ -128,4 +128,4 @@ expect fun getPlatformName(): String
 @Composable
 expect fun getColorScheme(): ColorScheme
 
-expect fun openUrl(url: String, walletMain: WalletMain)
+expect fun openUrl(url: String, objectFactory: ObjectFactory)

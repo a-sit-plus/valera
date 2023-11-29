@@ -21,7 +21,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import appLink
-import at.asitplus.wallet.app.common.ProvisioningClient
 import at.asitplus.wallet.app.common.WalletMain
 import kotlinx.coroutines.runBlocking
 
@@ -49,7 +48,7 @@ fun AppLinkScreen(onContinueClick: () -> Unit, walletMain: WalletMain){
                 .padding(vertical = 24.dp),
             onClick = {
                 if (appLink.value?.contains("https://wallet.a-sit.at/m1/login/oauth2/code/idaq?code=") == true) {
-                    runBlocking { ProvisioningClient(walletMain).step3(appLink.value!!) }
+                    runBlocking { walletMain.provisioningService.step3(appLink.value!!) }
                 }
                 onContinueClick()
                 appLink.value = null

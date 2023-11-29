@@ -22,10 +22,10 @@ import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
 
 
-actual fun openUrl(url: String, walletMain: WalletMain){
+actual fun openUrl(url: String, objectFactory: ObjectFactory){
     println("Open URL: ${url.toUri()}")
-    val objectFactory = walletMain.objectFactory as AndroidObjectFactory
-    val context = objectFactory.context
+    val androidObjectFactory = objectFactory as AndroidObjectFactory
+    val context = androidObjectFactory.context
     context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
 
 }

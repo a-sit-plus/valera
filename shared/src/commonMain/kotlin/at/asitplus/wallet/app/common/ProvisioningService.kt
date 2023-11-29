@@ -18,7 +18,7 @@ import openUrl
 
 const val HOST = "https://wallet.a-sit.at"
 
-class ProvisioningClient(val walletMain: WalletMain) {
+class ProvisioningService(val objectFactory: ObjectFactory) {
     private  val cookieStorage = AcceptAllCookiesStorage() // TODO: change to persistent cookie storage
     private val client = HttpClient {
         followRedirects = false
@@ -49,7 +49,7 @@ class ProvisioningClient(val walletMain: WalletMain) {
     }
 
     suspend fun step2(redirect: String){
-        openUrl(redirect, walletMain)
+        openUrl(redirect, objectFactory)
     }
     suspend fun step3(url: String){
         val response = client.get(url)
