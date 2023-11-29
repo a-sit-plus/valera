@@ -27,6 +27,10 @@ import kotlinx.coroutines.runBlocking
 @Composable
 fun AppLinkScreen(onContinueClick: () -> Unit, walletMain: WalletMain){
     println("Redirect: ${appLink.value}")
+    var url = appLink.value ?: Resources.UNKNOWN
+    if (url.length > 100) {
+        url = url.subSequence(0, 99).toString()
+    }
     Column(
         modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.primaryContainer),
         verticalArrangement = Arrangement.Center,
@@ -38,7 +42,7 @@ fun AppLinkScreen(onContinueClick: () -> Unit, walletMain: WalletMain){
         Box(Modifier.fillMaxWidth().padding(20.dp)){
             Box(Modifier.clip(shape = RoundedCornerShape(10.dp)).background(color = Color.White).fillMaxWidth().padding(20.dp)){
                 Column {
-                    Text(Resources.URL + " : " + (appLink.value?.subSequence(0, 100) ?: Resources.UNKNOWN))
+                    Text(Resources.URL + " : " + url)
                 }
 
             }

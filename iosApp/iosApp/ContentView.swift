@@ -43,6 +43,12 @@ class SwiftObjectFactory: ObjectFactory {
     func loadHolderKeyService() -> KmmResult<HolderKeyService> {
         return KmmResultSuccess(keyChainService)
     }
-
+    
+    func openUrl(url: String){
+        let uri = URL(string: url)
+        if UIApplication.shared.canOpenURL((uri ?? URL(string: ""))!) {
+                    UIApplication.shared.open(uri ?? URL(string: "")!, options: [:])
+                }
+    }
 }
 

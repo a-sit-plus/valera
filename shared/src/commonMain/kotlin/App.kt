@@ -127,5 +127,3 @@ expect fun getPlatformName(): String
 
 @Composable
 expect fun getColorScheme(): ColorScheme
-
-expect fun openUrl(url: String, objectFactory: ObjectFactory)

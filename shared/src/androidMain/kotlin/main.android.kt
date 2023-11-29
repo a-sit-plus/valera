@@ -21,15 +21,6 @@ import at.asitplus.wallet.lib.agent.CryptoService
 import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
 
-
-actual fun openUrl(url: String, objectFactory: ObjectFactory){
-    println("Open URL: ${url.toUri()}")
-    val androidObjectFactory = objectFactory as AndroidObjectFactory
-    val context = androidObjectFactory.context
-    context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
-
-}
-
 actual fun getPlatformName(): String = "Android"
 
 // Modified from https://developer.android.com/jetpack/compose/designsystems/material3
@@ -73,4 +64,12 @@ class AndroidObjectFactory(val context: Context) : ObjectFactory {
     override fun loadHolderKeyService(): KmmResult<HolderKeyService> {
         return KmmResult.success(keyStoreService)
     }
+
+    override fun openUrl(url: String) {
+        println("Open URL: ${url.toUri()}")
+        val androidObjectFactory = this
+        val context = androidObjectFactory.context
+        context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
+    }
+
 }

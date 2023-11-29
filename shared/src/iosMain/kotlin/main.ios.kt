@@ -8,10 +8,6 @@ import androidx.compose.ui.window.ComposeUIViewController
 import at.asitplus.wallet.app.common.ObjectFactory
 import at.asitplus.wallet.app.common.WalletMain
 
-actual fun openUrl(url: String, objectFactory: ObjectFactory){
-
-}
-
 actual fun getPlatformName(): String = "iOS"
 
 @Composable

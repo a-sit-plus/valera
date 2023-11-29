@@ -32,7 +32,7 @@ class WalletMain(
         subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
         holderAgent = HolderAgent.newDefaultInstance(cryptoService = cryptoService, subjectCredentialStore = subjectCredentialStore)
         holderKeyService = objectFactory.loadHolderKeyService().getOrThrow()
-        provisioningService = ProvisioningService(objectFactory)
+        provisioningService = ProvisioningService(objectFactory, dataStoreService, cryptoService)
     }
 
     
@@ -60,10 +60,6 @@ class WalletMain(
         dataStoreService.deleteData(Resources.DATASTORE_KEY)
         holderKeyService.clear()
     }
-
-    suspend fun openUrl(){
-
-    }
 }
 
 /**
@@ -79,6 +75,7 @@ class WalletMain(
 interface ObjectFactory {
     fun loadCryptoService(): KmmResult<CryptoService>
     fun loadHolderKeyService(): KmmResult<HolderKeyService>
+    fun openUrl(url: String)
 }
 
 interface HolderKeyService {
