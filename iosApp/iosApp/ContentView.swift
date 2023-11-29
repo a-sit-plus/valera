@@ -3,6 +3,7 @@ import SwiftUI
 import shared
 
 struct ComposeView: UIViewControllerRepresentable {
+    
     func makeUIViewController(context: Context) -> UIViewController {
         return Main_iosKt.MainViewController(objectFactory: SwiftObjectFactory())
     }
@@ -14,6 +15,9 @@ struct ContentView: View {
     var body: some View {
         ComposeView()
                 .ignoresSafeArea(.keyboard) // Compose has own keyboard handler
+                .onOpenURL { url in
+                    AppKt.appLink.setValue(url.absoluteString)
+                }
     }
 }
 

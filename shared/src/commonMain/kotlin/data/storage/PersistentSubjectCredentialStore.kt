@@ -131,8 +131,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
                 is SubjectCredentialStore.StoreEntry.Vc -> {
                     credentialList.add(entry.vc.vc)
                 }
-
-                else -> {}
+                is SubjectCredentialStore.StoreEntry.SdJwt -> TODO()
             }
         }
         return credentialList

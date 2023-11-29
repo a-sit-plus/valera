@@ -1,12 +1,10 @@
 package view
 
 import Resources
-import globalBack
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,7 +14,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,20 +27,24 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.interop.UIKitView
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import globalBack
+import io.github.aakira.napier.Napier
+import kotlinx.cinterop.BetaInteropApi
+import kotlinx.cinterop.CValue
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.ObjCAction
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import platform.AVFoundation.AVAuthorizationStatusAuthorized
 import platform.AVFoundation.AVAuthorizationStatusDenied
 import platform.AVFoundation.AVAuthorizationStatusNotDetermined
 import platform.AVFoundation.AVAuthorizationStatusRestricted
 import platform.AVFoundation.AVCaptureDevice
-import platform.AVFoundation.AVMediaTypeVideo
-import platform.AVFoundation.authorizationStatusForMediaType
-import platform.AVFoundation.requestAccessForMediaType
-import androidx.compose.material3.Text
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.ui.interop.UIKitView
-import androidx.compose.ui.unit.dp
-import kotlinx.cinterop.CValue
-import kotlinx.cinterop.ObjCAction
 import platform.AVFoundation.AVCaptureDeviceDiscoverySession
 import platform.AVFoundation.AVCaptureDeviceInput
 import platform.AVFoundation.AVCaptureDevicePositionBack
@@ -57,8 +63,11 @@ import platform.AVFoundation.AVCaptureVideoOrientationLandscapeRight
 import platform.AVFoundation.AVCaptureVideoOrientationPortrait
 import platform.AVFoundation.AVCaptureVideoPreviewLayer
 import platform.AVFoundation.AVLayerVideoGravityResizeAspectFill
+import platform.AVFoundation.AVMediaTypeVideo
 import platform.AVFoundation.AVMetadataMachineReadableCodeObject
 import platform.AVFoundation.AVMetadataObjectTypeQRCode
+import platform.AVFoundation.authorizationStatusForMediaType
+import platform.AVFoundation.requestAccessForMediaType
 import platform.CoreGraphics.CGRect
 import platform.Foundation.NSNotification
 import platform.Foundation.NSNotificationCenter
@@ -72,17 +81,6 @@ import platform.UIKit.UIView
 import platform.darwin.NSObject
 import platform.darwin.dispatch_get_main_queue
 import platform.darwin.dispatch_queue_t
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
-import io.github.aakira.napier.Napier
-import kotlinx.cinterop.BetaInteropApi
-import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 // Modified from https://github.com/JetBrains/compose-multiplatform/blob/master/examples/imageviewer/shared/src/iosMain/kotlin/example/imageviewer/view/CameraView.ios.kt
 
@@ -137,7 +135,7 @@ private val deviceTypes = listOf(
 )
 
 @Composable
-private fun BoxScope.AuthorizedCamera(onFoundPayload: (text: String) -> Unit){
+private fun AuthorizedCamera(onFoundPayload: (text: String) -> Unit){
     val camera: AVCaptureDevice? = remember {
         AVCaptureDeviceDiscoverySession.discoverySessionWithDeviceTypes(
             deviceTypes = deviceTypes,
@@ -157,7 +155,7 @@ private fun BoxScope.AuthorizedCamera(onFoundPayload: (text: String) -> Unit){
     }
 }
 
-@OptIn(ExperimentalResourceApi::class, ExperimentalForeignApi::class, BetaInteropApi::class)
+@OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 @Composable
 private fun RealDeviceCamera(camera: AVCaptureDevice, onFoundPayload: (text: String) -> Unit){
     val foundQrCode = remember { mutableStateOf(false)  }
@@ -174,7 +172,7 @@ private fun RealDeviceCamera(camera: AVCaptureDevice, onFoundPayload: (text: Str
         object : NSObject(), AVCaptureMetadataOutputObjectsDelegateProtocol {
             override fun captureOutput(
                 output: platform.AVFoundation.AVCaptureOutput,
-                didOutputMetadataObjects: kotlin.collections.List<*>,
+                didOutputMetadataObjects: List<*>,
                 fromConnection: platform.AVFoundation.AVCaptureConnection
             ) {
                 try {

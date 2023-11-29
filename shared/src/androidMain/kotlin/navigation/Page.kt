@@ -17,3 +17,6 @@ actual class CameraPage : Page, Parcelable
 
 @Parcelize
 actual class PayloadPage actual constructor(actual val info: String) : Page, Parcelable
+
+@Parcelize
+actual class AppLinkPage : Page, Parcelable

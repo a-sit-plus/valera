@@ -1,3 +1,4 @@
+
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
@@ -41,8 +42,7 @@ fun MainView() {
     App(WalletMain(objectFactory = AndroidObjectFactory(), DataStoreService(getDataStore(LocalContext.current))))
 }
 
-class AndroidObjectFactory() : ObjectFactory {
-
+class AndroidObjectFactory : ObjectFactory {
     val keyStoreService: AndroidKeyStoreService by lazy { AndroidKeyStoreService() }
 
     init {
