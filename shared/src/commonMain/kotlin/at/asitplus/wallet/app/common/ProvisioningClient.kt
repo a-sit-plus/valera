@@ -14,10 +14,11 @@ import io.ktor.client.request.header
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
+import openUrl
 
 const val HOST = "https://wallet.a-sit.at"
 
-class ProvisioningClient {
+class ProvisioningClient(val walletMain: WalletMain) {
     private  val cookieStorage = AcceptAllCookiesStorage() // TODO: change to persistent cookie storage
     private val client = HttpClient {
         followRedirects = false
@@ -37,11 +38,22 @@ class ProvisioningClient {
             storage = cookieStorage
         }
     }
-    suspend fun test(){
-        println("Send Get")
+    suspend fun step1(): String{
         val response = client.get("$HOST/m1/oauth2/authorization/idaq")
-        val urlToOpen = response.headers.get("Location")
-        println(urlToOpen)
+        val urlToOpen = response.headers["Location"]
+        if (urlToOpen != null) {
+            return urlToOpen
+        } else {
+            throw Exception("Redirect not found in header")
+        }
     }
 
+    suspend fun step2(redirect: String){
+        openUrl(redirect, walletMain)
+    }
+    suspend fun step3(url: String){
+        val response = client.get(url)
+        println("Step3 response: $response")
+        println("Step3 header: ${response.headers}")
+    }
 }

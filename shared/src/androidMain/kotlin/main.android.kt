@@ -1,4 +1,6 @@
 
+import android.content.Context
+import android.content.Intent
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
@@ -8,6 +10,7 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.net.toUri
 import at.asitplus.KmmResult
 import at.asitplus.wallet.app.android.AndroidCryptoService
 import at.asitplus.wallet.app.android.AndroidKeyStoreService
@@ -17,6 +20,15 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.CryptoService
 import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
+
+
+actual fun openUrl(url: String, walletMain: WalletMain){
+    println("Open URL: ${url.toUri()}")
+    val objectFactory = walletMain.objectFactory as AndroidObjectFactory
+    val context = objectFactory.context
+    context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
+
+}
 
 actual fun getPlatformName(): String = "Android"
 
@@ -39,10 +51,10 @@ actual fun getColorScheme(): ColorScheme{
 
 @Composable
 fun MainView() {
-    App(WalletMain(objectFactory = AndroidObjectFactory(), DataStoreService(getDataStore(LocalContext.current))))
+    App(WalletMain(objectFactory = AndroidObjectFactory(LocalContext.current), DataStoreService(getDataStore(LocalContext.current))))
 }
 
-class AndroidObjectFactory : ObjectFactory {
+class AndroidObjectFactory(val context: Context) : ObjectFactory {
     val keyStoreService: AndroidKeyStoreService by lazy { AndroidKeyStoreService() }
 
     init {

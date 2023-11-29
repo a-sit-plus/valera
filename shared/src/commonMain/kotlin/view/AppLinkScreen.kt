@@ -21,9 +21,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import appLink
+import at.asitplus.wallet.app.common.ProvisioningClient
+import at.asitplus.wallet.app.common.WalletMain
+import kotlinx.coroutines.runBlocking
 
 @Composable
-fun AppLinkScreen(onContinueClick: () -> Unit){
+fun AppLinkScreen(onContinueClick: () -> Unit, walletMain: WalletMain){
+    println("Redirect: ${appLink.value}")
     Column(
         modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.primaryContainer),
         verticalArrangement = Arrangement.Center,
@@ -35,7 +39,7 @@ fun AppLinkScreen(onContinueClick: () -> Unit){
         Box(Modifier.fillMaxWidth().padding(20.dp)){
             Box(Modifier.clip(shape = RoundedCornerShape(10.dp)).background(color = Color.White).fillMaxWidth().padding(20.dp)){
                 Column {
-                    Text(Resources.URL + " : " + appLink.value)
+                    Text(Resources.URL + " : " + (appLink.value?.subSequence(0, 100) ?: Resources.UNKNOWN))
                 }
 
             }
@@ -44,6 +48,9 @@ fun AppLinkScreen(onContinueClick: () -> Unit){
             modifier = Modifier
                 .padding(vertical = 24.dp),
             onClick = {
+                if (appLink.value?.contains("https://wallet.a-sit.at/m1/login/oauth2/code/idaq?code=") == true) {
+                    runBlocking { ProvisioningClient(walletMain).step3(appLink.value!!) }
+                }
                 onContinueClick()
                 appLink.value = null
             }

@@ -76,8 +76,9 @@ fun navigator(walletMain: WalletMain) {
                         onScanQrCode = { navigationStack.push(CameraPage()) },
                         onOidc = {
                             CoroutineScope(Dispatchers.Default).launch {
-                                val client = ProvisioningClient()
-                                client.test()
+                                val client = ProvisioningClient(walletMain)
+                                val url = client.step1()
+                                client.step2(url)
                             }
                         },
                         walletMain = walletMain
@@ -111,7 +112,8 @@ fun navigator(walletMain: WalletMain) {
 
                 is AppLinkPage -> {
                     AppLinkScreen(
-                        onContinueClick = { navigationStack.push(HomePage()) }
+                        onContinueClick = { navigationStack.push(HomePage()) },
+                        walletMain = walletMain
                     )
 
                 }
@@ -125,3 +127,5 @@ expect fun getPlatformName(): String
 
 @Composable
 expect fun getColorScheme(): ColorScheme
+
+expect fun openUrl(url: String, walletMain: WalletMain)
