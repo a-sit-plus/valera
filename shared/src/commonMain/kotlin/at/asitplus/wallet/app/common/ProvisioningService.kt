@@ -2,8 +2,9 @@ package at.asitplus.wallet.app.common
 
 import DataStoreService
 import at.asitplus.wallet.lib.agent.CryptoService
+import at.asitplus.wallet.lib.agent.Holder
+import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.data.ConstantIndex
-import at.asitplus.wallet.lib.data.VerifiableCredentialJws
 import at.asitplus.wallet.lib.oidc.OpenIdConstants.TOKEN_PREFIX_BEARER
 import at.asitplus.wallet.lib.oidvci.CredentialResponseParameters
 import at.asitplus.wallet.lib.oidvci.IssuerMetadata
@@ -37,7 +38,7 @@ import io.ktor.serialization.kotlinx.json.json
 const val HOST = "https://wallet.a-sit.at"
 const val PATH_WELL_KNOWN_CREDENTIAL_ISSUER = "/.well-known/openid-credential-issuer"
 
-class ProvisioningService(val objectFactory: ObjectFactory, val dataStoreService: DataStoreService, val cryptoService: CryptoService) {
+class ProvisioningService(val objectFactory: ObjectFactory, val dataStoreService: DataStoreService, val cryptoService: CryptoService, val holderAgent: HolderAgent) {
     private  val cookieStorage = AcceptAllCookiesStorage() // TODO: change to persistent cookie storage
     private val client = HttpClient {
         followRedirects = false
@@ -140,5 +141,8 @@ class ProvisioningService(val objectFactory: ObjectFactory, val dataStoreService
             }.body()
         Napier.d("ProvisioningService: [step4] Received credentialResponse")
 
+        credentialResponse.credential?.let {
+            holderAgent.storeCredentials(listOf(Holder.StoreCredentialInput.Vc(vcJws = it, scheme = at.asitplus.wallet.idaustria.ConstantIndex.IdAustriaCredential, attachments = null)))
+        }
     }
 }

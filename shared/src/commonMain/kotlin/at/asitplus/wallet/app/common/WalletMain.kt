@@ -32,7 +32,7 @@ class WalletMain(
         subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
         holderAgent = HolderAgent.newDefaultInstance(cryptoService = cryptoService, subjectCredentialStore = subjectCredentialStore)
         holderKeyService = objectFactory.loadHolderKeyService().getOrThrow()
-        provisioningService = ProvisioningService(objectFactory, dataStoreService, cryptoService)
+        provisioningService = ProvisioningService(objectFactory, dataStoreService, cryptoService, holderAgent)
     }
 
     
