@@ -59,7 +59,7 @@ class ProvisioningService(val objectFactory: ObjectFactory, val dataStoreService
             storage = cookieStorage
         }
     }
-    suspend fun step1(): String{
+    suspend fun step1(): String{ // TODO: Give meaningful method name
         Napier.d("ProvisioningService: start provisioning")
         Napier.d("ProvisioningService: [step1] HTTP.GET $HOST/m1/oauth2/authorization/idaq")
         val response = client.get("$HOST/m1/oauth2/authorization/idaq")
@@ -80,11 +80,11 @@ class ProvisioningService(val objectFactory: ObjectFactory, val dataStoreService
         }
     }
 
-    suspend fun step2(redirect: String){
+    suspend fun step2(redirect: String){ // TODO: Give meaningful method name
         Napier.d("ProvisioningService: [step2] Open URL: $redirect")
         objectFactory.openUrl(redirect)
     }
-    suspend fun step3(url: String){
+    suspend fun step3(url: String){ // TODO: Give meaningful method name
         val xAuthToken = dataStoreService.getData(Resources.DATASTORE_KEY_XAUTH)
         if (xAuthToken == null){
             throw Exception("X-Auth-Token not available in DataStoreService")
@@ -97,7 +97,7 @@ class ProvisioningService(val objectFactory: ObjectFactory, val dataStoreService
         step4()
     }
 
-    suspend fun step4(){
+    suspend fun step4(){ // TODO: Give meaningful method name
         val xAuthToken = dataStoreService.getData(Resources.DATASTORE_KEY_XAUTH)
         if (xAuthToken == null){
             throw Exception("X-Auth-Token not available in DataStoreService")
