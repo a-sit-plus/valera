@@ -60,8 +60,7 @@ class ProvisioningService(val objectFactory: ObjectFactory, val dataStoreService
         }
     }
     suspend fun step1(): String{ // TODO: Give meaningful method name
-        Napier.d("ProvisioningService: start provisioning")
-        Napier.d("ProvisioningService: [step1] HTTP.GET $HOST/m1/oauth2/authorization/idaq")
+        Napier.d("ProvisioningService: Start provisioning")
         val response = client.get("$HOST/m1/oauth2/authorization/idaq")
         val urlToOpen = response.headers["Location"]
 
@@ -70,7 +69,7 @@ class ProvisioningService(val objectFactory: ObjectFactory, val dataStoreService
             throw Exception("X-Auth-Token not received")
         }
 
-        println("Store X-Auth-Token: $xAuthToken")
+        println("ProvisioningService: [step1] Store X-Auth-Token: $xAuthToken")
         dataStoreService.setData(xAuthToken, Resources.DATASTORE_KEY_XAUTH)
 
         if (urlToOpen != null) {
@@ -89,7 +88,7 @@ class ProvisioningService(val objectFactory: ObjectFactory, val dataStoreService
         if (xAuthToken == null){
             throw Exception("X-Auth-Token not available in DataStoreService")
         }
-        Napier.d("ProvisioningService: [step3] create request with x-auth: $xAuthToken")
+        Napier.d("ProvisioningService: [step3] Create request with x-auth: $xAuthToken")
         val response = client.get(url) {
             headers["X-Auth-Token"] = xAuthToken
         }
@@ -114,7 +113,7 @@ class ProvisioningService(val objectFactory: ObjectFactory, val dataStoreService
             credentialRepresentation = ConstantIndex.CredentialRepresentation.PLAIN_JWT
         )
 
-        Napier.d("ProvisioningService: [step4] oid4vciService.createAuthRequest")
+        Napier.d("ProvisioningService: [step4] Oid4vciService.createAuthRequest")
         val authRequest = oid4vciService.createAuthRequest()
 
         Napier.d("ProvisioningService: [step4] HTTP.GET (${metadata.authorizationEndpointUrl})")
