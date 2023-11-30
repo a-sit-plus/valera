@@ -65,8 +65,12 @@ class ProvisioningService(val objectFactory: ObjectFactory, val dataStoreService
         val urlToOpen = response.headers["Location"]
 
         val xauth = response.headers["X-Auth-Token"]
+        if (xauth == null){
+            throw Exception("X-Auth-Token not received")
+        }
+
         println("Store X-Auth-Token: $xauth")
-        dataStoreService.setData(xauth!!, "xauth")
+        dataStoreService.setData(xauth, "xauth")
 
         if (urlToOpen != null) {
             return urlToOpen
@@ -81,9 +85,12 @@ class ProvisioningService(val objectFactory: ObjectFactory, val dataStoreService
     }
     suspend fun step3(url: String){
         val xauth = dataStoreService.getData("xauth")
+        if (xauth == null){
+            throw Exception("X-Auth-Token not available in DataStoreService")
+        }
         Napier.d("ProvisioningService: [step3] create request with x-auth: $xauth")
         val response = client.get(url) {
-            headers["X-Auth-Token"] = xauth!!
+            headers["X-Auth-Token"] = xauth
         }
         dataStoreService.setData(response.headers["Set-Cookie"]!!, "setcookie")
 
@@ -92,9 +99,12 @@ class ProvisioningService(val objectFactory: ObjectFactory, val dataStoreService
 
     suspend fun step4(){
         val xauth = dataStoreService.getData("xauth")
+        if (xauth == null){
+            throw Exception("X-Auth-Token not available in DataStoreService")
+        }
         Napier.d("ProvisioningService: [step4] Load X-Auth-Token: $xauth")
         val metadata: IssuerMetadata = client.get("https://wallet.a-sit.at/m1$PATH_WELL_KNOWN_CREDENTIAL_ISSUER"){
-            headers["X-Auth-Token"] = xauth!!
+            headers["X-Auth-Token"] = xauth
         }.body()
 
         val oid4vciService = WalletService(
@@ -113,7 +123,7 @@ class ProvisioningService(val objectFactory: ObjectFactory, val dataStoreService
                 println("authRequest.encodeToParameters(): $it")
                 this.parameter(it.key, it.value)
             }
-            headers["X-Auth-Token"] = xauth!!
+            headers["X-Auth-Token"] = xauth
         }.headers[HttpHeaders.Location]
 
         if (codeUrl == null) {
