@@ -3,6 +3,7 @@ package at.asitplus.wallet.app.common
 import DataStoreService
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.data.ConstantIndex
+import at.asitplus.wallet.lib.data.VerifiableCredentialJws
 import at.asitplus.wallet.lib.oidc.OpenIdConstants.TOKEN_PREFIX_BEARER
 import at.asitplus.wallet.lib.oidvci.CredentialResponseParameters
 import at.asitplus.wallet.lib.oidvci.IssuerMetadata
@@ -10,6 +11,7 @@ import at.asitplus.wallet.lib.oidvci.TokenResponseParameters
 import at.asitplus.wallet.lib.oidvci.WalletService
 import at.asitplus.wallet.lib.oidvci.encodeToParameters
 import at.asitplus.wallet.lib.oidvci.formUrlEncode
+import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.DefaultRequest
@@ -30,7 +32,6 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.Url
 import io.ktor.http.contentType
-import io.ktor.http.headers
 import io.ktor.serialization.kotlinx.json.json
 
 const val HOST = "https://wallet.a-sit.at"
@@ -57,7 +58,8 @@ class ProvisioningService(val objectFactory: ObjectFactory, val dataStoreService
         }
     }
     suspend fun step1(): String{
-        println("step1: HTTP.GET $HOST/m1/oauth2/authorization/idaq")
+        Napier.d("ProvisioningService: start provisioning")
+        Napier.d("ProvisioningService: [step1] HTTP.GET $HOST/m1/oauth2/authorization/idaq")
         val response = client.get("$HOST/m1/oauth2/authorization/idaq")
         val urlToOpen = response.headers["Location"]
 
@@ -73,17 +75,15 @@ class ProvisioningService(val objectFactory: ObjectFactory, val dataStoreService
     }
 
     suspend fun step2(redirect: String){
-        println("step2: Open URL: $redirect")
+        Napier.d("ProvisioningService: [step2] Open URL: $redirect")
         objectFactory.openUrl(redirect)
     }
     suspend fun step3(url: String){
         val xauth = dataStoreService.getData("xauth")
-        println("Step3: create request with x-auth: $xauth")
+        Napier.d("ProvisioningService: [step3] create request with x-auth: $xauth")
         val response = client.get(url) {
             headers["X-Auth-Token"] = xauth!!
         }
-        println("Step3 response: $response")
-        println("Step3 header: ${response.headers}")
         dataStoreService.setData(response.headers["Set-Cookie"]!!, "setcookie")
 
         step4()
@@ -91,24 +91,22 @@ class ProvisioningService(val objectFactory: ObjectFactory, val dataStoreService
 
     suspend fun step4(){
         val xauth = dataStoreService.getData("xauth")
-        println("Load X-Auth-Token: $xauth")
-        println("Step4: HTTP:GET https://eid.a-sit.at/wallet$PATH_WELL_KNOWN_CREDENTIAL_ISSUER")
-        val metadata: IssuerMetadata = client.get("https://eid.a-sit.at/wallet$PATH_WELL_KNOWN_CREDENTIAL_ISSUER"){
+        Napier.d("ProvisioningService: [step4] Load X-Auth-Token: $xauth")
+        val metadata: IssuerMetadata = client.get("https://wallet.a-sit.at/m1$PATH_WELL_KNOWN_CREDENTIAL_ISSUER"){
             headers["X-Auth-Token"] = xauth!!
         }.body()
 
         val oid4vciService = WalletService(
             credentialScheme = at.asitplus.wallet.idaustria.ConstantIndex.IdAustriaCredential,
-            clientId = "https://eid.a-sit.at/wallet",
+            clientId = "https://wallet.a-sit.at/m1",
             cryptoService = cryptoService,
             credentialRepresentation = ConstantIndex.CredentialRepresentation.PLAIN_JWT
         )
 
-        println("Step4: oid4vciService.createAuthRequest()")
+        Napier.d("ProvisioningService: [step4] oid4vciService.createAuthRequest")
         val authRequest = oid4vciService.createAuthRequest()
 
-        println("Step4: client.get(${metadata.authorizationEndpointUrl})")
-
+        Napier.d("ProvisioningService: [step4] HTTP.GET (${metadata.authorizationEndpointUrl})")
         val codeUrl = client.get(metadata.authorizationEndpointUrl) {
             authRequest.encodeToParameters().forEach {
                 println("authRequest.encodeToParameters(): $it")
@@ -126,17 +124,21 @@ class ProvisioningService(val objectFactory: ObjectFactory, val dataStoreService
         }
 
         val tokenRequest = oid4vciService.createTokenRequestParameters(code)
+        Napier.d("ProvisioningService: [step4] Created tokenRequest")
         val tokenResponse: TokenResponseParameters = client.submitForm(metadata.tokenEndpointUrl!!) {
             setBody(tokenRequest.encodeToParameters().formUrlEncode())
         }.body()
+
+        Napier.d("ProvisioningService: [step4] Received tokenResponse")
         val credentialRequest = oid4vciService.createCredentialRequest(tokenResponse, metadata)
+        Napier.d("ProvisioningService: [step4] Created credentialRequest")
         val credentialResponse: CredentialResponseParameters =
             client.post(metadata.credentialEndpointUrl!!) {
                 contentType(ContentType.Application.Json)
                 setBody(credentialRequest)
                 headers["Authorization"] = "$TOKEN_PREFIX_BEARER${tokenResponse.accessToken}"
             }.body()
-        println(credentialResponse)
+        Napier.d("ProvisioningService: [step4] Received credentialResponse")
 
     }
 }
