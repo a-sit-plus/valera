@@ -1,6 +1,7 @@
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
@@ -9,6 +10,8 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.net.toUri
 import at.asitplus.KmmResult
@@ -16,6 +19,7 @@ import at.asitplus.wallet.app.android.AndroidCryptoService
 import at.asitplus.wallet.app.android.AndroidKeyStoreService
 import at.asitplus.wallet.app.common.HolderKeyService
 import at.asitplus.wallet.app.common.ObjectFactory
+import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.CryptoService
 import io.github.aakira.napier.DebugAntilog
@@ -42,10 +46,10 @@ actual fun getColorScheme(): ColorScheme{
 
 @Composable
 fun MainView() {
-    App(WalletMain(objectFactory = AndroidObjectFactory(LocalContext.current), DataStoreService(getDataStore(LocalContext.current))))
+    App(WalletMain(objectFactory = AndroidObjectFactory(), DataStoreService(getDataStore(LocalContext.current)), platformAdapter = AndroidPlatformAdapter(LocalContext.current)))
 }
 
-class AndroidObjectFactory(val context: Context) : ObjectFactory {
+class AndroidObjectFactory() : ObjectFactory {
     val keyStoreService: AndroidKeyStoreService by lazy { AndroidKeyStoreService() }
 
     init {
@@ -64,12 +68,18 @@ class AndroidObjectFactory(val context: Context) : ObjectFactory {
     override fun loadHolderKeyService(): KmmResult<HolderKeyService> {
         return KmmResult.success(keyStoreService)
     }
+}
 
+class AndroidPlatformAdapter(val context: Context): PlatformAdapter{
     override fun openUrl(url: String) {
         println("Open URL: ${url.toUri()}")
         val androidObjectFactory = this
         val context = androidObjectFactory.context
         context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
     }
+}
 
+actual fun decodeImage(image: ByteArray): ImageBitmap {
+    val bitmap = BitmapFactory.decodeByteArray(image, 0, image.size)
+    return bitmap.asImageBitmap()
 }

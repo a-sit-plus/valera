@@ -39,7 +39,7 @@ import io.ktor.serialization.kotlinx.json.json
 const val HOST = "https://wallet.a-sit.at"
 const val PATH_WELL_KNOWN_CREDENTIAL_ISSUER = "/.well-known/openid-credential-issuer"
 
-class ProvisioningService(val objectFactory: ObjectFactory, val dataStoreService: DataStoreService, val cryptoService: CryptoService, val holderAgent: HolderAgent) {
+class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreService: DataStoreService, val cryptoService: CryptoService, val holderAgent: HolderAgent) {
     private  val cookieStorage = AcceptAllCookiesStorage() // TODO: change to persistent cookie storage
     private val client = HttpClient {
         followRedirects = false
@@ -59,7 +59,7 @@ class ProvisioningService(val objectFactory: ObjectFactory, val dataStoreService
             storage = cookieStorage
         }
     }
-    suspend fun step1(): String{ // TODO: Give meaningful method name
+    suspend fun step1(){ // TODO: Give meaningful method name
         Napier.d("ProvisioningService: Start provisioning")
         val response = client.get("$HOST/m1/oauth2/authorization/idaq")
         val urlToOpen = response.headers["Location"]
@@ -73,15 +73,11 @@ class ProvisioningService(val objectFactory: ObjectFactory, val dataStoreService
         dataStoreService.setData(xAuthToken, Resources.DATASTORE_KEY_XAUTH)
 
         if (urlToOpen != null) {
-            return urlToOpen
+            Napier.d("ProvisioningService: [step2] Open URL: $urlToOpen")
+            platformAdapter.openUrl(urlToOpen)
         } else {
             throw Exception("Redirect not found in header")
         }
-    }
-
-    suspend fun step2(redirect: String){ // TODO: Give meaningful method name
-        Napier.d("ProvisioningService: [step2] Open URL: $redirect")
-        objectFactory.openUrl(redirect)
     }
     suspend fun step3(url: String){ // TODO: Give meaningful method name
         val xAuthToken = dataStoreService.getData(Resources.DATASTORE_KEY_XAUTH)

@@ -5,6 +5,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.wallet.app.common.ObjectFactory
 import at.asitplus.wallet.app.common.ProvisioningService
 import at.asitplus.wallet.app.common.WalletMain
@@ -77,8 +78,7 @@ fun navigator(walletMain: WalletMain) {
                         onScanQrCode = { navigationStack.push(CameraPage()) },
                         onOidc = {
                             CoroutineScope(Dispatchers.Default).launch {
-                                val url = walletMain.provisioningService.step1()
-                                walletMain.provisioningService.step2(url)
+                                walletMain.provisioningService.step1()
                             }
                         },
                         walletMain = walletMain
@@ -127,3 +127,5 @@ expect fun getPlatformName(): String
 
 @Composable
 expect fun getColorScheme(): ColorScheme
+
+expect fun decodeImage(image: ByteArray): ImageBitmap

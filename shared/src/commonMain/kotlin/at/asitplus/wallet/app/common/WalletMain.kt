@@ -15,7 +15,8 @@ import data.storage.PersistentSubjectCredentialStore
  */
 class WalletMain(
     val objectFactory: ObjectFactory,
-    private val dataStoreService: DataStoreService
+    private val dataStoreService: DataStoreService,
+    val platformAdapter: PlatformAdapter
 ) {
     private lateinit var cryptoService: CryptoService
     lateinit var subjectCredentialStore: PersistentSubjectCredentialStore
@@ -32,7 +33,7 @@ class WalletMain(
         subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
         holderAgent = HolderAgent.newDefaultInstance(cryptoService = cryptoService, subjectCredentialStore = subjectCredentialStore)
         holderKeyService = objectFactory.loadHolderKeyService().getOrThrow()
-        provisioningService = ProvisioningService(objectFactory, dataStoreService, cryptoService, holderAgent)
+        provisioningService = ProvisioningService(platformAdapter, dataStoreService, cryptoService, holderAgent)
     }
 
     
@@ -75,12 +76,13 @@ class WalletMain(
 interface ObjectFactory {
     fun loadCryptoService(): KmmResult<CryptoService>
     fun loadHolderKeyService(): KmmResult<HolderKeyService>
-    fun openUrl(url: String)
 }
 
 interface HolderKeyService {
     fun clear()
 }
 
-
+interface PlatformAdapter {
+    fun openUrl(url: String)
+}
 

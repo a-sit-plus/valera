@@ -5,7 +5,7 @@ import shared
 struct ComposeView: UIViewControllerRepresentable {
     
     func makeUIViewController(context: Context) -> UIViewController {
-        return Main_iosKt.MainViewController(objectFactory: SwiftObjectFactory())
+        return Main_iosKt.MainViewController(objectFactory: SwiftObjectFactory(), platformAdapter: SwiftPlatformAdapter())
     }
 
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
@@ -17,6 +17,15 @@ struct ContentView: View {
                 .ignoresSafeArea(.keyboard) // Compose has own keyboard handler
                 .onOpenURL { url in
                     AppKt.appLink.setValue(url.absoluteString)
+                }
+    }
+}
+
+class SwiftPlatformAdapter: PlatformAdapter {
+    func openUrl(url: String){
+        let uri = URL(string: url)
+        if UIApplication.shared.canOpenURL((uri ?? URL(string: ""))!) {
+                    UIApplication.shared.open(uri ?? URL(string: "")!, options: [:])
                 }
     }
 }
@@ -44,11 +53,6 @@ class SwiftObjectFactory: ObjectFactory {
         return KmmResultSuccess(keyChainService)
     }
     
-    func openUrl(url: String){
-        let uri = URL(string: url)
-        if UIApplication.shared.canOpenURL((uri ?? URL(string: ""))!) {
-                    UIApplication.shared.open(uri ?? URL(string: "")!, options: [:])
-                }
-    }
+
 }
 
