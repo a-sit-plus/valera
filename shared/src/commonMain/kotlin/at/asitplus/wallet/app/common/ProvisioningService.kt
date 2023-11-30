@@ -103,13 +103,13 @@ class ProvisioningService(val objectFactory: ObjectFactory, val dataStoreService
             throw Exception("X-Auth-Token not available in DataStoreService")
         }
         Napier.d("ProvisioningService: [step4] Load X-Auth-Token: $xAuthToken")
-        val metadata: IssuerMetadata = client.get("https://wallet.a-sit.at/m1$PATH_WELL_KNOWN_CREDENTIAL_ISSUER"){
+        val metadata: IssuerMetadata = client.get("$HOST/m1$PATH_WELL_KNOWN_CREDENTIAL_ISSUER"){
             headers["X-Auth-Token"] = xAuthToken
         }.body()
 
         val oid4vciService = WalletService(
             credentialScheme = at.asitplus.wallet.idaustria.ConstantIndex.IdAustriaCredential,
-            clientId = "https://wallet.a-sit.at/m1",
+            clientId = "$HOST/m1",
             cryptoService = cryptoService,
             credentialRepresentation = ConstantIndex.CredentialRepresentation.PLAIN_JWT
         )
