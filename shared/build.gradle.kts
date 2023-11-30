@@ -66,6 +66,7 @@ kotlin {
                 implementation ("io.ktor:ktor-client-cio-jvm:$ktor_version")
                 implementation ("io.ktor:ktor-client-logging:$ktor_version")
                 implementation ("io.ktor:ktor-client-logging-jvm:$ktor_version")
+                implementation ("uk.uuid.slf4j:slf4j-android:1.7.30-0")
 
                 implementation("androidx.camera:camera-camera2:1.3.0")
                 implementation("androidx.camera:camera-lifecycle:1.3.0")

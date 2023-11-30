@@ -54,6 +54,9 @@ fun AppLinkScreen(onContinueClick: () -> Unit, walletMain: WalletMain){
                 if (appLink.value?.contains("https://wallet.a-sit.at/m1/login/oauth2/code/idaq?code=") == true) {
                     runBlocking { walletMain.provisioningService.step3(appLink.value!!) }
                 }
+                if (appLink.value == "https://wallet.a-sit.at/m1/") {
+                    runBlocking { walletMain.provisioningService.step4() }
+                }
                 onContinueClick()
                 appLink.value = null
             }

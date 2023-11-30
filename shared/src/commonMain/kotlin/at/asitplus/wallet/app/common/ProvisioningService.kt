@@ -37,7 +37,6 @@ const val HOST = "https://wallet.a-sit.at"
 const val PATH_WELL_KNOWN_CREDENTIAL_ISSUER = "/.well-known/openid-credential-issuer"
 
 class ProvisioningService(val objectFactory: ObjectFactory, val dataStoreService: DataStoreService, val cryptoService: CryptoService) {
-    var xauth: String? = null
     private  val cookieStorage = AcceptAllCookiesStorage() // TODO: change to persistent cookie storage
     private val client = HttpClient {
         followRedirects = false
@@ -58,9 +57,14 @@ class ProvisioningService(val objectFactory: ObjectFactory, val dataStoreService
         }
     }
     suspend fun step1(): String{
+        println("step1: HTTP.GET $HOST/m1/oauth2/authorization/idaq")
         val response = client.get("$HOST/m1/oauth2/authorization/idaq")
         val urlToOpen = response.headers["Location"]
-        dataStoreService.setData(response.headers["X-Auth-Token"]!!, "xauth")
+
+        val xauth = response.headers["X-Auth-Token"]
+        println("Store X-Auth-Token: $xauth")
+        dataStoreService.setData(xauth!!, "xauth")
+
         if (urlToOpen != null) {
             return urlToOpen
         } else {
@@ -69,6 +73,7 @@ class ProvisioningService(val objectFactory: ObjectFactory, val dataStoreService
     }
 
     suspend fun step2(redirect: String){
+        println("step2: Open URL: $redirect")
         objectFactory.openUrl(redirect)
     }
     suspend fun step3(url: String){
@@ -85,7 +90,12 @@ class ProvisioningService(val objectFactory: ObjectFactory, val dataStoreService
     }
 
     suspend fun step4(){
-        val metadata: IssuerMetadata = client.get("https://eid.a-sit.at/wallet$PATH_WELL_KNOWN_CREDENTIAL_ISSUER").body()
+        val xauth = dataStoreService.getData("xauth")
+        println("Load X-Auth-Token: $xauth")
+        println("Step4: HTTP:GET https://eid.a-sit.at/wallet$PATH_WELL_KNOWN_CREDENTIAL_ISSUER")
+        val metadata: IssuerMetadata = client.get("https://eid.a-sit.at/wallet$PATH_WELL_KNOWN_CREDENTIAL_ISSUER"){
+            headers["X-Auth-Token"] = xauth!!
+        }.body()
 
         val oid4vciService = WalletService(
             credentialScheme = at.asitplus.wallet.idaustria.ConstantIndex.IdAustriaCredential,
@@ -94,20 +104,25 @@ class ProvisioningService(val objectFactory: ObjectFactory, val dataStoreService
             credentialRepresentation = ConstantIndex.CredentialRepresentation.PLAIN_JWT
         )
 
+        println("Step4: oid4vciService.createAuthRequest()")
         val authRequest = oid4vciService.createAuthRequest()
+
+        println("Step4: client.get(${metadata.authorizationEndpointUrl})")
 
         val codeUrl = client.get(metadata.authorizationEndpointUrl) {
             authRequest.encodeToParameters().forEach {
+                println("authRequest.encodeToParameters(): $it")
                 this.parameter(it.key, it.value)
             }
+            headers["X-Auth-Token"] = xauth!!
         }.headers[HttpHeaders.Location]
 
         if (codeUrl == null) {
-            TODO("")
+            throw Exception("codeUrl is null")
         }
         val code = Url(codeUrl).parameters["code"]
         if (code == null) {
-           TODO("")
+           throw Exception("code is null")
         }
 
         val tokenRequest = oid4vciService.createTokenRequestParameters(code)
