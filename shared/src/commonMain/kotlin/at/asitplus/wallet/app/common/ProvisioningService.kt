@@ -134,12 +134,7 @@ class ProvisioningService(val objectFactory: ObjectFactory, val dataStoreService
             client.post(metadata.credentialEndpointUrl!!) {
                 contentType(ContentType.Application.Json)
                 setBody(credentialRequest)
-                headers {
-                    append(
-                        HttpHeaders.Authorization,
-                        "$TOKEN_PREFIX_BEARER${tokenResponse.accessToken}"
-                    )
-                }
+                headers["Authorization"] = "$TOKEN_PREFIX_BEARER${tokenResponse.accessToken}"
             }.body()
         println(credentialResponse)
 
