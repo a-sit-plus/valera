@@ -92,8 +92,7 @@ class ProvisioningService(val objectFactory: ObjectFactory, val dataStoreService
         val response = client.get(url) {
             headers["X-Auth-Token"] = xauth
         }
-        dataStoreService.setData(response.headers["Set-Cookie"]!!, "setcookie")
-
+        
         step4()
     }
 
