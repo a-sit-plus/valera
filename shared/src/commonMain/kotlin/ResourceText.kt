@@ -26,7 +26,8 @@ object Resources {
     const val RESET_APP_ALERT_TEXT = "Do you really want to reset the App?"
     const val BUTTON_CONFIRM = "Confirm"
     const val BUTTON_DISMISS = "Dismiss"
-    const val DATASTORE_KEY = "VCs"
+    const val DATASTORE_KEY_VCS = "VCs"
+    const val DATASTORE_KEY_XAUTH = "xauth"
     const val REDIRECT_TITLE = "Redirect"
     const val URL = "URL"
 }

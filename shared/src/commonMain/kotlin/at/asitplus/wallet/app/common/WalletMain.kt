@@ -57,7 +57,7 @@ class WalletMain(
         credentials.forEach {
             subjectCredentialStore.removeCredential(it.id)
         }
-        dataStoreService.deleteData(Resources.DATASTORE_KEY)
+        dataStoreService.deleteData(Resources.DATASTORE_KEY_VCS)
         holderKeyService.clear()
     }
 }
