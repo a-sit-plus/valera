@@ -1,6 +1,7 @@
 package data.storage
 
 import DataStoreService
+import Resources
 import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
@@ -15,7 +16,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 
 class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) : SubjectCredentialStore {
-    private val dataKey = "VCs"
+    private val dataKey = Resources.DATASTORE_KEY_VCS
     private val idHolder: IdHolder = runBlocking { importFromDataStore() }
 
     override suspend fun getAttachment(name: String): KmmResult<ByteArray> {
