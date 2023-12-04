@@ -7,7 +7,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.app.common.WalletMain
-import kotlinx.coroutines.runBlocking
 
 @Composable
 fun PayloadScreen(text: String, onContinueClick: () -> Unit, walletMain: WalletMain){
@@ -16,7 +15,6 @@ fun PayloadScreen(text: String, onContinueClick: () -> Unit, walletMain: WalletM
         Text(text, fontSize = 18.sp)
 
         Button(onClick = {
-            runBlocking { walletMain.setCredentials()}
             onContinueClick()
         }) {
             Text(Resources.BUTTON_CONTINUE)

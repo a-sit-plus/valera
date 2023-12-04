@@ -4,10 +4,7 @@ import DataStoreService
 import Resources
 import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.CryptoService
-import at.asitplus.wallet.lib.agent.DefaultCryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
-import at.asitplus.wallet.lib.agent.IssuerAgent
-import data.storage.DummyCredentialDataProvider
 import data.storage.PersistentSubjectCredentialStore
 
 /**
@@ -34,23 +31,6 @@ class WalletMain(
         holderAgent = HolderAgent.newDefaultInstance(cryptoService = cryptoService, subjectCredentialStore = subjectCredentialStore)
         holderKeyService = objectFactory.loadHolderKeyService().getOrThrow()
         provisioningService = ProvisioningService(platformAdapter, dataStoreService, cryptoService, holderAgent)
-    }
-
-    
-    /**
-     * Temporary function to create a random credential
-     */
-    suspend fun setCredentials(){
-        holderAgent.storeCredentials(
-            IssuerAgent.newDefaultInstance(
-                DefaultCryptoService(),
-                dataProvider = DummyCredentialDataProvider(),
-            ).issueCredential(
-                subjectPublicKey = cryptoService.toPublicKey(),
-                attributeTypes = listOf(at.asitplus.wallet.idaustria.ConstantIndex.IdAustriaCredential.vcType),
-                representation = at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.PLAIN_JWT
-            ).toStoreCredentialInput()
-        )
     }
 
     suspend fun resetApp(){
