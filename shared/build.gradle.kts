@@ -42,8 +42,8 @@ kotlin {
                 api("at.asitplus.wallet:idacredential:3.2.1")
                 implementation(serialization("json"))
                 api(napier())
-                implementation("androidx.datastore:datastore-preferences-core:1.1.0-alpha06")
-                implementation("androidx.datastore:datastore-core-okio:1.1.0-alpha06")
+                implementation("androidx.datastore:datastore-preferences-core:1.1.0-alpha07")
+                implementation("androidx.datastore:datastore-core-okio:1.1.0-alpha07")
                 implementation("org.jetbrains.kotlinx:atomicfu:0.21.0")
             }
         }
