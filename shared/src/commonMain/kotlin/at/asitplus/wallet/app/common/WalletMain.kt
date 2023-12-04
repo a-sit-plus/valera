@@ -58,11 +58,24 @@ interface ObjectFactory {
     fun loadHolderKeyService(): KmmResult<HolderKeyService>
 }
 
+/**
+ * Interface which defines native keychain callbacks for the ID Holder
+ */
 interface HolderKeyService {
+    /**
+     * Clears the private and public key from the keychain/keystore
+     */
     fun clear()
 }
 
+
+/**
+ * Adapter to call back to native code without the need for service objects
+ */
 interface PlatformAdapter {
+    /**
+     * Opens a specified resource (Intent, Associated Domain)
+     */
     fun openUrl(url: String)
 }
 
