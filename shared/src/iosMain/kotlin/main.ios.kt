@@ -1,14 +1,15 @@
-
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.window.ComposeUIViewController
 import at.asitplus.wallet.app.common.ObjectFactory
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.WalletMain
+import org.jetbrains.skia.Image
 
 actual fun getPlatformName(): String = "iOS"
 
@@ -21,7 +22,7 @@ actual fun getColorScheme(): ColorScheme{
     }
 }
 actual fun decodeImage(image: ByteArray): ImageBitmap {
-    TODO("Return ImageBitmap from JPEG ByteArray")
+    return Image.makeFromEncoded(image).toComposeImageBitmap()
 }
 
 
