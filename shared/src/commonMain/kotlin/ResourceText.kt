@@ -28,6 +28,7 @@ object Resources {
     const val BUTTON_DISMISS = "Dismiss"
     const val DATASTORE_KEY_VCS = "VCs"
     const val DATASTORE_KEY_XAUTH = "xauth"
+    const val DATASTORE_KEY_COOKIES = "cookies"
     const val REDIRECT_TITLE = "Redirect"
     const val URL = "URL"
 }
