@@ -159,5 +159,9 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
             cryptoService = cryptoService,
         )
         val authenticationResponse = oidcSiopWallet.createAuthnResponse(url)
+        if (authenticationResponse.isFailure) {
+            throw Exception("ProvisioningService: [startSiop] Failure in received authentication response")
+        }
+
     }
 }
