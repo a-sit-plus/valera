@@ -106,7 +106,11 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
 
     private suspend fun importFromDataStore(): IdHolder {
         val input = dataStore.getData(dataKey)
-        return jsonSerializer.decodeFromString(input.toString()) ?: IdHolder()
+        if (input == null){
+            return IdHolder()
+        } else {
+            return jsonSerializer.decodeFromString(input)
+        }
     }
 
     suspend fun removeCredential(id: String) {

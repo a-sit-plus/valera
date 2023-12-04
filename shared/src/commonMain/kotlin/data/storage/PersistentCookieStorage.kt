@@ -5,20 +5,23 @@ import Resources
 import at.asitplus.wallet.lib.data.jsonSerializer
 import io.ktor.client.plugins.cookies.CookiesStorage
 import io.ktor.http.Cookie
+import io.ktor.http.CookieEncoding
 import io.ktor.http.Url
 import io.ktor.http.hostIsIp
 import io.ktor.http.isSecure
+import io.ktor.util.date.GMTDate
 import io.ktor.util.date.getTimeMillis
 import io.ktor.util.toLowerCasePreservingASCIIRules
 import kotlinx.atomicfu.AtomicLong
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
+import kotlin.jvm.JvmName
 import kotlin.math.min
-
-data class CookieContainer(val cookies: MutableList<Cookie>, val oldestCookie: AtomicLong)
-
 
 // Modified from io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
 class PersistentCookieStorage(private val dataStoreService: DataStoreService): CookiesStorage{
@@ -66,7 +69,9 @@ class PersistentCookieStorage(private val dataStoreService: DataStoreService): C
 
     private fun exportToDataStore() {
         runBlocking {
-            val json = jsonSerializer.encodeToString(container)
+            val exportableCookies = container.cookies.toExportableCookieList()
+            val export = ExportableCookieContainer(cookies = exportableCookies, oldestCookie = container.oldestCookie.value)
+            val json = jsonSerializer.encodeToString(export)
             dataStoreService.setData(key = Resources.DATASTORE_KEY_COOKIES, value = json)
         }
     }
@@ -74,7 +79,12 @@ class PersistentCookieStorage(private val dataStoreService: DataStoreService): C
     private fun importFromDataStore(): CookieContainer {
         return runBlocking {
             val input = dataStoreService.getData(Resources.DATASTORE_KEY_COOKIES)
-            jsonSerializer.decodeFromString(input.toString())
+            if (input == null){
+                CookieContainer(cookies = mutableListOf(), oldestCookie = atomic(0L))
+            } else {
+                val export: ExportableCookieContainer = jsonSerializer.decodeFromString(input)
+                CookieContainer(cookies = export.cookies.toCookieList(), oldestCookie = atomic(export.oldestCookie))
+            }
         }
     }
 }
@@ -124,4 +134,57 @@ fun Cookie.fillDefaults(requestUrl: Url): Cookie {
     }
 
     return result
+}
+
+@Serializable
+data class ExportableCookie(
+    val name: String,
+    val value: String,
+    val encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
+    @get:JvmName("getMaxAgeInt")
+    val maxAge: Int = 0,
+    @Contextual val expires: GMTDate? = null,
+    val domain: String? = null,
+    val path: String? = null,
+    val secure: Boolean = false,
+    val httpOnly: Boolean = false,
+    val extensions: Map<String, String?> = emptyMap()
+)
+
+data class CookieContainer(val cookies: MutableList<Cookie>, val oldestCookie: AtomicLong)
+@Serializable
+data class ExportableCookieContainer(val cookies: MutableList<ExportableCookie>, val oldestCookie: Long)
+
+fun MutableList<Cookie>.toExportableCookieList(): MutableList<ExportableCookie>{
+    val exportList: MutableList<ExportableCookie> = mutableListOf()
+    this.forEach {
+        exportList.add(ExportableCookie(name = it.name,
+            value = it.value,
+            encoding = it.encoding,
+            maxAge = it.maxAge,
+            expires = it.expires,
+            domain = it.domain, path =
+            it.path,
+            secure = false,
+            httpOnly = false,
+            extensions = it.extensions))
+    }
+    return exportList
+}
+
+fun MutableList<ExportableCookie>.toCookieList(): MutableList<Cookie>{
+    val importList: MutableList<Cookie> = mutableListOf()
+    this.forEach {
+        importList.add(Cookie(name = it.name,
+            value = it.value,
+            encoding = it.encoding,
+            maxAge = it.maxAge,
+            expires = it.expires,
+            domain = it.domain,
+            path = it.path,
+            secure = false,
+            httpOnly = false,
+            extensions = it.extensions))
+    }
+    return importList
 }
