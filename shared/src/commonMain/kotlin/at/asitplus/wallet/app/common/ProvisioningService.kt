@@ -6,6 +6,7 @@ import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.Holder
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.data.ConstantIndex
+import at.asitplus.wallet.lib.oidc.OidcSiopWallet
 import at.asitplus.wallet.lib.oidc.OpenIdConstants.TOKEN_PREFIX_BEARER
 import at.asitplus.wallet.lib.oidvci.CredentialResponseParameters
 import at.asitplus.wallet.lib.oidvci.IssuerMetadata
@@ -149,5 +150,14 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
         credentialResponse.credential?.let {
             holderAgent.storeCredentials(listOf(Holder.StoreCredentialInput.Vc(vcJws = it, scheme = at.asitplus.wallet.idaustria.ConstantIndex.IdAustriaCredential, attachments = null)))
         }
+    }
+
+    suspend fun startSiop(url: String){
+        Napier.d("ProvisioningService: [startSiop] Start SIOP process")
+        val oidcSiopWallet = OidcSiopWallet.newInstance(
+            holder = holderAgent,
+            cryptoService = cryptoService,
+        )
+        val authenticationResponse = oidcSiopWallet.createAuthnResponse(url)
     }
 }

@@ -57,6 +57,9 @@ fun AppLinkScreen(onContinueClick: () -> Unit, walletMain: WalletMain){
                 if (appLink.value == "https://wallet.a-sit.at/m1/") {
                     runBlocking { walletMain.provisioningService.step4() }
                 }
+                if (appLink.value?.contains("https://wallet.a-sit.at/mobile") == true) {
+                    runBlocking { walletMain.provisioningService.startSiop(appLink.value!!) }
+                }
                 onContinueClick()
                 appLink.value = null
             }
