@@ -86,7 +86,7 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
             throw Exception("X-Auth-Token not available in DataStoreService")
         }
         Napier.d("ProvisioningService: [step3] Create request with x-auth: $xAuthToken")
-        val response = client.get(url) {
+        client.get(url) {
             headers["X-Auth-Token"] = xAuthToken
         }
 
