@@ -19,6 +19,8 @@ import kotlin.math.min
 
 data class CookieContainer(val cookies: MutableList<Cookie>, val oldestCookie: AtomicLong)
 
+
+// Modified from io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
 class PersistentCookieStorage(private val dataStoreService: DataStoreService): CookiesStorage{
     private val container = importFromDataStore()
     private val mutex = Mutex()
