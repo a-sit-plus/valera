@@ -28,7 +28,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
     }
 
     override suspend fun getCredentials(requiredAttributeTypes: Collection<String>?): KmmResult<List<SubjectCredentialStore.StoreEntry>> {
-        val filtered = idHolder.credentials
+        val filtered = idHolder.credentialsVcJws
             .filter { it ->
                 val vc = it.vc
                 requiredAttributeTypes?.let { types ->
@@ -58,7 +58,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         requiredAttributeTypes: Collection<String>?
     ): Collection<String> {
         val content = requiredAttributeTypes
-            ?: idHolder.credentials.map {
+            ?: idHolder.credentialsVcJws.map {
                 val vc = it.vc
                 (vc.type).toList()
             }.flatten()
@@ -77,7 +77,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         scheme: ConstantIndex.CredentialScheme
     ) {
         Napier.d("storing $vcSerialized")
-        idHolder.credentials.add(vc)
+        idHolder.credentialsVcJws.add(vc)
         exportToDataStore()
     }
 
@@ -87,7 +87,9 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         disclosures: Map<String, SelectiveDisclosureItem?>,
         scheme: ConstantIndex.CredentialScheme
     ) {
-        TODO("Not yet implemented")
+        Napier.d("storing $vcSerialized")
+        idHolder.credentialsSdJwt.add(vc)
+        exportToDataStore()
     }
 
     override suspend fun storeCredential(
@@ -115,14 +117,14 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
 
     suspend fun removeCredential(id: String) {
         var found: VerifiableCredentialJws? = null
-        idHolder.credentials.forEach {
+        idHolder.credentialsVcJws.forEach {
             val vc = it.vc
             if (vc.id == id) {
                 found = it
             }
         }
         if (found != null) {
-            idHolder.credentials.remove(found)
+            idHolder.credentialsVcJws.remove(found)
             exportToDataStore()
         }
     }
