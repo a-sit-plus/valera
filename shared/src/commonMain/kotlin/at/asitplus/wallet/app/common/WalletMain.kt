@@ -20,6 +20,7 @@ class WalletMain(
     private lateinit var holderAgent: HolderAgent
     private lateinit var holderKeyService: HolderKeyService
     lateinit var provisioningService: ProvisioningService
+    lateinit var presentationService: PresentationService
 
     init {
         at.asitplus.wallet.idaustria.Initializer.initWithVcLib()
@@ -31,6 +32,7 @@ class WalletMain(
         holderAgent = HolderAgent.newDefaultInstance(cryptoService = cryptoService, subjectCredentialStore = subjectCredentialStore)
         holderKeyService = objectFactory.loadHolderKeyService().getOrThrow()
         provisioningService = ProvisioningService(platformAdapter, dataStoreService, cryptoService, holderAgent)
+        presentationService = PresentationService(platformAdapter, dataStoreService, cryptoService, holderAgent)
     }
 
     suspend fun resetApp(){

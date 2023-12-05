@@ -6,7 +6,6 @@ import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.Holder
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.data.ConstantIndex
-import at.asitplus.wallet.lib.oidc.OidcSiopWallet
 import at.asitplus.wallet.lib.oidc.OpenIdConstants.TOKEN_PREFIX_BEARER
 import at.asitplus.wallet.lib.oidvci.CredentialFormatEnum
 import at.asitplus.wallet.lib.oidvci.CredentialResponseParameters
@@ -165,22 +164,5 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
         }
     }
 
-    suspend fun startSiop(url: String){
-        Napier.d("ProvisioningService: [startSiop] Start SIOP process")
-        val oidcSiopWallet = OidcSiopWallet.newInstance(
-            holder = holderAgent,
-            cryptoService = cryptoService,
-        )
-        val authenticationResponse = oidcSiopWallet.createAuthnResponse(url)
-        if (authenticationResponse.isFailure) {
-            throw Exception("ProvisioningService: [startSiop] Failure in received authentication response")
-        }
-        Napier.d("ProvisioningService: [startSiop] Opening $authenticationResponse")
-        when (val response= authenticationResponse.getOrThrow()){
-            is OidcSiopWallet.AuthenticationResponseResult.Post -> TODO()
-            is OidcSiopWallet.AuthenticationResponseResult.Redirect -> platformAdapter.openUrl(response.url)
-        }
 
-
-    }
 }
