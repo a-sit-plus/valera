@@ -156,26 +156,8 @@ data class CookieContainer(val cookies: MutableList<Cookie>, val oldestCookie: A
 data class ExportableCookieContainer(val cookies: MutableList<ExportableCookie>, val oldestCookie: Long)
 
 fun MutableList<Cookie>.toExportableCookieList(): MutableList<ExportableCookie>{
-    val exportList: MutableList<ExportableCookie> = mutableListOf()
-    this.forEach {
-        exportList.add(ExportableCookie(name = it.name,
-            value = it.value,
-            encoding = it.encoding,
-            maxAge = it.maxAge,
-            expires = it.expires,
-            domain = it.domain, path =
-            it.path,
-            secure = false,
-            httpOnly = false,
-            extensions = it.extensions))
-    }
-    return exportList
-}
-
-fun MutableList<ExportableCookie>.toCookieList(): MutableList<Cookie>{
-    val importList: MutableList<Cookie> = mutableListOf()
-    this.forEach {
-        importList.add(Cookie(name = it.name,
+    return this.map {
+        ExportableCookie(name = it.name,
             value = it.value,
             encoding = it.encoding,
             maxAge = it.maxAge,
@@ -184,7 +166,21 @@ fun MutableList<ExportableCookie>.toCookieList(): MutableList<Cookie>{
             path = it.path,
             secure = false,
             httpOnly = false,
-            extensions = it.extensions))
-    }
-    return importList
+            extensions = it.extensions)
+    }.toMutableList()
+}
+
+fun MutableList<ExportableCookie>.toCookieList(): MutableList<Cookie>{
+    return this.map {
+        Cookie(name = it.name,
+            value = it.value,
+            encoding = it.encoding,
+            maxAge = it.maxAge,
+            expires = it.expires,
+            domain = it.domain,
+            path = it.path,
+            secure = false,
+            httpOnly = false,
+            extensions = it.extensions)
+    }.toMutableList()
 }
