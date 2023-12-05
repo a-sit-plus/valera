@@ -149,9 +149,9 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
 
         credentialResponse.credential?.let {
             when (credentialResponse.format){
-                CredentialFormatEnum.NONE ->
+                CredentialFormatEnum.NONE -> TODO()
+                CredentialFormatEnum.JWT_VC ->
                     holderAgent.storeCredentials(listOf(Holder.StoreCredentialInput.Vc(vcJws = it, scheme = at.asitplus.wallet.idaustria.ConstantIndex.IdAustriaCredential, attachments = null)))
-                CredentialFormatEnum.JWT_VC -> TODO()
                 CredentialFormatEnum.JWT_VC_SD ->
                     holderAgent.storeCredentials(listOf(Holder.StoreCredentialInput.SdJwt(vcSdJwt = it, scheme = at.asitplus.wallet.idaustria.ConstantIndex.IdAustriaCredential)))
                 CredentialFormatEnum.JWT_VC_JSON_LD -> TODO()
