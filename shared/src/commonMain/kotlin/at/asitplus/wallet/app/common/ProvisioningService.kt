@@ -61,17 +61,18 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
         }
     }
     suspend fun step1(){ // TODO: Give meaningful method name
+        cookieStorage.reset()
         Napier.d("ProvisioningService: Start provisioning")
         val response = client.get("$HOST/m1/oauth2/authorization/idaq")
         val urlToOpen = response.headers["Location"]
 
         val xAuthToken = response.headers["X-Auth-Token"]
         if (xAuthToken == null){
-            //throw Exception("X-Auth-Token not received")
+            throw Exception("X-Auth-Token not received")
         }
 
         println("ProvisioningService: [step1] Store X-Auth-Token: $xAuthToken")
-        dataStoreService.setData(xAuthToken ?: "", Resources.DATASTORE_KEY_XAUTH)
+        dataStoreService.setData(xAuthToken, Resources.DATASTORE_KEY_XAUTH)
 
         if (urlToOpen != null) {
             Napier.d("ProvisioningService: [step2] Open URL: $urlToOpen")
@@ -83,11 +84,11 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
     suspend fun step3(url: String){ // TODO: Give meaningful method name
         val xAuthToken = dataStoreService.getData(Resources.DATASTORE_KEY_XAUTH)
         if (xAuthToken == null){
-            //throw Exception("X-Auth-Token not available in DataStoreService")
+            throw Exception("X-Auth-Token not available in DataStoreService")
         }
         Napier.d("ProvisioningService: [step3] Create request with x-auth: $xAuthToken")
         client.get(url) {
-            headers["X-Auth-Token"] = xAuthToken ?: ""
+            headers["X-Auth-Token"] = xAuthToken
         }
 
         step4()
@@ -96,18 +97,18 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
     suspend fun step4(){ // TODO: Give meaningful method name
         val xAuthToken = dataStoreService.getData(Resources.DATASTORE_KEY_XAUTH)
         if (xAuthToken == null){
-            //throw Exception("X-Auth-Token not available in DataStoreService")
+            throw Exception("X-Auth-Token not available in DataStoreService")
         }
         Napier.d("ProvisioningService: [step4] Load X-Auth-Token: $xAuthToken")
         val metadata: IssuerMetadata = client.get("$HOST/m1$PATH_WELL_KNOWN_CREDENTIAL_ISSUER"){
-            headers["X-Auth-Token"] = xAuthToken ?: ""
+            headers["X-Auth-Token"] = xAuthToken
         }.body()
 
         val oid4vciService = WalletService(
             credentialScheme = at.asitplus.wallet.idaustria.ConstantIndex.IdAustriaCredential,
             clientId = "$HOST/m1",
             cryptoService = cryptoService,
-            credentialRepresentation = ConstantIndex.CredentialRepresentation.SD_JWT
+            credentialRepresentation = ConstantIndex.CredentialRepresentation.PLAIN_JWT
         )
 
         Napier.d("ProvisioningService: [step4] Oid4vciService.createAuthRequest")
@@ -119,7 +120,7 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
                 println("authRequest.encodeToParameters(): $it")
                 this.parameter(it.key, it.value)
             }
-            headers["X-Auth-Token"] = xAuthToken ?: ""
+            headers["X-Auth-Token"] = xAuthToken
         }.headers[HttpHeaders.Location]
 
         if (codeUrl == null) {
@@ -158,11 +159,6 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
                 CredentialFormatEnum.JSON_LD -> TODO()
                 CredentialFormatEnum.MSO_MDOC -> TODO()
             }
-
-
-
         }
     }
-
-
 }

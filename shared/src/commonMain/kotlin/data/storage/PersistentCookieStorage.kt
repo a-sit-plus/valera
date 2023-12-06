@@ -28,6 +28,12 @@ class PersistentCookieStorage(private val dataStoreService: DataStoreService): C
     private val container = importFromDataStore()
     private val mutex = Mutex()
 
+
+    suspend fun reset() = mutex.withLock {
+        container.cookies.clear()
+        container.oldestCookie.value = 0L
+        exportToDataStore()
+    }
     override suspend fun get(requestUrl: Url): List<Cookie> = mutex.withLock {
         val now = getTimeMillis()
         if (now >= container.oldestCookie.value) cleanup(now)
