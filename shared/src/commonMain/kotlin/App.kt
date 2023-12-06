@@ -112,7 +112,6 @@ fun navigator(walletMain: WalletMain) {
 
                 is AppLinkPage -> {
                     AppLinkScreen(
-                        onContinueClick = { navigationStack.push(HomePage()) },
                         walletMain = walletMain
                     )
 
