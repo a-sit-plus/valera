@@ -129,6 +129,12 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         }
     }
 
+    suspend fun reset(){
+        idHolder.credentialsSdJwt.clear()
+        idHolder.credentialsVcJws.clear()
+        idHolder.credentialsIso.clear()
+    }
+
     suspend fun getVcs(): ArrayList<VerifiableCredential> {
         val credentialList = ArrayList<VerifiableCredential>()
         val storeEntries = getCredentials(null).getOrThrow()

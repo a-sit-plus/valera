@@ -36,14 +36,12 @@ class WalletMain(
     }
 
     suspend fun resetApp(){
-        val credentials = subjectCredentialStore.getVcs()
-        credentials.forEach {
-            subjectCredentialStore.removeCredential(it.id)
-        }
+        subjectCredentialStore.reset()
+
         dataStoreService.deleteData(Resources.DATASTORE_KEY_VCS)
         dataStoreService.deleteData(Resources.DATASTORE_KEY_XAUTH)
         dataStoreService.deleteData(Resources.DATASTORE_KEY_COOKIES)
-        
+
         holderKeyService.clear()
     }
 }
