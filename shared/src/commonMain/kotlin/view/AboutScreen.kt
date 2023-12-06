@@ -89,6 +89,7 @@ fun ResetAlert(showAlert: MutableState<Boolean>, walletMain: WalletMain){
             TextButton(
                 onClick = {
                     runBlocking { walletMain.resetApp() }
+                    walletMain.snackbarService.showSnackbar("Reset App successfully")
                     showAlert.value = false
                 }
             ) {
