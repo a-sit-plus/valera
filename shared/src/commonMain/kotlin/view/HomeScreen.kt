@@ -59,7 +59,7 @@ fun HomeScreen( onAbout: () -> Unit, onCredential: (id: String) -> Unit, onScanQ
                 if (credentials.size == 0){
                     AddId(onScanQrCode, onOidc)
                 } else {
-                    ShowId(onCredential, onScanQrCode, walletMain)
+                    ShowId(onCredential, onScanQrCode, walletMain, onOidc)
                 }
             }
         }
@@ -77,7 +77,7 @@ fun Header(onAbout: () -> Unit) {
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-fun AddDialog(openDialog: MutableState<Boolean>, onScanQrCode: () -> Unit){
+fun AddDialog(openDialog: MutableState<Boolean>, onScanQrCode: () -> Unit, onOidc: () -> Unit){
     Dialog(onDismissRequest = { openDialog.value = false }, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Column(verticalArrangement = Arrangement.Bottom, modifier = Modifier.fillMaxSize()){
             Box(Modifier.padding(start = 20.dp, end = 20.dp).shadow(elevation = 2.dp, shape = RoundedCornerShape(10.dp))){
@@ -98,7 +98,7 @@ fun AddDialog(openDialog: MutableState<Boolean>, onScanQrCode: () -> Unit){
                             Text(Resources.BUTTON_SCAN_QR, color = Color(48, 68, 113), fontSize = 15.sp, fontWeight = FontWeight.Bold)
                         }
                         Spacer(Modifier.size(30.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable(onClick = {}).fillMaxWidth()) {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable(onClick = {onOidc()}).fillMaxWidth()) {
                             Box(Modifier.size(30.dp), contentAlignment = Alignment.Center){
                                 Image(painterResource("icons8-login-100.png"), contentDescription = null, Modifier.height(30.dp))
                             }
@@ -181,7 +181,7 @@ fun AddIdText(){
 }
 
 @Composable
-fun ShowId(onCredential: (id: String) -> Unit, onScanQrCode: () -> Unit, walletMain: WalletMain) {
+fun ShowId(onCredential: (id: String) -> Unit, onScanQrCode: () -> Unit, walletMain: WalletMain, onOidc: () -> Unit) {
     val openDialog = remember { mutableStateOf(false) }
     ShowIdHeader()
     ShowIdCard(onCredential, walletMain)
@@ -191,7 +191,7 @@ fun ShowId(onCredential: (id: String) -> Unit, onScanQrCode: () -> Unit, walletM
         }
     }
     if (openDialog.value) {
-        AddDialog(openDialog, onScanQrCode)
+        AddDialog(openDialog, onScanQrCode, onOidc)
     }
 
 }
