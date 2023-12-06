@@ -41,6 +41,9 @@ class WalletMain(
             subjectCredentialStore.removeCredential(it.id)
         }
         dataStoreService.deleteData(Resources.DATASTORE_KEY_VCS)
+        dataStoreService.deleteData(Resources.DATASTORE_KEY_XAUTH)
+        dataStoreService.deleteData(Resources.DATASTORE_KEY_COOKIES)
+        
         holderKeyService.clear()
     }
 }
