@@ -41,7 +41,7 @@ const val HOST = "https://wallet.a-sit.at"
 const val PATH_WELL_KNOWN_CREDENTIAL_ISSUER = "/.well-known/openid-credential-issuer"
 
 class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreService: DataStoreService, val cryptoService: CryptoService, val holderAgent: HolderAgent) {
-    private  val cookieStorage = PersistentCookieStorage(dataStoreService)
+    private val cookieStorage = PersistentCookieStorage(dataStoreService)
     private val client = HttpClient {
         followRedirects = false
         install(ContentNegotiation) {
@@ -71,7 +71,7 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
             throw Exception("X-Auth-Token not received")
         }
 
-        println("ProvisioningService: [step1] Store X-Auth-Token: $xAuthToken")
+        Napier.d("ProvisioningService: [step1] Store X-Auth-Token: $xAuthToken")
         dataStoreService.setData(xAuthToken, Resources.DATASTORE_KEY_XAUTH)
 
         if (urlToOpen != null) {
@@ -117,7 +117,6 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
         Napier.d("ProvisioningService: [step4] HTTP.GET (${metadata.authorizationEndpointUrl})")
         val codeUrl = client.get(metadata.authorizationEndpointUrl) {
             authRequest.encodeToParameters().forEach {
-                println("authRequest.encodeToParameters(): $it")
                 this.parameter(it.key, it.value)
             }
             headers["X-Auth-Token"] = xAuthToken
@@ -133,7 +132,7 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
 
         val tokenRequest = oid4vciService.createTokenRequestParameters(code)
         Napier.d("ProvisioningService: [step4] Created tokenRequest")
-        val tokenResponse: TokenResponseParameters = client.submitForm(metadata.tokenEndpointUrl!!) {
+        val tokenResponse: TokenResponseParameters = client.submitForm(metadata.tokenEndpointUrl.toString()) {
             setBody(tokenRequest.encodeToParameters().formUrlEncode())
         }.body()
 
@@ -141,7 +140,7 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
         val credentialRequest = oid4vciService.createCredentialRequest(tokenResponse, metadata)
         Napier.d("ProvisioningService: [step4] Created credentialRequest")
         val credentialResponse: CredentialResponseParameters =
-            client.post(metadata.credentialEndpointUrl!!) {
+            client.post(metadata.credentialEndpointUrl.toString()) {
                 contentType(ContentType.Application.Json)
                 setBody(credentialRequest)
                 headers["Authorization"] = "$TOKEN_PREFIX_BEARER${tokenResponse.accessToken}"

@@ -37,13 +37,13 @@ fun AppLinkScreen(walletMain: WalletMain){
         )
         runBlocking {
             if (appLink.value?.contains("https://wallet.a-sit.at/m1/login/oauth2/code/idaq?code=") == true) {
-                walletMain.provisioningService.step3(appLink.value!!)
+                walletMain.provisioningService.step3(appLink.value.toString())
             }
             if (appLink.value == "https://wallet.a-sit.at/m1/") {
                 walletMain.provisioningService.step4()
             }
             if (appLink.value?.contains("https://wallet.a-sit.at/mobile") == true) {
-                walletMain.presentationService.startSiop(appLink.value!!)
+                walletMain.presentationService.startSiop(appLink.value.toString())
             }
         }
         appLink.value = null
