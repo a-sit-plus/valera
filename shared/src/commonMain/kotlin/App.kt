@@ -30,6 +30,10 @@ import view.PayloadScreen
 
 var globalBack: () -> Unit = {}
 
+/**
+ * Global variable which especially helps to channel information from swift code
+ * to compose whenever the app get called via an associated domain
+ */
 var appLink = mutableStateOf<String?>(null)
 
 @Composable
