@@ -24,9 +24,9 @@ struct ContentView: View {
 class SwiftPlatformAdapter: PlatformAdapter {
     func openUrl(url: String){
         let uri = URL(string: url)
-        if UIApplication.shared.canOpenURL((uri ?? URL(string: ""))!) {
-                    UIApplication.shared.open(uri ?? URL(string: "")!, options: [:])
-                }
+        if let uri = URL(string: url) {
+            UIApplication.shared.open(uri))
+        }
     }
 }
 
