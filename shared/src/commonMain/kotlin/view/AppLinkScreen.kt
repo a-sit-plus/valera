@@ -38,10 +38,7 @@ fun AppLinkScreen(walletMain: WalletMain){
         )
         runBlocking {
             if (appLink.value?.contains("$HOST/m1/login/oauth2/code/idaq?code=") == true) {
-                walletMain.provisioningService.step3(appLink.value.toString())
-            }
-            if (appLink.value == "$HOST/m1/") {
-                walletMain.provisioningService.step4()
+                walletMain.provisioningService.handleResponse(appLink.value.toString())
             }
             if (appLink.value?.contains("$HOST/mobile") == true) {
                 walletMain.presentationService.startSiop(appLink.value.toString())

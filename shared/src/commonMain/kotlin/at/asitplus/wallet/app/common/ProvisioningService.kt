@@ -59,7 +59,7 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
             storage = cookieStorage
         }
     }
-    suspend fun step1(){ // TODO: Give meaningful method name
+    suspend fun startProvisioning(){
         cookieStorage.reset()
         Napier.d("ProvisioningService: Start provisioning")
         val response = client.get("$HOST/m1/oauth2/authorization/idaq")
@@ -80,7 +80,7 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
             throw Exception("Redirect not found in header")
         }
     }
-    suspend fun step3(url: String){ // TODO: Give meaningful method name
+    suspend fun handleResponse(url: String){
         val xAuthToken = dataStoreService.getData(Resources.DATASTORE_KEY_XAUTH)
         if (xAuthToken == null){
             throw Exception("X-Auth-Token not available in DataStoreService")
@@ -90,14 +90,6 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
             headers["X-Auth-Token"] = xAuthToken
         }
 
-        step4()
-    }
-
-    suspend fun step4(){ // TODO: Give meaningful method name
-        val xAuthToken = dataStoreService.getData(Resources.DATASTORE_KEY_XAUTH)
-        if (xAuthToken == null){
-            throw Exception("X-Auth-Token not available in DataStoreService")
-        }
         Napier.d("ProvisioningService: [step4] Load X-Auth-Token: $xAuthToken")
         val metadata: IssuerMetadata = client.get("$HOST/m1$PATH_WELL_KNOWN_CREDENTIAL_ISSUER"){
             headers["X-Auth-Token"] = xAuthToken
@@ -126,7 +118,7 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
         }
         val code = Url(codeUrl).parameters["code"]
         if (code == null) {
-           throw Exception("code is null")
+            throw Exception("code is null")
         }
 
         val tokenRequest = oid4vciService.createTokenRequestParameters(code)
