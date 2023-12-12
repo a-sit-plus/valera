@@ -76,7 +76,7 @@ fun navigator(walletMain: WalletMain) {
                             navigationStack.push(CredentialPage(info))
                         },
                         onScanQrCode = { navigationStack.push(CameraPage()) },
-                        onOidc = {
+                        onLoginWithIdAustria = {
                             CoroutineScope(Dispatchers.Default).launch {
                                 walletMain.provisioningService.step1()
                             }

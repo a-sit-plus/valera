@@ -49,16 +49,16 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-fun HomeScreen( onAbout: () -> Unit, onCredential: (id: String) -> Unit, onScanQrCode: () -> Unit, walletMain: WalletMain, onOidc: () -> Unit) {
+fun HomeScreen( onAbout: () -> Unit, onCredential: (id: String) -> Unit, onScanQrCode: () -> Unit, walletMain: WalletMain, onLoginWithIdAustria: () -> Unit) {
     Box{
         val credentials = runBlocking { walletMain.subjectCredentialStore.getVcs() }
         Column(Modifier.fillMaxSize()) {
             Header(onAbout = onAbout)
             Column(Modifier.background(color = MaterialTheme.colorScheme.primaryContainer).fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
                 if (credentials.size == 0){
-                    AddId(onScanQrCode, onOidc)
+                    AddId(onScanQrCode, onLoginWithIdAustria)
                 } else {
-                    ShowId(onCredential, onScanQrCode, walletMain, onOidc)
+                    ShowId(onCredential, onScanQrCode, walletMain, onLoginWithIdAustria)
                 }
             }
         }
@@ -76,7 +76,7 @@ fun Header(onAbout: () -> Unit) {
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-fun AddDialog(openDialog: MutableState<Boolean>, onScanQrCode: () -> Unit, onOidc: () -> Unit){
+fun AddDialog(openDialog: MutableState<Boolean>, onScanQrCode: () -> Unit, onLoginWithIdAustria: () -> Unit){
     Dialog(onDismissRequest = { openDialog.value = false }, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Column(verticalArrangement = Arrangement.Bottom, modifier = Modifier.fillMaxSize()){
             Box(Modifier.padding(start = 20.dp, end = 20.dp).shadow(elevation = 2.dp, shape = RoundedCornerShape(10.dp))){
@@ -97,7 +97,7 @@ fun AddDialog(openDialog: MutableState<Boolean>, onScanQrCode: () -> Unit, onOid
                             Text(Resources.BUTTON_SCAN_QR, color = Color(48, 68, 113), fontSize = 15.sp, fontWeight = FontWeight.Bold)
                         }
                         Spacer(Modifier.size(30.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable(onClick = {onOidc()}).fillMaxWidth()) {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable(onClick = {onLoginWithIdAustria()}).fillMaxWidth()) {
                             Box(Modifier.size(30.dp), contentAlignment = Alignment.Center){
                                 Image(painterResource("icons8-login-100.png"), contentDescription = null, Modifier.height(30.dp))
                             }
@@ -118,9 +118,9 @@ fun AddDialog(openDialog: MutableState<Boolean>, onScanQrCode: () -> Unit, onOid
 }
 
 @Composable
-fun AddId(onScanQrCode: () -> Unit, onOidc: () -> Unit) {
+fun AddId(onScanQrCode: () -> Unit, onLoginWithIdAustria: () -> Unit) {
     AddIdHeader()
-    AddIdBody(onScanQrCode, onOidc)
+    AddIdBody(onScanQrCode, onLoginWithIdAustria)
 }
 
 @Composable
@@ -130,13 +130,13 @@ fun AddIdHeader(){
 }
 
 @Composable
-fun AddIdBody(onScanQrCode: () -> Unit, onOidc: () -> Unit) {
-    AddIdCard(onScanQrCode, onOidc)
+fun AddIdBody(onScanQrCode: () -> Unit, onLoginWithIdAustria: () -> Unit) {
+    AddIdCard(onScanQrCode, onLoginWithIdAustria)
 }
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-fun AddIdCard(onScanQrCode: () -> Unit, onOidc: () -> Unit) {
+fun AddIdCard(onScanQrCode: () -> Unit, onLoginWithIdAustria: () -> Unit) {
     Box(Modifier.padding(start = 20.dp, end = 20.dp).shadow(elevation = 2.dp, shape = RoundedCornerShape(10.dp))){
         Box(Modifier.clip(shape = RoundedCornerShape(10.dp)).background(color = Color.White).fillMaxWidth().padding(20.dp)){
             Column {
@@ -154,7 +154,7 @@ fun AddIdCard(onScanQrCode: () -> Unit, onOidc: () -> Unit) {
                     Text(Resources.BUTTON_SCAN_QR, color = Color(48, 68, 113), fontSize = 15.sp, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.size(30.dp))
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable(onClick = {onOidc()}).fillMaxWidth()) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable(onClick = {onLoginWithIdAustria()}).fillMaxWidth()) {
                     Box(Modifier.size(30.dp), contentAlignment = Alignment.Center){
                         Image(painterResource("icons8-login-100.png"), contentDescription = null, Modifier.height(30.dp))
                     }
@@ -180,7 +180,7 @@ fun AddIdText(){
 }
 
 @Composable
-fun ShowId(onCredential: (id: String) -> Unit, onScanQrCode: () -> Unit, walletMain: WalletMain, onOidc: () -> Unit) {
+fun ShowId(onCredential: (id: String) -> Unit, onScanQrCode: () -> Unit, walletMain: WalletMain, onLoginWithIdAustria: () -> Unit) {
     val openDialog = remember { mutableStateOf(false) }
     ShowIdHeader()
     ShowIdCard(onCredential, walletMain)
@@ -190,7 +190,7 @@ fun ShowId(onCredential: (id: String) -> Unit, onScanQrCode: () -> Unit, walletM
         }
     }
     if (openDialog.value) {
-        AddDialog(openDialog, onScanQrCode, onOidc)
+        AddDialog(openDialog, onScanQrCode, onLoginWithIdAustria)
     }
 
 }
