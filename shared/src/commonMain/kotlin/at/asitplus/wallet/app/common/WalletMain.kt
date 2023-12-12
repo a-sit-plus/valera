@@ -8,6 +8,8 @@ import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
 import data.storage.PersistentSubjectCredentialStore
 
+const val HOST = "https://wallet.a-sit.at"
+
 /**
  * Main class to hold all services needed in the Compose App.
  */

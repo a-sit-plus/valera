@@ -16,6 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import appLink
+import at.asitplus.wallet.app.common.HOST
 import at.asitplus.wallet.app.common.WalletMain
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.runBlocking
@@ -36,13 +37,13 @@ fun AppLinkScreen(walletMain: WalletMain){
             trackColor = MaterialTheme.colorScheme.surfaceVariant,
         )
         runBlocking {
-            if (appLink.value?.contains("https://wallet.a-sit.at/m1/login/oauth2/code/idaq?code=") == true) {
+            if (appLink.value?.contains("$HOST/m1/login/oauth2/code/idaq?code=") == true) {
                 walletMain.provisioningService.step3(appLink.value.toString())
             }
-            if (appLink.value == "https://wallet.a-sit.at/m1/") {
+            if (appLink.value == "$HOST/m1/") {
                 walletMain.provisioningService.step4()
             }
-            if (appLink.value?.contains("https://wallet.a-sit.at/mobile") == true) {
+            if (appLink.value?.contains("$HOST/mobile") == true) {
                 walletMain.presentationService.startSiop(appLink.value.toString())
             }
         }
