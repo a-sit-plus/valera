@@ -61,7 +61,7 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
     }
     suspend fun startProvisioning(){
         cookieStorage.reset()
-        Napier.d("ProvisioningService: Start provisioning")
+        Napier.d("Start provisioning")
         val response = client.get("$HOST/m1/oauth2/authorization/idaq")
         val urlToOpen = response.headers["Location"]
 
@@ -70,11 +70,11 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
             throw Exception("X-Auth-Token not received")
         }
 
-        Napier.d("ProvisioningService: [step1] Store X-Auth-Token: $xAuthToken")
+        Napier.d("Store X-Auth-Token: $xAuthToken")
         dataStoreService.setData(xAuthToken, Resources.DATASTORE_KEY_XAUTH)
 
         if (urlToOpen != null) {
-            Napier.d("ProvisioningService: [step2] Open URL: $urlToOpen")
+            Napier.d("Open URL: $urlToOpen")
             platformAdapter.openUrl(urlToOpen)
         } else {
             throw Exception("Redirect not found in header")
@@ -85,12 +85,12 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
         if (xAuthToken == null){
             throw Exception("X-Auth-Token not available in DataStoreService")
         }
-        Napier.d("ProvisioningService: [step3] Create request with x-auth: $xAuthToken")
+        Napier.d("Create request with x-auth: $xAuthToken")
         client.get(url) {
             headers["X-Auth-Token"] = xAuthToken
         }
 
-        Napier.d("ProvisioningService: [step4] Load X-Auth-Token: $xAuthToken")
+        Napier.d("Load X-Auth-Token: $xAuthToken")
         val metadata: IssuerMetadata = client.get("$HOST/m1$PATH_WELL_KNOWN_CREDENTIAL_ISSUER"){
             headers["X-Auth-Token"] = xAuthToken
         }.body()
@@ -102,10 +102,10 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
             credentialRepresentation = ConstantIndex.CredentialRepresentation.PLAIN_JWT
         )
 
-        Napier.d("ProvisioningService: [step4] Oid4vciService.createAuthRequest")
+        Napier.d("Oid4vciService.createAuthRequest")
         val authRequest = oid4vciService.createAuthRequest()
 
-        Napier.d("ProvisioningService: [step4] HTTP.GET (${metadata.authorizationEndpointUrl})")
+        Napier.d("HTTP.GET (${metadata.authorizationEndpointUrl})")
         val codeUrl = client.get(metadata.authorizationEndpointUrl) {
             authRequest.encodeToParameters().forEach {
                 this.parameter(it.key, it.value)
@@ -122,21 +122,21 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
         }
 
         val tokenRequest = oid4vciService.createTokenRequestParameters(code)
-        Napier.d("ProvisioningService: [step4] Created tokenRequest")
+        Napier.d("Created tokenRequest")
         val tokenResponse: TokenResponseParameters = client.submitForm(metadata.tokenEndpointUrl.toString()) {
             setBody(tokenRequest.encodeToParameters().formUrlEncode())
         }.body()
 
-        Napier.d("ProvisioningService: [step4] Received tokenResponse")
+        Napier.d("Received tokenResponse")
         val credentialRequest = oid4vciService.createCredentialRequest(tokenResponse, metadata)
-        Napier.d("ProvisioningService: [step4] Created credentialRequest")
+        Napier.d("Created credentialRequest")
         val credentialResponse: CredentialResponseParameters =
             client.post(metadata.credentialEndpointUrl.toString()) {
                 contentType(ContentType.Application.Json)
                 setBody(credentialRequest)
                 headers["Authorization"] = "$TOKEN_PREFIX_BEARER${tokenResponse.accessToken}"
             }.body()
-        Napier.d("ProvisioningService: [step4] Received credentialResponse")
+        Napier.d("Received credentialResponse")
 
         credentialResponse.credential?.let {
             when (credentialResponse.format){
