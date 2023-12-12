@@ -44,7 +44,6 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.idaustria.IdAustriaCredential
-import decodeImage
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
@@ -254,7 +253,7 @@ fun IdAustriaCredentialCard(onCredential: (id: String) -> Unit, id: String, modi
                 Spacer(Modifier.size(15.dp))
                 Box(contentAlignment = Alignment.Center){
                     if (imageBytes != null){
-                        Image(decodeImage(imageBytes), contentDescription = "")
+                        Image(walletMain.platformAdapter.decodeImage(imageBytes), contentDescription = "")
                     }
                 }
                 Spacer(Modifier.size(30.dp))

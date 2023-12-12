@@ -2,6 +2,7 @@ package at.asitplus.wallet.app.common
 
 import DataStoreService
 import Resources
+import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
@@ -80,5 +81,7 @@ interface PlatformAdapter {
      * Opens a specified resource (Intent, Associated Domain)
      */
     fun openUrl(url: String)
+
+    fun decodeImage(image: ByteArray): ImageBitmap
 }
 

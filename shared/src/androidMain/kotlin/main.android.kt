@@ -75,9 +75,9 @@ class AndroidPlatformAdapter(val context: Context): PlatformAdapter{
         Napier.d("Open URL: ${url.toUri()}")
         context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
     }
-}
 
-actual fun decodeImage(image: ByteArray): ImageBitmap {
-    val bitmap = BitmapFactory.decodeByteArray(image, 0, image.size)
-    return bitmap.asImageBitmap()
+    override fun decodeImage(image: ByteArray): ImageBitmap {
+        val bitmap = BitmapFactory.decodeByteArray(image, 0, image.size)
+        return bitmap.asImageBitmap()
+    }
 }

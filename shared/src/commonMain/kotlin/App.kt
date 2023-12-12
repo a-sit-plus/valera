@@ -126,5 +126,3 @@ expect fun getPlatformName(): String
 
 @Composable
 expect fun getColorScheme(): ColorScheme
-
-expect fun decodeImage(image: ByteArray): ImageBitmap

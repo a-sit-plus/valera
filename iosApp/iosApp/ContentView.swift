@@ -28,6 +28,10 @@ class SwiftPlatformAdapter: PlatformAdapter {
             UIApplication.shared.open(uri)
         }
     }
+    
+    func decodeImage(image: KotlinByteArray) -> Ui_graphicsImageBitmap {
+        return Main_iosKt.decodeImage(image: image)
+    }
 }
 
 class SwiftObjectFactory: ObjectFactory {
