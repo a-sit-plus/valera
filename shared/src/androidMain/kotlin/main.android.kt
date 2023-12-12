@@ -73,8 +73,6 @@ class AndroidObjectFactory() : ObjectFactory {
 class AndroidPlatformAdapter(val context: Context): PlatformAdapter{
     override fun openUrl(url: String) {
         println("Open URL: ${url.toUri()}")
-        val androidObjectFactory = this
-        val context = androidObjectFactory.context
         context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
     }
 }
