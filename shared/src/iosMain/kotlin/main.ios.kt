@@ -21,9 +21,7 @@ actual fun getColorScheme(): ColorScheme{
         lightColorScheme()
     }
 }
-fun decodeImage(image: ByteArray): ImageBitmap {
-    return Image.makeFromEncoded(image).toComposeImageBitmap()
-}
+
 
 fun MainViewController(objectFactory: ObjectFactory, platformAdapter: PlatformAdapter) = ComposeUIViewController {
     App(WalletMain(objectFactory, DataStoreService(createDataStore()), platformAdapter))

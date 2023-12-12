@@ -29,7 +29,7 @@ class SwiftPlatformAdapter: PlatformAdapter {
     }
     
     func decodeImage(image: KotlinByteArray) -> Ui_graphicsImageBitmap {
-        return Main_iosKt.decodeImage(image: image)
+        return IosUtilities.init().decodeImage(image: image)
     }
 }
 
