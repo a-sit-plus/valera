@@ -1,6 +1,7 @@
 package data.storage
 
 import DataStoreService
+import Resources
 import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
@@ -15,7 +16,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 
 class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) : SubjectCredentialStore {
-    private val dataKey = "VCs"
+    private val dataKey = Resources.DATASTORE_KEY_VCS
     private val idHolder: IdHolder = runBlocking { importFromDataStore() }
 
     override suspend fun getAttachment(name: String): KmmResult<ByteArray> {
@@ -27,7 +28,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
     }
 
     override suspend fun getCredentials(requiredAttributeTypes: Collection<String>?): KmmResult<List<SubjectCredentialStore.StoreEntry>> {
-        val filtered = idHolder.credentials
+        val filtered = idHolder.credentialsVcJws
             .filter { it ->
                 val vc = it.vc
                 requiredAttributeTypes?.let { types ->
@@ -57,7 +58,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         requiredAttributeTypes: Collection<String>?
     ): Collection<String> {
         val content = requiredAttributeTypes
-            ?: idHolder.credentials.map {
+            ?: idHolder.credentialsVcJws.map {
                 val vc = it.vc
                 (vc.type).toList()
             }.flatten()
@@ -76,7 +77,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         scheme: ConstantIndex.CredentialScheme
     ) {
         Napier.d("storing $vcSerialized")
-        idHolder.credentials.add(vc)
+        idHolder.credentialsVcJws.add(vc)
         exportToDataStore()
     }
 
@@ -86,7 +87,9 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         disclosures: Map<String, SelectiveDisclosureItem?>,
         scheme: ConstantIndex.CredentialScheme
     ) {
-        TODO("Not yet implemented")
+        Napier.d("storing $vcSerialized")
+        idHolder.credentialsSdJwt.add(vc)
+        exportToDataStore()
     }
 
     override suspend fun storeCredential(
@@ -105,21 +108,31 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
 
     private suspend fun importFromDataStore(): IdHolder {
         val input = dataStore.getData(dataKey)
-        return jsonSerializer.decodeFromString(input.toString()) ?: IdHolder()
+        if (input == null){
+            return IdHolder()
+        } else {
+            return jsonSerializer.decodeFromString(input)
+        }
     }
 
     suspend fun removeCredential(id: String) {
         var found: VerifiableCredentialJws? = null
-        idHolder.credentials.forEach {
+        idHolder.credentialsVcJws.forEach {
             val vc = it.vc
             if (vc.id == id) {
                 found = it
             }
         }
         if (found != null) {
-            idHolder.credentials.remove(found)
+            idHolder.credentialsVcJws.remove(found)
             exportToDataStore()
         }
+    }
+
+    suspend fun reset(){
+        idHolder.credentialsSdJwt.clear()
+        idHolder.credentialsVcJws.clear()
+        idHolder.credentialsIso.clear()
     }
 
     suspend fun getVcs(): ArrayList<VerifiableCredential> {

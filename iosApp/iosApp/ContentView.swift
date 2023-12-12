@@ -5,7 +5,7 @@ import shared
 struct ComposeView: UIViewControllerRepresentable {
     
     func makeUIViewController(context: Context) -> UIViewController {
-        return Main_iosKt.MainViewController(objectFactory: SwiftObjectFactory())
+        return Main_iosKt.MainViewController(objectFactory: SwiftObjectFactory(), platformAdapter: SwiftPlatformAdapter())
     }
 
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
@@ -18,6 +18,18 @@ struct ContentView: View {
                 .onOpenURL { url in
                     AppKt.appLink.setValue(url.absoluteString)
                 }
+    }
+}
+
+class SwiftPlatformAdapter: PlatformAdapter {
+    func openUrl(url: String){
+        if let uri = URL(string: url) {
+            UIApplication.shared.open(uri)
+        }
+    }
+    
+    func decodeImage(image: KotlinByteArray) -> Ui_graphicsImageBitmap {
+        return IosUtilities.init().decodeImage(image: image)
     }
 }
 
@@ -43,6 +55,7 @@ class SwiftObjectFactory: ObjectFactory {
     func loadHolderKeyService() -> KmmResult<HolderKeyService> {
         return KmmResultSuccess(keyChainService)
     }
+    
 
 }
 

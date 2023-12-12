@@ -1,12 +1,17 @@
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.graphics.ImageBitmap
+import at.asitplus.wallet.app.common.ObjectFactory
+import at.asitplus.wallet.app.common.ProvisioningService
 import at.asitplus.wallet.app.common.WalletMain
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import navigation.AboutPage
 import navigation.AppLinkPage
 import navigation.CameraPage
@@ -25,6 +30,10 @@ import view.PayloadScreen
 
 var globalBack: () -> Unit = {}
 
+/**
+ * Global variable which especially helps to channel information from swift code
+ * to compose whenever the app gets called via an associated domain
+ */
 var appLink = mutableStateOf<String?>(null)
 
 @Composable
@@ -71,7 +80,12 @@ fun navigator(walletMain: WalletMain) {
                             navigationStack.push(CredentialPage(info))
                         },
                         onScanQrCode = { navigationStack.push(CameraPage()) },
-                        walletMain
+                        onLoginWithIdAustria = {
+                            CoroutineScope(Dispatchers.Default).launch {
+                                walletMain.provisioningService.startProvisioning()
+                            }
+                        },
+                        walletMain = walletMain
                     )
                 }
 
@@ -102,7 +116,7 @@ fun navigator(walletMain: WalletMain) {
 
                 is AppLinkPage -> {
                     AppLinkScreen(
-                        onContinueClick = { navigationStack.push(HomePage()) }
+                        walletMain = walletMain
                     )
 
                 }

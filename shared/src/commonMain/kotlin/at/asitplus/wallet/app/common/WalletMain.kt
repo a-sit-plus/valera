@@ -2,13 +2,13 @@ package at.asitplus.wallet.app.common
 
 import DataStoreService
 import Resources
+import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.CryptoService
-import at.asitplus.wallet.lib.agent.DefaultCryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
-import at.asitplus.wallet.lib.agent.IssuerAgent
-import data.storage.DummyCredentialDataProvider
 import data.storage.PersistentSubjectCredentialStore
+
+const val HOST = "https://wallet.a-sit.at"
 
 /**
  * Main class to hold all services needed in the Compose App.
@@ -16,11 +16,14 @@ import data.storage.PersistentSubjectCredentialStore
 class WalletMain(
     val objectFactory: ObjectFactory,
     private val dataStoreService: DataStoreService,
+    val platformAdapter: PlatformAdapter
 ) {
     private lateinit var cryptoService: CryptoService
     lateinit var subjectCredentialStore: PersistentSubjectCredentialStore
     private lateinit var holderAgent: HolderAgent
     private lateinit var holderKeyService: HolderKeyService
+    lateinit var provisioningService: ProvisioningService
+    lateinit var presentationService: PresentationService
 
     init {
         at.asitplus.wallet.idaustria.Initializer.initWithVcLib()
@@ -31,31 +34,17 @@ class WalletMain(
         subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
         holderAgent = HolderAgent.newDefaultInstance(cryptoService = cryptoService, subjectCredentialStore = subjectCredentialStore)
         holderKeyService = objectFactory.loadHolderKeyService().getOrThrow()
-    }
-
-    
-    /**
-     * Temporary function to create a random credential
-     */
-    suspend fun setCredentials(){
-        holderAgent.storeCredentials(
-            IssuerAgent.newDefaultInstance(
-                DefaultCryptoService(),
-                dataProvider = DummyCredentialDataProvider(),
-            ).issueCredential(
-                subjectPublicKey = cryptoService.toPublicKey(),
-                attributeTypes = listOf(at.asitplus.wallet.idaustria.ConstantIndex.IdAustriaCredential.vcType),
-                representation = at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.PLAIN_JWT
-            ).toStoreCredentialInput()
-        )
+        provisioningService = ProvisioningService(platformAdapter, dataStoreService, cryptoService, holderAgent)
+        presentationService = PresentationService(platformAdapter, dataStoreService, cryptoService, holderAgent)
     }
 
     suspend fun resetApp(){
-        val credentials = subjectCredentialStore.getVcs()
-        credentials.forEach {
-            subjectCredentialStore.removeCredential(it.id)
-        }
-        dataStoreService.deleteData(Resources.DATASTORE_KEY)
+        subjectCredentialStore.reset()
+
+        dataStoreService.deleteData(Resources.DATASTORE_KEY_VCS)
+        dataStoreService.deleteData(Resources.DATASTORE_KEY_XAUTH)
+        dataStoreService.deleteData(Resources.DATASTORE_KEY_COOKIES)
+
         holderKeyService.clear()
     }
 }
@@ -75,9 +64,26 @@ interface ObjectFactory {
     fun loadHolderKeyService(): KmmResult<HolderKeyService>
 }
 
+/**
+ * Interface which defines native keychain callbacks for the ID Holder
+ */
 interface HolderKeyService {
+    /**
+     * Clears the private and public key from the keychain/keystore
+     */
     fun clear()
 }
 
 
+/**
+ * Adapter to call back to native code without the need for service objects
+ */
+interface PlatformAdapter {
+    /**
+     * Opens a specified resource (Intent, Associated Domain)
+     */
+    fun openUrl(url: String)
+
+    fun decodeImage(image: ByteArray): ImageBitmap
+}
 
