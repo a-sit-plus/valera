@@ -140,14 +140,14 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
 
         credentialResponse.credential?.let {
             when (credentialResponse.format){
-                CredentialFormatEnum.NONE -> TODO()
+                CredentialFormatEnum.NONE -> TODO("Function not implemented")
                 CredentialFormatEnum.JWT_VC ->
                     holderAgent.storeCredentials(listOf(Holder.StoreCredentialInput.Vc(vcJws = it, scheme = at.asitplus.wallet.idaustria.ConstantIndex.IdAustriaCredential, attachments = null)))
                 CredentialFormatEnum.JWT_VC_SD ->
                     holderAgent.storeCredentials(listOf(Holder.StoreCredentialInput.SdJwt(vcSdJwt = it, scheme = at.asitplus.wallet.idaustria.ConstantIndex.IdAustriaCredential)))
-                CredentialFormatEnum.JWT_VC_JSON_LD -> TODO()
-                CredentialFormatEnum.JSON_LD -> TODO()
-                CredentialFormatEnum.MSO_MDOC -> TODO()
+                CredentialFormatEnum.JWT_VC_JSON_LD -> TODO("Function not implemented")
+                CredentialFormatEnum.JSON_LD -> TODO("Function not implemented")
+                CredentialFormatEnum.MSO_MDOC -> TODO("Function not implemented")
             }
         }
     }

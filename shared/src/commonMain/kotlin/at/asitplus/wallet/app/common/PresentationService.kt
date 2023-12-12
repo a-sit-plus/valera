@@ -19,7 +19,9 @@ class PresentationService(val platformAdapter: PlatformAdapter, val dataStoreSer
         }
         Napier.d("Opening $authenticationResponse")
         when (val response= authenticationResponse.getOrThrow()){
-            is OidcSiopWallet.AuthenticationResponseResult.Post -> TODO()
+            is OidcSiopWallet.AuthenticationResponseResult.Post -> {
+                TODO("Function not implemented")
+            }
             is OidcSiopWallet.AuthenticationResponseResult.Redirect -> platformAdapter.openUrl(response.url)
         }
 
