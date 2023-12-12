@@ -60,7 +60,6 @@ kotlin {
                 api("androidx.appcompat:appcompat:1.6.1")
                 api("androidx.core:core-ktx:1.12.0")
 
-                implementation("io.ktor:ktor-client-cio:$ktorVersion")
                 implementation ("io.ktor:ktor-client-content-negotiation:$ktorVersion")
                 implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion")
                 implementation ("io.ktor:ktor-client-cio-jvm:$ktorVersion")
