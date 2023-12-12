@@ -2,7 +2,7 @@
 import at.asitplus.gradle.napier
 import at.asitplus.gradle.serialization
 
-val ktor_version: String by project
+val ktorVersion = extra["ktor.version"] as String
 
 plugins {
     kotlin("multiplatform")
@@ -47,11 +47,11 @@ kotlin {
                 implementation("androidx.datastore:datastore-preferences-core:1.1.0-alpha07")
                 implementation("androidx.datastore:datastore-core-okio:1.1.0-alpha07")
                 implementation("org.jetbrains.kotlinx:atomicfu:0.21.0")
-                implementation("io.ktor:ktor-client-core:$ktor_version")
-                implementation("io.ktor:ktor-client-cio:$ktor_version")
-                implementation ("io.ktor:ktor-client-logging:$ktor_version")
-                implementation ("io.ktor:ktor-client-content-negotiation:$ktor_version")
-                implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
+                implementation("io.ktor:ktor-client-core:$ktorVersion")
+                implementation("io.ktor:ktor-client-cio:$ktorVersion")
+                implementation ("io.ktor:ktor-client-logging:$ktorVersion")
+                implementation ("io.ktor:ktor-client-content-negotiation:$ktorVersion")
+                implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
             }
         }
         val androidMain by getting {
@@ -60,12 +60,12 @@ kotlin {
                 api("androidx.appcompat:appcompat:1.6.1")
                 api("androidx.core:core-ktx:1.12.0")
 
-                implementation("io.ktor:ktor-client-cio:$ktor_version")
-                implementation ("io.ktor:ktor-client-content-negotiation:$ktor_version")
-                implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktor_version")
-                implementation ("io.ktor:ktor-client-cio-jvm:$ktor_version")
-                implementation ("io.ktor:ktor-client-logging:$ktor_version")
-                implementation ("io.ktor:ktor-client-logging-jvm:$ktor_version")
+                implementation("io.ktor:ktor-client-cio:$ktorVersion")
+                implementation ("io.ktor:ktor-client-content-negotiation:$ktorVersion")
+                implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion")
+                implementation ("io.ktor:ktor-client-cio-jvm:$ktorVersion")
+                implementation ("io.ktor:ktor-client-logging:$ktorVersion")
+                implementation ("io.ktor:ktor-client-logging-jvm:$ktorVersion")
                 implementation ("uk.uuid.slf4j:slf4j-android:1.7.30-0")
 
                 implementation("androidx.camera:camera-camera2:1.3.0")
@@ -85,7 +85,7 @@ kotlin {
             iosArm64Main.dependsOn(this)
             iosSimulatorArm64Main.dependsOn(this)
             dependencies {
-                implementation("io.ktor:ktor-client-darwin:$ktor_version")
+                implementation("io.ktor:ktor-client-darwin:$ktorVersion")
             }
         }
     }
