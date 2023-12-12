@@ -7,6 +7,7 @@ import at.asitplus.wallet.lib.oidc.OidcSiopWallet
 import io.github.aakira.napier.Napier
 
 class PresentationService(val platformAdapter: PlatformAdapter, val dataStoreService: DataStoreService, val cryptoService: CryptoService, val holderAgent: HolderAgent) {
+    @Throws(Throwable::class)
     suspend fun startSiop(url: String){
         Napier.d("Start SIOP process")
         val oidcSiopWallet = OidcSiopWallet.newInstance(
@@ -24,7 +25,5 @@ class PresentationService(val platformAdapter: PlatformAdapter, val dataStoreSer
             }
             is OidcSiopWallet.AuthenticationResponseResult.Redirect -> platformAdapter.openUrl(response.url)
         }
-
-
     }
 }

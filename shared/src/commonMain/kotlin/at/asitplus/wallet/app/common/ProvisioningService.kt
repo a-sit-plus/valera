@@ -40,6 +40,7 @@ import io.ktor.serialization.kotlinx.json.json
 const val PATH_WELL_KNOWN_CREDENTIAL_ISSUER = "/.well-known/openid-credential-issuer"
 
 class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreService: DataStoreService, val cryptoService: CryptoService, val holderAgent: HolderAgent) {
+
     private val cookieStorage = PersistentCookieStorage(dataStoreService)
     private val client = HttpClient {
         followRedirects = false
@@ -59,6 +60,7 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
             storage = cookieStorage
         }
     }
+    @Throws(Throwable::class)
     suspend fun startProvisioning(){
         cookieStorage.reset()
         Napier.d("Start provisioning")
@@ -80,6 +82,7 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
             throw Exception("Redirect not found in header")
         }
     }
+    @Throws(Throwable::class)
     suspend fun handleResponse(url: String){
         val xAuthToken = dataStoreService.getData(Resources.DATASTORE_KEY_XAUTH)
         if (xAuthToken == null){
