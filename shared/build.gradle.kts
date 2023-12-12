@@ -96,4 +96,18 @@ android {
     kotlin {
         jvmToolchain(17)
     }
+    packaging {
+        resources.excludes.add("META-INF/versions/9/previous-compilation-data.bin")
+    }
+    testOptions {
+        managedDevices {
+            localDevices {
+                create("pixel2api33") {
+                    device = "Pixel 2"
+                    apiLevel = 33
+                    systemImageSource = "aosp-atd"
+                }
+            }
+        }
+    }
 }
