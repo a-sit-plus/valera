@@ -31,4 +31,6 @@ object Resources {
     const val DATASTORE_KEY_COOKIES = "cookies"
     const val REDIRECT_TITLE = "Redirect"
     const val URL = "URL"
+    const val SNACKBAR_CREDENTIAL_LOADED_SUCCESSFULLY = "Credential loaded successfully"
+    const val SNACKBAR_RESET_APP_SUCCESSFULLY = "Reset App successfully"
 }

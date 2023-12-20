@@ -53,6 +53,7 @@ class AndroidObjectFactory() : ObjectFactory {
     val keyStoreService: AndroidKeyStoreService by lazy { AndroidKeyStoreService() }
 
     init {
+        Napier.takeLogarithm()
         Napier.base(DebugAntilog())
     }
 

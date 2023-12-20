@@ -7,6 +7,7 @@ import io.github.aakira.napier.Napier
 class NapierProxy {
     companion object {
         init {
+            Napier.takeLogarithm()
             Napier.base(DebugAntilog())
         }
 

@@ -24,18 +24,19 @@ class WalletMain(
     private lateinit var holderKeyService: HolderKeyService
     lateinit var provisioningService: ProvisioningService
     lateinit var presentationService: PresentationService
-
+    lateinit var snackbarService: SnackbarService
     init {
         at.asitplus.wallet.idaustria.Initializer.initWithVcLib()
     }
     @Throws(Throwable::class)
-    fun initialize(){
+    fun initialize(snackbarService: SnackbarService){
         cryptoService = objectFactory.loadCryptoService().getOrThrow()
         subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
         holderAgent = HolderAgent.newDefaultInstance(cryptoService = cryptoService, subjectCredentialStore = subjectCredentialStore)
         holderKeyService = objectFactory.loadHolderKeyService().getOrThrow()
         provisioningService = ProvisioningService(platformAdapter, dataStoreService, cryptoService, holderAgent)
         presentationService = PresentationService(platformAdapter, dataStoreService, cryptoService, holderAgent)
+        this.snackbarService = snackbarService
     }
 
     suspend fun resetApp(){
