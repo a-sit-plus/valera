@@ -71,7 +71,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         container.attachments.firstOrNull { it.name == name && it.vcId == vcId }?.data?.let { KmmResult.success(it) }
             ?: KmmResult.failure(NullPointerException("Attachment not found"))
 
-    suspend fun exportToDataStore(){
+    private suspend fun exportToDataStore(){
         val exportableCredentials = mutableListOf<ExportableStoreEntry>()
         container.credentials.forEach {
             val scheme: ExportableCredentialScheme
@@ -117,7 +117,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         dataStore.setData(key = Resources.DATASTORE_KEY_VCS, value = json)
     }
 
-    fun importFromDataStore(): StoreContainer{
+    private fun importFromDataStore(): StoreContainer{
         return runBlocking {
             val input = dataStore.getData(Resources.DATASTORE_KEY_VCS)
             if (input == null){
