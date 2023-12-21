@@ -53,16 +53,18 @@ class PresentationService(val platformAdapter: PlatformAdapter, val dataStoreSer
         if (authenticationResponse.isFailure) {
             throw Exception("Failure in received authentication response")
         }
-        Napier.d("Opening $authenticationResponse")
+
         when (val response= authenticationResponse.getOrThrow()){
             is OidcSiopWallet.AuthenticationResponseResult.Post -> {
-                val tests = client.post(response.url) {
-                    Napier.d("Set Body: ${response.content}")
+                Napier.d("Post $authenticationResponse")
+                client.post(response.url) {
                     setBody(response.content)
                 }
-                Napier.d("Response: $tests")
             }
-            is OidcSiopWallet.AuthenticationResponseResult.Redirect -> platformAdapter.openUrl(response.url)
+            is OidcSiopWallet.AuthenticationResponseResult.Redirect -> {
+                Napier.d("Opening $authenticationResponse")
+                platformAdapter.openUrl(response.url)
+            }
         }
     }
 }
