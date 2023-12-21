@@ -21,7 +21,12 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 
-class PresentationService(val platformAdapter: PlatformAdapter, val dataStoreService: DataStoreService, val cryptoService: CryptoService, val holderAgent: HolderAgent) {
+class PresentationService(
+    val platformAdapter: PlatformAdapter,
+    val dataStoreService: DataStoreService,
+    val cryptoService: CryptoService,
+    val holderAgent: HolderAgent
+) {
     private val cookieStorage = PersistentCookieStorage(dataStoreService)
     private val client = HttpClient {
         followRedirects = false
@@ -43,28 +48,37 @@ class PresentationService(val platformAdapter: PlatformAdapter, val dataStoreSer
     }
 
     @Throws(Throwable::class)
-    suspend fun startSiop(url: String){
+    suspend fun startSiop(url: String) {
         Napier.d("Start SIOP process")
         val oidcSiopWallet = OidcSiopWallet.newInstance(
             holder = holderAgent,
             cryptoService = cryptoService,
         )
         val authenticationResponse = oidcSiopWallet.createAuthnResponse(url)
-        if (authenticationResponse.isFailure) {
-            throw Exception("Failure in received authentication response")
-        }
 
-        when (val response= authenticationResponse.getOrThrow()){
-            is OidcSiopWallet.AuthenticationResponseResult.Post -> {
-                Napier.d("Post $authenticationResponse")
-                client.post(response.url) {
-                    setBody(response.content)
+        authenticationResponse.fold(
+            onSuccess = {
+                when (it) {
+                    is OidcSiopWallet.AuthenticationResponseResult.Post -> {
+                        Napier.d("Post $authenticationResponse")
+                        val response = client.post(it.url) {
+                            setBody(it.content)
+                        }
+                        val location = response.headers["Location"]
+                        if (location != null) {
+                            platformAdapter.openUrl(location)
+                        } else {
+                            throw Exception("Location is NULL")
+                        }
+                    }
+
+                    is OidcSiopWallet.AuthenticationResponseResult.Redirect -> {
+                        Napier.d("Opening $authenticationResponse")
+                        platformAdapter.openUrl(it.url)
+                    }
                 }
-            }
-            is OidcSiopWallet.AuthenticationResponseResult.Redirect -> {
-                Napier.d("Opening $authenticationResponse")
-                platformAdapter.openUrl(response.url)
-            }
-        }
+            }, onFailure = {
+                throw Exception("Failure in received authentication response")
+            })
     }
 }
