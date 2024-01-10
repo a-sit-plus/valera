@@ -18,6 +18,8 @@ import view.CredentialScreen
 import view.HomeScreen
 import view.PayloadScreen
 
+var iosTestValue = Resources.IOS_TEST_VALUE
+
 @Composable
 fun App(walletMain: WalletMain) {
     try {

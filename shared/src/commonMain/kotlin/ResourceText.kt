@@ -29,4 +29,5 @@ object Resources {
     const val DATASTORE_KEY = "VCs"
     const val DEBUG_DATASTORE_KEY = "DBGKEY"
     const val DEBUG_DATASTORE_VALUE = "DBGVALUE"
+    const val IOS_TEST_VALUE = "TESTVALUE"
 }
