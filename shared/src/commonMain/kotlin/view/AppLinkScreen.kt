@@ -39,7 +39,7 @@ fun AppLinkScreen(walletMain: WalletMain){
         runBlocking {
             if (appLink.value?.contains("$HOST/m1/login/oauth2/code/idaq?code=") == true) {
                 walletMain.provisioningService.handleResponse(appLink.value.toString())
-                walletMain.snackbarService.showSnackbar("Credential loaded successfully")
+                walletMain.snackbarService.showSnackbar(Resources.SNACKBAR_CREDENTIAL_LOADED_SUCCESSFULLY)
             }
             if (appLink.value?.contains("$HOST/mobile") == true) {
                 walletMain.presentationService.startSiop(appLink.value.toString())
