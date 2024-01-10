@@ -2,6 +2,7 @@
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import at.asitplus.wallet.app.common.DummyPlatformAdapter
 import at.asitplus.wallet.app.common.WalletMain
 import data.storage.DummyDataStoreService
 import org.junit.Rule
@@ -20,7 +21,7 @@ class InstrumentedTests {
         // Start the app
         composeTestRule.setContent {
             App(
-                WalletMain(objectFactory = AndroidObjectFactory(), realDataStoreService = DummyDataStoreService())
+                WalletMain(objectFactory = AndroidObjectFactory(), realDataStoreService = DummyDataStoreService(), platformAdapter = DummyPlatformAdapter())
             )
         }
         composeTestRule.onNodeWithText(Resources.WALLET).assertIsDisplayed()

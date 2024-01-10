@@ -1,9 +1,9 @@
 package at.asitplus.wallet.app.common
 
-import DataStoreService
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.oidc.OidcSiopWallet
+import data.storage.DataStoreService
 import io.github.aakira.napier.Napier
 
 class PresentationService(val platformAdapter: PlatformAdapter, val dataStoreService: DataStoreService, val cryptoService: CryptoService, val holderAgent: HolderAgent) {

@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
+import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
 
 const val HOST = "https://wallet.a-sit.at"
@@ -85,5 +86,16 @@ interface PlatformAdapter {
     fun openUrl(url: String)
 
     fun decodeImage(image: ByteArray): ImageBitmap
+}
+
+class DummyPlatformAdapter(): PlatformAdapter {
+    override fun openUrl(url: String) {
+        TODO("Not yet implemented")
+    }
+
+    override fun decodeImage(image: ByteArray): ImageBitmap {
+        TODO("Not yet implemented")
+    }
+
 }
 
