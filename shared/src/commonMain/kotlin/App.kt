@@ -31,6 +31,10 @@ import view.CredentialScreen
 import view.HomeScreen
 import view.PayloadScreen
 
+
+/**
+ * Global variable to utilize back navigation functionality
+ */
 var globalBack: () -> Unit = {}
 
 /**
@@ -38,6 +42,11 @@ var globalBack: () -> Unit = {}
  * to compose whenever the app gets called via an associated domain
  */
 var appLink = mutableStateOf<String?>(null)
+
+
+/**
+ * Global variable to test at least something from the iOS UITest
+ */
 var iosTestValue = Resources.IOS_TEST_VALUE
 
 @Composable
