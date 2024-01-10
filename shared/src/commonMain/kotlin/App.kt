@@ -42,6 +42,7 @@ var globalBack: () -> Unit = {}
  * to compose whenever the app gets called via an associated domain
  */
 var appLink = mutableStateOf<String?>(null)
+var iosTestValue = Resources.IOS_TEST_VALUE
 
 @Composable
 fun App(walletMain: WalletMain) {
