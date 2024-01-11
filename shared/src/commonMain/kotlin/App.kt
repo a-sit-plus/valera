@@ -1,8 +1,28 @@
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalContext
 import androidx.compose.runtime.key
@@ -11,13 +31,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.app.common.ObjectFactory
 import at.asitplus.wallet.app.common.ProvisioningService
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import navigation.AboutPage
 import navigation.AppLinkPage
@@ -27,6 +54,8 @@ import navigation.HomePage
 import navigation.NavigationStack
 import navigation.Page
 import navigation.PayloadPage
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.painterResource
 import ui.theme.WalletTheme
 import view.AboutScreen
 import view.AppLinkScreen
@@ -43,6 +72,8 @@ var globalBack: () -> Unit = {}
  */
 var appLink = mutableStateOf<String?>(null)
 
+var errorService = ErrorService(mutableStateOf<Boolean>(false), mutableStateOf<String>(""))
+
 @Composable
 fun App(walletMain: WalletMain) {
     val scope = rememberCoroutineScope()
@@ -51,8 +82,8 @@ fun App(walletMain: WalletMain) {
 
     try {
         walletMain.initialize(snackbarService)
-    } catch (_: Exception){
-        TODO("Display warning screen in case something goes wrong")
+    } catch (e: Exception){
+        errorService.emit(e)
     }
 
     WalletTheme {
@@ -61,7 +92,12 @@ fun App(walletMain: WalletMain) {
                 SnackbarHost(hostState = snackbarHostState)
             }
         ) { _ ->
-            navigator(walletMain)
+            if (errorService.showError.value == false){
+                navigator(walletMain)
+            } else {
+                errorScreen()
+            }
+
         }
     }
 }
@@ -99,7 +135,11 @@ fun navigator(walletMain: WalletMain) {
                         onScanQrCode = { navigationStack.push(CameraPage()) },
                         onLoginWithIdAustria = {
                             CoroutineScope(Dispatchers.Default).launch {
-                                walletMain.provisioningService.startProvisioning()
+                                try {
+                                    walletMain.provisioningService.startProvisioning()
+                                } catch (e: Exception) {
+                                    errorService.emit(e)
+                                }
                             }
                         },
                         walletMain = walletMain
@@ -140,6 +180,28 @@ fun navigator(walletMain: WalletMain) {
             }
         }
     }
+}
+
+@OptIn(ExperimentalResourceApi::class)
+@Composable
+fun errorScreen(){
+    Column(modifier = Modifier.fillMaxSize()) {
+        Row(Modifier.padding(10.dp).height(80.dp).fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+            Text("Error", color = MaterialTheme.colorScheme.primary, fontSize = 40.sp, fontWeight = FontWeight.Bold)
+        }
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.primaryContainer)) {
+            Icon(Icons.Default.Warning, contentDescription = null, Modifier.size(100.dp), tint = MaterialTheme.colorScheme.error)
+            Text(errorService.errorText.value, modifier = Modifier.padding(20.dp))
+            Button(
+                modifier = Modifier
+                    .padding(vertical = 24.dp),
+                onClick = { errorService.reset() }
+            ) {
+                Text(Resources.BUTTON_CLOSE)
+            }
+        }
+    }
+
 }
 
 
