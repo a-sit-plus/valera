@@ -49,7 +49,7 @@ fun MainView() {
     App(WalletMain(objectFactory = AndroidObjectFactory(), DataStoreService(getDataStore(LocalContext.current)), platformAdapter = AndroidPlatformAdapter(LocalContext.current)))
 }
 
-class AndroidObjectFactory() : ObjectFactory {
+class AndroidObjectFactory : ObjectFactory {
     val keyStoreService: AndroidKeyStoreService by lazy { AndroidKeyStoreService() }
 
     init {

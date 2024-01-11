@@ -36,7 +36,6 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.Url
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.coroutines.runBlocking
 
 const val PATH_WELL_KNOWN_CREDENTIAL_ISSUER = "/.well-known/openid-credential-issuer"
 
@@ -100,7 +99,7 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
         }.body()
 
         val oid4vciService = WalletService(
-            credentialScheme = at.asitplus.wallet.idaustria.ConstantIndex.IdAustriaCredential,
+            credentialScheme = at.asitplus.wallet.idaustria.IdAustriaScheme,
             clientId = "$HOST/m1",
             cryptoService = cryptoService,
             credentialRepresentation = ConstantIndex.CredentialRepresentation.PLAIN_JWT
@@ -146,9 +145,9 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
             when (credentialResponse.format){
                 CredentialFormatEnum.NONE -> TODO("Function not implemented")
                 CredentialFormatEnum.JWT_VC ->
-                    holderAgent.storeCredentials(listOf(Holder.StoreCredentialInput.Vc(vcJws = it, scheme = at.asitplus.wallet.idaustria.ConstantIndex.IdAustriaCredential, attachments = null)))
+                    holderAgent.storeCredentials(listOf(Holder.StoreCredentialInput.Vc(vcJws = it, scheme = at.asitplus.wallet.idaustria.IdAustriaScheme, attachments = null)))
                 CredentialFormatEnum.JWT_VC_SD ->
-                    holderAgent.storeCredentials(listOf(Holder.StoreCredentialInput.SdJwt(vcSdJwt = it, scheme = at.asitplus.wallet.idaustria.ConstantIndex.IdAustriaCredential)))
+                    holderAgent.storeCredentials(listOf(Holder.StoreCredentialInput.SdJwt(vcSdJwt = it, scheme = at.asitplus.wallet.idaustria.IdAustriaScheme)))
                 CredentialFormatEnum.JWT_VC_JSON_LD -> TODO("Function not implemented")
                 CredentialFormatEnum.JSON_LD -> TODO("Function not implemented")
                 CredentialFormatEnum.MSO_MDOC -> TODO("Function not implemented")
