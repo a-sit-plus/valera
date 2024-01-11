@@ -1,7 +1,9 @@
 package at.asitplus.wallet.app.common
 
 import DataStoreService
+import ErrorService
 import Resources
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.CryptoService
@@ -16,7 +18,8 @@ const val HOST = "https://wallet.a-sit.at"
 class WalletMain(
     val objectFactory: ObjectFactory,
     private val dataStoreService: DataStoreService,
-    val platformAdapter: PlatformAdapter
+    val platformAdapter: PlatformAdapter,
+    val errorService: ErrorService = ErrorService(mutableStateOf<Boolean>(false), mutableStateOf<String>(""))
 ) {
     private lateinit var cryptoService: CryptoService
     lateinit var subjectCredentialStore: PersistentSubjectCredentialStore

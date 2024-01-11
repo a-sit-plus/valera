@@ -18,7 +18,6 @@ import androidx.compose.ui.unit.sp
 import appLink
 import at.asitplus.wallet.app.common.HOST
 import at.asitplus.wallet.app.common.WalletMain
-import errorService
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.runBlocking
 
@@ -43,7 +42,7 @@ fun AppLinkScreen(walletMain: WalletMain){
                     walletMain.provisioningService.handleResponse(appLink.value.toString())
                     walletMain.snackbarService.showSnackbar(Resources.SNACKBAR_CREDENTIAL_LOADED_SUCCESSFULLY)
                 } catch (e: Exception) {
-                    errorService.emit(e)
+                    walletMain.errorService.emit(e)
                 }
 
             }
@@ -51,7 +50,7 @@ fun AppLinkScreen(walletMain: WalletMain){
                 try {
                     walletMain.presentationService.startSiop(appLink.value.toString())
                 } catch (e: Exception) {
-                    errorService.emit(e)
+                    walletMain.errorService.emit(e)
                 }
             }
         }

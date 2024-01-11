@@ -72,8 +72,6 @@ var globalBack: () -> Unit = {}
  */
 var appLink = mutableStateOf<String?>(null)
 
-var errorService = ErrorService(mutableStateOf<Boolean>(false), mutableStateOf<String>(""))
-
 @Composable
 fun App(walletMain: WalletMain) {
     val scope = rememberCoroutineScope()
@@ -83,7 +81,7 @@ fun App(walletMain: WalletMain) {
     try {
         walletMain.initialize(snackbarService)
     } catch (e: Exception){
-        errorService.emit(e)
+        walletMain.errorService.emit(e)
     }
 
     WalletTheme {
@@ -92,10 +90,10 @@ fun App(walletMain: WalletMain) {
                 SnackbarHost(hostState = snackbarHostState)
             }
         ) { _ ->
-            if (errorService.showError.value == false){
+            if (walletMain.errorService.showError.value == false){
                 navigator(walletMain)
             } else {
-                errorScreen()
+                errorScreen(walletMain)
             }
 
         }
@@ -138,7 +136,7 @@ fun navigator(walletMain: WalletMain) {
                                 try {
                                     walletMain.provisioningService.startProvisioning()
                                 } catch (e: Exception) {
-                                    errorService.emit(e)
+                                    walletMain.errorService.emit(e)
                                 }
                             }
                         },
@@ -184,18 +182,18 @@ fun navigator(walletMain: WalletMain) {
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-fun errorScreen(){
+fun errorScreen(walletMain: WalletMain){
     Column(modifier = Modifier.fillMaxSize()) {
         Row(Modifier.padding(10.dp).height(80.dp).fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
             Text("Error", color = MaterialTheme.colorScheme.primary, fontSize = 40.sp, fontWeight = FontWeight.Bold)
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.primaryContainer)) {
             Icon(Icons.Default.Warning, contentDescription = null, Modifier.size(100.dp), tint = MaterialTheme.colorScheme.error)
-            Text(errorService.errorText.value, modifier = Modifier.padding(20.dp))
+            Text(walletMain.errorService.errorText.value, modifier = Modifier.padding(20.dp))
             Button(
                 modifier = Modifier
                     .padding(vertical = 24.dp),
-                onClick = { errorService.reset() }
+                onClick = { walletMain.errorService.reset() }
             ) {
                 Text(Resources.BUTTON_CLOSE)
             }
