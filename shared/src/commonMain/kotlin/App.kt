@@ -4,16 +4,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalContext
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.graphics.ImageBitmap
-import at.asitplus.wallet.app.common.ObjectFactory
-import at.asitplus.wallet.app.common.ProvisioningService
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import kotlinx.coroutines.CoroutineScope
@@ -35,6 +31,10 @@ import view.CredentialScreen
 import view.HomeScreen
 import view.PayloadScreen
 
+
+/**
+ * Global variable to utilize back navigation functionality
+ */
 var globalBack: () -> Unit = {}
 
 /**
@@ -42,6 +42,12 @@ var globalBack: () -> Unit = {}
  * to compose whenever the app gets called via an associated domain
  */
 var appLink = mutableStateOf<String?>(null)
+
+
+/**
+ * Global variable to test at least something from the iOS UITest
+ */
+var iosTestValue = Resources.IOS_TEST_VALUE
 
 @Composable
 fun App(walletMain: WalletMain) {

@@ -1,3 +1,5 @@
+package data.storage
+
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
@@ -8,21 +10,27 @@ import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.flow.first
 import okio.Path.Companion.toPath
 
-class DataStoreService(private var dataStore: DataStore<Preferences>){
-    suspend fun setData(value: String, key: String){
+interface DataStoreService {
+    suspend fun setData(value: String, key: String)
+    suspend fun getData(key: String): String?
+    suspend fun deleteData(key: String)
+
+}
+class RealDataStoreService(private var dataStore: DataStore<Preferences>): DataStoreService{
+    override suspend fun setData(value: String, key: String){
         val dataStoreKey = stringPreferencesKey(key)
         dataStore.edit {
             it[dataStoreKey] = value
         }
     }
 
-    suspend fun getData(key: String): String? {
+    override suspend fun getData(key: String): String? {
         val dataStoreKey = stringPreferencesKey(key)
         val preferences = dataStore.data.first()
         return preferences[dataStoreKey]
     }
 
-    suspend fun deleteData(key: String){
+    override suspend fun deleteData(key: String){
         val dataStoreKey = stringPreferencesKey(key)
         dataStore.edit {
             it.remove(dataStoreKey)

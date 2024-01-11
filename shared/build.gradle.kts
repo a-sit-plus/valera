@@ -54,6 +54,13 @@ kotlin {
                 implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
             }
         }
+        
+        val commonTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+            }
+        }
+
         val androidMain by getting {
             dependencies {
                 api("androidx.activity:activity-compose:1.8.1")
@@ -75,16 +82,11 @@ kotlin {
 
             }
         }
-        val iosX64Main by getting
-        val iosArm64Main by getting
-        val iosSimulatorArm64Main by getting
-        val iosMain by creating {
-            dependsOn(commonMain)
-            iosX64Main.dependsOn(this)
-            iosArm64Main.dependsOn(this)
-            iosSimulatorArm64Main.dependsOn(this)
+
+        val androidInstrumentedTest by getting {
             dependencies {
-                implementation("io.ktor:ktor-client-darwin:$ktorVersion")
+                implementation("androidx.compose.ui:ui-test-junit4")
+                implementation("androidx.compose.ui:ui-test-manifest")
             }
         }
     }
@@ -100,6 +102,7 @@ android {
 
     defaultConfig {
         minSdk = (findProperty("android.minSdk") as String).toInt()
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -107,5 +110,19 @@ android {
     }
     kotlin {
         jvmToolchain(17)
+    }
+    packaging {
+        resources.excludes.add("META-INF/versions/9/previous-compilation-data.bin")
+    }
+    testOptions {
+        managedDevices {
+            localDevices {
+                create("pixel2api33") {
+                    device = "Pixel 2"
+                    apiLevel = 33
+                    systemImageSource = "aosp-atd"
+                }
+            }
+        }
     }
 }

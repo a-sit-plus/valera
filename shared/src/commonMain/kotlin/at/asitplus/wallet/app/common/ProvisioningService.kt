@@ -1,6 +1,5 @@
 package at.asitplus.wallet.app.common
 
-import DataStoreService
 import Resources
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.Holder
@@ -14,6 +13,7 @@ import at.asitplus.wallet.lib.oidvci.TokenResponseParameters
 import at.asitplus.wallet.lib.oidvci.WalletService
 import at.asitplus.wallet.lib.oidvci.encodeToParameters
 import at.asitplus.wallet.lib.oidvci.formUrlEncode
+import data.storage.DataStoreService
 import data.storage.PersistentCookieStorage
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
@@ -36,7 +36,6 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.Url
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.coroutines.runBlocking
 
 const val PATH_WELL_KNOWN_CREDENTIAL_ISSUER = "/.well-known/openid-credential-issuer"
 

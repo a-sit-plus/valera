@@ -33,4 +33,7 @@ object Resources {
     const val URL = "URL"
     const val SNACKBAR_CREDENTIAL_LOADED_SUCCESSFULLY = "Credential loaded successfully"
     const val SNACKBAR_RESET_APP_SUCCESSFULLY = "Reset App successfully"
+    const val DEBUG_DATASTORE_KEY = "DBGKEY"
+    const val DEBUG_DATASTORE_VALUE = "DBGVALUE"
+    const val IOS_TEST_VALUE = "TESTVALUE"
 }
