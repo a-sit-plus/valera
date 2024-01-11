@@ -251,7 +251,7 @@ fun IdAustriaCredentialCard(onCredential: (id: String) -> Unit, id: String, modi
                 Spacer(Modifier.size(15.dp))
                 Divider(color = Color.LightGray, thickness = 1.dp)
                 Spacer(Modifier.size(15.dp))
-                Box(contentAlignment = Alignment.Center){
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.size(150.dp)){
                     if (imageBytes != null){
                         Image(walletMain.platformAdapter.decodeImage(imageBytes), contentDescription = "")
                     }
