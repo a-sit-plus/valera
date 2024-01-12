@@ -17,7 +17,7 @@ jobs:
           xcodebuild \
            -project iosApp/iosApp.xcodeproj \
            -scheme "Compose WalletUITests" \
-           -destination 'platform=iOS Simulator' \
+           -destination "platform=iOS Simulator,name=Any iOS Simulator Device" \
            test | xcpretty --report junit
       - name: Test Report
         uses: dorny/test-reporter@v1
