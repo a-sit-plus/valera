@@ -41,7 +41,6 @@ kotlin {
                 implementation(compose.components.resources)
                 api("at.asitplus.wallet:vclib-openid:3.3.0")
                 api("at.asitplus.wallet:vclib:3.3.0")
-                api("at.asitplus.wallet:vclib-openid:3.3.0")
                 api("at.asitplus.wallet:idacredential:3.3.0")
                 implementation(serialization("json"))
                 api(napier())
