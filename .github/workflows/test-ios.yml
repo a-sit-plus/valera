@@ -17,12 +17,12 @@ jobs:
           xcodebuild \
            -project iosApp/iosApp.xcodeproj \
            -scheme "Compose WalletUITests" \
-           -destination "platform=iOS Simulator,name=Any iOS Simulator Device" \
-           test | xcpretty --report junit
+           -destination "platform=iOS Simulator,name=iPhone 15" \
+           test | xcpretty --report junit -o test-ios.xml
       - name: Test Report
         uses: dorny/test-reporter@v1
         if: success() || failure()
         with:
           name: Wallet Tests on iOS
-          path: build/reports/*.xml
+          path: test-ios.xml
           reporter: java-junit
