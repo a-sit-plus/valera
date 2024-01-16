@@ -16,13 +16,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import appLink
-import at.asitplus.wallet.app.common.HOST
 import at.asitplus.wallet.app.common.WalletMain
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.runBlocking
 
 @Composable
 fun AppLinkScreen(walletMain: WalletMain){
+    val host = walletMain.walletConfig.host
+
     Napier.d("Redirect: ${appLink.value}")
     Column(
         modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.primaryContainer),
@@ -37,7 +38,7 @@ fun AppLinkScreen(walletMain: WalletMain){
             trackColor = MaterialTheme.colorScheme.surfaceVariant,
         )
         runBlocking {
-            if (appLink.value?.contains("$HOST/m1/login/oauth2/code/idaq?code=") == true) {
+            if (appLink.value?.contains("$host/m1/login/oauth2/code/idaq?code=") == true) {
                 try {
                     walletMain.provisioningService.handleResponse(appLink.value.toString())
                     walletMain.snackbarService.showSnackbar(Resources.SNACKBAR_CREDENTIAL_LOADED_SUCCESSFULLY)
@@ -46,7 +47,7 @@ fun AppLinkScreen(walletMain: WalletMain){
                 }
 
             }
-            if (appLink.value?.contains("$HOST/mobile") == true) {
+            if (appLink.value?.contains("$host/mobile") == true) {
                 try {
                     walletMain.presentationService.startSiop(appLink.value.toString())
                 } catch (e: Exception) {

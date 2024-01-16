@@ -1,6 +1,7 @@
 package at.asitplus.wallet.app.common
 
 import Resources
+import androidx.compose.runtime.MutableState
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.Holder
 import at.asitplus.wallet.lib.agent.HolderAgent
@@ -39,7 +40,7 @@ import io.ktor.serialization.kotlinx.json.json
 
 const val PATH_WELL_KNOWN_CREDENTIAL_ISSUER = "/.well-known/openid-credential-issuer"
 
-class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreService: DataStoreService, val cryptoService: CryptoService, val holderAgent: HolderAgent) {
+class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreService: DataStoreService, val cryptoService: CryptoService, val holderAgent: HolderAgent, val config: WalletConfig) {
 
     private val cookieStorage = PersistentCookieStorage(dataStoreService)
     private val client = HttpClient {
@@ -62,10 +63,11 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
     }
     @Throws(Throwable::class)
     suspend fun startProvisioning(){
+        val host = config.host
         cookieStorage.reset()
         Napier.d("Start provisioning")
 
-        runCatching { client.get("$HOST/m1/oauth2/authorization/idaq")
+        runCatching { client.get("$host/m1/oauth2/authorization/idaq")
         }.onSuccess { response ->
             val urlToOpen = response.headers["Location"]
 
@@ -89,6 +91,7 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
     }
     @Throws(Throwable::class)
     suspend fun handleResponse(url: String){
+        val host = config.host
         val xAuthToken = dataStoreService.getData(Resources.DATASTORE_KEY_XAUTH)
         if (xAuthToken == null){
             throw Exception("X-Auth-Token not available in DataStoreService")
@@ -99,13 +102,13 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
         }
 
         Napier.d("Load X-Auth-Token: $xAuthToken")
-        val metadata: IssuerMetadata = client.get("$HOST/m1$PATH_WELL_KNOWN_CREDENTIAL_ISSUER"){
+        val metadata: IssuerMetadata = client.get("$host/m1$PATH_WELL_KNOWN_CREDENTIAL_ISSUER"){
             headers["X-Auth-Token"] = xAuthToken
         }.body()
 
         val oid4vciService = WalletService(
             credentialScheme = at.asitplus.wallet.idaustria.IdAustriaScheme,
-            clientId = "$HOST/m1",
+            clientId = "$host/m1",
             cryptoService = cryptoService,
             credentialRepresentation = ConstantIndex.CredentialRepresentation.PLAIN_JWT
         )
