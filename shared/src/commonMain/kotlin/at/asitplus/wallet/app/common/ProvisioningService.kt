@@ -84,7 +84,7 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
                 throw Exception("Redirect not found in header")
             }
         }.onFailure {
-            throw Exception("Unable to initialize connection", it)
+            throw Exception(it)
         }
     }
     @Throws(Throwable::class)
