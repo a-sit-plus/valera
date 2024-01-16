@@ -64,22 +64,27 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
     suspend fun startProvisioning(){
         cookieStorage.reset()
         Napier.d("Start provisioning")
-        val response = client.get("$HOST/m1/oauth2/authorization/idaq")
-        val urlToOpen = response.headers["Location"]
 
-        val xAuthToken = response.headers["X-Auth-Token"]
-        if (xAuthToken == null){
-            throw Exception("X-Auth-Token not received")
-        }
+        runCatching { client.get("$HOST/m1/oauth2/authorization/idaq")
+        }.onSuccess { response ->
+            val urlToOpen = response.headers["Location"]
 
-        Napier.d("Store X-Auth-Token: $xAuthToken")
-        dataStoreService.setData(xAuthToken, Resources.DATASTORE_KEY_XAUTH)
+            val xAuthToken = response.headers["X-Auth-Token"]
+            if (xAuthToken == null){
+                throw Exception("X-Auth-Token not received")
+            }
 
-        if (urlToOpen != null) {
-            Napier.d("Open URL: $urlToOpen")
-            platformAdapter.openUrl(urlToOpen)
-        } else {
-            throw Exception("Redirect not found in header")
+            Napier.d("Store X-Auth-Token: $xAuthToken")
+            dataStoreService.setData(xAuthToken, Resources.DATASTORE_KEY_XAUTH)
+
+            if (urlToOpen != null) {
+                Napier.d("Open URL: $urlToOpen")
+                platformAdapter.openUrl(urlToOpen)
+            } else {
+                throw Exception("Redirect not found in header")
+            }
+        }.onFailure {
+            throw Exception("Unable to initialize connection", it)
         }
     }
     @Throws(Throwable::class)

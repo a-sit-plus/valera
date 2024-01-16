@@ -29,5 +29,6 @@ object Resources {
     const val DATASTORE_KEY_VCS = "VCs"
     const val DATASTORE_KEY_XAUTH = "xauth"
     const val DATASTORE_KEY_COOKIES = "cookies"
+    const val SNACKBAR_CREDENTIAL_LOADED_SUCCESSFULLY = "Credential loaded successfully"
     const val SNACKBAR_RESET_APP_SUCCESSFULLY = "Reset App successfully"
 }

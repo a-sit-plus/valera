@@ -9,24 +9,42 @@ import kotlinx.coroutines.flow.first
 import okio.Path.Companion.toPath
 
 class DataStoreService(private var dataStore: DataStore<Preferences>){
+    @Throws(Throwable::class)
     suspend fun setData(value: String, key: String){
-        val dataStoreKey = stringPreferencesKey(key)
-        dataStore.edit {
-            it[dataStoreKey] = value
+        try {
+            val dataStoreKey = stringPreferencesKey(key)
+            dataStore.edit {
+                it[dataStoreKey] = value
+            }
+        } catch (e: Exception) {
+            throw Exception("Unable to set data in DataStore")
         }
+
     }
 
+    @Throws(Throwable::class)
     suspend fun getData(key: String): String? {
-        val dataStoreKey = stringPreferencesKey(key)
-        val preferences = dataStore.data.first()
-        return preferences[dataStoreKey]
+        try {
+            val dataStoreKey = stringPreferencesKey(key)
+            val preferences = dataStore.data.first()
+            return preferences[dataStoreKey]
+        } catch (e: Exception) {
+            throw Exception("Unable to get data from DataStore")
+        }
+
     }
 
+    @Throws(Throwable::class)
     suspend fun deleteData(key: String){
-        val dataStoreKey = stringPreferencesKey(key)
-        dataStore.edit {
-            it.remove(dataStoreKey)
+        try {
+            val dataStoreKey = stringPreferencesKey(key)
+            dataStore.edit {
+                it.remove(dataStoreKey)
+            }
+        } catch (e: Exception) {
+            throw Exception("Unable to delete data from DataStore")
         }
+
     }
 }
 

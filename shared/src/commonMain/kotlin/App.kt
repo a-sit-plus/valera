@@ -1,8 +1,23 @@
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Button
 import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -10,6 +25,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import kotlinx.coroutines.CoroutineScope
@@ -23,6 +43,7 @@ import navigation.HomePage
 import navigation.NavigationStack
 import navigation.Page
 import navigation.PayloadPage
+import org.jetbrains.compose.resources.ExperimentalResourceApi
 import ui.theme.WalletTheme
 import view.AboutScreen
 import view.AppLinkScreen
@@ -47,8 +68,8 @@ fun App(walletMain: WalletMain) {
 
     try {
         walletMain.initialize(snackbarService)
-    } catch (_: Exception){
-        TODO("Display warning screen in case something goes wrong")
+    } catch (e: Exception){
+        walletMain.errorService.emit(e)
     }
 
     WalletTheme {
@@ -57,7 +78,12 @@ fun App(walletMain: WalletMain) {
                 SnackbarHost(hostState = snackbarHostState)
             }
         ) { _ ->
-            navigator(walletMain)
+            if (walletMain.errorService.showError.value == false){
+                navigator(walletMain)
+            } else {
+                errorScreen(walletMain)
+            }
+
         }
     }
 }
@@ -95,7 +121,11 @@ fun navigator(walletMain: WalletMain) {
                         onScanQrCode = { navigationStack.push(CameraPage()) },
                         onLoginWithIdAustria = {
                             CoroutineScope(Dispatchers.Default).launch {
-                                walletMain.provisioningService.startProvisioning()
+                                try {
+                                    walletMain.provisioningService.startProvisioning()
+                                } catch (e: Exception) {
+                                    walletMain.errorService.emit(e)
+                                }
                             }
                         },
                         walletMain = walletMain
@@ -136,6 +166,28 @@ fun navigator(walletMain: WalletMain) {
             }
         }
     }
+}
+
+@OptIn(ExperimentalResourceApi::class)
+@Composable
+fun errorScreen(walletMain: WalletMain){
+    Column(modifier = Modifier.fillMaxSize()) {
+        Row(Modifier.padding(10.dp).height(80.dp).fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+            Text("Error", color = MaterialTheme.colorScheme.primary, fontSize = 40.sp, fontWeight = FontWeight.Bold)
+        }
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.primaryContainer)) {
+            Icon(Icons.Default.Warning, contentDescription = null, Modifier.size(100.dp), tint = MaterialTheme.colorScheme.error)
+            Text(walletMain.errorService.errorText.value, modifier = Modifier.padding(20.dp))
+            Button(
+                modifier = Modifier
+                    .padding(vertical = 24.dp),
+                onClick = { walletMain.errorService.reset() }
+            ) {
+                Text(Resources.BUTTON_CLOSE)
+            }
+        }
+    }
+
 }
 
 
