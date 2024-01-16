@@ -181,7 +181,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         return null
     }
 
-    fun removeCredential(id: String) {
+    suspend fun removeCredential(id: String) {
         container.credentials.forEach { entry ->
             if (entry is SubjectCredentialStore.StoreEntry.Vc) {
                 if (entry.vc.vc.id == id) {
@@ -189,6 +189,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
                 }
             }
         }
+        exportToDataStore()
     }
 
     fun getVcs(): ArrayList<VerifiableCredential> {
