@@ -1,6 +1,5 @@
 package data.storage
 
-import DataStoreService
 import Resources
 import at.asitplus.wallet.lib.data.jsonSerializer
 import io.ktor.client.plugins.cookies.CookiesStorage

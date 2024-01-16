@@ -1,5 +1,5 @@
 name: Test iOS implementation
-on: workflow_dispatch
+on: [push]
 jobs:
   build:
     runs-on: self-hosted
@@ -13,11 +13,16 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
       - name: Run tests
-        run: ./gradlew iosX64Test
+        run: |
+          xcodebuild \
+           -project iosApp/iosApp.xcodeproj \
+           -scheme "Compose WalletUITests" \
+           -destination "platform=iOS Simulator,name=iPhone 15" \
+           test | xcpretty --report junit -o test-ios.xml
       - name: Test Report
         uses: dorny/test-reporter@v1
         if: success() || failure()
         with:
           name: Wallet Tests on iOS
-          path: iosApp/build/test-results/**/TEST*.xml
+          path: test-ios.xml
           reporter: java-junit

@@ -1,6 +1,5 @@
 package at.asitplus.wallet.app.common
 
-import DataStoreService
 import ErrorService
 import Resources
 import androidx.compose.runtime.mutableStateOf
@@ -8,6 +7,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
+import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
 
 const val HOST = "https://wallet.a-sit.at"
@@ -17,7 +17,7 @@ const val HOST = "https://wallet.a-sit.at"
  */
 class WalletMain(
     val objectFactory: ObjectFactory,
-    private val dataStoreService: DataStoreService,
+    private val realDataStoreService: DataStoreService,
     val platformAdapter: PlatformAdapter,
     val errorService: ErrorService = ErrorService(mutableStateOf<Boolean>(false), mutableStateOf<String>(""))
 ) {
@@ -34,20 +34,20 @@ class WalletMain(
     @Throws(Throwable::class)
     fun initialize(snackbarService: SnackbarService){
         cryptoService = objectFactory.loadCryptoService().getOrThrow()
-        subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
+        subjectCredentialStore = PersistentSubjectCredentialStore(realDataStoreService)
         holderAgent = HolderAgent.newDefaultInstance(cryptoService = cryptoService, subjectCredentialStore = subjectCredentialStore)
         holderKeyService = objectFactory.loadHolderKeyService().getOrThrow()
-        provisioningService = ProvisioningService(platformAdapter, dataStoreService, cryptoService, holderAgent)
-        presentationService = PresentationService(platformAdapter, dataStoreService, cryptoService, holderAgent)
+        provisioningService = ProvisioningService(platformAdapter, realDataStoreService, cryptoService, holderAgent)
+        presentationService = PresentationService(platformAdapter, realDataStoreService, cryptoService, holderAgent)
         this.snackbarService = snackbarService
     }
 
     suspend fun resetApp(){
         subjectCredentialStore.reset()
 
-        dataStoreService.deleteData(Resources.DATASTORE_KEY_VCS)
-        dataStoreService.deleteData(Resources.DATASTORE_KEY_XAUTH)
-        dataStoreService.deleteData(Resources.DATASTORE_KEY_COOKIES)
+        realDataStoreService.deleteData(Resources.DATASTORE_KEY_VCS)
+        realDataStoreService.deleteData(Resources.DATASTORE_KEY_XAUTH)
+        realDataStoreService.deleteData(Resources.DATASTORE_KEY_COOKIES)
 
         holderKeyService.clear()
     }
@@ -89,5 +89,16 @@ interface PlatformAdapter {
     fun openUrl(url: String)
 
     fun decodeImage(image: ByteArray): ImageBitmap
+}
+
+class DummyPlatformAdapter(): PlatformAdapter {
+    override fun openUrl(url: String) {
+        TODO("Not yet implemented")
+    }
+
+    override fun decodeImage(image: ByteArray): ImageBitmap {
+        TODO("Not yet implemented")
+    }
+
 }
 

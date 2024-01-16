@@ -1,6 +1,5 @@
 package data.storage
 
-import DataStoreService
 import Resources
 import at.asitplus.KmmResult
 import at.asitplus.wallet.idaustria.IdAustriaScheme
