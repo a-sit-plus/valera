@@ -38,11 +38,20 @@ fun AppLinkScreen(walletMain: WalletMain){
         )
         runBlocking {
             if (appLink.value?.contains("$HOST/m1/login/oauth2/code/idaq?code=") == true) {
-                walletMain.provisioningService.handleResponse(appLink.value.toString())
-                walletMain.snackbarService.showSnackbar(Resources.SNACKBAR_CREDENTIAL_LOADED_SUCCESSFULLY)
+                try {
+                    walletMain.provisioningService.handleResponse(appLink.value.toString())
+                    walletMain.snackbarService.showSnackbar(Resources.SNACKBAR_CREDENTIAL_LOADED_SUCCESSFULLY)
+                } catch (e: Exception) {
+                    walletMain.errorService.emit(e)
+                }
+
             }
             if (appLink.value?.contains("$HOST/mobile") == true) {
-                walletMain.presentationService.startSiop(appLink.value.toString())
+                try {
+                    walletMain.presentationService.startSiop(appLink.value.toString())
+                } catch (e: Exception) {
+                    walletMain.errorService.emit(e)
+                }
             }
         }
 
