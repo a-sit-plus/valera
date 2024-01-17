@@ -7,7 +7,13 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 
-class WalletConfig(var host: String = "https://wallet.a-sit.at", val dataStoreService: DataStoreService) {
+/**
+ * Class to hand over to services like ProvisioningService so we can always retrieve the current config (e.g. url to Issuing Service)
+ */
+class WalletConfig(
+    var host: String = "https://wallet.a-sit.at",
+    val dataStoreService: DataStoreService
+) {
     init {
         loadConfig()
     }
