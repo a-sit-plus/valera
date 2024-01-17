@@ -1,7 +1,6 @@
 package at.asitplus.wallet.app.common
 
 import Resources
-import androidx.compose.runtime.MutableState
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.Holder
 import at.asitplus.wallet.lib.agent.HolderAgent
