@@ -21,7 +21,7 @@ class InstrumentedTests {
         // Start the app
         composeTestRule.setContent {
             App(
-                WalletMain(objectFactory = AndroidObjectFactory(), realDataStoreService = DummyDataStoreService(), platformAdapter = DummyPlatformAdapter())
+                WalletMain(objectFactory = AndroidObjectFactory(), dataStoreService = DummyDataStoreService(), platformAdapter = DummyPlatformAdapter())
             )
         }
         composeTestRule.onNodeWithText(Resources.WALLET).assertIsDisplayed()

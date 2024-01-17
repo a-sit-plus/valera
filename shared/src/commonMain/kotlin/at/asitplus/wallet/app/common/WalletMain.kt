@@ -17,7 +17,7 @@ const val HOST = "https://wallet.a-sit.at"
  */
 class WalletMain(
     val objectFactory: ObjectFactory,
-    private val realDataStoreService: DataStoreService,
+    private val dataStoreService: DataStoreService,
     val platformAdapter: PlatformAdapter,
     val errorService: ErrorService = ErrorService(mutableStateOf<Boolean>(false), mutableStateOf<String>(""))
 ) {
@@ -34,20 +34,20 @@ class WalletMain(
     @Throws(Throwable::class)
     fun initialize(snackbarService: SnackbarService){
         cryptoService = objectFactory.loadCryptoService().getOrThrow()
-        subjectCredentialStore = PersistentSubjectCredentialStore(realDataStoreService)
+        subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
         holderAgent = HolderAgent.newDefaultInstance(cryptoService = cryptoService, subjectCredentialStore = subjectCredentialStore)
         holderKeyService = objectFactory.loadHolderKeyService().getOrThrow()
-        provisioningService = ProvisioningService(platformAdapter, realDataStoreService, cryptoService, holderAgent)
-        presentationService = PresentationService(platformAdapter, realDataStoreService, cryptoService, holderAgent)
+        provisioningService = ProvisioningService(platformAdapter, dataStoreService, cryptoService, holderAgent)
+        presentationService = PresentationService(platformAdapter, dataStoreService, cryptoService, holderAgent)
         this.snackbarService = snackbarService
     }
 
     suspend fun resetApp(){
         subjectCredentialStore.reset()
 
-        realDataStoreService.deleteData(Resources.DATASTORE_KEY_VCS)
-        realDataStoreService.deleteData(Resources.DATASTORE_KEY_XAUTH)
-        realDataStoreService.deleteData(Resources.DATASTORE_KEY_COOKIES)
+        dataStoreService.deleteData(Resources.DATASTORE_KEY_VCS)
+        dataStoreService.deleteData(Resources.DATASTORE_KEY_XAUTH)
+        dataStoreService.deleteData(Resources.DATASTORE_KEY_COOKIES)
 
         holderKeyService.clear()
     }
