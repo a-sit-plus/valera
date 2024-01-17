@@ -28,27 +28,40 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.idaustria.IdAustriaCredential
+import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import globalBack
 import kotlinx.coroutines.runBlocking
 
 
 @Composable
 fun CredentialScreen(id: String, walletMain: WalletMain){
-    val vc = runBlocking { walletMain.subjectCredentialStore.getCredentialById(id) }
-    val credential = vc?.credentialSubject
-    val type = vc?.type?.filter { it != "VerifiableCredential" }?.joinToString(",") ?: Resources.UNKNOWN
-    when (credential){
-        is IdAustriaCredential ->  {
-            IdAustriaCredentialScreen(credential, id, walletMain, type)
+    val credential = walletMain.subjectCredentialStore.getStoreEntryById(id)
+    when(credential) {
+        is SubjectCredentialStore.StoreEntry.Vc -> {
+            val type = credential.vc.vc.type.filter { it != "VerifiableCredential" }.joinToString(",")
+            when(val credentialSubject = credential.vc.vc.credentialSubject) {
+                is IdAustriaCredential -> {
+                    val firstname = credentialSubject.firstname
+                    val lastname = credentialSubject.lastname
+                    val dateofbirth = credentialSubject.dateOfBirth.toString()
+                    IdAustriaCredentialScreen(firstname, lastname, dateofbirth, id, walletMain, type)
+                }
+            }
         }
+        is SubjectCredentialStore.StoreEntry.SdJwt -> {
+            val type = credential.sdJwt.type.filter { it != "VerifiableCredential" }.joinToString(",")
+            val firstname = credential.disclosures.filter{ it.value?.claimName == "firstname"}.firstNotNullOf { it.value?.claimValue } as String
+            val lastname = credential.disclosures.filter{ it.value?.claimName == "lastname"}.firstNotNullOf { it.value?.claimValue } as String
+            val dateofbirth = credential.disclosures.filter{ it.value?.claimName == "date-of-birth"}.firstNotNullOf { it.value?.claimValue } as String
+            IdAustriaCredentialScreen(firstname, lastname, dateofbirth, id, walletMain, type)
+
+        }
+        else -> {}
     }
 }
 
 @Composable
-fun IdAustriaCredentialScreen(credential: IdAustriaCredential, vcId: String, walletMain: WalletMain, type: String) {
-    val firstName = credential.firstname
-    val lastName = credential.lastname
-    val birthDate = credential.dateOfBirth.toString()
+fun IdAustriaCredentialScreen(firstName: String, lastName: String, birthDate: String, id: String, walletMain: WalletMain, type: String) {
 
     Column {
         Row(Modifier.padding(10.dp).height(80.dp).fillMaxWidth().background(color = MaterialTheme.colorScheme.background), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -75,7 +88,7 @@ fun IdAustriaCredentialScreen(credential: IdAustriaCredential, vcId: String, wal
             Column(modifier = Modifier.fillMaxWidth().padding(top = 40.dp), horizontalAlignment = Alignment.CenterHorizontally){
                 Button(onClick = {
                     runBlocking {
-                        walletMain.subjectCredentialStore.removeCredential(vcId)
+                        walletMain.subjectCredentialStore.removeStoreEntryById(id)
                     }
                     globalBack()
                 }) {

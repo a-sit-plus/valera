@@ -38,6 +38,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -45,14 +46,14 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.idaustria.IdAustriaCredential
-import kotlinx.coroutines.runBlocking
+import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun HomeScreen( onAbout: () -> Unit, onCredential: (id: String) -> Unit, onScanQrCode: () -> Unit, walletMain: WalletMain, onLoginWithIdAustria: () -> Unit) {
     Box{
-        val credentials = runBlocking { walletMain.subjectCredentialStore.getVcs() }
+        val credentialSize = walletMain.subjectCredentialStore.getCredentialSize()
         Column(Modifier.fillMaxSize()) {
             Header(onAbout = onAbout)
             Column(Modifier.background(color = MaterialTheme.colorScheme.secondaryContainer).fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -211,40 +212,46 @@ fun ShowIdHeader(){
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ShowIdCard(onCredential: (id: String) -> Unit, walletMain: WalletMain) {
-    val credentials = runBlocking { walletMain.subjectCredentialStore.getVcs() }
+    val credentials = walletMain.subjectCredentialStore.getStoreEntries()
     val state = rememberLazyListState()
     LazyRow (flingBehavior = rememberSnapFlingBehavior(lazyListState = state), state = state) {
         items(credentials.size){
-            IdCard(onCredential, id = credentials[it].id, modifier = Modifier.fillParentMaxWidth(), walletMain)
+            when (val credential = credentials[it]) {
+                is SubjectCredentialStore.StoreEntry.Vc -> {
+                    IdCard(onCredential, id = credential.vc.jwtId, modifier = Modifier.fillParentMaxWidth(), walletMain)
+                }
+                is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                    IdCard(onCredential, id = credential.sdJwt.jwtId, modifier = Modifier.fillParentMaxWidth(), walletMain)
+                }
+                else -> {}
+            }
         }
     }
 }
 
 @Composable
 fun IdCard(onCredential: (id: String) -> Unit, id: String, modifier: Modifier, walletMain: WalletMain) {
-    val credential = runBlocking { walletMain.subjectCredentialStore.getCredentialById(id) }?.credentialSubject
+    val credential = walletMain.subjectCredentialStore.getStoreEntryById(id)
     when(credential) {
-        is IdAustriaCredential -> {
-            IdAustriaCredentialCard(onCredential, id, modifier, walletMain)
+        is SubjectCredentialStore.StoreEntry.Vc -> {
+            when(val credentialSubject = credential.vc.vc.credentialSubject) {
+                is IdAustriaCredential -> {
+                    IdAustriaCredentialCard(onCredential, credentialSubject.firstname, credentialSubject.lastname, credentialSubject.portrait, modifier, walletMain, id)
+                }
+            }
         }
+        is SubjectCredentialStore.StoreEntry.SdJwt -> {
+            val firstname = credential.disclosures.filter{ it.value?.claimName == "firstname"}.firstNotNullOf { it.value?.claimValue } as String
+            val lastname = credential.disclosures.filter{ it.value?.claimName == "lastname"}.firstNotNullOf { it.value?.claimValue } as String
+            IdAustriaCredentialCard(onCredential, firstname, lastname, null, modifier, walletMain, id)
+        }
+        else -> {}
     }
 }
 
+@OptIn(ExperimentalResourceApi::class)
 @Composable
-fun IdAustriaCredentialCard(onCredential: (id: String) -> Unit, id: String, modifier: Modifier, walletMain: WalletMain) {
-    var name: String? = null
-    var imageBytes: ByteArray? = null
-    val credential = runBlocking { walletMain.subjectCredentialStore.getCredentialById(id) }?.credentialSubject
-    when(credential) {
-        is IdAustriaCredential -> {
-            name = credential.firstname + " " + credential.lastname
-            if (credential.portrait != null) {
-                imageBytes = credential.portrait
-            }
-        }
-    }
-
-
+fun IdAustriaCredentialCard(onCredential: (id: String) -> Unit, firstname: String, lastname: String, portrait: ByteArray?, modifier: Modifier, walletMain: WalletMain, id: String) {
     Box(modifier.padding(start = 20.dp, end = 20.dp).shadow(elevation = 2.dp, shape = RoundedCornerShape(10.dp)).clickable(onClick = {onCredential(id)} )){
         Box(Modifier.clip(shape = RoundedCornerShape(10.dp)).background(color = MaterialTheme.colorScheme.tertiaryContainer).padding(20.dp)){
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -253,15 +260,18 @@ fun IdAustriaCredentialCard(onCredential: (id: String) -> Unit, id: String, modi
                 Divider(color = Color.LightGray, thickness = 1.dp)
                 Spacer(Modifier.size(15.dp))
                 Box(contentAlignment = Alignment.Center, modifier = Modifier.size(150.dp)){
-                    if (imageBytes != null){
-                        Image(walletMain.platformAdapter.decodeImage(imageBytes), contentDescription = "")
+                    if (portrait != null){
+                        Image(walletMain.platformAdapter.decodeImage(portrait), contentDescription = "")
+                    } else {
+                        Image(painterResource("3d-casual-life-smiling-face-with-smiling-eyes.png"), contentDescription = null, Modifier.size(150.dp), contentScale = ContentScale.Crop)
                     }
                 }
                 Spacer(Modifier.size(30.dp))
-                Text(name ?: Resources.UNKNOWN, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text("$firstname $lastname", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                 Spacer(Modifier.size(10.dp))
                 Text(Resources.ID_AUSTRIA_CREDENTIAL, fontSize = 12.sp)
             }
         }
     }
 }
+

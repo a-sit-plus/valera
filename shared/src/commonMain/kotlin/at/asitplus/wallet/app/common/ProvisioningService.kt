@@ -5,7 +5,6 @@ import Resources
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.Holder
 import at.asitplus.wallet.lib.agent.HolderAgent
-import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.oidc.OpenIdConstants.TOKEN_PREFIX_BEARER
 import at.asitplus.wallet.lib.oidvci.CredentialFormatEnum
 import at.asitplus.wallet.lib.oidvci.CredentialResponseParameters
@@ -93,6 +92,7 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
     suspend fun handleResponse(url: String){
         val host = config.host
         val xAuthToken = dataStoreService.getPreference(Resources.DATASTORE_KEY_XAUTH)
+        val credentialRepresentation = config.credentialRepresentation
         if (xAuthToken == null){
             throw Exception("X-Auth-Token not available in DataStoreService")
         }
@@ -110,7 +110,7 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
             credentialScheme = at.asitplus.wallet.idaustria.IdAustriaScheme,
             clientId = "$host/m1",
             cryptoService = cryptoService,
-            credentialRepresentation = ConstantIndex.CredentialRepresentation.PLAIN_JWT
+            credentialRepresentation = credentialRepresentation
         )
 
         Napier.d("Oid4vciService.createAuthRequest")

@@ -8,6 +8,7 @@ import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
 import data.storage.AntilogAdapter
+import at.asitplus.wallet.lib.data.ConstantIndex
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
 import data.storage.stringify
@@ -52,11 +53,13 @@ class WalletMain(
 
         subjectCredentialStore.reset()
 
-        dataStoreService.deletePreference(Resources.DATASTORE_KEY_VCS)
-        dataStoreService.deletePreference(Resources.DATASTORE_KEY_XAUTH)
-        dataStoreService.deletePreference(Resources.DATASTORE_KEY_COOKIES)
-        
+        dataStoreService.deletePreferences(Resources.DATASTORE_KEY_VCS)
+        dataStoreService.deletePreferences(Resources.DATASTORE_KEY_XAUTH)
+        dataStoreService.deletePreferences(Resources.DATASTORE_KEY_COOKIES)
+        dataStoreService.deletePreferences(Resources.DATASTORE_KEY_CONFIG)
         holderKeyService.clear()
+        walletConfig.host = "https://wallet.a-sit.at"
+        walletConfig.credentialRepresentation = ConstantIndex.CredentialRepresentation.PLAIN_JWT
         cryptoService = objectFactory.loadCryptoService().getOrThrow()
     }
 
