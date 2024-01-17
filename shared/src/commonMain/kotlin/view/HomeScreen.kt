@@ -53,7 +53,7 @@ fun HomeScreen( onAbout: () -> Unit, onCredential: (id: String) -> Unit, onScanQ
     Box{
         val credentials = runBlocking { walletMain.subjectCredentialStore.getVcs() }
         Column(Modifier.fillMaxSize()) {
-            Header(onAbout = onAbout, walletMain)
+            Header(onAbout = onAbout)
             Column(Modifier.background(color = MaterialTheme.colorScheme.primaryContainer).fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
                 if (credentials.size == 0){
                     AddId(onScanQrCode, onLoginWithIdAustria)
@@ -66,7 +66,7 @@ fun HomeScreen( onAbout: () -> Unit, onCredential: (id: String) -> Unit, onScanQ
 }
 
 @Composable
-fun Header(onAbout: () -> Unit, walletMain: WalletMain) {
+fun Header(onAbout: () -> Unit) {
     Row(Modifier.padding(10.dp).height(80.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         Icon(Icons.Default.Settings, contentDescription = null, Modifier.size(30.dp).clickable(onClick = { onAbout() }), tint = Color.LightGray.copy(alpha = 0f))
         Text(Resources.DEMO_WALLET, color = MaterialTheme.colorScheme.primary, fontSize = 40.sp, fontWeight = FontWeight.Bold)

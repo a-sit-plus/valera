@@ -17,7 +17,7 @@ class WalletMain(
     val objectFactory: ObjectFactory,
     private val realDataStoreService: DataStoreService,
     val platformAdapter: PlatformAdapter,
-    val errorService: ErrorService = ErrorService(mutableStateOf<Boolean>(false), mutableStateOf<String>("")),
+    val errorService: ErrorService = ErrorService(mutableStateOf<Boolean>(false), mutableStateOf<String>(""))
 ) {
     lateinit var walletConfig: WalletConfig
     private lateinit var cryptoService: CryptoService
