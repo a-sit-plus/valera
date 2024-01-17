@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app.common
 
+import ErrorService
 import Resources
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.Holder
@@ -39,9 +40,9 @@ import io.ktor.serialization.kotlinx.json.json
 
 const val PATH_WELL_KNOWN_CREDENTIAL_ISSUER = "/.well-known/openid-credential-issuer"
 
-class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreService: DataStoreService, val cryptoService: CryptoService, val holderAgent: HolderAgent, val config: WalletConfig) {
+class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreService: DataStoreService, val cryptoService: CryptoService, val holderAgent: HolderAgent, val config: WalletConfig, errorService: ErrorService) {
 
-    private val cookieStorage = PersistentCookieStorage(dataStoreService)
+    private val cookieStorage = PersistentCookieStorage(dataStoreService, errorService)
     private val client = HttpClient {
         followRedirects = false
         install(ContentNegotiation) {

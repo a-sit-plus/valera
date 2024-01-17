@@ -1,5 +1,6 @@
 package data.storage
 
+import ErrorService
 import Resources
 import at.asitplus.wallet.lib.data.jsonSerializer
 import io.ktor.client.plugins.cookies.CookiesStorage
@@ -23,7 +24,7 @@ import kotlin.jvm.JvmName
 import kotlin.math.min
 
 // Modified from io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
-class PersistentCookieStorage(private val dataStoreService: DataStoreService): CookiesStorage{
+class PersistentCookieStorage(private val dataStoreService: DataStoreService, val errorService: ErrorService): CookiesStorage{
     private val container = importFromDataStore()
     private val mutex = Mutex()
 
@@ -73,24 +74,29 @@ class PersistentCookieStorage(private val dataStoreService: DataStoreService): C
     }
 
     private fun exportToDataStore() {
-        runBlocking {
+        try {
             val exportableCookies = container.cookies.toExportableCookieList()
             val export = ExportableCookieContainer(cookies = exportableCookies, oldestCookie = container.oldestCookie.value)
             val json = jsonSerializer.encodeToString(export)
-            dataStoreService.setData(key = Resources.DATASTORE_KEY_COOKIES, value = json)
+            runBlocking {dataStoreService.setData(key = Resources.DATASTORE_KEY_COOKIES, value = json)}
+        } catch (e: Exception) {
+            errorService.emit(e)
         }
     }
 
     private fun importFromDataStore(): CookieContainer {
-        return runBlocking {
-            val input = dataStoreService.getData(Resources.DATASTORE_KEY_COOKIES)
+        try {
+            val input = runBlocking {dataStoreService.getData(Resources.DATASTORE_KEY_COOKIES)}
             if (input == null){
-                CookieContainer(cookies = mutableListOf(), oldestCookie = atomic(0L))
+                return CookieContainer(cookies = mutableListOf(), oldestCookie = atomic(0L))
             } else {
                 val export: ExportableCookieContainer = jsonSerializer.decodeFromString(input)
-                CookieContainer(cookies = export.cookies.toCookieList(), oldestCookie = atomic(export.oldestCookie))
+                return CookieContainer(cookies = export.cookies.toCookieList(), oldestCookie = atomic(export.oldestCookie))
             }
+        } catch (e: Exception) {
+            errorService.emit(e)
         }
+        return CookieContainer(cookies = mutableListOf(), oldestCookie = atomic(0L))
     }
 }
 

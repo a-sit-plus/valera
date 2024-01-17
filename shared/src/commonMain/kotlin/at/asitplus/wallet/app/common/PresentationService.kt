@@ -1,10 +1,11 @@
 package at.asitplus.wallet.app.common
 
+import ErrorService
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.oidc.OidcSiopWallet
-import data.storage.PersistentCookieStorage
 import data.storage.DataStoreService
+import data.storage.PersistentCookieStorage
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.DefaultRequest
@@ -25,9 +26,10 @@ class PresentationService(
     val platformAdapter: PlatformAdapter,
     val dataStoreService: DataStoreService,
     val cryptoService: CryptoService,
-    val holderAgent: HolderAgent
+    val holderAgent: HolderAgent,
+    val errorService: ErrorService
 ) {
-    private val cookieStorage = PersistentCookieStorage(dataStoreService)
+    private val cookieStorage = PersistentCookieStorage(dataStoreService, errorService)
     private val client = HttpClient {
         followRedirects = false
         install(ContentNegotiation) {
