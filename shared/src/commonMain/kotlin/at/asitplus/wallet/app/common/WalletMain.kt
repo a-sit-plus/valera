@@ -10,8 +10,6 @@ import at.asitplus.wallet.lib.agent.HolderAgent
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
 
-const val HOST = "https://wallet.a-sit.at"
-
 /**
  * Main class to hold all services needed in the Compose App.
  */
@@ -21,6 +19,7 @@ class WalletMain(
     val platformAdapter: PlatformAdapter,
     val errorService: ErrorService = ErrorService(mutableStateOf<Boolean>(false), mutableStateOf<String>(""))
 ) {
+    lateinit var walletConfig: WalletConfig
     private lateinit var cryptoService: CryptoService
     lateinit var subjectCredentialStore: PersistentSubjectCredentialStore
     private lateinit var holderAgent: HolderAgent
@@ -33,11 +32,12 @@ class WalletMain(
     }
     @Throws(Throwable::class)
     fun initialize(snackbarService: SnackbarService){
+        walletConfig = WalletConfig(dataStoreService = this.realDataStoreService, errorService = errorService)
         cryptoService = objectFactory.loadCryptoService().getOrThrow()
         subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
         holderAgent = HolderAgent.newDefaultInstance(cryptoService = cryptoService, subjectCredentialStore = subjectCredentialStore)
         holderKeyService = objectFactory.loadHolderKeyService().getOrThrow()
-        provisioningService = ProvisioningService(platformAdapter, dataStoreService, cryptoService, holderAgent)
+        provisioningService = ProvisioningService(platformAdapter, dataStoreService, cryptoService, holderAgent, walletConfig)
         presentationService = PresentationService(platformAdapter, dataStoreService, cryptoService, holderAgent)
         this.snackbarService = snackbarService
     }
@@ -101,4 +101,3 @@ class DummyPlatformAdapter(): PlatformAdapter {
     }
 
 }
-

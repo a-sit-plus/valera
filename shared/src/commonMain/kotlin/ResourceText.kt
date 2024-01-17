@@ -34,4 +34,5 @@ object Resources {
     const val DEBUG_DATASTORE_KEY = "DBGKEY"
     const val DEBUG_DATASTORE_VALUE = "DBGVALUE"
     const val IOS_TEST_VALUE = "TESTVALUE"
+    const val DATASTORE_KEY_CONFIG = "config"
 }
