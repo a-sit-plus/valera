@@ -23,9 +23,12 @@ struct ContentView: View {
 
 class SwiftPlatformAdapter: PlatformAdapter {
     func openUrl(url: String){
-        if let uri = URL(string: url) {
-            UIApplication.shared.open(uri)
+        DispatchQueue.main.async {
+            if let uri = URL(string: url) {
+                UIApplication.shared.open(uri)
+            }
         }
+        
     }
     
     func decodeImage(image: KotlinByteArray) -> Ui_graphicsImageBitmap {
