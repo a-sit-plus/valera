@@ -32,7 +32,7 @@ class WalletMain(
     }
     @Throws(Throwable::class)
     fun initialize(snackbarService: SnackbarService){
-        walletConfig = WalletConfig(dataStoreService = this.realDataStoreService, errorService = errorService)
+        walletConfig = WalletConfig(dataStoreService = this.dataStoreService, errorService = errorService)
         cryptoService = objectFactory.loadCryptoService().getOrThrow()
         subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
         holderAgent = HolderAgent.newDefaultInstance(cryptoService = cryptoService, subjectCredentialStore = subjectCredentialStore)
