@@ -47,6 +47,7 @@ import androidx.compose.ui.window.DialogProperties
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.idaustria.IdAustriaCredential
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import io.ktor.util.decodeBase64Bytes
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 
@@ -243,7 +244,9 @@ fun IdCard(onCredential: (id: String) -> Unit, id: String, modifier: Modifier, w
         is SubjectCredentialStore.StoreEntry.SdJwt -> {
             val firstname = credential.disclosures.filter{ it.value?.claimName == "firstname"}.firstNotNullOf { it.value?.claimValue } as String
             val lastname = credential.disclosures.filter{ it.value?.claimName == "lastname"}.firstNotNullOf { it.value?.claimValue } as String
-            IdAustriaCredentialCard(onCredential, firstname, lastname, null, modifier, walletMain, id)
+            val portraitEncoded = credential.disclosures.filter{ it.value?.claimName == "portrait"}.firstNotNullOf { it.value?.claimValue } as String
+            val portrait = portraitEncoded.decodeBase64Bytes()
+            IdAustriaCredentialCard(onCredential, firstname, lastname, portrait, modifier, walletMain, id)
         }
         else -> {}
     }
