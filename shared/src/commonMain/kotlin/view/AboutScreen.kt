@@ -115,6 +115,17 @@ fun AboutScreen(onShowLog: () -> Unit, walletMain: WalletMain) {
                 Text(Resources.BUTTON_CLOSE)
             }
         }
+        Button(
+            modifier = Modifier
+                .padding(vertical = 24.dp),
+            onClick = {
+                walletMain.walletConfig.host = host
+                walletMain.walletConfig.exportConfig()
+                globalBack()
+            }
+        ) {
+            Text(Resources.BUTTON_CLOSE)
+        }
     }
 }
 
