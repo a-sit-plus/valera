@@ -12,7 +12,9 @@ class AntilogAdapter(val platformAdapter: PlatformAdapter): Antilog() {
     override fun performLog(priority: LogLevel, tag: String?, throwable: Throwable?, message: String?) {
         val now: Instant = Clock.System.now()
         val date = now.toLocalDateTime(TimeZone.currentSystemDefault())
-        val time = "${date.hour}:${date.minute}"
+        val hour = date.hour.toString().padStart(2, '0')
+        val minute = date.minute.toString().padStart(2, '0')
+        val time = "${hour}:${minute}"
         platformAdapter.writeToLog("$time $priority $tag $message\n")
     }
 }
