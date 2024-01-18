@@ -65,6 +65,19 @@ class SwiftPlatformAdapter: PlatformAdapter {
         }
         return nil
     }
+
+    func clearLog() {
+        let fileName = "log.txt"
+        if let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+            let fileUrl = url.appendingPathComponent(fileName)
+            do {
+                try FileManager().removeItem(at: fileUrl)
+            } catch {
+                
+            }
+        }
+    }
+
 }
 
 class SwiftObjectFactory: ObjectFactory {

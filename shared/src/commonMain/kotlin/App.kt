@@ -152,7 +152,7 @@ fun navigator(walletMain: WalletMain) {
                 }
 
                 is LogPage -> {
-                    LogScreen()
+                    LogScreen(walletMain)
                 }
 
                 is CredentialPage -> {

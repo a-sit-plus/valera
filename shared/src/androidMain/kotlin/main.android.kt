@@ -105,4 +105,12 @@ class AndroidPlatformAdapter(val context: Context): PlatformAdapter{
             return null
         }
     }
+
+    override fun clearLog() {
+        val fileName = "log.txt"
+        val file = File(context.filesDir, fileName)
+        if (file.exists()) {
+            file.delete()
+        }
+    }
 }

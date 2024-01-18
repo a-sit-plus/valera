@@ -7,10 +7,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -20,34 +20,44 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import at.asitplus.wallet.app.common.WalletMain
 import globalBack
 
 @Composable
-fun LogScreen(){
-    Column(
-        modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.primaryContainer),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Box(Modifier.fillMaxWidth().padding(20.dp)){
-            Box(Modifier.clip(shape = RoundedCornerShape(10.dp)).background(color = Color.White).fillMaxWidth().padding(20.dp)){
-                Column {
-                    Text(
-                        text = "Log",
-                        modifier = Modifier
-                            .verticalScroll(rememberScrollState())
-                    )
+fun LogScreen(walletMain: WalletMain){
+    val input = walletMain.platformAdapter.readFromLog() ?: ""
+    val log = input.split("\n")
+
+
+    Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+        Box(Modifier.fillMaxWidth().padding(top = 10.dp, bottom = 80.dp)){
+            Box(Modifier.clip(shape = RoundedCornerShape(10.dp)).background(color = Color.White).fillMaxWidth()){
+                LazyColumn() {
+                    items(log.size) {
+                        val color: Color
+                        if(it % 2 == 0) {
+                            color = MaterialTheme.colorScheme.secondaryContainer
+                        } else {
+                            color = MaterialTheme.colorScheme.tertiaryContainer
+                        }
+                        Text(text = log[it], modifier = Modifier.background(color = color).padding(5.dp).fillMaxWidth(), fontSize = 8.sp, lineHeight = 10.sp)
+                    }
                 }
             }
         }
-        Button(
-            modifier = Modifier
-                .padding(vertical = 24.dp),
-            onClick = {
-                globalBack()
-            }
-        ) {
-            Text(Resources.BUTTON_CLOSE)
-        }
     }
+    Box(contentAlignment = Alignment.BottomCenter, modifier = Modifier.fillMaxSize()){
+        Column(modifier = Modifier.height(80.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+            Button(
+                onClick = {
+                    globalBack()
+                }
+            ) {
+                Text(Resources.BUTTON_CLOSE)
+            }
+        }
+
+    }
+
 }

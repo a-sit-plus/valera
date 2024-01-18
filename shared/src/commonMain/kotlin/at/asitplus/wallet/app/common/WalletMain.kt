@@ -7,8 +7,10 @@ import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
+import data.storage.AntilogAdapter
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
+import io.github.aakira.napier.Napier
 
 /**
  * Main class to hold all services needed in the Compose App.
@@ -29,6 +31,7 @@ class WalletMain(
     lateinit var snackbarService: SnackbarService
     init {
         at.asitplus.wallet.idaustria.Initializer.initWithVcLib()
+        Napier.base(AntilogAdapter(platformAdapter))
     }
     @Throws(Throwable::class)
     fun initialize(snackbarService: SnackbarService){
@@ -50,6 +53,7 @@ class WalletMain(
         dataStoreService.deleteData(Resources.DATASTORE_KEY_COOKIES)
 
         holderKeyService.clear()
+        platformAdapter.clearLog()
     }
 }
 
@@ -93,6 +97,8 @@ interface PlatformAdapter {
     fun writeToLog(text: String)
 
     fun readFromLog(): String?
+
+    fun clearLog()
 }
 
 class DummyPlatformAdapter(): PlatformAdapter {
@@ -109,6 +115,10 @@ class DummyPlatformAdapter(): PlatformAdapter {
     }
 
     override fun readFromLog(): String? {
+        TODO("Not yet implemented")
+    }
+
+    override fun clearLog() {
         TODO("Not yet implemented")
     }
 
