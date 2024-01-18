@@ -10,6 +10,9 @@ actual class HomePage : Page, Parcelable
 actual class AboutPage : Page, Parcelable
 
 @Parcelize
+actual class LogPage : Page, Parcelable
+
+@Parcelize
 actual class CredentialPage actual constructor(actual val info: String) : Page, Parcelable
 
 @Parcelize

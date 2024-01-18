@@ -41,6 +41,7 @@ import navigation.AppLinkPage
 import navigation.CameraPage
 import navigation.CredentialPage
 import navigation.HomePage
+import navigation.LogPage
 import navigation.NavigationStack
 import navigation.Page
 import navigation.PayloadPage
@@ -51,6 +52,7 @@ import view.AppLinkScreen
 import view.CameraView
 import view.CredentialScreen
 import view.HomeScreen
+import view.LogScreen
 import view.PayloadScreen
 
 
@@ -144,7 +146,13 @@ fun navigator(walletMain: WalletMain) {
                 }
 
                 is AboutPage -> {
-                    AboutScreen(walletMain)
+                    AboutScreen(
+                        onShowLog = {navigationStack.push(LogPage())},
+                        walletMain)
+                }
+
+                is LogPage -> {
+                    LogScreen()
                 }
 
                 is CredentialPage -> {

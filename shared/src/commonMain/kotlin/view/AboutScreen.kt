@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -36,9 +37,10 @@ import globalBack
 import kotlinx.coroutines.runBlocking
 
 @Composable
-fun AboutScreen(walletMain: WalletMain){
+fun AboutScreen(onShowLog: () -> Unit, walletMain: WalletMain) {
     Column(
-        modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.primaryContainer),
+        modifier = Modifier.fillMaxSize()
+            .background(color = MaterialTheme.colorScheme.primaryContainer),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -48,17 +50,26 @@ fun AboutScreen(walletMain: WalletMain){
         }
         var host by remember { mutableStateOf(walletMain.walletConfig.host) }
 
-        Column(modifier = Modifier.background(color = MaterialTheme.colorScheme.secondaryContainer).fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            modifier = Modifier.background(color = MaterialTheme.colorScheme.secondaryContainer)
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Text(Resources.COMPOSE_WALLET, fontSize = 24.sp, fontWeight = FontWeight.Bold)
             Text(Resources.DEMO_APP, fontSize = 24.sp, fontWeight = FontWeight.Bold)
 
 
-            Box(Modifier.fillMaxWidth().padding(20.dp)){
-                Box(Modifier.clip(shape = RoundedCornerShape(10.dp)).background(color = MaterialTheme.colorScheme.tertiaryContainer).fillMaxWidth().padding(20.dp)){
+            Box(Modifier.fillMaxWidth().padding(20.dp)) {
+                Box(
+                    Modifier.clip(shape = RoundedCornerShape(10.dp))
+                        .background(color = MaterialTheme.colorScheme.tertiaryContainer)
+                        .fillMaxWidth().padding(20.dp)
+                ) {
                     Column {
                         Text(Resources.VERSION + ": 0.0.1")
                         Text(Resources.ICONS_FROM + ": icons8.com")
-                        Text(Resources.PICTURES_FROM+ ": icons8.com")
+                        Text(Resources.PICTURES_FROM + ": icons8.com")
                         OutlinedTextField(
                             value = host,
                             onValueChange = { host = it },
@@ -75,6 +86,23 @@ fun AboutScreen(walletMain: WalletMain){
 
 
 
+            Row(modifier = Modifier.padding(vertical = 24.dp)) {
+                Button(
+                    modifier = Modifier.padding(horizontal = 10.dp),
+                    onClick = { showAlert.value = true },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                ) {
+                    Text(Resources.RESET_APP)
+                }
+                Button(
+                    modifier = Modifier.padding(horizontal = 10.dp),
+                    onClick = {
+                        onShowLog()
+                    }
+                ) {
+                    Text(Resources.BUTTON_SHOW_LOG)
+                }
+            }
             Button(
                 modifier = Modifier
                     .padding(vertical = 24.dp),
@@ -86,22 +114,12 @@ fun AboutScreen(walletMain: WalletMain){
             ) {
                 Text(Resources.BUTTON_CLOSE)
             }
-            Button(
-                modifier = Modifier
-                    .padding(vertical = 24.dp),
-                onClick = { showAlert.value = true },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
-            ) {
-                Text(Resources.RESET_APP)
-            }
         }
-        }
-
-
+    }
 }
 
 @Composable
-fun ResetAlert(showAlert: MutableState<Boolean>, walletMain: WalletMain){
+fun ResetAlert(showAlert: MutableState<Boolean>, walletMain: WalletMain) {
     AlertDialog(
         title = {
             Text(Resources.WARNING)
