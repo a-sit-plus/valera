@@ -89,6 +89,10 @@ interface PlatformAdapter {
     fun openUrl(url: String)
 
     fun decodeImage(image: ByteArray): ImageBitmap
+
+    fun writeToLog(text: String)
+
+    fun readFromLog(): String?
 }
 
 class DummyPlatformAdapter(): PlatformAdapter {
@@ -97,6 +101,14 @@ class DummyPlatformAdapter(): PlatformAdapter {
     }
 
     override fun decodeImage(image: ByteArray): ImageBitmap {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeToLog(text: String) {
+        TODO("Not yet implemented")
+    }
+
+    override fun readFromLog(): String? {
         TODO("Not yet implemented")
     }
 

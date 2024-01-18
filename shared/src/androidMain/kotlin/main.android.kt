@@ -26,6 +26,7 @@ import data.storage.RealDataStoreService
 import data.storage.getDataStore
 import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
+import java.io.File
 
 actual fun getPlatformName(): String = "Android"
 
@@ -82,5 +83,26 @@ class AndroidPlatformAdapter(val context: Context): PlatformAdapter{
     override fun decodeImage(image: ByteArray): ImageBitmap {
         val bitmap = BitmapFactory.decodeByteArray(image, 0, image.size)
         return bitmap.asImageBitmap()
+    }
+
+    override fun writeToLog(text: String) {
+        val fileName = "log.txt"
+        val file = File(context.filesDir, fileName)
+        if (file.exists()) {
+            file.appendText(text)
+        } else {
+            file.createNewFile()
+            file.writeText(text)
+        }
+    }
+
+    override fun readFromLog(): String? {
+        val fileName = "log.txt"
+        val file = File(context.filesDir, fileName)
+        if (file.exists()) {
+            return file.readText()
+        } else {
+            return null
+        }
     }
 }

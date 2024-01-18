@@ -34,6 +34,37 @@ class SwiftPlatformAdapter: PlatformAdapter {
     func decodeImage(image: KotlinByteArray) -> Ui_graphicsImageBitmap {
         return IosUtilities.init().decodeImage(image: image)
     }
+
+    func writeToLog(text: String) {
+        let fileName = "log.txt"
+        if let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+            let fileUrl = url.appendingPathComponent(fileName)
+            if let file = try? FileHandle(forWritingTo: fileUrl) {
+                file.seekToEndOfFile()
+                file.write(text.data(using: .utf8)!)
+                file.closeFile()
+            } else {
+                do {
+                    try text.data(using: .utf8)?.write(to: fileUrl)
+                } catch {
+                    
+                }
+            }
+        }
+    }
+    func readFromLog() -> String? {
+        let fileName = "log.txt"
+        if let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+            let fileUrl = url.appendingPathComponent(fileName)
+            do {
+                let log = try String(contentsOf: fileUrl, encoding: .utf8)
+                return log
+            } catch {
+                return nil
+            }
+        }
+        return nil
+    }
 }
 
 class SwiftObjectFactory: ObjectFactory {
