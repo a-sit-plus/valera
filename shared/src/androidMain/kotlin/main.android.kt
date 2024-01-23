@@ -24,7 +24,6 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.CryptoService
 import data.storage.RealDataStoreService
 import data.storage.getDataStore
-import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
 import java.io.File
 
@@ -54,11 +53,6 @@ fun MainView() {
 
 class AndroidObjectFactory : ObjectFactory {
     val keyStoreService: AndroidKeyStoreService by lazy { AndroidKeyStoreService() }
-
-    init {
-        Napier.takeLogarithm()
-        Napier.base(DebugAntilog())
-    }
 
     override fun loadCryptoService(): KmmResult<CryptoService> {
         val keyPair = keyStoreService.loadKeyPair()
