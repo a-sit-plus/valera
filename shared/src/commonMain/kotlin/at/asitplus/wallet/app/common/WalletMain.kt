@@ -112,7 +112,7 @@ class DummyPlatformAdapter(): PlatformAdapter {
     }
 
     override fun writeToLog(text: String) {
-        TODO("Not yet implemented")
+        println(text)
     }
 
     override fun readFromLog(): String? {
