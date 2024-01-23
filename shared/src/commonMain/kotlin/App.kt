@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
+import io.ktor.http.ContentType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -61,6 +62,7 @@ import view.CredentialScreen
 import view.HomeScreen
 import view.LogScreen
 import view.PayloadScreen
+import kotlin.reflect.typeOf
 
 
 /**
@@ -89,7 +91,7 @@ fun App(walletMain: WalletMain) {
     try {
         walletMain.initialize(snackbarService)
     } catch (e: Throwable){
-        walletMain.errorService.emit(Throwable("Uncorrectable Error Exception", e))
+        walletMain.errorService.emit(UncorrectableErrorException(e))
     }
 
 
@@ -198,13 +200,20 @@ fun navigator(walletMain: WalletMain) {
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun errorScreen(walletMain: WalletMain){
-    val message = walletMain.errorService.throwable.value?.message ?: "Unknown Message"
-    val cause = walletMain.errorService.throwable.value?.cause?.message ?: "Unknown Cause"
+    val throwable = walletMain.errorService.throwable.value
+    val message = throwable?.message ?: "Unknown Message"
+    val cause = throwable?.cause?.message ?: "Unknown Cause"
     val tint: Color
-    if(message == "Uncorrectable Error Exception") {
+    var onButton: () -> Unit
+    var buttonText: String
+    if(throwable?.message == "UncorrectableErrorException") {
         tint = Color.Red
+        buttonText = Resources.BUTTON_EXIT_APP
+        onButton = { TODO("Close the App gracefully") }
     } else{
         tint = Color(255,210,0)
+        buttonText = Resources.BUTTON_CLOSE
+        onButton = { walletMain.errorService.reset() }
     }
     Column(modifier = Modifier.fillMaxSize()) {
         Row(Modifier.padding(10.dp).height(80.dp).fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
@@ -226,11 +235,9 @@ fun errorScreen(walletMain: WalletMain){
     Box(contentAlignment = Alignment.BottomCenter, modifier = Modifier.fillMaxSize()){
         Column(modifier = Modifier.height(80.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
             Button(
-                onClick = {
-                    walletMain.errorService.reset()
-                }
+                onClick = onButton
             ) {
-                Text(Resources.BUTTON_CLOSE)
+                Text(buttonText)
             }
         }
     }
