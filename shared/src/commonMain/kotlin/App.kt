@@ -209,7 +209,7 @@ fun errorScreen(walletMain: WalletMain){
     if(throwable?.message == "UncorrectableErrorException") {
         tint = Color.Red
         buttonText = Resources.BUTTON_EXIT_APP
-        onButton = { TODO("Close the App gracefully") }
+        onButton = { walletMain.platformAdapter.exitApp() }
     } else{
         tint = Color(255,210,0)
         buttonText = Resources.BUTTON_CLOSE
