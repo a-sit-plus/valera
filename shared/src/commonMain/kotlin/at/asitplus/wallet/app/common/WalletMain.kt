@@ -100,6 +100,8 @@ interface PlatformAdapter {
     fun readFromLog(): String?
 
     fun clearLog()
+
+    fun exitApp()
 }
 
 class DummyPlatformAdapter(): PlatformAdapter {
@@ -120,6 +122,10 @@ class DummyPlatformAdapter(): PlatformAdapter {
     }
 
     override fun clearLog() {
+        TODO("Not yet implemented")
+    }
+
+    override fun exitApp() {
         TODO("Not yet implemented")
     }
 

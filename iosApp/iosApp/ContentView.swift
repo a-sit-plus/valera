@@ -78,6 +78,11 @@ class SwiftPlatformAdapter: PlatformAdapter {
         }
     }
 
+    func exitApp() {
+        NapierProxy.companion.d(msg: "Exit App gracefully")
+        exit(0)
+    }
+
 }
 
 class SwiftObjectFactory: ObjectFactory {
