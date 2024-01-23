@@ -28,7 +28,7 @@ fun LogScreen(walletMain: WalletMain){
     val log = input.split("\n")
 
 
-    Column(modifier = Modifier.fillMaxSize().fillMaxSize().padding(top = 10.dp, bottom = 80.dp).background(color = MaterialTheme.colorScheme.secondaryContainer), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(modifier = Modifier.fillMaxSize().padding(top = 10.dp, bottom = 80.dp).background(color = MaterialTheme.colorScheme.secondaryContainer), horizontalAlignment = Alignment.CenterHorizontally) {
         LazyColumn {
             items(log.size) {
                 val color: Color
