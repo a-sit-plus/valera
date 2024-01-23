@@ -31,6 +31,7 @@ class WalletMain(
     lateinit var snackbarService: SnackbarService
     init {
         at.asitplus.wallet.idaustria.Initializer.initWithVcLib()
+        Napier.takeLogarithm()
         Napier.base(AntilogAdapter(platformAdapter))
     }
     @Throws(Throwable::class)
