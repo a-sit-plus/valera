@@ -22,5 +22,9 @@ class NapierProxy {
         fun w(msg: String) {
             Napier.w(msg)
         }
+
+        fun d(msg: String) {
+            Napier.d(msg)
+        }
     }
 }
