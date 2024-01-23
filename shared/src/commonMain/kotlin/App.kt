@@ -1,6 +1,7 @@
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
@@ -32,7 +35,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
-import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -84,6 +86,7 @@ fun App(walletMain: WalletMain) {
     } catch (e: Throwable){
         walletMain.errorService.emit(e)
     }
+
 
     WalletTheme {
         Scaffold(
@@ -194,19 +197,22 @@ fun errorScreen(walletMain: WalletMain){
         Row(Modifier.padding(10.dp).height(80.dp).fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
             Text("Error", color = MaterialTheme.colorScheme.primary, fontSize = 40.sp, fontWeight = FontWeight.Bold)
         }
-        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.primaryContainer)) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.primaryContainer).padding(bottom = 80.dp)) {
             Icon(Icons.Default.Warning, contentDescription = null, Modifier.size(100.dp), tint = MaterialTheme.colorScheme.error)
-            Text(walletMain.errorService.errorText.value, modifier = Modifier.padding(20.dp))
+            Text(walletMain.errorService.errorText.value, modifier = Modifier.padding(20.dp).verticalScroll(rememberScrollState()))
+        }
+    }
+    Box(contentAlignment = Alignment.BottomCenter, modifier = Modifier.fillMaxSize()){
+        Column(modifier = Modifier.height(80.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
             Button(
-                modifier = Modifier
-                    .padding(vertical = 24.dp),
-                onClick = { walletMain.errorService.reset() }
+                onClick = {
+                    walletMain.errorService.reset()
+                }
             ) {
                 Text(Resources.BUTTON_CLOSE)
             }
         }
     }
-
 }
 
 
