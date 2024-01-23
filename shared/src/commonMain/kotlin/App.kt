@@ -81,7 +81,7 @@ fun App(walletMain: WalletMain) {
 
     try {
         walletMain.initialize(snackbarService)
-    } catch (e: Exception){
+    } catch (e: Throwable){
         walletMain.errorService.emit(e)
     }
 
