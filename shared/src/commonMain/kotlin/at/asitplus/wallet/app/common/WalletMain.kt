@@ -32,7 +32,7 @@ class WalletMain(
     init {
         at.asitplus.wallet.idaustria.Initializer.initWithVcLib()
         Napier.takeLogarithm()
-        Napier.base(AntilogAdapter(platformAdapter))
+        Napier.base(AntilogAdapter(platformAdapter, ""))
     }
     @Throws(Throwable::class)
     fun initialize(snackbarService: SnackbarService){

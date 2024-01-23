@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.app.common.WalletMain
@@ -25,7 +26,7 @@ import globalBack
 @Composable
 fun LogScreen(walletMain: WalletMain){
     val input = walletMain.platformAdapter.readFromLog() ?: ""
-    val log = input.split("\n")
+    val log = input.split("\n\n")
 
 
     Column(modifier = Modifier.fillMaxSize().padding(top = 10.dp, bottom = 80.dp).background(color = MaterialTheme.colorScheme.secondaryContainer), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -37,7 +38,7 @@ fun LogScreen(walletMain: WalletMain){
                 } else {
                     color = MaterialTheme.colorScheme.secondaryContainer
                 }
-                Text(text = log[it], modifier = Modifier.background(color = color).padding(5.dp).fillMaxWidth(), fontSize = 8.sp, lineHeight = 10.sp)
+                Text(text = log[it], modifier = Modifier.background(color = color).padding(5.dp).fillMaxWidth(), fontSize = 8.sp, lineHeight = 10.sp, fontFamily = FontFamily.Monospace)
             }
         }
     }
