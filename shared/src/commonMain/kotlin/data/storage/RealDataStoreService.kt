@@ -23,7 +23,7 @@ class RealDataStoreService(private var dataStore: DataStore<Preferences>): DataS
             dataStore.edit {
                 it[dataStoreKey] = value
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             throw Exception("Unable to set data in DataStore")
         }
 
@@ -34,7 +34,7 @@ class RealDataStoreService(private var dataStore: DataStore<Preferences>): DataS
             val dataStoreKey = stringPreferencesKey(key)
             val preferences = dataStore.data.first()
             return preferences[dataStoreKey]
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             throw Exception("Unable to get data from DataStore")
         }
 
@@ -46,7 +46,7 @@ class RealDataStoreService(private var dataStore: DataStore<Preferences>): DataS
             dataStore.edit {
                 it.remove(dataStoreKey)
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             throw Exception("Unable to delete data from DataStore")
         }
 

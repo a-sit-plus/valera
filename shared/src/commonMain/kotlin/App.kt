@@ -136,7 +136,7 @@ fun navigator(walletMain: WalletMain) {
                             CoroutineScope(Dispatchers.Default).launch {
                                 try {
                                     walletMain.provisioningService.startProvisioning()
-                                } catch (e: Exception) {
+                                } catch (e: Throwable) {
                                     walletMain.errorService.emit(e)
                                 }
                             }

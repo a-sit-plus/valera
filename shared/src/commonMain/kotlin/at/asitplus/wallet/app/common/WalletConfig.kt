@@ -28,7 +28,7 @@ class WalletConfig(
                 val config = jsonSerializer.decodeFromString<ConfigData>(input)
                 this.host = config.host
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             errorService.emit(e)
         }
     }
@@ -37,7 +37,7 @@ class WalletConfig(
         val config = ConfigData(host = this.host)
         try {
             runBlocking {dataStoreService.setData(jsonSerializer.encodeToString(config), Resources.DATASTORE_KEY_CONFIG)}
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             errorService.emit(e)
         }
 

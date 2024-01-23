@@ -42,7 +42,7 @@ fun AppLinkScreen(walletMain: WalletMain){
                 try {
                     walletMain.provisioningService.handleResponse(appLink.value.toString())
                     walletMain.snackbarService.showSnackbar(Resources.SNACKBAR_CREDENTIAL_LOADED_SUCCESSFULLY)
-                } catch (e: Exception) {
+                } catch (e: Throwable) {
                     walletMain.errorService.emit(e)
                 }
 
@@ -50,7 +50,7 @@ fun AppLinkScreen(walletMain: WalletMain){
             if (appLink.value?.contains("$host/mobile") == true) {
                 try {
                     walletMain.presentationService.startSiop(appLink.value.toString())
-                } catch (e: Exception) {
+                } catch (e: Throwable) {
                     walletMain.errorService.emit(e)
                 }
             }

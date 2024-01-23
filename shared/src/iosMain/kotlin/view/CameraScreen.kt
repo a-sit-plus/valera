@@ -182,7 +182,7 @@ private fun RealDeviceCamera(camera: AVCaptureDevice, onFoundPayload: (text: Str
                         foundQrCode.value = true
                         onFoundPayload(payload)
                     }
-                } catch(e: Exception) {
+                } catch(e: Throwable) {
                     Napier.w("RealDeviceCamera: error", throwable = e)
                 }
 

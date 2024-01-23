@@ -79,7 +79,7 @@ class PersistentCookieStorage(private val dataStoreService: DataStoreService, va
             val export = ExportableCookieContainer(cookies = exportableCookies, oldestCookie = container.oldestCookie.value)
             val json = jsonSerializer.encodeToString(export)
             runBlocking {dataStoreService.setData(key = Resources.DATASTORE_KEY_COOKIES, value = json)}
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             errorService.emit(e)
         }
     }
@@ -93,7 +93,7 @@ class PersistentCookieStorage(private val dataStoreService: DataStoreService, va
                 val export: ExportableCookieContainer = jsonSerializer.decodeFromString(input)
                 return CookieContainer(cookies = export.cookies.toCookieList(), oldestCookie = atomic(export.oldestCookie))
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             errorService.emit(e)
         }
         return CookieContainer(cookies = mutableListOf(), oldestCookie = atomic(0L))
