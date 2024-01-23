@@ -4,11 +4,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -30,7 +33,9 @@ import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.app.common.SnackbarService
@@ -84,7 +89,7 @@ fun App(walletMain: WalletMain) {
     try {
         walletMain.initialize(snackbarService)
     } catch (e: Throwable){
-        walletMain.errorService.emit(e)
+        walletMain.errorService.emit(Throwable("Uncorrectable Error Exception", e))
     }
 
 
@@ -193,13 +198,29 @@ fun navigator(walletMain: WalletMain) {
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun errorScreen(walletMain: WalletMain){
+    val message = walletMain.errorService.throwable.value?.message ?: "Unknown Message"
+    val cause = walletMain.errorService.throwable.value?.cause?.message ?: "Unknown Cause"
+    val tint: Color
+    if(message == "Uncorrectable Error Exception") {
+        tint = Color.Red
+    } else{
+        tint = Color(255,210,0)
+    }
     Column(modifier = Modifier.fillMaxSize()) {
         Row(Modifier.padding(10.dp).height(80.dp).fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
             Text("Error", color = MaterialTheme.colorScheme.primary, fontSize = 40.sp, fontWeight = FontWeight.Bold)
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.primaryContainer).padding(bottom = 80.dp)) {
-            Icon(Icons.Default.Warning, contentDescription = null, Modifier.size(100.dp), tint = MaterialTheme.colorScheme.error)
-            Text(walletMain.errorService.errorText.value, modifier = Modifier.padding(20.dp).verticalScroll(rememberScrollState()))
+            Icon(Icons.Default.Warning, contentDescription = null, Modifier.size(100.dp), tint = tint)
+            Text("Message:", fontWeight = FontWeight.Bold)
+            Column(modifier = Modifier.heightIn(max = 150.dp).background(color = MaterialTheme.colorScheme.tertiaryContainer)) {
+                Text(message, modifier = Modifier.padding(top = 5.dp, bottom = 5.dp, start = 10.dp, end = 10.dp).fillMaxWidth().verticalScroll(rememberScrollState()), textAlign = TextAlign.Center)
+            }
+            Spacer(modifier = Modifier.size(5.dp))
+            Text("Cause:", fontWeight = FontWeight.Bold)
+            Column(modifier = Modifier.heightIn(max = 150.dp).background(color = MaterialTheme.colorScheme.tertiaryContainer)) {
+                Text(cause, modifier = Modifier.padding(top = 5.dp, bottom = 5.dp, start = 10.dp, end = 10.dp).fillMaxWidth().verticalScroll(rememberScrollState()), textAlign = TextAlign.Center)
+            }
         }
     }
     Box(contentAlignment = Alignment.BottomCenter, modifier = Modifier.fillMaxSize()){
