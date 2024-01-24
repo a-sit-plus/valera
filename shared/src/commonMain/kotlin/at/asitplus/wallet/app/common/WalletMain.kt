@@ -20,7 +20,7 @@ class WalletMain(
     val objectFactory: ObjectFactory,
     private val dataStoreService: DataStoreService,
     val platformAdapter: PlatformAdapter,
-    val errorService: ErrorService = ErrorService(mutableStateOf<Boolean>(false), mutableStateOf<Throwable?>(null))
+    val errorService: ErrorService = ErrorService(mutableStateOf(false), mutableStateOf(null))
 ) {
     lateinit var walletConfig: WalletConfig
     private lateinit var cryptoService: CryptoService
@@ -113,7 +113,7 @@ interface PlatformAdapter {
     fun shareLog()
 }
 
-class DummyPlatformAdapter(): PlatformAdapter {
+class DummyPlatformAdapter : PlatformAdapter {
     override fun openUrl(url: String) {
         TODO("Not yet implemented")
     }

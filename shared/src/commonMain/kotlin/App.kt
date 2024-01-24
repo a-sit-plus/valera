@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -40,7 +39,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
-import io.ktor.http.ContentType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -53,7 +51,6 @@ import navigation.LogPage
 import navigation.NavigationStack
 import navigation.Page
 import navigation.PayloadPage
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import ui.theme.WalletTheme
 import view.AboutScreen
 import view.AppLinkScreen
@@ -62,7 +59,6 @@ import view.CredentialScreen
 import view.HomeScreen
 import view.LogScreen
 import view.PayloadScreen
-import kotlin.reflect.typeOf
 
 
 /**
@@ -197,15 +193,14 @@ fun navigator(walletMain: WalletMain) {
     }
 }
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun errorScreen(walletMain: WalletMain){
     val throwable = walletMain.errorService.throwable.value
     val message = throwable?.message ?: "Unknown Message"
     val cause = throwable?.cause?.message ?: "Unknown Cause"
     val tint: Color
-    var onButton: () -> Unit
-    var buttonText: String
+    val onButton: () -> Unit
+    val buttonText: String
     if(throwable?.message == "UncorrectableErrorException") {
         tint = Color.Red
         buttonText = Resources.BUTTON_EXIT_APP
