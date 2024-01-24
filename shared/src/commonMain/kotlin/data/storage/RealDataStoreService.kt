@@ -11,13 +11,13 @@ import kotlinx.coroutines.flow.first
 import okio.Path.Companion.toPath
 
 interface DataStoreService {
-    suspend fun setData(value: String, key: String)
-    suspend fun getData(key: String): String?
-    suspend fun deleteData(key: String)
+    suspend fun setPreference(value: String, key: String)
+    suspend fun getPreference(key: String): String?
+    suspend fun deletePreference(key: String)
 
 }
 class RealDataStoreService(private var dataStore: DataStore<Preferences>): DataStoreService{
-    override suspend fun setData(value: String, key: String){
+    override suspend fun setPreference(value: String, key: String){
         try {
             val dataStoreKey = stringPreferencesKey(key)
             dataStore.edit {
@@ -29,7 +29,7 @@ class RealDataStoreService(private var dataStore: DataStore<Preferences>): DataS
 
     }
 
-    override suspend fun getData(key: String): String? {
+    override suspend fun getPreference(key: String): String? {
         try {
             val dataStoreKey = stringPreferencesKey(key)
             val preferences = dataStore.data.first()
@@ -40,7 +40,7 @@ class RealDataStoreService(private var dataStore: DataStore<Preferences>): DataS
 
     }
 
-    override suspend fun deleteData(key: String){
+    override suspend fun deletePreference(key: String){
         try {
             val dataStoreKey = stringPreferencesKey(key)
             dataStore.edit {

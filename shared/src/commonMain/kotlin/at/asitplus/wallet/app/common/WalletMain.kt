@@ -49,9 +49,9 @@ class WalletMain(
     suspend fun resetApp(){
         subjectCredentialStore.reset()
 
-        dataStoreService.deleteData(Resources.DATASTORE_KEY_VCS)
-        dataStoreService.deleteData(Resources.DATASTORE_KEY_XAUTH)
-        dataStoreService.deleteData(Resources.DATASTORE_KEY_COOKIES)
+        dataStoreService.deletePreference(Resources.DATASTORE_KEY_VCS)
+        dataStoreService.deletePreference(Resources.DATASTORE_KEY_XAUTH)
+        dataStoreService.deletePreference(Resources.DATASTORE_KEY_COOKIES)
 
         holderKeyService.clear()
         platformAdapter.clearLog()

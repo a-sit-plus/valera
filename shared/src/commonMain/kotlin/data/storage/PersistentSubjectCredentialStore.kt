@@ -113,12 +113,12 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         val exportableContainer = ExportableStoreContainer(exportableCredentials, exportableAttachments)
 
         val json = jsonSerializer.encodeToString(exportableContainer)
-        dataStore.setData(key = Resources.DATASTORE_KEY_VCS, value = json)
+        dataStore.setPreference(key = Resources.DATASTORE_KEY_VCS, value = json)
     }
 
     private fun importFromDataStore(): StoreContainer{
         return runBlocking {
-            val input = dataStore.getData(Resources.DATASTORE_KEY_VCS)
+            val input = dataStore.getPreference(Resources.DATASTORE_KEY_VCS)
             if (input == null){
                 StoreContainer(credentials = mutableListOf(), attachments = mutableListOf())
             } else {
