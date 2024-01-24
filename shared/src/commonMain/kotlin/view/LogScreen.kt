@@ -25,7 +25,12 @@ import globalBack
 
 @Composable
 fun LogScreen(walletMain: WalletMain){
-    val logArray = walletMain.getLog()
+    var logArray = mutableListOf<String>()
+    try {
+        logArray = walletMain.getLog()
+    } catch (e: Throwable) {
+        walletMain.errorService.emit(e)
+    }
 
     Column(modifier = Modifier.fillMaxSize().padding(top = 10.dp, bottom = 80.dp).background(color = MaterialTheme.colorScheme.secondaryContainer), horizontalAlignment = Alignment.CenterHorizontally) {
         LazyColumn {

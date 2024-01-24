@@ -67,13 +67,10 @@ class RealDataStoreService(private var dataStore: DataStore<Preferences>, privat
         val raw = this.platformAdapter.readFromFile(fileName = "log.txt") ?: ""
         val rawArray = raw.split("\n\n")
         val array = mutableListOf<exportLog>()
-        rawArray.forEach {
-            try {
-                val item = jsonSerializer.decodeFromString<exportLog>(it)
-                array.add(item)
-            } catch(e: Throwable){
-                println(e)
-            }
+        rawArray.filter{ it.length > 0 }.forEach {
+            println("it: ${it.length}")
+            val item = jsonSerializer.decodeFromString<exportLog>(it)
+            array.add(item)
         }
         return array
     }
