@@ -68,7 +68,6 @@ class RealDataStoreService(private var dataStore: DataStore<Preferences>, privat
         val rawArray = raw.split("\n\n")
         val array = mutableListOf<exportLog>()
         rawArray.filter{ it.length > 0 }.forEach {
-            println("it: ${it.length}")
             val item = jsonSerializer.decodeFromString<exportLog>(it)
             array.add(item)
         }
