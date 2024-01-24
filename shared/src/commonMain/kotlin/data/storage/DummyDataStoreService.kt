@@ -13,4 +13,11 @@ class DummyDataStoreService: DataStoreService {
     override suspend fun deletePreference(key: String){
         memory.remove(key)
     }
+
+    override fun writeLogToFile(data: exportLog) {
+    }
+
+    override fun readLogFromFile(): MutableList<exportLog> {
+        TODO("Not yet implemented")
+    }
 }

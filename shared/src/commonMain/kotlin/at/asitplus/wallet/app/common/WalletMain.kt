@@ -10,6 +10,7 @@ import at.asitplus.wallet.lib.agent.HolderAgent
 import data.storage.AntilogAdapter
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
+import data.storage.stringify
 import io.github.aakira.napier.Napier
 
 /**
@@ -32,7 +33,7 @@ class WalletMain(
     init {
         at.asitplus.wallet.idaustria.Initializer.initWithVcLib()
         Napier.takeLogarithm()
-        Napier.base(AntilogAdapter(platformAdapter, ""))
+        Napier.base(AntilogAdapter(dataStoreService, ""))
     }
     @Throws(Throwable::class)
     fun initialize(snackbarService: SnackbarService){
@@ -54,7 +55,13 @@ class WalletMain(
         dataStoreService.deletePreference(Resources.DATASTORE_KEY_COOKIES)
 
         holderKeyService.clear()
+        cryptoService = objectFactory.loadCryptoService().getOrThrow()
+
         platformAdapter.clearLog()
+    }
+
+    fun getLog(): MutableList<String>{
+        return dataStoreService.readLogFromFile().stringify()
     }
 }
 

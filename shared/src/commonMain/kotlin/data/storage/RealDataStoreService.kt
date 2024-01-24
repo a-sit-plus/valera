@@ -5,18 +5,23 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import at.asitplus.wallet.app.common.PlatformAdapter
+import at.asitplus.wallet.lib.data.jsonSerializer
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.flow.first
+import kotlinx.serialization.encodeToString
 import okio.Path.Companion.toPath
 
 interface DataStoreService {
     suspend fun setPreference(value: String, key: String)
     suspend fun getPreference(key: String): String?
     suspend fun deletePreference(key: String)
+    fun writeLogToFile(data: exportLog)
+    fun readLogFromFile(): MutableList<exportLog>
 
 }
-class RealDataStoreService(private var dataStore: DataStore<Preferences>): DataStoreService{
+class RealDataStoreService(private var dataStore: DataStore<Preferences>, private var platformAdapter: PlatformAdapter): DataStoreService{
     override suspend fun setPreference(value: String, key: String){
         try {
             val dataStoreKey = stringPreferencesKey(key)
@@ -50,6 +55,26 @@ class RealDataStoreService(private var dataStore: DataStore<Preferences>): DataS
             throw Exception("Unable to delete data from DataStore")
         }
 
+    }
+
+    override fun writeLogToFile(data: exportLog) {
+        val json = jsonSerializer.encodeToString(data)
+        platformAdapter.writeToLog("$json\n\n")
+    }
+
+    override fun readLogFromFile(): MutableList<exportLog> {
+        val raw = this.platformAdapter.readFromLog() ?: ""
+        val rawArray = raw.split("\n\n")
+        val array = mutableListOf<exportLog>()
+        rawArray.forEach {
+            try {
+                val item = jsonSerializer.decodeFromString<exportLog>(it)
+                array.add(item)
+            } catch(e: Throwable){
+                println(e)
+            }
+        }
+        return array
     }
 }
 

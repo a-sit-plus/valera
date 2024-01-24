@@ -25,20 +25,18 @@ import globalBack
 
 @Composable
 fun LogScreen(walletMain: WalletMain){
-    val input = walletMain.platformAdapter.readFromLog() ?: ""
-    val log = input.split("\n\n")
-
+    val logArray = walletMain.getLog()
 
     Column(modifier = Modifier.fillMaxSize().padding(top = 10.dp, bottom = 80.dp).background(color = MaterialTheme.colorScheme.secondaryContainer), horizontalAlignment = Alignment.CenterHorizontally) {
         LazyColumn {
-            items(log.size) {
+            items(logArray.size) {
                 val color: Color
                 if(it % 2 == 0) {
                     color = MaterialTheme.colorScheme.tertiaryContainer
                 } else {
                     color = MaterialTheme.colorScheme.secondaryContainer
                 }
-                Text(text = log[it], modifier = Modifier.background(color = color).padding(5.dp).fillMaxWidth(), fontSize = 8.sp, lineHeight = 10.sp, fontFamily = FontFamily.Monospace)
+                Text(text = logArray[it], modifier = Modifier.background(color = color).padding(5.dp).fillMaxWidth(), fontSize = 8.sp, lineHeight = 10.sp, fontFamily = FontFamily.Monospace)
             }
         }
     }
@@ -54,5 +52,5 @@ fun LogScreen(walletMain: WalletMain){
         }
 
     }
-
 }
+
