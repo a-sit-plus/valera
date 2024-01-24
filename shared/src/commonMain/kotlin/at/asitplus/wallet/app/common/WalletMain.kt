@@ -109,6 +109,8 @@ interface PlatformAdapter {
     fun clearFile(fileName: String)
 
     fun exitApp()
+
+    fun shareLog()
 }
 
 class DummyPlatformAdapter(): PlatformAdapter {
@@ -133,6 +135,10 @@ class DummyPlatformAdapter(): PlatformAdapter {
     }
 
     override fun exitApp() {
+        TODO("Not yet implemented")
+    }
+
+    override fun shareLog() {
         TODO("Not yet implemented")
     }
 

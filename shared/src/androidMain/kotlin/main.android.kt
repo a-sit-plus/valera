@@ -112,4 +112,8 @@ class AndroidPlatformAdapter(val context: Context): PlatformAdapter{
         val activity = context as Activity
         activity.finish()
     }
+
+    override fun shareLog() {
+        TODO("Not yet implemented")
+    }
 }

@@ -14,6 +14,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,9 +23,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.app.common.WalletMain
 import globalBack
+import kotlinx.coroutines.launch
 
 @Composable
 fun LogScreen(walletMain: WalletMain){
+    val scope = rememberCoroutineScope()
+
     var logArray = mutableListOf<String>()
     try {
         logArray = walletMain.getLog()
@@ -53,6 +57,15 @@ fun LogScreen(walletMain: WalletMain){
                 }
             ) {
                 Text(Resources.BUTTON_CLOSE)
+            }
+            Button(
+                onClick = {
+                    scope.launch {
+                        walletMain.platformAdapter.shareLog()
+                    }
+                }
+            ) {
+                Text("Share")
             }
         }
 
