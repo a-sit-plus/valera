@@ -55,9 +55,9 @@ fun AboutScreen(walletMain: WalletMain){
         Box(Modifier.fillMaxWidth().padding(20.dp)){
             Box(Modifier.clip(shape = RoundedCornerShape(10.dp)).background(color = Color.White).fillMaxWidth().padding(20.dp)){
                 Column {
-                    Text(Resources.VERSION + " : 0.0.1")
-                    Text(Resources.ICONS_FROM + " : icons8.com")
-                    Text(Resources.PICTURES_FROM+ " : icons8.com")
+                    Text(Resources.VERSION + ": 0.0.1")
+                    Text(Resources.ICONS_FROM + ": icons8.com")
+                    Text(Resources.PICTURES_FROM+ ": icons8.com")
                     OutlinedTextField(
                         value = host,
                         onValueChange = { host = it },
