@@ -12,6 +12,7 @@ public class VcLibCryptoServiceCryptoKit: CryptoService {
     private let keyChainService: KeyChainService
 
     public init?(keyChainService: KeyChainService) {
+        NapierProxy.companion.d(msg: "Init VcLibCryptoServiceCryptoKit")
         guard let privateKey = keyChainService.loadPrivateKey() else {
             return nil
         }

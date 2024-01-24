@@ -123,6 +123,7 @@ public class RealKeyChainService : KeyChainService, HolderKeyService {
     }
 
     public func loadPrivateKey(authContext: LAContext? = nil) -> SecureEnclave.P256.Signing.PrivateKey? {
+        NapierProxy.companion.d(msg: "loadPrivateKey")
         if let privateKey = self.privateKey {
             guard let privateKey = try? SecureEnclave.P256.Signing.PrivateKey(dataRepresentation: privateKey.dataRepresentation, authenticationContext: authContext ?? cachedAuthContext ?? nil) else {
                 NapierProxy.companion.e(msg: "loadPrivateKey: Cannot reconstruct CryptoKit key")
