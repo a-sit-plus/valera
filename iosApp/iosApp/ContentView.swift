@@ -35,8 +35,7 @@ class SwiftPlatformAdapter: PlatformAdapter {
         return IosUtilities.init().decodeImage(image: image)
     }
 
-    func writeToLog(text: String) {
-        let fileName = "log.txt"
+    func writeToFile(text: String, fileName: String) {
         if let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
             let fileUrl = url.appendingPathComponent(fileName)
             if let file = try? FileHandle(forWritingTo: fileUrl) {
@@ -52,8 +51,7 @@ class SwiftPlatformAdapter: PlatformAdapter {
             }
         }
     }
-    func readFromLog() -> String? {
-        let fileName = "log.txt"
+    func readFromFile(fileName: String) -> String? {
         if let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
             let fileUrl = url.appendingPathComponent(fileName)
             do {
@@ -66,8 +64,7 @@ class SwiftPlatformAdapter: PlatformAdapter {
         return nil
     }
 
-    func clearLog() {
-        let fileName = "log.txt"
+    func clearFile(fileName: String) {
         if let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
             let fileUrl = url.appendingPathComponent(fileName)
             do {

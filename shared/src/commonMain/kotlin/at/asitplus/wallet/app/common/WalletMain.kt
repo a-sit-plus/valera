@@ -48,16 +48,16 @@ class WalletMain(
     }
 
     suspend fun resetApp(){
+        dataStoreService.clearLog()
+
         subjectCredentialStore.reset()
 
         dataStoreService.deletePreference(Resources.DATASTORE_KEY_VCS)
         dataStoreService.deletePreference(Resources.DATASTORE_KEY_XAUTH)
         dataStoreService.deletePreference(Resources.DATASTORE_KEY_COOKIES)
-
+        
         holderKeyService.clear()
         cryptoService = objectFactory.loadCryptoService().getOrThrow()
-
-        platformAdapter.clearLog()
     }
 
     fun getLog(): MutableList<String>{
@@ -102,11 +102,11 @@ interface PlatformAdapter {
 
     fun decodeImage(image: ByteArray): ImageBitmap
 
-    fun writeToLog(text: String)
+    fun writeToFile(text: String, fileName: String)
 
-    fun readFromLog(): String?
+    fun readFromFile(fileName: String): String?
 
-    fun clearLog()
+    fun clearFile(fileName: String)
 
     fun exitApp()
 }
@@ -120,15 +120,15 @@ class DummyPlatformAdapter(): PlatformAdapter {
         TODO("Not yet implemented")
     }
 
-    override fun writeToLog(text: String) {
+    override fun writeToFile(text: String, fileName: String) {
         println(text)
     }
 
-    override fun readFromLog(): String? {
+    override fun readFromFile(fileName: String): String? {
         TODO("Not yet implemented")
     }
 
-    override fun clearLog() {
+    override fun clearFile(fileName: String) {
         TODO("Not yet implemented")
     }
 

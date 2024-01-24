@@ -81,8 +81,7 @@ class AndroidPlatformAdapter(val context: Context): PlatformAdapter{
         return bitmap.asImageBitmap()
     }
 
-    override fun writeToLog(text: String) {
-        val fileName = "log.txt"
+    override fun writeToFile(text: String, fileName: String) {
         val file = File(context.filesDir, fileName)
         if (file.exists()) {
             file.appendText(text)
@@ -92,8 +91,7 @@ class AndroidPlatformAdapter(val context: Context): PlatformAdapter{
         }
     }
 
-    override fun readFromLog(): String? {
-        val fileName = "log.txt"
+    override fun readFromFile(fileName: String): String? {
         val file = File(context.filesDir, fileName)
         if (file.exists()) {
             return file.readText()
@@ -102,8 +100,7 @@ class AndroidPlatformAdapter(val context: Context): PlatformAdapter{
         }
     }
 
-    override fun clearLog() {
-        val fileName = "log.txt"
+    override fun clearFile(fileName: String) {
         val file = File(context.filesDir, fileName)
         if (file.exists()) {
             file.delete()

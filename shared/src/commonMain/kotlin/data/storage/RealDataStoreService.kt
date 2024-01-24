@@ -19,6 +19,7 @@ interface DataStoreService {
     suspend fun deletePreference(key: String)
     fun writeLogToFile(data: exportLog)
     fun readLogFromFile(): MutableList<exportLog>
+    fun clearLog()
 
 }
 class RealDataStoreService(private var dataStore: DataStore<Preferences>, private var platformAdapter: PlatformAdapter): DataStoreService{
@@ -59,11 +60,11 @@ class RealDataStoreService(private var dataStore: DataStore<Preferences>, privat
 
     override fun writeLogToFile(data: exportLog) {
         val json = jsonSerializer.encodeToString(data)
-        platformAdapter.writeToLog("$json\n\n")
+        platformAdapter.writeToFile(text = "$json\n\n", fileName = "log.txt")
     }
 
     override fun readLogFromFile(): MutableList<exportLog> {
-        val raw = this.platformAdapter.readFromLog() ?: ""
+        val raw = this.platformAdapter.readFromFile(fileName = "log.txt") ?: ""
         val rawArray = raw.split("\n\n")
         val array = mutableListOf<exportLog>()
         rawArray.forEach {
@@ -75,6 +76,10 @@ class RealDataStoreService(private var dataStore: DataStore<Preferences>, privat
             }
         }
         return array
+    }
+
+    override fun clearLog() {
+        platformAdapter.clearFile(fileName = "log.txt")
     }
 }
 

@@ -20,4 +20,8 @@ class DummyDataStoreService: DataStoreService {
     override fun readLogFromFile(): MutableList<exportLog> {
         TODO("Not yet implemented")
     }
+
+    override fun clearLog() {
+        TODO("Not yet implemented")
+    }
 }
