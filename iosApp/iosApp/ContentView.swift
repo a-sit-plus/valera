@@ -46,7 +46,7 @@ class SwiftPlatformAdapter: PlatformAdapter {
                 do {
                     try text.data(using: .utf8)?.write(to: fileUrl)
                 } catch {
-                    
+                    NapierProxy.companion.d(msg: "Unable to write to file: \(fileName)")
                 }
             }
         }
@@ -58,6 +58,7 @@ class SwiftPlatformAdapter: PlatformAdapter {
                 let log = try String(contentsOf: fileUrl, encoding: .utf8)
                 return log
             } catch {
+                NapierProxy.companion.d(msg: "Unable to read from file: \(fileName)")
                 return nil
             }
         }
