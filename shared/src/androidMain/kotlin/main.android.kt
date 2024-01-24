@@ -114,13 +114,11 @@ class AndroidPlatformAdapter(val context: Context): PlatformAdapter{
     }
 
     override fun shareLog() {
-        val file = File(context.filesDir, "log.txt")
         val sendIntent: Intent = Intent().apply {
             action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_TEXT, readFromFile("log.txt"))
+            putExtra(Intent.EXTRA_TEXT, readFromFile("log.json"))
             type = "text/plain"
         }
-
         context.startActivity(Intent.createChooser(sendIntent, null))
     }
 }

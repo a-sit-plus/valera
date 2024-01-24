@@ -60,11 +60,11 @@ class RealDataStoreService(private var dataStore: DataStore<Preferences>, privat
 
     override fun writeLogToFile(data: exportLog) {
         val json = jsonSerializer.encodeToString(data)
-        platformAdapter.writeToFile(text = "$json\n\n", fileName = "log.txt")
+        platformAdapter.writeToFile(text = "$json\n\n", fileName = "log.json")
     }
 
     override fun readLogFromFile(): MutableList<exportLog> {
-        val raw = this.platformAdapter.readFromFile(fileName = "log.txt") ?: ""
+        val raw = this.platformAdapter.readFromFile(fileName = "log.json") ?: ""
         val rawArray = raw.split("\n\n")
         val array = mutableListOf<exportLog>()
         rawArray.filter{ it.length > 0 }.forEach {
@@ -76,7 +76,7 @@ class RealDataStoreService(private var dataStore: DataStore<Preferences>, privat
     }
 
     override fun clearLog() {
-        platformAdapter.clearFile(fileName = "log.txt")
+        platformAdapter.clearFile(fileName = "log.json")
     }
 }
 

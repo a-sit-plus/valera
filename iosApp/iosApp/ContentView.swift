@@ -82,7 +82,7 @@ class SwiftPlatformAdapter: PlatformAdapter {
 
     func shareLog() {
             if let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
-                let fileUrl = url.appendingPathComponent("log.txt")
+                let fileUrl = url.appendingPathComponent("log.json")
                 let currentController = UIApplication.shared.windows.filter {$0.isKeyWindow}.first?.rootViewController
                 let activityViewController = UIActivityViewController(activityItems: [fileUrl as Any], applicationActivities: nil)
                 currentController?.present(activityViewController, animated: true, completion: {})
