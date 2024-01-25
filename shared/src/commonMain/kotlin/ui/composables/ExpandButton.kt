@@ -8,11 +8,11 @@ import androidx.compose.runtime.Composable
 @Composable
 fun ExpandButton(
     isExpanded: Boolean,
-    toggleExpansion: () -> Unit,
+    onClick: () -> Unit,
     contentDescription: String?,
 ) {
     IconButton(
-        onClick = toggleExpansion,
+        onClick = onClick,
     ) {
         Icon(
             imageVector = if(isExpanded) {

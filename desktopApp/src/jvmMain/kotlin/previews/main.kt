@@ -88,7 +88,11 @@ fun main() = application {
 //        MainNavigationScreen()
 
 //        LabeledCheckboxPreview()
-        MainView()
+//        MainView(
+//            objectFactory = JvmObjectFactory(),
+//            platformAdapter = JvmPlatformAdapter(),
+//        )
+        PreviewNavigationScreen()
     }
 }
 
@@ -219,7 +223,7 @@ private enum class Route(
 }
 
 @Composable
-fun MainNavigationScreen() {
+fun PreviewNavigationScreen() {
     val navigationData = { page: Page ->
         when(page) {
             is MyDataPage -> {
@@ -388,10 +392,4 @@ fun MainNavigationScreen() {
             }
         }
     }
-}
-
-@Preview
-@Composable
-fun MainNavigationScreenPreview() {
-    MainNavigationScreen()
 }

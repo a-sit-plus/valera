@@ -11,14 +11,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import ui.defaults.ButtonDefaultOverrides
+
+class TextIconButtonDefaults {
+    companion object {
+        val contentPadding = PaddingValues(top = 10.dp, bottom = 10.dp, start = 16.dp, end = 24.dp)
+        val gapSize = 8.dp
+    }
+}
 
 @Composable
 fun TextIconButton(
     icon: @Composable () -> Unit,
     text: @Composable () -> Unit,
     onClick: () -> Unit = {},
-    contentPadding: PaddingValues = ButtonDefaultOverrides.ContentPadding.TextIconButton,
+    contentPadding: PaddingValues = TextIconButtonDefaults.contentPadding,
+    spacer: @Composable () -> Unit = {
+        Spacer(modifier = Modifier.width(TextIconButtonDefaults.gapSize))
+    },
     modifier: Modifier = Modifier,
 ) {
     Button(
@@ -32,7 +41,7 @@ fun TextIconButton(
         ) {
             icon()
 
-            Spacer(modifier = Modifier.width(8.dp))
+            spacer()
 
             text()
         }
@@ -43,7 +52,7 @@ fun OutlinedTextIconButton(
     icon: @Composable () -> Unit,
     text: @Composable () -> Unit,
     onClick: () -> Unit = {},
-    contentPadding: PaddingValues = ButtonDefaultOverrides.ContentPadding.TextIconButton,
+    contentPadding: PaddingValues = TextIconButtonDefaults.contentPadding,
     modifier: Modifier = Modifier,
 ) {
     OutlinedButton(

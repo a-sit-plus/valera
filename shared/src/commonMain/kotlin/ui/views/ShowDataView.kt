@@ -1,6 +1,5 @@
 package ui.views
 
-import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import navigation.Page
+import ui.composables.TextIconButton
 
 
 class ShowDataPage : Page
@@ -48,99 +48,129 @@ fun ShowDataView(
             )
         },
     ) {
-        Box(modifier = Modifier.padding(it)) {
-            Column(modifier = Modifier.padding(horizontal = 8.dp).verticalScroll(state = rememberScrollState())) {
-                val paddingModifier = Modifier.padding(top = 8.dp)
+        Column(modifier = Modifier.padding(it).verticalScroll(state = rememberScrollState())) {
+            Column(modifier = Modifier.padding(vertical = 32.dp, horizontal = 16.dp)) {
+                val paddingModifier = Modifier.padding(top = 24.dp)
 
                 Text("In welcher Situation möchten Sie Ihre Daten vorzeigen?")
 
                 ElevatedCard(
                     modifier = paddingModifier.fillMaxWidth(),
                 ) {
-                    Column(
-                        modifier = Modifier.padding(8.dp)
-                    ) {
-                        Text("Anmelden an")
-                        Text(
-                            "Schalter oder Maschine",
-                            color = MaterialTheme.colorScheme.tertiary,
-                            fontWeight = FontWeight.Bold,
-                        )
+                    Column {
+                        Column(
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Text(
+                                "Anmelden an",
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                            Text(
+                                "Schalter oder Maschine",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.tertiary,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
 
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.End,
-                            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                            modifier = Modifier.fillMaxWidth(),
                         ) {
-                            Button(
-                                onClick = navigateToAuthenticationAtSp
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.ArrowForward,
-                                    contentDescription = "Anmelden",
-                                )
-                                Text("Anmelden")
-                            }
+                            TextIconButton(
+                                icon = {
+                                    Icon(
+                                        imageVector = Icons.Default.ArrowForward,
+                                        contentDescription = "Anmelden",
+                                    )
+                                },
+                                text = {
+                                    Text("Anmelden")
+                                },
+                                onClick = navigateToAuthenticationAtSp,
+                                modifier = Modifier.padding(16.dp)
+                            )
                         }
                     }
                 }
                 ElevatedCard(
-                    modifier = paddingModifier.fillMaxWidth()
+                    modifier = paddingModifier.fillMaxWidth(),
                 ) {
-                    Column(
-                        modifier = Modifier.padding(8.dp)
-                    ) {
-                        Text("Daten vorzeigen an")
-                        Text(
-                            "Exekutive",
-                            color = MaterialTheme.colorScheme.tertiary,
-                            fontWeight = FontWeight.Bold,
-                        )
+                    Column {
+                        Column(
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Text(
+                                "Daten vorzeigen an",
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                            Text(
+                                "Exekutive",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.tertiary,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
 
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.End,
-                            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                            modifier = Modifier.fillMaxWidth(),
                         ) {
-                            Button(
-                                onClick = navigateToShowDataToExecutive
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.ArrowForward,
-                                    contentDescription = "Daten an Exekutive vorzeigen",
-                                )
-                                Text("Vorzeigen")
-                            }
+                            TextIconButton(
+                                icon = {
+                                    Icon(
+                                        imageVector = Icons.Default.ArrowForward,
+                                        contentDescription = "Daten an Exekutive vorzeigen",
+                                    )
+                                },
+                                text = {
+                                    Text("Vorzeigen")
+                                },
+                                onClick = navigateToShowDataToExecutive,
+                                modifier = Modifier.padding(16.dp)
+                            )
                         }
                     }
                 }
                 ElevatedCard(
-                    modifier = paddingModifier.fillMaxWidth()
+                    modifier = paddingModifier.fillMaxWidth(),
                 ) {
-                    Column(
-                        modifier = Modifier.padding(8.dp)
-                    ) {
-                        Text("Daten vorzeigen an")
-                        Text(
-                            "dritte Bürger",
-                            color = MaterialTheme.colorScheme.tertiary,
-                            fontWeight = FontWeight.Bold,
-                        )
+                    Column {
+                        Column(
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Text(
+                                "Daten vorzeigen an",
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                            Text(
+                                "dritte Bürger",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.tertiary,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
 
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.End,
-                            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                            modifier = Modifier.fillMaxWidth(),
                         ) {
-                            Button(
-                                onClick = navigateToShowDataToOtherCitizen
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.ArrowForward,
-                                    contentDescription = "Daten an andere Bürger vorzeigen",
-                                )
-                                Text("Vorzeigen")
-                            }
+                            TextIconButton(
+                                icon = {
+                                    Icon(
+                                        imageVector = Icons.Default.ArrowForward,
+                                        contentDescription = "Daten an andere Bürger vorzeigen",
+                                    )
+                                },
+                                text = {
+                                    Text("Vorzeigen")
+                                },
+                                onClick = navigateToShowDataToOtherCitizen,
+                                modifier = Modifier.padding(16.dp)
+                            )
                         }
                     }
                 }

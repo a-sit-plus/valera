@@ -40,7 +40,6 @@ import ui.composables.DataDisplaySection
 import ui.composables.OutlinedTextIconButton
 import ui.composables.PersonalDataCategory
 import ui.composables.TextIconButton
-import ui.defaults.ButtonDefaultOverrides
 
 class AuthenticationConsentPage(
     val spName: String,
@@ -159,7 +158,6 @@ fun AuthenticationConsentView(
                             text = {
                                 Text("Abbrechen")
                             },
-                            contentPadding = ButtonDefaultOverrides.ContentPadding.TextIconButton,
                             onClick = cancelAuthentication,
                         )
                         Spacer(modifier = Modifier.width(16.dp))

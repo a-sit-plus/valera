@@ -13,13 +13,18 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
+class LabeledCheckboxDefaults {
+    companion object {
+        val gapWidth: Dp = 16.dp
+    }
+}
 
 @Composable
 fun LabeledCheckbox(
     label: String,
     checked: Boolean,
     onCheckedChange: () -> Unit,
-    gapBetweenCheckboxAndLabel: Dp = 16.dp,
+    gapWidth: Dp = LabeledCheckboxDefaults.gapWidth,
     labelTextStyle: TextStyle = MaterialTheme.typography.bodyLarge,
     modifier: Modifier = Modifier,
 ) {
@@ -37,7 +42,7 @@ fun LabeledCheckbox(
                 onCheckedChange()
             },
         )
-        Spacer(modifier = Modifier.width(gapBetweenCheckboxAndLabel))
+        Spacer(modifier = Modifier.width(gapWidth))
         Text(
             text = label,
             style = labelTextStyle,
