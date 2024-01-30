@@ -95,7 +95,6 @@ class AndroidPlatformAdapter(val context: Context): PlatformAdapter{
     override fun readFromFile(fileName: String): String? {
         val file = File(context.filesDir, fileName)
         if (file.exists()) {
-            Napier.d("Read from File: ${file.toURI()}")
             return file.readText()
         } else {
             return null
