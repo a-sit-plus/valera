@@ -37,7 +37,7 @@ fun LogScreen(walletMain: WalletMain){
         walletMain.errorService.emit(e)
     }
 
-    Column(modifier = Modifier.fillMaxSize().padding(top = 10.dp, bottom = 80.dp).background(color = MaterialTheme.colorScheme.secondaryContainer), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(modifier = Modifier.fillMaxSize().padding(bottom = 70.dp).background(color = MaterialTheme.colorScheme.secondaryContainer), horizontalAlignment = Alignment.CenterHorizontally) {
         LazyColumn {
             items(logArray.size) {
                 val color: Color
@@ -51,7 +51,7 @@ fun LogScreen(walletMain: WalletMain){
         }
     }
     Box(contentAlignment = Alignment.BottomCenter, modifier = Modifier.fillMaxSize()){
-        Row(modifier = Modifier.height(80.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
+        Row(modifier = Modifier.height(70.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
             Button(
                 onClick = {
                     globalBack()
