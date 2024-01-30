@@ -71,7 +71,7 @@ class SwiftPlatformAdapter: PlatformAdapter {
             do {
                 try FileManager().removeItem(at: fileUrl)
             } catch {
-                
+                NapierProxy.companion.d(msg: "Unable to clear file: \(fileName)")
             }
         }
     }
