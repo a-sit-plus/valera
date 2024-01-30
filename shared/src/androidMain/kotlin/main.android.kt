@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import at.asitplus.KmmResult
 import at.asitplus.wallet.app.android.AndroidCryptoService
@@ -94,6 +95,7 @@ class AndroidPlatformAdapter(val context: Context): PlatformAdapter{
     override fun readFromFile(fileName: String): String? {
         val file = File(context.filesDir, fileName)
         if (file.exists()) {
+            Napier.d("Read from File: ${file.toURI()}")
             return file.readText()
         } else {
             return null
@@ -114,11 +116,18 @@ class AndroidPlatformAdapter(val context: Context): PlatformAdapter{
     }
 
     override fun shareLog() {
-        val sendIntent: Intent = Intent().apply {
+        val file = File(context.filesDir, "log.json")
+        val fileUri = FileProvider.getUriForFile(
+                context,
+                "at.asitplus.wallet.app.android.fileprovider",
+                file)
+
+
+        val intent: Intent = Intent().apply {
             action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_TEXT, readFromFile("log.json"))
-            type = "text/plain"
+            putExtra(Intent.EXTRA_STREAM, fileUri)
+            type = "application/json"
         }
-        context.startActivity(Intent.createChooser(sendIntent, null))
+        context.startActivity(Intent.createChooser(intent, null))
     }
 }
