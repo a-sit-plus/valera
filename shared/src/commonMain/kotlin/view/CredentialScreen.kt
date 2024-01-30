@@ -51,26 +51,26 @@ fun IdAustriaCredentialScreen(credential: IdAustriaCredential, vcId: String, wal
     val birthDate = credential.dateOfBirth.toString()
 
     Column {
-        Row(Modifier.padding(10.dp).height(80.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Close, contentDescription = null, Modifier.size(30.dp).clickable(onClick = { globalBack() }), tint = Color.LightGray)
-            Text(Resources.DEMO_WALLET, color = MaterialTheme.colorScheme.primary, fontSize = 40.sp, fontWeight = FontWeight.Bold)
+        Row(Modifier.padding(10.dp).height(80.dp).fillMaxWidth().background(color = MaterialTheme.colorScheme.background), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.Close, contentDescription = null, Modifier.size(30.dp).clickable(onClick = { globalBack() }), tint = MaterialTheme.colorScheme.onBackground)
+            Text(Resources.DEMO_WALLET, fontSize = 40.sp, fontWeight = FontWeight.Bold)
             Icon(Icons.Default.Info, contentDescription = null, Modifier.size(30.dp).clickable(onClick = { }), tint = Color.LightGray.copy(alpha = 0.0f))
         }
-        Column(Modifier.background(color = MaterialTheme.colorScheme.primaryContainer).fillMaxSize()){
+        Column(Modifier.background(color = MaterialTheme.colorScheme.secondaryContainer).fillMaxSize()){
             Column(modifier = Modifier.fillMaxWidth().padding(top = 20.dp), horizontalAlignment = Alignment.CenterHorizontally){
-                Text(Resources.ID_AUSTRIA_CREDENTIAL, fontSize = 25.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                Text(type, fontSize = 15.sp, color = Color.Black)
+                Text(Resources.ID_AUSTRIA_CREDENTIAL, fontSize = 25.sp, fontWeight = FontWeight.Bold)
+                Text(type, fontSize = 15.sp)
             }
             Spacer(modifier = Modifier.size(20.dp))
             Column(modifier = Modifier.fillMaxWidth().padding(top = 40.dp, start = 20.dp), horizontalAlignment = Alignment.Start){
-                Text(firstName, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                Text(Resources.FIRST_NAME, fontSize = 15.sp, color = Color.Black)
+                Text(firstName, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                Text(Resources.FIRST_NAME, fontSize = 15.sp)
                 Spacer(modifier = Modifier.size(10.dp))
-                Text(lastName, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                Text(Resources.LAST_NAME, fontSize = 15.sp, color = Color.Black)
+                Text(lastName, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                Text(Resources.LAST_NAME, fontSize = 15.sp)
                 Spacer(modifier = Modifier.size(10.dp))
-                Text(birthDate, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                Text(Resources.BIRTH_DATE, fontSize = 15.sp, color = Color.Black)
+                Text(birthDate, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                Text(Resources.BIRTH_DATE, fontSize = 15.sp)
             }
             Column(modifier = Modifier.fillMaxWidth().padding(top = 40.dp), horizontalAlignment = Alignment.CenterHorizontally){
                 Button(onClick = {

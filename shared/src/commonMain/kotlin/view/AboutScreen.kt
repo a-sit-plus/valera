@@ -48,52 +48,56 @@ fun AboutScreen(walletMain: WalletMain){
         }
         var host by remember { mutableStateOf(walletMain.walletConfig.host) }
 
-        Text(Resources.COMPOSE_WALLET, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-        Text(Resources.DEMO_APP, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+        Column(modifier = Modifier.background(color = MaterialTheme.colorScheme.secondaryContainer).fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(Resources.COMPOSE_WALLET, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+            Text(Resources.DEMO_APP, fontSize = 24.sp, fontWeight = FontWeight.Bold)
 
 
-        Box(Modifier.fillMaxWidth().padding(20.dp)){
-            Box(Modifier.clip(shape = RoundedCornerShape(10.dp)).background(color = Color.White).fillMaxWidth().padding(20.dp)){
-                Column {
-                    Text(Resources.VERSION + ": 0.0.1")
-                    Text(Resources.ICONS_FROM + ": icons8.com")
-                    Text(Resources.PICTURES_FROM+ ": icons8.com")
-                    OutlinedTextField(
-                        value = host,
-                        onValueChange = { host = it },
-                        label = { Text("Issuing Service") },
-                        modifier = Modifier.padding(vertical = 20.dp),
-                        keyboardOptions = KeyboardOptions(
-                            imeAction = ImeAction.Done
+            Box(Modifier.fillMaxWidth().padding(20.dp)){
+                Box(Modifier.clip(shape = RoundedCornerShape(10.dp)).background(color = MaterialTheme.colorScheme.tertiaryContainer).fillMaxWidth().padding(20.dp)){
+                    Column {
+                        Text(Resources.VERSION + ": 0.0.1")
+                        Text(Resources.ICONS_FROM + ": icons8.com")
+                        Text(Resources.PICTURES_FROM+ ": icons8.com")
+                        OutlinedTextField(
+                            value = host,
+                            onValueChange = { host = it },
+                            label = { Text("Issuing Service") },
+                            modifier = Modifier.padding(vertical = 20.dp),
+                            keyboardOptions = KeyboardOptions(
+                                imeAction = ImeAction.Done
+                            )
                         )
-                    )
+                    }
+
                 }
+            }
 
+
+
+            Button(
+                modifier = Modifier
+                    .padding(vertical = 24.dp),
+                onClick = {
+                    walletMain.walletConfig.host = host
+                    walletMain.walletConfig.exportConfig()
+                    globalBack()
+                }
+            ) {
+                Text(Resources.BUTTON_CLOSE)
+            }
+            Button(
+                modifier = Modifier
+                    .padding(vertical = 24.dp),
+                onClick = { showAlert.value = true },
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+            ) {
+                Text(Resources.RESET_APP)
             }
         }
-
-
-
-        Button(
-            modifier = Modifier
-                .padding(vertical = 24.dp),
-            onClick = {
-                walletMain.walletConfig.host = host
-                walletMain.walletConfig.exportConfig()
-                globalBack()
-            }
-        ) {
-            Text(Resources.BUTTON_CLOSE)
         }
-        Button(
-            modifier = Modifier
-                .padding(vertical = 24.dp),
-            onClick = { showAlert.value = true },
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
-        ) {
-            Text(Resources.RESET_APP)
-        }
-    }
+
+
 }
 
 @Composable
