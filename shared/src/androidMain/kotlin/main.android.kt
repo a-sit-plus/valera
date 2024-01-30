@@ -116,7 +116,7 @@ class AndroidPlatformAdapter(val context: Context): PlatformAdapter{
     }
 
     override fun shareLog() {
-        val file = File(context.filesDir, "log.json")
+        val file = File(context.filesDir, "log.txt")
         val fileUri = FileProvider.getUriForFile(
                 context,
                 "at.asitplus.wallet.app.android.fileprovider",
