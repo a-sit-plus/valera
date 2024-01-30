@@ -34,7 +34,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.app.common.WalletMain
@@ -91,7 +90,7 @@ fun AboutScreen(onShowLog: () -> Unit, walletMain: WalletMain) {
 
                         ExposedDropdownMenuBox(
                             expanded = showMenu,
-                            onExpandedChange = {showMenu = !showMenu}
+                            onExpandedChange = { showMenu = !showMenu }
                         ) {
                             OutlinedTextField(
                                 modifier = Modifier.menuAnchor(),
@@ -110,32 +109,33 @@ fun AboutScreen(onShowLog: () -> Unit, walletMain: WalletMain) {
                                 DropdownMenuItem(
                                     text = { Text("PLAIN_JWT") },
                                     onClick = {
-                                        credentialRepresentation = ConstantIndex.CredentialRepresentation.PLAIN_JWT
+                                        credentialRepresentation =
+                                            ConstantIndex.CredentialRepresentation.PLAIN_JWT
                                         showMenu = false
                                     }
                                 )
                                 DropdownMenuItem(
                                     text = { Text("SD_JWT") },
                                     onClick = {
-                                        credentialRepresentation = ConstantIndex.CredentialRepresentation.SD_JWT
+                                        credentialRepresentation =
+                                            ConstantIndex.CredentialRepresentation.SD_JWT
                                         showMenu = false
                                     }
                                 )
                                 DropdownMenuItem(
                                     text = { Text("ISO_MDOC") },
                                     onClick = {
-                                        credentialRepresentation = ConstantIndex.CredentialRepresentation.ISO_MDOC
+                                        credentialRepresentation =
+                                            ConstantIndex.CredentialRepresentation.ISO_MDOC
                                         showMenu = false
                                     }
                                 )
                             }
                         }
 
+                    }
                 }
             }
-
-
-
             Row(modifier = Modifier.padding(vertical = 24.dp)) {
                 Button(
                     modifier = Modifier.padding(horizontal = 10.dp),
@@ -158,24 +158,13 @@ fun AboutScreen(onShowLog: () -> Unit, walletMain: WalletMain) {
                     .padding(vertical = 24.dp),
                 onClick = {
                     walletMain.walletConfig.host = host
+                    walletMain.walletConfig.credentialRepresentation = credentialRepresentation
                     walletMain.walletConfig.exportConfig()
                     globalBack()
                 }
             ) {
                 Text(Resources.BUTTON_CLOSE)
             }
-        }
-        Button(
-            modifier = Modifier
-                .padding(vertical = 24.dp),
-            onClick = {
-                walletMain.walletConfig.host = host
-                walletMain.walletConfig.credentialRepresentation = credentialRepresentation
-                walletMain.walletConfig.exportConfig()
-                globalBack()
-            }
-        ) {
-            Text(Resources.BUTTON_CLOSE)
         }
     }
 }
@@ -215,4 +204,5 @@ fun ResetAlert(showAlert: MutableState<Boolean>, walletMain: WalletMain) {
         }
     )
 }
+
 

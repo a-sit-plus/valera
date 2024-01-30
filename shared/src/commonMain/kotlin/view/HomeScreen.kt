@@ -58,7 +58,7 @@ fun HomeScreen( onAbout: () -> Unit, onCredential: (id: String) -> Unit, onScanQ
         Column(Modifier.fillMaxSize()) {
             Header(onAbout = onAbout)
             Column(Modifier.background(color = MaterialTheme.colorScheme.secondaryContainer).fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-                if (credentials.size == 0){
+                if (credentialSize == 0){
                     AddId(onScanQrCode, onLoginWithIdAustria)
                 } else {
                     ShowId(onCredential, onScanQrCode, walletMain, onLoginWithIdAustria)
