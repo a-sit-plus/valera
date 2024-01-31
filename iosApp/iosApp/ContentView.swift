@@ -47,11 +47,7 @@ class SwiftPlatformAdapter: PlatformAdapter {
                 file.write(text.data(using: .utf8)!)
                 file.closeFile()
             } else {
-                do {
-                    try text.data(using: .utf8)?.write(to: fileUrl)
-                } catch {
-                    NapierProxy.companion.d(msg: "Unable to write to file: \(fileName)")
-                }
+                FileManager.default.createFile(atPath: fileUrl.path, contents: text.data(using: .utf8))
             }
         }
     }
