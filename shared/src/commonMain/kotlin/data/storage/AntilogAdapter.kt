@@ -22,7 +22,7 @@ class AntilogAdapter(val platformAdapter: PlatformAdapter, private val defaultTa
         val minute = date.minute.toString().padStart(2, '0')
         val time = "${hour}:${minute}"
         val logTag = tag ?: defaultTag
-        val pad = 13
+        val pad = 15
 
         val message = message ?: ""
 
