@@ -54,9 +54,6 @@ class WalletMain(
         dataStoreService.deletePreference(Resources.DATASTORE_KEY_VCS)
         dataStoreService.deletePreference(Resources.DATASTORE_KEY_XAUTH)
         dataStoreService.deletePreference(Resources.DATASTORE_KEY_COOKIES)
-        
-        holderKeyService.clear()
-        cryptoService = objectFactory.loadCryptoService().getOrThrow()
     }
 
     fun getLog(): List<String>{
