@@ -82,8 +82,12 @@ class AndroidPlatformAdapter(val context: Context): PlatformAdapter{
         return bitmap.asImageBitmap()
     }
 
-    override fun writeToFile(text: String, fileName: String) {
-        val file = File(context.filesDir, fileName)
+    override fun writeToFile(text: String, fileName: String, folderName: String) {
+        val folder = File(context.filesDir, folderName)
+        if (!folder.exists()) {
+            folder.mkdir()
+        }
+        val file = File(folder, fileName)
         if (file.exists()) {
             file.appendText(text)
         } else {
@@ -92,18 +96,25 @@ class AndroidPlatformAdapter(val context: Context): PlatformAdapter{
         }
     }
 
-    override fun readFromFile(fileName: String): String? {
-        val file = File(context.filesDir, fileName)
+    override fun readFromFile(fileName: String, folderName: String): String? {
+        val folder = File(context.filesDir, folderName)
+        if (!folder.exists()) {
+            folder.mkdir()
+        }
+        val file = File(folder, fileName)
         if (file.exists()) {
-            Napier.d("Read from File: ${file.toURI()}")
             return file.readText()
         } else {
             return null
         }
     }
 
-    override fun clearFile(fileName: String) {
-        val file = File(context.filesDir, fileName)
+    override fun clearFile(fileName: String, folderName: String) {
+        val folder = File(context.filesDir, folderName)
+        if (!folder.exists()) {
+            folder.mkdir()
+        }
+        val file = File(folder, fileName)
         if (file.exists()) {
             file.delete()
         }
@@ -116,7 +127,8 @@ class AndroidPlatformAdapter(val context: Context): PlatformAdapter{
     }
 
     override fun shareLog() {
-        val file = File(context.filesDir, "log.txt")
+        val folder = File(context.filesDir, "logs")
+        val file = File(folder, "log.txt")
         val fileUri = FileProvider.getUriForFile(
                 context,
                 "at.asitplus.wallet.app.android.fileprovider",

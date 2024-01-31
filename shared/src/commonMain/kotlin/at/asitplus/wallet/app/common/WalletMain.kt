@@ -102,11 +102,11 @@ interface PlatformAdapter {
 
     fun decodeImage(image: ByteArray): ImageBitmap
 
-    fun writeToFile(text: String, fileName: String)
+    fun writeToFile(text: String, fileName: String, folderName: String)
 
-    fun readFromFile(fileName: String): String?
+    fun readFromFile(fileName: String, folderName: String): String?
 
-    fun clearFile(fileName: String)
+    fun clearFile(fileName: String, folderName: String)
 
     fun exitApp()
 
@@ -122,15 +122,15 @@ class DummyPlatformAdapter : PlatformAdapter {
         TODO("Not yet implemented")
     }
 
-    override fun writeToFile(text: String, fileName: String) {
+    override fun writeToFile(text: String, fileName: String, folderName: String) {
         println(text)
     }
 
-    override fun readFromFile(fileName: String): String? {
+    override fun readFromFile(fileName: String, folderName: String): String? {
         TODO("Not yet implemented")
     }
 
-    override fun clearFile(fileName: String) {
+    override fun clearFile(fileName: String, folderName: String) {
         TODO("Not yet implemented")
     }
 
