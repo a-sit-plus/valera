@@ -30,7 +30,7 @@ import kotlinx.coroutines.launch
 fun LogScreen(walletMain: WalletMain){
     val scope = rememberCoroutineScope()
 
-    var logArray = mutableListOf<String>()
+    var logArray = listOf<String>()
     try {
         logArray = walletMain.getLog()
     } catch (e: Throwable) {

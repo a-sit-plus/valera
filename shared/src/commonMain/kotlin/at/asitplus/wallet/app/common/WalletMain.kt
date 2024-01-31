@@ -10,7 +10,6 @@ import at.asitplus.wallet.lib.agent.HolderAgent
 import data.storage.AntilogAdapter
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
-import data.storage.stringify
 import io.github.aakira.napier.Napier
 
 /**
@@ -33,7 +32,7 @@ class WalletMain(
     init {
         at.asitplus.wallet.idaustria.Initializer.initWithVcLib()
         Napier.takeLogarithm()
-        Napier.base(AntilogAdapter(dataStoreService, ""))
+        Napier.base(AntilogAdapter(platformAdapter, ""))
     }
     @Throws(Throwable::class)
     fun initialize(snackbarService: SnackbarService){
@@ -60,8 +59,16 @@ class WalletMain(
         cryptoService = objectFactory.loadCryptoService().getOrThrow()
     }
 
-    fun getLog(): MutableList<String>{
-        return dataStoreService.readLogFromFile().stringify()
+    fun getLog(): List<String>{
+        val rawLog = platformAdapter.readFromFile("log.txt", "logs")
+        var list: List<String>
+        if (rawLog != null) {
+            val regex = Regex("(?=[\\[][0-9]{2}[:][0-9]{2}[\\]])")
+            list = rawLog.split(regex = regex)
+            return list
+        } else {
+            return listOf("")
+        }
     }
 }
 
