@@ -15,6 +15,5 @@ class DummyDataStoreService: DataStoreService {
     }
 
     override fun clearLog() {
-        TODO("Not yet implemented")
     }
 }
