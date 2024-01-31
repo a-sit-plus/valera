@@ -17,8 +17,8 @@ interface DataStoreService {
     suspend fun setPreference(value: String, key: String)
     suspend fun getPreference(key: String): String?
     suspend fun deletePreference(key: String)
-    fun writeLogToFile(data: exportLog)
-    fun readLogFromFile(): MutableList<exportLog>
+    fun writeLogToFile(data: ExportLog)
+    fun readLogFromFile(): MutableList<ExportLog>
     fun clearLog()
 
 }
@@ -58,17 +58,17 @@ class RealDataStoreService(private var dataStore: DataStore<Preferences>, privat
 
     }
 
-    override fun writeLogToFile(data: exportLog) {
+    override fun writeLogToFile(data: ExportLog) {
         val json = jsonSerializer.encodeToString(data)
         platformAdapter.writeToFile(text = "$json\n\n", fileName = "log.json")
     }
 
-    override fun readLogFromFile(): MutableList<exportLog> {
+    override fun readLogFromFile(): MutableList<ExportLog> {
         val raw = this.platformAdapter.readFromFile(fileName = "log.json") ?: ""
         val rawArray = raw.split("\n\n")
-        val array = mutableListOf<exportLog>()
+        val array = mutableListOf<ExportLog>()
         rawArray.filter{ it.isNotEmpty() }.forEach {
-            val item = jsonSerializer.decodeFromString<exportLog>(it)
+            val item = jsonSerializer.decodeFromString<ExportLog>(it)
             array.add(item)
         }
         return array

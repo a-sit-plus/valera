@@ -32,13 +32,13 @@ class AntilogAdapter(val dataStoreService: DataStoreService, private val default
                 val message = throwable?.message ?: "Unknown Message"
                 val cause = throwable?.cause?.message ?: "Unknown Cause"
                 val stackTrace = throwable?.stackTraceToString() ?: ""
-                val data = jsonSerializer.encodeToString(logDataError(message, cause, stackTrace))
-                val export = exportLog(time, priority,logTag, data)
+                val data = jsonSerializer.encodeToString(LogDataError(message, cause, stackTrace))
+                val export = ExportLog(time, priority,logTag, data)
                 dataStoreService.writeLogToFile(export)
             }
             else -> {
-                val data = jsonSerializer.encodeToString(logDataGeneral(message))
-                val export = exportLog(time, priority,logTag, data)
+                val data = jsonSerializer.encodeToString(LogDataGeneral(message))
+                val export = ExportLog(time, priority,logTag, data)
                 dataStoreService.writeLogToFile(export)
             }
         }
@@ -47,20 +47,20 @@ class AntilogAdapter(val dataStoreService: DataStoreService, private val default
 }
 
 @Serializable
-data class exportLog(val time: String, val priority: LogLevel, val logTag: String, val data: String)
+data class ExportLog(val time: String, val priority: LogLevel, val logTag: String, val data: String)
 @Serializable
-data class logDataGeneral(val message: String)
+data class LogDataGeneral(val message: String)
 @Serializable
-data class logDataError(val message: String, val cause: String, val stackTrace: String)
+data class LogDataError(val message: String, val cause: String, val stackTrace: String)
 
-fun MutableList<exportLog>.stringify():MutableList<String> {
+fun MutableList<ExportLog>.stringify():MutableList<String> {
     val pad = 13
     val stringArray = mutableListOf<String>()
     this.forEach {
         try {
             when (it.priority){
                 LogLevel.ERROR -> {
-                    val data = at.asitplus.wallet.lib.oidvci.jsonSerializer.decodeFromString<logDataError>(it.data)
+                    val data = at.asitplus.wallet.lib.oidvci.jsonSerializer.decodeFromString<LogDataError>(it.data)
                     val info = "${it.time} VERBOSE".padEnd(pad, ' ')
                     val logTag = it.logTag
                     val message = data.message
@@ -69,7 +69,7 @@ fun MutableList<exportLog>.stringify():MutableList<String> {
                     stringArray.add("$info $logTag : $message, $cause\n$stackTrace\n\n")
                 }
                 else -> {
-                    val data = at.asitplus.wallet.lib.oidvci.jsonSerializer.decodeFromString<logDataGeneral>(it.data)
+                    val data = at.asitplus.wallet.lib.oidvci.jsonSerializer.decodeFromString<LogDataGeneral>(it.data)
                     val info = "${it.time} ${it.priority}".padEnd(pad, ' ')
                     val logData = it.logTag
                     val message = data.message
