@@ -100,16 +100,44 @@ interface PlatformAdapter {
      */
     fun openUrl(url: String)
 
+    /**
+     * Converts an image from ByteArray to ImageBitmap
+     * @param image the image as ByteArray
+     * @return returns the image as an ImageBitmap
+     */
     fun decodeImage(image: ByteArray): ImageBitmap
 
+    /**
+     * Writes an user defined string to a file in a specific folder
+     * @param text is the content of the new file or the content which gets append to an existing file
+     * @param fileName the name of the file
+     * @param folder the name of the folder in which the file resides
+     */
     fun writeToFile(text: String, fileName: String, folderName: String)
 
+    /**
+     * Reads the content from a file in a specific folder
+     * @param fileName the name of the file
+     * @param folder the name of the folder in which the file resides
+     * @return returns the content of the file
+     */
     fun readFromFile(fileName: String, folderName: String): String?
 
+    /**
+     * Clears the content of a file
+     * @param fileName the name of the file
+     * @param folder the name of the folder in which the file resides
+     */
     fun clearFile(fileName: String, folderName: String)
 
+    /**
+     * Exits the app in the event of an uncorrectable error
+     */
     fun exitApp()
 
+    /**
+     * Opens the platform specific share dialog
+     */
     fun shareLog()
 }
 
