@@ -126,7 +126,7 @@ class AndroidPlatformAdapter(val context: Context): PlatformAdapter{
         val intent: Intent = Intent().apply {
             action = Intent.ACTION_SEND
             putExtra(Intent.EXTRA_STREAM, fileUri)
-            type = "application/json"
+            type = "application/text"
         }
         context.startActivity(Intent.createChooser(intent, null))
     }
