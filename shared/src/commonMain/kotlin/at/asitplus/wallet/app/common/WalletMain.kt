@@ -54,6 +54,9 @@ class WalletMain(
         dataStoreService.deletePreference(Resources.DATASTORE_KEY_VCS)
         dataStoreService.deletePreference(Resources.DATASTORE_KEY_XAUTH)
         dataStoreService.deletePreference(Resources.DATASTORE_KEY_COOKIES)
+        dataStoreService.deletePreference(Resources.DATASTORE_KEY_CONFIG)
+
+        walletConfig.host = "https://wallet.a-sit.at"
     }
 
     fun getLog(): List<String>{
