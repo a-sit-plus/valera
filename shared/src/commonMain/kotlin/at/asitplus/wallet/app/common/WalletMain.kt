@@ -150,31 +150,26 @@ interface PlatformAdapter {
 
 class DummyPlatformAdapter : PlatformAdapter {
     override fun openUrl(url: String) {
-        TODO("Not yet implemented")
     }
 
     override fun decodeImage(image: ByteArray): ImageBitmap {
-        TODO("Not yet implemented")
+        return ImageBitmap(0,0)
     }
 
     override fun writeToFile(text: String, fileName: String, folderName: String) {
-        println(text)
     }
 
     override fun readFromFile(fileName: String, folderName: String): String? {
-        TODO("Not yet implemented")
+        return null
     }
 
     override fun clearFile(fileName: String, folderName: String) {
-        TODO("Not yet implemented")
     }
 
     override fun exitApp() {
-        TODO("Not yet implemented")
     }
 
     override fun shareLog() {
-        TODO("Not yet implemented")
     }
 
 }
