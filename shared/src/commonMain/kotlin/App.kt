@@ -24,6 +24,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,9 +40,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import navigation.AboutPage
 import navigation.AppLinkPage
 import navigation.CameraPage
@@ -111,94 +114,105 @@ fun App(walletMain: WalletMain) {
 
 @Composable
 fun navigator(walletMain: WalletMain) {
-    key(appLink.value) {
-        val defaultPage: Page
-        if (appLink.value == null) {
-            defaultPage = HomePage()
-        } else {
-            defaultPage = AppLinkPage()
+    // Modified from https://github.com/JetBrains/compose-multiplatform/tree/master/examples/imageviewer
+    val navigationStack = rememberSaveable(
+        saver = listSaver<NavigationStack<Page>, Page>(
+            restore = { NavigationStack(*it.toTypedArray()) },
+            save = { it.stack },
+        )
+    ) {
+        NavigationStack(HomePage())
+    }
+
+    globalBack = { navigationStack.back() }
+
+    LaunchedEffect(appLink.value){
+        val host = walletMain.walletConfig.host
+        if (appLink.value?.contains("$host/mobile") == true){
+            navigationStack.push(ConsentPage())
         }
-
-        // Modified from https://github.com/JetBrains/compose-multiplatform/tree/master/examples/imageviewer
-        val navigationStack = rememberSaveable(
-            saver = listSaver(
-                restore = { NavigationStack(*it.toTypedArray()) },
-                save = { it.stack },
-            )
-        ) {
-            NavigationStack(defaultPage)
+        if (appLink.value?.contains("$host/m1/login/oauth2/code/idaq?code=") == true) {
+            runBlocking {
+                try {
+                    walletMain.provisioningService.handleResponse(appLink.value.toString())
+                    walletMain.snackbarService.showSnackbar(Resources.SNACKBAR_CREDENTIAL_LOADED_SUCCESSFULLY)
+                } catch (e: Throwable) {
+                    walletMain.errorService.emit(e)
+                }
+            }
         }
+    }
 
-        globalBack = { navigationStack.back() }
 
-        AnimatedContent(targetState = navigationStack.lastWithIndex()) { (_, page) ->
-            when (page) {
-                is HomePage -> {
-                    HomeScreen(
-                        onAbout = { navigationStack.push(AboutPage()) },
-                        onCredential = { info ->
-                            navigationStack.push(CredentialPage(info))
-                        },
-                        onScanQrCode = { navigationStack.push(CameraPage()) },
-                        onLoginWithIdAustria = {
-                            CoroutineScope(Dispatchers.Default).launch {
-                                try {
-                                    walletMain.provisioningService.startProvisioning()
-                                } catch (e: Throwable) {
-                                    walletMain.errorService.emit(e)
-                                }
+
+
+    AnimatedContent(targetState = navigationStack.lastWithIndex()) { (_, page) ->
+        when (page) {
+            is HomePage -> {
+                HomeScreen(
+                    onAbout = { navigationStack.push(AboutPage()) },
+                    onCredential = { info ->
+                        navigationStack.push(CredentialPage(info))
+                    },
+                    onScanQrCode = { navigationStack.push(CameraPage()) },
+                    onLoginWithIdAustria = {
+                        CoroutineScope(Dispatchers.Default).launch {
+                            try {
+                                walletMain.provisioningService.startProvisioning()
+                            } catch (e: Throwable) {
+                                walletMain.errorService.emit(e)
                             }
-                        },
-                        walletMain = walletMain
-                    )
-                }
-
-                is AboutPage -> {
-                    AboutScreen(
-                        onShowLog = {navigationStack.push(LogPage())},
-                        walletMain)
-                }
-
-                is LogPage -> {
-                    LogScreen(walletMain)
-                }
-
-                is CredentialPage -> {
-                    CredentialScreen(id = page.info, walletMain)
-                }
-
-                is CameraPage -> {
-                    CameraView(
-                        onFoundPayload = { info ->
-                            navigationStack.push(PayloadPage(info))
                         }
-                    )
-                }
+                    },
+                    walletMain = walletMain
+                )
+            }
 
-                is PayloadPage -> {
-                    PayloadScreen(
-                        text = page.info,
-                        onContinueClick = { navigationStack.push(HomePage()) },
-                        walletMain
-                    )
+            is AboutPage -> {
+                AboutScreen(
+                    onShowLog = {navigationStack.push(LogPage())},
+                    walletMain)
+            }
 
-                }
+            is LogPage -> {
+                LogScreen(walletMain)
+            }
 
-                is AppLinkPage -> {
-                    AppLinkScreen(
-                        walletMain = walletMain,
-                        showConsent = {navigationStack.push(ConsentPage())}
-                    )
-                }
+            is CredentialPage -> {
+                CredentialScreen(id = page.info, walletMain)
+            }
 
-                is ConsentPage -> {
-                    ConsentScreen(
-                        walletMain = walletMain,
-                        onAccept = {},
-                        recipientName = "",
-                        recipientLocation = ""
-                    )
-                }
+            is CameraPage -> {
+                CameraView(
+                    onFoundPayload = { info ->
+                        navigationStack.push(PayloadPage(info))
+                    }
+                )
+            }
+
+            is PayloadPage -> {
+                PayloadScreen(
+                    text = page.info,
+                    onContinueClick = { navigationStack.push(HomePage()) },
+                    walletMain
+                )
+
+            }
+
+            is AppLinkPage -> {
+                AppLinkScreen(
+                    walletMain = walletMain,
+                    showConsent = {navigationStack.push(ConsentPage())}
+                )
+            }
+
+            is ConsentPage -> {
+                ConsentScreen(
+                    walletMain = walletMain,
+                    onAccept = {},
+                    recipientName = "",
+                    recipientLocation = ""
+                )
             }
         }
     }
