@@ -62,8 +62,6 @@ fun LogScreen(walletMain: WalletMain){
             Button(
                 onClick = {
                     scope.launch {
-                        walletMain.platformAdapter.clearFile("log.txt", folderName = "logs")
-                        walletMain.platformAdapter.writeToFile(text = logArray.joinToString(separator = "\n"), "log.txt", folderName = "logs")
                         walletMain.platformAdapter.shareLog()
                     }
                 }
