@@ -14,14 +14,6 @@ class DummyDataStoreService: DataStoreService {
         memory.remove(key)
     }
 
-    override fun writeLogToFile(data: exportLog) {
-    }
-
-    override fun readLogFromFile(): MutableList<exportLog> {
-        TODO("Not yet implemented")
-    }
-
     override fun clearLog() {
-        TODO("Not yet implemented")
     }
 }

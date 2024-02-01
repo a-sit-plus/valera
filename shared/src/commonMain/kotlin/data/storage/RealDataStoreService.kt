@@ -6,19 +6,15 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import at.asitplus.wallet.app.common.PlatformAdapter
-import at.asitplus.wallet.lib.data.jsonSerializer
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.flow.first
-import kotlinx.serialization.encodeToString
 import okio.Path.Companion.toPath
 
 interface DataStoreService {
     suspend fun setPreference(value: String, key: String)
     suspend fun getPreference(key: String): String?
     suspend fun deletePreference(key: String)
-    fun writeLogToFile(data: exportLog)
-    fun readLogFromFile(): MutableList<exportLog>
     fun clearLog()
 
 }
@@ -57,25 +53,8 @@ class RealDataStoreService(private var dataStore: DataStore<Preferences>, privat
         }
 
     }
-
-    override fun writeLogToFile(data: exportLog) {
-        val json = jsonSerializer.encodeToString(data)
-        platformAdapter.writeToFile(text = "$json\n\n", fileName = "log.json")
-    }
-
-    override fun readLogFromFile(): MutableList<exportLog> {
-        val raw = this.platformAdapter.readFromFile(fileName = "log.json") ?: ""
-        val rawArray = raw.split("\n\n")
-        val array = mutableListOf<exportLog>()
-        rawArray.filter{ it.isNotEmpty() }.forEach {
-            val item = jsonSerializer.decodeFromString<exportLog>(it)
-            array.add(item)
-        }
-        return array
-    }
-
     override fun clearLog() {
-        platformAdapter.clearFile(fileName = "log.json")
+        platformAdapter.clearFile(fileName = "log.txt", folderName = "logs")
     }
 }
 

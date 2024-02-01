@@ -30,7 +30,7 @@ import kotlinx.coroutines.launch
 fun LogScreen(walletMain: WalletMain){
     val scope = rememberCoroutineScope()
 
-    var logArray = mutableListOf<String>()
+    var logArray = listOf<String>()
     try {
         logArray = walletMain.getLog()
     } catch (e: Throwable) {
@@ -46,7 +46,7 @@ fun LogScreen(walletMain: WalletMain){
                 } else {
                     color = MaterialTheme.colorScheme.secondaryContainer
                 }
-                Text(text = logArray[it], modifier = Modifier.background(color = color).padding(5.dp).fillMaxWidth(), fontSize = 8.sp, lineHeight = 10.sp, fontFamily = FontFamily.Monospace)
+                Text(text = logArray[it].trimEnd('\n'), modifier = Modifier.background(color = color).padding(5.dp).fillMaxWidth(), fontSize = 8.sp, lineHeight = 10.sp, fontFamily = FontFamily.Monospace)
             }
         }
     }
@@ -62,8 +62,6 @@ fun LogScreen(walletMain: WalletMain){
             Button(
                 onClick = {
                     scope.launch {
-                        walletMain.platformAdapter.clearFile("log.txt")
-                        walletMain.platformAdapter.writeToFile(text = logArray.joinToString(separator = "\n"), "log.txt")
                         walletMain.platformAdapter.shareLog()
                     }
                 }

@@ -11,7 +11,6 @@ import at.asitplus.wallet.lib.data.ConstantIndex
 import data.storage.AntilogAdapter
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
-import data.storage.stringify
 import io.github.aakira.napier.Napier
 
 /**
@@ -34,7 +33,7 @@ class WalletMain(
     init {
         at.asitplus.wallet.idaustria.Initializer.initWithVcLib()
         Napier.takeLogarithm()
-        Napier.base(AntilogAdapter(dataStoreService, ""))
+        Napier.base(AntilogAdapter(platformAdapter, ""))
     }
     @Throws(Throwable::class)
     fun initialize(snackbarService: SnackbarService){
@@ -57,14 +56,20 @@ class WalletMain(
         dataStoreService.deletePreference(Resources.DATASTORE_KEY_XAUTH)
         dataStoreService.deletePreference(Resources.DATASTORE_KEY_COOKIES)
         dataStoreService.deletePreference(Resources.DATASTORE_KEY_CONFIG)
-        holderKeyService.clear()
+
         walletConfig.host = "https://wallet.a-sit.at"
-        walletConfig.credentialRepresentation = ConstantIndex.CredentialRepresentation.PLAIN_JWT
-        cryptoService = objectFactory.loadCryptoService().getOrThrow()
     }
 
-    fun getLog(): MutableList<String>{
-        return dataStoreService.readLogFromFile().stringify()
+    fun getLog(): List<String>{
+        val rawLog = platformAdapter.readFromFile("log.txt", "logs")
+        var list: List<String>
+        if (rawLog != null) {
+            val regex = Regex("(?<=\\n)(?=[\\[][0-9]{2}[:][0-9]{2}[\\]])")
+            list = rawLog.split(regex = regex)
+            return list
+        } else {
+            return listOf("")
+        }
     }
 }
 
@@ -103,46 +108,69 @@ interface PlatformAdapter {
      */
     fun openUrl(url: String)
 
+    /**
+     * Converts an image from ByteArray to ImageBitmap
+     * @param image the image as ByteArray
+     * @return returns the image as an ImageBitmap
+     */
     fun decodeImage(image: ByteArray): ImageBitmap
 
-    fun writeToFile(text: String, fileName: String)
+    /**
+     * Writes an user defined string to a file in a specific folder
+     * @param text is the content of the new file or the content which gets append to an existing file
+     * @param fileName the name of the file
+     * @param folder the name of the folder in which the file resides
+     */
+    fun writeToFile(text: String, fileName: String, folderName: String)
 
-    fun readFromFile(fileName: String): String?
+    /**
+     * Reads the content from a file in a specific folder
+     * @param fileName the name of the file
+     * @param folder the name of the folder in which the file resides
+     * @return returns the content of the file
+     */
+    fun readFromFile(fileName: String, folderName: String): String?
 
-    fun clearFile(fileName: String)
+    /**
+     * Clears the content of a file
+     * @param fileName the name of the file
+     * @param folder the name of the folder in which the file resides
+     */
+    fun clearFile(fileName: String, folderName: String)
 
+    /**
+     * Exits the app in the event of an uncorrectable error
+     */
     fun exitApp()
 
+    /**
+     * Opens the platform specific share dialog
+     */
     fun shareLog()
 }
 
 class DummyPlatformAdapter : PlatformAdapter {
     override fun openUrl(url: String) {
-        TODO("Not yet implemented")
     }
 
     override fun decodeImage(image: ByteArray): ImageBitmap {
-        TODO("Not yet implemented")
+        return ImageBitmap(0,0)
     }
 
-    override fun writeToFile(text: String, fileName: String) {
-        println(text)
+    override fun writeToFile(text: String, fileName: String, folderName: String) {
     }
 
-    override fun readFromFile(fileName: String): String? {
-        TODO("Not yet implemented")
+    override fun readFromFile(fileName: String, folderName: String): String? {
+        return null
     }
 
-    override fun clearFile(fileName: String) {
-        TODO("Not yet implemented")
+    override fun clearFile(fileName: String, folderName: String) {
     }
 
     override fun exitApp() {
-        TODO("Not yet implemented")
     }
 
     override fun shareLog() {
-        TODO("Not yet implemented")
     }
 
 }
