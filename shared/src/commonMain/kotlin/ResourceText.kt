@@ -37,4 +37,13 @@ object Resources {
     const val DATASTORE_KEY_CONFIG = "config"
     const val BUTTON_SHOW_LOG = "Show Log"
     const val BUTTON_EXIT_APP = "Exit App"
+    const val LOGIN = "Login"
+    const val BUTTON_CANCEL = "Cancel"
+    const val BUTTON_ACCEPT = "Accept"
+    const val LOGIN_TERMINAL_MACHINE = "Login to terminal or machine"
+    const val RECIPIENT = "Recipient"
+    const val NAME = "Name"
+    const val LOCATION = "Location"
+    const val REQUESTED_DATA = "Requested data"
+    const val TRANSMIT_THIS_INFORMATION = "Would you like to transmit this information?"
 }

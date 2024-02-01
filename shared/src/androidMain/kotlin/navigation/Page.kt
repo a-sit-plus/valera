@@ -23,3 +23,6 @@ actual class PayloadPage actual constructor(actual val info: String) : Page, Par
 
 @Parcelize
 actual class AppLinkPage : Page, Parcelable
+
+@Parcelize
+actual class ConsentPage : Page, Parcelable

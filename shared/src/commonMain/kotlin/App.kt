@@ -45,6 +45,7 @@ import kotlinx.coroutines.launch
 import navigation.AboutPage
 import navigation.AppLinkPage
 import navigation.CameraPage
+import navigation.ConsentPage
 import navigation.CredentialPage
 import navigation.HomePage
 import navigation.LogPage
@@ -55,6 +56,7 @@ import ui.theme.WalletTheme
 import view.AboutScreen
 import view.AppLinkScreen
 import view.CameraView
+import view.ConsentScreen
 import view.CredentialScreen
 import view.HomeScreen
 import view.LogScreen
@@ -184,9 +186,18 @@ fun navigator(walletMain: WalletMain) {
 
                 is AppLinkPage -> {
                     AppLinkScreen(
-                        walletMain = walletMain
+                        walletMain = walletMain,
+                        showConsent = {navigationStack.push(ConsentPage())}
                     )
+                }
 
+                is ConsentPage -> {
+                    ConsentScreen(
+                        walletMain = walletMain,
+                        onAccept = {},
+                        recipientName = "",
+                        recipientLocation = ""
+                    )
                 }
             }
         }

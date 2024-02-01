@@ -21,7 +21,7 @@ import io.github.aakira.napier.Napier
 import kotlinx.coroutines.runBlocking
 
 @Composable
-fun AppLinkScreen(walletMain: WalletMain){
+fun AppLinkScreen(walletMain: WalletMain, showConsent: () -> Unit){
     val host = walletMain.walletConfig.host
 
     Napier.d("Redirect: ${appLink.value}")
@@ -45,17 +45,12 @@ fun AppLinkScreen(walletMain: WalletMain){
                 } catch (e: Throwable) {
                     walletMain.errorService.emit(e)
                 }
-
-            }
-            if (appLink.value?.contains("$host/mobile") == true) {
-                try {
-                    walletMain.presentationService.startSiop(appLink.value.toString())
-                } catch (e: Throwable) {
-                    walletMain.errorService.emit(e)
-                }
+                appLink.value = null
             }
         }
-
-        appLink.value = null
+        if (appLink.value?.contains("$host/mobile") == true) {
+            Napier.d("Start Presentation")
+            showConsent()
+        }
     }
 }
