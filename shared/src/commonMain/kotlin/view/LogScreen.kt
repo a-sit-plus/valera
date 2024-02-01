@@ -46,7 +46,7 @@ fun LogScreen(walletMain: WalletMain){
                 } else {
                     color = MaterialTheme.colorScheme.secondaryContainer
                 }
-                Text(text = logArray[it], modifier = Modifier.background(color = color).padding(5.dp).fillMaxWidth(), fontSize = 8.sp, lineHeight = 10.sp, fontFamily = FontFamily.Monospace)
+                Text(text = logArray[it].trimEnd('\n'), modifier = Modifier.background(color = color).padding(5.dp).fillMaxWidth(), fontSize = 8.sp, lineHeight = 10.sp, fontFamily = FontFamily.Monospace)
             }
         }
     }

@@ -32,12 +32,12 @@ class AntilogAdapter(val platformAdapter: PlatformAdapter, private val defaultTa
                 val cause = throwable?.cause?.message ?: "Unknown Cause"
                 val stackTrace = throwable?.stackTraceToString() ?: ""
                 val info = "[${time}] ERROR".padEnd(pad, ' ')
-                val data = ("$info $logTag : $message, $cause\n$stackTrace")
+                val data = ("$info $logTag : $message, $cause\n$stackTrace\n")
                 platformAdapter.writeToFile(data, "log.txt", "logs")
             }
             else -> {
                 val info = "[${time}] ${priority}".padEnd(pad, ' ')
-                val data = ("$info $logTag : $message")
+                val data = ("$info $logTag : $message\n")
                 platformAdapter.writeToFile(data, "log.txt", "logs")
             }
         }

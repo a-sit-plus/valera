@@ -63,7 +63,7 @@ class WalletMain(
         val rawLog = platformAdapter.readFromFile("log.txt", "logs")
         var list: List<String>
         if (rawLog != null) {
-            val regex = Regex("(?=[\\[][0-9]{2}[:][0-9]{2}[\\]])")
+            val regex = Regex("(?<=\\n)(?=[\\[][0-9]{2}[:][0-9]{2}[\\]])")
             list = rawLog.split(regex = regex)
             return list
         } else {
