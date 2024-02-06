@@ -209,7 +209,8 @@ fun navigator(walletMain: WalletMain) {
             is ConsentPage -> {
                 ConsentScreen(
                     walletMain = walletMain,
-                    onAccept = {},
+                    onAccept = {navigationStack.push(HomePage())},
+                    onCancel = {navigationStack.back()},
                     recipientName = "",
                     recipientLocation = ""
                 )

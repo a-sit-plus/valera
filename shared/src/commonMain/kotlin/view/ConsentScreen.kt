@@ -36,7 +36,7 @@ import io.github.aakira.napier.Napier
 import kotlinx.coroutines.launch
 
 @Composable
-fun ConsentScreen(walletMain: WalletMain, onAccept: () -> Unit, recipientName: String, recipientLocation: String){
+fun ConsentScreen(walletMain: WalletMain, onAccept: () -> Unit, onCancel: () -> Unit, recipientName: String, recipientLocation: String){
     val scope = rememberCoroutineScope()
 
     Napier.d("ConsentScreen")
@@ -82,6 +82,7 @@ fun ConsentScreen(walletMain: WalletMain, onAccept: () -> Unit, recipientName: S
                 Button(
                     onClick = {
                         appLink.value = null
+                        onCancel()
                     }
                 ) {
                     Text(Resources.BUTTON_CANCEL)
@@ -95,6 +96,7 @@ fun ConsentScreen(walletMain: WalletMain, onAccept: () -> Unit, recipientName: S
                                 walletMain.errorService.emit(e)
                             }
                             appLink.value = null
+                            onAccept()
                         }
                     }
                 ) {
