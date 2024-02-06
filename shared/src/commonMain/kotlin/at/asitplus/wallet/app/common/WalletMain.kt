@@ -7,7 +7,6 @@ import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
-import at.asitplus.wallet.lib.data.ConstantIndex
 import data.storage.AntilogAdapter
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
@@ -30,6 +29,7 @@ class WalletMain(
     lateinit var provisioningService: ProvisioningService
     lateinit var presentationService: PresentationService
     lateinit var snackbarService: SnackbarService
+    val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
     init {
         at.asitplus.wallet.idaustria.Initializer.initWithVcLib()
         Napier.takeLogarithm()
@@ -62,11 +62,8 @@ class WalletMain(
 
     fun getLog(): List<String>{
         val rawLog = platformAdapter.readFromFile("log.txt", "logs")
-        var list: List<String>
         if (rawLog != null) {
-            val regex = Regex("(?<=\\n)(?=[\\[][0-9]{2}[:][0-9]{2}[\\]])")
-            list = rawLog.split(regex = regex)
-            return list
+            return rawLog.split(regex = regex).filter { it.isNotEmpty() }
         } else {
             return listOf("")
         }

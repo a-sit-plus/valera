@@ -1,6 +1,7 @@
 package data.storage
 
 import Resources
+import androidx.compose.runtime.mutableStateOf
 import at.asitplus.KmmResult
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
@@ -15,7 +16,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 
 class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) : SubjectCredentialStore {
-
+    val credentialSize = mutableStateOf(0)
     private val container = importFromDataStore()
 
     override suspend fun storeCredential(
@@ -113,6 +114,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
 
         val json = jsonSerializer.encodeToString(exportableContainer)
         dataStore.setPreference(key = Resources.DATASTORE_KEY_VCS, value = json)
+        credentialSize.value = container.credentials.size
     }
 
     private fun importFromDataStore(): StoreContainer{
@@ -157,6 +159,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
                 export.attachments.forEach {
                     attachments.add(SubjectCredentialStore.AttachmentEntry(name = it.name, data = it.data, vcId = it.vcId))
                 }
+                credentialSize.value = credentials.size
                 StoreContainer(credentials, attachments)
             }
         }

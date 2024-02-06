@@ -47,6 +47,7 @@ import androidx.compose.ui.window.DialogProperties
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.idaustria.IdAustriaCredential
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import io.github.aakira.napier.Napier
 import io.ktor.util.decodeBase64Bytes
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
@@ -54,13 +55,15 @@ import org.jetbrains.compose.resources.painterResource
 @Composable
 fun HomeScreen( onAbout: () -> Unit, onCredential: (id: String) -> Unit, onScanQrCode: () -> Unit, walletMain: WalletMain, onLoginWithIdAustria: () -> Unit) {
     Box{
-        val credentialSize = walletMain.subjectCredentialStore.getCredentialSize()
         Column(Modifier.fillMaxSize()) {
             Header(onAbout = onAbout)
             Column(Modifier.background(color = MaterialTheme.colorScheme.secondaryContainer).fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-                if (credentialSize == 0){
+                if (walletMain.subjectCredentialStore.credentialSize.value == 0){
+                    Napier.d("Show AddID")
                     AddId(onScanQrCode, onLoginWithIdAustria)
                 } else {
+                    Napier.d("Show ID")
+
                     ShowId(onCredential, onScanQrCode, walletMain, onLoginWithIdAustria)
                 }
             }
