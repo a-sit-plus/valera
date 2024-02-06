@@ -21,14 +21,14 @@ class WalletConfig(
     }
     fun loadConfig() {
         try {
-            val input = runBlocking{dataStoreService.getData(Resources.DATASTORE_KEY_CONFIG)}
+            val input = runBlocking{dataStoreService.getPreference(Resources.DATASTORE_KEY_CONFIG)}
             if (input == null){
                 this.host = "https://wallet.a-sit.at"
             } else{
                 val config = jsonSerializer.decodeFromString<ConfigData>(input)
                 this.host = config.host
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             errorService.emit(e)
         }
     }
@@ -36,8 +36,8 @@ class WalletConfig(
     fun exportConfig() {
         val config = ConfigData(host = this.host)
         try {
-            runBlocking {dataStoreService.setData(jsonSerializer.encodeToString(config), Resources.DATASTORE_KEY_CONFIG)}
-        } catch (e: Exception) {
+            runBlocking {dataStoreService.setPreference(jsonSerializer.encodeToString(config), Resources.DATASTORE_KEY_CONFIG)}
+        } catch (e: Throwable) {
             errorService.emit(e)
         }
 

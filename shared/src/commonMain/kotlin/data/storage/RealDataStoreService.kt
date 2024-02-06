@@ -5,51 +5,56 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import at.asitplus.wallet.app.common.PlatformAdapter
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.flow.first
 import okio.Path.Companion.toPath
 
 interface DataStoreService {
-    suspend fun setData(value: String, key: String)
-    suspend fun getData(key: String): String?
-    suspend fun deleteData(key: String)
+    suspend fun setPreference(value: String, key: String)
+    suspend fun getPreference(key: String): String?
+    suspend fun deletePreference(key: String)
+    fun clearLog()
 
 }
-class RealDataStoreService(private var dataStore: DataStore<Preferences>): DataStoreService{
-    override suspend fun setData(value: String, key: String){
+class RealDataStoreService(private var dataStore: DataStore<Preferences>, private var platformAdapter: PlatformAdapter): DataStoreService{
+    override suspend fun setPreference(value: String, key: String){
         try {
             val dataStoreKey = stringPreferencesKey(key)
             dataStore.edit {
                 it[dataStoreKey] = value
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             throw Exception("Unable to set data in DataStore")
         }
 
     }
 
-    override suspend fun getData(key: String): String? {
+    override suspend fun getPreference(key: String): String? {
         try {
             val dataStoreKey = stringPreferencesKey(key)
             val preferences = dataStore.data.first()
             return preferences[dataStoreKey]
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             throw Exception("Unable to get data from DataStore")
         }
 
     }
 
-    override suspend fun deleteData(key: String){
+    override suspend fun deletePreference(key: String){
         try {
             val dataStoreKey = stringPreferencesKey(key)
             dataStore.edit {
                 it.remove(dataStoreKey)
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             throw Exception("Unable to delete data from DataStore")
         }
 
+    }
+    override fun clearLog() {
+        platformAdapter.clearFile(fileName = "log.txt", folderName = "logs")
     }
 }
 

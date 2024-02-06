@@ -9,8 +9,8 @@ class UnitTests {
     fun testDataStore() {
         val dataStore = createDataStore()
         val realDataStoreService = RealDataStoreService(dataStore)
-        runBlocking { realDataStoreService.setData(Resources.DEBUG_DATASTORE_VALUE, Resources.DEBUG_DATASTORE_KEY) }
-        val result = runBlocking { realDataStoreService.getData(Resources.DEBUG_DATASTORE_KEY) }
+        runBlocking { realDataStoreService.setPreference(Resources.DEBUG_DATASTORE_VALUE, Resources.DEBUG_DATASTORE_KEY) }
+        val result = runBlocking { realDataStoreService.getPreference(Resources.DEBUG_DATASTORE_KEY) }
         assertEquals(Resources.DEBUG_DATASTORE_VALUE, result)
     }
 }

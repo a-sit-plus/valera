@@ -34,6 +34,81 @@ class SwiftPlatformAdapter: PlatformAdapter {
     func decodeImage(image: KotlinByteArray) -> Ui_graphicsImageBitmap {
         return IosUtilities.init().decodeImage(image: image)
     }
+
+    func writeToFile(text: String, fileName: String, folderName: String) {
+        if let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+            let folderUrl = url.appendingPathComponent(folderName)
+            if !FileManager.default.fileExists(atPath: folderUrl.path){
+                createDirectory(folderName: folderName)
+            }
+            let fileUrl = folderUrl.appendingPathComponent(fileName)
+            if let file = try? FileHandle(forWritingTo: fileUrl) {
+                file.seekToEndOfFile()
+                file.write(text.data(using: .utf8)!)
+                file.closeFile()
+            } else {
+                FileManager.default.createFile(atPath: fileUrl.path, contents: text.data(using: .utf8))
+            }
+        }
+    }
+    func readFromFile(fileName: String, folderName: String) -> String? {
+        if let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+            let folderUrl = url.appendingPathComponent(folderName)
+            if !FileManager.default.fileExists(atPath: folderUrl.path){
+                createDirectory(folderName: folderName)
+            }
+            let fileUrl = folderUrl.appendingPathComponent(fileName)
+            do {
+                let log = try String(contentsOf: fileUrl, encoding: .utf8)
+                return log
+            } catch {
+                NapierProxy.companion.d(msg: "Unable to read from file: \(fileName)")
+                return nil
+            }
+        }
+        return nil
+    }
+
+    func clearFile(fileName: String, folderName: String) {
+        if let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+            let folderUrl = url.appendingPathComponent(folderName)
+            if !FileManager.default.fileExists(atPath: folderUrl.path){
+                createDirectory(folderName: folderName)
+            }
+            let fileUrl = folderUrl.appendingPathComponent(fileName)
+            do {
+                try FileManager().removeItem(at: fileUrl)
+            } catch {
+                NapierProxy.companion.d(msg: "Unable to clear file: \(fileName)")
+            }
+        }
+    }
+
+    func createDirectory(folderName: String) {
+        if let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+            let folderUrl = url.appendingPathComponent(folderName)
+            do {
+                try FileManager.default.createDirectory(at: folderUrl, withIntermediateDirectories: true)
+            } catch {
+                NapierProxy.companion.d(msg: "Unable to create from directory: \(folderUrl)")
+            }
+        }
+    }
+
+    func exitApp() {
+        NapierProxy.companion.d(msg: "Exit App gracefully")
+        exit(0)
+    }
+
+    func shareLog() {
+            if let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+                let folderUrl = url.appendingPathComponent("logs")
+                let fileUrl = folderUrl.appendingPathComponent("log.txt") as NSURL
+                let currentController = UIApplication.shared.windows.first(where: \.isKeyWindow)?.rootViewController
+                let activityViewController = UIActivityViewController(activityItems: [fileUrl], applicationActivities: nil)
+                currentController?.present(activityViewController, animated: true, completion: {})
+            }
+    }
 }
 
 class SwiftObjectFactory: ObjectFactory {

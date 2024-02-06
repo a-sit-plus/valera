@@ -77,7 +77,7 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
             }
 
             Napier.d("Store X-Auth-Token: $xAuthToken")
-            dataStoreService.setData(xAuthToken, Resources.DATASTORE_KEY_XAUTH)
+            dataStoreService.setPreference(xAuthToken, Resources.DATASTORE_KEY_XAUTH)
 
             if (urlToOpen != null) {
                 Napier.d("Open URL: $urlToOpen")
@@ -92,7 +92,7 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
     @Throws(Throwable::class)
     suspend fun handleResponse(url: String){
         val host = config.host
-        val xAuthToken = dataStoreService.getData(Resources.DATASTORE_KEY_XAUTH)
+        val xAuthToken = dataStoreService.getPreference(Resources.DATASTORE_KEY_XAUTH)
         if (xAuthToken == null){
             throw Exception("X-Auth-Token not available in DataStoreService")
         }

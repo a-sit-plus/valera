@@ -1,4 +1,5 @@
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
@@ -13,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import at.asitplus.KmmResult
 import at.asitplus.wallet.app.android.AndroidCryptoService
@@ -24,8 +26,8 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.CryptoService
 import data.storage.RealDataStoreService
 import data.storage.getDataStore
-import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
+import java.io.File
 
 actual fun getPlatformName(): String = "Android"
 
@@ -48,16 +50,12 @@ actual fun getColorScheme(): ColorScheme{
 
 @Composable
 fun MainView() {
-    App(WalletMain(objectFactory = AndroidObjectFactory(), RealDataStoreService(getDataStore(LocalContext.current)), platformAdapter = AndroidPlatformAdapter(LocalContext.current)))
+    val platformAdapter = AndroidPlatformAdapter(LocalContext.current)
+    App(WalletMain(objectFactory = AndroidObjectFactory(), RealDataStoreService(getDataStore(LocalContext.current), platformAdapter), platformAdapter = platformAdapter))
 }
 
 class AndroidObjectFactory : ObjectFactory {
     val keyStoreService: AndroidKeyStoreService by lazy { AndroidKeyStoreService() }
-
-    init {
-        Napier.takeLogarithm()
-        Napier.base(DebugAntilog())
-    }
 
     override fun loadCryptoService(): KmmResult<CryptoService> {
         val keyPair = keyStoreService.loadKeyPair()
@@ -82,5 +80,66 @@ class AndroidPlatformAdapter(val context: Context): PlatformAdapter{
     override fun decodeImage(image: ByteArray): ImageBitmap {
         val bitmap = BitmapFactory.decodeByteArray(image, 0, image.size)
         return bitmap.asImageBitmap()
+    }
+
+    override fun writeToFile(text: String, fileName: String, folderName: String) {
+        val folder = File(context.filesDir, folderName)
+        if (!folder.exists()) {
+            folder.mkdir()
+        }
+        val file = File(folder, fileName)
+        if (file.exists()) {
+            file.appendText(text)
+        } else {
+            file.createNewFile()
+            file.writeText(text)
+        }
+    }
+
+    override fun readFromFile(fileName: String, folderName: String): String? {
+        val folder = File(context.filesDir, folderName)
+        if (!folder.exists()) {
+            folder.mkdir()
+        }
+        val file = File(folder, fileName)
+        if (file.exists()) {
+            return file.readText()
+        } else {
+            return null
+        }
+    }
+
+    override fun clearFile(fileName: String, folderName: String) {
+        val folder = File(context.filesDir, folderName)
+        if (!folder.exists()) {
+            folder.mkdir()
+        }
+        val file = File(folder, fileName)
+        if (file.exists()) {
+            file.delete()
+        }
+    }
+
+    override fun exitApp() {
+        Napier.d("Exit App gracefully")
+        val activity = context as Activity
+        activity.finish()
+    }
+
+    override fun shareLog() {
+        val folder = File(context.filesDir, "logs")
+        val file = File(folder, "log.txt")
+        val fileUri = FileProvider.getUriForFile(
+                context,
+                "at.asitplus.wallet.app.android.fileprovider",
+                file)
+
+
+        val intent: Intent = Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_STREAM, fileUri)
+            type = "application/text"
+        }
+        context.startActivity(Intent.createChooser(intent, null))
     }
 }
