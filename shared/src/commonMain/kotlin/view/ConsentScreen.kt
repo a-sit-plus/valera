@@ -22,7 +22,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,8 +36,6 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun ConsentScreen(walletMain: WalletMain, onAccept: () -> Unit, onCancel: () -> Unit, recipientName: String, recipientLocation: String){
-    val scope = rememberCoroutineScope()
-
     Napier.d("ConsentScreen")
 
     Column {
@@ -89,7 +86,7 @@ fun ConsentScreen(walletMain: WalletMain, onAccept: () -> Unit, onCancel: () -> 
                 }
                 Button(
                     onClick = {
-                        scope.launch {
+                        walletMain.scope.launch {
                             try {
                                 walletMain.presentationService.startSiop(appLink.value.toString())
                             } catch (e: Throwable) {
@@ -104,8 +101,5 @@ fun ConsentScreen(walletMain: WalletMain, onAccept: () -> Unit, onCancel: () -> 
                 }
             }
         }
-
     }
-
-
 }

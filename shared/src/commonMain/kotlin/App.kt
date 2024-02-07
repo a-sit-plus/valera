@@ -115,7 +115,6 @@ fun App(walletMain: WalletMain) {
 
 @Composable
 fun navigator(walletMain: WalletMain) {
-    val scope = rememberCoroutineScope()
     // Modified from https://github.com/JetBrains/compose-multiplatform/tree/master/examples/imageviewer
     val navigationStack = rememberSaveable(
         saver = listSaver<NavigationStack<Page>, Page>(
@@ -151,7 +150,7 @@ fun navigator(walletMain: WalletMain) {
             }
             if (appLink.value?.contains("$host/m1/login/oauth2/code/idaq?code=") == true) {
                 navigationStack.push(LoadingPage())
-                scope.launch {
+                walletMain.scope.launch {
                     try {
                         walletMain.provisioningService.handleResponse(appLink.value.toString())
                         walletMain.snackbarService.showSnackbar(Resources.SNACKBAR_CREDENTIAL_LOADED_SUCCESSFULLY)
@@ -178,7 +177,7 @@ fun navigator(walletMain: WalletMain) {
                     },
                     onScanQrCode = { navigationStack.push(CameraPage()) },
                     onLoginWithIdAustria = {
-                        CoroutineScope(Dispatchers.Default).launch {
+                        walletMain.scope.launch {
                             try {
                                 walletMain.provisioningService.startProvisioning()
                             } catch (e: Throwable) {

@@ -30,7 +30,7 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.idaustria.IdAustriaCredential
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import globalBack
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -87,10 +87,10 @@ fun IdAustriaCredentialScreen(firstName: String, lastName: String, birthDate: St
             }
             Column(modifier = Modifier.fillMaxWidth().padding(top = 40.dp), horizontalAlignment = Alignment.CenterHorizontally){
                 Button(onClick = {
-                    runBlocking {
+                    walletMain.scope.launch {
                         walletMain.subjectCredentialStore.removeStoreEntryById(id)
+                        globalBack()
                     }
-                    globalBack()
                 }) {
                     Text(Resources.BUTTON_DELETE)
                 }
