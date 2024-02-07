@@ -46,7 +46,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import navigation.AboutPage
-import navigation.AppLinkPage
 import navigation.CameraPage
 import navigation.ConsentPage
 import navigation.CredentialPage
@@ -57,7 +56,6 @@ import navigation.Page
 import navigation.PayloadPage
 import ui.theme.WalletTheme
 import view.AboutScreen
-import view.AppLinkScreen
 import view.CameraView
 import view.ConsentScreen
 import view.CredentialScreen
@@ -197,13 +195,6 @@ fun navigator(walletMain: WalletMain) {
                     walletMain
                 )
 
-            }
-
-            is AppLinkPage -> {
-                AppLinkScreen(
-                    walletMain = walletMain,
-                    showConsent = {navigationStack.push(ConsentPage())}
-                )
             }
 
             is ConsentPage -> {
