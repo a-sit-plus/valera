@@ -50,6 +50,7 @@ import navigation.CameraPage
 import navigation.ConsentPage
 import navigation.CredentialPage
 import navigation.HomePage
+import navigation.LoadingPage
 import navigation.LogPage
 import navigation.NavigationStack
 import navigation.Page
@@ -60,6 +61,7 @@ import view.CameraView
 import view.ConsentScreen
 import view.CredentialScreen
 import view.HomeScreen
+import view.LoadingScreen
 import view.LogScreen
 import view.PayloadScreen
 
@@ -112,6 +114,7 @@ fun App(walletMain: WalletMain) {
 
 @Composable
 fun navigator(walletMain: WalletMain) {
+    val scope = rememberCoroutineScope()
     // Modified from https://github.com/JetBrains/compose-multiplatform/tree/master/examples/imageviewer
     val navigationStack = rememberSaveable(
         saver = listSaver<NavigationStack<Page>, Page>(
@@ -130,11 +133,14 @@ fun navigator(walletMain: WalletMain) {
             navigationStack.push(ConsentPage())
         }
         if (appLink.value?.contains("$host/m1/login/oauth2/code/idaq?code=") == true) {
-            runBlocking {
+            navigationStack.push(LoadingPage())
+            scope.launch {
                 try {
                     walletMain.provisioningService.handleResponse(appLink.value.toString())
                     walletMain.snackbarService.showSnackbar(Resources.SNACKBAR_CREDENTIAL_LOADED_SUCCESSFULLY)
+                    navigationStack.back()
                 } catch (e: Throwable) {
+                    navigationStack.back()
                     walletMain.errorService.emit(e)
                 }
             }
@@ -205,6 +211,10 @@ fun navigator(walletMain: WalletMain) {
                     recipientName = "",
                     recipientLocation = ""
                 )
+            }
+
+            is LoadingPage -> {
+                LoadingScreen()
             }
         }
     }
