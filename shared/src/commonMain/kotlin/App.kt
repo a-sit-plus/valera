@@ -158,6 +158,7 @@ fun navigator(walletMain: WalletMain) {
                     } catch (e: Throwable) {
                         navigationStack.back()
                         walletMain.errorService.emit(e)
+                        appLink.value = null
                     }
                 }
             }
