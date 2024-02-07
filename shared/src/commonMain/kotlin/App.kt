@@ -141,7 +141,13 @@ fun navigator(walletMain: WalletMain) {
 
             val host = walletMain.walletConfig.host
             if (appLink.value?.contains("$host/mobile") == true){
-                navigationStack.push(ConsentPage())
+                if (walletMain.subjectCredentialStore.credentialSize.value != 0) {
+                    navigationStack.push(ConsentPage())
+                } else {
+                    walletMain.errorService.emit(Exception("NoCredentialException"))
+                    appLink.value = null
+                }
+
             }
             if (appLink.value?.contains("$host/m1/login/oauth2/code/idaq?code=") == true) {
                 navigationStack.push(LoadingPage())
