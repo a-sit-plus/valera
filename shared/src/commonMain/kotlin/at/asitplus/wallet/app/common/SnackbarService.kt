@@ -5,7 +5,7 @@ import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-class SnackbarService(val scope: CoroutineScope, val snackbarHostState: SnackbarHostState) {
+class SnackbarService(private val scope: CoroutineScope, private val snackbarHostState: SnackbarHostState) {
     fun showSnackbar(text: String){
         Napier.d("Show Snackbar with text: $text")
         scope.launch {

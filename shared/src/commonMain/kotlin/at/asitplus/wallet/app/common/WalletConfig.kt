@@ -21,7 +21,7 @@ class WalletConfig(
     init {
         loadConfig()
     }
-    fun loadConfig() {
+    private fun loadConfig() {
         try {
             val input = runBlocking{dataStoreService.getPreference(Resources.DATASTORE_KEY_CONFIG)}
             if (input == null){

@@ -24,10 +24,10 @@ import io.ktor.serialization.kotlinx.json.json
 
 class PresentationService(
     val platformAdapter: PlatformAdapter,
-    val dataStoreService: DataStoreService,
-    val cryptoService: CryptoService,
-    val holderAgent: HolderAgent,
-    val errorService: ErrorService
+    private val dataStoreService: DataStoreService,
+    private val cryptoService: CryptoService,
+    private val holderAgent: HolderAgent,
+    private val errorService: ErrorService
 ) {
     private val cookieStorage = PersistentCookieStorage(dataStoreService, errorService)
     private val client = HttpClient {

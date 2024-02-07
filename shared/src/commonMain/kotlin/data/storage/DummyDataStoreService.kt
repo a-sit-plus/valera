@@ -1,7 +1,7 @@
 package data.storage
 
 class DummyDataStoreService: DataStoreService {
-    var memory: MutableMap<String, String> = mutableMapOf()
+    private var memory: MutableMap<String, String> = mutableMapOf()
     override suspend fun setPreference(value: String, key: String){
         memory[key] = value
     }

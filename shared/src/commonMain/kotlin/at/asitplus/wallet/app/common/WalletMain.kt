@@ -31,7 +31,7 @@ class WalletMain(
     lateinit var provisioningService: ProvisioningService
     lateinit var presentationService: PresentationService
     lateinit var snackbarService: SnackbarService
-    val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
+    private val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
     val scope = MainScope()
     init {
         at.asitplus.wallet.idaustria.Initializer.initWithVcLib()

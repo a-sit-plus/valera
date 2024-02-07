@@ -39,7 +39,7 @@ import io.ktor.serialization.kotlinx.json.json
 
 const val PATH_WELL_KNOWN_CREDENTIAL_ISSUER = "/.well-known/openid-credential-issuer"
 
-class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreService: DataStoreService, val cryptoService: CryptoService, val holderAgent: HolderAgent, val config: WalletConfig, errorService: ErrorService) {
+class ProvisioningService(val platformAdapter: PlatformAdapter, private val dataStoreService: DataStoreService, private val cryptoService: CryptoService, private val holderAgent: HolderAgent, private val config: WalletConfig, errorService: ErrorService) {
 
     private val cookieStorage = PersistentCookieStorage(dataStoreService, errorService)
     private val client = HttpClient {

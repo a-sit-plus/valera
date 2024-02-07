@@ -257,9 +257,7 @@ data class ExportableAttachmentEntry(val name: String, val data: ByteArray, val 
 
         if (name != other.name) return false
         if (!data.contentEquals(other.data)) return false
-        if (vcId != other.vcId) return false
-
-        return true
+        return vcId == other.vcId
     }
 
     override fun hashCode(): Int {

@@ -25,7 +25,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -40,12 +39,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
-import io.github.aakira.napier.Napier
 import io.ktor.http.parseQueryString
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import navigation.AboutPage
 import navigation.CameraPage
 import navigation.ConsentPage
@@ -103,7 +98,7 @@ fun App(walletMain: WalletMain) {
                 SnackbarHost(hostState = snackbarHostState)
             }
         ) { _ ->
-            if (walletMain.errorService.showError.value == false){
+            if (!walletMain.errorService.showError.value){
                 navigator(walletMain)
             } else {
                 errorScreen(walletMain)
@@ -130,8 +125,7 @@ fun navigator(walletMain: WalletMain) {
     LaunchedEffect(appLink.value){
         appLink.value?.let {val link = it
             val parameterIndex = link.indexOfFirst { it == '?' }
-            var pars = parseQueryString(link, startIndex = parameterIndex + 1)
-            println(pars)
+            val pars = parseQueryString(link, startIndex = parameterIndex + 1)
 
             if (pars.contains("error")) {
                 walletMain.errorService.emit(Exception(pars["error_description"].toString()))
