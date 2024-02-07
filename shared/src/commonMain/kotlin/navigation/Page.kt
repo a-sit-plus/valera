@@ -16,3 +16,5 @@ expect class PayloadPage(info: String) : Page {
     val info: String
 }
 expect class ConsentPage(): Page
+
+expect class LoadingPage(): Page

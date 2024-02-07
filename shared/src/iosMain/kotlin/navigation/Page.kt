@@ -13,3 +13,5 @@ actual class CameraPage : Page
 actual class PayloadPage actual constructor(actual val info: String) : Page
 
 actual class ConsentPage : Page
+
+actual class LoadingPage : Page
