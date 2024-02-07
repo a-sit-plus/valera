@@ -118,10 +118,9 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
     }
 
     private fun importFromDataStore(): StoreContainer{
-        return runBlocking {
-            val input = dataStore.getPreference(Resources.DATASTORE_KEY_VCS)
+            val input = runBlocking { dataStore.getPreference(Resources.DATASTORE_KEY_VCS) }
             if (input == null){
-                StoreContainer(credentials = mutableListOf(), attachments = mutableListOf())
+                return StoreContainer(credentials = mutableListOf(), attachments = mutableListOf())
             } else {
                 val export: ExportableStoreContainer = jsonSerializer.decodeFromString(input)
                 val credentials = mutableListOf<SubjectCredentialStore.StoreEntry>()
@@ -160,9 +159,8 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
                     attachments.add(SubjectCredentialStore.AttachmentEntry(name = it.name, data = it.data, vcId = it.vcId))
                 }
                 credentialSize.value = credentials.size
-                StoreContainer(credentials, attachments)
+                return StoreContainer(credentials, attachments)
             }
-        }
     }
 
     suspend fun reset(){
