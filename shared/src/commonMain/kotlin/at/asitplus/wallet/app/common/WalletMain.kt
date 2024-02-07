@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
+import at.asitplus.wallet.lib.data.ConstantIndex
 import data.storage.AntilogAdapter
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
@@ -58,6 +59,7 @@ class WalletMain(
         dataStoreService.deletePreference(Resources.DATASTORE_KEY_CONFIG)
 
         walletConfig.host = "https://wallet.a-sit.at"
+        walletConfig.credentialRepresentation = ConstantIndex.CredentialRepresentation.PLAIN_JWT
     }
 
     fun getLog(): List<String>{
