@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import io.github.aakira.napier.Napier
+import io.ktor.http.parseQueryString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -128,20 +129,31 @@ fun navigator(walletMain: WalletMain) {
     globalBack = { navigationStack.back() }
 
     LaunchedEffect(appLink.value){
-        val host = walletMain.walletConfig.host
-        if (appLink.value?.contains("$host/mobile") == true){
-            navigationStack.push(ConsentPage())
-        }
-        if (appLink.value?.contains("$host/m1/login/oauth2/code/idaq?code=") == true) {
-            navigationStack.push(LoadingPage())
-            scope.launch {
-                try {
-                    walletMain.provisioningService.handleResponse(appLink.value.toString())
-                    walletMain.snackbarService.showSnackbar(Resources.SNACKBAR_CREDENTIAL_LOADED_SUCCESSFULLY)
-                    navigationStack.back()
-                } catch (e: Throwable) {
-                    navigationStack.back()
-                    walletMain.errorService.emit(e)
+        appLink.value?.let {val link = it
+            val parameterIndex = link.indexOfFirst { it == '?' }
+            var pars = parseQueryString(link, startIndex = parameterIndex + 1)
+            println(pars)
+
+            if (pars.contains("error")) {
+                walletMain.errorService.emit(Exception(pars["error_description"].toString()))
+                appLink.value = null
+            }
+
+            val host = walletMain.walletConfig.host
+            if (appLink.value?.contains("$host/mobile") == true){
+                navigationStack.push(ConsentPage())
+            }
+            if (appLink.value?.contains("$host/m1/login/oauth2/code/idaq?code=") == true) {
+                navigationStack.push(LoadingPage())
+                scope.launch {
+                    try {
+                        walletMain.provisioningService.handleResponse(appLink.value.toString())
+                        walletMain.snackbarService.showSnackbar(Resources.SNACKBAR_CREDENTIAL_LOADED_SUCCESSFULLY)
+                        navigationStack.back()
+                    } catch (e: Throwable) {
+                        navigationStack.back()
+                        walletMain.errorService.emit(e)
+                    }
                 }
             }
         }
