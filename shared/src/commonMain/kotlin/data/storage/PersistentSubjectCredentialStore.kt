@@ -170,20 +170,16 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
     }
 
     suspend fun removeStoreEntryById(id: String) {
-        container.credentials.forEach { entry ->
+        container.credentials.removeAll{ entry ->
             when (entry) {
                 is SubjectCredentialStore.StoreEntry.Vc -> {
-                    if (entry.vc.jwtId == id) {
-                        container.credentials.remove(entry)
-                    }
+                    (entry.vc.jwtId == id)
                 }
                 is SubjectCredentialStore.StoreEntry.SdJwt -> {
-                    if (entry.sdJwt.jwtId == id) {
-                        container.credentials.remove(entry)
-                    }
+                    (entry.sdJwt.jwtId == id)
                 }
                 is SubjectCredentialStore.StoreEntry.Iso -> {
-                    TODO()
+                    false
                 }
             }
         }
