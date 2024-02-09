@@ -25,8 +25,7 @@ class WalletConfig(
         try {
             val input = runBlocking{dataStoreService.getPreference(Resources.DATASTORE_KEY_CONFIG)}
             if (input == null){
-                this.host = "https://wallet.a-sit.at"
-                this.credentialRepresentation = ConstantIndex.CredentialRepresentation.PLAIN_JWT
+                setDefaults()
             } else{
                 val config = jsonSerializer.decodeFromString<ConfigData>(input)
                 this.host = config.host
@@ -35,6 +34,11 @@ class WalletConfig(
         } catch (e: Throwable) {
             errorService.emit(e)
         }
+    }
+
+    private fun setDefaults() {
+        this.host = "https://wallet.a-sit.at"
+        this.credentialRepresentation = ConstantIndex.CredentialRepresentation.PLAIN_JWT
     }
 
     fun exportConfig() {
