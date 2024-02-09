@@ -31,13 +31,10 @@ import androidx.compose.ui.unit.sp
 import appLink
 import at.asitplus.wallet.app.common.WalletMain
 import globalBack
-import io.github.aakira.napier.Napier
 import kotlinx.coroutines.launch
 
 @Composable
 fun ConsentScreen(walletMain: WalletMain, onAccept: () -> Unit, onCancel: () -> Unit, recipientName: String, recipientLocation: String){
-    Napier.d("ConsentScreen")
-
     Column {
         Row(Modifier.height(80.dp).padding(10.dp).fillMaxWidth().background(color = MaterialTheme.colorScheme.background), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.Settings, contentDescription = null, Modifier.size(30.dp).clickable(onClick = {  }), tint = Color.LightGray.copy(alpha = 0f))

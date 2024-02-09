@@ -15,11 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.github.aakira.napier.Napier
 
 @Composable
 fun LoadingScreen(){
-    Napier.d("Show LoadingScreen")
     Column(
         modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.primaryContainer),
         verticalArrangement = Arrangement.Center,
