@@ -12,7 +12,8 @@ import data.storage.AntilogAdapter
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
 import io.github.aakira.napier.Napier
-import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 
 /**
  * Main class to hold all services needed in the Compose App.
@@ -32,7 +33,7 @@ class WalletMain(
     lateinit var presentationService: PresentationService
     lateinit var snackbarService: SnackbarService
     private val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
-    val scope = MainScope()
+    val scope = CoroutineScope(Dispatchers.Default)
     init {
         at.asitplus.wallet.idaustria.Initializer.initWithVcLib()
         Napier.takeLogarithm()
