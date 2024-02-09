@@ -81,9 +81,8 @@ var iosTestValue = Resources.IOS_TEST_VALUE
 
 @Composable
 fun App(walletMain: WalletMain) {
-    val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    val snackbarService = SnackbarService(scope, snackbarHostState)
+    val snackbarService = SnackbarService(walletMain.scope, snackbarHostState)
 
     try {
         walletMain.initialize(snackbarService)
