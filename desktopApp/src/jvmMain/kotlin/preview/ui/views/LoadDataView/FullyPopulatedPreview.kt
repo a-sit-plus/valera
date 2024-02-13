@@ -1,16 +1,15 @@
-package previews
+package preview.ui.views.LoadDataView
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.toMutableStateList
-import ui.views.LoadDataView
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import ui.views.LoadDataCategoryUiState
+import ui.views.LoadDataView
 
 private fun main() = application {
     Window(onCloseRequest = ::exitApplication) {
-        var newDataCategories = rememberSaveable {
+        val newDataCategories = rememberSaveable {
             mutableStateListOf(
                 LoadDataCategoryUiState(
                     categoryName = "Identitätsdaten",
@@ -26,7 +25,7 @@ private fun main() = application {
                 ),
             )
         }
-        var existingDataCategories = rememberSaveable {
+        val existingDataCategories = rememberSaveable {
             mutableStateListOf(
                 LoadDataCategoryUiState(
                     categoryName = "Identitätsdaten",
@@ -45,25 +44,27 @@ private fun main() = application {
         LoadDataView(
             navigateUp = {},
             newDataItems = newDataCategories,
-            setNewDataItemExpanded = { index, newValue ->
-                newDataCategories[index] = newDataCategories[index].copy(isExpanded = newValue)
+            toggleNewDataItemExpanded = { index ->
+                newDataCategories[index] = newDataCategories[index].copy(isExpanded = !newDataCategories[index].isExpanded)
             },
-            setNewDataItemSelection = {index, newValue ->
-                newDataCategories[index] = newDataCategories[index].copy(isSelected = newValue)
+            toggleNewDataItemSelection = {index ->
+                newDataCategories[index] = newDataCategories[index].copy(isSelected = !newDataCategories[index].isSelected)
             },
-            setAllNewDataItemSelections = { newValue ->
+            toggleAllNewDataItemSelections = {
+                val newValue = !newDataCategories.all { it.isSelected }
                 newDataCategories.indices.forEach { index ->
                     newDataCategories[index] = newDataCategories[index].copy(isSelected = newValue)
                 }
             },
             existingDataItems = existingDataCategories,
-            setExistingDataItemExpanded = { index, newValue ->
-                existingDataCategories[index] = existingDataCategories[index].copy(isExpanded = newValue)
+            toggleExistingDataItemExpanded = { index ->
+                existingDataCategories[index] = existingDataCategories[index].copy(isExpanded = !existingDataCategories[index].isExpanded)
             },
-            setExistingDataItemSelection = {index, newValue ->
-                existingDataCategories[index] = existingDataCategories[index].copy(isSelected = newValue)
+            toggleExistingDataItemSelection = {index ->
+                existingDataCategories[index] = existingDataCategories[index].copy(isSelected = !existingDataCategories[index].isSelected)
             },
-            setAllExistingDataItemSelections = { newValue ->
+            toggleAllExistingDataItemSelections = {
+                val newValue = !existingDataCategories.all { it.isSelected }
                 existingDataCategories.indices.forEach { index ->
                     existingDataCategories[index] = existingDataCategories[index].copy(isSelected = newValue)
                 }

@@ -1,4 +1,4 @@
-package previews
+package preview.ui.composables
 
 import ui.composables.DataDisplaySection
 import androidx.compose.ui.window.Window

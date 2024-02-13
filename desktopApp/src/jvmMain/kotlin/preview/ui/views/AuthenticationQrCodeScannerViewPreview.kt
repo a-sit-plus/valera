@@ -1,14 +1,14 @@
-package previews
+package preview.ui.views
 
-import ui.views.AuthenticationSuccessView
+import ui.views.AuthenticationQrCodeScannerView
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 
 private fun main() = application {
     Window(onCloseRequest = ::exitApplication) {
-        AuthenticationSuccessView(
+        AuthenticationQrCodeScannerView(
             navigateUp = {},
-            completeAuthentication = {},
+            navigateToConsentScreenWithResult = { name, location -> }
         )
     }
 }

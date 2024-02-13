@@ -1,19 +1,26 @@
+package preview
+
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
@@ -34,64 +41,8 @@ import ui.views.MyDataView
 import ui.views.ShowDataPage
 import ui.views.ShowDataView
 
-fun main() = application {
+private fun main() = application {
     Window(onCloseRequest = ::exitApplication) {
-//        AuthenticationConsentView(
-//            navigateUp = {},
-//            cancelAuthentication = {},
-//            loadMissingData = {},
-//            consentToDataTransmission = {},
-//            spName = "Test SP Name",
-//            spLocation = "Test SP Location",
-//            requestedAttributes = mapOf(
-//                PersonalDataCategory.IdentityData to listOf(
-//                    AttributeAvailability(
-//                        attributeName = "Vorname",
-//                        isAvailable = false,
-//                    ),
-//                    AttributeAvailability(
-//                        attributeName = "Nachname",
-//                        isAvailable = false,
-//                    ),
-//                    AttributeAvailability(
-//                        attributeName = "Aktuelles Foto aus zentralem Identitätsdokumentenregister",
-//                        isAvailable = false,
-//                    ),
-//                ),
-//                PersonalDataCategory.ResidencyData to listOf(
-//                    AttributeAvailability(
-//                        attributeName = "Straße",
-//                        isAvailable = false,
-//                    ),
-//                    AttributeAvailability(
-//                        attributeName = "Hausnummer",
-//                        isAvailable = false,
-//                    ),
-//                    AttributeAvailability(
-//                        attributeName = "Postleitzahl",
-//                        isAvailable = true,
-//                    ),
-//                    AttributeAvailability(
-//                        attributeName = "Ort",
-//                        isAvailable = true,
-//                    ),
-//                ),
-//            ).toList()
-//        )
-//        LabeledCheckbox(
-//            label = "Alle neuen Daten",
-//            checked = false,
-//            onCheckedChange = {
-//
-//            },
-//        )
-//        MainNavigationScreen()
-
-//        LabeledCheckboxPreview()
-//        MainView(
-//            objectFactory = JvmObjectFactory(),
-//            platformAdapter = JvmPlatformAdapter(),
-//        )
         PreviewNavigationScreen()
     }
 }
@@ -222,6 +173,7 @@ private enum class Route(
     ),
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PreviewNavigationScreen() {
     val navigationData = { page: Page ->
@@ -366,10 +318,15 @@ fun PreviewNavigationScreen() {
                     }
 
                     is AuthenticationConsentPage -> {
+                        val bottomSheetState = rememberModalBottomSheetState()
+                        var showBottomSheet by remember { mutableStateOf(false) }
+
                         AuthenticationConsentView(
                             navigateUp = globalBack,
                             cancelAuthentication = globalBack,
-                            consentToDataTransmission = {},
+                            consentToDataTransmission = {
+                                showBottomSheet = true
+                            },
                             loadMissingData = {
                                 globalBack()
 
@@ -386,6 +343,11 @@ fun PreviewNavigationScreen() {
                             requestedAttributes = page.requestedAttributes,
                             spName = page.spName,
                             spLocation = page.spLocation,
+                            bottomSheetState = bottomSheetState,
+                            showBottomSheet = showBottomSheet,
+                            onBottomSheetDismissRequest = {
+                                showBottomSheet = !showBottomSheet
+                            }
                         )
                     }
                 }

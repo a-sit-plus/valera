@@ -1,4 +1,4 @@
-package previews
+package preview.ui.composables
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable

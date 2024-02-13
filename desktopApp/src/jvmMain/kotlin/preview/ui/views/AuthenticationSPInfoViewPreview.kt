@@ -1,4 +1,4 @@
-package previews
+package preview.ui.views
 
 import ui.views.AuthenticationSPInfoView
 import androidx.compose.ui.window.Window

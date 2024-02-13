@@ -1,4 +1,4 @@
-package previews
+package preview.ui.views
 
 import ui.views.ShowDataView
 import androidx.compose.ui.window.Window

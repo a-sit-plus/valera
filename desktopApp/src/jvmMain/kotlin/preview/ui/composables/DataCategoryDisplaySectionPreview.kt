@@ -1,4 +1,4 @@
-package previews
+package preview.ui.composables
 
 import ui.composables.AttributeAvailability
 import ui.composables.DataCategoryDisplaySection

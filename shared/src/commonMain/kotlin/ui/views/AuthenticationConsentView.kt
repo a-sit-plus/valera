@@ -19,14 +19,18 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -57,6 +61,9 @@ fun AuthenticationConsentView(
     spName: String,
     spLocation: String,
     requestedAttributes: List<Pair<PersonalDataCategory, List<AttributeAvailability>>>,
+    showBottomSheet: Boolean,
+    bottomSheetState: SheetState,
+    onBottomSheetDismissRequest: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -186,7 +193,7 @@ fun AuthenticationConsentView(
                     }
                 }
                 if (hasMissingAttributes) {
-                    Card(
+                    ElevatedCard(
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
                         modifier = paddingModifier,
                     ) {
@@ -232,5 +239,23 @@ fun AuthenticationConsentView(
 //            contentScale = ContentScale.Crop,            // crop the image if it's not a square
 //            modifier = Modifier.clip(CircleShape)                       // clip to the circle shape
 //        )
+
+        if (showBottomSheet) {
+            ModalBottomSheet(
+                onDismissRequest = onBottomSheetDismissRequest,
+                sheetState = bottomSheetState,
+            ) {
+                Column {
+                    Row(
+                        verticalAlignment = Alignment.Top,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text("Biometrie entsperren")
+                    }
+
+                }
+            }
+        }
     }
 }

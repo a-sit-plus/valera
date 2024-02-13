@@ -1,4 +1,4 @@
-package previews
+package preview.ui.views
 
 import ui.views.MyDataView
 import ui.composables.IdentityData
