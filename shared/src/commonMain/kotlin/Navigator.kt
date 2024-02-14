@@ -4,7 +4,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
+import at.asitplus.wallet.lib.oidvci.decodeFromUrlQuery
+import io.ktor.http.Url
 import io.ktor.http.parseQueryString
+import io.ktor.util.flattenEntries
 import kotlinx.coroutines.launch
 import navigation.AboutPage
 import navigation.CameraPage
@@ -44,6 +48,8 @@ fun navigator(walletMain: WalletMain) {
             val parameterIndex = link.indexOfFirst { it == '?' }
             val pars = parseQueryString(link, startIndex = parameterIndex + 1)
 
+            //println(pars)
+
             if (pars.contains("error")) {
                 walletMain.errorService.emit(Exception(pars["error_description"].toString()))
                 appLink.value = null
@@ -51,8 +57,21 @@ fun navigator(walletMain: WalletMain) {
 
             val host = walletMain.walletConfig.host
             if (appLink.value?.contains("$host/mobile") == true){
+                val params = kotlin.runCatching {
+                    Url(link).parameters.flattenEntries().toMap().decodeFromUrlQuery<AuthenticationRequestParameters>()
+                }
+                println(params.getOrNull())
+
+                val requestedClaims = params.getOrNull()?.presentationDefinition?.inputDescriptors
+                    ?.mapNotNull { it.constraints }?.flatMap { it.fields?.toList() ?: listOf() }
+                    ?.flatMap { it.path.toList() }
+                    ?.filter { it != "$.type" }
+                    ?.filter { it != "$.mdoc.doctype" }
+                    ?.map { it.removePrefix("\$.mdoc.") }
+                    ?.map { it.removePrefix("\$.") }
+                    ?: listOf()
                 if (walletMain.subjectCredentialStore.credentialSize.value != 0) {
-                    navigationStack.push(ConsentPage())
+                    navigationStack.push(ConsentPage(requestedClaims))
                 } else {
                     walletMain.errorService.emit(Exception("NoCredentialException"))
                     appLink.value = null
@@ -62,6 +81,7 @@ fun navigator(walletMain: WalletMain) {
             if (appLink.value?.contains("$host/m1/login/oauth2/code/idaq?code=") == true) {
                 navigationStack.push(LoadingPage())
                 walletMain.scope.launch {
+
                     try {
                         walletMain.provisioningService.handleResponse(appLink.value.toString())
                         walletMain.snackbarService.showSnackbar(Resources.SNACKBAR_CREDENTIAL_LOADED_SUCCESSFULLY)
@@ -138,7 +158,8 @@ fun navigator(walletMain: WalletMain) {
                     onAccept = {navigationStack.push(HomePage())},
                     onCancel = {navigationStack.back()},
                     recipientName = "",
-                    recipientLocation = ""
+                    recipientLocation = "",
+                    claims = page.claims
                 )
             }
 

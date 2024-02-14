@@ -22,7 +22,7 @@ actual class CameraPage : Page, Parcelable
 actual class PayloadPage actual constructor(actual val info: String) : Page, Parcelable
 
 @Parcelize
-actual class ConsentPage : Page, Parcelable
+actual class ConsentPage actual constructor(actual val claims: List<String>): Page, Parcelable
 
 @Parcelize
 actual class LoadingPage : Page, Parcelable
