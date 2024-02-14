@@ -291,7 +291,9 @@ fun PreviewNavigationScreen() {
 
                     is InformationPage -> {
                         InformationView(
-                            resetApp = {}
+                            stage = "T",
+                            version = "1.0.0 / 2389237",
+                            resetApp = {},
                         )
                     }
 

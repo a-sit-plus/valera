@@ -1,9 +1,13 @@
 package ui.views
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SettingsBackupRestore
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -24,6 +28,8 @@ class InformationPage : Page
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InformationView(
+    stage: String,
+    version: String,
     resetApp: () -> Unit,
 ) {
     Scaffold(
@@ -37,31 +43,61 @@ fun InformationView(
                 },
             )
         },
-    ) {
-        Box(modifier = Modifier.padding(it)) {
-            Column(modifier = Modifier.padding(horizontal = 8.dp)) {
-                Text(
-                    text = "Aktionen",
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                TextButton(
-                    onClick = resetApp,
+        bottomBar = {
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
+                    .fillMaxWidth()
+            ) {
+                Text("Stage: $stage")
+                Text("Version: $version")
+            }
+        }
+    ) { scaffoldPadding ->
+        Box(modifier = Modifier.padding(scaffoldPadding)) {
+            Column(
+                modifier = Modifier.padding(end = 16.dp, start = 16.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                val layoutSpacingModifier = Modifier.padding(top = 24.dp)
+                Column(
+//                    modifier = layoutSpacingModifier // not for the first element
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
+                    val listSpacingModifier = Modifier.padding(top = 8.dp)
+                    Column(
+//                        modifier = listSpacingModifier, // not for the first element
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.SettingsBackupRestore,
-                            contentDescription = "App zurücksetzen",
-                            modifier = Modifier.alignByBaseline().padding(end = 4.dp),
-                        )
+                        val listItemSpacingModifier = Modifier.padding(top = 4.dp)
                         Text(
-                            "App zurücksetzen",
-                            modifier = Modifier.alignByBaseline(),
+                            text = "Aktionen",
+                            style = MaterialTheme.typography.titleMedium,
                         )
+                        TextButton(
+                            onClick = resetApp,
+                            modifier = listItemSpacingModifier,
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.SettingsBackupRestore,
+                                    contentDescription = "App zurücksetzen",
+                                    modifier = Modifier.alignByBaseline().padding(end = 4.dp),
+                                )
+                                Text(
+                                    "App zurücksetzen",
+                                    modifier = Modifier.alignByBaseline(),
+                                )
+                            }
+                        }
                     }
                 }
             }
         }
     }
+}
+
+@Composable
+fun ListIconButton() {
+
 }
