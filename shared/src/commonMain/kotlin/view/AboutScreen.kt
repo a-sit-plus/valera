@@ -51,7 +51,7 @@ fun AboutScreen(walletMain: WalletMain) {
         }
         var host by rememberSaveable {
             runBlocking {
-                mutableStateOf<String>(walletMain.walletConfig.host.first())
+                mutableStateOf(walletMain.walletConfig.host.first())
             }
         }
 

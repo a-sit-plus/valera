@@ -21,14 +21,14 @@ fun OnboardingWrapper(
 ) {
     val isConditionsAccepted by walletMain.walletConfig.isConditionsAccepted.collectAsState(null)
 
-    if (isConditionsAccepted != true) {
-        OnboardingScreenNavigator(
+    when (isConditionsAccepted) {
+        false -> OnboardingScreenNavigator(
             onOnboardingComplete = {
                 walletMain.walletConfig.set(isConditionsAccepted = true)
             },
         )
-    } else {
-        content()
+        true -> content()
+        null -> {}
     }
 }
 
