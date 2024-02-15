@@ -58,7 +58,6 @@ fun navigator(walletMain: WalletMain) {
                 val params = kotlin.runCatching {
                     Url(link).parameters.flattenEntries().toMap().decodeFromUrlQuery<AuthenticationRequestParameters>()
                 }
-                println(params.getOrNull())
 
                 val requestedClaims = params.getOrNull()?.presentationDefinition?.inputDescriptors
                     ?.mapNotNull { it.constraints }?.flatMap { it.fields?.toList() ?: listOf() }
