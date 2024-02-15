@@ -48,8 +48,6 @@ fun navigator(walletMain: WalletMain) {
             val parameterIndex = link.indexOfFirst { it == '?' }
             val pars = parseQueryString(link, startIndex = parameterIndex + 1)
 
-            //println(pars)
-
             if (pars.contains("error")) {
                 walletMain.errorService.emit(Exception(pars["error_description"].toString()))
                 appLink.value = null
