@@ -45,4 +45,5 @@ object Resources {
     const val LOCATION = "Location"
     const val REQUESTED_DATA = "Requested data"
     const val TRANSMIT_THIS_INFORMATION = "Would you like to transmit this information?"
+    const val UNKNOWN_EXCEPTION = "Unknown exception"
 }

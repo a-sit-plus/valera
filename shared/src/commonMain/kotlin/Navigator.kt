@@ -49,7 +49,7 @@ fun navigator(walletMain: WalletMain) {
             val pars = parseQueryString(link, startIndex = parameterIndex + 1)
 
             if (pars.contains("error")) {
-                walletMain.errorService.emit(Exception(pars["error_description"].toString()))
+                walletMain.errorService.emit(Exception(pars["error_description"] ?: Resources.UNKNOWN_EXCEPTION))
                 appLink.value = null
                 return@LaunchedEffect
             }
