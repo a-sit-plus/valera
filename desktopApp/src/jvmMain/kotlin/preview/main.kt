@@ -293,7 +293,11 @@ fun PreviewNavigationScreen() {
                         InformationView(
                             stage = "T",
                             version = "1.0.0 / 2389237",
-                            resetApp = {},
+                            onClickFAQs = {},
+                            onClickDataProtectionPolicy = {},
+                            onClickLicenses = {},
+                            onClickShareLogFile = {},
+                            onClickResetApp = {},
                         )
                     }
 

@@ -1,24 +1,28 @@
 package ui.views
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.SettingsBackupRestore
+import androidx.compose.material.icons.outlined.HelpOutline
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.SettingsBackupRestore
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import navigation.Page
@@ -30,7 +34,11 @@ class InformationPage : Page
 fun InformationView(
     stage: String,
     version: String,
-    resetApp: () -> Unit,
+    onClickFAQs: () -> Unit,
+    onClickDataProtectionPolicy: () -> Unit,
+    onClickLicenses: () -> Unit,
+    onClickShareLogFile: () -> Unit,
+    onClickResetApp: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -64,33 +72,76 @@ fun InformationView(
 //                    modifier = layoutSpacingModifier // not for the first element
                 ) {
                     val listSpacingModifier = Modifier.padding(top = 8.dp)
-                    Column(
+                    Text(
+                        text = "Informationen",
+                        style = MaterialTheme.typography.titleMedium,
 //                        modifier = listSpacingModifier, // not for the first element
-                    ) {
-                        val listItemSpacingModifier = Modifier.padding(top = 4.dp)
-                        Text(
-                            text = "Aktionen",
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                        TextButton(
-                            onClick = resetApp,
-                            modifier = listItemSpacingModifier,
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.SettingsBackupRestore,
-                                    contentDescription = "App zurücksetzen",
-                                    modifier = Modifier.alignByBaseline().padding(end = 4.dp),
-                                )
-                                Text(
-                                    "App zurücksetzen",
-                                    modifier = Modifier.alignByBaseline(),
-                                )
-                            }
-                        }
-                    }
+                    )
+                    TextIconButtonListItem(
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Outlined.HelpOutline,
+                                contentDescription = null,
+                            )
+                        },
+                        label = "FAQs",
+                        onClick = onClickFAQs,
+                        modifier = listSpacingModifier.fillMaxWidth(),
+                    )
+                    TextIconButtonListItem(
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Info,
+                                contentDescription = null,
+                            )
+                        },
+                        label = "Datenschutz-Policy",
+                        onClick = onClickDataProtectionPolicy,
+                        modifier = listSpacingModifier.fillMaxWidth(),
+                    )
+                    TextIconButtonListItem(
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Info,
+                                contentDescription = null,
+                            )
+                        },
+                        label = "Lizenzen",
+                        onClick = onClickLicenses,
+                        modifier = listSpacingModifier.fillMaxWidth(),
+                    )
+                }
+                Column(
+                    modifier = layoutSpacingModifier // not for the first element
+                ) {
+                    val listSpacingModifier = Modifier.padding(top = 8.dp)
+                    Text(
+                        text = "Aktionen",
+                        style = MaterialTheme.typography.titleMedium,
+//                        modifier = listSpacingModifier, // not for the first element
+                    )
+                    TextIconButtonListItem(
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Share,
+                                contentDescription = null,
+                            )
+                        },
+                        label = "Log-Datei teilen",
+                        onClick = onClickShareLogFile,
+                        modifier = listSpacingModifier.fillMaxWidth(),
+                    )
+                    TextIconButtonListItem(
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Outlined.SettingsBackupRestore,
+                                contentDescription = null,
+                            )
+                        },
+                        label = "App zurücksetzen",
+                        onClick = onClickResetApp,
+                        modifier = listSpacingModifier.fillMaxWidth(),
+                    )
                 }
             }
         }
@@ -98,6 +149,23 @@ fun InformationView(
 }
 
 @Composable
-fun ListIconButton() {
-
+private fun TextIconButtonListItem(
+    icon: @Composable () -> Unit,
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val gap = 16.dp
+    Row(
+        modifier = modifier.clickable(
+            onClick = onClick,
+        ).padding(top = 8.dp, end = 24.dp, bottom = 8.dp, start = 16.dp),
+    ) {
+        icon()
+        Spacer(modifier = Modifier.width(gap))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+        )
+    }
 }
