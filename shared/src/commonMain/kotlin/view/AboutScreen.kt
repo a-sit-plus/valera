@@ -36,9 +36,10 @@ import globalBack
 import kotlinx.coroutines.runBlocking
 
 @Composable
-fun AboutScreen(walletMain: WalletMain){
+fun AboutScreen(walletMain: WalletMain) {
     Column(
-        modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.primaryContainer),
+        modifier = Modifier.fillMaxSize()
+            .background(color = MaterialTheme.colorScheme.primaryContainer),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -48,16 +49,29 @@ fun AboutScreen(walletMain: WalletMain){
         }
         var host by remember { mutableStateOf(walletMain.walletConfig.host) }
 
-        Text(Resources.COMPOSE_WALLET, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-        Text(Resources.DEMO_APP, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+        Text(
+            Resources.COMPOSE_WALLET,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Text(
+            Resources.DEMO_APP,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
+        )
 
 
-        Box(Modifier.fillMaxWidth().padding(20.dp)){
-            Box(Modifier.clip(shape = RoundedCornerShape(10.dp)).background(color = Color.White).fillMaxWidth().padding(20.dp)){
+        Box(Modifier.fillMaxWidth().padding(20.dp)) {
+            Box(
+                Modifier.clip(shape = RoundedCornerShape(10.dp)).background(color = Color.White)
+                    .fillMaxWidth().padding(20.dp)
+            ) {
                 Column {
                     Text(Resources.VERSION + " : 0.0.1")
                     Text(Resources.ICONS_FROM + " : icons8.com")
-                    Text(Resources.PICTURES_FROM+ " : icons8.com")
+                    Text(Resources.PICTURES_FROM + " : icons8.com")
                     OutlinedTextField(
                         value = host,
                         onValueChange = { host = it },
@@ -97,7 +111,7 @@ fun AboutScreen(walletMain: WalletMain){
 }
 
 @Composable
-fun ResetAlert(showAlert: MutableState<Boolean>, walletMain: WalletMain){
+fun ResetAlert(showAlert: MutableState<Boolean>, walletMain: WalletMain) {
     AlertDialog(
         title = {
             Text(Resources.WARNING)
