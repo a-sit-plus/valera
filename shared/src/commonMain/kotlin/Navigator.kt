@@ -54,7 +54,7 @@ fun navigator(walletMain: WalletMain) {
             }
 
             val host = walletMain.walletConfig.host
-            if (appLink.value?.contains("$host/mobile") == true){
+            if (link.contains("$host/mobile") == true){
                 val params = kotlin.runCatching {
                     Url(link).parameters.flattenEntries().toMap().decodeFromUrlQuery<AuthenticationRequestParameters>()
                 }
