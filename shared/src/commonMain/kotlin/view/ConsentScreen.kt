@@ -1,6 +1,7 @@
 package view
 
 import Resources
+import Resources.ID_AUSTRIA_CREDENTIAL
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -60,9 +61,14 @@ fun ConsentScreen(walletMain: WalletMain, onAccept: () -> Unit, onCancel: () -> 
             Column(Modifier.fillMaxWidth(). padding(horizontal = 20.dp), horizontalAlignment = Alignment.Start) {
                 Text(Resources.REQUESTED_DATA, fontSize = 25.sp)
                 Spacer(modifier = Modifier.size(10.dp))
-                claims.forEach {
-                    Text(it, fontSize = 15.sp)
+                if (claims.size > 0) {
+                    claims.forEach {
+                        Text(it, fontSize = 15.sp)
+                    }
+                } else {
+                    Text(ID_AUSTRIA_CREDENTIAL, fontSize = 15.sp)
                 }
+
             }
         }
     }
