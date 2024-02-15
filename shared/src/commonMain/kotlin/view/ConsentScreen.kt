@@ -29,13 +29,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import appLink
 import at.asitplus.wallet.app.common.WalletMain
 import globalBack
 import kotlinx.coroutines.launch
 
 @Composable
-fun ConsentScreen(walletMain: WalletMain, onAccept: () -> Unit, onCancel: () -> Unit, recipientName: String, recipientLocation: String, claims: List<String>){
+fun ConsentScreen(walletMain: WalletMain, onAccept: () -> Unit, onCancel: () -> Unit, url:String, recipientName: String, recipientLocation: String, claims: List<String>){
     Column {
         Row(Modifier.height(80.dp).padding(10.dp).fillMaxWidth().background(color = MaterialTheme.colorScheme.background), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.Settings, contentDescription = null, Modifier.size(30.dp).clickable(onClick = {  }), tint = Color.LightGray.copy(alpha = 0f))
@@ -80,7 +79,6 @@ fun ConsentScreen(walletMain: WalletMain, onAccept: () -> Unit, onCancel: () -> 
             Row(modifier = Modifier.height(70.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
                 Button(
                     onClick = {
-                        appLink.value = null
                         onCancel()
                     }
                 ) {
@@ -90,11 +88,10 @@ fun ConsentScreen(walletMain: WalletMain, onAccept: () -> Unit, onCancel: () -> 
                     onClick = {
                         walletMain.scope.launch {
                             try {
-                                walletMain.presentationService.startSiop(appLink.value.toString())
+                                walletMain.presentationService.startSiop(url)
                             } catch (e: Throwable) {
                                 walletMain.errorService.emit(e)
                             }
-                            appLink.value = null
                             onAccept()
                         }
                     }
