@@ -51,6 +51,7 @@ fun navigator(walletMain: WalletMain) {
             if (pars.contains("error")) {
                 walletMain.errorService.emit(Exception(pars["error_description"].toString()))
                 appLink.value = null
+                return@LaunchedEffect
             }
 
             val host = walletMain.walletConfig.host
@@ -69,9 +70,11 @@ fun navigator(walletMain: WalletMain) {
                     ?: listOf()
                 if (walletMain.subjectCredentialStore.credentialSize.value != 0) {
                     navigationStack.push(ConsentPage(claims = requestedClaims, recipientName = "DemoService", recipientLocation = "DemoLocation"))
+                    return@LaunchedEffect
                 } else {
                     walletMain.errorService.emit(Exception("NoCredentialException"))
                     appLink.value = null
+                    return@LaunchedEffect
                 }
 
             }
@@ -89,6 +92,7 @@ fun navigator(walletMain: WalletMain) {
                         appLink.value = null
                     }
                 }
+                return@LaunchedEffect
             }
         }
     }
