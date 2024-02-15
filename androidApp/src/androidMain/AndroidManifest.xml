@@ -13,8 +13,7 @@
             android:exported="true"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|mnc|colorMode|density|fontScale|fontWeightAdjustment|keyboard|layoutDirection|locale|mcc|navigation|smallestScreenSize|touchscreen|uiMode"
             android:name=".MainActivity"
-            android:launchMode="singleInstance"
-        >
+            android:launchMode="singleInstance"> <!--Without singleInstance as launchMode the application shows up as new instance in the "Recents screen" after an intent -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
