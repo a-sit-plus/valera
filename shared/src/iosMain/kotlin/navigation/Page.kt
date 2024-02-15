@@ -12,6 +12,6 @@ actual class CameraPage : Page
 
 actual class PayloadPage actual constructor(actual val info: String) : Page
 
-actual class ConsentPage actual constructor(actual val claims: List<String>) : Page
+actual class ConsentPage actual constructor(actual val claims: List<String>, actual val recipientName: String, actual val recipientLocation: String) : Page
 
 actual class LoadingPage : Page

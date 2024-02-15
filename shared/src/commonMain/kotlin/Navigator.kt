@@ -69,7 +69,7 @@ fun navigator(walletMain: WalletMain) {
                     ?.map { it.removePrefix("\$.") }
                     ?: listOf()
                 if (walletMain.subjectCredentialStore.credentialSize.value != 0) {
-                    navigationStack.push(ConsentPage(requestedClaims))
+                    navigationStack.push(ConsentPage(claims = requestedClaims, recipientName = "DemoService", recipientLocation = "DemoLocation"))
                 } else {
                     walletMain.errorService.emit(Exception("NoCredentialException"))
                     appLink.value = null
@@ -155,8 +155,8 @@ fun navigator(walletMain: WalletMain) {
                     walletMain = walletMain,
                     onAccept = {navigationStack.push(HomePage())},
                     onCancel = {navigationStack.back()},
-                    recipientName = "",
-                    recipientLocation = "",
+                    recipientName = page.recipientName,
+                    recipientLocation = page.recipientLocation,
                     claims = page.claims
                 )
             }

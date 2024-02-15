@@ -54,8 +54,8 @@ fun ConsentScreen(walletMain: WalletMain, onAccept: () -> Unit, onCancel: () -> 
             Column(Modifier.fillMaxWidth(). padding(horizontal = 20.dp), horizontalAlignment = Alignment.Start) {
                 Text(Resources.RECIPIENT, fontSize = 25.sp)
                 Spacer(modifier = Modifier.size(10.dp))
-                Text(Resources.NAME, fontSize = 15.sp)
-                Text(Resources.LOCATION, fontSize = 15.sp)
+                Text(Resources.NAME + ": $recipientName", fontSize = 15.sp)
+                Text(Resources.LOCATION + ": $recipientLocation", fontSize = 15.sp)
             }
             Spacer(modifier = Modifier.size(20.dp))
             Column(Modifier.fillMaxWidth(). padding(horizontal = 20.dp), horizontalAlignment = Alignment.Start) {
