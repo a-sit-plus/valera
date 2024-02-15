@@ -12,6 +12,7 @@ import io.github.aakira.napier.Napier
 import java.security.KeyPair
 import java.security.KeyPairGenerator
 import java.security.KeyStore
+import java.security.PrivateKey
 import java.security.cert.Certificate
 import java.util.Date
 
@@ -30,6 +31,13 @@ class AndroidKeyStoreService : KeyStoreService, HolderKeyService {
     override fun loadKeyPair(): KeyPair? {
         try {
             Napier.d("loadKeyPair")
+            val keyStore = KeyStore.getInstance("AndroidKeyStore").apply { load(null, null) }
+            val key = keyStore.getKey(keyAlias, null)
+            val certificate = keyStore.getCertificate(keyAlias)
+            if (key != null && key is PrivateKey && certificate != null) {
+                return KeyPair(certificate.publicKey, key)
+            }
+
             val builder = KeyGenParameterSpec.Builder(keyAlias, PURPOSE_SIGN or PURPOSE_VERIFY)
                 .setKeySize(256)
                 .setDigests(KeyProperties.DIGEST_SHA256)
