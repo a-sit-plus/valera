@@ -179,7 +179,6 @@ fun navigator(walletMain: WalletMain) {
     }
 }
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun errorScreen(walletMain: WalletMain){
     Column(modifier = Modifier.fillMaxSize()) {
