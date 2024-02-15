@@ -87,11 +87,13 @@ fun navigator(walletMain: WalletMain) {
                         walletMain.provisioningService.handleResponse(appLink.value.toString())
                         walletMain.snackbarService.showSnackbar(Resources.SNACKBAR_CREDENTIAL_LOADED_SUCCESSFULLY)
                         navigationStack.back()
+
                     } catch (e: Throwable) {
                         navigationStack.back()
                         walletMain.errorService.emit(e)
-                        appLink.value = null
+
                     }
+                    appLink.value = null
                 }
                 return@LaunchedEffect
             }
