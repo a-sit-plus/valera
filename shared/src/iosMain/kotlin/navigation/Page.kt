@@ -11,3 +11,10 @@ actual class CameraPage : Page
 actual class PayloadPage actual constructor(actual val info: String) : Page
 
 actual class AppLinkPage : Page
+
+
+actual class OnboardingStartPage actual constructor() : OnboardingPage
+
+actual class OnboardingInformationPage actual constructor() : OnboardingPage
+
+actual class OnboardingTermsPage actual constructor() : OnboardingPage

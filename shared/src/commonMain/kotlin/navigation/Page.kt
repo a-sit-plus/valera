@@ -14,3 +14,13 @@ expect class PayloadPage(info: String) : Page {
     val info: String
 }
 expect class AppLinkPage() : Page
+
+
+
+interface OnboardingPage
+
+expect class OnboardingStartPage() : OnboardingPage
+
+expect class OnboardingInformationPage() : OnboardingPage
+
+expect class OnboardingTermsPage() : OnboardingPage

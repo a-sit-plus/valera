@@ -20,3 +20,16 @@ actual class PayloadPage actual constructor(actual val info: String) : Page, Par
 
 @Parcelize
 actual class AppLinkPage : Page, Parcelable
+
+
+
+
+
+@Parcelize
+actual class OnboardingStartPage actual constructor() : OnboardingPage, Parcelable
+
+@Parcelize
+actual class OnboardingInformationPage actual constructor() : OnboardingPage, Parcelable
+
+@Parcelize
+actual class OnboardingTermsPage actual constructor() : OnboardingPage, Parcelable
