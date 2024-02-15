@@ -14,7 +14,6 @@ object Resources {
     const val VERSION = "Version"
     const val CAMERA_ACCESS_DENIED = "Camera access denied"
     const val CREDENTIAL = "Credential"
-    const val UNKNOWN = "Unknown"
     const val DEMO_WALLET = "DemoWallet"
     const val ID_AUSTRIA_CREDENTIAL = "IDAustria Credential"
     const val WALLET = "Wallet"
