@@ -90,7 +90,11 @@ fun App(walletMain: WalletMain) {
             }
         ) { _ ->
             if (walletMain.errorService.showError.value == false){
-                navigator(walletMain)
+                OnboardingWrapper(
+                    walletMain = walletMain,
+                ) {
+                    navigator(walletMain)
+                }
             } else {
                 errorScreen(walletMain)
             }
