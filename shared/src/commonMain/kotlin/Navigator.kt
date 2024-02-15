@@ -44,7 +44,7 @@ fun navigator(walletMain: WalletMain) {
     globalBack = { navigationStack.back() }
 
     LaunchedEffect(appLink.value){
-        appLink.value?.let {val link = it
+        appLink.value?.let { link ->
             val parameterIndex = link.indexOfFirst { it == '?' }
             val pars = parseQueryString(link, startIndex = parameterIndex + 1)
 
