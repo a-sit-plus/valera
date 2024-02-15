@@ -79,12 +79,12 @@ fun navigator(walletMain: WalletMain) {
                 }
 
             }
-            if (appLink.value?.contains("$host/m1/login/oauth2/code/idaq?code=") == true) {
+            if (link.contains("$host/m1/login/oauth2/code/idaq?code=")) {
                 navigationStack.push(LoadingPage())
                 walletMain.scope.launch {
 
                     try {
-                        walletMain.provisioningService.handleResponse(appLink.value.toString())
+                        walletMain.provisioningService.handleResponse(link)
                         walletMain.snackbarService.showSnackbar(Resources.SNACKBAR_CREDENTIAL_LOADED_SUCCESSFULLY)
                         navigationStack.back()
 
