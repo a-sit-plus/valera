@@ -35,12 +35,14 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.Url
 import io.ktor.http.contentType
+import io.ktor.http.parseQueryString
 import io.ktor.serialization.kotlinx.json.json
 
 const val PATH_WELL_KNOWN_CREDENTIAL_ISSUER = "/.well-known/openid-credential-issuer"
 
 class ProvisioningService(val platformAdapter: PlatformAdapter, private val dataStoreService: DataStoreService, private val cryptoService: CryptoService, private val holderAgent: HolderAgent, private val config: WalletConfig, errorService: ErrorService) {
 
+    var redirectUri: String? = null
     private val cookieStorage = PersistentCookieStorage(dataStoreService, errorService)
     private val client = HttpClient {
         followRedirects = false
@@ -79,6 +81,9 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, private val data
             dataStoreService.setPreference(xAuthToken, Resources.DATASTORE_KEY_XAUTH)
 
             if (urlToOpen != null) {
+                val pars = parseQueryString(urlToOpen, startIndex = urlToOpen.indexOfFirst { it == '?' } + 1)
+                redirectUri = pars["redirect_uri"]
+                Napier.d("Set provisioningService.intentUrl to $redirectUri")
                 Napier.d("Open URL: $urlToOpen")
                 platformAdapter.openUrl(urlToOpen)
             } else {

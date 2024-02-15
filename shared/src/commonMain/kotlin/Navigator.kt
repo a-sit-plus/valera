@@ -79,7 +79,7 @@ fun navigator(walletMain: WalletMain) {
                 }
 
             }
-            if (link.contains("$host/m1/login/oauth2/code/idaq?code=")) {
+            if (walletMain.provisioningService.redirectUri?.let { link.contains(it) } == true) {
                 navigationStack.push(LoadingPage())
                 walletMain.scope.launch {
 
