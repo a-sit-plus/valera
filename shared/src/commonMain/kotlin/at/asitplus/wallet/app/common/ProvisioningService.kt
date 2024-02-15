@@ -37,6 +37,8 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.Url
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 
 const val PATH_WELL_KNOWN_CREDENTIAL_ISSUER = "/.well-known/openid-credential-issuer"
 
@@ -63,7 +65,7 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
     }
     @Throws(Throwable::class)
     suspend fun startProvisioning(){
-        val host = config.host
+        val host = config.host.first()
         cookieStorage.reset()
         Napier.d("Start provisioning")
 
@@ -91,8 +93,8 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
     }
     @Throws(Throwable::class)
     suspend fun handleResponse(url: String){
-        val host = config.host
-        val xAuthToken = dataStoreService.getData(Resources.DATASTORE_KEY_XAUTH)
+        val host = config.host.first()
+        val xAuthToken = dataStoreService.getData(Resources.DATASTORE_KEY_XAUTH).firstOrNull()
         if (xAuthToken == null){
             throw Exception("X-Auth-Token not available in DataStoreService")
         }

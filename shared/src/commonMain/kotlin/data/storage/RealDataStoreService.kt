@@ -7,14 +7,14 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import okio.Path.Companion.toPath
 
 interface DataStoreService {
     suspend fun setData(value: String, key: String)
-    suspend fun getData(key: String): String?
+    fun getData(key: String): Flow<String?>
     suspend fun deleteData(key: String)
-
 }
 class RealDataStoreService(private var dataStore: DataStore<Preferences>): DataStoreService{
     override suspend fun setData(value: String, key: String){
@@ -29,11 +29,11 @@ class RealDataStoreService(private var dataStore: DataStore<Preferences>): DataS
 
     }
 
-    override suspend fun getData(key: String): String? {
+    override fun getData(key: String): Flow<String?> {
         try {
             val dataStoreKey = stringPreferencesKey(key)
-            val preferences = dataStore.data.first()
-            return preferences[dataStoreKey]
+            val preferences = dataStore.data
+            return preferences.map { it[dataStoreKey] }
         } catch (e: Exception) {
             throw Exception("Unable to get data from DataStore")
         }
@@ -49,7 +49,6 @@ class RealDataStoreService(private var dataStore: DataStore<Preferences>): DataS
         } catch (e: Exception) {
             throw Exception("Unable to delete data from DataStore")
         }
-
     }
 }
 

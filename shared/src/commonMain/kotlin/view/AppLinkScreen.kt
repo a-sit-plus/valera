@@ -10,6 +10,10 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -18,13 +22,20 @@ import androidx.compose.ui.unit.sp
 import appLink
 import at.asitplus.wallet.app.common.WalletMain
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 
 @Composable
 fun AppLinkScreen(walletMain: WalletMain){
-    val host = walletMain.walletConfig.host
+    val host by rememberSaveable {
+        runBlocking {
+            mutableStateOf(walletMain.walletConfig.host.first())
+        }
+    }
 
-    Napier.d("Redirect: ${appLink.value}")
+    LaunchedEffect(true) {
+        Napier.d("Redirect: ${appLink.value}")
+    }
     Column(
         modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.primaryContainer),
         verticalArrangement = Arrangement.Center,

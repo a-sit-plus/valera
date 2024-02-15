@@ -1,16 +1,23 @@
 package data.storage
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
+
 class DummyDataStoreService: DataStoreService {
-    var memory: MutableMap<String, String> = mutableMapOf()
-    override suspend fun setData(value: String, key: String){
-        memory[key] = value
+    private var memory: MutableMap<String, MutableStateFlow<String?>> = mutableMapOf()
+
+    override suspend fun setData(value: String, key: String) {
+        memory.get(key)?.update { value }
     }
 
-    override suspend fun getData(key: String): String? {
-        return memory[key]
+    override fun getData(key: String): Flow<String?> {
+        return memory.getOrPut(key) {
+            MutableStateFlow(null)
+        }
     }
 
-    override suspend fun deleteData(key: String){
-        memory.remove(key)
+    override suspend fun deleteData(key: String) {
+        memory.get(key)?.update { null }
     }
 }

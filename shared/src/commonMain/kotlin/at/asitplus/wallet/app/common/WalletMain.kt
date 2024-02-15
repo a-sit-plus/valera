@@ -48,6 +48,7 @@ class WalletMain(
         dataStoreService.deleteData(Resources.DATASTORE_KEY_VCS)
         dataStoreService.deleteData(Resources.DATASTORE_KEY_XAUTH)
         dataStoreService.deleteData(Resources.DATASTORE_KEY_COOKIES)
+        dataStoreService.deleteData(Resources.DATASTORE_KEY_CONFIG)
 
         holderKeyService.clear()
     }

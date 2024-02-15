@@ -11,6 +11,7 @@ import at.asitplus.wallet.lib.data.VerifiableCredentialJws
 import at.asitplus.wallet.lib.data.VerifiableCredentialSdJwt
 import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.iso.IssuerSigned
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -118,7 +119,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
 
     private fun importFromDataStore(): StoreContainer{
         return runBlocking {
-            val input = dataStore.getData(Resources.DATASTORE_KEY_VCS)
+            val input = dataStore.getData(Resources.DATASTORE_KEY_VCS).firstOrNull()
             if (input == null){
                 StoreContainer(credentials = mutableListOf(), attachments = mutableListOf())
             } else {
