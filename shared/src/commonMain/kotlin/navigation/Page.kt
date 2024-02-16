@@ -15,4 +15,11 @@ expect class CameraPage() : Page
 expect class PayloadPage(info: String) : Page {
     val info: String
 }
-expect class AppLinkPage() : Page
+expect class ConsentPage(url: String, claims: List<String>, recipientName: String, recipientLocation: String): Page {
+    val url: String
+    val claims: List<String>
+    val recipientName: String
+    val recipientLocation: String
+}
+
+expect class LoadingPage(): Page

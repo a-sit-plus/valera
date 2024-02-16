@@ -1,12 +1,12 @@
 package data.storage
 
 import Resources
+import androidx.compose.runtime.mutableStateOf
 import at.asitplus.KmmResult
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.SelectiveDisclosureItem
-import at.asitplus.wallet.lib.data.VerifiableCredential
 import at.asitplus.wallet.lib.data.VerifiableCredentialJws
 import at.asitplus.wallet.lib.data.VerifiableCredentialSdJwt
 import at.asitplus.wallet.lib.data.jsonSerializer
@@ -16,7 +16,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 
 class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) : SubjectCredentialStore {
-
+    val credentialSize = mutableStateOf(0)
     private val container = importFromDataStore()
 
     override suspend fun storeCredential(
@@ -114,13 +114,13 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
 
         val json = jsonSerializer.encodeToString(exportableContainer)
         dataStore.setPreference(key = Resources.DATASTORE_KEY_VCS, value = json)
+        credentialSize.value = container.credentials.size
     }
 
     private fun importFromDataStore(): StoreContainer{
-        return runBlocking {
-            val input = dataStore.getPreference(Resources.DATASTORE_KEY_VCS)
+            val input = runBlocking { dataStore.getPreference(Resources.DATASTORE_KEY_VCS) }
             if (input == null){
-                StoreContainer(credentials = mutableListOf(), attachments = mutableListOf())
+                return StoreContainer(credentials = mutableListOf(), attachments = mutableListOf())
             } else {
                 val export: ExportableStoreContainer = jsonSerializer.decodeFromString(input)
                 val credentials = mutableListOf<SubjectCredentialStore.StoreEntry>()
@@ -158,9 +158,9 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
                 export.attachments.forEach {
                     attachments.add(SubjectCredentialStore.AttachmentEntry(name = it.name, data = it.data, vcId = it.vcId))
                 }
-                StoreContainer(credentials, attachments)
+                credentialSize.value = credentials.size
+                return StoreContainer(credentials, attachments)
             }
-        }
     }
 
     suspend fun reset(){
@@ -169,42 +169,53 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         exportToDataStore()
     }
 
-    suspend fun getCredentialById(id: String): VerifiableCredential? {
-        val storeEntries = getCredentials(null).getOrThrow()
-        storeEntries.forEach { entry ->
-            if (entry is SubjectCredentialStore.StoreEntry.Vc) {
-                if (entry.vc.vc.id == id) {
-                    return entry.vc.vc
+    suspend fun removeStoreEntryById(id: String) {
+        container.credentials.removeAll{ entry ->
+            when (entry) {
+                is SubjectCredentialStore.StoreEntry.Vc -> {
+                    (entry.vc.jwtId == id)
                 }
-            }
-        }
-        return null
-    }
-
-    suspend fun removeCredential(id: String) {
-        container.credentials.forEach { entry ->
-            if (entry is SubjectCredentialStore.StoreEntry.Vc) {
-                if (entry.vc.vc.id == id) {
-                    container.credentials.remove(entry)
+                is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                    (entry.sdJwt.jwtId == id)
+                }
+                is SubjectCredentialStore.StoreEntry.Iso -> {
+                    false
                 }
             }
         }
         exportToDataStore()
     }
 
-    fun getVcs(): ArrayList<VerifiableCredential> {
-        val credentialList = ArrayList<VerifiableCredential>()
-        container.credentials.forEach { entry ->
+     fun getStoreEntryById(id: String): SubjectCredentialStore.StoreEntry? {
+         container.credentials.forEach { entry ->
             when (entry) {
-                is SubjectCredentialStore.StoreEntry.Iso -> TODO()
                 is SubjectCredentialStore.StoreEntry.Vc -> {
-                    credentialList.add(entry.vc.vc)
+                    if (entry.vc.jwtId == id) {
+                        return entry
+                    }
                 }
-                is SubjectCredentialStore.StoreEntry.SdJwt -> TODO()
+                is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                    if (entry.sdJwt.jwtId == id) {
+                        return entry
+                    }
+                }
+                is SubjectCredentialStore.StoreEntry.Iso -> {
+                    TODO()
+                }
             }
+
         }
-        return credentialList
+        return null
     }
+
+    fun getStoreEntries(): MutableList<SubjectCredentialStore.StoreEntry> {
+        return container.credentials
+    }
+
+    fun getCredentialSize(): Int {
+        return container.credentials.size
+    }
+
 }
 
 data class StoreContainer(val credentials: MutableList<SubjectCredentialStore.StoreEntry>, val attachments: MutableList<SubjectCredentialStore.AttachmentEntry>)
@@ -246,9 +257,7 @@ data class ExportableAttachmentEntry(val name: String, val data: ByteArray, val 
 
         if (name != other.name) return false
         if (!data.contentEquals(other.data)) return false
-        if (vcId != other.vcId) return false
-
-        return true
+        return vcId == other.vcId
     }
 
     override fun hashCode(): Int {

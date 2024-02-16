@@ -5,7 +5,6 @@ import Resources
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.Holder
 import at.asitplus.wallet.lib.agent.HolderAgent
-import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.oidc.OpenIdConstants.TOKEN_PREFIX_BEARER
 import at.asitplus.wallet.lib.oidvci.CredentialFormatEnum
 import at.asitplus.wallet.lib.oidvci.CredentialResponseParameters
@@ -36,12 +35,14 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.Url
 import io.ktor.http.contentType
+import io.ktor.http.parseQueryString
 import io.ktor.serialization.kotlinx.json.json
 
 const val PATH_WELL_KNOWN_CREDENTIAL_ISSUER = "/.well-known/openid-credential-issuer"
 
-class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreService: DataStoreService, val cryptoService: CryptoService, val holderAgent: HolderAgent, val config: WalletConfig, errorService: ErrorService) {
+class ProvisioningService(val platformAdapter: PlatformAdapter, private val dataStoreService: DataStoreService, private val cryptoService: CryptoService, private val holderAgent: HolderAgent, private val config: WalletConfig, errorService: ErrorService) {
 
+    var redirectUri: String? = null
     private val cookieStorage = PersistentCookieStorage(dataStoreService, errorService)
     private val client = HttpClient {
         followRedirects = false
@@ -80,6 +81,9 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
             dataStoreService.setPreference(xAuthToken, Resources.DATASTORE_KEY_XAUTH)
 
             if (urlToOpen != null) {
+                val pars = parseQueryString(urlToOpen, startIndex = urlToOpen.indexOfFirst { it == '?' } + 1)
+                redirectUri = pars["redirect_uri"]
+                Napier.d("Set provisioningService.intentUrl to $redirectUri")
                 Napier.d("Open URL: $urlToOpen")
                 platformAdapter.openUrl(urlToOpen)
             } else {
@@ -93,6 +97,7 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
     suspend fun handleResponse(url: String){
         val host = config.host
         val xAuthToken = dataStoreService.getPreference(Resources.DATASTORE_KEY_XAUTH)
+        val credentialRepresentation = config.credentialRepresentation
         if (xAuthToken == null){
             throw Exception("X-Auth-Token not available in DataStoreService")
         }
@@ -110,7 +115,7 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, val dataStoreSer
             credentialScheme = at.asitplus.wallet.idaustria.IdAustriaScheme,
             clientId = "$host/m1",
             cryptoService = cryptoService,
-            credentialRepresentation = ConstantIndex.CredentialRepresentation.PLAIN_JWT
+            credentialRepresentation = credentialRepresentation
         )
 
         Napier.d("Oid4vciService.createAuthRequest")

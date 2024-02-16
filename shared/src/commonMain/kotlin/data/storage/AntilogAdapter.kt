@@ -10,7 +10,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
 class AntilogAdapter(val platformAdapter: PlatformAdapter, private val defaultTag: String): Antilog() {
-    val debugAntilogAdapter = DebugAntilog(defaultTag = defaultTag)
+    private val debugAntilogAdapter = DebugAntilog(defaultTag = defaultTag)
 
     /**
      * Modified from DebugAntiLog

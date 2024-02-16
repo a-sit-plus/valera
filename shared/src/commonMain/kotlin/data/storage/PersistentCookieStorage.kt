@@ -24,7 +24,7 @@ import kotlin.jvm.JvmName
 import kotlin.math.min
 
 // Modified from io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
-class PersistentCookieStorage(private val dataStoreService: DataStoreService, val errorService: ErrorService): CookiesStorage{
+class PersistentCookieStorage(private val dataStoreService: DataStoreService, private val errorService: ErrorService): CookiesStorage{
     private val container = importFromDataStore()
     private val mutex = Mutex()
 

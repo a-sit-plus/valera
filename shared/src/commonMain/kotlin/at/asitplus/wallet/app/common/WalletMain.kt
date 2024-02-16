@@ -7,10 +7,13 @@ import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
+import at.asitplus.wallet.lib.data.ConstantIndex
 import data.storage.AntilogAdapter
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 
 /**
  * Main class to hold all services needed in the Compose App.
@@ -29,6 +32,8 @@ class WalletMain(
     lateinit var provisioningService: ProvisioningService
     lateinit var presentationService: PresentationService
     lateinit var snackbarService: SnackbarService
+    private val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
+    val scope = CoroutineScope(Dispatchers.Default)
     init {
         at.asitplus.wallet.idaustria.Initializer.initWithVcLib()
         Napier.takeLogarithm()
@@ -57,15 +62,13 @@ class WalletMain(
         dataStoreService.deletePreference(Resources.DATASTORE_KEY_CONFIG)
 
         walletConfig.host = "https://wallet.a-sit.at"
+        walletConfig.credentialRepresentation = ConstantIndex.CredentialRepresentation.PLAIN_JWT
     }
 
     fun getLog(): List<String>{
         val rawLog = platformAdapter.readFromFile("log.txt", "logs")
-        var list: List<String>
         if (rawLog != null) {
-            val regex = Regex("(?<=\\n)(?=[\\[][0-9]{2}[:][0-9]{2}[\\]])")
-            list = rawLog.split(regex = regex)
-            return list
+            return rawLog.split(regex = regex).filter { it.isNotEmpty() }
         } else {
             return listOf("")
         }

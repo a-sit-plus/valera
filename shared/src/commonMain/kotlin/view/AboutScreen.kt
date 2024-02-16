@@ -14,6 +14,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -33,9 +37,11 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.lib.data.ConstantIndex
 import globalBack
 import kotlinx.coroutines.runBlocking
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(onShowLog: () -> Unit, walletMain: WalletMain) {
     Column(
@@ -49,6 +55,7 @@ fun AboutScreen(onShowLog: () -> Unit, walletMain: WalletMain) {
             ResetAlert(showAlert, walletMain)
         }
         var host by remember { mutableStateOf(walletMain.walletConfig.host) }
+        var credentialRepresentation by remember { mutableStateOf(walletMain.walletConfig.credentialRepresentation) }
 
         Column(
             modifier = Modifier.background(color = MaterialTheme.colorScheme.secondaryContainer)
@@ -79,13 +86,56 @@ fun AboutScreen(onShowLog: () -> Unit, walletMain: WalletMain) {
                                 imeAction = ImeAction.Done
                             )
                         )
-                    }
+                        var showMenu by remember { mutableStateOf(false) }
 
+                        ExposedDropdownMenuBox(
+                            expanded = showMenu,
+                            onExpandedChange = { showMenu = !showMenu }
+                        ) {
+                            OutlinedTextField(
+                                modifier = Modifier.menuAnchor(),
+                                readOnly = true,
+                                value = credentialRepresentation.name,
+                                onValueChange = {},
+                                label = { Text("Credential Representation") },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = showMenu) },
+                            )
+                            ExposedDropdownMenu(
+                                expanded = showMenu,
+                                onDismissRequest = {
+                                    showMenu = false
+                                },
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("PLAIN_JWT") },
+                                    onClick = {
+                                        credentialRepresentation =
+                                            ConstantIndex.CredentialRepresentation.PLAIN_JWT
+                                        showMenu = false
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("SD_JWT") },
+                                    onClick = {
+                                        credentialRepresentation =
+                                            ConstantIndex.CredentialRepresentation.SD_JWT
+                                        showMenu = false
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("ISO_MDOC") },
+                                    onClick = {
+                                        credentialRepresentation =
+                                            ConstantIndex.CredentialRepresentation.ISO_MDOC
+                                        showMenu = false
+                                    }
+                                )
+                            }
+                        }
+
+                    }
                 }
             }
-
-
-
             Row(modifier = Modifier.padding(vertical = 24.dp)) {
                 Button(
                     modifier = Modifier.padding(horizontal = 10.dp),
@@ -108,23 +158,13 @@ fun AboutScreen(onShowLog: () -> Unit, walletMain: WalletMain) {
                     .padding(vertical = 24.dp),
                 onClick = {
                     walletMain.walletConfig.host = host
+                    walletMain.walletConfig.credentialRepresentation = credentialRepresentation
                     walletMain.walletConfig.exportConfig()
                     globalBack()
                 }
             ) {
                 Text(Resources.BUTTON_CLOSE)
             }
-        }
-        Button(
-            modifier = Modifier
-                .padding(vertical = 24.dp),
-            onClick = {
-                walletMain.walletConfig.host = host
-                walletMain.walletConfig.exportConfig()
-                globalBack()
-            }
-        ) {
-            Text(Resources.BUTTON_CLOSE)
         }
     }
 }
@@ -164,3 +204,5 @@ fun ResetAlert(showAlert: MutableState<Boolean>, walletMain: WalletMain) {
         }
     )
 }
+
+
