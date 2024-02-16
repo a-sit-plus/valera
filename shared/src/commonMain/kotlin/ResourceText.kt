@@ -1,5 +1,5 @@
 object Resources {
-    const val ADD_ID_TEXT = "To add an ID, login on https://abcd.at/xyz/ with a secondary deivce and scan the displayed QR code."
+    const val ADD_ID_TEXT = "To add an ID, login on https://abcd.at/xyz/ with a secondary device and scan the displayed QR code."
     const val BUTTON_SCAN_QR = "Scan QR-Code"
     const val BUTTON_LOGIN_ID_AUSTRIA = "Login with ID Austria"
     const val CHOOSE_NEXT_STEP = "Choose next step"
