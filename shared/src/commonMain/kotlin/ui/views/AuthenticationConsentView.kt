@@ -1,5 +1,6 @@
 package ui.views
 
+import Resources
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,6 +45,7 @@ import ui.composables.DataDisplaySection
 import ui.composables.OutlinedTextIconButton
 import ui.composables.PersonalDataCategory
 import ui.composables.TextIconButton
+import ui.composables.buttons.BackNavigationButton
 
 class AuthenticationConsentPage(
     val spName: String,
@@ -70,19 +72,12 @@ fun AuthenticationConsentView(
             TopAppBar(
                 title = {
                     Text(
-                        "Zurück",
+                        Resources.HEADING_LABEL_NAVIGATE_BACK,
                         style = MaterialTheme.typography.titleLarge,
                     )
                 },
                 navigationIcon = {
-                    IconButton(
-                        onClick = navigateUp
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Navigate Back",
-                        )
-                    }
+                    BackNavigationButton(navigateUp)
                 },
             )
         },
@@ -116,7 +111,7 @@ fun AuthenticationConsentView(
                                 icon = {
                                     Icon(
                                         imageVector = Icons.Default.Download,
-                                        contentDescription = "Daten nachladen",
+                                        contentDescription = null,
                                     )
                                 },
                                 text = {
@@ -132,7 +127,7 @@ fun AuthenticationConsentView(
                                 icon = {
                                     Icon(
                                         imageVector = Icons.Default.Done,
-                                        contentDescription = "Zustimmen",
+                                        contentDescription = null,
                                     )
                                 },
                                 text = {
@@ -159,7 +154,7 @@ fun AuthenticationConsentView(
                             icon = {
                                 Icon(
                                     imageVector = Icons.Default.Close,
-                                    contentDescription = "Abbrechen",
+                                    contentDescription = null,
                                 )
                             },
                             text = {
@@ -174,9 +169,7 @@ fun AuthenticationConsentView(
             }
         }
     ) {
-        Box(
-            modifier = Modifier.padding(it)
-        ) {
+        Box(modifier = Modifier.padding(it)) {
             Column(
                 modifier = Modifier.padding(horizontal = 16.dp)
                     .verticalScroll(state = rememberScrollState()),

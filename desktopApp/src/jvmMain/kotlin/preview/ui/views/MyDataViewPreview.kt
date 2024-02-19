@@ -11,7 +11,7 @@ import ui.composables.DrivingData
 private fun main() = application {
     Window(onCloseRequest = ::exitApplication) {
         MyDataView(
-            addCredentials = {},
+            refreshCredentials = {},
             identityData = IdentityData(
                 name = "Max Mustermann",
                 birthdate = LocalDate(year = 1990, monthNumber = 1, dayOfMonth = 1),

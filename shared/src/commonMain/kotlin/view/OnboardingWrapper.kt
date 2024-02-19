@@ -1,3 +1,5 @@
+package view
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -10,9 +12,6 @@ import navigation.OnboardingInformationPage
 import navigation.OnboardingPage
 import navigation.OnboardingStartPage
 import navigation.OnboardingTermsPage
-import view.OnboardingInformationScreen
-import view.OnboardingStartScreen
-import view.OnboardingTermsScreen
 
 @Composable
 fun OnboardingWrapper(
@@ -22,18 +21,18 @@ fun OnboardingWrapper(
     val isConditionsAccepted by walletMain.walletConfig.isConditionsAccepted.collectAsState(null)
 
     when (isConditionsAccepted) {
-        false -> OnboardingScreenNavigator(
+        null -> {}
+        true -> content()
+        false -> OnboardingNavigator(
             onOnboardingComplete = {
                 walletMain.walletConfig.set(isConditionsAccepted = true)
             },
         )
-        true -> content()
-        null -> {}
     }
 }
 
 @Composable
-fun OnboardingScreenNavigator(
+fun OnboardingNavigator(
     onOnboardingComplete: () -> Unit,
 ) {
     // Modified from https://github.com/JetBrains/compose-multiplatform/tree/master/examples/imageviewer

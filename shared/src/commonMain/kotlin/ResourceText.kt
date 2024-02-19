@@ -42,6 +42,7 @@ object Resources {
     const val BUTTON_LABEL_CONTINUE = "Weiter"
     const val BUTTON_LABEL_ACCEPT = "Akzeptieren"
     const val BUTTON_LABEL_DETAILS = "Details"
+    const val BUTTOM_LABEL_LOAD_DATA = "Daten laden"
 
     const val HEADING_LABEL_INFORMATION = "Information"
     const val HEADING_LABEL_NAVIGATE_BACK = "Zurück"

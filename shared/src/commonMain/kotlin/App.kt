@@ -32,7 +32,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
-import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -44,13 +43,13 @@ import navigation.HomePage
 import navigation.NavigationStack
 import navigation.Page
 import navigation.PayloadPage
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import ui.theme.WalletTheme
 import view.AboutScreen
 import view.AppLinkScreen
 import view.CameraView
 import view.CredentialScreen
 import view.HomeScreen
+import view.OnboardingWrapper
 import view.PayloadScreen
 
 
@@ -72,14 +71,14 @@ var appLink = mutableStateOf<String?>(null)
 var iosTestValue = Resources.IOS_TEST_VALUE
 
 @Composable
-fun App(walletMain: WalletMain) {
+fun App0(walletMain: WalletMain) {
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val snackbarService = SnackbarService(scope, snackbarHostState)
 
     try {
         walletMain.initialize(snackbarService)
-    } catch (e: Exception){
+    } catch (e: Exception) {
         walletMain.errorService.emit(e)
     }
 
@@ -89,7 +88,7 @@ fun App(walletMain: WalletMain) {
                 SnackbarHost(hostState = snackbarHostState)
             }
         ) { _ ->
-            if (walletMain.errorService.showError.value == false){
+            if (walletMain.errorService.showError.value == false) {
                 OnboardingWrapper(
                     walletMain = walletMain,
                 ) {
@@ -176,7 +175,6 @@ fun navigator(walletMain: WalletMain) {
                     AppLinkScreen(
                         walletMain = walletMain
                     )
-
                 }
             }
         }
@@ -184,13 +182,32 @@ fun navigator(walletMain: WalletMain) {
 }
 
 @Composable
-fun errorScreen(walletMain: WalletMain){
+fun errorScreen(walletMain: WalletMain) {
     Column(modifier = Modifier.fillMaxSize()) {
-        Row(Modifier.padding(10.dp).height(80.dp).fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-            Text("Error", color = MaterialTheme.colorScheme.primary, fontSize = 40.sp, fontWeight = FontWeight.Bold)
+        Row(
+            Modifier.padding(10.dp).height(80.dp).fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                "Error",
+                color = MaterialTheme.colorScheme.primary,
+                fontSize = 40.sp,
+                fontWeight = FontWeight.Bold
+            )
         }
-        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.primaryContainer)) {
-            Icon(Icons.Default.Warning, contentDescription = null, Modifier.size(100.dp), tint = MaterialTheme.colorScheme.error)
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxSize()
+                .background(color = MaterialTheme.colorScheme.primaryContainer)
+        ) {
+            Icon(
+                Icons.Default.Warning,
+                contentDescription = null,
+                Modifier.size(100.dp),
+                tint = MaterialTheme.colorScheme.error
+            )
             Text(walletMain.errorService.errorText.value, modifier = Modifier.padding(20.dp))
             Button(
                 modifier = Modifier

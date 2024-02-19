@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -16,7 +16,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import kotlinx.datetime.LocalDate
 import navigation.Page
 import ui.composables.AgeData
 import ui.composables.DrivingData
@@ -25,12 +24,12 @@ import ui.composables.PersonAgeDataDetailCard
 import ui.composables.PersonDrivingDataDetailCard
 import ui.composables.PersonIdentityDataDetailCard
 
-class MyDataPage : Page
+class HomePage : Page
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyDataView(
-    addCredentials: () -> Unit,
+    refreshCredentials: () -> Unit,
     identityData: IdentityData? = null,
     ageData: AgeData? = null,
     drivingData: DrivingData? = null,
@@ -51,11 +50,11 @@ fun MyDataView(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = addCredentials,
+                onClick = refreshCredentials,
             ) {
                 Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add more credentials",
+                    imageVector = Icons.Default.Refresh,
+                    contentDescription = "Refresh Credentials",
                 )
             }
         }

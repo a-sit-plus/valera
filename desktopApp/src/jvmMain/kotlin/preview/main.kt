@@ -36,7 +36,7 @@ import ui.views.AuthenticationSPInfoPage
 import ui.views.AuthenticationSPInfoView
 import ui.views.InformationPage
 import ui.views.InformationView
-import ui.views.MyDataPage
+import ui.views.HomePage
 import ui.views.MyDataView
 import ui.views.ShowDataPage
 import ui.views.ShowDataView
@@ -131,10 +131,10 @@ private enum class Route(
                 contentDescription = "Meine Daten ansehen",
             )
         },
-        destination = MyDataPage(),
+        destination = HomePage(),
         isActive = {
             when(it) {
-                is MyDataPage -> true
+                is HomePage -> true
                 else -> false
             }
         },
@@ -178,7 +178,7 @@ private enum class Route(
 fun PreviewNavigationScreen() {
     val navigationData = { page: Page ->
         when(page) {
-            is MyDataPage -> {
+            is HomePage -> {
                 Route.MY_DATA_SCREEN
             }
             is ShowDataPage -> {
@@ -197,7 +197,7 @@ fun PreviewNavigationScreen() {
             save = { it.stack },
         )
     ) {
-        NavigationStack(MyDataPage())
+        NavigationStack(HomePage())
     }
     val globalBack = {
         navigationStack.back()
@@ -233,9 +233,9 @@ fun PreviewNavigationScreen() {
         Box(modifier = Modifier.padding(it)) {
             AnimatedContent(targetState = navigationStack.lastWithIndex()) { (_, page) ->
                 when (page) {
-                    is MyDataPage -> {
+                    is HomePage -> {
                         MyDataView(
-                            addCredentials = {}
+                            refreshCredentials = {}
                         )
                     }
 
