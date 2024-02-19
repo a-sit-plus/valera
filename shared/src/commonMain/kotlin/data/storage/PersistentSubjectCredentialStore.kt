@@ -11,7 +11,9 @@ import at.asitplus.wallet.lib.data.VerifiableCredentialJws
 import at.asitplus.wallet.lib.data.VerifiableCredentialSdJwt
 import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.iso.IssuerSigned
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -117,50 +119,53 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         dataStore.setData(key = Resources.DATASTORE_KEY_VCS, value = json)
     }
 
-    private fun importFromDataStore(): StoreContainer{
-        return runBlocking {
-            val input = dataStore.getData(Resources.DATASTORE_KEY_VCS).firstOrNull()
-            if (input == null){
-                StoreContainer(credentials = mutableListOf(), attachments = mutableListOf())
-            } else {
-                val export: ExportableStoreContainer = jsonSerializer.decodeFromString(input)
-                val credentials = mutableListOf<SubjectCredentialStore.StoreEntry>()
-                val attachments = mutableListOf<SubjectCredentialStore.AttachmentEntry>()
+    private fun dataStoreValueToStoreContainer(input: String?): StoreContainer {
+        return if (input == null){
+            StoreContainer(credentials = mutableListOf(), attachments = mutableListOf())
+        } else {
+            val export: ExportableStoreContainer = jsonSerializer.decodeFromString(input)
+            val credentials = mutableListOf<SubjectCredentialStore.StoreEntry>()
+            val attachments = mutableListOf<SubjectCredentialStore.AttachmentEntry>()
 
-                export.credentials.forEach {
-                    val scheme: ConstantIndex.CredentialScheme
-                    when (it) {
-                        is ExportableStoreEntry.Iso -> {
-                            scheme = when (it.scheme){
-                                ExportableCredentialScheme.AtomicAttribute2023 -> ConstantIndex.AtomicAttribute2023
-                                ExportableCredentialScheme.MobileDrivingLicence2023 -> ConstantIndex.MobileDrivingLicence2023
-                                ExportableCredentialScheme.IdAustriaScheme -> IdAustriaScheme
-                            }
-                            credentials.add(SubjectCredentialStore.StoreEntry.Iso(it.issuerSigned, scheme))
+            export.credentials.forEach {
+                val scheme: ConstantIndex.CredentialScheme
+                when (it) {
+                    is ExportableStoreEntry.Iso -> {
+                        scheme = when (it.scheme){
+                            ExportableCredentialScheme.AtomicAttribute2023 -> ConstantIndex.AtomicAttribute2023
+                            ExportableCredentialScheme.MobileDrivingLicence2023 -> ConstantIndex.MobileDrivingLicence2023
+                            ExportableCredentialScheme.IdAustriaScheme -> IdAustriaScheme
                         }
-                        is ExportableStoreEntry.SdJwt -> {
-                            scheme = when (it.scheme){
-                                ExportableCredentialScheme.AtomicAttribute2023 -> ConstantIndex.AtomicAttribute2023
-                                ExportableCredentialScheme.MobileDrivingLicence2023 -> ConstantIndex.MobileDrivingLicence2023
-                                ExportableCredentialScheme.IdAustriaScheme -> IdAustriaScheme
-                            }
-                            credentials.add(SubjectCredentialStore.StoreEntry.SdJwt(vcSerialized = it.vcSerialized, sdJwt = it.sdJwt, disclosures = it.disclosures, scheme = scheme))
+                        credentials.add(SubjectCredentialStore.StoreEntry.Iso(it.issuerSigned, scheme))
+                    }
+                    is ExportableStoreEntry.SdJwt -> {
+                        scheme = when (it.scheme){
+                            ExportableCredentialScheme.AtomicAttribute2023 -> ConstantIndex.AtomicAttribute2023
+                            ExportableCredentialScheme.MobileDrivingLicence2023 -> ConstantIndex.MobileDrivingLicence2023
+                            ExportableCredentialScheme.IdAustriaScheme -> IdAustriaScheme
                         }
-                        is ExportableStoreEntry.Vc -> {
-                            scheme = when (it.scheme){
-                                ExportableCredentialScheme.AtomicAttribute2023 -> ConstantIndex.AtomicAttribute2023
-                                ExportableCredentialScheme.MobileDrivingLicence2023 -> ConstantIndex.MobileDrivingLicence2023
-                                ExportableCredentialScheme.IdAustriaScheme -> IdAustriaScheme
-                            }
-                            credentials.add(SubjectCredentialStore.StoreEntry.Vc(vcSerialized = it.vcSerialized, vc = it.vc, scheme = scheme))
+                        credentials.add(SubjectCredentialStore.StoreEntry.SdJwt(vcSerialized = it.vcSerialized, sdJwt = it.sdJwt, disclosures = it.disclosures, scheme = scheme))
+                    }
+                    is ExportableStoreEntry.Vc -> {
+                        scheme = when (it.scheme){
+                            ExportableCredentialScheme.AtomicAttribute2023 -> ConstantIndex.AtomicAttribute2023
+                            ExportableCredentialScheme.MobileDrivingLicence2023 -> ConstantIndex.MobileDrivingLicence2023
+                            ExportableCredentialScheme.IdAustriaScheme -> IdAustriaScheme
                         }
+                        credentials.add(SubjectCredentialStore.StoreEntry.Vc(vcSerialized = it.vcSerialized, vc = it.vc, scheme = scheme))
                     }
                 }
-                export.attachments.forEach {
-                    attachments.add(SubjectCredentialStore.AttachmentEntry(name = it.name, data = it.data, vcId = it.vcId))
-                }
-                StoreContainer(credentials, attachments)
             }
+            export.attachments.forEach {
+                attachments.add(SubjectCredentialStore.AttachmentEntry(name = it.name, data = it.data, vcId = it.vcId))
+            }
+            StoreContainer(credentials, attachments)
+        }
+    }
+
+    private fun importFromDataStore(): StoreContainer{
+        return runBlocking {
+            dataStoreValueToStoreContainer(dataStore.getData(Resources.DATASTORE_KEY_VCS).firstOrNull())
         }
     }
 
@@ -205,6 +210,22 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
             }
         }
         return credentialList
+    }
+
+    fun getVcsFlow(): Flow<ArrayList<VerifiableCredential>> {
+        return dataStore.getData(Resources.DATASTORE_KEY_VCS).map {
+            val credentialList = ArrayList<VerifiableCredential>()
+            dataStoreValueToStoreContainer(it).credentials.forEach { entry ->
+                when (entry) {
+                    is SubjectCredentialStore.StoreEntry.Iso -> TODO()
+                    is SubjectCredentialStore.StoreEntry.Vc -> {
+                        credentialList.add(entry.vc.vc)
+                    }
+                    is SubjectCredentialStore.StoreEntry.SdJwt -> TODO()
+                }
+            }
+            credentialList
+        }
     }
 }
 

@@ -38,11 +38,13 @@ object Resources {
 
     const val APP_DISPLAY_NAME = "Wallet Demo App"
 
-    const val BUTTON_LABEL_START = "Starten"
-    const val BUTTON_LABEL_CONTINUE = "Weiter"
     const val BUTTON_LABEL_ACCEPT = "Akzeptieren"
+    const val BUTTON_LABEL_CANCEL = "Abbrechen"
+    const val BUTTON_LABEL_CONSENT = "Zustimmen"
+    const val BUTTON_LABEL_CONTINUE = "Weiter"
     const val BUTTON_LABEL_DETAILS = "Details"
     const val BUTTOM_LABEL_LOAD_DATA = "Daten laden"
+    const val BUTTON_LABEL_START = "Starten"
 
     const val HEADING_LABEL_INFORMATION = "Information"
     const val HEADING_LABEL_NAVIGATE_BACK = "Zurück"

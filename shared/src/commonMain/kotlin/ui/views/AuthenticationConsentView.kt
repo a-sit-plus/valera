@@ -45,7 +45,11 @@ import ui.composables.DataDisplaySection
 import ui.composables.OutlinedTextIconButton
 import ui.composables.PersonalDataCategory
 import ui.composables.TextIconButton
+import ui.composables.buttons.AcceptButton
 import ui.composables.buttons.BackNavigationButton
+import ui.composables.buttons.CancelButton
+import ui.composables.buttons.ConsentButton
+import ui.composables.buttons.LoadDataButton
 
 class AuthenticationConsentPage(
     val spName: String,
@@ -107,37 +111,9 @@ fun AuthenticationConsentView(
 
                     val bottomBarContinueButton: @Composable () -> Unit = {
                         if (hasMissingAttributes) {
-                            TextIconButton(
-                                icon = {
-                                    Icon(
-                                        imageVector = Icons.Default.Download,
-                                        contentDescription = null,
-                                    )
-                                },
-                                text = {
-                                    Text(
-                                        "Daten nachladen",
-                                        textAlign = TextAlign.Center,
-                                    )
-                                },
-                                onClick = loadMissingData,
-                            )
+                            LoadDataButton(loadMissingData)
                         } else {
-                            TextIconButton(
-                                icon = {
-                                    Icon(
-                                        imageVector = Icons.Default.Done,
-                                        contentDescription = null,
-                                    )
-                                },
-                                text = {
-                                    Text(
-                                        "Zustimmen",
-                                        textAlign = TextAlign.Center,
-                                    )
-                                },
-                                onClick = consentToDataTransmission,
-                            )
+                            ConsentButton(consentToDataTransmission)
                         }
                     }
 
@@ -150,18 +126,7 @@ fun AuthenticationConsentView(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center,
                     ) {
-                        OutlinedTextIconButton(
-                            icon = {
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = null,
-                                )
-                            },
-                            text = {
-                                Text("Abbrechen")
-                            },
-                            onClick = cancelAuthentication,
-                        )
+                        CancelButton(cancelAuthentication)
                         Spacer(modifier = Modifier.width(16.dp))
                         bottomBarContinueButton()
                     }

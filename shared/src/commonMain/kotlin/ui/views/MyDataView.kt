@@ -70,13 +70,15 @@ fun MyDataView(
             }
             if (ageData != null) {
                 PersonAgeDataDetailCard(
-                    ageData = ageData, modifier = paddingModifier,
+                    ageData = ageData,
+                    modifier = paddingModifier,
                     onDetailClick = navigateToAgeData,
                 )
             }
             if (drivingData != null) {
                 PersonDrivingDataDetailCard(
-                    drivingData = drivingData, modifier = paddingModifier,
+                    drivingData = drivingData,
+                    modifier = paddingModifier,
                     onDetailClick = navigateToDrivingData,
                 )
             }

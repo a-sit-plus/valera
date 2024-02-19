@@ -16,15 +16,25 @@ import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.SettingsBackupRestore
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import at.asitplus.wallet.app.common.WalletMain
+import kotlinx.coroutines.runBlocking
 import navigation.Page
 
 class InformationPage : Page
@@ -40,6 +50,18 @@ fun InformationView(
     onClickShareLogFile: () -> Unit,
     onClickResetApp: () -> Unit,
 ) {
+    val showAlert = remember { mutableStateOf(false) }
+    if (showAlert.value) {
+        ResetAlert(
+            onConfirm = {
+                onClickResetApp()
+                showAlert.value = false
+            },
+            onDismiss = { showAlert.value = false },
+            onDismissRequest = { showAlert.value = false },
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -139,7 +161,9 @@ fun InformationView(
                             )
                         },
                         label = "App zurücksetzen",
-                        onClick = onClickResetApp,
+                        onClick = {
+                            showAlert.value = true
+                        },
                         modifier = listSpacingModifier.fillMaxWidth(),
                     )
                 }
@@ -168,4 +192,36 @@ private fun TextIconButtonListItem(
             style = MaterialTheme.typography.bodyLarge,
         )
     }
+}
+
+
+@Composable
+private fun ResetAlert(
+    onDismiss: () -> Unit,
+    onDismissRequest: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    AlertDialog(
+        title = {
+            Text(Resources.WARNING)
+        },
+        text = {
+            Text(Resources.RESET_APP_ALERT_TEXT)
+        },
+        onDismissRequest = onDismissRequest,
+        confirmButton = {
+            TextButton(
+                onClick = onConfirm,
+            ) {
+                Text(Resources.BUTTON_CONFIRM)
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss,
+            ) {
+                Text(Resources.BUTTON_DISMISS)
+            }
+        }
+    )
 }

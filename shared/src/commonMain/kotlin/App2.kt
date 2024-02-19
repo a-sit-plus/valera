@@ -1,12 +1,24 @@
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Button
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -23,12 +35,17 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import navigation.AboutPage
 import navigation.AppLinkPage
 import navigation.CameraPage
@@ -59,23 +76,23 @@ import view.MyDataScreen
 import view.OnboardingWrapper
 import view.PayloadScreen
 
-//
-///**
-// * Global variable to utilize back navigation functionality
-// */
-//var globalBack: () -> Unit = {}
-//
-///**
-// * Global variable which especially helps to channel information from swift code
-// * to compose whenever the app gets called via an associated domain
-// */
-//var appLink = mutableStateOf<String?>(null)
-//
-//
-///**
-// * Global variable to test at least something from the iOS UITest
-// */
-//var iosTestValue = Resources.IOS_TEST_VALUE
+
+/**
+ * Global variable to utilize back navigation functionality
+ */
+var globalBack: () -> Unit = {}
+
+/**
+ * Global variable which especially helps to channel information from swift code
+ * to compose whenever the app gets called via an associated domain
+ */
+var appLink = mutableStateOf<String?>(null)
+
+
+/**
+ * Global variable to test at least something from the iOS UITest
+ */
+var iosTestValue = Resources.IOS_TEST_VALUE
 
 
 private enum class Route(
@@ -156,7 +173,7 @@ fun App(walletMain: WalletMain) {
                 OnboardingWrapper(
                     walletMain = walletMain,
                 ) {
-                    navigator2(walletMain)
+                    navigator(walletMain)
                 }
             } else {
                 errorScreen(walletMain)
@@ -168,7 +185,7 @@ fun App(walletMain: WalletMain) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun navigator2(walletMain: WalletMain) {
+fun navigator(walletMain: WalletMain) {
     key(appLink.value) {
         val defaultPage: Page
         if (appLink.value == null) {
@@ -247,7 +264,7 @@ fun navigator2(walletMain: WalletMain) {
                                             walletMain.errorService.emit(e)
                                         }
                                     }
-                                }
+                                },
                             )
 //                        HomeScreen(
 //                            onAbout = { navigationStack.push(AboutPage()) },
@@ -290,7 +307,6 @@ fun navigator2(walletMain: WalletMain) {
                                 onContinueClick = { navigationStack.push(HomePage()) },
                                 walletMain
                             )
-
                         }
 
                         is AppLinkPage -> {
@@ -358,7 +374,10 @@ fun navigator2(walletMain: WalletMain) {
                                 onClickDataProtectionPolicy = {},
                                 onClickLicenses = {},
                                 onClickShareLogFile = {},
-                                onClickResetApp = {},
+                                onClickResetApp = {
+                                    runBlocking { walletMain.resetApp() }
+                                    walletMain.snackbarService.showSnackbar(Resources.SNACKBAR_RESET_APP_SUCCESSFULLY)
+                                },
                             )
                         }
 
@@ -425,3 +444,49 @@ fun navigator2(walletMain: WalletMain) {
         }
     }
 }
+
+
+@Composable
+fun errorScreen(walletMain: WalletMain) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        Row(
+            Modifier.padding(10.dp).height(80.dp).fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                "Error",
+                color = MaterialTheme.colorScheme.primary,
+                fontSize = 40.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxSize()
+                .background(color = MaterialTheme.colorScheme.primaryContainer)
+        ) {
+            Icon(
+                Icons.Default.Warning,
+                contentDescription = null,
+                Modifier.size(100.dp),
+                tint = MaterialTheme.colorScheme.error
+            )
+            Text(walletMain.errorService.errorText.value, modifier = Modifier.padding(20.dp))
+            Button(
+                modifier = Modifier
+                    .padding(vertical = 24.dp),
+                onClick = { walletMain.errorService.reset() }
+            ) {
+                Text(Resources.BUTTON_CLOSE)
+            }
+        }
+    }
+}
+
+
+expect fun getPlatformName(): String
+
+@Composable
+expect fun getColorScheme(): ColorScheme
