@@ -7,7 +7,6 @@ import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
-import at.asitplus.wallet.lib.data.ConstantIndex
 import data.storage.AntilogAdapter
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
@@ -56,9 +55,9 @@ class WalletMain(
 
         subjectCredentialStore.reset()
 
-        dataStoreService.deleteData(Resources.DATASTORE_KEY_VCS)
-        dataStoreService.deleteData(Resources.DATASTORE_KEY_XAUTH)
-        dataStoreService.deleteData(Resources.DATASTORE_KEY_COOKIES)
+        dataStoreService.deletePreference(Resources.DATASTORE_KEY_VCS)
+        dataStoreService.deletePreference(Resources.DATASTORE_KEY_XAUTH)
+        dataStoreService.deletePreference(Resources.DATASTORE_KEY_COOKIES)
         walletConfig.reset()
 //        walletConfig.host = "https://wallet.a-sit.at"
 //        walletConfig.credentialRepresentation = ConstantIndex.CredentialRepresentation.PLAIN_JWT

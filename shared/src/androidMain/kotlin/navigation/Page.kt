@@ -25,6 +25,9 @@ actual class PayloadPage actual constructor(actual val info: String) : Page, Par
 actual class ConsentPage actual constructor(actual val url: String, actual val claims: List<String>, actual val recipientName: String, actual val recipientLocation: String): Page, Parcelable
 
 
+@Parcelize
+actual class AppLinkPage : Page, Parcelable
+
 
 
 

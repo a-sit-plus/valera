@@ -1,21 +1,7 @@
 package view
 
 import Resources
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -28,10 +14,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.interop.UIKitView
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import globalBack
 import io.github.aakira.napier.Napier
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.CValue
@@ -85,7 +67,10 @@ import platform.darwin.dispatch_queue_t
 // Modified from https://github.com/JetBrains/compose-multiplatform/blob/master/examples/imageviewer/shared/src/iosMain/kotlin/example/imageviewer/view/CameraView.ios.kt
 
 @Composable
-actual fun CameraView(onFoundPayload: (text: String) -> Unit){
+actual fun CameraView(
+    onFoundPayload: (text: String) -> Unit,
+    modifier: Modifier,
+) {
     var cameraAccess: Boolean? by remember { mutableStateOf(null) }
     LaunchedEffect(Unit) {
         when (AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeVideo)) {
@@ -107,8 +92,8 @@ actual fun CameraView(onFoundPayload: (text: String) -> Unit){
         }
     }
     Box(
-        Modifier.fillMaxSize().background(Color.Black),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
+        modifier = modifier,
     ) {
         when (cameraAccess) {
             null -> {
@@ -120,7 +105,10 @@ actual fun CameraView(onFoundPayload: (text: String) -> Unit){
             }
 
             true -> {
-                AuthorizedCamera(onFoundPayload)
+                AuthorizedCamera(
+                    onFoundPayload,
+                    modifier = modifier,
+                )
             }
         }
     }
@@ -135,7 +123,10 @@ private val deviceTypes = listOf(
 )
 
 @Composable
-private fun AuthorizedCamera(onFoundPayload: (text: String) -> Unit){
+private fun AuthorizedCamera(
+    onFoundPayload: (text: String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val camera: AVCaptureDevice? = remember {
         AVCaptureDeviceDiscoverySession.discoverySessionWithDeviceTypes(
             deviceTypes = deviceTypes,
@@ -144,7 +135,11 @@ private fun AuthorizedCamera(onFoundPayload: (text: String) -> Unit){
         ).devices.firstOrNull() as? AVCaptureDevice
     }
     if (camera != null) {
-        RealDeviceCamera(camera, onFoundPayload)
+        RealDeviceCamera(
+            camera,
+            onFoundPayload,
+            modifier = modifier,
+        )
     } else {
         Text(
             """
@@ -157,8 +152,12 @@ private fun AuthorizedCamera(onFoundPayload: (text: String) -> Unit){
 
 @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 @Composable
-private fun RealDeviceCamera(camera: AVCaptureDevice, onFoundPayload: (text: String) -> Unit){
-    val foundQrCode = remember { mutableStateOf(false)  }
+private fun RealDeviceCamera(
+    camera: AVCaptureDevice,
+    onFoundPayload: (text: String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val foundQrCode = remember { mutableStateOf(false) }
 
     val capturePhotoOutput = remember { AVCapturePhotoOutput() }
     var actualOrientation by remember {
@@ -176,13 +175,14 @@ private fun RealDeviceCamera(camera: AVCaptureDevice, onFoundPayload: (text: Str
                 fromConnection: platform.AVFoundation.AVCaptureConnection
             ) {
                 try {
-                    val readableObject = didOutputMetadataObjects.first() as AVMetadataMachineReadableCodeObject
-                    if(readableObject.stringValue != null && !foundQrCode.value){
+                    val readableObject =
+                        didOutputMetadataObjects.first() as AVMetadataMachineReadableCodeObject
+                    if (readableObject.stringValue != null && !foundQrCode.value) {
                         val payload = readableObject.stringValue.toString()
                         foundQrCode.value = true
                         onFoundPayload(payload)
                     }
-                } catch(e: Throwable) {
+                } catch (e: Throwable) {
                     Napier.w("RealDeviceCamera: error", throwable = e)
                 }
 
@@ -194,7 +194,10 @@ private fun RealDeviceCamera(camera: AVCaptureDevice, onFoundPayload: (text: Str
 
     val dispatchQueue: dispatch_queue_t = dispatch_get_main_queue()
 
-    captureMetadataOutput.setMetadataObjectsDelegate(objectsDelegate = metaDelegate, queue = dispatchQueue)
+    captureMetadataOutput.setMetadataObjectsDelegate(
+        objectsDelegate = metaDelegate,
+        queue = dispatchQueue
+    )
 
     val captureSession: AVCaptureSession = remember {
         AVCaptureSession().also { captureSession ->
@@ -259,34 +262,36 @@ private fun RealDeviceCamera(camera: AVCaptureDevice, onFoundPayload: (text: Str
             )
         }
     }
-    Column {
-        Box(modifier = Modifier.background(color = MaterialTheme.colorScheme.background).height(80.dp), contentAlignment = Alignment.TopCenter){
-            Row(Modifier.padding(10.dp).height(80.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Close, contentDescription = null, Modifier.size(30.dp).clickable(onClick = { globalBack() }), tint = MaterialTheme.colorScheme.onSecondaryContainer)
-                Text(Resources.DEMO_WALLET, fontSize = 40.sp, fontWeight = FontWeight.Bold)
-                Icon(Icons.Default.Close, contentDescription = null, Modifier.size(30.dp).clickable(onClick = { }), tint = Color.LightGray.copy(alpha = 0.0f))
+    UIKitView(
+        modifier = modifier,
+        background = Color.Black,
+        factory = {
+            val cameraContainer = UIView()
+            cameraContainer.layer.addSublayer(cameraPreviewLayer)
+            cameraPreviewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill
+            CoroutineScope(Dispatchers.Default).launch {
+                captureSession.startRunning()
             }
-        }
-
-        UIKitView(
-            modifier = Modifier.fillMaxSize(),
-            background = Color.Black,
-            factory = {
-                val cameraContainer = UIView()
-                cameraContainer.layer.addSublayer(cameraPreviewLayer)
-                cameraPreviewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill
-                CoroutineScope(Dispatchers.Default).launch {
-                    captureSession.startRunning()
-                }
-                cameraContainer
-            },
-            onResize = { view: UIView, rect: CValue<CGRect> ->
-                CATransaction.begin()
-                CATransaction.setValue(true, kCATransactionDisableActions)
-                view.layer.setFrame(rect)
-                cameraPreviewLayer.setFrame(rect)
-                CATransaction.commit()
-            },
-        )
-    }
+            cameraContainer
+        },
+        onResize = { view: UIView, rect: CValue<CGRect> ->
+            CATransaction.begin()
+            CATransaction.setValue(true, kCATransactionDisableActions)
+            view.layer.setFrame(rect)
+            cameraPreviewLayer.setFrame(rect)
+            CATransaction.commit()
+        },
+    )
+//    Column(
+//        modifier = modifier
+//    ) {
+////        Box(modifier = Modifier.background(color = MaterialTheme.colorScheme.background).height(80.dp), contentAlignment = Alignment.TopCenter){
+////            Row(Modifier.padding(10.dp).height(80.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+////                Icon(Icons.Default.Close, contentDescription = null, Modifier.size(30.dp).clickable(onClick = { globalBack() }), tint = MaterialTheme.colorScheme.onSecondaryContainer)
+////                Text(Resources.DEMO_WALLET, fontSize = 40.sp, fontWeight = FontWeight.Bold)
+////                Icon(Icons.Default.Close, contentDescription = null, Modifier.size(30.dp).clickable(onClick = { }), tint = Color.LightGray.copy(alpha = 0.0f))
+////            }
+////        }
+//
+//    }
 }

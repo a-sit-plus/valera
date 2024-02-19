@@ -30,6 +30,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -52,15 +54,36 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-fun HomeScreen( onAbout: () -> Unit, onCredential: (id: String) -> Unit, onScanQrCode: () -> Unit, walletMain: WalletMain, onLoginWithIdAustria: () -> Unit) {
-    Box{
-        Column(Modifier.fillMaxSize()) {
-            Header(onAbout = onAbout)
-            Column(Modifier.background(color = MaterialTheme.colorScheme.secondaryContainer).fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-                if (walletMain.subjectCredentialStore.credentialSize.value == 0){
-                    AddId(onScanQrCode, onLoginWithIdAustria)
-                } else {
-                    ShowId(onCredential, onScanQrCode, walletMain, onLoginWithIdAustria)
+fun HomeScreen(
+    onAbout: () -> Unit,
+    onCredential: (id: String) -> Unit,
+    onScanQrCode: () -> Unit,
+    walletMain: WalletMain,
+    onLoginWithIdAustria: () -> Unit
+) {
+    val credentialState by walletMain.subjectCredentialStore.observeStoreEntries()
+        .collectAsState(null)
+
+    when (val credentials = credentialState) {
+        null -> {}
+        else -> Box {
+            Column(Modifier.fillMaxSize()) {
+                Header(onAbout = onAbout)
+                Column(
+                    Modifier.background(color = MaterialTheme.colorScheme.secondaryContainer)
+                        .fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    if (credentials.isEmpty()) {
+                        AddId(onScanQrCode, onLoginWithIdAustria)
+                    } else {
+                        ShowId(
+                            onCredential,
+                            onScanQrCode,
+                            walletMain,
+                            onLoginWithIdAustria,
+                            credentials = credentials
+                        )
+                    }
                 }
             }
         }
@@ -69,20 +92,49 @@ fun HomeScreen( onAbout: () -> Unit, onCredential: (id: String) -> Unit, onScanQ
 
 @Composable
 fun Header(onAbout: () -> Unit) {
-    Row(Modifier.height(80.dp).padding(10.dp).fillMaxWidth().background(color = MaterialTheme.colorScheme.background), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-        Icon(Icons.Default.Settings, contentDescription = null, Modifier.size(30.dp).clickable(onClick = { onAbout() }), tint = Color.LightGray.copy(alpha = 0f))
+    Row(
+        Modifier.height(80.dp).padding(10.dp).fillMaxWidth()
+            .background(color = MaterialTheme.colorScheme.background),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            Icons.Default.Settings,
+            contentDescription = null,
+            Modifier.size(30.dp).clickable(onClick = { onAbout() }),
+            tint = Color.LightGray.copy(alpha = 0f)
+        )
         Text(Resources.DEMO_WALLET, fontSize = 40.sp, fontWeight = FontWeight.Bold)
-        Icon(Icons.Default.Settings, contentDescription = null, Modifier.size(30.dp).clickable(onClick = { onAbout() }), tint = MaterialTheme.colorScheme.onBackground)
+        Icon(
+            Icons.Default.Settings,
+            contentDescription = null,
+            Modifier.size(30.dp).clickable(onClick = { onAbout() }),
+            tint = MaterialTheme.colorScheme.onBackground
+        )
     }
 }
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-fun AddDialog(openDialog: MutableState<Boolean>, onScanQrCode: () -> Unit, onLoginWithIdAustria: () -> Unit){
-    Dialog(onDismissRequest = { openDialog.value = false }, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        Column(verticalArrangement = Arrangement.Bottom, modifier = Modifier.fillMaxSize()){
-            Box(Modifier.padding(start = 20.dp, end = 20.dp).shadow(elevation = 2.dp, shape = RoundedCornerShape(10.dp))){
-                Box(Modifier.clip(shape = RoundedCornerShape(10.dp)).background(color = MaterialTheme.colorScheme.tertiaryContainer).fillMaxWidth().padding(20.dp)){
+fun AddDialog(
+    openDialog: MutableState<Boolean>,
+    onScanQrCode: () -> Unit,
+    onLoginWithIdAustria: () -> Unit
+) {
+    Dialog(
+        onDismissRequest = { openDialog.value = false },
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Column(verticalArrangement = Arrangement.Bottom, modifier = Modifier.fillMaxSize()) {
+            Box(
+                Modifier.padding(start = 20.dp, end = 20.dp)
+                    .shadow(elevation = 2.dp, shape = RoundedCornerShape(10.dp))
+            ) {
+                Box(
+                    Modifier.clip(shape = RoundedCornerShape(10.dp))
+                        .background(color = MaterialTheme.colorScheme.tertiaryContainer)
+                        .fillMaxWidth().padding(20.dp)
+                ) {
                     Column {
                         Text(Resources.ADD_ID, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                         Spacer(Modifier.size(15.dp))
@@ -91,27 +143,64 @@ fun AddDialog(openDialog: MutableState<Boolean>, onScanQrCode: () -> Unit, onLog
 
                         Text(Resources.ADD_ID_TEXT)
                         Spacer(Modifier.size(30.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable(onClick = {onScanQrCode()}).fillMaxWidth()) {
-                            Box(Modifier.size(30.dp), contentAlignment = Alignment.Center){
-                                Image(painterResource("icons8-qr-code-64.png"), contentDescription = null, Modifier.height(30.dp), colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onTertiaryContainer))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.clickable(onClick = { onScanQrCode() })
+                                .fillMaxWidth()
+                        ) {
+                            Box(Modifier.size(30.dp), contentAlignment = Alignment.Center) {
+                                Image(
+                                    painterResource("icons8-qr-code-64.png"),
+                                    contentDescription = null,
+                                    Modifier.height(30.dp),
+                                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onTertiaryContainer)
+                                )
                             }
                             Spacer(Modifier.size(10.dp))
-                            Text(Resources.BUTTON_SCAN_QR, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                            Text(
+                                Resources.BUTTON_SCAN_QR,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                         Spacer(Modifier.size(30.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable(onClick = {onLoginWithIdAustria()}).fillMaxWidth()) {
-                            Box(Modifier.size(30.dp), contentAlignment = Alignment.Center){
-                                Image(painterResource("icons8-login-100.png"), contentDescription = null, Modifier.height(30.dp), colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onTertiaryContainer))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.clickable(onClick = { onLoginWithIdAustria() })
+                                .fillMaxWidth()
+                        ) {
+                            Box(Modifier.size(30.dp), contentAlignment = Alignment.Center) {
+                                Image(
+                                    painterResource("icons8-login-100.png"),
+                                    contentDescription = null,
+                                    Modifier.height(30.dp),
+                                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onTertiaryContainer)
+                                )
                             }
                             Spacer(Modifier.size(10.dp))
-                            Text(Resources.BUTTON_LOGIN_ID_AUSTRIA, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                            Text(
+                                Resources.BUTTON_LOGIN_ID_AUSTRIA,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                     }
                 }
             }
-            Box(Modifier.fillMaxWidth().padding(20.dp)){
-                Box(Modifier.clip(shape = CircleShape).background(color = MaterialTheme.colorScheme.errorContainer).size(40.dp).clickable(onClick = { openDialog.value = false }).align(Alignment.BottomEnd), contentAlignment = Alignment.Center){
-                    Icon(Icons.Default.Close, contentDescription = null, Modifier.size(30.dp), tint = MaterialTheme.colorScheme.error)
+            Box(Modifier.fillMaxWidth().padding(20.dp)) {
+                Box(
+                    Modifier.clip(shape = CircleShape)
+                        .background(color = MaterialTheme.colorScheme.errorContainer).size(40.dp)
+                        .clickable(onClick = { openDialog.value = false })
+                        .align(Alignment.BottomEnd),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Default.Close,
+                        contentDescription = null,
+                        Modifier.size(30.dp),
+                        tint = MaterialTheme.colorScheme.error
+                    )
                 }
             }
         }
@@ -126,7 +215,7 @@ fun AddId(onScanQrCode: () -> Unit, onLoginWithIdAustria: () -> Unit) {
 }
 
 @Composable
-fun AddIdHeader(){
+fun AddIdHeader() {
     AddIdText()
 
 }
@@ -139,8 +228,15 @@ fun AddIdBody(onScanQrCode: () -> Unit, onLoginWithIdAustria: () -> Unit) {
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun AddIdCard(onScanQrCode: () -> Unit, onLoginWithIdAustria: () -> Unit) {
-    Box(Modifier.padding(start = 20.dp, end = 20.dp).shadow(elevation = 2.dp, shape = RoundedCornerShape(10.dp))){
-        Box(Modifier.clip(shape = RoundedCornerShape(10.dp)).background(color = MaterialTheme.colorScheme.tertiaryContainer).fillMaxWidth().padding(20.dp)){
+    Box(
+        Modifier.padding(start = 20.dp, end = 20.dp)
+            .shadow(elevation = 2.dp, shape = RoundedCornerShape(10.dp))
+    ) {
+        Box(
+            Modifier.clip(shape = RoundedCornerShape(10.dp))
+                .background(color = MaterialTheme.colorScheme.tertiaryContainer).fillMaxWidth()
+                .padding(20.dp)
+        ) {
             Column {
                 Text(Resources.ADD_ID, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.size(15.dp))
@@ -148,20 +244,41 @@ fun AddIdCard(onScanQrCode: () -> Unit, onLoginWithIdAustria: () -> Unit) {
                 Spacer(Modifier.size(15.dp))
                 Text(Resources.ADD_ID_TEXT)
                 Spacer(Modifier.size(30.dp))
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable(onClick = {onScanQrCode()}).fillMaxWidth()) {
-                    Box(Modifier.size(30.dp), contentAlignment = Alignment.Center){
-                        Image(painterResource("icons8-qr-code-64.png"), contentDescription = null, Modifier.height(30.dp), colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onTertiaryContainer))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.clickable(onClick = { onScanQrCode() }).fillMaxWidth()
+                ) {
+                    Box(Modifier.size(30.dp), contentAlignment = Alignment.Center) {
+                        Image(
+                            painterResource("icons8-qr-code-64.png"),
+                            contentDescription = null,
+                            Modifier.height(30.dp),
+                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onTertiaryContainer)
+                        )
                     }
                     Spacer(Modifier.size(10.dp))
                     Text(Resources.BUTTON_SCAN_QR, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.size(30.dp))
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable(onClick = {onLoginWithIdAustria()}).fillMaxWidth()) {
-                    Box(Modifier.size(30.dp), contentAlignment = Alignment.Center){
-                        Image(painterResource("icons8-login-100.png"), contentDescription = null, Modifier.height(30.dp), colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onTertiaryContainer))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.clickable(onClick = { onLoginWithIdAustria() })
+                        .fillMaxWidth()
+                ) {
+                    Box(Modifier.size(30.dp), contentAlignment = Alignment.Center) {
+                        Image(
+                            painterResource("icons8-login-100.png"),
+                            contentDescription = null,
+                            Modifier.height(30.dp),
+                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onTertiaryContainer)
+                        )
                     }
                     Spacer(Modifier.size(10.dp))
-                    Text(Resources.BUTTON_LOGIN_ID_AUSTRIA, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        Resources.BUTTON_LOGIN_ID_AUSTRIA,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }
@@ -169,60 +286,106 @@ fun AddIdCard(onScanQrCode: () -> Unit, onLoginWithIdAustria: () -> Unit) {
 }
 
 @Composable
-fun AddIdText(){
+fun AddIdText() {
     Column(
-        modifier = Modifier.background(color = MaterialTheme.colorScheme.secondaryContainer).padding(20.dp),
+        modifier = Modifier.background(color = MaterialTheme.colorScheme.secondaryContainer)
+            .padding(20.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(Resources.WALLET, fontSize = 24.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 20.dp, bottom = 20.dp))
+        Text(
+            Resources.WALLET,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(top = 20.dp, bottom = 20.dp)
+        )
         Text(Resources.CHOOSE_NEXT_STEP, fontSize = 30.sp, fontWeight = FontWeight.Bold)
 
     }
 }
 
 @Composable
-fun ShowId(onCredential: (id: String) -> Unit, onScanQrCode: () -> Unit, walletMain: WalletMain, onLoginWithIdAustria: () -> Unit) {
+fun ShowId(
+    onCredential: (id: String) -> Unit,
+    onScanQrCode: () -> Unit,
+    walletMain: WalletMain,
+    onLoginWithIdAustria: () -> Unit,
+    credentials: List<SubjectCredentialStore.StoreEntry>,
+) {
     val openDialog = remember { mutableStateOf(false) }
     ShowIdHeader()
-    ShowIdCard(onCredential, walletMain)
-    Box(Modifier.fillMaxSize().padding(20.dp)){
-        Box(Modifier.clip(shape = CircleShape).background(color = MaterialTheme.colorScheme.errorContainer).size(40.dp).clickable(onClick = { openDialog.value = true }).align(Alignment.BottomEnd), contentAlignment = Alignment.Center){
-            Icon(Icons.Default.Add, contentDescription = null, Modifier.size(30.dp), tint = MaterialTheme.colorScheme.error)
+    ShowIdCard(onCredential, walletMain, credentials)
+    Box(Modifier.fillMaxSize().padding(20.dp)) {
+        Box(
+            Modifier.clip(shape = CircleShape)
+                .background(color = MaterialTheme.colorScheme.errorContainer).size(40.dp)
+                .clickable(onClick = { openDialog.value = true }).align(Alignment.BottomEnd),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                Icons.Default.Add,
+                contentDescription = null,
+                Modifier.size(30.dp),
+                tint = MaterialTheme.colorScheme.error
+            )
         }
     }
     if (openDialog.value) {
         AddDialog(openDialog, onScanQrCode, onLoginWithIdAustria)
     }
-
 }
 
 @Composable
-fun ShowIdHeader(){
+fun ShowIdHeader() {
     Column(
-        modifier = Modifier.background(color = MaterialTheme.colorScheme.secondaryContainer).padding(20.dp),
+        modifier = Modifier.background(color = MaterialTheme.colorScheme.secondaryContainer)
+            .padding(20.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(Resources.WALLET, fontSize = 24.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 20.dp, bottom = 20.dp))
+        Text(
+            Resources.WALLET,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(top = 20.dp, bottom = 20.dp)
+        )
 
     }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ShowIdCard(onCredential: (id: String) -> Unit, walletMain: WalletMain) {
-    val credentials = walletMain.subjectCredentialStore.getStoreEntries()
+fun ShowIdCard(
+    onCredential: (id: String) -> Unit,
+    walletMain: WalletMain,
+    credentials: List<SubjectCredentialStore.StoreEntry>,
+) {
     val state = rememberLazyListState()
-    LazyRow (flingBehavior = rememberSnapFlingBehavior(lazyListState = state), state = state) {
-        items(credentials.size){
+    LazyRow(flingBehavior = rememberSnapFlingBehavior(lazyListState = state), state = state) {
+        items(credentials.size) {
             when (val credential = credentials[it]) {
                 is SubjectCredentialStore.StoreEntry.Vc -> {
-                    IdCard(onCredential, id = credential.vc.jwtId, modifier = Modifier.fillParentMaxWidth(), walletMain)
+                    IdCard(
+                        credential = credential,
+                        onCredential = {
+                            onCredential(credential.vc.jwtId)
+                        },
+                        walletMain = walletMain,
+                        modifier = Modifier.fillParentMaxWidth(),
+                    )
                 }
+
                 is SubjectCredentialStore.StoreEntry.SdJwt -> {
-                    IdCard(onCredential, id = credential.sdJwt.jwtId, modifier = Modifier.fillParentMaxWidth(), walletMain)
+                    IdCard(
+                        credential = credential,
+                        onCredential = {
+                            onCredential(credential.sdJwt.jwtId)
+                        },
+                        walletMain = walletMain,
+                        modifier = Modifier.fillParentMaxWidth(),
+                    )
                 }
+
                 else -> {}
             }
         }
@@ -230,46 +393,97 @@ fun ShowIdCard(onCredential: (id: String) -> Unit, walletMain: WalletMain) {
 }
 
 @Composable
-fun IdCard(onCredential: (id: String) -> Unit, id: String, modifier: Modifier, walletMain: WalletMain) {
-    val credential = walletMain.subjectCredentialStore.getStoreEntryById(id)
-    when(credential) {
+fun IdCard(
+    credential: SubjectCredentialStore.StoreEntry,
+    walletMain: WalletMain,
+    onCredential: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    when (credential) {
         is SubjectCredentialStore.StoreEntry.Vc -> {
-            when(val credentialSubject = credential.vc.vc.credentialSubject) {
+            when (val credentialSubject = credential.vc.vc.credentialSubject) {
                 is IdAustriaCredential -> {
-                    IdAustriaCredentialCard(onCredential, credentialSubject.firstname, credentialSubject.lastname, credentialSubject.portrait, modifier, walletMain, id)
+                    IdAustriaCredentialCard(
+                        onCredential = onCredential,
+                        firstname = credentialSubject.firstname,
+                        lastname = credentialSubject.lastname,
+                        portrait = credentialSubject.portrait,
+                        walletMain = walletMain,
+                        modifier = modifier,
+                    )
                 }
             }
         }
+
         is SubjectCredentialStore.StoreEntry.SdJwt -> {
-            val firstname = credential.disclosures.filter{ it.value?.claimName == "firstname"}.firstNotNullOf { it.value?.claimValue } as String
-            val lastname = credential.disclosures.filter{ it.value?.claimName == "lastname"}.firstNotNullOf { it.value?.claimValue } as String
-            val portraitEncoded = credential.disclosures.filter{ it.value?.claimName == "portrait"}.firstNotNullOf { it.value?.claimValue } as String
+            val firstname = credential.disclosures.filter { it.value?.claimName == "firstname" }
+                .firstNotNullOf { it.value?.claimValue } as String
+            val lastname = credential.disclosures.filter { it.value?.claimName == "lastname" }
+                .firstNotNullOf { it.value?.claimValue } as String
+            val portraitEncoded =
+                credential.disclosures.filter { it.value?.claimName == "portrait" }
+                    .firstNotNullOf { it.value?.claimValue } as String
             val portrait = portraitEncoded.decodeBase64Bytes()
-            IdAustriaCredentialCard(onCredential, firstname, lastname, portrait, modifier, walletMain, id)
+            IdAustriaCredentialCard(
+                onCredential = onCredential,
+                firstname = firstname,
+                lastname = lastname,
+                portrait = portrait,
+                walletMain = walletMain,
+                modifier = modifier,
+            )
         }
+
         else -> {}
     }
 }
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-fun IdAustriaCredentialCard(onCredential: (id: String) -> Unit, firstname: String, lastname: String, portrait: ByteArray?, modifier: Modifier, walletMain: WalletMain, id: String) {
-    Box(modifier.padding(start = 20.dp, end = 20.dp).shadow(elevation = 2.dp, shape = RoundedCornerShape(10.dp)).clickable(onClick = {onCredential(id)} )){
-        Box(Modifier.clip(shape = RoundedCornerShape(10.dp)).background(color = MaterialTheme.colorScheme.tertiaryContainer).padding(20.dp)){
+fun IdAustriaCredentialCard(
+    onCredential: () -> Unit,
+    firstname: String,
+    lastname: String,
+    portrait: ByteArray?,
+    walletMain: WalletMain,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier.padding(start = 20.dp, end = 20.dp)
+            .shadow(elevation = 2.dp, shape = RoundedCornerShape(10.dp))
+            .clickable(onClick = { onCredential() })
+    ) {
+        Box(
+            Modifier.clip(shape = RoundedCornerShape(10.dp))
+                .background(color = MaterialTheme.colorScheme.tertiaryContainer).padding(20.dp)
+        ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(Resources.CREDENTIAL, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.size(15.dp))
                 Divider(color = Color.LightGray, thickness = 1.dp)
                 Spacer(Modifier.size(15.dp))
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.size(150.dp)){
-                    if (portrait != null){
-                        Image(walletMain.platformAdapter.decodeImage(portrait), contentDescription = "")
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.size(150.dp)) {
+                    if (portrait != null) {
+                        Image(
+                            walletMain.platformAdapter.decodeImage(portrait),
+                            contentDescription = ""
+                        )
                     } else {
-                        Image(painterResource("3d-casual-life-smiling-face-with-smiling-eyes.png"), contentDescription = null, Modifier.size(150.dp), contentScale = ContentScale.Crop)
+                        Image(
+                            painterResource("3d-casual-life-smiling-face-with-smiling-eyes.png"),
+                            contentDescription = null,
+                            Modifier.size(150.dp),
+                            contentScale = ContentScale.Crop
+                        )
                     }
                 }
                 Spacer(Modifier.size(30.dp))
-                Text("$firstname $lastname", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                Text(
+                    "$firstname $lastname",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
                 Spacer(Modifier.size(10.dp))
                 Text(Resources.ID_AUSTRIA_CREDENTIAL, fontSize = 12.sp)
             }

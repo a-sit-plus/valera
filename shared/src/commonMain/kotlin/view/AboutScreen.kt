@@ -1,7 +1,6 @@
 package view
 
 import Resources
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,18 +44,35 @@ import kotlinx.coroutines.runBlocking
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AboutScreen(onShowLog: () -> Unit, walletMain: WalletMain) {
+fun AboutScreen(
+    onShowLog: () -> Unit,
+    walletMain: WalletMain,
+    navigateUp: () -> Unit,
+) {
     Column(
-        modifier = Modifier.fillMaxSize()
-            .background(color = MaterialTheme.colorScheme.primaryContainer),
+        modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         val showAlert = remember { mutableStateOf(false) }
         if (showAlert.value) {
-            ResetAlert(showAlert, walletMain)
+            ResetAlert(
+                showAlert,
+                onDismissRequest = {
+                    showAlert.value = false
+                },
+                onResetConfirm = {
+                    runBlocking { walletMain.resetApp() }
+                    globalBack()
+                    walletMain.snackbarService.showSnackbar(Resources.SNACKBAR_RESET_APP_SUCCESSFULLY)
+                },
+            )
         }
-        var credentialRepresentation by remember { mutableStateOf(walletMain.walletConfig.credentialRepresentation) }
+        var credentialRepresentation by remember {
+            runBlocking {
+                mutableStateOf(walletMain.walletConfig.credentialRepresentation.first())
+            }
+        }
         var host by rememberSaveable {
             runBlocking {
                 mutableStateOf(walletMain.walletConfig.host.first())
@@ -64,7 +80,7 @@ fun AboutScreen(onShowLog: () -> Unit, walletMain: WalletMain) {
         }
 
         Column(
-            modifier = Modifier.background(color = MaterialTheme.colorScheme.secondaryContainer)
+            modifier = Modifier
                 .fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
@@ -86,7 +102,6 @@ fun AboutScreen(onShowLog: () -> Unit, walletMain: WalletMain) {
             Box(Modifier.fillMaxWidth().padding(20.dp)) {
                 Box(
                     Modifier.clip(shape = RoundedCornerShape(10.dp))
-                        .background(color = MaterialTheme.colorScheme.tertiaryContainer)
                         .fillMaxWidth().padding(20.dp)
                 ) {
                     Column {
@@ -149,9 +164,9 @@ fun AboutScreen(onShowLog: () -> Unit, walletMain: WalletMain) {
                             }
                         }
                     }
-                    }
                 }
             }
+
             Row(modifier = Modifier.padding(vertical = 24.dp)) {
                 Button(
                     modifier = Modifier.padding(horizontal = 10.dp),
@@ -181,13 +196,17 @@ fun AboutScreen(onShowLog: () -> Unit, walletMain: WalletMain) {
             ) {
                 Text(Resources.BUTTON_CLOSE)
             }
-            }
         }
     }
 }
 
+
 @Composable
-fun ResetAlert(showAlert: MutableState<Boolean>, walletMain: WalletMain) {
+fun ResetAlert(
+    showAlert: MutableState<Boolean>,
+    onDismissRequest: () -> Unit,
+    onResetConfirm: () -> Unit,
+) {
     AlertDialog(
         title = {
             Text(Resources.WARNING)
@@ -195,15 +214,14 @@ fun ResetAlert(showAlert: MutableState<Boolean>, walletMain: WalletMain) {
         text = {
             Text(Resources.RESET_APP_ALERT_TEXT)
         },
-        onDismissRequest = {
-            showAlert.value = false
-        },
+        onDismissRequest = onDismissRequest,
+//        {
+//            showAlert.value = false
+//        },
         confirmButton = {
             TextButton(
                 onClick = {
-                    runBlocking { walletMain.resetApp() }
-                    globalBack()
-                    walletMain.snackbarService.showSnackbar(Resources.SNACKBAR_RESET_APP_SUCCESSFULLY)
+                    onResetConfirm()
                     showAlert.value = false
                 }
             ) {
@@ -212,9 +230,10 @@ fun ResetAlert(showAlert: MutableState<Boolean>, walletMain: WalletMain) {
         },
         dismissButton = {
             TextButton(
-                onClick = {
-                    showAlert.value = false
-                }
+                onClick = onDismissRequest
+//                {
+//                    showAlert.value = false
+//                }
             ) {
                 Text(Resources.BUTTON_DISMISS)
             }

@@ -19,7 +19,7 @@ class WalletConfig(
     val dataStoreService: DataStoreService,
     val errorService: ErrorService
 ) {
-    private val config: Flow<ConfigData> = dataStoreService.getData(Resources.DATASTORE_KEY_CONFIG).map {
+    private val config: Flow<ConfigData> = dataStoreService.getPreference(Resources.DATASTORE_KEY_CONFIG).map {
         it?.let {
             jsonSerializer.decodeFromString<ConfigData>(it)
         } ?: ConfigDataDefaults
@@ -52,7 +52,7 @@ class WalletConfig(
                         ?: this@WalletConfig.credentialRepresentation.first(),
                 )
 
-                dataStoreService.setData(
+                dataStoreService.setPreference(
                     jsonSerializer.encodeToString(newConfig),
                     Resources.DATASTORE_KEY_CONFIG
                 )
@@ -63,7 +63,7 @@ class WalletConfig(
     }
 
     suspend fun reset() {
-        dataStoreService.deleteData(Resources.DATASTORE_KEY_CONFIG)
+        dataStoreService.deletePreference(Resources.DATASTORE_KEY_CONFIG)
     }
 }
 

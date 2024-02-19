@@ -1,6 +1,5 @@
 package view
 
-import Resources
 import android.util.Size
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
@@ -9,22 +8,8 @@ import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -33,22 +18,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
-import globalBack
 import io.github.aakira.napier.Napier
 import java.util.concurrent.Executors
 import kotlin.coroutines.resume
@@ -63,17 +42,20 @@ private val executor = Executors.newSingleThreadExecutor()
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-actual fun CameraView(onFoundPayload: (text: String) -> Unit){
-
-
-    val modifier = Modifier
+actual fun CameraView(
+    onFoundPayload: (text: String) -> Unit,
+    modifier: Modifier,
+) {
     val cameraPermissionState = rememberMultiplePermissionsState(
         listOf(
             android.Manifest.permission.CAMERA,
         )
     )
     if (cameraPermissionState.allPermissionsGranted) {
-        CameraWithGrantedPermission(modifier, onFoundPayload)
+        CameraWithGrantedPermission(
+            onFoundPayload,
+            modifier = modifier,
+        )
     } else {
         LaunchedEffect(Unit) {
             println("Get Permission")
@@ -85,10 +67,10 @@ actual fun CameraView(onFoundPayload: (text: String) -> Unit){
 
 @Composable
 private fun CameraWithGrantedPermission(
-    modifier: Modifier,
-    onFoundPayload: (text: String) -> Unit
+    onFoundPayload: (text: String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    val foundQrCode = remember { mutableStateOf(false)  }
+    val foundQrCode = remember { mutableStateOf(false) }
 
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -132,7 +114,8 @@ private fun CameraWithGrantedPermission(
             .build()
         imageAnalysis.setAnalyzer(executor, { imageProxy: ImageProxy ->
             imageProxy.image?.let { image ->
-                val inputImage = InputImage.fromMediaImage(image, imageProxy.imageInfo.rotationDegrees)
+                val inputImage =
+                    InputImage.fromMediaImage(image, imageProxy.imageInfo.rotationDegrees)
                 val scanner = BarcodeScanning.getClient()
                 scanner.process(inputImage)
                     .addOnCompleteListener {
@@ -169,15 +152,15 @@ private fun CameraWithGrantedPermission(
             }
         }
     }) {
-        AndroidView({ previewView }, modifier = Modifier.fillMaxSize())
+        AndroidView({ previewView })
 
-        Box(modifier = Modifier.background(color = MaterialTheme.colorScheme.background).height(80.dp), contentAlignment = Alignment.TopCenter){
-            Row(Modifier.padding(10.dp).height(80.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Close, contentDescription = null, Modifier.size(30.dp).clickable(onClick = { globalBack() }))
-                Text(Resources.DEMO_WALLET, fontSize = 40.sp, fontWeight = FontWeight.Bold)
-                Icon(Icons.Default.Close, contentDescription = null, Modifier.size(30.dp).clickable(onClick = { }), tint = Color.LightGray.copy(alpha = 0.0f))
-            }
-        }
+//        Box(modifier = Modifier.background(color = MaterialTheme.colorScheme.background).height(80.dp), contentAlignment = Alignment.TopCenter){
+//            Row(Modifier.padding(10.dp).height(80.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+//                Icon(Icons.Default.Close, contentDescription = null, Modifier.size(30.dp).clickable(onClick = { globalBack() }))
+//                Text(Resources.DEMO_WALLET, fontSize = 40.sp, fontWeight = FontWeight.Bold)
+//                Icon(Icons.Default.Close, contentDescription = null, Modifier.size(30.dp).clickable(onClick = { }), tint = Color.LightGray.copy(alpha = 0.0f))
+//            }
+//        }
     }
 }
 

@@ -2,21 +2,17 @@ package ui.views
 
 import Resources
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -29,9 +25,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import navigation.PayloadPage
-import ui.composables.OutlinedTextIconButton
-import ui.composables.TextIconButton
 import ui.composables.buttons.BackNavigationButton
 import ui.composables.buttons.LoadDataButton
 import view.CameraView
@@ -73,21 +66,43 @@ fun LoadDataView(
             }
         }
     ) { scaffoldPadding ->
-        Box(
+        Column(
             modifier = Modifier.padding(scaffoldPadding)
-                .verticalScroll(rememberScrollState())
+//                .verticalScroll(rememberScrollState())
+                .fillMaxSize()
         ) {
+//            Text("A")
+//            Spacer(modifier = Modifier.weight(1.0f))
+//            Text("B")
+//            CameraView(
+//                onFoundPayload = {
+//                    qrCodeContent = it
+//                },
+////                modifier = Modifier.fillMaxSize(),
+//                        modifier = Modifier.weight(1.0f)
+//            )
             Column(
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier
+                    .verticalScroll(rememberScrollState())
+//                    .fillMaxSize()
             ) {
-                Text("Zur Abfrage Ihrer Daten werden Sie zu ID Austria weitergeleitet.")
+                Text(
+                    "Zur Abfrage Ihrer Daten werden Sie zu ID Austria weitergeleitet.",
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                )
                 Spacer(modifier = Modifier.height(16.dp))
-                if(qrCodeContent == null) {
-                    Text("Zu Entwicklungszwecken gibt es auch die Möglichkeit, Daten über einen QR-Code zu laden: (TODO)")
+                if (qrCodeContent == null) {
+                    Text(
+                        "Zu Entwicklungszwecken gibt es auch die Möglichkeit, Daten über einen QR-Code zu laden:",
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                    )
+                    Spacer(modifier = Modifier.height(48.dp)) // not sure why such a high padding value is necessary
                     CameraView(
                         onFoundPayload = {
                             qrCodeContent = it
-                        }
+                        },
+                        modifier = Modifier.fillMaxSize(),
+//                        modifier = Modifier.weight(1.0f)
                     )
                 } else {
                     Text("QR-Code Conent: $qrCodeContent!!")

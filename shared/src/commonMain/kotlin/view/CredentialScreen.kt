@@ -20,6 +20,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,9 +36,11 @@ import kotlinx.coroutines.launch
 
 
 @Composable
-fun CredentialScreen(id: String, walletMain: WalletMain){
-    val credential = walletMain.subjectCredentialStore.getStoreEntryById(id)
-    when(credential) {
+fun CredentialScreen(id: String, walletMain: WalletMain) {
+    val credentialState by walletMain.subjectCredentialStore.observeStoreEntryById(id).collectAsState(null)
+
+    when(val credential = credentialState) {
+        null -> {}
         is SubjectCredentialStore.StoreEntry.Vc -> {
             val type = credential.vc.vc.type.filter { it != "VerifiableCredential" }.joinToString(",")
             when(val credentialSubject = credential.vc.vc.credentialSubject) {

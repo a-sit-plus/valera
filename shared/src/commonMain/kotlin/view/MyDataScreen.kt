@@ -1,11 +1,9 @@
 package view
 
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import at.asitplus.wallet.app.common.WalletMain
-import kotlinx.coroutines.runBlocking
 import ui.views.LoadDataView
 import ui.views.MyDataView
 
@@ -14,7 +12,7 @@ fun MyDataScreen(
     walletMain: WalletMain,
     refreshCredentials: () -> Unit,
 ) {
-    val credentials by walletMain.subjectCredentialStore.getVcsFlow().collectAsState(null)
+    val credentials by walletMain.subjectCredentialStore.observeVcs().collectAsState(null)
 
     if(credentials == null) {
         return
