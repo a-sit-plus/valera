@@ -14,6 +14,7 @@ import io.ktor.util.date.getTimeMillis
 import io.ktor.util.toLowerCasePreservingASCIIRules
 import kotlinx.atomicfu.AtomicLong
 import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -86,7 +87,7 @@ class PersistentCookieStorage(private val dataStoreService: DataStoreService, pr
 
     private fun importFromDataStore(): CookieContainer {
         try {
-            val input = runBlocking {dataStoreService.getPreference(Resources.DATASTORE_KEY_COOKIES)}
+            val input = runBlocking { dataStoreService.getPreference(Resources.DATASTORE_KEY_COOKIES).firstOrNull() }
             if (input == null){
                 return CookieContainer(cookies = mutableListOf(), oldestCookie = atomic(0L))
             } else {

@@ -56,13 +56,12 @@ class WalletMain(
 
         subjectCredentialStore.reset()
 
-        dataStoreService.deletePreference(Resources.DATASTORE_KEY_VCS)
-        dataStoreService.deletePreference(Resources.DATASTORE_KEY_XAUTH)
-        dataStoreService.deletePreference(Resources.DATASTORE_KEY_COOKIES)
-        dataStoreService.deletePreference(Resources.DATASTORE_KEY_CONFIG)
-
-        walletConfig.host = "https://wallet.a-sit.at"
-        walletConfig.credentialRepresentation = ConstantIndex.CredentialRepresentation.PLAIN_JWT
+        dataStoreService.deleteData(Resources.DATASTORE_KEY_VCS)
+        dataStoreService.deleteData(Resources.DATASTORE_KEY_XAUTH)
+        dataStoreService.deleteData(Resources.DATASTORE_KEY_COOKIES)
+        walletConfig.reset()
+//        walletConfig.host = "https://wallet.a-sit.at"
+//        walletConfig.credentialRepresentation = ConstantIndex.CredentialRepresentation.PLAIN_JWT
     }
 
     fun getLog(): List<String>{

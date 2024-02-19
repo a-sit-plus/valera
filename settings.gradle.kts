@@ -1,5 +1,6 @@
 rootProject.name = "MyApplication"
 
+include(":desktopApp")
 include(":androidApp")
 include(":shared")
 

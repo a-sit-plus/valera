@@ -14,4 +14,11 @@ actual class PayloadPage actual constructor(actual val info: String) : Page
 
 actual class ConsentPage actual constructor(actual val url: String, actual val claims: List<String>, actual val recipientName: String, actual val recipientLocation: String) : Page
 
+
+actual class OnboardingStartPage actual constructor() : OnboardingPage
+
+actual class OnboardingInformationPage actual constructor() : OnboardingPage
+
+actual class OnboardingTermsPage actual constructor() : OnboardingPage
+
 actual class LoadingPage : Page

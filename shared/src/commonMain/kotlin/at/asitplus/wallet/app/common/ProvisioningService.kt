@@ -37,6 +37,8 @@ import io.ktor.http.Url
 import io.ktor.http.contentType
 import io.ktor.http.parseQueryString
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 
 const val PATH_WELL_KNOWN_CREDENTIAL_ISSUER = "/.well-known/openid-credential-issuer"
 
@@ -62,18 +64,20 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, private val data
             storage = cookieStorage
         }
     }
+
     @Throws(Throwable::class)
-    suspend fun startProvisioning(){
-        val host = config.host
+    suspend fun startProvisioning() {
+        val host = config.host.first()
         cookieStorage.reset()
         Napier.d("Start provisioning")
 
-        runCatching { client.get("$host/m1/oauth2/authorization/idaq")
+        runCatching {
+            client.get("$host/m1/oauth2/authorization/idaq")
         }.onSuccess { response ->
             val urlToOpen = response.headers["Location"]
 
             val xAuthToken = response.headers["X-Auth-Token"]
-            if (xAuthToken == null){
+            if (xAuthToken == null) {
                 throw Exception("X-Auth-Token not received")
             }
 
@@ -93,12 +97,13 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, private val data
             throw Exception(it)
         }
     }
+
     @Throws(Throwable::class)
-    suspend fun handleResponse(url: String){
-        val host = config.host
-        val xAuthToken = dataStoreService.getPreference(Resources.DATASTORE_KEY_XAUTH)
-        val credentialRepresentation = config.credentialRepresentation
-        if (xAuthToken == null){
+    suspend fun handleResponse(url: String) {
+        val host = config.host.first()
+        val xAuthToken = dataStoreService.getPreference(Resources.DATASTORE_KEY_XAUTH).firstOrNull()
+        val credentialRepresentation = config.credentialRepresentation.first()
+        if (xAuthToken == null) {
             throw Exception("X-Auth-Token not available in DataStoreService")
         }
         Napier.d("Create request with x-auth: $xAuthToken")
@@ -107,7 +112,7 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, private val data
         }
 
         Napier.d("Load X-Auth-Token: $xAuthToken")
-        val metadata: IssuerMetadata = client.get("$host/m1$PATH_WELL_KNOWN_CREDENTIAL_ISSUER"){
+        val metadata: IssuerMetadata = client.get("$host/m1$PATH_WELL_KNOWN_CREDENTIAL_ISSUER") {
             headers["X-Auth-Token"] = xAuthToken
         }.body()
 
@@ -139,9 +144,10 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, private val data
 
         val tokenRequest = oid4vciService.createTokenRequestParameters(code)
         Napier.d("Created tokenRequest")
-        val tokenResponse: TokenResponseParameters = client.submitForm(metadata.tokenEndpointUrl.toString()) {
-            setBody(tokenRequest.encodeToParameters().formUrlEncode())
-        }.body()
+        val tokenResponse: TokenResponseParameters =
+            client.submitForm(metadata.tokenEndpointUrl.toString()) {
+                setBody(tokenRequest.encodeToParameters().formUrlEncode())
+            }.body()
 
         Napier.d("Received tokenResponse")
         val credentialRequest = oid4vciService.createCredentialRequest(tokenResponse, metadata)
@@ -155,12 +161,29 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, private val data
         Napier.d("Received credentialResponse")
 
         credentialResponse.credential?.let {
-            when (credentialResponse.format){
+            when (credentialResponse.format) {
                 CredentialFormatEnum.NONE -> TODO("Function not implemented")
                 CredentialFormatEnum.JWT_VC ->
-                    holderAgent.storeCredentials(listOf(Holder.StoreCredentialInput.Vc(vcJws = it, scheme = at.asitplus.wallet.idaustria.IdAustriaScheme, attachments = null)))
+                    holderAgent.storeCredentials(
+                        listOf(
+                            Holder.StoreCredentialInput.Vc(
+                                vcJws = it,
+                                scheme = at.asitplus.wallet.idaustria.IdAustriaScheme,
+                                attachments = null
+                            )
+                        )
+                    )
+
                 CredentialFormatEnum.JWT_VC_SD ->
-                    holderAgent.storeCredentials(listOf(Holder.StoreCredentialInput.SdJwt(vcSdJwt = it, scheme = at.asitplus.wallet.idaustria.IdAustriaScheme)))
+                    holderAgent.storeCredentials(
+                        listOf(
+                            Holder.StoreCredentialInput.SdJwt(
+                                vcSdJwt = it,
+                                scheme = at.asitplus.wallet.idaustria.IdAustriaScheme
+                            )
+                        )
+                    )
+
                 CredentialFormatEnum.JWT_VC_JSON_LD -> TODO("Function not implemented")
                 CredentialFormatEnum.JSON_LD -> TODO("Function not implemented")
                 CredentialFormatEnum.MSO_MDOC -> TODO("Function not implemented")

@@ -27,6 +27,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.data.ConstantIndex
 import globalBack
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,8 +56,12 @@ fun AboutScreen(onShowLog: () -> Unit, walletMain: WalletMain) {
         if (showAlert.value) {
             ResetAlert(showAlert, walletMain)
         }
-        var host by remember { mutableStateOf(walletMain.walletConfig.host) }
         var credentialRepresentation by remember { mutableStateOf(walletMain.walletConfig.credentialRepresentation) }
+        var host by rememberSaveable {
+            runBlocking {
+                mutableStateOf(walletMain.walletConfig.host.first())
+            }
+        }
 
         Column(
             modifier = Modifier.background(color = MaterialTheme.colorScheme.secondaryContainer)
@@ -63,8 +69,18 @@ fun AboutScreen(onShowLog: () -> Unit, walletMain: WalletMain) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(Resources.COMPOSE_WALLET, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-            Text(Resources.DEMO_APP, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+            Text(
+                Resources.COMPOSE_WALLET,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                Resources.DEMO_APP,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
 
 
             Box(Modifier.fillMaxWidth().padding(20.dp)) {
@@ -132,7 +148,7 @@ fun AboutScreen(onShowLog: () -> Unit, walletMain: WalletMain) {
                                 )
                             }
                         }
-
+                    }
                     }
                 }
             }
@@ -157,13 +173,14 @@ fun AboutScreen(onShowLog: () -> Unit, walletMain: WalletMain) {
                 modifier = Modifier
                     .padding(vertical = 24.dp),
                 onClick = {
-                    walletMain.walletConfig.host = host
-                    walletMain.walletConfig.credentialRepresentation = credentialRepresentation
-                    walletMain.walletConfig.exportConfig()
+                    walletMain.walletConfig.set(
+                        host = host
+                    )
                     globalBack()
                 }
             ) {
                 Text(Resources.BUTTON_CLOSE)
+            }
             }
         }
     }

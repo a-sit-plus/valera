@@ -11,6 +11,9 @@ import at.asitplus.wallet.lib.data.VerifiableCredentialJws
 import at.asitplus.wallet.lib.data.VerifiableCredentialSdJwt
 import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.iso.IssuerSigned
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -216,6 +219,22 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         return container.credentials.size
     }
 
+
+    fun getVcsFlow(): Flow<ArrayList<VerifiableCredential>> {
+        return dataStore.getData(Resources.DATASTORE_KEY_VCS).map {
+            val credentialList = ArrayList<VerifiableCredential>()
+            dataStoreValueToStoreContainer(it).credentials.forEach { entry ->
+                when (entry) {
+                    is SubjectCredentialStore.StoreEntry.Iso -> TODO()
+                    is SubjectCredentialStore.StoreEntry.Vc -> {
+                        credentialList.add(entry.vc.vc)
+                    }
+                    is SubjectCredentialStore.StoreEntry.SdJwt -> TODO()
+                }
+            }
+            credentialList
+        }
+    }
 }
 
 data class StoreContainer(val credentials: MutableList<SubjectCredentialStore.StoreEntry>, val attachments: MutableList<SubjectCredentialStore.AttachmentEntry>)

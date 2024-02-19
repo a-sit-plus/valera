@@ -46,4 +46,30 @@ object Resources {
     const val REQUESTED_DATA = "Requested data"
     const val TRANSMIT_THIS_INFORMATION = "Would you like to transmit this information?"
     const val UNKNOWN_EXCEPTION = "Unknown exception"
+
+    const val APP_DISPLAY_NAME = "Wallet Demo App"
+
+    const val BUTTON_LABEL_ACCEPT = "Akzeptieren"
+    const val BUTTON_LABEL_CANCEL = "Abbrechen"
+    const val BUTTON_LABEL_CONSENT = "Zustimmen"
+    const val BUTTON_LABEL_CONTINUE = "Weiter"
+    const val BUTTON_LABEL_DETAILS = "Details"
+    const val BUTTOM_LABEL_LOAD_DATA = "Daten laden"
+    const val BUTTON_LABEL_START = "Starten"
+
+    const val HEADING_LABEL_INFORMATION = "Information"
+    const val HEADING_LABEL_NAVIGATE_BACK = "Zurück"
+    const val HEADING_LABEL_TERMS_OF_USE = "Nutzungsbedingungen"
+    const val HEADING_LABEL_DATA_PROTECTION = "Datenschutz"
+    const val HEADING_LABEL_TERMS_OF_USE_AND_DATA_PROTECTION = "$HEADING_LABEL_TERMS_OF_USE & $HEADING_LABEL_DATA_PROTECTION"
+    const val HEADING_LABEL_PERMISSIONS = "Berechtigungen"
+    const val HEADING_LABEL_LOAD_DATA = "Daten laden"
+
+    const val DESCRIPTION_READ_TERMS = "Bitte lesen und akzeptieren Sie die Nutzungsbedingungen und Datenschutzerklärung."
+
+
+    const val CONTENT_DESCRIPTION_NAVIGATE_BACK = "Zurück"
+
+    // files
+    val ONBOARDING_START_SCREEN_BACKGROUND_FILENAME = "onboardingBackground.jpg"
 }

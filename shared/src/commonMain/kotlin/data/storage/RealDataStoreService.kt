@@ -8,15 +8,19 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import at.asitplus.wallet.app.common.PlatformAdapter
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import okio.Path.Companion.toPath
 
 interface DataStoreService {
     suspend fun setPreference(value: String, key: String)
-    suspend fun getPreference(key: String): String?
+    suspend fun getPreference(key: String): Flow<String?>
     suspend fun deletePreference(key: String)
     fun clearLog()
 
+    suspend fun setData(value: String, key: String)
+    fun getData(key: String): Flow<String?>
+    suspend fun deleteData(key: String)
 }
 class RealDataStoreService(private var dataStore: DataStore<Preferences>, private var platformAdapter: PlatformAdapter): DataStoreService{
     override suspend fun setPreference(value: String, key: String){
@@ -31,11 +35,11 @@ class RealDataStoreService(private var dataStore: DataStore<Preferences>, privat
 
     }
 
-    override suspend fun getPreference(key: String): String? {
+    override suspend fun getPreference(key: String): Flow<String?> {
         try {
             val dataStoreKey = stringPreferencesKey(key)
-            val preferences = dataStore.data.first()
-            return preferences[dataStoreKey]
+            val preferences = dataStore.data
+            return preferences.map { it[dataStoreKey] }
         } catch (e: Throwable) {
             throw Exception("Unable to get data from DataStore")
         }
