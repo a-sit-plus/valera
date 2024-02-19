@@ -71,7 +71,6 @@ import view.AboutScreen
 import view.AppLinkScreen
 import view.CameraView
 import view.CredentialScreen
-import view.HomeScreen
 import view.MyDataScreen
 import view.OnboardingWrapper
 import view.PayloadScreen
