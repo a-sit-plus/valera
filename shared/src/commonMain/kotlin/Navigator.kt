@@ -1,3 +1,4 @@
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -56,7 +57,6 @@ import ui.views.ShowDataView
 import view.AboutScreen
 import view.CameraView
 import view.CredentialScreen
-import view.HomeScreen
 import view.LoadingScreen
 import view.MyDataScreen
 import view.PayloadScreen
@@ -209,7 +209,7 @@ import view.PayloadScreen
 
 
 
-private enum class Route(
+private enum class NavigationData(
     val title: String,
     val icon: @Composable () -> Unit,
     val destination: Page,
@@ -338,15 +338,15 @@ fun navigator(walletMain: WalletMain) {
     val navigationData = { page: Page ->
         when (page) {
             is HomePage -> {
-                Route.HOME_SCREEN
+                NavigationData.HOME_SCREEN
             }
 
             is ShowDataPage -> {
-                Route.SHOW_DATA_SCREEN
+                NavigationData.SHOW_DATA_SCREEN
             }
 
             is InformationPage -> {
-                Route.INFORMATION_SCREEN
+                NavigationData.INFORMATION_SCREEN
             }
 
             else -> null
@@ -362,9 +362,9 @@ fun navigator(walletMain: WalletMain) {
             if (pageNavigationData != null) {
                 NavigationBar {
                     for (route in listOf(
-                        Route.HOME_SCREEN,
-                        Route.SHOW_DATA_SCREEN,
-                        Route.INFORMATION_SCREEN,
+                        NavigationData.HOME_SCREEN,
+                        NavigationData.SHOW_DATA_SCREEN,
+                        NavigationData.INFORMATION_SCREEN,
                     )) {
                         NavigationBarItem(
                             icon = route.icon,
@@ -420,7 +420,7 @@ fun navigator(walletMain: WalletMain) {
                         AboutScreen(
                             onShowLog = {},
                             walletMain = walletMain,
-                            navigateUp = {},
+                            navigateUp = globalBack,
                         )
                     }
 

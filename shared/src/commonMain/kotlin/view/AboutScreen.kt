@@ -38,16 +38,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.data.ConstantIndex
-import globalBack
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(
+    navigateUp: () -> Unit,
     onShowLog: () -> Unit,
     walletMain: WalletMain,
-    navigateUp: () -> Unit,
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -63,7 +62,7 @@ fun AboutScreen(
                 },
                 onResetConfirm = {
                     runBlocking { walletMain.resetApp() }
-                    globalBack()
+                    navigateUp()
                     walletMain.snackbarService.showSnackbar(Resources.SNACKBAR_RESET_APP_SUCCESSFULLY)
                 },
             )
@@ -191,7 +190,7 @@ fun AboutScreen(
                     walletMain.walletConfig.set(
                         host = host
                     )
-                    globalBack()
+                    navigateUp()
                 }
             ) {
                 Text(Resources.BUTTON_CLOSE)

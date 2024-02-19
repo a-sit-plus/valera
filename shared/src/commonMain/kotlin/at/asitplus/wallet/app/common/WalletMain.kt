@@ -119,14 +119,14 @@ interface PlatformAdapter {
      * Writes an user defined string to a file in a specific folder
      * @param text is the content of the new file or the content which gets append to an existing file
      * @param fileName the name of the file
-     * @param folder the name of the folder in which the file resides
+     * @param folderName the name of the folder in which the file resides
      */
     fun writeToFile(text: String, fileName: String, folderName: String)
 
     /**
      * Reads the content from a file in a specific folder
      * @param fileName the name of the file
-     * @param folder the name of the folder in which the file resides
+     * @param folderName the name of the folder in which the file resides
      * @return returns the content of the file
      */
     fun readFromFile(fileName: String, folderName: String): String?
@@ -134,7 +134,7 @@ interface PlatformAdapter {
     /**
      * Clears the content of a file
      * @param fileName the name of the file
-     * @param folder the name of the folder in which the file resides
+     * @param folderName the name of the folder in which the file resides
      */
     fun clearFile(fileName: String, folderName: String)
 
