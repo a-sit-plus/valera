@@ -68,45 +68,27 @@ fun LoadDataView(
     ) { scaffoldPadding ->
         Column(
             modifier = Modifier.padding(scaffoldPadding)
-//                .verticalScroll(rememberScrollState())
+                .verticalScroll(rememberScrollState())
                 .fillMaxSize()
         ) {
-//            Text("A")
-//            Spacer(modifier = Modifier.weight(1.0f))
-//            Text("B")
-//            CameraView(
-//                onFoundPayload = {
-//                    qrCodeContent = it
-//                },
-////                modifier = Modifier.fillMaxSize(),
-//                        modifier = Modifier.weight(1.0f)
-//            )
-            Column(
-                modifier = Modifier
-                    .verticalScroll(rememberScrollState())
-//                    .fillMaxSize()
-            ) {
+            Text(
+                "Zur Abfrage Ihrer Daten werden Sie zu ID Austria weitergeleitet.",
+                modifier = Modifier.padding(horizontal = 16.dp),
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            if (qrCodeContent == null) {
                 Text(
-                    "Zur Abfrage Ihrer Daten werden Sie zu ID Austria weitergeleitet.",
+                    "Zu Entwicklungszwecken gibt es auch die Möglichkeit, Daten über einen QR-Code zu laden:",
                     modifier = Modifier.padding(horizontal = 16.dp),
                 )
-                Spacer(modifier = Modifier.height(16.dp))
-                if (qrCodeContent == null) {
-                    Text(
-                        "Zu Entwicklungszwecken gibt es auch die Möglichkeit, Daten über einen QR-Code zu laden:",
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                    )
-                    Spacer(modifier = Modifier.height(48.dp)) // not sure why such a high padding value is necessary
-                    CameraView(
-                        onFoundPayload = {
-                            qrCodeContent = it
-                        },
-                        modifier = Modifier.fillMaxSize(),
-//                        modifier = Modifier.weight(1.0f)
-                    )
-                } else {
-                    Text("QR-Code Conent: $qrCodeContent!!")
-                }
+                Spacer(modifier = Modifier.height(48.dp)) // not sure why such a high padding value is necessary
+                CameraView(
+                    onFoundPayload = {
+                        qrCodeContent = it
+                    },
+                )
+            } else {
+                Text("QR-Code Conent: $qrCodeContent!!")
             }
         }
     }

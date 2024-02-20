@@ -242,10 +242,16 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         }
     }
 
-    fun observeVcs(): Flow<ArrayList<VerifiableCredential>> {
+    fun observeStoreContainer(): Flow<StoreContainer> {
         return dataStore.getPreference(Resources.DATASTORE_KEY_VCS).map {
+            dataStoreValueToStoreContainer(it)
+        }
+    }
+
+    fun observeVcs(): Flow<ArrayList<VerifiableCredential>> {
+        return observeStoreContainer().map {
             val credentialList = ArrayList<VerifiableCredential>()
-            dataStoreValueToStoreContainer(it).credentials.forEach { entry ->
+            it.credentials.forEach { entry ->
                 when (entry) {
                     is SubjectCredentialStore.StoreEntry.Iso -> TODO()
                     is SubjectCredentialStore.StoreEntry.Vc -> {

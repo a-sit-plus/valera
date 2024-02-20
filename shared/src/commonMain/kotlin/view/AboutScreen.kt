@@ -188,12 +188,13 @@ fun AboutScreen(
                     .padding(vertical = 24.dp),
                 onClick = {
                     walletMain.walletConfig.set(
-                        host = host
+                        host = host,
+                        credentialRepresentation = credentialRepresentation,
                     )
                     navigateUp()
                 }
             ) {
-                Text(Resources.BUTTON_CLOSE)
+                Text(Resources.BUTTON_LABEL_SAVE)
             }
         }
     }

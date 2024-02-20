@@ -1,5 +1,6 @@
 package ui.views
 
+import Resources
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,38 +11,49 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.SettingsBackupRestore
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import at.asitplus.wallet.app.common.WalletMain
-import kotlinx.coroutines.runBlocking
+import at.asitplus.wallet.lib.data.ConstantIndex
 import navigation.Page
 
 class InformationPage : Page
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InformationView(
+fun SettingsView(
+    host: String,
+    onChangeHost: (String) -> Unit,
+    credentialRepresentation: ConstantIndex.CredentialRepresentation,
+    onChangeCredentialRepresentation: (ConstantIndex.CredentialRepresentation) -> Unit,
+    isSaveEnabled: Boolean,
+    onClickSaveConfiguration: () -> Unit,
     stage: String,
     version: String,
     onClickFAQs: () -> Unit,
@@ -67,7 +79,7 @@ fun InformationView(
             TopAppBar(
                 title = {
                     Text(
-                        "Informationen",
+                        "Einstellungen",
                         style = MaterialTheme.typography.headlineLarge
                     )
                 },
@@ -82,7 +94,19 @@ fun InformationView(
                 Text("Stage: $stage")
                 Text("Version: $version")
             }
-        }
+        },
+        floatingActionButton = {
+            if(isSaveEnabled) {
+                FloatingActionButton(
+                    onClick = onClickSaveConfiguration,
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Save,
+                        contentDescription = Resources.CONTENT_DESCRIPTION_SAVE_BUTTON
+                    )
+                }
+            }
+        },
     ) { scaffoldPadding ->
         Box(modifier = Modifier.padding(scaffoldPadding)) {
             Column(
@@ -92,6 +116,86 @@ fun InformationView(
                 val layoutSpacingModifier = Modifier.padding(top = 24.dp)
                 Column(
 //                    modifier = layoutSpacingModifier // not for the first element
+                ) {
+                    val listSpacingModifier = Modifier.padding(top = 8.dp)
+                    Text(
+                        text = "Konfiguration",
+                        style = MaterialTheme.typography.titleMedium,
+//                        modifier = listSpacingModifier, // not for the first element
+                    )
+
+                    OutlinedTextField(
+                        value = host,
+                        onValueChange = onChangeHost,
+                        label = { Text("Issuing Service") },
+                        keyboardOptions = KeyboardOptions(
+                            imeAction = ImeAction.Done
+                        ),
+                        modifier = listSpacingModifier.fillMaxWidth(),
+                    )
+                    var showMenu by remember { mutableStateOf(false) }
+
+                    ExposedDropdownMenuBox(
+                        expanded = showMenu,
+                        onExpandedChange = { showMenu = !showMenu },
+                        modifier = listSpacingModifier.fillMaxWidth(),
+                    ) {
+                        OutlinedTextField(
+                            readOnly = true,
+                            value = credentialRepresentation.name,
+                            onValueChange = {},
+                            label = { Text("Credential Representation") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = showMenu) },
+                            modifier = Modifier.menuAnchor().fillMaxWidth(),
+                        )
+                        ExposedDropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = {
+                                showMenu = false
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("PLAIN_JWT") },
+                                onClick = {
+                                    onChangeCredentialRepresentation(ConstantIndex.CredentialRepresentation.PLAIN_JWT)
+                                    showMenu = false
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                            DropdownMenuItem(
+                                text = { Text("SD_JWT") },
+                                onClick = {
+                                    onChangeCredentialRepresentation(ConstantIndex.CredentialRepresentation.SD_JWT)
+                                    showMenu = false
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                            DropdownMenuItem(
+                                text = { Text("ISO_MDOC") },
+                                onClick = {
+                                    onChangeCredentialRepresentation(ConstantIndex.CredentialRepresentation.ISO_MDOC)
+                                    showMenu = false
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
+                    }
+//                    Row(
+//                        verticalAlignment = Alignment.CenterVertically,
+//                        horizontalArrangement = Arrangement.Center,
+//                        modifier = Modifier.fillMaxWidth(),
+//                    ) {
+//                        Button(
+//                            enabled = isSaveEnabled,
+//                            onClick = onClickSaveConfiguration,
+//                        ) {
+//                            Text(Resources.BUTTON_LABEL_SAVE)
+//                        }
+//                    }
+                }
+                Column(
+                    modifier = layoutSpacingModifier // not for the first element
                 ) {
                     val listSpacingModifier = Modifier.padding(top = 8.dp)
                     Text(

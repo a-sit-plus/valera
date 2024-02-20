@@ -3,9 +3,9 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -51,11 +51,12 @@ import ui.views.AuthenticationQrCodeScannerView
 import ui.views.AuthenticationSPInfoPage
 import ui.views.AuthenticationSPInfoView
 import ui.views.InformationPage
-import ui.views.InformationView
+import ui.views.SettingsView
 import ui.views.ShowDataPage
 import ui.views.ShowDataView
 import view.AboutScreen
 import view.CameraView
+import view.ConsentScreen
 import view.CredentialScreen
 import view.LoadingScreen
 import view.MyDataScreen
@@ -208,7 +209,6 @@ import view.PayloadScreen
 //}
 
 
-
 private enum class NavigationData(
     val title: String,
     val icon: @Composable () -> Unit,
@@ -225,7 +225,7 @@ private enum class NavigationData(
         },
         destination = HomePage(),
         isActive = {
-            when(it) {
+            when (it) {
                 is HomePage -> true
                 else -> false
             }
@@ -241,23 +241,23 @@ private enum class NavigationData(
         },
         destination = ShowDataPage(),
         isActive = {
-            when(it) {
+            when (it) {
                 is ShowDataPage -> true
                 else -> false
             }
         },
     ),
     INFORMATION_SCREEN(
-        title = "Informationen",
+        title = "Einstellungen",
         icon = {
             Icon(
-                imageVector = Icons.Default.Info,
-                contentDescription = "Weitere Information",
+                imageVector = Icons.Default.Settings,
+                contentDescription = "Einstellungen",
             )
         },
         destination = InformationPage(),
         isActive = {
-            when(it) {
+            when (it) {
                 is InformationPage -> true
                 else -> false
             }
@@ -278,21 +278,26 @@ fun navigator(walletMain: WalletMain) {
         NavigationStack(HomePage())
     }
 
-    LaunchedEffect(appLink.value){
+    LaunchedEffect(appLink.value) {
         appLink.value?.let { link ->
             val parameterIndex = link.indexOfFirst { it == '?' }
             val pars = parseQueryString(link, startIndex = parameterIndex + 1)
 
             if (pars.contains("error")) {
-                walletMain.errorService.emit(Exception(pars["error_description"] ?: Resources.UNKNOWN_EXCEPTION))
+                walletMain.errorService.emit(
+                    Exception(
+                        pars["error_description"] ?: Resources.UNKNOWN_EXCEPTION
+                    )
+                )
                 appLink.value = null
                 return@LaunchedEffect
             }
 
             val host = walletMain.walletConfig.host
-            if (link.contains("$host/mobile") == true){
+            if (link.contains("$host/mobile") == true) {
                 val params = kotlin.runCatching {
-                    Url(link).parameters.flattenEntries().toMap().decodeFromUrlQuery<AuthenticationRequestParameters>()
+                    Url(link).parameters.flattenEntries().toMap()
+                        .decodeFromUrlQuery<AuthenticationRequestParameters>()
                 }
 
                 val requestedClaims = params.getOrNull()?.presentationDefinition?.inputDescriptors
@@ -304,7 +309,14 @@ fun navigator(walletMain: WalletMain) {
                     ?.map { it.removePrefix("\$.") }
                     ?: listOf()
                 if (walletMain.subjectCredentialStore.observeCredentialSize().first() != 0) {
-                    navigationStack.push(ConsentPage(url = link, claims = requestedClaims, recipientName = "DemoService", recipientLocation = "DemoLocation"))
+                    navigationStack.push(
+                        ConsentPage(
+                            url = link,
+                            claims = requestedClaims,
+                            recipientName = "DemoService",
+                            recipientLocation = "DemoLocation",
+                        )
+                    )
                     appLink.value = null
                     return@LaunchedEffect
                 } else {
@@ -424,15 +436,30 @@ fun navigator(walletMain: WalletMain) {
                         )
                     }
 
+                    is ConsentPage -> {
+                        ConsentScreen(
+                            walletMain = walletMain,
+                            onAccept = { navigationStack.push(HomePage()) },
+                            onCancel = { navigationStack.back() },
+                            url = page.url,
+                            recipientName = page.recipientName,
+                            recipientLocation = page.recipientLocation,
+                            claims = page.claims,
+                        )
+                    }
+
                     is CredentialPage -> {
-                        CredentialScreen(id = page.info, walletMain)
+                        CredentialScreen(
+                            id = page.info,
+                            walletMain,
+                        )
                     }
 
                     is CameraPage -> {
                         CameraView(
                             onFoundPayload = { info ->
                                 navigationStack.push(PayloadPage(info))
-                            }
+                            },
                         )
                     }
 
@@ -440,7 +467,7 @@ fun navigator(walletMain: WalletMain) {
                         PayloadScreen(
                             text = page.info,
                             onContinueClick = { navigationStack.push(HomePage()) },
-                            walletMain
+                            walletMain = walletMain,
                         )
                     }
 
@@ -500,7 +527,39 @@ fun navigator(walletMain: WalletMain) {
                     }
 
                     is InformationPage -> {
-                        InformationView(
+                        var credentialRepresentation by remember {
+                            runBlocking {
+                                mutableStateOf(walletMain.walletConfig.credentialRepresentation.first())
+                            }
+                        }
+                        var host by rememberSaveable {
+                            runBlocking {
+                                mutableStateOf(walletMain.walletConfig.host.first())
+                            }
+                        }
+                        var isSaveEnabled by rememberSaveable {
+                            mutableStateOf(false)
+                        }
+
+                        SettingsView(
+                            host = host,
+                            onChangeHost = {
+                                host = it
+                                isSaveEnabled = true
+                            },
+                            credentialRepresentation = credentialRepresentation,
+                            onChangeCredentialRepresentation = {
+                                credentialRepresentation = it
+                                isSaveEnabled = true
+                            },
+                            isSaveEnabled = isSaveEnabled,
+                            onClickSaveConfiguration = {
+                                walletMain.walletConfig.set(
+                                    host = host,
+                                    credentialRepresentation = credentialRepresentation,
+                                )
+                                isSaveEnabled = false
+                            },
                             stage = "T",
                             version = "1.0.0 / 2389237",
                             onClickFAQs = {},

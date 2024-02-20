@@ -40,6 +40,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -77,11 +78,11 @@ fun HomeScreen(
                         AddId(onScanQrCode, onLoginWithIdAustria)
                     } else {
                         ShowId(
-                            onCredential,
-                            onScanQrCode,
-                            walletMain,
-                            onLoginWithIdAustria,
-                            credentials = credentials
+                            credentials = credentials,
+                            onCredential = onCredential,
+                            onScanQrCode = onScanQrCode,
+                            onLoginWithIdAustria = onLoginWithIdAustria,
+                            decodeImage = walletMain.platformAdapter::decodeImage,
                         )
                     }
                 }
@@ -306,15 +307,19 @@ fun AddIdText() {
 
 @Composable
 fun ShowId(
+    credentials: List<SubjectCredentialStore.StoreEntry>,
     onCredential: (id: String) -> Unit,
     onScanQrCode: () -> Unit,
-    walletMain: WalletMain,
     onLoginWithIdAustria: () -> Unit,
-    credentials: List<SubjectCredentialStore.StoreEntry>,
+    decodeImage: (image: ByteArray) -> ImageBitmap,
 ) {
     val openDialog = remember { mutableStateOf(false) }
     ShowIdHeader()
-    ShowIdCard(onCredential, walletMain, credentials)
+    ShowIdCard(
+        credentials = credentials,
+        onCredential = onCredential,
+        decodeImage = decodeImage,
+    )
     Box(Modifier.fillMaxSize().padding(20.dp)) {
         Box(
             Modifier.clip(shape = CircleShape)
@@ -357,7 +362,7 @@ fun ShowIdHeader() {
 @Composable
 fun ShowIdCard(
     onCredential: (id: String) -> Unit,
-    walletMain: WalletMain,
+    decodeImage: (image: ByteArray) -> ImageBitmap,
     credentials: List<SubjectCredentialStore.StoreEntry>,
 ) {
     val state = rememberLazyListState()
@@ -370,7 +375,7 @@ fun ShowIdCard(
                         onCredential = {
                             onCredential(credential.vc.jwtId)
                         },
-                        walletMain = walletMain,
+                        decodeImage = decodeImage,
                         modifier = Modifier.fillParentMaxWidth(),
                     )
                 }
@@ -381,7 +386,7 @@ fun ShowIdCard(
                         onCredential = {
                             onCredential(credential.sdJwt.jwtId)
                         },
-                        walletMain = walletMain,
+                        decodeImage = decodeImage,
                         modifier = Modifier.fillParentMaxWidth(),
                     )
                 }
@@ -395,8 +400,8 @@ fun ShowIdCard(
 @Composable
 fun IdCard(
     credential: SubjectCredentialStore.StoreEntry,
-    walletMain: WalletMain,
     onCredential: () -> Unit,
+    decodeImage: (image: ByteArray) -> ImageBitmap,
     modifier: Modifier = Modifier,
 ) {
     when (credential) {
@@ -408,7 +413,7 @@ fun IdCard(
                         firstname = credentialSubject.firstname,
                         lastname = credentialSubject.lastname,
                         portrait = credentialSubject.portrait,
-                        walletMain = walletMain,
+                        decodeImage = decodeImage,
                         modifier = modifier,
                     )
                 }
@@ -429,7 +434,7 @@ fun IdCard(
                 firstname = firstname,
                 lastname = lastname,
                 portrait = portrait,
-                walletMain = walletMain,
+                decodeImage = decodeImage,
                 modifier = modifier,
             )
         }
@@ -445,7 +450,7 @@ fun IdAustriaCredentialCard(
     firstname: String,
     lastname: String,
     portrait: ByteArray?,
-    walletMain: WalletMain,
+    decodeImage: (image: ByteArray) -> ImageBitmap,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -465,8 +470,8 @@ fun IdAustriaCredentialCard(
                 Box(contentAlignment = Alignment.Center, modifier = Modifier.size(150.dp)) {
                     if (portrait != null) {
                         Image(
-                            walletMain.platformAdapter.decodeImage(portrait),
-                            contentDescription = ""
+                            bitmap = decodeImage(portrait),
+                            contentDescription = "Portrait",
                         )
                     } else {
                         Image(

@@ -24,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import at.asitplus.wallet.lib.data.ConstantIndex
 import navigation.NavigationStack
 import navigation.Page
 import ui.composables.AttributeAvailability
@@ -34,10 +35,10 @@ import ui.views.AuthenticationQrCodeScannerPage
 import ui.views.AuthenticationQrCodeScannerView
 import ui.views.AuthenticationSPInfoPage
 import ui.views.AuthenticationSPInfoView
-import ui.views.InformationPage
-import ui.views.InformationView
 import ui.views.HomePage
+import ui.views.InformationPage
 import ui.views.MyDataView
+import ui.views.SettingsView
 import ui.views.ShowDataPage
 import ui.views.ShowDataView
 
@@ -290,7 +291,13 @@ fun PreviewNavigationScreen() {
                     }
 
                     is InformationPage -> {
-                        InformationView(
+                        SettingsView(
+                            host = "http://www.example.com",
+                            onChangeHost = {},
+                            credentialRepresentation = ConstantIndex.CredentialRepresentation.PLAIN_JWT,
+                            onChangeCredentialRepresentation = {},
+                            isSaveEnabled = false,
+                            onClickSaveConfiguration = {},
                             stage = "T",
                             version = "1.0.0 / 2389237",
                             onClickFAQs = {},

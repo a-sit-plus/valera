@@ -12,24 +12,27 @@ fun MyDataScreen(
     walletMain: WalletMain,
     refreshCredentials: () -> Unit,
 ) {
-    val credentials by walletMain.subjectCredentialStore.observeVcs().collectAsState(null)
+    val storeContainerState by walletMain.subjectCredentialStore.observeStoreContainer().collectAsState(null)
+    val credentialRepresentationFlow by walletMain.walletConfig.credentialRepresentation.collectAsState(null)
 
-    if(credentials == null) {
-        return
-    } else if (credentials!!.size == 0) {
-        LoadDataView(
-            loadData = refreshCredentials,
-            navigateUp = null,
-        )
-    } else {
-        MyDataView(
-            refreshCredentials = refreshCredentials,
-            identityData = null, // TODO("Create from credential attributes")
-            navigateToIdentityData = null, // TODO("Create from credential attributes")
-            ageData = null, // TODO("Create from credential attributes")
-            navigateToAgeData = null, // TODO("Create from credential attributes")
-            drivingData = null, // TODO("Create from credential attributes")
-            navigateToDrivingData = null, // TODO("Create from credential attributes")
-        )
+    storeContainerState?.let { storeContainer ->
+        credentialRepresentationFlow?.let { credentialRepresentation ->
+            if (storeContainer.credentials.isEmpty()) {
+                LoadDataView(
+                    loadData = refreshCredentials,
+                    navigateUp = null,
+                )
+            } else {
+                MyDataView(
+                    refreshCredentials = refreshCredentials,
+                    identityData = null, // TODO("Create from credential attributes")
+                    navigateToIdentityData = null, // TODO("Create from credential attributes")
+                    ageData = null, // TODO("Create from credential attributes")
+                    navigateToAgeData = null, // TODO("Create from credential attributes")
+                    drivingData = null, // TODO("Create from credential attributes")
+                    navigateToDrivingData = null, // TODO("Create from credential attributes")
+                )
+            }
+        }
     }
 }
