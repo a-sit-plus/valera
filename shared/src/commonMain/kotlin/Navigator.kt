@@ -408,6 +408,9 @@ fun navigator(walletMain: WalletMain) {
                                     }
                                 }
                             },
+                            onClickShowCredentialDetails = { info ->
+                                navigationStack.push(CredentialPage(info))
+                            },
                         )
 //                        HomeScreen(
 //                            onAbout = { navigationStack.push(AboutPage()) },
