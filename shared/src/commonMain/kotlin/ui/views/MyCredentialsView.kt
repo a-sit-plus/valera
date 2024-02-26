@@ -1,43 +1,49 @@
 package ui.views
 
 import Resources
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.idaustria.IdAustriaCredential
+import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import data.ageLowerBounds
+import data.ageUpperBounds
+import data.dateOfBirth
+import data.drivingPermissions
+import data.firstname
+import data.lastname
+import data.portrait
 import io.ktor.util.decodeBase64Bytes
-import navigation.Page
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import ui.composables.AgeData
@@ -47,59 +53,159 @@ import ui.composables.PersonAgeDataDetailCard
 import ui.composables.PersonDrivingDataDetailCard
 import ui.composables.PersonIdentityDataDetailCard
 
-class HomePage : Page
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MyCredentialsView(
     credentials: List<SubjectCredentialStore.StoreEntry>,
-    onCredential: (id: String) -> Unit,
+    onRefreshCredentials: () -> Unit,
     decodeImage: (image: ByteArray) -> ImageBitmap,
+    navigateToIdentityData: (() -> Unit)? = null,
+    navigateToAgeData: (() -> Unit)? = null,
+    navigateToDrivingData: (() -> Unit)? = null,
 ) {
-    val state = rememberLazyListState()
-    LazyRow(flingBehavior = rememberSnapFlingBehavior(lazyListState = state), state = state) {
-        items(credentials.size) {
-            val credentialId = when (val credential = credentials[it]) {
-                is SubjectCredentialStore.StoreEntry.Vc -> credential.vc.jwtId
-                is SubjectCredentialStore.StoreEntry.SdJwt -> credential.sdJwt.jwtId
-                else -> null
-            }
+    MyDataView(
+        refreshCredentials = onRefreshCredentials,
+        identityData = IdentityData(
+            firstname = credentials.firstNotNullOfOrNull { it.firstname },
+            lastname = credentials.firstNotNullOfOrNull { it.lastname },
+            dateOfBirth = credentials.firstNotNullOfOrNull { it.dateOfBirth },
+            portrait = credentials.firstNotNullOfOrNull { it.portrait }?.let(decodeImage),
+        ),
+        ageData = AgeData(
+            ageLowerBounds = credentials.flatMap { it.ageLowerBounds },
+            ageUpperBounds = credentials.flatMap { it.ageUpperBounds },
+        ),
+        drivingData = DrivingData(
+            drivingPermissions = credentials.flatMap { it.drivingPermissions },
+        ),
+        navigateToIdentityData = navigateToIdentityData,
+        navigateToAgeData = navigateToAgeData,
+        navigateToDrivingData = navigateToDrivingData,
+    )
+//    Scaffold(
+//        topBar = {
+//            TopAppBar(
+//                title = {
+//                    Text(
+//                        text = "Meine Daten",
+//                        style = MaterialTheme.typography.headlineLarge,
+//                    )
+//                }
+//            )
+//        },
+//        floatingActionButton = {
+//            FloatingActionButton(
+//                onClick = onRefreshCredentials,
+//            ) {
+//                Icon(
+//                    imageVector = Icons.Default.Refresh,
+//                    contentDescription = "Refresh Credentials",
+//                )
+//            }
+//        },
+//    ) { scaffoldPadding ->
+//        Box(modifier = Modifier.padding(scaffoldPadding).fillMaxSize()) {
+////            val state = rememberLazyListState()
+////            LazyColumn(
+////                flingBehavior = rememberSnapFlingBehavior(lazyListState = state),
+////                state = state,
+////                modifier = Modifier.fillMaxSize(),
+////            ) {
+////                items(credentials.size) {
+////                    val credential = credentials[it]
+////                    val credentialId = when (credential) {
+////                        is SubjectCredentialStore.StoreEntry.Vc -> credential.vc.jwtId
+////                        is SubjectCredentialStore.StoreEntry.SdJwt -> credential.sdJwt.jwtId
+////                        else -> null
+////                    }
+////
+////                    if (credentialId != null) {
+////                        CredentialCard(
+////                            credential = credential,
+////                            decodeImage = decodeImage,
+////                            modifier = Modifier.padding(bottom = 8.dp, end = 8.dp, start = 8.dp)
+////                                .fillMaxWidth()
+////                                .clickable {
+////                                    onCredential(credentialId)
+////                                },
+////                        )
+////                    }
+////                }
+////            }
+//        }
+//    }
+}
 
-            if (credentialId != null) {
-                IdAustriaCredentialCard(
-                    credential = credentials[it],
-                    onCredential = {
-                        onCredential(credentialId)
-                    },
-                    decodeImage = decodeImage,
-                    modifier = Modifier.fillParentMaxWidth(),
-                )
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CredentialCard(
+    credential: SubjectCredentialStore.StoreEntry,
+    decodeImage: (image: ByteArray) -> ImageBitmap,
+    modifier: Modifier = Modifier,
+) {
+    val credentialScheme = when (credential) {
+        is SubjectCredentialStore.StoreEntry.Vc -> credential.scheme
+        is SubjectCredentialStore.StoreEntry.SdJwt -> credential.scheme
+        is SubjectCredentialStore.StoreEntry.Iso -> credential.scheme
+    }
+
+    ElevatedCard(
+        modifier = modifier,
+    ) {
+        Column {
+            TopAppBar(
+                title = {
+                    Text(
+                        credentialScheme.vcType,
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+                },
+                actions = {
+                    IconButton(
+                        onClick = {}
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ExpandMore,
+                            contentDescription = "Show Action Menu",
+                        )
+                    }
+                }
+            )
+            when (credentialScheme) {
+                is IdAustriaScheme -> {
+                    IdAustriaCredentialCardContent(
+                        credential = credential,
+                        decodeImage = decodeImage,
+                    )
+                }
+
+                else -> {}
             }
         }
     }
 }
 
 
-
-data class IdAustriaCredentialData(
+data class IdAustriaCredentialUiState(
     val firstname: String,
     val lastname: String,
+//    val dateOfBirth: LocalDate,
     val portrait: ByteArray?,
 )
 
 @Composable
-private fun IdAustriaCredentialCard(
+private fun IdAustriaCredentialCardContent(
     credential: SubjectCredentialStore.StoreEntry,
-    onCredential: () -> Unit,
     decodeImage: (image: ByteArray) -> ImageBitmap,
     modifier: Modifier = Modifier,
 ) {
-    val data: IdAustriaCredentialData? = when (credential) {
+    val data: IdAustriaCredentialUiState? = when (credential) {
         is SubjectCredentialStore.StoreEntry.Vc -> {
             when (val credentialSubject = credential.vc.vc.credentialSubject) {
-                is IdAustriaCredential -> IdAustriaCredentialData(
+                is IdAustriaCredential -> IdAustriaCredentialUiState(
                     firstname = credentialSubject.firstname,
                     lastname = credentialSubject.lastname,
+//                    dateOfBirth = credentialSubject.dateOfBirth,
                     portrait = credentialSubject.portrait,
                 )
 
@@ -112,13 +218,16 @@ private fun IdAustriaCredentialCard(
                 .firstNotNullOf { it.value?.claimValue } as String
             val lastname = credential.disclosures.filter { it.value?.claimName == "lastname" }
                 .firstNotNullOf { it.value?.claimValue } as String
+//            val dateOfBirth = credential.disclosures.filter { it.value?.claimName == "dateOfBirth" }
+//                .firstNotNullOf { it.value?.claimValue } as LocalDate
             val portraitEncoded =
                 credential.disclosures.filter { it.value?.claimName == "portrait" }
                     .firstNotNullOf { it.value?.claimValue } as String
             val portrait = portraitEncoded.decodeBase64Bytes()
-            IdAustriaCredentialData(
+            IdAustriaCredentialUiState(
                 firstname = firstname,
                 lastname = lastname,
+//                dateOfBirth = dateOfBirth,
                 portrait = portrait,
             )
         }
@@ -127,10 +236,9 @@ private fun IdAustriaCredentialCard(
     }
 
     if (data != null) {
-        IdAustriaCredentialCard(
-            onCredential = onCredential,
-            firstname = data.firstname,
-            lastname = data.lastname,
+        IdAustriaCredentialCardContent(
+            name = "${data.firstname} ${data.lastname}",
+//            dateOfBirth = data.dateOfBirth,
             portrait = data.portrait?.let { decodeImage(it) },
             modifier = modifier,
         )
@@ -139,46 +247,61 @@ private fun IdAustriaCredentialCard(
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-private fun IdAustriaCredentialCard(
-    firstname: String,
-    lastname: String,
+private fun IdAustriaCredentialCardContent(
+    name: String,
+//    dateOfBirth: LocalDate,
     portrait: ImageBitmap?,
-    onCredential: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    ElevatedCard(
-        modifier.padding(16.dp)
-            .clickable(onClick = { onCredential() })
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(Resources.CREDENTIAL, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.size(15.dp))
-            Divider(color = Color.LightGray, thickness = 1.dp)
-            Spacer(Modifier.size(15.dp))
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(150.dp)) {
+    Column(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            IconButton(
+                onClick = {},
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = contentColorFor(MaterialTheme.colorScheme.secondaryContainer),
+                    disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    disabledContentColor = contentColorFor(MaterialTheme.colorScheme.secondaryContainer),
+                ),
+                enabled = false,
+            ) {
                 if (portrait != null) {
-                    Image(
+                    Icon(
                         bitmap = portrait,
-                        contentDescription = "Portrait",
+                        contentDescription = null,
                     )
                 } else {
-                    Image(
-                        painterResource("3d-casual-life-smiling-face-with-smiling-eyes.png"),
-                        contentDescription = null,
-                        Modifier.size(150.dp),
-                        contentScale = ContentScale.Crop,
-                    )
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Image(
+                            painterResource("3d-casual-life-smiling-face-with-smiling-eyes.png"),
+                            contentDescription = null,
+                            Modifier.size(150.dp),
+                            contentScale = ContentScale.Crop,
+                        )
+//                        Text(
+//                            text = "ID",
+//                            fontWeight = FontWeight.SemiBold,
+//                        )
+                    }
                 }
             }
-            Spacer(Modifier.size(30.dp))
-            Text(
-                "$firstname $lastname",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
-            )
-            Spacer(Modifier.size(10.dp))
-            Text(Resources.ID_AUSTRIA_CREDENTIAL, fontSize = 12.sp)
+            Spacer(modifier = Modifier.width(8.dp))
+            Column {
+                Text(
+                    text = name,
+                    fontWeight = FontWeight.Bold,
+                )
+                Text(
+                    Resources.ID_AUSTRIA_CREDENTIAL,
+                    style = MaterialTheme.typography.labelSmall,
+                )
+            }
         }
     }
 }
@@ -220,25 +343,43 @@ fun MyDataView(
         Column(modifier = Modifier.padding(it).verticalScroll(state = rememberScrollState())) {
             val paddingModifier = Modifier.padding(bottom = 8.dp, start = 8.dp, end = 8.dp)
             if (identityData != null) {
-                PersonIdentityDataDetailCard(
-                    identityData = identityData,
-                    modifier = paddingModifier,
-                    onDetailClick = navigateToIdentityData,
-                )
+                if (
+                    listOf(
+                        identityData.lastname != null,
+                        identityData.firstname != null,
+                        identityData.portrait != null,
+                        identityData.dateOfBirth != null,
+                    ).any()
+                ) {
+                    PersonIdentityDataDetailCard(
+                        identityData = identityData,
+                        modifier = paddingModifier,
+                        onDetailClick = navigateToIdentityData,
+                    )
+                }
             }
             if (ageData != null) {
-                PersonAgeDataDetailCard(
-                    ageData = ageData,
-                    modifier = paddingModifier,
-                    onDetailClick = navigateToAgeData,
-                )
+                if (
+                    listOf(
+                        ageData.ageUpperBounds.isNotEmpty(),
+                        ageData.ageLowerBounds.isNotEmpty(),
+                    ).any()
+                ) {
+                    PersonAgeDataDetailCard(
+                        ageData = ageData,
+                        modifier = paddingModifier,
+                        onDetailClick = navigateToAgeData,
+                    )
+                }
             }
             if (drivingData != null) {
-                PersonDrivingDataDetailCard(
-                    drivingData = drivingData,
-                    modifier = paddingModifier,
-                    onDetailClick = navigateToDrivingData,
-                )
+                if (drivingData.drivingPermissions.isNotEmpty()) {
+                    PersonDrivingDataDetailCard(
+                        drivingData = drivingData,
+                        modifier = paddingModifier,
+                        onDetailClick = navigateToDrivingData,
+                    )
+                }
             }
         }
     }

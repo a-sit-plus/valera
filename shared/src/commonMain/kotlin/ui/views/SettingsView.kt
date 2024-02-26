@@ -14,6 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Info
@@ -41,9 +42,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.lib.data.ConstantIndex
-import navigation.Page
-
-class InformationPage : Page
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,6 +51,7 @@ fun SettingsView(
     credentialRepresentation: ConstantIndex.CredentialRepresentation,
     onChangeCredentialRepresentation: (ConstantIndex.CredentialRepresentation) -> Unit,
     isSaveEnabled: Boolean,
+    onChangeIsSaveEnabled: (Boolean) -> Unit,
     onClickSaveConfiguration: () -> Unit,
     stage: String,
     version: String,
@@ -62,6 +61,11 @@ fun SettingsView(
     onClickShareLogFile: () -> Unit,
     onClickResetApp: () -> Unit,
 ) {
+    var showMenu by remember { mutableStateOf(false) }
+    val actualShowMenu = remember(showMenu, isSaveEnabled) {
+        showMenu && isSaveEnabled
+    }
+
     val showAlert = remember { mutableStateOf(false) }
     if (showAlert.value) {
         ResetAlert(
@@ -96,13 +100,29 @@ fun SettingsView(
             }
         },
         floatingActionButton = {
-            if(isSaveEnabled) {
+            if (isSaveEnabled) {
                 FloatingActionButton(
-                    onClick = onClickSaveConfiguration,
+                    onClick = {
+                        showMenu = false
+                        onChangeIsSaveEnabled(false)
+                        onClickSaveConfiguration()
+                    },
                 ) {
                     Icon(
                         imageVector = Icons.Default.Save,
                         contentDescription = Resources.CONTENT_DESCRIPTION_SAVE_BUTTON
+                    )
+                }
+            } else {
+                FloatingActionButton(
+                    onClick = {
+                        showMenu = false
+                        onChangeIsSaveEnabled(true)
+                    },
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = Resources.CONTENT_DESCRIPTION_EDIT_BUTTON
                     )
                 }
             }
@@ -131,13 +151,14 @@ fun SettingsView(
                         keyboardOptions = KeyboardOptions(
                             imeAction = ImeAction.Done
                         ),
+                        enabled = isSaveEnabled,
                         modifier = listSpacingModifier.fillMaxWidth(),
                     )
-                    var showMenu by remember { mutableStateOf(false) }
-
                     ExposedDropdownMenuBox(
-                        expanded = showMenu,
-                        onExpandedChange = { showMenu = !showMenu },
+                        expanded = actualShowMenu,
+                        onExpandedChange = {
+                            showMenu = !showMenu
+                        },
                         modifier = listSpacingModifier.fillMaxWidth(),
                     ) {
                         OutlinedTextField(
@@ -145,11 +166,12 @@ fun SettingsView(
                             value = credentialRepresentation.name,
                             onValueChange = {},
                             label = { Text("Credential Representation") },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = showMenu) },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = showMenu && isSaveEnabled) },
+                            enabled = isSaveEnabled,
                             modifier = Modifier.menuAnchor().fillMaxWidth(),
                         )
                         ExposedDropdownMenu(
-                            expanded = showMenu,
+                            expanded = actualShowMenu,
                             onDismissRequest = {
                                 showMenu = false
                             },

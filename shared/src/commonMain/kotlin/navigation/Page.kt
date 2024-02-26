@@ -1,6 +1,7 @@
 package navigation
 
 interface Page
+
 expect class HomePage() : Page
 
 expect class AboutPage() : Page
@@ -17,6 +18,7 @@ expect class PayloadPage(info: String) : Page {
 }
 expect class AppLinkPage() : Page
 
+expect class InformationPage() : Page
 
 
 interface OnboardingPage
@@ -34,3 +36,8 @@ expect class ConsentPage(url: String, claims: List<String>, recipientName: Strin
 }
 
 expect class LoadingPage(): Page
+
+expect class AuthenticationQrCodeScannerPage() : Page
+
+
+expect class ShowDataPage() : Page

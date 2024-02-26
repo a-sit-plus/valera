@@ -1,3 +1,4 @@
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,8 +29,8 @@ import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import ui.theme.WalletTheme
+import view.ErrorScreen
 import view.OnboardingWrapper
-import view.errorScreen
 
 
 /**
@@ -71,10 +72,10 @@ fun App(walletMain: WalletMain) {
                 OnboardingWrapper(
                     walletMain = walletMain,
                 ) {
-                    navigator(walletMain)
+                    Navigator(walletMain)
                 }
             } else {
-                errorScreen(walletMain)
+                ErrorScreen(walletMain)
             }
         }
     }

@@ -26,9 +26,6 @@ import androidx.compose.ui.unit.dp
 import navigation.Page
 import ui.composables.TextIconButton
 
-
-class ShowDataPage : Page
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShowDataView(

@@ -23,7 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import ui.composables.buttons.AcceptButton
-import ui.composables.buttons.BackNavigationButton
+import ui.composables.buttons.NavigateUpButton
 import ui.composables.buttons.DetailsButton
 
 
@@ -39,7 +39,7 @@ fun OnboardingTermsScreen(
         topBar = {
             TopAppBar(
                 navigationIcon = {
-                    BackNavigationButton(onClick = onClickNavigateBack)
+                    NavigateUpButton(onClick = onClickNavigateBack)
                 },
                 title = {
                     Text(

@@ -1,7 +1,7 @@
 package ui.views
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -15,16 +15,13 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import navigation.Page
-
-
-class AuthenticationQrCodeScannerPage : Page
+import view.CameraView
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthenticationQrCodeScannerView(
     navigateUp: () -> Unit,
-    navigateToConsentScreenWithResult: (spName: String, spLocation: String) -> Unit,
+    onPayloadFound: (String) -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -56,7 +53,11 @@ fun AuthenticationQrCodeScannerView(
             )
         },
     ) {
-        Box(modifier = Modifier.padding(it)) {
+        Column(modifier = Modifier.padding(it).fillMaxSize()) {
+            CameraView(
+                onFoundPayload = onPayloadFound,
+                modifier = Modifier.fillMaxSize(),
+            )
         }
     }
 }

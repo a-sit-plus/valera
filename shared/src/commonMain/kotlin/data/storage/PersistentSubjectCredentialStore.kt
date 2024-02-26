@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 
+
 class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) : SubjectCredentialStore {
     private val container = observeFromDataStore()
 
@@ -26,9 +27,9 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         scheme: ConstantIndex.CredentialScheme
     ) {
         val newContainer = container.first().let {
-            it.copy(
+            it.filterNotScheme(scheme).copy(
                 credentials = it.credentials + SubjectCredentialStore.StoreEntry.Vc(vcSerialized, vc, scheme),
-                attachments = it.attachments,
+                attachments = it.attachments
             )
         }
         exportToDataStore(newContainer)
@@ -41,9 +42,9 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         scheme: ConstantIndex.CredentialScheme
     ) {
         val newContainer = container.first().let {
-            it.copy(
+            it.filterNotScheme(scheme).copy(
                 credentials = it.credentials + SubjectCredentialStore.StoreEntry.SdJwt(vcSerialized, vc, disclosures, scheme),
-                attachments = it.attachments,
+                attachments = it.attachments
             )
         }
         exportToDataStore(newContainer)
@@ -51,19 +52,22 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
 
     override suspend fun storeCredential(issuerSigned: IssuerSigned, scheme: ConstantIndex.CredentialScheme) {
         val newContainer = container.first().let {
-            it.copy(
+            it.filterNotScheme(scheme).copy(
                 credentials = it.credentials + SubjectCredentialStore.StoreEntry.Iso(issuerSigned, scheme),
-                attachments = it.attachments,
+                attachments = it.attachments
             )
         }
         exportToDataStore(newContainer)
     }
 
     override suspend fun storeAttachment(name: String, data: ByteArray, vcId: String) {
-        val newContainer = container.first().let {
-            it.copy(
-                credentials = it.credentials,
-                attachments = it.attachments + SubjectCredentialStore.AttachmentEntry(name, data, vcId),
+        val newContainer = container.first().let { storeContainer ->
+            storeContainer.copy(
+                credentials = storeContainer.credentials,
+                // consider attachments unique by vcId and attachment name
+                attachments = storeContainer.attachments.filterNot { attachment ->
+                    attachment.vcId == vcId && attachment.name == name
+                } + SubjectCredentialStore.AttachmentEntry(name, data, vcId),
             )
         }
         exportToDataStore(newContainer)
@@ -265,6 +269,51 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
     }
 }
 
+fun List<SubjectCredentialStore.StoreEntry>.filterNotScheme(scheme: ConstantIndex.CredentialScheme): List<SubjectCredentialStore.StoreEntry> {
+    // consider credentials unique by credential scheme
+    return this.filterNot {
+        when (it) {
+            is SubjectCredentialStore.StoreEntry.Vc -> it.scheme == scheme
+            is SubjectCredentialStore.StoreEntry.SdJwt -> it.scheme == scheme
+            is SubjectCredentialStore.StoreEntry.Iso -> it.scheme == scheme
+            else -> false
+        }
+    }
+}
+
+fun List<SubjectCredentialStore.StoreEntry>.filterOnlyScheme(scheme: ConstantIndex.CredentialScheme): List<SubjectCredentialStore.StoreEntry> {
+    // consider credentials unique by credential scheme
+    return this.filter {
+        when (it) {
+            is SubjectCredentialStore.StoreEntry.Vc -> it.scheme == scheme
+            is SubjectCredentialStore.StoreEntry.SdJwt -> it.scheme == scheme
+            is SubjectCredentialStore.StoreEntry.Iso -> it.scheme == scheme
+            else -> false
+        }
+    }
+}
+
+fun StoreContainer.filterNotScheme(scheme: ConstantIndex.CredentialScheme): StoreContainer {
+    val credentialIdsWithScheme = credentials.filterOnlyScheme(scheme).mapNotNull { credential ->
+        when (credential) {
+            is SubjectCredentialStore.StoreEntry.Vc -> credential.vc.jwtId
+            is SubjectCredentialStore.StoreEntry.SdJwt -> credential.sdJwt.jwtId
+            // not sure how to get id for mdoc credentials
+            // is SubjectCredentialStore.StoreEntry.Iso -> credential.
+            else -> null
+        }
+    }
+
+    return copy(
+        // consider credentials unique by credential scheme
+        credentials = credentials.filterNotScheme(scheme),
+        // also filter attachment to removed credentials
+        attachments = attachments.filterNot { attachment ->
+            credentialIdsWithScheme.contains(attachment.vcId)
+        },
+    )
+}
+
 data class StoreContainer(val credentials: List<SubjectCredentialStore.StoreEntry>, val attachments: List<SubjectCredentialStore.AttachmentEntry>)
 @Serializable
 data class ExportableStoreContainer(val credentials: MutableList<ExportableStoreEntry>, val attachments: MutableList<ExportableAttachmentEntry>)
@@ -319,3 +368,4 @@ enum class ExportableCredentialScheme {
     AtomicAttribute2023, IdAustriaScheme, MobileDrivingLicence2023
 
 }
+

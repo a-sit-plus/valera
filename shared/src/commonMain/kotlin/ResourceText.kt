@@ -54,6 +54,7 @@ object Resources {
     const val BUTTON_LABEL_CONSENT = "Zustimmen"
     const val BUTTON_LABEL_CONTINUE = "Weiter"
     const val BUTTON_LABEL_DETAILS = "Details"
+    const val BUTTON_LABEL_SHARE = "Teilen"
     const val BUTTOM_LABEL_LOAD_DATA = "Daten laden"
     const val BUTTON_LABEL_START = "Starten"
     const val BUTTON_LABEL_SAVE = "Speichern"
@@ -71,6 +72,7 @@ object Resources {
 
     const val CONTENT_DESCRIPTION_NAVIGATE_BACK = "Zurück"
     const val CONTENT_DESCRIPTION_SAVE_BUTTON = "Speichern"
+    const val CONTENT_DESCRIPTION_EDIT_BUTTON = "Bearbeiten"
 
     // files
     val ONBOARDING_START_SCREEN_BACKGROUND_FILENAME = "onboardingBackground.jpg"

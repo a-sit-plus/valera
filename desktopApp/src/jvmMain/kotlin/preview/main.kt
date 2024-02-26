@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import at.asitplus.wallet.lib.data.ConstantIndex
+import navigation.InformationPage
 import navigation.NavigationStack
 import navigation.Page
 import ui.composables.AttributeAvailability
@@ -36,7 +37,6 @@ import ui.views.AuthenticationQrCodeScannerView
 import ui.views.AuthenticationSPInfoPage
 import ui.views.AuthenticationSPInfoView
 import ui.views.HomePage
-import ui.views.InformationPage
 import ui.views.MyDataView
 import ui.views.SettingsView
 import ui.views.ShowDataPage
@@ -297,6 +297,7 @@ fun PreviewNavigationScreen() {
                             credentialRepresentation = ConstantIndex.CredentialRepresentation.PLAIN_JWT,
                             onChangeCredentialRepresentation = {},
                             isSaveEnabled = false,
+                            onChangeIsSaveEnabled = {},
                             onClickSaveConfiguration = {},
                             stage = "T",
                             version = "1.0.0 / 2389237",

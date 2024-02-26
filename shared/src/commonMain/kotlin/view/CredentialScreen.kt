@@ -16,9 +16,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -30,37 +33,80 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.idaustria.IdAustriaCredential
+import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import globalBack
 import kotlinx.coroutines.launch
+import ui.composables.buttons.NavigateUpButton
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CredentialScreen(id: String, walletMain: WalletMain) {
+fun CredentialScreen(
+    id: String,
+    navigateUp: (() -> Unit)?,
+    walletMain: WalletMain,
+) {
     val credentialState by walletMain.subjectCredentialStore.observeStoreEntryById(id).collectAsState(null)
 
-    when(val credential = credentialState) {
-        null -> {}
-        is SubjectCredentialStore.StoreEntry.Vc -> {
-            val type = credential.vc.vc.type.filter { it != "VerifiableCredential" }.joinToString(",")
-            when(val credentialSubject = credential.vc.vc.credentialSubject) {
-                is IdAustriaCredential -> {
-                    val firstname = credentialSubject.firstname
-                    val lastname = credentialSubject.lastname
-                    val dateofbirth = credentialSubject.dateOfBirth.toString()
-                    IdAustriaCredentialScreen(firstname, lastname, dateofbirth, id, walletMain, type)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "Details",
+                        style = MaterialTheme.typography.headlineLarge
+                    )
+                },
+                navigationIcon = {
+                    if(navigateUp != null) {
+                        NavigateUpButton(navigateUp)
+                    }
+                }
+            )
+        },
+    ) {
+        when (val credential = credentialState) {
+            null -> {}
+            is SubjectCredentialStore.StoreEntry.Vc -> {
+                val type =
+                    credential.vc.vc.type.filter { it != "VerifiableCredential" }.joinToString(",")
+                when (val credentialSubject = credential.vc.vc.credentialSubject) {
+                    is IdAustriaCredential -> {
+                        val firstname = credentialSubject.firstname
+                        val lastname = credentialSubject.lastname
+                        val dateofbirth = credentialSubject.dateOfBirth.toString()
+                        IdAustriaCredentialScreen(
+                            firstname,
+                            lastname,
+                            dateofbirth,
+                            id,
+                            walletMain,
+                            type
+                        )
+                    }
                 }
             }
-        }
-        is SubjectCredentialStore.StoreEntry.SdJwt -> {
-            val type = credential.sdJwt.type.filter { it != "VerifiableCredential" }.joinToString(",")
-            val firstname = credential.disclosures.filter{ it.value?.claimName == "firstname"}.firstNotNullOf { it.value?.claimValue } as String
-            val lastname = credential.disclosures.filter{ it.value?.claimName == "lastname"}.firstNotNullOf { it.value?.claimValue } as String
-            val dateofbirth = credential.disclosures.filter{ it.value?.claimName == "date-of-birth"}.firstNotNullOf { it.value?.claimValue } as String
-            IdAustriaCredentialScreen(firstname, lastname, dateofbirth, id, walletMain, type)
 
+            is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                when(credential.scheme) {
+                    is IdAustriaScheme -> {
+                        val type =
+                            credential.sdJwt.type.filter { it != "VerifiableCredential" }.joinToString(",")
+                        val firstname = credential.disclosures.filter { it.value?.claimName == "firstname" }
+                            .firstNotNullOf { it.value?.claimValue } as String
+                        val lastname = credential.disclosures.filter { it.value?.claimName == "lastname" }
+                            .firstNotNullOf { it.value?.claimValue } as String
+                        val dateofbirth =
+                            credential.disclosures.filter { it.value?.claimName == "date-of-birth" }
+                                .firstNotNullOf { it.value?.claimValue } as String
+                        IdAustriaCredentialScreen(firstname, lastname, dateofbirth, id, walletMain, type)
+                    }
+                }
+            }
+
+            else -> {}
         }
-        else -> {}
     }
 }
 

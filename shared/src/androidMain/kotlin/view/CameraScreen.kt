@@ -10,6 +10,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -152,7 +153,7 @@ private fun CameraWithGrantedPermission(
             }
         }
     }) {
-        AndroidView({ previewView })
+        AndroidView({ previewView }, modifier = Modifier.fillMaxSize())
 
 //        Box(modifier = Modifier.background(color = MaterialTheme.colorScheme.background).height(80.dp), contentAlignment = Alignment.TopCenter){
 //            Row(Modifier.padding(10.dp).height(80.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {

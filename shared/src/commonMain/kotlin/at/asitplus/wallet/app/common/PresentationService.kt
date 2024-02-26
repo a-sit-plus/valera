@@ -69,7 +69,10 @@ class PresentationService(
                             setBody(it.content)
                         }
                         if (response.status == HttpStatusCode.InternalServerError) {
-                            throw  Exception("InternalServerErrorException", Exception(response.bodyAsText()))
+                            throw Exception(
+                                "InternalServerErrorException",
+                                Exception(response.bodyAsText()),
+                            )
                         }
                         val location = response.headers["Location"]
                         if (location != null) {

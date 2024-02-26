@@ -29,35 +29,68 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import at.asitplus.wallet.app.common.WalletMain
-import globalBack
-import kotlinx.coroutines.launch
 
 @Composable
-fun ConsentScreen(walletMain: WalletMain, onAccept: () -> Unit, onCancel: () -> Unit, url:String, recipientName: String, recipientLocation: String, claims: List<String>){
+fun ConsentScreen(
+    navigateUp: () -> Unit,
+    onAccept: () -> Unit,
+    onCancel: () -> Unit,
+    recipientName: String,
+    recipientLocation: String,
+    claims: List<String>,
+) {
     Column {
-        Row(Modifier.height(80.dp).padding(10.dp).fillMaxWidth().background(color = MaterialTheme.colorScheme.background), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Settings, contentDescription = null, Modifier.size(30.dp).clickable(onClick = {  }), tint = Color.LightGray.copy(alpha = 0f))
+        Row(
+            Modifier.height(80.dp).padding(10.dp).fillMaxWidth()
+                .background(color = MaterialTheme.colorScheme.background),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                Icons.Default.Settings,
+                contentDescription = null,
+                Modifier.size(30.dp).clickable(onClick = { }),
+                tint = Color.LightGray.copy(alpha = 0f)
+            )
             Text(Resources.LOGIN, fontSize = 40.sp, fontWeight = FontWeight.Bold)
-            Icon(Icons.Default.Close, contentDescription = null, Modifier.size(30.dp).clickable(onClick = { globalBack() }), tint = MaterialTheme.colorScheme.onBackground)
+            Icon(
+                Icons.Default.Close,
+                contentDescription = null,
+                Modifier.size(30.dp).clickable(onClick = navigateUp),
+                tint = MaterialTheme.colorScheme.onBackground
+            )
         }
-        Column(Modifier.background(color = MaterialTheme.colorScheme.secondaryContainer).fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            Modifier.background(color = MaterialTheme.colorScheme.secondaryContainer).fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Spacer(modifier = Modifier.size(30.dp))
 
             Text(Resources.LOGIN_TERMINAL_MACHINE, fontSize = 20.sp)
             Spacer(modifier = Modifier.size(20.dp))
-            Column(Modifier.height(60.dp).width(120.dp).background(color = MaterialTheme.colorScheme.tertiaryContainer), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+            Column(
+                Modifier.height(60.dp).width(120.dp)
+                    .background(color = MaterialTheme.colorScheme.tertiaryContainer),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
                 Text("SP IMAGE")
             }
             Spacer(modifier = Modifier.size(40.dp))
-            Column(Modifier.fillMaxWidth(). padding(horizontal = 20.dp), horizontalAlignment = Alignment.Start) {
+            Column(
+                Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+                horizontalAlignment = Alignment.Start
+            ) {
                 Text(Resources.RECIPIENT, fontSize = 25.sp)
                 Spacer(modifier = Modifier.size(10.dp))
                 Text(Resources.NAME + ": $recipientName", fontSize = 15.sp)
                 Text(Resources.LOCATION + ": $recipientLocation", fontSize = 15.sp)
             }
             Spacer(modifier = Modifier.size(20.dp))
-            Column(Modifier.fillMaxWidth(). padding(horizontal = 20.dp), horizontalAlignment = Alignment.Start) {
+            Column(
+                Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+                horizontalAlignment = Alignment.Start
+            ) {
                 Text(Resources.REQUESTED_DATA, fontSize = 25.sp)
                 Spacer(modifier = Modifier.size(10.dp))
                 if (claims.isNotEmpty()) {
@@ -72,29 +105,26 @@ fun ConsentScreen(walletMain: WalletMain, onAccept: () -> Unit, onCancel: () -> 
         }
     }
     Box(contentAlignment = Alignment.BottomCenter, modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.height(130.dp).fillMaxWidth().background(color = MaterialTheme.colorScheme.background), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            modifier = Modifier.height(130.dp).fillMaxWidth()
+                .background(color = MaterialTheme.colorScheme.background),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Spacer(modifier = Modifier.size(20.dp))
             Text(Resources.TRANSMIT_THIS_INFORMATION, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.size(10.dp))
-            Row(modifier = Modifier.height(70.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.height(70.dp).fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Button(
-                    onClick = {
-                        onCancel()
-                    }
+                    onClick = onCancel
                 ) {
                     Text(Resources.BUTTON_CANCEL)
                 }
                 Button(
-                    onClick = {
-                        walletMain.scope.launch {
-                            try {
-                                walletMain.presentationService.startSiop(url)
-                            } catch (e: Throwable) {
-                                walletMain.errorService.emit(e)
-                            }
-                            onAccept()
-                        }
-                    }
+                    onClick = onAccept
                 ) {
                     Text(Resources.BUTTON_ACCEPT)
                 }

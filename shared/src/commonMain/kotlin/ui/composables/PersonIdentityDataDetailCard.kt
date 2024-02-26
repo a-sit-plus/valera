@@ -10,9 +10,10 @@ import androidx.compose.ui.graphics.ImageBitmap
 import kotlinx.datetime.LocalDate
 
 data class IdentityData(
-    val name: String,
-    val birthdate: LocalDate,
-    val picture: ImageBitmap?,
+    val firstname: String?,
+    val lastname: String?,
+    val dateOfBirth: LocalDate?,
+    val portrait: ImageBitmap?,
 )
 
 @Composable
@@ -27,15 +28,17 @@ fun PersonIdentityDataDetailCard(
         modifier = modifier,
     ) {
         Row {
-            if (identityData.picture != null) {
+            if (identityData.portrait != null) {
                 Image(
-                    bitmap = identityData.picture,
+                    bitmap = identityData.portrait,
                     contentDescription = "Picture"
                 )
             }
             Column {
-                Text(identityData.name)
-                Text(identityData.birthdate.run { "$dayOfMonth.$monthNumber.$year" })
+                Text("${identityData.firstname} ${identityData.lastname}")
+                if(identityData.dateOfBirth != null) {
+                    Text(identityData.dateOfBirth.run { "$dayOfMonth.$monthNumber.$year" })
+                }
             }
         }
     }

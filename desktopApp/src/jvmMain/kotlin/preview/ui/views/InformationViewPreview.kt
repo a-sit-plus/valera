@@ -13,6 +13,7 @@ private fun main() = application {
             credentialRepresentation = ConstantIndex.CredentialRepresentation.PLAIN_JWT,
             onChangeCredentialRepresentation = {},
             isSaveEnabled = false,
+            onChangeIsSaveEnabled = {},
             onClickSaveConfiguration = {},
             stage = "T",
             version = "1.0.0 / 2389237",

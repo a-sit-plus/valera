@@ -114,13 +114,13 @@ fun AboutScreen(
                             modifier = Modifier.padding(vertical = 20.dp),
                             keyboardOptions = KeyboardOptions(
                                 imeAction = ImeAction.Done
-                            )
+                            ),
                         )
                         var showMenu by remember { mutableStateOf(false) }
 
                         ExposedDropdownMenuBox(
                             expanded = showMenu,
-                            onExpandedChange = { showMenu = !showMenu }
+                            onExpandedChange = { showMenu = !showMenu },
                         ) {
                             OutlinedTextField(
                                 modifier = Modifier.menuAnchor(),

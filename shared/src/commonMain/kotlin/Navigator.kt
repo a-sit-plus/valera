@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,33 +34,31 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import navigation.AboutPage
+import navigation.AuthenticationQrCodeScannerPage
 import navigation.CameraPage
 import navigation.ConsentPage
 import navigation.CredentialPage
 import navigation.HomePage
+import navigation.InformationPage
 import navigation.LoadingPage
+import navigation.LogPage
 import navigation.NavigationStack
 import navigation.Page
 import navigation.PayloadPage
-import ui.composables.AttributeAvailability
-import ui.composables.PersonalDataCategory
+import navigation.ShowDataPage
 import ui.views.AuthenticationConsentPage
 import ui.views.AuthenticationConsentView
-import ui.views.AuthenticationQrCodeScannerPage
 import ui.views.AuthenticationQrCodeScannerView
 import ui.views.AuthenticationSPInfoPage
 import ui.views.AuthenticationSPInfoView
-import ui.views.InformationPage
 import ui.views.SettingsView
-import ui.views.ShowDataPage
 import ui.views.ShowDataView
-import view.AboutScreen
 import view.CameraView
 import view.ConsentScreen
 import view.CredentialScreen
 import view.LoadingScreen
-import view.MyDataScreen
+import view.LogScreen
+import view.MyCredentialsScreen
 import view.PayloadScreen
 
 //@Composable
@@ -267,7 +266,11 @@ private enum class NavigationData(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun navigator(walletMain: WalletMain) {
+fun Navigator(walletMain: WalletMain) {
+    // TODO("get stage and version")
+    val stage = "T"
+    val version = "1.0.0 / 2389237"
+
     // Modified from https://github.com/JetBrains/compose-multiplatform/tree/master/examples/imageviewer
     val navigationStack = rememberSaveable(
         saver = listSaver<NavigationStack<Page>, Page>(
@@ -329,16 +332,13 @@ fun navigator(walletMain: WalletMain) {
             if (walletMain.provisioningService.redirectUri?.let { link.contains(it) } == true) {
                 navigationStack.push(LoadingPage())
                 walletMain.scope.launch {
-
                     try {
                         walletMain.provisioningService.handleResponse(link)
                         walletMain.snackbarService.showSnackbar(Resources.SNACKBAR_CREDENTIAL_LOADED_SUCCESSFULLY)
-                        navigationStack.back()
-
+                        globalBack()
                     } catch (e: Throwable) {
-                        navigationStack.back()
+                        globalBack()
                         walletMain.errorService.emit(e)
-
                     }
                     appLink.value = null
                 }
@@ -397,21 +397,25 @@ fun navigator(walletMain: WalletMain) {
             AnimatedContent(targetState = navigationStack.lastWithIndex()) { (_, page) ->
                 when (page) {
                     is HomePage -> {
-                        MyDataScreen(
-                            walletMain = walletMain,
-                            refreshCredentials = {
-                                CoroutineScope(Dispatchers.Default).launch {
-                                    try {
-                                        walletMain.provisioningService.startProvisioning()
-                                    } catch (e: Exception) {
-                                        walletMain.errorService.emit(e)
+                        val storeContainerState by walletMain.subjectCredentialStore.observeStoreContainer()
+                            .collectAsState(null)
+
+                        storeContainerState?.let { storeContainer ->
+                            MyCredentialsScreen(
+                                credentials = storeContainer.credentials,
+                                refreshCredentials = {
+                                    CoroutineScope(Dispatchers.Default).launch {
+                                        try {
+                                            walletMain.provisioningService.startProvisioning()
+                                        } catch (e: Exception) {
+                                            walletMain.errorService.emit(e)
+                                        }
                                     }
-                                }
-                            },
-                            onClickShowCredentialDetails = { info ->
-                                navigationStack.push(CredentialPage(info))
-                            },
-                        )
+                                },
+                                decodeImage = walletMain.platformAdapter::decodeImage,
+                            )
+                        }
+
 //                        HomeScreen(
 //                            onAbout = { navigationStack.push(AboutPage()) },
 //                            onCredential = { info ->
@@ -429,104 +433,6 @@ fun navigator(walletMain: WalletMain) {
 //                            },
 //                            walletMain = walletMain
 //                        )
-                    }
-
-                    is AboutPage -> {
-                        AboutScreen(
-                            onShowLog = {},
-                            walletMain = walletMain,
-                            navigateUp = globalBack,
-                        )
-                    }
-
-                    is ConsentPage -> {
-                        ConsentScreen(
-                            walletMain = walletMain,
-                            onAccept = { navigationStack.push(HomePage()) },
-                            onCancel = { navigationStack.back() },
-                            url = page.url,
-                            recipientName = page.recipientName,
-                            recipientLocation = page.recipientLocation,
-                            claims = page.claims,
-                        )
-                    }
-
-                    is CredentialPage -> {
-                        CredentialScreen(
-                            id = page.info,
-                            walletMain,
-                        )
-                    }
-
-                    is CameraPage -> {
-                        CameraView(
-                            onFoundPayload = { info ->
-                                navigationStack.push(PayloadPage(info))
-                            },
-                        )
-                    }
-
-                    is PayloadPage -> {
-                        PayloadScreen(
-                            text = page.info,
-                            onContinueClick = { navigationStack.push(HomePage()) },
-                            walletMain = walletMain,
-                        )
-                    }
-
-                    is LoadingPage -> {
-                        LoadingScreen()
-                    }
-
-
-                    is ShowDataPage -> {
-                        ShowDataView(
-                            navigateToAuthenticationAtSp = {
-//                                navigationStack.push(AuthenticationQrCodeScannerPage())
-                                navigationStack.push(
-                                    AuthenticationConsentPage(
-                                        spName = "Post-Schalter#3",
-                                        spLocation = "St. Peter Hauptstraße\n8010, Graz",
-                                        requestedAttributes = mapOf(
-                                            PersonalDataCategory.IdentityData to listOf(
-                                                AttributeAvailability(
-                                                    attributeName = "Vorname",
-                                                    isAvailable = false,
-                                                ),
-                                                AttributeAvailability(
-                                                    attributeName = "Nachname",
-                                                    isAvailable = false,
-                                                ),
-                                                AttributeAvailability(
-                                                    attributeName = "Aktuelles Foto aus zentralem Identitätsdokumentenregister",
-                                                    isAvailable = false,
-                                                ),
-                                            ),
-                                            PersonalDataCategory.ResidencyData to listOf(
-                                                AttributeAvailability(
-                                                    attributeName = "Straße",
-                                                    isAvailable = false,
-                                                ),
-                                                AttributeAvailability(
-                                                    attributeName = "Hausnummer",
-                                                    isAvailable = false,
-                                                ),
-                                                AttributeAvailability(
-                                                    attributeName = "Postleitzahl",
-                                                    isAvailable = true,
-                                                ),
-                                                AttributeAvailability(
-                                                    attributeName = "Ort",
-                                                    isAvailable = true,
-                                                ),
-                                            ),
-                                        ).toList()
-                                    )
-                                )
-                            },
-                            navigateToShowDataToExecutive = {},
-                            navigateToShowDataToOtherCitizen = {},
-                        )
                     }
 
                     is InformationPage -> {
@@ -548,27 +454,29 @@ fun navigator(walletMain: WalletMain) {
                             host = host,
                             onChangeHost = {
                                 host = it
-                                isSaveEnabled = true
                             },
                             credentialRepresentation = credentialRepresentation,
                             onChangeCredentialRepresentation = {
                                 credentialRepresentation = it
-                                isSaveEnabled = true
                             },
                             isSaveEnabled = isSaveEnabled,
+                            onChangeIsSaveEnabled = {
+                                isSaveEnabled = it
+                            },
                             onClickSaveConfiguration = {
                                 walletMain.walletConfig.set(
                                     host = host,
                                     credentialRepresentation = credentialRepresentation,
                                 )
-                                isSaveEnabled = false
                             },
-                            stage = "T",
-                            version = "1.0.0 / 2389237",
+                            stage = stage,
+                            version = version,
                             onClickFAQs = {},
                             onClickDataProtectionPolicy = {},
                             onClickLicenses = {},
-                            onClickShareLogFile = {},
+                            onClickShareLogFile = {
+                                navigationStack.push(LogPage())
+                            },
                             onClickResetApp = {
                                 runBlocking { walletMain.resetApp() }
                                 walletMain.snackbarService.showSnackbar(Resources.SNACKBAR_RESET_APP_SUCCESSFULLY)
@@ -576,14 +484,146 @@ fun navigator(walletMain: WalletMain) {
                         )
                     }
 
+                    is LogPage -> {
+                        val logArray = try {
+                            walletMain.getLog()
+                        } catch (e: Throwable) {
+                            walletMain.errorService.emit(e)
+                            listOf()
+                        }
+
+                        LogScreen(
+                            logArray = logArray,
+                            navigateUp = { globalBack() },
+                            shareLog = {
+                                walletMain.scope.launch {
+                                    walletMain.platformAdapter.shareLog()
+                                }
+                            }
+                        )
+                    }
+
+//                    is AboutPage -> {
+//                        AboutScreen(
+//                            onShowLog = {},
+//                            walletMain = walletMain,
+//                            navigateUp = globalBack,
+//                        )
+//                    }
+
+                    is ConsentPage -> {
+                        ConsentScreen(
+                            navigateUp = globalBack,
+                            onAccept = {
+                                walletMain.scope.launch {
+                                    try {
+                                        walletMain.presentationService.startSiop(page.url)
+                                    } catch (e: Throwable) {
+                                        walletMain.errorService.emit(e)
+                                    }
+                                    navigationStack.push(HomePage())
+                                }
+                            },
+                            onCancel = globalBack,
+                            recipientName = page.recipientName,
+                            recipientLocation = page.recipientLocation,
+                            claims = page.claims,
+                        )
+                    }
+
+                    is CredentialPage -> {
+                        CredentialScreen(
+                            id = page.info,
+                            navigateUp = globalBack,
+                            walletMain,
+                        )
+                    }
+
+                    is CameraPage -> {
+                        CameraView(
+                            onFoundPayload = { info ->
+                                navigationStack.push(PayloadPage(info))
+                            }
+                        )
+                    }
+
+                    is PayloadPage -> {
+                        PayloadScreen(
+                            text = page.info,
+                            onContinueClick = { navigationStack.push(HomePage()) },
+                            walletMain = walletMain,
+                        )
+                    }
+
+                    is LoadingPage -> {
+                        LoadingScreen()
+                    }
+
+
+                    is ShowDataPage -> {
+                        ShowDataView(
+                            navigateToAuthenticationAtSp = {
+                                navigationStack.push(AuthenticationQrCodeScannerPage())
+//                                navigationStack.push(
+//                                    AuthenticationConsentPage(
+//                                        spName = "Post-Schalter#3",
+//                                        spLocation = "St. Peter Hauptstraße\n8010, Graz",
+//                                        requestedAttributes = mapOf(
+//                                            PersonalDataCategory.IdentityData to listOf(
+//                                                AttributeAvailability(
+//                                                    attributeName = "Vorname",
+//                                                    isAvailable = false,
+//                                                ),
+//                                                AttributeAvailability(
+//                                                    attributeName = "Nachname",
+//                                                    isAvailable = false,
+//                                                ),
+//                                                AttributeAvailability(
+//                                                    attributeName = "Aktuelles Foto aus zentralem Identitätsdokumentenregister",
+//                                                    isAvailable = false,
+//                                                ),
+//                                            ),
+//                                            PersonalDataCategory.ResidencyData to listOf(
+//                                                AttributeAvailability(
+//                                                    attributeName = "Straße",
+//                                                    isAvailable = false,
+//                                                ),
+//                                                AttributeAvailability(
+//                                                    attributeName = "Hausnummer",
+//                                                    isAvailable = false,
+//                                                ),
+//                                                AttributeAvailability(
+//                                                    attributeName = "Postleitzahl",
+//                                                    isAvailable = true,
+//                                                ),
+//                                                AttributeAvailability(
+//                                                    attributeName = "Ort",
+//                                                    isAvailable = true,
+//                                                ),
+//                                            ),
+//                                        ).toList()
+//                                    )
+//                                )
+                            },
+                            navigateToShowDataToExecutive = {
+                                walletMain.snackbarService.showSnackbar("Incomplete Implementation")
+                            },
+                            navigateToShowDataToOtherCitizen = {
+                                walletMain.snackbarService.showSnackbar("Incomplete Implementation")
+                            },
+                        )
+                    }
+
                     is AuthenticationQrCodeScannerPage -> {
                         AuthenticationQrCodeScannerView(
                             navigateUp = globalBack,
-                            navigateToConsentScreenWithResult = { name, location ->
+                            onPayloadFound = { payload ->
+                                globalBack()
+                                // replace with opening consent page by link
                                 navigationStack.push(
                                     AuthenticationSPInfoPage(
-                                        spName = name,
-                                        spLocation = location,
+                                        spName = "name1",
+                                        spLocation = "location1",
                                     )
                                 )
                             },
@@ -593,7 +633,7 @@ fun navigator(walletMain: WalletMain) {
                     is AuthenticationSPInfoPage -> {
                         AuthenticationSPInfoView(
                             navigateUp = globalBack,
-                            cancelAuthentication = {},
+                            cancelAuthentication = globalBack,
                             authenticateAtSp = {},
                             spName = page.spName,
                             spLocation = page.spLocation,
