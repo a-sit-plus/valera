@@ -285,7 +285,7 @@ val SubjectCredentialStore.StoreEntry.Vc.drivingPermissions: List<String>
     get() {
         return when (val credentialSubject = this.vc.vc.credentialSubject) {
             is IdAustriaCredential -> {
-                listOf()
+                listOf("Klasse A", "Klasse B")
 //                TODO("Missing Implementation")
             }
 
@@ -297,7 +297,7 @@ val SubjectCredentialStore.StoreEntry.SdJwt.drivingPermissions: List<String>
     get() {
         return when (this.scheme) {
             is IdAustriaScheme -> {
-                listOf()
+                listOf("Klasse A", "Klasse B")
 //                TODO("Missing Implementation")
             }
 
@@ -314,6 +314,212 @@ val SubjectCredentialStore.StoreEntry.drivingPermissions: List<String>
 
             is SubjectCredentialStore.StoreEntry.SdJwt -> {
                 this.drivingPermissions
+            }
+
+            else -> TODO(invalidCredentialStoreEntry)
+        }
+    }
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// streetName
+//////////////////////////////////////////////////////////////////////////////////////////
+
+val SubjectCredentialStore.StoreEntry.Vc.streetName: String?
+    get() {
+        return when (val credentialSubject = this.vc.vc.credentialSubject) {
+            is IdAustriaCredential -> {
+                credentialSubject.mainAddress
+//                TODO("Missing Implementation")
+            }
+
+            else -> TODO(invalidCredentialSubjectMessage)
+        }
+    }
+
+val SubjectCredentialStore.StoreEntry.SdJwt.streetName: String?
+    get() {
+        return when (this.scheme) {
+            is IdAustriaScheme -> {
+                TODO("Missing Implementation")
+            }
+
+            else -> TODO(invalidCredentialSchemeMessage)
+        }
+    }
+
+val SubjectCredentialStore.StoreEntry.streetName: String?
+    get() {
+        return when (this) {
+            is SubjectCredentialStore.StoreEntry.Vc -> {
+                this.streetName
+            }
+
+            is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                this.streetName
+            }
+
+            else -> TODO(invalidCredentialStoreEntry)
+        }
+    }
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// postalCode
+//////////////////////////////////////////////////////////////////////////////////////////
+
+val SubjectCredentialStore.StoreEntry.Vc.postalCode: String?
+    get() {
+        return when (val credentialSubject = this.vc.vc.credentialSubject) {
+            is IdAustriaCredential -> {
+                TODO("Missing Implementation")
+            }
+
+            else -> TODO(invalidCredentialSubjectMessage)
+        }
+    }
+
+val SubjectCredentialStore.StoreEntry.SdJwt.postalCode: String?
+    get() {
+        return when (this.scheme) {
+            is IdAustriaScheme -> {
+                TODO("Missing Implementation")
+            }
+
+            else -> TODO(invalidCredentialSchemeMessage)
+        }
+    }
+
+val SubjectCredentialStore.StoreEntry.postalCode: String?
+    get() {
+        return when (this) {
+            is SubjectCredentialStore.StoreEntry.Vc -> {
+                this.postalCode
+            }
+
+            is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                this.postalCode
+            }
+
+            else -> TODO(invalidCredentialStoreEntry)
+        }
+    }
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// townName
+//////////////////////////////////////////////////////////////////////////////////////////
+
+val SubjectCredentialStore.StoreEntry.Vc.townName: String?
+    get() {
+        return when (val credentialSubject = this.vc.vc.credentialSubject) {
+            is IdAustriaCredential -> {
+                TODO("Missing Implementation")
+            }
+
+            else -> TODO(invalidCredentialSubjectMessage)
+        }
+    }
+
+val SubjectCredentialStore.StoreEntry.SdJwt.townName: String?
+    get() {
+        return when (this.scheme) {
+            is IdAustriaScheme -> {
+                TODO("Missing Implementation")
+            }
+
+            else -> TODO(invalidCredentialSchemeMessage)
+        }
+    }
+
+val SubjectCredentialStore.StoreEntry.townName: String?
+    get() {
+        return when (this) {
+            is SubjectCredentialStore.StoreEntry.Vc -> {
+                this.townName
+            }
+
+            is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                this.townName
+            }
+
+            else -> TODO(invalidCredentialStoreEntry)
+        }
+    }
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// carModel
+//////////////////////////////////////////////////////////////////////////////////////////
+
+val SubjectCredentialStore.StoreEntry.Vc.carModel: String?
+    get() {
+        return when (val credentialSubject = this.vc.vc.credentialSubject) {
+            is IdAustriaCredential -> {
+                TODO("Missing Implementation")
+            }
+
+            else -> TODO(invalidCredentialSubjectMessage)
+        }
+    }
+
+val SubjectCredentialStore.StoreEntry.SdJwt.carModel: String?
+    get() {
+        return when (this.scheme) {
+            is IdAustriaScheme -> {
+                TODO("Missing Implementation")
+            }
+
+            else -> TODO(invalidCredentialSchemeMessage)
+        }
+    }
+
+val SubjectCredentialStore.StoreEntry.carModel: String?
+    get() {
+        return when (this) {
+            is SubjectCredentialStore.StoreEntry.Vc -> {
+                this.carModel
+            }
+
+            is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                this.carModel
+            }
+
+            else -> TODO(invalidCredentialStoreEntry)
+        }
+    }
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// licensePlateNumber
+//////////////////////////////////////////////////////////////////////////////////////////
+
+val SubjectCredentialStore.StoreEntry.Vc.licensePlateNumber: String?
+    get() {
+        return when (val credentialSubject = this.vc.vc.credentialSubject) {
+            is IdAustriaCredential -> {
+                TODO("Missing Implementation")
+            }
+
+            else -> TODO(invalidCredentialSubjectMessage)
+        }
+    }
+
+val SubjectCredentialStore.StoreEntry.SdJwt.licensePlateNumber: String?
+    get() {
+        return when (this.scheme) {
+            is IdAustriaScheme -> {
+                TODO("Missing Implementation")
+            }
+
+            else -> TODO(invalidCredentialSchemeMessage)
+        }
+    }
+
+val SubjectCredentialStore.StoreEntry.licensePlateNumber: String?
+    get() {
+        return when (this) {
+            is SubjectCredentialStore.StoreEntry.Vc -> {
+                this.licensePlateNumber
+            }
+
+            is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                this.licensePlateNumber
             }
 
             else -> TODO(invalidCredentialStoreEntry)

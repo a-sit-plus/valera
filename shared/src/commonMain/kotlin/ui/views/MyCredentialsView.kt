@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -43,15 +44,20 @@ import data.drivingPermissions
 import data.firstname
 import data.lastname
 import data.portrait
+import data.streetName
 import io.ktor.util.decodeBase64Bytes
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
+import ui.composables.AdmissionData
 import ui.composables.AgeData
 import ui.composables.DrivingData
 import ui.composables.IdentityData
+import ui.composables.PersonAdmissionDataDetailCard
 import ui.composables.PersonAgeDataDetailCard
 import ui.composables.PersonDrivingDataDetailCard
 import ui.composables.PersonIdentityDataDetailCard
+import ui.composables.PersonResidenceDataDetailCard
+import ui.composables.ResidenceData
 
 
 @Composable
@@ -61,7 +67,9 @@ fun MyCredentialsView(
     decodeImage: (image: ByteArray) -> ImageBitmap,
     navigateToIdentityData: (() -> Unit)? = null,
     navigateToAgeData: (() -> Unit)? = null,
+    navigateToResidenceData: (() -> Unit)? = null,
     navigateToDrivingData: (() -> Unit)? = null,
+    navigateToAdmissionData: (() -> Unit)? = null,
 ) {
     MyDataView(
         refreshCredentials = onRefreshCredentials,
@@ -75,12 +83,23 @@ fun MyCredentialsView(
             ageLowerBounds = credentials.flatMap { it.ageLowerBounds },
             ageUpperBounds = credentials.flatMap { it.ageUpperBounds },
         ),
+        residenceData = ResidenceData(
+            streetName = credentials.firstNotNullOfOrNull { it.streetName },
+            postalCode = credentials.firstNotNullOfOrNull { "dummyPostalCode" },
+            townName = credentials.firstNotNullOfOrNull { "dummyTownName" },
+        ),
         drivingData = DrivingData(
             drivingPermissions = credentials.flatMap { it.drivingPermissions },
         ),
+        admissionData = AdmissionData(
+            carModel = credentials.firstNotNullOfOrNull { "dummyStreetName" },
+            licensePlateNumber = credentials.firstNotNullOfOrNull { "dummyLicensePlateNumber" },
+        ),
         navigateToIdentityData = navigateToIdentityData,
         navigateToAgeData = navigateToAgeData,
+        navigateToResidenceData = navigateToResidenceData,
         navigateToDrivingData = navigateToDrivingData,
+        navigateToAdmissionData = navigateToAdmissionData,
     )
 //    Scaffold(
 //        topBar = {
@@ -313,10 +332,14 @@ fun MyDataView(
     refreshCredentials: () -> Unit,
     identityData: IdentityData? = null,
     ageData: AgeData? = null,
+    residenceData: ResidenceData? = null,
     drivingData: DrivingData? = null,
-    navigateToDrivingData: (() -> Unit)? = null,
+    admissionData: AdmissionData? = null,
     navigateToIdentityData: (() -> Unit)? = null,
     navigateToAgeData: (() -> Unit)? = null,
+    navigateToResidenceData: (() -> Unit)? = null,
+    navigateToDrivingData: (() -> Unit)? = null,
+    navigateToAdmissionData: (() -> Unit)? = null,
 ) {
     Scaffold(
         topBar = {
@@ -341,7 +364,8 @@ fun MyDataView(
         }
     ) {
         Column(modifier = Modifier.padding(it).verticalScroll(state = rememberScrollState())) {
-            val paddingModifier = Modifier.padding(bottom = 8.dp, start = 8.dp, end = 8.dp)
+            val paddingModifier = Modifier.padding(horizontal = 16.dp)
+            val gapSize = 20.dp
             if (identityData != null) {
                 if (
                     listOf(
@@ -353,8 +377,7 @@ fun MyDataView(
                 ) {
                     PersonIdentityDataDetailCard(
                         identityData = identityData,
-                        modifier = paddingModifier,
-                        onDetailClick = navigateToIdentityData,
+                        modifier = paddingModifier.padding(bottom = gapSize),
                     )
                 }
             }
@@ -367,8 +390,21 @@ fun MyDataView(
                 ) {
                     PersonAgeDataDetailCard(
                         ageData = ageData,
-                        modifier = paddingModifier,
-                        onDetailClick = navigateToAgeData,
+                        modifier = paddingModifier.padding(bottom = gapSize),
+                    )
+                }
+            }
+            if (residenceData != null) {
+                if (
+                    listOf(
+                        residenceData.streetName != null,
+                        residenceData.postalCode != null,
+                        residenceData.townName != null,
+                    ).any()
+                ) {
+                    PersonResidenceDataDetailCard(
+                        residenceData = residenceData,
+                        modifier = paddingModifier.padding(bottom = gapSize),
                     )
                 }
             }
@@ -376,11 +412,24 @@ fun MyDataView(
                 if (drivingData.drivingPermissions.isNotEmpty()) {
                     PersonDrivingDataDetailCard(
                         drivingData = drivingData,
-                        modifier = paddingModifier,
-                        onDetailClick = navigateToDrivingData,
+                        modifier = paddingModifier.padding(bottom = gapSize),
                     )
                 }
             }
+            if (admissionData != null) {
+                if (
+                    listOf(
+                        admissionData.carModel != null,
+                        admissionData.licensePlateNumber != null,
+                    ).any()
+                ) {
+                    PersonAdmissionDataDetailCard(
+                        admissionData = admissionData,
+                        modifier = paddingModifier,
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(92.dp))
         }
     }
 }

@@ -1,6 +1,7 @@
 package ui.views
 
 import Resources
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,8 +28,12 @@ import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import navigation.Page
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.painterResource
 import ui.composables.AttributeAvailability
 import ui.composables.DataCategoryDisplaySection
 import ui.composables.DataDisplaySection
@@ -44,7 +49,7 @@ class AuthenticationConsentPage(
     val requestedAttributes: List<Pair<PersonalDataCategory, List<AttributeAvailability>>>,
 ) : Page
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
 @Composable
 fun AuthenticationConsentView(
     navigateUp: () -> Unit,
@@ -53,6 +58,7 @@ fun AuthenticationConsentView(
     consentToDataTransmission: () -> Unit,
     spName: String,
     spLocation: String,
+    spImage: ImageBitmap?,
     requestedAttributes: List<Pair<PersonalDataCategory, List<AttributeAvailability>>>,
     showBottomSheet: Boolean,
     bottomSheetState: SheetState,
@@ -160,6 +166,16 @@ fun AuthenticationConsentView(
                                 style = MaterialTheme.typography.bodyLarge,
                             )
                         }
+                    }
+                }
+                if(spImage != null) {
+                    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Image(
+                            bitmap = spImage,
+                            contentDescription = null,
+                            contentScale = ContentScale.Fit,
+                            modifier = paddingModifier.height(64.dp),
+                        )
                     }
                 }
                 DataDisplaySection(

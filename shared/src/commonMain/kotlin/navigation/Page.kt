@@ -37,7 +37,11 @@ expect class ConsentPage(url: String, claims: List<String>, recipientName: Strin
 
 expect class LoadingPage(): Page
 
+expect class RefreshCredentialsPage(): Page
+
 expect class AuthenticationQrCodeScannerPage() : Page
 
 
 expect class ShowDataPage() : Page
+
+expect class QrCodeCredentialScannerPage() : Page

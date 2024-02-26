@@ -10,6 +10,8 @@ import ui.views.MyCredentialsView
 fun MyCredentialsScreen(
     credentials: List<SubjectCredentialStore.StoreEntry>,
     refreshCredentials: () -> Unit,
+    startProvisioning: () -> Unit,
+    startProvisioningFromQrCode: () -> Unit,
     decodeImage: (image: ByteArray) -> ImageBitmap,
 ) {
 //    val credentials: List<SubjectCredentialStore.StoreEntry> = VerifiableCredentialJws(
@@ -19,17 +21,21 @@ fun MyCredentialsScreen(
 //        notBefore = Clock.System.now(),
 //        subject = "Test",
 //        vc = VerifiableCredential(
-//            "string1",
-//            "test1",
-////                    arrayOf("test1", "test2"),
+//            id = "string1",
+//            issuer = "test1",
 //            Duration.ZERO,
 //            credentialStatus = CredentialStatus("test", 0),
 //            credentialSubject = IdAustriaCredential(
-//                firstname = "Vorname1",
-//                lastname = "Nachname1",
-//                bpk = "bpk",
+//                firstname = "VornameValue",
+//                lastname = "NachnameValue",
+//                bpk = "bpkValue",
 //                dateOfBirth = LocalDate.fromEpochDays(0),
-//                id = "id",
+//                id = "idValue",
+//                ageOver14 = true,
+//                ageOver16 = false,
+//                ageOver18 = false,
+//                ageOver21 = false,
+//                mainAddress = "mainAddressValue"
 //            ),
 //            "string2",
 //        )
@@ -40,14 +46,14 @@ fun MyCredentialsScreen(
 //            vcSerialized = it.toString(),
 //        )
 //    }.let {
-//        listOf(it, it, it, it)
+//        listOf(it)
 //    }
 
     if (credentials.isEmpty()) {
         LoadDataView(
-            loadData = refreshCredentials,
+            loadData = startProvisioning,
             navigateUp = null,
-            onLoadDataFromQrCode = {},
+            onLoadDataFromQrCode = startProvisioningFromQrCode,
         )
     } else {
         MyCredentialsView(

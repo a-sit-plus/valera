@@ -42,7 +42,7 @@ private fun main() = application {
                         isAvailable = false,
                     ),
                 ),
-                PersonalDataCategory.ResidencyData to listOf(
+                PersonalDataCategory.ResidenceData to listOf(
                     AttributeAvailability(
                         attributeName = "Straße",
                         isAvailable = false,

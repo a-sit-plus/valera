@@ -25,21 +25,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import at.asitplus.wallet.lib.data.ConstantIndex
+import navigation.AuthenticationQrCodeScannerPage
+import navigation.HomePage
 import navigation.InformationPage
 import navigation.NavigationStack
 import navigation.Page
+import navigation.ShowDataPage
 import ui.composables.AttributeAvailability
 import ui.composables.PersonalDataCategory
 import ui.views.AuthenticationConsentPage
 import ui.views.AuthenticationConsentView
-import ui.views.AuthenticationQrCodeScannerPage
 import ui.views.AuthenticationQrCodeScannerView
 import ui.views.AuthenticationSPInfoPage
 import ui.views.AuthenticationSPInfoView
-import ui.views.HomePage
 import ui.views.MyDataView
 import ui.views.SettingsView
-import ui.views.ShowDataPage
 import ui.views.ShowDataView
 
 private fun main() = application {
@@ -263,7 +263,7 @@ fun PreviewNavigationScreen() {
                                                     isAvailable = false,
                                                 ),
                                             ),
-                                            PersonalDataCategory.ResidencyData to listOf(
+                                            PersonalDataCategory.ResidenceData to listOf(
                                                 AttributeAvailability(
                                                     attributeName = "Straße",
                                                     isAvailable = false,
@@ -312,10 +312,10 @@ fun PreviewNavigationScreen() {
                     is AuthenticationQrCodeScannerPage -> {
                         AuthenticationQrCodeScannerView(
                             navigateUp = globalBack,
-                            navigateToConsentScreenWithResult = { name, location ->
+                            onPayloadFound = { payload ->
                                 navigationStack.push(AuthenticationSPInfoPage(
-                                    spName = name,
-                                    spLocation = location,
+                                    spName = "spNameValue",
+                                    spLocation = "spLocationValue",
                                 ))
                             },
                         )

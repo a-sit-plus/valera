@@ -2,6 +2,8 @@ package ui.composables
 
 import LabeledText
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,6 +25,7 @@ fun DataDisplaySection(
             color = MaterialTheme.colorScheme.secondary,
             fontWeight = FontWeight.SemiBold,
         )
+        Spacer(modifier = Modifier.height(8.dp))
         Column(modifier = Modifier.padding(start = 32.dp)) {
             val paddingModifier = Modifier.padding(bottom = 16.dp)
             for (labeledItem in data) {

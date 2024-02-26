@@ -30,3 +30,7 @@ actual class LoadingPage : Page
 actual class AuthenticationQrCodeScannerPage : Page
 
 actual class ShowDataPage : Page
+
+actual class RefreshCredentialsPage : Page
+
+actual class QrCodeCredentialScannerPage : Page

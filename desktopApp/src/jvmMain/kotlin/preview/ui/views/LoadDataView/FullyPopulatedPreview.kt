@@ -67,7 +67,8 @@ private fun main() = application {
 //                    existingDataCategories[index] = existingDataCategories[index].copy(isSelected = newValue)
 //                }
 //            },
-            loadData = {}
+            loadData = {},
+            onLoadDataFromQrCode = {},
         )
     }
 }

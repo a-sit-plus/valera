@@ -20,6 +20,10 @@ actual class AuthenticationQrCodeScannerPage actual constructor() : Page
 
 actual class ShowDataPage : Page
 
+actual class RefreshCredentialsPage : Page
+
+actual class QrCodeCredentialScannerPage : Page
+
 
 actual class ConsentPage actual constructor(actual val url: String, actual val claims: List<String>, actual val recipientName: String, actual val recipientLocation: String): Page
 

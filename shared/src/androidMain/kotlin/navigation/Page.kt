@@ -54,3 +54,9 @@ actual class AuthenticationQrCodeScannerPage : Page, Parcelable
 
 @Parcelize
 actual class ShowDataPage : Page, Parcelable
+
+@Parcelize
+actual class RefreshCredentialsPage : Page, Parcelable
+
+@Parcelize
+actual class QrCodeCredentialScannerPage : Page, Parcelable

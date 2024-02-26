@@ -29,8 +29,6 @@ import at.asitplus.wallet.lib.oidvci.decodeFromUrlQuery
 import io.ktor.http.Url
 import io.ktor.http.parseQueryString
 import io.ktor.util.flattenEntries
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -45,21 +43,23 @@ import navigation.LogPage
 import navigation.NavigationStack
 import navigation.Page
 import navigation.PayloadPage
+import navigation.QrCodeCredentialScannerPage
+import navigation.RefreshCredentialsPage
 import navigation.ShowDataPage
 import ui.views.AuthenticationConsentPage
 import ui.views.AuthenticationConsentView
 import ui.views.AuthenticationQrCodeScannerView
-import ui.views.AuthenticationSPInfoPage
-import ui.views.AuthenticationSPInfoView
+import ui.views.LoadDataView
 import ui.views.SettingsView
 import ui.views.ShowDataView
-import view.CameraView
+import ui.views.CameraView
 import view.ConsentScreen
 import view.CredentialScreen
 import view.LoadingScreen
 import view.LogScreen
 import view.MyCredentialsScreen
 import view.PayloadScreen
+import view.QrCodeCredentialScannerScreen
 
 //@Composable
 //fun navigatorBackup(walletMain: WalletMain) {
@@ -367,6 +367,22 @@ fun Navigator(walletMain: WalletMain) {
 
     globalBack = { navigationStack.back() }
 
+    val startProvisioning: () -> Unit = {
+        walletMain.scope.launch {
+            try {
+                walletMain.provisioningService.startProvisioning()
+            } catch (e: Exception) {
+                walletMain.errorService.emit(e)
+            }
+        }
+    }
+
+    val launchQrCodeScannerForDataProvisioning: () -> Unit = {
+        navigationStack.push(
+            QrCodeCredentialScannerPage()
+        )
+    }
+
     Scaffold(
         bottomBar = {
             val (_, page) = navigationStack.lastWithIndex()
@@ -404,14 +420,10 @@ fun Navigator(walletMain: WalletMain) {
                             MyCredentialsScreen(
                                 credentials = storeContainer.credentials,
                                 refreshCredentials = {
-                                    CoroutineScope(Dispatchers.Default).launch {
-                                        try {
-                                            walletMain.provisioningService.startProvisioning()
-                                        } catch (e: Exception) {
-                                            walletMain.errorService.emit(e)
-                                        }
-                                    }
+                                    navigationStack.push(RefreshCredentialsPage())
                                 },
+                                startProvisioning = startProvisioning,
+                                startProvisioningFromQrCode = launchQrCodeScannerForDataProvisioning,
                                 decodeImage = walletMain.platformAdapter::decodeImage,
                             )
                         }
@@ -433,6 +445,23 @@ fun Navigator(walletMain: WalletMain) {
 //                            },
 //                            walletMain = walletMain
 //                        )
+                    }
+
+                    is QrCodeCredentialScannerPage -> {
+                        QrCodeCredentialScannerScreen(
+                            navigateUp = globalBack,
+                            onPayloadFound = { payload ->
+                                TODO("Missing Implementation")
+                            }
+                        )
+                    }
+
+                    is RefreshCredentialsPage -> {
+                        LoadDataView(
+                            navigateUp = globalBack,
+                            loadData = startProvisioning,
+                            onLoadDataFromQrCode = launchQrCodeScannerForDataProvisioning,
+                        )
                     }
 
                     is InformationPage -> {
@@ -494,7 +523,7 @@ fun Navigator(walletMain: WalletMain) {
 
                         LogScreen(
                             logArray = logArray,
-                            navigateUp = { globalBack() },
+                            navigateUp = globalBack,
                             shareLog = {
                                 walletMain.scope.launch {
                                     walletMain.platformAdapter.shareLog()
@@ -583,7 +612,7 @@ fun Navigator(walletMain: WalletMain) {
 //                                                    isAvailable = false,
 //                                                ),
 //                                            ),
-//                                            PersonalDataCategory.ResidencyData to listOf(
+//                                            PersonalDataCategory.ResidenceData to listOf(
 //                                                AttributeAvailability(
 //                                                    attributeName = "Straße",
 //                                                    isAvailable = false,
@@ -620,25 +649,27 @@ fun Navigator(walletMain: WalletMain) {
                             onPayloadFound = { payload ->
                                 globalBack()
                                 // replace with opening consent page by link
-                                navigationStack.push(
-                                    AuthenticationSPInfoPage(
-                                        spName = "name1",
-                                        spLocation = "location1",
-                                    )
-                                )
+                                TODO()
+//                                navigationStack.push(
+//                                    AuthenticationSPInfoPage(
+//                                        spName = "name1",
+//                                        spLocation = "location1",
+//                                    )
+//                                )
                             },
                         )
                     }
-
-                    is AuthenticationSPInfoPage -> {
-                        AuthenticationSPInfoView(
-                            navigateUp = globalBack,
-                            cancelAuthentication = globalBack,
-                            authenticateAtSp = {},
-                            spName = page.spName,
-                            spLocation = page.spLocation,
-                        )
-                    }
+//
+//                    is AuthenticationSPInfoPage -> {
+//                        AuthenticationSPInfoView(
+//                            navigateUp = globalBack,
+//                            cancelAuthentication = globalBack,
+//                            authenticateAtSp = {},
+//                            spName = page.spName,
+//                            spLocation = page.spLocation,
+//                            spImage = null,
+//                        )
+//                    }
 
                     is AuthenticationConsentPage -> {
                         val bottomSheetState = rememberModalBottomSheetState()
@@ -666,6 +697,7 @@ fun Navigator(walletMain: WalletMain) {
                             requestedAttributes = page.requestedAttributes,
                             spName = page.spName,
                             spLocation = page.spLocation,
+                            spImage = null,
                             bottomSheetState = bottomSheetState,
                             showBottomSheet = showBottomSheet,
                             onBottomSheetDismissRequest = {

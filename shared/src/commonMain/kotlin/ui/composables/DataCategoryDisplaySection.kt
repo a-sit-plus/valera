@@ -53,7 +53,7 @@ fun DataCategoryDisplaySection(
         )
         Column {
             val paddingModifier =
-                Modifier.padding(top = 4.dp, end = 24.dp, start = 16.dp, bottom = 4.dp)
+                Modifier.padding(top = 8.dp, end = 24.dp, bottom = 8.dp, start = 16.dp)
             for (categoryIndex in attributes.indices) {
                 val category = attributes[categoryIndex]
                 val missingAttributeCount = category.second.count {
@@ -120,7 +120,11 @@ fun DataCategoryDisplaySection(
                                     avatarText = null,
                                     title = item.attributeName,
                                     fontWeight = FontWeight.Normal,
-                                    color = if (item.isAvailable == false) MaterialTheme.colorScheme.error else Color.Unspecified,
+                                    avatarColors = TextAvatarDefaults.backgroundColor(
+                                        containerColor = Color.Unspecified,
+                                        disabledContainerColor = Color.Unspecified,
+                                    ),
+                                    textColor = if (item.isAvailable == false) MaterialTheme.colorScheme.error else Color.Unspecified,
                                     enabled = false,
                                 )
                             }
