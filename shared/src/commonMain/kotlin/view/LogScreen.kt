@@ -21,12 +21,38 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import at.asitplus.wallet.app.common.WalletMain
+import kotlinx.coroutines.launch
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.buttons.ShareButton
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LogScreen(
+    navigateUp: () -> Unit,
+    walletMain: WalletMain,
+) {
+    val logArray = try {
+        walletMain.getLog()
+    } catch (e: Throwable) {
+        walletMain.errorService.emit(e)
+        listOf()
+    }
+
+    LogView(
+        logArray = logArray,
+        navigateUp = navigateUp,
+        shareLog = {
+            walletMain.scope.launch {
+                walletMain.platformAdapter.shareLog()
+            }
+        }
+    )
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LogView(
     logArray: List<String>,
     navigateUp: () -> Unit,
     shareLog: () -> Unit,

@@ -26,11 +26,17 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         vcSerialized: String,
         scheme: ConstantIndex.CredentialScheme
     ) {
-        val newContainer = container.first().let {
-            it.filterNotScheme(scheme).copy(
-                credentials = it.credentials + SubjectCredentialStore.StoreEntry.Vc(vcSerialized, vc, scheme),
-                attachments = it.attachments
-            )
+        val newContainer = container.first().let { containerInstance ->
+            containerInstance.filterNotScheme(scheme).let {
+                it.copy(
+                    credentials = it.credentials + SubjectCredentialStore.StoreEntry.Vc(
+                        vcSerialized,
+                        vc,
+                        scheme
+                    ),
+                    attachments = it.attachments
+                )
+            }
         }
         exportToDataStore(newContainer)
     }
@@ -41,21 +47,33 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         disclosures: Map<String, SelectiveDisclosureItem?>,
         scheme: ConstantIndex.CredentialScheme
     ) {
-        val newContainer = container.first().let {
-            it.filterNotScheme(scheme).copy(
-                credentials = it.credentials + SubjectCredentialStore.StoreEntry.SdJwt(vcSerialized, vc, disclosures, scheme),
-                attachments = it.attachments
-            )
+        val newContainer = container.first().let { containerInstance ->
+            containerInstance.filterNotScheme(scheme).let {
+                it.copy(
+                    credentials = it.credentials + SubjectCredentialStore.StoreEntry.SdJwt(
+                        vcSerialized,
+                        vc,
+                        disclosures,
+                        scheme
+                    ),
+                    attachments = it.attachments
+                )
+            }
         }
         exportToDataStore(newContainer)
     }
 
     override suspend fun storeCredential(issuerSigned: IssuerSigned, scheme: ConstantIndex.CredentialScheme) {
-        val newContainer = container.first().let {
-            it.filterNotScheme(scheme).copy(
-                credentials = it.credentials + SubjectCredentialStore.StoreEntry.Iso(issuerSigned, scheme),
-                attachments = it.attachments
-            )
+        val newContainer = container.first().let { containerInstance ->
+            containerInstance.filterNotScheme(scheme).let {
+                it.copy(
+                    credentials = it.credentials + SubjectCredentialStore.StoreEntry.Iso(
+                        issuerSigned,
+                        scheme
+                    ),
+                    attachments = it.attachments
+                )
+            }
         }
         exportToDataStore(newContainer)
     }

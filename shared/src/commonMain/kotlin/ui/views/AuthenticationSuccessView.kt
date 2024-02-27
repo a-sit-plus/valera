@@ -11,12 +11,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -31,6 +29,7 @@ import navigation.Page
 import ui.composables.AttributeAvailability
 import ui.composables.PersonalDataCategory
 import ui.composables.TextIconButton
+import ui.composables.buttons.NavigateUpButton
 
 class AuthenticationSuccessPage(
     val spName: String,
@@ -54,14 +53,7 @@ fun AuthenticationSuccessView(
                     )
                 },
                 navigationIcon = {
-                    IconButton(
-                        onClick = navigateUp
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Navigate Back",
-                        )
-                    }
+                    NavigateUpButton(navigateUp)
                 },
             )
         },

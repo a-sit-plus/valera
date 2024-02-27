@@ -27,7 +27,7 @@ import androidx.compose.ui.window.application
 import at.asitplus.wallet.lib.data.ConstantIndex
 import navigation.AuthenticationQrCodeScannerPage
 import navigation.HomePage
-import navigation.InformationPage
+import navigation.SettingsPage
 import navigation.NavigationStack
 import navigation.Page
 import navigation.ShowDataPage
@@ -35,12 +35,12 @@ import ui.composables.AttributeAvailability
 import ui.composables.PersonalDataCategory
 import ui.views.AuthenticationConsentPage
 import ui.views.AuthenticationConsentView
-import ui.views.AuthenticationQrCodeScannerView
+import view.AuthenticationQrCodeScannerScreen
 import ui.views.AuthenticationSPInfoPage
 import ui.views.AuthenticationSPInfoView
 import ui.views.MyDataView
 import ui.views.SettingsView
-import ui.views.ShowDataView
+import view.ShowDataScreen
 
 private fun main() = application {
     Window(onCloseRequest = ::exitApplication) {
@@ -164,10 +164,10 @@ private enum class Route(
                 contentDescription = "Weitere Information",
             )
         },
-        destination = InformationPage(),
+        destination = SettingsPage(),
         isActive = {
             when(it) {
-                is InformationPage -> true
+                is SettingsPage -> true
                 else -> false
             }
         },
@@ -185,7 +185,7 @@ fun PreviewNavigationScreen() {
             is ShowDataPage -> {
                 Route.SHOW_DATA_SCREEN
             }
-            is InformationPage -> {
+            is SettingsPage -> {
                 Route.INFORMATION_SCREEN
             }
             else -> null
@@ -241,8 +241,8 @@ fun PreviewNavigationScreen() {
                     }
 
                     is ShowDataPage -> {
-                        ShowDataView(
-                            navigateToAuthenticationAtSp = {
+                        ShowDataScreen(
+                            navigateToAthenticationStartPage = {
 //                                navigationStack.push(AuthenticationQrCodeScannerPage())
                                 navigationStack.push(
                                     AuthenticationConsentPage(
@@ -285,12 +285,12 @@ fun PreviewNavigationScreen() {
                                     )
                                 )
                             },
-                            navigateToShowDataToExecutive = {},
-                            navigateToShowDataToOtherCitizen = {},
+                            onClickShowDataToExecutive = {},
+                            onClickShowDataToOtherCitizen = {},
                         )
                     }
 
-                    is InformationPage -> {
+                    is SettingsPage -> {
                         SettingsView(
                             host = "http://www.example.com",
                             onChangeHost = {},
@@ -310,7 +310,7 @@ fun PreviewNavigationScreen() {
                     }
 
                     is AuthenticationQrCodeScannerPage -> {
-                        AuthenticationQrCodeScannerView(
+                        AuthenticationQrCodeScannerScreen(
                             navigateUp = globalBack,
                             onPayloadFound = { payload ->
                                 navigationStack.push(AuthenticationSPInfoPage(

@@ -24,16 +24,40 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import at.asitplus.wallet.app.common.WalletMain
+import kotlinx.coroutines.launch
 import ui.composables.OutlinedTextIconButton
 import ui.composables.buttons.LoadDataButton
 import ui.composables.buttons.NavigateUpButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+fun LoadDataScreen(
+    navigateUp: (() -> Unit)? = null,
+    navigateToQrCodeCredentialProvisioningPage: () -> Unit,
+    walletMain: WalletMain,
+) {
+    LoadDataView(
+        loadData = {
+            walletMain.scope.launch {
+                try {
+                    walletMain.provisioningService.startProvisioning()
+                } catch (e: Exception) {
+                    walletMain.errorService.emit(e)
+                }
+            }
+        },
+        navigateUp = navigateUp,
+        navigateToQrCodeCredentialProvisioningPage = navigateToQrCodeCredentialProvisioningPage,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 fun LoadDataView(
     loadData: () -> Unit,
     navigateUp: (() -> Unit)? = null,
-    onLoadDataFromQrCode: () -> Unit,
+    navigateToQrCodeCredentialProvisioningPage: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -70,7 +94,7 @@ fun LoadDataView(
                                 "Scan QR-Code",
                             )
                         },
-                        onClick = onLoadDataFromQrCode,
+                        onClick = navigateToQrCodeCredentialProvisioningPage,
                     )
                     LoadDataButton(loadData)
                 }

@@ -10,11 +10,19 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 
 data class AdmissionData(
     val carModel: String?,
     val licensePlateNumber: String?,
 )
+
+
+val List<SubjectCredentialStore.StoreEntry>.admissionData: AdmissionData
+    get() = AdmissionData(
+        carModel = firstNotNullOfOrNull { "dummyStreetName" },
+        licensePlateNumber = firstNotNullOfOrNull { "dummyLicensePlateNumber" },
+    )
 
 @Composable
 fun PersonAdmissionDataDetailCard(

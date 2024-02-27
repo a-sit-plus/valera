@@ -11,12 +11,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import data.streetName
 
 data class ResidenceData(
     val streetName: String?,
     val postalCode: String?,
     val townName: String?,
 )
+
+
+val List<SubjectCredentialStore.StoreEntry>.residenceData: ResidenceData
+    get() = ResidenceData(
+        streetName = firstNotNullOfOrNull { it.streetName },
+        postalCode = firstNotNullOfOrNull { "dummyPostalCode" },
+        townName = firstNotNullOfOrNull { "dummyTownName" },
+    )
 
 @Composable
 fun PersonResidenceDataDetailCard(

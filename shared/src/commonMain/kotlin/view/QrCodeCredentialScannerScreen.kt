@@ -1,16 +1,19 @@
 package view
 
 import androidx.compose.runtime.Composable
+import at.asitplus.wallet.app.common.WalletMain
 
 
 @Composable
 fun QrCodeCredentialScannerScreen(
     navigateUp: () -> Unit,
-    onPayloadFound: (String) -> Unit,
+    walletMain: WalletMain,
 ) {
     CameraScreen(
         title = "Credential Scanner",
         navigateUp = navigateUp,
-        onPayloadFound = onPayloadFound,
+        onPayloadFound = { payload ->
+            TODO("Missing Implementation")
+        }
     )
 }

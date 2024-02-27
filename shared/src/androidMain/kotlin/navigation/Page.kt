@@ -34,7 +34,7 @@ actual class ConsentPage actual constructor(
 actual class AppLinkPage : Page, Parcelable
 
 @Parcelize
-actual class InformationPage : Page, Parcelable
+actual class SettingsPage : Page, Parcelable
 
 
 @Parcelize
@@ -60,3 +60,11 @@ actual class RefreshCredentialsPage : Page, Parcelable
 
 @Parcelize
 actual class QrCodeCredentialScannerPage : Page, Parcelable
+
+@Parcelize
+actual class AuthenticationConsentPage actual constructor(
+    actual val url: String,
+    actual val claims: List<String>,
+    actual val recipientName: String,
+    actual val recipientLocation: String,
+) : Page, Parcelable

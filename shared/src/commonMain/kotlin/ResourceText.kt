@@ -56,6 +56,7 @@ object Resources {
     const val BUTTON_LABEL_DETAILS = "Details"
     const val BUTTON_LABEL_SHARE = "Teilen"
     const val BUTTOM_LABEL_LOAD_DATA = "Daten laden"
+    const val BUTTOM_LABEL_RELOAD_DATA = "Daten nachladen"
     const val BUTTON_LABEL_START = "Starten"
     const val BUTTON_LABEL_SAVE = "Speichern"
 

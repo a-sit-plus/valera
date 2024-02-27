@@ -29,8 +29,6 @@ import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import ui.theme.WalletTheme
-import view.ErrorScreen
-import view.OnboardingWrapper
 
 
 /**
@@ -68,15 +66,16 @@ fun App(walletMain: WalletMain) {
                 SnackbarHost(hostState = snackbarHostState)
             }
         ) { _ ->
-            if (walletMain.errorService.showError.value == false) {
-                OnboardingWrapper(
-                    walletMain = walletMain,
-                ) {
-                    Navigator(walletMain)
-                }
-            } else {
-                ErrorScreen(walletMain)
-            }
+            Navigator(walletMain)
+//            if (walletMain.errorService.showError.value == false) {
+//                OnboardingWrapper(
+//                    walletMain = walletMain,
+//                ) {
+//                    Navigator(walletMain)
+//                }
+//            } else {
+//                ErrorScreen(walletMain)
+//            }
         }
     }
 }

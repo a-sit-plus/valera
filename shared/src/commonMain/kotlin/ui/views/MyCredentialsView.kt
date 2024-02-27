@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -37,20 +36,13 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.idaustria.IdAustriaCredential
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import data.ageLowerBounds
-import data.ageUpperBounds
-import data.dateOfBirth
-import data.drivingPermissions
-import data.firstname
-import data.lastname
-import data.portrait
-import data.streetName
 import io.ktor.util.decodeBase64Bytes
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import ui.composables.AdmissionData
 import ui.composables.AgeData
 import ui.composables.DrivingData
+import ui.composables.FabHeightSpacer
 import ui.composables.IdentityData
 import ui.composables.PersonAdmissionDataDetailCard
 import ui.composables.PersonAgeDataDetailCard
@@ -58,6 +50,11 @@ import ui.composables.PersonDrivingDataDetailCard
 import ui.composables.PersonIdentityDataDetailCard
 import ui.composables.PersonResidenceDataDetailCard
 import ui.composables.ResidenceData
+import ui.composables.admissionData
+import ui.composables.ageData
+import ui.composables.drivingData
+import ui.composables.preIdentityData
+import ui.composables.residenceData
 
 
 @Composable
@@ -73,28 +70,11 @@ fun MyCredentialsView(
 ) {
     MyDataView(
         refreshCredentials = onRefreshCredentials,
-        identityData = IdentityData(
-            firstname = credentials.firstNotNullOfOrNull { it.firstname },
-            lastname = credentials.firstNotNullOfOrNull { it.lastname },
-            dateOfBirth = credentials.firstNotNullOfOrNull { it.dateOfBirth },
-            portrait = credentials.firstNotNullOfOrNull { it.portrait }?.let(decodeImage),
-        ),
-        ageData = AgeData(
-            ageLowerBounds = credentials.flatMap { it.ageLowerBounds },
-            ageUpperBounds = credentials.flatMap { it.ageUpperBounds },
-        ),
-        residenceData = ResidenceData(
-            streetName = credentials.firstNotNullOfOrNull { it.streetName },
-            postalCode = credentials.firstNotNullOfOrNull { "dummyPostalCode" },
-            townName = credentials.firstNotNullOfOrNull { "dummyTownName" },
-        ),
-        drivingData = DrivingData(
-            drivingPermissions = credentials.flatMap { it.drivingPermissions },
-        ),
-        admissionData = AdmissionData(
-            carModel = credentials.firstNotNullOfOrNull { "dummyStreetName" },
-            licensePlateNumber = credentials.firstNotNullOfOrNull { "dummyLicensePlateNumber" },
-        ),
+        identityData = credentials.preIdentityData.toIdentityData(decodeImage),
+        ageData = credentials.ageData,
+        residenceData = credentials.residenceData,
+        drivingData = credentials.drivingData,
+        admissionData = credentials.admissionData,
         navigateToIdentityData = navigateToIdentityData,
         navigateToAgeData = navigateToAgeData,
         navigateToResidenceData = navigateToResidenceData,
@@ -429,7 +409,8 @@ fun MyDataView(
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(92.dp))
+            // make sufficient scroll space for FAB
+            FabHeightSpacer()
         }
     }
 }

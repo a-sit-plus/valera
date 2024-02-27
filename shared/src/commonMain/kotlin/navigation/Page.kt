@@ -18,7 +18,7 @@ expect class PayloadPage(info: String) : Page {
 }
 expect class AppLinkPage() : Page
 
-expect class InformationPage() : Page
+expect class SettingsPage() : Page
 
 
 interface OnboardingPage
@@ -45,3 +45,15 @@ expect class AuthenticationQrCodeScannerPage() : Page
 expect class ShowDataPage() : Page
 
 expect class QrCodeCredentialScannerPage() : Page
+
+expect class AuthenticationConsentPage(
+    url: String,
+    claims: List<String>,
+    recipientName: String,
+    recipientLocation: String,
+) : Page {
+    val url: String
+    val claims: List<String>
+    val recipientName: String
+    val recipientLocation: String
+}

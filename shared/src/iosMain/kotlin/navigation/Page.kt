@@ -14,7 +14,7 @@ actual class PayloadPage actual constructor(actual val info: String) : Page
 
 actual class ConsentPage actual constructor(actual val url: String, actual val claims: List<String>, actual val recipientName: String, actual val recipientLocation: String) : Page
 
-actual class InformationPage : Page
+actual class SettingsPage : Page
 
 
 actual class AppLinkPage actual constructor() : Page
@@ -34,3 +34,10 @@ actual class ShowDataPage : Page
 actual class RefreshCredentialsPage : Page
 
 actual class QrCodeCredentialScannerPage : Page
+
+actual class AuthenticationConsentPage actual constructor(
+    actual val url: String,
+    actual val claims: List<String>,
+    actual val recipientName: String,
+    actual val recipientLocation: String,
+) : Page

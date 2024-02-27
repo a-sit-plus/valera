@@ -40,19 +40,19 @@ import ui.composables.buttons.NavigateUpButton
 @Composable
 fun ErrorScreen(
     walletMain: WalletMain
-){
+) {
     val throwable = walletMain.errorService.throwable.value
     val message = throwable?.message ?: "Unknown Message"
     val cause = throwable?.cause?.message ?: "Unknown Cause"
     val tint: Color
     val onButton: () -> Unit
     val buttonText: String
-    if(throwable?.message == "UncorrectableErrorException") {
+    if (throwable?.message == "UncorrectableErrorException") {
         tint = Color.Red
         buttonText = Resources.BUTTON_EXIT_APP
         onButton = { walletMain.platformAdapter.exitApp() }
-    } else{
-        tint = Color(255,210,0)
+    } else {
+        tint = Color(255, 210, 0)
         buttonText = Resources.BUTTON_CLOSE
         onButton = { walletMain.errorService.reset() }
     }
@@ -66,7 +66,7 @@ fun ErrorScreen(
                     )
                 },
                 navigationIcon = {
-                    if(throwable?.message != "UncorrectableErrorException") {
+                    if (throwable?.message != "UncorrectableErrorException") {
                         NavigateUpButton(
                             onClick = {
                                 walletMain.errorService.reset()
@@ -77,7 +77,7 @@ fun ErrorScreen(
             )
         },
         bottomBar = {
-            if(throwable?.message == "UncorrectableErrorException") {
+            if (throwable?.message == "UncorrectableErrorException") {
                 Surface(
                     color = MaterialTheme.colorScheme.surfaceColorAtElevation(
                         BottomAppBarDefaults.ContainerElevation
@@ -121,21 +121,58 @@ fun ErrorScreen(
             }
         }
     ) { scaffoldPadding ->
-        Column(modifier = Modifier.padding(scaffoldPadding).fillMaxSize()) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.primaryContainer).padding(bottom = 80.dp)) {
-                Icon(Icons.Default.Warning, contentDescription = null, Modifier.size(100.dp), tint = tint)
+        Column(
+            modifier = Modifier.padding(scaffoldPadding).fillMaxSize()
+                .verticalScroll(rememberScrollState())
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+//                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.padding(top = 16.dp).fillMaxSize()
+//                    .background(color = MaterialTheme.colorScheme.primaryContainer)
+            ) {
+                Icon(
+                    Icons.Default.Warning,
+                    contentDescription = null,
+                    Modifier.size(100.dp),
+                    tint = tint
+                )
                 Text("Message:", fontWeight = FontWeight.Bold)
-                Column(modifier = Modifier.heightIn(max = 150.dp).background(color = MaterialTheme.colorScheme.tertiaryContainer)) {
-                    Text(message, modifier = Modifier.padding(top = 5.dp, bottom = 5.dp, start = 10.dp, end = 10.dp).fillMaxWidth().verticalScroll(
-                        rememberScrollState()
-                    ), textAlign = TextAlign.Center)
+                Column(
+                    modifier = Modifier.heightIn(max = 150.dp)
+                        .background(color = MaterialTheme.colorScheme.tertiaryContainer)
+                ) {
+                    Text(
+                        message,
+                        modifier = Modifier.padding(
+                            top = 5.dp,
+                            bottom = 5.dp,
+                            start = 10.dp,
+                            end = 10.dp
+                        ).fillMaxWidth().verticalScroll(
+                            rememberScrollState()
+                        ),
+                        textAlign = TextAlign.Center
+                    )
                 }
                 Spacer(modifier = Modifier.size(5.dp))
                 Text("Cause:", fontWeight = FontWeight.Bold)
-                Column(modifier = Modifier.heightIn(max = 150.dp).background(color = MaterialTheme.colorScheme.tertiaryContainer)) {
-                    Text(cause, modifier = Modifier.padding(top = 5.dp, bottom = 5.dp, start = 10.dp, end = 10.dp).fillMaxWidth().verticalScroll(
-                        rememberScrollState()
-                    ), textAlign = TextAlign.Center)
+                Column(
+                    modifier = Modifier.heightIn(max = 150.dp)
+                        .background(color = MaterialTheme.colorScheme.tertiaryContainer)
+                ) {
+                    Text(
+                        cause,
+                        modifier = Modifier.padding(
+                            top = 5.dp,
+                            bottom = 5.dp,
+                            start = 10.dp,
+                            end = 10.dp
+                        ).fillMaxWidth().verticalScroll(
+                            rememberScrollState()
+                        ),
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
         }

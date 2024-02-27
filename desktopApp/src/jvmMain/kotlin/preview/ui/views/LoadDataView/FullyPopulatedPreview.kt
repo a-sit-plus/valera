@@ -68,7 +68,7 @@ private fun main() = application {
 //                }
 //            },
             loadData = {},
-            onLoadDataFromQrCode = {},
+            navigateToQrCodeCredentialProvisioningPage = {},
         )
     }
 }

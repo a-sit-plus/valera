@@ -1,18 +1,18 @@
 package view
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.ImageBitmap
-import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import at.asitplus.wallet.app.common.WalletMain
+import kotlinx.coroutines.launch
 import ui.views.LoadDataView
 import ui.views.MyCredentialsView
 
 @Composable
 fun MyCredentialsScreen(
-    credentials: List<SubjectCredentialStore.StoreEntry>,
-    refreshCredentials: () -> Unit,
-    startProvisioning: () -> Unit,
-    startProvisioningFromQrCode: () -> Unit,
-    decodeImage: (image: ByteArray) -> ImageBitmap,
+    navigateToRefreshCredentialsPage: () -> Unit,
+    navigateToQrCodeCredentialProvisioningPage: () -> Unit,
+    walletMain: WalletMain,
 ) {
 //    val credentials: List<SubjectCredentialStore.StoreEntry> = VerifiableCredentialJws(
 //        expiration = Clock.System.now(),
@@ -49,18 +49,31 @@ fun MyCredentialsScreen(
 //        listOf(it)
 //    }
 
-    if (credentials.isEmpty()) {
-        LoadDataView(
-            loadData = startProvisioning,
-            navigateUp = null,
-            onLoadDataFromQrCode = startProvisioningFromQrCode,
-        )
-    } else {
-        MyCredentialsView(
-            credentials = credentials,
-            onRefreshCredentials = refreshCredentials,
-            decodeImage = decodeImage,
-        )
+    val storeContainerState by walletMain.subjectCredentialStore.observeStoreContainer()
+        .collectAsState(null)
+
+    storeContainerState?.let { storeContainer ->
+        if (storeContainer.credentials.isEmpty()) {
+            LoadDataView(
+                loadData = {
+                    walletMain.scope.launch {
+                        try {
+                            walletMain.provisioningService.startProvisioning()
+                        } catch (e: Exception) {
+                            walletMain.errorService.emit(e)
+                        }
+                    }
+                },
+                navigateUp = null,
+                navigateToQrCodeCredentialProvisioningPage = navigateToQrCodeCredentialProvisioningPage,
+            )
+        } else {
+            MyCredentialsView(
+                credentials = storeContainer.credentials,
+                onRefreshCredentials = navigateToRefreshCredentialsPage,
+                decodeImage = walletMain.platformAdapter::decodeImage,
+            )
+        }
 //                MyDataView(
 //                    refreshCredentials = refreshCredentials,
 //                    identityData = IdentityData(

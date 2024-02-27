@@ -7,6 +7,6 @@ enum class PersonalDataCategory(
     IdentityData(avatarText = "ID", categoryName = "Identitätsdaten"),
     AgeData(avatarText = "AS", categoryName = "Altersstufen"),
     ResidenceData(avatarText = "MA", categoryName = "Meldeadresse"),
-    DrivingLicenseData(avatarText = "LB", categoryName = "Lenkberechtigung"),
+    DrivingPermissions(avatarText = "LB", categoryName = "Lenkberechtigung"),
     AdmissionData(avatarText = "Z", categoryName = "Zulassungsdaten"),
 }
