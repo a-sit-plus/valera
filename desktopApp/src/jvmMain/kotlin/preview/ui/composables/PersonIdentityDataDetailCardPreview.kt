@@ -17,7 +17,6 @@ private fun main() = application {
                 dateOfBirth = LocalDate(year = 1990, monthNumber = 1, dayOfMonth = 1),
                 portrait = null
             ),
-            onDetailClick = {},
             modifier = Modifier.fillMaxWidth()
         )
     }

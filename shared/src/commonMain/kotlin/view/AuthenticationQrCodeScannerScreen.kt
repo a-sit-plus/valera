@@ -12,14 +12,34 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import at.asitplus.wallet.app.common.WalletMain
+import io.github.aakira.napier.Napier
 import ui.composables.buttons.NavigateUpButton
 import ui.views.CameraView
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthenticationQrCodeScannerScreen(
     navigateUp: () -> Unit,
     walletMain: WalletMain,
+) {
+    AuthenticationQrCodeScannerView(
+        navigateUp = navigateUp,
+        onFoundPayload = { payload ->
+            navigateUp()
+            Napier.d {
+                "onScan: $payload"
+            }
+            walletMain.platformAdapter.openUrl(payload)
+//            TODO()
+            // start authentication by  opening intent
+        },
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AuthenticationQrCodeScannerView(
+    navigateUp: () -> Unit,
+    onFoundPayload: (String) -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -46,9 +66,7 @@ fun AuthenticationQrCodeScannerScreen(
     ) {
         Column(modifier = Modifier.padding(it).fillMaxSize()) {
             CameraView(
-                onFoundPayload = { payload ->
-                    TODO()
-                },
+                onFoundPayload = onFoundPayload,
                 modifier = Modifier.fillMaxSize(),
             )
         }

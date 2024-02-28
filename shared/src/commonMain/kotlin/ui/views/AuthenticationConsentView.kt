@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -47,8 +48,11 @@ fun AuthenticationConsentView(
     requestedAttributes: List<Pair<PersonalDataCategory, List<AttributeAvailability>>>,
     navigateUp: () -> Unit,
     loadMissingData: () -> Unit,
+//    showBiometry: Boolean,
     consentToDataTransmission: () -> Unit,
     cancelAuthentication: () -> Unit,
+//    onBiometrySuccess: () -> Unit,
+//    onBiometryDismissed: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -116,7 +120,6 @@ fun AuthenticationConsentView(
         Box(modifier = Modifier.padding(it)) {
             Column(
                 modifier = Modifier.padding(horizontal = 16.dp)
-                    .verticalScroll(state = rememberScrollState()),
             ) {
                 val paddingModifier = Modifier.padding(bottom = 32.dp)
                 Text(
@@ -124,64 +127,71 @@ fun AuthenticationConsentView(
                     style = MaterialTheme.typography.headlineLarge,
                     modifier = paddingModifier,
                 )
-                val hasMissingAttributes = requestedAttributes.any {
-                    it.second.any {
-                        it.isAvailable == false
+
+                Column(
+                    modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState()),
+                ) {
+                    val hasMissingAttributes = requestedAttributes.any {
+                        it.second.any {
+                            it.isAvailable == false
+                        }
                     }
-                }
-                if (hasMissingAttributes) {
-                    ElevatedCard(
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
-                        modifier = paddingModifier,
-                    ) {
-                        Text(
-                            text = "Angefragte Daten nicht verfügbar",
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                        )
-                        Column(
-                            modifier = Modifier.padding(
-                                top = 0.dp,
-                                end = 16.dp,
-                                bottom = 8.dp,
-                                start = 16.dp
-                            )
+                    if (hasMissingAttributes) {
+                        ElevatedCard(
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                            modifier = paddingModifier,
                         ) {
                             Text(
-                                text = "Nicht alle angefragten Daten wurden bereits in die App geladen.",
-                                style = MaterialTheme.typography.bodyLarge,
+                                text = "Angefragte Daten nicht verfügbar",
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                             )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "Fehlende Daten können über ID Austria nachgeladen werden.",
-                                style = MaterialTheme.typography.bodyLarge,
+                            Column(
+                                modifier = Modifier.padding(
+                                    top = 0.dp,
+                                    end = 16.dp,
+                                    bottom = 8.dp,
+                                    start = 16.dp
+                                )
+                            ) {
+                                Text(
+                                    text = "Nicht alle angefragten Daten wurden bereits in die App geladen.",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "Fehlende Daten können über ID Austria nachgeladen werden.",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                )
+                            }
+                        }
+                    }
+                    if (spImage != null) {
+                        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                            Image(
+                                bitmap = spImage,
+                                contentDescription = null,
+                                contentScale = ContentScale.Fit,
+                                modifier = paddingModifier.height(64.dp),
                             )
                         }
                     }
-                }
-                if (spImage != null) {
-                    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        Image(
-                            bitmap = spImage,
-                            contentDescription = null,
-                            contentScale = ContentScale.Fit,
-                            modifier = paddingModifier.height(64.dp),
+                    DataDisplaySection(
+                        title = "Empfänger",
+                        data = mapOf(
+                            "Name" to spName,
+                            "Ort" to spLocation,
+                        ).toList(),
+                        modifier = paddingModifier,
+                    )
+                    if(requestedAttributes.isNotEmpty()) {
+                        DataCategoryDisplaySection(
+                            title = "Angefragte Daten",
+                            attributes = requestedAttributes,
+                            modifier = paddingModifier,
                         )
                     }
                 }
-                DataDisplaySection(
-                    title = "Empfänger",
-                    data = mapOf(
-                        "Name" to spName,
-                        "Ort" to spLocation,
-                    ).toList(),
-                    modifier = paddingModifier,
-                )
-                DataCategoryDisplaySection(
-                    title = "Angefragte Daten",
-                    attributes = requestedAttributes,
-                    modifier = paddingModifier,
-                )
             }
         }
     }

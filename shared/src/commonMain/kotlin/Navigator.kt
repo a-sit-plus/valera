@@ -6,7 +6,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -20,13 +19,16 @@ import androidx.compose.ui.Modifier
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
 import at.asitplus.wallet.lib.oidvci.decodeFromUrlQuery
+import io.github.aakira.napier.Napier
 import io.ktor.http.Url
 import io.ktor.http.parseQueryString
 import io.ktor.util.flattenEntries
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import navigation.AuthenticationConsentPage
 import navigation.AuthenticationQrCodeScannerPage
+import navigation.AuthenticationSuccessPage
 import navigation.HomePage
 import navigation.LoadingPage
 import navigation.LogPage
@@ -39,6 +41,7 @@ import navigation.ShowDataPage
 import ui.views.LoadDataScreen
 import view.AuthenticationConsentScreen
 import view.AuthenticationQrCodeScannerScreen
+import view.AuthenticationSuccessScreen
 import view.ErrorScreen
 import view.LoadingScreen
 import view.LogScreen
@@ -251,7 +254,6 @@ private enum class NavigationData(
     ),
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Navigator(walletMain: WalletMain) {
     // Modified from https://github.com/JetBrains/compose-multiplatform/tree/master/examples/imageviewer
@@ -265,7 +267,13 @@ fun Navigator(walletMain: WalletMain) {
     }
 
     LaunchedEffect(appLink.value) {
+        Napier.d {
+            "app link changed to ${appLink.value}"
+        }
         appLink.value?.let { link ->
+            Napier.d {
+                "new app link: ${link}"
+            }
             val parameterIndex = link.indexOfFirst { it == '?' }
             val pars = parseQueryString(link, startIndex = parameterIndex + 1)
 
@@ -279,8 +287,11 @@ fun Navigator(walletMain: WalletMain) {
                 return@LaunchedEffect
             }
 
-            val host = walletMain.walletConfig.host
-            if (link.contains("$host/mobile") == true) {
+            val host = walletMain.walletConfig.host.first()
+            if (link.contains("$host/mobile")) {
+                Napier.d {
+                    "authentication request"
+                }
                 val params = kotlin.runCatching {
                     Url(link).parameters.flattenEntries().toMap()
                         .decodeFromUrlQuery<AuthenticationRequestParameters>()
@@ -500,14 +511,45 @@ fun MainNavigator(
                             spLocation = page.recipientLocation,
                             spImage = null,
                             claims = page.claims,
+                            url = page.url,
                             navigateUp = navigateUp,
                             navigateToRefreshCredentialsPage = {
                                 navigationStack.push(
                                     RefreshCredentialsPage()
                                 )
                             },
+                            navigateToAuthenticationSuccessPage = {
+                                navigationStack.push(
+                                    AuthenticationSuccessPage()
+                                )
+                            },
                             walletMain = walletMain,
                         )
+                    }
+
+                    is AuthenticationSuccessPage -> {
+                        AuthenticationSuccessScreen(
+                            navigateUp = navigateUp,
+                        )
+//                        AuthenticationConsentScreen(
+//                            spName = page.recipientName,
+//                            spLocation = page.recipientLocation,
+//                            spImage = null,
+//                            claims = page.claims,
+//                            url = page.url,
+//                            navigateUp = navigateUp,
+//                            navigateToRefreshCredentialsPage = {
+//                                navigationStack.push(
+//                                    RefreshCredentialsPage()
+//                                )
+//                            },
+//                            navigateToAuthenticationSuccessPage = {
+//                                navigationStack.push(
+//                                    AuthenticationSuccessPage()
+//                                )
+//                            },
+//                            walletMain = walletMain,
+//                        )
                     }
                 }
             }

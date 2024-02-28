@@ -1,6 +1,5 @@
 package view
 
-import Resources
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,7 +22,7 @@ fun LoadingScreen() {
             TopAppBar(
                 title = {
                     Text(
-                        text = Resources.COMPOSE_WALLET,
+                        text = "Loading ...",
                         style = MaterialTheme.typography.headlineLarge,
                     )
                 },

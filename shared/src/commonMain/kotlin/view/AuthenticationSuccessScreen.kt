@@ -1,4 +1,4 @@
-package ui.views
+package view
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,23 +25,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import navigation.Page
-import ui.composables.AttributeAvailability
-import ui.composables.PersonalDataCategory
 import ui.composables.TextIconButton
 import ui.composables.buttons.NavigateUpButton
 
-class AuthenticationSuccessPage(
-    val spName: String,
-    val spLocation: String,
-    val requestedAttributes: List<Pair<PersonalDataCategory, List<AttributeAvailability>>>,
-) : Page
+@Composable
+fun AuthenticationSuccessScreen(
+    navigateUp: () -> Unit,
+) {
+    AuthenticationSuccessView(
+        navigateUp = navigateUp,
+    )
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthenticationSuccessView(
     navigateUp: () -> Unit,
-    completeAuthentication: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -80,7 +80,7 @@ fun AuthenticationSuccessView(
                                 textAlign = TextAlign.Center,
                             )
                         },
-                        onClick = completeAuthentication,
+                        onClick = navigateUp,
                     )
                 }
             }

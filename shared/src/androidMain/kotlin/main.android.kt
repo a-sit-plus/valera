@@ -33,7 +33,7 @@ actual fun getPlatformName(): String = "Android"
 
 // Modified from https://developer.android.com/jetpack/compose/designsystems/material3
 @Composable
-actual fun getColorScheme(): ColorScheme{
+actual fun getColorScheme(): ColorScheme {
     // Dynamic color is available on Android 12+
     val darkColorScheme = darkColorScheme()
     val lightColorScheme = lightColorScheme()

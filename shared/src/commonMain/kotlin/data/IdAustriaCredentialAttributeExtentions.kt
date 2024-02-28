@@ -3,6 +3,7 @@ package data
 import at.asitplus.wallet.idaustria.IdAustriaCredential
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import io.ktor.util.decodeBase64Bytes
 import kotlinx.datetime.LocalDate
 
 private val SubjectCredentialStore.StoreEntry.Vc.invalidCredentialSubjectMessage: String
@@ -19,18 +20,19 @@ private val SubjectCredentialStore.StoreEntry.invalidCredentialStoreEntry: Strin
 //////////////////////////////////////////////////////////////////////////////////////////
 
 enum class IdAustriaAttribute(val attributeName: String, val deTranslation: String) {
+    Bpk(attributeName = "bpk", deTranslation = "BPK"),
     FirstName(attributeName = "firstname", deTranslation = "Vorname"),
     LastName(attributeName = "lastname", deTranslation = "Nachname"),
     DateOfBirth(attributeName = "date-of-birth", deTranslation = "Geburtsdatum"),
-    Portrait(attributeName = "dummyPortraitAttributeName", deTranslation = "Portrait"),
-    AgeAtLeast14(attributeName = "dummyAgeAtLeast14AttributeName", deTranslation = "Zumindest 14 Jahre alt"),
-    AgeAtLeast16(attributeName = "dummyAgeAtLeast16AttributeName", deTranslation = "Zumindest 16 Jahre alt"),
-    AgeAtLeast18(attributeName = "dummyAgeAtLeast18AttributeName", deTranslation = "Zumindest 18 Jahre alt"),
-    AgeAtLeast21(attributeName = "dummyAgeAtLeast21AttributeName", deTranslation = "Zumindest 21 Jahre alt"),
+    Portrait(attributeName = "portrait", deTranslation = "Portrait"),
+    AgeAtLeast14(attributeName = "age-over-14", deTranslation = "Zumindest 14 Jahre alt"),
+    AgeAtLeast16(attributeName = "age-over-16", deTranslation = "Zumindest 16 Jahre alt"),
+    AgeAtLeast18(attributeName = "age-over-18", deTranslation = "Zumindest 18 Jahre alt"),
+    AgeAtLeast21(attributeName = "age-over-21", deTranslation = "Zumindest 21 Jahre alt"),
     DrivingPermissions(attributeName = "dummyDrivingPermissionsAttributeName", deTranslation = "Vorname"),
-    StreetName(attributeName = "dummyStreetNameAttributeName", deTranslation = "Vorname"),
-    PostalCode(attributeName = "dummyPostalCodeAttributeName", deTranslation = "Vorname"),
-    TownName(attributeName = "dummyTownNameAttributeName", deTranslation = "Vorname"),
+    MainAddress(attributeName = "main-address", deTranslation = "Adresse"),
+//    PostalCode(attributeName = "dummyPostalCodeAttributeName", deTranslation = "Vorname"),
+//    TownName(attributeName = "dummyTownNameAttributeName", deTranslation = "Vorname"),
     CarModel(attributeName = "dummyCarModelAttributeName", deTranslation = "Vorname"),
     LicensePlateNumber(attributeName = "dummyLicensePlateNumberAttributeName", deTranslation = "Vorname"),
     ;
@@ -38,6 +40,7 @@ enum class IdAustriaAttribute(val attributeName: String, val deTranslation: Stri
     companion object {
         fun attributeTranslation(attributeName: String): String {
             return when (attributeName) {
+                Bpk.attributeName -> Bpk.deTranslation
                 FirstName.attributeName -> FirstName.deTranslation
                 LastName.attributeName -> LastName.deTranslation
                 DateOfBirth.attributeName -> DateOfBirth.deTranslation
@@ -47,9 +50,9 @@ enum class IdAustriaAttribute(val attributeName: String, val deTranslation: Stri
                 AgeAtLeast18.attributeName -> AgeAtLeast18.deTranslation
                 AgeAtLeast21.attributeName -> AgeAtLeast21.deTranslation
                 DrivingPermissions.attributeName -> DrivingPermissions.deTranslation
-                StreetName.attributeName -> StreetName.deTranslation
-                PostalCode.attributeName -> PostalCode.deTranslation
-                TownName.attributeName -> TownName.deTranslation
+                MainAddress.attributeName -> MainAddress.deTranslation
+//                PostalCode.attributeName -> PostalCode.deTranslation
+//                TownName.attributeName -> TownName.deTranslation
                 CarModel.attributeName -> CarModel.deTranslation
                 LicensePlateNumber.attributeName -> LicensePlateNumber.deTranslation
                 else -> throw Exception("Unsupported Attribute Name: $attributeName")
@@ -60,6 +63,7 @@ enum class IdAustriaAttribute(val attributeName: String, val deTranslation: Stri
 
 fun SubjectCredentialStore.StoreEntry.containsIdAustriaAttribute(attributeName: String): Boolean {
         return when (attributeName) {
+            IdAustriaAttribute.Bpk.attributeName -> this.bpk != null
             IdAustriaAttribute.FirstName.attributeName -> this.firstname != null
             IdAustriaAttribute.LastName.attributeName -> this.lastname != null
             IdAustriaAttribute.DateOfBirth.attributeName -> this.dateOfBirth != null
@@ -69,12 +73,53 @@ fun SubjectCredentialStore.StoreEntry.containsIdAustriaAttribute(attributeName: 
             IdAustriaAttribute.AgeAtLeast18.attributeName -> this.ageAtLeast18 == true
             IdAustriaAttribute.AgeAtLeast21.attributeName -> this.ageAtLeast21 == true
             IdAustriaAttribute.DrivingPermissions.attributeName -> this.drivingPermissions.isNotEmpty()
-            IdAustriaAttribute.StreetName.attributeName -> this.streetName != null
-            IdAustriaAttribute.PostalCode.attributeName -> this.postalCode != null
-            IdAustriaAttribute.TownName.attributeName -> this.townName != null
+            IdAustriaAttribute.MainAddress.attributeName -> this.mainAddress != null
+//            IdAustriaAttribute.PostalCode.attributeName -> this.postalCode != null
+//            IdAustriaAttribute.TownName.attributeName -> this.townName != null
             IdAustriaAttribute.CarModel.attributeName -> this.carModel != null
             IdAustriaAttribute.LicensePlateNumber.attributeName -> this.licensePlateNumber != null
             else -> TODO("Unsupported attribute: $attributeName")
+        }
+    }
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// bpk
+//////////////////////////////////////////////////////////////////////////////////////////
+
+val SubjectCredentialStore.StoreEntry.Vc.bpk: String
+    get() {
+        return when (val credentialSubject = this.vc.vc.credentialSubject) {
+            is IdAustriaCredential -> {
+                credentialSubject.bpk
+            }
+            else -> TODO(invalidCredentialSubjectMessage)
+        }
+    }
+
+val SubjectCredentialStore.StoreEntry.SdJwt.bpk: String?
+    get() {
+        return when (this.scheme) {
+            is IdAustriaScheme -> {
+                this.disclosures.filter { it.value?.claimName == IdAustriaAttribute.Bpk.attributeName }
+                    .firstNotNullOfOrNull { it.value?.claimValue as String }
+            }
+
+            else -> TODO(invalidCredentialSchemeMessage)
+        }
+    }
+
+val SubjectCredentialStore.StoreEntry.bpk: String?
+    get() {
+        return when (this) {
+            is SubjectCredentialStore.StoreEntry.Vc -> {
+                this.bpk
+            }
+
+            is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                this.bpk
+            }
+
+            else -> TODO(invalidCredentialStoreEntry)
         }
     }
 
@@ -224,8 +269,8 @@ val SubjectCredentialStore.StoreEntry.SdJwt.portrait: ByteArray?
     get() {
         return when (this.scheme) {
             is IdAustriaScheme -> {
-                null
-//                TODO("Missing Implementation")
+                this.disclosures.filter { it.value?.claimName == IdAustriaAttribute.Portrait.attributeName }
+                    .firstNotNullOfOrNull { it.value?.claimValue as String }?.decodeBase64Bytes()
             }
 
             else -> TODO(invalidCredentialSchemeMessage)
@@ -266,7 +311,8 @@ val SubjectCredentialStore.StoreEntry.SdJwt.ageAtLeast14: Boolean?
     get() {
         return when (this.scheme) {
             is IdAustriaScheme -> {
-                TODO("Missing Implementation")
+                this.disclosures.filter { it.value?.claimName == IdAustriaAttribute.AgeAtLeast14.attributeName }
+                    .firstNotNullOfOrNull { it.value?.claimValue as Boolean }
             }
 
             else -> TODO(invalidCredentialSchemeMessage)
@@ -307,7 +353,8 @@ val SubjectCredentialStore.StoreEntry.SdJwt.ageAtLeast16: Boolean?
     get() {
         return when (this.scheme) {
             is IdAustriaScheme -> {
-                TODO("Missing Implementation")
+                this.disclosures.filter { it.value?.claimName == IdAustriaAttribute.AgeAtLeast16.attributeName }
+                    .firstNotNullOfOrNull { it.value?.claimValue as Boolean }
             }
 
             else -> TODO(invalidCredentialSchemeMessage)
@@ -348,7 +395,8 @@ val SubjectCredentialStore.StoreEntry.SdJwt.ageAtLeast18: Boolean?
     get() {
         return when (this.scheme) {
             is IdAustriaScheme -> {
-                TODO("Missing Implementation")
+                this.disclosures.filter { it.value?.claimName == IdAustriaAttribute.AgeAtLeast18.attributeName }
+                    .firstNotNullOfOrNull { it.value?.claimValue as Boolean }
             }
 
             else -> TODO(invalidCredentialSchemeMessage)
@@ -389,7 +437,8 @@ val SubjectCredentialStore.StoreEntry.SdJwt.ageAtLeast21: Boolean?
     get() {
         return when (this.scheme) {
             is IdAustriaScheme -> {
-                TODO("Missing Implementation")
+                this.disclosures.filter { it.value?.claimName == IdAustriaAttribute.AgeAtLeast21.attributeName }
+                    .firstNotNullOfOrNull { it.value?.claimValue as Boolean }
             }
 
             else -> TODO(invalidCredentialSchemeMessage)
@@ -455,10 +504,10 @@ val SubjectCredentialStore.StoreEntry.drivingPermissions: List<String>
     }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// streetName
+// mainAddress
 //////////////////////////////////////////////////////////////////////////////////////////
 
-val SubjectCredentialStore.StoreEntry.Vc.streetName: String?
+val SubjectCredentialStore.StoreEntry.Vc.mainAddress: String?
     get() {
         return when (val credentialSubject = this.vc.vc.credentialSubject) {
             is IdAustriaCredential -> {
@@ -470,113 +519,114 @@ val SubjectCredentialStore.StoreEntry.Vc.streetName: String?
         }
     }
 
-val SubjectCredentialStore.StoreEntry.SdJwt.streetName: String?
+val SubjectCredentialStore.StoreEntry.SdJwt.mainAddress: String?
     get() {
         return when (this.scheme) {
             is IdAustriaScheme -> {
-                TODO("Missing Implementation")
+                this.disclosures.filter { it.value?.claimName == IdAustriaAttribute.MainAddress.attributeName }
+                    .firstNotNullOfOrNull { it.value?.claimValue as String }
             }
 
             else -> TODO(invalidCredentialSchemeMessage)
         }
     }
 
-val SubjectCredentialStore.StoreEntry.streetName: String?
+val SubjectCredentialStore.StoreEntry.mainAddress: String?
     get() {
         return when (this) {
             is SubjectCredentialStore.StoreEntry.Vc -> {
-                this.streetName
+                this.mainAddress
             }
 
             is SubjectCredentialStore.StoreEntry.SdJwt -> {
-                this.streetName
+                this.mainAddress
             }
 
             else -> TODO(invalidCredentialStoreEntry)
         }
     }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// postalCode
-//////////////////////////////////////////////////////////////////////////////////////////
-
-val SubjectCredentialStore.StoreEntry.Vc.postalCode: String?
-    get() {
-        return when (val credentialSubject = this.vc.vc.credentialSubject) {
-            is IdAustriaCredential -> {
-                TODO("Missing Implementation")
-            }
-
-            else -> TODO(invalidCredentialSubjectMessage)
-        }
-    }
-
-val SubjectCredentialStore.StoreEntry.SdJwt.postalCode: String?
-    get() {
-        return when (this.scheme) {
-            is IdAustriaScheme -> {
-                TODO("Missing Implementation")
-            }
-
-            else -> TODO(invalidCredentialSchemeMessage)
-        }
-    }
-
-val SubjectCredentialStore.StoreEntry.postalCode: String?
-    get() {
-        return when (this) {
-            is SubjectCredentialStore.StoreEntry.Vc -> {
-                this.postalCode
-            }
-
-            is SubjectCredentialStore.StoreEntry.SdJwt -> {
-                this.postalCode
-            }
-
-            else -> TODO(invalidCredentialStoreEntry)
-        }
-    }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// townName
-//////////////////////////////////////////////////////////////////////////////////////////
-
-val SubjectCredentialStore.StoreEntry.Vc.townName: String?
-    get() {
-        return when (val credentialSubject = this.vc.vc.credentialSubject) {
-            is IdAustriaCredential -> {
-                TODO("Missing Implementation")
-            }
-
-            else -> TODO(invalidCredentialSubjectMessage)
-        }
-    }
-
-val SubjectCredentialStore.StoreEntry.SdJwt.townName: String?
-    get() {
-        return when (this.scheme) {
-            is IdAustriaScheme -> {
-                TODO("Missing Implementation")
-            }
-
-            else -> TODO(invalidCredentialSchemeMessage)
-        }
-    }
-
-val SubjectCredentialStore.StoreEntry.townName: String?
-    get() {
-        return when (this) {
-            is SubjectCredentialStore.StoreEntry.Vc -> {
-                this.townName
-            }
-
-            is SubjectCredentialStore.StoreEntry.SdJwt -> {
-                this.townName
-            }
-
-            else -> TODO(invalidCredentialStoreEntry)
-        }
-    }
+////////////////////////////////////////////////////////////////////////////////////////////
+//// postalCode
+////////////////////////////////////////////////////////////////////////////////////////////
+//
+//val SubjectCredentialStore.StoreEntry.Vc.postalCode: String?
+//    get() {
+//        return when (val credentialSubject = this.vc.vc.credentialSubject) {
+//            is IdAustriaCredential -> {
+//                TODO("Missing Implementation")
+//            }
+//
+//            else -> TODO(invalidCredentialSubjectMessage)
+//        }
+//    }
+//
+//val SubjectCredentialStore.StoreEntry.SdJwt.postalCode: String?
+//    get() {
+//        return when (this.scheme) {
+//            is IdAustriaScheme -> {
+//                TODO("Missing Implementation")
+//            }
+//
+//            else -> TODO(invalidCredentialSchemeMessage)
+//        }
+//    }
+//
+//val SubjectCredentialStore.StoreEntry.postalCode: String?
+//    get() {
+//        return when (this) {
+//            is SubjectCredentialStore.StoreEntry.Vc -> {
+//                this.postalCode
+//            }
+//
+//            is SubjectCredentialStore.StoreEntry.SdJwt -> {
+//                this.postalCode
+//            }
+//
+//            else -> TODO(invalidCredentialStoreEntry)
+//        }
+//    }
+//
+////////////////////////////////////////////////////////////////////////////////////////////
+//// townName
+////////////////////////////////////////////////////////////////////////////////////////////
+//
+//val SubjectCredentialStore.StoreEntry.Vc.townName: String?
+//    get() {
+//        return when (val credentialSubject = this.vc.vc.credentialSubject) {
+//            is IdAustriaCredential -> {
+//                TODO("Missing Implementation")
+//            }
+//
+//            else -> TODO(invalidCredentialSubjectMessage)
+//        }
+//    }
+//
+//val SubjectCredentialStore.StoreEntry.SdJwt.townName: String?
+//    get() {
+//        return when (this.scheme) {
+//            is IdAustriaScheme -> {
+//                TODO("Missing Implementation")
+//            }
+//
+//            else -> TODO(invalidCredentialSchemeMessage)
+//        }
+//    }
+//
+//val SubjectCredentialStore.StoreEntry.townName: String?
+//    get() {
+//        return when (this) {
+//            is SubjectCredentialStore.StoreEntry.Vc -> {
+//                this.townName
+//            }
+//
+//            is SubjectCredentialStore.StoreEntry.SdJwt -> {
+//                this.townName
+//            }
+//
+//            else -> TODO(invalidCredentialStoreEntry)
+//        }
+//    }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // carModel

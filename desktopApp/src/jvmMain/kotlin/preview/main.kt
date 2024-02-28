@@ -25,21 +25,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import at.asitplus.wallet.lib.data.ConstantIndex
+import data.IdAustriaAttribute
+import navigation.AuthenticationConsentPage
 import navigation.AuthenticationQrCodeScannerPage
 import navigation.HomePage
-import navigation.SettingsPage
 import navigation.NavigationStack
 import navigation.Page
+import navigation.SettingsPage
 import navigation.ShowDataPage
-import ui.composables.AttributeAvailability
-import ui.composables.PersonalDataCategory
-import ui.views.AuthenticationConsentPage
 import ui.views.AuthenticationConsentView
-import view.AuthenticationQrCodeScannerScreen
-import ui.views.AuthenticationSPInfoPage
-import ui.views.AuthenticationSPInfoView
 import ui.views.MyDataView
-import ui.views.SettingsView
+import view.AuthenticationQrCodeScannerView
+import view.SettingsView
 import view.ShowDataScreen
 
 private fun main() = application {
@@ -47,76 +44,6 @@ private fun main() = application {
         PreviewNavigationScreen()
     }
 }
-
-//@Composable
-//fun AdmissionDataScreen() {
-//
-//    Scaffold(
-//        topBar = {
-//            TopAppBar(
-//                title = {
-//                    Text("Zulassungsdaten")
-//                },
-//                navigationIcon = {
-//                    IconButton(
-//                        onClick = {
-//                        }
-//                    ) {
-//                        Icon(
-//                            imageVector = Icons.Default.ArrowBack,
-//                            contentDescription = "Navigate Up",
-//                        )
-//                    }
-//                }
-//            )
-//        },
-//        bottomBar = {
-//            BottomAppBar {
-//                Row(
-//                    horizontalArrangement = Arrangement.Center,
-//                    modifier = Modifier.fillMaxWidth(),
-//                ) {
-//                    OutlinedButton(onClick = {
-//
-//                    }) {
-//                        Icon(
-//                            imageVector = Icons.Default.Delete,
-//                            contentDescription = "Delete",
-//                        )
-//                        Text("Löschen")
-//                    }
-//                    Button(
-//                        onClick = {
-//                        }
-//                    ) {
-//                        Icon(
-//                            imageVector = Icons.Default.Refresh,
-//                            contentDescription = "Refresh",
-//                        )
-//                        Text("Erneuern")
-//                    }
-//                }
-//            }
-//        }
-//    ) {
-//        Column {
-//            Text("Besitzer")
-//            Column(
-//                modifier = Modifier.padding(horizontal = 32.dp)
-//            ) {
-//                Text("Besitzer")
-//                Text("Besitzer")
-//                Text("Besitzer")
-//            }
-//        }
-//    }
-//}
-//
-//@Preview
-//@Composable
-//fun AdmissionDataScreenPreview() {
-//    AdmissionDataScreen()
-//}
 
 private enum class Route(
     val title: String,
@@ -246,42 +173,14 @@ fun PreviewNavigationScreen() {
 //                                navigationStack.push(AuthenticationQrCodeScannerPage())
                                 navigationStack.push(
                                     AuthenticationConsentPage(
-                                        spName = "Post-Schalter#3",
-                                        spLocation = "St. Peter Hauptstraße\n8010, Graz",
-                                        requestedAttributes = mapOf(
-                                            PersonalDataCategory.IdentityData to listOf(
-                                                AttributeAvailability(
-                                                    attributeName = "Vorname",
-                                                    isAvailable = false,
-                                                ),
-                                                AttributeAvailability(
-                                                    attributeName = "Nachname",
-                                                    isAvailable = false,
-                                                ),
-                                                AttributeAvailability(
-                                                    attributeName = "Aktuelles Foto aus zentralem Identitätsdokumentenregister",
-                                                    isAvailable = false,
-                                                ),
-                                            ),
-                                            PersonalDataCategory.ResidenceData to listOf(
-                                                AttributeAvailability(
-                                                    attributeName = "Straße",
-                                                    isAvailable = false,
-                                                ),
-                                                AttributeAvailability(
-                                                    attributeName = "Hausnummer",
-                                                    isAvailable = false,
-                                                ),
-                                                AttributeAvailability(
-                                                    attributeName = "Postleitzahl",
-                                                    isAvailable = true,
-                                                ),
-                                                AttributeAvailability(
-                                                    attributeName = "Ort",
-                                                    isAvailable = true,
-                                                ),
-                                            ),
-                                        ).toList()
+                                        url = "",
+                                        recipientName = "Post-Schalter#3",
+                                        recipientLocation = "St. Peter Hauptstraße\n8010, Graz",
+                                        claims = listOf(
+                                            IdAustriaAttribute.FirstName,
+                                            IdAustriaAttribute.LastName,
+                                            IdAustriaAttribute.DateOfBirth,
+                                        ).map { it.attributeName },
                                     )
                                 )
                             },
@@ -310,24 +209,16 @@ fun PreviewNavigationScreen() {
                     }
 
                     is AuthenticationQrCodeScannerPage -> {
-                        AuthenticationQrCodeScannerScreen(
+                        AuthenticationQrCodeScannerView(
                             navigateUp = globalBack,
-                            onPayloadFound = { payload ->
-                                navigationStack.push(AuthenticationSPInfoPage(
-                                    spName = "spNameValue",
-                                    spLocation = "spLocationValue",
+                            onFoundPayload = { payload ->
+                                navigationStack.push(AuthenticationConsentPage(
+                                    url = "",
+                                    recipientName = "spNameValue",
+                                    recipientLocation = "spLocationValue",
+                                    claims = listOf(),
                                 ))
                             },
-                        )
-                    }
-
-                    is AuthenticationSPInfoPage -> {
-                        AuthenticationSPInfoView(
-                            navigateUp = globalBack,
-                            cancelAuthentication = {},
-                            authenticateAtSp = {},
-                            spName = page.spName,
-                            spLocation = page.spLocation,
                         )
                     }
 
@@ -343,25 +234,11 @@ fun PreviewNavigationScreen() {
                             },
                             loadMissingData = {
                                 globalBack()
-
-                                navigationStack.push(AuthenticationConsentPage(
-                                    spName = page.spName,
-                                    spLocation = page.spLocation,
-                                    requestedAttributes = page.requestedAttributes.map {
-                                        it.copy(second = it.second.map {
-                                            it.copy(isAvailable = true)
-                                        })
-                                    }
-                                ))
                             },
-                            requestedAttributes = page.requestedAttributes,
-                            spName = page.spName,
-                            spLocation = page.spLocation,
-                            bottomSheetState = bottomSheetState,
-                            showBottomSheet = showBottomSheet,
-                            onBottomSheetDismissRequest = {
-                                showBottomSheet = !showBottomSheet
-                            }
+                            requestedAttributes = listOf(),
+                            spName = page.recipientName,
+                            spLocation = page.recipientLocation,
+                            spImage = null,
                         )
                     }
                 }

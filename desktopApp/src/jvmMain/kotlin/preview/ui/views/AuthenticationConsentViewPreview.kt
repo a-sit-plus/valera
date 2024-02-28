@@ -6,11 +6,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import ui.views.AuthenticationConsentView
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import ui.composables.AttributeAvailability
 import ui.composables.PersonalDataCategory
+import ui.views.AuthenticationConsentView
 
 @OptIn(ExperimentalMaterial3Api::class)
 private fun main() = application {
@@ -27,6 +27,7 @@ private fun main() = application {
             loadMissingData = {},
             spName = "Post-Schalter#3",
             spLocation = "St. Peter Hauptstraße\n8010, Graz",
+            spImage = null,
             requestedAttributes = mapOf(
                 PersonalDataCategory.IdentityData to listOf(
                     AttributeAvailability(
@@ -61,11 +62,6 @@ private fun main() = application {
                     ),
                 ),
             ).toList(),
-            showBottomSheet = showBottomSheet,
-            bottomSheetState = bottomSheetState,
-            onBottomSheetDismissRequest = {
-                showBottomSheet = false
-            },
         )
     }
 }

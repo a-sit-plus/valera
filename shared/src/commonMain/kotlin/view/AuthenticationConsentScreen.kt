@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.wallet.app.common.WalletMain
 import data.IdAustriaAttribute
 import data.containsIdAustriaAttribute
+import kotlinx.coroutines.launch
 import ui.composables.AttributeAvailability
 import ui.composables.PersonalDataCategory
 import ui.views.AuthenticationConsentView
@@ -23,8 +24,10 @@ fun AuthenticationConsentScreen(
     spLocation: String,
     spImage: ImageBitmap?,
     claims: List<String>,
+    url: String,
     navigateUp: () -> Unit,
     navigateToRefreshCredentialsPage: () -> Unit,
+    navigateToAuthenticationSuccessPage: () -> Unit,
     walletMain: WalletMain,
 ) {
     val storeContainerState by walletMain.subjectCredentialStore.observeStoreContainer()
@@ -60,9 +63,9 @@ fun AuthenticationConsentScreen(
             ),
             Pair(
                 PersonalDataCategory.ResidenceData, listOfNotNull(
-                    claimAvailabilities[IdAustriaAttribute.StreetName.attributeName],
-                    claimAvailabilities[IdAustriaAttribute.PostalCode.attributeName],
-                    claimAvailabilities[IdAustriaAttribute.TownName.attributeName],
+                    claimAvailabilities[IdAustriaAttribute.MainAddress.attributeName],
+//                    claimAvailabilities[IdAustriaAttribute.PostalCode.attributeName],
+//                    claimAvailabilities[IdAustriaAttribute.TownName.attributeName],
                 )
             ),
             Pair(
@@ -91,9 +94,10 @@ fun AuthenticationConsentScreen(
         }
 
         val bottomSheetState = rememberModalBottomSheetState()
-        var showBottomSheet by remember { mutableStateOf(false) }
+        var showBiometry by remember { mutableStateOf(false) }
 
         AuthenticationConsentView(
+//            spUrl = url,
             spName = spName,
             spLocation = spLocation,
             spImage = spImage,
@@ -101,10 +105,37 @@ fun AuthenticationConsentScreen(
             navigateUp = navigateUp,
             cancelAuthentication = navigateUp,
             loadMissingData = navigateToRefreshCredentialsPage,
+//            showBiometry = showBiometry,
             consentToDataTransmission = {
-                showBottomSheet = true
-//                startPresentation
+                // TODO("Add prompt for biometric authentication")
+                walletMain.scope.launch {
+                    try {
+                        walletMain.presentationService.startSiop(url)
+                        navigateUp()
+                        navigateToAuthenticationSuccessPage()
+                    } catch (e: Throwable) {
+                        walletMain.errorService.emit(e)
+                        showBiometry = false
+                        walletMain.snackbarService.showSnackbar("Authentication failed")
+                    }
+                }
             },
+//            onBiometrySuccess = {
+//                walletMain.scope.launch {
+//                    try {
+//                        walletMain.presentationService.startSiop(url)
+//                        navigateUp()
+//                        navigateToAuthenticationSuccessPage()
+//                    } catch (e: Throwable) {
+//                        walletMain.errorService.emit(e)
+//                        showBiometry = false
+//                        walletMain.snackbarService.showSnackbar("Authentication failed")
+//                    }
+//                }
+//            },
+//            onBiometryDismissed = {
+//                showBiometry = false
+//            },
         )
     }
 }

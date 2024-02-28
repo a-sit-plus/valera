@@ -12,20 +12,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import data.streetName
+import data.mainAddress
 
 data class ResidenceData(
-    val streetName: String?,
-    val postalCode: String?,
-    val townName: String?,
+    val mainAddress: String?,
 )
 
 
 val List<SubjectCredentialStore.StoreEntry>.residenceData: ResidenceData
     get() = ResidenceData(
-        streetName = firstNotNullOfOrNull { it.streetName },
-        postalCode = firstNotNullOfOrNull { "dummyPostalCode" },
-        townName = firstNotNullOfOrNull { "dummyTownName" },
+        mainAddress = firstNotNullOfOrNull { it.mainAddress },
     )
 
 @Composable
@@ -47,21 +43,21 @@ fun PersonResidenceDataDetailCard(
                 horizontalAlignment = Alignment.Start,
             ) {
                 val textGap = 4.dp
-                if (residenceData.streetName != null) {
+                if (residenceData.mainAddress != null) {
                     Text(
-                        text = residenceData.streetName,
+                        text = residenceData.mainAddress,
                         modifier = Modifier.padding(bottom = textGap),
                     )
                 }
-                if (residenceData.postalCode != null || residenceData.townName != null) {
-                    Text(
-                        listOfNotNull(
-                            residenceData.postalCode,
-                            residenceData.townName
-                        ).joinToString(" "),
-                        modifier = Modifier.padding(bottom = textGap),
-                    )
-                }
+//                if (residenceData.postalCode != null || residenceData.townName != null) {
+//                    Text(
+//                        listOfNotNull(
+//                            residenceData.postalCode,
+//                            residenceData.townName
+//                        ).joinToString(" "),
+//                        modifier = Modifier.padding(bottom = textGap),
+//                    )
+//                }
                 Spacer(modifier = Modifier.height(16.dp - textGap))
             }
         }
