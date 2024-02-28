@@ -10,8 +10,9 @@ import appLink
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        appLink.value = intent.data?.toString()
         setContent {
-            appLink.value = intent.data?.toString()
             MainView()
         }
     }

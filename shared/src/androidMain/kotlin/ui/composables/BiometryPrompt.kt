@@ -49,7 +49,7 @@ actual fun BiometryPrompt(
                 .setAllowedAuthenticators(BIOMETRIC_STRONG)
                 .setTitle("Biometric Authentication")
                 .setSubtitle("Log in using your biometric credential")
-                .setNegativeButtonText("Use password")
+                .setNegativeButtonText(Resources.BUTTON_LABEL_CANCEL)
                 .build()
 
             biometricPrompt.authenticate(promptInfo)

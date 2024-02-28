@@ -89,8 +89,10 @@ fun AuthenticationConsentView(
                     val bottomBarQuestion =
                         if (hasMissingAttributes) {
                             "Sollen die fehlenden Daten nachgeladen werden?"
-                        } else {
+                        } else if(requestedAttributes.isNotEmpty()) {
                             "Sollen diese Daten übermittelt werden?"
+                        } else {
+                            "Sollen alle Daten übermittelt werden?"
                         }
 
                     val bottomBarContinueButton: @Composable () -> Unit = {

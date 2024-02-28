@@ -118,9 +118,9 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, private val data
 
         val oid4vciService = WalletService(
             credentialScheme = at.asitplus.wallet.idaustria.IdAustriaScheme,
+            credentialRepresentation = credentialRepresentation,
             clientId = "$host/m1",
-            cryptoService = cryptoService,
-            credentialRepresentation = credentialRepresentation
+            cryptoService = cryptoService
         )
 
         Napier.d("Oid4vciService.createAuthRequest")
