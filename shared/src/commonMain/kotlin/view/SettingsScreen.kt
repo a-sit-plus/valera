@@ -54,8 +54,8 @@ fun SettingsScreen(
     walletMain: WalletMain,
 ) {
     // TODO("get stage and version")
-    val stage = "T"
-    val version = "1.0.0 / 2389237"
+    val stage = Resources.BUILD_FOR_STAGE
+    val version = "${Resources.BUILD_VERSION} / ${Resources.BUILD_NUMBER}"
 
     var credentialRepresentation by remember {
         runBlocking {
@@ -92,9 +92,15 @@ fun SettingsScreen(
         },
         stage = stage,
         version = version,
-        onClickFAQs = {},
-        onClickDataProtectionPolicy = {},
-        onClickLicenses = {},
+        onClickFAQs = {
+            walletMain.snackbarService.showSnackbar("Incomplete Implementation")
+        },
+        onClickDataProtectionPolicy = {
+            walletMain.snackbarService.showSnackbar("Incomplete Implementation")
+        },
+        onClickLicenses = {
+            walletMain.snackbarService.showSnackbar("Incomplete Implementation")
+        },
         onClickShareLogFile = navigateToLogPage,
         onClickResetApp = onClickResetApp,
     )
@@ -102,7 +108,7 @@ fun SettingsScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SettingsView(
+fun SettingsView(
     host: String,
     onChangeHost: (String) -> Unit,
     credentialRepresentation: ConstantIndex.CredentialRepresentation,

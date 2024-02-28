@@ -1,4 +1,14 @@
+enum class BuildStage(val abbreviation: String) {
+    Development("D"),
+    QualityAssurance("Q"),
+    Production("P");
+}
+
 object Resources {
+    val BUILD_FOR_STAGE = BuildStage.Development.abbreviation
+    const val BUILD_VERSION = "0.0.1"
+    const val BUILD_NUMBER = "4242"
+
     const val ADD_ID_TEXT = "To add an ID, login on https://abcd.at/xyz/ with a secondary device and scan the displayed QR code."
     const val BUTTON_SCAN_QR = "Scan QR-Code"
     const val BUTTON_LOGIN_ID_AUSTRIA = "Login with ID Austria"
@@ -65,7 +75,7 @@ object Resources {
     const val HEADING_LABEL_TERMS_OF_USE = "Nutzungsbedingungen"
     const val HEADING_LABEL_DATA_PROTECTION = "Datenschutz"
     const val HEADING_LABEL_TERMS_OF_USE_AND_DATA_PROTECTION = "$HEADING_LABEL_TERMS_OF_USE & $HEADING_LABEL_DATA_PROTECTION"
-    const val HEADING_LABEL_PERMISSIONS = "Berechtigungen"
+//    const val HEADING_LABEL_PERMISSIONS = "Berechtigungen"
     const val HEADING_LABEL_LOAD_DATA = "Daten laden"
 
     const val DESCRIPTION_READ_TERMS = "Bitte lesen und akzeptieren Sie die Nutzungsbedingungen und Datenschutzerklärung."
