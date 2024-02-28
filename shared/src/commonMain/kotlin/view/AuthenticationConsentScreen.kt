@@ -1,7 +1,6 @@
 package view
 
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -12,6 +11,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.wallet.app.common.WalletMain
 import data.IdAustriaAttribute
 import data.containsIdAustriaAttribute
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.launch
 import ui.composables.AttributeAvailability
 import ui.composables.PersonalDataCategory
@@ -93,7 +93,6 @@ fun AuthenticationConsentScreen(
             )
         }
 
-        val bottomSheetState = rememberModalBottomSheetState()
         var showBiometry by remember { mutableStateOf(false) }
 
         AuthenticationConsentView(
@@ -105,9 +104,12 @@ fun AuthenticationConsentScreen(
             navigateUp = navigateUp,
             cancelAuthentication = navigateUp,
             loadMissingData = navigateToRefreshCredentialsPage,
-//            showBiometry = showBiometry,
             consentToDataTransmission = {
-                // TODO("Add prompt for biometric authentication")
+                showBiometry = true
+            },
+            showBiometry = showBiometry,
+            onBiometrySuccess = {
+                showBiometry = false
                 walletMain.scope.launch {
                     try {
                         walletMain.presentationService.startSiop(url)
@@ -115,27 +117,13 @@ fun AuthenticationConsentScreen(
                         navigateToAuthenticationSuccessPage()
                     } catch (e: Throwable) {
                         walletMain.errorService.emit(e)
-                        showBiometry = false
                         walletMain.snackbarService.showSnackbar("Authentication failed")
                     }
                 }
             },
-//            onBiometrySuccess = {
-//                walletMain.scope.launch {
-//                    try {
-//                        walletMain.presentationService.startSiop(url)
-//                        navigateUp()
-//                        navigateToAuthenticationSuccessPage()
-//                    } catch (e: Throwable) {
-//                        walletMain.errorService.emit(e)
-//                        showBiometry = false
-//                        walletMain.snackbarService.showSnackbar("Authentication failed")
-//                    }
-//                }
-//            },
-//            onBiometryDismissed = {
-//                showBiometry = false
-//            },
+            onBiometryDismissed = {
+                showBiometry = false
+            },
         )
     }
 }

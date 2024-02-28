@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import ui.composables.AttributeAvailability
+import ui.composables.BiometryScanner
 import ui.composables.DataCategoryDisplaySection
 import ui.composables.DataDisplaySection
 import ui.composables.PersonalDataCategory
@@ -48,11 +49,11 @@ fun AuthenticationConsentView(
     requestedAttributes: List<Pair<PersonalDataCategory, List<AttributeAvailability>>>,
     navigateUp: () -> Unit,
     loadMissingData: () -> Unit,
-//    showBiometry: Boolean,
     consentToDataTransmission: () -> Unit,
     cancelAuthentication: () -> Unit,
-//    onBiometrySuccess: () -> Unit,
-//    onBiometryDismissed: () -> Unit,
+    showBiometry: Boolean,
+    onBiometrySuccess: () -> Unit,
+    onBiometryDismissed: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -131,6 +132,13 @@ fun AuthenticationConsentView(
                 Column(
                     modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState()),
                 ) {
+                    if (showBiometry) {
+                        BiometryScanner(
+                            onSuccess = onBiometrySuccess,
+                            onDismiss = onBiometryDismissed,
+                        )
+                    }
+
                     val hasMissingAttributes = requestedAttributes.any {
                         it.second.any {
                             it.isAvailable == false

@@ -34,6 +34,8 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                implementation("androidx.biometric:biometric:1.1.0")
+
                 implementation(compose.runtime)
                 implementation(compose.foundation)
                 implementation(compose.material3)
