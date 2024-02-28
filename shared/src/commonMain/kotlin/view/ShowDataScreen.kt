@@ -26,7 +26,7 @@ import ui.composables.TextIconButton
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShowDataScreen(
-    navigateToAthenticationStartPage: () -> Unit,
+    navigateToAuthenticationStartPage: () -> Unit,
     onClickShowDataToExecutive: () -> Unit,
     onClickShowDataToOtherCitizen: () -> Unit,
 ) {
@@ -82,7 +82,7 @@ fun ShowDataScreen(
                                 text = {
                                     Text("Anmelden")
                                 },
-                                onClick = navigateToAthenticationStartPage,
+                                onClick = navigateToAuthenticationStartPage,
                                 modifier = Modifier.padding(16.dp)
                             )
                         }

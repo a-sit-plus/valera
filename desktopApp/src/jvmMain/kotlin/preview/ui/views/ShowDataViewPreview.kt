@@ -1,13 +1,13 @@
 package preview.ui.views
 
-import view.ShowDataScreen
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import view.ShowDataScreen
 
 private fun main() = application {
     Window(onCloseRequest = ::exitApplication) {
         ShowDataScreen(
-            navigateToAthenticationStartPage = {},
+            navigateToAuthenticationStartPage = {},
             onClickShowDataToExecutive = {},
             onClickShowDataToOtherCitizen = {},
         )

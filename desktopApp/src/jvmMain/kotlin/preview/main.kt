@@ -242,7 +242,7 @@ fun PreviewNavigationScreen() {
 
                     is ShowDataPage -> {
                         ShowDataScreen(
-                            navigateToAthenticationStartPage = {
+                            navigateToAuthenticationStartPage = {
 //                                navigationStack.push(AuthenticationQrCodeScannerPage())
                                 navigationStack.push(
                                     AuthenticationConsentPage(
