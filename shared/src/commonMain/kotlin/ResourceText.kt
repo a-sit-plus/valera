@@ -7,7 +7,7 @@ enum class BuildStage(val abbreviation: String) {
 object Resources {
     val BUILD_FOR_STAGE = BuildStage.Development.abbreviation
     const val BUILD_VERSION = "0.0.1"
-    const val BUILD_NUMBER = "4242"
+    const val BUILD_NUMBER = "42"
 
     const val ADD_ID_TEXT = "To add an ID, login on https://abcd.at/xyz/ with a secondary device and scan the displayed QR code."
     const val BUTTON_SCAN_QR = "Scan QR-Code"
