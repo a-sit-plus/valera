@@ -11,13 +11,11 @@ import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.wallet.app.common.WalletMain
 import data.IdAustriaAttribute
 import data.containsIdAustriaAttribute
-import io.github.aakira.napier.Napier
 import kotlinx.coroutines.launch
 import ui.composables.AttributeAvailability
 import ui.composables.PersonalDataCategory
 import ui.views.AuthenticationConsentView
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthenticationConsentScreen(
     spName: String,

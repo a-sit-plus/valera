@@ -512,7 +512,6 @@ val SubjectCredentialStore.StoreEntry.Vc.mainAddress: String?
         return when (val credentialSubject = this.vc.vc.credentialSubject) {
             is IdAustriaCredential -> {
                 credentialSubject.mainAddress
-//                TODO("Missing Implementation")
             }
 
             else -> TODO(invalidCredentialSubjectMessage)

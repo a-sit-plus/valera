@@ -534,25 +534,6 @@ fun MainNavigator(
                         AuthenticationSuccessScreen(
                             navigateUp = navigateUp,
                         )
-//                        AuthenticationConsentScreen(
-//                            spName = page.recipientName,
-//                            spLocation = page.recipientLocation,
-//                            spImage = null,
-//                            claims = page.claims,
-//                            url = page.url,
-//                            navigateUp = navigateUp,
-//                            navigateToRefreshCredentialsPage = {
-//                                navigationStack.push(
-//                                    RefreshCredentialsPage()
-//                                )
-//                            },
-//                            navigateToAuthenticationSuccessPage = {
-//                                navigationStack.push(
-//                                    AuthenticationSuccessPage()
-//                                )
-//                            },
-//                            walletMain = walletMain,
-//                        )
                     }
                 }
             }

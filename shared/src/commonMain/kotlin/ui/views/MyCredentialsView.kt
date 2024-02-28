@@ -149,7 +149,7 @@ fun MyDataView(
                         identityData.firstname != null,
                         identityData.portrait != null,
                         identityData.dateOfBirth != null,
-                    ).any()
+                    ).any { it }
                 ) {
                     PersonIdentityDataDetailCard(
                         identityData = identityData,
@@ -162,7 +162,7 @@ fun MyDataView(
                     listOf(
                         ageData.ageUpperBounds.isNotEmpty(),
                         ageData.ageLowerBounds.isNotEmpty(),
-                    ).any()
+                    ).any { it }
                 ) {
                     PersonAgeDataDetailCard(
                         ageData = ageData,
@@ -176,7 +176,7 @@ fun MyDataView(
                         residenceData.mainAddress != null,
 //                        residenceData.postalCode != null,
 //                        residenceData.townName != null,
-                    ).any()
+                    ).any { it }
                 ) {
                     PersonResidenceDataDetailCard(
                         residenceData = residenceData,
@@ -185,7 +185,11 @@ fun MyDataView(
                 }
             }
             if (drivingData != null) {
-                if (drivingData.drivingPermissions.isNotEmpty()) {
+                if (
+                    listOf(
+                        drivingData.drivingPermissions.isNotEmpty(),
+                    ).any { it }
+                ) {
                     PersonDrivingDataDetailCard(
                         drivingData = drivingData,
                         modifier = paddingModifier.padding(bottom = gapSize),
@@ -197,7 +201,7 @@ fun MyDataView(
                     listOf(
                         admissionData.carModel != null,
                         admissionData.licensePlateNumber != null,
-                    ).any()
+                    ).any { it }
                 ) {
                     PersonAdmissionDataDetailCard(
                         admissionData = admissionData,
