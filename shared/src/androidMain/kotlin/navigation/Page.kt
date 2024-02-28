@@ -68,3 +68,6 @@ actual class AuthenticationConsentPage actual constructor(
     actual val recipientName: String,
     actual val recipientLocation: String,
 ) : Page, Parcelable
+
+@Parcelize
+actual class AuthenticationSuccessPage : Page, Parcelable

@@ -57,3 +57,5 @@ expect class AuthenticationConsentPage(
     val recipientName: String
     val recipientLocation: String
 }
+
+expect class AuthenticationSuccessPage() : Page

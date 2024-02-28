@@ -41,3 +41,5 @@ actual class AuthenticationConsentPage actual constructor(
     actual val recipientName: String,
     actual val recipientLocation: String,
 ) : Page
+
+actual class AuthenticationSuccessPage : Page
