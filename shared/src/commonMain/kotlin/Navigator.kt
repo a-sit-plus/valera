@@ -271,6 +271,9 @@ fun Navigator(walletMain: WalletMain) {
             "app link changed to ${appLink.value}"
         }
         appLink.value?.let { link ->
+            // resetting error service so that the intent can be displayed as intended
+            walletMain.errorService.reset()
+
             Napier.d {
                 "new app link: ${link}"
             }
