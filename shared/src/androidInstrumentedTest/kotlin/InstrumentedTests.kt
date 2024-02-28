@@ -1,6 +1,7 @@
 
 import androidx.compose.ui.test.junit4.createComposeRule
 import org.junit.Rule
+import org.junit.Test
 
 // Modified from https://developer.android.com/jetpack/compose/testing
 class InstrumentedTests {
@@ -12,8 +13,8 @@ class InstrumentedTests {
 
 
 // test does not really apply anymore, the app starts with an empty screen until data store has been accessed
-//    @Test
-//    fun test1() {
+    @Test
+    fun test1() {
 //        // Start the app
 //        composeTestRule.setContent {
 //            val walletMain = WalletMain(objectFactory = AndroidObjectFactory(), dataStoreService = DummyDataStoreService(), platformAdapter = DummyPlatformAdapter())
@@ -23,5 +24,5 @@ class InstrumentedTests {
 //            }
 //        }
 //        composeTestRule.onNodeWithText(Resources.BUTTON_LABEL_START).assertIsDisplayed()
-//    }
+    }
 }
