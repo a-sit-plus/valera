@@ -31,7 +31,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import ui.composables.AttributeAvailability
-import ui.composables.BiometryScanner
+import ui.composables.BiometryPrompt
 import ui.composables.DataCategoryDisplaySection
 import ui.composables.DataDisplaySection
 import ui.composables.PersonalDataCategory
@@ -133,7 +133,7 @@ fun AuthenticationConsentView(
                     modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState()),
                 ) {
                     if (showBiometry) {
-                        BiometryScanner(
+                        BiometryPrompt(
                             onSuccess = onBiometrySuccess,
                             onDismiss = onBiometryDismissed,
                         )

@@ -24,28 +24,6 @@ import kotlinx.coroutines.launch
 import ui.composables.buttons.LoadDataButton
 import ui.composables.buttons.NavigateUpButton
 
-@Composable
-fun LoadDataScreen(
-    navigateUp: () -> Unit,
-    navigateToQrCodeCredentialProvisioningPage: () -> Unit,
-    walletMain: WalletMain,
-) {
-    LoadDataView(
-        loadData = {
-            walletMain.scope.launch {
-                try {
-                    walletMain.provisioningService.startProvisioning()
-                    navigateUp()
-                } catch (e: Exception) {
-                    walletMain.errorService.emit(e)
-                }
-            }
-        },
-        navigateUp = navigateUp,
-        navigateToQrCodeCredentialProvisioningPage = navigateToQrCodeCredentialProvisioningPage,
-    )
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoadDataView(

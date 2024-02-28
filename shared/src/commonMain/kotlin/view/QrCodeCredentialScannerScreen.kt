@@ -13,7 +13,8 @@ fun QrCodeCredentialScannerScreen(
         title = "Credential Scanner",
         navigateUp = navigateUp,
         onPayloadFound = { payload ->
-            TODO("Missing Implementation")
+            walletMain.snackbarService.showSnackbar("Incomplete Implementation")
+            navigateUp()
         }
     )
 }

@@ -38,11 +38,11 @@ import navigation.QrCodeCredentialScannerPage
 import navigation.RefreshCredentialsPage
 import navigation.SettingsPage
 import navigation.ShowDataPage
-import ui.views.LoadDataScreen
 import view.AuthenticationConsentScreen
 import view.AuthenticationQrCodeScannerScreen
 import view.AuthenticationSuccessScreen
 import view.ErrorScreen
+import view.LoadDataScreen
 import view.LoadingScreen
 import view.LogScreen
 import view.MyCredentialsScreen

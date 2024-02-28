@@ -14,7 +14,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 
 @Composable
-actual fun BiometryScanner(
+actual fun BiometryPrompt(
     onSuccess: () -> Unit,
     onDismiss: () -> Unit,
 ) {
