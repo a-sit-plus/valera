@@ -8,7 +8,9 @@ class DummyDataStoreService: DataStoreService {
     private var memory: MutableMap<String, MutableStateFlow<String?>> = mutableMapOf()
 
     override suspend fun setPreference(value: String, key: String) {
-        memory.get(key)?.update { value }
+        memory.getOrPut(key) {
+            MutableStateFlow(null)
+        }.update { value }
     }
 
     override fun getPreference(key: String): Flow<String?> {
@@ -18,7 +20,9 @@ class DummyDataStoreService: DataStoreService {
     }
 
     override suspend fun deletePreference(key: String) {
-        memory.get(key)?.update { null }
+        memory.getOrPut(key) {
+            MutableStateFlow(null)
+        }.update { null }
     }
 
     override fun clearLog() {
