@@ -1,5 +1,10 @@
 
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithText
+import at.asitplus.wallet.app.common.DummyPlatformAdapter
+import at.asitplus.wallet.app.common.WalletMain
+import data.storage.DummyDataStoreService
 import org.junit.Rule
 import org.junit.Test
 
@@ -12,17 +17,13 @@ class InstrumentedTests {
     // an activity
 
 
-// test does not really apply anymore, the app starts with an empty screen until data store has been accessed
     @Test
-    fun test1() {
-//        // Start the app
-//        composeTestRule.setContent {
-//            val walletMain = WalletMain(objectFactory = AndroidObjectFactory(), dataStoreService = DummyDataStoreService(), platformAdapter = DummyPlatformAdapter())
-//            App(walletMain)
-//            runBlocking {
-//                walletMain.resetApp()
-//            }
-//        }
-//        composeTestRule.onNodeWithText(Resources.BUTTON_LABEL_START).assertIsDisplayed()
+    fun givenNewAppInstallation_whenStartingApp_thenShowsOnboardingStartScreen() {
+        // Start the app
+        composeTestRule.setContent {
+            val walletMain = WalletMain(objectFactory = AndroidObjectFactory(), dataStoreService = DummyDataStoreService(), platformAdapter = DummyPlatformAdapter())
+            App(walletMain)
+        }
+        composeTestRule.onNodeWithText(Resources.BUTTON_LABEL_START).assertIsDisplayed()
     }
 }
