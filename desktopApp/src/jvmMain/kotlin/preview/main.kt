@@ -61,7 +61,7 @@ private enum class Route(
         },
         destination = HomePage(),
         isActive = {
-            when(it) {
+            when (it) {
                 is HomePage -> true
                 else -> false
             }
@@ -77,7 +77,7 @@ private enum class Route(
         },
         destination = ShowDataPage(),
         isActive = {
-            when(it) {
+            when (it) {
                 is ShowDataPage -> true
                 else -> false
             }
@@ -93,7 +93,7 @@ private enum class Route(
         },
         destination = SettingsPage(),
         isActive = {
-            when(it) {
+            when (it) {
                 is SettingsPage -> true
                 else -> false
             }
@@ -105,16 +105,19 @@ private enum class Route(
 @Composable
 fun PreviewNavigationScreen() {
     val navigationData = { page: Page ->
-        when(page) {
+        when (page) {
             is HomePage -> {
                 Route.MY_DATA_SCREEN
             }
+
             is ShowDataPage -> {
                 Route.SHOW_DATA_SCREEN
             }
+
             is SettingsPage -> {
                 Route.INFORMATION_SCREEN
             }
+
             else -> null
         }
     }
@@ -170,7 +173,6 @@ fun PreviewNavigationScreen() {
                     is ShowDataPage -> {
                         ShowDataScreen(
                             navigateToAuthenticationStartPage = {
-//                                navigationStack.push(AuthenticationQrCodeScannerPage())
                                 navigationStack.push(
                                     AuthenticationConsentPage(
                                         url = "",

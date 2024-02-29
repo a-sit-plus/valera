@@ -60,7 +60,7 @@ actual fun CameraView(
         )
     } else {
         LaunchedEffect(Unit) {
-            println("Get Permission")
+            Napier.d("Get Camera Permission")
             cameraPermissionState.launchMultiplePermissionRequest()
         }
     }
@@ -155,14 +155,6 @@ private fun CameraWithGrantedPermission(
         }
     }) {
         AndroidView({ previewView }, modifier = Modifier.fillMaxSize())
-
-//        Box(modifier = Modifier.background(color = MaterialTheme.colorScheme.background).height(80.dp), contentAlignment = Alignment.TopCenter){
-//            Row(Modifier.padding(10.dp).height(80.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-//                Icon(Icons.Default.Close, contentDescription = null, Modifier.size(30.dp).clickable(onClick = { globalBack() }))
-//                Text(Resources.DEMO_WALLET, fontSize = 40.sp, fontWeight = FontWeight.Bold)
-//                Icon(Icons.Default.Close, contentDescription = null, Modifier.size(30.dp).clickable(onClick = { }), tint = Color.LightGray.copy(alpha = 0.0f))
-//            }
-//        }
     }
 }
 

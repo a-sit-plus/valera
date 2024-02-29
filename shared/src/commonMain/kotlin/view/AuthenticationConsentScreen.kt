@@ -94,7 +94,6 @@ fun AuthenticationConsentScreen(
         var showBiometry by remember { mutableStateOf(false) }
 
         AuthenticationConsentView(
-//            spUrl = url,
             spName = spName,
             spLocation = spLocation,
             spImage = spImage,

@@ -60,46 +60,6 @@ fun MyCredentialsView(
         navigateToDrivingData = navigateToDrivingData,
         navigateToAdmissionData = navigateToAdmissionData,
     )
-//    val attributes = credentials.flatMap {
-//        when (it) {
-//            is SubjectCredentialStore.StoreEntry.Vc -> {
-//                when (val credentialSubject = it.vc.vc.credentialSubject) {
-//                    is IdAustriaCredential -> {
-//                        listOf(
-//                            "credentialSubject.id: ${credentialSubject.id}",
-//                            "credentialSubject.bpk: ${credentialSubject.bpk}",
-//                            "credentialSubject.firstname: ${credentialSubject.firstname}",
-//                            "credentialSubject.lastname: ${credentialSubject.lastname}",
-//                            "credentialSubject.dateOfBirth: ${credentialSubject.dateOfBirth}",
-//                            "credentialSubject.portrait: ${credentialSubject.portrait}",
-//                            "credentialSubject.mainAddress: ${credentialSubject.mainAddress}",
-//                            "credentialSubject.ageOver14: ${credentialSubject.ageOver14}",
-//                            "credentialSubject.ageOver16: ${credentialSubject.ageOver16}",
-//                            "credentialSubject.ageOver18: ${credentialSubject.ageOver18}",
-//                            "credentialSubject.ageOver21: ${credentialSubject.ageOver21}",
-//                        )
-//                    }
-//
-//                    else -> listOf()
-//                }
-//            }
-//
-//            is SubjectCredentialStore.StoreEntry.SdJwt -> {
-//                it.disclosures.entries.map {
-//                    "${it.value?.claimName}: ${it.value?.claimValue}"
-//                }.toList()
-//            }
-//
-//            else -> listOf()
-//        }
-//    }
-//    LazyColumn {
-//        items(attributes.size) {
-//            val attribute = attributes[it]
-//
-//            Text(attribute)
-//        }
-//    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -174,8 +134,6 @@ fun MyDataView(
                 if (
                     listOf(
                         residenceData.mainAddress != null,
-//                        residenceData.postalCode != null,
-//                        residenceData.townName != null,
                     ).any { it }
                 ) {
                     PersonResidenceDataDetailCard(

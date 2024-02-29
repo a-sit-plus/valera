@@ -127,9 +127,7 @@ fun ErrorScreen(
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-//                verticalArrangement = Arrangement.Center,
                 modifier = Modifier.padding(top = 16.dp).fillMaxSize()
-//                    .background(color = MaterialTheme.colorScheme.primaryContainer)
             ) {
                 Icon(
                     Icons.Default.Warning,

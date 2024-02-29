@@ -164,8 +164,6 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
     }
 
     suspend fun reset(){
-//        container.credentials.clear()
-//        container.attachments.clear()
         exportToDataStore(StoreContainer(credentials = listOf(), attachments = listOf()))
     }
 
@@ -325,7 +323,7 @@ fun StoreContainer.filterNotScheme(scheme: ConstantIndex.CredentialScheme): Stor
     return copy(
         // consider credentials unique by credential scheme
         credentials = credentials.filterNotScheme(scheme),
-        // also filter attachment to removed credentials
+        // also filter attachments to removed credentials
         attachments = attachments.filterNot { attachment ->
             credentialIdsWithScheme.contains(attachment.vcId)
         },

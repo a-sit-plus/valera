@@ -71,7 +71,5 @@ fun OnboardingStartScreen(
                 }
             }
         }
-    ) {
-
-    }
+    ) {}
 }

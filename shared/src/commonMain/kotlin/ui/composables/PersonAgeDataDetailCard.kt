@@ -54,6 +54,7 @@ fun PersonAgeDataDetailCard(
                 avatarText = "AS",
                 title = "Altersstufen",
             )
+
             FlowRow(
                 modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth()
             ) {

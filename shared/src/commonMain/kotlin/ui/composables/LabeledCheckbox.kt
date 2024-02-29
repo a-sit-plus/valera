@@ -31,10 +31,6 @@ fun LabeledCheckbox(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier,
-// too ugly
-//        modifier = modifier.clickable {
-//            onCheckedChange()
-//        },
     ) {
         Checkbox(
             checked = checked,

@@ -51,153 +51,6 @@ import view.QrCodeCredentialScannerScreen
 import view.SettingsScreen
 import view.ShowDataScreen
 
-//@Composable
-//fun navigatorBackup(walletMain: WalletMain) {
-//    // Modified from https://github.com/JetBrains/compose-multiplatform/tree/master/examples/imageviewer
-//    val navigationStack = rememberSaveable(
-//        saver = listSaver<NavigationStack<Page>, Page>(
-//            restore = { NavigationStack(*it.toTypedArray()) },
-//            save = { it.stack },
-//        )
-//    ) {
-//        NavigationStack(HomePage())
-//    }
-//
-//    globalBack = { navigationStack.back() }
-//
-//    LaunchedEffect(appLink.value){
-//        appLink.value?.let { link ->
-//            val parameterIndex = link.indexOfFirst { it == '?' }
-//            val pars = parseQueryString(link, startIndex = parameterIndex + 1)
-//
-//            if (pars.contains("error")) {
-//                walletMain.errorService.emit(Exception(pars["error_description"] ?: Resources.UNKNOWN_EXCEPTION))
-//                appLink.value = null
-//                return@LaunchedEffect
-//            }
-//
-//            val host = walletMain.walletConfig.host
-//            if (link.contains("$host/mobile") == true){
-//                val params = kotlin.runCatching {
-//                    Url(link).parameters.flattenEntries().toMap().decodeFromUrlQuery<AuthenticationRequestParameters>()
-//                }
-//
-//                val requestedClaims = params.getOrNull()?.presentationDefinition?.inputDescriptors
-//                    ?.mapNotNull { it.constraints }?.flatMap { it.fields?.toList() ?: listOf() }
-//                    ?.flatMap { it.path.toList() }
-//                    ?.filter { it != "$.type" }
-//                    ?.filter { it != "$.mdoc.doctype" }
-//                    ?.map { it.removePrefix("\$.mdoc.") }
-//                    ?.map { it.removePrefix("\$.") }
-//                    ?: listOf()
-//                if (walletMain.subjectCredentialStore.credentialSize.value != 0) {
-//                    navigationStack.push(ConsentPage(url = link, claims = requestedClaims, recipientName = "DemoService", recipientLocation = "DemoLocation"))
-//                    appLink.value = null
-//                    return@LaunchedEffect
-//                } else {
-//                    walletMain.errorService.emit(Exception("NoCredentialException"))
-//                    appLink.value = null
-//                    return@LaunchedEffect
-//                }
-//
-//            }
-//            if (walletMain.provisioningService.redirectUri?.let { link.contains(it) } == true) {
-//                navigationStack.push(LoadingPage())
-//                walletMain.scope.launch {
-//
-//                    try {
-//                        walletMain.provisioningService.handleResponse(link)
-//                        walletMain.snackbarService.showSnackbar(Resources.SNACKBAR_CREDENTIAL_LOADED_SUCCESSFULLY)
-//                        navigationStack.back()
-//
-//                    } catch (e: Throwable) {
-//                        navigationStack.back()
-//                        walletMain.errorService.emit(e)
-//
-//                    }
-//                    appLink.value = null
-//                }
-//                return@LaunchedEffect
-//            }
-//        }
-//    }
-//
-//
-//
-//
-//    AnimatedContent(targetState = navigationStack.lastWithIndex()) { (_, page) ->
-//        when (page) {
-//            is HomePage -> {
-//                HomeScreen(
-//                    onAbout = { navigationStack.push(AboutPage()) },
-//                    onCredential = { info ->
-//                        navigationStack.push(CredentialPage(info))
-//                    },
-//                    onScanQrCode = { navigationStack.push(CameraPage()) },
-//                    onLoginWithIdAustria = {
-//                        walletMain.scope.launch {
-//                            try {
-//                                walletMain.provisioningService.startProvisioning()
-//                            } catch (e: Throwable) {
-//                                walletMain.errorService.emit(e)
-//                            }
-//                        }
-//                    },
-//                    walletMain = walletMain
-//                )
-//            }
-//
-//            is AboutPage -> {
-//                AboutScreen(
-//                    onShowLog = {navigationStack.push(LogPage())},
-//                    walletMain)
-//            }
-//
-//            is LogPage -> {
-//                LogScreen(walletMain)
-//            }
-//
-//            is CredentialPage -> {
-//                CredentialScreen(id = page.info, walletMain)
-//            }
-//
-//            is CameraPage -> {
-//                CameraView(
-//                    onFoundPayload = { info ->
-//                        navigationStack.push(PayloadPage(info))
-//                    }
-//                )
-//            }
-//
-//            is PayloadPage -> {
-//                PayloadScreen(
-//                    text = page.info,
-//                    onContinueClick = { navigationStack.push(HomePage()) },
-//                    walletMain
-//                )
-//
-//            }
-//
-//            is ConsentPage -> {
-//                ConsentScreen(
-//                    walletMain = walletMain,
-//                    onAccept = {navigationStack.push(HomePage())},
-//                    onCancel = {navigationStack.back()},
-//                    url = page.url,
-//                    recipientName = page.recipientName,
-//                    recipientLocation = page.recipientLocation,
-//                    claims = page.claims
-//                )
-//            }
-//
-//            is LoadingPage -> {
-//                LoadingScreen()
-//            }
-//        }
-//    }
-//}
-
-
 private enum class NavigationData(
     val title: String,
     val icon: @Composable () -> Unit,
@@ -267,16 +120,12 @@ fun Navigator(walletMain: WalletMain) {
     }
 
     LaunchedEffect(appLink.value) {
-        Napier.d {
-            "app link changed to ${appLink.value}"
-        }
+        Napier.d("app link changed to ${appLink.value}")
         appLink.value?.let { link ->
             // resetting error service so that the intent can be displayed as intended
             walletMain.errorService.reset()
 
-            Napier.d {
-                "new app link: ${link}"
-            }
+            Napier.d("new app link: ${link}")
             val parameterIndex = link.indexOfFirst { it == '?' }
             val pars = parseQueryString(link, startIndex = parameterIndex + 1)
 
@@ -292,9 +141,7 @@ fun Navigator(walletMain: WalletMain) {
 
             val host = walletMain.walletConfig.host.first()
             if (link.contains("$host/mobile")) {
-                Napier.d {
-                    "authentication request"
-                }
+                Napier.d("authentication request")
                 val params = kotlin.runCatching {
                     Url(link).parameters.flattenEntries().toMap()
                         .decodeFromUrlQuery<AuthenticationRequestParameters>()
@@ -362,16 +209,6 @@ fun MainNavigator(
     navigateUp: () -> Unit,
     walletMain: WalletMain,
 ) {
-//    // Modified from https://github.com/JetBrains/compose-multiplatform/tree/master/examples/imageviewer
-//    val navigationStack = rememberSaveable(
-//        saver = listSaver<NavigationStack<Page>, Page>(
-//            restore = { NavigationStack(*it.toTypedArray()) },
-//            save = { it.stack },
-//        )
-//    ) {
-//        NavigationStack(HomePage())
-//    }
-
     Scaffold(
         bottomBar = {
             val (_, page) = navigationStack.lastWithIndex()
@@ -479,18 +316,6 @@ fun MainNavigator(
                         ShowDataScreen(
                             navigateToAuthenticationStartPage = {
                                 navigationStack.push(AuthenticationQrCodeScannerPage())
-//                                navigationStack.push(
-//                                    AuthenticationConsentPage(
-//                                        url = "TODO()",
-//                                        claims = listOf(
-//                                            IdAustriaAttribute.FirstName,
-//                                            IdAustriaAttribute.LastName,
-//                                            IdAustriaAttribute.AgeAtLeast18,
-//                                        ).map { it.attributeName },
-//                                        recipientName = "Post-Schalter#3",
-//                                        recipientLocation = "St. Peter Hauptstraße\n8010, Graz",
-//                                    )
-//                                )
                             },
                             onClickShowDataToExecutive = {
                                 walletMain.snackbarService.showSnackbar("Incomplete Implementation")

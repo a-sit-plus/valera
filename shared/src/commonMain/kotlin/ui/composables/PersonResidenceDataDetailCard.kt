@@ -18,7 +18,6 @@ data class ResidenceData(
     val mainAddress: String?,
 )
 
-
 val List<SubjectCredentialStore.StoreEntry>.residenceData: ResidenceData
     get() = ResidenceData(
         mainAddress = firstNotNullOfOrNull { it.mainAddress },
@@ -49,15 +48,6 @@ fun PersonResidenceDataDetailCard(
                         modifier = Modifier.padding(bottom = textGap),
                     )
                 }
-//                if (residenceData.postalCode != null || residenceData.townName != null) {
-//                    Text(
-//                        listOfNotNull(
-//                            residenceData.postalCode,
-//                            residenceData.townName
-//                        ).joinToString(" "),
-//                        modifier = Modifier.padding(bottom = textGap),
-//                    )
-//                }
                 Spacer(modifier = Modifier.height(16.dp - textGap))
             }
         }

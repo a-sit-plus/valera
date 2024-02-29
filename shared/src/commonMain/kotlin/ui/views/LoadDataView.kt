@@ -36,7 +36,7 @@ fun LoadDataView(
             TopAppBar(
                 title = {
                     Text(
-                        text = Resources.HEADING_LABEL_LOAD_DATA, // "Daten Laden",
+                        text = Resources.HEADING_LABEL_LOAD_DATA,
                         style = MaterialTheme.typography.headlineLarge,
                     )
                 },
@@ -82,11 +82,6 @@ fun LoadDataView(
                 "Zur Abfrage Ihrer Daten werden Sie zu ID Austria weitergeleitet.",
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
-//            Spacer(modifier = Modifier.height(16.dp))
-//            Text(
-//                "Zu Entwicklungszwecken gibt es auch die Möglichkeit, Daten über einen QR-Code zu laden:",
-//                modifier = Modifier.padding(horizontal = 16.dp),
-//            )
         }
     }
 }

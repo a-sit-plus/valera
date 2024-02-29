@@ -59,8 +59,6 @@ class WalletMain(
         dataStoreService.deletePreference(Resources.DATASTORE_KEY_XAUTH)
         dataStoreService.deletePreference(Resources.DATASTORE_KEY_COOKIES)
         walletConfig.reset()
-//        walletConfig.host = "https://wallet.a-sit.at"
-//        walletConfig.credentialRepresentation = ConstantIndex.CredentialRepresentation.PLAIN_JWT
     }
 
     fun getLog(): List<String>{

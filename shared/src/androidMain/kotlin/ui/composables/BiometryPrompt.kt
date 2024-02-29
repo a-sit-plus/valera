@@ -34,13 +34,11 @@ actual fun BiometryPrompt(
                     override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                         super.onAuthenticationError(errorCode, errString)
                         onDismiss()
-                        // handle authentication error here
                     }
 
                     override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                         super.onAuthenticationSucceeded(result)
                         onSuccess()
-                        // handle authentication success here
                     }
                 }
             )

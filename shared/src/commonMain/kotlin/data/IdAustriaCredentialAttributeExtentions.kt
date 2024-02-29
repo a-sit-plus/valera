@@ -16,8 +16,6 @@ private val SubjectCredentialStore.StoreEntry.invalidCredentialStoreEntry: Strin
     get() = "Unsupported credential store entry: $this"
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// get from claim name
-//////////////////////////////////////////////////////////////////////////////////////////
 
 enum class IdAustriaAttribute(val attributeName: String, val deTranslation: String) {
     Bpk(attributeName = "bpk", deTranslation = "BPK"),
@@ -83,8 +81,6 @@ fun SubjectCredentialStore.StoreEntry.containsIdAustriaAttribute(attributeName: 
     }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// bpk
-//////////////////////////////////////////////////////////////////////////////////////////
 
 val SubjectCredentialStore.StoreEntry.Vc.bpk: String
     get() {
@@ -92,6 +88,7 @@ val SubjectCredentialStore.StoreEntry.Vc.bpk: String
             is IdAustriaCredential -> {
                 credentialSubject.bpk
             }
+
             else -> TODO(invalidCredentialSubjectMessage)
         }
     }
@@ -124,8 +121,6 @@ val SubjectCredentialStore.StoreEntry.bpk: String?
     }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// firstname
-//////////////////////////////////////////////////////////////////////////////////////////
 
 val SubjectCredentialStore.StoreEntry.Vc.firstname: String
     get() {
@@ -133,6 +128,7 @@ val SubjectCredentialStore.StoreEntry.Vc.firstname: String
             is IdAustriaCredential -> {
                 credentialSubject.firstname
             }
+
             else -> TODO(invalidCredentialSubjectMessage)
         }
     }
@@ -165,8 +161,6 @@ val SubjectCredentialStore.StoreEntry.firstname: String?
     }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// lastname
-//////////////////////////////////////////////////////////////////////////////////////////
 
 val SubjectCredentialStore.StoreEntry.Vc.lastname: String
     get() {
@@ -174,6 +168,7 @@ val SubjectCredentialStore.StoreEntry.Vc.lastname: String
             is IdAustriaCredential -> {
                 credentialSubject.lastname
             }
+
             else -> TODO(invalidCredentialSubjectMessage)
         }
     }
@@ -205,8 +200,6 @@ val SubjectCredentialStore.StoreEntry.lastname: String?
         }
     }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// dateOfBirth
 //////////////////////////////////////////////////////////////////////////////////////////
 
 val SubjectCredentialStore.StoreEntry.Vc.dateOfBirth: LocalDate
@@ -251,8 +244,6 @@ val SubjectCredentialStore.StoreEntry.dateOfBirth: LocalDate?
     }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// portrait
-//////////////////////////////////////////////////////////////////////////////////////////
 
 val SubjectCredentialStore.StoreEntry.Vc.portrait: ByteArray?
     get() {
@@ -292,8 +283,6 @@ val SubjectCredentialStore.StoreEntry.portrait: ByteArray?
         }
     }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// ageAtLeast14
 //////////////////////////////////////////////////////////////////////////////////////////
 
 val SubjectCredentialStore.StoreEntry.Vc.ageAtLeast14: Boolean?
@@ -335,8 +324,6 @@ val SubjectCredentialStore.StoreEntry.ageAtLeast14: Boolean?
     }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// ageAtLeast16
-//////////////////////////////////////////////////////////////////////////////////////////
 
 val SubjectCredentialStore.StoreEntry.Vc.ageAtLeast16: Boolean?
     get() {
@@ -376,8 +363,6 @@ val SubjectCredentialStore.StoreEntry.ageAtLeast16: Boolean?
         }
     }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// ageAtLeast18
 //////////////////////////////////////////////////////////////////////////////////////////
 
 val SubjectCredentialStore.StoreEntry.Vc.ageAtLeast18: Boolean?
@@ -419,8 +404,6 @@ val SubjectCredentialStore.StoreEntry.ageAtLeast18: Boolean?
     }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// ageAtLeast21
-//////////////////////////////////////////////////////////////////////////////////////////
 
 val SubjectCredentialStore.StoreEntry.Vc.ageAtLeast21: Boolean?
     get() {
@@ -460,8 +443,6 @@ val SubjectCredentialStore.StoreEntry.ageAtLeast21: Boolean?
         }
     }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// drivingPermissions
 //////////////////////////////////////////////////////////////////////////////////////////
 
 val SubjectCredentialStore.StoreEntry.Vc.drivingPermissions: List<String>
@@ -504,8 +485,6 @@ val SubjectCredentialStore.StoreEntry.drivingPermissions: List<String>
     }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// mainAddress
-//////////////////////////////////////////////////////////////////////////////////////////
 
 val SubjectCredentialStore.StoreEntry.Vc.mainAddress: String?
     get() {
@@ -545,90 +524,6 @@ val SubjectCredentialStore.StoreEntry.mainAddress: String?
         }
     }
 
-////////////////////////////////////////////////////////////////////////////////////////////
-//// postalCode
-////////////////////////////////////////////////////////////////////////////////////////////
-//
-//val SubjectCredentialStore.StoreEntry.Vc.postalCode: String?
-//    get() {
-//        return when (val credentialSubject = this.vc.vc.credentialSubject) {
-//            is IdAustriaCredential -> {
-//                TODO("Missing Implementation")
-//            }
-//
-//            else -> TODO(invalidCredentialSubjectMessage)
-//        }
-//    }
-//
-//val SubjectCredentialStore.StoreEntry.SdJwt.postalCode: String?
-//    get() {
-//        return when (this.scheme) {
-//            is IdAustriaScheme -> {
-//                TODO("Missing Implementation")
-//            }
-//
-//            else -> TODO(invalidCredentialSchemeMessage)
-//        }
-//    }
-//
-//val SubjectCredentialStore.StoreEntry.postalCode: String?
-//    get() {
-//        return when (this) {
-//            is SubjectCredentialStore.StoreEntry.Vc -> {
-//                this.postalCode
-//            }
-//
-//            is SubjectCredentialStore.StoreEntry.SdJwt -> {
-//                this.postalCode
-//            }
-//
-//            else -> TODO(invalidCredentialStoreEntry)
-//        }
-//    }
-//
-////////////////////////////////////////////////////////////////////////////////////////////
-//// townName
-////////////////////////////////////////////////////////////////////////////////////////////
-//
-//val SubjectCredentialStore.StoreEntry.Vc.townName: String?
-//    get() {
-//        return when (val credentialSubject = this.vc.vc.credentialSubject) {
-//            is IdAustriaCredential -> {
-//                TODO("Missing Implementation")
-//            }
-//
-//            else -> TODO(invalidCredentialSubjectMessage)
-//        }
-//    }
-//
-//val SubjectCredentialStore.StoreEntry.SdJwt.townName: String?
-//    get() {
-//        return when (this.scheme) {
-//            is IdAustriaScheme -> {
-//                TODO("Missing Implementation")
-//            }
-//
-//            else -> TODO(invalidCredentialSchemeMessage)
-//        }
-//    }
-//
-//val SubjectCredentialStore.StoreEntry.townName: String?
-//    get() {
-//        return when (this) {
-//            is SubjectCredentialStore.StoreEntry.Vc -> {
-//                this.townName
-//            }
-//
-//            is SubjectCredentialStore.StoreEntry.SdJwt -> {
-//                this.townName
-//            }
-//
-//            else -> TODO(invalidCredentialStoreEntry)
-//        }
-//    }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// carModel
 //////////////////////////////////////////////////////////////////////////////////////////
 
 val SubjectCredentialStore.StoreEntry.Vc.carModel: String?
@@ -668,8 +563,6 @@ val SubjectCredentialStore.StoreEntry.carModel: String?
         }
     }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// licensePlateNumber
 //////////////////////////////////////////////////////////////////////////////////////////
 
 val SubjectCredentialStore.StoreEntry.Vc.licensePlateNumber: String?

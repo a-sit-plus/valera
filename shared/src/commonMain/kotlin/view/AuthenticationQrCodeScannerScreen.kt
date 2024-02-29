@@ -25,12 +25,8 @@ fun AuthenticationQrCodeScannerScreen(
         navigateUp = navigateUp,
         onFoundPayload = { payload ->
             navigateUp()
-            Napier.d {
-                "onScan: $payload"
-            }
+            Napier.d("onScan: $payload")
             walletMain.platformAdapter.openUrl(payload)
-//            TODO()
-            // start authentication by  opening intent
         },
     )
 }

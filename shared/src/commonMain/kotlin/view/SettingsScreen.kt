@@ -197,14 +197,11 @@ fun SettingsView(
                     .verticalScroll(rememberScrollState())
             ) {
                 val layoutSpacingModifier = Modifier.padding(top = 24.dp)
-                Column(
-//                    modifier = layoutSpacingModifier // not for the first element
-                ) {
+                Column {
                     val listSpacingModifier = Modifier.padding(top = 8.dp)
                     Text(
                         text = "Konfiguration",
                         style = MaterialTheme.typography.titleMedium,
-//                        modifier = listSpacingModifier, // not for the first element
                     )
 
                     OutlinedTextField(
@@ -266,27 +263,14 @@ fun SettingsView(
                             )
                         }
                     }
-//                    Row(
-//                        verticalAlignment = Alignment.CenterVertically,
-//                        horizontalArrangement = Arrangement.Center,
-//                        modifier = Modifier.fillMaxWidth(),
-//                    ) {
-//                        Button(
-//                            enabled = isSaveEnabled,
-//                            onClick = onClickSaveConfiguration,
-//                        ) {
-//                            Text(Resources.BUTTON_LABEL_SAVE)
-//                        }
-//                    }
                 }
                 Column(
-                    modifier = layoutSpacingModifier // not for the first element
+                    modifier = layoutSpacingModifier
                 ) {
                     val listSpacingModifier = Modifier.padding(top = 8.dp)
                     Text(
                         text = "Informationen",
                         style = MaterialTheme.typography.titleMedium,
-//                        modifier = listSpacingModifier, // not for the first element
                     )
                     TextIconButtonListItem(
                         icon = {
@@ -323,13 +307,12 @@ fun SettingsView(
                     )
                 }
                 Column(
-                    modifier = layoutSpacingModifier // not for the first element
+                    modifier = layoutSpacingModifier
                 ) {
                     val listSpacingModifier = Modifier.padding(top = 8.dp)
                     Text(
                         text = "Aktionen",
                         style = MaterialTheme.typography.titleMedium,
-//                        modifier = listSpacingModifier, // not for the first element
                     )
                     TextIconButtonListItem(
                         icon = {
