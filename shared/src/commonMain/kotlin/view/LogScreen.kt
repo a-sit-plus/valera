@@ -1,5 +1,6 @@
 package view
 
+import Resources
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -62,7 +63,7 @@ fun LogView(
             TopAppBar(
                 title = {
                     Text(
-                        "Log-Datei",
+                        Resources.HEADING_LABEL_LOG_SCREEN,
                         style = MaterialTheme.typography.headlineLarge,
                     )
                 },

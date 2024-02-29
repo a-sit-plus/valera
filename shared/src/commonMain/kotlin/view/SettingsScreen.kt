@@ -93,13 +93,13 @@ fun SettingsScreen(
         stage = stage,
         version = version,
         onClickFAQs = {
-            walletMain.snackbarService.showSnackbar("Incomplete Implementation")
+            walletMain.snackbarService.showSnackbar(Resources.ERROR_FEATURE_NOT_YET_AVAILABLE)
         },
         onClickDataProtectionPolicy = {
-            walletMain.snackbarService.showSnackbar("Incomplete Implementation")
+            walletMain.snackbarService.showSnackbar(Resources.ERROR_FEATURE_NOT_YET_AVAILABLE)
         },
         onClickLicenses = {
-            walletMain.snackbarService.showSnackbar("Incomplete Implementation")
+            walletMain.snackbarService.showSnackbar(Resources.ERROR_FEATURE_NOT_YET_AVAILABLE)
         },
         onClickShareLogFile = navigateToLogPage,
         onClickResetApp = onClickResetApp,
@@ -146,7 +146,7 @@ fun SettingsView(
             TopAppBar(
                 title = {
                     Text(
-                        "Einstellungen",
+                        Resources.HEADING_LABEL_SETTINGS_SCREEN,
                         style = MaterialTheme.typography.headlineLarge
                     )
                 },
@@ -158,8 +158,8 @@ fun SettingsView(
                 modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
                     .fillMaxWidth()
             ) {
-                Text("Stage: $stage")
-                Text("Version: $version")
+                Text("${Resources.TEXT_LABEL_STAGE}: $stage")
+                Text("${Resources.TEXT_LABEL_VERSION}: $version")
             }
         },
         floatingActionButton = {
@@ -173,7 +173,7 @@ fun SettingsView(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Save,
-                        contentDescription = Resources.CONTENT_DESCRIPTION_SAVE_BUTTON
+                        contentDescription = null,
                     )
                 }
             } else {
@@ -185,7 +185,7 @@ fun SettingsView(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Edit,
-                        contentDescription = Resources.CONTENT_DESCRIPTION_EDIT_BUTTON
+                        contentDescription = null,
                     )
                 }
             }
@@ -200,14 +200,16 @@ fun SettingsView(
                 Column {
                     val listSpacingModifier = Modifier.padding(top = 8.dp)
                     Text(
-                        text = "Konfiguration",
+                        text = Resources.SECTION_HEADING_CONFIGURATION,
                         style = MaterialTheme.typography.titleMedium,
                     )
 
                     OutlinedTextField(
                         value = host,
                         onValueChange = onChangeHost,
-                        label = { Text("Issuing Service") },
+                        label = {
+                            Text(Resources.TEXT_LABEL_ISSUING_SERVICE)
+                        },
                         keyboardOptions = KeyboardOptions(
                             imeAction = ImeAction.Done
                         ),
@@ -225,7 +227,9 @@ fun SettingsView(
                             readOnly = true,
                             value = credentialRepresentation.name,
                             onValueChange = {},
-                            label = { Text("Credential Representation") },
+                            label = {
+                                Text(Resources.TEXT_LABEL_ID_FORMAT)
+                            },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = showMenu && isSaveEnabled) },
                             enabled = isSaveEnabled,
                             modifier = Modifier.menuAnchor().fillMaxWidth(),
@@ -238,7 +242,9 @@ fun SettingsView(
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             DropdownMenuItem(
-                                text = { Text("PLAIN_JWT") },
+                                text = {
+                                    Text(Resources.ID_FORMAT_PLAIN_JWT_LABEL)
+                                },
                                 onClick = {
                                     onChangeCredentialRepresentation(ConstantIndex.CredentialRepresentation.PLAIN_JWT)
                                     showMenu = false
@@ -246,7 +252,9 @@ fun SettingsView(
                                 modifier = Modifier.fillMaxWidth(),
                             )
                             DropdownMenuItem(
-                                text = { Text("SD_JWT") },
+                                text = {
+                                    Text(Resources.ID_FORMAT_SD_JWT_LABEL)
+                                },
                                 onClick = {
                                     onChangeCredentialRepresentation(ConstantIndex.CredentialRepresentation.SD_JWT)
                                     showMenu = false
@@ -254,7 +262,9 @@ fun SettingsView(
                                 modifier = Modifier.fillMaxWidth(),
                             )
                             DropdownMenuItem(
-                                text = { Text("ISO_MDOC") },
+                                text = {
+                                    Text(Resources.ID_FORMAT_ISO_MDOC_LABEL)
+                                },
                                 onClick = {
                                     onChangeCredentialRepresentation(ConstantIndex.CredentialRepresentation.ISO_MDOC)
                                     showMenu = false
@@ -269,7 +279,7 @@ fun SettingsView(
                 ) {
                     val listSpacingModifier = Modifier.padding(top = 8.dp)
                     Text(
-                        text = "Informationen",
+                        text = Resources.SECTION_HEADING_INFORMATION,
                         style = MaterialTheme.typography.titleMedium,
                     )
                     TextIconButtonListItem(
@@ -279,7 +289,7 @@ fun SettingsView(
                                 contentDescription = null,
                             )
                         },
-                        label = "FAQs",
+                        label = Resources.BUTTON_LABEL_FAQ,
                         onClick = onClickFAQs,
                         modifier = listSpacingModifier.fillMaxWidth(),
                     )
@@ -290,7 +300,7 @@ fun SettingsView(
                                 contentDescription = null,
                             )
                         },
-                        label = "Datenschutz-Policy",
+                        label = Resources.BUTTON_LABEL_DATA_PROTECTION_POLICY,
                         onClick = onClickDataProtectionPolicy,
                         modifier = listSpacingModifier.fillMaxWidth(),
                     )
@@ -301,7 +311,7 @@ fun SettingsView(
                                 contentDescription = null,
                             )
                         },
-                        label = "Lizenzen",
+                        label = Resources.BUTTON_LABEL_LICENSES,
                         onClick = onClickLicenses,
                         modifier = listSpacingModifier.fillMaxWidth(),
                     )
@@ -311,7 +321,7 @@ fun SettingsView(
                 ) {
                     val listSpacingModifier = Modifier.padding(top = 8.dp)
                     Text(
-                        text = "Aktionen",
+                        text = Resources.SECTION_HEADING_ACTIONS,
                         style = MaterialTheme.typography.titleMedium,
                     )
                     TextIconButtonListItem(
@@ -321,7 +331,7 @@ fun SettingsView(
                                 contentDescription = null,
                             )
                         },
-                        label = "Log-Datei teilen",
+                        label = Resources.BUTTON_LABEL_SHARE_LOG_FILE,
                         onClick = onClickShareLogFile,
                         modifier = listSpacingModifier.fillMaxWidth(),
                     )
@@ -332,7 +342,7 @@ fun SettingsView(
                                 contentDescription = null,
                             )
                         },
-                        label = "App zurücksetzen",
+                        label = Resources.BUTTON_LABEL_RESET_APP,
                         onClick = {
                             showAlert.value = true
                         },

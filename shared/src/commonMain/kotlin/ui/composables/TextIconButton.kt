@@ -47,12 +47,16 @@ fun TextIconButton(
         }
     }
 }
+
 @Composable
 fun OutlinedTextIconButton(
     icon: @Composable () -> Unit,
     text: @Composable () -> Unit,
     onClick: () -> Unit = {},
     contentPadding: PaddingValues = TextIconButtonDefaults.contentPadding,
+    spacer: @Composable () -> Unit = {
+        Spacer(modifier = Modifier.width(TextIconButtonDefaults.gapSize))
+    },
     modifier: Modifier = Modifier,
 ) {
     OutlinedButton(
@@ -66,7 +70,7 @@ fun OutlinedTextIconButton(
         ) {
             icon()
 
-            Spacer(modifier = Modifier.width(8.dp))
+            spacer()
 
             text()
         }

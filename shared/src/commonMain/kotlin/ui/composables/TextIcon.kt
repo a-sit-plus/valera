@@ -15,18 +15,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 
 @Composable
-fun TextAvatar(
+fun TextIcon(
     text: String?,
     fontWeight: FontWeight = FontWeight.Bold,
-    onClick: (() -> Unit)? = null,
-    enabled: Boolean = onClick != null,
-    colors: IconButtonColors = TextAvatarDefaults.backgroundColor(),
+    colors: IconButtonColors = TextIconDefaults.backgroundColor(),
     modifier: Modifier = Modifier,
 ) {
     IconButton(
-        onClick = onClick ?: {},
+        onClick = {},
         colors = colors,
-        enabled = enabled,
+        enabled = false,
         modifier = modifier,
     ) {
         if(text != null) {
@@ -43,7 +41,7 @@ fun TextAvatar(
     }
 }
 
-class TextAvatarDefaults {
+class TextIconDefaults {
     companion object {
         @Composable
         fun backgroundColor(

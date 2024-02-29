@@ -22,8 +22,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import ui.composables.TextIcon
 import ui.composables.buttons.ContinueButton
-import ui.composables.TextAvatar
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,7 +65,7 @@ fun OnboardingInformationScreen(
                         modifier = Modifier.padding(16.dp).fillMaxWidth(),
                     ) {
                         Text(
-                            text = "Daten laden und los geht's!",
+                            text = Resources.INFO_TEXT_ENTHUSIASTIC_WELCOME_END,
                             style = MaterialTheme.typography.labelLarge,
                         )
                     }
@@ -90,12 +90,10 @@ fun OnboardingInformationScreen(
                             horizontalArrangement = Arrangement.Start,
                             modifier = Modifier.fillMaxWidth(),
                         ) {
-                            TextAvatar(
-                                text = "1",
-                            )
+                            TextIcon(Resources.ONBOARDING_SECTION_TERMS_AND_DATA_PROTECTION_ICON_TEXT)
                             Spacer(modifier = Modifier.width(10.dp))
                             Text(
-                                text = "Nutzungsbedingungen und Datenschutz",
+                                text = Resources.ONBOARDING_SECTION_TERMS_AND_DATA_PROTECTION_TITLE,
                                 style = MaterialTheme.typography.titleMedium,
                             )
                         }
@@ -105,17 +103,15 @@ fun OnboardingInformationScreen(
                             horizontalArrangement = Arrangement.Start,
                             modifier = Modifier.fillMaxWidth(),
                         ) {
-                            TextAvatar(
-                                text = "2",
-                            )
+                            TextIcon(Resources.ONBOARDING_SECTION_LOAD_DATA_ICON_TEXT)
                             Spacer(modifier = Modifier.width(10.dp))
                             Column {
                                 Text(
-                                    text = "Daten in die App laden",
+                                    text = Resources.ONBOARDING_SECTION_LOAD_DATA_TITLE,
                                     style = MaterialTheme.typography.titleMedium,
                                 )
                                 Text(
-                                    text = "mit einmaligem Kontakt zum zentralen ID Austria",
+                                    text = Resources.ONBOARDING_SECTION_LOAD_DATA_SUBTITLE,
                                     style = MaterialTheme.typography.bodySmall,
                                 )
                             }
@@ -127,17 +123,15 @@ fun OnboardingInformationScreen(
                                 horizontalArrangement = Arrangement.Start,
                                 modifier = Modifier.fillMaxWidth(),
                             ) {
-                                TextAvatar(
-                                    text = "3",
-                                )
+                                TextIcon(Resources.ONBOARDING_SECTION_SHOW_DATA_ICON_TEXT)
                                 Spacer(modifier = Modifier.width(10.dp))
                                 Column {
                                     Text(
-                                        text = "Daten vorzeigen",
+                                        text = Resources.ONBOARDING_SECTION_SHOW_DATA_TITLE,
                                         style = MaterialTheme.typography.titleMedium,
                                     )
                                     Text(
-                                        text = "direkt aus dem Speicher der App",
+                                        text = Resources.ONBOARDING_SECTION_SHOW_DATA_SUBTITLE,
                                         style = MaterialTheme.typography.bodySmall,
                                     )
                                 }
@@ -151,17 +145,15 @@ fun OnboardingInformationScreen(
                                     horizontalArrangement = Arrangement.Start,
                                     modifier = Modifier.fillMaxWidth(),
                                 ) {
-                                    TextAvatar(
-                                        text = "A",
-                                    )
+                                    TextIcon(Resources.ONBOARDING_SECTION_DATA_USAGE_AUTHENTICATE_AT_MASHINE_ICON_TEXT)
                                     Spacer(modifier = Modifier.width(10.dp))
                                     Column {
                                         Text(
-                                            text = "am Schalter oder bei Maschinen",
+                                            text = Resources.ONBOARDING_SECTION_DATA_USAGE_AUTHENTICATE_AT_MASHINE_TITLE,
                                             style = MaterialTheme.typography.titleMedium,
                                         )
                                         Text(
-                                            text = "bspw. bei Amtswegen",
+                                            text = Resources.ONBOARDING_SECTION_DATA_USAGE_AUTHENTICATE_AT_MASHINE_SUBTITLE,
                                             style = MaterialTheme.typography.bodySmall,
                                         )
                                     }
@@ -171,17 +163,15 @@ fun OnboardingInformationScreen(
                                     horizontalArrangement = Arrangement.Start,
                                     modifier = Modifier.fillMaxWidth(),
                                 ) {
-                                    TextAvatar(
-                                        text = "B",
-                                    )
+                                    TextIcon(Resources.ONBOARDING_SECTION_DATA_USAGE_SHOW_EXECUTIVE_ICON_TEXT)
                                     Spacer(modifier = Modifier.width(10.dp))
                                     Column {
                                         Text(
-                                            text = "gegenüber der Exekutive",
+                                            text = Resources.ONBOARDING_SECTION_DATA_USAGE_SHOW_EXECUTIVE_TITLE,
                                             style = MaterialTheme.typography.titleMedium,
                                         )
                                         Text(
-                                            text = "bspw. bei Verkehrskontrollen",
+                                            text = Resources.ONBOARDING_SECTION_DATA_USAGE_SHOW_EXECUTIVE_SUBTITLE,
                                             style = MaterialTheme.typography.bodySmall,
                                         )
                                     }
@@ -191,17 +181,15 @@ fun OnboardingInformationScreen(
                                     horizontalArrangement = Arrangement.Start,
                                     modifier = Modifier.fillMaxWidth(),
                                 ) {
-                                    TextAvatar(
-                                        text = "C",
-                                    )
+                                    TextIcon(Resources.ONBOARDING_SECTION_DATA_USAGE_SHOW_OTHER_CITIZEN_ICON_TEXT)
                                     Spacer(modifier = Modifier.width(10.dp))
                                     Column {
                                         Text(
-                                            text = "gegenüber dritten Bürgern",
+                                            text = Resources.ONBOARDING_SECTION_DATA_USAGE_SHOW_OTHER_CITIZEN_TITLE,
                                             style = MaterialTheme.typography.titleMedium,
                                         )
                                         Text(
-                                            text = "bspw. Veranstaltungen",
+                                            text = Resources.ONBOARDING_SECTION_DATA_USAGE_SHOW_OTHER_CITIZEN_SUBTITLE,
                                             style = MaterialTheme.typography.bodySmall,
                                         )
                                     }

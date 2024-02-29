@@ -1,6 +1,6 @@
 package view
 
-import androidx.compose.material3.ExperimentalMaterial3Api
+import Resources
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -9,8 +9,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.wallet.app.common.WalletMain
-import data.IdAustriaAttribute
+import at.asitplus.wallet.idaustria.IdAustriaScheme
 import data.containsIdAustriaAttribute
+import data.idAustriaAttributeTranslation
 import kotlinx.coroutines.launch
 import ui.composables.AttributeAvailability
 import ui.composables.PersonalDataCategory
@@ -46,35 +47,22 @@ fun AuthenticationConsentScreen(
         val requestedAttributes = listOf(
             Pair(
                 PersonalDataCategory.IdentityData, listOfNotNull(
-                    claimAvailabilities[IdAustriaAttribute.FirstName.attributeName],
-                    claimAvailabilities[IdAustriaAttribute.LastName.attributeName],
-                    claimAvailabilities[IdAustriaAttribute.DateOfBirth.attributeName],
+                    claimAvailabilities[IdAustriaScheme.Attributes.FIRSTNAME],
+                    claimAvailabilities[IdAustriaScheme.Attributes.LASTNAME],
+                    claimAvailabilities[IdAustriaScheme.Attributes.DATE_OF_BIRTH],
                 )
             ),
             Pair(
                 PersonalDataCategory.AgeData, listOfNotNull(
-                    claimAvailabilities[IdAustriaAttribute.AgeAtLeast14.attributeName],
-                    claimAvailabilities[IdAustriaAttribute.AgeAtLeast16.attributeName],
-                    claimAvailabilities[IdAustriaAttribute.AgeAtLeast18.attributeName],
-                    claimAvailabilities[IdAustriaAttribute.AgeAtLeast21.attributeName],
+                    claimAvailabilities[IdAustriaScheme.Attributes.AGE_OVER_14],
+                    claimAvailabilities[IdAustriaScheme.Attributes.AGE_OVER_16],
+                    claimAvailabilities[IdAustriaScheme.Attributes.AGE_OVER_18],
+                    claimAvailabilities[IdAustriaScheme.Attributes.AGE_OVER_21],
                 )
             ),
             Pair(
                 PersonalDataCategory.ResidenceData, listOfNotNull(
-                    claimAvailabilities[IdAustriaAttribute.MainAddress.attributeName],
-//                    claimAvailabilities[IdAustriaAttribute.PostalCode.attributeName],
-//                    claimAvailabilities[IdAustriaAttribute.TownName.attributeName],
-                )
-            ),
-            Pair(
-                PersonalDataCategory.DrivingPermissions, listOfNotNull(
-                    claimAvailabilities[IdAustriaAttribute.DrivingPermissions.attributeName],
-                )
-            ),
-            Pair(
-                PersonalDataCategory.AdmissionData, listOfNotNull(
-                    claimAvailabilities[IdAustriaAttribute.CarModel.attributeName],
-                    claimAvailabilities[IdAustriaAttribute.LicensePlateNumber.attributeName],
+                    claimAvailabilities[IdAustriaScheme.Attributes.MAIN_ADDRESS],
                 )
             ),
         ).filter { it.second.isNotEmpty() }.map {
@@ -82,9 +70,7 @@ fun AuthenticationConsentScreen(
                 it.first,
                 it.second.map {
                     AttributeAvailability(
-                        attributeName = IdAustriaAttribute.attributeTranslation(
-                            it.attributeName
-                        ),
+                        attributeName = it.attributeName.idAustriaAttributeTranslation,
                         isAvailable = it.isAvailable,
                     )
                 }
@@ -114,7 +100,7 @@ fun AuthenticationConsentScreen(
                         navigateToAuthenticationSuccessPage()
                     } catch (e: Throwable) {
                         walletMain.errorService.emit(e)
-                        walletMain.snackbarService.showSnackbar("Authentication failed")
+                        walletMain.snackbarService.showSnackbar(Resources.ERROR_AUTHENTICATION_AT_SP_FAILED)
                     }
                 }
             },

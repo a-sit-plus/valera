@@ -88,11 +88,11 @@ fun AuthenticationConsentView(
                 ) {
                     val bottomBarQuestion =
                         if (hasMissingAttributes) {
-                            "Sollen die fehlenden Daten nachgeladen werden?"
+                            Resources.PROMPT_ASK_LOAD_MISSING_DATA
                         } else if(requestedAttributes.isNotEmpty()) {
-                            "Sollen diese Daten übermittelt werden?"
+                            Resources.PROMPT_SEND_ABOVE_DATA
                         } else {
-                            "Sollen alle Daten übermittelt werden?"
+                            Resources.PROMPT_SEND_ALL_DATA
                         }
 
                     val bottomBarContinueButton: @Composable () -> Unit = {
@@ -126,7 +126,7 @@ fun AuthenticationConsentView(
             ) {
                 val paddingModifier = Modifier.padding(bottom = 32.dp)
                 Text(
-                    "Anmelden an\nSchalter oder Maschine",
+                    Resources.HEADING_LABEL_AUTHENTICATE_AT_DEVICE,
                     style = MaterialTheme.typography.headlineLarge,
                     modifier = paddingModifier,
                 )
@@ -136,6 +136,8 @@ fun AuthenticationConsentView(
                 ) {
                     if (showBiometry) {
                         BiometryPrompt(
+                            title = Resources.BIOMETRIC_AUTHENTICATION_PROMPT_TITLE,
+                            subtitle = Resources.BIOMETRIC_AUTHENTICATION_PROMPT_SUBTITLE,
                             onSuccess = onBiometrySuccess,
                             onDismiss = onBiometryDismissed,
                         )
@@ -152,7 +154,7 @@ fun AuthenticationConsentView(
                             modifier = paddingModifier,
                         ) {
                             Text(
-                                text = "Angefragte Daten nicht verfügbar",
+                                text = Resources.WARNING_REQUESTED_DATA_NOT_AVAILABLE_HEADING,
                                 style = MaterialTheme.typography.titleMedium,
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                             )
@@ -165,12 +167,7 @@ fun AuthenticationConsentView(
                                 )
                             ) {
                                 Text(
-                                    text = "Nicht alle angefragten Daten wurden bereits in die App geladen.",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "Fehlende Daten können über ID Austria nachgeladen werden.",
+                                    text = Resources.WARNING_REQUESTED_DATA_NOT_AVAILABLE_CONTENT,
                                     style = MaterialTheme.typography.bodyLarge,
                                 )
                             }
@@ -187,16 +184,16 @@ fun AuthenticationConsentView(
                         }
                     }
                     DataDisplaySection(
-                        title = "Empfänger",
+                        title = Resources.SECTION_HEADING_DATA_RECIPIENT,
                         data = mapOf(
-                            "Name" to spName,
-                            "Ort" to spLocation,
+                            Resources.ATTRIBUTE_FRIENDLY_NAME_DATA_RECIPIENT_NAME to spName,
+                            Resources.ATTRIBUTE_FRIENDLY_NAME_DATA_RECIPIENT_LOCATION to spLocation,
                         ).toList(),
                         modifier = paddingModifier,
                     )
                     if(requestedAttributes.isNotEmpty()) {
                         DataCategoryDisplaySection(
-                            title = "Angefragte Daten",
+                            title = Resources.SECTION_HEADING_REQUESTED_DATA,
                             attributes = requestedAttributes,
                             modifier = paddingModifier,
                         )

@@ -19,7 +19,7 @@ import kotlinx.serialization.encodeToString
 
 
 class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) : SubjectCredentialStore {
-    private val container = observeFromDataStore()
+    private val container = this.observeStoreContainer()
 
     override suspend fun storeCredential(
         vc: VerifiableCredentialJws,
@@ -159,10 +159,6 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         dataStore.setPreference(key = Resources.DATASTORE_KEY_VCS, value = json)
     }
 
-    private fun observeFromDataStore(): Flow<StoreContainer> = dataStore.getPreference(Resources.DATASTORE_KEY_VCS).map { input ->
-        dataStoreValueToStoreContainer(input)
-    }
-
     suspend fun reset(){
         exportToDataStore(StoreContainer(credentials = listOf(), attachments = listOf()))
     }
@@ -269,7 +265,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
     }
 
     fun observeVcs(): Flow<ArrayList<VerifiableCredential>> {
-        return observeStoreContainer().map {
+        return this.observeStoreContainer().map {
             val credentialList = ArrayList<VerifiableCredential>()
             it.credentials.forEach { entry ->
                 when (entry) {

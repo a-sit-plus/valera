@@ -1,11 +1,15 @@
 package ui.composables
 
-import AvatarHeading
+import Resources
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
@@ -14,6 +18,7 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -64,47 +69,50 @@ fun DataCategoryDisplaySection(
                         modifier = paddingModifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
-                        AvatarHeading(
-                            avatarText = category.first.avatarText,
-                            title = category.first.categoryName,
-                            fontWeight = FontWeight.Normal,
-                        )
-                        Row(
-                            horizontalArrangement = Arrangement.End,
-                            verticalAlignment = Alignment.CenterVertically,
+                        DataCategoryDisplaySectionItem(
+                            iconText = category.first.iconText,
+                            title = category.first.categoryTitle,
+                            titleFontWeight = FontWeight.Normal,
+                            modifier = Modifier.fillMaxWidth(),
                         ) {
-                            if (missingAttributeCount > 0) {
-                                Text(
-                                    text = "fehlend ",
-                                    color = MaterialTheme.colorScheme.error,
-                                )
-                                Badge(
-                                    containerColor = MaterialTheme.colorScheme.error,
-                                ) {
-                                    Text(
-                                        text = missingAttributeCount.toString(),
-                                    )
-                                }
-                            }
-                            IconButton(
-                                onClick = {
-                                    if (openSections.value.contains(categoryIndex)) {
-                                        openSections.value = openSections.value - categoryIndex
-                                    } else {
-                                        openSections.value = openSections.value + categoryIndex
-                                    }
-                                },
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxHeight(),
                             ) {
-                                if (openSections.value.contains(categoryIndex)) {
-                                    Icon(
-                                        imageVector = Icons.Default.ExpandLess,
-                                        contentDescription = null
+                                if (missingAttributeCount > 0) {
+                                    Text(
+                                        text = Resources.INFO_TEXT_DATA_ITEMS_MISSING,
+                                        color = MaterialTheme.colorScheme.error,
                                     )
-                                } else {
-                                    Icon(
-                                        imageVector = Icons.Default.ExpandMore,
-                                        contentDescription = null
-                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Badge(
+                                        containerColor = MaterialTheme.colorScheme.error,
+                                    ) {
+                                        Text(
+                                            text = missingAttributeCount.toString(),
+                                        )
+                                    }
+                                }
+                                IconButton(
+                                    onClick = {
+                                        if (openSections.value.contains(categoryIndex)) {
+                                            openSections.value = openSections.value - categoryIndex
+                                        } else {
+                                            openSections.value = openSections.value + categoryIndex
+                                        }
+                                    },
+                                ) {
+                                    if (openSections.value.contains(categoryIndex)) {
+                                        Icon(
+                                            imageVector = Icons.Default.ExpandLess,
+                                            contentDescription = null
+                                        )
+                                    } else {
+                                        Icon(
+                                            imageVector = Icons.Default.ExpandMore,
+                                            contentDescription = null
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -112,27 +120,57 @@ fun DataCategoryDisplaySection(
                     if (openSections.value.contains(categoryIndex)) {
                         Divider(modifier = Modifier.fillMaxWidth())
                         for (item in category.second) {
-                            Row(
+                            DataCategoryDisplaySectionItem(
+                                iconText = null,
+                                title = item.attributeName,
+                                titleFontWeight = FontWeight.Normal,
+                                iconColors = TextIconDefaults.backgroundColor(
+                                    containerColor = Color.Unspecified,
+                                    disabledContainerColor = Color.Unspecified,
+                                ),
+                                titleColor = if (item.isAvailable == false) MaterialTheme.colorScheme.error else Color.Unspecified,
                                 modifier = paddingModifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                            ) {
-                                AvatarHeading(
-                                    avatarText = null,
-                                    title = item.attributeName,
-                                    fontWeight = FontWeight.Normal,
-                                    avatarColors = TextAvatarDefaults.backgroundColor(
-                                        containerColor = Color.Unspecified,
-                                        disabledContainerColor = Color.Unspecified,
-                                    ),
-                                    textColor = if (item.isAvailable == false) MaterialTheme.colorScheme.error else Color.Unspecified,
-                                    enabled = false,
-                                )
-                            }
+                            )
                         }
                         Divider(modifier = Modifier.fillMaxWidth())
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun DataCategoryDisplaySectionItem(
+    title: String,
+    titleColor: Color = Color.Unspecified,
+    titleFontWeight: FontWeight = FontWeight.SemiBold,
+    iconText: String?,
+    iconColors: IconButtonColors = TextIconDefaults.backgroundColor(),
+    iconTextFontWeight: FontWeight = FontWeight.Bold,
+    modifier: Modifier = Modifier,
+    actionButtons: (@Composable RowScope.() -> Unit) = { },
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            TextIcon(
+                text = iconText,
+                colors = iconColors,
+                fontWeight = iconTextFontWeight,
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                color = titleColor,
+                fontWeight = titleFontWeight,
+            )
+        }
+        actionButtons()
     }
 }

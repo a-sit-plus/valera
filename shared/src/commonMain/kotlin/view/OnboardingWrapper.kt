@@ -1,5 +1,6 @@
 package view
 
+import Resources
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -83,10 +84,10 @@ fun OnboardingNavigator(
                             navigationStack.back()
                         },
                         onClickReadGeneralTermsAndConditions = {
-                            snackbarService.showSnackbar("Incomplete Implementation")
+                            snackbarService.showSnackbar(Resources.ERROR_FEATURE_NOT_YET_AVAILABLE)
                         },
                         onClickReadDataProtectionPolicy = {
-                            snackbarService.showSnackbar("Incomplete Implementation")
+                            snackbarService.showSnackbar(Resources.ERROR_FEATURE_NOT_YET_AVAILABLE)
                         },
                         onClickAccept = {
                             onOnboardingComplete()

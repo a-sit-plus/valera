@@ -15,9 +15,12 @@ import androidx.fragment.app.FragmentActivity
 
 @Composable
 actual fun BiometryPrompt(
+    title: String,
+    subtitle: String,
     onSuccess: () -> Unit,
     onDismiss: () -> Unit,
 ) {
+    // source: https://medium.com/@muaz.kadan/biometric-authentication-in-jetpack-compose-5e4d7e35d1e7
     val context = LocalContext.current
     val biometricManager = remember { BiometricManager.from(context) }
 
@@ -45,8 +48,8 @@ actual fun BiometryPrompt(
 
             val promptInfo = BiometricPrompt.PromptInfo.Builder()
                 .setAllowedAuthenticators(BIOMETRIC_STRONG)
-                .setTitle("Biometric Authentication")
-                .setSubtitle("Log in using your biometric credential")
+                .setTitle(title) // Resources.BIOMETRIC_AUTHENTICATION_PROMPT_TITLE)
+                .setSubtitle(subtitle) // Resources.BIOMETRIC_AUTHENTICATION_PROMPT_SUBTITLE)
                 .setNegativeButtonText(Resources.BUTTON_LABEL_CANCEL)
                 .build()
 
@@ -62,32 +65,32 @@ actual fun BiometryPrompt(
                     when (isBiometricAvailable) {
                         BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> {
                             // No biometric features available on this device
-                            Text("BIOMETRIC_ERROR_NO_HARDWARE")
+                            Text(Resources.ERROR_BIOMETRIC_ERROR_NO_HARDWARE)
                         }
 
                         BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> {
                             // Biometric features are currently unavailable.
-                            Text("BIOMETRIC_ERROR_HW_UNAVAILABLE")
+                            Text(Resources.ERROR_BIOMETRIC_ERROR_HW_UNAVAILABLE)
                         }
 
                         BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED -> {
                             // Biometric features available but a security vulnerability has been discovered
-                            Text("BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED")
+                            Text(Resources.ERROR_BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED)
                         }
 
                         BiometricManager.BIOMETRIC_ERROR_UNSUPPORTED -> {
                             // Biometric features are currently unavailable because the specified options are incompatible with the current Android version..
-                            Text("BIOMETRIC_ERROR_UNSUPPORTED")
+                            Text(Resources.ERROR_BIOMETRIC_ERROR_UNSUPPORTED)
                         }
 
                         BiometricManager.BIOMETRIC_STATUS_UNKNOWN -> {
                             // Unable to determine whether the user can authenticate using biometrics
-                            Text("BIOMETRIC_STATUS_UNKNOWN")
+                            Text(Resources.ERROR_BIOMETRIC_STATUS_UNKNOWN)
                         }
 
                         BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
                             // The user can't authenticate because no biometric or device credential is enrolled.
-                            Text("BIOMETRIC_ERROR_NONE_ENROLLED")
+                            Text(Resources.ERROR_BIOMETRIC_ERROR_NONE_ENROLLED)
                         }
                     }
                 },

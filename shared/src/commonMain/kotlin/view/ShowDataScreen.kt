@@ -1,5 +1,6 @@
 package view
 
+import Resources
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -35,7 +36,7 @@ fun ShowDataScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "Daten Vorzeigen",
+                        Resources.HEADING_LABEL_SHOW_DATA,
                         style = MaterialTheme.typography.headlineLarge
                     )
                 },
@@ -46,7 +47,7 @@ fun ShowDataScreen(
             Column(modifier = Modifier.padding(vertical = 32.dp, horizontal = 16.dp)) {
                 val paddingModifier = Modifier.padding(top = 24.dp)
 
-                Text("In welcher Situation möchten Sie Ihre Daten vorzeigen?")
+                Text(Resources.INFO_TEXT_SHOW_DATA_SITUATION)
 
                 ElevatedCard(
                     modifier = paddingModifier.fillMaxWidth(),
@@ -56,12 +57,12 @@ fun ShowDataScreen(
                             modifier = Modifier.padding(16.dp)
                         ) {
                             Text(
-                                "Anmelden an",
+                                Resources.SECTION_HEADING_AUTHENTICATE_AT_DEVICE_TITLE,
                                 style = MaterialTheme.typography.titleMedium,
                             )
                             Text(
-                                "Schalter oder Maschine",
-                                style = MaterialTheme.typography.titleMedium,
+                                Resources.SECTION_HEADING_AUTHENTICATE_AT_DEVICE_SUBTITLE,
+                                style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.tertiary,
                                 fontWeight = FontWeight.Bold,
                             )
@@ -76,11 +77,11 @@ fun ShowDataScreen(
                                 icon = {
                                     Icon(
                                         imageVector = Icons.Default.ArrowForward,
-                                        contentDescription = "Anmelden",
+                                        contentDescription = null,
                                     )
                                 },
                                 text = {
-                                    Text("Anmelden")
+                                    Text(Resources.BUTTON_LABEL_AUTHENTICATE)
                                 },
                                 onClick = navigateToAuthenticationStartPage,
                                 modifier = Modifier.padding(16.dp)
@@ -96,11 +97,11 @@ fun ShowDataScreen(
                             modifier = Modifier.padding(16.dp)
                         ) {
                             Text(
-                                "Daten vorzeigen an",
+                                Resources.SECTION_HEADING_SHOW_DATA_TO_EXECUTIVE_TITLE,
                                 style = MaterialTheme.typography.titleMedium,
                             )
                             Text(
-                                "Exekutive",
+                                Resources.SECTION_HEADING_SHOW_DATA_TO_EXECUTIVE_SUBTITLE,
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.tertiary,
                                 fontWeight = FontWeight.Bold,
@@ -116,11 +117,11 @@ fun ShowDataScreen(
                                 icon = {
                                     Icon(
                                         imageVector = Icons.Default.ArrowForward,
-                                        contentDescription = "Daten an Exekutive vorzeigen",
+                                        contentDescription = null,
                                     )
                                 },
                                 text = {
-                                    Text("Vorzeigen")
+                                    Text(Resources.BUTTON_LABEL_SHOW_DATA)
                                 },
                                 onClick = onClickShowDataToExecutive,
                                 modifier = Modifier.padding(16.dp)
@@ -136,11 +137,11 @@ fun ShowDataScreen(
                             modifier = Modifier.padding(16.dp)
                         ) {
                             Text(
-                                "Daten vorzeigen an",
+                                Resources.SECTION_HEADING_SHOW_DATA_TO_OTHER_CITIZEN_TITLE,
                                 style = MaterialTheme.typography.titleMedium,
                             )
                             Text(
-                                "dritte Bürger",
+                                Resources.SECTION_HEADING_SHOW_DATA_TO_OTHER_CITIZEN_SUBTITLE,
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.tertiary,
                                 fontWeight = FontWeight.Bold,
@@ -156,11 +157,11 @@ fun ShowDataScreen(
                                 icon = {
                                     Icon(
                                         imageVector = Icons.Default.ArrowForward,
-                                        contentDescription = "Daten an andere Bürger vorzeigen",
+                                        contentDescription = null,
                                     )
                                 },
                                 text = {
-                                    Text("Vorzeigen")
+                                    Text(Resources.BUTTON_LABEL_SHOW_DATA)
                                 },
                                 onClick = onClickShowDataToOtherCitizen,
                                 modifier = Modifier.padding(16.dp)

@@ -1,5 +1,6 @@
 package view
 
+import Resources
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -43,11 +44,11 @@ fun AuthenticationQrCodeScannerView(
                 title = {
                     Column {
                         Text(
-                            "Anmelden",
+                            Resources.HEADING_LABEL_AUTHENTICATE_AT_DEVICE_TITLE,
                             style = MaterialTheme.typography.headlineLarge,
                         )
                         Text(
-                            "an Schalter oder Maschine",
+                            Resources.HEADING_LABEL_AUTHENTICATE_AT_DEVICE_SUBTITLE,
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.tertiary,

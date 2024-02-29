@@ -7,27 +7,22 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCodeScanner
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.ConstantIndex
-import data.IdAustriaAttribute
 import navigation.AuthenticationConsentPage
 import navigation.AuthenticationQrCodeScannerPage
+import navigation.AuthenticationSuccessPage
 import navigation.HomePage
 import navigation.NavigationStack
 import navigation.Page
@@ -36,6 +31,7 @@ import navigation.ShowDataPage
 import ui.views.AuthenticationConsentView
 import ui.views.MyDataView
 import view.AuthenticationQrCodeScannerView
+import view.AuthenticationSuccessScreen
 import view.SettingsView
 import view.ShowDataScreen
 
@@ -101,7 +97,6 @@ private enum class Route(
     ),
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PreviewNavigationScreen() {
     val navigationData = { page: Page ->
@@ -179,10 +174,10 @@ fun PreviewNavigationScreen() {
                                         recipientName = "Post-Schalter#3",
                                         recipientLocation = "St. Peter Hauptstraße\n8010, Graz",
                                         claims = listOf(
-                                            IdAustriaAttribute.FirstName,
-                                            IdAustriaAttribute.LastName,
-                                            IdAustriaAttribute.DateOfBirth,
-                                        ).map { it.attributeName },
+                                            IdAustriaScheme.Attributes.FIRSTNAME,
+                                            IdAustriaScheme.Attributes.LASTNAME,
+                                            IdAustriaScheme.Attributes.DATE_OF_BIRTH,
+                                        ),
                                     )
                                 )
                             },
@@ -214,25 +209,28 @@ fun PreviewNavigationScreen() {
                         AuthenticationQrCodeScannerView(
                             navigateUp = globalBack,
                             onFoundPayload = { payload ->
-                                navigationStack.push(AuthenticationConsentPage(
-                                    url = "",
-                                    recipientName = "spNameValue",
-                                    recipientLocation = "spLocationValue",
-                                    claims = listOf(),
-                                ))
+                                navigationStack.push(
+                                    AuthenticationConsentPage(
+                                        url = "",
+                                        recipientName = "spNameValue",
+                                        recipientLocation = "spLocationValue",
+                                        claims = listOf(),
+                                    )
+                                )
                             },
                         )
                     }
 
-                    is AuthenticationConsentPage -> {
-                        val bottomSheetState = rememberModalBottomSheetState()
-                        var showBottomSheet by remember { mutableStateOf(false) }
+                    is AuthenticationSuccessPage -> {
+                        AuthenticationSuccessScreen(navigateUp = globalBack)
+                    }
 
+                    is AuthenticationConsentPage -> {
                         AuthenticationConsentView(
                             navigateUp = globalBack,
                             cancelAuthentication = globalBack,
                             consentToDataTransmission = {
-                                showBottomSheet = true
+                                navigationStack.push(AuthenticationSuccessPage())
                             },
                             loadMissingData = {
                                 globalBack()
@@ -241,6 +239,9 @@ fun PreviewNavigationScreen() {
                             spName = page.recipientName,
                             spLocation = page.recipientLocation,
                             spImage = null,
+                            showBiometry = false,
+                            onBiometryDismissed = {},
+                            onBiometrySuccess = {},
                         )
                     }
                 }

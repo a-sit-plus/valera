@@ -1,5 +1,6 @@
 package view
 
+import Resources
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,7 +23,7 @@ fun LoadingScreen() {
             TopAppBar(
                 title = {
                     Text(
-                        text = "Loading ...",
+                        text = Resources.HEADING_LABEL_LOADING_SCREEN,
                         style = MaterialTheme.typography.headlineLarge,
                     )
                 },

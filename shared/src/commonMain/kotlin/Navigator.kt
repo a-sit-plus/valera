@@ -58,11 +58,11 @@ private enum class NavigationData(
     val isActive: (Page) -> Boolean
 ) {
     HOME_SCREEN(
-        title = "Meine Daten",
+        title = Resources.NAVIGATION_BUTTON_LABEL_MY_DATA,
         icon = {
             Icon(
                 imageVector = Icons.Default.Person,
-                contentDescription = "Meine Daten ansehen",
+                contentDescription = null,
             )
         },
         destination = HomePage(),
@@ -74,11 +74,11 @@ private enum class NavigationData(
         },
     ),
     SHOW_DATA_SCREEN(
-        title = "Daten Vorzeigen",
+        title = Resources.NAVIGATION_BUTTON_LABEL_SHOW_DATA,
         icon = {
             Icon(
                 imageVector = Icons.Default.QrCodeScanner,
-                contentDescription = "Daten Vorzeigen",
+                contentDescription = null,
             )
         },
         destination = ShowDataPage(),
@@ -90,11 +90,11 @@ private enum class NavigationData(
         },
     ),
     INFORMATION_SCREEN(
-        title = "Einstellungen",
+        title = Resources.NAVIGATION_BUTTON_LABEL_SETTINGS,
         icon = {
             Icon(
                 imageVector = Icons.Default.Settings,
-                contentDescription = "Einstellungen",
+                contentDescription = null,
             )
         },
         destination = SettingsPage(),

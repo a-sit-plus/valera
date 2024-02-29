@@ -1,5 +1,6 @@
 package ui.views
 
+import Resources
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -82,7 +83,7 @@ fun MyDataView(
             TopAppBar(
                 title = {
                     Text(
-                        "Meine Daten",
+                        Resources.HEADING_LABEL_MY_DATA_OVERVIEW,
                         style = MaterialTheme.typography.headlineLarge
                     )
                 },
@@ -94,7 +95,7 @@ fun MyDataView(
             ) {
                 Icon(
                     imageVector = Icons.Default.Refresh,
-                    contentDescription = "Refresh Credentials",
+                    contentDescription = Resources.CONTENT_DESCRIPTION_REFRESH_CREDENTIALS,
                 )
             }
         }

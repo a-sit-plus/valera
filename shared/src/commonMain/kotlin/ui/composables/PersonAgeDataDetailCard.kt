@@ -51,8 +51,8 @@ fun PersonAgeDataDetailCard(
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             PersonAttributeDetailCardHeading(
-                avatarText = "AS",
-                title = "Altersstufen",
+                iconText = PersonalDataCategory.AgeData.iconText,
+                title = PersonalDataCategory.AgeData.categoryTitle,
             )
 
             FlowRow(

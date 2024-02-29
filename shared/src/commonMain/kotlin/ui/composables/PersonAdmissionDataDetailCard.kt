@@ -11,6 +11,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import data.carModel
+import data.licensePlateNumber
 
 data class AdmissionData(
     val carModel: String?,
@@ -20,8 +22,8 @@ data class AdmissionData(
 
 val List<SubjectCredentialStore.StoreEntry>.admissionData: AdmissionData
     get() = AdmissionData(
-        carModel = firstNotNullOfOrNull { "dummyStreetName" },
-        licensePlateNumber = firstNotNullOfOrNull { "dummyLicensePlateNumber" },
+        carModel = firstNotNullOfOrNull { it.carModel },
+        licensePlateNumber = firstNotNullOfOrNull { it.licensePlateNumber },
     )
 
 @Composable
@@ -34,8 +36,8 @@ fun PersonAdmissionDataDetailCard(
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             PersonAttributeDetailCardHeading(
-                avatarText = "Z",
-                title = "Zulassungsdaten",
+                iconText = PersonalDataCategory.AdmissionData.iconText,
+                title = PersonalDataCategory.AdmissionData.categoryTitle,
             )
 
             val textGap = 4.dp

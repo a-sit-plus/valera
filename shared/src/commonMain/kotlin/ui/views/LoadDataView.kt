@@ -4,13 +4,18 @@ import Resources
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -19,8 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import at.asitplus.wallet.app.common.WalletMain
-import kotlinx.coroutines.launch
+import ui.composables.OutlinedTextIconButton
 import ui.composables.buttons.LoadDataButton
 import ui.composables.buttons.NavigateUpButton
 
@@ -54,20 +58,18 @@ fun LoadDataView(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceEvenly,
                 ) {
-//                    OutlinedTextIconButton(
-//                        icon = {
-//                            Icon(
-//                                imageVector = Icons.Default.QrCode,
-//                                contentDescription = null,
-//                            )
-//                        },
-//                        text = {
-//                            Text(
-//                                "Scan QR-Code",
-//                            )
-//                        },
-//                        onClick = navigateToQrCodeCredentialProvisioningPage,
-//                    )
+                    OutlinedTextIconButton(
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.QrCode,
+                                contentDescription = null,
+                            )
+                        },
+                        text = {
+                            Text(Resources.BUTTON_LABEL_SCAN_QR_CODE)
+                        },
+                        onClick = navigateToQrCodeCredentialProvisioningPage,
+                    )
                     LoadDataButton(loadData)
                 }
             }
@@ -79,7 +81,12 @@ fun LoadDataView(
                 .fillMaxSize()
         ) {
             Text(
-                "Zur Abfrage Ihrer Daten werden Sie zu ID Austria weitergeleitet.",
+                Resources.INFO_TEXT_REDICRECTION_TO_ID_AUSTRIA_FOR_CREDENTIAL_PROVISIONING,
+                modifier = Modifier.padding(horizontal = 16.dp),
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                Resources.INFO_TEXT_NOTICE_DEVELOPMENT_PROVISIONING_USING_QR_CODE_CREDENTIALS,
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
         }

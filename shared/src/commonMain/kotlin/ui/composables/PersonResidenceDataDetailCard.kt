@@ -33,8 +33,8 @@ fun PersonResidenceDataDetailCard(
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             PersonAttributeDetailCardHeading(
-                avatarText = "MA",
-                title = "Meldeadresse",
+                iconText = PersonalDataCategory.ResidenceData.iconText,
+                title = PersonalDataCategory.ResidenceData.categoryTitle,
             )
 
             Column(

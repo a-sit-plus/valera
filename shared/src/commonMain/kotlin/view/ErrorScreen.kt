@@ -45,23 +45,17 @@ fun ErrorScreen(
     val message = throwable?.message ?: "Unknown Message"
     val cause = throwable?.cause?.message ?: "Unknown Cause"
     val tint: Color
-    val onButton: () -> Unit
-    val buttonText: String
     if (throwable?.message == "UncorrectableErrorException") {
         tint = Color.Red
-        buttonText = Resources.BUTTON_EXIT_APP
-        onButton = { walletMain.platformAdapter.exitApp() }
     } else {
         tint = Color(255, 210, 0)
-        buttonText = Resources.BUTTON_CLOSE
-        onButton = { walletMain.errorService.reset() }
     }
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        "Error",
+                        Resources.HEADING_LABEL_ERROR_SCREEN,
                         style = MaterialTheme.typography.headlineLarge,
                     )
                 },
@@ -89,11 +83,11 @@ fun ErrorScreen(
                         modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                     ) {
                         Text(
-                            text = "Der Fehler kann nicht behoben werden.",
+                            text = Resources.INFO_TEXT_IRREVOCABLE_ERROR,
                             style = MaterialTheme.typography.bodyMedium,
                         )
                         Text(
-                            text = "Bitte starten Sie die App erneut.",
+                            text = Resources.INFO_TEXT_RESTART_APP,
                             style = MaterialTheme.typography.bodyMedium,
                         )
                         Row(

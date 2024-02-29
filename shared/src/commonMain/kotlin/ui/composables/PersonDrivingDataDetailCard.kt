@@ -37,9 +37,10 @@ fun PersonDrivingDataDetailCard(
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             PersonAttributeDetailCardHeading(
-                avatarText = "LB",
-                title = "Lenkberechtigung",
+                iconText = PersonalDataCategory.DrivingPermissions.iconText,
+                title = PersonalDataCategory.DrivingPermissions.categoryTitle,
             )
+
             FlowRow(
                 modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth()
             ) {
