@@ -1,5 +1,6 @@
 package ui.composables.buttons
 
+import Resources
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.Icon
@@ -27,3 +28,4 @@ fun AcceptButton(
         modifier = modifier,
     )
 }
+
