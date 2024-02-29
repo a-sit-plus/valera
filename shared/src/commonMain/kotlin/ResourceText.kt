@@ -127,7 +127,7 @@ object Resources {
     const val DESCRIPTION_READ_TERMS = "Bitte lesen und akzeptieren Sie die Nutzungsbedingungen und Datenschutzerklärung."
 
     const val BIOMETRIC_AUTHENTICATION_PROMPT_TITLE = "Biometrische Authentifizierung"
-    const val BIOMETRIC_AUTHENTICATION_PROMPT_SUBTITLE = "Mit Ihrer authentifizierung stimmen Sie der Datenübermittlung zu."
+    const val BIOMETRIC_AUTHENTICATION_PROMPT_SUBTITLE = "Anmelden bei"
 
     const val CONTENT_DESCRIPTION_NAVIGATE_BACK = "Zurück"
     const val CONTENT_DESCRIPTION_PORTRAIT = "Portrait"

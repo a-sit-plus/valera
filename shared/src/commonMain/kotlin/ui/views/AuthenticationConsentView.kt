@@ -137,7 +137,7 @@ fun AuthenticationConsentView(
                     if (showBiometry) {
                         BiometryPrompt(
                             title = Resources.BIOMETRIC_AUTHENTICATION_PROMPT_TITLE,
-                            subtitle = Resources.BIOMETRIC_AUTHENTICATION_PROMPT_SUBTITLE,
+                            subtitle = "${Resources.BIOMETRIC_AUTHENTICATION_PROMPT_SUBTITLE}: $spName",
                             onSuccess = onBiometrySuccess,
                             onDismiss = onBiometryDismissed,
                         )
