@@ -21,9 +21,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import ui.composables.BiometryPrompt
 import ui.composables.OutlinedTextIconButton
 import ui.composables.buttons.LoadDataButton
 import ui.composables.buttons.NavigateUpButton
@@ -31,10 +36,25 @@ import ui.composables.buttons.NavigateUpButton
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoadDataView(
-    loadData: () -> Unit,
     navigateUp: (() -> Unit)? = null,
+    loadData: () -> Unit,
     navigateToQrCodeCredentialProvisioningPage: () -> Unit,
 ) {
+    var showBiometry by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    if (showBiometry) {
+        BiometryPrompt(
+            title = Resources.BIOMETRIC_AUTHENTICATION_PROMPT_TO_LOAD_DATA_TITLE,
+            subtitle = Resources.BIOMETRIC_AUTHENTICATION_PROMPT_TO_LOAD_DATA_SUBTITLE,
+            onSuccess = loadData,
+            onDismiss = {
+                showBiometry = false
+            },
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -70,7 +90,11 @@ fun LoadDataView(
                         },
                         onClick = navigateToQrCodeCredentialProvisioningPage,
                     )
-                    LoadDataButton(loadData)
+                    LoadDataButton(
+                        onClick = {
+                            showBiometry = true
+                        }
+                    )
                 }
             }
         }

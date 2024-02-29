@@ -120,6 +120,14 @@ fun AuthenticationConsentView(
             }
         }
     ) {
+        if (showBiometry) {
+            BiometryPrompt(
+                title = Resources.BIOMETRIC_AUTHENTICATION_PROMPT_FOR_DATA_TRANSMISSION_CONSENT_TITLE,
+                subtitle = "${Resources.BIOMETRIC_AUTHENTICATION_PROMPT_FOR_DATA_TRANSMISSION_CONSENT_SUBTITLE}: $spName",
+                onSuccess = onBiometrySuccess,
+                onDismiss = onBiometryDismissed,
+            )
+        }
         Box(modifier = Modifier.padding(it)) {
             Column(
                 modifier = Modifier.padding(horizontal = 16.dp)
@@ -134,15 +142,6 @@ fun AuthenticationConsentView(
                 Column(
                     modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState()),
                 ) {
-                    if (showBiometry) {
-                        BiometryPrompt(
-                            title = Resources.BIOMETRIC_AUTHENTICATION_PROMPT_TITLE,
-                            subtitle = "${Resources.BIOMETRIC_AUTHENTICATION_PROMPT_SUBTITLE}: $spName",
-                            onSuccess = onBiometrySuccess,
-                            onDismiss = onBiometryDismissed,
-                        )
-                    }
-
                     val hasMissingAttributes = requestedAttributes.any {
                         it.second.any {
                             it.isAvailable == false

@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.wallet.app.common.WalletMain
@@ -77,7 +77,7 @@ fun AuthenticationConsentScreen(
             )
         }
 
-        var showBiometry by remember { mutableStateOf(false) }
+        var showBiometry by rememberSaveable { mutableStateOf(false) }
 
         AuthenticationConsentView(
             spName = spName,
