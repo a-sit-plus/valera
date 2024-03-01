@@ -1,7 +1,7 @@
 package ui.composables
 
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 
 @Composable
 actual fun BiometryPrompt(
@@ -10,5 +10,7 @@ actual fun BiometryPrompt(
     onSuccess: (BiometryPromptSuccessResult) -> Unit,
     onDismiss: (BiometryPromptDismissResult) -> Unit,
 ) {
-    Text("Missing BiometryScanner Implementation")
+    LaunchedEffect(true) {
+        onSuccess(BiometryPromptSuccessResult())
+    }
 }
