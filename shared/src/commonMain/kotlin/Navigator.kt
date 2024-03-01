@@ -24,7 +24,6 @@ import io.ktor.http.Url
 import io.ktor.http.parseQueryString
 import io.ktor.util.flattenEntries
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import navigation.AuthenticationConsentPage
 import navigation.AuthenticationQrCodeScannerPage
@@ -34,6 +33,7 @@ import navigation.LoadingPage
 import navigation.LogPage
 import navigation.NavigationStack
 import navigation.Page
+import navigation.ProvisioningLoadingPage
 import navigation.QrCodeCredentialScannerPage
 import navigation.RefreshCredentialsPage
 import navigation.SettingsPage
@@ -47,6 +47,7 @@ import view.LoadingScreen
 import view.LogScreen
 import view.MyCredentialsScreen
 import view.OnboardingWrapper
+import view.ProvisioningLoadingScreen
 import view.QrCodeCredentialScannerScreen
 import view.SettingsScreen
 import view.ShowDataScreen
@@ -169,18 +170,10 @@ fun Navigator(walletMain: WalletMain) {
             }
 
             if (walletMain.provisioningService.redirectUri?.let { link.contains(it) } == true) {
-                mainNavigationStack.push(LoadingPage())
-                walletMain.scope.launch {
-                    try {
-                        walletMain.provisioningService.handleResponse(link)
-                        walletMain.snackbarService.showSnackbar(Resources.SNACKBAR_CREDENTIAL_LOADED_SUCCESSFULLY)
-                        globalBack()
-                    } catch (e: Throwable) {
-                        globalBack()
-                        walletMain.errorService.emit(e)
-                    }
-                    appLink.value = null
-                }
+                mainNavigationStack.push(ProvisioningLoadingPage(
+                    link = link
+                ))
+                appLink.value = null
                 return@LaunchedEffect
             }
         }
@@ -309,6 +302,15 @@ fun MainNavigator(
 
                     is LoadingPage -> {
                         LoadingScreen()
+                    }
+
+                    is ProvisioningLoadingPage -> {
+
+                        ProvisioningLoadingScreen(
+                            link = page.link,
+                            navigateUp = globalBack,
+                            walletMain = walletMain,
+                        )
                     }
 
 

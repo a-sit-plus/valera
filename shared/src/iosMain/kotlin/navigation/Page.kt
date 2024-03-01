@@ -27,6 +27,10 @@ actual class OnboardingTermsPage actual constructor() : OnboardingPage
 
 actual class LoadingPage : Page
 
+actual class ProvisioningLoadingPage actual constructor(
+    actual val link: String
+) : Page
+
 actual class AuthenticationQrCodeScannerPage : Page
 
 actual class ShowDataPage : Page

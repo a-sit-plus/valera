@@ -1,5 +1,6 @@
 object Resources {
     val BUILD_FOR_STAGE = BuildEnvironment.Development.abbreviation
+    val USER_AUTHENTICATION_TIMEOUT = 5 * 60
 
     const val ADD_ID_TEXT = "To add an ID, login on https://abcd.at/xyz/ with a secondary device and scan the displayed QR code."
     const val BUTTON_SCAN_QR = "Scan QR-Code"

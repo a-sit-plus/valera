@@ -42,7 +42,8 @@ fun OnboardingStartScreen(
         containerColor = Color.Transparent,
         topBar = {
             CenterAlignedTopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent,
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
                     titleContentColor = Color.White,
                 ),
                 title = {

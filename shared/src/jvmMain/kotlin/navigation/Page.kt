@@ -16,6 +16,10 @@ actual class SettingsPage : Page
 
 actual class LoadingPage actual constructor() : Page
 
+actual class ProvisioningLoadingPage actual constructor(
+    actual val link: String
+) : Page
+
 actual class AuthenticationQrCodeScannerPage actual constructor() : Page
 
 actual class ShowDataPage : Page
