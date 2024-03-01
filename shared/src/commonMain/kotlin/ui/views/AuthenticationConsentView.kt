@@ -32,6 +32,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import ui.composables.AttributeAvailability
 import ui.composables.BiometryPrompt
+import ui.composables.BiometryPromptDismissResult
+import ui.composables.BiometryPromptSuccessResult
 import ui.composables.DataCategoryDisplaySection
 import ui.composables.DataDisplaySection
 import ui.composables.PersonalDataCategory
@@ -52,8 +54,8 @@ fun AuthenticationConsentView(
     consentToDataTransmission: () -> Unit,
     cancelAuthentication: () -> Unit,
     showBiometry: Boolean,
-    onBiometrySuccess: () -> Unit,
-    onBiometryDismissed: () -> Unit,
+    onBiometrySuccess: (BiometryPromptSuccessResult) -> Unit,
+    onBiometryDismissed: (BiometryPromptDismissResult) -> Unit,
 ) {
     Scaffold(
         topBar = {

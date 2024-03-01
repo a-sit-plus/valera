@@ -7,8 +7,8 @@ import androidx.compose.runtime.Composable
 actual fun BiometryPrompt(
     title: String,
     subtitle: String,
-    onSuccess: () -> Unit,
-    onDismiss: () -> Unit,
+    onSuccess: (BiometryPromptSuccessResult) -> Unit,
+    onDismiss: (BiometryPromptDismissResult) -> Unit,
 ) {
     Text("Missing BiometryScanner Implementation")
 }
