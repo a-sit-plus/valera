@@ -48,8 +48,8 @@ actual fun BiometryPrompt(
 
             val promptInfo = BiometricPrompt.PromptInfo.Builder()
                 .setAllowedAuthenticators(BIOMETRIC_STRONG)
-                .setTitle(title) // Resources.BIOMETRIC_AUTHENTICATION_PROMPT_TITLE)
-                .setSubtitle(subtitle) // Resources.BIOMETRIC_AUTHENTICATION_PROMPT_SUBTITLE)
+                .setTitle(title)
+                .setSubtitle(subtitle)
                 .setNegativeButtonText(Resources.BUTTON_LABEL_CANCEL)
                 .build()
 
