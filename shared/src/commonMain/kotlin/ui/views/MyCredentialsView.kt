@@ -53,13 +53,9 @@ fun MyCredentialsView(
         identityData = credentials.preIdentityData.toIdentityData(decodeImage),
         ageData = credentials.ageData,
         residenceData = credentials.residenceData,
-        drivingData = credentials.drivingData,
-        admissionData = credentials.admissionData,
         navigateToIdentityData = navigateToIdentityData,
         navigateToAgeData = navigateToAgeData,
         navigateToResidenceData = navigateToResidenceData,
-        navigateToDrivingData = navigateToDrivingData,
-        navigateToAdmissionData = navigateToAdmissionData,
     )
 }
 

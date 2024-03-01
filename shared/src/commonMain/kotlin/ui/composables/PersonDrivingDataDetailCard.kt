@@ -13,19 +13,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import data.drivingPermissions
 
 data class DrivingData(
     val drivingPermissions: List<String>
 )
-
-val List<SubjectCredentialStore.StoreEntry>.drivingData: DrivingData
-    get() = DrivingData(
-        drivingPermissions = flatMap { it.drivingPermissions },
-    )
-
-
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun PersonDrivingDataDetailCard(
