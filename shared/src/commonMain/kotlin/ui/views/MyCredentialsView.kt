@@ -30,9 +30,7 @@ import ui.composables.PersonDrivingDataDetailCard
 import ui.composables.PersonIdentityDataDetailCard
 import ui.composables.PersonResidenceDataDetailCard
 import ui.composables.ResidenceData
-import ui.composables.admissionData
 import ui.composables.ageData
-import ui.composables.drivingData
 import ui.composables.preIdentityData
 import ui.composables.residenceData
 
