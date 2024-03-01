@@ -21,6 +21,10 @@ android {
 
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     signingConfigs {
         getByName("debug") {
             storeFile = file("keystore.p12")

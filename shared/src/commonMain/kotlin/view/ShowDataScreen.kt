@@ -62,7 +62,7 @@ fun ShowDataScreen(
                             )
                             Text(
                                 Resources.SECTION_HEADING_AUTHENTICATE_AT_DEVICE_SUBTITLE,
-                                style = MaterialTheme.typography.bodySmall,
+                                style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.tertiary,
                                 fontWeight = FontWeight.Bold,
                             )

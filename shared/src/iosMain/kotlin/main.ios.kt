@@ -13,8 +13,8 @@ import data.storage.createDataStore
 actual fun getPlatformName(): String = "iOS"
 
 @Composable
-actual fun getColorScheme(): ColorScheme{
-    return if(isSystemInDarkTheme()){
+actual fun getColorScheme(): ColorScheme {
+    return if (isSystemInDarkTheme()) {
         darkColorScheme()
     } else {
         lightColorScheme()
@@ -22,6 +22,19 @@ actual fun getColorScheme(): ColorScheme{
 }
 
 
-fun MainViewController(objectFactory: ObjectFactory, platformAdapter: PlatformAdapter) = ComposeUIViewController {
-    App(WalletMain(objectFactory, RealDataStoreService(createDataStore(), platformAdapter), platformAdapter))
+fun MainViewController(
+    objectFactory: ObjectFactory,
+    platformAdapter: PlatformAdapter,
+    buildContext: BuildContext,
+) {
+    ComposeUIViewController {
+        App(
+            WalletMain(
+                objectFactory,
+                RealDataStoreService(createDataStore(), platformAdapter),
+                platformAdapter,
+                buildContext,
+            )
+        )
+    }
 }

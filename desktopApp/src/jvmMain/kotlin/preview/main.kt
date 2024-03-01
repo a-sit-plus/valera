@@ -195,7 +195,7 @@ fun PreviewNavigationScreen() {
                             isSaveEnabled = false,
                             onChangeIsSaveEnabled = {},
                             onClickSaveConfiguration = {},
-                            stage = "T",
+                            buildType = "T",
                             version = "1.0.0 / 2389237",
                             onClickFAQs = {},
                             onClickDataProtectionPolicy = {},

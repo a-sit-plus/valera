@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app.common
 
+import BuildContext
 import ErrorService
 import Resources
 import androidx.compose.runtime.mutableStateOf
@@ -21,7 +22,8 @@ class WalletMain(
     val objectFactory: ObjectFactory,
     private val dataStoreService: DataStoreService,
     val platformAdapter: PlatformAdapter,
-    val errorService: ErrorService = ErrorService(mutableStateOf(false), mutableStateOf(null))
+    val buildContext: BuildContext,
+    val errorService: ErrorService = ErrorService(mutableStateOf(false), mutableStateOf(null)),
 ) {
     lateinit var walletConfig: WalletConfig
     private lateinit var cryptoService: CryptoService
@@ -63,10 +65,10 @@ class WalletMain(
 
     fun getLog(): List<String>{
         val rawLog = platformAdapter.readFromFile("log.txt", "logs")
-        if (rawLog != null) {
-            return rawLog.split(regex = regex).filter { it.isNotEmpty() }
+        return if (rawLog != null) {
+            rawLog.split(regex = regex).filter { it.isNotEmpty() }
         } else {
-            return listOf("")
+            listOf("")
         }
     }
 }
