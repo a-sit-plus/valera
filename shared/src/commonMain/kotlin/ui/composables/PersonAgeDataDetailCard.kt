@@ -13,30 +13,26 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import data.ageAtLeast14
-import data.ageAtLeast16
-import data.ageAtLeast18
-import data.ageAtLeast21
+import data.CredentialExtractor
 
 data class AgeData(
     val ageLowerBounds: List<Int> = listOf(),
     val ageUpperBounds: List<Int> = listOf(),
 )
 
-val List<SubjectCredentialStore.StoreEntry>.ageData: AgeData
+val CredentialExtractor.ageData: AgeData
     get() = AgeData(
         ageLowerBounds = listOfNotNull(
-            firstNotNullOfOrNull { if(it.ageAtLeast14 == true) 14 else null },
-            firstNotNullOfOrNull { if(it.ageAtLeast16 == true) 16 else null },
-            firstNotNullOfOrNull { if(it.ageAtLeast18 == true) 18 else null },
-            firstNotNullOfOrNull { if(it.ageAtLeast21 == true) 21 else null },
+            if(ageAtLeast14 == true) 14 else null,
+            if(ageAtLeast16 == true) 16 else null,
+            if(ageAtLeast18 == true) 18 else null,
+            if(ageAtLeast21 == true) 21 else null,
         ),
         ageUpperBounds = listOfNotNull(
-            firstNotNullOfOrNull { if(it.ageAtLeast14 == false) 14 else null },
-            firstNotNullOfOrNull { if(it.ageAtLeast16 == false) 16 else null },
-            firstNotNullOfOrNull { if(it.ageAtLeast18 == false) 18 else null },
-            firstNotNullOfOrNull { if(it.ageAtLeast21 == false) 21 else null },
+            if(ageAtLeast14 == false) 14 else null,
+            if(ageAtLeast16 == false) 16 else null,
+            if(ageAtLeast18 == false) 18 else null,
+            if(ageAtLeast21 == false) 21 else null,
         ),
     )
 

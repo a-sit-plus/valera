@@ -11,16 +11,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import data.mainAddress
+import data.CredentialExtractor
 
 data class ResidenceData(
     val mainAddress: String?,
 )
 
-val List<SubjectCredentialStore.StoreEntry>.residenceData: ResidenceData
+val CredentialExtractor.residenceData: ResidenceData
     get() = ResidenceData(
-        mainAddress = firstNotNullOfOrNull { it.mainAddress },
+        mainAddress = this.mainAddress,
     )
 
 @Composable

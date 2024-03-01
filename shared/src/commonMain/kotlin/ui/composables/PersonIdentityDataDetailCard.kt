@@ -16,11 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
-import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import data.dateOfBirth
-import data.firstname
-import data.lastname
-import data.portrait
+import data.CredentialExtractor
 import kotlinx.datetime.LocalDate
 
 data class PreIdentityData(
@@ -71,12 +67,12 @@ data class IdentityData(
     val portrait: ImageBitmap?,
 )
 
-val List<SubjectCredentialStore.StoreEntry>.preIdentityData: PreIdentityData
+val CredentialExtractor.preIdentityData: PreIdentityData
     get() = PreIdentityData(
-        firstname = firstNotNullOfOrNull { it.firstname },
-        lastname = firstNotNullOfOrNull { it.lastname },
-        dateOfBirth = firstNotNullOfOrNull { it.dateOfBirth },
-        portrait = firstNotNullOfOrNull { it.portrait },
+        firstname = this.firstname,
+        lastname = this.lastname,
+        dateOfBirth = this.dateOfBirth,
+        portrait = this.portrait,
     )
 
 @Composable

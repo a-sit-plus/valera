@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import data.CredentialExtractor
 import ui.composables.AdmissionData
 import ui.composables.AgeData
 import ui.composables.DrivingData
@@ -46,11 +47,12 @@ fun MyCredentialsView(
     navigateToDrivingData: (() -> Unit)? = null,
     navigateToAdmissionData: (() -> Unit)? = null,
 ) {
+    val credentialExtractor = CredentialExtractor(credentials)
     MyDataView(
         refreshCredentials = onRefreshCredentials,
-        identityData = credentials.preIdentityData.toIdentityData(decodeImage),
-        ageData = credentials.ageData,
-        residenceData = credentials.residenceData,
+        identityData = credentialExtractor.preIdentityData.toIdentityData(decodeImage),
+        ageData = credentialExtractor.ageData,
+        residenceData = credentialExtractor.residenceData,
         navigateToIdentityData = navigateToIdentityData,
         navigateToAgeData = navigateToAgeData,
         navigateToResidenceData = navigateToResidenceData,

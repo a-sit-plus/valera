@@ -10,7 +10,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.idaustria.IdAustriaScheme
-import data.containsIdAustriaAttribute
+import data.CredentialExtractor
 import data.idAustriaAttributeTranslation
 import kotlinx.coroutines.launch
 import ui.composables.AttributeAvailability
@@ -33,14 +33,12 @@ fun AuthenticationConsentScreen(
         .collectAsState(null)
 
     storeContainerState?.let { storeContainer ->
-        val credentials = storeContainer.credentials
+        val credentialExtractor = CredentialExtractor(storeContainer.credentials)
 
         val claimAvailabilities = claims.associateWith { claim ->
             AttributeAvailability(
                 attributeName = claim,
-                isAvailable = credentials.firstOrNull {
-                    it.containsIdAustriaAttribute(claim)
-                } != null
+                isAvailable = credentialExtractor.containsIdAustriaAttribute(claim)
             )
         }
 
