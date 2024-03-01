@@ -1,4 +1,6 @@
 object Resources {
+    val BUILD_FOR_STAGE = BuildEnvironment.Development.abbreviation
+
     const val ADD_ID_TEXT = "To add an ID, login on https://abcd.at/xyz/ with a secondary device and scan the displayed QR code."
     const val BUTTON_SCAN_QR = "Scan QR-Code"
     const val BUTTON_LOGIN_ID_AUSTRIA = "Login with ID Austria"
@@ -96,6 +98,7 @@ object Resources {
     const val TEXT_LABEL_STAGE = "Stage"
     const val TEXT_LABEL_BUILD_TYPE = "Build"
     const val TEXT_LABEL_VERSION = "Version"
+    const val TEXT_LABEL_BUILD = "Build"
 
     const val HEADING_LABEL_AUTHENTICATE_AT_DEVICE_TITLE = "Anmelden"
     const val HEADING_LABEL_AUTHENTICATE_AT_DEVICE_SUBTITLE = "an Schalter oder Maschine"

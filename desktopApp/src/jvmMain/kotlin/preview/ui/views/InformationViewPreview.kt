@@ -1,5 +1,6 @@
 package preview.ui.views
 
+import BuildEnvironment
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import at.asitplus.wallet.lib.data.ConstantIndex
@@ -22,6 +23,7 @@ private fun main() = application {
             onClickLicenses = {},
             onClickShareLogFile = {},
             onClickResetApp = {},
+            stage = BuildEnvironment.Development.abbreviation,
         )
     }
 }

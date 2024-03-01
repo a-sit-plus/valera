@@ -1,3 +1,9 @@
+enum class BuildEnvironment(val abbreviation: String) {
+    Development("D"),
+    QualityAssurance("Q"),
+    Production("P");
+}
+
 data class BuildContext(
     val buildType: String,
     val versionCode: Int,

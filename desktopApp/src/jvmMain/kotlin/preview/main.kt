@@ -1,5 +1,6 @@
 package preview
 
+import BuildEnvironment
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -202,6 +203,7 @@ fun PreviewNavigationScreen() {
                             onClickLicenses = {},
                             onClickShareLogFile = {},
                             onClickResetApp = {},
+                            stage = BuildEnvironment.Development.abbreviation,
                         )
                     }
 

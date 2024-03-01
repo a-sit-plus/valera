@@ -54,6 +54,7 @@ fun SettingsScreen(
     walletMain: WalletMain,
 ) {
     // TODO("get stage and version")
+    val stage = Resources.BUILD_FOR_STAGE
     val buildType = walletMain.buildContext.buildType
     val version = walletMain.buildContext.versionName
 
@@ -91,6 +92,7 @@ fun SettingsScreen(
             )
         },
         buildType = buildType,
+        stage = stage,
         version = version,
         onClickFAQs = {
             walletMain.snackbarService.showSnackbar(Resources.ERROR_FEATURE_NOT_YET_AVAILABLE)
@@ -116,8 +118,9 @@ fun SettingsView(
     isSaveEnabled: Boolean,
     onChangeIsSaveEnabled: (Boolean) -> Unit,
     onClickSaveConfiguration: () -> Unit,
-    buildType: String,
+    stage: String,
     version: String,
+    buildType: String,
     onClickFAQs: () -> Unit,
     onClickDataProtectionPolicy: () -> Unit,
     onClickLicenses: () -> Unit,
@@ -158,8 +161,8 @@ fun SettingsView(
                 modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
                     .fillMaxWidth()
             ) {
-                Text("${Resources.TEXT_LABEL_VERSION}: $version")
-                Text("${Resources.TEXT_LABEL_BUILD_TYPE}: $buildType")
+                Text("${Resources.TEXT_LABEL_STAGE}: $stage")
+                Text("${Resources.TEXT_LABEL_BUILD}: $version-$buildType")
             }
         },
         floatingActionButton = {

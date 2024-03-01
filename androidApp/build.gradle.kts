@@ -21,10 +21,6 @@ android {
 
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
 
-    buildFeatures {
-        buildConfig = true
-    }
-
     signingConfigs {
         getByName("debug") {
             storeFile = file("keystore.p12")
@@ -44,7 +40,10 @@ android {
         minSdk = (findProperty("android.minSdk") as String).toInt()
         targetSdk = (findProperty("android.targetSdk") as String).toInt()
         versionCode = 1
-        versionName = "1.0"
+        versionName = "0.0.1"
+    }
+    buildFeatures {
+        buildConfig = true
     }
     buildTypes {
         getByName("debug") {
