@@ -60,7 +60,7 @@ object Resources {
     const val APP_DISPLAY_NAME = "Wallet Demo App"
 
     const val BUTTON_LABEL_AUTHENTICATE = "Anmelden"
-    const val BUTTON_LABEL_SHOW_DATA = "Anmelden"
+    const val BUTTON_LABEL_SHOW_DATA = "Vorzeigen"
     const val BUTTON_LABEL_ACCEPT = "Akzeptieren"
     const val BUTTON_LABEL_CANCEL = "Abbrechen"
     const val BUTTON_LABEL_CONSENT = "Zustimmen"
