@@ -104,7 +104,8 @@ fun AuthenticationConsentScreen(
                     }
                 }
             },
-            onBiometryDismissed = {
+            onBiometryDismissed = { biometryPromptDismissResult ->
+                walletMain.snackbarService.showSnackbar(biometryPromptDismissResult.errorString)
                 showBiometry = false
             },
         )
