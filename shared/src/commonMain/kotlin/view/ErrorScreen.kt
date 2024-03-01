@@ -1,6 +1,7 @@
 package view
 
 import Resources
+import UncorrectableErrorException
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -44,11 +45,10 @@ fun ErrorScreen(
     val throwable = walletMain.errorService.throwable.value
     val message = throwable?.message ?: "Unknown Message"
     val cause = throwable?.cause?.message ?: "Unknown Cause"
-    val tint: Color
-    if (throwable?.message == "UncorrectableErrorException") {
-        tint = Color.Red
+    val tint = if (throwable is UncorrectableErrorException) {
+        Color.Red
     } else {
-        tint = Color(255, 210, 0)
+        Color(255, 210, 0)
     }
     Scaffold(
         topBar = {
