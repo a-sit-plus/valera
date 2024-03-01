@@ -21,6 +21,31 @@ fun PersonAttributeDetailCardHeading(
     iconText: String,
     actionButtons: (@Composable RowScope.() -> Unit) = {},
 ) {
+    PersonAttributeDetailCardHeading(
+        icon = {
+            TextIcon(
+                text = iconText,
+                fontWeight = FontWeight.Bold,
+            )
+        },
+        title = {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+        },
+    ) {
+        actionButtons()
+    }
+}
+
+@Composable
+fun PersonAttributeDetailCardHeading(
+    icon: @Composable RowScope.() -> Unit,
+    title: @Composable RowScope.() -> Unit,
+    actionButtons: (@Composable RowScope.() -> Unit) = {},
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -30,17 +55,32 @@ fun PersonAttributeDetailCardHeading(
         Row(
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            TextIcon(
-                text = iconText,
-                fontWeight = FontWeight.Bold,
-            )
+            icon()
             Spacer(modifier = Modifier.width(16.dp))
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
+            title()
         }
         actionButtons()
     }
+}
+
+
+@Composable
+fun PersonAttributeDetailCardHeadingTitle(
+    title: String
+) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.SemiBold,
+    )
+}
+
+@Composable
+fun PersonAttributeDetailCardHeadingTextIcon(
+    iconText: String
+) {
+    TextIcon(
+        text = iconText,
+        fontWeight = FontWeight.Bold,
+    )
 }

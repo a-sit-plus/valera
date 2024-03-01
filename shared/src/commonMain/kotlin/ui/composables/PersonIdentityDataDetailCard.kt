@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -85,20 +86,32 @@ fun PersonIdentityDataDetailCard(
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             PersonAttributeDetailCardHeading(
-                iconText = PersonalDataCategory.IdentityData.iconText,
-                title = PersonalDataCategory.IdentityData.categoryTitle,
+                icon = {
+                    if (identityData.portrait != null) {
+                        IconButton(
+                            onClick = {},
+                            enabled = false,
+                        ) {
+                            Image(
+                                bitmap = identityData.portrait,
+                                contentDescription = Resources.CONTENT_DESCRIPTION_PORTRAIT,
+                            )
+                        }
+                    } else {
+                        PersonAttributeDetailCardHeadingTextIcon(
+                            PersonalDataCategory.IdentityData.iconText
+                        )
+                    }
+                },
+                title = {
+                    PersonAttributeDetailCardHeadingTitle(PersonalDataCategory.IdentityData.categoryTitle)
+                },
             )
 
             Row(
                 modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.Start,
             ) {
-                if (identityData.portrait != null) {
-                    Image(
-                        bitmap = identityData.portrait,
-                        contentDescription = Resources.CONTENT_DESCRIPTION_PORTRAIT,
-                    )
-                }
                 val textGap = 4.dp
                 Column(
                     horizontalAlignment = Alignment.Start,
