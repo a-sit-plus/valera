@@ -60,7 +60,7 @@ fun ErrorScreen(
                     )
                 },
                 navigationIcon = {
-                    if (throwable?.message != "UncorrectableErrorException") {
+                    if (throwable !is UncorrectableErrorException) {
                         NavigateUpButton(
                             onClick = {
                                 walletMain.errorService.reset()
@@ -71,7 +71,7 @@ fun ErrorScreen(
             )
         },
         bottomBar = {
-            if (throwable?.message == "UncorrectableErrorException") {
+            if (throwable is UncorrectableErrorException) {
                 Surface(
                     color = MaterialTheme.colorScheme.surfaceColorAtElevation(
                         BottomAppBarDefaults.ContainerElevation

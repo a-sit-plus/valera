@@ -1,1 +1,1 @@
-class UncorrectableErrorException(override val cause: Throwable?): Throwable(message = "UncorrectableErrorException", cause = cause)
+class UncorrectableErrorException(override val cause: Throwable?): Throwable(cause = cause)
