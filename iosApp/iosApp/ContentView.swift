@@ -5,14 +5,18 @@ import shared
 struct ComposeView: UIViewControllerRepresentable {
     
     func makeUIViewController(context: Context) -> UIViewController {
+        #if DEBUG
+        let buildType = "debug"
+        #else
+        let buildType = "release"
+        #endif
         return Main_iosKt.MainViewController(
             objectFactory: SwiftObjectFactory(),
             platformAdapter: SwiftPlatformAdapter(),
             buildContext: BuildContext(
-                // TODO("actually get these data points")
-                buildType: "debug",
-                versionCode: 1,
-                versionName: "0.1",
+                buildType: buildType,
+                versionCode: Bundle.main.infoDictionary?["CFBundleVersion"] as? Int32 ?? 1,
+                versionName: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String  ?? "1.0.0"
             )
         )
     }
