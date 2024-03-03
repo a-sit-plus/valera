@@ -9,6 +9,7 @@ import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.WalletMain
 import data.storage.RealDataStoreService
 import data.storage.createDataStore
+import platform.UIKit.UIViewController
 
 actual fun getPlatformName(): String = "iOS"
 
@@ -26,15 +27,13 @@ fun MainViewController(
     objectFactory: ObjectFactory,
     platformAdapter: PlatformAdapter,
     buildContext: BuildContext,
-) {
-    ComposeUIViewController {
-        App(
-            WalletMain(
-                objectFactory,
-                RealDataStoreService(createDataStore(), platformAdapter),
-                platformAdapter,
-                buildContext,
-            )
+): UIViewController = ComposeUIViewController {
+    App(
+        WalletMain(
+            objectFactory,
+            RealDataStoreService(createDataStore(), platformAdapter),
+            platformAdapter,
+            buildContext,
         )
-    }
+    )
 }
