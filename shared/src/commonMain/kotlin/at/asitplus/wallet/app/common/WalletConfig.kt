@@ -73,8 +73,8 @@ class WalletConfig(
 @Serializable
 data class ConfigData(
     val host: String,
-    val credentialRepresentation: ConstantIndex.CredentialRepresentation,
-    val isConditionsAccepted: Boolean,
+    val credentialRepresentation: ConstantIndex.CredentialRepresentation = ConstantIndex.CredentialRepresentation.PLAIN_JWT,
+    val isConditionsAccepted: Boolean = false
 )
 
 private val ConfigDataDefaults = ConfigData(
