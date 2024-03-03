@@ -206,10 +206,9 @@ private fun RealDeviceCamera(
                 AVCaptureDeviceInput.deviceInputWithDevice(device = camera, error = null)!!
             captureSession.addInput(captureDeviceInput)
             captureSession.addOutput(captureMetadataOutput)
+            captureMetadataOutput.metadataObjectTypes = listOf(AVMetadataObjectTypeQRCode)
         }
     }
-
-    captureMetadataOutput.metadataObjectTypes = listOf(AVMetadataObjectTypeQRCode)
 
     val cameraPreviewLayer = remember {
         AVCaptureVideoPreviewLayer(session = captureSession)
