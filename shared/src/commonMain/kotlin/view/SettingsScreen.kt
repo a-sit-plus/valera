@@ -53,7 +53,6 @@ fun SettingsScreen(
     onClickResetApp: () -> Unit,
     walletMain: WalletMain,
 ) {
-    // TODO("get stage and version")
     val stage = Resources.BUILD_FOR_STAGE
     val buildType = walletMain.buildContext.buildType
     val version = walletMain.buildContext.versionName

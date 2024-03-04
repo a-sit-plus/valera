@@ -9,7 +9,6 @@ private fun main() = application {
         LoadDataView(
             navigateUp = {},
             loadData = {},
-            navigateToQrCodeCredentialProvisioningPage = {},
         )
     }
 }

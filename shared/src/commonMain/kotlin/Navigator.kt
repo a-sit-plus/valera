@@ -34,7 +34,6 @@ import navigation.LogPage
 import navigation.NavigationStack
 import navigation.Page
 import navigation.ProvisioningLoadingPage
-import navigation.QrCodeCredentialScannerPage
 import navigation.RefreshCredentialsPage
 import navigation.SettingsPage
 import navigation.ShowDataPage
@@ -48,7 +47,6 @@ import view.LogScreen
 import view.MyCredentialsScreen
 import view.OnboardingWrapper
 import view.ProvisioningLoadingScreen
-import view.QrCodeCredentialScannerScreen
 import view.SettingsScreen
 import view.ShowDataScreen
 
@@ -251,18 +249,6 @@ fun MainNavigator(
                             navigateToRefreshCredentialsPage = {
                                 navigationStack.push(RefreshCredentialsPage())
                             },
-                            navigateToQrCodeCredentialProvisioningPage = {
-                                navigationStack.push(
-                                    QrCodeCredentialScannerPage()
-                                )
-                            },
-                            walletMain = walletMain,
-                        )
-                    }
-
-                    is QrCodeCredentialScannerPage -> {
-                        QrCodeCredentialScannerScreen(
-                            navigateUp = navigateUp,
                             walletMain = walletMain,
                         )
                     }
@@ -270,11 +256,6 @@ fun MainNavigator(
                     is RefreshCredentialsPage -> {
                         LoadDataScreen(
                             navigateUp = navigateUp,
-                            navigateToQrCodeCredentialProvisioningPage = {
-                                navigationStack.push(
-                                    QrCodeCredentialScannerPage()
-                                )
-                            },
                             walletMain = walletMain,
                         )
                     }
@@ -305,7 +286,6 @@ fun MainNavigator(
                     }
 
                     is ProvisioningLoadingPage -> {
-
                         ProvisioningLoadingScreen(
                             link = page.link,
                             navigateUp = globalBack,

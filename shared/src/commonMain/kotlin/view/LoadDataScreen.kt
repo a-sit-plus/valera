@@ -9,7 +9,6 @@ import ui.views.LoadDataView
 @Composable
 fun LoadDataScreen(
     navigateUp: () -> Unit,
-    navigateToQrCodeCredentialProvisioningPage: () -> Unit,
     walletMain: WalletMain,
 ) {
     LoadDataView(
@@ -24,6 +23,5 @@ fun LoadDataScreen(
             }
         },
         navigateUp = navigateUp,
-        navigateToQrCodeCredentialProvisioningPage = navigateToQrCodeCredentialProvisioningPage,
     )
 }

@@ -11,7 +11,6 @@ import ui.views.MyCredentialsView
 @Composable
 fun MyCredentialsScreen(
     navigateToRefreshCredentialsPage: () -> Unit,
-    navigateToQrCodeCredentialProvisioningPage: () -> Unit,
     walletMain: WalletMain,
 ) {
     val storeContainerState by walletMain.subjectCredentialStore.observeStoreContainer()
@@ -30,7 +29,6 @@ fun MyCredentialsScreen(
                     }
                 },
                 navigateUp = null,
-                navigateToQrCodeCredentialProvisioningPage = navigateToQrCodeCredentialProvisioningPage,
             )
         } else {
             MyCredentialsView(
