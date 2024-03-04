@@ -10,7 +10,6 @@ object Resources {
     const val LAST_NAME = "Last name"
     const val BIRTH_DATE = "Date of Birth"
     const val BUTTON_DELETE = "Delete"
-    const val BUTTON_CLOSE = "Close"
     const val BUTTON_CONTINUE = "Continue"
     const val ICONS_FROM = "Icons from"
     const val PICTURES_FROM = "Pictures from"
@@ -52,6 +51,7 @@ object Resources {
 
     const val APP_DISPLAY_NAME = "Wallet Demo App"
 
+    const val BUTTON_LABEL_CLOSE_APP = "Beenden"
     const val BUTTON_LABEL_AUTHENTICATE = "Anmelden"
     const val BUTTON_LABEL_SHOW_DATA = "Vorzeigen"
     const val BUTTON_LABEL_ACCEPT = "Akzeptieren"

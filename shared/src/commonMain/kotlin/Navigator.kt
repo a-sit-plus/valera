@@ -320,10 +320,10 @@ fun MainNavigator(
                                 navigationStack.push(AuthenticationQrCodeScannerPage())
                             },
                             onClickShowDataToExecutive = {
-                                walletMain.snackbarService.showSnackbar("Incomplete Implementation")
+                                walletMain.snackbarService.showSnackbar(Resources.ERROR_FEATURE_NOT_YET_AVAILABLE)
                             },
                             onClickShowDataToOtherCitizen = {
-                                walletMain.snackbarService.showSnackbar("Incomplete Implementation")
+                                walletMain.snackbarService.showSnackbar(Resources.ERROR_FEATURE_NOT_YET_AVAILABLE)
                             },
                         )
                     }

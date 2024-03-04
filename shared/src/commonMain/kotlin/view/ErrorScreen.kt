@@ -103,7 +103,7 @@ fun ErrorScreen(
                                     )
                                 },
                                 text = {
-                                    Text(Resources.BUTTON_CLOSE)
+                                    Text(Resources.BUTTON_LABEL_CLOSE_APP)
                                 },
                                 onClick = {
                                     walletMain.platformAdapter.exitApp()
