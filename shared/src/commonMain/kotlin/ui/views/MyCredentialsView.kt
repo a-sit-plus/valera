@@ -110,7 +110,6 @@ fun MyDataView(
                 ) {
                     PersonIdentityDataDetailCard(
                         identityData = identityData,
-                        onClickOpenDetails = {},
                         modifier = paddingModifier.padding(bottom = gapSize),
                     )
                 }
@@ -124,7 +123,6 @@ fun MyDataView(
                 ) {
                     PersonAgeDataDetailCard(
                         ageData = ageData,
-                        onClickOpenDetails = {},
                         modifier = paddingModifier.padding(bottom = gapSize),
                     )
                 }
@@ -137,7 +135,6 @@ fun MyDataView(
                 ) {
                     PersonResidenceDataDetailCard(
                         residenceData = residenceData,
-                        onClickOpenDetails = {},
                         modifier = paddingModifier.padding(bottom = gapSize),
                     )
                 }
