@@ -48,6 +48,7 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.idaustria.IdAustriaCredential
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import io.ktor.util.decodeBase64Bytes
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 
@@ -93,7 +94,7 @@ fun AddDialog(openDialog: MutableState<Boolean>, onScanQrCode: () -> Unit, onLog
                         Spacer(Modifier.size(30.dp))
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable(onClick = {onScanQrCode()}).fillMaxWidth()) {
                             Box(Modifier.size(30.dp), contentAlignment = Alignment.Center){
-                                Image(painterResource("icons8-qr-code-64.png"), contentDescription = null, Modifier.height(30.dp), colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onTertiaryContainer))
+                                Image(painterResource(DrawableResource("icons8-qr-code-64.png")), contentDescription = null, Modifier.height(30.dp), colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onTertiaryContainer))
                             }
                             Spacer(Modifier.size(10.dp))
                             Text(Resources.BUTTON_SCAN_QR, fontSize = 15.sp, fontWeight = FontWeight.Bold)
@@ -101,7 +102,7 @@ fun AddDialog(openDialog: MutableState<Boolean>, onScanQrCode: () -> Unit, onLog
                         Spacer(Modifier.size(30.dp))
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable(onClick = {onLoginWithIdAustria()}).fillMaxWidth()) {
                             Box(Modifier.size(30.dp), contentAlignment = Alignment.Center){
-                                Image(painterResource("icons8-login-100.png"), contentDescription = null, Modifier.height(30.dp), colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onTertiaryContainer))
+                                Image(painterResource(DrawableResource("icons8-login-100.png")), contentDescription = null, Modifier.height(30.dp), colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onTertiaryContainer))
                             }
                             Spacer(Modifier.size(10.dp))
                             Text(Resources.BUTTON_LOGIN_ID_AUSTRIA, fontSize = 15.sp, fontWeight = FontWeight.Bold)
@@ -150,7 +151,7 @@ fun AddIdCard(onScanQrCode: () -> Unit, onLoginWithIdAustria: () -> Unit) {
                 Spacer(Modifier.size(30.dp))
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable(onClick = {onScanQrCode()}).fillMaxWidth()) {
                     Box(Modifier.size(30.dp), contentAlignment = Alignment.Center){
-                        Image(painterResource("icons8-qr-code-64.png"), contentDescription = null, Modifier.height(30.dp), colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onTertiaryContainer))
+                        Image(painterResource(DrawableResource("icons8-qr-code-64.png")), contentDescription = null, Modifier.height(30.dp), colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onTertiaryContainer))
                     }
                     Spacer(Modifier.size(10.dp))
                     Text(Resources.BUTTON_SCAN_QR, fontSize = 15.sp, fontWeight = FontWeight.Bold)
@@ -158,7 +159,7 @@ fun AddIdCard(onScanQrCode: () -> Unit, onLoginWithIdAustria: () -> Unit) {
                 Spacer(Modifier.size(30.dp))
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable(onClick = {onLoginWithIdAustria()}).fillMaxWidth()) {
                     Box(Modifier.size(30.dp), contentAlignment = Alignment.Center){
-                        Image(painterResource("icons8-login-100.png"), contentDescription = null, Modifier.height(30.dp), colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onTertiaryContainer))
+                        Image(painterResource(DrawableResource("icons8-login-100.png")), contentDescription = null, Modifier.height(30.dp), colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onTertiaryContainer))
                     }
                     Spacer(Modifier.size(10.dp))
                     Text(Resources.BUTTON_LOGIN_ID_AUSTRIA, fontSize = 15.sp, fontWeight = FontWeight.Bold)
@@ -265,7 +266,7 @@ fun IdAustriaCredentialCard(onCredential: (id: String) -> Unit, firstname: Strin
                     if (portrait != null){
                         Image(walletMain.platformAdapter.decodeImage(portrait), contentDescription = "")
                     } else {
-                        Image(painterResource("3d-casual-life-smiling-face-with-smiling-eyes.png"), contentDescription = null, Modifier.size(150.dp), contentScale = ContentScale.Crop)
+                        Image(painterResource(DrawableResource("3d-casual-life-smiling-face-with-smiling-eyes.png")), contentDescription = null, Modifier.size(150.dp), contentScale = ContentScale.Crop)
                     }
                 }
                 Spacer(Modifier.size(30.dp))
