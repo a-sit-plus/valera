@@ -84,7 +84,7 @@ object Resources {
     const val ATTRIBUTE_FRIENDLY_NAME_MAIN_ADDRESS = "Hauptwohnsitz"
 
     const val ATTRIBUTE_FRIENDLY_NAME_DATA_RECIPIENT_NAME = "Name"
-    const val ATTRIBUTE_FRIENDLY_NAME_DATA_RECIPIENT_LOCATION = "Hauptwohnsitz"
+    const val ATTRIBUTE_FRIENDLY_NAME_DATA_RECIPIENT_LOCATION = "Ort"
 
     const val NAVIGATION_BUTTON_LABEL_SHOW_DATA = "Daten Vorzeigen"
     const val NAVIGATION_BUTTON_LABEL_MY_DATA = "Meine Daten"
