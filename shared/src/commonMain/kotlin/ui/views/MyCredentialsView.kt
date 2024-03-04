@@ -130,7 +130,12 @@ fun MyDataView(
             if (residenceData != null) {
                 if (
                     listOf(
-                        residenceData.mainAddress != null,
+                        residenceData.villageName != null,
+                        residenceData.postalCode != null,
+                        residenceData.streetName != null,
+                        residenceData.houseNumber != null,
+                        residenceData.stairName != null,
+                        residenceData.doorName != null,
                     ).any { it }
                 ) {
                     PersonResidenceDataDetailCard(

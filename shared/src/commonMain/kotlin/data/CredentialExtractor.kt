@@ -4,8 +4,11 @@ import Resources
 import at.asitplus.wallet.idaustria.IdAustriaCredential
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.jsonSerializer
 import io.ktor.util.decodeBase64Bytes
+import io.ktor.util.decodeBase64String
 import kotlinx.datetime.LocalDate
+import kotlinx.serialization.Serializable
 
 private val SubjectCredentialStore.StoreEntry.Vc.unsupportedCredentialSubjectMessage: String
     get() = "Unsupported credential subject: ${this.vc.vc.credentialSubject}"
@@ -32,6 +35,18 @@ val String.idAustriaAttributeTranslation: String
         IdAustriaScheme.Attributes.MAIN_ADDRESS -> Resources.ATTRIBUTE_FRIENDLY_NAME_MAIN_ADDRESS
         else -> throw Exception("Unsupported IdAustria attribute name: $this")
     }
+
+@Serializable
+private data class MainAddressAdapter(
+    val Gemeindekennziffer: String? = null,
+    val Gemeindebezeichnung: String? = null,
+    val Postleitzahl: String? = null,
+    val Ortschaft: String? = null,
+    val Strasse: String? = null,
+    val Hausnummer: String? = null,
+    val Stiege: String? = null,
+    val Tuer: String? = null,
+)
 
 class CredentialExtractor(
     credentials: List<SubjectCredentialStore.StoreEntry>,
@@ -271,13 +286,11 @@ class CredentialExtractor(
         }
     }
 
-    val mainAddress: String? = credentials.firstNotNullOfOrNull { credential ->
+    private val mainAddressBase64: String? = credentials.firstNotNullOfOrNull { credential ->
         when (credential) {
             is SubjectCredentialStore.StoreEntry.Vc -> {
                 when (val credentialSubject = credential.vc.vc.credentialSubject) {
-                    is IdAustriaCredential -> {
-                        credentialSubject.mainAddress
-                    }
+                    is IdAustriaCredential -> credentialSubject.mainAddress
 
                     else -> TODO(credential.unsupportedCredentialSubjectMessage)
                 }
@@ -297,4 +310,22 @@ class CredentialExtractor(
             else -> TODO(credential.unsupportedCredentialStoreEntry)
         }
     }
+
+    private val mainAddressJson: String? = mainAddressBase64?.decodeBase64String()
+
+    private val mainAddress: MainAddressAdapter? = mainAddressJson?.let {
+        jsonSerializer.decodeFromString<MainAddressAdapter>(it)
+    }
+
+    val mainAddressStreetName: String? = mainAddress?.Strasse
+
+    val mainAddressHouseNumber: String? = mainAddress?.Hausnummer
+
+    val mainAddressStair: String? = mainAddress?.Stiege
+
+    val mainAddressDoor: String? = mainAddress?.Tuer
+
+    val mainAddressVillageName: String? = mainAddress?.Ortschaft
+
+    val mainAddressPostalCode: String? = mainAddress?.Postleitzahl
 }

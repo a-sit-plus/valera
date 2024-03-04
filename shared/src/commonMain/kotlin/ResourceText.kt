@@ -96,6 +96,8 @@ object Resources {
     const val ID_FORMAT_SD_JWT_LABEL = "SD-JWT"
     const val ID_FORMAT_ISO_MDOC_LABEL = "ISO_MDOC"
 
+    const val TEXT_LABEL_STAIR = "Stiege"
+    const val TEXT_LABEL_DOOR = "Tür"
     const val TEXT_LABEL_STAGE = "Stage"
     const val TEXT_LABEL_BUILD_TYPE = "Build"
     const val TEXT_LABEL_VERSION = "Version"
