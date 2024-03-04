@@ -32,7 +32,7 @@ fun OnboardingStartScreen(
 ) {
     Box() {
         Image(
-            painter = painterResource(Resources.ONBOARDING_START_SCREEN_BACKGROUND_FILENAME),
+            painter = painterResource(Resources.FILENAME_ONBOARDING_START_SCREEN_BACKGROUND),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize(),

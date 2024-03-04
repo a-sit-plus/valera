@@ -2,6 +2,13 @@ object Resources {
     val BUILD_FOR_STAGE = BuildEnvironment.Development.abbreviation
     val USER_AUTHENTICATION_TIMEOUT = 5 * 60
 
+    const val DATASTORE_KEY_VCS = "VCs"
+    const val DATASTORE_KEY_XAUTH = "xauth"
+    const val DATASTORE_KEY_COOKIES = "cookies"
+    const val DEBUG_DATASTORE_KEY = "DBGKEY"
+    const val DEBUG_DATASTORE_VALUE = "DBGVALUE"
+    const val DATASTORE_KEY_CONFIG = "config"
+
     const val ADD_ID_TEXT = "To add an ID, login on https://abcd.at/xyz/ with a secondary device and scan the displayed QR code."
     const val BUTTON_SCAN_QR = "Scan QR-Code"
     const val BUTTON_LOGIN_ID_AUSTRIA = "Login with ID Austria"
@@ -14,7 +21,7 @@ object Resources {
     const val ICONS_FROM = "Icons from"
     const val PICTURES_FROM = "Pictures from"
     const val VERSION = "Version"
-    const val CAMERA_ACCESS_DENIED = "Camera access denied"
+    const val CAMERA_ACCESS_DENIED = "Kamerazugriff verweigert"
     const val CREDENTIAL = "Credential"
     const val DEMO_WALLET = "DemoWallet"
     const val ID_AUSTRIA_CREDENTIAL = "IDAustria Credential"
@@ -23,19 +30,9 @@ object Resources {
     const val COMPOSE_WALLET = "Compose Wallet"
     const val DEMO_APP = "Demo App"
     const val RESET_APP = "Reset App"
-    const val WARNING = "Warning"
-    const val RESET_APP_ALERT_TEXT = "Do you really want to reset the App?"
-    const val BUTTON_CONFIRM = "Confirm"
-    const val BUTTON_DISMISS = "Dismiss"
-    const val DATASTORE_KEY_VCS = "VCs"
-    const val DATASTORE_KEY_XAUTH = "xauth"
-    const val DATASTORE_KEY_COOKIES = "cookies"
-    const val SNACKBAR_CREDENTIAL_LOADED_SUCCESSFULLY = "Credential loaded successfully"
-    const val SNACKBAR_RESET_APP_SUCCESSFULLY = "Reset App successfully"
-    const val DEBUG_DATASTORE_KEY = "DBGKEY"
-    const val DEBUG_DATASTORE_VALUE = "DBGVALUE"
+    const val WARNING = "Warnung"
+    const val RESET_APP_ALERT_TEXT = "Soll die App wirklich zurückgesetzt werden?"
     const val IOS_TEST_VALUE = "TESTVALUE"
-    const val DATASTORE_KEY_CONFIG = "config"
     const val BUTTON_SHOW_LOG = "Show Log"
     const val BUTTON_EXIT_APP = "Exit App"
     const val LOGIN = "Login"
@@ -47,10 +44,14 @@ object Resources {
     const val LOCATION = "Location"
     const val REQUESTED_DATA = "Requested data"
     const val TRANSMIT_THIS_INFORMATION = "Would you like to transmit this information?"
-    const val UNKNOWN_EXCEPTION = "Unknown exception"
+    const val UNKNOWN_EXCEPTION = "Unbekannter Fehler"
 
     const val APP_DISPLAY_NAME = "Wallet Demo App"
+    const val SNACKBAR_CREDENTIAL_LOADED_SUCCESSFULLY = "Daten wurden erfolgreich geladen"
+    const val SNACKBAR_RESET_APP_SUCCESSFULLY = "App erfolgreich zurückgesetzt"
 
+    const val BUTTON_LABEL_CONFIRM = "Bestätigen"
+    const val BUTTON_LABEL_DISMISS = "Abbrechen"
     const val BUTTON_LABEL_CLOSE_APP = "Beenden"
     const val BUTTON_LABEL_AUTHENTICATE = "Anmelden"
     const val BUTTON_LABEL_SHOW_DATA = "Vorzeigen"
@@ -90,11 +91,12 @@ object Resources {
     const val NAVIGATION_BUTTON_LABEL_MY_DATA = "Meine Daten"
     const val NAVIGATION_BUTTON_LABEL_SETTINGS = "Einstellungen"
 
-    const val TEXT_LABEL_ISSUING_SERVICE = "Ausstellservice"
-    const val TEXT_LABEL_ID_FORMAT = "ID-Format"
     const val ID_FORMAT_PLAIN_JWT_LABEL = "PLAIN_JWT"
     const val ID_FORMAT_SD_JWT_LABEL = "SD-JWT"
     const val ID_FORMAT_ISO_MDOC_LABEL = "ISO_MDOC"
+
+    const val TEXT_LABEL_ISSUING_SERVICE = "Ausstellservice"
+    const val TEXT_LABEL_ID_FORMAT = "ID-Format"
 
     const val TEXT_LABEL_STAIR = "Stiege"
     const val TEXT_LABEL_DOOR = "Tür"
@@ -199,5 +201,5 @@ object Resources {
     const val WARNING_REQUESTED_DATA_NOT_AVAILABLE_CONTENT = "Nicht alle angefragten Daten wurden bereits in die App geladen.\nFehlende Daten können über ID Austria nachgeladen werden."
 
     // files
-    val ONBOARDING_START_SCREEN_BACKGROUND_FILENAME = "onboardingBackground.jpg"
+    val FILENAME_ONBOARDING_START_SCREEN_BACKGROUND = "onboardingBackground.jpg"
 }

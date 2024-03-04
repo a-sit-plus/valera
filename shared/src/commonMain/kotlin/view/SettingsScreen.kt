@@ -397,14 +397,14 @@ private fun ResetAlert(
             TextButton(
                 onClick = onConfirm,
             ) {
-                Text(Resources.BUTTON_CONFIRM)
+                Text(Resources.BUTTON_LABEL_CONFIRM)
             }
         },
         dismissButton = {
             TextButton(
                 onClick = onDismiss,
             ) {
-                Text(Resources.BUTTON_DISMISS)
+                Text(Resources.BUTTON_LABEL_DISMISS)
             }
         }
     )

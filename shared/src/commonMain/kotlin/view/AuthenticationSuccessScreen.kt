@@ -44,7 +44,7 @@ fun AuthenticationSuccessView(
                 title = {
                     Text(
                         Resources.HEADING_LABEL_AUTHENTICATION_SUCCESS,
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.headlineLarge,
                     )
                 },
                 navigationIcon = {

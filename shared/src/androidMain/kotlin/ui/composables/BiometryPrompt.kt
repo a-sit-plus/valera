@@ -112,7 +112,7 @@ actual fun BiometryPrompt(
                             ))
                         },
                     ) {
-                        Text(Resources.BUTTON_CONFIRM)
+                        Text(Resources.BUTTON_LABEL_CONFIRM)
                     }
                 },
             )
