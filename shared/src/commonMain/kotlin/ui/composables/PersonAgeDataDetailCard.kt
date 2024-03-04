@@ -7,7 +7,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,6 +44,7 @@ val CredentialExtractor.ageData: AgeData
 @Composable
 fun PersonAgeDataDetailCard(
     ageData: AgeData,
+    onClickOpenDetails: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     ElevatedCard(
@@ -49,7 +54,18 @@ fun PersonAgeDataDetailCard(
             PersonAttributeDetailCardHeading(
                 iconText = PersonalDataCategory.AgeData.iconText,
                 title = PersonalDataCategory.AgeData.categoryTitle,
-            )
+            ) {
+                if (onClickOpenDetails != null) {
+                    IconButton(
+                        onClick = onClickOpenDetails
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ChevronRight,
+                            contentDescription = null
+                        )
+                    }
+                }
+            }
 
             FlowRow(
                 modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth()

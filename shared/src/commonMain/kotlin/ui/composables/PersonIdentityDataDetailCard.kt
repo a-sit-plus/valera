@@ -9,7 +9,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -79,6 +82,7 @@ val CredentialExtractor.preIdentityData: PreIdentityData
 @Composable
 fun PersonIdentityDataDetailCard(
     identityData: IdentityData,
+    onClickOpenDetails: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     ElevatedCard(
@@ -106,7 +110,18 @@ fun PersonIdentityDataDetailCard(
                 title = {
                     PersonAttributeDetailCardHeadingTitle(PersonalDataCategory.IdentityData.categoryTitle)
                 },
-            )
+            ) {
+                if (onClickOpenDetails != null) {
+                    IconButton(
+                        onClick = onClickOpenDetails
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ChevronRight,
+                            contentDescription = null
+                        )
+                    }
+                }
+            }
 
             Row(
                 modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
