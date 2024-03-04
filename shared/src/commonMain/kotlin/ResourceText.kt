@@ -90,7 +90,7 @@ object Resources {
     const val NAVIGATION_BUTTON_LABEL_MY_DATA = "Meine Daten"
     const val NAVIGATION_BUTTON_LABEL_SETTINGS = "Einstellungen"
 
-    const val TEXT_LABEL_ISSUING_SERVICE = "Aussteller"
+    const val TEXT_LABEL_ISSUING_SERVICE = "Ausstellservice"
     const val TEXT_LABEL_ID_FORMAT = "ID-Format"
     const val ID_FORMAT_PLAIN_JWT_LABEL = "PLAIN_JWT"
     const val ID_FORMAT_SD_JWT_LABEL = "SD-JWT"
