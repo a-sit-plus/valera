@@ -48,6 +48,7 @@ fun AuthenticationConsentScreen(
                     claimAvailabilities[IdAustriaScheme.Attributes.FIRSTNAME],
                     claimAvailabilities[IdAustriaScheme.Attributes.LASTNAME],
                     claimAvailabilities[IdAustriaScheme.Attributes.DATE_OF_BIRTH],
+                    claimAvailabilities[IdAustriaScheme.Attributes.PORTRAIT],
                 )
             ),
             Pair(
