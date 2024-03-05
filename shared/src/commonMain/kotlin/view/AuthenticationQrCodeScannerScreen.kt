@@ -132,9 +132,9 @@ fun AuthenticationQrCodeScannerScreen(
                             .decodeFromUrlQuery<AuthenticationRequestParameters>()
                     }
 
-                    val requestClientId = requestParams.getOrNull()?.clientId
-                    val requestResponseRequestString = requestParams.getOrNull()?.request
-                    if (requestResponseRequestString == null) {
+                    val requestLocationClientId = requestParams.getOrNull()?.clientId
+                    val requestLocationRequestParameter = requestParams.getOrNull()?.request
+                    if (requestLocationRequestParameter == null) {
                         walletMain.errorService.emit(
                             Exception("Missing Request Object: $requestRedirectUri"),
                         )
@@ -142,11 +142,11 @@ fun AuthenticationQrCodeScannerScreen(
                         return@launch
                     }
 
-                    val requestResponseRequestJws = try {
-                        JwsSigned.parse(requestResponseRequestString) ?: throw Exception()
+                    val requestLocationRequestParameterJws = try {
+                        JwsSigned.parse(requestLocationRequestParameter) ?: throw Exception()
                     } catch (error: Throwable) {
                         walletMain.errorService.emit(
-                            Exception("Invalid requestResponseRequestJws: $requestResponseRequestString"),
+                            Exception("Invalid requestResponseRequestJws: $requestLocationRequestParameter"),
                         )
                         finalizeLoading()
                         return@launch
@@ -154,31 +154,31 @@ fun AuthenticationQrCodeScannerScreen(
 
                     if (
                         DefaultVerifierJwsService().verifyJwsObject(
-                            requestResponseRequestJws,
+                            requestLocationRequestParameterJws,
                             null
                         ) == false
                     ) {
                         walletMain.errorService.emit(
-                            Exception("Invalid requestResponseRequestJws Signature: $requestResponseRequestString"),
+                            Exception("Invalid requestResponseRequestJws Signature: $requestLocationRequestParameter"),
                         )
                         finalizeLoading()
                         return@launch
                     }
 
-                    val requestParameters =
+                    val requestLocationRequestParameterParsed =
                         jsonSerializer.decodeFromString<AuthenticationRequestParameters>(
-                            requestResponseRequestJws.payload.decodeToString()
+                            requestLocationRequestParameterJws.payload.decodeToString()
                         )
-                    if (requestParameters.clientId != requestClientId) {
+                    if (requestLocationRequestParameterParsed.clientId != requestLocationClientId) {
                         walletMain.errorService.emit(
-                            Exception("Client id does not match: UrlParameter: $requestClientId, AuthenticationRequestParameters: ${requestParameters.clientId}"),
+                            Exception("Client id does not match: UrlParameter: $requestLocationClientId, AuthenticationRequestParameters: ${requestLocationRequestParameterParsed.clientId}"),
                         )
                         finalizeLoading()
                         return@launch
                     }
                     RequestResponse(
                         redirectUri = requestRedirectUri,
-                        requestParameters = requestParameters,
+                        requestParameters = requestLocationRequestParameterParsed,
                     )
                 }
 
