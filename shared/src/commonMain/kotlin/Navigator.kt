@@ -311,6 +311,10 @@ fun MainNavigator(
                     is AuthenticationQrCodeScannerPage -> {
                         AuthenticationQrCodeScannerScreen(
                             navigateUp = navigateUp,
+                            navigateToConsentScreen = navigationStack::push,
+                            navigateToLoadingScreen = {
+                                navigationStack.push(LoadingPage())
+                            },
                             walletMain = walletMain,
                         )
                     }
