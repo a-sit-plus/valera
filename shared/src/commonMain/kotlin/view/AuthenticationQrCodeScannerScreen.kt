@@ -32,7 +32,6 @@ import io.ktor.client.request.header
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpStatusCode
 import io.ktor.http.Url
 import io.ktor.http.parseQueryString
 import io.ktor.serialization.kotlinx.json.json
@@ -119,7 +118,7 @@ fun AuthenticationQrCodeScannerScreen(
                     val requestRedirectUri = requestResponse.headers[HttpHeader.LOCATION]
                     if (requestRedirectUri == null) {
                         walletMain.errorService.emit(
-                            Exception("Missing redirect location: $requestResponse"),
+                            Exception("${Resources.ERROR_QR_CODE_SCANNING_MISSING_REDIRECT_LOCATION}: $requestResponse"),
                         )
                         finalizeLoading()
                         return@launch
@@ -136,7 +135,7 @@ fun AuthenticationQrCodeScannerScreen(
                     val requestLocationRequestParameter = requestParams.getOrNull()?.request
                     if (requestLocationRequestParameter == null) {
                         walletMain.errorService.emit(
-                            Exception("Missing Request Object: $requestRedirectUri"),
+                            Exception("${Resources.ERROR_QR_CODE_SCANNING_MISSING_REQUEST_OBJECT_PARAMETER}: $requestRedirectUri"),
                         )
                         finalizeLoading()
                         return@launch
@@ -146,7 +145,7 @@ fun AuthenticationQrCodeScannerScreen(
                         JwsSigned.parse(requestLocationRequestParameter) ?: throw Exception()
                     } catch (error: Throwable) {
                         walletMain.errorService.emit(
-                            Exception("Invalid requestResponseRequestJws: $requestLocationRequestParameter"),
+                            Exception("${Resources.ERROR_QR_CODE_SCANNING_INVALID_REQUEST_JWS_OBJECT}: $requestLocationRequestParameter"),
                         )
                         finalizeLoading()
                         return@launch
@@ -159,7 +158,7 @@ fun AuthenticationQrCodeScannerScreen(
                         ) == false
                     ) {
                         walletMain.errorService.emit(
-                            Exception("Invalid requestResponseRequestJws Signature: $requestLocationRequestParameter"),
+                            Exception("${Resources.ERROR_QR_CODE_SCANNING_INVALID_REQUEST_JWS_OBJECT_SIGNATURE}: $requestLocationRequestParameter"),
                         )
                         finalizeLoading()
                         return@launch
@@ -171,7 +170,7 @@ fun AuthenticationQrCodeScannerScreen(
                         )
                     if (requestLocationRequestParameterParsed.clientId != requestLocationClientId) {
                         walletMain.errorService.emit(
-                            Exception("Client id does not match: UrlParameter: $requestLocationClientId, AuthenticationRequestParameters: ${requestLocationRequestParameterParsed.clientId}"),
+                            Exception("${Resources.ERROR_QR_CODE_SCANNING_INCONSISTENT_CLIENT_ID}: UrlParameter: $requestLocationClientId, AuthenticationRequestParameters: ${requestLocationRequestParameterParsed.clientId}"),
                         )
                         finalizeLoading()
                         return@launch
@@ -184,25 +183,12 @@ fun AuthenticationQrCodeScannerScreen(
 
                 val clientMetadataPayload = null.let {
                     val metadataResponse = client.get(metadata_uri)
-                    when (metadataResponse.status) {
-                        HttpStatusCode.OK -> {
-                            Napier.d("metadataResponse: ${metadataResponse.bodyAsText()}")
-                        }
-
-                        else -> {
-                            walletMain.errorService.emit(
-                                Exception("Invalid metadataResponse Status: ${metadataResponse.bodyAsText()}"),
-                            )
-                            finalizeLoading()
-                            return@launch
-                        }
-                    }
 
                     val metadataJws = try {
                         JwsSigned.parse(metadataResponse.bodyAsText()) ?: throw Exception()
                     } catch (error: Throwable) {
                         walletMain.errorService.emit(
-                            Exception("Invalid metadataJws: ${metadataResponse.bodyAsText()}"),
+                            Exception("${Resources.ERROR_QR_CODE_SCANNING_INVALID_METADATA_JWS_OBJECT}: ${metadataResponse.bodyAsText()}"),
                         )
                         finalizeLoading()
                         return@launch
@@ -210,7 +196,7 @@ fun AuthenticationQrCodeScannerScreen(
 
                     if (DefaultVerifierJwsService().verifyJwsObject(metadataJws, null) == false) {
                         walletMain.errorService.emit(
-                            Exception("Invalid metadataJws Signature: ${metadataResponse.bodyAsText()}"),
+                            Exception("${Resources.ERROR_QR_CODE_SCANNING_INVALID_METADATA_JWS_OBJECT_SIGNATURE}: ${metadataResponse.bodyAsText()}"),
                         )
                         finalizeLoading()
                         return@launch
@@ -246,7 +232,7 @@ fun AuthenticationQrCodeScannerScreen(
                 if (clientMetadataPayload.redirectUris.contains(authenticationRequestParameters.clientId) == false) {
                     walletMain.errorService.emit(
                         Exception(
-                            "Client id not in client metadata redirect uris: ${authenticationRequestParameters.clientId} not in: \n${
+                            "${Resources.ERROR_QR_CODE_SCANNING_CLIENT_ID_NOT_IN_REDICECT_URIS}: ${authenticationRequestParameters.clientId} not in: \n${
                                 clientMetadataPayload.redirectUris.joinToString(
                                     "\n - "
                                 )
