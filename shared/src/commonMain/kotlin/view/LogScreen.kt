@@ -3,19 +3,19 @@ package view
 import Resources
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Button
+import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -23,53 +23,88 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.app.common.WalletMain
-import globalBack
 import kotlinx.coroutines.launch
+import ui.composables.buttons.NavigateUpButton
+import ui.composables.buttons.ShareButton
 
 @Composable
-fun LogScreen(walletMain: WalletMain){
-    val scope = rememberCoroutineScope()
-
-    var logArray = listOf<String>()
-    try {
-        logArray = walletMain.getLog()
+fun LogScreen(
+    navigateUp: () -> Unit,
+    walletMain: WalletMain,
+) {
+    val logArray = try {
+        walletMain.getLog()
     } catch (e: Throwable) {
         walletMain.errorService.emit(e)
+        listOf()
     }
 
-    Column(modifier = Modifier.fillMaxSize().padding(bottom = 70.dp).background(color = MaterialTheme.colorScheme.secondaryContainer), horizontalAlignment = Alignment.CenterHorizontally) {
-        LazyColumn {
-            items(logArray.size) {
-                val color: Color
-                if(it % 2 == 0) {
-                    color = MaterialTheme.colorScheme.tertiaryContainer
-                } else {
-                    color = MaterialTheme.colorScheme.secondaryContainer
-                }
-                Text(text = logArray[it].trimEnd('\n'), modifier = Modifier.background(color = color).padding(5.dp).fillMaxWidth(), fontSize = 8.sp, lineHeight = 10.sp, fontFamily = FontFamily.Monospace)
+    LogView(
+        logArray = logArray,
+        navigateUp = navigateUp,
+        shareLog = {
+            walletMain.scope.launch {
+                walletMain.platformAdapter.shareLog()
             }
         }
-    }
-    Box(contentAlignment = Alignment.BottomCenter, modifier = Modifier.fillMaxSize()){
-        Row(modifier = Modifier.height(70.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
-            Button(
-                onClick = {
-                    globalBack()
+    )
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LogView(
+    logArray: List<String>,
+    navigateUp: () -> Unit,
+    shareLog: () -> Unit,
+) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        Resources.HEADING_LABEL_LOG_SCREEN,
+                        style = MaterialTheme.typography.headlineLarge,
+                    )
+                },
+                navigationIcon = {
+                    NavigateUpButton(navigateUp)
+                },
+            )
+        },
+        bottomBar = {
+            BottomAppBar {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    ShareButton(shareLog)
                 }
-            ) {
-                Text(Resources.BUTTON_CLOSE)
             }
-            Button(
-                onClick = {
-                    scope.launch {
-                        walletMain.platformAdapter.shareLog()
+        }
+    ) { scaffoldPadding ->
+        Column(
+            modifier = Modifier.padding(scaffoldPadding).fillMaxSize(),
+        ) {
+            LazyColumn {
+                items(logArray.size) {
+                    val color: Color
+                    color = if (it % 2 == 0) {
+                        MaterialTheme.colorScheme.tertiaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.secondaryContainer
                     }
+                    Text(
+                        text = logArray[it].trimEnd('\n'),
+                        modifier = Modifier.background(color = color).padding(5.dp).fillMaxWidth(),
+                        fontSize = 8.sp,
+                        lineHeight = 10.sp,
+                        fontFamily = FontFamily.Monospace
+                    )
                 }
-            ) {
-                Text("Share")
             }
         }
-
     }
 }
 

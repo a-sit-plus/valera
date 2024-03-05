@@ -5,7 +5,20 @@ import shared
 struct ComposeView: UIViewControllerRepresentable {
     
     func makeUIViewController(context: Context) -> UIViewController {
-        return Main_iosKt.MainViewController(objectFactory: SwiftObjectFactory(), platformAdapter: SwiftPlatformAdapter())
+        #if DEBUG
+        let buildType = "debug"
+        #else
+        let buildType = "release"
+        #endif
+        return Main_iosKt.MainViewController(
+            objectFactory: SwiftObjectFactory(),
+            platformAdapter: SwiftPlatformAdapter(),
+            buildContext: BuildContext(
+                buildType: buildType,
+                versionCode: Bundle.main.infoDictionary?["CFBundleVersion"] as? Int32 ?? 1,
+                versionName: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String  ?? "1.0.0"
+            )
+        )
     }
 
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}

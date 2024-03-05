@@ -1,3 +1,4 @@
+
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -8,7 +9,6 @@ import androidx.compose.runtime.remember
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import ui.theme.WalletTheme
-import view.errorScreen
 
 
 /**
@@ -21,7 +21,6 @@ var globalBack: () -> Unit = {}
  * to compose whenever the app gets called via an associated domain
  */
 var appLink = mutableStateOf<String?>(null)
-
 
 /**
  * Global variable to test at least something from the iOS UITest
@@ -39,23 +38,16 @@ fun App(walletMain: WalletMain) {
         walletMain.errorService.emit(UncorrectableErrorException(e))
     }
 
-
     WalletTheme {
         Scaffold(
             snackbarHost = {
                 SnackbarHost(hostState = snackbarHostState)
             }
         ) { _ ->
-            if (!walletMain.errorService.showError.value){
-                navigator(walletMain)
-            } else {
-                errorScreen(walletMain)
-            }
-
+            Navigator(walletMain)
         }
     }
 }
-
 
 expect fun getPlatformName(): String
 

@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app.common
 
+import BuildContext
 import ErrorService
 import Resources
 import androidx.compose.runtime.mutableStateOf
@@ -7,7 +8,6 @@ import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
-import at.asitplus.wallet.lib.data.ConstantIndex
 import data.storage.AntilogAdapter
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
@@ -22,7 +22,8 @@ class WalletMain(
     val objectFactory: ObjectFactory,
     private val dataStoreService: DataStoreService,
     val platformAdapter: PlatformAdapter,
-    val errorService: ErrorService = ErrorService(mutableStateOf(false), mutableStateOf(null))
+    val buildContext: BuildContext,
+    val errorService: ErrorService = ErrorService(mutableStateOf(false), mutableStateOf(null)),
 ) {
     lateinit var walletConfig: WalletConfig
     private lateinit var cryptoService: CryptoService
@@ -59,18 +60,15 @@ class WalletMain(
         dataStoreService.deletePreference(Resources.DATASTORE_KEY_VCS)
         dataStoreService.deletePreference(Resources.DATASTORE_KEY_XAUTH)
         dataStoreService.deletePreference(Resources.DATASTORE_KEY_COOKIES)
-        dataStoreService.deletePreference(Resources.DATASTORE_KEY_CONFIG)
-
-        walletConfig.host = "https://wallet.a-sit.at"
-        walletConfig.credentialRepresentation = ConstantIndex.CredentialRepresentation.PLAIN_JWT
+        walletConfig.reset()
     }
 
     fun getLog(): List<String>{
         val rawLog = platformAdapter.readFromFile("log.txt", "logs")
-        if (rawLog != null) {
-            return rawLog.split(regex = regex).filter { it.isNotEmpty() }
+        return if (rawLog != null) {
+            rawLog.split(regex = regex).filter { it.isNotEmpty() }
         } else {
-            return listOf("")
+            listOf("")
         }
     }
 }
@@ -121,14 +119,14 @@ interface PlatformAdapter {
      * Writes an user defined string to a file in a specific folder
      * @param text is the content of the new file or the content which gets append to an existing file
      * @param fileName the name of the file
-     * @param folder the name of the folder in which the file resides
+     * @param folderName the name of the folder in which the file resides
      */
     fun writeToFile(text: String, fileName: String, folderName: String)
 
     /**
      * Reads the content from a file in a specific folder
      * @param fileName the name of the file
-     * @param folder the name of the folder in which the file resides
+     * @param folderName the name of the folder in which the file resides
      * @return returns the content of the file
      */
     fun readFromFile(fileName: String, folderName: String): String?
@@ -136,7 +134,7 @@ interface PlatformAdapter {
     /**
      * Clears the content of a file
      * @param fileName the name of the file
-     * @param folder the name of the folder in which the file resides
+     * @param folderName the name of the folder in which the file resides
      */
     fun clearFile(fileName: String, folderName: String)
 

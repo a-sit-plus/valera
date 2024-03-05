@@ -9,12 +9,13 @@ import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.WalletMain
 import data.storage.RealDataStoreService
 import data.storage.createDataStore
+import platform.UIKit.UIViewController
 
 actual fun getPlatformName(): String = "iOS"
 
 @Composable
-actual fun getColorScheme(): ColorScheme{
-    return if(isSystemInDarkTheme()){
+actual fun getColorScheme(): ColorScheme {
+    return if (isSystemInDarkTheme()) {
         darkColorScheme()
     } else {
         lightColorScheme()
@@ -22,6 +23,17 @@ actual fun getColorScheme(): ColorScheme{
 }
 
 
-fun MainViewController(objectFactory: ObjectFactory, platformAdapter: PlatformAdapter) = ComposeUIViewController {
-    App(WalletMain(objectFactory, RealDataStoreService(createDataStore(), platformAdapter), platformAdapter))
+fun MainViewController(
+    objectFactory: ObjectFactory,
+    platformAdapter: PlatformAdapter,
+    buildContext: BuildContext,
+): UIViewController = ComposeUIViewController {
+    App(
+        WalletMain(
+            objectFactory,
+            RealDataStoreService(createDataStore(), platformAdapter),
+            platformAdapter,
+            buildContext,
+        )
+    )
 }

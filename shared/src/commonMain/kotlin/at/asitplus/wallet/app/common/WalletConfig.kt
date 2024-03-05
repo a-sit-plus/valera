@@ -5,6 +5,9 @@ import Resources
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.jsonSerializer
 import data.storage.DataStoreService
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -13,49 +16,69 @@ import kotlinx.serialization.encodeToString
  * Class to hand over to services like ProvisioningService so we can always retrieve the current config (e.g. url to Issuing Service)
  */
 class WalletConfig(
-    var host: String = "https://wallet.a-sit.at",
-    var credentialRepresentation: ConstantIndex.CredentialRepresentation = ConstantIndex.CredentialRepresentation.PLAIN_JWT,
     val dataStoreService: DataStoreService,
     val errorService: ErrorService
 ) {
-    init {
-        loadConfig()
+    private val config: Flow<ConfigData> = dataStoreService.getPreference(Resources.DATASTORE_KEY_CONFIG).map {
+        it?.let {
+            jsonSerializer.decodeFromString<ConfigData>(it)
+        } ?: ConfigDataDefaults
     }
-    private fun loadConfig() {
+
+    val host: Flow<String> = config.map {
+        it.host
+    }
+
+    val isConditionsAccepted: Flow<Boolean> = config.map {
+        it.isConditionsAccepted
+    }
+
+    val credentialRepresentation: Flow<ConstantIndex.CredentialRepresentation> = config.map {
+        it.credentialRepresentation
+    }
+
+    fun set(
+        host: String? = null,
+        isConditionsAccepted: Boolean? = null,
+        credentialRepresentation: ConstantIndex.CredentialRepresentation? = null,
+    ) {
         try {
-            val input = runBlocking{dataStoreService.getPreference(Resources.DATASTORE_KEY_CONFIG)}
-            if (input == null){
-                setDefaults()
-            } else{
-                val config = jsonSerializer.decodeFromString<ConfigData>(input)
-                this.host = config.host
-                this.credentialRepresentation = config.credentialRepresentation
+            runBlocking {
+                val newConfig = ConfigData(
+                    host = host ?: this@WalletConfig.host.first(),
+                    isConditionsAccepted = isConditionsAccepted
+                        ?: this@WalletConfig.isConditionsAccepted.first(),
+                    credentialRepresentation = credentialRepresentation
+                        ?: this@WalletConfig.credentialRepresentation.first(),
+                )
+
+                dataStoreService.setPreference(
+                    jsonSerializer.encodeToString(newConfig),
+                    Resources.DATASTORE_KEY_CONFIG
+                )
             }
         } catch (e: Throwable) {
             errorService.emit(e)
         }
     }
 
-    private fun setDefaults() {
-        this.host = "https://wallet.a-sit.at"
-        this.credentialRepresentation = ConstantIndex.CredentialRepresentation.PLAIN_JWT
+    suspend fun reset() {
+        dataStoreService.deletePreference(Resources.DATASTORE_KEY_CONFIG)
     }
-
-    fun exportConfig() {
-        val config = ConfigData(host = this.host, credentialRepresentation = this.credentialRepresentation)
-        try {
-            runBlocking {dataStoreService.setPreference(jsonSerializer.encodeToString(config), Resources.DATASTORE_KEY_CONFIG)}
-        } catch (e: Throwable) {
-            errorService.emit(e)
-        }
-
-    }
-
 }
 
 /**
  * Data class which holds the wallet preferences
  */
 @Serializable
-data class ConfigData(val host: String, val credentialRepresentation: ConstantIndex.CredentialRepresentation)
+data class ConfigData(
+    val host: String,
+    val credentialRepresentation: ConstantIndex.CredentialRepresentation = ConstantIndex.CredentialRepresentation.PLAIN_JWT,
+    val isConditionsAccepted: Boolean = false
+)
 
+private val ConfigDataDefaults = ConfigData(
+    host = "https://wallet.a-sit.at",
+    credentialRepresentation = ConstantIndex.CredentialRepresentation.PLAIN_JWT,
+    isConditionsAccepted = false,
+)

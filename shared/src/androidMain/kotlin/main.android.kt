@@ -1,4 +1,3 @@
-
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -33,25 +32,32 @@ actual fun getPlatformName(): String = "Android"
 
 // Modified from https://developer.android.com/jetpack/compose/designsystems/material3
 @Composable
-actual fun getColorScheme(): ColorScheme{
+actual fun getColorScheme(): ColorScheme {
     // Dynamic color is available on Android 12+
     val darkColorScheme = darkColorScheme()
     val lightColorScheme = lightColorScheme()
     val dynamicColor = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     val darkTheme = isSystemInDarkTheme()
     return when {
-        dynamicColor && darkTheme -> dynamicDarkColorScheme (LocalContext.current)
-                dynamicColor && !darkTheme -> dynamicLightColorScheme (LocalContext.current)
+        dynamicColor && darkTheme -> dynamicDarkColorScheme(LocalContext.current)
+        dynamicColor && !darkTheme -> dynamicLightColorScheme(LocalContext.current)
 
         darkTheme -> darkColorScheme
-                else -> lightColorScheme
+        else -> lightColorScheme
     }
 }
 
 @Composable
-fun MainView() {
+fun MainView(buildContext: BuildContext) {
     val platformAdapter = AndroidPlatformAdapter(LocalContext.current)
-    App(WalletMain(objectFactory = AndroidObjectFactory(), RealDataStoreService(getDataStore(LocalContext.current), platformAdapter), platformAdapter = platformAdapter))
+    App(
+        WalletMain(
+            objectFactory = AndroidObjectFactory(),
+            RealDataStoreService(getDataStore(LocalContext.current), platformAdapter),
+            platformAdapter = platformAdapter,
+            buildContext = buildContext,
+        )
+    )
 }
 
 class AndroidObjectFactory : ObjectFactory {
@@ -71,7 +77,7 @@ class AndroidObjectFactory : ObjectFactory {
     }
 }
 
-class AndroidPlatformAdapter(val context: Context): PlatformAdapter{
+class AndroidPlatformAdapter(val context: Context) : PlatformAdapter {
     override fun openUrl(url: String) {
         Napier.d("Open URL: ${url.toUri()}")
         context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
@@ -102,10 +108,10 @@ class AndroidPlatformAdapter(val context: Context): PlatformAdapter{
             folder.mkdir()
         }
         val file = File(folder, fileName)
-        if (file.exists()) {
-            return file.readText()
+        return if (file.exists()) {
+            file.readText()
         } else {
-            return null
+            null
         }
     }
 
@@ -130,9 +136,10 @@ class AndroidPlatformAdapter(val context: Context): PlatformAdapter{
         val folder = File(context.filesDir, "logs")
         val file = File(folder, "log.txt")
         val fileUri = FileProvider.getUriForFile(
-                context,
-                "at.asitplus.wallet.app.android.fileprovider",
-                file)
+            context,
+            "at.asitplus.wallet.app.android.fileprovider",
+            file
+        )
 
 
         val intent: Intent = Intent().apply {

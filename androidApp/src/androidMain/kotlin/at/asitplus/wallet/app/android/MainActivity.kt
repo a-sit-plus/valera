@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app.android
 
+import BuildContext
 import MainView
 import android.content.Intent
 import android.os.Bundle
@@ -10,9 +11,16 @@ import appLink
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        appLink.value = intent.data?.toString()
         setContent {
-            appLink.value = intent.data?.toString()
-            MainView()
+            MainView(
+                buildContext = BuildContext(
+                    buildType = BuildConfig.BUILD_TYPE,
+                    versionCode = BuildConfig.VERSION_CODE,
+                    versionName = BuildConfig.VERSION_NAME,
+                )
+            )
         }
     }
 

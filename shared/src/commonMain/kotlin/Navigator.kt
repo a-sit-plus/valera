@@ -1,38 +1,115 @@
+
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Modifier
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
 import at.asitplus.wallet.lib.oidvci.decodeFromUrlQuery
+import io.github.aakira.napier.Napier
 import io.ktor.http.Url
 import io.ktor.http.parseQueryString
 import io.ktor.util.flattenEntries
-import kotlinx.coroutines.launch
-import navigation.AboutPage
-import navigation.CameraPage
-import navigation.ConsentPage
-import navigation.CredentialPage
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import navigation.AuthenticationConsentPage
+import navigation.AuthenticationQrCodeScannerPage
+import navigation.AuthenticationSuccessPage
 import navigation.HomePage
 import navigation.LoadingPage
 import navigation.LogPage
 import navigation.NavigationStack
 import navigation.Page
-import navigation.PayloadPage
-import view.AboutScreen
-import view.CameraView
-import view.ConsentScreen
-import view.CredentialScreen
-import view.HomeScreen
+import navigation.ProvisioningLoadingPage
+import navigation.RefreshCredentialsPage
+import navigation.SettingsPage
+import navigation.ShowDataPage
+import view.AuthenticationConsentScreen
+import view.AuthenticationQrCodeScannerScreen
+import view.AuthenticationSuccessScreen
+import view.ErrorScreen
+import view.LoadDataScreen
 import view.LoadingScreen
 import view.LogScreen
-import view.PayloadScreen
+import view.MyCredentialsScreen
+import view.OnboardingWrapper
+import view.ProvisioningLoadingScreen
+import view.SettingsScreen
+import view.ShowDataScreen
+
+private enum class NavigationData(
+    val title: String,
+    val icon: @Composable () -> Unit,
+    val destination: Page,
+    val isActive: (Page) -> Boolean
+) {
+    HOME_SCREEN(
+        title = Resources.NAVIGATION_BUTTON_LABEL_MY_DATA,
+        icon = {
+            Icon(
+                imageVector = Icons.Default.Person,
+                contentDescription = null,
+            )
+        },
+        destination = HomePage(),
+        isActive = {
+            when (it) {
+                is HomePage -> true
+                else -> false
+            }
+        },
+    ),
+    SHOW_DATA_SCREEN(
+        title = Resources.NAVIGATION_BUTTON_LABEL_SHOW_DATA,
+        icon = {
+            Icon(
+                imageVector = Icons.Default.QrCodeScanner,
+                contentDescription = null,
+            )
+        },
+        destination = ShowDataPage(),
+        isActive = {
+            when (it) {
+                is ShowDataPage -> true
+                else -> false
+            }
+        },
+    ),
+    INFORMATION_SCREEN(
+        title = Resources.NAVIGATION_BUTTON_LABEL_SETTINGS,
+        icon = {
+            Icon(
+                imageVector = Icons.Default.Settings,
+                contentDescription = null,
+            )
+        },
+        destination = SettingsPage(),
+        isActive = {
+            when (it) {
+                is SettingsPage -> true
+                else -> false
+            }
+        },
+    ),
+}
 
 @Composable
-fun navigator(walletMain: WalletMain) {
+fun Navigator(walletMain: WalletMain) {
     // Modified from https://github.com/JetBrains/compose-multiplatform/tree/master/examples/imageviewer
-    val navigationStack = rememberSaveable(
+    val mainNavigationStack = rememberSaveable(
         saver = listSaver<NavigationStack<Page>, Page>(
             restore = { NavigationStack(*it.toTypedArray()) },
             save = { it.stack },
@@ -41,23 +118,32 @@ fun navigator(walletMain: WalletMain) {
         NavigationStack(HomePage())
     }
 
-    globalBack = { navigationStack.back() }
-
-    LaunchedEffect(appLink.value){
+    LaunchedEffect(appLink.value) {
+        Napier.d("app link changed to ${appLink.value}")
         appLink.value?.let { link ->
+            // resetting error service so that the intent can be displayed as intended
+            walletMain.errorService.reset()
+
+            Napier.d("new app link: ${link}")
             val parameterIndex = link.indexOfFirst { it == '?' }
             val pars = parseQueryString(link, startIndex = parameterIndex + 1)
 
             if (pars.contains("error")) {
-                walletMain.errorService.emit(Exception(pars["error_description"] ?: Resources.UNKNOWN_EXCEPTION))
+                walletMain.errorService.emit(
+                    Exception(
+                        pars["error_description"] ?: Resources.UNKNOWN_EXCEPTION
+                    )
+                )
                 appLink.value = null
                 return@LaunchedEffect
             }
 
-            val host = walletMain.walletConfig.host
-            if (link.contains("$host/mobile") == true){
+            val host = walletMain.walletConfig.host.first()
+            if (link.contains("$host/mobile")) {
+                Napier.d("authentication request")
                 val params = kotlin.runCatching {
-                    Url(link).parameters.flattenEntries().toMap().decodeFromUrlQuery<AuthenticationRequestParameters>()
+                    Url(link).parameters.flattenEntries().toMap()
+                        .decodeFromUrlQuery<AuthenticationRequestParameters>()
                 }
 
                 val requestedClaims = params.getOrNull()?.presentationDefinition?.inputDescriptors
@@ -68,108 +154,195 @@ fun navigator(walletMain: WalletMain) {
                     ?.map { it.removePrefix("\$.mdoc.") }
                     ?.map { it.removePrefix("\$.") }
                     ?: listOf()
-                if (walletMain.subjectCredentialStore.credentialSize.value != 0) {
-                    navigationStack.push(ConsentPage(url = link, claims = requestedClaims, recipientName = "DemoService", recipientLocation = "DemoLocation"))
-                    appLink.value = null
-                    return@LaunchedEffect
-                } else {
-                    walletMain.errorService.emit(Exception("NoCredentialException"))
-                    appLink.value = null
-                    return@LaunchedEffect
-                }
 
+                mainNavigationStack.push(
+                    AuthenticationConsentPage(
+                        url = link,
+                        claims = requestedClaims,
+                        recipientName = "DemoService",
+                        recipientLocation = "DemoLocation",
+                    )
+                )
+                appLink.value = null
+                return@LaunchedEffect
             }
+
             if (walletMain.provisioningService.redirectUri?.let { link.contains(it) } == true) {
-                navigationStack.push(LoadingPage())
-                walletMain.scope.launch {
-
-                    try {
-                        walletMain.provisioningService.handleResponse(link)
-                        walletMain.snackbarService.showSnackbar(Resources.SNACKBAR_CREDENTIAL_LOADED_SUCCESSFULLY)
-                        navigationStack.back()
-
-                    } catch (e: Throwable) {
-                        navigationStack.back()
-                        walletMain.errorService.emit(e)
-
-                    }
-                    appLink.value = null
-                }
+                mainNavigationStack.push(ProvisioningLoadingPage(
+                    link = link
+                ))
+                appLink.value = null
                 return@LaunchedEffect
             }
         }
     }
 
+    globalBack = { mainNavigationStack.back() }
 
+    if (walletMain.errorService.showError.value == false) {
+        OnboardingWrapper(
+            walletMain = walletMain,
+        ) {
+            MainNavigator(
+                navigationStack = mainNavigationStack,
+                navigateUp = globalBack,
+                walletMain = walletMain,
+            )
+        }
+    } else {
+        ErrorScreen(walletMain)
+    }
+}
 
+@Composable
+fun MainNavigator(
+    navigationStack: NavigationStack<Page>,
+    navigateUp: () -> Unit,
+    walletMain: WalletMain,
+) {
+    Scaffold(
+        bottomBar = {
+            val (_, page) = navigationStack.lastWithIndex()
+            val pageNavigationData = when (page) {
+                is HomePage -> {
+                    NavigationData.HOME_SCREEN
+                }
 
-    AnimatedContent(targetState = navigationStack.lastWithIndex()) { (_, page) ->
-        when (page) {
-            is HomePage -> {
-                HomeScreen(
-                    onAbout = { navigationStack.push(AboutPage()) },
-                    onCredential = { info ->
-                        navigationStack.push(CredentialPage(info))
-                    },
-                    onScanQrCode = { navigationStack.push(CameraPage()) },
-                    onLoginWithIdAustria = {
-                        walletMain.scope.launch {
-                            try {
-                                walletMain.provisioningService.startProvisioning()
-                            } catch (e: Throwable) {
-                                walletMain.errorService.emit(e)
-                            }
-                        }
-                    },
-                    walletMain = walletMain
-                )
+                is ShowDataPage -> {
+                    NavigationData.SHOW_DATA_SCREEN
+                }
+
+                is SettingsPage -> {
+                    NavigationData.INFORMATION_SCREEN
+                }
+
+                else -> null
             }
 
-            is AboutPage -> {
-                AboutScreen(
-                    onShowLog = {navigationStack.push(LogPage())},
-                    walletMain)
-            }
-
-            is LogPage -> {
-                LogScreen(walletMain)
-            }
-
-            is CredentialPage -> {
-                CredentialScreen(id = page.info, walletMain)
-            }
-
-            is CameraPage -> {
-                CameraView(
-                    onFoundPayload = { info ->
-                        navigationStack.push(PayloadPage(info))
+            if (pageNavigationData != null) {
+                NavigationBar {
+                    for (route in listOf(
+                        NavigationData.HOME_SCREEN,
+                        NavigationData.SHOW_DATA_SCREEN,
+                        NavigationData.INFORMATION_SCREEN,
+                    )) {
+                        NavigationBarItem(
+                            icon = route.icon,
+                            label = {
+                                Text(route.title)
+                            },
+                            onClick = {
+                                navigationStack.push(route.destination)
+                            },
+                            selected = route.isActive(page)
+                        )
                     }
-                )
+                }
             }
+        },
+    ) { scaffoldPadding ->
+        Box(modifier = Modifier.padding(scaffoldPadding)) {
+            AnimatedContent(targetState = navigationStack.lastWithIndex()) { (_, page) ->
+                when (page) {
+                    is HomePage -> {
+                        MyCredentialsScreen(
+                            navigateToRefreshCredentialsPage = {
+                                navigationStack.push(RefreshCredentialsPage())
+                            },
+                            walletMain = walletMain,
+                        )
+                    }
 
-            is PayloadPage -> {
-                PayloadScreen(
-                    text = page.info,
-                    onContinueClick = { navigationStack.push(HomePage()) },
-                    walletMain
-                )
+                    is RefreshCredentialsPage -> {
+                        LoadDataScreen(
+                            navigateUp = navigateUp,
+                            walletMain = walletMain,
+                        )
+                    }
 
-            }
+                    is SettingsPage -> {
+                        SettingsScreen(
+                            navigateToLogPage = {
+                                navigationStack.push(LogPage())
+                            },
+                            onClickResetApp = {
+                                runBlocking { walletMain.resetApp() }
+                                navigationStack.reset()
+                                walletMain.snackbarService.showSnackbar(Resources.SNACKBAR_RESET_APP_SUCCESSFULLY)
+                            },
+                            walletMain = walletMain,
+                        )
+                    }
 
-            is ConsentPage -> {
-                ConsentScreen(
-                    walletMain = walletMain,
-                    onAccept = {navigationStack.push(HomePage())},
-                    onCancel = {navigationStack.back()},
-                    url = page.url,
-                    recipientName = page.recipientName,
-                    recipientLocation = page.recipientLocation,
-                    claims = page.claims
-                )
-            }
+                    is LogPage -> {
+                        LogScreen(
+                            navigateUp = navigateUp,
+                            walletMain = walletMain,
+                        )
+                    }
 
-            is LoadingPage -> {
-                LoadingScreen()
+                    is LoadingPage -> {
+                        LoadingScreen()
+                    }
+
+                    is ProvisioningLoadingPage -> {
+                        ProvisioningLoadingScreen(
+                            link = page.link,
+                            navigateUp = globalBack,
+                            walletMain = walletMain,
+                        )
+                    }
+
+
+                    is ShowDataPage -> {
+                        ShowDataScreen(
+                            navigateToAuthenticationStartPage = {
+                                navigationStack.push(AuthenticationQrCodeScannerPage())
+                            },
+                            onClickShowDataToExecutive = {
+                                walletMain.snackbarService.showSnackbar(Resources.ERROR_FEATURE_NOT_YET_AVAILABLE)
+                            },
+                            onClickShowDataToOtherCitizen = {
+                                walletMain.snackbarService.showSnackbar(Resources.ERROR_FEATURE_NOT_YET_AVAILABLE)
+                            },
+                        )
+                    }
+
+                    is AuthenticationQrCodeScannerPage -> {
+                        AuthenticationQrCodeScannerScreen(
+                            navigateUp = navigateUp,
+                            walletMain = walletMain,
+                        )
+                    }
+
+                    is AuthenticationConsentPage -> {
+                        AuthenticationConsentScreen(
+                            spName = page.recipientName,
+                            spLocation = page.recipientLocation,
+                            spImage = null,
+                            claims = page.claims,
+                            url = page.url,
+                            navigateUp = navigateUp,
+                            navigateToRefreshCredentialsPage = {
+                                navigationStack.push(
+                                    RefreshCredentialsPage()
+                                )
+                            },
+                            navigateToAuthenticationSuccessPage = {
+                                navigationStack.push(
+                                    AuthenticationSuccessPage()
+                                )
+                            },
+                            walletMain = walletMain,
+                        )
+                    }
+
+                    is AuthenticationSuccessPage -> {
+                        AuthenticationSuccessScreen(
+                            navigateUp = navigateUp,
+                        )
+                    }
+                }
             }
         }
     }

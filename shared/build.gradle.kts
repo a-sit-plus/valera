@@ -34,9 +34,12 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                implementation("androidx.biometric:biometric:1.2.0-alpha05")
+
                 implementation(compose.runtime)
                 implementation(compose.foundation)
                 implementation(compose.material3)
+                implementation(compose.materialIconsExtended)
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
                 api("at.asitplus.wallet:vclib-openid:3.3.0")

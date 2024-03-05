@@ -1,4 +1,3 @@
-
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -16,14 +15,23 @@ class InstrumentedTests {
     // use createAndroidComposeRule<YourActivity>() if you need access to
     // an activity
 
+
     @Test
-    fun test1() {
+    fun givenNewAppInstallation_whenStartingApp_thenShowsOnboardingStartScreen() {
         // Start the app
         composeTestRule.setContent {
-            App(
-                WalletMain(objectFactory = AndroidObjectFactory(), dataStoreService = DummyDataStoreService(), platformAdapter = DummyPlatformAdapter())
+            val walletMain = WalletMain(
+                objectFactory = AndroidObjectFactory(),
+                dataStoreService = DummyDataStoreService(),
+                platformAdapter = DummyPlatformAdapter(),
+                buildContext = BuildContext(
+                    buildType = "debug",
+                    versionCode = 0,
+                    versionName = "0.0.0",
+                )
             )
+            App(walletMain)
         }
-        composeTestRule.onNodeWithText(Resources.WALLET).assertIsDisplayed()
+        composeTestRule.onNodeWithText(Resources.BUTTON_LABEL_START).assertIsDisplayed()
     }
 }
