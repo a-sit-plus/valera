@@ -7,7 +7,10 @@ import io.github.aakira.napier.Napier
 
 class ValidateClientMetadataAndRequestParameterConsistencyUseCase {
 
-    operator fun invoke(authenticationRequestParameters: AuthenticationRequestParameters, clientMetadataPayload: RelyingPartyMetadata) {
+    operator fun invoke(
+        authenticationRequestParameters: AuthenticationRequestParameters,
+        clientMetadataPayload: RelyingPartyMetadata
+    ) {
         if (!clientMetadataPayload.redirectUris.contains(authenticationRequestParameters.clientId)) {
             val redirectUris = clientMetadataPayload.redirectUris.joinToString("\n - ")
             val message =

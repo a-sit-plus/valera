@@ -17,13 +17,11 @@ import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.lib.jws.DefaultVerifierJwsService
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
 import at.asitplus.wallet.lib.oidvci.decodeFromUrlQuery
 import domain.ExtractRequestObjectFromRedirectUriUseCase
 import domain.RetrieveRelyingPartyMetadataFromAuthenticationQrCodeUseCase
 import domain.RetrieveRequestRedirectFromAuthenticationQrCodeUseCase
-import domain.ValidateClientMetadataAndRequestParameterConsistencyUseCase
 import io.github.aakira.napier.Napier
 import io.ktor.http.Url
 import io.ktor.http.parseQueryString
@@ -325,15 +323,11 @@ fun MainNavigator(
                             authenticationQrCodeScannerViewModel = AuthenticationQrCodeScannerViewModel(
                                 retrieveRelyingPartyMetadataFromAuthenticationQrCodeUseCase = RetrieveRelyingPartyMetadataFromAuthenticationQrCodeUseCase(
                                     client = walletMain.httpService.buildHttpClient(),
-                                    verifierJwsService = DefaultVerifierJwsService(),
                                 ),
                                 retrieveRequestRedirectFromAuthenticationQrCodeUseCase = RetrieveRequestRedirectFromAuthenticationQrCodeUseCase(
                                     client = walletMain.httpService.buildHttpClient(),
                                 ),
-                                extractRequestObjectFromRedirectUriUseCase = ExtractRequestObjectFromRedirectUriUseCase(
-                                    verifierJwsService = DefaultVerifierJwsService(),
-                                ),
-                                validateClientMetadataAndRequestParameterConsistencyUseCase = ValidateClientMetadataAndRequestParameterConsistencyUseCase()
+                                extractRequestObjectFromRedirectUriUseCase = ExtractRequestObjectFromRedirectUriUseCase(),
                             ),
                             walletMain = walletMain,
                         )
