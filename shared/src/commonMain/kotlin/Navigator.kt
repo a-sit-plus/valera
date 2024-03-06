@@ -160,7 +160,8 @@ fun Navigator(walletMain: WalletMain) {
                         url = link,
                         claims = requestedClaims,
                         recipientName = "DemoService",
-                        recipientLocation = "DemoLocation",
+                        recipientLocation = params.getOrNull()?.clientId ?: "DemoLocation",
+                        fromQrCodeScanner = false
                     )
                 )
                 appLink.value = null
@@ -311,6 +312,10 @@ fun MainNavigator(
                     is AuthenticationQrCodeScannerPage -> {
                         AuthenticationQrCodeScannerScreen(
                             navigateUp = navigateUp,
+                            navigateToConsentScreen = navigationStack::push,
+                            navigateToLoadingScreen = {
+                                navigationStack.push(LoadingPage())
+                            },
                             walletMain = walletMain,
                         )
                     }
@@ -322,6 +327,7 @@ fun MainNavigator(
                             spImage = null,
                             claims = page.claims,
                             url = page.url,
+                            fromQrCodeScanner = page.fromQrCodeScanner,
                             navigateUp = navigateUp,
                             navigateToRefreshCredentialsPage = {
                                 navigationStack.push(

@@ -24,6 +24,7 @@ fun AuthenticationConsentScreen(
     spImage: ImageBitmap?,
     claims: List<String>,
     url: String,
+    fromQrCodeScanner: Boolean,
     navigateUp: () -> Unit,
     navigateToRefreshCredentialsPage: () -> Unit,
     navigateToAuthenticationSuccessPage: () -> Unit,
@@ -48,6 +49,7 @@ fun AuthenticationConsentScreen(
                     claimAvailabilities[IdAustriaScheme.Attributes.FIRSTNAME],
                     claimAvailabilities[IdAustriaScheme.Attributes.LASTNAME],
                     claimAvailabilities[IdAustriaScheme.Attributes.DATE_OF_BIRTH],
+                    claimAvailabilities[IdAustriaScheme.Attributes.PORTRAIT],
                 )
             ),
             Pair(
@@ -93,7 +95,7 @@ fun AuthenticationConsentScreen(
                 showBiometry = false
                 walletMain.scope.launch {
                     try {
-                        walletMain.presentationService.startSiop(url)
+                        walletMain.presentationService.startSiop(url, fromQrCodeScanner)
                         navigateUp()
                         navigateToAuthenticationSuccessPage()
                     } catch (e: Throwable) {
