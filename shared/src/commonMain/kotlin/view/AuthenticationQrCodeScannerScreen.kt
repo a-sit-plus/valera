@@ -55,188 +55,182 @@ fun AuthenticationQrCodeScannerScreen(
     navigateToLoadingScreen: () -> Unit,
     navigateToConsentScreen: (AuthenticationConsentPage) -> Unit,
     walletMain: WalletMain,
-) {
-    AuthenticationQrCodeScannerView(
-        navigateUp = navigateUp,
-        onFoundPayload = { link ->
-            Napier.d("onScan: $link")
+) = AuthenticationQrCodeScannerView(
+    navigateUp = navigateUp,
+) { link ->
+    Napier.d("onScan: $link")
 
-            val parameterIndex = link.indexOfFirst { it == '?' }
-            val requestParams = parseQueryString(link, startIndex = parameterIndex + 1)
+    val parameterIndex = link.indexOfFirst { it == '?' }
+    val requestParams = parseQueryString(link, startIndex = parameterIndex + 1)
 
-            val errorDescription = requestParams["error_description"] ?: Resources.UNKNOWN_EXCEPTION
-            val requestUri = requestParams["request_uri"]
-            if (requestUri == null) {
-                walletMain.errorService.emit(Exception(errorDescription))
-                return@AuthenticationQrCodeScannerView
-            }
+    val errorDescription = requestParams["error_description"] ?: Resources.UNKNOWN_EXCEPTION
+    val requestUri = requestParams["request_uri"]
+    if (requestUri == null) {
+        walletMain.errorService.emit(Exception(errorDescription))
+        return@AuthenticationQrCodeScannerView
+    }
 
-            val metadataUri = requestParams["metadata_uri"] ?: requestParams["client_metadata_uri"]
-            if (metadataUri == null) {
-                walletMain.errorService.emit(Exception(errorDescription))
-                return@AuthenticationQrCodeScannerView
-            }
+    val metadataUri = requestParams["metadata_uri"] ?: requestParams["client_metadata_uri"]
+    if (metadataUri == null) {
+        walletMain.errorService.emit(Exception(errorDescription))
+        return@AuthenticationQrCodeScannerView
+    }
 
-            navigateToLoadingScreen()
-            fun finalizeLoading() {
-                navigateUp()
-            }
+    navigateToLoadingScreen()
+    fun finalizeLoading() {
+        navigateUp()
+    }
 
-            val client = HttpClient {
-                followRedirects = false
-                install(ContentNegotiation) {
-                    json()
-                }
+    val client = HttpClient {
+        followRedirects = false
+        install(ContentNegotiation) {
+            json()
+        }
 
-                install(DefaultRequest) {
-                    header(HttpHeaders.ContentType, ContentType.Application.Json)
-                }
+        install(DefaultRequest) {
+            header(HttpHeaders.ContentType, ContentType.Application.Json)
+        }
 
-                install(Logging) {
-                    logger = Logger.DEFAULT
-                    level = LogLevel.ALL
-                }
-            }
+        install(Logging) {
+            logger = Logger.DEFAULT
+            level = LogLevel.ALL
+        }
+    }
 
-            CoroutineScope(Dispatchers.IO).launch {
-                val (redirectUri, authenticationRequestParameters) = null.let {
-                    val requestResponse = client.get(requestUri)
+    val verifierJwsService = DefaultVerifierJwsService()
+    CoroutineScope(Dispatchers.IO).launch {
+        val (redirectUri, authenticationRequestParameters) = run {
+            val requestResponse = client.get(requestUri)
 
-                    val requestRedirectUri = requestResponse.headers[HttpHeaders.Location]
-                    if (requestRedirectUri == null) {
-                        walletMain.errorService.emit(
-                            Exception("${Resources.ERROR_QR_CODE_SCANNING_MISSING_REDIRECT_LOCATION}: $requestResponse"),
-                        )
-                        finalizeLoading()
-                        return@launch
-                    } else {
-                        Napier.d("Redirect location: $requestRedirectUri")
-                    }
-
-                    val requestParams = kotlin.runCatching {
-                        Url(requestRedirectUri).parameters.flattenEntries().toMap()
-                            .decodeFromUrlQuery<AuthenticationRequestParameters>()
-                    }
-
-                    val requestLocationClientId = requestParams.getOrNull()?.clientId
-                    val requestLocationRequestParameter = requestParams.getOrNull()?.request
-                    if (requestLocationRequestParameter == null) {
-                        walletMain.errorService.emit(
-                            Exception("${Resources.ERROR_QR_CODE_SCANNING_MISSING_REQUEST_OBJECT_PARAMETER}: $requestRedirectUri"),
-                        )
-                        finalizeLoading()
-                        return@launch
-                    }
-
-                    val requestLocationRequestParameterJws = try {
-                        JwsSigned.parse(requestLocationRequestParameter) ?: throw Exception()
-                    } catch (error: Throwable) {
-                        walletMain.errorService.emit(
-                            Exception("${Resources.ERROR_QR_CODE_SCANNING_INVALID_REQUEST_JWS_OBJECT}: $requestLocationRequestParameter"),
-                        )
-                        finalizeLoading()
-                        return@launch
-                    }
-
-                    if (!DefaultVerifierJwsService().verifyJwsObject(requestLocationRequestParameterJws, null)) {
-                        walletMain.errorService.emit(
-                            Exception("${Resources.ERROR_QR_CODE_SCANNING_INVALID_REQUEST_JWS_OBJECT_SIGNATURE}: $requestLocationRequestParameter"),
-                        )
-                        finalizeLoading()
-                        return@launch
-                    }
-
-                    val requestLocationRequestParameterParsed =
-                        jsonSerializer.decodeFromString<AuthenticationRequestParameters>(
-                            requestLocationRequestParameterJws.payload.decodeToString()
-                        )
-                    if (requestLocationRequestParameterParsed.clientId != requestLocationClientId) {
-                        walletMain.errorService.emit(
-                            Exception("${Resources.ERROR_QR_CODE_SCANNING_INCONSISTENT_CLIENT_ID}: UrlParameter: $requestLocationClientId, AuthenticationRequestParameters: ${requestLocationRequestParameterParsed.clientId}"),
-                        )
-                        finalizeLoading()
-                        return@launch
-                    }
-                    RequestResponse(
-                        redirectUri = requestRedirectUri,
-                        requestParameters = requestLocationRequestParameterParsed,
-                    )
-                }
-
-                val clientMetadataPayload = null.let {
-                    val metadataResponse = client.get(metadataUri)
-
-                    val metadataJws = try {
-                        JwsSigned.parse(metadataResponse.bodyAsText()) ?: throw Exception()
-                    } catch (error: Throwable) {
-                        walletMain.errorService.emit(
-                            Exception("${Resources.ERROR_QR_CODE_SCANNING_INVALID_METADATA_JWS_OBJECT}: ${metadataResponse.bodyAsText()}"),
-                        )
-                        finalizeLoading()
-                        return@launch
-                    }
-
-                    if (!DefaultVerifierJwsService().verifyJwsObject(metadataJws, null)) {
-                        walletMain.errorService.emit(
-                            Exception("${Resources.ERROR_QR_CODE_SCANNING_INVALID_METADATA_JWS_OBJECT_SIGNATURE}: ${metadataResponse.bodyAsText()}"),
-                        )
-                        finalizeLoading()
-                        return@launch
-                    }
-
-                    // metadata has been verified
-                    Napier.d("metadataJws payload: ${metadataJws.payload.decodeToString()}")
-                    jsonSerializer.decodeFromString<RelyingPartyMetadata>(metadataJws.payload.decodeToString())
-                }
-
-                val requestedClaims =
-                    authenticationRequestParameters.presentationDefinition?.inputDescriptors
-                        ?.mapNotNull { it.constraints }?.flatMap { it.fields?.toList() ?: listOf() }
-                        ?.flatMap { it.path.toList() }
-                        ?.filter { it != "$.type" }
-                        ?.filter { it != "$.mdoc.doctype" }
-                        ?.map { it.removePrefix("\$.mdoc.") }
-                        ?.map { it.removePrefix("\$.") }
-                        ?: listOf()
-
-                Napier.d("redirectUri: $redirectUri")
-                Napier.d("clientId: ${authenticationRequestParameters.clientId}")
-                Napier.d(
-                    "client metadata redirect_uris: ${
-                        clientMetadataPayload.redirectUris.getOrElse(
-                            0
-                        ) { "null" }
-                    }"
+            val requestRedirectUri = requestResponse.headers[HttpHeaders.Location]
+            if (requestRedirectUri == null) {
+                walletMain.errorService.emit(
+                    Exception("${Resources.ERROR_QR_CODE_SCANNING_MISSING_REDIRECT_LOCATION}: $requestResponse"),
                 )
-
-                Napier.d("requested claims: ${requestedClaims.joinToString(", ")}")
-
-                if (!clientMetadataPayload.redirectUris.contains(authenticationRequestParameters.clientId)) {
-                    val redirectUris = clientMetadataPayload.redirectUris.joinToString("\n - ")
-                    val message = "${Resources.ERROR_QR_CODE_SCANNING_CLIENT_ID_NOT_IN_REDICECT_URIS}:" +
-                            " ${authenticationRequestParameters.clientId} not in: \n$redirectUris)"
-                    walletMain.errorService.emit(Exception(message))
-                    finalizeLoading()
-                    return@launch
-                } else {
-                    Napier.d("Valid client id: ${authenticationRequestParameters.clientId}")
-                }
-
                 finalizeLoading()
-                navigateUp()
-                // TODO("extract recipient name from the metadataResponse; the data is not yet being delivered though")
-                navigateToConsentScreen(
-                    AuthenticationConsentPage(
-                        url = redirectUri,
-                        claims = requestedClaims,
-                        recipientName = "DemoService",
-                        recipientLocation = requestParams["client_id"] ?: "DemoLocation",
-                        fromQrCodeScanner = true,
-                    )
-                )
+                return@launch
+            } else {
+                Napier.d("Redirect location: $requestRedirectUri")
             }
-        },
-    )
+
+            val requestParams = kotlin.runCatching {
+                Url(requestRedirectUri).parameters.flattenEntries().toMap()
+                    .decodeFromUrlQuery<AuthenticationRequestParameters>()
+            }
+
+            val requestLocationClientId = requestParams.getOrNull()?.clientId
+            val requestLocationRequestParameter = requestParams.getOrNull()?.request
+            if (requestLocationRequestParameter == null) {
+                walletMain.errorService.emit(
+                    Exception("${Resources.ERROR_QR_CODE_SCANNING_MISSING_REQUEST_OBJECT_PARAMETER}: $requestRedirectUri"),
+                )
+                finalizeLoading()
+                return@launch
+            }
+
+            val requestLocationRequestParameterJws = try {
+                JwsSigned.parse(requestLocationRequestParameter) ?: throw Exception()
+            } catch (error: Throwable) {
+                walletMain.errorService.emit(
+                    Exception("${Resources.ERROR_QR_CODE_SCANNING_INVALID_REQUEST_JWS_OBJECT}: $requestLocationRequestParameter"),
+                )
+                finalizeLoading()
+                return@launch
+            }
+
+            if (!verifierJwsService.verifyJwsObject(requestLocationRequestParameterJws, null)) {
+                walletMain.errorService.emit(
+                    Exception("${Resources.ERROR_QR_CODE_SCANNING_INVALID_REQUEST_JWS_OBJECT_SIGNATURE}: $requestLocationRequestParameter"),
+                )
+                finalizeLoading()
+                return@launch
+            }
+
+            val requestLocationRequestParameterParsed =
+                jsonSerializer.decodeFromString<AuthenticationRequestParameters>(
+                    requestLocationRequestParameterJws.payload.decodeToString()
+                )
+            if (requestLocationRequestParameterParsed.clientId != requestLocationClientId) {
+                walletMain.errorService.emit(
+                    Exception("${Resources.ERROR_QR_CODE_SCANNING_INCONSISTENT_CLIENT_ID}: UrlParameter: $requestLocationClientId, AuthenticationRequestParameters: ${requestLocationRequestParameterParsed.clientId}"),
+                )
+                finalizeLoading()
+                return@launch
+            }
+            RequestResponse(
+                redirectUri = requestRedirectUri,
+                requestParameters = requestLocationRequestParameterParsed,
+            )
+        }
+
+        val clientMetadataPayload = run {
+            val metadataResponse = client.get(metadataUri)
+            val metadataJws = try {
+                JwsSigned.parse(metadataResponse.bodyAsText()) ?: throw Exception()
+            } catch (error: Throwable) {
+                walletMain.errorService.emit(
+                    Exception("${Resources.ERROR_QR_CODE_SCANNING_INVALID_METADATA_JWS_OBJECT}: ${metadataResponse.bodyAsText()}"),
+                )
+                finalizeLoading()
+                return@launch
+            }
+
+            if (!verifierJwsService.verifyJwsObject(metadataJws, null)) {
+                walletMain.errorService.emit(
+                    Exception("${Resources.ERROR_QR_CODE_SCANNING_INVALID_METADATA_JWS_OBJECT_SIGNATURE}: ${metadataResponse.bodyAsText()}"),
+                )
+                finalizeLoading()
+                return@launch
+            }
+
+            // metadata has been verified
+            Napier.d("metadataJws payload: ${metadataJws.payload.decodeToString()}")
+            jsonSerializer.decodeFromString<RelyingPartyMetadata>(metadataJws.payload.decodeToString())
+        }
+
+        val requestedClaims =
+            authenticationRequestParameters.presentationDefinition?.inputDescriptors
+                ?.mapNotNull { it.constraints }?.flatMap { it.fields?.toList() ?: listOf() }
+                ?.flatMap { it.path.toList() }
+                ?.filter { it != "$.type" }
+                ?.filter { it != "$.mdoc.doctype" }
+                ?.map { it.removePrefix("\$.mdoc.") }
+                ?.map { it.removePrefix("\$.") }
+                ?: listOf()
+
+        Napier.d("redirectUri: $redirectUri")
+        Napier.d("clientId: ${authenticationRequestParameters.clientId}")
+        Napier.d(
+            "client metadata redirect_uris:" +
+                    " ${clientMetadataPayload.redirectUris.getOrElse(0) { "null" }}"
+        )
+        Napier.d("requested claims: ${requestedClaims.joinToString(", ")}")
+
+        if (!clientMetadataPayload.redirectUris.contains(authenticationRequestParameters.clientId)) {
+            val redirectUris = clientMetadataPayload.redirectUris.joinToString("\n - ")
+            val message =
+                "${Resources.ERROR_QR_CODE_SCANNING_CLIENT_ID_NOT_IN_REDICECT_URIS}:" +
+                        " ${authenticationRequestParameters.clientId} not in: \n$redirectUris)"
+            walletMain.errorService.emit(Exception(message))
+            finalizeLoading()
+            return@launch
+        } else {
+            Napier.d("Valid client id: ${authenticationRequestParameters.clientId}")
+        }
+
+        finalizeLoading()
+        navigateUp()
+        // TODO("extract recipient name from the metadataResponse; the data is not yet being delivered though")
+        navigateToConsentScreen(
+            AuthenticationConsentPage(
+                url = redirectUri,
+                claims = requestedClaims,
+                recipientName = "DemoService",
+                recipientLocation = requestParams["client_id"] ?: "DemoLocation",
+                fromQrCodeScanner = true,
+            )
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
