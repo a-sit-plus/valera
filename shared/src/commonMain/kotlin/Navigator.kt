@@ -39,6 +39,7 @@ import navigation.SettingsPage
 import navigation.ShowDataPage
 import view.AuthenticationConsentScreen
 import view.AuthenticationQrCodeScannerScreen
+import view.AuthenticationQrCodeScannerViewModel
 import view.AuthenticationSuccessScreen
 import view.ErrorScreen
 import view.LoadDataScreen
@@ -316,6 +317,7 @@ fun MainNavigator(
                             navigateToLoadingScreen = {
                                 navigationStack.push(LoadingPage())
                             },
+                            authenticationQrCodeScannerViewModel = AuthenticationQrCodeScannerViewModel(),
                             walletMain = walletMain,
                         )
                     }

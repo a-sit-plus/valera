@@ -7,6 +7,7 @@ import io.github.aakira.napier.Napier
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.readBytes
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 
@@ -33,15 +34,25 @@ class PresentationService(
                         val response = client.post(it.url) {
                             setBody(it.content)
                         }
-                        if (response.status == HttpStatusCode.InternalServerError) {
-                            throw Exception(
-                                "InternalServerErrorException",
-                                Exception(response.bodyAsText()),
-                            )
-                        }
-                        val location = response.headers[HttpHeaders.Location]
-                        if (location != null && !fromQrCodeScanner) {
-                            platformAdapter.openUrl(location)
+                        Napier.d("response $response")
+                        when (response.status.value) {
+                            HttpStatusCode.InternalServerError.value -> {
+                                throw Exception(
+                                    "InternalServerErrorException",
+                                    Exception(response.bodyAsText()),
+                                )
+                            }
+
+                            in 200..399 -> {
+                                val location = response.headers[HttpHeaders.Location]
+                                if (location != null && fromQrCodeScanner == false) {
+                                    platformAdapter.openUrl(location)
+                                }
+                            }
+
+                            else -> {
+                                throw Exception(response.readBytes().decodeToString())
+                            }
                         }
                     }
 
