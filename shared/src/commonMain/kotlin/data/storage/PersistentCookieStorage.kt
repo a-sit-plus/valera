@@ -25,16 +25,19 @@ import kotlin.jvm.JvmName
 import kotlin.math.min
 
 // Modified from io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
-class PersistentCookieStorage(private val dataStoreService: DataStoreService, private val errorService: ErrorService): CookiesStorage{
+class PersistentCookieStorage(
+    private val dataStoreService: DataStoreService,
+    private val errorService: ErrorService
+) : CookiesStorage {
     private val container = importFromDataStore()
     private val mutex = Mutex()
-
 
     suspend fun reset() = mutex.withLock {
         container.cookies.clear()
         container.oldestCookie.value = 0L
         exportToDataStore()
     }
+
     override suspend fun get(requestUrl: Url): List<Cookie> = mutex.withLock {
         val now = getTimeMillis()
         if (now >= container.oldestCookie.value) cleanup(now)
@@ -77,9 +80,17 @@ class PersistentCookieStorage(private val dataStoreService: DataStoreService, pr
     private fun exportToDataStore() {
         try {
             val exportableCookies = container.cookies.toExportableCookieList()
-            val export = ExportableCookieContainer(cookies = exportableCookies, oldestCookie = container.oldestCookie.value)
+            val export = ExportableCookieContainer(
+                cookies = exportableCookies,
+                oldestCookie = container.oldestCookie.value
+            )
             val json = jsonSerializer.encodeToString(export)
-            runBlocking {dataStoreService.setPreference(key = Resources.DATASTORE_KEY_COOKIES, value = json)}
+            runBlocking {
+                dataStoreService.setPreference(
+                    key = Resources.DATASTORE_KEY_COOKIES,
+                    value = json
+                )
+            }
         } catch (e: Throwable) {
             errorService.emit(e)
         }
@@ -87,12 +98,17 @@ class PersistentCookieStorage(private val dataStoreService: DataStoreService, pr
 
     private fun importFromDataStore(): CookieContainer {
         try {
-            val input = runBlocking { dataStoreService.getPreference(Resources.DATASTORE_KEY_COOKIES).firstOrNull() }
-            if (input == null){
+            val input = runBlocking {
+                dataStoreService.getPreference(Resources.DATASTORE_KEY_COOKIES).firstOrNull()
+            }
+            if (input == null) {
                 return CookieContainer(cookies = mutableListOf(), oldestCookie = atomic(0L))
             } else {
                 val export: ExportableCookieContainer = jsonSerializer.decodeFromString(input)
-                return CookieContainer(cookies = export.cookies.toCookieList(), oldestCookie = atomic(export.oldestCookie))
+                return CookieContainer(
+                    cookies = export.cookies.toCookieList(),
+                    oldestCookie = atomic(export.oldestCookie)
+                )
             }
         } catch (e: Throwable) {
             errorService.emit(e)
@@ -134,6 +150,7 @@ fun Cookie.matches(requestUrl: Url): Boolean {
 
     return !(secure && !requestUrl.protocol.isSecure())
 }
+
 fun Cookie.fillDefaults(requestUrl: Url): Cookie {
     var result = this
 
@@ -164,12 +181,17 @@ data class ExportableCookie(
 )
 
 data class CookieContainer(val cookies: MutableList<Cookie>, val oldestCookie: AtomicLong)
-@Serializable
-data class ExportableCookieContainer(val cookies: MutableList<ExportableCookie>, val oldestCookie: Long)
 
-fun MutableList<Cookie>.toExportableCookieList(): MutableList<ExportableCookie>{
+@Serializable
+data class ExportableCookieContainer(
+    val cookies: MutableList<ExportableCookie>,
+    val oldestCookie: Long
+)
+
+fun MutableList<Cookie>.toExportableCookieList(): MutableList<ExportableCookie> {
     return this.map {
-        ExportableCookie(name = it.name,
+        ExportableCookie(
+            name = it.name,
             value = it.value,
             encoding = it.encoding,
             maxAge = it.maxAge,
@@ -178,13 +200,15 @@ fun MutableList<Cookie>.toExportableCookieList(): MutableList<ExportableCookie>{
             path = it.path,
             secure = false,
             httpOnly = false,
-            extensions = it.extensions)
+            extensions = it.extensions
+        )
     }.toMutableList()
 }
 
-fun MutableList<ExportableCookie>.toCookieList(): MutableList<Cookie>{
+fun MutableList<ExportableCookie>.toCookieList(): MutableList<Cookie> {
     return this.map {
-        Cookie(name = it.name,
+        Cookie(
+            name = it.name,
             value = it.value,
             encoding = it.encoding,
             maxAge = it.maxAge,
@@ -193,6 +217,7 @@ fun MutableList<ExportableCookie>.toCookieList(): MutableList<Cookie>{
             path = it.path,
             secure = false,
             httpOnly = false,
-            extensions = it.extensions)
+            extensions = it.extensions
+        )
     }.toMutableList()
 }

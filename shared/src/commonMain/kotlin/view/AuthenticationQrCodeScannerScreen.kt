@@ -12,6 +12,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import at.asitplus.wallet.app.common.HttpService
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.jws.DefaultVerifierJwsService
@@ -19,6 +20,7 @@ import at.asitplus.wallet.lib.jws.JwsSigned
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
 import at.asitplus.wallet.lib.oidc.RelyingPartyMetadata
 import at.asitplus.wallet.lib.oidvci.decodeFromUrlQuery
+import at.asitplus.wallet.lib.oidvci.json
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.DefaultRequest
@@ -81,23 +83,9 @@ fun AuthenticationQrCodeScannerScreen(
         navigateUp()
     }
 
-    val client = HttpClient {
-        followRedirects = false
-        install(ContentNegotiation) {
-            json()
-        }
-
-        install(DefaultRequest) {
-            header(HttpHeaders.ContentType, ContentType.Application.Json)
-        }
-
-        install(Logging) {
-            logger = Logger.DEFAULT
-            level = LogLevel.ALL
-        }
-    }
-
+    val client = HttpService().buildHttpClient()
     val verifierJwsService = DefaultVerifierJwsService()
+
     CoroutineScope(Dispatchers.IO).launch {
         val (redirectUri, authenticationRequestParameters) = run {
             val requestResponse = client.get(requestUri)

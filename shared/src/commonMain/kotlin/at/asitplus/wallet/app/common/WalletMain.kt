@@ -31,28 +31,49 @@ class WalletMain(
     private lateinit var holderAgent: HolderAgent
     private lateinit var holderKeyService: HolderKeyService
     lateinit var provisioningService: ProvisioningService
+    lateinit var httpService: HttpService
     lateinit var presentationService: PresentationService
     lateinit var snackbarService: SnackbarService
     private val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
     val scope = CoroutineScope(Dispatchers.Default)
+
     init {
         at.asitplus.wallet.idaustria.Initializer.initWithVcLib()
         Napier.takeLogarithm()
         Napier.base(AntilogAdapter(platformAdapter, ""))
     }
+
     @Throws(Throwable::class)
-    fun initialize(snackbarService: SnackbarService){
-        walletConfig = WalletConfig(dataStoreService = this.dataStoreService, errorService = errorService)
+    fun initialize(snackbarService: SnackbarService) {
+        walletConfig =
+            WalletConfig(dataStoreService = this.dataStoreService, errorService = errorService)
         cryptoService = objectFactory.loadCryptoService().getOrThrow()
         subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
-        holderAgent = HolderAgent.newDefaultInstance(cryptoService = cryptoService, subjectCredentialStore = subjectCredentialStore)
+        holderAgent = HolderAgent.newDefaultInstance(
+            cryptoService = cryptoService,
+            subjectCredentialStore = subjectCredentialStore
+        )
         holderKeyService = objectFactory.loadHolderKeyService().getOrThrow()
-        provisioningService = ProvisioningService(platformAdapter, dataStoreService, cryptoService, holderAgent, walletConfig, errorService)
-        presentationService = PresentationService(platformAdapter, dataStoreService, cryptoService, holderAgent, errorService)
+        httpService = HttpService()
+        provisioningService = ProvisioningService(
+            platformAdapter,
+            dataStoreService,
+            cryptoService,
+            holderAgent,
+            walletConfig,
+            errorService,
+            httpService
+        )
+        presentationService = PresentationService(
+            platformAdapter,
+            cryptoService,
+            holderAgent,
+            httpService
+        )
         this.snackbarService = snackbarService
     }
 
-    suspend fun resetApp(){
+    suspend fun resetApp() {
         dataStoreService.clearLog()
 
         subjectCredentialStore.reset()
@@ -63,7 +84,7 @@ class WalletMain(
         walletConfig.reset()
     }
 
-    fun getLog(): List<String>{
+    fun getLog(): List<String> {
         val rawLog = platformAdapter.readFromFile("log.txt", "logs")
         return if (rawLog != null) {
             rawLog.split(regex = regex).filter { it.isNotEmpty() }
@@ -154,7 +175,7 @@ class DummyPlatformAdapter : PlatformAdapter {
     }
 
     override fun decodeImage(image: ByteArray): ImageBitmap {
-        return ImageBitmap(0,0)
+        return ImageBitmap(0, 0)
     }
 
     override fun writeToFile(text: String, fileName: String, folderName: String) {
