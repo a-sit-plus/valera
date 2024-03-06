@@ -74,7 +74,7 @@ class PresentationService(
                                 Exception(response.bodyAsText()),
                             )
                         }
-                        val location = response.headers["Location"]
+                        val location = response.headers[HttpHeaders.Location]
                         if (location != null && !fromQrCodeScanner) {
                             platformAdapter.openUrl(location)
                         }

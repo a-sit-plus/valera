@@ -49,12 +49,6 @@ data class RequestResponse(
     val requestParameters: AuthenticationRequestParameters,
 )
 
-private class HttpHeader {
-    companion object {
-        val LOCATION = "location"
-    }
-}
-
 @Composable
 fun AuthenticationQrCodeScannerScreen(
     navigateUp: () -> Unit,
@@ -115,7 +109,7 @@ fun AuthenticationQrCodeScannerScreen(
                 val (redirectUri, authenticationRequestParameters) = null.let {
                     val requestResponse = client.get(requestUri)
 
-                    val requestRedirectUri = requestResponse.headers[HttpHeader.LOCATION]
+                    val requestRedirectUri = requestResponse.headers[HttpHeaders.Location]
                     if (requestRedirectUri == null) {
                         walletMain.errorService.emit(
                             Exception("${Resources.ERROR_QR_CODE_SCANNING_MISSING_REDIRECT_LOCATION}: $requestResponse"),
