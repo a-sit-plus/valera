@@ -19,7 +19,6 @@ import androidx.compose.ui.Modifier
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
 import at.asitplus.wallet.lib.oidvci.decodeFromUrlQuery
-import domain.ExtractRequestObjectFromRedirectUriUseCase
 import domain.RetrieveRelyingPartyMetadataFromAuthenticationQrCodeUseCase
 import domain.RetrieveRequestRedirectFromAuthenticationQrCodeUseCase
 import io.github.aakira.napier.Napier
@@ -327,7 +326,6 @@ fun MainNavigator(
                                 retrieveRequestRedirectFromAuthenticationQrCodeUseCase = RetrieveRequestRedirectFromAuthenticationQrCodeUseCase(
                                     client = walletMain.httpService.buildHttpClient(),
                                 ),
-                                extractRequestObjectFromRedirectUriUseCase = ExtractRequestObjectFromRedirectUriUseCase(),
                             ),
                             walletMain = walletMain,
                         )

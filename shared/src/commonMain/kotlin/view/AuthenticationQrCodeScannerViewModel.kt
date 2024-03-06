@@ -18,7 +18,7 @@ import navigation.AuthenticationConsentPage
 class AuthenticationQrCodeScannerViewModel(
     private val retrieveRelyingPartyMetadataFromAuthenticationQrCodeUseCase: RetrieveRelyingPartyMetadataFromAuthenticationQrCodeUseCase,
     private val retrieveRequestRedirectFromAuthenticationQrCodeUseCase: RetrieveRequestRedirectFromAuthenticationQrCodeUseCase,
-    private val extractRequestObjectFromRedirectUriUseCase: ExtractRequestObjectFromRedirectUriUseCase,
+    private val extractRequestObjectFromRedirectUriUseCase: ExtractRequestObjectFromRedirectUriUseCase = ExtractRequestObjectFromRedirectUriUseCase(),
     private val validateClientMetadataAndRequestParameterConsistencyUseCase: ValidateClientMetadataAndRequestParameterConsistencyUseCase = ValidateClientMetadataAndRequestParameterConsistencyUseCase(),
     private val extractClaimsFromPresentationDefinitionUseCase: ExtractClaimsFromPresentationDefinitionUseCase = ExtractClaimsFromPresentationDefinitionUseCase(),
 ) {
