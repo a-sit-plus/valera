@@ -61,11 +61,13 @@ expect class AuthenticationConsentPage(
     claims: List<String>,
     recipientName: String,
     recipientLocation: String,
+    fromQrCodeScanner: Boolean = false
 ) : Page {
     val url: String
     val claims: List<String>
     val recipientName: String
     val recipientLocation: String
+    val fromQrCodeScanner: Boolean
 }
 
 expect class AuthenticationSuccessPage() : Page

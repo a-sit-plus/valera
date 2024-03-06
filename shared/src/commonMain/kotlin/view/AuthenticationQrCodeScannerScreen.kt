@@ -254,6 +254,7 @@ fun AuthenticationQrCodeScannerScreen(
                         claims = requestedClaims,
                         recipientName = "DemoService",
                         recipientLocation = pars["client_id"] ?: "DemoLocation",
+                        fromQrCodeScanner = true,
                     )
                 )
             }

@@ -24,6 +24,7 @@ fun AuthenticationConsentScreen(
     spImage: ImageBitmap?,
     claims: List<String>,
     url: String,
+    fromQrCodeScanner: Boolean,
     navigateUp: () -> Unit,
     navigateToRefreshCredentialsPage: () -> Unit,
     navigateToAuthenticationSuccessPage: () -> Unit,
@@ -94,7 +95,7 @@ fun AuthenticationConsentScreen(
                 showBiometry = false
                 walletMain.scope.launch {
                     try {
-                        walletMain.presentationService.startSiop(url)
+                        walletMain.presentationService.startSiop(url, fromQrCodeScanner)
                         navigateUp()
                         navigateToAuthenticationSuccessPage()
                     } catch (e: Throwable) {

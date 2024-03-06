@@ -52,7 +52,7 @@ class PresentationService(
     }
 
     @Throws(Throwable::class)
-    suspend fun startSiop(url: String) {
+    suspend fun startSiop(url: String, fromQrCodeScanner: Boolean) {
         Napier.d("Start SIOP process")
         val oidcSiopWallet = OidcSiopWallet.newInstance(
             holder = holderAgent,
@@ -75,16 +75,16 @@ class PresentationService(
                             )
                         }
                         val location = response.headers["Location"]
-                        if (location != null) {
+                        if (location != null && !fromQrCodeScanner) {
                             platformAdapter.openUrl(location)
-                        } else {
-                            throw Exception("Location is NULL")
                         }
                     }
 
                     is OidcSiopWallet.AuthenticationResponseResult.Redirect -> {
                         Napier.d("Opening $authenticationResponse")
-                        platformAdapter.openUrl(it.url)
+                        if (!fromQrCodeScanner) {
+                            platformAdapter.openUrl(it.url)
+                        }
                     }
                 }
             }, onFailure = {

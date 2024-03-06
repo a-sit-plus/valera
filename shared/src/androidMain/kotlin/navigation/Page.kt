@@ -72,6 +72,7 @@ actual class AuthenticationConsentPage actual constructor(
     actual val claims: List<String>,
     actual val recipientName: String,
     actual val recipientLocation: String,
+    actual val fromQrCodeScanner: Boolean,
 ) : Page, Parcelable
 
 @Parcelize
