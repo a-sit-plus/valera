@@ -19,8 +19,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import at.asitplus.wallet.app.common.WalletMain
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import ui.composables.BiometryPrompt
+import ui.composables.buttons.NavigateUpButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,6 +35,10 @@ fun ProvisioningLoadingScreen(
         mutableStateOf(true)
     }
 
+    var currentLoadingJob by rememberSaveable {
+        mutableStateOf<Job?>(null)
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -42,6 +48,13 @@ fun ProvisioningLoadingScreen(
                         style = MaterialTheme.typography.headlineLarge,
                     )
                 },
+                navigationIcon = {
+                    NavigateUpButton(
+                        onClick = {
+                            currentLoadingJob?.cancel()
+                        }
+                    )
+                }
             )
         }
     ) { scaffoldPadding ->
@@ -50,7 +63,7 @@ fun ProvisioningLoadingScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if(showBiometry) {
+            if (showBiometry) {
                 BiometryPrompt(
                     title = Resources.BIOMETRIC_AUTHENTICATION_PROMPT_TO_LOAD_DATA_TITLE,
                     subtitle = Resources.BIOMETRIC_AUTHENTICATION_PROMPT_TO_LOAD_DATA_SUBTITLE,
@@ -60,7 +73,7 @@ fun ProvisioningLoadingScreen(
                     },
                     onSuccess = {
                         showBiometry = false
-                        walletMain.scope.launch {
+                        currentLoadingJob = walletMain.scope.launch {
                             try {
                                 walletMain.provisioningService.handleResponse(link)
                                 walletMain.snackbarService.showSnackbar(Resources.SNACKBAR_CREDENTIAL_LOADED_SUCCESSFULLY)
