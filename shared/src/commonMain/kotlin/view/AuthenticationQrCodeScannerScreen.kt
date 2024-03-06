@@ -71,8 +71,8 @@ fun AuthenticationQrCodeScannerScreen(
                 return@AuthenticationQrCodeScannerView
             }
 
-            val metadata_uri = requestParams["metadata_uri"] ?: requestParams["client_metadata_uri"]
-            if (metadata_uri == null) {
+            val metadataUri = requestParams["metadata_uri"] ?: requestParams["client_metadata_uri"]
+            if (metadataUri == null) {
                 walletMain.errorService.emit(Exception(errorDescription))
                 return@AuthenticationQrCodeScannerView
             }
@@ -164,7 +164,7 @@ fun AuthenticationQrCodeScannerScreen(
                 }
 
                 val clientMetadataPayload = null.let {
-                    val metadataResponse = client.get(metadata_uri)
+                    val metadataResponse = client.get(metadataUri)
 
                     val metadataJws = try {
                         JwsSigned.parse(metadataResponse.bodyAsText()) ?: throw Exception()
@@ -176,7 +176,7 @@ fun AuthenticationQrCodeScannerScreen(
                         return@launch
                     }
 
-                    if (DefaultVerifierJwsService().verifyJwsObject(metadataJws, null) == false) {
+                    if (!DefaultVerifierJwsService().verifyJwsObject(metadataJws, null)) {
                         walletMain.errorService.emit(
                             Exception("${Resources.ERROR_QR_CODE_SCANNING_INVALID_METADATA_JWS_OBJECT_SIGNATURE}: ${metadataResponse.bodyAsText()}"),
                         )
@@ -211,16 +211,11 @@ fun AuthenticationQrCodeScannerScreen(
 
                 Napier.d("requested claims: ${requestedClaims.joinToString(", ")}")
 
-                if (clientMetadataPayload.redirectUris.contains(authenticationRequestParameters.clientId) == false) {
-                    walletMain.errorService.emit(
-                        Exception(
-                            "${Resources.ERROR_QR_CODE_SCANNING_CLIENT_ID_NOT_IN_REDICECT_URIS}: ${authenticationRequestParameters.clientId} not in: \n${
-                                clientMetadataPayload.redirectUris.joinToString(
-                                    "\n - "
-                                )
-                            })"
-                        ),
-                    )
+                if (!clientMetadataPayload.redirectUris.contains(authenticationRequestParameters.clientId)) {
+                    val redirectUris = clientMetadataPayload.redirectUris.joinToString("\n - ")
+                    val message = "${Resources.ERROR_QR_CODE_SCANNING_CLIENT_ID_NOT_IN_REDICECT_URIS}:" +
+                            " ${authenticationRequestParameters.clientId} not in: \n$redirectUris)"
+                    walletMain.errorService.emit(Exception(message))
                     finalizeLoading()
                     return@launch
                 } else {
