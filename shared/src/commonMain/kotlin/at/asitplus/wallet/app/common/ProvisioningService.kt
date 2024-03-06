@@ -16,18 +16,9 @@ import at.asitplus.wallet.lib.oidvci.formUrlEncode
 import data.storage.DataStoreService
 import data.storage.PersistentCookieStorage
 import io.github.aakira.napier.Napier
-import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.plugins.DefaultRequest
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.cookies.HttpCookies
-import io.ktor.client.plugins.logging.DEFAULT
-import io.ktor.client.plugins.logging.LogLevel
-import io.ktor.client.plugins.logging.Logger
-import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
-import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -36,34 +27,24 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.Url
 import io.ktor.http.contentType
 import io.ktor.http.parseQueryString
-import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 
 const val PATH_WELL_KNOWN_CREDENTIAL_ISSUER = "/.well-known/openid-credential-issuer"
 
-class ProvisioningService(val platformAdapter: PlatformAdapter, private val dataStoreService: DataStoreService, private val cryptoService: CryptoService, private val holderAgent: HolderAgent, private val config: WalletConfig, errorService: ErrorService) {
+class ProvisioningService(
+    val platformAdapter: PlatformAdapter,
+    private val dataStoreService: DataStoreService,
+    private val cryptoService: CryptoService,
+    private val holderAgent: HolderAgent,
+    private val config: WalletConfig,
+    errorService: ErrorService,
+    httpService: HttpService,
+) {
 
     var redirectUri: String? = null
     private val cookieStorage = PersistentCookieStorage(dataStoreService, errorService)
-    private val client = HttpClient {
-        followRedirects = false
-        install(ContentNegotiation) {
-            json()
-        }
-
-        install(DefaultRequest) {
-            header(HttpHeaders.ContentType, ContentType.Application.Json)
-        }
-
-        install(Logging) {
-            logger = Logger.DEFAULT
-            level = LogLevel.ALL
-        }
-        install(HttpCookies) {
-            storage = cookieStorage
-        }
-    }
+    private val client = httpService.buildHttpClient(cookieStorage = cookieStorage)
 
     @Throws(Throwable::class)
     suspend fun startProvisioning() {
@@ -83,7 +64,9 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, private val data
             dataStoreService.setPreference(xAuthToken, Resources.DATASTORE_KEY_XAUTH)
 
             if (urlToOpen != null) {
-                val pars = parseQueryString(urlToOpen, startIndex = urlToOpen.indexOfFirst { it == '?' } + 1)
+                val pars = parseQueryString(
+                    urlToOpen,
+                    startIndex = urlToOpen.indexOfFirst { it == '?' } + 1)
                 redirectUri = pars["redirect_uri"]
                 Napier.d("Set provisioningService.intentUrl to $redirectUri")
                 Napier.d("Open URL: $urlToOpen")
