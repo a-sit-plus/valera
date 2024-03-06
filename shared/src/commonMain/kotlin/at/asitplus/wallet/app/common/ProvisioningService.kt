@@ -74,12 +74,10 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, private val data
         runCatching {
             client.get("$host/m1/oauth2/authorization/idaq")
         }.onSuccess { response ->
-            val urlToOpen = response.headers["Location"]
+            val urlToOpen = response.headers[HttpHeaders.Location]
 
             val xAuthToken = response.headers["X-Auth-Token"]
-            if (xAuthToken == null) {
-                throw Exception("X-Auth-Token not received")
-            }
+                ?: throw Exception("X-Auth-Token not received")
 
             Napier.d("Store X-Auth-Token: $xAuthToken")
             dataStoreService.setPreference(xAuthToken, Resources.DATASTORE_KEY_XAUTH)
@@ -133,14 +131,10 @@ class ProvisioningService(val platformAdapter: PlatformAdapter, private val data
             }
             headers["X-Auth-Token"] = xAuthToken
         }.headers[HttpHeaders.Location]
+            ?: throw Exception("codeUrl is null")
 
-        if (codeUrl == null) {
-            throw Exception("codeUrl is null")
-        }
         val code = Url(codeUrl).parameters["code"]
-        if (code == null) {
-            throw Exception("code is null")
-        }
+            ?: throw Exception("code is null")
 
         val tokenRequest = oid4vciService.createTokenRequestParameters(code)
         Napier.d("Created tokenRequest")
