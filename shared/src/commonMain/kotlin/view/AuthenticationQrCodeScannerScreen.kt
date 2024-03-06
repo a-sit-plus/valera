@@ -62,25 +62,18 @@ fun AuthenticationQrCodeScannerScreen(
             Napier.d("onScan: $link")
 
             val parameterIndex = link.indexOfFirst { it == '?' }
-            val pars = parseQueryString(link, startIndex = parameterIndex + 1)
+            val requestParams = parseQueryString(link, startIndex = parameterIndex + 1)
 
-            val requestUri = pars["request_uri"]
+            val errorDescription = requestParams["error_description"] ?: Resources.UNKNOWN_EXCEPTION
+            val requestUri = requestParams["request_uri"]
             if (requestUri == null) {
-                walletMain.errorService.emit(
-                    Exception(
-                        pars["error_description"] ?: Resources.UNKNOWN_EXCEPTION
-                    )
-                )
+                walletMain.errorService.emit(Exception(errorDescription))
                 return@AuthenticationQrCodeScannerView
             }
 
-            val metadata_uri = pars["metadata_uri"] ?: pars["client_metadata_uri"]
+            val metadata_uri = requestParams["metadata_uri"] ?: requestParams["client_metadata_uri"]
             if (metadata_uri == null) {
-                walletMain.errorService.emit(
-                    Exception(
-                        pars["error_description"] ?: Resources.UNKNOWN_EXCEPTION
-                    )
-                )
+                walletMain.errorService.emit(Exception(errorDescription))
                 return@AuthenticationQrCodeScannerView
             }
 
@@ -145,12 +138,7 @@ fun AuthenticationQrCodeScannerScreen(
                         return@launch
                     }
 
-                    if (
-                        DefaultVerifierJwsService().verifyJwsObject(
-                            requestLocationRequestParameterJws,
-                            null
-                        ) == false
-                    ) {
+                    if (!DefaultVerifierJwsService().verifyJwsObject(requestLocationRequestParameterJws, null)) {
                         walletMain.errorService.emit(
                             Exception("${Resources.ERROR_QR_CODE_SCANNING_INVALID_REQUEST_JWS_OBJECT_SIGNATURE}: $requestLocationRequestParameter"),
                         )
@@ -247,7 +235,7 @@ fun AuthenticationQrCodeScannerScreen(
                         url = redirectUri,
                         claims = requestedClaims,
                         recipientName = "DemoService",
-                        recipientLocation = pars["client_id"] ?: "DemoLocation",
+                        recipientLocation = requestParams["client_id"] ?: "DemoLocation",
                         fromQrCodeScanner = true,
                     )
                 )
