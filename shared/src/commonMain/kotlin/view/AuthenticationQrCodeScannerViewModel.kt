@@ -1,6 +1,7 @@
 package view
 
 import Resources
+import domain.ExtractClaimsFromPresentationDefinitionUseCase
 import domain.ExtractRequestObjectFromRedirectUriUseCase
 import domain.RetrieveRelyingPartyMetadataFromAuthenticationQrCodeUseCase
 import domain.RetrieveRequestRedirectFromAuthenticationQrCodeUseCase
@@ -18,7 +19,8 @@ class AuthenticationQrCodeScannerViewModel(
     private val retrieveRelyingPartyMetadataFromAuthenticationQrCodeUseCase: RetrieveRelyingPartyMetadataFromAuthenticationQrCodeUseCase,
     private val retrieveRequestRedirectFromAuthenticationQrCodeUseCase: RetrieveRequestRedirectFromAuthenticationQrCodeUseCase,
     private val extractRequestObjectFromRedirectUriUseCase: ExtractRequestObjectFromRedirectUriUseCase,
-    private val validateClientMetadataAndRequestParameterConsistencyUseCase: ValidateClientMetadataAndRequestParameterConsistencyUseCase,
+    private val validateClientMetadataAndRequestParameterConsistencyUseCase: ValidateClientMetadataAndRequestParameterConsistencyUseCase = ValidateClientMetadataAndRequestParameterConsistencyUseCase(),
+    private val extractClaimsFromPresentationDefinitionUseCase: ExtractClaimsFromPresentationDefinitionUseCase = ExtractClaimsFromPresentationDefinitionUseCase(),
 ) {
     fun onScan(
         link: String,
@@ -37,9 +39,11 @@ class AuthenticationQrCodeScannerViewModel(
         }
 
         CoroutineScope(Dispatchers.IO).launch(coroutineExceptionHandler) {
-            val clientMetadataPayload = retrieveRelyingPartyMetadataFromAuthenticationQrCodeUseCase(link)
+            val clientMetadataPayload =
+                retrieveRelyingPartyMetadataFromAuthenticationQrCodeUseCase(link)
             val redirectUri = retrieveRequestRedirectFromAuthenticationQrCodeUseCase(link)
-            val authenticationRequestParameters = extractRequestObjectFromRedirectUriUseCase(redirectUri)
+            val authenticationRequestParameters =
+                extractRequestObjectFromRedirectUriUseCase(redirectUri)
             validateClientMetadataAndRequestParameterConsistencyUseCase(
                 clientMetadataPayload = clientMetadataPayload,
                 authenticationRequestParameters = authenticationRequestParameters,
@@ -48,20 +52,14 @@ class AuthenticationQrCodeScannerViewModel(
             val parameterIndex = link.indexOfFirst { it == '?' }
             val linkParams = parseQueryString(link, startIndex = parameterIndex + 1)
             val scannedLinkClientId = linkParams["client_id"]?.also {
-                if(it != authenticationRequestParameters.clientId) {
+                if (it != authenticationRequestParameters.clientId) {
                     throw Exception("${Resources.ERROR_QR_CODE_SCANNING_INCONSISTENT_CLIENT_ID}: ScannedLink: $it; RequestObject: ${authenticationRequestParameters.clientId}")
                 }
             }
 
-            val requestedClaims =
-                authenticationRequestParameters.presentationDefinition?.inputDescriptors
-                    ?.mapNotNull { it.constraints }?.flatMap { it.fields?.toList() ?: listOf() }
-                    ?.flatMap { it.path.toList() }
-                    ?.filter { it != "$.type" }
-                    ?.filter { it != "$.mdoc.doctype" }
-                    ?.map { it.removePrefix("\$.mdoc.") }
-                    ?.map { it.removePrefix("\$.") }
-                    ?: listOf()
+            val requestedClaims = authenticationRequestParameters.presentationDefinition?.let {
+                extractClaimsFromPresentationDefinitionUseCase(it)
+            } ?: listOf()
 
             Napier.d("redirectUri: $redirectUri")
             Napier.d("clientId: ${authenticationRequestParameters.clientId}")

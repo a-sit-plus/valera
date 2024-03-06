@@ -2,6 +2,7 @@ package domain
 
 import Resources
 import at.asitplus.wallet.lib.data.jsonSerializer
+import at.asitplus.wallet.lib.jws.DefaultVerifierJwsService
 import at.asitplus.wallet.lib.jws.JwsSigned
 import at.asitplus.wallet.lib.jws.VerifierJwsService
 import at.asitplus.wallet.lib.oidc.RelyingPartyMetadata
@@ -17,7 +18,7 @@ import kotlinx.coroutines.withContext
 
 class RetrieveRelyingPartyMetadataFromAuthenticationQrCodeUseCase(
     private val client: HttpClient,
-    private val verifierJwsService: VerifierJwsService,
+    private val verifierJwsService: VerifierJwsService = DefaultVerifierJwsService(),
     private val defaultDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
     suspend operator fun invoke(link: String): RelyingPartyMetadata {
