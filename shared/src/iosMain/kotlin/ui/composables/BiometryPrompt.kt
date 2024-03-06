@@ -2,6 +2,8 @@ package ui.composables
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import platform.LocalAuthentication.LAContext
+import platform.LocalAuthentication.LAPolicyDeviceOwnerAuthentication
 
 @Composable
 actual fun BiometryPrompt(
@@ -11,6 +13,12 @@ actual fun BiometryPrompt(
     onDismiss: (BiometryPromptDismissResult) -> Unit,
 ) {
     LaunchedEffect(true) {
-        onSuccess(BiometryPromptSuccessResult())
+        LAContext().evaluatePolicy(LAPolicyDeviceOwnerAuthentication, localizedReason = title) { boolResult, nsError ->
+            if (boolResult) {
+                onSuccess(BiometryPromptSuccessResult())
+            } else {
+                onDismiss(BiometryPromptDismissResult(nsError?.code?.toInt() ?: -1, nsError?.localizedDescription ?: "unknown"))
+            }
+        }
     }
 }
