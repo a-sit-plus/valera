@@ -18,11 +18,6 @@ import navigation.AuthenticationConsentPage
 import ui.composables.buttons.NavigateUpButton
 import ui.views.CameraView
 
-data class RequestResponse(
-    val redirectUri: String,
-    val requestParameters: AuthenticationRequestParameters,
-)
-
 @Composable
 fun AuthenticationQrCodeScannerScreen(
     navigateUp: () -> Unit,
@@ -41,6 +36,7 @@ fun AuthenticationQrCodeScannerScreen(
                 walletMain.errorService.emit(throwable)
             },
             onSuccess = { page ->
+                navigateUp()
                 navigateToConsentScreen(page)
             },
         )
