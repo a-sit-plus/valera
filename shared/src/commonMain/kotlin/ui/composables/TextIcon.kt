@@ -2,6 +2,8 @@ package ui.composables
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.IconButtonDefaults
@@ -16,27 +18,45 @@ import androidx.compose.ui.text.font.FontWeight
 
 @Composable
 fun TextIcon(
-    text: String?,
+    text: String,
     fontWeight: FontWeight = FontWeight.Bold,
-    colors: IconButtonColors = TextIconDefaults.backgroundColor(),
-    modifier: Modifier = Modifier,
+    color: Color = TextIconDefaults.color(),
+    contentColor: Color = contentColorFor(color),
+) {
+    TextIcon(
+        text = text,
+        fontWeight = fontWeight,
+        colors = IconButtonDefaults.iconButtonColors(
+            containerColor = color,
+            contentColor = contentColor,
+            disabledContainerColor = color,
+            disabledContentColor = contentColor,
+        ),
+    )
+}
+
+@Composable
+fun TextIcon(
+    text: String,
+    fontWeight: FontWeight = FontWeight.Bold,
+    colors: IconButtonColors,
 ) {
     IconButton(
         onClick = {},
-        colors = colors,
         enabled = false,
-        modifier = modifier,
+        colors = colors,
     ) {
-        if(text != null) {
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = text,
-                    fontWeight = fontWeight,
-                )
-            }
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxSize().wrapContentSize(
+                align = Alignment.Center
+            ),
+        ) {
+            Text(
+                text = text,
+                fontWeight = fontWeight,
+            )
         }
     }
 }
@@ -44,16 +64,8 @@ fun TextIcon(
 class TextIconDefaults {
     companion object {
         @Composable
-        fun backgroundColor(
-            containerColor: Color = MaterialTheme.colorScheme.secondaryContainer,
-            contentColor: Color = contentColorFor(MaterialTheme.colorScheme.secondaryContainer),
-            disabledContainerColor: Color = MaterialTheme.colorScheme.secondaryContainer,
-            disabledContentColor: Color = contentColorFor(MaterialTheme.colorScheme.secondaryContainer)
-        ) = IconButtonDefaults.iconButtonColors(
-            containerColor = containerColor,
-            contentColor = contentColor,
-            disabledContainerColor = disabledContainerColor,
-            disabledContentColor = disabledContentColor,
-        )
+        fun color(
+            color: Color = MaterialTheme.colorScheme.secondaryContainer,
+        ): Color = color
     }
 }

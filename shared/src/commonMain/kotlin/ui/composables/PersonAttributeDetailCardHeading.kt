@@ -23,7 +23,7 @@ fun PersonAttributeDetailCardHeading(
 ) {
     PersonAttributeDetailCardHeading(
         icon = {
-            TextIcon(
+            HeadingTextIcon(
                 text = iconText,
                 fontWeight = FontWeight.Bold,
             )
