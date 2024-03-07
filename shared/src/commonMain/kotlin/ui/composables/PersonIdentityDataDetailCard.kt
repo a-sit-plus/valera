@@ -5,9 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
@@ -90,26 +88,8 @@ fun PersonIdentityDataDetailCard(
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             PersonAttributeDetailCardHeading(
-                icon = {
-                    if (identityData.portrait != null) {
-                        IconButton(
-                            onClick = {},
-                            enabled = false,
-                        ) {
-                            Image(
-                                bitmap = identityData.portrait,
-                                contentDescription = Resources.CONTENT_DESCRIPTION_PORTRAIT,
-                            )
-                        }
-                    } else {
-                        PersonAttributeDetailCardHeadingTextIcon(
-                            PersonalDataCategory.IdentityData.iconText
-                        )
-                    }
-                },
-                title = {
-                    PersonAttributeDetailCardHeadingTitle(PersonalDataCategory.IdentityData.categoryTitle)
-                },
+                iconText = PersonalDataCategory.IdentityData.iconText,
+                title = PersonalDataCategory.IdentityData.categoryTitle,
             ) {
                 if (onClickOpenDetails != null) {
                     IconButton(
@@ -124,12 +104,20 @@ fun PersonIdentityDataDetailCard(
             }
 
             Row(
-                modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start,
+                modifier = Modifier.padding(bottom = 16.dp, start = 8.dp, end = 8.dp).fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
+                if (identityData.portrait != null) {
+                    Image(
+                        bitmap = identityData.portrait,
+                        contentDescription = Resources.CONTENT_DESCRIPTION_PORTRAIT,
+                        modifier = Modifier.fillMaxWidth(0.25f).padding(horizontal = 8.dp),
+                    )
+                }
                 val textGap = 4.dp
                 Column(
                     horizontalAlignment = Alignment.Start,
+                    modifier = Modifier.padding(horizontal = 8.dp)
                 ) {
                     if (identityData.firstname != null || identityData.lastname != null) {
                         Text(
@@ -146,7 +134,6 @@ fun PersonIdentityDataDetailCard(
                             modifier = Modifier.padding(bottom = textGap),
                         )
                     }
-                    Spacer(modifier = Modifier.height(16.dp - textGap))
                 }
             }
         }
