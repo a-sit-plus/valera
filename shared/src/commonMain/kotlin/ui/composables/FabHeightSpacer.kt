@@ -8,5 +8,5 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun FabHeightSpacer() {
-    Spacer(modifier = Modifier.height(92.dp))
+    Spacer(modifier = Modifier.height(68.dp))
 }

@@ -163,6 +163,7 @@ object Resources {
     const val INFO_TEXT_RESTART_APP = "Bitte starten Sie die App erneut."
     const val INFO_TEXT_DATA_ITEMS_MISSING = "fehlend"
     const val INFO_TEXT_AUTHENTICATION_SUCCESS = "Die Anmeldung wurde erfolgreich durchgeführt."
+    const val INFO_TEXT_NO_CREDENTIALS_AVAILABLE = "Es sind noch keine Daten verfügbar."
     const val INFO_TEXT_REDICRECTION_TO_ID_AUSTRIA_FOR_CREDENTIAL_PROVISIONING = "Zur Abfrage Ihrer Daten werden Sie zu ID Austria weitergeleitet."
     const val INFO_TEXT_NOTICE_DEVELOPMENT_PROVISIONING_USING_QR_CODE_CREDENTIALS = "Zu Entwicklungszwecken gibt es auch die Möglichkeit, Daten über einen QR-Code zu laden."
     const val INFO_TEXT_ENTHUSIASTIC_WELCOME_END = "Daten laden und los geht's!"
