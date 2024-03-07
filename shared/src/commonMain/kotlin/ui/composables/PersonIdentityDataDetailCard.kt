@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.ElevatedCard
@@ -14,10 +15,19 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.toSize
 import data.CredentialExtractor
 import kotlinx.datetime.LocalDate
 
@@ -103,21 +113,28 @@ fun PersonIdentityDataDetailCard(
                 }
             }
 
+            var columnSize by remember { mutableStateOf(Size.Zero) }
             Row(
-                modifier = Modifier.padding(bottom = 16.dp, start = 8.dp, end = 8.dp).fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.Start,
+                modifier = Modifier.padding(bottom = 16.dp, start = 16.dp, end = 16.dp)
+                    .fillMaxWidth().onGloballyPositioned { layoutCoordinates ->
+                        columnSize = layoutCoordinates.size.toSize()
+                    }
             ) {
                 if (identityData.portrait != null) {
+                    // source: https://stackoverflow.com/questions/69455135/does-jetpack-compose-have-maxheight-and-maxwidth-like-xml
+                    // weird way to get "at most 1/4th of max width"
+                    val maxWidth = LocalDensity.current.run { (0.25f * columnSize.width).toDp() }
                     Image(
                         bitmap = identityData.portrait,
                         contentDescription = Resources.CONTENT_DESCRIPTION_PORTRAIT,
-                        modifier = Modifier.fillMaxWidth(0.25f).padding(horizontal = 8.dp),
+                        modifier = Modifier.widthIn(0.dp, maxWidth).padding(end = 16.dp),
+                        contentScale = ContentScale.FillWidth,
                     )
                 }
                 val textGap = 4.dp
                 Column(
                     horizontalAlignment = Alignment.Start,
-                    modifier = Modifier.padding(horizontal = 8.dp)
                 ) {
                     if (identityData.firstname != null || identityData.lastname != null) {
                         Text(
@@ -131,7 +148,6 @@ fun PersonIdentityDataDetailCard(
                     if (identityData.dateOfBirth != null) {
                         Text(
                             text = identityData.dateOfBirth.run { "$dayOfMonth.$monthNumber.$year" },
-                            modifier = Modifier.padding(bottom = textGap),
                         )
                     }
                 }
