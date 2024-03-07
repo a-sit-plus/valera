@@ -300,15 +300,12 @@ fun MainNavigator(
 
                     is ShowDataPage -> {
                         ShowDataScreen(
-                            navigateToAuthenticationStartPage = {
-                                navigationStack.push(AuthenticationQrCodeScannerPage())
+                            navigateUp = navigateUp,
+                            navigateToConsentScreen = navigationStack::push,
+                            navigateToLoadingScreen = {
+                                navigationStack.push(LoadingPage())
                             },
-                            onClickShowDataToExecutive = {
-                                walletMain.snackbarService.showSnackbar(Resources.ERROR_FEATURE_NOT_YET_AVAILABLE)
-                            },
-                            onClickShowDataToOtherCitizen = {
-                                walletMain.snackbarService.showSnackbar(Resources.ERROR_FEATURE_NOT_YET_AVAILABLE)
-                            },
+                            walletMain = walletMain,
                         )
                     }
 

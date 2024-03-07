@@ -13,7 +13,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
+import domain.RetrieveRelyingPartyMetadataFromAuthenticationQrCodeUseCase
+import domain.RetrieveRequestRedirectFromAuthenticationQrCodeUseCase
 import navigation.AuthenticationConsentPage
 import ui.composables.buttons.NavigateUpButton
 import ui.views.CameraView
@@ -23,8 +24,15 @@ fun AuthenticationQrCodeScannerScreen(
     navigateUp: () -> Unit,
     navigateToLoadingScreen: () -> Unit,
     navigateToConsentScreen: (AuthenticationConsentPage) -> Unit,
-    authenticationQrCodeScannerViewModel: AuthenticationQrCodeScannerViewModel,
     walletMain: WalletMain,
+    authenticationQrCodeScannerViewModel: AuthenticationQrCodeScannerViewModel = AuthenticationQrCodeScannerViewModel(
+        retrieveRequestRedirectFromAuthenticationQrCodeUseCase = RetrieveRequestRedirectFromAuthenticationQrCodeUseCase(
+            client = walletMain.httpService.buildHttpClient()
+        ),
+        retrieveRelyingPartyMetadataFromAuthenticationQrCodeUseCase = RetrieveRelyingPartyMetadataFromAuthenticationQrCodeUseCase(
+            client = walletMain.httpService.buildHttpClient()
+        ),
+    ),
 ) = AuthenticationQrCodeScannerView(
     navigateUp = navigateUp,
     onFoundPayload = { link ->
@@ -46,8 +54,8 @@ fun AuthenticationQrCodeScannerScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthenticationQrCodeScannerView(
-    navigateUp: () -> Unit,
     onFoundPayload: (String) -> Unit,
+    navigateUp: (() -> Unit)? = null,
 ) {
     Scaffold(
         topBar = {
@@ -67,7 +75,9 @@ fun AuthenticationQrCodeScannerView(
                     }
                 },
                 navigationIcon = {
-                    NavigateUpButton(navigateUp)
+                    if(navigateUp != null) {
+                        NavigateUpButton(navigateUp)
+                    }
                 },
             )
         },

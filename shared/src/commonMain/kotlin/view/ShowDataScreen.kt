@@ -22,11 +22,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import at.asitplus.wallet.app.common.WalletMain
+import navigation.AuthenticationConsentPage
 import ui.composables.TextIconButton
+
+@Composable
+fun ShowDataScreen(
+    navigateUp: () -> Unit,
+    navigateToLoadingScreen: () -> Unit,
+    navigateToConsentScreen: (AuthenticationConsentPage) -> Unit,
+    walletMain: WalletMain,
+) = AuthenticationQrCodeScannerScreen(
+    navigateUp = navigateUp,
+    navigateToLoadingScreen = navigateToLoadingScreen,
+    navigateToConsentScreen = navigateToConsentScreen,
+    walletMain = walletMain,
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShowDataScreen(
+fun ShowDataView(
     navigateToAuthenticationStartPage: () -> Unit,
     onClickShowDataToExecutive: () -> Unit,
     onClickShowDataToOtherCitizen: () -> Unit,
