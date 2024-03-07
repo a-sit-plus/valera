@@ -117,83 +117,22 @@ fun OnboardingInformationScreen(
                             }
                         }
                         gapSpacer()
-                        Column {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Start,
-                                modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                TextIcon(Resources.ONBOARDING_SECTION_SHOW_DATA_ICON_TEXT)
-                                Spacer(modifier = Modifier.width(10.dp))
-                                Column {
-                                    Text(
-                                        text = Resources.ONBOARDING_SECTION_SHOW_DATA_TITLE,
-                                        style = MaterialTheme.typography.titleMedium,
-                                    )
-                                    Text(
-                                        text = Resources.ONBOARDING_SECTION_SHOW_DATA_SUBTITLE,
-                                        style = MaterialTheme.typography.bodySmall,
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(10.dp))
-                            Column(
-                                modifier = Modifier.padding(start = 32.dp)
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Start,
-                                    modifier = Modifier.fillMaxWidth(),
-                                ) {
-                                    TextIcon(Resources.ONBOARDING_SECTION_DATA_USAGE_AUTHENTICATE_AT_MASHINE_ICON_TEXT)
-                                    Spacer(modifier = Modifier.width(10.dp))
-                                    Column {
-                                        Text(
-                                            text = Resources.ONBOARDING_SECTION_DATA_USAGE_AUTHENTICATE_AT_MASHINE_TITLE,
-                                            style = MaterialTheme.typography.titleMedium,
-                                        )
-                                        Text(
-                                            text = Resources.ONBOARDING_SECTION_DATA_USAGE_AUTHENTICATE_AT_MASHINE_SUBTITLE,
-                                            style = MaterialTheme.typography.bodySmall,
-                                        )
-                                    }
-                                }
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Start,
-                                    modifier = Modifier.fillMaxWidth(),
-                                ) {
-                                    TextIcon(Resources.ONBOARDING_SECTION_DATA_USAGE_SHOW_EXECUTIVE_ICON_TEXT)
-                                    Spacer(modifier = Modifier.width(10.dp))
-                                    Column {
-                                        Text(
-                                            text = Resources.ONBOARDING_SECTION_DATA_USAGE_SHOW_EXECUTIVE_TITLE,
-                                            style = MaterialTheme.typography.titleMedium,
-                                        )
-                                        Text(
-                                            text = Resources.ONBOARDING_SECTION_DATA_USAGE_SHOW_EXECUTIVE_SUBTITLE,
-                                            style = MaterialTheme.typography.bodySmall,
-                                        )
-                                    }
-                                }
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Start,
-                                    modifier = Modifier.fillMaxWidth(),
-                                ) {
-                                    TextIcon(Resources.ONBOARDING_SECTION_DATA_USAGE_SHOW_OTHER_CITIZEN_ICON_TEXT)
-                                    Spacer(modifier = Modifier.width(10.dp))
-                                    Column {
-                                        Text(
-                                            text = Resources.ONBOARDING_SECTION_DATA_USAGE_SHOW_OTHER_CITIZEN_TITLE,
-                                            style = MaterialTheme.typography.titleMedium,
-                                        )
-                                        Text(
-                                            text = Resources.ONBOARDING_SECTION_DATA_USAGE_SHOW_OTHER_CITIZEN_SUBTITLE,
-                                            style = MaterialTheme.typography.bodySmall,
-                                        )
-                                    }
-                                }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Start,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            TextIcon(Resources.ONBOARDING_SECTION_SHOW_DATA_ICON_TEXT)
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = Resources.ONBOARDING_SECTION_SHOW_DATA_TITLE,
+                                    style = MaterialTheme.typography.titleMedium,
+                                )
+                                Text(
+                                    text = Resources.ONBOARDING_SECTION_SHOW_DATA_SUBTITLE,
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
                             }
                         }
                     }

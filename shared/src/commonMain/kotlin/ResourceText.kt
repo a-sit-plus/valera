@@ -196,7 +196,7 @@ object Resources {
     const val ONBOARDING_SECTION_LOAD_DATA_SUBTITLE = "mit einmaligem Kontakt zum zentralen ID Austria"
     const val ONBOARDING_SECTION_SHOW_DATA_ICON_TEXT = "3"
     const val ONBOARDING_SECTION_SHOW_DATA_TITLE = "Daten vorzeigen"
-    const val ONBOARDING_SECTION_SHOW_DATA_SUBTITLE = "direkt aus dem Speicher der App"
+    const val ONBOARDING_SECTION_SHOW_DATA_SUBTITLE = "am Schalter oder bei Maschinen"
     const val ONBOARDING_SECTION_DATA_USAGE_AUTHENTICATE_AT_MASHINE_ICON_TEXT = "A"
     const val ONBOARDING_SECTION_DATA_USAGE_AUTHENTICATE_AT_MASHINE_TITLE = "am Schalter oder bei Maschinen"
     const val ONBOARDING_SECTION_DATA_USAGE_AUTHENTICATE_AT_MASHINE_SUBTITLE = "bspw. bei Amtswegen"
