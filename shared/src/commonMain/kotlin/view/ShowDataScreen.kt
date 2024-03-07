@@ -34,6 +34,7 @@ fun ShowDataScreen(
     walletMain: WalletMain,
 ) = AuthenticationQrCodeScannerScreen(
     navigateUp = navigateUp,
+    showNavigateUpButton = false,
     navigateToLoadingScreen = navigateToLoadingScreen,
     navigateToConsentScreen = navigateToConsentScreen,
     walletMain = walletMain,

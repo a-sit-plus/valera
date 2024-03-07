@@ -22,6 +22,7 @@ import ui.views.CameraView
 @Composable
 fun AuthenticationQrCodeScannerScreen(
     navigateUp: () -> Unit,
+    showNavigateUpButton: Boolean = true,
     navigateToLoadingScreen: () -> Unit,
     navigateToConsentScreen: (AuthenticationConsentPage) -> Unit,
     walletMain: WalletMain,
@@ -34,7 +35,7 @@ fun AuthenticationQrCodeScannerScreen(
         ),
     ),
 ) = AuthenticationQrCodeScannerView(
-    navigateUp = navigateUp,
+    navigateUp = if(showNavigateUpButton) navigateUp else null,
     onFoundPayload = { link ->
         authenticationQrCodeScannerViewModel.onScan(
             link = link,
@@ -68,7 +69,7 @@ fun AuthenticationQrCodeScannerView(
                         )
                         Text(
                             Resources.HEADING_LABEL_AUTHENTICATE_AT_DEVICE_SUBTITLE,
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.tertiary,
                         )

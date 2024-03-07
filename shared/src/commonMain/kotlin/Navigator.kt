@@ -236,7 +236,9 @@ fun MainNavigator(
                                 Text(route.title)
                             },
                             onClick = {
-                                navigationStack.push(route.destination)
+                                if(route.isActive(page) == false) {
+                                    navigationStack.push(route.destination)
+                                }
                             },
                             selected = route.isActive(page)
                         )
