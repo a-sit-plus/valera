@@ -11,7 +11,7 @@ import data.CredentialExtractor
 import ui.composables.AdmissionData
 import ui.composables.AgeData
 import ui.composables.DrivingData
-import ui.composables.FabHeightSpacer
+import ui.composables.FloatingActionButtonHeightSpacer
 import ui.composables.IdentityData
 import ui.composables.PersonAdmissionDataDetailCard
 import ui.composables.PersonAgeDataDetailCard
@@ -58,8 +58,9 @@ fun ColumnScope.MyDataView(
     navigateToDrivingData: (() -> Unit)? = null,
     navigateToAdmissionData: (() -> Unit)? = null,
 ) {
-    val paddingModifier = Modifier.padding(horizontal = 16.dp)
     val gapSize = 20.dp
+    val paddingModifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = gapSize)
+
     if (identityData != null) {
         if (
             listOf(
@@ -71,7 +72,7 @@ fun ColumnScope.MyDataView(
         ) {
             PersonIdentityDataDetailCard(
                 identityData = identityData,
-                modifier = paddingModifier.padding(bottom = gapSize),
+                modifier = paddingModifier,
             )
         }
     }
@@ -84,7 +85,7 @@ fun ColumnScope.MyDataView(
         ) {
             PersonAgeDataDetailCard(
                 ageData = ageData,
-                modifier = paddingModifier.padding(bottom = gapSize),
+                modifier = paddingModifier,
             )
         }
     }
@@ -101,7 +102,7 @@ fun ColumnScope.MyDataView(
         ) {
             PersonResidenceDataDetailCard(
                 residenceData = residenceData,
-                modifier = paddingModifier.padding(bottom = gapSize),
+                modifier = paddingModifier,
             )
         }
     }
@@ -113,7 +114,7 @@ fun ColumnScope.MyDataView(
         ) {
             PersonDrivingDataDetailCard(
                 drivingData = drivingData,
-                modifier = paddingModifier.padding(bottom = gapSize),
+                modifier = paddingModifier,
             )
         }
     }
@@ -131,5 +132,7 @@ fun ColumnScope.MyDataView(
         }
     }
     // make sufficient scroll space for FAB
-    FabHeightSpacer()
+    FloatingActionButtonHeightSpacer(
+        externalPadding = gapSize,
+    )
 }
