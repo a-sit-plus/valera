@@ -14,8 +14,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.SettingsBackupRestore
@@ -25,7 +23,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -34,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,6 +44,7 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.data.ConstantIndex
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import ui.composables.buttons.SaveButton
 
 @Composable
 fun SettingsScreen(
@@ -57,18 +56,22 @@ fun SettingsScreen(
     val buildType = walletMain.buildContext.buildType
     val version = walletMain.buildContext.versionName
 
-    var credentialRepresentation by remember {
+    val originalCredentialRepresentation by walletMain.walletConfig.credentialRepresentation.collectAsState(null)
+    var credentialRepresentation by rememberSaveable(originalCredentialRepresentation) {
         runBlocking {
             mutableStateOf(walletMain.walletConfig.credentialRepresentation.first())
         }
     }
+
+    val originalHost by walletMain.walletConfig.host.collectAsState(null)
     var host by rememberSaveable {
         runBlocking {
             mutableStateOf(walletMain.walletConfig.host.first())
         }
     }
-    var isSaveEnabled by rememberSaveable {
-        mutableStateOf(false)
+
+    val isSaveEnabled = remember(originalHost, host, originalCredentialRepresentation, credentialRepresentation) {
+        host != originalHost || credentialRepresentation != originalCredentialRepresentation
     }
 
     SettingsView(
@@ -81,9 +84,6 @@ fun SettingsScreen(
             credentialRepresentation = it
         },
         isSaveEnabled = isSaveEnabled,
-        onChangeIsSaveEnabled = {
-            isSaveEnabled = it
-        },
         onClickSaveConfiguration = {
             walletMain.walletConfig.set(
                 host = host,
@@ -115,7 +115,6 @@ fun SettingsView(
     credentialRepresentation: ConstantIndex.CredentialRepresentation,
     onChangeCredentialRepresentation: (ConstantIndex.CredentialRepresentation) -> Unit,
     isSaveEnabled: Boolean,
-    onChangeIsSaveEnabled: (Boolean) -> Unit,
     onClickSaveConfiguration: () -> Unit,
     stage: String,
     version: String,
@@ -127,9 +126,6 @@ fun SettingsView(
     onClickResetApp: () -> Unit,
 ) {
     var showMenu by remember { mutableStateOf(false) }
-    val actualShowMenu = remember(showMenu, isSaveEnabled) {
-        showMenu && isSaveEnabled
-    }
 
     val showAlert = remember { mutableStateOf(false) }
     if (showAlert.value) {
@@ -164,34 +160,6 @@ fun SettingsView(
                 Text("${Resources.TEXT_LABEL_BUILD}: $version-$buildType")
             }
         },
-        floatingActionButton = {
-            if (isSaveEnabled) {
-                FloatingActionButton(
-                    onClick = {
-                        showMenu = false
-                        onChangeIsSaveEnabled(false)
-                        onClickSaveConfiguration()
-                    },
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Save,
-                        contentDescription = null,
-                    )
-                }
-            } else {
-                FloatingActionButton(
-                    onClick = {
-                        showMenu = false
-                        onChangeIsSaveEnabled(true)
-                    },
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = null,
-                    )
-                }
-            }
-        },
     ) { scaffoldPadding ->
         Box(modifier = Modifier.padding(scaffoldPadding)) {
             Column(
@@ -215,11 +183,10 @@ fun SettingsView(
                         keyboardOptions = KeyboardOptions(
                             imeAction = ImeAction.Done
                         ),
-                        enabled = isSaveEnabled,
                         modifier = listSpacingModifier.fillMaxWidth(),
                     )
                     ExposedDropdownMenuBox(
-                        expanded = actualShowMenu,
+                        expanded = showMenu,
                         onExpandedChange = {
                             showMenu = !showMenu
                         },
@@ -232,12 +199,11 @@ fun SettingsView(
                             label = {
                                 Text(Resources.TEXT_LABEL_ID_FORMAT)
                             },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = showMenu && isSaveEnabled) },
-                            enabled = isSaveEnabled,
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = showMenu) },
                             modifier = Modifier.menuAnchor().fillMaxWidth(),
                         )
                         ExposedDropdownMenu(
-                            expanded = actualShowMenu,
+                            expanded = showMenu,
                             onDismissRequest = {
                                 showMenu = false
                             },
@@ -275,6 +241,11 @@ fun SettingsView(
                             )
                         }
                     }
+                    SaveButton(
+                        onClick = onClickSaveConfiguration,
+                        enabled = isSaveEnabled,
+                        modifier = listSpacingModifier.fillMaxWidth(),
+                    )
                 }
                 Column(
                     modifier = layoutSpacingModifier

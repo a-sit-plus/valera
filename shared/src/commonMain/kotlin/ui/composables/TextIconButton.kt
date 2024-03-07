@@ -28,10 +28,12 @@ fun TextIconButton(
     spacer: @Composable () -> Unit = {
         Spacer(modifier = Modifier.width(TextIconButtonDefaults.gapSize))
     },
+    enabled: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
     Button(
         onClick = onClick,
+        enabled = enabled,
         contentPadding = contentPadding,
         modifier = modifier,
     ) {
