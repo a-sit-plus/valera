@@ -83,10 +83,10 @@ private enum class NavigationData(
                 contentDescription = null,
             )
         },
-        destination = ShowDataPage(),
+        destination = AuthenticationQrCodeScannerPage(),
         isActive = {
             when (it) {
-                is ShowDataPage -> true
+                is AuthenticationQrCodeScannerPage -> true
                 else -> false
             }
         },
@@ -212,9 +212,9 @@ fun MainNavigator(
                     NavigationData.HOME_SCREEN
                 }
 
-                is ShowDataPage -> {
-                    NavigationData.SHOW_DATA_SCREEN
-                }
+//                is ShowDataPage -> {
+//                    NavigationData.SHOW_DATA_SCREEN
+//                }
 
                 is SettingsPage -> {
                     NavigationData.INFORMATION_SCREEN
