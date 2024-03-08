@@ -1,5 +1,6 @@
 package ui.composables
 
+import LargeContainerSize
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.FloatingActionButtonDefaults
@@ -15,4 +16,15 @@ fun FloatingActionButtonHeightSpacer(
     externalPadding: Dp = 0.dp,
 ) {
     Spacer(modifier = Modifier.height(FloatingActionButtonDefaults.padding + FloatingActionButtonDefaults.containerHeight + FloatingActionButtonDefaults.padding - externalPadding))
+}
+
+@Composable
+fun LargeFloatingActionButtonHeightSpacer(
+    externalPadding: Dp = 0.dp,
+) {
+    Spacer(
+        modifier = Modifier.height(
+            FloatingActionButtonDefaults.padding + FloatingActionButtonDefaults.LargeContainerSize + FloatingActionButtonDefaults.padding - externalPadding
+        )
+    )
 }
