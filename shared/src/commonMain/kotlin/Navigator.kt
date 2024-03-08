@@ -208,17 +208,11 @@ fun MainNavigator(
         bottomBar = {
             val (_, page) = navigationStack.lastWithIndex()
             val pageNavigationData = when (page) {
-                is HomePage -> {
-                    NavigationData.HOME_SCREEN
-                }
+                is HomePage -> NavigationData.HOME_SCREEN
 
-//                is ShowDataPage -> {
-//                    NavigationData.SHOW_DATA_SCREEN
-//                }
+                is ShowDataPage -> null
 
-                is SettingsPage -> {
-                    NavigationData.INFORMATION_SCREEN
-                }
+                is SettingsPage -> NavigationData.INFORMATION_SCREEN
 
                 else -> null
             }
