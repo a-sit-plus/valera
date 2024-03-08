@@ -12,7 +12,8 @@ import ui.views.MyDataView
 private fun main() = application {
     Window(onCloseRequest = ::exitApplication) {
         Column {
-            MyDataView(                identityData = IdentityData(
+            MyDataView(
+                identityData = IdentityData(
                     firstname = "Max",
                     lastname = "Mustermann",
                     dateOfBirth = LocalDate(year = 1990, monthNumber = 1, dayOfMonth = 1),

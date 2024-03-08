@@ -73,12 +73,12 @@ class WalletConfig(
 @Serializable
 data class ConfigData(
     val host: String,
-    val credentialRepresentation: ConstantIndex.CredentialRepresentation = ConstantIndex.CredentialRepresentation.PLAIN_JWT,
+    val credentialRepresentation: ConstantIndex.CredentialRepresentation = ConstantIndex.CredentialRepresentation.SD_JWT,
     val isConditionsAccepted: Boolean = false
 )
 
 private val ConfigDataDefaults = ConfigData(
     host = "https://wallet.a-sit.at",
-    credentialRepresentation = ConstantIndex.CredentialRepresentation.PLAIN_JWT,
+    credentialRepresentation = ConstantIndex.CredentialRepresentation.SD_JWT,
     isConditionsAccepted = false,
 )
