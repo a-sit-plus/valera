@@ -1,8 +1,8 @@
 package domain
 
 import Resources
+import at.asitplus.wallet.lib.jws.JwsSigned
 import at.asitplus.crypto.datatypes.jws.JwsSigned
-import at.asitplus.wallet.lib.jws.DefaultVerifierJwsService
 import at.asitplus.wallet.lib.jws.VerifierJwsService
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
 import at.asitplus.wallet.lib.oidc.OpenIdConstants
@@ -12,8 +12,8 @@ import io.github.aakira.napier.Napier
 import io.ktor.http.Url
 import io.ktor.util.flattenEntries
 
-class ExtractRequestObjectFromRedirectUriUseCase(
-    private val verifierJwsService: VerifierJwsService = DefaultVerifierJwsService(),
+class ExtractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase(
+    private val verifierJwsService: VerifierJwsService,
 ) {
     operator fun invoke(requestRedirectUri: String): AuthenticationRequestParameters {
         val requestParams = kotlin.runCatching {
@@ -25,12 +25,12 @@ class ExtractRequestObjectFromRedirectUriUseCase(
 
         val requestLocationClientId = requestParams.clientId
 
-        val requestLocationRequestParameterParsed =
+        val authenticationRequestParameters =
             requestParams.let { extractRequestObject(it) ?: it }
-        if (requestLocationRequestParameterParsed.clientId != requestLocationClientId) {
-            throw Exception("${Resources.ERROR_QR_CODE_SCANNING_INCONSISTENT_CLIENT_ID}: UrlParameter: $requestLocationClientId, AuthenticationRequestParameters: ${requestLocationRequestParameterParsed.clientId}")
+        if (authenticationRequestParameters.clientId != requestLocationClientId) {
+            throw Exception("${Resources.ERROR_QR_CODE_SCANNING_INCONSISTENT_CLIENT_ID}: UrlParameter: $requestLocationClientId, AuthenticationRequestParameters: ${authenticationRequestParameters.clientId}")
         }
-        return requestLocationRequestParameterParsed
+        return authenticationRequestParameters
     }
 
     // copied from OidcSiopWallet

@@ -13,8 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import at.asitplus.wallet.app.common.WalletMain
-import domain.RetrieveRelyingPartyMetadataFromAuthenticationQrCodeUseCase
-import domain.RetrieveRequestRedirectFromAuthenticationQrCodeUseCase
 import navigation.AuthenticationConsentPage
 import ui.composables.buttons.NavigateUpButton
 import ui.views.CameraView
@@ -26,14 +24,7 @@ fun AuthenticationQrCodeScannerScreen(
     navigateToLoadingScreen: () -> Unit,
     navigateToConsentScreen: (AuthenticationConsentPage) -> Unit,
     walletMain: WalletMain,
-    authenticationQrCodeScannerViewModel: AuthenticationQrCodeScannerViewModel = AuthenticationQrCodeScannerViewModel(
-        retrieveRequestRedirectFromAuthenticationQrCodeUseCase = RetrieveRequestRedirectFromAuthenticationQrCodeUseCase(
-            client = walletMain.httpService.buildHttpClient()
-        ),
-        retrieveRelyingPartyMetadataFromAuthenticationQrCodeUseCase = RetrieveRelyingPartyMetadataFromAuthenticationQrCodeUseCase(
-            client = walletMain.httpService.buildHttpClient()
-        ),
-    ),
+    authenticationQrCodeScannerViewModel: AuthenticationQrCodeScannerViewModel,
 ) = AuthenticationQrCodeScannerView(
     navigateUp = if(showNavigateUpButton) navigateUp else null,
     onFoundPayload = { link ->

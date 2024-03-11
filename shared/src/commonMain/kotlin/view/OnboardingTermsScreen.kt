@@ -38,8 +38,8 @@ fun OnboardingTermsScreen(
     onClickAccept: () -> Unit,
 ) {
     val detailButtonColors = ButtonDefaults.buttonColors(
-        containerColor = MaterialTheme.colorScheme.primaryContainer,
-        contentColor = contentColorFor(MaterialTheme.colorScheme.primaryContainer),
+        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+        contentColor = contentColorFor(MaterialTheme.colorScheme.secondaryContainer),
     )
 
     Scaffold(
