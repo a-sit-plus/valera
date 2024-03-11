@@ -1,7 +1,6 @@
 package domain
 
 import Resources
-import at.asitplus.wallet.lib.jws.JwsSigned
 import at.asitplus.crypto.datatypes.jws.JwsSigned
 import at.asitplus.wallet.lib.jws.VerifierJwsService
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
