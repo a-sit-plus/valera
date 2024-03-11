@@ -75,6 +75,8 @@ fun OnboardingInformationScreen(
                     modifier = Modifier.padding(innerScaffoldPadding)
                         .verticalScroll(rememberScrollState())
                 ) {
+                    val textIconColor = MaterialTheme.colorScheme.secondaryContainer
+
                     val gapSpacer: @Composable () -> Unit = {
                         Spacer(modifier = Modifier.height(96.dp))
                     }
@@ -90,7 +92,10 @@ fun OnboardingInformationScreen(
                             horizontalArrangement = Arrangement.Start,
                             modifier = Modifier.fillMaxWidth(),
                         ) {
-                            TextIcon(Resources.ONBOARDING_SECTION_TERMS_AND_DATA_PROTECTION_ICON_TEXT)
+                            TextIcon(
+                                text = Resources.ONBOARDING_SECTION_TERMS_AND_DATA_PROTECTION_ICON_TEXT,
+                                color = textIconColor,
+                            )
                             Spacer(modifier = Modifier.width(10.dp))
                             Text(
                                 text = Resources.ONBOARDING_SECTION_TERMS_AND_DATA_PROTECTION_TITLE,
@@ -103,7 +108,10 @@ fun OnboardingInformationScreen(
                             horizontalArrangement = Arrangement.Start,
                             modifier = Modifier.fillMaxWidth(),
                         ) {
-                            TextIcon(Resources.ONBOARDING_SECTION_LOAD_DATA_ICON_TEXT)
+                            TextIcon(
+                                text = Resources.ONBOARDING_SECTION_LOAD_DATA_ICON_TEXT,
+                                color = textIconColor,
+                            )
                             Spacer(modifier = Modifier.width(10.dp))
                             Column {
                                 Text(
@@ -122,7 +130,10 @@ fun OnboardingInformationScreen(
                             horizontalArrangement = Arrangement.Start,
                             modifier = Modifier.fillMaxWidth(),
                         ) {
-                            TextIcon(Resources.ONBOARDING_SECTION_SHOW_DATA_ICON_TEXT)
+                            TextIcon(
+                                text = Resources.ONBOARDING_SECTION_SHOW_DATA_ICON_TEXT,
+                                color = textIconColor,
+                            )
                             Spacer(modifier = Modifier.width(10.dp))
                             Column {
                                 Text(
