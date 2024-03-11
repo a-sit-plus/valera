@@ -1,4 +1,3 @@
-
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -172,9 +171,11 @@ fun Navigator(walletMain: WalletMain) {
             }
 
             if (walletMain.provisioningService.redirectUri?.let { link.contains(it) } == true) {
-                mainNavigationStack.push(ProvisioningLoadingPage(
-                    link = link
-                ))
+                mainNavigationStack.push(
+                    ProvisioningLoadingPage(
+                        link = link
+                    )
+                )
                 appLink.value = null
                 return@LaunchedEffect
             }
@@ -230,7 +231,7 @@ fun MainNavigator(
                                 Text(route.title)
                             },
                             onClick = {
-                                if(route.isActive(page) == false) {
+                                if (route.isActive(page) == false) {
                                     navigationStack.push(route.destination)
                                 }
                             },
