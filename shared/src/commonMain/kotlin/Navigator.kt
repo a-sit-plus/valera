@@ -28,17 +28,16 @@ import io.ktor.util.flattenEntries
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import navigation.AuthenticationConsentPage
+import navigation.AuthenticationLoadingPage
 import navigation.AuthenticationQrCodeScannerPage
 import navigation.AuthenticationSuccessPage
 import navigation.HomePage
-import navigation.LoadingPage
 import navigation.LogPage
 import navigation.NavigationStack
 import navigation.Page
 import navigation.ProvisioningLoadingPage
 import navigation.RefreshCredentialsPage
 import navigation.SettingsPage
-import navigation.ShowDataPage
 import view.AuthenticationConsentScreen
 import view.AuthenticationQrCodeScannerScreen
 import view.AuthenticationQrCodeScannerViewModel
@@ -51,7 +50,6 @@ import view.MyCredentialsScreen
 import view.OnboardingWrapper
 import view.ProvisioningLoadingScreen
 import view.SettingsScreen
-import view.ShowDataScreen
 
 private enum class NavigationData(
     val title: String,
@@ -255,6 +253,16 @@ fun MainNavigator(
                         )
                     }
 
+                    is ProvisioningLoadingPage -> {
+                        ProvisioningLoadingScreen(
+                            link = page.link,
+                            navigateUp = globalBack,
+                            walletMain = walletMain,
+                        )
+                    }
+
+
+
                     is SettingsPage -> {
                         SettingsScreen(
                             navigateToLogPage = {
@@ -276,39 +284,14 @@ fun MainNavigator(
                         )
                     }
 
-                    is LoadingPage -> {
-                        LoadingScreen()
-                    }
 
-                    is ProvisioningLoadingPage -> {
-                        ProvisioningLoadingScreen(
-                            link = page.link,
-                            navigateUp = globalBack,
-                            walletMain = walletMain,
-                        )
-                    }
-
-
-                    is ShowDataPage -> {
-                        ShowDataScreen(
-                            navigateToAuthenticationStartPage = {
-                                navigationStack.push(AuthenticationQrCodeScannerPage())
-                            },
-                            onClickShowDataToExecutive = {
-                                walletMain.snackbarService.showSnackbar("Incomplete Implementation")
-                            },
-                            onClickShowDataToOtherCitizen = {
-                                walletMain.snackbarService.showSnackbar("Incomplete Implementation")
-                            },
-                        )
-                    }
 
                     is AuthenticationQrCodeScannerPage -> {
                         AuthenticationQrCodeScannerScreen(
                             navigateUp = navigateUp,
                             navigateToConsentScreen = navigationStack::push,
                             navigateToLoadingScreen = {
-                                navigationStack.push(LoadingPage())
+                                navigationStack.push(AuthenticationLoadingPage())
                             },
                             authenticationQrCodeScannerViewModel = AuthenticationQrCodeScannerViewModel(
                                 retrieveRelyingPartyMetadataFromAuthenticationQrCodeUseCase = RetrieveRelyingPartyMetadataFromAuthenticationQrCodeUseCase(
@@ -320,6 +303,10 @@ fun MainNavigator(
                             ),
                             walletMain = walletMain,
                         )
+                    }
+
+                    is AuthenticationLoadingPage -> {
+                        LoadingScreen()
                     }
 
                     is AuthenticationConsentPage -> {

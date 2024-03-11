@@ -50,6 +50,9 @@ actual class OnboardingTermsPage actual constructor() : OnboardingPage, Parcelab
 actual class LoadingPage : Page, Parcelable
 
 @Parcelize
+actual class AuthenticationLoadingPage : Page, Parcelable
+
+@Parcelize
 actual class ProvisioningLoadingPage actual constructor(
     actual val link: String
 ) : Page, Parcelable

@@ -43,6 +43,8 @@ expect class ConsentPage(
 
 expect class LoadingPage() : Page
 
+expect class AuthenticationLoadingPage() : Page
+
 expect class ProvisioningLoadingPage(link: String) : Page {
     val link: String
 }
