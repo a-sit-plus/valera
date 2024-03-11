@@ -7,11 +7,11 @@ import androidx.compose.ui.unit.dp
 val FloatingActionButtonDefaults.containerHeight: Dp
     get() = 56.dp
 
-val FloatingActionButtonDefaults.LargeContainerSize: Dp
-    get() = 96.dp
-
 val FloatingActionButtonDefaults.containerWidth: Dp
     get() = 56.dp
+
+val FloatingActionButtonDefaults.LargeContainerSize: Dp
+    get() = 96.dp
 
 val FloatingActionButtonDefaults.padding: Dp
     get() = 16.dp

@@ -1,4 +1,3 @@
-
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -19,6 +18,7 @@ import androidx.compose.ui.Modifier
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
 import at.asitplus.wallet.lib.oidvci.decodeFromUrlQuery
+import domain.ExtractClaimsFromPresentationDefinitionUseCase
 import domain.RetrieveRelyingPartyMetadataFromAuthenticationQrCodeUseCase
 import domain.RetrieveRequestRedirectFromAuthenticationQrCodeUseCase
 import io.github.aakira.napier.Napier
@@ -28,17 +28,16 @@ import io.ktor.util.flattenEntries
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import navigation.AuthenticationConsentPage
+import navigation.AuthenticationLoadingPage
 import navigation.AuthenticationQrCodeScannerPage
 import navigation.AuthenticationSuccessPage
 import navigation.HomePage
-import navigation.LoadingPage
 import navigation.LogPage
 import navigation.NavigationStack
 import navigation.Page
 import navigation.ProvisioningLoadingPage
 import navigation.RefreshCredentialsPage
 import navigation.SettingsPage
-import navigation.ShowDataPage
 import view.AuthenticationConsentScreen
 import view.AuthenticationQrCodeScannerScreen
 import view.AuthenticationQrCodeScannerViewModel
@@ -51,7 +50,6 @@ import view.MyCredentialsScreen
 import view.OnboardingWrapper
 import view.ProvisioningLoadingScreen
 import view.SettingsScreen
-import view.ShowDataScreen
 
 private enum class NavigationData(
     val title: String,
@@ -75,7 +73,7 @@ private enum class NavigationData(
             }
         },
     ),
-    SHOW_DATA_SCREEN(
+    AUTHENTICATION_SCANNING_SCREEN(
         title = Resources.NAVIGATION_BUTTON_LABEL_SHOW_DATA,
         icon = {
             Icon(
@@ -149,14 +147,9 @@ fun Navigator(walletMain: WalletMain) {
                         .decodeFromUrlQuery<AuthenticationRequestParameters>()
                 }
 
-                val requestedClaims = params.getOrNull()?.presentationDefinition?.inputDescriptors
-                    ?.mapNotNull { it.constraints }?.flatMap { it.fields?.toList() ?: listOf() }
-                    ?.flatMap { it.path.toList() }
-                    ?.filter { it != "$.type" }
-                    ?.filter { it != "$.mdoc.doctype" }
-                    ?.map { it.removePrefix("\$.mdoc.") }
-                    ?.map { it.removePrefix("\$.") }
-                    ?: listOf()
+                val requestedClaims = params.getOrNull()?.presentationDefinition?.let {
+                    ExtractClaimsFromPresentationDefinitionUseCase().invoke(it)
+                } ?: listOf()
 
                 mainNavigationStack.push(
                     AuthenticationConsentPage(
@@ -172,9 +165,11 @@ fun Navigator(walletMain: WalletMain) {
             }
 
             if (walletMain.provisioningService.redirectUri?.let { link.contains(it) } == true) {
-                mainNavigationStack.push(ProvisioningLoadingPage(
-                    link = link
-                ))
+                mainNavigationStack.push(
+                    ProvisioningLoadingPage(
+                        link = link
+                    )
+                )
                 appLink.value = null
                 return@LaunchedEffect
             }
@@ -210,8 +205,6 @@ fun MainNavigator(
             val pageNavigationData = when (page) {
                 is HomePage -> NavigationData.HOME_SCREEN
 
-                is ShowDataPage -> null
-
                 is SettingsPage -> NavigationData.INFORMATION_SCREEN
 
                 else -> null
@@ -221,7 +214,7 @@ fun MainNavigator(
                 NavigationBar {
                     for (route in listOf(
                         NavigationData.HOME_SCREEN,
-                        NavigationData.SHOW_DATA_SCREEN,
+                        NavigationData.AUTHENTICATION_SCANNING_SCREEN,
                         NavigationData.INFORMATION_SCREEN,
                     )) {
                         NavigationBarItem(
@@ -230,7 +223,7 @@ fun MainNavigator(
                                 Text(route.title)
                             },
                             onClick = {
-                                if(route.isActive(page) == false) {
+                                if (route.isActive(page) == false) {
                                     navigationStack.push(route.destination)
                                 }
                             },
@@ -260,6 +253,16 @@ fun MainNavigator(
                         )
                     }
 
+                    is ProvisioningLoadingPage -> {
+                        ProvisioningLoadingScreen(
+                            link = page.link,
+                            navigateUp = globalBack,
+                            walletMain = walletMain,
+                        )
+                    }
+
+
+
                     is SettingsPage -> {
                         SettingsScreen(
                             navigateToLogPage = {
@@ -281,36 +284,14 @@ fun MainNavigator(
                         )
                     }
 
-                    is LoadingPage -> {
-                        LoadingScreen()
-                    }
 
-                    is ProvisioningLoadingPage -> {
-                        ProvisioningLoadingScreen(
-                            link = page.link,
-                            navigateUp = globalBack,
-                            walletMain = walletMain,
-                        )
-                    }
-
-
-                    is ShowDataPage -> {
-                        ShowDataScreen(
-                            navigateUp = navigateUp,
-                            navigateToConsentScreen = navigationStack::push,
-                            navigateToLoadingScreen = {
-                                navigationStack.push(LoadingPage())
-                            },
-                            walletMain = walletMain,
-                        )
-                    }
 
                     is AuthenticationQrCodeScannerPage -> {
                         AuthenticationQrCodeScannerScreen(
                             navigateUp = navigateUp,
                             navigateToConsentScreen = navigationStack::push,
                             navigateToLoadingScreen = {
-                                navigationStack.push(LoadingPage())
+                                navigationStack.push(AuthenticationLoadingPage())
                             },
                             authenticationQrCodeScannerViewModel = AuthenticationQrCodeScannerViewModel(
                                 retrieveRelyingPartyMetadataFromAuthenticationQrCodeUseCase = RetrieveRelyingPartyMetadataFromAuthenticationQrCodeUseCase(
@@ -322,6 +303,10 @@ fun MainNavigator(
                             ),
                             walletMain = walletMain,
                         )
+                    }
+
+                    is AuthenticationLoadingPage -> {
+                        LoadingScreen()
                     }
 
                     is AuthenticationConsentPage -> {

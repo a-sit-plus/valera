@@ -39,8 +39,8 @@ android {
         applicationId = "at.asitplus.wallet.app.android"
         minSdk = (findProperty("android.minSdk") as String).toInt()
         targetSdk = (findProperty("android.targetSdk") as String).toInt()
-        versionCode = 1
-        versionName = "0.0.1"
+        versionCode = (findProperty("version.code") as String).toInt()
+        versionName = findProperty("version.name") as String
     }
     buildFeatures {
         buildConfig = true
