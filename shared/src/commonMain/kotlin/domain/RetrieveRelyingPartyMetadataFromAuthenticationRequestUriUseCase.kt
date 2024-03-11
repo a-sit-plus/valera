@@ -1,8 +1,8 @@
 package domain
 
 import Resources
+import at.asitplus.crypto.datatypes.jws.JwsSigned
 import at.asitplus.wallet.lib.data.jsonSerializer
-import at.asitplus.wallet.lib.jws.JwsSigned
 import at.asitplus.wallet.lib.jws.VerifierJwsService
 import at.asitplus.wallet.lib.oidc.RelyingPartyMetadata
 import io.github.aakira.napier.Napier
@@ -31,7 +31,7 @@ class RetrieveRelyingPartyMetadataFromAuthenticationRequestUriUseCase(
                         throw Exception("${Resources.ERROR_QR_CODE_SCANNING_INVALID_METADATA_JWS_OBJECT}: ${metadataResponse.bodyAsText()}")
                     }
 
-                    if (!verifierJwsService.verifyJwsObject(metadataJws, null)) {
+                    if (!verifierJwsService.verifyJwsObject(metadataJws)) {
                         throw Exception("${Resources.ERROR_QR_CODE_SCANNING_INVALID_METADATA_JWS_OBJECT_SIGNATURE}: ${metadataResponse.bodyAsText()}")
                     }
 
