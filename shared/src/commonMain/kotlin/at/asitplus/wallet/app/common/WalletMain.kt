@@ -86,11 +86,7 @@ class WalletMain(
 
     fun getLog(): List<String> {
         val rawLog = platformAdapter.readFromFile("log.txt", "logs")
-        return if (rawLog != null) {
-            rawLog.split(regex = regex).filter { it.isNotEmpty() }
-        } else {
-            listOf("")
-        }
+        return rawLog?.split(regex = regex)?.filter { it.isNotEmpty() } ?: listOf("")
     }
 }
 

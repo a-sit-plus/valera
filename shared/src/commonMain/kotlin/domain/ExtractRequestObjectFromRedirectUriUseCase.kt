@@ -1,8 +1,8 @@
 package domain
 
 import Resources
+import at.asitplus.crypto.datatypes.jws.JwsSigned
 import at.asitplus.wallet.lib.jws.DefaultVerifierJwsService
-import at.asitplus.wallet.lib.jws.JwsSigned
 import at.asitplus.wallet.lib.jws.VerifierJwsService
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
 import at.asitplus.wallet.lib.oidc.OpenIdConstants
@@ -37,7 +37,7 @@ class ExtractRequestObjectFromRedirectUriUseCase(
     private fun extractRequestObject(params: AuthenticationRequestParameters): AuthenticationRequestParameters? {
         params.request?.let { requestObject ->
             JwsSigned.parse(requestObject)?.let { jws ->
-                if (verifierJwsService.verifyJwsObject(jws, requestObject)) {
+                if (verifierJwsService.verifyJwsObject(jws)) {
                     return kotlin.runCatching {
                         at.asitplus.wallet.lib.oidc.jsonSerializer.decodeFromString<AuthenticationRequestParameters>(
                             jws.payload.decodeToString()

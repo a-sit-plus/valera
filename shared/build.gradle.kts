@@ -24,8 +24,8 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "shared"
             isStatic = true
-            export("at.asitplus.wallet:vclib:3.3.0")
-            export("at.asitplus.wallet:idacredential:3.3.0")
+            export("at.asitplus.wallet:vclib:3.4.0")
+            export("at.asitplus.wallet:idacredential:3.4.0")
             export("at.asitplus:kmmresult:1.5.3")
             export(napier())
         }
@@ -42,9 +42,9 @@ kotlin {
                 implementation(compose.materialIconsExtended)
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
-                api("at.asitplus.wallet:vclib-openid:3.3.0")
-                api("at.asitplus.wallet:vclib:3.3.0")
-                api("at.asitplus.wallet:idacredential:3.3.0")
+                api("at.asitplus.wallet:vclib-openid:3.4.0")
+                api("at.asitplus.wallet:vclib:3.4.0")
+                api("at.asitplus.wallet:idacredential:3.4.0")
                 implementation(serialization("json"))
                 api(napier())
                 implementation("androidx.datastore:datastore-preferences-core:1.1.0-alpha07")
