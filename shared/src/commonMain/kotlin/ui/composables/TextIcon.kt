@@ -65,7 +65,7 @@ class TextIconDefaults {
     companion object {
         @Composable
         fun color(
-            color: Color = MaterialTheme.colorScheme.secondaryContainer,
+            color: Color = MaterialTheme.colorScheme.primary,
         ): Color = color
     }
 }

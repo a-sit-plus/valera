@@ -12,19 +12,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import ui.composables.buttons.AcceptButton
-import ui.composables.buttons.NavigateUpButton
 import ui.composables.buttons.DetailsButton
+import ui.composables.buttons.NavigateUpButton
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,6 +37,11 @@ fun OnboardingTermsScreen(
     onClickReadDataProtectionPolicy: () -> Unit,
     onClickAccept: () -> Unit,
 ) {
+    val detailButtonColors = ButtonDefaults.buttonColors(
+        containerColor = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = contentColorFor(MaterialTheme.colorScheme.primaryContainer),
+    )
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -99,6 +106,7 @@ fun OnboardingTermsScreen(
                     ) {
                         DetailsButton(
                             onClick = onClickReadGeneralTermsAndConditions,
+                            colors = detailButtonColors,
                             modifier = Modifier.padding(16.dp),
                         )
                     }
@@ -119,6 +127,7 @@ fun OnboardingTermsScreen(
                     ) {
                         DetailsButton(
                             onClick = onClickReadDataProtectionPolicy,
+                            colors = detailButtonColors,
                             modifier = Modifier.padding(16.dp),
                         )
                     }

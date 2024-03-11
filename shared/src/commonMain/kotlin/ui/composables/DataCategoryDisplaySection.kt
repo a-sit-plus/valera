@@ -71,6 +71,7 @@ fun DataCategoryDisplaySection(
                     ) {
                         DataCategoryDisplaySectionItem(
                             iconText = category.first.iconText,
+                            iconColor = MaterialTheme.colorScheme.secondaryContainer,
                             title = category.first.categoryTitle,
                             titleFontWeight = FontWeight.Normal,
                             modifier = Modifier.fillMaxWidth(),
