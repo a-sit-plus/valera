@@ -12,7 +12,7 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 
 class InconsistentClientIdException(val uriBeforeRedirect: String, val uriAfterRedirect: String) : Exception(
-    "${Resources.ERROR_INCONSISTENT_REDIRECT_URL_CLIENT_ID}: \n - ${uriBeforeRedirect}\n - ${uriAfterRedirect}"
+    "${Resources.ERROR_INCONSISTENT_REDIRECT_URL_CLIENT_ID}: '${uriBeforeRedirect}' vs '${uriAfterRedirect}'"
 )
 
 class MissingHttpRedirectException(val response: HttpResponse) : Exception(
