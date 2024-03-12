@@ -2,7 +2,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
@@ -32,14 +31,11 @@ actual fun getPlatformName(): String = "Android"
 // Modified from https://developer.android.com/jetpack/compose/designsystems/material3
 @Composable
 actual fun getColorScheme(): ColorScheme {
-    // Dynamic color is available on Android 12+
-    val darkColorScheme = darkScheme
-    val lightColorScheme = lightScheme
-    val dynamicColor = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-    val darkTheme = isSystemInDarkTheme()
-    return when {
-        darkTheme -> darkColorScheme
-        else -> lightColorScheme
+    // Dynamic color is available on Android 12+, but let's use our color scheme for branding
+    return if (isSystemInDarkTheme()) {
+        darkScheme
+    } else {
+        lightScheme
     }
 }
 

@@ -17,15 +17,16 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.jws.DefaultVerifierJwsService
-import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
-import at.asitplus.wallet.lib.oidvci.decodeFromUrlQuery
-import domain.ExtractClaimsFromPresentationDefinitionUseCase
+import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
+import domain.ExtractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase
+import domain.RetrieveFinalAuthenticationRequestUriFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier
-import io.ktor.http.Url
 import io.ktor.http.parseQueryString
-import io.ktor.util.flattenEntries
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import navigation.AuthenticationConsentPage
 import navigation.AuthenticationLoadingPage
 import navigation.AuthenticationQrCodeScannerPage
@@ -141,24 +142,21 @@ fun Navigator(walletMain: WalletMain) {
             val host = walletMain.walletConfig.host.first()
             if (link.contains("$host/mobile")) {
                 Napier.d("authentication request")
-                val params = kotlin.runCatching {
-                    Url(link).parameters.flattenEntries().toMap()
-                        .decodeFromUrlQuery<AuthenticationRequestParameters>()
-                }
-
-                val requestedClaims = params.getOrNull()?.presentationDefinition?.let {
-                    ExtractClaimsFromPresentationDefinitionUseCase().invoke(it)
-                } ?: listOf()
-
-                mainNavigationStack.push(
-                    AuthenticationConsentPage(
-                        url = link,
-                        claims = requestedClaims,
-                        recipientName = "DemoService",
-                        recipientLocation = params.getOrNull()?.clientId ?: "DemoLocation",
-                        fromQrCodeScanner = false
-                    )
+                val extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase = ExtractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase(
+                    verifierJwsService = DefaultVerifierJwsService(),
                 )
+
+                withContext(Dispatchers.IO) {
+                    mainNavigationStack.push(
+                        BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
+                            extractAuthenticationRequestParametersFromAuthenticationRequestUri = extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase,
+                            retrieveFinalAuthenticationRequestUriFromAuthenticationRequestUriUseCase = RetrieveFinalAuthenticationRequestUriFromAuthenticationRequestUriUseCase(
+                                client = walletMain.httpService.buildHttpClient(),
+                                extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase = extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase
+                            )
+                        ).invoke(link)
+                    )
+                }
                 appLink.value = null
                 return@LaunchedEffect
             }
