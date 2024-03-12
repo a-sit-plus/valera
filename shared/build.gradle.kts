@@ -133,7 +133,7 @@ android {
     testOptions {
         managedDevices {
             localDevices {
-                create("pixel2api33") {
+                create("pixel2api34") {
                     device = "Pixel 2"
                     apiLevel = 34
                     systemImageSource = "aosp-atd"
