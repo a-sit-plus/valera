@@ -1,12 +1,11 @@
 package view
 
+import Resources
 import at.asitplus.wallet.lib.jws.VerifierJwsService
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import domain.ExtractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase
-import domain.ExtractClaimsFromPresentationDefinitionUseCase
 import domain.RetrieveFinalAuthenticationRequestUriFromAuthenticationRequestUriUseCase
 import domain.RetrieveRelyingPartyMetadataFromAuthenticationRequestUriUseCase
-import domain.ValidateClientIdConsistencyWithClientMetadataUseCase
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -20,7 +19,6 @@ class AuthenticationQrCodeScannerViewModel(
     private val buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase: BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase,
     private val retrieveRelyingPartyMetadataFromAuthenticationRequestUriUseCase: RetrieveRelyingPartyMetadataFromAuthenticationRequestUriUseCase,
     private val extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase: ExtractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase,
-    private val validateClientIdConsistencyWithClientMetadataUseCase: ValidateClientIdConsistencyWithClientMetadataUseCase,
 ) {
     constructor(
         client: HttpClient,
@@ -40,7 +38,6 @@ class AuthenticationQrCodeScannerViewModel(
     ) : this(
         buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase = BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
             extractAuthenticationRequestParametersFromAuthenticationRequestUri = extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase,
-            extractClaimsFromPresentationDefinitionUseCase = ExtractClaimsFromPresentationDefinitionUseCase(),
             retrieveFinalAuthenticationRequestUriFromAuthenticationRequestUriUseCase = RetrieveFinalAuthenticationRequestUriFromAuthenticationRequestUriUseCase(
                 extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase = extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase,
                 client = client,
@@ -52,7 +49,6 @@ class AuthenticationQrCodeScannerViewModel(
             verifierJwsService = verifierJwsService,
         ),
         extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase = extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase,
-        validateClientIdConsistencyWithClientMetadataUseCase = ValidateClientIdConsistencyWithClientMetadataUseCase(),
     )
 
     fun onScan(
@@ -75,10 +71,16 @@ class AuthenticationQrCodeScannerViewModel(
             val clientMetadataPayload =
                 retrieveRelyingPartyMetadataFromAuthenticationRequestUriUseCase(link)
             val authenticationRequestParameters = extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase(link)
-            validateClientIdConsistencyWithClientMetadataUseCase(
-                clientMetadataPayload = clientMetadataPayload,
-                clientId = authenticationRequestParameters.clientId,
-            )
+
+            if (!clientMetadataPayload.redirectUris.contains(authenticationRequestParameters.clientId)) {
+                val redirectUris = clientMetadataPayload.redirectUris.joinToString("\n - ")
+                val message =
+                    "${Resources.ERROR_QR_CODE_SCANNING_CLIENT_ID_NOT_IN_REDICECT_URIS}:" +
+                            " ${authenticationRequestParameters.clientId} not in: \n$redirectUris)"
+                throw Exception(message)
+            } else {
+                Napier.d("Valid client id: ${authenticationRequestParameters.clientId}")
+            }
 
             val authenticationConsentPage =
                 buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(link)
