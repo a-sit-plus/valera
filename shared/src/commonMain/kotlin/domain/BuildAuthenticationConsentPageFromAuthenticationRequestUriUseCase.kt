@@ -15,7 +15,7 @@ class BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
             extractClaimsFromPresentationDefinitionUseCase(it)
         } ?: listOf()
 
-        // TODO("extract recipient name from the metadataResponse; the data is not yet being delivered though")
+        // TODO: extract recipient name from the metadataResponse; the data is not yet being delivered though
         return AuthenticationConsentPage(
             url = finalRequestUri,
             claims = requestedClaims,

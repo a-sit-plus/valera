@@ -84,7 +84,6 @@ class AuthenticationQrCodeScannerViewModel(
                 buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(link)
 
             stopLoadingCallback()
-            // TODO("extract recipient name from the metadataResponse; the data is not yet being delivered though")
             onSuccess(authenticationConsentPage)
         }
     }
