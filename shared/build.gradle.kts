@@ -45,6 +45,7 @@ kotlin {
                 api("at.asitplus.wallet:vclib-openid:3.4.0")
                 api("at.asitplus.wallet:vclib:3.4.0")
                 api("at.asitplus.wallet:idacredential:3.4.0")
+                api("at.asitplus.wallet:eupidcredential:1.0.0")
                 implementation(serialization("json"))
                 api(napier())
                 implementation("androidx.datastore:datastore-preferences-core:1.1.0-beta02")
