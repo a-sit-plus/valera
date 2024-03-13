@@ -97,6 +97,7 @@ object Resources {
 
     const val TEXT_LABEL_ISSUING_SERVICE = "Ausstellservice"
     const val TEXT_LABEL_ID_FORMAT = "ID-Format"
+    const val TEXT_LABEL_ID_SCHEME = "ID-Schema"
 
     const val TEXT_LABEL_STAIR = "Stiege"
     const val TEXT_LABEL_DOOR = "Tür"

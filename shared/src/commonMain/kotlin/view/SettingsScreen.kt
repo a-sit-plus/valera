@@ -41,8 +41,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.eupid.EuPidScheme
+import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.ConstantIndex
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import ui.composables.buttons.SaveButton
 
@@ -56,7 +59,9 @@ fun SettingsScreen(
     val buildType = walletMain.buildContext.buildType
     val version = walletMain.buildContext.versionName
 
-    val originalCredentialRepresentation by walletMain.walletConfig.credentialRepresentation.collectAsState(null)
+    val originalCredentialRepresentation by walletMain.walletConfig.credentialRepresentation.collectAsState(
+        null
+    )
     var credentialRepresentation by rememberSaveable(originalCredentialRepresentation) {
         runBlocking {
             mutableStateOf(walletMain.walletConfig.credentialRepresentation.first())
@@ -70,9 +75,26 @@ fun SettingsScreen(
         }
     }
 
-    val isSaveEnabled = remember(originalHost, host, originalCredentialRepresentation, credentialRepresentation) {
-        host != originalHost || credentialRepresentation != originalCredentialRepresentation
+    val originalCredentialScheme by walletMain.walletConfig.credentialScheme.map {
+        it.vcType
+    }.collectAsState(null)
+    var credentialSchemeVcType by rememberSaveable {
+        runBlocking {
+            mutableStateOf(walletMain.walletConfig.credentialScheme.first().vcType)
+        }
     }
+
+    val isSaveEnabled =
+        remember(
+            originalHost,
+            host,
+            originalCredentialRepresentation,
+            credentialRepresentation,
+            originalCredentialScheme,
+            credentialSchemeVcType
+        ) {
+            host != originalHost || credentialRepresentation != originalCredentialRepresentation || credentialSchemeVcType != originalCredentialScheme
+        }
 
     SettingsView(
         host = host,
@@ -83,11 +105,16 @@ fun SettingsScreen(
         onChangeCredentialRepresentation = {
             credentialRepresentation = it
         },
+        credentialSchemeVcType = credentialSchemeVcType,
+        onChangeCredentialSchemeVcType = {
+            credentialSchemeVcType = it
+        },
         isSaveEnabled = isSaveEnabled,
         onClickSaveConfiguration = {
             walletMain.walletConfig.set(
                 host = host,
                 credentialRepresentation = credentialRepresentation,
+                credentialSchemeVcType = credentialSchemeVcType,
             )
         },
         buildType = buildType,
@@ -114,6 +141,8 @@ fun SettingsView(
     onChangeHost: (String) -> Unit,
     credentialRepresentation: ConstantIndex.CredentialRepresentation,
     onChangeCredentialRepresentation: (ConstantIndex.CredentialRepresentation) -> Unit,
+    credentialSchemeVcType: String,
+    onChangeCredentialSchemeVcType: (String) -> Unit,
     isSaveEnabled: Boolean,
     onClickSaveConfiguration: () -> Unit,
     stage: String,
@@ -125,7 +154,8 @@ fun SettingsView(
     onClickShareLogFile: () -> Unit,
     onClickResetApp: () -> Unit,
 ) {
-    var showMenu by remember { mutableStateOf(false) }
+    var showCredentialRepresentationMenu by remember { mutableStateOf(false) }
+    var showCredentialSchemeMenu by remember { mutableStateOf(false) }
 
     val showAlert = remember { mutableStateOf(false) }
     if (showAlert.value) {
@@ -186,9 +216,9 @@ fun SettingsView(
                         modifier = listSpacingModifier.fillMaxWidth(),
                     )
                     ExposedDropdownMenuBox(
-                        expanded = showMenu,
+                        expanded = showCredentialRepresentationMenu,
                         onExpandedChange = {
-                            showMenu = !showMenu
+                            showCredentialRepresentationMenu = !showCredentialRepresentationMenu
                         },
                         modifier = listSpacingModifier.fillMaxWidth(),
                     ) {
@@ -199,45 +229,88 @@ fun SettingsView(
                             label = {
                                 Text(Resources.TEXT_LABEL_ID_FORMAT)
                             },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = showMenu) },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = showCredentialRepresentationMenu) },
                             modifier = Modifier.menuAnchor().fillMaxWidth(),
                         )
                         ExposedDropdownMenu(
-                            expanded = showMenu,
+                            expanded = showCredentialRepresentationMenu,
                             onDismissRequest = {
-                                showMenu = false
+                                showCredentialRepresentationMenu = false
                             },
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             DropdownMenuItem(
                                 text = {
-                                    Text(Resources.ID_FORMAT_PLAIN_JWT_LABEL)
+                                    Text(ConstantIndex.CredentialRepresentation.PLAIN_JWT.name)
                                 },
                                 onClick = {
                                     onChangeCredentialRepresentation(ConstantIndex.CredentialRepresentation.PLAIN_JWT)
-                                    showMenu = false
+                                    showCredentialRepresentationMenu = false
                                 },
                                 modifier = Modifier.fillMaxWidth(),
                             )
                             DropdownMenuItem(
                                 text = {
-                                    Text(Resources.ID_FORMAT_SD_JWT_LABEL)
+                                    Text(ConstantIndex.CredentialRepresentation.SD_JWT.name)
                                 },
                                 onClick = {
                                     onChangeCredentialRepresentation(ConstantIndex.CredentialRepresentation.SD_JWT)
-                                    showMenu = false
+                                    showCredentialRepresentationMenu = false
                                 },
                                 modifier = Modifier.fillMaxWidth(),
                             )
                             DropdownMenuItem(
                                 text = {
-                                    Text(Resources.ID_FORMAT_ISO_MDOC_LABEL)
+                                    Text(ConstantIndex.CredentialRepresentation.ISO_MDOC.name)
                                 },
                                 onClick = {
                                     onChangeCredentialRepresentation(ConstantIndex.CredentialRepresentation.ISO_MDOC)
-                                    showMenu = false
+                                    showCredentialRepresentationMenu = false
                                 },
                                 modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
+                    }
+                    ExposedDropdownMenuBox(
+                        expanded = showCredentialSchemeMenu,
+                        onExpandedChange = {
+                            showCredentialSchemeMenu = !showCredentialSchemeMenu
+                        },
+                        modifier = listSpacingModifier.fillMaxWidth(),
+                    ) {
+                        OutlinedTextField(
+                            readOnly = true,
+                            value = credentialSchemeVcType,
+                            onValueChange = {},
+                            label = {
+                                Text(Resources.TEXT_LABEL_ID_SCHEME)
+                            },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = showCredentialSchemeMenu) },
+                            modifier = Modifier.menuAnchor().fillMaxWidth(),
+                        )
+                        ExposedDropdownMenu(
+                            expanded = showCredentialSchemeMenu,
+                            onDismissRequest = {
+                                showCredentialSchemeMenu = false
+                            },
+                        ) {
+                            DropdownMenuItem(
+                                text = {
+                                    Text(IdAustriaScheme.vcType)
+                                },
+                                onClick = {
+                                    onChangeCredentialSchemeVcType(IdAustriaScheme.vcType)
+                                    showCredentialSchemeMenu = false
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = {
+                                    Text(EuPidScheme.vcType)
+                                },
+                                onClick = {
+                                    onChangeCredentialSchemeVcType(EuPidScheme.vcType)
+                                    showCredentialSchemeMenu = false
+                                },
                             )
                         }
                     }

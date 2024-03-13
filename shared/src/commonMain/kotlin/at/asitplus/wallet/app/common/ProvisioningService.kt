@@ -84,6 +84,7 @@ class ProvisioningService(
         val host = config.host.first()
         val xAuthToken = dataStoreService.getPreference(Resources.DATASTORE_KEY_XAUTH).firstOrNull()
         val credentialRepresentation = config.credentialRepresentation.first()
+        val credentialScheme = config.credentialScheme.first()
         if (xAuthToken == null) {
             throw Exception("X-Auth-Token not available in DataStoreService")
         }
@@ -98,7 +99,7 @@ class ProvisioningService(
         }.body()
 
         val oid4vciService = WalletService(
-            credentialScheme = at.asitplus.wallet.idaustria.IdAustriaScheme,
+            credentialScheme = credentialScheme,
             credentialRepresentation = credentialRepresentation,
             clientId = "$host/m1",
             cryptoService = cryptoService
@@ -145,7 +146,7 @@ class ProvisioningService(
                         listOf(
                             Holder.StoreCredentialInput.Vc(
                                 vcJws = it,
-                                scheme = at.asitplus.wallet.idaustria.IdAustriaScheme,
+                                scheme = credentialScheme,
                                 attachments = null
                             )
                         )
@@ -156,7 +157,7 @@ class ProvisioningService(
                         listOf(
                             Holder.StoreCredentialInput.SdJwt(
                                 vcSdJwt = it,
-                                scheme = at.asitplus.wallet.idaustria.IdAustriaScheme
+                                scheme = credentialScheme
                             )
                         )
                     )
