@@ -24,17 +24,21 @@ data class ResidenceData(
     val stairName: String?,
     val doorName: String?,
     val postalCode: String?,
-    val villageName: String?,
+    val townName: String?,
+    val stateName: String?,
+    val countryName: String?,
 )
 
 val CredentialExtractor.residenceData: ResidenceData
     get() = ResidenceData(
-        streetName = this.mainAddressStreetName,
-        houseNumber = this.mainAddressHouseNumber,
-        stairName = this.mainAddressStair,
-        doorName = this.mainAddressDoor,
-        postalCode = this.mainAddressPostalCode,
-        villageName = this.mainAddressVillageName,
+        streetName = this.mainResidenceStreetName,
+        houseNumber = this.mainResidenceHouseNumber,
+        stairName = this.mainResidenceStairName,
+        doorName = this.mainResidenceDoorName,
+        postalCode = this.mainResidencePostalCode,
+        townName = this.mainResidenceTownName,
+        stateName = this.mainResidenceStateName,
+        countryName = this.mainResidenceCountryName,
     )
 
 @Composable
@@ -97,14 +101,26 @@ fun PersonResidenceDataDetailCard(
                 if (
                     listOfNotNull(
                         residenceData.postalCode,
-                        residenceData.villageName,
+                        residenceData.townName,
                     ).any { it.isNotBlank() }
                 ) {
                     Text(
                         text = listOfNotNull(
                             residenceData.postalCode,
-                            residenceData.villageName,
+                            residenceData.townName,
                         ).filter { it.isNotBlank() }.joinToString(" "),
+                        modifier = Modifier.padding(bottom = textGap),
+                    )
+                }
+                if (residenceData.stateName?.isNotBlank() == true) {
+                    Text(
+                        text = residenceData.stateName,
+                        modifier = Modifier.padding(bottom = textGap),
+                    )
+                }
+                if (residenceData.countryName?.isNotBlank() == true) {
+                    Text(
+                        text = residenceData.countryName,
                         modifier = Modifier.padding(bottom = textGap),
                     )
                 }

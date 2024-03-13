@@ -5,6 +5,7 @@ import Resources
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.Holder
 import at.asitplus.wallet.lib.agent.HolderAgent
+import at.asitplus.wallet.lib.iso.IssuerSigned
 import at.asitplus.wallet.lib.oidc.OpenIdConstants.TOKEN_PREFIX_BEARER
 import at.asitplus.wallet.lib.oidvci.CredentialFormatEnum
 import at.asitplus.wallet.lib.oidvci.CredentialResponseParameters
@@ -29,6 +30,7 @@ import io.ktor.http.contentType
 import io.ktor.http.parseQueryString
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import okio.ByteString.Companion.decodeBase64
 
 const val PATH_WELL_KNOWN_CREDENTIAL_ISSUER = "/.well-known/openid-credential-issuer"
 
@@ -164,7 +166,17 @@ class ProvisioningService(
 
                 CredentialFormatEnum.JWT_VC_JSON_LD -> TODO("Function not implemented")
                 CredentialFormatEnum.JSON_LD -> TODO("Function not implemented")
-                CredentialFormatEnum.MSO_MDOC -> TODO("Function not implemented")
+                CredentialFormatEnum.MSO_MDOC -> {
+                    val issuerSigned = IssuerSigned.deserialize(it.decodeBase64()!!.toByteArray())!!
+                    holderAgent.storeCredentials(
+                        listOf(
+                            Holder.StoreCredentialInput.Iso(
+                                issuerSigned = issuerSigned,
+                                scheme = credentialScheme
+                            )
+                        )
+                    )
+                }
             }
         }
     }

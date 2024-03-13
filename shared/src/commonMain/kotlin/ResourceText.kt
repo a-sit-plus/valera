@@ -95,6 +95,9 @@ object Resources {
     const val ID_FORMAT_SD_JWT_LABEL = "SD-JWT"
     const val ID_FORMAT_ISO_MDOC_LABEL = "ISO_MDOC"
 
+    const val ID_SCHEME_ID_AUSTRIA_2023_LABEL = "ID-Austria Credential"
+    const val ID_SCHEME_EU_PID_LABEL = "EU-PID Credential"
+
     const val TEXT_LABEL_ISSUING_SERVICE = "Ausstellservice"
     const val TEXT_LABEL_ID_FORMAT = "ID-Format"
     const val TEXT_LABEL_ID_SCHEME = "ID-Schema"
