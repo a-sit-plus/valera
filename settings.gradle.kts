@@ -1,4 +1,4 @@
-rootProject.name = "MyApplication"
+rootProject.name = "ComposeWalletApp"
 
 include(":desktopApp")
 include(":androidApp")

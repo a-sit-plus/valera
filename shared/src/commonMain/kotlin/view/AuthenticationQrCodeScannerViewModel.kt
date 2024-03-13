@@ -70,7 +70,8 @@ class AuthenticationQrCodeScannerViewModel(
         CoroutineScope(Dispatchers.IO).launch(coroutineExceptionHandler) {
             val clientMetadataPayload =
                 retrieveRelyingPartyMetadataFromAuthenticationRequestUriUseCase(link)
-            val authenticationRequestParameters = extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase(link)
+            val authenticationRequestParameters =
+                extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase(link)
 
             if (!clientMetadataPayload.redirectUris.contains(authenticationRequestParameters.clientId)) {
                 val redirectUris = clientMetadataPayload.redirectUris.joinToString("\n - ")
@@ -83,7 +84,15 @@ class AuthenticationQrCodeScannerViewModel(
             }
 
             val authenticationConsentPage =
-                buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(link)
+                buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(link).let {
+                    AuthenticationConsentPage(
+                        url = it.url,
+                        claims = it.claims,
+                        recipientLocation = it.recipientLocation,
+                        recipientName = it.recipientName,
+                        fromQrCodeScanner = true,
+                    )
+                }
 
             stopLoadingCallback()
             onSuccess(authenticationConsentPage)

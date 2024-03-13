@@ -146,16 +146,17 @@ fun Navigator(walletMain: WalletMain) {
                     verifierJwsService = DefaultVerifierJwsService(),
                 )
 
-                withContext(Dispatchers.IO) {
-                    mainNavigationStack.push(
-                        BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
-                            extractAuthenticationRequestParametersFromAuthenticationRequestUri = extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase,
-                            retrieveFinalAuthenticationRequestUriFromAuthenticationRequestUriUseCase = RetrieveFinalAuthenticationRequestUriFromAuthenticationRequestUriUseCase(
-                                client = walletMain.httpService.buildHttpClient(),
-                                extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase = extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase
-                            )
-                        ).invoke(link)
+                val buildAuthenticationConsentPage = BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
+                    extractAuthenticationRequestParametersFromAuthenticationRequestUri = extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase,
+                    retrieveFinalAuthenticationRequestUriFromAuthenticationRequestUriUseCase = RetrieveFinalAuthenticationRequestUriFromAuthenticationRequestUriUseCase(
+                        client = walletMain.httpService.buildHttpClient(),
+                        extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase = extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase
                     )
+                )
+
+                withContext(Dispatchers.IO) {
+                    val authenticationConsentPage = buildAuthenticationConsentPage(link)
+                    mainNavigationStack.push(authenticationConsentPage)
                 }
                 appLink.value = null
                 return@LaunchedEffect
