@@ -1,13 +1,35 @@
 package view
 
+import Resources
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.app.common.WalletMain
-import kotlinx.coroutines.launch
-import ui.views.LoadDataView
+import ui.composables.buttons.LoadDataButton
 import ui.views.MyCredentialsView
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyCredentialsScreen(
     navigateToRefreshCredentialsPage: () -> Unit,
@@ -16,26 +38,60 @@ fun MyCredentialsScreen(
     val storeContainerState by walletMain.subjectCredentialStore.observeStoreContainer()
         .collectAsState(null)
 
-    storeContainerState?.let { storeContainer ->
-        if (storeContainer.credentials.isEmpty()) {
-            LoadDataView(
-                loadData = {
-                    walletMain.scope.launch {
-                        try {
-                            walletMain.provisioningService.startProvisioning()
-                        } catch (e: Exception) {
-                            walletMain.errorService.emit(e)
-                        }
-                    }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        Resources.HEADING_LABEL_MY_DATA_OVERVIEW,
+                        style = MaterialTheme.typography.headlineLarge
+                    )
                 },
-                navigateUp = null,
             )
-        } else {
-            MyCredentialsView(
-                credentials = storeContainer.credentials,
-                onRefreshCredentials = navigateToRefreshCredentialsPage,
-                decodeImage = walletMain.platformAdapter::decodeImage,
-            )
+        },
+        floatingActionButton = {
+            storeContainerState?.let { storeContainer ->
+                if(storeContainer.credentials.isNotEmpty()) {
+                    FloatingActionButton(
+                        onClick = navigateToRefreshCredentialsPage,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = Resources.CONTENT_DESCRIPTION_REFRESH_CREDENTIALS,
+                        )
+                    }
+                }
+            }
+        }
+    ) { scaffoldPadding ->
+        Column(modifier = Modifier.padding(scaffoldPadding).fillMaxSize()) {
+            storeContainerState?.let { storeContainer ->
+                if (storeContainer.credentials.isEmpty()) {
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        Text(
+                            text = Resources.INFO_TEXT_NO_CREDENTIALS_AVAILABLE,
+                            textAlign = TextAlign.Center,
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        LoadDataButton(
+                            onClick = navigateToRefreshCredentialsPage
+                        )
+                    }
+                } else {
+                    Column(
+                        modifier = Modifier.verticalScroll(state = rememberScrollState())
+                    ) {
+                        MyCredentialsView(
+                            credentials = storeContainer.credentials,
+                            decodeImage = walletMain.platformAdapter::decodeImage,
+                        )
+                    }
+                }
+            }
         }
     }
 }

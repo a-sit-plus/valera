@@ -2,11 +2,11 @@
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import at.asitplus.wallet.app.common.ObjectFactory
 import at.asitplus.wallet.app.common.PlatformAdapter
+import ui.theme.darkScheme
+import ui.theme.lightScheme
 
 actual fun getPlatformName(): String = "Desktop"
 
@@ -14,8 +14,8 @@ actual fun getPlatformName(): String = "Desktop"
 @Composable
 actual fun getColorScheme(): ColorScheme {
     // Dynamic color is available on Android 12+
-    val darkColorScheme = darkColorScheme()
-    val lightColorScheme = lightColorScheme()
+    val darkColorScheme = darkScheme
+    val lightColorScheme = lightScheme
     val darkTheme = isSystemInDarkTheme()
     return when {
         darkTheme -> darkColorScheme

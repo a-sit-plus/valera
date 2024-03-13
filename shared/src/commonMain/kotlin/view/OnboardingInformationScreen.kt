@@ -75,6 +75,8 @@ fun OnboardingInformationScreen(
                     modifier = Modifier.padding(innerScaffoldPadding)
                         .verticalScroll(rememberScrollState())
                 ) {
+                    val textIconColor = MaterialTheme.colorScheme.secondaryContainer
+
                     val gapSpacer: @Composable () -> Unit = {
                         Spacer(modifier = Modifier.height(96.dp))
                     }
@@ -90,7 +92,10 @@ fun OnboardingInformationScreen(
                             horizontalArrangement = Arrangement.Start,
                             modifier = Modifier.fillMaxWidth(),
                         ) {
-                            TextIcon(Resources.ONBOARDING_SECTION_TERMS_AND_DATA_PROTECTION_ICON_TEXT)
+                            TextIcon(
+                                text = Resources.ONBOARDING_SECTION_TERMS_AND_DATA_PROTECTION_ICON_TEXT,
+                                color = textIconColor,
+                            )
                             Spacer(modifier = Modifier.width(10.dp))
                             Text(
                                 text = Resources.ONBOARDING_SECTION_TERMS_AND_DATA_PROTECTION_TITLE,
@@ -103,7 +108,10 @@ fun OnboardingInformationScreen(
                             horizontalArrangement = Arrangement.Start,
                             modifier = Modifier.fillMaxWidth(),
                         ) {
-                            TextIcon(Resources.ONBOARDING_SECTION_LOAD_DATA_ICON_TEXT)
+                            TextIcon(
+                                text = Resources.ONBOARDING_SECTION_LOAD_DATA_ICON_TEXT,
+                                color = textIconColor,
+                            )
                             Spacer(modifier = Modifier.width(10.dp))
                             Column {
                                 Text(
@@ -117,83 +125,25 @@ fun OnboardingInformationScreen(
                             }
                         }
                         gapSpacer()
-                        Column {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Start,
-                                modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                TextIcon(Resources.ONBOARDING_SECTION_SHOW_DATA_ICON_TEXT)
-                                Spacer(modifier = Modifier.width(10.dp))
-                                Column {
-                                    Text(
-                                        text = Resources.ONBOARDING_SECTION_SHOW_DATA_TITLE,
-                                        style = MaterialTheme.typography.titleMedium,
-                                    )
-                                    Text(
-                                        text = Resources.ONBOARDING_SECTION_SHOW_DATA_SUBTITLE,
-                                        style = MaterialTheme.typography.bodySmall,
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(10.dp))
-                            Column(
-                                modifier = Modifier.padding(start = 32.dp)
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Start,
-                                    modifier = Modifier.fillMaxWidth(),
-                                ) {
-                                    TextIcon(Resources.ONBOARDING_SECTION_DATA_USAGE_AUTHENTICATE_AT_MASHINE_ICON_TEXT)
-                                    Spacer(modifier = Modifier.width(10.dp))
-                                    Column {
-                                        Text(
-                                            text = Resources.ONBOARDING_SECTION_DATA_USAGE_AUTHENTICATE_AT_MASHINE_TITLE,
-                                            style = MaterialTheme.typography.titleMedium,
-                                        )
-                                        Text(
-                                            text = Resources.ONBOARDING_SECTION_DATA_USAGE_AUTHENTICATE_AT_MASHINE_SUBTITLE,
-                                            style = MaterialTheme.typography.bodySmall,
-                                        )
-                                    }
-                                }
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Start,
-                                    modifier = Modifier.fillMaxWidth(),
-                                ) {
-                                    TextIcon(Resources.ONBOARDING_SECTION_DATA_USAGE_SHOW_EXECUTIVE_ICON_TEXT)
-                                    Spacer(modifier = Modifier.width(10.dp))
-                                    Column {
-                                        Text(
-                                            text = Resources.ONBOARDING_SECTION_DATA_USAGE_SHOW_EXECUTIVE_TITLE,
-                                            style = MaterialTheme.typography.titleMedium,
-                                        )
-                                        Text(
-                                            text = Resources.ONBOARDING_SECTION_DATA_USAGE_SHOW_EXECUTIVE_SUBTITLE,
-                                            style = MaterialTheme.typography.bodySmall,
-                                        )
-                                    }
-                                }
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Start,
-                                    modifier = Modifier.fillMaxWidth(),
-                                ) {
-                                    TextIcon(Resources.ONBOARDING_SECTION_DATA_USAGE_SHOW_OTHER_CITIZEN_ICON_TEXT)
-                                    Spacer(modifier = Modifier.width(10.dp))
-                                    Column {
-                                        Text(
-                                            text = Resources.ONBOARDING_SECTION_DATA_USAGE_SHOW_OTHER_CITIZEN_TITLE,
-                                            style = MaterialTheme.typography.titleMedium,
-                                        )
-                                        Text(
-                                            text = Resources.ONBOARDING_SECTION_DATA_USAGE_SHOW_OTHER_CITIZEN_SUBTITLE,
-                                            style = MaterialTheme.typography.bodySmall,
-                                        )
-                                    }
-                                }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Start,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            TextIcon(
+                                text = Resources.ONBOARDING_SECTION_SHOW_DATA_ICON_TEXT,
+                                color = textIconColor,
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = Resources.ONBOARDING_SECTION_SHOW_DATA_TITLE,
+                                    style = MaterialTheme.typography.titleMedium,
+                                )
+                                Text(
+                                    text = Resources.ONBOARDING_SECTION_SHOW_DATA_SUBTITLE,
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
                             }
                         }
                     }

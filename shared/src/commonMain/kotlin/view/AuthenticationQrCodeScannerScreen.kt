@@ -13,7 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
 import navigation.AuthenticationConsentPage
 import ui.composables.buttons.NavigateUpButton
 import ui.views.CameraView
@@ -21,12 +20,13 @@ import ui.views.CameraView
 @Composable
 fun AuthenticationQrCodeScannerScreen(
     navigateUp: () -> Unit,
+    showNavigateUpButton: Boolean = true,
     navigateToLoadingScreen: () -> Unit,
     navigateToConsentScreen: (AuthenticationConsentPage) -> Unit,
-    authenticationQrCodeScannerViewModel: AuthenticationQrCodeScannerViewModel,
     walletMain: WalletMain,
+    authenticationQrCodeScannerViewModel: AuthenticationQrCodeScannerViewModel,
 ) = AuthenticationQrCodeScannerView(
-    navigateUp = navigateUp,
+    navigateUp = if(showNavigateUpButton) navigateUp else null,
     onFoundPayload = { link ->
         authenticationQrCodeScannerViewModel.onScan(
             link = link,
@@ -46,8 +46,8 @@ fun AuthenticationQrCodeScannerScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthenticationQrCodeScannerView(
-    navigateUp: () -> Unit,
     onFoundPayload: (String) -> Unit,
+    navigateUp: (() -> Unit)? = null,
 ) {
     Scaffold(
         topBar = {
@@ -60,14 +60,16 @@ fun AuthenticationQrCodeScannerView(
                         )
                         Text(
                             Resources.HEADING_LABEL_AUTHENTICATE_AT_DEVICE_SUBTITLE,
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.tertiary,
                         )
                     }
                 },
                 navigationIcon = {
-                    NavigateUpButton(navigateUp)
+                    if(navigateUp != null) {
+                        NavigateUpButton(navigateUp)
+                    }
                 },
             )
         },

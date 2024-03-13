@@ -1,4 +1,3 @@
-
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -17,28 +16,28 @@ import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
-import at.asitplus.wallet.lib.oidvci.decodeFromUrlQuery
-import domain.RetrieveRelyingPartyMetadataFromAuthenticationQrCodeUseCase
-import domain.RetrieveRequestRedirectFromAuthenticationQrCodeUseCase
+import at.asitplus.wallet.lib.jws.DefaultVerifierJwsService
+import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
+import domain.ExtractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase
+import domain.RetrieveFinalAuthenticationRequestUriFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier
-import io.ktor.http.Url
 import io.ktor.http.parseQueryString
-import io.ktor.util.flattenEntries
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import navigation.AuthenticationConsentPage
+import navigation.AuthenticationLoadingPage
 import navigation.AuthenticationQrCodeScannerPage
 import navigation.AuthenticationSuccessPage
 import navigation.HomePage
-import navigation.LoadingPage
 import navigation.LogPage
 import navigation.NavigationStack
 import navigation.Page
 import navigation.ProvisioningLoadingPage
 import navigation.RefreshCredentialsPage
 import navigation.SettingsPage
-import navigation.ShowDataPage
 import view.AuthenticationConsentScreen
 import view.AuthenticationQrCodeScannerScreen
 import view.AuthenticationQrCodeScannerViewModel
@@ -51,7 +50,6 @@ import view.MyCredentialsScreen
 import view.OnboardingWrapper
 import view.ProvisioningLoadingScreen
 import view.SettingsScreen
-import view.ShowDataScreen
 
 private enum class NavigationData(
     val title: String,
@@ -75,7 +73,7 @@ private enum class NavigationData(
             }
         },
     ),
-    SHOW_DATA_SCREEN(
+    AUTHENTICATION_SCANNING_SCREEN(
         title = Resources.NAVIGATION_BUTTON_LABEL_SHOW_DATA,
         icon = {
             Icon(
@@ -83,10 +81,10 @@ private enum class NavigationData(
                 contentDescription = null,
             )
         },
-        destination = ShowDataPage(),
+        destination = AuthenticationQrCodeScannerPage(),
         isActive = {
             when (it) {
-                is ShowDataPage -> true
+                is AuthenticationQrCodeScannerPage -> true
                 else -> false
             }
         },
@@ -144,37 +142,32 @@ fun Navigator(walletMain: WalletMain) {
             val host = walletMain.walletConfig.host.first()
             if (link.contains("$host/mobile")) {
                 Napier.d("authentication request")
-                val params = kotlin.runCatching {
-                    Url(link).parameters.flattenEntries().toMap()
-                        .decodeFromUrlQuery<AuthenticationRequestParameters>()
-                }
+                val extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase = ExtractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase(
+                    verifierJwsService = DefaultVerifierJwsService(),
+                )
 
-                val requestedClaims = params.getOrNull()?.presentationDefinition?.inputDescriptors
-                    ?.mapNotNull { it.constraints }?.flatMap { it.fields?.toList() ?: listOf() }
-                    ?.flatMap { it.path.toList() }
-                    ?.filter { it != "$.type" }
-                    ?.filter { it != "$.mdoc.doctype" }
-                    ?.map { it.removePrefix("\$.mdoc.") }
-                    ?.map { it.removePrefix("\$.") }
-                    ?: listOf()
-
-                mainNavigationStack.push(
-                    AuthenticationConsentPage(
-                        url = link,
-                        claims = requestedClaims,
-                        recipientName = "DemoService",
-                        recipientLocation = params.getOrNull()?.clientId ?: "DemoLocation",
-                        fromQrCodeScanner = false
+                val buildAuthenticationConsentPage = BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
+                    extractAuthenticationRequestParametersFromAuthenticationRequestUri = extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase,
+                    retrieveFinalAuthenticationRequestUriFromAuthenticationRequestUriUseCase = RetrieveFinalAuthenticationRequestUriFromAuthenticationRequestUriUseCase(
+                        client = walletMain.httpService.buildHttpClient(),
+                        extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase = extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase
                     )
                 )
+
+                withContext(Dispatchers.IO) {
+                    val authenticationConsentPage = buildAuthenticationConsentPage(link)
+                    mainNavigationStack.push(authenticationConsentPage)
+                }
                 appLink.value = null
                 return@LaunchedEffect
             }
 
             if (walletMain.provisioningService.redirectUri?.let { link.contains(it) } == true) {
-                mainNavigationStack.push(ProvisioningLoadingPage(
-                    link = link
-                ))
+                mainNavigationStack.push(
+                    ProvisioningLoadingPage(
+                        link = link
+                    )
+                )
                 appLink.value = null
                 return@LaunchedEffect
             }
@@ -208,17 +201,9 @@ fun MainNavigator(
         bottomBar = {
             val (_, page) = navigationStack.lastWithIndex()
             val pageNavigationData = when (page) {
-                is HomePage -> {
-                    NavigationData.HOME_SCREEN
-                }
+                is HomePage -> NavigationData.HOME_SCREEN
 
-                is ShowDataPage -> {
-                    NavigationData.SHOW_DATA_SCREEN
-                }
-
-                is SettingsPage -> {
-                    NavigationData.INFORMATION_SCREEN
-                }
+                is SettingsPage -> NavigationData.INFORMATION_SCREEN
 
                 else -> null
             }
@@ -227,7 +212,7 @@ fun MainNavigator(
                 NavigationBar {
                     for (route in listOf(
                         NavigationData.HOME_SCREEN,
-                        NavigationData.SHOW_DATA_SCREEN,
+                        NavigationData.AUTHENTICATION_SCANNING_SCREEN,
                         NavigationData.INFORMATION_SCREEN,
                     )) {
                         NavigationBarItem(
@@ -236,7 +221,9 @@ fun MainNavigator(
                                 Text(route.title)
                             },
                             onClick = {
-                                navigationStack.push(route.destination)
+                                if (route.isActive(page) == false) {
+                                    navigationStack.push(route.destination)
+                                }
                             },
                             selected = route.isActive(page)
                         )
@@ -264,6 +251,16 @@ fun MainNavigator(
                         )
                     }
 
+                    is ProvisioningLoadingPage -> {
+                        ProvisioningLoadingScreen(
+                            link = page.link,
+                            navigateUp = globalBack,
+                            walletMain = walletMain,
+                        )
+                    }
+
+
+
                     is SettingsPage -> {
                         SettingsScreen(
                             navigateToLogPage = {
@@ -285,50 +282,25 @@ fun MainNavigator(
                         )
                     }
 
-                    is LoadingPage -> {
-                        LoadingScreen()
-                    }
 
-                    is ProvisioningLoadingPage -> {
-                        ProvisioningLoadingScreen(
-                            link = page.link,
-                            navigateUp = globalBack,
-                            walletMain = walletMain,
-                        )
-                    }
-
-
-                    is ShowDataPage -> {
-                        ShowDataScreen(
-                            navigateToAuthenticationStartPage = {
-                                navigationStack.push(AuthenticationQrCodeScannerPage())
-                            },
-                            onClickShowDataToExecutive = {
-                                walletMain.snackbarService.showSnackbar(Resources.ERROR_FEATURE_NOT_YET_AVAILABLE)
-                            },
-                            onClickShowDataToOtherCitizen = {
-                                walletMain.snackbarService.showSnackbar(Resources.ERROR_FEATURE_NOT_YET_AVAILABLE)
-                            },
-                        )
-                    }
 
                     is AuthenticationQrCodeScannerPage -> {
                         AuthenticationQrCodeScannerScreen(
                             navigateUp = navigateUp,
                             navigateToConsentScreen = navigationStack::push,
                             navigateToLoadingScreen = {
-                                navigationStack.push(LoadingPage())
+                                navigationStack.push(AuthenticationLoadingPage())
                             },
                             authenticationQrCodeScannerViewModel = AuthenticationQrCodeScannerViewModel(
-                                retrieveRelyingPartyMetadataFromAuthenticationQrCodeUseCase = RetrieveRelyingPartyMetadataFromAuthenticationQrCodeUseCase(
-                                    client = walletMain.httpService.buildHttpClient(),
-                                ),
-                                retrieveRequestRedirectFromAuthenticationQrCodeUseCase = RetrieveRequestRedirectFromAuthenticationQrCodeUseCase(
-                                    client = walletMain.httpService.buildHttpClient(),
-                                ),
+                                client = walletMain.httpService.buildHttpClient(),
+                                verifierJwsService = DefaultVerifierJwsService(),
                             ),
                             walletMain = walletMain,
                         )
+                    }
+
+                    is AuthenticationLoadingPage -> {
+                        LoadingScreen()
                     }
 
                     is AuthenticationConsentPage -> {

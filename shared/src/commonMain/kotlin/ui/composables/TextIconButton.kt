@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -24,15 +26,19 @@ fun TextIconButton(
     icon: @Composable () -> Unit,
     text: @Composable () -> Unit,
     onClick: () -> Unit = {},
+    colors: ButtonColors = ButtonDefaults.buttonColors(),
     contentPadding: PaddingValues = TextIconButtonDefaults.contentPadding,
     spacer: @Composable () -> Unit = {
         Spacer(modifier = Modifier.width(TextIconButtonDefaults.gapSize))
     },
+    enabled: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
     Button(
         onClick = onClick,
+        enabled = enabled,
         contentPadding = contentPadding,
+        colors = colors,
         modifier = modifier,
     ) {
         Row(
@@ -53,6 +59,7 @@ fun OutlinedTextIconButton(
     icon: @Composable () -> Unit,
     text: @Composable () -> Unit,
     onClick: () -> Unit = {},
+    colors: ButtonColors = ButtonDefaults.outlinedButtonColors(),
     contentPadding: PaddingValues = TextIconButtonDefaults.contentPadding,
     spacer: @Composable () -> Unit = {
         Spacer(modifier = Modifier.width(TextIconButtonDefaults.gapSize))
@@ -62,6 +69,7 @@ fun OutlinedTextIconButton(
     OutlinedButton(
         onClick = onClick,
         contentPadding = contentPadding,
+        colors = colors,
         modifier = modifier,
     ) {
         Row(

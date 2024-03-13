@@ -23,7 +23,7 @@ fun PersonAttributeDetailCardHeading(
 ) {
     PersonAttributeDetailCardHeading(
         icon = {
-            TextIcon(
+            HeadingTextIcon(
                 text = iconText,
                 fontWeight = FontWeight.Bold,
             )
@@ -64,23 +64,3 @@ fun PersonAttributeDetailCardHeading(
 }
 
 
-@Composable
-fun PersonAttributeDetailCardHeadingTitle(
-    title: String
-) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.SemiBold,
-    )
-}
-
-@Composable
-fun PersonAttributeDetailCardHeadingTextIcon(
-    iconText: String
-) {
-    TextIcon(
-        text = iconText,
-        fontWeight = FontWeight.Bold,
-    )
-}

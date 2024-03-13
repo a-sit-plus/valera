@@ -5,10 +5,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.ElevatedCard
@@ -16,10 +15,19 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.toSize
 import data.CredentialExtractor
 import kotlinx.datetime.LocalDate
 
@@ -90,26 +98,8 @@ fun PersonIdentityDataDetailCard(
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             PersonAttributeDetailCardHeading(
-                icon = {
-                    if (identityData.portrait != null) {
-                        IconButton(
-                            onClick = {},
-                            enabled = false,
-                        ) {
-                            Image(
-                                bitmap = identityData.portrait,
-                                contentDescription = Resources.CONTENT_DESCRIPTION_PORTRAIT,
-                            )
-                        }
-                    } else {
-                        PersonAttributeDetailCardHeadingTextIcon(
-                            PersonalDataCategory.IdentityData.iconText
-                        )
-                    }
-                },
-                title = {
-                    PersonAttributeDetailCardHeadingTitle(PersonalDataCategory.IdentityData.categoryTitle)
-                },
+                iconText = PersonalDataCategory.IdentityData.iconText,
+                title = PersonalDataCategory.IdentityData.categoryTitle,
             ) {
                 if (onClickOpenDetails != null) {
                     IconButton(
@@ -123,10 +113,25 @@ fun PersonIdentityDataDetailCard(
                 }
             }
 
+            var columnSize by remember { mutableStateOf(Size.Zero) }
             Row(
-                modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
                 horizontalArrangement = Arrangement.Start,
+                modifier = Modifier.padding(bottom = 16.dp, start = 16.dp, end = 16.dp)
+                    .fillMaxWidth().onGloballyPositioned { layoutCoordinates ->
+                        columnSize = layoutCoordinates.size.toSize()
+                    }
             ) {
+                if (identityData.portrait != null) {
+                    // source: https://stackoverflow.com/questions/69455135/does-jetpack-compose-have-maxheight-and-maxwidth-like-xml
+                    // weird way to get "at most 1/4th of max width"
+                    val maxWidth = LocalDensity.current.run { (0.25f * columnSize.width).toDp() }
+                    Image(
+                        bitmap = identityData.portrait,
+                        contentDescription = Resources.CONTENT_DESCRIPTION_PORTRAIT,
+                        modifier = Modifier.widthIn(0.dp, maxWidth).padding(end = 16.dp),
+                        contentScale = ContentScale.FillWidth,
+                    )
+                }
                 val textGap = 4.dp
                 Column(
                     horizontalAlignment = Alignment.Start,
@@ -143,10 +148,8 @@ fun PersonIdentityDataDetailCard(
                     if (identityData.dateOfBirth != null) {
                         Text(
                             text = identityData.dateOfBirth.run { "$dayOfMonth.$monthNumber.$year" },
-                            modifier = Modifier.padding(bottom = textGap),
                         )
                     }
-                    Spacer(modifier = Modifier.height(16.dp - textGap))
                 }
             }
         }

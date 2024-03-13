@@ -18,9 +18,9 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -71,6 +71,7 @@ fun DataCategoryDisplaySection(
                     ) {
                         DataCategoryDisplaySectionItem(
                             iconText = category.first.iconText,
+                            iconColor = MaterialTheme.colorScheme.secondaryContainer,
                             title = category.first.categoryTitle,
                             titleFontWeight = FontWeight.Normal,
                             modifier = Modifier.fillMaxWidth(),
@@ -121,13 +122,11 @@ fun DataCategoryDisplaySection(
                         Divider(modifier = Modifier.fillMaxWidth())
                         for (item in category.second) {
                             DataCategoryDisplaySectionItem(
-                                iconText = null,
+                                iconText = "",
                                 title = item.attributeName,
                                 titleFontWeight = FontWeight.Normal,
-                                iconColors = TextIconDefaults.backgroundColor(
-                                    containerColor = Color.Unspecified,
-                                    disabledContainerColor = Color.Unspecified,
-                                ),
+                                iconColor = Color.Unspecified,
+                                iconContentColor = Color.Unspecified,
                                 titleColor = if (item.isAvailable == false) MaterialTheme.colorScheme.error else Color.Unspecified,
                                 modifier = paddingModifier.fillMaxWidth(),
                             )
@@ -145,8 +144,9 @@ fun DataCategoryDisplaySectionItem(
     title: String,
     titleColor: Color = Color.Unspecified,
     titleFontWeight: FontWeight = FontWeight.SemiBold,
-    iconText: String?,
-    iconColors: IconButtonColors = TextIconDefaults.backgroundColor(),
+    iconText: String,
+    iconColor: Color = TextIconDefaults.color(),
+    iconContentColor: Color = contentColorFor(iconColor),
     iconTextFontWeight: FontWeight = FontWeight.Bold,
     modifier: Modifier = Modifier,
     actionButtons: (@Composable RowScope.() -> Unit) = { },
@@ -158,11 +158,13 @@ fun DataCategoryDisplaySectionItem(
         Row(
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            TextIcon(
+            HeadingTextIcon(
                 text = iconText,
-                colors = iconColors,
+                color = iconColor,
+                contentColor = iconContentColor,
                 fontWeight = iconTextFontWeight,
             )
+
             Spacer(modifier = Modifier.width(16.dp))
             Text(
                 text = title,

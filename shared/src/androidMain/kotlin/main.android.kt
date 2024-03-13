@@ -2,13 +2,8 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -26,6 +21,8 @@ import at.asitplus.wallet.lib.agent.CryptoService
 import data.storage.RealDataStoreService
 import data.storage.getDataStore
 import io.github.aakira.napier.Napier
+import ui.theme.darkScheme
+import ui.theme.lightScheme
 import java.io.File
 
 actual fun getPlatformName(): String = "Android"
@@ -33,23 +30,18 @@ actual fun getPlatformName(): String = "Android"
 // Modified from https://developer.android.com/jetpack/compose/designsystems/material3
 @Composable
 actual fun getColorScheme(): ColorScheme {
-    // Dynamic color is available on Android 12+
-    val darkColorScheme = darkColorScheme()
-    val lightColorScheme = lightColorScheme()
-    val dynamicColor = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-    val darkTheme = isSystemInDarkTheme()
-    return when {
-        dynamicColor && darkTheme -> dynamicDarkColorScheme(LocalContext.current)
-        dynamicColor && !darkTheme -> dynamicLightColorScheme(LocalContext.current)
-
-        darkTheme -> darkColorScheme
-        else -> lightColorScheme
+    // Dynamic color is available on Android 12+, but let's use our color scheme for branding
+    return if (isSystemInDarkTheme()) {
+        darkScheme
+    } else {
+        lightScheme
     }
 }
 
 @Composable
 fun MainView(buildContext: BuildContext) {
     val platformAdapter = AndroidPlatformAdapter(LocalContext.current)
+
     App(
         WalletMain(
             objectFactory = AndroidObjectFactory(),
