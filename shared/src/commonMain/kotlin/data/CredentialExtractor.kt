@@ -151,11 +151,9 @@ class CredentialExtractor(
                         it.value.elementIdentifier == IdAustriaScheme.Attributes.FIRSTNAME
                     }?.value?.elementValue?.string
 
-
                     is EuPidScheme -> credential.issuerSigned.namespaces?.get(IdAustriaScheme.isoNamespace)?.entries?.firstOrNull {
                         it.value.elementIdentifier == EuPidScheme.Attributes.GIVEN_NAME
                     }?.value?.elementValue?.string
-
 
                     else -> TODO(credential.unsupportedCredentialSchemeMessage)
                 }
@@ -182,10 +180,8 @@ class CredentialExtractor(
                     is IdAustriaScheme -> credential.disclosures.filter { it.value?.claimName == IdAustriaScheme.Attributes.LASTNAME }
                         .firstNotNullOfOrNull { it.value?.claimValue as String }
 
-
                     is EuPidScheme -> credential.disclosures.filter { it.value?.claimName == EuPidScheme.Attributes.FAMILY_NAME }
                         .firstNotNullOfOrNull { it.value?.claimValue as String }
-
 
                     else -> TODO(credential.unsupportedCredentialSchemeMessage)
                 }
@@ -197,11 +193,9 @@ class CredentialExtractor(
                         it.value.elementIdentifier == IdAustriaScheme.Attributes.LASTNAME
                     }?.value?.elementValue?.string
 
-
                     is EuPidScheme -> credential.issuerSigned.namespaces?.get(IdAustriaScheme.isoNamespace)?.entries?.firstOrNull {
                         it.value.elementIdentifier == EuPidScheme.Attributes.FAMILY_NAME
                     }?.value?.elementValue?.string
-
 
                     else -> TODO(credential.unsupportedCredentialSchemeMessage)
                 }
@@ -231,13 +225,11 @@ class CredentialExtractor(
                             LocalDate.parse(it)
                         }
 
-
                     is EuPidScheme -> credential.disclosures.filter { it.value?.claimName == EuPidScheme.Attributes.BIRTH_DATE }
                         .firstNotNullOfOrNull { it.value?.claimValue as String }
                         ?.let {
                             LocalDate.parse(it)
                         }
-
 
                     else -> TODO(credential.unsupportedCredentialSchemeMessage)
                 }
@@ -291,7 +283,6 @@ class CredentialExtractor(
                         it.value.elementIdentifier == IdAustriaScheme.Attributes.PORTRAIT
                     }?.value?.elementValue?.bytes
 
-
                     is EuPidScheme -> null
 
                     else -> TODO(credential.unsupportedCredentialSchemeMessage)
@@ -318,7 +309,6 @@ class CredentialExtractor(
                 when (credential.scheme) {
                     is IdAustriaScheme -> credential.disclosures.filter { it.value?.claimName == IdAustriaScheme.Attributes.AGE_OVER_14 }
                         .firstNotNullOfOrNull { it.value?.claimValue as Boolean }
-
 
                     is EuPidScheme -> null
 
@@ -371,7 +361,6 @@ class CredentialExtractor(
                         it.value.elementIdentifier == IdAustriaScheme.Attributes.AGE_OVER_16
                     }?.value?.elementValue?.boolean
 
-
                     is EuPidScheme -> null
 
                     else -> TODO(credential.unsupportedCredentialSchemeMessage)
@@ -414,11 +403,9 @@ class CredentialExtractor(
                         it.value.elementIdentifier == IdAustriaScheme.Attributes.AGE_OVER_18
                     }?.value?.elementValue?.boolean
 
-
                     is EuPidScheme -> credential.issuerSigned.namespaces?.get(IdAustriaScheme.isoNamespace)?.entries?.firstOrNull {
                         it.value.elementIdentifier == EuPidScheme.Attributes.AGE_OVER_18
                     }?.value?.elementValue?.boolean
-
 
                     else -> TODO(credential.unsupportedCredentialSchemeMessage)
                 }
@@ -480,10 +467,8 @@ class CredentialExtractor(
 
                 is SubjectCredentialStore.StoreEntry.SdJwt -> {
                     when (credential.scheme) {
-                        is IdAustriaScheme -> {
-                            credential.disclosures.filter { it.value?.claimName == IdAustriaScheme.Attributes.MAIN_ADDRESS }
-                                .firstNotNullOfOrNull { it.value?.claimValue as String }
-                        }
+                        is IdAustriaScheme -> credential.disclosures.filter { it.value?.claimName == IdAustriaScheme.Attributes.MAIN_ADDRESS }
+                            .firstNotNullOfOrNull { it.value?.claimValue as String }
 
                         else -> TODO(credential.unsupportedCredentialSchemeMessage)
                     }
@@ -491,11 +476,11 @@ class CredentialExtractor(
 
                 is SubjectCredentialStore.StoreEntry.Iso -> {
                     when (credential.scheme) {
-                        is IdAustriaScheme -> {
-                            credential.issuerSigned.namespaces?.get(IdAustriaScheme.isoNamespace)?.entries?.firstOrNull {
-                                it.value.elementIdentifier == IdAustriaScheme.Attributes.MAIN_ADDRESS
-                            }?.value?.elementValue?.string
-                        }
+                        is IdAustriaScheme -> credential.issuerSigned.namespaces?.get(
+                            IdAustriaScheme.isoNamespace
+                        )?.entries?.firstOrNull {
+                            it.value.elementIdentifier == IdAustriaScheme.Attributes.MAIN_ADDRESS
+                        }?.value?.elementValue?.string
 
                         else -> TODO(credential.unsupportedCredentialSchemeMessage)
                     }
@@ -542,11 +527,9 @@ class CredentialExtractor(
                 when (credential.scheme) {
                     is IdAustriaScheme -> idAustriaCredentialMainAddress?.Strasse
 
-                    is EuPidScheme -> {
-                        credential.issuerSigned.namespaces?.get(IdAustriaScheme.isoNamespace)?.entries?.firstOrNull {
-                            it.value.elementIdentifier == EuPidScheme.Attributes.RESIDENT_STREET
-                        }?.value?.elementValue?.string
-                    }
+                    is EuPidScheme -> credential.issuerSigned.namespaces?.get(IdAustriaScheme.isoNamespace)?.entries?.firstOrNull {
+                        it.value.elementIdentifier == EuPidScheme.Attributes.RESIDENT_STREET
+                    }?.value?.elementValue?.string
 
                     else -> TODO(credential.unsupportedCredentialSchemeMessage)
                 }
@@ -572,10 +555,8 @@ class CredentialExtractor(
                 when (credential.scheme) {
                     is IdAustriaScheme -> idAustriaCredentialMainAddress?.Hausnummer
 
-                    is EuPidScheme -> {
-                        credential.disclosures.filter { it.value?.claimName == EuPidScheme.Attributes.RESIDENT_HOUSE_NUMBER }
-                            .firstNotNullOfOrNull { it.value?.claimValue as String }
-                    }
+                    is EuPidScheme -> credential.disclosures.filter { it.value?.claimName == EuPidScheme.Attributes.RESIDENT_HOUSE_NUMBER }
+                        .firstNotNullOfOrNull { it.value?.claimValue as String }
 
                     else -> TODO(credential.unsupportedCredentialSchemeMessage)
                 }
@@ -585,11 +566,9 @@ class CredentialExtractor(
                 when (credential.scheme) {
                     is IdAustriaScheme -> idAustriaCredentialMainAddress?.Hausnummer
 
-                    is EuPidScheme -> {
-                        credential.issuerSigned.namespaces?.get(IdAustriaScheme.isoNamespace)?.entries?.firstOrNull {
-                            it.value.elementIdentifier == EuPidScheme.Attributes.RESIDENT_HOUSE_NUMBER
-                        }?.value?.elementValue?.string
-                    }
+                    is EuPidScheme -> credential.issuerSigned.namespaces?.get(IdAustriaScheme.isoNamespace)?.entries?.firstOrNull {
+                        it.value.elementIdentifier == EuPidScheme.Attributes.RESIDENT_HOUSE_NUMBER
+                    }?.value?.elementValue?.string
 
                     else -> TODO(credential.unsupportedCredentialSchemeMessage)
                 }
@@ -687,10 +666,8 @@ class CredentialExtractor(
                 when (credential.scheme) {
                     is IdAustriaScheme -> idAustriaCredentialMainAddress?.Ortschaft
 
-                    is EuPidScheme -> {
-                        credential.disclosures.filter { it.value?.claimName == EuPidScheme.Attributes.RESIDENT_CITY }
-                            .firstNotNullOfOrNull { it.value?.claimValue as String }
-                    }
+                    is EuPidScheme -> credential.disclosures.filter { it.value?.claimName == EuPidScheme.Attributes.RESIDENT_CITY }
+                        .firstNotNullOfOrNull { it.value?.claimValue as String }
 
                     else -> TODO(credential.unsupportedCredentialSchemeMessage)
                 }
@@ -700,11 +677,9 @@ class CredentialExtractor(
                 when (credential.scheme) {
                     is IdAustriaScheme -> idAustriaCredentialMainAddress?.Ortschaft
 
-                    is EuPidScheme -> {
-                        credential.issuerSigned.namespaces?.get(IdAustriaScheme.isoNamespace)?.entries?.firstOrNull {
-                            it.value.elementIdentifier == EuPidScheme.Attributes.RESIDENT_CITY
-                        }?.value?.elementValue?.string
-                    }
+                    is EuPidScheme -> credential.issuerSigned.namespaces?.get(IdAustriaScheme.isoNamespace)?.entries?.firstOrNull {
+                        it.value.elementIdentifier == EuPidScheme.Attributes.RESIDENT_CITY
+                    }?.value?.elementValue?.string
 
                     else -> TODO(credential.unsupportedCredentialSchemeMessage)
                 }
@@ -730,10 +705,8 @@ class CredentialExtractor(
                 when (credential.scheme) {
                     is IdAustriaScheme -> idAustriaCredentialMainAddress?.Postleitzahl
 
-                    is EuPidScheme -> {
-                        credential.disclosures.filter { it.value?.claimName == EuPidScheme.Attributes.RESIDENT_POSTAL_CODE }
-                            .firstNotNullOfOrNull { it.value?.claimValue as String }
-                    }
+                    is EuPidScheme -> credential.disclosures.filter { it.value?.claimName == EuPidScheme.Attributes.RESIDENT_POSTAL_CODE }
+                        .firstNotNullOfOrNull { it.value?.claimValue as String }
 
                     else -> TODO(credential.unsupportedCredentialSchemeMessage)
                 }
@@ -743,11 +716,9 @@ class CredentialExtractor(
                 when (credential.scheme) {
                     is IdAustriaScheme -> idAustriaCredentialMainAddress?.Postleitzahl
 
-                    is EuPidScheme -> {
-                        credential.issuerSigned.namespaces?.get(IdAustriaScheme.isoNamespace)?.entries?.firstOrNull {
-                            it.value.elementIdentifier == EuPidScheme.Attributes.RESIDENT_POSTAL_CODE
-                        }?.value?.elementValue?.string
-                    }
+                    is EuPidScheme -> credential.issuerSigned.namespaces?.get(IdAustriaScheme.isoNamespace)?.entries?.firstOrNull {
+                        it.value.elementIdentifier == EuPidScheme.Attributes.RESIDENT_POSTAL_CODE
+                    }?.value?.elementValue?.string
 
                     else -> TODO(credential.unsupportedCredentialSchemeMessage)
                 }
@@ -773,10 +744,8 @@ class CredentialExtractor(
                 when (credential.scheme) {
                     is IdAustriaScheme -> null
 
-                    is EuPidScheme -> {
-                        credential.disclosures.filter { it.value?.claimName == EuPidScheme.Attributes.RESIDENT_STATE }
-                            .firstNotNullOfOrNull { it.value?.claimValue as String }
-                    }
+                    is EuPidScheme -> credential.disclosures.filter { it.value?.claimName == EuPidScheme.Attributes.RESIDENT_STATE }
+                        .firstNotNullOfOrNull { it.value?.claimValue as String }
 
                     else -> TODO(credential.unsupportedCredentialSchemeMessage)
                 }
@@ -786,11 +755,9 @@ class CredentialExtractor(
                 when (credential.scheme) {
                     is IdAustriaScheme -> null
 
-                    is EuPidScheme -> {
-                        credential.issuerSigned.namespaces?.get(IdAustriaScheme.isoNamespace)?.entries?.firstOrNull {
-                            it.value.elementIdentifier == EuPidScheme.Attributes.RESIDENT_STATE
-                        }?.value?.elementValue?.string
-                    }
+                    is EuPidScheme -> credential.issuerSigned.namespaces?.get(IdAustriaScheme.isoNamespace)?.entries?.firstOrNull {
+                        it.value.elementIdentifier == EuPidScheme.Attributes.RESIDENT_STATE
+                    }?.value?.elementValue?.string
 
                     else -> TODO(credential.unsupportedCredentialSchemeMessage)
                 }
@@ -816,10 +783,8 @@ class CredentialExtractor(
                 when (credential.scheme) {
                     is IdAustriaScheme -> null
 
-                    is EuPidScheme -> {
-                        credential.disclosures.filter { it.value?.claimName == EuPidScheme.Attributes.RESIDENT_COUNTRY }
-                            .firstNotNullOfOrNull { it.value?.claimValue as String }
-                    }
+                    is EuPidScheme -> credential.disclosures.filter { it.value?.claimName == EuPidScheme.Attributes.RESIDENT_COUNTRY }
+                        .firstNotNullOfOrNull { it.value?.claimValue as String }
 
                     else -> TODO(credential.unsupportedCredentialSchemeMessage)
                 }
@@ -829,11 +794,9 @@ class CredentialExtractor(
                 when (credential.scheme) {
                     is IdAustriaScheme -> null
 
-                    is EuPidScheme -> {
-                        credential.issuerSigned.namespaces?.get(IdAustriaScheme.isoNamespace)?.entries?.firstOrNull {
-                            it.value.elementIdentifier == EuPidScheme.Attributes.RESIDENT_COUNTRY
-                        }?.value?.elementValue?.string
-                    }
+                    is EuPidScheme -> credential.issuerSigned.namespaces?.get(IdAustriaScheme.isoNamespace)?.entries?.firstOrNull {
+                        it.value.elementIdentifier == EuPidScheme.Attributes.RESIDENT_COUNTRY
+                    }?.value?.elementValue?.string
 
                     else -> TODO(credential.unsupportedCredentialSchemeMessage)
                 }
