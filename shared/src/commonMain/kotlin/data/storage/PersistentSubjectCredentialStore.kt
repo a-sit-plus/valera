@@ -2,6 +2,7 @@ package data.storage
 
 import Resources
 import at.asitplus.KmmResult
+import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
@@ -123,6 +124,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
                         ConstantIndex.AtomicAttribute2023 -> ExportableCredentialScheme.AtomicAttribute2023
                         ConstantIndex.MobileDrivingLicence2023 -> ExportableCredentialScheme.MobileDrivingLicence2023
                         IdAustriaScheme -> ExportableCredentialScheme.IdAustriaScheme
+                        EuPidScheme -> ExportableCredentialScheme.EuPidScheme
                         else -> throw Exception("Unknown CredentialScheme")
                     }
                     exportableCredentials.add(ExportableStoreEntry.Iso(issuerSigned = it.issuerSigned, scheme = scheme))
@@ -132,15 +134,17 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
                         ConstantIndex.AtomicAttribute2023 -> ExportableCredentialScheme.AtomicAttribute2023
                         ConstantIndex.MobileDrivingLicence2023 -> ExportableCredentialScheme.MobileDrivingLicence2023
                         IdAustriaScheme -> ExportableCredentialScheme.IdAustriaScheme
+                        EuPidScheme -> ExportableCredentialScheme.EuPidScheme
                         else -> throw Exception("Unknown CredentialScheme")
                     }
                     exportableCredentials.add(ExportableStoreEntry.SdJwt(vcSerialized = it.vcSerialized, sdJwt = it.sdJwt, disclosures = it.disclosures, scheme = scheme))
                 }
                 is SubjectCredentialStore.StoreEntry.Vc -> {
-                    scheme = when (it.scheme){
+                    scheme = when (it.scheme) {
                         ConstantIndex.AtomicAttribute2023 -> ExportableCredentialScheme.AtomicAttribute2023
                         ConstantIndex.MobileDrivingLicence2023 -> ExportableCredentialScheme.MobileDrivingLicence2023
                         IdAustriaScheme -> ExportableCredentialScheme.IdAustriaScheme
+                        EuPidScheme -> ExportableCredentialScheme.EuPidScheme
                         else -> throw Exception("Unknown CredentialScheme")
                     }
                     exportableCredentials.add(ExportableStoreEntry.Vc(vcSerialized = it.vcSerialized, vc = it.vc, scheme = scheme))
@@ -230,6 +234,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
                             ExportableCredentialScheme.AtomicAttribute2023 -> ConstantIndex.AtomicAttribute2023
                             ExportableCredentialScheme.MobileDrivingLicence2023 -> ConstantIndex.MobileDrivingLicence2023
                             ExportableCredentialScheme.IdAustriaScheme -> IdAustriaScheme
+                            ExportableCredentialScheme.EuPidScheme -> EuPidScheme
                         }
                         credentials.add(SubjectCredentialStore.StoreEntry.Iso(it.issuerSigned, scheme))
                     }
@@ -238,6 +243,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
                             ExportableCredentialScheme.AtomicAttribute2023 -> ConstantIndex.AtomicAttribute2023
                             ExportableCredentialScheme.MobileDrivingLicence2023 -> ConstantIndex.MobileDrivingLicence2023
                             ExportableCredentialScheme.IdAustriaScheme -> IdAustriaScheme
+                            ExportableCredentialScheme.EuPidScheme -> EuPidScheme
                         }
                         credentials.add(SubjectCredentialStore.StoreEntry.SdJwt(vcSerialized = it.vcSerialized, sdJwt = it.sdJwt, disclosures = it.disclosures, scheme = scheme))
                     }
@@ -246,6 +252,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
                             ExportableCredentialScheme.AtomicAttribute2023 -> ConstantIndex.AtomicAttribute2023
                             ExportableCredentialScheme.MobileDrivingLicence2023 -> ConstantIndex.MobileDrivingLicence2023
                             ExportableCredentialScheme.IdAustriaScheme -> IdAustriaScheme
+                            ExportableCredentialScheme.EuPidScheme -> EuPidScheme
                         }
                         credentials.add(SubjectCredentialStore.StoreEntry.Vc(vcSerialized = it.vcSerialized, vc = it.vc, scheme = scheme))
                     }
@@ -377,7 +384,6 @@ data class ExportableAttachmentEntry(val name: String, val data: ByteArray, val 
 }
 
 enum class ExportableCredentialScheme {
-    AtomicAttribute2023, IdAustriaScheme, MobileDrivingLicence2023
-
+    AtomicAttribute2023, IdAustriaScheme, MobileDrivingLicence2023, EuPidScheme
 }
 
