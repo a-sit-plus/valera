@@ -127,7 +127,7 @@ class ProvisioningService(
             }.body()
 
         Napier.d("Received tokenResponse")
-        val credentialRequest = oid4vciService.createCredentialRequest(tokenResponse, metadata)
+        val credentialRequest = oid4vciService.createCredentialRequest(tokenResponse, metadata).getOrThrow()
         Napier.d("Created credentialRequest")
         val credentialResponse: CredentialResponseParameters =
             client.post(metadata.credentialEndpointUrl.toString()) {

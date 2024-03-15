@@ -24,8 +24,8 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "shared"
             isStatic = true
-            export("at.asitplus.wallet:vclib:3.3.0")
-            export("at.asitplus.wallet:idacredential:3.3.0")
+            export("at.asitplus.wallet:vclib:3.4.0")
+            export("at.asitplus.wallet:idacredential:3.4.0")
             export("at.asitplus:kmmresult:1.5.3")
             export(napier())
         }
@@ -42,14 +42,14 @@ kotlin {
                 implementation(compose.materialIconsExtended)
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
-                api("at.asitplus.wallet:vclib-openid:3.3.0")
-                api("at.asitplus.wallet:vclib:3.3.0")
-                api("at.asitplus.wallet:idacredential:3.3.0")
+                api("at.asitplus.wallet:vclib-openid:3.4.0")
+                api("at.asitplus.wallet:vclib:3.4.0")
+                api("at.asitplus.wallet:idacredential:3.4.0")
                 implementation(serialization("json"))
                 api(napier())
-                implementation("androidx.datastore:datastore-preferences-core:1.1.0-alpha07")
-                implementation("androidx.datastore:datastore-core-okio:1.1.0-alpha07")
-                implementation("org.jetbrains.kotlinx:atomicfu:0.21.0")
+                implementation("androidx.datastore:datastore-preferences-core:1.1.0-beta02")
+                implementation("androidx.datastore:datastore-core-okio:1.1.0-beta02")
+                implementation("org.jetbrains.kotlinx:atomicfu:0.23.2")
                 implementation("io.ktor:ktor-client-core:$ktorVersion")
                 implementation("io.ktor:ktor-client-cio:$ktorVersion")
                 implementation ("io.ktor:ktor-client-logging:$ktorVersion")
@@ -66,7 +66,7 @@ kotlin {
 
         val androidMain by getting {
             dependencies {
-                api("androidx.activity:activity-compose:1.8.1")
+                api("androidx.activity:activity-compose:1.8.2")
                 api("androidx.appcompat:appcompat:1.6.1")
                 api("androidx.core:core-ktx:1.12.0")
 
@@ -77,9 +77,9 @@ kotlin {
                 implementation ("io.ktor:ktor-client-logging-jvm:$ktorVersion")
                 implementation ("uk.uuid.slf4j:slf4j-android:1.7.30-0")
 
-                implementation("androidx.camera:camera-camera2:1.3.0")
-                implementation("androidx.camera:camera-lifecycle:1.3.0")
-                implementation("androidx.camera:camera-view:1.3.0")
+                implementation("androidx.camera:camera-camera2:1.3.2")
+                implementation("androidx.camera:camera-lifecycle:1.3.2")
+                implementation("androidx.camera:camera-view:1.3.2")
                 implementation("com.google.accompanist:accompanist-permissions:0.30.1")
                 implementation("com.google.mlkit:barcode-scanning:17.2.0")
 

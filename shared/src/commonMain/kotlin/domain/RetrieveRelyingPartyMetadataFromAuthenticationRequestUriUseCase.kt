@@ -37,7 +37,7 @@ class RetrieveRelyingPartyMetadataFromAuthenticationRequestUriUseCase(
                         throw Exception("${getString(Res.string.ERROR_QR_CODE_SCANNING_INVALID_METADATA_JWS_OBJECT)}: ${metadataResponse.bodyAsText()}")
                     }
 
-                    if (!verifierJwsService.verifyJwsObject(metadataJws, null)) {
+                    if (!verifierJwsService.verifyJwsObject(metadataJws)) {
                         throw Exception("${getString(Res.string.ERROR_QR_CODE_SCANNING_INVALID_METADATA_JWS_OBJECT_SIGNATURE)}: ${metadataResponse.bodyAsText()}")
                     }
 
