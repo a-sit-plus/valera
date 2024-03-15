@@ -1,8 +1,6 @@
 import shared
 
-// to avoid nameclash with CyptoKit.Digest when importing both
-// CryptoKit, and VcLibKMM (in other files)
-public typealias VcLibKMMDigest = Digest
+public typealias KmpCryptoDigest = Digest
 
 extension Data {
     public var kotlinByteArray : KotlinByteArray {

@@ -2,26 +2,14 @@ import Foundation
 import CryptoKit
 import shared
 
+
 public class VcLibCryptoServiceCryptoKit: CryptoService {
-    public var certificate: X509Certificate?
-    
-    public var algorithm: CryptoAlgorithm = .es256
-    
-    public var coseKey: CoseKey
-    
-    public var jsonWebKey: JsonWebKey
-    
     public var publicKey: CryptoPublicKey
-    
-    public func sign(input: KotlinByteArray) async throws -> KmmResult<CryptoSignature> {
-      return KmmResult(failure: KotlinException(message: "TODO"))
-    }
-    
- 
     public var identifier: String
-    public var jwsAlgorithm: JwsAlgorithm = .es256
-    public var coseAlgorithm: CoseAlgorithm = .es256
-    private let cryptoPublicKey: CryptoPublicKey
+    public var coseKey: CoseKey
+    public var algorithm: CryptoAlgorithm
+    public var jsonWebKey: JsonWebKey
+    public var certificate: X509Certificate?
     private let keyChainService: KeyChainService
 
     public init?(keyChainService: KeyChainService) {
@@ -30,13 +18,15 @@ public class VcLibCryptoServiceCryptoKit: CryptoService {
             return nil
         }
         self.keyChainService = keyChainService
-        self.cryptoPublicKey = try! CryptoPublicKey.Ec.companion.fromAnsiX963Bytes(src: privateKey.publicKey.x963Representation.kotlinByteArray)
-        self.coseKey =  cryptoPublicKey.toCoseKey(algorithm: nil).getOrThrow()! //TODO
-        self.jsonWebKey = cryptoPublicKey.toJsonWebKey()
-        self.publicKey = cryptoPublicKey
-        self.identifier = cryptoPublicKey.toJsonWebKey().identifier
-        self.jwsAlgorithm = .es256
-        self.coseAlgorithm = .es256
+        guard let publicKey = try? CryptoPublicKey.companion.fromIosEncoded(it: privateKey.publicKey.x963Representation.kotlinByteArray) else {
+            NapierProxy.companion.w(msg: "Cannot convert publicKey")
+            return nil
+        }
+        self.publicKey = publicKey
+        self.identifier = publicKey.toJsonWebKey().identifier
+        self.algorithm = .es256
+        self.coseKey = publicKey.toCoseKey(algorithm: nil).getOrThrow()!
+        self.jsonWebKey = publicKey.toJsonWebKey()
         self.certificate = nil
     }
 
@@ -79,7 +69,7 @@ public class VcLibCryptoServiceCryptoKit: CryptoService {
         }
     }
 
-    public func messageDigest(input: KotlinByteArray, digest: VcLibKMMDigest) -> KmmResult<KotlinByteArray> {
+    public func messageDigest(input: KotlinByteArray, digest: KmpCryptoDigest) -> KmmResult<KotlinByteArray> {
         switch digest {
         case .sha256:
             let digest = SHA256.hash(data: input.data)
@@ -104,7 +94,7 @@ public class VcLibCryptoServiceCryptoKit: CryptoService {
                 return KmmResultFailure(KotlinThrowable(message: "Error in KeyAgreement"))
             }
             let data = sharedSecret.withUnsafeBytes {
-                return Data(Array($0))
+                return Data($0)
             }
             return KmmResultSuccess(data.kotlinByteArray)
         default:
@@ -122,8 +112,8 @@ public class VcLibCryptoServiceCryptoKit: CryptoService {
             if let throwable = ephemeralKeyBytes.exceptionOrNull() {
                 return KmmResultFailure(throwable)
             }
-            guard let recipientKeyBytesValue = ephemeralKeyBytes.getOrNull(),
-                  let recipientKey = try? P256.KeyAgreement.PublicKey(x963Representation: recipientKeyBytesValue.iosEncoded.data),
+            guard let recipientKeyBytesValue = ephemeralKeyBytes.getOrNull()?.iosEncoded,
+                  let recipientKey = try? P256.KeyAgreement.PublicKey(x963Representation: recipientKeyBytesValue.data),
                   let privateAgreementKey = try? SecureEnclave.P256.KeyAgreement.PrivateKey(dataRepresentation: privateKey.dataRepresentation),
                   let sharedSecret = try? privateAgreementKey.sharedSecretFromKeyAgreement(with: recipientKey) else {
                 return KmmResultFailure(KotlinThrowable(message: "Error in KeyAgreement"))
@@ -137,40 +127,33 @@ public class VcLibCryptoServiceCryptoKit: CryptoService {
         }
     }
 
-    public func sign(input: KotlinByteArray) async throws -> KmmResult<KotlinByteArray> {
+    public func sign(input: KotlinByteArray) async throws -> KmmResult<CryptoSignature> {
         guard let privateKey = keyChainService.loadPrivateKey() else {
             return KmmResultFailure(KotlinThrowable(message: "Could not load private key"))
         }
         guard let signature = try? privateKey.signature(for: input.data) else {
             return KmmResultFailure(KotlinThrowable(message: "Signature error"))
         }
-        return KmmResultSuccess(signature.derRepresentation.kotlinByteArray)
+        // Cast is needed, because the generic Asn1Decodable interface declares the return type as Asn1Encodable, and the implementing classes fix the return type to a specific class
+        // Apparently this gets lost when generating ObjC headers
+        return KmmResultSuccess(try CryptoSignature.companion.decodeFromDer(src: signature.derRepresentation.kotlinByteArray) as! CryptoSignature)
     }
 
-    public func toPublicKey() -> CryptoPublicKey {
-        return cryptoPublicKey
-    }
 
 }
 
 public class VcLibVerifierCryptoService : VerifierCryptoService {
-    public var supportedAlgorithms: [CryptoAlgorithm] = [CryptoAlgorithm.es256]
-    
+
+    public var supportedAlgorithms: [CryptoAlgorithm] = [.es256]
 
     public func verify(input: KotlinByteArray, signature: CryptoSignature, algorithm: CryptoAlgorithm, publicKey: CryptoPublicKey) -> KmmResult<KotlinBoolean> {
         if algorithm != .es256 {
             return KmmResultFailure(KotlinThrowable(message: "Can not verify algorithm \(algorithm.name)"))
         }
-        guard let publicKey = publicKey as? CryptoPublicKey.Ec else {
-            return KmmResultFailure(KotlinThrowable(message: "Public key is not an EC key \(publicKey)"))
-        }
-
-       
-        guard let cryptoKitPublicKey = try? P256.Signing.PublicKey(x963Representation: publicKey.iosEncoded.data)
-        else {
+        guard let cryptoKitPublicKey = try? P256.Signing.PublicKey(x963Representation: publicKey.iosEncoded.data) else {
             return KmmResultFailure(KotlinThrowable(message: "Can not create CryptoKit key"))
         }
-        if let cryptoKitSignature = try? P256.Signing.ECDSASignature(derRepresentation: signature.signature.derEncoded.data) {
+        if let cryptoKitSignature = try? P256.Signing.ECDSASignature(derRepresentation: signature.rawByteArray.data) {
             let valid = cryptoKitPublicKey.isValidSignature(cryptoKitSignature, for: input.data)
             return KmmResultSuccess(KotlinBoolean(value: valid))
         } else if let cryptoKitSignature = try? P256.Signing.ECDSASignature(rawRepresentation: signature.rawByteArray.data) {
@@ -181,32 +164,18 @@ public class VcLibVerifierCryptoService : VerifierCryptoService {
         }
     }
 
-    public func extractPublicKeyFromX509Cert(it: KotlinByteArray) -> JsonWebKey? {
-        guard let certificate = SecCertificateCreateWithData(nil, it.data as CFData),
-              let publicKey = SecCertificateCopyKey(certificate),
-              let publicKeyData = SecKeyCopyExternalRepresentation(publicKey, nil) as? Data else {
-            return nil
-        }
-        return JsonWebKey.companion.fromIosEncoded(bytes:  publicKeyData.kotlinByteArray).getOrThrow()
-    }
-
 }
 
 public class VcLibEphemeralKeyHolder : EphemeralKeyHolder {
-    public var publicJsonWebKey: JsonWebKey?
-    
 
     let privateKey: P256.KeyAgreement.PrivateKey
     let publicKey: P256.KeyAgreement.PublicKey
+    public var publicJsonWebKey: JsonWebKey?
 
     public init() {
         self.privateKey = P256.KeyAgreement.PrivateKey()
         self.publicKey = privateKey.publicKey
-        self.publicJsonWebKey = JsonWebKey.companion.fromIosEncoded(bytes: publicKey.x963Representation.kotlinByteArray).getOrThrow()
-    }
-
-    public func toPublicJsonWebKey() -> JsonWebKey {
-        return publicJsonWebKey!
+        self.publicJsonWebKey = JsonWebKey.companion.fromIosEncoded(bytes: publicKey.x963Representation.kotlinByteArray).getOrNull()
     }
 
 }
