@@ -67,7 +67,6 @@ fun PersonResidenceDataDetailCard(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 horizontalAlignment = Alignment.Start,
             ) {
-                val textGap = 4.dp
                 if (
                     listOfNotNull(
                         residenceData.streetName,
@@ -79,19 +78,16 @@ fun PersonResidenceDataDetailCard(
                             residenceData.streetName,
                             residenceData.houseNumber,
                         ).filter { it.isNotBlank() }.joinToString(" "),
-                        modifier = Modifier.padding(bottom = textGap),
                     )
                 }
                 if (residenceData.stairName?.isNotBlank() == true) {
                     Text(
-                        text = "${Resources.TEXT_LABEL_STAIR}: ${residenceData.stairName}",
-                        modifier = Modifier.padding(bottom = textGap),
+                        text = "${Resources.TEXT_LABEL_STAIR} ${residenceData.stairName}",
                     )
                 }
                 if (residenceData.doorName?.isNotBlank() == true) {
                     Text(
                         text = "${Resources.TEXT_LABEL_DOOR}: ${residenceData.doorName}",
-                        modifier = Modifier.padding(bottom = textGap),
                     )
                 }
                 if (
@@ -105,10 +101,9 @@ fun PersonResidenceDataDetailCard(
                             residenceData.postalCode,
                             residenceData.villageName,
                         ).filter { it.isNotBlank() }.joinToString(" "),
-                        modifier = Modifier.padding(bottom = textGap),
                     )
                 }
-                Spacer(modifier = Modifier.height(16.dp - textGap))
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }

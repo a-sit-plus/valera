@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 
@@ -32,7 +33,9 @@ fun OnboardingStartScreen(
 ) {
     Box() {
         Image(
-            painter = painterResource(Resources.FILENAME_ONBOARDING_START_SCREEN_BACKGROUND),
+            painter = painterResource(
+                DrawableResource(Resources.FILENAME_ONBOARDING_START_SCREEN_BACKGROUND)
+            ),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize(),
