@@ -26,8 +26,7 @@ kotlin {
             isStatic = true
             export("at.asitplus.wallet:vclib:3.4.0")
             export("at.asitplus.wallet:idacredential:3.4.0")
-            export("at.asitplus:kmmresult:1.5.3")
-            export(napier())
+            export("at.asitplus.wallet:eupidcredential:1.0.0")
         }
     }
 
@@ -35,7 +34,6 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation("androidx.biometric:biometric:1.2.0-alpha05")
-
                 implementation(compose.runtime)
                 implementation(compose.foundation)
                 implementation(compose.material3)
@@ -46,8 +44,9 @@ kotlin {
                 api("at.asitplus.wallet:vclib:3.4.0")
                 api("at.asitplus.wallet:idacredential:3.4.0")
                 api("at.asitplus.wallet:eupidcredential:1.0.0")
-                implementation(serialization("json"))
+                api("at.asitplus:kmmresult:1.5.3")
                 api(napier())
+                implementation(serialization("json"))
                 implementation("androidx.datastore:datastore-preferences-core:1.1.0-beta02")
                 implementation("androidx.datastore:datastore-core-okio:1.1.0-beta02")
                 implementation("org.jetbrains.kotlinx:atomicfu:0.23.2")
