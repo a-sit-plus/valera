@@ -11,6 +11,7 @@ pluginManagement {
         google()
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
         maven("https://raw.githubusercontent.com/a-sit-plus/gradle-conventions-plugin/mvn/repo")
+        maven("https://maven.pkg.jetbrains.space/kotlin/p/dokka/dev")
     }
 
     plugins {
@@ -40,3 +41,6 @@ dependencyResolutionManagement {
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     }
 }
+
+//Set this property if you want to stick to Kotlin 1.9.10
+System.setProperty("at.asitplus.gradle", "legacy")

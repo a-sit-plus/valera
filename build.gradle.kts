@@ -5,5 +5,5 @@ plugins {
     id("com.android.application").apply(false)
     id("com.android.library").apply(false)
     id("org.jetbrains.compose").apply(false)
-    id("at.asitplus.gradle.conventions") version "1.9.10+20230911"
+    id("at.asitplus.gradle.conventions") version "1.9.10+20231030"
 }

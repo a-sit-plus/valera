@@ -27,6 +27,8 @@ kotlin {
             export("at.asitplus.wallet:vclib:3.4.0")
             export("at.asitplus.wallet:idacredential:3.4.0")
             export("at.asitplus.wallet:eupidcredential:1.0.0")
+            export("at.asitplus.crypto:datatypes-cose:2.3.0")
+            export("at.asitplus.crypto:datatypes-jws:2.3.0")
         }
     }
 
@@ -41,10 +43,8 @@ kotlin {
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
                 api("at.asitplus.wallet:vclib-openid:3.4.0")
-                api("at.asitplus.wallet:vclib:3.4.0")
                 api("at.asitplus.wallet:idacredential:3.4.0")
                 api("at.asitplus.wallet:eupidcredential:1.0.0")
-                api("at.asitplus:kmmresult:1.5.3")
                 api(napier())
                 implementation(serialization("json"))
                 implementation("androidx.datastore:datastore-preferences-core:1.1.0-beta02")
