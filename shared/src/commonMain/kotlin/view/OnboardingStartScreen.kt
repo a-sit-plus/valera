@@ -1,6 +1,5 @@
 package view
 
-import Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,7 +23,7 @@ import androidx.compose.ui.text.style.TextAlign
 import composewalletapp.shared.generated.resources.APP_DISPLAY_NAME
 import composewalletapp.shared.generated.resources.BUTTON_LABEL_START
 import composewalletapp.shared.generated.resources.Res
-import org.jetbrains.compose.resources.DrawableResource
+import composewalletapp.shared.generated.resources.onboardingBackground
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -37,9 +36,7 @@ fun OnboardingStartScreen(
 ) {
     Box() {
         Image(
-            painter = painterResource(
-                DrawableResource(Configuration.FILENAME_ONBOARDING_START_SCREEN_BACKGROUND)
-            ),
+            painter = painterResource(Res.drawable.onboardingBackground),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize(),

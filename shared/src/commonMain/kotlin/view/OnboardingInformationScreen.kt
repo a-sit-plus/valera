@@ -89,9 +89,6 @@ fun OnboardingInformationScreen(
                 ) {
                     val textIconColor = MaterialTheme.colorScheme.secondaryContainer
 
-                    val gapSpacer: @Composable () -> Unit = {
-                        Spacer(modifier = Modifier.height(96.dp))
-                    }
                     Column(
                         modifier = Modifier.padding(start = 16.dp, end = 16.dp)
                     ) {
