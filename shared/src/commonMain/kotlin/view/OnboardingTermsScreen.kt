@@ -1,6 +1,5 @@
 package view
 
-import Resources
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,12 +23,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import composewalletapp.shared.generated.resources.DESCRIPTION_READ_TERMS
+import composewalletapp.shared.generated.resources.HEADING_LABEL_DATA_PROTECTION
+import composewalletapp.shared.generated.resources.HEADING_LABEL_NAVIGATE_BACK
+import composewalletapp.shared.generated.resources.HEADING_LABEL_TERMS_OF_USE
+import composewalletapp.shared.generated.resources.HEADING_LABEL_TERMS_OF_USE_AND_DATA_PROTECTION
+import composewalletapp.shared.generated.resources.Res
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.AcceptButton
 import ui.composables.buttons.DetailsButton
 import ui.composables.buttons.NavigateUpButton
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
 @Composable
 fun OnboardingTermsScreen(
     onClickNavigateBack: () -> Unit,
@@ -50,7 +57,7 @@ fun OnboardingTermsScreen(
                 },
                 title = {
                     Text(
-                        text = Resources.HEADING_LABEL_NAVIGATE_BACK,
+                        text = stringResource(Res.string.HEADING_LABEL_NAVIGATE_BACK),
                         style = MaterialTheme.typography.titleLarge,
                     )
                 },
@@ -82,12 +89,12 @@ fun OnboardingTermsScreen(
                 }
 
                 Text(
-                    text = Resources.HEADING_LABEL_TERMS_OF_USE_AND_DATA_PROTECTION,
+                    text = stringResource(Res.string.HEADING_LABEL_TERMS_OF_USE_AND_DATA_PROTECTION),
                     style = MaterialTheme.typography.headlineLarge,
                 )
                 gapSpacer()
                 Text(
-                    text = Resources.DESCRIPTION_READ_TERMS,
+                    text = stringResource(Res.string.DESCRIPTION_READ_TERMS),
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 gapSpacer()
@@ -96,7 +103,7 @@ fun OnboardingTermsScreen(
                         .fillMaxWidth()
                 ) {
                     Text(
-                        text = Resources.HEADING_LABEL_TERMS_OF_USE,
+                        text = stringResource(Res.string.HEADING_LABEL_TERMS_OF_USE),
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.padding(16.dp),
                     )
@@ -117,7 +124,7 @@ fun OnboardingTermsScreen(
                         .fillMaxWidth()
                 ) {
                     Text(
-                        text = Resources.HEADING_LABEL_DATA_PROTECTION,
+                        text = stringResource(Res.string.HEADING_LABEL_DATA_PROTECTION),
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.padding(16.dp),
                     )

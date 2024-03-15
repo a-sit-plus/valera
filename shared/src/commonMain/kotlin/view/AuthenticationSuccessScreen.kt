@@ -1,6 +1,5 @@
 package view
 
-import Resources
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -20,6 +19,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import composewalletapp.shared.generated.resources.HEADING_LABEL_AUTHENTICATION_SUCCESS
+import composewalletapp.shared.generated.resources.INFO_TEXT_AUTHENTICATION_SUCCESS
+import composewalletapp.shared.generated.resources.Res
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.ConcludeButton
 import ui.composables.buttons.NavigateUpButton
 
@@ -33,7 +37,7 @@ fun AuthenticationSuccessScreen(
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
 @Composable
 fun AuthenticationSuccessView(
     navigateUp: () -> Unit,
@@ -43,7 +47,7 @@ fun AuthenticationSuccessView(
             TopAppBar(
                 title = {
                     Text(
-                        Resources.HEADING_LABEL_AUTHENTICATION_SUCCESS,
+                        stringResource(Res.string.HEADING_LABEL_AUTHENTICATION_SUCCESS),
                         style = MaterialTheme.typography.headlineLarge,
                     )
                 },
@@ -72,7 +76,7 @@ fun AuthenticationSuccessView(
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                Resources.INFO_TEXT_AUTHENTICATION_SUCCESS,
+                stringResource(Res.string.INFO_TEXT_AUTHENTICATION_SUCCESS),
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
             )

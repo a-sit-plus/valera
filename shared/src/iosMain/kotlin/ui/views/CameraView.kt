@@ -1,6 +1,8 @@
+@file:OptIn(ExperimentalResourceApi::class, ExperimentalResourceApi::class)
+
 package ui.views
 
-import Resources
+import Configuration
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -14,6 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.interop.UIKitView
+import composewalletapp.shared.generated.resources.CAMERA_ACCESS_DENIED
+import composewalletapp.shared.generated.resources.Res
 import io.github.aakira.napier.Napier
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.CValue
@@ -22,6 +26,8 @@ import kotlinx.cinterop.ObjCAction
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.stringResource
 import platform.AVFoundation.AVAuthorizationStatusAuthorized
 import platform.AVFoundation.AVAuthorizationStatusDenied
 import platform.AVFoundation.AVAuthorizationStatusNotDetermined
@@ -101,7 +107,7 @@ actual fun CameraView(
             }
 
             false -> {
-                Text(Resources.CAMERA_ACCESS_DENIED, color = Color.White)
+                Text(stringResource(Res.string.CAMERA_ACCESS_DENIED), color = Color.White)
             }
 
             true -> {

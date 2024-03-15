@@ -1,6 +1,5 @@
 package view
 
-import Resources
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -13,13 +12,18 @@ import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
+import composewalletapp.shared.generated.resources.ERROR_FEATURE_NOT_YET_AVAILABLE
+import composewalletapp.shared.generated.resources.Res
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import navigation.NavigationStack
 import navigation.OnboardingInformationPage
 import navigation.OnboardingPage
 import navigation.OnboardingStartPage
 import navigation.OnboardingTermsPage
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.getString
 
 @Composable
 fun OnboardingWrapper(
@@ -39,6 +43,7 @@ fun OnboardingWrapper(
     }
 }
 
+@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun OnboardingNavigator(
     onOnboardingComplete: () -> Unit,
@@ -84,10 +89,14 @@ fun OnboardingNavigator(
                             navigationStack.back()
                         },
                         onClickReadGeneralTermsAndConditions = {
-                            snackbarService.showSnackbar(Resources.ERROR_FEATURE_NOT_YET_AVAILABLE)
+                            runBlocking {
+                                snackbarService.showSnackbar(getString(Res.string.ERROR_FEATURE_NOT_YET_AVAILABLE))
+                            }
                         },
                         onClickReadDataProtectionPolicy = {
-                            snackbarService.showSnackbar(Resources.ERROR_FEATURE_NOT_YET_AVAILABLE)
+                            runBlocking {
+                                snackbarService.showSnackbar(getString(Res.string.ERROR_FEATURE_NOT_YET_AVAILABLE))
+                            }
                         },
                         onClickAccept = {
                             onOnboardingComplete()

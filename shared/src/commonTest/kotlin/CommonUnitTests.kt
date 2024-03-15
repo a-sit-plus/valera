@@ -9,8 +9,8 @@ class CommonUnitTests {
     @Test
     fun testDataStoreService() {
         val dataStoreService = DummyDataStoreService()
-        runBlocking { dataStoreService.setPreference(value = Resources.DEBUG_DATASTORE_VALUE, key = Resources.DEBUG_DATASTORE_KEY) }
-        val result = runBlocking { dataStoreService.getPreference(key = Resources.DEBUG_DATASTORE_KEY).first() }
-        assertEquals(Resources.DEBUG_DATASTORE_VALUE, result)
+        runBlocking { dataStoreService.setPreference(value = Configuration.DEBUG_DATASTORE_VALUE, key = Configuration.DEBUG_DATASTORE_KEY) }
+        val result = runBlocking { dataStoreService.getPreference(key = Configuration.DEBUG_DATASTORE_KEY).first() }
+        assertEquals(Configuration.DEBUG_DATASTORE_VALUE, result)
     }
 }

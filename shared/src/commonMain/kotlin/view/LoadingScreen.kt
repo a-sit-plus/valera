@@ -1,6 +1,5 @@
 package view
 
-import Resources
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,8 +13,12 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import composewalletapp.shared.generated.resources.HEADING_LABEL_LOADING_SCREEN
+import composewalletapp.shared.generated.resources.Res
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
 @Composable
 fun LoadingScreen() {
     Scaffold(
@@ -23,7 +26,7 @@ fun LoadingScreen() {
             TopAppBar(
                 title = {
                     Text(
-                        text = Resources.HEADING_LABEL_LOADING_SCREEN,
+                        text = stringResource(Res.string.HEADING_LABEL_LOADING_SCREEN),
                         style = MaterialTheme.typography.headlineLarge,
                     )
                 },

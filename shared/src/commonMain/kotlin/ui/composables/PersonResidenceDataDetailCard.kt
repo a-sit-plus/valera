@@ -1,6 +1,5 @@
 package ui.composables
 
-import Resources
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,7 +15,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import composewalletapp.shared.generated.resources.Res
+import composewalletapp.shared.generated.resources.TEXT_LABEL_DOOR
+import composewalletapp.shared.generated.resources.TEXT_LABEL_STAIR
 import data.CredentialExtractor
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.stringResource
 
 data class ResidenceData(
     val streetName: String?,
@@ -37,6 +41,7 @@ val CredentialExtractor.residenceData: ResidenceData
         villageName = this.mainAddressVillageName,
     )
 
+@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun PersonResidenceDataDetailCard(
     residenceData: ResidenceData,
@@ -48,8 +53,8 @@ fun PersonResidenceDataDetailCard(
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             PersonAttributeDetailCardHeading(
-                iconText = PersonalDataCategory.ResidenceData.iconText,
-                title = PersonalDataCategory.ResidenceData.categoryTitle,
+                iconText = stringResource(PersonalDataCategory.ResidenceData.iconText),
+                title = stringResource(PersonalDataCategory.ResidenceData.categoryTitle),
             ) {
                 if (onClickOpenDetails != null) {
                     IconButton(
@@ -82,12 +87,12 @@ fun PersonResidenceDataDetailCard(
                 }
                 if (residenceData.stairName?.isNotBlank() == true) {
                     Text(
-                        text = "${Resources.TEXT_LABEL_STAIR} ${residenceData.stairName}",
+                        text = "${stringResource(Res.string.TEXT_LABEL_STAIR)} ${residenceData.stairName}",
                     )
                 }
                 if (residenceData.doorName?.isNotBlank() == true) {
                     Text(
-                        text = "${Resources.TEXT_LABEL_DOOR}: ${residenceData.doorName}",
+                        text = "${stringResource(Res.string.TEXT_LABEL_DOOR)}: ${residenceData.doorName}",
                     )
                 }
                 if (

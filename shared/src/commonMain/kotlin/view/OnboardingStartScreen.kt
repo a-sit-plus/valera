@@ -1,6 +1,6 @@
 package view
 
-import Resources
+import Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,9 +21,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
+import composewalletapp.shared.generated.resources.APP_DISPLAY_NAME
+import composewalletapp.shared.generated.resources.BUTTON_LABEL_START
+import composewalletapp.shared.generated.resources.Res
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 
 @OptIn(ExperimentalResourceApi::class, ExperimentalMaterial3Api::class)
@@ -34,7 +38,7 @@ fun OnboardingStartScreen(
     Box() {
         Image(
             painter = painterResource(
-                DrawableResource(Resources.FILENAME_ONBOARDING_START_SCREEN_BACKGROUND)
+                DrawableResource(Configuration.FILENAME_ONBOARDING_START_SCREEN_BACKGROUND)
             ),
             contentDescription = null,
             contentScale = ContentScale.Crop,
@@ -51,7 +55,7 @@ fun OnboardingStartScreen(
                 ),
                 title = {
                     Text(
-                        text = Resources.APP_DISPLAY_NAME,
+                        text = stringResource(Res.string.APP_DISPLAY_NAME),
                         style = MaterialTheme.typography.headlineLarge,
                         textAlign = TextAlign.Center,
                     )
@@ -70,7 +74,7 @@ fun OnboardingStartScreen(
                     Button(
                         onClick = onClickStart,
                     ) {
-                        Text(Resources.BUTTON_LABEL_START)
+                        Text(stringResource(Res.string.BUTTON_LABEL_START))
                     }
                 }
             }

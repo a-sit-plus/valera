@@ -1,6 +1,7 @@
+@file:OptIn(ExperimentalResourceApi::class)
+
 package view
 
-import Resources
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,8 +20,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import at.asitplus.wallet.app.common.WalletMain
+import composewalletapp.shared.generated.resources.BIOMETRIC_AUTHENTICATION_PROMPT_TO_LOAD_DATA_SUBTITLE
+import composewalletapp.shared.generated.resources.BIOMETRIC_AUTHENTICATION_PROMPT_TO_LOAD_DATA_TITLE
+import composewalletapp.shared.generated.resources.HEADING_LABEL_LOAD_DATA
+import composewalletapp.shared.generated.resources.Res
+import composewalletapp.shared.generated.resources.SNACKBAR_CREDENTIAL_LOADED_SUCCESSFULLY
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
 import ui.composables.BiometryPrompt
 import ui.composables.buttons.NavigateUpButton
 
@@ -44,7 +53,7 @@ fun ProvisioningLoadingScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = Resources.HEADING_LABEL_LOAD_DATA,
+                        text = stringResource(Res.string.HEADING_LABEL_LOAD_DATA),
                         style = MaterialTheme.typography.headlineLarge,
                     )
                 },
@@ -65,8 +74,8 @@ fun ProvisioningLoadingScreen(
         ) {
             if (showBiometry) {
                 BiometryPrompt(
-                    title = Resources.BIOMETRIC_AUTHENTICATION_PROMPT_TO_LOAD_DATA_TITLE,
-                    subtitle = Resources.BIOMETRIC_AUTHENTICATION_PROMPT_TO_LOAD_DATA_SUBTITLE,
+                    title = stringResource(Res.string.BIOMETRIC_AUTHENTICATION_PROMPT_TO_LOAD_DATA_TITLE),
+                    subtitle = stringResource(Res.string.BIOMETRIC_AUTHENTICATION_PROMPT_TO_LOAD_DATA_SUBTITLE),
                     onDismiss = {
                         showBiometry = false
                         navigateUp()
@@ -76,7 +85,9 @@ fun ProvisioningLoadingScreen(
                         currentLoadingJob = walletMain.scope.launch {
                             try {
                                 walletMain.provisioningService.handleResponse(link)
-                                walletMain.snackbarService.showSnackbar(Resources.SNACKBAR_CREDENTIAL_LOADED_SUCCESSFULLY)
+                                walletMain.snackbarService.showSnackbar(
+                                    getString(Res.string.SNACKBAR_CREDENTIAL_LOADED_SUCCESSFULLY)
+                                )
                                 navigateUp()
                             } catch (e: Throwable) {
                                 navigateUp()

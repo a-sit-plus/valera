@@ -1,4 +1,4 @@
-object Resources {
+object Configuration {
     val BUILD_FOR_STAGE = BuildEnvironment.Development.abbreviation
     val USER_AUTHENTICATION_TIMEOUT = 5 * 60
 
@@ -8,6 +8,8 @@ object Resources {
     const val DEBUG_DATASTORE_KEY = "DBGKEY"
     const val DEBUG_DATASTORE_VALUE = "DBGVALUE"
     const val DATASTORE_KEY_CONFIG = "config"
+
+    const val IOS_TEST_VALUE = "TESTVALUE"
 
     const val ADD_ID_TEXT = "To add an ID, login on https://abcd.at/xyz/ with a secondary device and scan the displayed QR code."
     const val BUTTON_SCAN_QR = "Scan QR-Code"
@@ -32,7 +34,6 @@ object Resources {
     const val RESET_APP = "Reset App"
     const val WARNING = "Warnung"
     const val RESET_APP_ALERT_TEXT = "Soll die App wirklich zurückgesetzt werden?"
-    const val IOS_TEST_VALUE = "TESTVALUE"
     const val BUTTON_SHOW_LOG = "Show Log"
     const val BUTTON_EXIT_APP = "Exit App"
     const val LOGIN = "Login"
@@ -97,7 +98,6 @@ object Resources {
 
     const val TEXT_LABEL_ISSUING_SERVICE = "Ausstellservice"
     const val TEXT_LABEL_ID_FORMAT = "ID-Format"
-
     const val TEXT_LABEL_STAIR = "Stiege"
     const val TEXT_LABEL_DOOR = "Tür"
     const val TEXT_LABEL_STAGE = "Stage"

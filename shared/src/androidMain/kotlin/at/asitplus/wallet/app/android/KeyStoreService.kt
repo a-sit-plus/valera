@@ -1,6 +1,6 @@
 package at.asitplus.wallet.app.android
 
-import Resources
+import Configuration
 import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
@@ -46,7 +46,7 @@ class AndroidKeyStoreService : KeyStoreService, HolderKeyService {
                 .setUserAuthenticationRequired(true)
                 .apply {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                        setUserAuthenticationParameters(Resources.USER_AUTHENTICATION_TIMEOUT, AUTH_BIOMETRIC_STRONG or AUTH_DEVICE_CREDENTIAL)
+                        setUserAuthenticationParameters(Configuration.USER_AUTHENTICATION_TIMEOUT, AUTH_BIOMETRIC_STRONG or AUTH_DEVICE_CREDENTIAL)
                     }
                 }
             return KeyPairGenerator.getInstance("EC", "AndroidKeyStore").apply {

@@ -1,6 +1,5 @@
 package ui.views
 
-import Resources
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,6 +29,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import composewalletapp.shared.generated.resources.ATTRIBUTE_FRIENDLY_NAME_DATA_RECIPIENT_LOCATION
+import composewalletapp.shared.generated.resources.ATTRIBUTE_FRIENDLY_NAME_DATA_RECIPIENT_NAME
+import composewalletapp.shared.generated.resources.BIOMETRIC_AUTHENTICATION_PROMPT_FOR_DATA_TRANSMISSION_CONSENT_SUBTITLE
+import composewalletapp.shared.generated.resources.BIOMETRIC_AUTHENTICATION_PROMPT_FOR_DATA_TRANSMISSION_CONSENT_TITLE
+import composewalletapp.shared.generated.resources.HEADING_LABEL_AUTHENTICATE_AT_DEVICE
+import composewalletapp.shared.generated.resources.HEADING_LABEL_NAVIGATE_BACK
+import composewalletapp.shared.generated.resources.PROMPT_ASK_LOAD_MISSING_DATA
+import composewalletapp.shared.generated.resources.PROMPT_SEND_ABOVE_DATA
+import composewalletapp.shared.generated.resources.PROMPT_SEND_ALL_DATA
+import composewalletapp.shared.generated.resources.Res
+import composewalletapp.shared.generated.resources.SECTION_HEADING_DATA_RECIPIENT
+import composewalletapp.shared.generated.resources.SECTION_HEADING_REQUESTED_DATA
+import composewalletapp.shared.generated.resources.WARNING_REQUESTED_DATA_NOT_AVAILABLE_CONTENT
+import composewalletapp.shared.generated.resources.WARNING_REQUESTED_DATA_NOT_AVAILABLE_HEADING
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.stringResource
 import ui.composables.AttributeAvailability
 import ui.composables.BiometryPrompt
 import ui.composables.BiometryPromptDismissResult
@@ -42,7 +57,7 @@ import ui.composables.buttons.ConsentButton
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.buttons.ReloadDataButton
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
 @Composable
 fun AuthenticationConsentView(
     spName: String,
@@ -62,7 +77,7 @@ fun AuthenticationConsentView(
             TopAppBar(
                 title = {
                     Text(
-                        Resources.HEADING_LABEL_NAVIGATE_BACK,
+                        stringResource(Res.string.HEADING_LABEL_NAVIGATE_BACK),
                         style = MaterialTheme.typography.titleLarge,
                     )
                 },
@@ -90,11 +105,11 @@ fun AuthenticationConsentView(
                 ) {
                     val bottomBarQuestion =
                         if (hasMissingAttributes) {
-                            Resources.PROMPT_ASK_LOAD_MISSING_DATA
+                            stringResource(Res.string.PROMPT_ASK_LOAD_MISSING_DATA)
                         } else if(requestedAttributes.isNotEmpty()) {
-                            Resources.PROMPT_SEND_ABOVE_DATA
+                            stringResource(Res.string.PROMPT_SEND_ABOVE_DATA)
                         } else {
-                            Resources.PROMPT_SEND_ALL_DATA
+                            stringResource(Res.string.PROMPT_SEND_ALL_DATA)
                         }
 
                     val bottomBarContinueButton: @Composable () -> Unit = {
@@ -124,8 +139,8 @@ fun AuthenticationConsentView(
     ) {
         if (showBiometry) {
             BiometryPrompt(
-                title = Resources.BIOMETRIC_AUTHENTICATION_PROMPT_FOR_DATA_TRANSMISSION_CONSENT_TITLE,
-                subtitle = "${Resources.BIOMETRIC_AUTHENTICATION_PROMPT_FOR_DATA_TRANSMISSION_CONSENT_SUBTITLE}: $spName",
+                title = stringResource(Res.string.BIOMETRIC_AUTHENTICATION_PROMPT_FOR_DATA_TRANSMISSION_CONSENT_TITLE),
+                subtitle = "${stringResource(Res.string.BIOMETRIC_AUTHENTICATION_PROMPT_FOR_DATA_TRANSMISSION_CONSENT_SUBTITLE)}: $spName",
                 onSuccess = onBiometrySuccess,
                 onDismiss = onBiometryDismissed,
             )
@@ -136,7 +151,7 @@ fun AuthenticationConsentView(
             ) {
                 val paddingModifier = Modifier.padding(bottom = 32.dp)
                 Text(
-                    Resources.HEADING_LABEL_AUTHENTICATE_AT_DEVICE,
+                    stringResource(Res.string.HEADING_LABEL_AUTHENTICATE_AT_DEVICE),
                     style = MaterialTheme.typography.headlineLarge,
                     modifier = paddingModifier,
                 )
@@ -155,7 +170,7 @@ fun AuthenticationConsentView(
                             modifier = paddingModifier,
                         ) {
                             Text(
-                                text = Resources.WARNING_REQUESTED_DATA_NOT_AVAILABLE_HEADING,
+                                text = stringResource(Res.string.WARNING_REQUESTED_DATA_NOT_AVAILABLE_HEADING),
                                 style = MaterialTheme.typography.titleMedium,
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                             )
@@ -168,7 +183,7 @@ fun AuthenticationConsentView(
                                 )
                             ) {
                                 Text(
-                                    text = Resources.WARNING_REQUESTED_DATA_NOT_AVAILABLE_CONTENT,
+                                    text = stringResource(Res.string.WARNING_REQUESTED_DATA_NOT_AVAILABLE_CONTENT),
                                     style = MaterialTheme.typography.bodyLarge,
                                 )
                             }
@@ -185,16 +200,16 @@ fun AuthenticationConsentView(
                         }
                     }
                     DataDisplaySection(
-                        title = Resources.SECTION_HEADING_DATA_RECIPIENT,
+                        title = stringResource(Res.string.SECTION_HEADING_DATA_RECIPIENT),
                         data = mapOf(
-                            Resources.ATTRIBUTE_FRIENDLY_NAME_DATA_RECIPIENT_NAME to spName,
-                            Resources.ATTRIBUTE_FRIENDLY_NAME_DATA_RECIPIENT_LOCATION to spLocation,
+                            stringResource(Res.string.ATTRIBUTE_FRIENDLY_NAME_DATA_RECIPIENT_NAME) to spName,
+                            stringResource(Res.string.ATTRIBUTE_FRIENDLY_NAME_DATA_RECIPIENT_LOCATION) to spLocation,
                         ).toList(),
                         modifier = paddingModifier,
                     )
                     if(requestedAttributes.isNotEmpty()) {
                         DataCategoryDisplaySection(
-                            title = Resources.SECTION_HEADING_REQUESTED_DATA,
+                            title = stringResource(Res.string.SECTION_HEADING_REQUESTED_DATA),
                             attributes = requestedAttributes,
                             modifier = paddingModifier,
                         )

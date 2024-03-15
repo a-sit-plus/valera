@@ -1,6 +1,5 @@
 package view
 
-import Resources
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -13,7 +12,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import at.asitplus.wallet.app.common.WalletMain
+import composewalletapp.shared.generated.resources.HEADING_LABEL_AUTHENTICATE_AT_DEVICE_SUBTITLE
+import composewalletapp.shared.generated.resources.HEADING_LABEL_AUTHENTICATE_AT_DEVICE_TITLE
+import composewalletapp.shared.generated.resources.Res
 import navigation.AuthenticationConsentPage
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton
 import ui.views.CameraView
 
@@ -43,7 +47,7 @@ fun AuthenticationQrCodeScannerScreen(
     }
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
 @Composable
 fun AuthenticationQrCodeScannerView(
     onFoundPayload: (String) -> Unit,
@@ -55,11 +59,11 @@ fun AuthenticationQrCodeScannerView(
                 title = {
                     Column {
                         Text(
-                            Resources.HEADING_LABEL_AUTHENTICATE_AT_DEVICE_TITLE,
+                            stringResource(Res.string.HEADING_LABEL_AUTHENTICATE_AT_DEVICE_TITLE),
                             style = MaterialTheme.typography.headlineLarge,
                         )
                         Text(
-                            Resources.HEADING_LABEL_AUTHENTICATE_AT_DEVICE_SUBTITLE,
+                            stringResource(Res.string.HEADING_LABEL_AUTHENTICATE_AT_DEVICE_SUBTITLE),
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.tertiary,

@@ -1,6 +1,6 @@
 package data.storage
 
-import Resources
+import Configuration
 import at.asitplus.KmmResult
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
@@ -156,7 +156,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         val exportableContainer = ExportableStoreContainer(exportableCredentials, exportableAttachments)
 
         val json = jsonSerializer.encodeToString(exportableContainer)
-        dataStore.setPreference(key = Resources.DATASTORE_KEY_VCS, value = json)
+        dataStore.setPreference(key = Configuration.DATASTORE_KEY_VCS, value = json)
     }
 
     suspend fun reset(){
@@ -259,7 +259,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
     }
 
     fun observeStoreContainer(): Flow<StoreContainer> {
-        return dataStore.getPreference(Resources.DATASTORE_KEY_VCS).map {
+        return dataStore.getPreference(Configuration.DATASTORE_KEY_VCS).map {
             dataStoreValueToStoreContainer(it)
         }
     }

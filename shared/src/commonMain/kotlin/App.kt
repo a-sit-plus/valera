@@ -25,7 +25,7 @@ var appLink = mutableStateOf<String?>(null)
 /**
  * Global variable to test at least something from the iOS UITest
  */
-var iosTestValue = Resources.IOS_TEST_VALUE
+var iosTestValue = Configuration.IOS_TEST_VALUE
 
 @Composable
 fun App(walletMain: WalletMain) {

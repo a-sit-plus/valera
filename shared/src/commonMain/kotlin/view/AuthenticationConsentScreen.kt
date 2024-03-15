@@ -1,6 +1,5 @@
 package view
 
-import Resources
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -10,13 +9,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.idaustria.IdAustriaScheme
+import composewalletapp.shared.generated.resources.ERROR_AUTHENTICATION_AT_SP_FAILED
+import composewalletapp.shared.generated.resources.Res
 import data.CredentialExtractor
 import data.idAustriaAttributeTranslation
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
 import ui.composables.AttributeAvailability
 import ui.composables.PersonalDataCategory
 import ui.views.AuthenticationConsentView
 
+@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun AuthenticationConsentScreen(
     spName: String,
@@ -70,7 +75,7 @@ fun AuthenticationConsentScreen(
                 it.first,
                 it.second.map {
                     AttributeAvailability(
-                        attributeName = it.attributeName.idAustriaAttributeTranslation,
+                        attributeName = stringResource(it.attributeName.idAustriaAttributeTranslation),
                         isAvailable = it.isAvailable,
                     )
                 }
@@ -100,7 +105,7 @@ fun AuthenticationConsentScreen(
                         navigateToAuthenticationSuccessPage()
                     } catch (e: Throwable) {
                         walletMain.errorService.emit(e)
-                        walletMain.snackbarService.showSnackbar(Resources.ERROR_AUTHENTICATION_AT_SP_FAILED)
+                        walletMain.snackbarService.showSnackbar(getString(Res.string.ERROR_AUTHENTICATION_AT_SP_FAILED))
                     }
                 }
             },

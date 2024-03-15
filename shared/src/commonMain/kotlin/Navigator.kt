@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalResourceApi::class, ExperimentalResourceApi::class)
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -17,6 +19,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.jws.DefaultVerifierJwsService
+import composewalletapp.shared.generated.resources.NAVIGATION_BUTTON_LABEL_MY_DATA
+import composewalletapp.shared.generated.resources.NAVIGATION_BUTTON_LABEL_SETTINGS
+import composewalletapp.shared.generated.resources.NAVIGATION_BUTTON_LABEL_SHOW_DATA
+import composewalletapp.shared.generated.resources.Res
+import composewalletapp.shared.generated.resources.SNACKBAR_RESET_APP_SUCCESSFULLY
+import composewalletapp.shared.generated.resources.UNKNOWN_EXCEPTION
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import domain.ExtractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase
 import domain.RetrieveFinalAuthenticationRequestUriFromAuthenticationRequestUriUseCase
@@ -38,6 +46,10 @@ import navigation.Page
 import navigation.ProvisioningLoadingPage
 import navigation.RefreshCredentialsPage
 import navigation.SettingsPage
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
 import view.AuthenticationConsentScreen
 import view.AuthenticationQrCodeScannerScreen
 import view.AuthenticationQrCodeScannerViewModel
@@ -52,13 +64,13 @@ import view.ProvisioningLoadingScreen
 import view.SettingsScreen
 
 private enum class NavigationData(
-    val title: String,
+    val title: StringResource,
     val icon: @Composable () -> Unit,
     val destination: Page,
     val isActive: (Page) -> Boolean
 ) {
     HOME_SCREEN(
-        title = Resources.NAVIGATION_BUTTON_LABEL_MY_DATA,
+        title = Res.string.NAVIGATION_BUTTON_LABEL_MY_DATA,
         icon = {
             Icon(
                 imageVector = Icons.Default.Person,
@@ -74,7 +86,7 @@ private enum class NavigationData(
         },
     ),
     AUTHENTICATION_SCANNING_SCREEN(
-        title = Resources.NAVIGATION_BUTTON_LABEL_SHOW_DATA,
+        title = Res.string.NAVIGATION_BUTTON_LABEL_SHOW_DATA,
         icon = {
             Icon(
                 imageVector = Icons.Default.QrCodeScanner,
@@ -90,7 +102,7 @@ private enum class NavigationData(
         },
     ),
     INFORMATION_SCREEN(
-        title = Resources.NAVIGATION_BUTTON_LABEL_SETTINGS,
+        title = Res.string.NAVIGATION_BUTTON_LABEL_SETTINGS,
         icon = {
             Icon(
                 imageVector = Icons.Default.Settings,
@@ -130,11 +142,15 @@ fun Navigator(walletMain: WalletMain) {
             val pars = parseQueryString(link, startIndex = parameterIndex + 1)
 
             if (pars.contains("error")) {
-                walletMain.errorService.emit(
-                    Exception(
-                        pars["error_description"] ?: Resources.UNKNOWN_EXCEPTION
+                runBlocking {
+                    walletMain.errorService.emit(
+                        Exception(
+                            pars["error_description"] ?: getString(
+                                Res.string.UNKNOWN_EXCEPTION
+                            )
+                        )
                     )
-                )
+                }
                 appLink.value = null
                 return@LaunchedEffect
             }
@@ -142,17 +158,19 @@ fun Navigator(walletMain: WalletMain) {
             val host = walletMain.walletConfig.host.first()
             if (link.contains("$host/mobile")) {
                 Napier.d("authentication request")
-                val extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase = ExtractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase(
-                    verifierJwsService = DefaultVerifierJwsService(),
-                )
-
-                val buildAuthenticationConsentPage = BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
-                    extractAuthenticationRequestParametersFromAuthenticationRequestUri = extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase,
-                    retrieveFinalAuthenticationRequestUriFromAuthenticationRequestUriUseCase = RetrieveFinalAuthenticationRequestUriFromAuthenticationRequestUriUseCase(
-                        client = walletMain.httpService.buildHttpClient(),
-                        extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase = extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase
+                val extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase =
+                    ExtractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase(
+                        verifierJwsService = DefaultVerifierJwsService(),
                     )
-                )
+
+                val buildAuthenticationConsentPage =
+                    BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
+                        extractAuthenticationRequestParametersFromAuthenticationRequestUri = extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase,
+                        retrieveFinalAuthenticationRequestUriFromAuthenticationRequestUriUseCase = RetrieveFinalAuthenticationRequestUriFromAuthenticationRequestUriUseCase(
+                            client = walletMain.httpService.buildHttpClient(),
+                            extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase = extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase
+                        )
+                    )
 
                 withContext(Dispatchers.IO) {
                     val authenticationConsentPage = buildAuthenticationConsentPage(link)
@@ -191,6 +209,7 @@ fun Navigator(walletMain: WalletMain) {
     }
 }
 
+@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun MainNavigator(
     navigationStack: NavigationStack<Page>,
@@ -218,7 +237,7 @@ fun MainNavigator(
                         NavigationBarItem(
                             icon = route.icon,
                             label = {
-                                Text(route.title)
+                                Text(stringResource(route.title))
                             },
                             onClick = {
                                 if (route.isActive(page) == false) {
@@ -260,16 +279,18 @@ fun MainNavigator(
                     }
 
 
-
                     is SettingsPage -> {
                         SettingsScreen(
                             navigateToLogPage = {
                                 navigationStack.push(LogPage())
                             },
                             onClickResetApp = {
-                                runBlocking { walletMain.resetApp() }
+                                val resetMessage = runBlocking {
+                                    walletMain.resetApp()
+                                    getString(Res.string.SNACKBAR_RESET_APP_SUCCESSFULLY)
+                                }
+                                walletMain.snackbarService.showSnackbar(resetMessage)
                                 navigationStack.reset()
-                                walletMain.snackbarService.showSnackbar(Resources.SNACKBAR_RESET_APP_SUCCESSFULLY)
                             },
                             walletMain = walletMain,
                         )
@@ -281,7 +302,6 @@ fun MainNavigator(
                             walletMain = walletMain,
                         )
                     }
-
 
 
                     is AuthenticationQrCodeScannerPage -> {

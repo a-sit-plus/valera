@@ -1,6 +1,5 @@
 package view
 
-import Resources
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,11 +21,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import composewalletapp.shared.generated.resources.HEADING_LABEL_INFORMATION
+import composewalletapp.shared.generated.resources.INFO_TEXT_ENTHUSIASTIC_WELCOME_END
+import composewalletapp.shared.generated.resources.ONBOARDING_SECTION_LOAD_DATA_ICON_TEXT
+import composewalletapp.shared.generated.resources.ONBOARDING_SECTION_LOAD_DATA_SUBTITLE
+import composewalletapp.shared.generated.resources.ONBOARDING_SECTION_LOAD_DATA_TITLE
+import composewalletapp.shared.generated.resources.ONBOARDING_SECTION_SHOW_DATA_ICON_TEXT
+import composewalletapp.shared.generated.resources.ONBOARDING_SECTION_SHOW_DATA_SUBTITLE
+import composewalletapp.shared.generated.resources.ONBOARDING_SECTION_SHOW_DATA_TITLE
+import composewalletapp.shared.generated.resources.ONBOARDING_SECTION_TERMS_AND_DATA_PROTECTION_ICON_TEXT
+import composewalletapp.shared.generated.resources.ONBOARDING_SECTION_TERMS_AND_DATA_PROTECTION_TITLE
+import composewalletapp.shared.generated.resources.Res
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.stringResource
 import ui.composables.TextIcon
 import ui.composables.buttons.ContinueButton
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
 @Composable
 fun OnboardingInformationScreen(
     onClickContinue: () -> Unit,
@@ -36,7 +48,7 @@ fun OnboardingInformationScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = Resources.HEADING_LABEL_INFORMATION,
+                        text = stringResource(Res.string.HEADING_LABEL_INFORMATION),
                         style = MaterialTheme.typography.headlineLarge,
                     )
                 },
@@ -65,7 +77,7 @@ fun OnboardingInformationScreen(
                         modifier = Modifier.padding(16.dp).fillMaxWidth(),
                     ) {
                         Text(
-                            text = Resources.INFO_TEXT_ENTHUSIASTIC_WELCOME_END,
+                            text = stringResource(Res.string.INFO_TEXT_ENTHUSIASTIC_WELCOME_END),
                             style = MaterialTheme.typography.labelLarge,
                         )
                     }
@@ -93,12 +105,12 @@ fun OnboardingInformationScreen(
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             TextIcon(
-                                text = Resources.ONBOARDING_SECTION_TERMS_AND_DATA_PROTECTION_ICON_TEXT,
+                                text = stringResource(Res.string.ONBOARDING_SECTION_TERMS_AND_DATA_PROTECTION_ICON_TEXT),
                                 color = textIconColor,
                             )
                             Spacer(modifier = Modifier.width(10.dp))
                             Text(
-                                text = Resources.ONBOARDING_SECTION_TERMS_AND_DATA_PROTECTION_TITLE,
+                                text = stringResource(Res.string.ONBOARDING_SECTION_TERMS_AND_DATA_PROTECTION_TITLE),
                                 style = MaterialTheme.typography.titleMedium,
                             )
                         }
@@ -109,17 +121,17 @@ fun OnboardingInformationScreen(
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             TextIcon(
-                                text = Resources.ONBOARDING_SECTION_LOAD_DATA_ICON_TEXT,
+                                text = stringResource(Res.string.ONBOARDING_SECTION_LOAD_DATA_ICON_TEXT),
                                 color = textIconColor,
                             )
                             Spacer(modifier = Modifier.width(10.dp))
                             Column {
                                 Text(
-                                    text = Resources.ONBOARDING_SECTION_LOAD_DATA_TITLE,
+                                    text = stringResource(Res.string.ONBOARDING_SECTION_LOAD_DATA_TITLE),
                                     style = MaterialTheme.typography.titleMedium,
                                 )
                                 Text(
-                                    text = Resources.ONBOARDING_SECTION_LOAD_DATA_SUBTITLE,
+                                    text = stringResource(Res.string.ONBOARDING_SECTION_LOAD_DATA_SUBTITLE),
                                     style = MaterialTheme.typography.bodySmall,
                                 )
                             }
@@ -131,17 +143,17 @@ fun OnboardingInformationScreen(
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             TextIcon(
-                                text = Resources.ONBOARDING_SECTION_SHOW_DATA_ICON_TEXT,
+                                text = stringResource(Res.string.ONBOARDING_SECTION_SHOW_DATA_ICON_TEXT),
                                 color = textIconColor,
                             )
                             Spacer(modifier = Modifier.width(10.dp))
                             Column {
                                 Text(
-                                    text = Resources.ONBOARDING_SECTION_SHOW_DATA_TITLE,
+                                    text = stringResource(Res.string.ONBOARDING_SECTION_SHOW_DATA_TITLE),
                                     style = MaterialTheme.typography.titleMedium,
                                 )
                                 Text(
-                                    text = Resources.ONBOARDING_SECTION_SHOW_DATA_SUBTITLE,
+                                    text = stringResource(Res.string.ONBOARDING_SECTION_SHOW_DATA_SUBTITLE),
                                     style = MaterialTheme.typography.bodySmall,
                                 )
                             }

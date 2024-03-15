@@ -1,6 +1,5 @@
 package view
 
-import Resources
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,7 +22,11 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.app.common.WalletMain
+import composewalletapp.shared.generated.resources.HEADING_LABEL_LOG_SCREEN
+import composewalletapp.shared.generated.resources.Res
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.buttons.ShareButton
 
@@ -51,7 +54,7 @@ fun LogScreen(
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
 @Composable
 fun LogView(
     logArray: List<String>,
@@ -63,7 +66,7 @@ fun LogView(
             TopAppBar(
                 title = {
                     Text(
-                        Resources.HEADING_LABEL_LOG_SCREEN,
+                        stringResource(Res.string.HEADING_LABEL_LOG_SCREEN),
                         style = MaterialTheme.typography.headlineLarge,
                     )
                 },

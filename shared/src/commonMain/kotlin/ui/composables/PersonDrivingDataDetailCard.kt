@@ -13,11 +13,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.stringResource
 
 data class DrivingData(
     val drivingPermissions: List<String>
 )
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalResourceApi::class)
 @Composable
 fun PersonDrivingDataDetailCard(
     drivingData: DrivingData,
@@ -28,8 +30,8 @@ fun PersonDrivingDataDetailCard(
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             PersonAttributeDetailCardHeading(
-                iconText = PersonalDataCategory.DrivingPermissions.iconText,
-                title = PersonalDataCategory.DrivingPermissions.categoryTitle,
+                iconText = stringResource(PersonalDataCategory.DrivingPermissions.iconText),
+                title = stringResource(PersonalDataCategory.DrivingPermissions.categoryTitle),
             )
 
             FlowRow(
