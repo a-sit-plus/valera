@@ -1,7 +1,5 @@
 package at.asitplus.wallet.app.common
 
-import BuildContext
-import ErrorService
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult

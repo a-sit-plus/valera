@@ -1,8 +1,5 @@
-@file:OptIn(ExperimentalResourceApi::class, ExperimentalResourceApi::class)
-
 package ui.views
 
-import Configuration
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -72,6 +69,7 @@ import platform.darwin.dispatch_queue_t
 
 // Modified from https://github.com/JetBrains/compose-multiplatform/blob/master/examples/imageviewer/shared/src/iosMain/kotlin/example/imageviewer/view/CameraView.ios.kt
 
+@OptIn(ExperimentalResourceApi::class)
 @Composable
 actual fun CameraView(
     onFoundPayload: (text: String) -> Unit,

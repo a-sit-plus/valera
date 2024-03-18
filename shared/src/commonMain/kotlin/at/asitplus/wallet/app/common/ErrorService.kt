@@ -1,3 +1,5 @@
+package at.asitplus.wallet.app.common
+
 import androidx.compose.runtime.MutableState
 import io.github.aakira.napier.Napier
 

@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalResourceApi::class)
-
 package ui.composables
 
 import androidx.biometric.BiometricManager
