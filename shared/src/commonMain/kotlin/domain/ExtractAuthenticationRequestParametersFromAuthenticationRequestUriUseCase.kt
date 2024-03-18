@@ -6,10 +6,16 @@ import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
 import at.asitplus.wallet.lib.oidc.OpenIdConstants
 import at.asitplus.wallet.lib.oidvci.OAuth2Exception
 import at.asitplus.wallet.lib.oidvci.decodeFromUrlQuery
+import composewalletapp.shared.generated.resources.ERROR_QR_CODE_SCANNING_INCONSISTENT_CLIENT_ID
+import composewalletapp.shared.generated.resources.Res
 import io.github.aakira.napier.Napier
 import io.ktor.http.Url
 import io.ktor.util.flattenEntries
+import kotlinx.coroutines.runBlocking
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.getString
 
+@OptIn(ExperimentalResourceApi::class)
 class ExtractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase(
     private val verifierJwsService: VerifierJwsService,
 ) {
@@ -26,7 +32,7 @@ class ExtractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase(
         val authenticationRequestParameters =
             requestParams.let { extractRequestObject(it) ?: it }
         if (authenticationRequestParameters.clientId != requestLocationClientId) {
-            throw Exception("Client id does not match: UrlParameter: $requestLocationClientId, AuthenticationRequestParameters: ${authenticationRequestParameters.clientId}")
+            throw Exception("${runBlocking { getString(Res.string.ERROR_QR_CODE_SCANNING_INCONSISTENT_CLIENT_ID) }}: UrlParameter: $requestLocationClientId, AuthenticationRequestParameters: ${authenticationRequestParameters.clientId}")
         }
         return authenticationRequestParameters
     }

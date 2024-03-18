@@ -118,7 +118,6 @@ private enum class NavigationData(
     ),
 }
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun Navigator(walletMain: WalletMain) {
     // Modified from https://github.com/JetBrains/compose-multiplatform/tree/master/examples/imageviewer
@@ -145,7 +144,9 @@ fun Navigator(walletMain: WalletMain) {
                 runBlocking {
                     walletMain.errorService.emit(
                         Exception(
-                            pars["error_description"] ?: "Unknown Exception"
+                            pars["error_description"] ?: getString(
+                                Res.string.UNKNOWN_EXCEPTION
+                            )
                         )
                     )
                 }
