@@ -1,6 +1,5 @@
 package at.asitplus.wallet.app.common
 
-import ErrorService
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.jsonSerializer
 import data.storage.DataStoreService

@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalResourceApi::class)
-
 package ui.screens
 
 import UncorrectableErrorException

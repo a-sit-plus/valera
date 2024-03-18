@@ -1,6 +1,5 @@
 package at.asitplus.wallet.app.common
 
-import ErrorService
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.Holder
 import at.asitplus.wallet.lib.agent.HolderAgent

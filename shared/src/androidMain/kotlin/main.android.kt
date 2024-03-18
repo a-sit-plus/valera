@@ -13,6 +13,7 @@ import androidx.core.net.toUri
 import at.asitplus.KmmResult
 import at.asitplus.wallet.app.android.AndroidCryptoService
 import at.asitplus.wallet.app.android.AndroidKeyStoreService
+import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.HolderKeyService
 import at.asitplus.wallet.app.common.ObjectFactory
 import at.asitplus.wallet.app.common.PlatformAdapter

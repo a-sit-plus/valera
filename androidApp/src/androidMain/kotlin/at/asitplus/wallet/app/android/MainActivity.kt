@@ -1,12 +1,12 @@
 package at.asitplus.wallet.app.android
 
-import BuildContext
 import MainView
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import appLink
+import at.asitplus.wallet.app.common.BuildContext
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
