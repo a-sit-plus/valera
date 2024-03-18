@@ -12,7 +12,7 @@ import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
-import composewalletapp.shared.generated.resources.ERROR_FEATURE_NOT_YET_AVAILABLE
+import composewalletapp.shared.generated.resources.error_feature_not_yet_available
 import composewalletapp.shared.generated.resources.Res
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -90,12 +90,12 @@ fun OnboardingNavigator(
                         },
                         onClickReadGeneralTermsAndConditions = {
                             runBlocking {
-                                snackbarService.showSnackbar(getString(Res.string.ERROR_FEATURE_NOT_YET_AVAILABLE))
+                                snackbarService.showSnackbar(getString(Res.string.error_feature_not_yet_available))
                             }
                         },
                         onClickReadDataProtectionPolicy = {
                             runBlocking {
-                                snackbarService.showSnackbar(getString(Res.string.ERROR_FEATURE_NOT_YET_AVAILABLE))
+                                snackbarService.showSnackbar(getString(Res.string.error_feature_not_yet_available))
                             }
                         },
                         onClickAccept = {

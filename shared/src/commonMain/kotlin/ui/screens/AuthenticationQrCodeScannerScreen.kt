@@ -12,8 +12,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import at.asitplus.wallet.app.common.WalletMain
-import composewalletapp.shared.generated.resources.HEADING_LABEL_AUTHENTICATE_AT_DEVICE_SUBTITLE
-import composewalletapp.shared.generated.resources.HEADING_LABEL_AUTHENTICATE_AT_DEVICE_TITLE
+import composewalletapp.shared.generated.resources.heading_label_authenticate_at_device_subtitle
+import composewalletapp.shared.generated.resources.heading_label_authenticate_at_device_title
 import composewalletapp.shared.generated.resources.Res
 import ui.navigation.AuthenticationConsentPage
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -59,11 +59,11 @@ fun AuthenticationQrCodeScannerView(
                 title = {
                     Column {
                         Text(
-                            stringResource(Res.string.HEADING_LABEL_AUTHENTICATE_AT_DEVICE_TITLE),
+                            stringResource(Res.string.heading_label_authenticate_at_device_title),
                             style = MaterialTheme.typography.headlineLarge,
                         )
                         Text(
-                            stringResource(Res.string.HEADING_LABEL_AUTHENTICATE_AT_DEVICE_SUBTITLE),
+                            stringResource(Res.string.heading_label_authenticate_at_device_subtitle),
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.tertiary,

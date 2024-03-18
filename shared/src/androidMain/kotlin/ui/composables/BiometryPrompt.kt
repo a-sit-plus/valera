@@ -11,15 +11,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
-import composewalletapp.shared.generated.resources.BUTTON_LABEL_CANCEL
-import composewalletapp.shared.generated.resources.BUTTON_LABEL_CONFIRM
-import composewalletapp.shared.generated.resources.ERROR_BIOMETRIC_ERROR_HW_UNAVAILABLE
-import composewalletapp.shared.generated.resources.ERROR_BIOMETRIC_ERROR_NONE_ENROLLED
-import composewalletapp.shared.generated.resources.ERROR_BIOMETRIC_ERROR_NO_HARDWARE
-import composewalletapp.shared.generated.resources.ERROR_BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED
-import composewalletapp.shared.generated.resources.ERROR_BIOMETRIC_ERROR_UNKNOWN
-import composewalletapp.shared.generated.resources.ERROR_BIOMETRIC_ERROR_UNSUPPORTED
-import composewalletapp.shared.generated.resources.ERROR_BIOMETRIC_STATUS_UNKNOWN
+import composewalletapp.shared.generated.resources.button_label_cancel
+import composewalletapp.shared.generated.resources.button_label_confirm
+import composewalletapp.shared.generated.resources.error_biometric_error_hardware_unavailable
+import composewalletapp.shared.generated.resources.error_biometric_error_none_enrolled
+import composewalletapp.shared.generated.resources.error_biometric_error_no_hardware
+import composewalletapp.shared.generated.resources.error_biometric_error_security_update_required
+import composewalletapp.shared.generated.resources.error_biometric_error_unknown
+import composewalletapp.shared.generated.resources.error_biometric_error_unsupported
+import composewalletapp.shared.generated.resources.error_biometric_status_unknown
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.warning
 import io.github.aakira.napier.Napier
@@ -67,7 +67,7 @@ actual fun BiometryPrompt(
                 .setAllowedAuthenticators(BIOMETRIC_STRONG)
                 .setTitle(title)
                 .setSubtitle(subtitle)
-                .setNegativeButtonText(stringResource(Res.string.BUTTON_LABEL_CANCEL))
+                .setNegativeButtonText(stringResource(Res.string.button_label_cancel))
                 .build()
 
             biometricPrompt.authenticate(promptInfo)
@@ -77,35 +77,35 @@ actual fun BiometryPrompt(
             val text = when (isBiometricAvailable) {
                 BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> {
                     // No biometric features available on this device
-                    stringResource(Res.string.ERROR_BIOMETRIC_ERROR_NO_HARDWARE)
+                    stringResource(Res.string.error_biometric_error_no_hardware)
                 }
 
                 BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> {
                     // Biometric features are currently unavailable.
-                    stringResource(Res.string.ERROR_BIOMETRIC_ERROR_HW_UNAVAILABLE)
+                    stringResource(Res.string.error_biometric_error_hardware_unavailable)
                 }
 
                 BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED -> {
                     // Biometric features available but a security vulnerability has been discovered
-                    stringResource(Res.string.ERROR_BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED)
+                    stringResource(Res.string.error_biometric_error_security_update_required)
                 }
 
                 BiometricManager.BIOMETRIC_ERROR_UNSUPPORTED -> {
                     // Biometric features are currently unavailable because the specified options are incompatible with the current Android version..
-                    stringResource(Res.string.ERROR_BIOMETRIC_ERROR_UNSUPPORTED)
+                    stringResource(Res.string.error_biometric_error_unsupported)
                 }
 
                 BiometricManager.BIOMETRIC_STATUS_UNKNOWN -> {
                     // Unable to determine whether the user can authenticate using biometrics
-                    stringResource(Res.string.ERROR_BIOMETRIC_STATUS_UNKNOWN)
+                    stringResource(Res.string.error_biometric_status_unknown)
                 }
 
                 BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
                     // The user can't authenticate because no biometric or device credential is enrolled.
-                    stringResource(Res.string.ERROR_BIOMETRIC_ERROR_NONE_ENROLLED)
+                    stringResource(Res.string.error_biometric_error_none_enrolled)
                 }
 
-                else -> stringResource(Res.string.ERROR_BIOMETRIC_ERROR_UNKNOWN)
+                else -> stringResource(Res.string.error_biometric_error_unknown)
             }
             AlertDialog(
                 title = {
@@ -125,7 +125,7 @@ actual fun BiometryPrompt(
                             ))
                         },
                     ) {
-                        Text(stringResource(Res.string.BUTTON_LABEL_CONFIRM))
+                        Text(stringResource(Res.string.button_label_confirm))
                     }
                 },
             )

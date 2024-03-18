@@ -9,7 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.idaustria.IdAustriaScheme
-import composewalletapp.shared.generated.resources.ERROR_AUTHENTICATION_AT_SP_FAILED
+import composewalletapp.shared.generated.resources.error_authentication_at_sp_failed
 import composewalletapp.shared.generated.resources.Res
 import data.CredentialExtractor
 import data.idAustriaAttributeTranslation
@@ -105,7 +105,7 @@ fun AuthenticationConsentScreen(
                         navigateToAuthenticationSuccessPage()
                     } catch (e: Throwable) {
                         walletMain.errorService.emit(e)
-                        walletMain.snackbarService.showSnackbar(getString(Res.string.ERROR_AUTHENTICATION_AT_SP_FAILED))
+                        walletMain.snackbarService.showSnackbar(getString(Res.string.error_authentication_at_sp_failed))
                     }
                 }
             },

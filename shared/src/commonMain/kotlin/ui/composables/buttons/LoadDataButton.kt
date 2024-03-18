@@ -8,7 +8,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import composewalletapp.shared.generated.resources.BUTTOM_LABEL_LOAD_DATA
+import composewalletapp.shared.generated.resources.button_label_load_data
 import composewalletapp.shared.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
@@ -27,7 +27,7 @@ fun LoadDataButton(
             )
         },
         text = {
-            Text(stringResource(Res.string.BUTTOM_LABEL_LOAD_DATA))
+            Text(stringResource(Res.string.button_label_load_data))
         },
         onClick = onClick,
         modifier = modifier,

@@ -1,16 +1,16 @@
 package ui.composables
 
 import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.SECTION_HEADING_ADMISSION_DATA
-import composewalletapp.shared.generated.resources.SECTION_HEADING_ADMISSION_DATA_ICON_TEXT
-import composewalletapp.shared.generated.resources.SECTION_HEADING_AGE_DATA
-import composewalletapp.shared.generated.resources.SECTION_HEADING_AGE_DATA_ICON_TEXT
-import composewalletapp.shared.generated.resources.SECTION_HEADING_DRIVING_PERMISSION_DATA
-import composewalletapp.shared.generated.resources.SECTION_HEADING_DRIVING_PERMISSION_DATA_ICON_TEXT
-import composewalletapp.shared.generated.resources.SECTION_HEADING_IDENTITY_DATA
-import composewalletapp.shared.generated.resources.SECTION_HEADING_IDENTITY_DATA_ICON_TEXT
-import composewalletapp.shared.generated.resources.SECTION_HEADING_RESIDENCE_DATA
-import composewalletapp.shared.generated.resources.SECTION_HEADING_RESIDENCE_DATA_ICON_TEXT
+import composewalletapp.shared.generated.resources.section_heading_admission_data
+import composewalletapp.shared.generated.resources.section_heading_admission_data_icon_text
+import composewalletapp.shared.generated.resources.section_heading_age_data
+import composewalletapp.shared.generated.resources.section_heading_age_data_icon_text
+import composewalletapp.shared.generated.resources.section_heading_driving_permission_data
+import composewalletapp.shared.generated.resources.section_heading_driving_permission_data_icon_text
+import composewalletapp.shared.generated.resources.section_heading_identity_data
+import composewalletapp.shared.generated.resources.section_heading_identity_data_icon_text
+import composewalletapp.shared.generated.resources.section_heading_residence_data
+import composewalletapp.shared.generated.resources.section_heading_residence_data_icon_text
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.StringResource
 
@@ -19,9 +19,9 @@ enum class PersonalDataCategory(
     val iconText: StringResource,
     val categoryTitle: StringResource,
 ) {
-    IdentityData(iconText = Res.string.SECTION_HEADING_IDENTITY_DATA_ICON_TEXT, categoryTitle = Res.string.SECTION_HEADING_IDENTITY_DATA),
-    AgeData(iconText = Res.string.SECTION_HEADING_AGE_DATA_ICON_TEXT, categoryTitle = Res.string.SECTION_HEADING_AGE_DATA),
-    ResidenceData(iconText = Res.string.SECTION_HEADING_RESIDENCE_DATA_ICON_TEXT, categoryTitle = Res.string.SECTION_HEADING_RESIDENCE_DATA),
-    DrivingPermissions(iconText = Res.string.SECTION_HEADING_DRIVING_PERMISSION_DATA_ICON_TEXT, categoryTitle = Res.string.SECTION_HEADING_DRIVING_PERMISSION_DATA),
-    AdmissionData(iconText = Res.string.SECTION_HEADING_ADMISSION_DATA_ICON_TEXT, categoryTitle = Res.string.SECTION_HEADING_ADMISSION_DATA),
+    IdentityData(iconText = Res.string.section_heading_identity_data_icon_text, categoryTitle = Res.string.section_heading_identity_data),
+    AgeData(iconText = Res.string.section_heading_age_data_icon_text, categoryTitle = Res.string.section_heading_age_data),
+    ResidenceData(iconText = Res.string.section_heading_residence_data_icon_text, categoryTitle = Res.string.section_heading_residence_data),
+    DrivingPermissions(iconText = Res.string.section_heading_driving_permission_data_icon_text, categoryTitle = Res.string.section_heading_driving_permission_data),
+    AdmissionData(iconText = Res.string.section_heading_admission_data_icon_text, categoryTitle = Res.string.section_heading_admission_data),
 }

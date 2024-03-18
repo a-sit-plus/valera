@@ -17,11 +17,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.jws.DefaultVerifierJwsService
-import composewalletapp.shared.generated.resources.NAVIGATION_BUTTON_LABEL_MY_DATA
-import composewalletapp.shared.generated.resources.NAVIGATION_BUTTON_LABEL_SETTINGS
-import composewalletapp.shared.generated.resources.NAVIGATION_BUTTON_LABEL_SHOW_DATA
+import composewalletapp.shared.generated.resources.navigation_button_label_my_data
+import composewalletapp.shared.generated.resources.navigation_button_label_settings
+import composewalletapp.shared.generated.resources.navigation_button_label_show_data
 import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.SNACKBAR_RESET_APP_SUCCESSFULLY
+import composewalletapp.shared.generated.resources.snackbar_reset_app_successfully
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import domain.ExtractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase
 import domain.RetrieveFinalAuthenticationRequestUriFromAuthenticationRequestUriUseCase
@@ -68,7 +68,7 @@ private enum class NavigationData(
     val isActive: (Page) -> Boolean
 ) {
     HOME_SCREEN(
-        title = Res.string.NAVIGATION_BUTTON_LABEL_MY_DATA,
+        title = Res.string.navigation_button_label_my_data,
         icon = {
             Icon(
                 imageVector = Icons.Default.Person,
@@ -84,7 +84,7 @@ private enum class NavigationData(
         },
     ),
     AUTHENTICATION_SCANNING_SCREEN(
-        title = Res.string.NAVIGATION_BUTTON_LABEL_SHOW_DATA,
+        title = Res.string.navigation_button_label_show_data,
         icon = {
             Icon(
                 imageVector = Icons.Default.QrCodeScanner,
@@ -100,7 +100,7 @@ private enum class NavigationData(
         },
     ),
     INFORMATION_SCREEN(
-        title = Res.string.NAVIGATION_BUTTON_LABEL_SETTINGS,
+        title = Res.string.navigation_button_label_settings,
         icon = {
             Icon(
                 imageVector = Icons.Default.Settings,
@@ -284,7 +284,7 @@ fun MainNavigator(
                             onClickResetApp = {
                                 val resetMessage = runBlocking {
                                     walletMain.resetApp()
-                                    getString(Res.string.SNACKBAR_RESET_APP_SUCCESSFULLY)
+                                    getString(Res.string.snackbar_reset_app_successfully)
                                 }
                                 walletMain.snackbarService.showSnackbar(resetMessage)
                                 navigationStack.reset()

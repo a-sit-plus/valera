@@ -33,10 +33,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.app.common.WalletMain
-import composewalletapp.shared.generated.resources.BUTTON_LABEL_CLOSE_APP
-import composewalletapp.shared.generated.resources.HEADING_LABEL_ERROR_SCREEN
-import composewalletapp.shared.generated.resources.INFO_TEXT_IRREVOCABLE_ERROR
-import composewalletapp.shared.generated.resources.INFO_TEXT_RESTART_APP
+import composewalletapp.shared.generated.resources.button_label_close_app
+import composewalletapp.shared.generated.resources.heading_label_error_screen
+import composewalletapp.shared.generated.resources.info_text_irrevocable_error
+import composewalletapp.shared.generated.resources.info_text_restart_app
 import composewalletapp.shared.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
@@ -61,7 +61,7 @@ fun ErrorScreen(
             TopAppBar(
                 title = {
                     Text(
-                        stringResource(Res.string.HEADING_LABEL_ERROR_SCREEN),
+                        stringResource(Res.string.heading_label_error_screen),
                         style = MaterialTheme.typography.headlineLarge,
                     )
                 },
@@ -89,11 +89,11 @@ fun ErrorScreen(
                         modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                     ) {
                         Text(
-                            text = stringResource(Res.string.INFO_TEXT_IRREVOCABLE_ERROR),
+                            text = stringResource(Res.string.info_text_irrevocable_error),
                             style = MaterialTheme.typography.bodyMedium,
                         )
                         Text(
-                            text = stringResource(Res.string.INFO_TEXT_RESTART_APP),
+                            text = stringResource(Res.string.info_text_restart_app),
                             style = MaterialTheme.typography.bodyMedium,
                         )
                         Row(
@@ -109,7 +109,7 @@ fun ErrorScreen(
                                     )
                                 },
                                 text = {
-                                    Text(stringResource(Res.string.BUTTON_LABEL_CLOSE_APP))
+                                    Text(stringResource(Res.string.button_label_close_app))
                                 },
                                 onClick = {
                                     walletMain.platformAdapter.exitApp()

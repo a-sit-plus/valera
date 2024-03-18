@@ -13,7 +13,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import composewalletapp.shared.generated.resources.HEADING_LABEL_LOADING_SCREEN
+import composewalletapp.shared.generated.resources.heading_label_loading_screen
 import composewalletapp.shared.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
@@ -26,7 +26,7 @@ fun LoadingScreen() {
             TopAppBar(
                 title = {
                     Text(
-                        text = stringResource(Res.string.HEADING_LABEL_LOADING_SCREEN),
+                        text = stringResource(Res.string.heading_label_loading_screen),
                         style = MaterialTheme.typography.headlineLarge,
                     )
                 },

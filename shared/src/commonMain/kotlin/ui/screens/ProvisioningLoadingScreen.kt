@@ -18,11 +18,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import at.asitplus.wallet.app.common.WalletMain
-import composewalletapp.shared.generated.resources.BIOMETRIC_AUTHENTICATION_PROMPT_TO_LOAD_DATA_SUBTITLE
-import composewalletapp.shared.generated.resources.BIOMETRIC_AUTHENTICATION_PROMPT_TO_LOAD_DATA_TITLE
-import composewalletapp.shared.generated.resources.HEADING_LABEL_LOAD_DATA
+import composewalletapp.shared.generated.resources.biometric_authentication_prompt_to_load_data_subtitle
+import composewalletapp.shared.generated.resources.biometric_authentication_prompt_to_load_data_title
+import composewalletapp.shared.generated.resources.heading_label_load_data_screen
 import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.SNACKBAR_CREDENTIAL_LOADED_SUCCESSFULLY
+import composewalletapp.shared.generated.resources.snackbar_credential_loaded_successfully
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -51,7 +51,7 @@ fun ProvisioningLoadingScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = stringResource(Res.string.HEADING_LABEL_LOAD_DATA),
+                        text = stringResource(Res.string.heading_label_load_data_screen),
                         style = MaterialTheme.typography.headlineLarge,
                     )
                 },
@@ -72,8 +72,8 @@ fun ProvisioningLoadingScreen(
         ) {
             if (showBiometry) {
                 BiometryPrompt(
-                    title = stringResource(Res.string.BIOMETRIC_AUTHENTICATION_PROMPT_TO_LOAD_DATA_TITLE),
-                    subtitle = stringResource(Res.string.BIOMETRIC_AUTHENTICATION_PROMPT_TO_LOAD_DATA_SUBTITLE),
+                    title = stringResource(Res.string.biometric_authentication_prompt_to_load_data_title),
+                    subtitle = stringResource(Res.string.biometric_authentication_prompt_to_load_data_subtitle),
                     onDismiss = {
                         showBiometry = false
                         navigateUp()
@@ -84,7 +84,7 @@ fun ProvisioningLoadingScreen(
                             try {
                                 walletMain.provisioningService.handleResponse(link)
                                 walletMain.snackbarService.showSnackbar(
-                                    getString(Res.string.SNACKBAR_CREDENTIAL_LOADED_SUCCESSFULLY)
+                                    getString(Res.string.snackbar_credential_loaded_successfully)
                                 )
                                 navigateUp()
                             } catch (e: Throwable) {

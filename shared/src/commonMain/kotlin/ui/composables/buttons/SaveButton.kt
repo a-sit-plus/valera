@@ -8,7 +8,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import composewalletapp.shared.generated.resources.BUTTON_LABEL_SAVE
+import composewalletapp.shared.generated.resources.button_label_save
 import composewalletapp.shared.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
@@ -28,7 +28,7 @@ fun SaveButton(
             )
         },
         text = {
-            Text(stringResource(Res.string.BUTTON_LABEL_SAVE))
+            Text(stringResource(Res.string.button_label_save))
         },
         onClick = onClick,
         enabled = enabled,
