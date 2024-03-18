@@ -1,6 +1,5 @@
 package data
 
-import Resources
 import at.asitplus.wallet.eupid.EuPidCredential
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.idaustria.IdAustriaCredential
@@ -53,11 +52,11 @@ val String.attributeTranslation: StringResource
         IdAustriaScheme.Attributes.AGE_OVER_21 -> Res.string.attribute_friendly_name_age_at_least_21
         IdAustriaScheme.Attributes.MAIN_ADDRESS -> Res.string.attribute_friendly_name_main_address
 
-        EuPidScheme.Attributes.GIVEN_NAME -> Resources.attribute_friendly_name_firstname
-        EuPidScheme.Attributes.FAMILY_NAME -> Resources.attribute_friendly_name_lastname
-        EuPidScheme.Attributes.BIRTH_DATE -> Resources.attribute_friendly_name_date_of_birth
-        EuPidScheme.Attributes.AGE_OVER_18 -> Resources.attribute_friendly_name_age_at_least_18
-        EuPidScheme.Attributes.RESIDENT_ADDRESS -> Resources.attribute_friendly_name_main_address
+        EuPidScheme.Attributes.GIVEN_NAME -> Res.string.attribute_friendly_name_firstname
+        EuPidScheme.Attributes.FAMILY_NAME -> Res.string.attribute_friendly_name_lastname
+        EuPidScheme.Attributes.BIRTH_DATE -> Res.string.attribute_friendly_name_date_of_birth
+        EuPidScheme.Attributes.AGE_OVER_18 -> Res.string.attribute_friendly_name_age_at_least_18
+        EuPidScheme.Attributes.RESIDENT_ADDRESS -> Res.string.attribute_friendly_name_main_address
 
         else -> throw Exception("Unsupported IdAustria attribute name: $this")
     }

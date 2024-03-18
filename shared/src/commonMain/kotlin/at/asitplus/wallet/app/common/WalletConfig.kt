@@ -1,7 +1,5 @@
 package at.asitplus.wallet.app.common
 
-import ErrorService
-import Resources
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.ConstantIndex

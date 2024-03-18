@@ -44,6 +44,7 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.ConstantIndex
+import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.button_label_confirm
 import composewalletapp.shared.generated.resources.button_label_data_protection_policy
 import composewalletapp.shared.generated.resources.button_label_dismiss
@@ -57,12 +58,12 @@ import composewalletapp.shared.generated.resources.id_format_iso_mdoc_label
 import composewalletapp.shared.generated.resources.id_format_plain_jwt_label
 import composewalletapp.shared.generated.resources.id_format_sd_jwt_label
 import composewalletapp.shared.generated.resources.reset_app_alert_text
-import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.section_heading_actions
 import composewalletapp.shared.generated.resources.section_heading_configuration
 import composewalletapp.shared.generated.resources.section_heading_information
 import composewalletapp.shared.generated.resources.text_label_build
 import composewalletapp.shared.generated.resources.text_label_id_format
+import composewalletapp.shared.generated.resources.text_label_id_scheme
 import composewalletapp.shared.generated.resources.text_label_issuing_service
 import composewalletapp.shared.generated.resources.text_label_stage
 import composewalletapp.shared.generated.resources.warning
@@ -315,7 +316,7 @@ fun SettingsView(
                             value = credentialSchemeVcType,
                             onValueChange = {},
                             label = {
-                                Text(Resources.TEXT_LABEL_ID_SCHEME)
+                                Text(stringResource(Res.string.text_label_id_scheme))
                             },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = showCredentialSchemeMenu) },
                             modifier = Modifier.menuAnchor().fillMaxWidth(),

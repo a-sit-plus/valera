@@ -1,6 +1,5 @@
 package domain
 
-import Resources
 import at.asitplus.crypto.datatypes.jws.JwsSigned
 import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.jws.VerifierJwsService

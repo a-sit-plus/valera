@@ -56,6 +56,7 @@
 
     <string name="text_label_issuing_service">UNTRANSLATED:text_label_issuing_service</string>
     <string name="text_label_id_format">UNTRANSLATED:text_label_id_format</string>
+    <string name="text_label_id_scheme">UNTRANSLATED:text_label_id_scheme</string>
     <string name="text_label_stair">UNTRANSLATED:text_label_stair</string>
     <string name="text_label_door">UNTRANSLATED:text_label_door</string>
     <string name="text_label_stage">UNTRANSLATED:text_label_stage</string>
