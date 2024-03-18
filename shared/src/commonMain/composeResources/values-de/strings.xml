@@ -3,9 +3,8 @@
 
     <string name="warning">Warnung</string>
     <string name="reset_app_alert_text">Soll die App wirklich zurückgesetzt werden</string>
-    <string name="IOS_TEST_VALUE">TESTVALUE</string>
 
-    <string name="UNKNOWN_EXCEPTION">Unbekannter Fehler</string>
+    <string name="unknown_exception">Unbekannter Fehler</string>
 
     <string name="APP_DISPLAY_NAME">Wallet Demo App</string>
     <string name="SNACKBAR_CREDENTIAL_LOADED_SUCCESSFULLY">Daten wurden erfolgreich geladen</string>

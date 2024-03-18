@@ -21,7 +21,7 @@ import composewalletapp.shared.generated.resources.ERROR_BIOMETRIC_ERROR_UNKNOWN
 import composewalletapp.shared.generated.resources.ERROR_BIOMETRIC_ERROR_UNSUPPORTED
 import composewalletapp.shared.generated.resources.ERROR_BIOMETRIC_STATUS_UNKNOWN
 import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.WARNING
+import composewalletapp.shared.generated.resources.warning
 import io.github.aakira.napier.Napier
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
@@ -109,7 +109,7 @@ actual fun BiometryPrompt(
             }
             AlertDialog(
                 title = {
-                    Text(stringResource(Res.string.WARNING))
+                    Text(stringResource(Res.string.warning))
                 },
                 text = {
                     Text(text)

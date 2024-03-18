@@ -3,9 +3,8 @@
 
     <string name="warning">UNTRANSLATED:warning</string>
     <string name="reset_app_alert_text">UNTRANSLATED:reset_app_alert_text</string>
-    <string name="IOS_TEST_VALUE">UNTRANSLATED:IOS_TEST_VALUE</string>
 
-    <string name="UNKNOWN_EXCEPTION">UNTRANSLATED:UNKNOWN_EXCEPTION</string>
+    <string name="unknown_exception">UNTRANSLATED:unknown_exception</string>
     <string name="APP_DISPLAY_NAME">UNTRANSLATED:APP_DISPLAY_NAME</string>
     <string name="SNACKBAR_CREDENTIAL_LOADED_SUCCESSFULLY">UNTRANSLATED:SNACKBAR_CREDENTIAL_LOADED_SUCCESSFULLY</string>
     <string name="SNACKBAR_RESET_APP_SUCCESSFULLY">UNTRANSLATED:SNACKBAR_RESET_APP_SUCCESSFULLY</string>
