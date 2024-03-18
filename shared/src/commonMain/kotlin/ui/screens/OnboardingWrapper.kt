@@ -1,4 +1,4 @@
-package view
+package ui.screens
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.material3.Scaffold
@@ -17,11 +17,11 @@ import composewalletapp.shared.generated.resources.Res
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import navigation.NavigationStack
-import navigation.OnboardingInformationPage
-import navigation.OnboardingPage
-import navigation.OnboardingStartPage
-import navigation.OnboardingTermsPage
+import ui.navigation.NavigationStack
+import ui.navigation.OnboardingInformationPage
+import ui.navigation.OnboardingPage
+import ui.navigation.OnboardingStartPage
+import ui.navigation.OnboardingTermsPage
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.getString
 

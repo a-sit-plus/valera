@@ -1,8 +1,7 @@
 @file:OptIn(ExperimentalResourceApi::class)
 
-package view
+package ui.screens
 
-import Configuration
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.data.ConstantIndex
 import composewalletapp.shared.generated.resources.BUTTON_LABEL_CONFIRM
@@ -141,7 +141,7 @@ fun SettingsScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
 @Composable
 fun SettingsView(
     host: String,
@@ -384,6 +384,7 @@ private fun TextIconButtonListItem(
 }
 
 
+@OptIn(ExperimentalResourceApi::class)
 @Composable
 private fun ResetAlert(
     onDismiss: () -> Unit,
