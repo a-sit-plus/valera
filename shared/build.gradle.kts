@@ -26,7 +26,7 @@ kotlin {
             baseName = "shared"
             isStatic = true
             export("at.asitplus.wallet:vclib:3.5.0-SNAPSHOT")
-            export("at.asitplus.wallet:idacredential:3.3.0")
+            export("at.asitplus.wallet:idacredential:3.4.0")
             export(datetime())
             export("com.ionspin.kotlin:bignum:0.3.9")
             export(kmmresult())
@@ -52,7 +52,7 @@ kotlin {
                 implementation(compose.components.resources)
                 api("at.asitplus.wallet:vclib-openid:3.5.0-SNAPSHOT")
                 api("at.asitplus.wallet:vclib:3.5.0-SNAPSHOT")
-                api("at.asitplus.wallet:idacredential:3.3.0")
+                api("at.asitplus.wallet:idacredential:3.4.0")
                 implementation(serialization("json"))
                 api(napier())
                 implementation("androidx.datastore:datastore-preferences-core:1.1.0-alpha07")

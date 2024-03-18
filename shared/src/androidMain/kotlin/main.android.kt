@@ -11,6 +11,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import at.asitplus.KmmResult
+import at.asitplus.crypto.datatypes.pki.X509Certificate
 import at.asitplus.wallet.app.android.AndroidCryptoService
 import at.asitplus.wallet.app.android.AndroidKeyStoreService
 import at.asitplus.wallet.app.common.HolderKeyService
@@ -58,8 +59,9 @@ class AndroidObjectFactory : ObjectFactory {
     override fun loadCryptoService(): KmmResult<CryptoService> {
         val keyPair = keyStoreService.loadKeyPair()
             ?: return KmmResult.failure(Throwable("Could not create key pair"))
-        val certificate = keyStoreService.loadCertificate()
-            ?: return KmmResult.failure(Throwable("Could not load certificate"))
+        val certificate =
+            keyStoreService.loadCertificate()?.let { X509Certificate.decodeFromDer(it.encoded) }
+                ?: return KmmResult.failure(Throwable("Could not load certificate"))
         val cryptoService = AndroidCryptoService(keyPair, certificate)
         return KmmResult.success(cryptoService)
     }

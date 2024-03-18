@@ -1,25 +1,26 @@
 package at.asitplus.wallet.app.android
 
 import at.asitplus.KmmResult
+import at.asitplus.KmmResult.Companion.wrap
 import at.asitplus.crypto.datatypes.CryptoAlgorithm
 import at.asitplus.crypto.datatypes.CryptoPublicKey
 import at.asitplus.crypto.datatypes.CryptoSignature
 import at.asitplus.crypto.datatypes.Digest
 import at.asitplus.crypto.datatypes.EcCurve
 import at.asitplus.crypto.datatypes.asn1.ensureSize
-import at.asitplus.crypto.datatypes.cose.CoseAlgorithm
 import at.asitplus.crypto.datatypes.cose.CoseKey
+import at.asitplus.crypto.datatypes.cose.toCoseAlgorithm
 import at.asitplus.crypto.datatypes.cose.toCoseKey
-import at.asitplus.crypto.datatypes.fromJcaPublicKey
 import at.asitplus.crypto.datatypes.getJcaPublicKey
 import at.asitplus.crypto.datatypes.jcaName
+import at.asitplus.crypto.datatypes.jcaParams
 import at.asitplus.crypto.datatypes.jws.JsonWebKey
 import at.asitplus.crypto.datatypes.jws.JweAlgorithm
 import at.asitplus.crypto.datatypes.jws.JweEncryption
-import at.asitplus.crypto.datatypes.jws.JwsAlgorithm
 import at.asitplus.crypto.datatypes.jws.jcaKeySpecName
 import at.asitplus.crypto.datatypes.jws.jcaName
 import at.asitplus.crypto.datatypes.jws.toJsonWebKey
+import at.asitplus.crypto.datatypes.parseFromJca
 import at.asitplus.crypto.datatypes.pki.X509Certificate
 import at.asitplus.wallet.lib.agent.AuthenticatedCiphertext
 import at.asitplus.wallet.lib.agent.CryptoService
@@ -28,7 +29,6 @@ import at.asitplus.wallet.lib.agent.JvmEphemeralKeyHolder
 import java.security.KeyPair
 import java.security.MessageDigest
 import java.security.Signature
-import java.security.cert.Certificate
 import java.security.interfaces.ECPublicKey
 import javax.crypto.Cipher
 import javax.crypto.KeyAgreement
@@ -40,30 +40,33 @@ import javax.crypto.spec.SecretKeySpec
  *
  * TODO Implement biometric collbacks
  */
-class AndroidCryptoService(private val keyPair: KeyPair, certificate: Certificate) :
-    CryptoService {
+class AndroidCryptoService(
+    private val keyPair: KeyPair,
+    override val certificate: X509Certificate
+) : CryptoService {
 
     private val ecCurve: EcCurve = EcCurve.SECP_256_R_1
     private val cryptoPublicKey: CryptoPublicKey
-    override val certificate: X509Certificate
+    override val algorithm: CryptoAlgorithm
+        get() = CryptoAlgorithm.ES256
+
     override val coseKey: CoseKey
-        get() = publicKey.toCoseKey().getOrThrow()
+        get() = publicKey.toCoseKey(algorithm.toCoseAlgorithm()).getOrThrow()
+
     override val jsonWebKey: JsonWebKey
         get() = publicKey.toJsonWebKey()
-    override val algorithm: CryptoAlgorithm = CryptoAlgorithm.ES256
-    override val publicKey: CryptoPublicKey get() = cryptoPublicKey
 
-    override suspend fun sign(input: ByteArray): KmmResult<CryptoSignature> =
-        try {
-            val signed = Signature.getInstance(algorithm.jcaName).apply {
-                initSign(keyPair.private)
-                update(input)
-            }.sign()
+    override val publicKey: CryptoPublicKey
+        get() = cryptoPublicKey
 
-            KmmResult.success(CryptoSignature.EC(signed))
-        } catch (e: Throwable) {
-            KmmResult.failure(e)
-        }
+    override suspend fun sign(input: ByteArray): KmmResult<CryptoSignature> = runCatching {
+        val sig = Signature.getInstance(algorithm.jcaName).apply {
+            this@AndroidCryptoService.algorithm.jcaParams?.let { setParameter(it) }
+            initSign(keyPair.private)
+            update(input)
+        }.sign()
+        CryptoSignature.parseFromJca(sig, algorithm)
+    }.wrap()
 
     override fun encrypt(
         key: ByteArray,
@@ -108,25 +111,20 @@ class AndroidCryptoService(private val keyPair: KeyPair, certificate: Certificat
         KmmResult.failure(e)
     }
 
+
     override fun performKeyAgreement(
-        ephemeralKey: EphemeralKeyHolder,
-        recipientKey: JsonWebKey,
-        algorithm: JweAlgorithm
-    ): KmmResult<ByteArray> {
+        ephemeralKey: EphemeralKeyHolder, recipientKey: JsonWebKey, algorithm: JweAlgorithm
+    ): KmmResult<ByteArray> = runCatching {
         require(ephemeralKey is JvmEphemeralKeyHolder) { "JVM Type expected" }
-        return try {
-            val secret = KeyAgreement.getInstance(algorithm.jcaName).also {
-                it.init(ephemeralKey.keyPair.private)
-                it.doPhase(
-                    recipientKey.toCryptoPublicKey().getOrThrow().getJcaPublicKey().getOrThrow(),
-                    true
-                )
-            }.generateSecret()
-            KmmResult.success(secret)
-        } catch (e: Throwable) {
-            KmmResult.failure(e)
-        }
-    }
+
+        KeyAgreement.getInstance(algorithm.jcaName).also {
+            it.init(ephemeralKey.keyPair.private)
+            it.doPhase(
+                recipientKey.toCryptoPublicKey().transform { it1 -> it1.getJcaPublicKey() }
+                    .getOrThrow(), true
+            )
+        }.generateSecret()
+    }.wrap()
 
     override fun performKeyAgreement(
         ephemeralKey: JsonWebKey,
@@ -147,11 +145,6 @@ class AndroidCryptoService(private val keyPair: KeyPair, certificate: Certificat
         val ecPublicKey = keyPair.public as ECPublicKey
         val keyX = ecPublicKey.w.affineX.toByteArray().ensureSize(ecCurve.coordinateLengthBytes)
         val keyY = ecPublicKey.w.affineY.toByteArray().ensureSize(ecCurve.coordinateLengthBytes)
-        val pubKey = CryptoPublicKey.fromJcaPublicKey(ecPublicKey).getOrThrow()
-        val keyId = pubKey.didEncoded
-        this.cryptoPublicKey =
-            pubKey
-        this.certificate = X509Certificate.decodeFromDer(certificate.encoded)
+        this.cryptoPublicKey = CryptoPublicKey.Ec(curve = EcCurve.SECP_256_R_1, x = keyX, y = keyY)
     }
-
 }
