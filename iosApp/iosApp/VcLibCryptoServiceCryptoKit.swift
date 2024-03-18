@@ -3,11 +3,24 @@ import CryptoKit
 import shared
 
 public class VcLibCryptoServiceCryptoKit: CryptoService {
+    public var certificate: X509Certificate?
+    
+    public var algorithm: CryptoAlgorithm = .es256
+    
+    public var coseKey: CoseKey
+    
+    public var jsonWebKey: JsonWebKey
+    
+    public var publicKey: CryptoPublicKey
+    
+    public func sign(input: KotlinByteArray) async throws -> KmmResult<CryptoSignature> {
+      return KmmResult(failure: KotlinException(message: "TODO"))
+    }
+    
  
     public var identifier: String
-    public var jwsAlgorithm: JwsAlgorithm
-    public var coseAlgorithm: CoseAlgorithm
-    public var certificate: KotlinByteArray?
+    public var jwsAlgorithm: JwsAlgorithm = .es256
+    public var coseAlgorithm: CoseAlgorithm = .es256
     private let cryptoPublicKey: CryptoPublicKey
     private let keyChainService: KeyChainService
 
@@ -17,7 +30,10 @@ public class VcLibCryptoServiceCryptoKit: CryptoService {
             return nil
         }
         self.keyChainService = keyChainService
-        self.cryptoPublicKey = CryptoPublicKey.Ec.companion.fromAnsiX963Bytes(curve: .secp256R1, it: privateKey.publicKey.x963Representation.kotlinByteArray)!
+        self.cryptoPublicKey = try! CryptoPublicKey.Ec.companion.fromAnsiX963Bytes(src: privateKey.publicKey.x963Representation.kotlinByteArray)
+        self.coseKey =  cryptoPublicKey.toCoseKey(algorithm: nil).getOrThrow()! //TODO
+        self.jsonWebKey = cryptoPublicKey.toJsonWebKey()
+        self.publicKey = cryptoPublicKey
         self.identifier = cryptoPublicKey.toJsonWebKey().identifier
         self.jwsAlgorithm = .es256
         self.coseAlgorithm = .es256
@@ -77,12 +93,12 @@ public class VcLibCryptoServiceCryptoKit: CryptoService {
     public func performKeyAgreement(ephemeralKey: EphemeralKeyHolder, recipientKey: JsonWebKey, algorithm: JweAlgorithm) -> KmmResult<KotlinByteArray> {
         switch algorithm {
         case .ecdhEs:
-            let recipientKeyBytes = recipientKey.toAnsiX963ByteArray()
+            let recipientKeyBytes = recipientKey.toCryptoPublicKey()
             if let throwable = recipientKeyBytes.exceptionOrNull() {
                 return KmmResultFailure(throwable)
             }
             guard let recipientKeyBytesValue = recipientKeyBytes.getOrNull(),
-                  let recipientKey = try? P256.KeyAgreement.PublicKey(x963Representation: recipientKeyBytesValue.data),
+                  let recipientKey = try? P256.KeyAgreement.PublicKey(x963Representation: recipientKeyBytesValue.iosEncoded.data),
                   let ephemeralKey = ephemeralKey as? VcLibEphemeralKeyHolder,
                   let sharedSecret = try? ephemeralKey.privateKey.sharedSecretFromKeyAgreement(with: recipientKey) else {
                 return KmmResultFailure(KotlinThrowable(message: "Error in KeyAgreement"))
@@ -102,12 +118,12 @@ public class VcLibCryptoServiceCryptoKit: CryptoService {
             guard let privateKey = keyChainService.loadPrivateKey() else {
                 return KmmResultFailure(KotlinThrowable(message: "Could not load private key"))
             }
-            let ephemeralKeyBytes = ephemeralKey.toAnsiX963ByteArray()
+            let ephemeralKeyBytes = ephemeralKey.toCryptoPublicKey()
             if let throwable = ephemeralKeyBytes.exceptionOrNull() {
                 return KmmResultFailure(throwable)
             }
             guard let recipientKeyBytesValue = ephemeralKeyBytes.getOrNull(),
-                  let recipientKey = try? P256.KeyAgreement.PublicKey(x963Representation: recipientKeyBytesValue.data),
+                  let recipientKey = try? P256.KeyAgreement.PublicKey(x963Representation: recipientKeyBytesValue.iosEncoded.data),
                   let privateAgreementKey = try? SecureEnclave.P256.KeyAgreement.PrivateKey(dataRepresentation: privateKey.dataRepresentation),
                   let sharedSecret = try? privateAgreementKey.sharedSecretFromKeyAgreement(with: recipientKey) else {
                 return KmmResultFailure(KotlinThrowable(message: "Error in KeyAgreement"))
@@ -138,26 +154,26 @@ public class VcLibCryptoServiceCryptoKit: CryptoService {
 }
 
 public class VcLibVerifierCryptoService : VerifierCryptoService {
+    public var supportedAlgorithms: [CryptoAlgorithm] = [CryptoAlgorithm.es256]
+    
 
-    public func verify(input: KotlinByteArray, signature: KotlinByteArray, algorithm: JwsAlgorithm, publicKey: CryptoPublicKey) -> KmmResult<KotlinBoolean> {
+    public func verify(input: KotlinByteArray, signature: CryptoSignature, algorithm: CryptoAlgorithm, publicKey: CryptoPublicKey) -> KmmResult<KotlinBoolean> {
         if algorithm != .es256 {
             return KmmResultFailure(KotlinThrowable(message: "Can not verify algorithm \(algorithm.name)"))
         }
         guard let publicKey = publicKey as? CryptoPublicKey.Ec else {
             return KmmResultFailure(KotlinThrowable(message: "Public key is not an EC key \(publicKey)"))
         }
-        let ansiX963Result = publicKey.toAnsiX963ByteArray()
-        if let throwable = ansiX963Result.exceptionOrNull() {
-            return KmmResultFailure(throwable)
-        }
-        guard let publicKeyBytes = ansiX963Result.getOrNull(),
-            let cryptoKitPublicKey = try? P256.Signing.PublicKey(x963Representation: publicKeyBytes.data) else {
+
+       
+        guard let cryptoKitPublicKey = try? P256.Signing.PublicKey(x963Representation: publicKey.iosEncoded.data)
+        else {
             return KmmResultFailure(KotlinThrowable(message: "Can not create CryptoKit key"))
         }
-        if let cryptoKitSignature = try? P256.Signing.ECDSASignature(derRepresentation: signature.data) {
+        if let cryptoKitSignature = try? P256.Signing.ECDSASignature(derRepresentation: signature.signature.derEncoded.data) {
             let valid = cryptoKitPublicKey.isValidSignature(cryptoKitSignature, for: input.data)
             return KmmResultSuccess(KotlinBoolean(value: valid))
-        } else if let cryptoKitSignature = try? P256.Signing.ECDSASignature(rawRepresentation: signature.data) {
+        } else if let cryptoKitSignature = try? P256.Signing.ECDSASignature(rawRepresentation: signature.rawByteArray.data) {
             let valid = cryptoKitPublicKey.isValidSignature(cryptoKitSignature, for: input.data)
             return KmmResultSuccess(KotlinBoolean(value: valid))
         } else {
@@ -171,25 +187,26 @@ public class VcLibVerifierCryptoService : VerifierCryptoService {
               let publicKeyData = SecKeyCopyExternalRepresentation(publicKey, nil) as? Data else {
             return nil
         }
-        return JsonWebKey.companion.fromAnsiX963Bytes(type: .ec, curve: .secp256R1, it: publicKeyData.kotlinByteArray)
+        return JsonWebKey.companion.fromIosEncoded(bytes:  publicKeyData.kotlinByteArray).getOrThrow()
     }
 
 }
 
 public class VcLibEphemeralKeyHolder : EphemeralKeyHolder {
+    public var publicJsonWebKey: JsonWebKey?
+    
 
     let privateKey: P256.KeyAgreement.PrivateKey
     let publicKey: P256.KeyAgreement.PublicKey
-    let jsonWebKey: JsonWebKey
 
     public init() {
         self.privateKey = P256.KeyAgreement.PrivateKey()
         self.publicKey = privateKey.publicKey
-        self.jsonWebKey = JsonWebKey.companion.fromAnsiX963Bytes(type: .ec, curve: .secp256R1, it: publicKey.x963Representation.kotlinByteArray)!
+        self.publicJsonWebKey = JsonWebKey.companion.fromIosEncoded(bytes: publicKey.x963Representation.kotlinByteArray).getOrThrow()
     }
 
     public func toPublicJsonWebKey() -> JsonWebKey {
-        return jsonWebKey
+        return publicJsonWebKey!
     }
 
 }
