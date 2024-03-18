@@ -1,6 +1,5 @@
 package at.asitplus.wallet.app.android
 
-import Configuration
 import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
@@ -8,6 +7,7 @@ import android.security.keystore.KeyProperties.AUTH_BIOMETRIC_STRONG
 import android.security.keystore.KeyProperties.AUTH_DEVICE_CREDENTIAL
 import android.security.keystore.KeyProperties.PURPOSE_SIGN
 import android.security.keystore.KeyProperties.PURPOSE_VERIFY
+import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.app.common.HolderKeyService
 import io.github.aakira.napier.Napier
 import java.security.KeyPair

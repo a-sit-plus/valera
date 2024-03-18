@@ -1,9 +1,10 @@
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.DummyPlatformAdapter
 import at.asitplus.wallet.app.common.WalletMain
-import composewalletapp.shared.generated.resources.BUTTON_LABEL_START
+import composewalletapp.shared.generated.resources.button_label_start
 import composewalletapp.shared.generated.resources.Res
 import data.storage.DummyDataStoreService
 import kotlinx.coroutines.runBlocking
@@ -39,7 +40,7 @@ class InstrumentedTests {
             App(walletMain)
         }
         runBlocking {
-            composeTestRule.onNodeWithText(getString(Res.string.BUTTON_LABEL_START))
+            composeTestRule.onNodeWithText(getString(Res.string.button_label_start))
                 .assertIsDisplayed()
         }
     }

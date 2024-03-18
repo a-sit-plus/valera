@@ -6,7 +6,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import composewalletapp.shared.generated.resources.CONTENT_DESCRIPTION_NAVIGATE_BACK
+import composewalletapp.shared.generated.resources.content_description_navigate_back
 import composewalletapp.shared.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
@@ -23,7 +23,7 @@ fun NavigateUpButton(
     ) {
         Icon(
             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-            contentDescription = stringResource(Res.string.CONTENT_DESCRIPTION_NAVIGATE_BACK),
+            contentDescription = stringResource(Res.string.content_description_navigate_back),
         )
     }
 }

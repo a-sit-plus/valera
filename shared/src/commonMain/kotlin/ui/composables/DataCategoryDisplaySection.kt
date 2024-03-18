@@ -28,7 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import composewalletapp.shared.generated.resources.INFO_TEXT_DATA_ITEMS_MISSING
+import composewalletapp.shared.generated.resources.info_text_data_items_missing
 import composewalletapp.shared.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
@@ -85,7 +85,7 @@ fun DataCategoryDisplaySection(
                             ) {
                                 if (missingAttributeCount > 0) {
                                     Text(
-                                        text = stringResource(Res.string.INFO_TEXT_DATA_ITEMS_MISSING),
+                                        text = stringResource(Res.string.info_text_data_items_missing),
                                         color = MaterialTheme.colorScheme.error,
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))

@@ -1,4 +1,4 @@
-package view
+package ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -25,9 +25,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.app.common.WalletMain
-import composewalletapp.shared.generated.resources.CONTENT_DESCRIPTION_REFRESH_CREDENTIALS
-import composewalletapp.shared.generated.resources.HEADING_LABEL_MY_DATA_OVERVIEW
-import composewalletapp.shared.generated.resources.INFO_TEXT_NO_CREDENTIALS_AVAILABLE
+import composewalletapp.shared.generated.resources.content_description_refresh_credentials
+import composewalletapp.shared.generated.resources.heading_label_my_data_screen
+import composewalletapp.shared.generated.resources.info_text_no_credentials_available
 import composewalletapp.shared.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
@@ -48,7 +48,7 @@ fun MyCredentialsScreen(
             TopAppBar(
                 title = {
                     Text(
-                        stringResource(Res.string.HEADING_LABEL_MY_DATA_OVERVIEW),
+                        stringResource(Res.string.heading_label_my_data_screen),
                         style = MaterialTheme.typography.headlineLarge
                     )
                 },
@@ -62,7 +62,7 @@ fun MyCredentialsScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
-                            contentDescription = stringResource(Res.string.CONTENT_DESCRIPTION_REFRESH_CREDENTIALS),
+                            contentDescription = stringResource(Res.string.content_description_refresh_credentials),
                         )
                     }
                 }
@@ -78,7 +78,7 @@ fun MyCredentialsScreen(
                         modifier = Modifier.fillMaxSize(),
                     ) {
                         Text(
-                            text = stringResource(Res.string.INFO_TEXT_NO_CREDENTIALS_AVAILABLE),
+                            text = stringResource(Res.string.info_text_no_credentials_available),
                             textAlign = TextAlign.Center,
                         )
                         Spacer(modifier = Modifier.height(8.dp))

@@ -16,8 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.TEXT_LABEL_DOOR
-import composewalletapp.shared.generated.resources.TEXT_LABEL_STAIR
+import composewalletapp.shared.generated.resources.text_label_door
+import composewalletapp.shared.generated.resources.text_label_stair
 import data.CredentialExtractor
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
@@ -87,12 +87,12 @@ fun PersonResidenceDataDetailCard(
                 }
                 if (residenceData.stairName?.isNotBlank() == true) {
                     Text(
-                        text = "${stringResource(Res.string.TEXT_LABEL_STAIR)} ${residenceData.stairName}",
+                        text = "${stringResource(Res.string.text_label_stair)} ${residenceData.stairName}",
                     )
                 }
                 if (residenceData.doorName?.isNotBlank() == true) {
                     Text(
-                        text = "${stringResource(Res.string.TEXT_LABEL_DOOR)}: ${residenceData.doorName}",
+                        text = "${stringResource(Res.string.text_label_door)}: ${residenceData.doorName}",
                     )
                 }
                 if (

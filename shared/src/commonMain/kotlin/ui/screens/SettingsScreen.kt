@@ -1,8 +1,5 @@
-@file:OptIn(ExperimentalResourceApi::class)
+package ui.screens
 
-package view
-
-import Configuration
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,7 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.HelpOutline
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.SettingsBackupRestore
 import androidx.compose.material.icons.outlined.Share
@@ -42,30 +39,31 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.data.ConstantIndex
-import composewalletapp.shared.generated.resources.BUTTON_LABEL_CONFIRM
-import composewalletapp.shared.generated.resources.BUTTON_LABEL_DATA_PROTECTION_POLICY
-import composewalletapp.shared.generated.resources.BUTTON_LABEL_DISMISS
-import composewalletapp.shared.generated.resources.BUTTON_LABEL_FAQ
-import composewalletapp.shared.generated.resources.BUTTON_LABEL_LICENSES
-import composewalletapp.shared.generated.resources.BUTTON_LABEL_RESET_APP
-import composewalletapp.shared.generated.resources.BUTTON_LABEL_SHARE_LOG_FILE
-import composewalletapp.shared.generated.resources.ERROR_FEATURE_NOT_YET_AVAILABLE
-import composewalletapp.shared.generated.resources.HEADING_LABEL_SETTINGS_SCREEN
-import composewalletapp.shared.generated.resources.ID_FORMAT_ISO_MDOC_LABEL
-import composewalletapp.shared.generated.resources.ID_FORMAT_PLAIN_JWT_LABEL
-import composewalletapp.shared.generated.resources.ID_FORMAT_SD_JWT_LABEL
-import composewalletapp.shared.generated.resources.RESET_APP_ALERT_TEXT
+import composewalletapp.shared.generated.resources.button_label_confirm
+import composewalletapp.shared.generated.resources.button_label_data_protection_policy
+import composewalletapp.shared.generated.resources.button_label_dismiss
+import composewalletapp.shared.generated.resources.button_label_faq
+import composewalletapp.shared.generated.resources.button_label_licenses
+import composewalletapp.shared.generated.resources.button_label_reset_app
+import composewalletapp.shared.generated.resources.button_label_share_log_file
+import composewalletapp.shared.generated.resources.error_feature_not_yet_available
+import composewalletapp.shared.generated.resources.heading_label_settings_screen
+import composewalletapp.shared.generated.resources.id_format_iso_mdoc_label
+import composewalletapp.shared.generated.resources.id_format_plain_jwt_label
+import composewalletapp.shared.generated.resources.id_format_sd_jwt_label
+import composewalletapp.shared.generated.resources.reset_app_alert_text
 import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.SECTION_HEADING_ACTIONS
-import composewalletapp.shared.generated.resources.SECTION_HEADING_CONFIGURATION
-import composewalletapp.shared.generated.resources.SECTION_HEADING_INFORMATION
-import composewalletapp.shared.generated.resources.TEXT_LABEL_BUILD
-import composewalletapp.shared.generated.resources.TEXT_LABEL_ID_FORMAT
-import composewalletapp.shared.generated.resources.TEXT_LABEL_ISSUING_SERVICE
-import composewalletapp.shared.generated.resources.TEXT_LABEL_STAGE
-import composewalletapp.shared.generated.resources.WARNING
+import composewalletapp.shared.generated.resources.section_heading_actions
+import composewalletapp.shared.generated.resources.section_heading_configuration
+import composewalletapp.shared.generated.resources.section_heading_information
+import composewalletapp.shared.generated.resources.text_label_build
+import composewalletapp.shared.generated.resources.text_label_id_format
+import composewalletapp.shared.generated.resources.text_label_issuing_service
+import composewalletapp.shared.generated.resources.text_label_stage
+import composewalletapp.shared.generated.resources.warning
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -123,17 +121,17 @@ fun SettingsScreen(
         version = version,
         onClickFAQs = {
             runBlocking {
-                walletMain.snackbarService.showSnackbar(getString(Res.string.ERROR_FEATURE_NOT_YET_AVAILABLE))
+                walletMain.snackbarService.showSnackbar(getString(Res.string.error_feature_not_yet_available))
             }
         },
         onClickDataProtectionPolicy = {
             runBlocking {
-                walletMain.snackbarService.showSnackbar(getString(Res.string.ERROR_FEATURE_NOT_YET_AVAILABLE))
+                walletMain.snackbarService.showSnackbar(getString(Res.string.error_feature_not_yet_available))
             }
         },
         onClickLicenses = {
             runBlocking {
-                walletMain.snackbarService.showSnackbar(getString(Res.string.ERROR_FEATURE_NOT_YET_AVAILABLE))
+                walletMain.snackbarService.showSnackbar(getString(Res.string.error_feature_not_yet_available))
             }
         },
         onClickShareLogFile = navigateToLogPage,
@@ -141,7 +139,7 @@ fun SettingsScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
 @Composable
 fun SettingsView(
     host: String,
@@ -178,7 +176,7 @@ fun SettingsView(
             TopAppBar(
                 title = {
                     Text(
-                        stringResource(Res.string.HEADING_LABEL_SETTINGS_SCREEN),
+                        stringResource(Res.string.heading_label_settings_screen),
                         style = MaterialTheme.typography.headlineLarge
                     )
                 },
@@ -190,8 +188,8 @@ fun SettingsView(
                 modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
                     .fillMaxWidth()
             ) {
-                Text("${stringResource(Res.string.TEXT_LABEL_STAGE)}: $stage")
-                Text("${stringResource(Res.string.TEXT_LABEL_BUILD)}: $version-$buildType")
+                Text("${stringResource(Res.string.text_label_stage)}: $stage")
+                Text("${stringResource(Res.string.text_label_build)}: $version-$buildType")
             }
         },
     ) { scaffoldPadding ->
@@ -204,7 +202,7 @@ fun SettingsView(
                 Column {
                     val listSpacingModifier = Modifier.padding(top = 8.dp)
                     Text(
-                        text = stringResource(Res.string.SECTION_HEADING_CONFIGURATION),
+                        text = stringResource(Res.string.section_heading_configuration),
                         style = MaterialTheme.typography.titleMedium,
                     )
 
@@ -212,7 +210,7 @@ fun SettingsView(
                         value = host,
                         onValueChange = onChangeHost,
                         label = {
-                            Text(stringResource(Res.string.TEXT_LABEL_ISSUING_SERVICE))
+                            Text(stringResource(Res.string.text_label_issuing_service))
                         },
                         keyboardOptions = KeyboardOptions(
                             imeAction = ImeAction.Done
@@ -231,7 +229,7 @@ fun SettingsView(
                             value = credentialRepresentation.name,
                             onValueChange = {},
                             label = {
-                                Text(stringResource(Res.string.TEXT_LABEL_ID_FORMAT))
+                                Text(stringResource(Res.string.text_label_id_format))
                             },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = showMenu) },
                             modifier = Modifier.menuAnchor().fillMaxWidth(),
@@ -245,7 +243,7 @@ fun SettingsView(
                         ) {
                             DropdownMenuItem(
                                 text = {
-                                    Text(stringResource(Res.string.ID_FORMAT_PLAIN_JWT_LABEL))
+                                    Text(stringResource(Res.string.id_format_plain_jwt_label))
                                 },
                                 onClick = {
                                     onChangeCredentialRepresentation(ConstantIndex.CredentialRepresentation.PLAIN_JWT)
@@ -255,7 +253,7 @@ fun SettingsView(
                             )
                             DropdownMenuItem(
                                 text = {
-                                    Text(stringResource(Res.string.ID_FORMAT_SD_JWT_LABEL))
+                                    Text(stringResource(Res.string.id_format_sd_jwt_label))
                                 },
                                 onClick = {
                                     onChangeCredentialRepresentation(ConstantIndex.CredentialRepresentation.SD_JWT)
@@ -265,7 +263,7 @@ fun SettingsView(
                             )
                             DropdownMenuItem(
                                 text = {
-                                    Text(stringResource(Res.string.ID_FORMAT_ISO_MDOC_LABEL))
+                                    Text(stringResource(Res.string.id_format_iso_mdoc_label))
                                 },
                                 onClick = {
                                     onChangeCredentialRepresentation(ConstantIndex.CredentialRepresentation.ISO_MDOC)
@@ -286,17 +284,17 @@ fun SettingsView(
                 ) {
                     val listSpacingModifier = Modifier.padding(top = 8.dp)
                     Text(
-                        text = stringResource(Res.string.SECTION_HEADING_INFORMATION),
+                        text = stringResource(Res.string.section_heading_information),
                         style = MaterialTheme.typography.titleMedium,
                     )
                     TextIconButtonListItem(
                         icon = {
                             Icon(
-                                imageVector = Icons.Outlined.HelpOutline,
+                                imageVector = Icons.AutoMirrored.Outlined.HelpOutline,
                                 contentDescription = null,
                             )
                         },
-                        label = stringResource(Res.string.BUTTON_LABEL_FAQ),
+                        label = stringResource(Res.string.button_label_faq),
                         onClick = onClickFAQs,
                         modifier = listSpacingModifier.fillMaxWidth(),
                     )
@@ -307,7 +305,7 @@ fun SettingsView(
                                 contentDescription = null,
                             )
                         },
-                        label = stringResource(Res.string.BUTTON_LABEL_DATA_PROTECTION_POLICY),
+                        label = stringResource(Res.string.button_label_data_protection_policy),
                         onClick = onClickDataProtectionPolicy,
                         modifier = listSpacingModifier.fillMaxWidth(),
                     )
@@ -318,7 +316,7 @@ fun SettingsView(
                                 contentDescription = null,
                             )
                         },
-                        label = stringResource(Res.string.BUTTON_LABEL_LICENSES),
+                        label = stringResource(Res.string.button_label_licenses),
                         onClick = onClickLicenses,
                         modifier = listSpacingModifier.fillMaxWidth(),
                     )
@@ -328,7 +326,7 @@ fun SettingsView(
                 ) {
                     val listSpacingModifier = Modifier.padding(top = 8.dp)
                     Text(
-                        text = stringResource(Res.string.SECTION_HEADING_ACTIONS),
+                        text = stringResource(Res.string.section_heading_actions),
                         style = MaterialTheme.typography.titleMedium,
                     )
                     TextIconButtonListItem(
@@ -338,7 +336,7 @@ fun SettingsView(
                                 contentDescription = null,
                             )
                         },
-                        label = stringResource(Res.string.BUTTON_LABEL_SHARE_LOG_FILE),
+                        label = stringResource(Res.string.button_label_share_log_file),
                         onClick = onClickShareLogFile,
                         modifier = listSpacingModifier.fillMaxWidth(),
                     )
@@ -349,7 +347,7 @@ fun SettingsView(
                                 contentDescription = null,
                             )
                         },
-                        label = stringResource(Res.string.BUTTON_LABEL_RESET_APP),
+                        label = stringResource(Res.string.button_label_reset_app),
                         onClick = {
                             showAlert.value = true
                         },
@@ -384,6 +382,7 @@ private fun TextIconButtonListItem(
 }
 
 
+@OptIn(ExperimentalResourceApi::class)
 @Composable
 private fun ResetAlert(
     onDismiss: () -> Unit,
@@ -392,24 +391,24 @@ private fun ResetAlert(
 ) {
     AlertDialog(
         title = {
-            Text(stringResource(Res.string.WARNING))
+            Text(stringResource(Res.string.warning))
         },
         text = {
-            Text(stringResource(Res.string.RESET_APP_ALERT_TEXT))
+            Text(stringResource(Res.string.reset_app_alert_text))
         },
         onDismissRequest = onDismissRequest,
         confirmButton = {
             TextButton(
                 onClick = onConfirm,
             ) {
-                Text(stringResource(Res.string.BUTTON_LABEL_CONFIRM))
+                Text(stringResource(Res.string.button_label_confirm))
             }
         },
         dismissButton = {
             TextButton(
                 onClick = onDismiss,
             ) {
-                Text(stringResource(Res.string.BUTTON_LABEL_DISMISS))
+                Text(stringResource(Res.string.button_label_dismiss))
             }
         }
     )

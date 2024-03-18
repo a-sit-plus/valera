@@ -27,7 +27,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
-import composewalletapp.shared.generated.resources.CONTENT_DESCRIPTION_PORTRAIT
+import composewalletapp.shared.generated.resources.content_description_portrait
 import composewalletapp.shared.generated.resources.Res
 import data.CredentialExtractor
 import kotlinx.datetime.LocalDate
@@ -131,7 +131,7 @@ fun PersonIdentityDataDetailCard(
                     val maxWidth = LocalDensity.current.run { (0.25f * columnSize.width).toDp() }
                     Image(
                         bitmap = identityData.portrait,
-                        contentDescription = stringResource(Res.string.CONTENT_DESCRIPTION_PORTRAIT),
+                        contentDescription = stringResource(Res.string.content_description_portrait),
                         modifier = Modifier.widthIn(0.dp, maxWidth).padding(end = 16.dp),
                         contentScale = ContentScale.FillWidth,
                     )

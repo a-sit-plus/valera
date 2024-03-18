@@ -1,8 +1,5 @@
-@file:OptIn(ExperimentalResourceApi::class, ExperimentalResourceApi::class)
-
 package ui.views
 
-import Configuration
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,7 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.interop.UIKitView
-import composewalletapp.shared.generated.resources.CAMERA_ACCESS_DENIED
+import composewalletapp.shared.generated.resources.camera_access_denied
 import composewalletapp.shared.generated.resources.Res
 import io.github.aakira.napier.Napier
 import kotlinx.cinterop.BetaInteropApi
@@ -72,6 +69,7 @@ import platform.darwin.dispatch_queue_t
 
 // Modified from https://github.com/JetBrains/compose-multiplatform/blob/master/examples/imageviewer/shared/src/iosMain/kotlin/example/imageviewer/view/CameraView.ios.kt
 
+@OptIn(ExperimentalResourceApi::class)
 @Composable
 actual fun CameraView(
     onFoundPayload: (text: String) -> Unit,
@@ -107,7 +105,7 @@ actual fun CameraView(
             }
 
             false -> {
-                Text(stringResource(Res.string.CAMERA_ACCESS_DENIED), color = Color.White)
+                Text(stringResource(Res.string.camera_access_denied), color = Color.White)
             }
 
             true -> {
