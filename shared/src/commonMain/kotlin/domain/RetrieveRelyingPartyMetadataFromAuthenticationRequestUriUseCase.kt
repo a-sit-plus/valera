@@ -2,7 +2,6 @@ package domain
 
 import at.asitplus.crypto.datatypes.jws.JwsSigned
 import at.asitplus.wallet.lib.data.jsonSerializer
-import at.asitplus.wallet.lib.jws.JwsSigned
 import at.asitplus.wallet.lib.jws.VerifierJwsService
 import at.asitplus.wallet.lib.oidc.RelyingPartyMetadata
 import io.github.aakira.napier.Napier
