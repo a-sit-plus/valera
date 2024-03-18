@@ -4,10 +4,6 @@ import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.jws.JwsSigned
 import at.asitplus.wallet.lib.jws.VerifierJwsService
 import at.asitplus.wallet.lib.oidc.RelyingPartyMetadata
-import composewalletapp.shared.generated.resources.ERROR_QR_CODE_SCANNING_INVALID_METADATA_JWS_OBJECT
-import composewalletapp.shared.generated.resources.ERROR_QR_CODE_SCANNING_INVALID_METADATA_JWS_OBJECT_SIGNATURE
-import composewalletapp.shared.generated.resources.ERROR_QR_CODE_SCANNING_MISSING_CLIENT_METADATA
-import composewalletapp.shared.generated.resources.Res
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
@@ -17,7 +13,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.getString
 
 @OptIn(ExperimentalResourceApi::class)
 class RetrieveRelyingPartyMetadataFromAuthenticationRequestUriUseCase(
@@ -34,11 +29,11 @@ class RetrieveRelyingPartyMetadataFromAuthenticationRequestUriUseCase(
                     val metadataJws = try {
                         JwsSigned.parse(metadataResponse.bodyAsText()) ?: throw Exception()
                     } catch (error: Throwable) {
-                        throw Exception("${getString(Res.string.ERROR_QR_CODE_SCANNING_INVALID_METADATA_JWS_OBJECT)}: ${metadataResponse.bodyAsText()}")
+                        throw Exception("Invalid metadataJws: ${metadataResponse.bodyAsText()}")
                     }
 
                     if (!verifierJwsService.verifyJwsObject(metadataJws, null)) {
-                        throw Exception("${getString(Res.string.ERROR_QR_CODE_SCANNING_INVALID_METADATA_JWS_OBJECT_SIGNATURE)}: ${metadataResponse.bodyAsText()}")
+                        throw Exception("Invalid metadataJws signature: ${metadataResponse.bodyAsText()}")
                     }
 
                     // metadata has been verified
@@ -46,6 +41,6 @@ class RetrieveRelyingPartyMetadataFromAuthenticationRequestUriUseCase(
                     jsonSerializer.decodeFromString<RelyingPartyMetadata>(metadataJws.payload.decodeToString())
                 }
             }
-        } ?: throw Exception("${ getString(Res.string.ERROR_QR_CODE_SCANNING_MISSING_CLIENT_METADATA) }: $link")
+        } ?: throw Exception("Missing Parameter `metadata_uri`: $link")
     }
 }
