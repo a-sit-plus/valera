@@ -13,7 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.interop.UIKitView
-import composewalletapp.shared.generated.resources.CAMERA_ACCESS_DENIED
+import composewalletapp.shared.generated.resources.camera_access_denied
 import composewalletapp.shared.generated.resources.Res
 import io.github.aakira.napier.Napier
 import kotlinx.cinterop.BetaInteropApi
@@ -105,7 +105,7 @@ actual fun CameraView(
             }
 
             false -> {
-                Text(stringResource(Res.string.CAMERA_ACCESS_DENIED), color = Color.White)
+                Text(stringResource(Res.string.camera_access_denied), color = Color.White)
             }
 
             true -> {
