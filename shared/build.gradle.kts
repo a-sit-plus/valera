@@ -1,8 +1,9 @@
-
+import at.asitplus.gradle.datetime
+import at.asitplus.gradle.kmmresult
+import at.asitplus.gradle.ktor
 import at.asitplus.gradle.napier
 import at.asitplus.gradle.serialization
-
-val ktorVersion = extra["ktor.version"] as String
+import org.jetbrains.kotlin.gradle.plugin.extraProperties
 
 plugins {
     kotlin("multiplatform")
@@ -15,7 +16,7 @@ plugins {
 
 kotlin {
     androidTarget()
-
+    jvm()
     listOf(
         iosX64(),
         iosArm64(),
@@ -24,15 +25,22 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "shared"
             isStatic = true
-            export("at.asitplus.wallet:vclib:3.3.0")
+            export("at.asitplus.wallet:vclib:3.5.0-SNAPSHOT")
             export("at.asitplus.wallet:idacredential:3.3.0")
-            export("at.asitplus:kmmresult:1.5.3")
+            export(datetime())
+            export("com.ionspin.kotlin:bignum:0.3.9")
+            export(kmmresult())
+            export("at.asitplus.crypto:datatypes:2.5.0-SNAPSHOT")
+            export("at.asitplus.crypto:datatypes-cose:2.5.0-SNAPSHOT")
+            export("at.asitplus.crypto:datatypes-jws:2.5.0-SNAPSHOT")
+            export("io.matthewnelson.kotlin-components:encoding-base16:1.2.3")
+            export("io.matthewnelson.kotlin-components:encoding-base64:1.2.3")
             export(napier())
         }
     }
 
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 implementation("androidx.biometric:biometric:1.2.0-alpha05")
 
@@ -42,40 +50,40 @@ kotlin {
                 implementation(compose.materialIconsExtended)
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
-                api("at.asitplus.wallet:vclib-openid:3.3.0")
-                api("at.asitplus.wallet:vclib:3.3.0")
+                api("at.asitplus.wallet:vclib-openid:3.5.0-SNAPSHOT")
+                api("at.asitplus.wallet:vclib:3.5.0-SNAPSHOT")
                 api("at.asitplus.wallet:idacredential:3.3.0")
                 implementation(serialization("json"))
                 api(napier())
                 implementation("androidx.datastore:datastore-preferences-core:1.1.0-alpha07")
                 implementation("androidx.datastore:datastore-core-okio:1.1.0-alpha07")
-                implementation("org.jetbrains.kotlinx:atomicfu:0.21.0")
-                implementation("io.ktor:ktor-client-core:$ktorVersion")
-                implementation("io.ktor:ktor-client-cio:$ktorVersion")
-                implementation ("io.ktor:ktor-client-logging:$ktorVersion")
-                implementation ("io.ktor:ktor-client-content-negotiation:$ktorVersion")
-                implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+                implementation("org.jetbrains.kotlinx:atomicfu:0.23.2")
+                implementation(ktor("client-core"))
+                implementation(ktor("client-cio"))
+                implementation(ktor("client-logging"))
+                implementation(ktor("client-content-negotiation"))
+                implementation(ktor("serialization-kotlinx-json"))
             }
         }
-        
-        val commonTest by getting {
+
+        commonTest {
             dependencies {
                 implementation(kotlin("test"))
             }
         }
 
-        val androidMain by getting {
+        androidMain {
             dependencies {
                 api("androidx.activity:activity-compose:1.8.1")
                 api("androidx.appcompat:appcompat:1.6.1")
                 api("androidx.core:core-ktx:1.12.0")
 
-                implementation ("io.ktor:ktor-client-content-negotiation:$ktorVersion")
-                implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion")
-                implementation ("io.ktor:ktor-client-cio-jvm:$ktorVersion")
-                implementation ("io.ktor:ktor-client-logging:$ktorVersion")
-                implementation ("io.ktor:ktor-client-logging-jvm:$ktorVersion")
-                implementation ("uk.uuid.slf4j:slf4j-android:1.7.30-0")
+                //  implementation ("io.ktor:ktor-client-content-negotiation:$ktorVersion")
+                //  implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion")
+                //  implementation ("io.ktor:ktor-client-cio-jvm:$ktorVersion")
+                //  implementation ("io.ktor:ktor-client-logging:$ktorVersion")
+                //  implementation ("io.ktor:ktor-client-logging-jvm:$ktorVersion")
+                implementation("uk.uuid.slf4j:slf4j-android:1.7.30-0")
 
                 implementation("androidx.camera:camera-camera2:1.3.0")
                 implementation("androidx.camera:camera-lifecycle:1.3.0")
@@ -92,24 +100,13 @@ kotlin {
                 implementation("androidx.compose.ui:ui-test-manifest")
             }
         }
-
-        val iosX64Main by getting
-        val iosArm64Main by getting
-        val iosSimulatorArm64Main by getting
-        val iosMain by creating {
-            dependsOn(commonMain)
-            iosX64Main.dependsOn(this)
-            iosArm64Main.dependsOn(this)
-            iosSimulatorArm64Main.dependsOn(this)
-            dependencies{
-                implementation("io.ktor:ktor-client-darwin:$ktorVersion")
-            }
-        }
+        iosMain { dependencies { implementation(ktor("client-darwin")) } }
     }
 }
 
+
 android {
-    compileSdk = (findProperty("android.compileSdk") as String).toInt()
+    compileSdk = (extraProperties["android.compileSdk"] as String).toInt()
     namespace = "at.asitplus.wallet.app.common"
 
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
@@ -117,7 +114,7 @@ android {
     sourceSets["main"].resources.srcDirs("src/commonMain/resources")
 
     defaultConfig {
-        minSdk = (findProperty("android.minSdk") as String).toInt()
+        minSdk = (extraProperties["android.minSdk"] as String).toInt()
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     compileOptions {

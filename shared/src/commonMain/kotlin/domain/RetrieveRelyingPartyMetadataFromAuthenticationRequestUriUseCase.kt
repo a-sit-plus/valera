@@ -1,7 +1,7 @@
 package domain
 
+import at.asitplus.crypto.datatypes.jws.JwsSigned
 import at.asitplus.wallet.lib.data.jsonSerializer
-import at.asitplus.wallet.lib.jws.JwsSigned
 import at.asitplus.wallet.lib.jws.VerifierJwsService
 import at.asitplus.wallet.lib.oidc.RelyingPartyMetadata
 import composewalletapp.shared.generated.resources.ERROR_QR_CODE_SCANNING_INVALID_METADATA_JWS_OBJECT
@@ -37,7 +37,7 @@ class RetrieveRelyingPartyMetadataFromAuthenticationRequestUriUseCase(
                         throw Exception("${getString(Res.string.ERROR_QR_CODE_SCANNING_INVALID_METADATA_JWS_OBJECT)}: ${metadataResponse.bodyAsText()}")
                     }
 
-                    if (!verifierJwsService.verifyJwsObject(metadataJws, null)) {
+                    if (!verifierJwsService.verifyJwsObject(metadataJws)) {
                         throw Exception("${getString(Res.string.ERROR_QR_CODE_SCANNING_INVALID_METADATA_JWS_OBJECT_SIGNATURE)}: ${metadataResponse.bodyAsText()}")
                     }
 

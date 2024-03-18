@@ -77,8 +77,8 @@ class AuthenticationQrCodeScannerViewModel(
             val authenticationRequestParameters =
                 extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase(link)
 
-            if (!clientMetadataPayload.redirectUris.contains(authenticationRequestParameters.clientId)) {
-                val redirectUris = clientMetadataPayload.redirectUris.joinToString("\n - ")
+            if (!clientMetadataPayload.redirectUris!!.contains(authenticationRequestParameters.clientId)) {
+                val redirectUris = clientMetadataPayload.redirectUris!!.joinToString("\n - ")
                 val message =
                     "${getString(Res.string.ERROR_QR_CODE_SCANNING_CLIENT_ID_NOT_IN_REDICECT_URIS)}:" +
                             " ${authenticationRequestParameters.clientId} not in: \n$redirectUris)"
