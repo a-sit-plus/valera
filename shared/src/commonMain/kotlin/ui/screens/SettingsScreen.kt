@@ -54,7 +54,7 @@ import composewalletapp.shared.generated.resources.HEADING_LABEL_SETTINGS_SCREEN
 import composewalletapp.shared.generated.resources.ID_FORMAT_ISO_MDOC_LABEL
 import composewalletapp.shared.generated.resources.ID_FORMAT_PLAIN_JWT_LABEL
 import composewalletapp.shared.generated.resources.ID_FORMAT_SD_JWT_LABEL
-import composewalletapp.shared.generated.resources.RESET_APP_ALERT_TEXT
+import composewalletapp.shared.generated.resources.reset_app_alert_text
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.SECTION_HEADING_ACTIONS
 import composewalletapp.shared.generated.resources.SECTION_HEADING_CONFIGURATION
@@ -394,7 +394,7 @@ private fun ResetAlert(
             Text(stringResource(Res.string.warning))
         },
         text = {
-            Text(stringResource(Res.string.RESET_APP_ALERT_TEXT))
+            Text(stringResource(Res.string.reset_app_alert_text))
         },
         onDismissRequest = onDismissRequest,
         confirmButton = {
