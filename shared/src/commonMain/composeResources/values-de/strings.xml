@@ -6,7 +6,7 @@
 
     <string name="unknown_exception">Unbekannter Fehler</string>
 
-    <string name="APP_DISPLAY_NAME">Wallet Demo App</string>
+    <string name="app_display_name">Wallet Demo App</string>
     <string name="SNACKBAR_CREDENTIAL_LOADED_SUCCESSFULLY">Daten wurden erfolgreich geladen</string>
     <string name="SNACKBAR_RESET_APP_SUCCESSFULLY">App erfolgreich zurückgesetzt</string>
 

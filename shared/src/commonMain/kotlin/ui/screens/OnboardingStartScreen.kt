@@ -20,7 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
-import composewalletapp.shared.generated.resources.APP_DISPLAY_NAME
+import composewalletapp.shared.generated.resources.app_display_name
 import composewalletapp.shared.generated.resources.BUTTON_LABEL_START
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.onboardingBackground
@@ -52,7 +52,7 @@ fun OnboardingStartScreen(
                 ),
                 title = {
                     Text(
-                        text = stringResource(Res.string.APP_DISPLAY_NAME),
+                        text = stringResource(Res.string.app_display_name),
                         style = MaterialTheme.typography.headlineLarge,
                         textAlign = TextAlign.Center,
                     )
