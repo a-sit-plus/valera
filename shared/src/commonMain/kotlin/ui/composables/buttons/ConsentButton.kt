@@ -8,12 +8,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import composewalletapp.shared.generated.resources.button_label_consent
 import composewalletapp.shared.generated.resources.Res
+import composewalletapp.shared.generated.resources.button_label_consent
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.TextIconButton
 
+@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun ConsentButton(
     onClick: () -> Unit,
