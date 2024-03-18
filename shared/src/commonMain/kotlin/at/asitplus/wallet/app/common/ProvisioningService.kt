@@ -1,7 +1,5 @@
 package at.asitplus.wallet.app.common
 
-import ErrorService
-import Resources
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.Holder
 import at.asitplus.wallet.lib.agent.HolderAgent
@@ -61,7 +59,7 @@ class ProvisioningService(
                 ?: throw Exception("X-Auth-Token not received")
 
             Napier.d("Store X-Auth-Token: $xAuthToken")
-            dataStoreService.setPreference(xAuthToken, Resources.DATASTORE_KEY_XAUTH)
+            dataStoreService.setPreference(xAuthToken, Configuration.DATASTORE_KEY_XAUTH)
 
             if (urlToOpen != null) {
                 val pars = parseQueryString(
@@ -82,7 +80,7 @@ class ProvisioningService(
     @Throws(Throwable::class)
     suspend fun handleResponse(url: String) {
         val host = config.host.first()
-        val xAuthToken = dataStoreService.getPreference(Resources.DATASTORE_KEY_XAUTH).firstOrNull()
+        val xAuthToken = dataStoreService.getPreference(Configuration.DATASTORE_KEY_XAUTH).firstOrNull()
         val credentialRepresentation = config.credentialRepresentation.first()
         if (xAuthToken == null) {
             throw Exception("X-Auth-Token not available in DataStoreService")

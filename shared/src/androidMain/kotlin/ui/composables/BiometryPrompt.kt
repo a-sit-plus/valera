@@ -1,6 +1,5 @@
 package ui.composables
 
-import Resources
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricPrompt
@@ -12,8 +11,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import composewalletapp.shared.generated.resources.button_label_cancel
+import composewalletapp.shared.generated.resources.button_label_confirm
+import composewalletapp.shared.generated.resources.error_biometric_error_hardware_unavailable
+import composewalletapp.shared.generated.resources.error_biometric_error_none_enrolled
+import composewalletapp.shared.generated.resources.error_biometric_error_no_hardware
+import composewalletapp.shared.generated.resources.error_biometric_error_security_update_required
+import composewalletapp.shared.generated.resources.error_biometric_error_unknown
+import composewalletapp.shared.generated.resources.error_biometric_error_unsupported
+import composewalletapp.shared.generated.resources.error_biometric_status_unknown
+import composewalletapp.shared.generated.resources.Res
+import composewalletapp.shared.generated.resources.warning
 import io.github.aakira.napier.Napier
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.stringResource
 
+@OptIn(ExperimentalResourceApi::class)
 @Composable
 actual fun BiometryPrompt(
     title: String,
@@ -54,7 +67,7 @@ actual fun BiometryPrompt(
                 .setAllowedAuthenticators(BIOMETRIC_STRONG)
                 .setTitle(title)
                 .setSubtitle(subtitle)
-                .setNegativeButtonText(Resources.BUTTON_LABEL_CANCEL)
+                .setNegativeButtonText(stringResource(Res.string.button_label_cancel))
                 .build()
 
             biometricPrompt.authenticate(promptInfo)
@@ -64,39 +77,39 @@ actual fun BiometryPrompt(
             val text = when (isBiometricAvailable) {
                 BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> {
                     // No biometric features available on this device
-                    Resources.ERROR_BIOMETRIC_ERROR_NO_HARDWARE
+                    stringResource(Res.string.error_biometric_error_no_hardware)
                 }
 
                 BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> {
                     // Biometric features are currently unavailable.
-                    Resources.ERROR_BIOMETRIC_ERROR_HW_UNAVAILABLE
+                    stringResource(Res.string.error_biometric_error_hardware_unavailable)
                 }
 
                 BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED -> {
                     // Biometric features available but a security vulnerability has been discovered
-                    Resources.ERROR_BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED
+                    stringResource(Res.string.error_biometric_error_security_update_required)
                 }
 
                 BiometricManager.BIOMETRIC_ERROR_UNSUPPORTED -> {
                     // Biometric features are currently unavailable because the specified options are incompatible with the current Android version..
-                    Resources.ERROR_BIOMETRIC_ERROR_UNSUPPORTED
+                    stringResource(Res.string.error_biometric_error_unsupported)
                 }
 
                 BiometricManager.BIOMETRIC_STATUS_UNKNOWN -> {
                     // Unable to determine whether the user can authenticate using biometrics
-                    Resources.ERROR_BIOMETRIC_STATUS_UNKNOWN
+                    stringResource(Res.string.error_biometric_status_unknown)
                 }
 
                 BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
                     // The user can't authenticate because no biometric or device credential is enrolled.
-                    Resources.ERROR_BIOMETRIC_ERROR_NONE_ENROLLED
+                    stringResource(Res.string.error_biometric_error_none_enrolled)
                 }
 
-                else -> Resources.ERROR_BIOMETRIC_ERROR_UNKNOWN
+                else -> stringResource(Res.string.error_biometric_error_unknown)
             }
             AlertDialog(
                 title = {
-                    Text(Resources.WARNING)
+                    Text(stringResource(Res.string.warning))
                 },
                 text = {
                     Text(text)
@@ -112,7 +125,7 @@ actual fun BiometryPrompt(
                             ))
                         },
                     ) {
-                        Text(Resources.BUTTON_LABEL_CONFIRM)
+                        Text(stringResource(Res.string.button_label_confirm))
                     }
                 },
             )

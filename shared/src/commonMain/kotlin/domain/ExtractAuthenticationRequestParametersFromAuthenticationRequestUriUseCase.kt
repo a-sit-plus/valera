@@ -1,6 +1,5 @@
 package domain
 
-import Resources
 import at.asitplus.wallet.lib.jws.JwsSigned
 import at.asitplus.wallet.lib.jws.VerifierJwsService
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
@@ -27,7 +26,7 @@ class ExtractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase(
         val authenticationRequestParameters =
             requestParams.let { extractRequestObject(it) ?: it }
         if (authenticationRequestParameters.clientId != requestLocationClientId) {
-            throw Exception("${Resources.ERROR_QR_CODE_SCANNING_INCONSISTENT_CLIENT_ID}: UrlParameter: $requestLocationClientId, AuthenticationRequestParameters: ${authenticationRequestParameters.clientId}")
+            throw Exception("Client id does not match: UrlParameter: $requestLocationClientId, AuthenticationRequestParameters: ${authenticationRequestParameters.clientId}")
         }
         return authenticationRequestParameters
     }

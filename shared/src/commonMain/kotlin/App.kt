@@ -6,6 +6,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import ui.theme.WalletTheme
@@ -25,7 +26,7 @@ var appLink = mutableStateOf<String?>(null)
 /**
  * Global variable to test at least something from the iOS UITest
  */
-var iosTestValue = Resources.IOS_TEST_VALUE
+var iosTestValue = Configuration.IOS_TEST_VALUE
 
 @Composable
 fun App(walletMain: WalletMain) {

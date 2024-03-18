@@ -1,14 +1,20 @@
+@file:OptIn(ExperimentalResourceApi::class)
+
 package ui.composables.buttons
 
-import Resources
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import composewalletapp.shared.generated.resources.Res
+import composewalletapp.shared.generated.resources.button_label_save
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.stringResource
 import ui.composables.TextIconButton
 
+@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun SaveButton(
     onClick: () -> Unit,
@@ -23,7 +29,7 @@ fun SaveButton(
             )
         },
         text = {
-            Text(Resources.BUTTON_LABEL_SAVE)
+            Text(stringResource(Res.string.button_label_save))
         },
         onClick = onClick,
         enabled = enabled,

@@ -1,6 +1,5 @@
 package ui.composables
 
-import Resources
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,8 +27,12 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
+import composewalletapp.shared.generated.resources.content_description_portrait
+import composewalletapp.shared.generated.resources.Res
 import data.CredentialExtractor
 import kotlinx.datetime.LocalDate
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.stringResource
 
 data class PreIdentityData(
     val firstname: String?,
@@ -87,6 +90,7 @@ val CredentialExtractor.preIdentityData: PreIdentityData
         portrait = this.portrait,
     )
 
+@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun PersonIdentityDataDetailCard(
     identityData: IdentityData,
@@ -98,8 +102,8 @@ fun PersonIdentityDataDetailCard(
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             PersonAttributeDetailCardHeading(
-                iconText = PersonalDataCategory.IdentityData.iconText,
-                title = PersonalDataCategory.IdentityData.categoryTitle,
+                iconText = stringResource(PersonalDataCategory.IdentityData.iconText),
+                title = stringResource(PersonalDataCategory.IdentityData.categoryTitle),
             ) {
                 if (onClickOpenDetails != null) {
                     IconButton(
@@ -127,7 +131,7 @@ fun PersonIdentityDataDetailCard(
                     val maxWidth = LocalDensity.current.run { (0.25f * columnSize.width).toDp() }
                     Image(
                         bitmap = identityData.portrait,
-                        contentDescription = Resources.CONTENT_DESCRIPTION_PORTRAIT,
+                        contentDescription = stringResource(Res.string.content_description_portrait),
                         modifier = Modifier.widthIn(0.dp, maxWidth).padding(end = 16.dp),
                         contentScale = ContentScale.FillWidth,
                     )

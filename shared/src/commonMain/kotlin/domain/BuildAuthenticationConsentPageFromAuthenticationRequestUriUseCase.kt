@@ -1,7 +1,7 @@
 package domain
 
 import at.asitplus.wallet.lib.data.dif.PresentationDefinition
-import navigation.AuthenticationConsentPage
+import ui.navigation.AuthenticationConsentPage
 
 class BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
     private val extractAuthenticationRequestParametersFromAuthenticationRequestUri: ExtractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase,

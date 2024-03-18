@@ -1,8 +1,5 @@
 package at.asitplus.wallet.app.common
 
-import BuildContext
-import ErrorService
-import Resources
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
@@ -78,9 +75,9 @@ class WalletMain(
 
         subjectCredentialStore.reset()
 
-        dataStoreService.deletePreference(Resources.DATASTORE_KEY_VCS)
-        dataStoreService.deletePreference(Resources.DATASTORE_KEY_XAUTH)
-        dataStoreService.deletePreference(Resources.DATASTORE_KEY_COOKIES)
+        dataStoreService.deletePreference(Configuration.DATASTORE_KEY_VCS)
+        dataStoreService.deletePreference(Configuration.DATASTORE_KEY_XAUTH)
+        dataStoreService.deletePreference(Configuration.DATASTORE_KEY_COOKIES)
         walletConfig.reset()
     }
 

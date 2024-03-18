@@ -1,24 +1,16 @@
 package domain
 
-import Resources
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
-import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpHeaders
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
+import org.jetbrains.compose.resources.ExperimentalResourceApi
 
-class InconsistentClientIdException(val uriBeforeRedirect: String, val uriAfterRedirect: String) : Exception(
-    "${Resources.ERROR_INCONSISTENT_REDIRECT_URL_CLIENT_ID}: '${uriBeforeRedirect}' vs '${uriAfterRedirect}'"
-)
-
-class MissingHttpRedirectException(val response: HttpResponse) : Exception(
-    "${Resources.ERROR_REQUEST_URI_REDIRECT_MISSING_LOCATION_HEADER}: $response"
-)
-
+@OptIn(ExperimentalResourceApi::class)
 class RetrieveFinalAuthenticationRequestUriFromAuthenticationRequestUriUseCase(
     private val extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase: ExtractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase,
     private val client: HttpClient,
@@ -32,19 +24,19 @@ class RetrieveFinalAuthenticationRequestUriFromAuthenticationRequestUriUseCase(
             while (authenticationRequestParameters.requestUri != null) {
                 val newLocation = authenticationRequestParameters.requestUri?.let { requestUri ->
                     if (authenticationRequestParameters.request != null) {
-                        throw Exception("${Resources.ERROR_REQUEST_URL_CONTAINING_REQUEST_OBJECT_AND_REQUEST_URI}: $location")
+                        throw Exception("Invalid request url: contains both parameters 'request' and 'request_uri': $location")
                     }
 
                     val requestResponse = client.get(requestUri)
                     requestResponse.headers[HttpHeaders.Location].also { Napier.d("Redirect location: $it") }
-                        ?: throw MissingHttpRedirectException(requestResponse)
+                        ?: throw Exception("Missing location response header: $requestResponse")
                 } ?: throw Exception("Invalid while-loop iteration")
 
                 val newAuthenticationRequestParameters =
                     extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase(newLocation)
 
                 if (authenticationRequestParameters.clientId != newAuthenticationRequestParameters.clientId) {
-                    throw InconsistentClientIdException(location, newLocation)
+                    throw Exception("Authentication failed: '${authenticationRequestParameters.clientId}' vs '${newAuthenticationRequestParameters.clientId}'")
                 }
 
                 location = newLocation

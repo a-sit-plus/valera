@@ -1,6 +1,5 @@
 package domain
 
-import Resources
 import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.jws.JwsSigned
 import at.asitplus.wallet.lib.jws.VerifierJwsService
@@ -13,7 +12,9 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
+import org.jetbrains.compose.resources.ExperimentalResourceApi
 
+@OptIn(ExperimentalResourceApi::class)
 class RetrieveRelyingPartyMetadataFromAuthenticationRequestUriUseCase(
     private val extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase: ExtractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase,
     private val client: HttpClient,
@@ -28,11 +29,11 @@ class RetrieveRelyingPartyMetadataFromAuthenticationRequestUriUseCase(
                     val metadataJws = try {
                         JwsSigned.parse(metadataResponse.bodyAsText()) ?: throw Exception()
                     } catch (error: Throwable) {
-                        throw Exception("${Resources.ERROR_QR_CODE_SCANNING_INVALID_METADATA_JWS_OBJECT}: ${metadataResponse.bodyAsText()}")
+                        throw Exception("Invalid metadataJws: ${metadataResponse.bodyAsText()}")
                     }
 
                     if (!verifierJwsService.verifyJwsObject(metadataJws, null)) {
-                        throw Exception("${Resources.ERROR_QR_CODE_SCANNING_INVALID_METADATA_JWS_OBJECT_SIGNATURE}: ${metadataResponse.bodyAsText()}")
+                        throw Exception("Invalid metadataJws signature: ${metadataResponse.bodyAsText()}")
                     }
 
                     // metadata has been verified
@@ -40,6 +41,6 @@ class RetrieveRelyingPartyMetadataFromAuthenticationRequestUriUseCase(
                     jsonSerializer.decodeFromString<RelyingPartyMetadata>(metadataJws.payload.decodeToString())
                 }
             }
-        } ?: throw Exception("${Resources.ERROR_QR_CODE_SCANNING_MISSING_CLIENT_METADATA}: $link")
+        } ?: throw Exception("Missing Parameter `metadata_uri`: $link")
     }
 }

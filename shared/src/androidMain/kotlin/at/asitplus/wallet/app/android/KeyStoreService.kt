@@ -1,6 +1,5 @@
 package at.asitplus.wallet.app.android
 
-import Resources
 import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
@@ -8,6 +7,7 @@ import android.security.keystore.KeyProperties.AUTH_BIOMETRIC_STRONG
 import android.security.keystore.KeyProperties.AUTH_DEVICE_CREDENTIAL
 import android.security.keystore.KeyProperties.PURPOSE_SIGN
 import android.security.keystore.KeyProperties.PURPOSE_VERIFY
+import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.app.common.HolderKeyService
 import io.github.aakira.napier.Napier
 import java.security.KeyPair
@@ -46,7 +46,7 @@ class AndroidKeyStoreService : KeyStoreService, HolderKeyService {
                 .setUserAuthenticationRequired(true)
                 .apply {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                        setUserAuthenticationParameters(Resources.USER_AUTHENTICATION_TIMEOUT, AUTH_BIOMETRIC_STRONG or AUTH_DEVICE_CREDENTIAL)
+                        setUserAuthenticationParameters(Configuration.USER_AUTHENTICATION_TIMEOUT, AUTH_BIOMETRIC_STRONG or AUTH_DEVICE_CREDENTIAL)
                     }
                 }
             return KeyPairGenerator.getInstance("EC", "AndroidKeyStore").apply {
