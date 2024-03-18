@@ -1,6 +1,5 @@
 package ui.composables
 
-import Resources
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,6 +28,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import composewalletapp.shared.generated.resources.info_text_data_items_missing
+import composewalletapp.shared.generated.resources.Res
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.stringResource
 
 
 data class AttributeAvailability(
@@ -36,7 +39,7 @@ data class AttributeAvailability(
     val isAvailable: Boolean,
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
 @Composable
 fun DataCategoryDisplaySection(
     title: String,
@@ -70,9 +73,9 @@ fun DataCategoryDisplaySection(
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
                         DataCategoryDisplaySectionItem(
-                            iconText = category.first.iconText,
+                            iconText = stringResource(category.first.iconText),
                             iconColor = MaterialTheme.colorScheme.secondaryContainer,
-                            title = category.first.categoryTitle,
+                            title = stringResource(category.first.categoryTitle),
                             titleFontWeight = FontWeight.Normal,
                             modifier = Modifier.fillMaxWidth(),
                         ) {
@@ -82,7 +85,7 @@ fun DataCategoryDisplaySection(
                             ) {
                                 if (missingAttributeCount > 0) {
                                     Text(
-                                        text = Resources.INFO_TEXT_DATA_ITEMS_MISSING,
+                                        text = stringResource(Res.string.info_text_data_items_missing),
                                         color = MaterialTheme.colorScheme.error,
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))

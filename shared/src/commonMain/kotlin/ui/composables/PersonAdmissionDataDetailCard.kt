@@ -10,12 +10,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.stringResource
 
 data class AdmissionData(
     val carModel: String?,
     val licensePlateNumber: String?,
 )
 
+@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun PersonAdmissionDataDetailCard(
     admissionData: AdmissionData,
@@ -26,8 +29,8 @@ fun PersonAdmissionDataDetailCard(
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             PersonAttributeDetailCardHeading(
-                iconText = PersonalDataCategory.AdmissionData.iconText,
-                title = PersonalDataCategory.AdmissionData.categoryTitle,
+                iconText = stringResource(PersonalDataCategory.AdmissionData.iconText),
+                title = stringResource(PersonalDataCategory.AdmissionData.categoryTitle),
             )
 
             val textGap = 4.dp

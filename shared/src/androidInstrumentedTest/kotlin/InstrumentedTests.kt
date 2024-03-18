@@ -1,13 +1,20 @@
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.DummyPlatformAdapter
 import at.asitplus.wallet.app.common.WalletMain
+import composewalletapp.shared.generated.resources.button_label_start
+import composewalletapp.shared.generated.resources.Res
 import data.storage.DummyDataStoreService
+import kotlinx.coroutines.runBlocking
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.getString
 import org.junit.Rule
 import org.junit.Test
 
 // Modified from https://developer.android.com/jetpack/compose/testing
+@OptIn(ExperimentalResourceApi::class)
 class InstrumentedTests {
 
     @get:Rule
@@ -32,6 +39,9 @@ class InstrumentedTests {
             )
             App(walletMain)
         }
-        composeTestRule.onNodeWithText(Resources.BUTTON_LABEL_START).assertIsDisplayed()
+        runBlocking {
+            composeTestRule.onNodeWithText(getString(Res.string.button_label_start))
+                .assertIsDisplayed()
+        }
     }
 }

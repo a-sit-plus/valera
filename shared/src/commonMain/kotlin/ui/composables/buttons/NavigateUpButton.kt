@@ -1,13 +1,17 @@
 package ui.composables.buttons
 
-import Resources
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import composewalletapp.shared.generated.resources.content_description_navigate_back
+import composewalletapp.shared.generated.resources.Res
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.stringResource
 
+@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun NavigateUpButton(
     onClick: () -> Unit,
@@ -18,8 +22,8 @@ fun NavigateUpButton(
         modifier = modifier,
     ) {
         Icon(
-            imageVector = Icons.Default.ArrowBack,
-            contentDescription = Resources.CONTENT_DESCRIPTION_NAVIGATE_BACK,
+            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+            contentDescription = stringResource(Res.string.content_description_navigate_back),
         )
     }
 }

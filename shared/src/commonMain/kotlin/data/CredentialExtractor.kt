@@ -7,10 +7,23 @@ import at.asitplus.wallet.idaustria.IdAustriaCredential
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.jsonSerializer
+import composewalletapp.shared.generated.resources.attribute_friendly_name_age_at_least_14
+import composewalletapp.shared.generated.resources.attribute_friendly_name_age_at_least_16
+import composewalletapp.shared.generated.resources.attribute_friendly_name_age_at_least_18
+import composewalletapp.shared.generated.resources.attribute_friendly_name_age_at_least_21
+import composewalletapp.shared.generated.resources.attribute_friendly_name_bpk
+import composewalletapp.shared.generated.resources.attribute_friendly_name_date_of_birth
+import composewalletapp.shared.generated.resources.attribute_friendly_name_firstname
+import composewalletapp.shared.generated.resources.attribute_friendly_name_lastname
+import composewalletapp.shared.generated.resources.attribute_friendly_name_main_address
+import composewalletapp.shared.generated.resources.attribute_friendly_name_portrait
+import composewalletapp.shared.generated.resources.Res
 import io.ktor.util.decodeBase64Bytes
 import io.ktor.util.decodeBase64String
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.StringResource
 
 private val SubjectCredentialStore.StoreEntry.Vc.unsupportedCredentialSubjectMessage: String
     get() = "Unsupported credential subject: ${this.vc.vc.credentialSubject}"
@@ -26,24 +39,25 @@ private val SubjectCredentialStore.StoreEntry.unsupportedCredentialStoreEntry: S
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-val String.attributeTranslation: String
+@OptIn(ExperimentalResourceApi::class)
+val String.attributeTranslation: StringResource
     get() = when (this) {
-        IdAustriaScheme.Attributes.BPK -> Resources.ATTRIBUTE_FRIENDLY_NAME_BPK
-        IdAustriaScheme.Attributes.FIRSTNAME -> Resources.ATTRIBUTE_FRIENDLY_NAME_FIRSTNAME
-        IdAustriaScheme.Attributes.LASTNAME -> Resources.ATTRIBUTE_FRIENDLY_NAME_LASTNAME
-        IdAustriaScheme.Attributes.DATE_OF_BIRTH -> Resources.ATTRIBUTE_FRIENDLY_NAME_DATE_OF_BIRTH
-        IdAustriaScheme.Attributes.PORTRAIT -> Resources.ATTRIBUTE_FRIENDLY_NAME_PORTRAIT
-        IdAustriaScheme.Attributes.AGE_OVER_14 -> Resources.ATTRIBUTE_FRIENDLY_NAME_AGE_AT_LEAST_14
-        IdAustriaScheme.Attributes.AGE_OVER_16 -> Resources.ATTRIBUTE_FRIENDLY_NAME_AGE_AT_LEAST_16
-        IdAustriaScheme.Attributes.AGE_OVER_18 -> Resources.ATTRIBUTE_FRIENDLY_NAME_AGE_AT_LEAST_18
-        IdAustriaScheme.Attributes.AGE_OVER_21 -> Resources.ATTRIBUTE_FRIENDLY_NAME_AGE_AT_LEAST_21
-        IdAustriaScheme.Attributes.MAIN_ADDRESS -> Resources.ATTRIBUTE_FRIENDLY_NAME_MAIN_ADDRESS
+        IdAustriaScheme.Attributes.BPK -> Res.string.attribute_friendly_name_bpk
+        IdAustriaScheme.Attributes.FIRSTNAME -> Res.string.attribute_friendly_name_firstname
+        IdAustriaScheme.Attributes.LASTNAME -> Res.string.attribute_friendly_name_lastname
+        IdAustriaScheme.Attributes.DATE_OF_BIRTH -> Res.string.attribute_friendly_name_date_of_birth
+        IdAustriaScheme.Attributes.PORTRAIT -> Res.string.attribute_friendly_name_portrait
+        IdAustriaScheme.Attributes.AGE_OVER_14 -> Res.string.attribute_friendly_name_age_at_least_14
+        IdAustriaScheme.Attributes.AGE_OVER_16 -> Res.string.attribute_friendly_name_age_at_least_16
+        IdAustriaScheme.Attributes.AGE_OVER_18 -> Res.string.attribute_friendly_name_age_at_least_18
+        IdAustriaScheme.Attributes.AGE_OVER_21 -> Res.string.attribute_friendly_name_age_at_least_21
+        IdAustriaScheme.Attributes.MAIN_ADDRESS -> Res.string.attribute_friendly_name_main_address
 
-        EuPidScheme.Attributes.GIVEN_NAME -> Resources.ATTRIBUTE_FRIENDLY_NAME_FIRSTNAME
-        EuPidScheme.Attributes.FAMILY_NAME -> Resources.ATTRIBUTE_FRIENDLY_NAME_LASTNAME
-        EuPidScheme.Attributes.BIRTH_DATE -> Resources.ATTRIBUTE_FRIENDLY_NAME_DATE_OF_BIRTH
-        EuPidScheme.Attributes.AGE_OVER_18 -> Resources.ATTRIBUTE_FRIENDLY_NAME_AGE_AT_LEAST_18
-        EuPidScheme.Attributes.RESIDENT_ADDRESS -> Resources.ATTRIBUTE_FRIENDLY_NAME_MAIN_ADDRESS
+        EuPidScheme.Attributes.GIVEN_NAME -> Resources.attribute_friendly_name_firstname
+        EuPidScheme.Attributes.FAMILY_NAME -> Resources.attribute_friendly_name_lastname
+        EuPidScheme.Attributes.BIRTH_DATE -> Resources.attribute_friendly_name_date_of_birth
+        EuPidScheme.Attributes.AGE_OVER_18 -> Resources.attribute_friendly_name_age_at_least_18
+        EuPidScheme.Attributes.RESIDENT_ADDRESS -> Resources.attribute_friendly_name_main_address
 
         else -> throw Exception("Unsupported IdAustria attribute name: $this")
     }

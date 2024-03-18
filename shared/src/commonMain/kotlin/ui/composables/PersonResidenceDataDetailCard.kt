@@ -1,6 +1,5 @@
 package ui.composables
 
-import Resources
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,7 +15,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import composewalletapp.shared.generated.resources.Res
+import composewalletapp.shared.generated.resources.text_label_door
+import composewalletapp.shared.generated.resources.text_label_stair
 import data.CredentialExtractor
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.stringResource
 
 data class ResidenceData(
     val streetName: String?,
@@ -41,6 +45,7 @@ val CredentialExtractor.residenceData: ResidenceData
         countryName = this.mainResidenceCountryName,
     )
 
+@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun PersonResidenceDataDetailCard(
     residenceData: ResidenceData,
@@ -52,8 +57,8 @@ fun PersonResidenceDataDetailCard(
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             PersonAttributeDetailCardHeading(
-                iconText = PersonalDataCategory.ResidenceData.iconText,
-                title = PersonalDataCategory.ResidenceData.categoryTitle,
+                iconText = stringResource(PersonalDataCategory.ResidenceData.iconText),
+                title = stringResource(PersonalDataCategory.ResidenceData.categoryTitle),
             ) {
                 if (onClickOpenDetails != null) {
                     IconButton(
@@ -71,7 +76,6 @@ fun PersonResidenceDataDetailCard(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 horizontalAlignment = Alignment.Start,
             ) {
-                val textGap = 4.dp
                 if (
                     listOfNotNull(
                         residenceData.streetName,
@@ -83,19 +87,16 @@ fun PersonResidenceDataDetailCard(
                             residenceData.streetName,
                             residenceData.houseNumber,
                         ).filter { it.isNotBlank() }.joinToString(" "),
-                        modifier = Modifier.padding(bottom = textGap),
                     )
                 }
                 if (residenceData.stairName?.isNotBlank() == true) {
                     Text(
-                        text = "${Resources.TEXT_LABEL_STAIR}: ${residenceData.stairName}",
-                        modifier = Modifier.padding(bottom = textGap),
+                        text = "${stringResource(Res.string.text_label_stair)} ${residenceData.stairName}",
                     )
                 }
                 if (residenceData.doorName?.isNotBlank() == true) {
                     Text(
-                        text = "${Resources.TEXT_LABEL_DOOR}: ${residenceData.doorName}",
-                        modifier = Modifier.padding(bottom = textGap),
+                        text = "${stringResource(Res.string.text_label_door)}: ${residenceData.doorName}",
                     )
                 }
                 if (
@@ -109,22 +110,19 @@ fun PersonResidenceDataDetailCard(
                             residenceData.postalCode,
                             residenceData.townName,
                         ).filter { it.isNotBlank() }.joinToString(" "),
-                        modifier = Modifier.padding(bottom = textGap),
                     )
                 }
                 if (residenceData.stateName?.isNotBlank() == true) {
                     Text(
                         text = residenceData.stateName,
-                        modifier = Modifier.padding(bottom = textGap),
                     )
                 }
                 if (residenceData.countryName?.isNotBlank() == true) {
                     Text(
                         text = residenceData.countryName,
-                        modifier = Modifier.padding(bottom = textGap),
                     )
                 }
-                Spacer(modifier = Modifier.height(16.dp - textGap))
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }

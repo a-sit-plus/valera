@@ -1,10 +1,10 @@
 package preview.ui.views
 
-import BuildEnvironment
+import at.asitplus.wallet.app.common.BuildEnvironment
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import at.asitplus.wallet.lib.data.ConstantIndex
-import view.SettingsView
+import ui.screens.SettingsView
 
 private fun main() = application {
     Window(onCloseRequest = ::exitApplication) {

@@ -1,0 +1,171 @@
+<resources>
+    <string name="camera_access_denied">UNTRANSLATED:camera_access_denied</string>
+
+    <string name="warning">UNTRANSLATED:warning</string>
+    <string name="reset_app_alert_text">UNTRANSLATED:reset_app_alert_text</string>
+
+    <string name="unknown_exception">UNTRANSLATED:unknown_exception</string>
+    <string name="app_display_name">UNTRANSLATED:app_display_name</string>
+    <string name="snackbar_credential_loaded_successfully">UNTRANSLATED:snackbar_credential_loaded_successfully</string>
+    <string name="snackbar_reset_app_successfully">UNTRANSLATED:snackbar_reset_app_successfully</string>
+
+    <string name="button_label_confirm">UNTRANSLATED:button_label_confirm</string>
+    <string name="button_label_dismiss">UNTRANSLATED:button_label_dismiss</string>
+    <string name="button_label_close_app">UNTRANSLATED:button_label_close_app</string>
+    <string name="button_label_authenticate">UNTRANSLATED:button_label_authenticate</string>
+    <string name="button_label_show_data">UNTRANSLATED:button_label_show_data</string>
+    <string name="button_label_accept">UNTRANSLATED:button_label_accept</string>
+    <string name="button_label_cancel">UNTRANSLATED:button_label_cancel</string>
+    <string name="button_label_consent">UNTRANSLATED:button_label_consent</string>
+    <string name="button_label_continue">UNTRANSLATED:button_label_continue</string>
+    <string name="button_label_details">UNTRANSLATED:button_label_details</string>
+    <string name="button_label_share">UNTRANSLATED:button_label_share</string>
+    <string name="button_label_load_data">UNTRANSLATED:button_label_load_data</string>
+    <string name="button_label_reload_data">UNTRANSLATED:button_label_reload_data</string>
+    <string name="button_label_start">UNTRANSLATED:button_label_start</string>
+    <string name="button_label_save">UNTRANSLATED:button_label_save</string>
+    <string name="button_label_conclude">UNTRANSLATED:button_label_conclude</string>
+    <string name="button_label_scan_qr_code">UNTRANSLATED:button_label_scan_qr_code</string>
+    <string name="button_label_faq">UNTRANSLATED:button_label_faq</string>
+    <string name="button_label_licenses">UNTRANSLATED:button_label_licenses</string>
+    <string name="button_label_data_protection_policy">UNTRANSLATED:button_label_data_protection_policy</string>
+    <string name="button_label_share_log_file">UNTRANSLATED:button_label_share_log_file</string>
+    <string name="button_label_reset_app">UNTRANSLATED:button_label_reset_app</string>
+
+    <string name="attribute_friendly_name_bpk">UNTRANSLATED:attribute_friendly_name_bpk</string>
+    <string name="attribute_friendly_name_firstname">UNTRANSLATED:attribute_friendly_name_firstname</string>
+    <string name="attribute_friendly_name_lastname">UNTRANSLATED:attribute_friendly_name_lastname</string>
+    <string name="attribute_friendly_name_date_of_birth">UNTRANSLATED:attribute_friendly_name_date_of_birth</string>
+    <string name="attribute_friendly_name_portrait">UNTRANSLATED:attribute_friendly_name_portrait</string>
+    <string name="attribute_friendly_name_age_at_least_14">UNTRANSLATED:attribute_friendly_name_age_at_least_14</string>
+    <string name="attribute_friendly_name_age_at_least_16">UNTRANSLATED:attribute_friendly_name_age_at_least_16</string>
+    <string name="attribute_friendly_name_age_at_least_18">UNTRANSLATED:attribute_friendly_name_age_at_least_18</string>
+    <string name="attribute_friendly_name_age_at_least_21">UNTRANSLATED:attribute_friendly_name_age_at_least_21</string>
+    <string name="attribute_friendly_name_main_address">UNTRANSLATED:attribute_friendly_name_main_address</string>
+
+    <string name="attribute_friendly_name_data_recipient_name">UNTRANSLATED:attribute_friendly_name_data_recipient_name</string>
+    <string name="attribute_friendly_name_data_recipient_location">UNTRANSLATED:attribute_friendly_name_data_recipient_location</string>
+
+    <string name="navigation_button_label_show_data">UNTRANSLATED:navigation_button_label_show_data</string>
+    <string name="navigation_button_label_my_data">UNTRANSLATED:navigation_button_label_my_data</string>
+    <string name="navigation_button_label_settings">UNTRANSLATED:navigation_button_label_settings</string>
+
+    <string name="id_format_plain_jwt_label">UNTRANSLATED:id_format_plain_jwt_label</string>
+    <string name="id_format_sd_jwt_label">UNTRANSLATED:id_format_sd_jwt_label</string>
+    <string name="id_format_iso_mdoc_label">UNTRANSLATED:id_format_iso_mdoc_label</string>
+
+    <string name="text_label_issuing_service">UNTRANSLATED:text_label_issuing_service</string>
+    <string name="text_label_id_format">UNTRANSLATED:text_label_id_format</string>
+    <string name="text_label_stair">UNTRANSLATED:text_label_stair</string>
+    <string name="text_label_door">UNTRANSLATED:text_label_door</string>
+    <string name="text_label_stage">UNTRANSLATED:text_label_stage</string>
+    <string name="text_label_build_type">UNTRANSLATED:text_label_build_type</string>
+    <string name="text_label_version">UNTRANSLATED:text_label_version</string>
+    <string name="text_label_build">UNTRANSLATED:text_label_build</string>
+
+    <string name="heading_label_authenticate_at_device_title">UNTRANSLATED:heading_label_authenticate_at_device_title</string>
+    <string name="heading_label_authenticate_at_device_subtitle">UNTRANSLATED:heading_label_authenticate_at_device_subtitle</string>
+    <string name="heading_label_show_data">UNTRANSLATED:heading_label_show_data</string>
+    <string name="heading_label_authentication_success">UNTRANSLATED:heading_label_authentication_success</string>
+    <string name="heading_label_settings_screen">UNTRANSLATED:heading_label_settings_screen</string>
+    <string name="heading_label_error_screen">UNTRANSLATED:heading_label_error_screen</string>
+    <string name="heading_label_loading_screen">UNTRANSLATED:heading_label_loading_screen</string>
+    <string name="heading_label_credential_scanner_screen">UNTRANSLATED:heading_label_credential_scanner_screen</string>
+    <string name="heading_label_log_screen">UNTRANSLATED:heading_label_log_screen</string>
+    <string name="heading_label_information_screen">UNTRANSLATED:heading_label_information_screen</string>
+    <string name="heading_label_my_data_screen">UNTRANSLATED:heading_label_my_data_screen</string>
+    <string name="heading_label_navigate_back">UNTRANSLATED:heading_label_navigate_back</string>
+    <string name="heading_label_terms_of_use">UNTRANSLATED:heading_label_terms_of_use</string>
+    <string name="HEADING_LABEL_DATA_PROTECTION">UNTRANSLATED:HEADING_LABEL_DATA_PROTECTION</string>
+    <string name="heading_label_terms_of_use_and_data_protection">UNTRANSLATED:heading_label_terms_of_use_and_data_protection</string>
+    <string name="heading_label_load_data_screen">UNTRANSLATED:heading_label_load_data_screen</string>
+    <string name="heading_label_authenticate_at_device_screen">UNTRANSLATED:heading_label_authenticate_at_device_screen</string>
+
+    <string name="description_read_terms">UNTRANSLATED:description_read_terms</string>
+    <string name="biometric_authentication_prompt_for_data_transmission_consent_title">UNTRANSLATED:biometric_authentication_prompt_for_data_transmission_consent_title</string>
+    <string name="biometric_authentication_prompt_for_data_transmission_consent_subtitle">UNTRANSLATED:biometric_authentication_prompt_for_data_transmission_consent_subtitle</string>
+    <string name="biometric_authentication_prompt_to_load_data_title">UNTRANSLATED:biometric_authentication_prompt_to_load_data_title</string>
+    <string name="biometric_authentication_prompt_to_load_data_subtitle">UNTRANSLATED:biometric_authentication_prompt_to_load_data_subtitle</string>
+    <string name="content_description_navigate_back">UNTRANSLATED:content_description_navigate_back</string>
+    <string name="content_description_portrait">UNTRANSLATED:content_description_portrait</string>
+    <string name="content_description_refresh_credentials">UNTRANSLATED:content_description_refresh_credentials</string>
+
+    <string name="prompt_ask_load_missing_data">UNTRANSLATED:prompt_ask_load_missing_data</string>
+    <string name="prompt_send_above_data">UNTRANSLATED:prompt_send_above_data</string>
+    <string name="prompt_send_all_data">UNTRANSLATED:prompt_send_all_data</string>
+
+    <string name="error_feature_not_yet_available">UNTRANSLATED:error_feature_not_yet_available</string>
+    <string name="error_authentication_at_sp_failed">UNTRANSLATED:error_authentication_at_sp_failed</string>
+    <string name="error_biometric_error_no_hardware">UNTRANSLATED:error_biometric_error_no_hardware</string>
+    <string name="error_biometric_error_hardware_unavailable">UNTRANSLATED:error_biometric_error_hardware_unavailable</string>
+    <string name="error_biometric_error_unsupported">UNTRANSLATED:error_biometric_error_unsupported</string>
+    <string name="error_biometric_error_security_update_required">UNTRANSLATED:error_biometric_error_security_update_required</string>
+    <string name="error_biometric_status_unknown">UNTRANSLATED:error_biometric_status_unknown</string>
+    <string name="error_biometric_error_none_enrolled">UNTRANSLATED:error_biometric_error_none_enrolled</string>
+    <string name="error_biometric_error_unknown">UNTRANSLATED:error_biometric_error_unknown</string>
+    <string name="error_qr_code_scanning_missing_request_uri">UNTRANSLATED:error_qr_code_scanning_missing_request_uri</string>
+    <string name="error_qr_code_scanning_missing_client_metadata">UNTRANSLATED:error_qr_code_scanning_missing_client_metadata</string>
+    <string name="error_request_uri_redirect_missing_location_header">UNTRANSLATED:error_request_uri_redirect_missing_location_header</string>
+    <string name="error_request_uri_containing_request_object_and_request_uri">UNTRANSLATED:error_request_uri_containing_request_object_and_request_uri</string>
+    <string name="error_qr_code_scanning_missing_request_object_parameter">UNTRANSLATED:error_qr_code_scanning_missing_request_object_parameter</string>
+    <string name="error_qr_code_scanning_invalid_request_jws_object">UNTRANSLATED:error_qr_code_scanning_invalid_request_jws_object</string>
+    <string name="error_qr_code_scanning_invalid_request_jws_object_signature">UNTRANSLATED:error_qr_code_scanning_invalid_request_jws_object_signature</string>
+    <string name="error_qr_code_scanning_inconsistent_client_id">UNTRANSLATED:error_qr_code_scanning_inconsistent_client_id</string>
+    <string name="error_inconsistent_redirect_url_client_id">UNTRANSLATED:error_inconsistent_redirect_url_client_id</string>
+    <string name="error_qr_code_scanning_invalid_metadata_jws_object">UNTRANSLATED:error_qr_code_scanning_invalid_metadata_jws_object</string>
+    <string name="error_qr_code_scanning_invalid_metadata_jws_object_signature">UNTRANSLATED:error_qr_code_scanning_invalid_metadata_jws_object_signature</string>
+    <string name="error_qr_code_scanning_client_id_not_in_redirect_uris">UNTRANSLATED:error_qr_code_scanning_client_id_not_in_redirect_uris</string>
+
+    <string name="info_text_show_data_situation">UNTRANSLATED:info_text_show_data_situation</string>
+    <string name="info_text_irrevocable_error">UNTRANSLATED:info_text_irrevocable_error</string>
+    <string name="info_text_restart_app">UNTRANSLATED:info_text_restart_app</string>
+    <string name="info_text_data_items_missing">UNTRANSLATED:info_text_data_items_missing</string>
+    <string name="info_text_authentication_success">UNTRANSLATED:info_text_authentication_success</string>
+    <string name="info_text_no_credentials_available">UNTRANSLATED:info_text_no_credentials_available</string>
+    <string name="info_text_redirection_to_id_austria_for_credential_provisioning">UNTRANSLATED:info_text_redirection_to_id_austria_for_credential_provisioning</string>
+    <string name="info_text_notice_development_provisioning_using_qr_code_credentials">UNTRANSLATED:info_text_notice_development_provisioning_using_qr_code_credentials</string>
+    <string name="info_text_enthusiastic_welcome_end">UNTRANSLATED:info_text_enthusiastic_welcome_end</string>
+
+    <string name="section_heading_authenticate_at_device_title">UNTRANSLATED:section_heading_authenticate_at_device_title</string>
+    <string name="section_heading_authenticate_at_device_subtitle">UNTRANSLATED:section_heading_authenticate_at_device_subtitle</string>
+    <string name="section_heading_show_data_to_executive_title">UNTRANSLATED:section_heading_show_data_to_executive_title</string>
+    <string name="section_heading_show_data_to_executive_subtitle">UNTRANSLATED:section_heading_show_data_to_executive_subtitle</string>
+    <string name="section_heading_show_data_to_other_citizen_title">UNTRANSLATED:section_heading_show_data_to_other_citizen_title</string>
+    <string name="section_heading_show_data_to_other_citizen_subtitle">UNTRANSLATED:section_heading_show_data_to_other_citizen_subtitle</string>
+    <string name="section_heading_actions">UNTRANSLATED:section_heading_actions</string>
+    <string name="section_heading_information">UNTRANSLATED:section_heading_information</string>
+    <string name="section_heading_configuration">UNTRANSLATED:section_heading_configuration</string>
+    <string name="section_heading_requested_data">UNTRANSLATED:section_heading_requested_data</string>
+    <string name="section_heading_data_recipient">UNTRANSLATED:section_heading_data_recipient</string>
+    <string name="section_heading_admission_data">UNTRANSLATED:section_heading_admission_data</string>
+    <string name="section_heading_admission_data_icon_text">UNTRANSLATED:section_heading_admission_data_icon_text</string>
+    <string name="section_heading_age_data">UNTRANSLATED:section_heading_age_data</string>
+    <string name="section_heading_age_data_icon_text">UNTRANSLATED:section_heading_age_data_icon_text</string>
+    <string name="section_heading_driving_permission_data">UNTRANSLATED:section_heading_driving_permission_data</string>
+    <string name="section_heading_driving_permission_data_icon_text">UNTRANSLATED:section_heading_driving_permission_data_icon_text</string>
+    <string name="section_heading_identity_data">UNTRANSLATED:section_heading_identity_data</string>
+    <string name="section_heading_identity_data_icon_text">UNTRANSLATED:section_heading_identity_data_icon_text</string>
+    <string name="section_heading_residence_data">UNTRANSLATED:section_heading_residence_data</string>
+    <string name="section_heading_residence_data_icon_text">UNTRANSLATED:section_heading_residence_data_icon_text</string>
+
+    <string name="onboarding_section_terms_and_data_protection_icon_text">UNTRANSLATED:onboarding_section_terms_and_data_protection_icon_text</string>
+    <string name="onboarding_section_terms_and_data_protection_title">UNTRANSLATED:onboarding_section_terms_and_data_protection_title</string>
+    <string name="onboarding_section_load_data_icon_text">UNTRANSLATED:onboarding_section_load_data_icon_text</string>
+    <string name="onboarding_section_load_data_title">UNTRANSLATED:onboarding_section_load_data_title</string>
+    <string name="onboarding_section_load_data_subtitle">UNTRANSLATED:onboarding_section_load_data_subtitle</string>
+    <string name="onboarding_section_show_data_icon_text">UNTRANSLATED:onboarding_section_show_data_icon_text</string>
+    <string name="onboarding_section_show_data_title">UNTRANSLATED:onboarding_section_show_data_title</string>
+    <string name="onboarding_section_show_data_subtitle">UNTRANSLATED:onboarding_section_show_data_subtitle</string>
+    <string name="onboarding_section_data_usage_authenticate_at_mashine_icon_text">UNTRANSLATED:onboarding_section_data_usage_authenticate_at_mashine_icon_text</string>
+    <string name="onboarding_section_data_usage_authenticate_at_mashine_title">UNTRANSLATED:onboarding_section_data_usage_authenticate_at_mashine_title</string>
+    <string name="onboarding_section_data_usage_authenticate_at_mashine_subtitle">UNTRANSLATED:onboarding_section_data_usage_authenticate_at_mashine_subtitle</string>
+    <string name="onboarding_section_data_usage_show_executive_icon_text">UNTRANSLATED:onboarding_section_data_usage_show_executive_icon_text</string>
+    <string name="onboarding_section_data_usage_show_executive_title">UNTRANSLATED:onboarding_section_data_usage_show_executive_title</string>
+    <string name="onboarding_section_data_usage_show_executive_subtitle">UNTRANSLATED:onboarding_section_data_usage_show_executive_subtitle</string>
+    <string name="onboarding_section_data_usage_show_other_citizen_icon_text">UNTRANSLATED:onboarding_section_data_usage_show_other_citizen_icon_text</string>
+    <string name="onboarding_section_data_usage_show_other_citizen_title">UNTRANSLATED:onboarding_section_data_usage_show_other_citizen_title</string>
+    <string name="onboarding_section_data_usage_show_other_citizen_subtitle">UNTRANSLATED:onboarding_section_data_usage_show_other_citizen_subtitle</string>
+
+    <string name="warning_requested_data_not_available_heading">UNTRANSLATED:warning_requested_data_not_available_heading</string>
+    <string name="warning_requested_data_not_available_content">UNTRANSLATED:warning_requested_data_not_available_content</string>
+</resources>

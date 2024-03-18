@@ -1,6 +1,6 @@
 package preview.ui.views
 
-import view.OnboardingInformationScreen
+import ui.screens.OnboardingInformationScreen
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 

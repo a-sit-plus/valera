@@ -1,7 +1,7 @@
 package data.storage
 
-import ErrorService
-import Resources
+import at.asitplus.wallet.app.common.ErrorService
+import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.lib.data.jsonSerializer
 import io.ktor.client.plugins.cookies.CookiesStorage
 import io.ktor.http.Cookie
@@ -87,7 +87,7 @@ class PersistentCookieStorage(
             val json = jsonSerializer.encodeToString(export)
             runBlocking {
                 dataStoreService.setPreference(
-                    key = Resources.DATASTORE_KEY_COOKIES,
+                    key = Configuration.DATASTORE_KEY_COOKIES,
                     value = json
                 )
             }
@@ -99,7 +99,7 @@ class PersistentCookieStorage(
     private fun importFromDataStore(): CookieContainer {
         try {
             val input = runBlocking {
-                dataStoreService.getPreference(Resources.DATASTORE_KEY_COOKIES).firstOrNull()
+                dataStoreService.getPreference(Configuration.DATASTORE_KEY_COOKIES).firstOrNull()
             }
             if (input == null) {
                 return CookieContainer(cookies = mutableListOf(), oldestCookie = atomic(0L))

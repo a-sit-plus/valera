@@ -1,6 +1,5 @@
 package ui.views
 
-import Resources
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,10 +18,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import composewalletapp.shared.generated.resources.heading_label_load_data_screen
+import composewalletapp.shared.generated.resources.info_text_redirection_to_id_austria_for_credential_provisioning
+import composewalletapp.shared.generated.resources.Res
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.LoadDataButton
 import ui.composables.buttons.NavigateUpButton
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
 @Composable
 fun LoadDataView(
     navigateUp: (() -> Unit)? = null,
@@ -33,7 +37,7 @@ fun LoadDataView(
             TopAppBar(
                 title = {
                     Text(
-                        text = Resources.HEADING_LABEL_LOAD_DATA,
+                        text = stringResource(Res.string.heading_label_load_data_screen),
                         style = MaterialTheme.typography.headlineLarge,
                     )
                 },
@@ -64,7 +68,7 @@ fun LoadDataView(
                 .fillMaxSize()
         ) {
             Text(
-                Resources.INFO_TEXT_REDICRECTION_TO_ID_AUSTRIA_FOR_CREDENTIAL_PROVISIONING,
+                stringResource(Res.string.info_text_redirection_to_id_austria_for_credential_provisioning),
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
         }

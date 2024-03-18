@@ -18,6 +18,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import data.CredentialExtractor
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.stringResource
 
 data class AgeData(
     val ageLowerBounds: List<Int> = listOf(),
@@ -40,7 +42,7 @@ val CredentialExtractor.ageData: AgeData
         ),
     )
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalResourceApi::class)
 @Composable
 fun PersonAgeDataDetailCard(
     ageData: AgeData,
@@ -52,8 +54,8 @@ fun PersonAgeDataDetailCard(
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             PersonAttributeDetailCardHeading(
-                iconText = PersonalDataCategory.AgeData.iconText,
-                title = PersonalDataCategory.AgeData.categoryTitle,
+                iconText = stringResource(PersonalDataCategory.AgeData.iconText),
+                title = stringResource(PersonalDataCategory.AgeData.categoryTitle),
             ) {
                 if (onClickOpenDetails != null) {
                     IconButton(
