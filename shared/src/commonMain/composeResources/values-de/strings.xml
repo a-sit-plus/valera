@@ -1,7 +1,7 @@
 <resources>
     <string name="camera_access_denied">Kamerazugriff verweigert</string>
 
-    <string name="WARNING">Warnung</string>
+    <string name="warning">Warnung</string>
     <string name="RESET_APP_ALERT_TEXT">Soll die App wirklich zurückgesetzt werden</string>
     <string name="IOS_TEST_VALUE">TESTVALUE</string>
 

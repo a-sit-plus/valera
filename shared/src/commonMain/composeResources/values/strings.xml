@@ -1,7 +1,7 @@
 <resources>
     <string name="camera_access_denied">UNTRANSLATED:camera_access_denied</string>
 
-    <string name="WARNING">UNTRANSLATED:WARNING</string>
+    <string name="warning">UNTRANSLATED:warning</string>
     <string name="RESET_APP_ALERT_TEXT">UNTRANSLATED:RESET_APP_ALERT_TEXT</string>
     <string name="IOS_TEST_VALUE">UNTRANSLATED:IOS_TEST_VALUE</string>
 

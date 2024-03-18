@@ -63,7 +63,7 @@ import composewalletapp.shared.generated.resources.TEXT_LABEL_BUILD
 import composewalletapp.shared.generated.resources.TEXT_LABEL_ID_FORMAT
 import composewalletapp.shared.generated.resources.TEXT_LABEL_ISSUING_SERVICE
 import composewalletapp.shared.generated.resources.TEXT_LABEL_STAGE
-import composewalletapp.shared.generated.resources.WARNING
+import composewalletapp.shared.generated.resources.warning
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -391,7 +391,7 @@ private fun ResetAlert(
 ) {
     AlertDialog(
         title = {
-            Text(stringResource(Res.string.WARNING))
+            Text(stringResource(Res.string.warning))
         },
         text = {
             Text(stringResource(Res.string.RESET_APP_ALERT_TEXT))
