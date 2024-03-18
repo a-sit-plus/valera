@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalResourceApi::class, ExperimentalResourceApi::class)
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -60,7 +62,6 @@ import ui.screens.OnboardingWrapper
 import ui.screens.ProvisioningLoadingScreen
 import ui.screens.SettingsScreen
 
-@OptIn(ExperimentalResourceApi::class)
 private enum class NavigationData(
     val title: StringResource,
     val icon: @Composable () -> Unit,

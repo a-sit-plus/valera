@@ -1,5 +1,3 @@
-package ui.composables
-
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
