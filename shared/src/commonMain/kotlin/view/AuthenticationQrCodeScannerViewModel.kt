@@ -1,6 +1,8 @@
-package ui.screens
+package view
 
 import at.asitplus.wallet.lib.jws.VerifierJwsService
+import composewalletapp.shared.generated.resources.ERROR_QR_CODE_SCANNING_CLIENT_ID_NOT_IN_REDICECT_URIS
+import composewalletapp.shared.generated.resources.Res
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import domain.ExtractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase
 import domain.RetrieveFinalAuthenticationRequestUriFromAuthenticationRequestUriUseCase
@@ -12,8 +14,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
+import navigation.AuthenticationConsentPage
 import org.jetbrains.compose.resources.ExperimentalResourceApi
-import ui.navigation.AuthenticationConsentPage
+import org.jetbrains.compose.resources.getString
 
 class AuthenticationQrCodeScannerViewModel(
     private val buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase: BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase,
@@ -77,7 +80,8 @@ class AuthenticationQrCodeScannerViewModel(
             if (!clientMetadataPayload.redirectUris.contains(authenticationRequestParameters.clientId)) {
                 val redirectUris = clientMetadataPayload.redirectUris.joinToString("\n - ")
                 val message =
-                    "Client id not in client metadata redirect uris: ${authenticationRequestParameters.clientId} not in: \n$redirectUris)"
+                    "${getString(Res.string.ERROR_QR_CODE_SCANNING_CLIENT_ID_NOT_IN_REDICECT_URIS)}:" +
+                            " ${authenticationRequestParameters.clientId} not in: \n$redirectUris)"
                 throw Exception(message)
             } else {
                 Napier.d("Valid client id: ${authenticationRequestParameters.clientId}")

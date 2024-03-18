@@ -1,7 +1,7 @@
 package data.storage
 
+import Configuration
 import ErrorService
-import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.lib.data.jsonSerializer
 import io.ktor.client.plugins.cookies.CookiesStorage
 import io.ktor.http.Cookie

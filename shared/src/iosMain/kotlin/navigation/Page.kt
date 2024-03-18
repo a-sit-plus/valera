@@ -1,4 +1,4 @@
-package ui.navigation
+package navigation
 
 actual class HomePage : Page
 

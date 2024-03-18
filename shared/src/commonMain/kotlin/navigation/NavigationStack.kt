@@ -1,4 +1,4 @@
-package ui.navigation
+package navigation
 
 import androidx.compose.runtime.mutableStateListOf
 

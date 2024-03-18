@@ -1,4 +1,4 @@
-package ui.navigation
+package navigation
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize

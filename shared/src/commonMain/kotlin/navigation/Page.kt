@@ -1,4 +1,4 @@
-package ui.navigation
+package navigation
 
 interface Page
 
