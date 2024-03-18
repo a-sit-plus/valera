@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalResourceApi::class)
 
-package view
+package ui.screens
 
 import UncorrectableErrorException
 import androidx.compose.foundation.background
@@ -45,7 +45,7 @@ import org.jetbrains.compose.resources.stringResource
 import ui.composables.TextIconButton
 import ui.composables.buttons.NavigateUpButton
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
 @Composable
 fun ErrorScreen(
     walletMain: WalletMain

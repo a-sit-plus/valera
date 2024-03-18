@@ -1,4 +1,4 @@
-package view
+package ui.screens
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,7 +15,7 @@ import at.asitplus.wallet.app.common.WalletMain
 import composewalletapp.shared.generated.resources.HEADING_LABEL_AUTHENTICATE_AT_DEVICE_SUBTITLE
 import composewalletapp.shared.generated.resources.HEADING_LABEL_AUTHENTICATE_AT_DEVICE_TITLE
 import composewalletapp.shared.generated.resources.Res
-import navigation.AuthenticationConsentPage
+import ui.navigation.AuthenticationConsentPage
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton

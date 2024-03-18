@@ -1,4 +1,4 @@
-package navigation
+package ui.navigation
 
 actual class HomePage actual constructor() : Page
 

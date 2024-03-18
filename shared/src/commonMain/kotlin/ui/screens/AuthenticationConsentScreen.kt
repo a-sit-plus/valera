@@ -1,4 +1,4 @@
-package view
+package ui.screens
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState

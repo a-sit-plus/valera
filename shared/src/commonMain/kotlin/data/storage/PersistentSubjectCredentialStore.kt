@@ -1,7 +1,7 @@
 package data.storage
 
-import Configuration
 import at.asitplus.KmmResult
+import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex

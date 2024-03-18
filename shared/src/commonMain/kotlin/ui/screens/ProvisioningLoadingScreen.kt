@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalResourceApi::class)
 
-package view
+package ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -33,7 +33,7 @@ import org.jetbrains.compose.resources.stringResource
 import ui.composables.BiometryPrompt
 import ui.composables.buttons.NavigateUpButton
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
 @Composable
 fun ProvisioningLoadingScreen(
     link: String,
