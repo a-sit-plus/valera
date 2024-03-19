@@ -1,19 +1,27 @@
+import at.asitplus.gradle.env
+import at.asitplus.gradle.envExtra
+import org.jetbrains.kotlin.gradle.plugin.extraProperties
+
 plugins {
     kotlin("multiplatform")
     id("com.android.application")
+    id("at.asitplus.gradle.conventions")
     id("org.jetbrains.compose")
 }
 
 kotlin {
     androidTarget()
     sourceSets {
-        val androidMain by getting {
+        androidMain {
             dependencies {
                 implementation(project(":shared"))
             }
         }
     }
 }
+
+val apkSignerPassword =
+    (findProperty("android.cert.password") as String?) ?: System.getenv("ANDROID_CERT_PASSWORD")
 
 android {
     compileSdk = (findProperty("android.compileSdk") as String).toInt()
@@ -24,15 +32,15 @@ android {
     signingConfigs {
         getByName("debug") {
             storeFile = file("keystore.p12")
-            storePassword = (findProperty("android.cert.password") as String?) ?: System.getenv("ANDROID_CERT_PASSWORD")
+            storePassword = apkSignerPassword
             keyAlias = "key0"
-            keyPassword = findProperty("android.cert.password") as String? ?: System.getenv("ANDROID_CERT_PASSWORD")
+            keyPassword = apkSignerPassword
         }
         create("release") {
             storeFile = file("keystore.p12")
-            storePassword = findProperty("android.cert.password") as String? ?: System.getenv("ANDROID_CERT_PASSWORD")
+            storePassword = apkSignerPassword
             keyAlias = "key0"
-            keyPassword = findProperty("android.cert.password") as String? ?: System.getenv("ANDROID_CERT_PASSWORD")
+            keyPassword = apkSignerPassword
         }
     }
     defaultConfig {
@@ -54,13 +62,7 @@ android {
             signingConfig = signingConfigs.getByName("release")
         }
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-    kotlin {
-        jvmToolchain(17)
-    }
+
     packaging {
         resources.excludes.add("META-INF/versions/9/previous-compilation-data.bin")
     }

@@ -1,4 +1,4 @@
-package ui.screens
+package view
 
 import at.asitplus.wallet.lib.jws.VerifierJwsService
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
@@ -74,14 +74,16 @@ class AuthenticationQrCodeScannerViewModel(
             val authenticationRequestParameters =
                 extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase(link)
 
-            if (!clientMetadataPayload.redirectUris.contains(authenticationRequestParameters.clientId)) {
-                val redirectUris = clientMetadataPayload.redirectUris.joinToString("\n - ")
-                val message =
-                    "Client id not in client metadata redirect uris: ${authenticationRequestParameters.clientId} not in: \n$redirectUris)"
-                throw Exception(message)
-            } else {
-                Napier.d("Valid client id: ${authenticationRequestParameters.clientId}")
-            }
+            clientMetadataPayload.redirectUris?.run {
+                if (!contains(authenticationRequestParameters.clientId)) {
+                    val redirectUris = joinToString("\n - ")
+                    val message =
+                        "Client id not in client metadata redirect uris: ${authenticationRequestParameters.clientId} not in: \n$redirectUris)"
+                    throw Throwable(message)
+                } else {
+                    Napier.d("Valid client id: ${authenticationRequestParameters.clientId}")
+                }
+            } ?: throw Throwable("No redirect URIs specified")
 
             val authenticationConsentPage =
                 buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(link).let {

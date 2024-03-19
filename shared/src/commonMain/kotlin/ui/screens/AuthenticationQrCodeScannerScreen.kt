@@ -20,6 +20,7 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton
 import ui.views.CameraView
+import view.AuthenticationQrCodeScannerViewModel
 
 @Composable
 fun AuthenticationQrCodeScannerScreen(

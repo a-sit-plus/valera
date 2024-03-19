@@ -1,7 +1,7 @@
 package domain
 
+import at.asitplus.crypto.datatypes.jws.JwsSigned
 import at.asitplus.wallet.lib.data.jsonSerializer
-import at.asitplus.wallet.lib.jws.JwsSigned
 import at.asitplus.wallet.lib.jws.VerifierJwsService
 import at.asitplus.wallet.lib.oidc.RelyingPartyMetadata
 import io.github.aakira.napier.Napier
@@ -14,7 +14,6 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
-@OptIn(ExperimentalResourceApi::class)
 class RetrieveRelyingPartyMetadataFromAuthenticationRequestUriUseCase(
     private val extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase: ExtractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase,
     private val client: HttpClient,
@@ -32,7 +31,7 @@ class RetrieveRelyingPartyMetadataFromAuthenticationRequestUriUseCase(
                         throw Exception("Invalid metadataJws: ${metadataResponse.bodyAsText()}")
                     }
 
-                    if (!verifierJwsService.verifyJwsObject(metadataJws, null)) {
+                    if (!verifierJwsService.verifyJwsObject(metadataJws)) {
                         throw Exception("Invalid metadataJws signature: ${metadataResponse.bodyAsText()}")
                     }
 

@@ -49,7 +49,6 @@ import ui.navigation.RefreshCredentialsPage
 import ui.navigation.SettingsPage
 import ui.screens.AuthenticationConsentScreen
 import ui.screens.AuthenticationQrCodeScannerScreen
-import ui.screens.AuthenticationQrCodeScannerViewModel
 import ui.screens.AuthenticationSuccessScreen
 import ui.screens.ErrorScreen
 import ui.screens.LoadDataScreen
@@ -59,6 +58,7 @@ import ui.screens.MyCredentialsScreen
 import ui.screens.OnboardingWrapper
 import ui.screens.ProvisioningLoadingScreen
 import ui.screens.SettingsScreen
+import view.AuthenticationQrCodeScannerViewModel
 
 @OptIn(ExperimentalResourceApi::class)
 private enum class NavigationData(

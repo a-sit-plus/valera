@@ -1,8 +1,10 @@
-
+import at.asitplus.gradle.datetime
+import at.asitplus.gradle.exportIosFramework
+import at.asitplus.gradle.kmmresult
+import at.asitplus.gradle.ktor
 import at.asitplus.gradle.napier
 import at.asitplus.gradle.serialization
-
-val ktorVersion = extra["ktor.version"] as String
+import org.jetbrains.kotlin.gradle.plugin.extraProperties
 
 plugins {
     kotlin("multiplatform")
@@ -15,24 +17,13 @@ plugins {
 
 kotlin {
     androidTarget()
-
-    listOf(
-        iosX64(),
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { iosTarget ->
-        iosTarget.binaries.framework {
-            baseName = "shared"
-            isStatic = true
-            export("at.asitplus.wallet:vclib:3.3.0")
-            export("at.asitplus.wallet:idacredential:3.3.0")
-            export("at.asitplus:kmmresult:1.5.3")
-            export(napier())
-        }
-    }
+    jvm()
+    iosX64()
+    iosArm64()
+    iosSimulatorArm64()
 
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 implementation("androidx.biometric:biometric:1.2.0-alpha05")
 
@@ -42,40 +33,34 @@ kotlin {
                 implementation(compose.materialIconsExtended)
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
-                api("at.asitplus.wallet:vclib-openid:3.3.0")
-                api("at.asitplus.wallet:vclib:3.3.0")
-                api("at.asitplus.wallet:idacredential:3.3.0")
+                api(libs.vclib.openid)
+                api(libs.vclib)
+                api(libs.credential.ida)
                 implementation(serialization("json"))
                 api(napier())
                 implementation("androidx.datastore:datastore-preferences-core:1.1.0-alpha07")
                 implementation("androidx.datastore:datastore-core-okio:1.1.0-alpha07")
-                implementation("org.jetbrains.kotlinx:atomicfu:0.21.0")
-                implementation("io.ktor:ktor-client-core:$ktorVersion")
-                implementation("io.ktor:ktor-client-cio:$ktorVersion")
-                implementation ("io.ktor:ktor-client-logging:$ktorVersion")
-                implementation ("io.ktor:ktor-client-content-negotiation:$ktorVersion")
-                implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+                implementation(libs.atomicfu)
+                implementation(ktor("client-core"))
+                implementation(ktor("client-cio"))
+                implementation(ktor("client-logging"))
+                implementation(ktor("client-content-negotiation"))
+                implementation(ktor("serialization-kotlinx-json"))
             }
         }
-        
-        val commonTest by getting {
+
+        commonTest {
             dependencies {
                 implementation(kotlin("test"))
             }
         }
 
-        val androidMain by getting {
+        androidMain {
             dependencies {
                 api("androidx.activity:activity-compose:1.8.1")
                 api("androidx.appcompat:appcompat:1.6.1")
                 api("androidx.core:core-ktx:1.12.0")
-
-                implementation ("io.ktor:ktor-client-content-negotiation:$ktorVersion")
-                implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion")
-                implementation ("io.ktor:ktor-client-cio-jvm:$ktorVersion")
-                implementation ("io.ktor:ktor-client-logging:$ktorVersion")
-                implementation ("io.ktor:ktor-client-logging-jvm:$ktorVersion")
-                implementation ("uk.uuid.slf4j:slf4j-android:1.7.30-0")
+                implementation("uk.uuid.slf4j:slf4j-android:1.7.30-0")
 
                 implementation("androidx.camera:camera-camera2:1.3.0")
                 implementation("androidx.camera:camera-lifecycle:1.3.0")
@@ -92,24 +77,26 @@ kotlin {
                 implementation("androidx.compose.ui:ui-test-manifest")
             }
         }
-
-        val iosX64Main by getting
-        val iosArm64Main by getting
-        val iosSimulatorArm64Main by getting
-        val iosMain by creating {
-            dependsOn(commonMain)
-            iosX64Main.dependsOn(this)
-            iosArm64Main.dependsOn(this)
-            iosSimulatorArm64Main.dependsOn(this)
-            dependencies{
-                implementation("io.ktor:ktor-client-darwin:$ktorVersion")
-            }
-        }
+        iosMain { dependencies { implementation(ktor("client-darwin")) } }
     }
 }
 
+exportIosFramework(
+    name = "shared", static = true, libs.vclib,
+    libs.credential.ida,
+    datetime(),
+    libs.bignum,
+    kmmresult(),
+    libs.kmpCrypto,
+    libs.kmpCrypto.jws,
+    libs.kmpCrypto.cose,
+    libs.base16,
+    libs.base64,
+    napier()
+)
+
 android {
-    compileSdk = (findProperty("android.compileSdk") as String).toInt()
+    compileSdk = (extraProperties["android.compileSdk"] as String).toInt()
     namespace = "at.asitplus.wallet.app.common"
 
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
@@ -117,16 +104,10 @@ android {
     sourceSets["main"].resources.srcDirs("src/commonMain/resources")
 
     defaultConfig {
-        minSdk = (findProperty("android.minSdk") as String).toInt()
+        minSdk = (extraProperties["android.minSdk"] as String).toInt()
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-    kotlin {
-        jvmToolchain(17)
-    }
+
     packaging {
         resources.excludes.add("META-INF/versions/9/previous-compilation-data.bin")
     }
