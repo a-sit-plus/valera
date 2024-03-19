@@ -7,7 +7,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import composewalletapp.shared.generated.resources.BUTTON_LABEL_CONCLUDE
+import composewalletapp.shared.generated.resources.button_label_conclude
 import composewalletapp.shared.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
@@ -28,7 +28,7 @@ fun ConcludeButton(
         },
         text = {
             Text(
-                stringResource(Res.string.BUTTON_LABEL_CONCLUDE),
+                stringResource(Res.string.button_label_conclude),
                 textAlign = TextAlign.Center,
             )
         },

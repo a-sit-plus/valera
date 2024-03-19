@@ -1,4 +1,4 @@
-package view
+package ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -22,7 +22,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.app.common.WalletMain
-import composewalletapp.shared.generated.resources.HEADING_LABEL_LOG_SCREEN
+import composewalletapp.shared.generated.resources.heading_label_log_screen
 import composewalletapp.shared.generated.resources.Res
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -66,7 +66,7 @@ fun LogView(
             TopAppBar(
                 title = {
                     Text(
-                        stringResource(Res.string.HEADING_LABEL_LOG_SCREEN),
+                        stringResource(Res.string.heading_label_log_screen),
                         style = MaterialTheme.typography.headlineLarge,
                     )
                 },

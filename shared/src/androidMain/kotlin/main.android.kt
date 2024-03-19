@@ -14,6 +14,7 @@ import at.asitplus.KmmResult
 import at.asitplus.crypto.datatypes.pki.X509Certificate
 import at.asitplus.wallet.app.android.AndroidCryptoService
 import at.asitplus.wallet.app.android.AndroidKeyStoreService
+import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.HolderKeyService
 import at.asitplus.wallet.app.common.ObjectFactory
 import at.asitplus.wallet.app.common.PlatformAdapter

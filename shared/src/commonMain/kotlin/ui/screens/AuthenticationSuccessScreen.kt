@@ -1,4 +1,4 @@
-package view
+package ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,8 +19,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import composewalletapp.shared.generated.resources.HEADING_LABEL_AUTHENTICATION_SUCCESS
-import composewalletapp.shared.generated.resources.INFO_TEXT_AUTHENTICATION_SUCCESS
+import composewalletapp.shared.generated.resources.heading_label_authentication_success
+import composewalletapp.shared.generated.resources.info_text_authentication_success
 import composewalletapp.shared.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
@@ -47,7 +47,7 @@ fun AuthenticationSuccessView(
             TopAppBar(
                 title = {
                     Text(
-                        stringResource(Res.string.HEADING_LABEL_AUTHENTICATION_SUCCESS),
+                        stringResource(Res.string.heading_label_authentication_success),
                         style = MaterialTheme.typography.headlineLarge,
                     )
                 },
@@ -76,7 +76,7 @@ fun AuthenticationSuccessView(
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                stringResource(Res.string.INFO_TEXT_AUTHENTICATION_SUCCESS),
+                stringResource(Res.string.info_text_authentication_success),
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
             )

@@ -1,3 +1,5 @@
+package at.asitplus.wallet.app.common
+
 object Configuration {
     val BUILD_FOR_STAGE = BuildEnvironment.Development.abbreviation
     val USER_AUTHENTICATION_TIMEOUT = 5 * 60

@@ -1,3 +1,5 @@
+package at.asitplus.wallet.app.common
+
 enum class BuildEnvironment(val abbreviation: String) {
     Development("D"),
     QualityAssurance("Q"),

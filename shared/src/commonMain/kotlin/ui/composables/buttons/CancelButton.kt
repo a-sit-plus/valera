@@ -8,12 +8,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import composewalletapp.shared.generated.resources.BUTTON_LABEL_CANCEL
 import composewalletapp.shared.generated.resources.Res
+import composewalletapp.shared.generated.resources.button_label_cancel
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.OutlinedTextIconButton
 
+@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun CancelButton(
     onClick: () -> Unit,
@@ -27,7 +28,7 @@ fun CancelButton(
             )
         },
         text = {
-            Text(stringResource(Res.string.BUTTON_LABEL_CANCEL))
+            Text(stringResource(Res.string.button_label_cancel))
         },
         onClick = onClick,
         modifier = modifier,

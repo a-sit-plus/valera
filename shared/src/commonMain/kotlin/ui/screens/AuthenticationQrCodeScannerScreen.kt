@@ -1,4 +1,4 @@
-package view
+package ui.screens
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,14 +12,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import at.asitplus.wallet.app.common.WalletMain
-import composewalletapp.shared.generated.resources.HEADING_LABEL_AUTHENTICATE_AT_DEVICE_SUBTITLE
-import composewalletapp.shared.generated.resources.HEADING_LABEL_AUTHENTICATE_AT_DEVICE_TITLE
+import composewalletapp.shared.generated.resources.heading_label_authenticate_at_device_subtitle
+import composewalletapp.shared.generated.resources.heading_label_authenticate_at_device_title
 import composewalletapp.shared.generated.resources.Res
-import navigation.AuthenticationConsentPage
+import ui.navigation.AuthenticationConsentPage
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton
 import ui.views.CameraView
+import view.AuthenticationQrCodeScannerViewModel
 
 @Composable
 fun AuthenticationQrCodeScannerScreen(
@@ -59,11 +60,11 @@ fun AuthenticationQrCodeScannerView(
                 title = {
                     Column {
                         Text(
-                            stringResource(Res.string.HEADING_LABEL_AUTHENTICATE_AT_DEVICE_TITLE),
+                            stringResource(Res.string.heading_label_authenticate_at_device_title),
                             style = MaterialTheme.typography.headlineLarge,
                         )
                         Text(
-                            stringResource(Res.string.HEADING_LABEL_AUTHENTICATE_AT_DEVICE_SUBTITLE),
+                            stringResource(Res.string.heading_label_authenticate_at_device_subtitle),
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.tertiary,

@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalResourceApi::class, ExperimentalResourceApi::class)
-
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -19,12 +17,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.jws.DefaultVerifierJwsService
-import composewalletapp.shared.generated.resources.NAVIGATION_BUTTON_LABEL_MY_DATA
-import composewalletapp.shared.generated.resources.NAVIGATION_BUTTON_LABEL_SETTINGS
-import composewalletapp.shared.generated.resources.NAVIGATION_BUTTON_LABEL_SHOW_DATA
+import composewalletapp.shared.generated.resources.navigation_button_label_my_data
+import composewalletapp.shared.generated.resources.navigation_button_label_settings
+import composewalletapp.shared.generated.resources.navigation_button_label_show_data
 import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.SNACKBAR_RESET_APP_SUCCESSFULLY
-import composewalletapp.shared.generated.resources.UNKNOWN_EXCEPTION
+import composewalletapp.shared.generated.resources.snackbar_reset_app_successfully
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import domain.ExtractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase
 import domain.RetrieveFinalAuthenticationRequestUriFromAuthenticationRequestUriUseCase
@@ -35,34 +32,35 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import navigation.AuthenticationConsentPage
-import navigation.AuthenticationLoadingPage
-import navigation.AuthenticationQrCodeScannerPage
-import navigation.AuthenticationSuccessPage
-import navigation.HomePage
-import navigation.LogPage
-import navigation.NavigationStack
-import navigation.Page
-import navigation.ProvisioningLoadingPage
-import navigation.RefreshCredentialsPage
-import navigation.SettingsPage
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
-import view.AuthenticationConsentScreen
-import view.AuthenticationQrCodeScannerScreen
+import ui.navigation.AuthenticationConsentPage
+import ui.navigation.AuthenticationLoadingPage
+import ui.navigation.AuthenticationQrCodeScannerPage
+import ui.navigation.AuthenticationSuccessPage
+import ui.navigation.HomePage
+import ui.navigation.LogPage
+import ui.navigation.NavigationStack
+import ui.navigation.Page
+import ui.navigation.ProvisioningLoadingPage
+import ui.navigation.RefreshCredentialsPage
+import ui.navigation.SettingsPage
+import ui.screens.AuthenticationConsentScreen
+import ui.screens.AuthenticationQrCodeScannerScreen
+import ui.screens.AuthenticationSuccessScreen
+import ui.screens.ErrorScreen
+import ui.screens.LoadDataScreen
+import ui.screens.LoadingScreen
+import ui.screens.LogScreen
+import ui.screens.MyCredentialsScreen
+import ui.screens.OnboardingWrapper
+import ui.screens.ProvisioningLoadingScreen
+import ui.screens.SettingsScreen
 import view.AuthenticationQrCodeScannerViewModel
-import view.AuthenticationSuccessScreen
-import view.ErrorScreen
-import view.LoadDataScreen
-import view.LoadingScreen
-import view.LogScreen
-import view.MyCredentialsScreen
-import view.OnboardingWrapper
-import view.ProvisioningLoadingScreen
-import view.SettingsScreen
 
+@OptIn(ExperimentalResourceApi::class)
 private enum class NavigationData(
     val title: StringResource,
     val icon: @Composable () -> Unit,
@@ -70,7 +68,7 @@ private enum class NavigationData(
     val isActive: (Page) -> Boolean
 ) {
     HOME_SCREEN(
-        title = Res.string.NAVIGATION_BUTTON_LABEL_MY_DATA,
+        title = Res.string.navigation_button_label_my_data,
         icon = {
             Icon(
                 imageVector = Icons.Default.Person,
@@ -86,7 +84,7 @@ private enum class NavigationData(
         },
     ),
     AUTHENTICATION_SCANNING_SCREEN(
-        title = Res.string.NAVIGATION_BUTTON_LABEL_SHOW_DATA,
+        title = Res.string.navigation_button_label_show_data,
         icon = {
             Icon(
                 imageVector = Icons.Default.QrCodeScanner,
@@ -102,7 +100,7 @@ private enum class NavigationData(
         },
     ),
     INFORMATION_SCREEN(
-        title = Res.string.NAVIGATION_BUTTON_LABEL_SETTINGS,
+        title = Res.string.navigation_button_label_settings,
         icon = {
             Icon(
                 imageVector = Icons.Default.Settings,
@@ -119,6 +117,7 @@ private enum class NavigationData(
     ),
 }
 
+@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun Navigator(walletMain: WalletMain) {
     // Modified from https://github.com/JetBrains/compose-multiplatform/tree/master/examples/imageviewer
@@ -145,9 +144,7 @@ fun Navigator(walletMain: WalletMain) {
                 runBlocking {
                     walletMain.errorService.emit(
                         Exception(
-                            pars["error_description"] ?: getString(
-                                Res.string.UNKNOWN_EXCEPTION
-                            )
+                            pars["error_description"] ?: "Unknown Exception"
                         )
                     )
                 }
@@ -287,7 +284,7 @@ fun MainNavigator(
                             onClickResetApp = {
                                 val resetMessage = runBlocking {
                                     walletMain.resetApp()
-                                    getString(Res.string.SNACKBAR_RESET_APP_SUCCESSFULLY)
+                                    getString(Res.string.snackbar_reset_app_successfully)
                                 }
                                 walletMain.snackbarService.showSnackbar(resetMessage)
                                 navigationStack.reset()
