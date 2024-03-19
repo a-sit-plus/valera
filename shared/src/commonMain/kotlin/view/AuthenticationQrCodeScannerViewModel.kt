@@ -77,15 +77,17 @@ class AuthenticationQrCodeScannerViewModel(
             val authenticationRequestParameters =
                 extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase(link)
 
-            if (!clientMetadataPayload.redirectUris!!.contains(authenticationRequestParameters.clientId)) {
-                val redirectUris = clientMetadataPayload.redirectUris!!.joinToString("\n - ")
-                val message =
-                    "${getString(Res.string.ERROR_QR_CODE_SCANNING_CLIENT_ID_NOT_IN_REDICECT_URIS)}:" +
-                            " ${authenticationRequestParameters.clientId} not in: \n$redirectUris)"
-                throw Exception(message)
-            } else {
-                Napier.d("Valid client id: ${authenticationRequestParameters.clientId}")
-            }
+            clientMetadataPayload.redirectUris?.run {
+                if (!contains(authenticationRequestParameters.clientId)) {
+                    val redirectUris = joinToString("\n - ")
+                    val message =
+                        "${getString(Res.string.ERROR_QR_CODE_SCANNING_CLIENT_ID_NOT_IN_REDICECT_URIS)}:" +
+                                " ${authenticationRequestParameters.clientId} not in: \n$redirectUris)"
+                    throw Throwable(message)
+                } else {
+                    Napier.d("Valid client id: ${authenticationRequestParameters.clientId}")
+                }
+            } ?: throw Throwable("No redirect URIs specified")
 
             val authenticationConsentPage =
                 buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(link).let {

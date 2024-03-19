@@ -21,8 +21,7 @@ kotlin {
 }
 
 val apkSignerPassword =
-    (findProperty("android.cert.password") as String?) ?: env("ANDROID_CERT_PASSWORD")
-
+    (findProperty("android.cert.password") as String?) ?: System.getenv("ANDROID_CERT_PASSWORD")
 
 android {
     compileSdk = (findProperty("android.compileSdk") as String).toInt()
