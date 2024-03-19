@@ -6,9 +6,3 @@ plugins {
     id("org.jetbrains.compose").apply(false)
     id("at.asitplus.gradle.conventions") version "1.9.23+20240319"
 }
-
-allprojects {
-    repositories {
-        mavenLocal()
-    }
-}
