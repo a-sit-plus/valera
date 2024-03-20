@@ -92,7 +92,7 @@ fun ColumnScope.MyDataView(
     if (residenceData != null) {
         if (
             listOf(
-                residenceData.villageName != null,
+                residenceData.townName != null,
                 residenceData.postalCode != null,
                 residenceData.streetName != null,
                 residenceData.houseNumber != null,

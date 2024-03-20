@@ -8,11 +8,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import composewalletapp.shared.generated.resources.error_authentication_at_sp_failed
 import composewalletapp.shared.generated.resources.Res
 import data.CredentialExtractor
-import data.idAustriaAttributeTranslation
+import data.attributeTranslation
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.getString
@@ -44,7 +45,7 @@ fun AuthenticationConsentScreen(
         val claimAvailabilities = claims.associateWith { claim ->
             AttributeAvailability(
                 attributeName = claim,
-                isAvailable = credentialExtractor.containsIdAustriaAttribute(claim)
+                isAvailable = credentialExtractor.containsAttribute(claim),
             )
         }
 
@@ -52,8 +53,11 @@ fun AuthenticationConsentScreen(
             Pair(
                 PersonalDataCategory.IdentityData, listOfNotNull(
                     claimAvailabilities[IdAustriaScheme.Attributes.FIRSTNAME],
+                    claimAvailabilities[EuPidScheme.Attributes.GIVEN_NAME],
                     claimAvailabilities[IdAustriaScheme.Attributes.LASTNAME],
+                    claimAvailabilities[EuPidScheme.Attributes.FAMILY_NAME],
                     claimAvailabilities[IdAustriaScheme.Attributes.DATE_OF_BIRTH],
+                    claimAvailabilities[EuPidScheme.Attributes.BIRTH_DATE],
                     claimAvailabilities[IdAustriaScheme.Attributes.PORTRAIT],
                 )
             ),
@@ -62,6 +66,7 @@ fun AuthenticationConsentScreen(
                     claimAvailabilities[IdAustriaScheme.Attributes.AGE_OVER_14],
                     claimAvailabilities[IdAustriaScheme.Attributes.AGE_OVER_16],
                     claimAvailabilities[IdAustriaScheme.Attributes.AGE_OVER_18],
+                    claimAvailabilities[EuPidScheme.Attributes.AGE_OVER_18],
                     claimAvailabilities[IdAustriaScheme.Attributes.AGE_OVER_21],
                 )
             ),
@@ -75,7 +80,7 @@ fun AuthenticationConsentScreen(
                 it.first,
                 it.second.map {
                     AttributeAvailability(
-                        attributeName = stringResource(it.attributeName.idAustriaAttributeTranslation),
+                        attributeName = stringResource(it.attributeName.attributeTranslation),
                         isAvailable = it.isAvailable,
                     )
                 }

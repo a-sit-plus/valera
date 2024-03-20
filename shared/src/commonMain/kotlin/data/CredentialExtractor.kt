@@ -1,5 +1,7 @@
 package data
 
+import at.asitplus.wallet.eupid.EuPidCredential
+import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.idaustria.IdAustriaCredential
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
@@ -28,13 +30,16 @@ private val SubjectCredentialStore.StoreEntry.Vc.unsupportedCredentialSubjectMes
 private val SubjectCredentialStore.StoreEntry.SdJwt.unsupportedCredentialSchemeMessage: String
     get() = "Unsupported credential scheme: ${this.scheme}"
 
+private val SubjectCredentialStore.StoreEntry.Iso.unsupportedCredentialSchemeMessage: String
+    get() = "Unsupported credential scheme: ${this.scheme}"
+
 private val SubjectCredentialStore.StoreEntry.unsupportedCredentialStoreEntry: String
     get() = "Unsupported credential store entry: $this"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 @OptIn(ExperimentalResourceApi::class)
-val String.idAustriaAttributeTranslation: StringResource
+val String.attributeTranslation: StringResource
     get() = when (this) {
         IdAustriaScheme.Attributes.BPK -> Res.string.attribute_friendly_name_bpk
         IdAustriaScheme.Attributes.FIRSTNAME -> Res.string.attribute_friendly_name_firstname
@@ -46,11 +51,18 @@ val String.idAustriaAttributeTranslation: StringResource
         IdAustriaScheme.Attributes.AGE_OVER_18 -> Res.string.attribute_friendly_name_age_at_least_18
         IdAustriaScheme.Attributes.AGE_OVER_21 -> Res.string.attribute_friendly_name_age_at_least_21
         IdAustriaScheme.Attributes.MAIN_ADDRESS -> Res.string.attribute_friendly_name_main_address
+
+        EuPidScheme.Attributes.GIVEN_NAME -> Res.string.attribute_friendly_name_firstname
+        EuPidScheme.Attributes.FAMILY_NAME -> Res.string.attribute_friendly_name_lastname
+        EuPidScheme.Attributes.BIRTH_DATE -> Res.string.attribute_friendly_name_date_of_birth
+        EuPidScheme.Attributes.AGE_OVER_18 -> Res.string.attribute_friendly_name_age_at_least_18
+        EuPidScheme.Attributes.RESIDENT_ADDRESS -> Res.string.attribute_friendly_name_main_address
+
         else -> throw Exception("Unsupported IdAustria attribute name: $this")
     }
 
 @Serializable
-private data class MainAddressAdapter(
+private data class IdAustriaMainAddressAdapter(
     val Gemeindekennziffer: String? = null,
     val Gemeindebezeichnung: String? = null,
     val Postleitzahl: String? = null,
@@ -62,283 +74,769 @@ private data class MainAddressAdapter(
 )
 
 class CredentialExtractor(
-    credentials: List<SubjectCredentialStore.StoreEntry>,
+    private val credentials: List<SubjectCredentialStore.StoreEntry>,
 ) {
-    fun containsIdAustriaAttribute(attributeName: String): Boolean {
+    // TODO: might not contain sufficient context information
+    fun getAttributeByName(attributeName: String): Any? {
         return when (attributeName) {
-            IdAustriaScheme.Attributes.FIRSTNAME -> this.firstname != null
-            IdAustriaScheme.Attributes.LASTNAME -> this.lastname != null
+            IdAustriaScheme.Attributes.FIRSTNAME -> this.givenName
+            IdAustriaScheme.Attributes.LASTNAME -> this.familyName
+            IdAustriaScheme.Attributes.DATE_OF_BIRTH -> this.dateOfBirth
+            IdAustriaScheme.Attributes.PORTRAIT -> this.portrait
+            IdAustriaScheme.Attributes.AGE_OVER_14 -> this.ageAtLeast14
+            IdAustriaScheme.Attributes.AGE_OVER_16 -> this.ageAtLeast16
+            IdAustriaScheme.Attributes.AGE_OVER_18 -> this.ageAtLeast18
+            IdAustriaScheme.Attributes.AGE_OVER_21 -> this.ageAtLeast21
+            IdAustriaScheme.Attributes.MAIN_ADDRESS -> this.idAustriaCredentialMainAddressAdapter
+
+            EuPidScheme.Attributes.GIVEN_NAME -> this.givenName
+            EuPidScheme.Attributes.FAMILY_NAME -> this.familyName
+            EuPidScheme.Attributes.BIRTH_DATE -> this.dateOfBirth
+            EuPidScheme.Attributes.AGE_OVER_18 -> this.ageAtLeast18
+            EuPidScheme.Attributes.RESIDENT_STREET -> this.mainResidenceStreetName
+            EuPidScheme.Attributes.RESIDENT_CITY -> this.mainResidenceTownName
+            EuPidScheme.Attributes.RESIDENT_POSTAL_CODE -> this.mainResidencePostalCode
+            EuPidScheme.Attributes.RESIDENT_HOUSE_NUMBER -> this.mainResidenceHouseNumber
+            EuPidScheme.Attributes.RESIDENT_COUNTRY -> this.mainResidenceCountryName
+            EuPidScheme.Attributes.RESIDENT_STATE -> this.mainResidenceStateName
+
+            else -> null
+        }
+    }
+
+    // TODO: might not contain sufficient context information
+    fun containsAttribute(attributeName: String): Boolean {
+        return when (attributeName) {
+            IdAustriaScheme.Attributes.FIRSTNAME -> this.givenName != null
+            IdAustriaScheme.Attributes.LASTNAME -> this.familyName != null
             IdAustriaScheme.Attributes.DATE_OF_BIRTH -> this.dateOfBirth != null
             IdAustriaScheme.Attributes.PORTRAIT -> this.portrait != null
             IdAustriaScheme.Attributes.AGE_OVER_14 -> this.ageAtLeast14 != null
             IdAustriaScheme.Attributes.AGE_OVER_16 -> this.ageAtLeast16 != null
             IdAustriaScheme.Attributes.AGE_OVER_18 -> this.ageAtLeast18 != null
             IdAustriaScheme.Attributes.AGE_OVER_21 -> this.ageAtLeast21 != null
-            IdAustriaScheme.Attributes.MAIN_ADDRESS -> this.mainAddress != null
+            IdAustriaScheme.Attributes.MAIN_ADDRESS -> this.idAustriaCredentialMainAddressAdapter != null
+
+            EuPidScheme.Attributes.GIVEN_NAME -> this.givenName != null
+            EuPidScheme.Attributes.FAMILY_NAME -> this.familyName != null
+            EuPidScheme.Attributes.BIRTH_DATE -> this.dateOfBirth != null
+            EuPidScheme.Attributes.AGE_OVER_18 -> this.ageAtLeast18 != null
+            EuPidScheme.Attributes.RESIDENT_STREET -> this.mainResidenceStreetName != null
+            EuPidScheme.Attributes.RESIDENT_CITY -> this.mainResidenceTownName != null
+            EuPidScheme.Attributes.RESIDENT_POSTAL_CODE -> this.mainResidencePostalCode != null
+            EuPidScheme.Attributes.RESIDENT_HOUSE_NUMBER -> this.mainResidenceHouseNumber != null
+            EuPidScheme.Attributes.RESIDENT_COUNTRY -> this.mainResidenceCountryName != null
+            EuPidScheme.Attributes.RESIDENT_STATE -> this.mainResidenceStateName != null
+
             else -> false
         }
     }
 
-    val firstname: String? = credentials.firstNotNullOfOrNull { credential ->
-        when (credential) {
-            is SubjectCredentialStore.StoreEntry.Vc -> {
-                when (val credentialSubject = credential.vc.vc.credentialSubject) {
-                    is IdAustriaCredential -> {
-                        credentialSubject.firstname
+    val givenName: String?
+        get() = credentials.firstNotNullOfOrNull { credential ->
+            when (credential) {
+                is SubjectCredentialStore.StoreEntry.Vc -> {
+                    when (val credentialSubject = credential.vc.vc.credentialSubject) {
+                        is IdAustriaCredential -> credentialSubject.firstname
+
+                        is EuPidCredential -> credentialSubject.givenName
+
+                        else -> TODO(credential.unsupportedCredentialSubjectMessage)
                     }
-
-                    else -> TODO(credential.unsupportedCredentialSubjectMessage)
                 }
-            }
 
-            is SubjectCredentialStore.StoreEntry.SdJwt -> {
-                when (credential.scheme) {
-                    is IdAustriaScheme -> {
-                        credential.disclosures.filter { it.value?.claimName == IdAustriaScheme.Attributes.FIRSTNAME }
+                is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> credential.disclosures.filter { it.value?.claimName == IdAustriaScheme.Attributes.FIRSTNAME }
                             .firstNotNullOfOrNull { it.value?.claimValue as String }
-                    }
 
-                    else -> TODO(credential.unsupportedCredentialSchemeMessage)
-                }
-            }
 
-            else -> TODO(credential.unsupportedCredentialStoreEntry)
-        }
-    }
-
-    val lastname: String? = credentials.firstNotNullOfOrNull { credential ->
-        when (credential) {
-            is SubjectCredentialStore.StoreEntry.Vc -> {
-                when (val credentialSubject = credential.vc.vc.credentialSubject) {
-                    is IdAustriaCredential -> {
-                        credentialSubject.lastname
-                    }
-
-                    else -> TODO(credential.unsupportedCredentialSubjectMessage)
-                }
-            }
-
-            is SubjectCredentialStore.StoreEntry.SdJwt -> {
-                when (credential.scheme) {
-                    is IdAustriaScheme -> {
-                        credential.disclosures.filter { it.value?.claimName == IdAustriaScheme.Attributes.LASTNAME }
+                        is EuPidScheme -> credential.disclosures.filter { it.value?.claimName == EuPidScheme.Attributes.GIVEN_NAME }
                             .firstNotNullOfOrNull { it.value?.claimValue as String }
+
+
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
                     }
-
-                    else -> TODO(credential.unsupportedCredentialSchemeMessage)
                 }
-            }
 
-            else -> TODO(credential.unsupportedCredentialStoreEntry)
+                is SubjectCredentialStore.StoreEntry.Iso -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> credential.issuerSigned.namespaces?.get(
+                            IdAustriaScheme.isoNamespace
+                        )?.entries?.firstOrNull {
+                            it.value.elementIdentifier == IdAustriaScheme.Attributes.FIRSTNAME
+                        }?.value?.elementValue?.string
+
+                        is EuPidScheme -> credential.issuerSigned.namespaces?.get(EuPidScheme.isoNamespace)?.entries?.firstOrNull {
+                            it.value.elementIdentifier == EuPidScheme.Attributes.GIVEN_NAME
+                        }?.value?.elementValue?.string
+
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
+                    }
+                }
+
+                else -> TODO(credential.unsupportedCredentialStoreEntry)
+            }
         }
-    }
 
-    val dateOfBirth: LocalDate? = credentials.firstNotNullOfOrNull { credential ->
-        when (credential) {
-            is SubjectCredentialStore.StoreEntry.Vc -> {
-                when (val credentialSubject = credential.vc.vc.credentialSubject) {
-                    is IdAustriaCredential -> {
-                        credentialSubject.dateOfBirth
+    val familyName: String?
+        get() = credentials.firstNotNullOfOrNull { credential ->
+            when (credential) {
+                is SubjectCredentialStore.StoreEntry.Vc -> {
+                    when (val credentialSubject = credential.vc.vc.credentialSubject) {
+                        is IdAustriaCredential -> credentialSubject.lastname
+
+                        is EuPidCredential -> credentialSubject.familyName
+
+                        else -> TODO(credential.unsupportedCredentialSubjectMessage)
                     }
-
-                    else -> TODO(credential.unsupportedCredentialSubjectMessage)
                 }
-            }
 
-            is SubjectCredentialStore.StoreEntry.SdJwt -> {
-                when (credential.scheme) {
-                    is IdAustriaScheme -> {
-                        credential.disclosures.filter { it.value?.claimName == IdAustriaScheme.Attributes.DATE_OF_BIRTH }
+                is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> credential.disclosures.filter { it.value?.claimName == IdAustriaScheme.Attributes.LASTNAME }
                             .firstNotNullOfOrNull { it.value?.claimValue as String }
-                            ?.let {
-                                LocalDate.parse(it)
-                            }
+
+                        is EuPidScheme -> credential.disclosures.filter { it.value?.claimName == EuPidScheme.Attributes.FAMILY_NAME }
+                            .firstNotNullOfOrNull { it.value?.claimValue as String }
+
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
                     }
-
-                    else -> TODO(credential.unsupportedCredentialSchemeMessage)
                 }
-            }
 
-            else -> TODO(credential.unsupportedCredentialStoreEntry)
+                is SubjectCredentialStore.StoreEntry.Iso -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> credential.issuerSigned.namespaces?.get(
+                            IdAustriaScheme.isoNamespace
+                        )?.entries?.firstOrNull {
+                            it.value.elementIdentifier == IdAustriaScheme.Attributes.LASTNAME
+                        }?.value?.elementValue?.string
+
+                        is EuPidScheme -> credential.issuerSigned.namespaces?.get(EuPidScheme.isoNamespace)?.entries?.firstOrNull {
+                            it.value.elementIdentifier == EuPidScheme.Attributes.FAMILY_NAME
+                        }?.value?.elementValue?.string
+
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
+                    }
+                }
+
+                else -> TODO(credential.unsupportedCredentialStoreEntry)
+            }
         }
-    }
 
-    val portrait: ByteArray? = credentials.firstNotNullOfOrNull { credential ->
-        when (credential) {
-            is SubjectCredentialStore.StoreEntry.Vc -> {
-                when (val credentialSubject = credential.vc.vc.credentialSubject) {
-                    is IdAustriaCredential -> {
-                        credentialSubject.portrait
+    val dateOfBirth: LocalDate?
+        get() = credentials.firstNotNullOfOrNull { credential ->
+            when (credential) {
+                is SubjectCredentialStore.StoreEntry.Vc -> {
+                    when (val credentialSubject = credential.vc.vc.credentialSubject) {
+                        is IdAustriaCredential -> credentialSubject.dateOfBirth
+
+                        is EuPidCredential -> credentialSubject.birthDate
+
+                        else -> TODO(credential.unsupportedCredentialSubjectMessage)
                     }
-
-                    else -> TODO(credential.unsupportedCredentialSubjectMessage)
                 }
-            }
 
-            is SubjectCredentialStore.StoreEntry.SdJwt -> {
-                when (credential.scheme) {
-                    is IdAustriaScheme -> {
-                        credential.disclosures.filter { it.value?.claimName == IdAustriaScheme.Attributes.PORTRAIT }
+                is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> credential.disclosures.filter { it.value?.claimName == IdAustriaScheme.Attributes.DATE_OF_BIRTH }
+                            .firstNotNullOfOrNull { it.value?.claimValue as String }
+                            ?.let { LocalDate.parse(it) }
+
+                        is EuPidScheme -> credential.disclosures.filter { it.value?.claimName == EuPidScheme.Attributes.BIRTH_DATE }
+                            .firstNotNullOfOrNull { it.value?.claimValue as String }
+                            ?.let { LocalDate.parse(it) }
+
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
+                    }
+                }
+
+                is SubjectCredentialStore.StoreEntry.Iso -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> credential.issuerSigned.namespaces?.get(
+                            IdAustriaScheme.isoNamespace
+                        )?.entries?.firstOrNull {
+                            it.value.elementIdentifier == IdAustriaScheme.Attributes.DATE_OF_BIRTH
+                        }?.value?.elementValue?.date
+
+                        is EuPidScheme -> credential.issuerSigned.namespaces?.get(EuPidScheme.isoNamespace)?.entries?.firstOrNull {
+                            it.value.elementIdentifier == EuPidScheme.Attributes.BIRTH_DATE
+                        }?.value?.elementValue?.date
+
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
+                    }
+                }
+
+                else -> TODO(credential.unsupportedCredentialStoreEntry)
+            }
+        }
+
+    val portrait: ByteArray?
+        get() = credentials.firstNotNullOfOrNull { credential ->
+            when (credential) {
+                is SubjectCredentialStore.StoreEntry.Vc -> {
+                    when (val credentialSubject = credential.vc.vc.credentialSubject) {
+                        is IdAustriaCredential -> credentialSubject.portrait
+
+                        is EuPidCredential -> null
+
+                        else -> TODO(credential.unsupportedCredentialSubjectMessage)
+                    }
+                }
+
+                is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> credential.disclosures.filter { it.value?.claimName == IdAustriaScheme.Attributes.PORTRAIT }
                             .firstNotNullOfOrNull { it.value?.claimValue as String }
                             ?.decodeBase64Bytes()
+
+                        is EuPidScheme -> null
+
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
                     }
-
-                    else -> TODO(credential.unsupportedCredentialSchemeMessage)
                 }
-            }
 
-            else -> TODO(credential.unsupportedCredentialStoreEntry)
+                is SubjectCredentialStore.StoreEntry.Iso -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> credential.issuerSigned.namespaces?.get(
+                            IdAustriaScheme.isoNamespace
+                        )?.entries?.firstOrNull {
+                            it.value.elementIdentifier == IdAustriaScheme.Attributes.PORTRAIT
+                        }?.value?.elementValue?.bytes
+
+                        is EuPidScheme -> null
+
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
+                    }
+                }
+
+                else -> TODO(credential.unsupportedCredentialStoreEntry)
+            }
         }
-    }
 
-    val ageAtLeast14: Boolean? = credentials.firstNotNullOfOrNull { credential ->
-        when (credential) {
-            is SubjectCredentialStore.StoreEntry.Vc -> {
-                when (val credentialSubject = credential.vc.vc.credentialSubject) {
-                    is IdAustriaCredential -> {
-                        credentialSubject.ageOver14
+    val ageAtLeast14: Boolean?
+        get() = credentials.firstNotNullOfOrNull { credential ->
+            when (credential) {
+                is SubjectCredentialStore.StoreEntry.Vc -> {
+                    when (val credentialSubject = credential.vc.vc.credentialSubject) {
+                        is IdAustriaCredential -> credentialSubject.ageOver14
+
+                        is EuPidCredential -> null
+
+                        else -> TODO(credential.unsupportedCredentialSubjectMessage)
                     }
-
-                    else -> TODO(credential.unsupportedCredentialSubjectMessage)
                 }
-            }
 
-            is SubjectCredentialStore.StoreEntry.SdJwt -> {
-                when (credential.scheme) {
-                    is IdAustriaScheme -> {
-                        credential.disclosures.filter { it.value?.claimName == IdAustriaScheme.Attributes.AGE_OVER_14 }
+                is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> credential.disclosures.filter { it.value?.claimName == IdAustriaScheme.Attributes.AGE_OVER_14 }
                             .firstNotNullOfOrNull { it.value?.claimValue as Boolean }
+
+                        is EuPidScheme -> null
+
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
                     }
-
-                    else -> TODO(credential.unsupportedCredentialSchemeMessage)
                 }
-            }
 
-            else -> TODO(credential.unsupportedCredentialStoreEntry)
+                is SubjectCredentialStore.StoreEntry.Iso -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> credential.issuerSigned.namespaces?.get(
+                            IdAustriaScheme.isoNamespace
+                        )?.entries?.firstOrNull {
+                            it.value.elementIdentifier == IdAustriaScheme.Attributes.AGE_OVER_14
+                        }?.value?.elementValue?.boolean
+
+                        is EuPidScheme -> null
+
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
+                    }
+                }
+
+                else -> TODO(credential.unsupportedCredentialStoreEntry)
+            }
         }
-    }
 
-    val ageAtLeast16: Boolean? = credentials.firstNotNullOfOrNull { credential ->
-        when (credential) {
-            is SubjectCredentialStore.StoreEntry.Vc -> {
-                when (val credentialSubject = credential.vc.vc.credentialSubject) {
-                    is IdAustriaCredential -> {
-                        credentialSubject.ageOver16
+    val ageAtLeast16: Boolean?
+        get() = credentials.firstNotNullOfOrNull { credential ->
+            when (credential) {
+                is SubjectCredentialStore.StoreEntry.Vc -> {
+                    when (val credentialSubject = credential.vc.vc.credentialSubject) {
+                        is IdAustriaCredential -> credentialSubject.ageOver16
+
+                        is EuPidCredential -> null
+
+                        else -> TODO(credential.unsupportedCredentialSubjectMessage)
                     }
-
-                    else -> TODO(credential.unsupportedCredentialSubjectMessage)
                 }
-            }
 
-            is SubjectCredentialStore.StoreEntry.SdJwt -> {
-                when (credential.scheme) {
-                    is IdAustriaScheme -> {
-                        credential.disclosures.filter { it.value?.claimName == IdAustriaScheme.Attributes.AGE_OVER_16 }
+                is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> credential.disclosures.filter { it.value?.claimName == IdAustriaScheme.Attributes.AGE_OVER_16 }
                             .firstNotNullOfOrNull { it.value?.claimValue as Boolean }
+
+                        is EuPidScheme -> null
+
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
                     }
-
-                    else -> TODO(credential.unsupportedCredentialSchemeMessage)
                 }
-            }
 
-            else -> TODO(credential.unsupportedCredentialStoreEntry)
+                is SubjectCredentialStore.StoreEntry.Iso -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> credential.issuerSigned.namespaces?.get(
+                            IdAustriaScheme.isoNamespace
+                        )?.entries?.firstOrNull {
+                            it.value.elementIdentifier == IdAustriaScheme.Attributes.AGE_OVER_16
+                        }?.value?.elementValue?.boolean
+
+                        is EuPidScheme -> null
+
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
+                    }
+                }
+
+                else -> TODO(credential.unsupportedCredentialStoreEntry)
+            }
         }
-    }
 
-    val ageAtLeast18: Boolean? = credentials.firstNotNullOfOrNull { credential ->
-        when (credential) {
-            is SubjectCredentialStore.StoreEntry.Vc -> {
-                when (val credentialSubject = credential.vc.vc.credentialSubject) {
-                    is IdAustriaCredential -> {
-                        credentialSubject.ageOver18
+    val ageAtLeast18: Boolean?
+        get() = credentials.firstNotNullOfOrNull { credential ->
+            when (credential) {
+                is SubjectCredentialStore.StoreEntry.Vc -> {
+                    when (val credentialSubject = credential.vc.vc.credentialSubject) {
+                        is IdAustriaCredential -> credentialSubject.ageOver18
+
+                        is EuPidCredential -> credentialSubject.ageOver18
+
+                        else -> TODO(credential.unsupportedCredentialSubjectMessage)
                     }
-
-                    else -> TODO(credential.unsupportedCredentialSubjectMessage)
                 }
-            }
 
-            is SubjectCredentialStore.StoreEntry.SdJwt -> {
-                when (credential.scheme) {
-                    is IdAustriaScheme -> {
-                        credential.disclosures.filter { it.value?.claimName == IdAustriaScheme.Attributes.AGE_OVER_18 }
+                is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> credential.disclosures.filter { it.value?.claimName == IdAustriaScheme.Attributes.AGE_OVER_18 }
                             .firstNotNullOfOrNull { it.value?.claimValue as Boolean }
-                    }
 
-                    else -> TODO(credential.unsupportedCredentialSchemeMessage)
-                }
-            }
-
-            else -> TODO(credential.unsupportedCredentialStoreEntry)
-        }
-    }
-
-    val ageAtLeast21: Boolean? = credentials.firstNotNullOfOrNull { credential ->
-        when (credential) {
-            is SubjectCredentialStore.StoreEntry.Vc -> {
-                when (val credentialSubject = credential.vc.vc.credentialSubject) {
-                    is IdAustriaCredential -> {
-                        credentialSubject.ageOver21
-                    }
-
-                    else -> TODO(credential.unsupportedCredentialSubjectMessage)
-                }
-            }
-
-            is SubjectCredentialStore.StoreEntry.SdJwt -> {
-                when (credential.scheme) {
-                    is IdAustriaScheme -> {
-                        credential.disclosures.filter { it.value?.claimName == IdAustriaScheme.Attributes.AGE_OVER_21 }
+                        is EuPidScheme -> credential.disclosures.filter { it.value?.claimName == EuPidScheme.Attributes.AGE_OVER_18 }
                             .firstNotNullOfOrNull { it.value?.claimValue as Boolean }
+
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
                     }
-
-                    else -> TODO(credential.unsupportedCredentialSchemeMessage)
                 }
+
+                is SubjectCredentialStore.StoreEntry.Iso -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> credential.issuerSigned.namespaces?.get(
+                            IdAustriaScheme.isoNamespace
+                        )?.entries?.firstOrNull {
+                            it.value.elementIdentifier == IdAustriaScheme.Attributes.AGE_OVER_18
+                        }?.value?.elementValue?.boolean
+
+                        is EuPidScheme -> credential.issuerSigned.namespaces?.get(EuPidScheme.isoNamespace)?.entries?.firstOrNull {
+                            it.value.elementIdentifier == EuPidScheme.Attributes.AGE_OVER_18
+                        }?.value?.elementValue?.boolean
+
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
+                    }
+                }
+
+                else -> TODO(credential.unsupportedCredentialStoreEntry)
             }
-
-            else -> TODO(credential.unsupportedCredentialStoreEntry)
         }
-    }
 
-    private val mainAddressBase64: String? = credentials.firstNotNullOfOrNull { credential ->
-        when (credential) {
+    val ageAtLeast21: Boolean?
+        get() = credentials.firstNotNullOfOrNull { credential ->
+            when (credential) {
+                is SubjectCredentialStore.StoreEntry.Vc -> {
+                    when (val credentialSubject = credential.vc.vc.credentialSubject) {
+                        is IdAustriaCredential -> credentialSubject.ageOver21
+
+                        is EuPidCredential -> null
+
+                        else -> TODO(credential.unsupportedCredentialSubjectMessage)
+                    }
+                }
+
+                is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> credential.disclosures.filter { it.value?.claimName == IdAustriaScheme.Attributes.AGE_OVER_21 }
+                            .firstNotNullOfOrNull { it.value?.claimValue as Boolean }
+
+                        is EuPidScheme -> null
+
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
+                    }
+                }
+
+                is SubjectCredentialStore.StoreEntry.Iso -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> credential.issuerSigned.namespaces?.get(
+                            IdAustriaScheme.isoNamespace
+                        )?.entries?.firstOrNull {
+                            it.value.elementIdentifier == IdAustriaScheme.Attributes.AGE_OVER_21
+                        }?.value?.elementValue?.boolean
+
+                        is EuPidScheme -> null
+
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
+                    }
+                }
+
+                else -> TODO(credential.unsupportedCredentialStoreEntry)
+            }
+        }
+
+    private val idAustriaCredentialMainAddressAdapter: IdAustriaMainAddressAdapter?
+        get() = credentials.firstNotNullOfOrNull {
+            it.idAustriaCredentialMainAddressAdapter
+        }
+
+    private val SubjectCredentialStore.StoreEntry.idAustriaCredentialMainAddressAdapter: IdAustriaMainAddressAdapter?
+        get() = when (val credential = this) {
             is SubjectCredentialStore.StoreEntry.Vc -> {
                 when (val credentialSubject = credential.vc.vc.credentialSubject) {
                     is IdAustriaCredential -> credentialSubject.mainAddress
 
-                    else -> TODO(credential.unsupportedCredentialSubjectMessage)
+                    else -> null
                 }
             }
 
             is SubjectCredentialStore.StoreEntry.SdJwt -> {
                 when (credential.scheme) {
-                    is IdAustriaScheme -> {
-                        credential.disclosures.filter { it.value?.claimName == IdAustriaScheme.Attributes.MAIN_ADDRESS }
-                            .firstNotNullOfOrNull { it.value?.claimValue as String }
-                    }
+                    is IdAustriaScheme -> credential.disclosures.filter { it.value?.claimName == IdAustriaScheme.Attributes.MAIN_ADDRESS }
+                        .firstNotNullOfOrNull { it.value?.claimValue as String }
 
-                    else -> TODO(credential.unsupportedCredentialSchemeMessage)
+                    else -> null
                 }
             }
 
-            else -> TODO(credential.unsupportedCredentialStoreEntry)
+            is SubjectCredentialStore.StoreEntry.Iso -> {
+                when (credential.scheme) {
+                    is IdAustriaScheme -> credential.issuerSigned.namespaces?.get(
+                        IdAustriaScheme.isoNamespace
+                    )?.entries?.firstOrNull {
+                        it.value.elementIdentifier == IdAustriaScheme.Attributes.MAIN_ADDRESS
+                    }?.value?.elementValue?.string
+
+                    else -> null
+                }
+            }
+
+            else -> null
+        }?.decodeBase64String()?.let {
+            jsonSerializer.decodeFromString<IdAustriaMainAddressAdapter>(it)
         }
-    }
 
-    private val mainAddressJson: String? = mainAddressBase64?.decodeBase64String()
+    val mainResidenceStreetName: String?
+        get() = credentials.firstNotNullOfOrNull { credential ->
+            when (credential) {
+                is SubjectCredentialStore.StoreEntry.Vc -> {
+                    when (val credentialSubject = credential.vc.vc.credentialSubject) {
+                        is IdAustriaCredential -> credential.idAustriaCredentialMainAddressAdapter?.Strasse
 
-    private val mainAddress: MainAddressAdapter? = mainAddressJson?.let {
-        jsonSerializer.decodeFromString<MainAddressAdapter>(it)
-    }
+                        is EuPidCredential -> credentialSubject.residentStreet
 
-    val mainAddressStreetName: String? = mainAddress?.Strasse
+                        else -> TODO(credential.unsupportedCredentialSubjectMessage)
+                    }
+                }
 
-    val mainAddressHouseNumber: String? = mainAddress?.Hausnummer
+                is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> credential.idAustriaCredentialMainAddressAdapter?.Strasse
 
-    val mainAddressStair: String? = mainAddress?.Stiege
+                        is EuPidScheme -> credential.disclosures.filter { it.value?.claimName == EuPidScheme.Attributes.RESIDENT_STREET }
+                            .firstNotNullOfOrNull { it.value?.claimValue as String }
 
-    val mainAddressDoor: String? = mainAddress?.Tuer
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
+                    }
+                }
 
-    val mainAddressVillageName: String? = mainAddress?.Ortschaft
+                is SubjectCredentialStore.StoreEntry.Iso -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> credential.idAustriaCredentialMainAddressAdapter?.Strasse
 
-    val mainAddressPostalCode: String? = mainAddress?.Postleitzahl
+                        is EuPidScheme -> credential.issuerSigned.namespaces?.get(EuPidScheme.isoNamespace)?.entries?.firstOrNull {
+                            it.value.elementIdentifier == EuPidScheme.Attributes.RESIDENT_STREET
+                        }?.value?.elementValue?.string
+
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
+                    }
+                }
+
+                else -> TODO(credential.unsupportedCredentialStoreEntry)
+            }
+        }
+
+    val mainResidenceHouseNumber: String?
+        get() = credentials.firstNotNullOfOrNull { credential ->
+            when (credential) {
+                is SubjectCredentialStore.StoreEntry.Vc -> {
+                    when (val credentialSubject = credential.vc.vc.credentialSubject) {
+                        is IdAustriaCredential -> credential.idAustriaCredentialMainAddressAdapter?.Hausnummer
+
+                        is EuPidCredential -> credentialSubject.residentHouseNumber
+
+                        else -> TODO(credential.unsupportedCredentialSubjectMessage)
+                    }
+                }
+
+                is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> credential.idAustriaCredentialMainAddressAdapter?.Hausnummer
+
+                        is EuPidScheme -> credential.disclosures.filter { it.value?.claimName == EuPidScheme.Attributes.RESIDENT_HOUSE_NUMBER }
+                            .firstNotNullOfOrNull { it.value?.claimValue as String }
+
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
+                    }
+                }
+
+                is SubjectCredentialStore.StoreEntry.Iso -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> credential.idAustriaCredentialMainAddressAdapter?.Hausnummer
+
+                        is EuPidScheme -> credential.issuerSigned.namespaces?.get(EuPidScheme.isoNamespace)?.entries?.firstOrNull {
+                            it.value.elementIdentifier == EuPidScheme.Attributes.RESIDENT_HOUSE_NUMBER
+                        }?.value?.elementValue?.string
+
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
+                    }
+                }
+
+                else -> TODO(credential.unsupportedCredentialStoreEntry)
+            }
+        }
+
+    val mainResidenceStairName: String?
+        get() = credentials.firstNotNullOfOrNull { credential ->
+            when (credential) {
+                is SubjectCredentialStore.StoreEntry.Vc -> {
+                    when (val credentialSubject = credential.vc.vc.credentialSubject) {
+                        is IdAustriaCredential -> credential.idAustriaCredentialMainAddressAdapter?.Stiege
+
+                        is EuPidCredential -> null
+
+                        else -> TODO(credential.unsupportedCredentialSubjectMessage)
+                    }
+                }
+
+                is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> credential.idAustriaCredentialMainAddressAdapter?.Stiege
+
+                        is EuPidScheme -> null
+
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
+                    }
+                }
+
+                is SubjectCredentialStore.StoreEntry.Iso -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> credential.idAustriaCredentialMainAddressAdapter?.Stiege
+
+                        is EuPidScheme -> null
+
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
+                    }
+                }
+
+                else -> TODO(credential.unsupportedCredentialStoreEntry)
+            }
+        }
+
+    val mainResidenceDoorName: String?
+        get() = credentials.firstNotNullOfOrNull { credential ->
+            when (credential) {
+                is SubjectCredentialStore.StoreEntry.Vc -> {
+                    when (val credentialSubject = credential.vc.vc.credentialSubject) {
+                        is IdAustriaCredential -> credential.idAustriaCredentialMainAddressAdapter?.Tuer
+
+                        is EuPidCredential -> null
+
+                        else -> TODO(credential.unsupportedCredentialSubjectMessage)
+                    }
+                }
+
+                is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> credential.idAustriaCredentialMainAddressAdapter?.Tuer
+
+                        is EuPidScheme -> null
+
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
+                    }
+                }
+
+                is SubjectCredentialStore.StoreEntry.Iso -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> credential.idAustriaCredentialMainAddressAdapter?.Tuer
+
+                        is EuPidScheme -> null
+
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
+                    }
+                }
+
+                else -> TODO(credential.unsupportedCredentialStoreEntry)
+            }
+        }
+
+    val mainResidenceTownName: String?
+        get() = credentials.firstNotNullOfOrNull { credential ->
+            when (credential) {
+                is SubjectCredentialStore.StoreEntry.Vc -> {
+                    when (val credentialSubject = credential.vc.vc.credentialSubject) {
+                        is IdAustriaCredential -> credential.idAustriaCredentialMainAddressAdapter?.Ortschaft
+
+                        is EuPidCredential -> credentialSubject.residentCity
+
+                        else -> TODO(credential.unsupportedCredentialSubjectMessage)
+                    }
+                }
+
+                is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> credential.idAustriaCredentialMainAddressAdapter?.Ortschaft
+
+                        is EuPidScheme -> credential.disclosures.filter { it.value?.claimName == EuPidScheme.Attributes.RESIDENT_CITY }
+                            .firstNotNullOfOrNull { it.value?.claimValue as String }
+
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
+                    }
+                }
+
+                is SubjectCredentialStore.StoreEntry.Iso -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> credential.idAustriaCredentialMainAddressAdapter?.Ortschaft
+
+                        is EuPidScheme -> credential.issuerSigned.namespaces?.get(EuPidScheme.isoNamespace)?.entries?.firstOrNull {
+                            it.value.elementIdentifier == EuPidScheme.Attributes.RESIDENT_CITY
+                        }?.value?.elementValue?.string
+
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
+                    }
+                }
+
+                else -> TODO(credential.unsupportedCredentialStoreEntry)
+            }
+        }
+
+    val mainResidencePostalCode: String?
+        get() = credentials.firstNotNullOfOrNull { credential ->
+            when (credential) {
+                is SubjectCredentialStore.StoreEntry.Vc -> {
+                    when (val credentialSubject = credential.vc.vc.credentialSubject) {
+                        is IdAustriaCredential -> credential.idAustriaCredentialMainAddressAdapter?.Postleitzahl
+
+                        is EuPidCredential -> credentialSubject.residentPostalCode
+
+                        else -> TODO(credential.unsupportedCredentialSubjectMessage)
+                    }
+                }
+
+                is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> credential.idAustriaCredentialMainAddressAdapter?.Postleitzahl
+
+                        is EuPidScheme -> credential.disclosures.filter { it.value?.claimName == EuPidScheme.Attributes.RESIDENT_POSTAL_CODE }
+                            .firstNotNullOfOrNull { it.value?.claimValue as String }
+
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
+                    }
+                }
+
+                is SubjectCredentialStore.StoreEntry.Iso -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> credential.idAustriaCredentialMainAddressAdapter?.Postleitzahl
+
+                        is EuPidScheme -> credential.issuerSigned.namespaces?.get(EuPidScheme.isoNamespace)?.entries?.firstOrNull {
+                            it.value.elementIdentifier == EuPidScheme.Attributes.RESIDENT_POSTAL_CODE
+                        }?.value?.elementValue?.string
+
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
+                    }
+                }
+
+                else -> TODO(credential.unsupportedCredentialStoreEntry)
+            }
+        }
+
+    val mainResidenceStateName: String?
+        get() = credentials.firstNotNullOfOrNull { credential ->
+            when (credential) {
+                is SubjectCredentialStore.StoreEntry.Vc -> {
+                    when (val credentialSubject = credential.vc.vc.credentialSubject) {
+                        is IdAustriaCredential -> null
+
+                        is EuPidCredential -> credentialSubject.residentState
+
+                        else -> TODO(credential.unsupportedCredentialSubjectMessage)
+                    }
+                }
+
+                is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> null
+
+                        is EuPidScheme -> credential.disclosures.filter { it.value?.claimName == EuPidScheme.Attributes.RESIDENT_STATE }
+                            .firstNotNullOfOrNull { it.value?.claimValue as String }
+
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
+                    }
+                }
+
+                is SubjectCredentialStore.StoreEntry.Iso -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> null
+
+                        is EuPidScheme -> credential.issuerSigned.namespaces?.get(EuPidScheme.isoNamespace)?.entries?.firstOrNull {
+                            it.value.elementIdentifier == EuPidScheme.Attributes.RESIDENT_STATE
+                        }?.value?.elementValue?.string
+
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
+                    }
+                }
+
+                else -> TODO(credential.unsupportedCredentialStoreEntry)
+            }
+        }
+
+    val mainResidenceCountryName: String?
+        get() = credentials.firstNotNullOfOrNull { credential ->
+            when (credential) {
+                is SubjectCredentialStore.StoreEntry.Vc -> {
+                    when (val credentialSubject = credential.vc.vc.credentialSubject) {
+                        is IdAustriaCredential -> null
+
+                        is EuPidCredential -> credentialSubject.residentCountry
+
+                        else -> TODO(credential.unsupportedCredentialSubjectMessage)
+                    }
+                }
+
+                is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> null
+
+                        is EuPidScheme -> credential.disclosures.filter { it.value?.claimName == EuPidScheme.Attributes.RESIDENT_COUNTRY }
+                            .firstNotNullOfOrNull { it.value?.claimValue as String }
+
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
+                    }
+                }
+
+                is SubjectCredentialStore.StoreEntry.Iso -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> null
+
+                        is EuPidScheme -> credential.issuerSigned.namespaces?.get(EuPidScheme.isoNamespace)?.entries?.firstOrNull {
+                            it.value.elementIdentifier == EuPidScheme.Attributes.RESIDENT_COUNTRY
+                        }?.value?.elementValue?.string
+
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
+                    }
+                }
+
+                else -> TODO(credential.unsupportedCredentialStoreEntry)
+            }
+        }
 }

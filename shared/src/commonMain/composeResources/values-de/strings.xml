@@ -57,6 +57,7 @@
 
     <string name="text_label_issuing_service">Ausstellservice</string>
     <string name="text_label_id_format">ID-Format</string>
+    <string name="text_label_id_scheme">ID-Schema</string>
     <string name="text_label_stair">Stiege</string>
     <string name="text_label_door">Tür</string>
     <string name="text_label_stage">Stage</string>

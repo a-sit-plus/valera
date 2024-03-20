@@ -36,6 +36,7 @@ kotlin {
                 api(libs.vclib.openid)
                 api(libs.vclib)
                 api(libs.credential.ida)
+                api(libs.credential.eupid)
                 implementation(serialization("json"))
                 api(napier())
                 implementation("androidx.datastore:datastore-preferences-core:1.1.0-alpha07")

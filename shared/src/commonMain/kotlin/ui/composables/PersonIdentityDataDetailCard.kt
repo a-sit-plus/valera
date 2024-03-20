@@ -84,8 +84,8 @@ data class IdentityData(
 
 val CredentialExtractor.preIdentityData: PreIdentityData
     get() = PreIdentityData(
-        firstname = this.firstname,
-        lastname = this.lastname,
+        firstname = this.givenName,
+        lastname = this.familyName,
         dateOfBirth = this.dateOfBirth,
         portrait = this.portrait,
     )
