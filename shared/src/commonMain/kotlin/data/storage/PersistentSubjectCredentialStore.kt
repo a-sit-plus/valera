@@ -29,16 +29,16 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         scheme: ConstantIndex.CredentialScheme
     ) {
         val newContainer = container.first().let { containerInstance ->
-            containerInstance.filterNotScheme(scheme).let {
-                it.copy(
-                    credentials = it.credentials + SubjectCredentialStore.StoreEntry.Vc(
+            containerInstance.filterNotScheme(scheme).copy(
+                credentials = listOf(
+                    SubjectCredentialStore.StoreEntry.Vc(
                         vcSerialized,
                         vc,
                         scheme
-                    ),
-                    attachments = it.attachments
-                )
-            }
+                    )
+                ),
+                attachments = listOf(),
+            )
         }
         exportToDataStore(newContainer)
     }
@@ -50,17 +50,17 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         scheme: ConstantIndex.CredentialScheme
     ) {
         val newContainer = container.first().let { containerInstance ->
-            containerInstance.filterNotScheme(scheme).let {
-                it.copy(
-                    credentials = it.credentials + SubjectCredentialStore.StoreEntry.SdJwt(
+            containerInstance.filterNotScheme(scheme).copy(
+                credentials = listOf(
+                    SubjectCredentialStore.StoreEntry.SdJwt(
                         vcSerialized,
                         vc,
                         disclosures,
                         scheme
                     ),
-                    attachments = it.attachments
-                )
-            }
+                ),
+                attachments = listOf(),
+            )
         }
         exportToDataStore(newContainer)
     }
@@ -72,11 +72,13 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         val newContainer = container.first().let { containerInstance ->
             containerInstance.filterNotScheme(scheme).let {
                 it.copy(
-                    credentials = it.credentials + SubjectCredentialStore.StoreEntry.Iso(
-                        issuerSigned,
-                        scheme
+                    credentials = listOf(
+                        SubjectCredentialStore.StoreEntry.Iso(
+                            issuerSigned,
+                            scheme
+                        ),
                     ),
-                    attachments = it.attachments
+                    attachments = listOf(),
                 )
             }
         }

@@ -27,8 +27,10 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
-import composewalletapp.shared.generated.resources.content_description_portrait
+import at.asitplus.wallet.eupid.IsoIec5218Gender
 import composewalletapp.shared.generated.resources.Res
+import composewalletapp.shared.generated.resources.content_description_portrait
+import composewalletapp.shared.generated.resources.text_label_sex
 import data.CredentialExtractor
 import kotlinx.datetime.LocalDate
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -39,13 +41,17 @@ data class PreIdentityData(
     val lastname: String?,
     val dateOfBirth: LocalDate?,
     val portrait: ByteArray?,
+    val gender: IsoIec5218Gender?,
+    val nationality: String?,
 ) {
     fun toIdentityData(decodeImage: (ByteArray) -> ImageBitmap): IdentityData {
         return IdentityData(
             firstname = firstname,
             lastname = lastname,
             dateOfBirth = dateOfBirth,
-            portrait = portrait?.let { decodeImage(it) }
+            portrait = portrait?.let { decodeImage(it) },
+            gender = gender,
+            nationality = nationality,
         )
     }
 
@@ -62,8 +68,8 @@ data class PreIdentityData(
             if (other.portrait == null) return false
             if (!portrait.contentEquals(other.portrait)) return false
         } else if (other.portrait != null) return false
-
-        return true
+        if (gender != other.gender) return false
+        return nationality == other.nationality
     }
 
     override fun hashCode(): Int {
@@ -71,6 +77,8 @@ data class PreIdentityData(
         result = 31 * result + (lastname?.hashCode() ?: 0)
         result = 31 * result + (dateOfBirth?.hashCode() ?: 0)
         result = 31 * result + (portrait?.contentHashCode() ?: 0)
+        result = 31 * result + (gender?.hashCode() ?: 0)
+        result = 31 * result + (nationality?.hashCode() ?: 0)
         return result
     }
 }
@@ -80,6 +88,8 @@ data class IdentityData(
     val lastname: String?,
     val dateOfBirth: LocalDate?,
     val portrait: ImageBitmap?,
+    val gender: IsoIec5218Gender?,
+    val nationality: String?,
 )
 
 val CredentialExtractor.preIdentityData: PreIdentityData
@@ -88,6 +98,8 @@ val CredentialExtractor.preIdentityData: PreIdentityData
         lastname = this.familyName,
         dateOfBirth = this.dateOfBirth,
         portrait = this.portrait,
+        gender = this.gender,
+        nationality = this.nationality,
     )
 
 @OptIn(ExperimentalResourceApi::class)
@@ -150,9 +162,13 @@ fun PersonIdentityDataDetailCard(
                         )
                     }
                     if (identityData.dateOfBirth != null) {
-                        Text(
-                            text = identityData.dateOfBirth.run { "$dayOfMonth.$monthNumber.$year" },
-                        )
+                        Text(identityData.dateOfBirth.run { "$dayOfMonth.$monthNumber.$year" })
+                    }
+                    if (identityData.gender != null) {
+                        Text("${stringResource(Res.string.text_label_sex)}: ${identityData.gender.code}")
+                    }
+                    if (identityData.nationality != null) {
+                        Text(identityData.nationality)
                     }
                 }
             }

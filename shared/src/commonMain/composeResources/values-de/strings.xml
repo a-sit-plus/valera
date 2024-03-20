@@ -43,6 +43,14 @@
     <string name="attribute_friendly_name_age_at_least_18">Zumindest 18 Jahre alt</string>
     <string name="attribute_friendly_name_age_at_least_21">Zumindest 21 Jahre alt</string>
     <string name="attribute_friendly_name_main_address">Hauptwohnsitz</string>
+    <string name="attribute_friendly_name_main_residence_country">Land</string>
+    <string name="attribute_friendly_name_main_residence_state">Staat</string>
+    <string name="attribute_friendly_name_main_residence_city">Stadt</string>
+    <string name="attribute_friendly_name_main_residence_postal_code">Postleitzahl</string>
+    <string name="attribute_friendly_name_main_residence_street">Straße</string>
+    <string name="attribute_friendly_name_main_residence_house_number">Hausnummer</string>
+    <string name="attribute_friendly_name_sex">Geschlecht</string>
+    <string name="attribute_friendly_name_nationality">Nationalität</string>
 
     <string name="attribute_friendly_name_data_recipient_name">Name</string>
     <string name="attribute_friendly_name_data_recipient_location">Ort</string>
@@ -58,6 +66,7 @@
     <string name="text_label_issuing_service">Ausstellservice</string>
     <string name="text_label_id_format">ID-Format</string>
     <string name="text_label_id_scheme">ID-Schema</string>
+    <string name="text_label_sex">Geschlecht</string>
     <string name="text_label_stair">Stiege</string>
     <string name="text_label_door">Tür</string>
     <string name="text_label_stage">Stage</string>
@@ -143,6 +152,8 @@
     <string name="section_heading_data_recipient">Empfänger</string>
     <string name="section_heading_admission_data">Zulassungsdaten</string>
     <string name="section_heading_admission_data_icon_text">Z</string>
+    <string name="section_heading_other_data_category_title">Sonstige</string>
+    <string name="section_heading_other_data_category_icon_text">S</string>
     <string name="section_heading_age_data">Altersstufen</string>
     <string name="section_heading_age_data_icon_text">AS</string>
     <string name="section_heading_driving_permission_data">Lenkberechtigung</string>
