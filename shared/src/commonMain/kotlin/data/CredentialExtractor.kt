@@ -312,7 +312,7 @@ class CredentialExtractor(
                             IdAustriaScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == IdAustriaScheme.Attributes.PORTRAIT
-                        }?.value?.elementValue?.bytes
+                        }?.value?.elementValue?.string?.decodeBase64Bytes()
 
                         is EuPidScheme -> null
 
