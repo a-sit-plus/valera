@@ -8,9 +8,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 
-@OptIn(ExperimentalResourceApi::class)
 class RetrieveFinalAuthenticationRequestUriFromAuthenticationRequestUriUseCase(
     private val extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase: ExtractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase,
     private val client: HttpClient,
@@ -20,23 +18,30 @@ class RetrieveFinalAuthenticationRequestUriFromAuthenticationRequestUriUseCase(
         return withContext(defaultDispatcher) {
             var location = link
             var authenticationRequestParameters =
-                extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase(location)
+                extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase(location).also {
+                    Napier.d("requestUri: ${it.requestUri}")
+                }
             while (authenticationRequestParameters.requestUri != null) {
-                val newLocation = authenticationRequestParameters.requestUri?.let { requestUri ->
+                val requestUri = authenticationRequestParameters.requestUri
+                    ?: throw Exception("Invalid while-loop iteration")
+
+                val newLocation = run {
                     if (authenticationRequestParameters.request != null) {
                         throw Exception("Invalid request url: contains both parameters 'request' and 'request_uri': $location")
                     }
 
                     val requestResponse = client.get(requestUri)
                     requestResponse.headers[HttpHeaders.Location].also { Napier.d("Redirect location: $it") }
-                        ?: throw Exception("Missing location response header: $requestResponse")
-                } ?: throw Exception("Invalid while-loop iteration")
+                        ?: requestUri // keep request uri if no further redirect is found
+                }
 
                 val newAuthenticationRequestParameters =
-                    extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase(newLocation)
+                    extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase(
+                        newLocation
+                    )
 
                 if (authenticationRequestParameters.clientId != newAuthenticationRequestParameters.clientId) {
-                    throw Exception("Authentication failed: '${authenticationRequestParameters.clientId}' vs '${newAuthenticationRequestParameters.clientId}'")
+                    throw Exception("Inconsistent client ids: '${authenticationRequestParameters.clientId}' vs '${newAuthenticationRequestParameters.clientId}'")
                 }
 
                 location = newLocation

@@ -13,30 +13,38 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.Url
 import io.ktor.util.flattenEntries
 
-class ExtractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase(
+class RetrieveAuthenticationRequestParametersFromAuthenticationRequestUriUseCase(
     private val client: HttpClient,
     private val verifierJwsService: VerifierJwsService,
 ) {
-    suspend operator fun invoke(requestRedirectUri: String): AuthenticationRequestParameters {
+    suspend operator fun invoke(authenticationRequestUri: String): AuthenticationRequestParameters {
         val requestParams = kotlin.runCatching {
-            Url(requestRedirectUri).parameters.flattenEntries().toMap()
+            val params = Url(authenticationRequestUri).parameters.flattenEntries().toMap()
                 .decodeFromUrlQuery<AuthenticationRequestParameters>()
-        }.getOrElse {
-            val urlParts = requestRedirectUri.split("/")
-            if (urlParts.isEmpty()) {
-                null
-            } else {
-                when (urlParts[urlParts.lastIndex - 1]) {
-                    "request.jwt" -> { // https://domain/path/request.jwt/...
-                        // it seems like the request params may be delivered through the response body payload
-                        extractJwtPayload(client.get(requestRedirectUri).bodyAsText())
-                    }
 
-                    else -> null
+            Napier.d("params: $params")
+            params.requestUri?.let {
+                this.invoke(it).also { newParams ->
+                    if (params.clientId != newParams.clientId) {
+                        throw Exception("Client ids are inconsistent: before: $params, after: $newParams")
+                    }
                 }
+            } ?: params
+        }.getOrElse {
+            val urlParts = authenticationRequestUri.split("/")
+            Napier.d("urlParts: $urlParts")
+            if (urlParts.isNotEmpty() && urlParts[urlParts.lastIndex - 1] == "request.jwt") {
+                // https://domain/path/request.jwt/somethingelse
+                // it seems like the request params are delivered through the response body payload in this case
+                val response = client.get(authenticationRequestUri)
+                val requestJwt = response.bodyAsText()
+                Napier.d("requestJwt: $requestJwt")
+                extractJwtPayload(requestJwt) ?: throw Exception("response: $response")
+            } else {
+                null
             }
         } ?: throw OAuth2Exception(OpenIdConstants.Errors.INVALID_REQUEST)
-            .also { Napier.w("Could not parse authentication request: $requestRedirectUri") }
+            .also { Napier.w("Could not parse authentication request: $authenticationRequestUri") }
 
         val requestLocationClientId = requestParams.clientId
 

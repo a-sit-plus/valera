@@ -12,7 +12,6 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 class RetrieveRelyingPartyMetadataFromAuthenticationRequestUriUseCase(
     private val extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase: ExtractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase,
@@ -20,7 +19,7 @@ class RetrieveRelyingPartyMetadataFromAuthenticationRequestUriUseCase(
     private val verifierJwsService: VerifierJwsService,
     private val defaultDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
-    suspend operator fun invoke(link: String): RelyingPartyMetadata {
+    suspend operator fun invoke(link: String): RelyingPartyMetadata? {
         return extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase(link).let { linkParams ->
             linkParams.clientMetadata ?: linkParams.clientMetadataUri?.let { metadataUri ->
                 withContext(defaultDispatcher) {
@@ -40,6 +39,6 @@ class RetrieveRelyingPartyMetadataFromAuthenticationRequestUriUseCase(
                     jsonSerializer.decodeFromString<RelyingPartyMetadata>(metadataJws.payload.decodeToString())
                 }
             }
-        } ?: throw Exception("Missing Parameter `metadata_uri`: $link")
+        } // ?: throw Exception("Missing Parameter `metadata_uri`: $link")
     }
 }

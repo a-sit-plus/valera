@@ -1,7 +1,9 @@
 package ui.navigation
 
 import android.os.Parcelable
+import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
 import kotlinx.parcelize.Parcelize
+import kotlinx.parcelize.RawValue
 
 @Parcelize
 actual class HomePage : Page, Parcelable
@@ -38,8 +40,7 @@ actual class RefreshCredentialsPage : Page, Parcelable
 
 @Parcelize
 actual class AuthenticationConsentPage actual constructor(
-    actual val url: String,
-    actual val claims: List<String>,
+    actual val authenticationRequestParameters: @RawValue AuthenticationRequestParameters,
     actual val recipientName: String,
     actual val recipientLocation: String,
     actual val fromQrCodeScanner: Boolean,

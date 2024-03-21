@@ -1,3 +1,4 @@
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -17,14 +18,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.jws.DefaultVerifierJwsService
+import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.navigation_button_label_my_data
 import composewalletapp.shared.generated.resources.navigation_button_label_settings
 import composewalletapp.shared.generated.resources.navigation_button_label_show_data
-import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.snackbar_reset_app_successfully
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
-import domain.ExtractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase
-import domain.RetrieveFinalAuthenticationRequestUriFromAuthenticationRequestUriUseCase
+import domain.RetrieveAuthenticationRequestParametersFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier
 import io.ktor.http.parseQueryString
 import kotlinx.coroutines.Dispatchers
@@ -155,17 +155,12 @@ fun Navigator(walletMain: WalletMain) {
             val host = walletMain.walletConfig.host.first()
             if (link.contains("$host/mobile")) {
                 Napier.d("authentication request")
-                val extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase =
-                    ExtractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase(
-                        verifierJwsService = DefaultVerifierJwsService(),
-                    )
 
                 val buildAuthenticationConsentPage =
                     BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
-                        extractAuthenticationRequestParametersFromAuthenticationRequestUri = extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase,
-                        retrieveFinalAuthenticationRequestUriFromAuthenticationRequestUriUseCase = RetrieveFinalAuthenticationRequestUriFromAuthenticationRequestUriUseCase(
+                        retrieveAuthenticationRequestParametersFromAuthenticationRequestUriUseCase = RetrieveAuthenticationRequestParametersFromAuthenticationRequestUriUseCase(
                             client = walletMain.httpService.buildHttpClient(),
-                            extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase = extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase
+                            verifierJwsService = DefaultVerifierJwsService(),
                         )
                     )
 
@@ -325,8 +320,7 @@ fun MainNavigator(
                             spName = page.recipientName,
                             spLocation = page.recipientLocation,
                             spImage = null,
-                            claims = page.claims,
-                            url = page.url,
+                            authenticationRequestParameters = page.authenticationRequestParameters,
                             fromQrCodeScanner = page.fromQrCodeScanner,
                             navigateUp = navigateUp,
                             navigateToRefreshCredentialsPage = {

@@ -10,6 +10,8 @@ import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
+import at.asitplus.wallet.lib.data.dif.PresentationDefinition
+import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.error_authentication_at_sp_failed
 import data.CredentialExtractor
@@ -27,8 +29,7 @@ fun AuthenticationConsentScreen(
     spName: String,
     spLocation: String,
     spImage: ImageBitmap?,
-    claims: List<String>,
-    url: String,
+    authenticationRequestParameters: AuthenticationRequestParameters,
     fromQrCodeScanner: Boolean,
     navigateUp: () -> Unit,
     navigateToRefreshCredentialsPage: () -> Unit,
@@ -45,8 +46,7 @@ fun AuthenticationConsentScreen(
             spName = spName,
             spLocation = spLocation,
             spImage = spImage,
-            claims = claims,
-            url = url,
+            authenticationRequestParameters = authenticationRequestParameters,
             credentialExtractor = credentialExtractor,
             fromQrCodeScanner = fromQrCodeScanner,
             navigateUp = navigateUp,
@@ -63,8 +63,7 @@ fun AuthenticationConsentViewStateHolder(
     spName: String,
     spLocation: String,
     spImage: ImageBitmap?,
-    claims: List<String>,
-    url: String,
+    authenticationRequestParameters: AuthenticationRequestParameters,
     credentialExtractor: CredentialExtractor,
     fromQrCodeScanner: Boolean,
     navigateUp: () -> Unit,
@@ -112,6 +111,8 @@ fun AuthenticationConsentViewStateHolder(
     val categorizedClaims = attributeCategorization.flatMap {
         it.second
     }
+
+    val claims = authenticationRequestParameters.presentationDefinition?.claims ?: listOf()
     val uncategorizedClaims = claims.filter {
         categorizedClaims.contains(it) == false
     }
@@ -151,7 +152,7 @@ fun AuthenticationConsentViewStateHolder(
             showBiometry = false
             walletMain.scope.launch {
                 try {
-                    walletMain.presentationService.startSiop(url, fromQrCodeScanner)
+                    walletMain.presentationService.startSiop(authenticationRequestParameters, fromQrCodeScanner)
                     navigateUp()
                     navigateToAuthenticationSuccessPage()
                 } catch (e: Throwable) {
@@ -166,3 +167,13 @@ fun AuthenticationConsentViewStateHolder(
         },
     )
 }
+
+private val PresentationDefinition.claims: List<String>
+    get() = this.inputDescriptors
+        .mapNotNull { it.constraints }.flatMap { it.fields?.toList() ?: listOf() }
+        .flatMap { it.path.toList() }
+        .filter { it != "$.type" }
+        .filter { it != "$.mdoc.doctype" }
+        .filter { it != "$.mdoc.namespace" }
+        .map { it.removePrefix("\$.mdoc.") }
+        .map { it.removePrefix("\$.") }

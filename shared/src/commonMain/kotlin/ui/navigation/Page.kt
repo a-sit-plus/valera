@@ -1,5 +1,7 @@
 package ui.navigation
 
+import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
+
 interface Page
 
 expect class HomePage() : Page
@@ -30,14 +32,12 @@ expect class AuthenticationQrCodeScannerPage() : Page
 expect class AuthenticationLoadingPage() : Page
 
 expect class AuthenticationConsentPage(
-    url: String,
-    claims: List<String>,
+    authenticationRequestParameters: AuthenticationRequestParameters,
     recipientName: String,
     recipientLocation: String,
     fromQrCodeScanner: Boolean = false
 ) : Page {
-    val url: String
-    val claims: List<String>
+    val authenticationRequestParameters: AuthenticationRequestParameters
     val recipientName: String
     val recipientLocation: String
     val fromQrCodeScanner: Boolean
