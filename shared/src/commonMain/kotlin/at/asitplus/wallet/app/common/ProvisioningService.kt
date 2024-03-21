@@ -165,15 +165,21 @@ class ProvisioningService(
                 CredentialFormatEnum.JWT_VC_JSON_LD -> TODO("Function not implemented")
                 CredentialFormatEnum.JSON_LD -> TODO("Function not implemented")
                 CredentialFormatEnum.MSO_MDOC -> {
-                    val issuerSigned = IssuerSigned.deserialize(it.decodeBase64()!!.toByteArray())!!
-                    holderAgent.storeCredentials(
-                        listOf(
-                            Holder.StoreCredentialInput.Iso(
-                                issuerSigned = issuerSigned,
-                                scheme = credentialScheme
+                    val issuerSigned = it.decodeBase64()?.toByteArray()?.let {
+                        IssuerSigned.deserialize(it)
+                    }
+                    if(issuerSigned != null) {
+                        holderAgent.storeCredentials(
+                            listOf(
+                                Holder.StoreCredentialInput.Iso(
+                                    issuerSigned = issuerSigned,
+                                    scheme = credentialScheme
+                                )
                             )
                         )
-                    )
+                    } else {
+                        throw Exception("Invalid credential format: $it")
+                    }
                 }
             }
         }
