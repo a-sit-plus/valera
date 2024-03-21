@@ -17,6 +17,7 @@ import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.jws.DefaultVerifierJwsService
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.navigation_button_label_my_data
@@ -320,7 +321,7 @@ fun MainNavigator(
                             spName = page.recipientName,
                             spLocation = page.recipientLocation,
                             spImage = null,
-                            authenticationRequestParameters = page.authenticationRequestParameters,
+                            authenticationRequestParameters = jsonSerializer.decodeFromString(page.authenticationRequestParametersSerialized),
                             fromQrCodeScanner = page.fromQrCodeScanner,
                             navigateUp = navigateUp,
                             navigateToRefreshCredentialsPage = {

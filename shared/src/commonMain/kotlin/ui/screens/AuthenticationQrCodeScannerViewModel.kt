@@ -1,6 +1,8 @@
 package view
 
+import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.jws.VerifierJwsService
+import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import domain.RetrieveAuthenticationRequestParametersFromAuthenticationRequestUriUseCase
 import domain.RetrieveRelyingPartyMetadataFromAuthenticationRequestParametersUseCase
@@ -53,23 +55,24 @@ class AuthenticationQrCodeScannerViewModel(
             val authenticationConsentPage =
                 buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(link).let {
                     AuthenticationConsentPage(
-                        authenticationRequestParameters = it.authenticationRequestParameters,
+                        authenticationRequestParametersSerialized = it.authenticationRequestParametersSerialized,
                         recipientLocation = it.recipientLocation,
                         recipientName = it.recipientName,
                         fromQrCodeScanner = true,
                     )
                 }
+            val authenticationRequestParameters = jsonSerializer.decodeFromString<AuthenticationRequestParameters>(authenticationConsentPage.authenticationRequestParametersSerialized)
             val clientMetadataPayload =
-                retrieveRelyingPartyMetadataFromAuthenticationRequestParametersUseCase(authenticationConsentPage.authenticationRequestParameters)
+                retrieveRelyingPartyMetadataFromAuthenticationRequestParametersUseCase(authenticationRequestParameters)
 
             clientMetadataPayload?.redirectUris?.run {
-                if (!contains(authenticationConsentPage.authenticationRequestParameters.clientId)) {
+                if (!contains(authenticationRequestParameters.clientId)) {
                     val redirectUris = this.joinToString(", ") { "`${this}`" }
                     val message =
-                        "Client id not in client metadata redirect uris: ${authenticationConsentPage.authenticationRequestParameters.clientId} not in: $redirectUris)"
+                        "Client id not in client metadata redirect uris: ${authenticationRequestParameters.clientId} not in: $redirectUris)"
                     throw Throwable(message)
                 } else {
-                    Napier.d("Valid client id: ${authenticationConsentPage.authenticationRequestParameters.clientId}")
+                    Napier.d("Valid client id: ${authenticationRequestParameters.clientId}")
                 }
             } // ?: throw Throwable("No redirect URIs specified")
 

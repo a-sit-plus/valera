@@ -20,7 +20,7 @@ actual class AuthenticationQrCodeScannerPage actual constructor() : Page
 actual class RefreshCredentialsPage : Page
 
 actual class AuthenticationConsentPage actual constructor(
-    actual val authenticationRequestParameters: AuthenticationRequestParameters,
+    actual val authenticationRequestParametersSerialized: String,
     actual val recipientName: String,
     actual val recipientLocation: String,
     actual val fromQrCodeScanner: Boolean,
