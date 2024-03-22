@@ -82,7 +82,8 @@ class ProvisioningService(
     @Throws(Throwable::class)
     suspend fun handleResponse(url: String) {
         val host = config.host.first()
-        val xAuthToken = dataStoreService.getPreference(Configuration.DATASTORE_KEY_XAUTH).firstOrNull()
+        val xAuthToken =
+            dataStoreService.getPreference(Configuration.DATASTORE_KEY_XAUTH).firstOrNull()
         val credentialRepresentation = config.credentialRepresentation.first()
         val credentialScheme = config.credentialScheme.first()
         if (xAuthToken == null) {
@@ -128,7 +129,8 @@ class ProvisioningService(
             }.body()
 
         Napier.d("Received tokenResponse")
-        val credentialRequest = oid4vciService.createCredentialRequest(tokenResponse, metadata).getOrThrow()
+        val credentialRequest =
+            oid4vciService.createCredentialRequest(tokenResponse, metadata).getOrThrow()
         Napier.d("Created credentialRequest")
         val credentialResponse: CredentialResponseParameters =
             client.post(metadata.credentialEndpointUrl.toString()) {
@@ -165,10 +167,9 @@ class ProvisioningService(
                 CredentialFormatEnum.JWT_VC_JSON_LD -> TODO("Function not implemented")
                 CredentialFormatEnum.JSON_LD -> TODO("Function not implemented")
                 CredentialFormatEnum.MSO_MDOC -> {
-                    val issuerSigned = it.decodeBase64()?.toByteArray()?.let {
+                    it.decodeBase64()?.toByteArray()?.let {
                         IssuerSigned.deserialize(it)
-                    }
-                    if(issuerSigned != null) {
+                    }?.also { issuerSigned ->
                         holderAgent.storeCredentials(
                             listOf(
                                 Holder.StoreCredentialInput.Iso(
@@ -177,9 +178,7 @@ class ProvisioningService(
                                 )
                             )
                         )
-                    } else {
-                        throw Exception("Invalid credential format: $it")
-                    }
+                    } ?: throw Exception("Invalid credential format: $it")
                 }
             }
         }
