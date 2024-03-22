@@ -50,6 +50,14 @@
     <string name="attribute_friendly_name_main_residence_house_number">UNTRANSLATED:attribute_friendly_name_main_residence_house_number</string>
     <string name="attribute_friendly_name_sex">UNTRANSLATED:attribute_friendly_name_sex</string>
     <string name="attribute_friendly_name_nationality">UNTRANSLATED:attribute_friendly_name_nationality</string>
+    <string name="attribute_friendly_name_age_in_years">UNTRANSLATED:attribute_friendly_name_age_in_years</string>
+    <string name="attribute_friendly_name_age_birth_year">UNTRANSLATED:attribute_friendly_name_age_birth_year</string>
+    <string name="attribute_friendly_name_family_name_birth">UNTRANSLATED:attribute_friendly_name_family_name_birth</string>
+    <string name="attribute_friendly_name_given_name_birth">UNTRANSLATED:attribute_friendly_name_given_name_birth</string>
+    <string name="attribute_friendly_name_birth_place">UNTRANSLATED:attribute_friendly_name_birth_place</string>
+    <string name="attribute_friendly_name_birth_country">UNTRANSLATED:attribute_friendly_name_birth_country</string>
+    <string name="attribute_friendly_name_birth_state">UNTRANSLATED:attribute_friendly_name_birth_state</string>
+    <string name="attribute_friendly_name_birth_city">UNTRANSLATED:attribute_friendly_name_birth_city</string>
 
     <string name="attribute_friendly_name_data_recipient_name">UNTRANSLATED:attribute_friendly_name_data_recipient_name</string>
     <string name="attribute_friendly_name_data_recipient_location">UNTRANSLATED:attribute_friendly_name_data_recipient_location</string>

@@ -51,6 +51,14 @@
     <string name="attribute_friendly_name_main_residence_house_number">Hausnummer</string>
     <string name="attribute_friendly_name_sex">Geschlecht</string>
     <string name="attribute_friendly_name_nationality">Nationalität</string>
+    <string name="attribute_friendly_name_age_in_years">Alter</string>
+    <string name="attribute_friendly_name_family_name_birth">Vorname (Geburt)</string>
+    <string name="attribute_friendly_name_given_name_birth">Nachname (Geburt)</string>
+    <string name="attribute_friendly_name_age_birth_year">Geburtsjahr</string>
+    <string name="attribute_friendly_name_birth_place">Geburtsort</string>
+    <string name="attribute_friendly_name_birth_country">Geburtsland</string>
+    <string name="attribute_friendly_name_birth_state">Geburtsstaat</string>
+    <string name="attribute_friendly_name_birth_city">Geburtsstadt</string>
 
     <string name="attribute_friendly_name_data_recipient_name">Name</string>
     <string name="attribute_friendly_name_data_recipient_location">Ort</string>

@@ -122,12 +122,13 @@ fun AuthenticationConsentViewStateHolder(
     )
 
     val requestedAttributesLocalized =
-        attributeCategorizationWithOthers.map {
+        attributeCategorizationWithOthers.map { attributeCategory ->
             Pair(
-                it.first,
-                it.second.mapNotNull { claim ->
+                attributeCategory.first,
+                attributeCategory.second.mapNotNull { claim ->
                     if (claims.contains(claim) == false) null else AttributeAvailability(
-                        attributeName = stringResource(claim.attributeTranslation),
+                        // also supports claims that are not supported yet (for example claims that may be added later on before the wallet is updated)
+                        attributeName = claim.attributeTranslation?.let { stringResource(it) } ?: claim,
                         isAvailable = credentialExtractor.containsAttribute(claim),
                     )
                 }
@@ -152,7 +153,10 @@ fun AuthenticationConsentViewStateHolder(
             showBiometry = false
             walletMain.scope.launch {
                 try {
-                    walletMain.presentationService.startSiop(authenticationRequestParameters, fromQrCodeScanner)
+                    walletMain.presentationService.startSiop(
+                        authenticationRequestParameters,
+                        fromQrCodeScanner
+                    )
                     navigateUp()
                     navigateToAuthenticationSuccessPage()
                 } catch (e: Throwable) {
