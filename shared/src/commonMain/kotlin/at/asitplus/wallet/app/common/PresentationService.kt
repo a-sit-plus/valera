@@ -5,7 +5,6 @@ import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
 import at.asitplus.wallet.lib.oidc.JsonWebKeySet
 import at.asitplus.wallet.lib.oidc.OidcSiopWallet
-import at.asitplus.wallet.lib.oidc.jsonSerializer
 import io.github.aakira.napier.Napier
 import io.ktor.client.request.get
 import io.ktor.client.request.post
@@ -40,7 +39,7 @@ class PresentationService(
                 runBlocking {
                     withContext(Dispatchers.IO) {
                         val response = client.get(jwksUrl)
-                        jsonSerializer.decodeFromString<JsonWebKeySet>(response.bodyAsText())
+                        JsonWebKeySet.deserialize(response.bodyAsText())
                     }
                 }
             }
