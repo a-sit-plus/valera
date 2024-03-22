@@ -46,7 +46,6 @@ class AuthenticationQrCodeScannerViewModel(
 
         startLoadingCallback()
         val coroutineExceptionHandler = CoroutineExceptionHandler { _, error ->
-            // Do what you want with the error
             stopLoadingCallback()
             onFailure(error)
         }
@@ -74,7 +73,7 @@ class AuthenticationQrCodeScannerViewModel(
                 } else {
                     Napier.d("Valid client id: ${authenticationRequestParameters.clientId}")
                 }
-            } // ?: throw Throwable("No redirect URIs specified")
+            }
 
             stopLoadingCallback()
             onSuccess(authenticationConsentPage)
