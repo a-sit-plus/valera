@@ -1,7 +1,7 @@
 package at.asitplus.wallet.app.common
 
-import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
+import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.jsonSerializer
 import data.storage.DataStoreService
@@ -35,7 +35,7 @@ class WalletConfig(
     }
 
     val credentialScheme: Flow<ConstantIndex.CredentialScheme> = config.map {
-        it.credentialSchemeVcType.asCredentialScheme
+        AttributeIndex.resolveAttributeType(it.credentialSchemeVcType) ?: throw Exception("Unsupported attribute type: $it")
     }
 
     val isConditionsAccepted: Flow<Boolean> = config.map {
@@ -74,13 +74,6 @@ class WalletConfig(
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_CONFIG)
     }
 }
-
-private val String.asCredentialScheme: ConstantIndex.CredentialScheme
-    get() = when (this) {
-        IdAustriaScheme.vcType -> IdAustriaScheme
-        EuPidScheme.vcType -> EuPidScheme
-        else -> throw Exception("Unsupported credential scheme: $this")
-    }
 
 /**
  * Data class which holds the wallet preferences
