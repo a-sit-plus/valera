@@ -4,7 +4,7 @@ import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.jws.VerifierJwsService
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
-import domain.RetrieveAuthenticationRequestParametersFromAuthenticationRequestUriUseCase
+import domain.RetrieveAuthenticationRequestParametersUseCase
 import domain.RetrieveRelyingPartyMetadataFromAuthenticationRequestParametersUseCase
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
@@ -24,14 +24,14 @@ class AuthenticationQrCodeScannerViewModel(
         verifierJwsService: VerifierJwsService,
     ) : this(
         buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase = BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
-            retrieveAuthenticationRequestParametersFromAuthenticationRequestUriUseCase = RetrieveAuthenticationRequestParametersFromAuthenticationRequestUriUseCase(
-                verifierJwsService = verifierJwsService,
+            retrieveAuthenticationRequestParametersUseCase = RetrieveAuthenticationRequestParametersUseCase(
                 client = client,
+                verifierJwsService = verifierJwsService,
             ),
         ),
         retrieveRelyingPartyMetadataFromAuthenticationRequestParametersUseCase = RetrieveRelyingPartyMetadataFromAuthenticationRequestParametersUseCase(
-            verifierJwsService = verifierJwsService,
             client = client,
+            verifierJwsService = verifierJwsService,
         ),
     )
 

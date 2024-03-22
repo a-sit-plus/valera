@@ -25,7 +25,7 @@ import composewalletapp.shared.generated.resources.navigation_button_label_setti
 import composewalletapp.shared.generated.resources.navigation_button_label_show_data
 import composewalletapp.shared.generated.resources.snackbar_reset_app_successfully
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
-import domain.RetrieveAuthenticationRequestParametersFromAuthenticationRequestUriUseCase
+import domain.RetrieveAuthenticationRequestParametersUseCase
 import io.github.aakira.napier.Napier
 import io.ktor.http.parseQueryString
 import kotlinx.coroutines.Dispatchers
@@ -118,7 +118,6 @@ private enum class NavigationData(
     ),
 }
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun Navigator(walletMain: WalletMain) {
     // Modified from https://github.com/JetBrains/compose-multiplatform/tree/master/examples/imageviewer
@@ -159,7 +158,7 @@ fun Navigator(walletMain: WalletMain) {
 
                 val buildAuthenticationConsentPage =
                     BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
-                        retrieveAuthenticationRequestParametersFromAuthenticationRequestUriUseCase = RetrieveAuthenticationRequestParametersFromAuthenticationRequestUriUseCase(
+                        retrieveAuthenticationRequestParametersUseCase = RetrieveAuthenticationRequestParametersUseCase(
                             client = walletMain.httpService.buildHttpClient(),
                             verifierJwsService = DefaultVerifierJwsService(),
                         )

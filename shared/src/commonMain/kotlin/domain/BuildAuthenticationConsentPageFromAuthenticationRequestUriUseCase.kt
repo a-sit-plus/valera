@@ -5,10 +5,10 @@ import kotlinx.serialization.encodeToString
 import ui.navigation.AuthenticationConsentPage
 
 class BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
-    private val retrieveAuthenticationRequestParametersFromAuthenticationRequestUriUseCase: RetrieveAuthenticationRequestParametersFromAuthenticationRequestUriUseCase,
+    private val retrieveAuthenticationRequestParametersUseCase: RetrieveAuthenticationRequestParametersUseCase,
 ) {
     suspend operator fun invoke(requestUri: String): AuthenticationConsentPage {
-        val authenticationRequestParameters =  retrieveAuthenticationRequestParametersFromAuthenticationRequestUriUseCase(requestUri)
+        val authenticationRequestParameters =  retrieveAuthenticationRequestParametersUseCase(requestUri)
 
         // TODO: extract recipient name from the metadataResponse; the data is not yet being delivered though
         return AuthenticationConsentPage(
