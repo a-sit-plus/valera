@@ -77,7 +77,7 @@ class WalletMain(
         subjectCredentialStore.reset()
 
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_VCS)
-        dataStoreService.deletePreference(Configuration.DATASTORE_KEY_XAUTH)
+        dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT)
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_COOKIES)
         walletConfig.reset()
     }

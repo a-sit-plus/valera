@@ -2,14 +2,14 @@ package at.asitplus.wallet.app.common
 
 object Configuration {
     val BUILD_FOR_STAGE = BuildEnvironment.Development.abbreviation
-    val USER_AUTHENTICATION_TIMEOUT = 5 * 60
+    val USER_AUTHENTICATION_TIMEOUT_SECONDS = 5 * 60
 
+    const val DATASTORE_KEY_CONFIG = "config"
     const val DATASTORE_KEY_VCS = "VCs"
-    const val DATASTORE_KEY_XAUTH = "xauth"
+    const val DATASTORE_KEY_PROVISIONING_CONTEXT = "provisioning_context"
     const val DATASTORE_KEY_COOKIES = "cookies"
     const val DEBUG_DATASTORE_KEY = "DBGKEY"
     const val DEBUG_DATASTORE_VALUE = "DBGVALUE"
-    const val DATASTORE_KEY_CONFIG = "config"
 
     const val IOS_TEST_VALUE = "TESTVALUE"
 }

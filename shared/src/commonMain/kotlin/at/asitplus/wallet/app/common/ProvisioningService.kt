@@ -3,7 +3,11 @@ package at.asitplus.wallet.app.common
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.Holder
 import at.asitplus.wallet.lib.agent.HolderAgent
+import at.asitplus.wallet.lib.data.AttributeIndex
+import at.asitplus.wallet.lib.data.ConstantIndex
+import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.iso.IssuerSigned
+import at.asitplus.wallet.lib.oidc.OpenIdConstants
 import at.asitplus.wallet.lib.oidc.OpenIdConstants.TOKEN_PREFIX_BEARER
 import at.asitplus.wallet.lib.oidvci.CredentialFormatEnum
 import at.asitplus.wallet.lib.oidvci.CredentialResponseParameters
@@ -25,12 +29,20 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.Url
 import io.ktor.http.contentType
-import io.ktor.http.parseQueryString
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
 import okio.ByteString.Companion.decodeBase64
 
 const val PATH_WELL_KNOWN_CREDENTIAL_ISSUER = "/.well-known/openid-credential-issuer"
+
+val HttpHeaders.xAuthToken: String
+    get() = "X-Auth-Token"
+
+val OpenIdConstants.PARAMETER_STATE: String
+    get() = "state"
+val OpenIdConstants.PARAMETER_REDIRECT_URI: String
+    get() = "redirect_uri"
 
 class ProvisioningService(
     val platformAdapter: PlatformAdapter,
@@ -41,14 +53,23 @@ class ProvisioningService(
     errorService: ErrorService,
     httpService: HttpService,
 ) {
-
     var redirectUri: String? = null
     private val cookieStorage = PersistentCookieStorage(dataStoreService, errorService)
     private val client = httpService.buildHttpClient(cookieStorage = cookieStorage)
 
     @Throws(Throwable::class)
-    suspend fun startProvisioning() {
-        val host = config.host.first()
+    suspend fun startProvisioning(
+        host: String,
+        credentialScheme: ConstantIndex.CredentialScheme,
+        credentialRepresentation: ConstantIndex.CredentialRepresentation,
+        requestedAttributes: List<String>?,
+    ) {
+        config.set(
+            host = host,
+            credentialSchemeVcType = credentialScheme.vcType,
+            credentialRepresentation = credentialRepresentation,
+        )
+
         cookieStorage.reset()
         Napier.d("Start provisioning")
 
@@ -57,18 +78,37 @@ class ProvisioningService(
         }.onSuccess { response ->
             val urlToOpen = response.headers[HttpHeaders.Location]
 
-            val xAuthToken = response.headers["X-Auth-Token"]
+            val xAuthToken = response.headers[HttpHeaders.xAuthToken]
                 ?: throw Exception("X-Auth-Token not received")
 
-            Napier.d("Store X-Auth-Token: $xAuthToken")
-            dataStoreService.setPreference(xAuthToken, Configuration.DATASTORE_KEY_XAUTH)
-
             if (urlToOpen != null) {
-                val pars = parseQueryString(
-                    urlToOpen,
-                    startIndex = urlToOpen.indexOfFirst { it == '?' } + 1)
-                redirectUri = pars["redirect_uri"]
+                val parameters = Url(urlToOpen).parameters
+                val state = parameters[OpenIdConstants.PARAMETER_STATE]
+                    ?: throw Exception("State not received")
+
+                val redirectUri = parameters[OpenIdConstants.PARAMETER_REDIRECT_URI]
+                this.redirectUri = redirectUri
                 Napier.d("Set provisioningService.intentUrl to $redirectUri")
+                if (redirectUri == null) {
+                    throw Exception("Missing redirect uri")
+                }
+
+                val provisioningContext = ProvisioningContext(
+                    redirectUri = redirectUri,
+                    state = state,
+                    xAuthToken = xAuthToken,
+                    host = host,
+                    credentialRepresentation = credentialRepresentation,
+                    credentialSchemeVcType = credentialScheme.vcType,
+                    requestedAttributes = requestedAttributes,
+                )
+
+                Napier.d("Store provisioning context: $provisioningContext")
+                dataStoreService.setPreference(
+                    key = Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT,
+                    value = jsonSerializer.encodeToString(provisioningContext),
+                )
+
                 Napier.d("Open URL: $urlToOpen")
                 platformAdapter.openUrl(urlToOpen)
             } else {
@@ -80,30 +120,41 @@ class ProvisioningService(
     }
 
     @Throws(Throwable::class)
-    suspend fun handleResponse(url: String) {
-        val host = config.host.first()
-        val xAuthToken =
-            dataStoreService.getPreference(Configuration.DATASTORE_KEY_XAUTH).firstOrNull()
-        val credentialRepresentation = config.credentialRepresentation.first()
-        val credentialScheme = config.credentialScheme.first()
-        if (xAuthToken == null) {
-            throw Exception("X-Auth-Token not available in DataStoreService")
-        }
+    suspend fun handleResponse(link: String) {
+        val fetchedProvisioningContext = dataStoreService.getPreference(
+            key = Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT,
+        ).firstOrNull() ?: throw Exception("Missing provisioning context")
+        val provisioningContext =
+            jsonSerializer.decodeFromString<ProvisioningContext>(fetchedProvisioningContext)
+        dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT)
+
+        val credentialScheme = provisioningContext.credentialScheme
+        val credentialRepresentation = provisioningContext.credentialRepresentation
+        val host = provisioningContext.host
+        val xAuthToken = provisioningContext.xAuthToken
+        val requestedAttributes = provisioningContext.requestedAttributes
+
+        val url = Url(link)
+        url.parameters[OpenIdConstants.PARAMETER_STATE]?.let {
+            if(it == provisioningContext.state) true else null
+        } ?: throw Exception("Inconsistent provisioning state")
+
         Napier.d("Create request with x-auth: $xAuthToken")
-        client.get(url) {
-            headers["X-Auth-Token"] = xAuthToken
+        client.get(link) {
+            headers[HttpHeaders.xAuthToken] = xAuthToken
         }
 
         Napier.d("Load X-Auth-Token: $xAuthToken")
         val metadata: IssuerMetadata = client.get("$host/m1$PATH_WELL_KNOWN_CREDENTIAL_ISSUER") {
-            headers["X-Auth-Token"] = xAuthToken
+            headers[HttpHeaders.xAuthToken] = xAuthToken
         }.body()
 
         val oid4vciService = WalletService(
             credentialScheme = credentialScheme,
             credentialRepresentation = credentialRepresentation,
             clientId = "$host/m1",
-            cryptoService = cryptoService
+            cryptoService = cryptoService,
+            requestedAttributes = requestedAttributes,
         )
 
         Napier.d("Oid4vciService.createAuthRequest")
@@ -114,7 +165,7 @@ class ProvisioningService(
             authRequest.encodeToParameters().forEach {
                 this.parameter(it.key, it.value)
             }
-            headers["X-Auth-Token"] = xAuthToken
+            headers[HttpHeaders.xAuthToken] = xAuthToken
         }.headers[HttpHeaders.Location]
             ?: throw Exception("codeUrl is null")
 
@@ -183,4 +234,19 @@ class ProvisioningService(
             }
         }
     }
+}
+
+@Serializable
+private data class ProvisioningContext(
+    val state: String,
+    val xAuthToken: String,
+    val redirectUri: String,
+    val host: String,
+    val credentialRepresentation: ConstantIndex.CredentialRepresentation,
+    private val credentialSchemeVcType: String,
+    val requestedAttributes: List<String>?,
+) {
+    val credentialScheme: ConstantIndex.CredentialScheme
+        get() = AttributeIndex.resolveAttributeType(this.credentialSchemeVcType)
+            ?: throw Exception("Unsupported credential scheme: ${this.credentialSchemeVcType}")
 }

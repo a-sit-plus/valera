@@ -35,7 +35,8 @@ class WalletConfig(
     }
 
     val credentialScheme: Flow<ConstantIndex.CredentialScheme> = config.map {
-        AttributeIndex.resolveAttributeType(it.credentialSchemeVcType) ?: throw Exception("Unsupported attribute type: $it")
+        AttributeIndex.resolveAttributeType(it.credentialSchemeVcType)
+            ?: throw Exception("Unsupported attribute type: $it")
     }
 
     val isConditionsAccepted: Flow<Boolean> = config.map {

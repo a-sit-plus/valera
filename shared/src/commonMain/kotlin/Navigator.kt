@@ -173,6 +173,7 @@ fun Navigator(walletMain: WalletMain) {
             }
 
             if (walletMain.provisioningService.redirectUri?.let { link.contains(it) } == true) {
+                walletMain.provisioningService.redirectUri = null
                 mainNavigationStack.push(
                     ProvisioningLoadingPage(
                         link = link
