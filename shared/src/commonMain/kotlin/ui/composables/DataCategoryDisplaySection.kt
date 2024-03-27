@@ -13,8 +13,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.Badge
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -122,7 +122,7 @@ fun DataCategoryDisplaySection(
                         }
                     }
                     if (openSections.value.contains(categoryIndex)) {
-                        Divider(modifier = Modifier.fillMaxWidth())
+                        HorizontalDivider(modifier = Modifier.fillMaxWidth())
                         for (item in category.second) {
                             DataCategoryDisplaySectionItem(
                                 iconText = "",
@@ -134,7 +134,7 @@ fun DataCategoryDisplaySection(
                                 modifier = paddingModifier.fillMaxWidth(),
                             )
                         }
-                        Divider(modifier = Modifier.fillMaxWidth())
+                        HorizontalDivider(modifier = Modifier.fillMaxWidth())
                     }
                 }
             }

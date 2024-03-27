@@ -112,6 +112,8 @@
     <string name="content_description_navigate_back">Zurück</string>
     <string name="content_description_portrait">Portrait</string>
     <string name="content_description_refresh_credentials">Daten aktualisieren</string>
+    <string name="content_description_show_attributes">Attribute anzeigen</string>
+    <string name="content_description_hide_attributes">Attribute verbergen</string>
 
     <string name="prompt_ask_load_missing_data">Sollen die fehlenden Daten nachgeladen werden?</string>
     <string name="prompt_send_above_data">Sollen diese Daten übermittelt werden?</string>

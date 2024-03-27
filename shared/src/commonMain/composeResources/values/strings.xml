@@ -109,6 +109,8 @@
     <string name="content_description_navigate_back">UNTRANSLATED:content_description_navigate_back</string>
     <string name="content_description_portrait">UNTRANSLATED:content_description_portrait</string>
     <string name="content_description_refresh_credentials">UNTRANSLATED:content_description_refresh_credentials</string>
+    <string name="content_description_show_attributes">UNTRANSLATED:content_description_show_attributes</string>
+    <string name="content_description_hide_attributes">UNTRANSLATED:content_description_hide_attributes</string>
 
     <string name="prompt_ask_load_missing_data">UNTRANSLATED:prompt_ask_load_missing_data</string>
     <string name="prompt_send_above_data">UNTRANSLATED:prompt_send_above_data</string>

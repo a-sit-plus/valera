@@ -20,6 +20,7 @@ import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.AttributeAvailability
 import ui.composables.PersonalDataCategory
+import ui.composables.attributeCategorizationOrder
 import ui.views.AuthenticationConsentView
 
 @Composable
@@ -69,25 +70,19 @@ fun AuthenticationConsentViewStateHolder(
     navigateToAuthenticationSuccessPage: () -> Unit,
     walletMain: WalletMain,
 ) {
-    val attributeCategorization = mapOf(
-        PersonalDataCategory.IdentityData to PersonalDataCategory.IdentityData.attributes,
-        PersonalDataCategory.AgeData to PersonalDataCategory.AgeData.attributes,
-        PersonalDataCategory.ResidenceData to PersonalDataCategory.ResidenceData.attributes,
-        PersonalDataCategory.DrivingPermissions to PersonalDataCategory.DrivingPermissions.attributes,
-        PersonalDataCategory.AdmissionData to PersonalDataCategory.AdmissionData.attributes,
-    )
+    val attributeCategorization = attributeCategorizationOrder.associateWith {
+        it.attributes.values.flatten()
+    }
 
     val categorizedClaims = attributeCategorization.toList().flatMap {
         it.second
     }
 
     val claims = authenticationRequestParameters.presentationDefinition?.claims ?: listOf()
-    val uncategorizedClaims = claims.filter {
-        categorizedClaims.contains(it) == false
-    }
-
     val attributeCategorizationWithOthers = attributeCategorization + Pair(
-        PersonalDataCategory.OtherData, uncategorizedClaims
+        PersonalDataCategory.OtherData, claims.filter {
+            categorizedClaims.contains(it) == false
+        }
     )
 
     val requestedAttributesLocalized =

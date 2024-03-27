@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import ui.savers.CredentialSchemeSaver
 import ui.savers.asMutableStateSaver
-import ui.views.LoadDataView
+import ui.views.StatefulLoadDataView
 
 @Composable
 fun LoadDataScreen(
@@ -63,14 +63,15 @@ fun LoadDataScreen(
     var requestedAttributes by rememberSaveable(credentialScheme) {
         runBlocking {
             val storeContainer = walletMain.subjectCredentialStore.observeStoreContainer().first()
-            val credentialExtractor = CredentialExtractor(storeContainer.credentials.filter { it.scheme == credentialScheme })
+            val credentialExtractor =
+                CredentialExtractor(storeContainer.credentials.filter { it.scheme == credentialScheme })
             mutableStateOf(credentialScheme.claimNames.filter {
                 credentialExtractor.containsAttribute(it)
             }.toSet())
         }
     }
 
-    LoadDataView(
+    StatefulLoadDataView(
         host = host,
         onChangeHost = {
             host = it
@@ -86,20 +87,25 @@ fun LoadDataScreen(
         availableCredentials = availableCredentials,
         requestedAttributes = requestedAttributes,
         onChangeRequestedAttributes = {
-            requestedAttributes = it.toSet()
+            requestedAttributes = it
         },
         refreshData = {
             walletMain.scope.launch {
-                try {
-                    walletMain.provisioningService.startProvisioning(
-                        host = host.text,
-                        credentialScheme = credentialScheme,
-                        credentialRepresentation = credentialRepresentation,
-                        requestedAttributes = requestedAttributes,
-                    )
+                if (requestedAttributes.isEmpty()) {
+                    walletMain.subjectCredentialStore.reset()
                     navigateUp()
-                } catch (e: Exception) {
-                    walletMain.errorService.emit(e)
+                } else {
+                    try {
+                        walletMain.provisioningService.startProvisioning(
+                            host = host.text,
+                            credentialScheme = credentialScheme,
+                            credentialRepresentation = credentialRepresentation,
+                            requestedAttributes = requestedAttributes,
+                        )
+                        navigateUp()
+                    } catch (e: Exception) {
+                        walletMain.errorService.emit(e)
+                    }
                 }
             }
         },
