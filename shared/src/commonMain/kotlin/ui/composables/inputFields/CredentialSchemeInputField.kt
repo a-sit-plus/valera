@@ -25,6 +25,7 @@ import org.jetbrains.compose.resources.stringResource
 fun StatefulCredentialSchemeInputField(
     value: ConstantIndex.CredentialScheme,
     onValueChange: (ConstantIndex.CredentialScheme) -> Unit,
+    enabled: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
     var showMenu by remember { mutableStateOf(false) }
@@ -39,6 +40,7 @@ fun StatefulCredentialSchemeInputField(
         onExpandedChange = {
             showMenu = it
         },
+        enabled = enabled,
         modifier = modifier,
     )
 }
@@ -49,6 +51,7 @@ fun CredentialSchemeInputField(
     value: ConstantIndex.CredentialScheme,
     onValueChange: (ConstantIndex.CredentialScheme) -> Unit,
     expanded: Boolean,
+    enabled: Boolean = true,
     onExpandedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -64,6 +67,7 @@ fun CredentialSchemeInputField(
             label = {
                 Text(stringResource(Res.string.text_label_id_format))
             },
+            enabled = enabled,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier.menuAnchor().fillMaxWidth(),
         )
@@ -81,6 +85,7 @@ fun CredentialSchemeInputField(
                 onClick = {
                     onValueChange(IdAustriaScheme)
                 },
+                enabled = enabled,
             )
             DropdownMenuItem(
                 text = {
@@ -89,6 +94,7 @@ fun CredentialSchemeInputField(
                 onClick = {
                     onValueChange(EuPidScheme)
                 },
+                enabled = enabled,
             )
         }
     }

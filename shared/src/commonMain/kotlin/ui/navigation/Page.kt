@@ -21,7 +21,21 @@ expect class ProvisioningLoadingPage(link: String) : Page {
     val link: String
 }
 
-expect class RefreshCredentialsPage() : Page
+expect class RefreshRequirements(
+    requestedCredentialFormatHolderStringified: String,
+    requestedCredentialSchemeIdentifier: String,
+    requestedAttributes: Set<String>,
+) {
+    val requestedCredentialFormatHolderStringified: String
+    val requestedCredentialSchemeIdentifier: String
+    val requestedAttributes: Set<String>
+}
+
+expect class RefreshCredentialsPage(
+    refreshRequirements: RefreshRequirements? = null,
+) : Page {
+    val refreshRequirements: RefreshRequirements?
+}
 
 
 

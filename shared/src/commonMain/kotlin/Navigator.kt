@@ -258,6 +258,7 @@ fun MainNavigator(
 
                     is RefreshCredentialsPage -> {
                         LoadDataScreen(
+                            refreshRequirements = page.refreshRequirements,
                             navigateUp = navigateUp,
                             walletMain = walletMain,
                         )
@@ -270,7 +271,6 @@ fun MainNavigator(
                             walletMain = walletMain,
                         )
                     }
-
 
                     is SettingsPage -> {
                         SettingsScreen(
@@ -326,7 +326,7 @@ fun MainNavigator(
                             navigateUp = navigateUp,
                             navigateToRefreshCredentialsPage = {
                                 navigationStack.push(
-                                    RefreshCredentialsPage()
+                                    RefreshCredentialsPage(it)
                                 )
                             },
                             navigateToAuthenticationSuccessPage = {

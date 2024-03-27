@@ -27,6 +27,7 @@ import org.jetbrains.compose.resources.stringResource
 fun StatefulCredentialRepresentationInputField(
     value: ConstantIndex.CredentialRepresentation,
     onValueChange: (ConstantIndex.CredentialRepresentation) -> Unit,
+    enabled: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
     var showMenu by remember { mutableStateOf(false) }
@@ -41,6 +42,7 @@ fun StatefulCredentialRepresentationInputField(
         onExpandedChange = {
             showMenu = it
         },
+        enabled = enabled,
         modifier = modifier,
     )
 }
@@ -52,6 +54,7 @@ fun CredentialRepresentationInputField(
     onValueChange: (ConstantIndex.CredentialRepresentation) -> Unit,
     expanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
+    enabled: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
     ExposedDropdownMenuBox(
@@ -60,6 +63,7 @@ fun CredentialRepresentationInputField(
         modifier = modifier,
     ) {
         OutlinedTextField(
+            enabled = enabled,
             readOnly = true,
             value = value.name,
             onValueChange = {},
@@ -83,6 +87,7 @@ fun CredentialRepresentationInputField(
                 onClick = {
                     onValueChange(ConstantIndex.CredentialRepresentation.PLAIN_JWT)
                 },
+                enabled = enabled,
                 modifier = Modifier.fillMaxWidth(),
             )
             DropdownMenuItem(
@@ -92,6 +97,7 @@ fun CredentialRepresentationInputField(
                 onClick = {
                     onValueChange(ConstantIndex.CredentialRepresentation.SD_JWT)
                 },
+                enabled = enabled,
                 modifier = Modifier.fillMaxWidth(),
             )
             DropdownMenuItem(
@@ -101,6 +107,7 @@ fun CredentialRepresentationInputField(
                 onClick = {
                     onValueChange(ConstantIndex.CredentialRepresentation.ISO_MDOC)
                 },
+                enabled = enabled,
                 modifier = Modifier.fillMaxWidth(),
             )
         }

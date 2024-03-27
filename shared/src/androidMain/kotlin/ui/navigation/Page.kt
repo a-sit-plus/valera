@@ -34,7 +34,16 @@ actual class ProvisioningLoadingPage actual constructor(
 actual class AuthenticationQrCodeScannerPage : Page, Parcelable
 
 @Parcelize
-actual class RefreshCredentialsPage : Page, Parcelable
+actual class RefreshRequirements actual constructor(
+    actual val requestedCredentialFormatHolderStringified: String,
+    actual val requestedCredentialSchemeIdentifier: String,
+    actual val requestedAttributes: Set<String>,
+) : Parcelable
+
+@Parcelize
+actual class RefreshCredentialsPage actual constructor(
+    actual val refreshRequirements: RefreshRequirements?
+) : Page, Parcelable
 
 @Parcelize
 actual class AuthenticationConsentPage actual constructor(
