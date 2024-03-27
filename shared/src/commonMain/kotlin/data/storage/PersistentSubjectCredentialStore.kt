@@ -370,15 +370,18 @@ fun List<SubjectCredentialStore.StoreEntry>.filterNotScheme(scheme: ConstantInde
     }
 }
 
+val SubjectCredentialStore.StoreEntry.scheme: ConstantIndex.CredentialScheme
+    get() = when (this) {
+        is SubjectCredentialStore.StoreEntry.Vc -> this.scheme
+        is SubjectCredentialStore.StoreEntry.SdJwt -> this.scheme
+        is SubjectCredentialStore.StoreEntry.Iso -> this.scheme
+        else -> throw Error("Unsupported credential representation format")
+    }
+
 fun List<SubjectCredentialStore.StoreEntry>.filterOnlyScheme(scheme: ConstantIndex.CredentialScheme): List<SubjectCredentialStore.StoreEntry> {
     // consider credentials unique by credential scheme
     return this.filter {
-        when (it) {
-            is SubjectCredentialStore.StoreEntry.Vc -> it.scheme == scheme
-            is SubjectCredentialStore.StoreEntry.SdJwt -> it.scheme == scheme
-            is SubjectCredentialStore.StoreEntry.Iso -> it.scheme == scheme
-            else -> false
-        }
+        it.scheme == scheme
     }
 }
 

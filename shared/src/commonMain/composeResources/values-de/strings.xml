@@ -23,6 +23,7 @@
     <string name="button_label_share">Teilen</string>
     <string name="button_label_load_data">Daten laden</string>
     <string name="button_label_reload_data">Daten nachladen</string>
+    <string name="button_label_refresh_data">Daten aktualisieren</string>
     <string name="button_label_start">Starten</string>
     <string name="button_label_save">Speichern</string>
     <string name="button_label_conclude">Abschließen</string>
@@ -98,6 +99,7 @@
     <string name="HEADING_LABEL_DATA_PROTECTION">Datenschutz</string>
     <string name="heading_label_terms_of_use_and_data_protection">Nutzungsbedingungen &amp; Datenschutz</string>
     <string name="heading_label_load_data_screen">Daten laden</string>
+    <string name="heading_label_refresh_data_screen">Daten aktualisieren</string>
     <string name="heading_label_authenticate_at_device_screen">Anmelden an\nSchalter oder Maschine</string>
 
     <string name="description_read_terms">Bitte lesen und akzeptieren Sie die Nutzungsbedingungen und Datenschutzerklärung.</string>

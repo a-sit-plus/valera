@@ -22,6 +22,7 @@
     <string name="button_label_share">UNTRANSLATED:button_label_share</string>
     <string name="button_label_load_data">UNTRANSLATED:button_label_load_data</string>
     <string name="button_label_reload_data">UNTRANSLATED:button_label_reload_data</string>
+    <string name="button_label_refresh_data">UNTRANSLATED:button_label_refresh_data</string>
     <string name="button_label_start">UNTRANSLATED:button_label_start</string>
     <string name="button_label_save">UNTRANSLATED:button_label_save</string>
     <string name="button_label_conclude">UNTRANSLATED:button_label_conclude</string>
@@ -97,6 +98,7 @@
     <string name="HEADING_LABEL_DATA_PROTECTION">UNTRANSLATED:HEADING_LABEL_DATA_PROTECTION</string>
     <string name="heading_label_terms_of_use_and_data_protection">UNTRANSLATED:heading_label_terms_of_use_and_data_protection</string>
     <string name="heading_label_load_data_screen">UNTRANSLATED:heading_label_load_data_screen</string>
+    <string name="heading_label_refresh_data_screen">UNTRANSLATED:heading_label_refresh_data_screen</string>
     <string name="heading_label_authenticate_at_device_screen">UNTRANSLATED:heading_label_authenticate_at_device_screen</string>
 
     <string name="description_read_terms">UNTRANSLATED:description_read_terms</string>

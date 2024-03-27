@@ -35,7 +35,7 @@ import composewalletapp.shared.generated.resources.attribute_friendly_name_main_
 import composewalletapp.shared.generated.resources.attribute_friendly_name_nationality
 import composewalletapp.shared.generated.resources.attribute_friendly_name_portrait
 import composewalletapp.shared.generated.resources.attribute_friendly_name_sex
-import data.storage.filterOnlyScheme
+import data.storage.scheme
 import io.github.aakira.napier.Napier
 import io.ktor.util.decodeBase64Bytes
 import io.ktor.util.decodeBase64String
@@ -152,7 +152,7 @@ class CredentialExtractor(
     }
 
     fun fromCredentialScheme(scheme: ConstantIndex.CredentialScheme): CredentialExtractor {
-        return CredentialExtractor(credentials.filterOnlyScheme(scheme))
+        return CredentialExtractor(credentials.filter { it.scheme == scheme })
     }
 
     fun fromCredentialFormat(credentialRepresentation: ConstantIndex.CredentialRepresentation): CredentialExtractor {

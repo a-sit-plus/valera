@@ -23,7 +23,7 @@ class LabeledCheckboxDefaults {
 fun LabeledCheckbox(
     label: String,
     checked: Boolean,
-    onCheckedChange: () -> Unit,
+    onCheckedChange: (Boolean) -> Unit,
     gapWidth: Dp = LabeledCheckboxDefaults.gapWidth,
     labelTextStyle: TextStyle = MaterialTheme.typography.bodyLarge,
     modifier: Modifier = Modifier,
@@ -35,7 +35,7 @@ fun LabeledCheckbox(
         Checkbox(
             checked = checked,
             onCheckedChange = {
-                onCheckedChange()
+                onCheckedChange(it)
             },
         )
         Spacer(modifier = Modifier.width(gapWidth))

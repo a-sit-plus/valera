@@ -62,7 +62,7 @@ class ProvisioningService(
         host: String,
         credentialScheme: ConstantIndex.CredentialScheme,
         credentialRepresentation: ConstantIndex.CredentialRepresentation,
-        requestedAttributes: List<String>?,
+        requestedAttributes: Collection<String>?,
     ) {
         config.set(
             host = host,
@@ -244,7 +244,7 @@ private data class ProvisioningContext(
     val host: String,
     val credentialRepresentation: ConstantIndex.CredentialRepresentation,
     private val credentialSchemeVcType: String,
-    val requestedAttributes: List<String>?,
+    val requestedAttributes: Collection<String>?,
 ) {
     val credentialScheme: ConstantIndex.CredentialScheme
         get() = AttributeIndex.resolveAttributeType(this.credentialSchemeVcType)

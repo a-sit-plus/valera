@@ -8,8 +8,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.eupid.EuPidScheme
-import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.dif.PresentationDefinition
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
 import composewalletapp.shared.generated.resources.Res
@@ -71,44 +69,15 @@ fun AuthenticationConsentViewStateHolder(
     navigateToAuthenticationSuccessPage: () -> Unit,
     walletMain: WalletMain,
 ) {
-    val attributeCategorization = listOf(
-        Pair(
-            PersonalDataCategory.IdentityData, listOf(
-                IdAustriaScheme.Attributes.FIRSTNAME,
-                EuPidScheme.Attributes.GIVEN_NAME,
-                IdAustriaScheme.Attributes.LASTNAME,
-                EuPidScheme.Attributes.FAMILY_NAME,
-                IdAustriaScheme.Attributes.DATE_OF_BIRTH,
-                EuPidScheme.Attributes.BIRTH_DATE,
-                IdAustriaScheme.Attributes.PORTRAIT,
-                EuPidScheme.Attributes.GENDER,
-                EuPidScheme.Attributes.NATIONALITY,
-            )
-        ),
-        Pair(
-            PersonalDataCategory.AgeData, listOf(
-                IdAustriaScheme.Attributes.AGE_OVER_14,
-                IdAustriaScheme.Attributes.AGE_OVER_16,
-                IdAustriaScheme.Attributes.AGE_OVER_18,
-                EuPidScheme.Attributes.AGE_OVER_18,
-                IdAustriaScheme.Attributes.AGE_OVER_21,
-            )
-        ),
-        Pair(
-            PersonalDataCategory.ResidenceData, listOf(
-                IdAustriaScheme.Attributes.MAIN_ADDRESS,
-                EuPidScheme.Attributes.RESIDENT_ADDRESS,
-                EuPidScheme.Attributes.RESIDENT_COUNTRY,
-                EuPidScheme.Attributes.RESIDENT_STATE,
-                EuPidScheme.Attributes.RESIDENT_CITY,
-                EuPidScheme.Attributes.RESIDENT_POSTAL_CODE,
-                EuPidScheme.Attributes.RESIDENT_STREET,
-                EuPidScheme.Attributes.RESIDENT_HOUSE_NUMBER,
-            )
-        ),
+    val attributeCategorization = mapOf(
+        PersonalDataCategory.IdentityData to PersonalDataCategory.IdentityData.attributes,
+        PersonalDataCategory.AgeData to PersonalDataCategory.AgeData.attributes,
+        PersonalDataCategory.ResidenceData to PersonalDataCategory.ResidenceData.attributes,
+        PersonalDataCategory.DrivingPermissions to PersonalDataCategory.DrivingPermissions.attributes,
+        PersonalDataCategory.AdmissionData to PersonalDataCategory.AdmissionData.attributes,
     )
 
-    val categorizedClaims = attributeCategorization.flatMap {
+    val categorizedClaims = attributeCategorization.toList().flatMap {
         it.second
     }
 
@@ -122,7 +91,7 @@ fun AuthenticationConsentViewStateHolder(
     )
 
     val requestedAttributesLocalized =
-        attributeCategorizationWithOthers.map { attributeCategory ->
+        attributeCategorizationWithOthers.toList().map { attributeCategory ->
             Pair(
                 attributeCategory.first,
                 attributeCategory.second.mapNotNull { claim ->

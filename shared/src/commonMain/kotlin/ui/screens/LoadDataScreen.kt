@@ -2,6 +2,7 @@ package ui.screens
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.Saver
@@ -10,8 +11,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.input.TextFieldValue
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.idaustria.IdAustriaScheme
+import data.CredentialExtractor
+import data.storage.scheme
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import ui.savers.CredentialSchemeSaver
@@ -53,8 +56,18 @@ fun LoadDataScreen(
         }
     }
 
+    val availableCredentials by walletMain.subjectCredentialStore.observeStoreContainer().map {
+        it.credentials
+    }.collectAsState(listOf())
+
     var requestedAttributes by rememberSaveable(credentialScheme) {
-        mutableStateOf(listOf<String>())
+        runBlocking {
+            val storeContainer = walletMain.subjectCredentialStore.observeStoreContainer().first()
+            val credentialExtractor = CredentialExtractor(storeContainer.credentials.filter { it.scheme == credentialScheme })
+            mutableStateOf(credentialScheme.claimNames.filter {
+                credentialExtractor.containsAttribute(it)
+            }.toSet())
+        }
     }
 
     LoadDataView(
@@ -70,11 +83,12 @@ fun LoadDataScreen(
         onChangeCredentialScheme = {
             credentialScheme = it
         },
+        availableCredentials = availableCredentials,
         requestedAttributes = requestedAttributes,
         onChangeRequestedAttributes = {
-            requestedAttributes = it
+            requestedAttributes = it.toSet()
         },
-        loadData = {
+        refreshData = {
             walletMain.scope.launch {
                 try {
                     walletMain.provisioningService.startProvisioning(
