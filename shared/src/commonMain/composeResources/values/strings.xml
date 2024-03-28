@@ -97,7 +97,7 @@
     <string name="heading_label_my_data_screen">UNTRANSLATED:heading_label_my_data_screen</string>
     <string name="heading_label_navigate_back">UNTRANSLATED:heading_label_navigate_back</string>
     <string name="heading_label_terms_of_use">UNTRANSLATED:heading_label_terms_of_use</string>
-    <string name="HEADING_LABEL_DATA_PROTECTION">UNTRANSLATED:HEADING_LABEL_DATA_PROTECTION</string>
+    <string name="heading_label_data_protection">UNTRANSLATED:heading_label_data_protection</string>
     <string name="heading_label_terms_of_use_and_data_protection">UNTRANSLATED:heading_label_terms_of_use_and_data_protection</string>
     <string name="heading_label_load_data_screen">UNTRANSLATED:heading_label_load_data_screen</string>
     <string name="heading_label_refresh_data_screen">UNTRANSLATED:heading_label_refresh_data_screen</string>

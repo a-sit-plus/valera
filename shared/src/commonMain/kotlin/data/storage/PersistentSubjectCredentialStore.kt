@@ -378,23 +378,17 @@ val SubjectCredentialStore.StoreEntry.scheme: ConstantIndex.CredentialScheme
         else -> throw Error("Unsupported credential representation format")
     }
 
-fun List<SubjectCredentialStore.StoreEntry>.filterOnlyScheme(scheme: ConstantIndex.CredentialScheme): List<SubjectCredentialStore.StoreEntry> {
-    // consider credentials unique by credential scheme
-    return this.filter {
-        it.scheme == scheme
-    }
-}
-
 fun StoreContainer.filterNotScheme(scheme: ConstantIndex.CredentialScheme): StoreContainer {
-    val credentialIdsWithScheme = credentials.filterOnlyScheme(scheme).mapNotNull { credential ->
-        when (credential) {
-            is SubjectCredentialStore.StoreEntry.Vc -> credential.vc.jwtId
-            is SubjectCredentialStore.StoreEntry.SdJwt -> credential.sdJwt.jwtId
-            // not sure how to get id for mdoc credentials
-            // is SubjectCredentialStore.StoreEntry.Iso -> credential.
-            else -> null
+    val credentialIdsWithScheme =
+        credentials.filter { it.scheme == scheme }.mapNotNull { credential ->
+            when (credential) {
+                is SubjectCredentialStore.StoreEntry.Vc -> credential.vc.jwtId
+                is SubjectCredentialStore.StoreEntry.SdJwt -> credential.sdJwt.jwtId
+                // not sure how to get id for mdoc credentials
+                // is SubjectCredentialStore.StoreEntry.Iso -> credential.
+                else -> null
+            }
         }
-    }
 
     return copy(
         // consider credentials unique by credential scheme

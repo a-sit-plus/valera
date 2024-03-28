@@ -1,0 +1,193 @@
+<resources>
+    <string name="camera_access_denied">Camera access denied</string>
+
+    <string name="warning">Warning</string>
+    <string name="reset_app_alert_text">This action cannot be undone, do you want to proceed?</string>
+
+    <string name="unknown_exception">Unknown exception</string>
+
+    <string name="app_display_name">Wallet Demo App</string>
+    <string name="snackbar_credential_loaded_successfully">Data has been loaded successfully</string>
+    <string name="snackbar_reset_app_successfully">App has been reset successfully</string>
+
+    <string name="button_label_confirm">Confirm</string>
+    <string name="button_label_dismiss">Dismiss</string>
+    <string name="button_label_close_app">Exit</string>
+    <string name="button_label_authenticate">Authenticate</string>
+    <string name="button_label_show_data">Show</string>
+    <string name="button_label_accept">Accept</string>
+    <string name="button_label_cancel">Cancel</string>
+    <string name="button_label_consent">Consent</string>
+    <string name="button_label_continue">Continue</string>
+    <string name="button_label_details">Details</string>
+    <string name="button_label_share">Share</string>
+    <string name="button_label_load_data">Load Data</string>
+    <string name="button_label_reload_data">Load Data</string>
+    <string name="button_label_refresh_data">Load Data</string>
+    <string name="button_label_start">Start</string>
+    <string name="button_label_save">Save</string>
+    <string name="button_label_conclude">Conclude</string>
+    <string name="button_label_scan_qr_code">Scan QR-Code</string>
+    <string name="button_label_faq">FAQ</string>
+    <string name="button_label_licenses">Licenses</string>
+    <string name="button_label_data_protection_policy">Privacy policy</string>
+    <string name="button_label_share_log_file">Share Log-File</string>
+    <string name="button_label_reset_app">Reset App</string>
+    <string name="button_label_all_missing_data">All new Data</string>
+    <string name="button_label_all_available_data">All existing Data</string>
+
+    <string name="attribute_friendly_name_bpk">BPK</string>
+    <string name="attribute_friendly_name_firstname">Given name</string>
+    <string name="attribute_friendly_name_lastname">Family name</string>
+    <string name="attribute_friendly_name_date_of_birth">Birth date</string>
+    <string name="attribute_friendly_name_portrait">Portrait</string>
+    <string name="attribute_friendly_name_age_at_least_14">At least 14 years old</string>
+    <string name="attribute_friendly_name_age_at_least_16">At least 16 years old</string>
+    <string name="attribute_friendly_name_age_at_least_18">At least 18 years old</string>
+    <string name="attribute_friendly_name_age_at_least_21">At least 21 years old</string>
+    <string name="attribute_friendly_name_main_address">Main residence</string>
+    <string name="attribute_friendly_name_main_residence_country">Country</string>
+    <string name="attribute_friendly_name_main_residence_state">State</string>
+    <string name="attribute_friendly_name_main_residence_city">City</string>
+    <string name="attribute_friendly_name_main_residence_postal_code">Postal code</string>
+    <string name="attribute_friendly_name_main_residence_street">Street</string>
+    <string name="attribute_friendly_name_main_residence_house_number">House number</string>
+    <string name="attribute_friendly_name_sex">Sex</string>
+    <string name="attribute_friendly_name_nationality">Nationality</string>
+    <string name="attribute_friendly_name_age_in_years">Age</string>
+    <string name="attribute_friendly_name_family_name_birth">First name (at birth)</string>
+    <string name="attribute_friendly_name_given_name_birth">Given name (at birth)</string>
+    <string name="attribute_friendly_name_age_birth_year">Birth year</string>
+    <string name="attribute_friendly_name_birth_place">Birth place</string>
+    <string name="attribute_friendly_name_birth_country">Birth country</string>
+    <string name="attribute_friendly_name_birth_state">Birth state</string>
+    <string name="attribute_friendly_name_birth_city">Birth city</string>
+
+    <string name="attribute_friendly_name_data_recipient_name">Name</string>
+    <string name="attribute_friendly_name_data_recipient_location">Location</string>
+
+    <string name="navigation_button_label_show_data">Show Data</string>
+    <string name="navigation_button_label_my_data">My Data</string>
+    <string name="navigation_button_label_settings">Settings</string>
+
+    <string name="id_format_plain_jwt_label">PLAIN_JWT</string>
+    <string name="id_format_sd_jwt_label">SD-JWT</string>
+    <string name="id_format_iso_mdoc_label">ISO_MDOC</string>
+
+    <string name="text_label_issuing_service">Issuing Service</string>
+    <string name="text_label_id_format">Credential Format</string>
+    <string name="text_label_id_scheme">Credential Schema</string>
+    <string name="text_label_sex">Sex</string>
+    <string name="text_label_stair">Stair</string>
+    <string name="text_label_door">Door</string>
+    <string name="text_label_stage">Stage</string>
+    <string name="text_label_build_type">Build</string>
+    <string name="text_label_version">Version</string>
+    <string name="text_label_build">Build</string>
+
+    <string name="heading_label_authenticate_at_device_title">Authenticate</string>
+    <string name="heading_label_authenticate_at_device_subtitle">at counter or mashine</string>
+    <string name="heading_label_show_data">Show Data</string>
+    <string name="heading_label_authentication_success">Authenticated</string>
+    <string name="heading_label_settings_screen">Settings</string>
+    <string name="heading_label_error_screen">Error</string>
+    <string name="heading_label_loading_screen">Loading</string>
+    <string name="heading_label_credential_scanner_screen">Credential Scanner</string>
+    <string name="heading_label_log_screen">Log</string>
+    <string name="heading_label_information_screen">Information</string>
+    <string name="heading_label_my_data_screen">My Data</string>
+    <string name="heading_label_navigate_back">Back</string>
+    <string name="heading_label_terms_of_use">Terms of use</string>
+    <string name="heading_label_data_protection">Privacy policy</string>
+    <string name="heading_label_terms_of_use_and_data_protection">Terms of use &amp; Privacy policy</string>
+    <string name="heading_label_load_data_screen">Load data</string>
+    <string name="heading_label_refresh_data_screen">Load data</string>
+    <string name="heading_label_authenticate_at_device_screen">Authenticate at\ncounter or mashine</string>
+
+    <string name="description_read_terms">Please read and accept the terms of use and the privacy policy.</string>
+
+    <string name="biometric_authentication_prompt_for_data_transmission_consent_title">Biometric Authentication</string>
+    <string name="biometric_authentication_prompt_for_data_transmission_consent_subtitle">Authenticate at</string>
+    <string name="biometric_authentication_prompt_to_load_data_title">Biometric Authentication</string>
+    <string name="biometric_authentication_prompt_to_load_data_subtitle">Load Data</string>
+
+    <string name="content_description_navigate_back">Back</string>
+    <string name="content_description_portrait">Portrait</string>
+    <string name="content_description_refresh_credentials">Load Data</string>
+    <string name="content_description_show_attributes">Show attributes</string>
+    <string name="content_description_hide_attributes">Hide attributes</string>
+
+    <string name="prompt_ask_load_missing_data">Should the missing attributes be loaded?</string>
+    <string name="prompt_send_above_data">Should this data be presented?</string>
+    <string name="prompt_send_all_data">Should all data be presented?</string>
+
+    <string name="error_feature_not_yet_available">Incomplete Implementation</string>
+    <string name="error_authentication_at_sp_failed">Authentication failed</string>
+    <string name="error_biometric_error_no_hardware">error_biometric_error_no_hardware</string>
+    <string name="error_biometric_error_hardware_unavailable">BIOMETRIC_ERROR_HW_UNAVAILABLE</string>
+    <string name="error_biometric_error_unsupported">BIOMETRIC_ERROR_UNSUPPORTED</string>
+    <string name="error_biometric_error_security_update_required">BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED</string>
+    <string name="error_biometric_status_unknown">BIOMETRIC_STATUS_UNKNOWN</string>
+    <string name="error_biometric_error_none_enrolled">BIOMETRIC_ERROR_NONE_ENROLLED</string>
+    <string name="error_biometric_error_unknown">error_biometric_error_unknown</string>
+    <string name="error_qr_code_scanning_missing_request_uri">Missing Parameter `request_uri`</string>
+    <string name="error_qr_code_scanning_missing_client_metadata">Missing Parameter `metadata_uri`</string>
+    <string name="error_request_uri_redirect_missing_location_header">Missing location response header</string>
+    <string name="error_request_uri_containing_request_object_and_request_uri">Invalid request url: contains both parameters 'request' and 'request_uri'</string>
+    <string name="error_qr_code_scanning_missing_request_object_parameter">Missing request object</string>
+    <string name="error_qr_code_scanning_invalid_request_jws_object">Invalid requestResponseRequestJws</string>
+    <string name="error_qr_code_scanning_invalid_request_jws_object_signature">Invalid requestResponseRequestJws Signature</string>
+    <string name="error_qr_code_scanning_inconsistent_client_id">Client id does not match</string>
+    <string name="error_inconsistent_redirect_url_client_id">Client id does not match</string>
+    <string name="error_qr_code_scanning_invalid_metadata_jws_object">Invalid metadataJws</string>
+    <string name="error_qr_code_scanning_invalid_metadata_jws_object_signature">Invalid metadataJws signature</string>
+    <string name="error_qr_code_scanning_client_id_not_in_redirect_uris">Client id not in client metadata redirect uris</string>
+
+    <string name="info_text_show_data_situation">In which Situation do you want to present your data?</string>
+    <string name="info_text_irrevocable_error">The error can not be rectified.</string>
+    <string name="info_text_restart_app">Please restart the app.</string>
+    <string name="info_text_data_items_missing">missing</string>
+    <string name="info_text_authentication_success">The authentication has been carried out successfully.</string>
+    <string name="info_text_no_credentials_available">No data is available yet.</string>
+    <string name="info_text_redirection_to_id_austria_for_credential_provisioning">To load your data you will be redirected to ID Austria.</string>
+    <string name="info_text_notice_development_provisioning_using_qr_code_credentials">For development purposes, there is also the option to load data via a QR code.</string>
+    <string name="info_text_enthusiastic_welcome_end">Load your data and off you go!</string>
+
+    <string name="section_heading_authenticate_at_device_title">Authenticate</string>
+    <string name="section_heading_authenticate_at_device_subtitle">at counters or mashines</string>
+    <string name="section_heading_show_data_to_executive_title">Show data to</string>
+    <string name="section_heading_show_data_to_executive_subtitle">Executive</string>
+    <string name="section_heading_show_data_to_other_citizen_title">Show data to</string>
+    <string name="section_heading_show_data_to_other_citizen_subtitle">other Citizen</string>
+    <string name="section_heading_actions">Actions</string>
+    <string name="section_heading_information">Information</string>
+    <string name="section_heading_configuration">Configuration</string>
+    <string name="section_heading_requested_data">Requested Data</string>
+    <string name="section_heading_data_recipient">Recipient</string>
+    <string name="section_heading_admission_data">Admission Data</string>
+    <string name="section_heading_admission_data_icon_text">AD</string>
+    <string name="section_heading_other_data_category_title">Other</string>
+    <string name="section_heading_other_data_category_icon_text">O</string>
+    <string name="section_heading_age_data">Age Levels</string>
+    <string name="section_heading_age_data_icon_text">AL</string>
+    <string name="section_heading_driving_permission_data">Driving Permissions</string>
+    <string name="section_heading_driving_permission_data_icon_text">DP</string>
+    <string name="section_heading_identity_data">Identity data</string>
+    <string name="section_heading_identity_data_icon_text">ID</string>
+    <string name="section_heading_residence_data">Residence</string>
+    <string name="section_heading_residence_data_icon_text">R</string>
+    <string name="section_heading_missing_data">Load new data</string>
+    <string name="section_heading_available_data">Refresh existing data</string>
+
+    <string name="onboarding_section_terms_and_data_protection_icon_text">1</string>
+    <string name="onboarding_section_terms_and_data_protection_title">Terms of use and privacy policy</string>
+    <string name="onboarding_section_load_data_icon_text">2</string>
+    <string name="onboarding_section_load_data_title">Load data into the app</string>
+    <string name="onboarding_section_load_data_subtitle">with a one-time contact to ID Austria</string>
+    <string name="onboarding_section_show_data_icon_text">3</string>
+    <string name="onboarding_section_show_data_title">Show data</string>
+    <string name="onboarding_section_show_data_subtitle">at counters or mashines</string>
+
+    <string name="warning_requested_data_not_available_heading">Requested Data is not available</string>
+    <string name="warning_requested_data_not_available_content">Not all requested data has already been loaded into the app.\nMissing data can be loaded via ID Austria.</string>
+</resources>
