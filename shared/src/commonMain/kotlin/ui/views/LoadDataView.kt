@@ -245,7 +245,10 @@ private fun LoadDataView(
                     Column(
                         modifier = columnSpacingModifier,
                     ) {
-                        Text(stringResource(Res.string.section_heading_missing_data))
+                        Text(
+                            text = stringResource(Res.string.section_heading_missing_data),
+                            style = MaterialTheme.typography.titleMedium,
+                        )
                         ElevatedCard(
                             colors = CardDefaults.elevatedCardColors(
                                 containerColor = MaterialTheme.colorScheme.secondaryContainer
@@ -306,7 +309,10 @@ private fun LoadDataView(
                     Column(
                         modifier = columnSpacingModifier,
                     ) {
-                        Text(stringResource(Res.string.section_heading_available_data))
+                        Text(
+                            text = stringResource(Res.string.section_heading_available_data),
+                            style = MaterialTheme.typography.titleMedium,
+                        )
                         ElevatedCard(
                             colors = CardDefaults.elevatedCardColors(
                                 containerColor = MaterialTheme.colorScheme.secondaryContainer
