@@ -37,6 +37,7 @@ import composewalletapp.shared.generated.resources.content_description_show_attr
 import composewalletapp.shared.generated.resources.heading_label_load_data_screen
 import composewalletapp.shared.generated.resources.heading_label_refresh_data_screen
 import composewalletapp.shared.generated.resources.info_text_redirection_to_id_austria_for_credential_provisioning
+import composewalletapp.shared.generated.resources.section_heading_available_data
 import composewalletapp.shared.generated.resources.section_heading_configuration
 import composewalletapp.shared.generated.resources.section_heading_missing_data
 import data.CredentialExtractor
@@ -240,67 +241,6 @@ private fun LoadDataView(
                         modifier = listSpacingModifier.fillMaxWidth(),
                     )
                 }
-                if (availableAttributesCategorized.values.flatten().isNotEmpty()) {
-                    Column(
-                        modifier = columnSpacingModifier,
-                    ) {
-                        Text(stringResource(Res.string.button_label_all_missing_data))
-                        ElevatedCard(
-                            colors = CardDefaults.elevatedCardColors(
-                                containerColor = MaterialTheme.colorScheme.secondaryContainer
-                            ),
-                            modifier = Modifier.padding(top = 8.dp),
-                        ) {
-                            Row(
-                                modifier = CategorySelectionRowDefaults.modifier,
-                            ) {
-                                availableAttributesCategorized.values.flatten().map {
-                                    requestedAttributes.contains(it)
-                                }.toggleableState.let { state ->
-                                    LabeledTriStateCheckbox(
-                                        label = stringResource(Res.string.button_label_all_available_data),
-                                        state = state,
-                                        onClick = {
-                                            if (state == ToggleableState.On) {
-                                                onChangeRequestedAttributes(
-                                                    requestedAttributes - availableAttributesCategorized.values.flatten()
-                                                        .toSet()
-                                                )
-                                            } else {
-                                                onChangeRequestedAttributes(
-                                                    requestedAttributes + availableAttributesCategorized.values.flatten()
-                                                )
-                                            }
-                                        },
-                                        enabled = isEditEnabled,
-                                        gapWidth = 16.dp,
-                                        labelTextStyle = MaterialTheme.typography.bodyLarge,
-                                    )
-                                }
-                            }
-                        }
-                        availableAttributesCategorized.filter {
-                            it.value.isNotEmpty()
-                        }.forEach { attributeCategory ->
-                            CategorySelectionRow(
-                                attributeCategory = attributeCategory,
-                                isExpanded = availableAttributeCategoriesExpanded[attributeCategory.key]
-                                    ?: true,
-                                onToggleExpanded = {
-                                    onSetAvailableAttributeCategoryExpanded(
-                                        Pair(
-                                            attributeCategory.key,
-                                            it,
-                                        )
-                                    )
-                                },
-                                isEditSelectionEnabled = isEditEnabled,
-                                requestedAttributes = requestedAttributes,
-                                onChangeRequestedAttributes = onChangeRequestedAttributes,
-                            )
-                        }
-                    }
-                }
                 if (missingAttributesCategorized.values.flatten().isNotEmpty()) {
                     Column(
                         modifier = columnSpacingModifier,
@@ -349,6 +289,67 @@ private fun LoadDataView(
                                     ?: true,
                                 onToggleExpanded = {
                                     onSetMissingAttributeCategoryExpanded(
+                                        Pair(
+                                            attributeCategory.key,
+                                            it,
+                                        )
+                                    )
+                                },
+                                isEditSelectionEnabled = isEditEnabled,
+                                requestedAttributes = requestedAttributes,
+                                onChangeRequestedAttributes = onChangeRequestedAttributes,
+                            )
+                        }
+                    }
+                }
+                if (availableAttributesCategorized.values.flatten().isNotEmpty()) {
+                    Column(
+                        modifier = columnSpacingModifier,
+                    ) {
+                        Text(stringResource(Res.string.section_heading_available_data))
+                        ElevatedCard(
+                            colors = CardDefaults.elevatedCardColors(
+                                containerColor = MaterialTheme.colorScheme.secondaryContainer
+                            ),
+                            modifier = Modifier.padding(top = 8.dp),
+                        ) {
+                            Row(
+                                modifier = CategorySelectionRowDefaults.modifier,
+                            ) {
+                                availableAttributesCategorized.values.flatten().map {
+                                    requestedAttributes.contains(it)
+                                }.toggleableState.let { state ->
+                                    LabeledTriStateCheckbox(
+                                        label = stringResource(Res.string.button_label_all_available_data),
+                                        state = state,
+                                        onClick = {
+                                            if (state == ToggleableState.On) {
+                                                onChangeRequestedAttributes(
+                                                    requestedAttributes - availableAttributesCategorized.values.flatten()
+                                                        .toSet()
+                                                )
+                                            } else {
+                                                onChangeRequestedAttributes(
+                                                    requestedAttributes + availableAttributesCategorized.values.flatten()
+                                                )
+                                            }
+                                        },
+                                        enabled = isEditEnabled,
+                                        gapWidth = 16.dp,
+                                        labelTextStyle = MaterialTheme.typography.bodyLarge,
+                                    )
+                                }
+                            }
+                        }
+                        availableAttributesCategorized.filter {
+                            it.value.isNotEmpty()
+                        }.forEach { attributeCategory ->
+                            CategorySelectionRow(
+                                attributeCategory = attributeCategory,
+                                isExpanded = availableAttributeCategoriesExpanded[attributeCategory.key]
+                                    ?: true,
+                                onToggleExpanded = {
+                                    onSetAvailableAttributeCategoryExpanded(
                                         Pair(
                                             attributeCategory.key,
                                             it,

@@ -23,7 +23,7 @@
     <string name="button_label_share">Teilen</string>
     <string name="button_label_load_data">Daten laden</string>
     <string name="button_label_reload_data">Daten nachladen</string>
-    <string name="button_label_refresh_data">Daten aktualisieren</string>
+    <string name="button_label_refresh_data">Daten laden</string>
     <string name="button_label_start">Starten</string>
     <string name="button_label_save">Speichern</string>
     <string name="button_label_conclude">Abschließen</string>
@@ -33,8 +33,8 @@
     <string name="button_label_data_protection_policy">Datenschutzrichtlinie</string>
     <string name="button_label_share_log_file">Log-Datei teilen</string>
     <string name="button_label_reset_app">App zurücksetzen</string>
-    <string name="button_label_all_missing_data">Alle fehlenden Daten</string>
-    <string name="button_label_all_available_data">Alle vorhandenen Daten</string>
+    <string name="button_label_all_missing_data">Alle neuen Daten</string>
+    <string name="button_label_all_available_data">Alle bestehenden Daten</string>
 
     <string name="attribute_friendly_name_bpk">BPK</string>
     <string name="attribute_friendly_name_firstname">Vorname</string>
@@ -101,7 +101,7 @@
     <string name="HEADING_LABEL_DATA_PROTECTION">Datenschutz</string>
     <string name="heading_label_terms_of_use_and_data_protection">Nutzungsbedingungen &amp; Datenschutz</string>
     <string name="heading_label_load_data_screen">Daten laden</string>
-    <string name="heading_label_refresh_data_screen">Daten aktualisieren</string>
+    <string name="heading_label_refresh_data_screen">Daten laden</string>
     <string name="heading_label_authenticate_at_device_screen">Anmelden an\nSchalter oder Maschine</string>
 
     <string name="description_read_terms">Bitte lesen und akzeptieren Sie die Nutzungsbedingungen und Datenschutzerklärung.</string>
@@ -113,7 +113,7 @@
 
     <string name="content_description_navigate_back">Zurück</string>
     <string name="content_description_portrait">Portrait</string>
-    <string name="content_description_refresh_credentials">Daten aktualisieren</string>
+    <string name="content_description_refresh_credentials">Daten laden</string>
     <string name="content_description_show_attributes">Attribute anzeigen</string>
     <string name="content_description_hide_attributes">Attribute verbergen</string>
 
@@ -176,8 +176,8 @@
     <string name="section_heading_identity_data_icon_text">ID</string>
     <string name="section_heading_residence_data">Meldeadresse</string>
     <string name="section_heading_residence_data_icon_text">MA</string>
-    <string name="section_heading_missing_data">Fehlende Daten</string>
-    <string name="section_heading_available_data">Vorhandene Daten</string>
+    <string name="section_heading_missing_data">Neue Daten laden</string>
+    <string name="section_heading_available_data">Bestehende Daten aktualisieren</string>
 
 
     <string name="onboarding_section_terms_and_data_protection_icon_text">1</string>
