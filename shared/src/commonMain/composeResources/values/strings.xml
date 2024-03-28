@@ -32,6 +32,8 @@
     <string name="button_label_data_protection_policy">UNTRANSLATED:button_label_data_protection_policy</string>
     <string name="button_label_share_log_file">UNTRANSLATED:button_label_share_log_file</string>
     <string name="button_label_reset_app">UNTRANSLATED:button_label_reset_app</string>
+    <string name="button_label_all_missing_data">UNTRANSLATED:button_label_all_missing_data</string>
+    <string name="button_label_all_available_data">UNTRANSLATED:button_label_all_available_data</string>
 
     <string name="attribute_friendly_name_bpk">UNTRANSLATED:attribute_friendly_name_bpk</string>
     <string name="attribute_friendly_name_firstname">UNTRANSLATED:attribute_friendly_name_firstname</string>
@@ -171,6 +173,8 @@
     <string name="section_heading_identity_data_icon_text">UNTRANSLATED:section_heading_identity_data_icon_text</string>
     <string name="section_heading_residence_data">UNTRANSLATED:section_heading_residence_data</string>
     <string name="section_heading_residence_data_icon_text">UNTRANSLATED:section_heading_residence_data_icon_text</string>
+    <string name="section_heading_missing_data">UNTRANSLATED:section_heading_missing_data</string>
+    <string name="section_heading_available_data">UNTRANSLATED:section_heading_available_data</string>
 
     <string name="onboarding_section_terms_and_data_protection_icon_text">UNTRANSLATED:onboarding_section_terms_and_data_protection_icon_text</string>
     <string name="onboarding_section_terms_and_data_protection_title">UNTRANSLATED:onboarding_section_terms_and_data_protection_title</string>

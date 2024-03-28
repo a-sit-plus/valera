@@ -30,12 +30,15 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import composewalletapp.shared.generated.resources.Res
+import composewalletapp.shared.generated.resources.button_label_all_available_data
+import composewalletapp.shared.generated.resources.button_label_all_missing_data
 import composewalletapp.shared.generated.resources.content_description_hide_attributes
 import composewalletapp.shared.generated.resources.content_description_show_attributes
 import composewalletapp.shared.generated.resources.heading_label_load_data_screen
 import composewalletapp.shared.generated.resources.heading_label_refresh_data_screen
 import composewalletapp.shared.generated.resources.info_text_redirection_to_id_austria_for_credential_provisioning
 import composewalletapp.shared.generated.resources.section_heading_configuration
+import composewalletapp.shared.generated.resources.section_heading_missing_data
 import data.CredentialExtractor
 import data.attributeTranslation
 import data.storage.scheme
@@ -241,7 +244,7 @@ private fun LoadDataView(
                     Column(
                         modifier = columnSpacingModifier,
                     ) {
-                        Text("Bestehende Daten")
+                        Text(stringResource(Res.string.button_label_all_missing_data))
                         ElevatedCard(
                             colors = CardDefaults.elevatedCardColors(
                                 containerColor = MaterialTheme.colorScheme.secondaryContainer
@@ -255,7 +258,7 @@ private fun LoadDataView(
                                     requestedAttributes.contains(it)
                                 }.toggleableState.let { state ->
                                     LabeledTriStateCheckbox(
-                                        label = "Alle Bestehende Daten",
+                                        label = stringResource(Res.string.button_label_all_available_data),
                                         state = state,
                                         onClick = {
                                             if (state == ToggleableState.On) {
@@ -302,7 +305,7 @@ private fun LoadDataView(
                     Column(
                         modifier = columnSpacingModifier,
                     ) {
-                        Text("Neue Daten")
+                        Text(stringResource(Res.string.section_heading_missing_data))
                         ElevatedCard(
                             colors = CardDefaults.elevatedCardColors(
                                 containerColor = MaterialTheme.colorScheme.secondaryContainer
@@ -316,7 +319,7 @@ private fun LoadDataView(
                                     requestedAttributes.contains(it)
                                 }.toggleableState.let { state ->
                                     LabeledTriStateCheckbox(
-                                        label = "Alle Neue Daten",
+                                        label = stringResource(Res.string.button_label_all_missing_data),
                                         state = state,
                                         onClick = {
                                             if (state == ToggleableState.On) {
