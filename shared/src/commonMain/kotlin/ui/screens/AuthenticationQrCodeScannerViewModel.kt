@@ -1,10 +1,11 @@
 package view
 
+import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.jws.VerifierJwsService
+import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
-import domain.ExtractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase
-import domain.RetrieveFinalAuthenticationRequestUriFromAuthenticationRequestUriUseCase
-import domain.RetrieveRelyingPartyMetadataFromAuthenticationRequestUriUseCase
+import domain.RetrieveAuthenticationRequestParametersUseCase
+import domain.RetrieveRelyingPartyMetadataFromAuthenticationRequestParametersUseCase
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -12,46 +13,28 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import ui.navigation.AuthenticationConsentPage
 
 class AuthenticationQrCodeScannerViewModel(
     private val buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase: BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase,
-    private val retrieveRelyingPartyMetadataFromAuthenticationRequestUriUseCase: RetrieveRelyingPartyMetadataFromAuthenticationRequestUriUseCase,
-    private val extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase: ExtractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase,
+    private val retrieveRelyingPartyMetadataFromAuthenticationRequestParametersUseCase: RetrieveRelyingPartyMetadataFromAuthenticationRequestParametersUseCase,
 ) {
     constructor(
         client: HttpClient,
         verifierJwsService: VerifierJwsService,
     ) : this(
-        client = client,
-        verifierJwsService = verifierJwsService,
-        extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase = ExtractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase(
-            verifierJwsService = verifierJwsService,
-        )
-    )
-
-    constructor(
-        client: HttpClient,
-        verifierJwsService: VerifierJwsService,
-        extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase: ExtractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase,
-    ) : this(
         buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase = BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
-            extractAuthenticationRequestParametersFromAuthenticationRequestUri = extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase,
-            retrieveFinalAuthenticationRequestUriFromAuthenticationRequestUriUseCase = RetrieveFinalAuthenticationRequestUriFromAuthenticationRequestUriUseCase(
-                extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase = extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase,
+            retrieveAuthenticationRequestParametersUseCase = RetrieveAuthenticationRequestParametersUseCase(
                 client = client,
-            )
+                verifierJwsService = verifierJwsService,
+            ),
         ),
-        retrieveRelyingPartyMetadataFromAuthenticationRequestUriUseCase = RetrieveRelyingPartyMetadataFromAuthenticationRequestUriUseCase(
-            extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase = extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase,
+        retrieveRelyingPartyMetadataFromAuthenticationRequestParametersUseCase = RetrieveRelyingPartyMetadataFromAuthenticationRequestParametersUseCase(
             client = client,
             verifierJwsService = verifierJwsService,
         ),
-        extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase = extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase,
     )
 
-    @OptIn(ExperimentalResourceApi::class)
     fun onScan(
         link: String,
         startLoadingCallback: () -> Unit,
@@ -63,38 +46,34 @@ class AuthenticationQrCodeScannerViewModel(
 
         startLoadingCallback()
         val coroutineExceptionHandler = CoroutineExceptionHandler { _, error ->
-            // Do what you want with the error
             stopLoadingCallback()
             onFailure(error)
         }
 
         CoroutineScope(Dispatchers.IO).launch(coroutineExceptionHandler) {
-            val clientMetadataPayload =
-                retrieveRelyingPartyMetadataFromAuthenticationRequestUriUseCase(link)
-            val authenticationRequestParameters =
-                extractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase(link)
-
-            clientMetadataPayload.redirectUris?.run {
-                if (!contains(authenticationRequestParameters.clientId)) {
-                    val redirectUris = joinToString("\n - ")
-                    val message =
-                        "Client id not in client metadata redirect uris: ${authenticationRequestParameters.clientId} not in: \n$redirectUris)"
-                    throw Throwable(message)
-                } else {
-                    Napier.d("Valid client id: ${authenticationRequestParameters.clientId}")
-                }
-            } ?: throw Throwable("No redirect URIs specified")
-
             val authenticationConsentPage =
                 buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(link).let {
                     AuthenticationConsentPage(
-                        url = it.url,
-                        claims = it.claims,
+                        authenticationRequestParametersSerialized = it.authenticationRequestParametersSerialized,
                         recipientLocation = it.recipientLocation,
                         recipientName = it.recipientName,
                         fromQrCodeScanner = true,
                     )
                 }
+            val authenticationRequestParameters = jsonSerializer.decodeFromString<AuthenticationRequestParameters>(authenticationConsentPage.authenticationRequestParametersSerialized)
+            val clientMetadataPayload =
+                retrieveRelyingPartyMetadataFromAuthenticationRequestParametersUseCase(authenticationRequestParameters)
+
+            clientMetadataPayload?.redirectUris?.run {
+                if (!contains(authenticationRequestParameters.clientId)) {
+                    val redirectUris = this.joinToString(", ") { "`${this}`" }
+                    val message =
+                        "Client id not in client metadata redirect uris: ${authenticationRequestParameters.clientId} not in: $redirectUris)"
+                    throw Throwable(message)
+                } else {
+                    Napier.d("Valid client id: ${authenticationRequestParameters.clientId}")
+                }
+            }
 
             stopLoadingCallback()
             onSuccess(authenticationConsentPage)

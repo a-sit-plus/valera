@@ -38,8 +38,7 @@ actual class RefreshCredentialsPage : Page, Parcelable
 
 @Parcelize
 actual class AuthenticationConsentPage actual constructor(
-    actual val url: String,
-    actual val claims: List<String>,
+    actual val authenticationRequestParametersSerialized: String,
     actual val recipientName: String,
     actual val recipientLocation: String,
     actual val fromQrCodeScanner: Boolean,

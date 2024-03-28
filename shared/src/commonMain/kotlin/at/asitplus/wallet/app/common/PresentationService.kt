@@ -2,14 +2,21 @@ package at.asitplus.wallet.app.common
 
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
+import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
+import at.asitplus.wallet.lib.oidc.JsonWebKeySet
 import at.asitplus.wallet.lib.oidc.OidcSiopWallet
 import io.github.aakira.napier.Napier
+import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.client.statement.readBytes
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 
 class PresentationService(
     val platformAdapter: PlatformAdapter,
@@ -20,13 +27,24 @@ class PresentationService(
     private val client = httpService.buildHttpClient()
 
     @Throws(Throwable::class)
-    suspend fun startSiop(url: String, fromQrCodeScanner: Boolean) {
-        Napier.d("Start SIOP process")
+    suspend fun startSiop(
+        authenticationRequestParameters: AuthenticationRequestParameters,
+        fromQrCodeScanner: Boolean
+    ) {
+        Napier.d("Start SIOP process: $authenticationRequestParameters")
         val oidcSiopWallet = OidcSiopWallet.newInstance(
             holder = holderAgent,
             cryptoService = cryptoService,
+            jwkSetRetriever = { jwksUrl ->
+                runBlocking {
+                    withContext(Dispatchers.IO) {
+                        val response = client.get(jwksUrl)
+                        JsonWebKeySet.deserialize(response.bodyAsText())
+                    }
+                }
+            }
         )
-        oidcSiopWallet.createAuthnResponse(url).fold(
+        oidcSiopWallet.createAuthnResponse(authenticationRequestParameters).fold(
             onSuccess = {
                 when (it) {
                     is OidcSiopWallet.AuthenticationResponseResult.Post -> {

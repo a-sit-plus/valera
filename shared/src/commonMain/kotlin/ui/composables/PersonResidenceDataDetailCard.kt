@@ -23,22 +23,28 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 
 data class ResidenceData(
+    val address: String?,
     val streetName: String?,
     val houseNumber: String?,
     val stairName: String?,
     val doorName: String?,
     val postalCode: String?,
-    val villageName: String?,
+    val townName: String?,
+    val stateName: String?,
+    val countryName: String?,
 )
 
 val CredentialExtractor.residenceData: ResidenceData
     get() = ResidenceData(
-        streetName = this.mainAddressStreetName,
-        houseNumber = this.mainAddressHouseNumber,
-        stairName = this.mainAddressStair,
-        doorName = this.mainAddressDoor,
-        postalCode = this.mainAddressPostalCode,
-        villageName = this.mainAddressVillageName,
+        address = this.mainResidenceAddress,
+        streetName = this.mainResidenceStreetName,
+        houseNumber = this.mainResidenceHouseNumber,
+        stairName = this.mainResidenceStairName,
+        doorName = this.mainResidenceDoorName,
+        postalCode = this.mainResidencePostalCode,
+        townName = this.mainResidenceTownName,
+        stateName = this.mainResidenceStateName,
+        countryName = this.mainResidenceCountryName,
     )
 
 @OptIn(ExperimentalResourceApi::class)
@@ -68,47 +74,64 @@ fun PersonResidenceDataDetailCard(
                 }
             }
 
-            Column(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                horizontalAlignment = Alignment.Start,
-            ) {
-                if (
-                    listOfNotNull(
-                        residenceData.streetName,
-                        residenceData.houseNumber,
-                    ).any { it.isNotBlank() }
+            if (residenceData.address?.isNotBlank() != null) {
+                Text(
+                    residenceData.address
+                )
+            } else {
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    horizontalAlignment = Alignment.Start,
                 ) {
-                    Text(
-                        text = listOfNotNull(
+                    if (
+                        listOfNotNull(
                             residenceData.streetName,
                             residenceData.houseNumber,
-                        ).filter { it.isNotBlank() }.joinToString(" "),
-                    )
-                }
-                if (residenceData.stairName?.isNotBlank() == true) {
-                    Text(
-                        text = "${stringResource(Res.string.text_label_stair)} ${residenceData.stairName}",
-                    )
-                }
-                if (residenceData.doorName?.isNotBlank() == true) {
-                    Text(
-                        text = "${stringResource(Res.string.text_label_door)}: ${residenceData.doorName}",
-                    )
-                }
-                if (
-                    listOfNotNull(
-                        residenceData.postalCode,
-                        residenceData.villageName,
-                    ).any { it.isNotBlank() }
-                ) {
-                    Text(
-                        text = listOfNotNull(
+                        ).any { it.isNotBlank() }
+                    ) {
+                        Text(
+                            text = listOfNotNull(
+                                residenceData.streetName,
+                                residenceData.houseNumber,
+                            ).filter { it.isNotBlank() }.joinToString(" "),
+                        )
+                    }
+
+                    if (residenceData.stairName?.isNotBlank() == true) {
+                        Text(
+                            text = "${stringResource(Res.string.text_label_stair)} ${residenceData.stairName}",
+                        )
+                    }
+                    if (residenceData.doorName?.isNotBlank() == true) {
+                        Text(
+                            text = "${stringResource(Res.string.text_label_door)}: ${residenceData.doorName}",
+                        )
+                    }
+                    if (
+                        listOfNotNull(
                             residenceData.postalCode,
-                            residenceData.villageName,
-                        ).filter { it.isNotBlank() }.joinToString(" "),
-                    )
+                            residenceData.townName,
+                        ).any { it.isNotBlank() }
+                    ) {
+                        Text(
+                            text = listOfNotNull(
+                                residenceData.postalCode,
+                                residenceData.townName,
+                            ).filter { it.isNotBlank() }.joinToString(" "),
+                        )
+                    }
+                    if (residenceData.stateName?.isNotBlank() == true) {
+                        Text(
+                            text = residenceData.stateName,
+                        )
+                    }
+                    if (residenceData.countryName?.isNotBlank() == true) {
+                        Text(
+                            text = residenceData.countryName,
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
-                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }

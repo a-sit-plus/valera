@@ -42,6 +42,22 @@
     <string name="attribute_friendly_name_age_at_least_18">UNTRANSLATED:attribute_friendly_name_age_at_least_18</string>
     <string name="attribute_friendly_name_age_at_least_21">UNTRANSLATED:attribute_friendly_name_age_at_least_21</string>
     <string name="attribute_friendly_name_main_address">UNTRANSLATED:attribute_friendly_name_main_address</string>
+    <string name="attribute_friendly_name_main_residence_country">UNTRANSLATED:attribute_friendly_name_main_residence_country</string>
+    <string name="attribute_friendly_name_main_residence_state">UNTRANSLATED:attribute_friendly_name_main_residence_state</string>
+    <string name="attribute_friendly_name_main_residence_city">UNTRANSLATED:attribute_friendly_name_main_residence_city</string>
+    <string name="attribute_friendly_name_main_residence_postal_code">UNTRANSLATED:attribute_friendly_name_main_residence_postal_code</string>
+    <string name="attribute_friendly_name_main_residence_street">UNTRANSLATED:attribute_friendly_name_main_residence_street</string>
+    <string name="attribute_friendly_name_main_residence_house_number">UNTRANSLATED:attribute_friendly_name_main_residence_house_number</string>
+    <string name="attribute_friendly_name_sex">UNTRANSLATED:attribute_friendly_name_sex</string>
+    <string name="attribute_friendly_name_nationality">UNTRANSLATED:attribute_friendly_name_nationality</string>
+    <string name="attribute_friendly_name_age_in_years">UNTRANSLATED:attribute_friendly_name_age_in_years</string>
+    <string name="attribute_friendly_name_age_birth_year">UNTRANSLATED:attribute_friendly_name_age_birth_year</string>
+    <string name="attribute_friendly_name_family_name_birth">UNTRANSLATED:attribute_friendly_name_family_name_birth</string>
+    <string name="attribute_friendly_name_given_name_birth">UNTRANSLATED:attribute_friendly_name_given_name_birth</string>
+    <string name="attribute_friendly_name_birth_place">UNTRANSLATED:attribute_friendly_name_birth_place</string>
+    <string name="attribute_friendly_name_birth_country">UNTRANSLATED:attribute_friendly_name_birth_country</string>
+    <string name="attribute_friendly_name_birth_state">UNTRANSLATED:attribute_friendly_name_birth_state</string>
+    <string name="attribute_friendly_name_birth_city">UNTRANSLATED:attribute_friendly_name_birth_city</string>
 
     <string name="attribute_friendly_name_data_recipient_name">UNTRANSLATED:attribute_friendly_name_data_recipient_name</string>
     <string name="attribute_friendly_name_data_recipient_location">UNTRANSLATED:attribute_friendly_name_data_recipient_location</string>
@@ -56,6 +72,8 @@
 
     <string name="text_label_issuing_service">UNTRANSLATED:text_label_issuing_service</string>
     <string name="text_label_id_format">UNTRANSLATED:text_label_id_format</string>
+    <string name="text_label_id_scheme">UNTRANSLATED:text_label_id_scheme</string>
+    <string name="text_label_sex">UNTRANSLATED:text_label_sex</string>
     <string name="text_label_stair">UNTRANSLATED:text_label_stair</string>
     <string name="text_label_door">UNTRANSLATED:text_label_door</string>
     <string name="text_label_stage">UNTRANSLATED:text_label_stage</string>
@@ -139,6 +157,8 @@
     <string name="section_heading_data_recipient">UNTRANSLATED:section_heading_data_recipient</string>
     <string name="section_heading_admission_data">UNTRANSLATED:section_heading_admission_data</string>
     <string name="section_heading_admission_data_icon_text">UNTRANSLATED:section_heading_admission_data_icon_text</string>
+    <string name="section_heading_other_data_category_title">UNTRANSLATED:section_heading_other_data_category_title</string>
+    <string name="section_heading_other_data_category_icon_text">UNTRANSLATED:section_heading_other_data_category_icon_text</string>
     <string name="section_heading_age_data">UNTRANSLATED:section_heading_age_data</string>
     <string name="section_heading_age_data_icon_text">UNTRANSLATED:section_heading_age_data_icon_text</string>
     <string name="section_heading_driving_permission_data">UNTRANSLATED:section_heading_driving_permission_data</string>

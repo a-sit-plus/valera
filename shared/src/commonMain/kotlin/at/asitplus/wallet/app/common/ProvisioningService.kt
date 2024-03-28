@@ -3,6 +3,7 @@ package at.asitplus.wallet.app.common
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.Holder
 import at.asitplus.wallet.lib.agent.HolderAgent
+import at.asitplus.wallet.lib.iso.IssuerSigned
 import at.asitplus.wallet.lib.oidc.OpenIdConstants.TOKEN_PREFIX_BEARER
 import at.asitplus.wallet.lib.oidvci.CredentialFormatEnum
 import at.asitplus.wallet.lib.oidvci.CredentialResponseParameters
@@ -27,6 +28,7 @@ import io.ktor.http.contentType
 import io.ktor.http.parseQueryString
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import okio.ByteString.Companion.decodeBase64
 
 const val PATH_WELL_KNOWN_CREDENTIAL_ISSUER = "/.well-known/openid-credential-issuer"
 
@@ -80,8 +82,10 @@ class ProvisioningService(
     @Throws(Throwable::class)
     suspend fun handleResponse(url: String) {
         val host = config.host.first()
-        val xAuthToken = dataStoreService.getPreference(Configuration.DATASTORE_KEY_XAUTH).firstOrNull()
+        val xAuthToken =
+            dataStoreService.getPreference(Configuration.DATASTORE_KEY_XAUTH).firstOrNull()
         val credentialRepresentation = config.credentialRepresentation.first()
+        val credentialScheme = config.credentialScheme.first()
         if (xAuthToken == null) {
             throw Exception("X-Auth-Token not available in DataStoreService")
         }
@@ -96,7 +100,7 @@ class ProvisioningService(
         }.body()
 
         val oid4vciService = WalletService(
-            credentialScheme = at.asitplus.wallet.idaustria.IdAustriaScheme,
+            credentialScheme = credentialScheme,
             credentialRepresentation = credentialRepresentation,
             clientId = "$host/m1",
             cryptoService = cryptoService
@@ -125,7 +129,8 @@ class ProvisioningService(
             }.body()
 
         Napier.d("Received tokenResponse")
-        val credentialRequest = oid4vciService.createCredentialRequest(tokenResponse, metadata).getOrThrow()
+        val credentialRequest =
+            oid4vciService.createCredentialRequest(tokenResponse, metadata).getOrThrow()
         Napier.d("Created credentialRequest")
         val credentialResponse: CredentialResponseParameters =
             client.post(metadata.credentialEndpointUrl.toString()) {
@@ -143,7 +148,7 @@ class ProvisioningService(
                         listOf(
                             Holder.StoreCredentialInput.Vc(
                                 vcJws = it,
-                                scheme = at.asitplus.wallet.idaustria.IdAustriaScheme,
+                                scheme = credentialScheme,
                                 attachments = null
                             )
                         )
@@ -154,14 +159,27 @@ class ProvisioningService(
                         listOf(
                             Holder.StoreCredentialInput.SdJwt(
                                 vcSdJwt = it,
-                                scheme = at.asitplus.wallet.idaustria.IdAustriaScheme
+                                scheme = credentialScheme
                             )
                         )
                     )
 
                 CredentialFormatEnum.JWT_VC_JSON_LD -> TODO("Function not implemented")
                 CredentialFormatEnum.JSON_LD -> TODO("Function not implemented")
-                CredentialFormatEnum.MSO_MDOC -> TODO("Function not implemented")
+                CredentialFormatEnum.MSO_MDOC -> {
+                    it.decodeBase64()?.toByteArray()?.let {
+                        IssuerSigned.deserialize(it)
+                    }?.also { issuerSigned ->
+                        holderAgent.storeCredentials(
+                            listOf(
+                                Holder.StoreCredentialInput.Iso(
+                                    issuerSigned = issuerSigned,
+                                    scheme = credentialScheme
+                                )
+                            )
+                        )
+                    } ?: throw Exception("Invalid credential format: $it")
+                }
             }
         }
     }

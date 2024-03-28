@@ -30,14 +30,12 @@ expect class AuthenticationQrCodeScannerPage() : Page
 expect class AuthenticationLoadingPage() : Page
 
 expect class AuthenticationConsentPage(
-    url: String,
-    claims: List<String>,
+    authenticationRequestParametersSerialized: String,
     recipientName: String,
     recipientLocation: String,
     fromQrCodeScanner: Boolean = false
 ) : Page {
-    val url: String
-    val claims: List<String>
+    val authenticationRequestParametersSerialized: String
     val recipientName: String
     val recipientLocation: String
     val fromQrCodeScanner: Boolean
