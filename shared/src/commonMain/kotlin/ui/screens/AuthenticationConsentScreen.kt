@@ -67,7 +67,7 @@ fun AuthenticationConsentScreen(
         val credentialExtractor =
             CredentialExtractor(storeContainer.credentials.filter { it.scheme == requestedCredentialScheme })
 
-        AuthenticationConsentViewStateHolder(
+        StatefulAuthenticationConsentView(
             spName = spName,
             spLocation = spLocation,
             spImage = spImage,
@@ -96,7 +96,7 @@ fun AuthenticationConsentScreen(
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-fun AuthenticationConsentViewStateHolder(
+fun StatefulAuthenticationConsentView(
     spName: String,
     spLocation: String,
     spImage: ImageBitmap?,
