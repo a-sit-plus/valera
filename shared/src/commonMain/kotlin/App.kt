@@ -30,6 +30,10 @@ var appLink = mutableStateOf<String?>(null)
  */
 var iosTestValue = Configuration.IOS_TEST_VALUE
 
+internal object AppTestTags {
+    const val rootScaffold = "rootScaffold"
+}
+
 @Composable
 fun App(walletMain: WalletMain) {
     val snackbarHostState = remember { SnackbarHostState() }
@@ -46,7 +50,7 @@ fun App(walletMain: WalletMain) {
             snackbarHost = {
                 SnackbarHost(hostState = snackbarHostState)
             },
-            modifier = Modifier.testTag("root")
+            modifier = Modifier.testTag(AppTestTags.rootScaffold)
         ) { _ ->
             Navigator(walletMain)
         }

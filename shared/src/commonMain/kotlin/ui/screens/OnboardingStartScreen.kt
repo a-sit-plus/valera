@@ -19,22 +19,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
+import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.app_display_name
 import composewalletapp.shared.generated.resources.button_label_start
-import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.onboardingBackground
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
+internal object OnboardingStartScreenTestTag {
+    const val startButton = "startButton"
+}
 
 @OptIn(ExperimentalResourceApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun OnboardingStartScreen(
     onClickStart: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    Box() {
+    Box {
         Image(
             painter = painterResource(Res.drawable.onboardingBackground),
             contentDescription = null,
@@ -70,11 +75,13 @@ fun OnboardingStartScreen(
                 ) {
                     Button(
                         onClick = onClickStart,
+                        modifier = Modifier.testTag(OnboardingStartScreenTestTag.startButton)
                     ) {
                         Text(stringResource(Res.string.button_label_start))
                     }
                 }
             }
-        }
+        },
+        modifier = modifier,
     ) {}
 }
