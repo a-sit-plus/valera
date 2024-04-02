@@ -8,20 +8,26 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.eupid.EuPidScheme
-import at.asitplus.wallet.idaustria.IdAustriaScheme
+import at.asitplus.wallet.lib.data.AttributeIndex
+import at.asitplus.wallet.lib.data.dif.FormatContainerJwt
+import at.asitplus.wallet.lib.data.dif.FormatHolder
 import at.asitplus.wallet.lib.data.dif.PresentationDefinition
+import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.error_authentication_at_sp_failed
 import data.CredentialExtractor
 import data.attributeTranslation
+import data.storage.scheme
 import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.AttributeAvailability
 import ui.composables.PersonalDataCategory
+import ui.composables.attributeCategorizationOrder
+import ui.navigation.RefreshRequirements
 import ui.views.AuthenticationConsentView
 
 @Composable
@@ -32,25 +38,56 @@ fun AuthenticationConsentScreen(
     authenticationRequestParameters: AuthenticationRequestParameters,
     fromQrCodeScanner: Boolean,
     navigateUp: () -> Unit,
-    navigateToRefreshCredentialsPage: () -> Unit,
+    navigateToRefreshCredentialsPage: (RefreshRequirements?) -> Unit,
     navigateToAuthenticationSuccessPage: () -> Unit,
     walletMain: WalletMain,
 ) {
     val storeContainerState by walletMain.subjectCredentialStore.observeStoreContainer()
         .collectAsState(null)
 
-    storeContainerState?.let { storeContainer ->
-        val credentialExtractor = CredentialExtractor(storeContainer.credentials)
+    val formatHolder = authenticationRequestParameters.presentationDefinition?.formats
+        ?: authenticationRequestParameters.presentationDefinition?.inputDescriptors?.first()?.format
+        ?: authenticationRequestParameters.presentationDefinition?.inputDescriptors?.first()?.constraints?.fields?.any {
+            it.path.any { it.contains("\$.mdoc") }
+        }?.let { if (it) FormatHolder(msoMdoc = FormatContainerJwt(listOf())) else null }
 
-        AuthenticationConsentViewStateHolder(
+    val requestedCredentialScheme =
+        authenticationRequestParameters.presentationDefinition?.inputDescriptors?.first()?.constraints?.fields?.firstOrNull {
+            it.path.contains("$.type") or it.path.contains("\$.mdoc.doctype") or it.path.contains("\$.mdoc.namespace")
+        }?.filter?.let {
+            it.pattern ?: it.const
+        }?.let {
+            AttributeIndex.resolveAttributeType(it) ?: AttributeIndex.resolveSchemaUri(it)
+            ?: AttributeIndex.resolveIsoNamespace(it)
+        } ?: throw Exception("Unable to deduce credential scheme")
+
+    val requestedAttributes = authenticationRequestParameters.presentationDefinition?.claims ?: listOf()
+
+    storeContainerState?.let { storeContainer ->
+        val credentialExtractor =
+            CredentialExtractor(storeContainer.credentials.filter { it.scheme == requestedCredentialScheme })
+
+        StatefulAuthenticationConsentView(
             spName = spName,
             spLocation = spLocation,
             spImage = spImage,
+            claims = requestedAttributes,
             authenticationRequestParameters = authenticationRequestParameters,
             credentialExtractor = credentialExtractor,
             fromQrCodeScanner = fromQrCodeScanner,
             navigateUp = navigateUp,
-            navigateToRefreshCredentialsPage = navigateToRefreshCredentialsPage,
+            navigateToRefreshCredentialsPage = {
+                navigateToRefreshCredentialsPage(
+                    // TODO: support multiple input descriptors
+                    RefreshRequirements(
+                        requestedCredentialFormatHolderStringified = jsonSerializer.encodeToString(
+                            formatHolder
+                        ),
+                        requestedAttributes = requestedAttributes.toSet(),
+                        requestedCredentialSchemeIdentifier = requestedCredentialScheme.vcType
+                    )
+                )
+            },
             navigateToAuthenticationSuccessPage = navigateToAuthenticationSuccessPage,
             walletMain = walletMain,
         )
@@ -59,10 +96,11 @@ fun AuthenticationConsentScreen(
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-fun AuthenticationConsentViewStateHolder(
+fun StatefulAuthenticationConsentView(
     spName: String,
     spLocation: String,
     spImage: ImageBitmap?,
+    claims: List<String>,
     authenticationRequestParameters: AuthenticationRequestParameters,
     credentialExtractor: CredentialExtractor,
     fromQrCodeScanner: Boolean,
@@ -71,64 +109,29 @@ fun AuthenticationConsentViewStateHolder(
     navigateToAuthenticationSuccessPage: () -> Unit,
     walletMain: WalletMain,
 ) {
-    val attributeCategorization = listOf(
-        Pair(
-            PersonalDataCategory.IdentityData, listOf(
-                IdAustriaScheme.Attributes.FIRSTNAME,
-                EuPidScheme.Attributes.GIVEN_NAME,
-                IdAustriaScheme.Attributes.LASTNAME,
-                EuPidScheme.Attributes.FAMILY_NAME,
-                IdAustriaScheme.Attributes.DATE_OF_BIRTH,
-                EuPidScheme.Attributes.BIRTH_DATE,
-                IdAustriaScheme.Attributes.PORTRAIT,
-                EuPidScheme.Attributes.GENDER,
-                EuPidScheme.Attributes.NATIONALITY,
-            )
-        ),
-        Pair(
-            PersonalDataCategory.AgeData, listOf(
-                IdAustriaScheme.Attributes.AGE_OVER_14,
-                IdAustriaScheme.Attributes.AGE_OVER_16,
-                IdAustriaScheme.Attributes.AGE_OVER_18,
-                EuPidScheme.Attributes.AGE_OVER_18,
-                IdAustriaScheme.Attributes.AGE_OVER_21,
-            )
-        ),
-        Pair(
-            PersonalDataCategory.ResidenceData, listOf(
-                IdAustriaScheme.Attributes.MAIN_ADDRESS,
-                EuPidScheme.Attributes.RESIDENT_ADDRESS,
-                EuPidScheme.Attributes.RESIDENT_COUNTRY,
-                EuPidScheme.Attributes.RESIDENT_STATE,
-                EuPidScheme.Attributes.RESIDENT_CITY,
-                EuPidScheme.Attributes.RESIDENT_POSTAL_CODE,
-                EuPidScheme.Attributes.RESIDENT_STREET,
-                EuPidScheme.Attributes.RESIDENT_HOUSE_NUMBER,
-            )
-        ),
-    )
+    val attributeCategorization = attributeCategorizationOrder.associateWith {
+        it.attributes.values.flatten()
+    }
 
-    val categorizedClaims = attributeCategorization.flatMap {
+    val categorizedClaims = attributeCategorization.toList().flatMap {
         it.second
     }
 
-    val claims = authenticationRequestParameters.presentationDefinition?.claims ?: listOf()
-    val uncategorizedClaims = claims.filter {
-        categorizedClaims.contains(it) == false
-    }
-
     val attributeCategorizationWithOthers = attributeCategorization + Pair(
-        PersonalDataCategory.OtherData, uncategorizedClaims
+        PersonalDataCategory.OtherData, claims.filter {
+            categorizedClaims.contains(it) == false
+        }
     )
 
     val requestedAttributesLocalized =
-        attributeCategorizationWithOthers.map { attributeCategory ->
+        attributeCategorizationWithOthers.toList().map { attributeCategory ->
             Pair(
                 attributeCategory.first,
                 attributeCategory.second.mapNotNull { claim ->
                     if (claims.contains(claim) == false) null else AttributeAvailability(
                         // also supports claims that are not supported yet (for example claims that may be added later on before the wallet is updated)
-                        attributeName = claim.attributeTranslation?.let { stringResource(it) } ?: claim,
+                        attributeName = claim.attributeTranslation?.let { stringResource(it) }
+                            ?: claim,
                         isAvailable = credentialExtractor.containsAttribute(claim),
                     )
                 }

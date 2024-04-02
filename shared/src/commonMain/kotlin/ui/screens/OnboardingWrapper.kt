@@ -1,6 +1,7 @@
 package ui.screens
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -10,20 +11,27 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
-import composewalletapp.shared.generated.resources.error_feature_not_yet_available
 import composewalletapp.shared.generated.resources.Res
+import composewalletapp.shared.generated.resources.error_feature_not_yet_available
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.getString
 import ui.navigation.NavigationStack
 import ui.navigation.OnboardingInformationPage
 import ui.navigation.OnboardingPage
 import ui.navigation.OnboardingStartPage
 import ui.navigation.OnboardingTermsPage
-import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.getString
+
+internal object OnboardingWrapperTestTags {
+    const val onboardingLoadingIndicator = "onboardingWrapperLoading"
+    const val onboardingStartScreen = "onboardingStartScreen"
+}
 
 @Composable
 fun OnboardingWrapper(
@@ -33,7 +41,9 @@ fun OnboardingWrapper(
     val isConditionsAccepted by walletMain.walletConfig.isConditionsAccepted.collectAsState(null)
 
     when (isConditionsAccepted) {
-        null -> {}
+        null -> {
+            Box(modifier = Modifier.testTag(OnboardingWrapperTestTags.onboardingLoadingIndicator))
+        }
         true -> content()
         false -> OnboardingNavigator(
             onOnboardingComplete = {
@@ -47,6 +57,7 @@ fun OnboardingWrapper(
 @Composable
 fun OnboardingNavigator(
     onOnboardingComplete: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     // Modified from https://github.com/JetBrains/compose-multiplatform/tree/master/examples/imageviewer
     val navigationStack = rememberSaveable(
@@ -63,7 +74,8 @@ fun OnboardingNavigator(
     Scaffold(
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
-        }
+        },
+        modifier = modifier,
     ) {
         AnimatedContent(targetState = navigationStack.lastWithIndex()) { (_, page) ->
             when (page) {
@@ -71,7 +83,8 @@ fun OnboardingNavigator(
                     OnboardingStartScreen(
                         onClickStart = {
                             navigationStack.push(OnboardingInformationPage())
-                        }
+                        },
+                        modifier = Modifier.testTag(OnboardingWrapperTestTags.onboardingStartScreen),
                     )
                 }
 

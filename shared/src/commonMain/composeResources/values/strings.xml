@@ -22,6 +22,7 @@
     <string name="button_label_share">UNTRANSLATED:button_label_share</string>
     <string name="button_label_load_data">UNTRANSLATED:button_label_load_data</string>
     <string name="button_label_reload_data">UNTRANSLATED:button_label_reload_data</string>
+    <string name="button_label_refresh_data">UNTRANSLATED:button_label_refresh_data</string>
     <string name="button_label_start">UNTRANSLATED:button_label_start</string>
     <string name="button_label_save">UNTRANSLATED:button_label_save</string>
     <string name="button_label_conclude">UNTRANSLATED:button_label_conclude</string>
@@ -31,6 +32,8 @@
     <string name="button_label_data_protection_policy">UNTRANSLATED:button_label_data_protection_policy</string>
     <string name="button_label_share_log_file">UNTRANSLATED:button_label_share_log_file</string>
     <string name="button_label_reset_app">UNTRANSLATED:button_label_reset_app</string>
+    <string name="button_label_all_missing_data">UNTRANSLATED:button_label_all_missing_data</string>
+    <string name="button_label_all_available_data">UNTRANSLATED:button_label_all_available_data</string>
 
     <string name="attribute_friendly_name_bpk">UNTRANSLATED:attribute_friendly_name_bpk</string>
     <string name="attribute_friendly_name_firstname">UNTRANSLATED:attribute_friendly_name_firstname</string>
@@ -94,9 +97,10 @@
     <string name="heading_label_my_data_screen">UNTRANSLATED:heading_label_my_data_screen</string>
     <string name="heading_label_navigate_back">UNTRANSLATED:heading_label_navigate_back</string>
     <string name="heading_label_terms_of_use">UNTRANSLATED:heading_label_terms_of_use</string>
-    <string name="HEADING_LABEL_DATA_PROTECTION">UNTRANSLATED:HEADING_LABEL_DATA_PROTECTION</string>
+    <string name="heading_label_data_protection">UNTRANSLATED:heading_label_data_protection</string>
     <string name="heading_label_terms_of_use_and_data_protection">UNTRANSLATED:heading_label_terms_of_use_and_data_protection</string>
     <string name="heading_label_load_data_screen">UNTRANSLATED:heading_label_load_data_screen</string>
+    <string name="heading_label_refresh_data_screen">UNTRANSLATED:heading_label_refresh_data_screen</string>
     <string name="heading_label_authenticate_at_device_screen">UNTRANSLATED:heading_label_authenticate_at_device_screen</string>
 
     <string name="description_read_terms">UNTRANSLATED:description_read_terms</string>
@@ -107,6 +111,8 @@
     <string name="content_description_navigate_back">UNTRANSLATED:content_description_navigate_back</string>
     <string name="content_description_portrait">UNTRANSLATED:content_description_portrait</string>
     <string name="content_description_refresh_credentials">UNTRANSLATED:content_description_refresh_credentials</string>
+    <string name="content_description_show_attributes">UNTRANSLATED:content_description_show_attributes</string>
+    <string name="content_description_hide_attributes">UNTRANSLATED:content_description_hide_attributes</string>
 
     <string name="prompt_ask_load_missing_data">UNTRANSLATED:prompt_ask_load_missing_data</string>
     <string name="prompt_send_above_data">UNTRANSLATED:prompt_send_above_data</string>
@@ -167,6 +173,8 @@
     <string name="section_heading_identity_data_icon_text">UNTRANSLATED:section_heading_identity_data_icon_text</string>
     <string name="section_heading_residence_data">UNTRANSLATED:section_heading_residence_data</string>
     <string name="section_heading_residence_data_icon_text">UNTRANSLATED:section_heading_residence_data_icon_text</string>
+    <string name="section_heading_missing_data">UNTRANSLATED:section_heading_missing_data</string>
+    <string name="section_heading_available_data">UNTRANSLATED:section_heading_available_data</string>
 
     <string name="onboarding_section_terms_and_data_protection_icon_text">UNTRANSLATED:onboarding_section_terms_and_data_protection_icon_text</string>
     <string name="onboarding_section_terms_and_data_protection_title">UNTRANSLATED:onboarding_section_terms_and_data_protection_title</string>

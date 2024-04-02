@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.attribute_friendly_name_data_recipient_location
 import composewalletapp.shared.generated.resources.attribute_friendly_name_data_recipient_name
 import composewalletapp.shared.generated.resources.biometric_authentication_prompt_for_data_transmission_consent_subtitle
@@ -38,7 +39,6 @@ import composewalletapp.shared.generated.resources.heading_label_navigate_back
 import composewalletapp.shared.generated.resources.prompt_ask_load_missing_data
 import composewalletapp.shared.generated.resources.prompt_send_above_data
 import composewalletapp.shared.generated.resources.prompt_send_all_data
-import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.section_heading_data_recipient
 import composewalletapp.shared.generated.resources.section_heading_requested_data
 import composewalletapp.shared.generated.resources.warning_requested_data_not_available_content
@@ -106,7 +106,7 @@ fun AuthenticationConsentView(
                     val bottomBarQuestion =
                         if (hasMissingAttributes) {
                             stringResource(Res.string.prompt_ask_load_missing_data)
-                        } else if(requestedAttributes.isNotEmpty()) {
+                        } else if (requestedAttributes.isNotEmpty()) {
                             stringResource(Res.string.prompt_send_above_data)
                         } else {
                             stringResource(Res.string.prompt_send_all_data)
@@ -207,7 +207,7 @@ fun AuthenticationConsentView(
                         ).toList(),
                         modifier = paddingModifier,
                     )
-                    if(requestedAttributes.isNotEmpty()) {
+                    if (requestedAttributes.isNotEmpty()) {
                         DataCategoryDisplaySection(
                             title = stringResource(Res.string.section_heading_requested_data),
                             attributes = requestedAttributes,

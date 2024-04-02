@@ -23,12 +23,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.description_read_terms
-import composewalletapp.shared.generated.resources.HEADING_LABEL_DATA_PROTECTION
+import composewalletapp.shared.generated.resources.heading_label_data_protection
 import composewalletapp.shared.generated.resources.heading_label_navigate_back
 import composewalletapp.shared.generated.resources.heading_label_terms_of_use
 import composewalletapp.shared.generated.resources.heading_label_terms_of_use_and_data_protection
-import composewalletapp.shared.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.AcceptButton
@@ -124,7 +124,7 @@ fun OnboardingTermsScreen(
                         .fillMaxWidth()
                 ) {
                     Text(
-                        text = stringResource(Res.string.HEADING_LABEL_DATA_PROTECTION),
+                        text = stringResource(Res.string.heading_label_data_protection),
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.padding(16.dp),
                     )

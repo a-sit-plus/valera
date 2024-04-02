@@ -18,6 +18,7 @@ interface DataStoreService {
     suspend fun deletePreference(key: String)
     fun clearLog()
 }
+
 class RealDataStoreService(private var dataStore: DataStore<Preferences>, private var platformAdapter: PlatformAdapter): DataStoreService{
     override suspend fun setPreference(value: String, key: String){
         try {

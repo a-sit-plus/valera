@@ -16,6 +16,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.jws.DefaultVerifierJwsService
@@ -61,61 +62,8 @@ import ui.screens.ProvisioningLoadingScreen
 import ui.screens.SettingsScreen
 import view.AuthenticationQrCodeScannerViewModel
 
-@OptIn(ExperimentalResourceApi::class)
-private enum class NavigationData(
-    val title: StringResource,
-    val icon: @Composable () -> Unit,
-    val destination: Page,
-    val isActive: (Page) -> Boolean
-) {
-    HOME_SCREEN(
-        title = Res.string.navigation_button_label_my_data,
-        icon = {
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = null,
-            )
-        },
-        destination = HomePage(),
-        isActive = {
-            when (it) {
-                is HomePage -> true
-                else -> false
-            }
-        },
-    ),
-    AUTHENTICATION_SCANNING_SCREEN(
-        title = Res.string.navigation_button_label_show_data,
-        icon = {
-            Icon(
-                imageVector = Icons.Default.QrCodeScanner,
-                contentDescription = null,
-            )
-        },
-        destination = AuthenticationQrCodeScannerPage(),
-        isActive = {
-            when (it) {
-                is AuthenticationQrCodeScannerPage -> true
-                else -> false
-            }
-        },
-    ),
-    INFORMATION_SCREEN(
-        title = Res.string.navigation_button_label_settings,
-        icon = {
-            Icon(
-                imageVector = Icons.Default.Settings,
-                contentDescription = null,
-            )
-        },
-        destination = SettingsPage(),
-        isActive = {
-            when (it) {
-                is SettingsPage -> true
-                else -> false
-            }
-        },
-    ),
+internal object NavigatorTestTags {
+    const val postOnboardingContent = "postOnboardingContent"
 }
 
 @Composable
@@ -173,6 +121,7 @@ fun Navigator(walletMain: WalletMain) {
             }
 
             if (walletMain.provisioningService.redirectUri?.let { link.contains(it) } == true) {
+                walletMain.provisioningService.redirectUri = null
                 mainNavigationStack.push(
                     ProvisioningLoadingPage(
                         link = link
@@ -194,6 +143,7 @@ fun Navigator(walletMain: WalletMain) {
                 navigationStack = mainNavigationStack,
                 navigateUp = globalBack,
                 walletMain = walletMain,
+                modifier = Modifier.testTag(NavigatorTestTags.postOnboardingContent),
             )
         }
     } else {
@@ -207,6 +157,7 @@ fun MainNavigator(
     navigationStack: NavigationStack<Page>,
     navigateUp: () -> Unit,
     walletMain: WalletMain,
+    modifier: Modifier = Modifier,
 ) {
     Scaffold(
         bottomBar = {
@@ -242,6 +193,7 @@ fun MainNavigator(
                 }
             }
         },
+        modifier = modifier,
     ) { scaffoldPadding ->
         Box(modifier = Modifier.padding(scaffoldPadding)) {
             AnimatedContent(targetState = navigationStack.lastWithIndex()) { (_, page) ->
@@ -257,6 +209,7 @@ fun MainNavigator(
 
                     is RefreshCredentialsPage -> {
                         LoadDataScreen(
+                            refreshRequirements = page.refreshRequirements,
                             navigateUp = navigateUp,
                             walletMain = walletMain,
                         )
@@ -269,7 +222,6 @@ fun MainNavigator(
                             walletMain = walletMain,
                         )
                     }
-
 
                     is SettingsPage -> {
                         SettingsScreen(
@@ -325,7 +277,7 @@ fun MainNavigator(
                             navigateUp = navigateUp,
                             navigateToRefreshCredentialsPage = {
                                 navigationStack.push(
-                                    RefreshCredentialsPage()
+                                    RefreshCredentialsPage(it)
                                 )
                             },
                             navigateToAuthenticationSuccessPage = {
@@ -346,4 +298,63 @@ fun MainNavigator(
             }
         }
     }
+}
+
+
+
+@OptIn(ExperimentalResourceApi::class)
+private enum class NavigationData(
+    val title: StringResource,
+    val icon: @Composable () -> Unit,
+    val destination: Page,
+    val isActive: (Page) -> Boolean
+) {
+    HOME_SCREEN(
+        title = Res.string.navigation_button_label_my_data,
+        icon = {
+            Icon(
+                imageVector = Icons.Default.Person,
+                contentDescription = null,
+            )
+        },
+        destination = HomePage(),
+        isActive = {
+            when (it) {
+                is HomePage -> true
+                else -> false
+            }
+        },
+    ),
+    AUTHENTICATION_SCANNING_SCREEN(
+        title = Res.string.navigation_button_label_show_data,
+        icon = {
+            Icon(
+                imageVector = Icons.Default.QrCodeScanner,
+                contentDescription = null,
+            )
+        },
+        destination = AuthenticationQrCodeScannerPage(),
+        isActive = {
+            when (it) {
+                is AuthenticationQrCodeScannerPage -> true
+                else -> false
+            }
+        },
+    ),
+    INFORMATION_SCREEN(
+        title = Res.string.navigation_button_label_settings,
+        icon = {
+            Icon(
+                imageVector = Icons.Default.Settings,
+                contentDescription = null,
+            )
+        },
+        destination = SettingsPage(),
+        isActive = {
+            when (it) {
+                is SettingsPage -> true
+                else -> false
+            }
+        },
+    ),
 }

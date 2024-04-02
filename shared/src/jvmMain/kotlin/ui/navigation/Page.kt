@@ -1,7 +1,5 @@
 package ui.navigation
 
-import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
-
 actual class HomePage actual constructor() : Page
 
 actual class LogPage actual constructor() : Page
@@ -17,7 +15,15 @@ actual class ProvisioningLoadingPage actual constructor(
 
 actual class AuthenticationQrCodeScannerPage actual constructor() : Page
 
-actual class RefreshCredentialsPage : Page
+actual class RefreshRequirements actual constructor(
+    actual val requestedCredentialFormatHolderStringified: String,
+    actual val requestedCredentialSchemeIdentifier: String,
+    actual val requestedAttributes: Set<String>,
+)
+
+actual class RefreshCredentialsPage actual constructor(
+    actual val refreshRequirements: RefreshRequirements?,
+) : Page
 
 actual class AuthenticationConsentPage actual constructor(
     actual val authenticationRequestParametersSerialized: String,
