@@ -5,6 +5,7 @@
 	<key>com.apple.developer.associated-domains</key>
 	<array>
 		<string>applinks:wallet.a-sit.at</string>
+		<string>eudi-openid4vp:verifier-backend.eudiw.dev</string>
 	</array>
 </dict>
 </plist>
