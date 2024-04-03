@@ -13,7 +13,7 @@ actual fun BiometryPrompt(
     onDismiss: (BiometryPromptDismissResult) -> Unit,
 ) {
     LaunchedEffect(true) {
-        LAContext().evaluatePolicy(LAPolicyDeviceOwnerAuthentication, localizedReason = title) { boolResult, nsError ->
+        LAContext().apply { localizedFallbackTitle = "Passcode" }.evaluatePolicy(LAPolicyDeviceOwnerAuthentication, localizedReason = title) { boolResult, nsError ->
             if (boolResult) {
                 onSuccess(BiometryPromptSuccessResult())
             } else {
