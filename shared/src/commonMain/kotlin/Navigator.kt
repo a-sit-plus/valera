@@ -31,7 +31,6 @@ import io.github.aakira.napier.Napier
 import io.ktor.http.parseQueryString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -100,10 +99,18 @@ fun Navigator(walletMain: WalletMain) {
                 return@LaunchedEffect
             }
 
-            val host = walletMain.walletConfig.host.first()
-            if (link.contains("$host/mobile")) {
-                Napier.d("authentication request")
+            if (walletMain.provisioningService.redirectUri?.let { link.contains(it) } == true) {
+                walletMain.provisioningService.redirectUri = null
+                mainNavigationStack.push(
+                    ProvisioningLoadingPage(
+                        link = link
+                    )
+                )
+                appLink.value = null
+                return@LaunchedEffect
+            }
 
+            kotlin.run {
                 val buildAuthenticationConsentPage =
                     BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
                         retrieveAuthenticationRequestParametersUseCase = RetrieveAuthenticationRequestParametersUseCase(
@@ -116,17 +123,7 @@ fun Navigator(walletMain: WalletMain) {
                     val authenticationConsentPage = buildAuthenticationConsentPage(link)
                     mainNavigationStack.push(authenticationConsentPage)
                 }
-                appLink.value = null
-                return@LaunchedEffect
-            }
-
-            if (walletMain.provisioningService.redirectUri?.let { link.contains(it) } == true) {
-                walletMain.provisioningService.redirectUri = null
-                mainNavigationStack.push(
-                    ProvisioningLoadingPage(
-                        link = link
-                    )
-                )
+                Napier.d("authentication request")
                 appLink.value = null
                 return@LaunchedEffect
             }
