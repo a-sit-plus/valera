@@ -39,6 +39,7 @@ actual fun BiometryPrompt(
     val biometricManager = remember { BiometricManager.from(context) }
 
     val isBiometricAvailable = remember {
+        //
         biometricManager.canAuthenticate(BIOMETRIC_STRONG)
     }
     when (isBiometricAvailable) {

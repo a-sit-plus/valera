@@ -59,6 +59,8 @@ class AndroidCryptoService(
     override val publicKey: CryptoPublicKey
         get() = cryptoPublicKey
 
+    //biometry prompt hier aufrufen
+    //
     override suspend fun sign(input: ByteArray): KmmResult<CryptoSignature> = runCatching {
         val sig = Signature.getInstance(algorithm.jcaName).apply {
             this@AndroidCryptoService.algorithm.jcaParams?.let { setParameter(it) }

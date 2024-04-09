@@ -33,13 +33,14 @@ import ui.composables.buttons.NavigateUpButton
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
 @Composable
+//onStart Funktion mitgeben
 fun ProvisioningLoadingScreen(
     link: String,
     navigateUp: () -> Unit,
     walletMain: WalletMain,
 ) {
     var showBiometry by rememberSaveable {
-        mutableStateOf(true)
+        mutableStateOf(true) //false
     }
 
     var currentLoadingJob by rememberSaveable {
@@ -70,6 +71,7 @@ fun ProvisioningLoadingScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            //
             if (showBiometry) {
                 BiometryPrompt(
                     title = stringResource(Res.string.biometric_authentication_prompt_to_load_data_title),

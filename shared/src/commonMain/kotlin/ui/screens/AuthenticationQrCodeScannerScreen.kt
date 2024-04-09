@@ -48,12 +48,35 @@ fun AuthenticationQrCodeScannerScreen(
     }
 )
 
+fun TestAuthenticationQrCodeScannerScreen(
+    navigateToLoadingScreen: () -> Unit,
+    navigateUp: () -> Unit,
+    navigateToConsentScreen: (AuthenticationConsentPage) -> Unit,
+    model: AuthenticationQrCodeScannerViewModel
+) {
+    model.onScan(
+        link = "https://wallet.a-sit.at/mobile?request_uri=https://apps.egiz.gv.at/terminal_sp/siopv2/request&client_id=https://apps.egiz.gv.at/terminal_sp/siopv2/postsuccess&client_metadata_uri=https://apps.egiz.gv.at/terminal_sp/siopv2/metadata",
+        //link = "https://oe1.orf.at/intro?gad_source=1&gclid=EAIaIQobChMIgtms7dS0hQMV6E5BAh2nnQL6EAAYASAAEgIPdPD_BwE",
+        startLoadingCallback = navigateToLoadingScreen,
+        stopLoadingCallback = navigateUp,
+        onFailure = { throwable ->
+            //    walletMain.errorService.emit(throwable)
+        },
+        onSuccess = { page ->
+            navigateUp()
+            //br
+            navigateToConsentScreen(page)
+        },
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
 @Composable
 fun AuthenticationQrCodeScannerView(
     onFoundPayload: (String) -> Unit,
     navigateUp: (() -> Unit)? = null,
 ) {
+    //bp
     Scaffold(
         topBar = {
             TopAppBar(
@@ -81,6 +104,7 @@ fun AuthenticationQrCodeScannerView(
     ) {
         Column(modifier = Modifier.padding(it).fillMaxSize()) {
             CameraView(
+                //bp
                 onFoundPayload = onFoundPayload,
                 modifier = Modifier.fillMaxSize(),
             )

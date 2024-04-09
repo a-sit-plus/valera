@@ -43,12 +43,12 @@ class AndroidKeyStoreService : KeyStoreService, HolderKeyService {
                 .setKeySize(256)
                 .setDigests(KeyProperties.DIGEST_SHA256)
                 .setCertificateNotBefore(Date())
-                .setUserAuthenticationRequired(true)
-                .apply {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                        setUserAuthenticationParameters(Configuration.USER_AUTHENTICATION_TIMEOUT, AUTH_BIOMETRIC_STRONG or AUTH_DEVICE_CREDENTIAL)
-                    }
-                }
+//                .setUserAuthenticationRequired(true)
+//                .apply {
+//                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+//                        setUserAuthenticationParameters(Configuration.USER_AUTHENTICATION_TIMEOUT, AUTH_BIOMETRIC_STRONG or AUTH_DEVICE_CREDENTIAL)
+//                    }
+//                }
             return KeyPairGenerator.getInstance("EC", "AndroidKeyStore").apply {
                 initialize(builder.build())
             }.generateKeyPair()

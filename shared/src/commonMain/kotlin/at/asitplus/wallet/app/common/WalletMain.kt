@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
+import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import data.storage.AntilogAdapter
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
@@ -16,15 +17,16 @@ import kotlinx.coroutines.Dispatchers
  * Main class to hold all services needed in the Compose App.
  */
 class WalletMain(
+    //val testRun: Boolean,
     val objectFactory: ObjectFactory,
     private val dataStoreService: DataStoreService,
     val platformAdapter: PlatformAdapter,
     val buildContext: BuildContext,
     val errorService: ErrorService = ErrorService(mutableStateOf(false), mutableStateOf(null)),
+    val subjectCredentialStore: SubjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService),
 ) {
     lateinit var walletConfig: WalletConfig
     private lateinit var cryptoService: CryptoService
-    lateinit var subjectCredentialStore: PersistentSubjectCredentialStore
     private lateinit var holderAgent: HolderAgent
     private lateinit var holderKeyService: HolderKeyService
     lateinit var provisioningService: ProvisioningService
@@ -45,7 +47,8 @@ class WalletMain(
         walletConfig =
             WalletConfig(dataStoreService = this.dataStoreService, errorService = errorService)
         cryptoService = objectFactory.loadCryptoService().getOrThrow()
-        subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
+        //
+
         holderAgent = HolderAgent.newDefaultInstance(
             cryptoService = cryptoService,
             subjectCredentialStore = subjectCredentialStore,
@@ -164,6 +167,7 @@ interface PlatformAdapter {
 }
 
 class DummyPlatformAdapter : PlatformAdapter {
+    //brdummy
     override fun openUrl(url: String) {
     }
 

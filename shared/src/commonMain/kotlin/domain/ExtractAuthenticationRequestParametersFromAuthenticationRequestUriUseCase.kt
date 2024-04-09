@@ -14,6 +14,7 @@ class ExtractAuthenticationRequestParametersFromAuthenticationRequestUriUseCase(
     private val verifierJwsService: VerifierJwsService,
 ) {
     operator fun invoke(requestRedirectUri: String): AuthenticationRequestParameters {
+        //br
         val requestParams = kotlin.runCatching {
             Url(requestRedirectUri).parameters.flattenEntries().toMap()
                 .decodeFromUrlQuery<AuthenticationRequestParameters>()

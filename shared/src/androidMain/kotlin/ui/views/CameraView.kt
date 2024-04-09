@@ -79,6 +79,7 @@ private fun CameraWithGrantedPermission(
 
     val preview = Preview.Builder().build()
     val previewView = remember { PreviewView(context) }
+    //bp
     val imageCapture: ImageCapture = remember { ImageCapture.Builder().build() }
     var isFrontCamera by rememberSaveable { mutableStateOf(false) }
     var cameraProvider: ProcessCameraProvider? by remember { mutableStateOf(null) }
@@ -109,13 +110,14 @@ private fun CameraWithGrantedPermission(
             }
         }
         cameraProvider?.unbindAll()
-
+//bp
         val imageAnalysis = ImageAnalysis.Builder()
             .setTargetResolution(Size(1280, 720))
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
             .build()
-        imageAnalysis.setAnalyzer(executor, { imageProxy: ImageProxy ->
+        imageAnalysis.setAnalyzer(executor) { imageProxy: ImageProxy ->
             imageProxy.image?.let { image ->
+                //bp
                 val inputImage =
                     InputImage.fromMediaImage(image, imageProxy.imageInfo.rotationDegrees)
                 val scanner = BarcodeScanning.getClient()
@@ -135,13 +137,15 @@ private fun CameraWithGrantedPermission(
                         }
                     }
             }
-        })
-
+        }
+//fake  cameraProvider
+        //bp
         cameraProvider?.bindToLifecycle(
             lifecycleOwner,
             cameraSelector,
             preview,
             imageAnalysis,
+            //fake imageCapture
             imageCapture
         )
         preview.setSurfaceProvider(previewView.surfaceProvider)

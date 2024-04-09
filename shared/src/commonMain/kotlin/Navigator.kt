@@ -58,6 +58,7 @@ import ui.screens.MyCredentialsScreen
 import ui.screens.OnboardingWrapper
 import ui.screens.ProvisioningLoadingScreen
 import ui.screens.SettingsScreen
+import ui.screens.TestAuthenticationQrCodeScannerScreen
 import view.AuthenticationQrCodeScannerViewModel
 
 @OptIn(ExperimentalResourceApi::class)
@@ -302,18 +303,33 @@ fun MainNavigator(
 
 
                     is AuthenticationQrCodeScannerPage -> {
-                        AuthenticationQrCodeScannerScreen(
-                            navigateUp = navigateUp,
-                            navigateToConsentScreen = navigationStack::push,
-                            navigateToLoadingScreen = {
-                                navigationStack.push(AuthenticationLoadingPage())
-                            },
-                            authenticationQrCodeScannerViewModel = AuthenticationQrCodeScannerViewModel(
-                                client = walletMain.httpService.buildHttpClient(),
-                                verifierJwsService = DefaultVerifierJwsService(),
-                            ),
-                            walletMain = walletMain,
-                        )
+                        if (walletMain.testRun) {
+                            TestAuthenticationQrCodeScannerScreen(
+                                navigateUp = navigateUp,
+                                navigateToLoadingScreen = {
+                                    navigationStack.push(AuthenticationLoadingPage())
+                                },
+                                navigateToConsentScreen = navigationStack::push,
+                                model = AuthenticationQrCodeScannerViewModel(
+                                    client = walletMain.httpService.buildHttpClient(),
+                                    verifierJwsService = DefaultVerifierJwsService(),
+                                ),
+                            )
+                        } else {
+                            //bp
+                            AuthenticationQrCodeScannerScreen(
+                                navigateUp = navigateUp,
+                                navigateToConsentScreen = navigationStack::push,
+                                navigateToLoadingScreen = {
+                                    navigationStack.push(AuthenticationLoadingPage())
+                                },
+                                authenticationQrCodeScannerViewModel = AuthenticationQrCodeScannerViewModel(
+                                    client = walletMain.httpService.buildHttpClient(),
+                                    verifierJwsService = DefaultVerifierJwsService(),
+                                ),
+                                walletMain = walletMain,
+                            )
+                        }
                     }
 
                     is AuthenticationLoadingPage -> {

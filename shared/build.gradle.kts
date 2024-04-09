@@ -123,3 +123,6 @@ android {
         }
     }
 }
+dependencies {
+    androidTestImplementation(project(":androidApp"))
+}

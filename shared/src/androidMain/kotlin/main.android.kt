@@ -46,6 +46,7 @@ fun MainView(buildContext: BuildContext) {
 
     App(
         WalletMain(
+            testRun = false,
             objectFactory = AndroidObjectFactory(),
             RealDataStoreService(getDataStore(LocalContext.current), platformAdapter),
             platformAdapter = platformAdapter,
