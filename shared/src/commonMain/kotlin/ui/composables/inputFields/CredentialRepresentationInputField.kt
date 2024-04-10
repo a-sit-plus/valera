@@ -15,9 +15,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import at.asitplus.wallet.lib.data.ConstantIndex
 import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.id_format_iso_mdoc_label
-import composewalletapp.shared.generated.resources.id_format_plain_jwt_label
-import composewalletapp.shared.generated.resources.id_format_sd_jwt_label
+import composewalletapp.shared.generated.resources.credential_representation_format_label_mso_mdoc
+import composewalletapp.shared.generated.resources.credential_representation_format_label_plain_jwt
+import composewalletapp.shared.generated.resources.credential_representation_format_label_sd_jwt
 import composewalletapp.shared.generated.resources.text_label_id_format
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
@@ -80,36 +80,30 @@ fun CredentialRepresentationInputField(
             },
             modifier = Modifier.fillMaxWidth(),
         ) {
-            DropdownMenuItem(
-                text = {
-                    Text(stringResource(Res.string.id_format_plain_jwt_label))
-                },
-                onClick = {
-                    onValueChange(ConstantIndex.CredentialRepresentation.PLAIN_JWT)
-                },
-                enabled = enabled,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            DropdownMenuItem(
-                text = {
-                    Text(stringResource(Res.string.id_format_sd_jwt_label))
-                },
-                onClick = {
-                    onValueChange(ConstantIndex.CredentialRepresentation.SD_JWT)
-                },
-                enabled = enabled,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            DropdownMenuItem(
-                text = {
-                    Text(stringResource(Res.string.id_format_iso_mdoc_label))
-                },
-                onClick = {
-                    onValueChange(ConstantIndex.CredentialRepresentation.ISO_MDOC)
-                },
-                enabled = enabled,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            for(credentialRepresentation in listOf(
+                ConstantIndex.CredentialRepresentation.PLAIN_JWT,
+                ConstantIndex.CredentialRepresentation.SD_JWT,
+                ConstantIndex.CredentialRepresentation.ISO_MDOC,
+            )) {
+                DropdownMenuItem(
+                    text = {
+                        Text(credentialRepresentation.uiLabel())
+                    },
+                    onClick = {
+                        onValueChange(credentialRepresentation)
+                    },
+                    enabled = enabled,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
         }
     }
+}
+
+@OptIn(ExperimentalResourceApi::class)
+@Composable
+private fun ConstantIndex.CredentialRepresentation.uiLabel(): String = when (this) {
+    ConstantIndex.CredentialRepresentation.PLAIN_JWT -> stringResource(Res.string.credential_representation_format_label_plain_jwt)
+    ConstantIndex.CredentialRepresentation.SD_JWT -> stringResource(Res.string.credential_representation_format_label_sd_jwt)
+    ConstantIndex.CredentialRepresentation.ISO_MDOC -> stringResource(Res.string.credential_representation_format_label_mso_mdoc)
 }

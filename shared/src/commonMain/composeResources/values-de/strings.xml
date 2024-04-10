@@ -66,6 +66,14 @@
     <string name="attribute_friendly_name_data_recipient_name">Name</string>
     <string name="attribute_friendly_name_data_recipient_location">Ort</string>
 
+    <string name="credential_representation_format_label_plain_jwt">Plain JWT</string>
+    <string name="credential_representation_format_label_sd_jwt">SD-JWT</string>
+    <string name="credential_representation_format_label_mso_mdoc">ISO mDoc</string>
+
+    <string name="credential_scheme_label_mdl">mDL</string>
+    <string name="credential_scheme_label_eu_pid">PID</string>
+    <string name="credential_scheme_label_id_austria">IDA Credential</string>
+
     <string name="navigation_button_label_show_data">Daten Vorzeigen</string>
     <string name="navigation_button_label_my_data">Meine Daten</string>
     <string name="navigation_button_label_settings">Einstellungen</string>

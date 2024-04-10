@@ -35,7 +35,6 @@ import composewalletapp.shared.generated.resources.button_label_all_missing_data
 import composewalletapp.shared.generated.resources.content_description_hide_attributes
 import composewalletapp.shared.generated.resources.content_description_show_attributes
 import composewalletapp.shared.generated.resources.heading_label_load_data_screen
-import composewalletapp.shared.generated.resources.heading_label_refresh_data_screen
 import composewalletapp.shared.generated.resources.info_text_redirection_to_id_austria_for_credential_provisioning
 import composewalletapp.shared.generated.resources.section_heading_available_data
 import composewalletapp.shared.generated.resources.section_heading_configuration
@@ -51,7 +50,6 @@ import ui.composables.PersonalDataCategory
 import ui.composables.attributeCategorizationOrder
 import ui.composables.buttons.LoadDataButton
 import ui.composables.buttons.NavigateUpButton
-import ui.composables.buttons.RefreshDataButton
 import ui.composables.inputFields.IssuingServiceInputField
 import ui.composables.inputFields.StatefulCredentialRepresentationInputField
 import ui.composables.inputFields.StatefulCredentialSchemeInputField
@@ -165,13 +163,7 @@ private fun LoadDataView(
             TopAppBar(
                 title = {
                     Text(
-                        text = stringResource(
-                            if (availableCredentials.isNotEmpty()) {
-                                Res.string.heading_label_refresh_data_screen
-                            } else {
-                                Res.string.heading_label_load_data_screen
-                            }
-                        ),
+                        text = stringResource(Res.string.heading_label_load_data_screen),
                         style = MaterialTheme.typography.headlineLarge,
                     )
                 },
@@ -188,15 +180,9 @@ private fun LoadDataView(
                     modifier = Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 16.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly,
                 ) {
-                    if (availableCredentials.isNotEmpty()) {
-                        RefreshDataButton(
-                            onClick = refreshData
-                        )
-                    } else {
-                        LoadDataButton(
-                            onClick = refreshData
-                        )
-                    }
+                    LoadDataButton(
+                        onClick = refreshData
+                    )
                 }
             }
         }

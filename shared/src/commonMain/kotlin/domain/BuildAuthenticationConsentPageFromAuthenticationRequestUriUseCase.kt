@@ -13,7 +13,7 @@ class BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
         // TODO: extract recipient name from the metadataResponse; the data is not yet being delivered though
         return AuthenticationConsentPage(
             authenticationRequestParametersSerialized = jsonSerializer.encodeToString(authenticationRequestParameters),
-            recipientName = "DemoService",
+            recipientName = "SERVICE_NAME_DUMMY_VALUE",
             recipientLocation = authenticationRequestParameters.clientId,
         )
     }

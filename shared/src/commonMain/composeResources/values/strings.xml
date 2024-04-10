@@ -65,6 +65,10 @@
     <string name="attribute_friendly_name_data_recipient_name">UNTRANSLATED:attribute_friendly_name_data_recipient_name</string>
     <string name="attribute_friendly_name_data_recipient_location">UNTRANSLATED:attribute_friendly_name_data_recipient_location</string>
 
+    <string name="credential_representation_format_label_plain_jwt">UNTRANSLATED:credential_representation_format_label_plain_jwt</string>
+    <string name="credential_representation_format_label_sd_jwt">UNTRANSLATED:credential_representation_format_label_sd_jwt</string>
+    <string name="credential_representation_format_label_mso_mdoc">UNTRANSLATED:credential_representation_format_label_mso_mdoc</string>
+
     <string name="navigation_button_label_show_data">UNTRANSLATED:navigation_button_label_show_data</string>
     <string name="navigation_button_label_my_data">UNTRANSLATED:navigation_button_label_my_data</string>
     <string name="navigation_button_label_settings">UNTRANSLATED:navigation_button_label_settings</string>
