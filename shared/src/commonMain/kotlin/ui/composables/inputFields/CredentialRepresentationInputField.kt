@@ -102,7 +102,7 @@ fun CredentialRepresentationInputField(
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-private fun ConstantIndex.CredentialRepresentation.uiLabel(): String = when (this) {
+fun ConstantIndex.CredentialRepresentation.uiLabel(): String = when (this) {
     ConstantIndex.CredentialRepresentation.PLAIN_JWT -> stringResource(Res.string.credential_representation_format_label_plain_jwt)
     ConstantIndex.CredentialRepresentation.SD_JWT -> stringResource(Res.string.credential_representation_format_label_sd_jwt)
     ConstantIndex.CredentialRepresentation.ISO_MDOC -> stringResource(Res.string.credential_representation_format_label_mso_mdoc)

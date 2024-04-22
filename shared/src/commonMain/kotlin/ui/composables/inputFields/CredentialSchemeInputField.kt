@@ -81,7 +81,7 @@ fun CredentialSchemeInputField(
             },
             modifier = Modifier.fillMaxWidth(),
         ) {
-            for(scheme in listOf(
+            for (scheme in listOf(
                 IdAustriaScheme,
                 EuPidScheme,
             )) {
@@ -101,9 +101,9 @@ fun CredentialSchemeInputField(
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-private fun ConstantIndex.CredentialScheme.uiLabel(): String = when (this) {
-        is IdAustriaScheme -> stringResource(Res.string.credential_scheme_label_id_austria)
-        is EuPidScheme -> stringResource(Res.string.credential_scheme_label_eu_pid)
-        is ConstantIndex.MobileDrivingLicence2023 -> stringResource(Res.string.credential_scheme_label_mdl)
-        else -> this.vcType
-    }
+fun ConstantIndex.CredentialScheme.uiLabel(): String = when (this) {
+    is IdAustriaScheme -> stringResource(Res.string.credential_scheme_label_id_austria)
+    is EuPidScheme -> stringResource(Res.string.credential_scheme_label_eu_pid)
+    is ConstantIndex.MobileDrivingLicence2023 -> stringResource(Res.string.credential_scheme_label_mdl)
+    else -> this.vcType
+}

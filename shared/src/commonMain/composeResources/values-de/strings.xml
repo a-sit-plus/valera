@@ -83,8 +83,8 @@
     <string name="id_format_iso_mdoc_label">ISO_MDOC</string>
 
     <string name="text_label_issuing_service">Ausstellservice</string>
-    <string name="text_label_id_format">ID-Format</string>
-    <string name="text_label_id_scheme">ID-Schema</string>
+    <string name="text_label_id_format">Datenrepräsentation</string>
+    <string name="text_label_id_scheme">Credential Typ</string>
     <string name="text_label_sex">Geschlecht</string>
     <string name="text_label_stair">Stiege</string>
     <string name="text_label_door">Tür</string>
