@@ -17,7 +17,10 @@ import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.ConstantIndex
 import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.text_label_id_format
+import composewalletapp.shared.generated.resources.credential_scheme_label_eu_pid
+import composewalletapp.shared.generated.resources.credential_scheme_label_id_austria
+import composewalletapp.shared.generated.resources.credential_scheme_label_mdl
+import composewalletapp.shared.generated.resources.text_label_id_scheme
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 
@@ -62,10 +65,10 @@ fun CredentialSchemeInputField(
     ) {
         OutlinedTextField(
             readOnly = true,
-            value = value.vcType,
+            value = value.uiLabel(),
             onValueChange = {},
             label = {
-                Text(stringResource(Res.string.text_label_id_format))
+                Text(stringResource(Res.string.text_label_id_scheme))
             },
             enabled = enabled,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
@@ -78,24 +81,29 @@ fun CredentialSchemeInputField(
             },
             modifier = Modifier.fillMaxWidth(),
         ) {
-            DropdownMenuItem(
-                text = {
-                    Text(IdAustriaScheme.vcType)
-                },
-                onClick = {
-                    onValueChange(IdAustriaScheme)
-                },
-                enabled = enabled,
-            )
-            DropdownMenuItem(
-                text = {
-                    Text(EuPidScheme.vcType)
-                },
-                onClick = {
-                    onValueChange(EuPidScheme)
-                },
-                enabled = enabled,
-            )
+            for (scheme in listOf(
+                IdAustriaScheme,
+                EuPidScheme,
+            )) {
+                DropdownMenuItem(
+                    text = {
+                        Text(scheme.uiLabel())
+                    },
+                    onClick = {
+                        onValueChange(scheme)
+                    },
+                    enabled = enabled,
+                )
+            }
         }
     }
+}
+
+@OptIn(ExperimentalResourceApi::class)
+@Composable
+fun ConstantIndex.CredentialScheme.uiLabel(): String = when (this) {
+    is IdAustriaScheme -> stringResource(Res.string.credential_scheme_label_id_austria)
+    is EuPidScheme -> stringResource(Res.string.credential_scheme_label_eu_pid)
+    is ConstantIndex.MobileDrivingLicence2023 -> stringResource(Res.string.credential_scheme_label_mdl)
+    else -> this.vcType
 }

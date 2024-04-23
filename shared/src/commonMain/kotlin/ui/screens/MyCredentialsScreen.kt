@@ -10,6 +10,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -25,13 +26,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.iso.ElementValue
+import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.content_description_refresh_credentials
+import composewalletapp.shared.generated.resources.credential_representation_format_label_mso_mdoc
+import composewalletapp.shared.generated.resources.credential_representation_format_label_plain_jwt
+import composewalletapp.shared.generated.resources.credential_representation_format_label_sd_jwt
 import composewalletapp.shared.generated.resources.heading_label_my_data_screen
 import composewalletapp.shared.generated.resources.info_text_no_credentials_available
-import composewalletapp.shared.generated.resources.Res
+import io.ktor.http.quote
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.LabeledText
 import ui.composables.buttons.LoadDataButton
+import ui.composables.inputFields.uiLabel
 import ui.views.MyCredentialsView
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
@@ -56,7 +65,7 @@ fun MyCredentialsScreen(
         },
         floatingActionButton = {
             storeContainerState?.let { storeContainer ->
-                if(storeContainer.credentials.isNotEmpty()) {
+                if (storeContainer.credentials.isNotEmpty()) {
                     FloatingActionButton(
                         onClick = navigateToRefreshCredentialsPage,
                     ) {
@@ -99,4 +108,103 @@ fun MyCredentialsScreen(
             }
         }
     }
+}
+
+@Composable
+private fun SingleCredentialCard(
+    credential: SubjectCredentialStore.StoreEntry,
+    modifier: Modifier = Modifier,
+) {
+    when (credential) {
+        is SubjectCredentialStore.StoreEntry.Vc -> SingleVcCredentialCard(
+            credential = credential,
+            modifier = modifier
+        )
+
+        is SubjectCredentialStore.StoreEntry.SdJwt -> SingleSdJwtCredentialView(
+            credential = credential,
+            modifier = modifier
+        )
+        is SubjectCredentialStore.StoreEntry.Iso -> SingleIsoCredentialView(
+            credential = credential,
+            modifier = modifier
+        )
+    }
+}
+
+@OptIn(ExperimentalResourceApi::class)
+@Composable
+private fun SingleVcCredentialCard(
+    credential: SubjectCredentialStore.StoreEntry.Vc,
+    modifier: Modifier = Modifier,
+) {
+    ElevatedCard(
+        modifier = modifier,
+    ) {
+        LabeledText(
+            text = credential.scheme.uiLabel(),
+            label = stringResource(Res.string.credential_representation_format_label_plain_jwt),
+        )
+        Text(credential.vc.toString())
+    }
+}
+
+@OptIn(ExperimentalResourceApi::class)
+@Composable
+private fun SingleSdJwtCredentialView(
+    credential: SubjectCredentialStore.StoreEntry.SdJwt,
+    modifier: Modifier = Modifier,
+) {
+    ElevatedCard(
+        modifier = modifier,
+    ) {
+        LabeledText(
+            text = credential.scheme.uiLabel(),
+            label = stringResource(Res.string.credential_representation_format_label_sd_jwt),
+        )
+        credential.disclosures.forEach {
+            LabeledText(
+                text = it.value?.claimValue?.toString() ?: "unknown claim value",
+                label = it.value?.claimName ?: "unknown claim name"
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalResourceApi::class)
+@Composable
+private fun SingleIsoCredentialView(
+    credential: SubjectCredentialStore.StoreEntry.Iso,
+    modifier: Modifier = Modifier,
+) {
+    ElevatedCard(
+        modifier = modifier,
+    ) {
+        LabeledText(
+            text = credential.scheme.uiLabel(),
+            label = stringResource(Res.string.credential_representation_format_label_mso_mdoc),
+        )
+        credential.issuerSigned.namespaces?.forEach { namespace ->
+            namespace.value.entries.forEach { entry ->
+                LabeledText(
+                    text = entry.value.elementValue.let {
+                        it.string
+                            ?: it.boolean?.toString()
+                            ?: it.drivingPrivilege?.toString()
+                            ?: it.date?.toString()
+                            ?: it.bytes?.toString()!!
+                    },
+                    label = "\$[${namespace.key.quote()}][${entry.value.elementIdentifier.quote()}]"
+                )
+            }
+        }
+    }
+}
+
+private fun ElementValue.toUiString(): String {
+    return this.string
+        ?: this.boolean?.toString()
+        ?: this.drivingPrivilege?.toString()
+        ?: this.date?.toString()
+        ?: this.bytes?.toString()!!
 }

@@ -115,6 +115,7 @@ class CredentialExtractor(
     // TODO: might not contain sufficient context information
     fun containsAttribute(attributeName: String): Boolean {
         return when (attributeName) {
+            IdAustriaScheme.Attributes.BPK -> this.bpk != null
             IdAustriaScheme.Attributes.FIRSTNAME -> this.givenName != null
             IdAustriaScheme.Attributes.LASTNAME -> this.familyName != null
             IdAustriaScheme.Attributes.DATE_OF_BIRTH -> this.dateOfBirth != null
@@ -165,6 +166,50 @@ class CredentialExtractor(
             }
         })
     }
+
+    val bpk: String?
+        get() = credentials.firstNotNullOfOrNull { credential ->
+            when (credential) {
+                is SubjectCredentialStore.StoreEntry.Vc -> {
+                    when (val credentialSubject = credential.vc.vc.credentialSubject) {
+                        is IdAustriaCredential -> credentialSubject.bpk
+
+                        is EuPidCredential -> null
+
+                        else -> TODO(credential.unsupportedCredentialSubjectMessage)
+                    }
+                }
+
+                is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> credential.disclosures.filter { it.value?.claimName == IdAustriaScheme.Attributes.BPK }
+                            .firstNotNullOfOrNull { it.value?.claimValue as String }
+
+
+                        is EuPidScheme -> null
+
+
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
+                    }
+                }
+
+                is SubjectCredentialStore.StoreEntry.Iso -> {
+                    when (credential.scheme) {
+                        is IdAustriaScheme -> credential.issuerSigned.namespaces?.get(
+                            IdAustriaScheme.isoNamespace
+                        )?.entries?.firstOrNull {
+                            it.value.elementIdentifier == IdAustriaScheme.Attributes.BPK
+                        }?.value?.elementValue?.string
+
+                        is EuPidScheme -> null
+
+                        else -> TODO(credential.unsupportedCredentialSchemeMessage)
+                    }
+                }
+
+                else -> TODO(credential.unsupportedCredentialStoreEntry)
+            }
+        }
 
     val givenName: String?
         get() = credentials.firstNotNullOfOrNull { credential ->

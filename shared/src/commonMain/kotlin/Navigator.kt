@@ -110,6 +110,7 @@ fun Navigator(walletMain: WalletMain) {
                 return@LaunchedEffect
             }
 
+            // if this is not for provisioning, it must be an authorization request
             kotlin.run {
                 val buildAuthenticationConsentPage =
                     BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
