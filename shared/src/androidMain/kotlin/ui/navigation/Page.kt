@@ -35,9 +35,7 @@ actual class AuthenticationQrCodeScannerPage : Page, Parcelable
 
 @Parcelize
 actual class RefreshRequirements actual constructor(
-    actual val requestedCredentialFormatHolderStringified: String,
-    actual val requestedCredentialSchemeIdentifier: String,
-    actual val requestedAttributes: Set<String>,
+    actual val authenticationRequestParametersStringified: String,
 ) : Parcelable
 
 @Parcelize

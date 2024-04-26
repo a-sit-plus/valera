@@ -9,15 +9,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.data.AttributeIndex
-import at.asitplus.wallet.lib.data.dif.FormatContainerJwt
-import at.asitplus.wallet.lib.data.dif.FormatHolder
+import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.dif.PresentationDefinition
 import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.error_authentication_at_sp_failed
+import data.AttributeTranslater
 import data.CredentialExtractor
-import data.attributeTranslation
 import data.storage.scheme
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
@@ -45,23 +44,19 @@ fun AuthenticationConsentScreen(
     val storeContainerState by walletMain.subjectCredentialStore.observeStoreContainer()
         .collectAsState(null)
 
-    val formatHolder = authenticationRequestParameters.presentationDefinition?.formats
-        ?: authenticationRequestParameters.presentationDefinition?.inputDescriptors?.first()?.format
-        ?: authenticationRequestParameters.presentationDefinition?.inputDescriptors?.first()?.constraints?.fields?.any {
-            it.path.any { it.contains("\$.mdoc") }
-        }?.let { if (it) FormatHolder(msoMdoc = FormatContainerJwt(listOf())) else null }
-
     val requestedCredentialScheme =
         authenticationRequestParameters.presentationDefinition?.inputDescriptors?.first()?.constraints?.fields?.firstOrNull {
             it.path.contains("$.type") or it.path.contains("\$.mdoc.doctype") or it.path.contains("\$.mdoc.namespace")
         }?.filter?.let {
             it.pattern ?: it.const
         }?.let {
-            AttributeIndex.resolveAttributeType(it) ?: AttributeIndex.resolveSchemaUri(it)
-            ?: AttributeIndex.resolveIsoNamespace(it)
+            AttributeIndex.resolveAttributeType(it)
+                ?: AttributeIndex.resolveSchemaUri(it)
+                ?: AttributeIndex.resolveIsoNamespace(it)
         } ?: throw Exception("Unable to deduce credential scheme")
 
-    val requestedAttributes = authenticationRequestParameters.presentationDefinition?.claims ?: listOf()
+    val requestedAttributes =
+        authenticationRequestParameters.presentationDefinition?.claims ?: listOf()
 
     storeContainerState?.let { storeContainer ->
         val credentialExtractor =
@@ -71,20 +66,18 @@ fun AuthenticationConsentScreen(
             spName = spName,
             spLocation = spLocation,
             spImage = spImage,
-            claims = requestedAttributes,
+            requestedCredentialScheme = requestedCredentialScheme,
+            requestedAttributes = requestedAttributes,
             authenticationRequestParameters = authenticationRequestParameters,
             credentialExtractor = credentialExtractor,
             fromQrCodeScanner = fromQrCodeScanner,
             navigateUp = navigateUp,
             navigateToRefreshCredentialsPage = {
                 navigateToRefreshCredentialsPage(
-                    // TODO: support multiple input descriptors
                     RefreshRequirements(
-                        requestedCredentialFormatHolderStringified = jsonSerializer.encodeToString(
-                            formatHolder
-                        ),
-                        requestedAttributes = requestedAttributes.toSet(),
-                        requestedCredentialSchemeIdentifier = requestedCredentialScheme.vcType
+                        authenticationRequestParametersStringified = jsonSerializer.encodeToString(
+                            authenticationRequestParameters
+                        )
                     )
                 )
             },
@@ -100,7 +93,8 @@ fun StatefulAuthenticationConsentView(
     spName: String,
     spLocation: String,
     spImage: ImageBitmap?,
-    claims: List<String>,
+    requestedCredentialScheme: ConstantIndex.CredentialScheme,
+    requestedAttributes: List<String>,
     authenticationRequestParameters: AuthenticationRequestParameters,
     credentialExtractor: CredentialExtractor,
     fromQrCodeScanner: Boolean,
@@ -110,7 +104,7 @@ fun StatefulAuthenticationConsentView(
     walletMain: WalletMain,
 ) {
     val attributeCategorization = attributeCategorizationOrder.associateWith {
-        it.attributes.values.flatten()
+        it.attributes.get(requestedCredentialScheme) ?: listOf()
     }
 
     val categorizedClaims = attributeCategorization.toList().flatMap {
@@ -118,7 +112,7 @@ fun StatefulAuthenticationConsentView(
     }
 
     val attributeCategorizationWithOthers = attributeCategorization + Pair(
-        PersonalDataCategory.OtherData, claims.filter {
+        PersonalDataCategory.OtherData, requestedAttributes.filter {
             categorizedClaims.contains(it) == false
         }
     )
@@ -128,11 +122,11 @@ fun StatefulAuthenticationConsentView(
             Pair(
                 attributeCategory.first,
                 attributeCategory.second.mapNotNull { claim ->
-                    if (claims.contains(claim) == false) null else AttributeAvailability(
+                    if (requestedAttributes.contains(claim) == false) null else AttributeAvailability(
                         // also supports claims that are not supported yet (for example claims that may be added later on before the wallet is updated)
-                        attributeName = claim.attributeTranslation?.let { stringResource(it) }
+                        attributeName = AttributeTranslater(requestedCredentialScheme).translate(claim)?.let { stringResource(it) }
                             ?: claim,
-                        isAvailable = credentialExtractor.containsAttribute(claim),
+                        isAvailable = credentialExtractor.containsAttribute(requestedCredentialScheme, claim),
                     )
                 }
             )
@@ -175,7 +169,7 @@ fun StatefulAuthenticationConsentView(
     )
 }
 
-private val PresentationDefinition.claims: List<String>
+val PresentationDefinition.claims: List<String>
     get() = this.inputDescriptors
         .mapNotNull { it.constraints }.flatMap { it.fields?.toList() ?: listOf() }
         .flatMap { it.path.toList() }

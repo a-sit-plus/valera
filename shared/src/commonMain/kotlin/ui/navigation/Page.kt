@@ -22,13 +22,9 @@ expect class ProvisioningLoadingPage(link: String) : Page {
 }
 
 expect class RefreshRequirements(
-    requestedCredentialFormatHolderStringified: String,
-    requestedCredentialSchemeIdentifier: String,
-    requestedAttributes: Set<String>,
+    authenticationRequestParametersStringified: String,
 ) {
-    val requestedCredentialFormatHolderStringified: String
-    val requestedCredentialSchemeIdentifier: String
-    val requestedAttributes: Set<String>
+    val authenticationRequestParametersStringified: String
 }
 
 expect class RefreshCredentialsPage(

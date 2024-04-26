@@ -13,8 +13,10 @@ import androidx.compose.ui.text.input.TextFieldValue
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
+import at.asitplus.wallet.lib.data.dif.FormatContainerJwt
 import at.asitplus.wallet.lib.data.dif.FormatHolder
 import at.asitplus.wallet.lib.data.jsonSerializer
+import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
 import data.CredentialExtractor
 import data.storage.scheme
 import kotlinx.coroutines.flow.first
@@ -32,6 +34,38 @@ fun LoadDataScreen(
     navigateUp: () -> Unit,
     walletMain: WalletMain,
 ) {
+    val authenticationRequestParameters =
+        refreshRequirements?.authenticationRequestParametersStringified?.let {
+            jsonSerializer.decodeFromString<AuthenticationRequestParameters>(it)
+        }
+
+    var credentialRepresentation by rememberSaveable {
+        mutableStateOf(if (authenticationRequestParameters == null) {
+            runBlocking {
+                walletMain.walletConfig.credentialRepresentation.first()
+            }
+        } else {
+            val requestedFormatHolder =
+                authenticationRequestParameters.presentationDefinition?.inputDescriptors?.first()?.format
+                    ?: authenticationRequestParameters.presentationDefinition?.formats
+                    ?: authenticationRequestParameters.presentationDefinition?.inputDescriptors?.first()?.constraints?.fields?.any {
+                        it.path.any { it.contains("\$.mdoc") }
+                    }
+                        ?.let { if (it) FormatHolder(msoMdoc = FormatContainerJwt(listOf())) else null }
+                    ?: throw Exception("No supported format found: $authenticationRequestParameters")
+
+            if (requestedFormatHolder.msoMdoc != null) {
+                ConstantIndex.CredentialRepresentation.ISO_MDOC
+            } else if (requestedFormatHolder.jwtVp != null) {
+                ConstantIndex.CredentialRepresentation.PLAIN_JWT
+            } else if (requestedFormatHolder.jwtSd != null) {
+                at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.SD_JWT
+            } else {
+                throw Exception("No supported format found: $requestedFormatHolder")
+            }
+        })
+    }
+
     var host by rememberSaveable(
         saver = object : Saver<MutableState<TextFieldValue>, String> {
             override fun restore(value: String): MutableState<TextFieldValue> {
@@ -48,31 +82,17 @@ fun LoadDataScreen(
         }
     }
 
-    var credentialRepresentation by rememberSaveable {
-        val requestedFormatHolder = refreshRequirements?.requestedCredentialFormatHolderStringified?.let { jsonSerializer.decodeFromString<FormatHolder>(it) }
-
-        mutableStateOf(if (requestedFormatHolder == null) {
-            runBlocking {
-                walletMain.walletConfig.credentialRepresentation.first()
-            }
-        } else {
-            if (requestedFormatHolder.msoMdoc != null) {
-                ConstantIndex.CredentialRepresentation.ISO_MDOC
-            } else if (requestedFormatHolder.jwtVp != null) {
-                ConstantIndex.CredentialRepresentation.PLAIN_JWT
-            } else if (requestedFormatHolder.jwtSd != null) {
-                at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.SD_JWT
-            } else {
-                throw Exception("No supported format found: $requestedFormatHolder")
-            }
-        })
-    }
-
     var credentialScheme by rememberSaveable(
         saver = CredentialSchemeSaver().asMutableStateSaver()
     ) {
-        refreshRequirements?.requestedCredentialSchemeIdentifier?.let {
-            AttributeIndex.resolveAttributeType(it) ?: AttributeIndex.resolveIsoNamespace(it) ?: AttributeIndex.resolveSchemaUri(it)
+        authenticationRequestParameters?.presentationDefinition?.inputDescriptors?.first()?.constraints?.fields?.firstOrNull {
+            it.path.contains("$.type") or it.path.contains("\$.mdoc.doctype") or it.path.contains("\$.mdoc.namespace")
+        }?.filter?.let {
+            it.pattern ?: it.const
+        }?.let {
+            AttributeIndex.resolveAttributeType(it)
+                ?: AttributeIndex.resolveSchemaUri(it)
+                ?: AttributeIndex.resolveIsoNamespace(it)
         }?.let { mutableStateOf(it) } ?: runBlocking {
             mutableStateOf(walletMain.walletConfig.credentialScheme.first())
         }
@@ -88,8 +108,8 @@ fun LoadDataScreen(
             val credentialExtractor =
                 CredentialExtractor(storeContainer.credentials.filter { it.scheme == credentialScheme })
             val requestedAttributes = credentialScheme.claimNames.filter {
-                credentialExtractor.containsAttribute(it)
-            }.toSet() + (refreshRequirements?.requestedAttributes ?: setOf())
+                credentialExtractor.containsAttribute(credentialScheme, it)
+            }.toSet() + (authenticationRequestParameters?.presentationDefinition?.claims ?: setOf())
             mutableStateOf(requestedAttributes)
         }
     }

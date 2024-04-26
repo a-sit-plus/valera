@@ -82,6 +82,7 @@ fun CredentialSchemeInputField(
             modifier = Modifier.fillMaxWidth(),
         ) {
             for (scheme in listOf(
+                ConstantIndex.MobileDrivingLicence2023,
                 IdAustriaScheme,
                 EuPidScheme,
             )) {

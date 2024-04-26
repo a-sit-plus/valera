@@ -1,7 +1,5 @@
 package ui.navigation
 
-import at.asitplus.wallet.lib.data.ConstantIndex
-
 actual class HomePage : Page
 
 actual class LogPage : Page
@@ -24,9 +22,7 @@ actual class ProvisioningLoadingPage actual constructor(
 actual class AuthenticationQrCodeScannerPage : Page
 
 actual class RefreshRequirements actual constructor(
-    actual val requestedCredentialFormatHolderStringified: String,
-    actual val requestedCredentialSchemeIdentifier: String,
-    actual val requestedAttributes: Set<String>,
+    actual val authenticationRequestParametersStringified: String,
 )
 
 actual class RefreshCredentialsPage actual constructor(
