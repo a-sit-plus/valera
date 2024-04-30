@@ -15,7 +15,7 @@ import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.error_authentication_at_sp_failed
-import data.AttributeTranslater
+import data.AttributeTranslator
 import data.CredentialExtractor
 import data.storage.scheme
 import kotlinx.coroutines.launch
@@ -124,7 +124,7 @@ fun StatefulAuthenticationConsentView(
                 attributeCategory.second.mapNotNull { claim ->
                     if (requestedAttributes.contains(claim) == false) null else AttributeAvailability(
                         // also supports claims that are not supported yet (for example claims that may be added later on before the wallet is updated)
-                        attributeName = AttributeTranslater(requestedCredentialScheme).translate(claim)?.let { stringResource(it) }
+                        attributeName = AttributeTranslator(requestedCredentialScheme).translate(claim)?.let { stringResource(it) }
                             ?: claim,
                         isAvailable = credentialExtractor.containsAttribute(requestedCredentialScheme, claim),
                     )
