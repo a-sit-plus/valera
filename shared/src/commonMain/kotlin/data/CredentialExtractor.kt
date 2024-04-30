@@ -9,12 +9,41 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.iso.MobileDrivingLicenceDataElements
+import composewalletapp.shared.generated.resources.Res
+import composewalletapp.shared.generated.resources.attribute_friendly_name_age_at_least_14
+import composewalletapp.shared.generated.resources.attribute_friendly_name_age_at_least_16
+import composewalletapp.shared.generated.resources.attribute_friendly_name_age_at_least_18
+import composewalletapp.shared.generated.resources.attribute_friendly_name_age_at_least_21
+import composewalletapp.shared.generated.resources.attribute_friendly_name_age_birth_year
+import composewalletapp.shared.generated.resources.attribute_friendly_name_age_in_years
+import composewalletapp.shared.generated.resources.attribute_friendly_name_birth_city
+import composewalletapp.shared.generated.resources.attribute_friendly_name_birth_country
+import composewalletapp.shared.generated.resources.attribute_friendly_name_birth_place
+import composewalletapp.shared.generated.resources.attribute_friendly_name_birth_state
+import composewalletapp.shared.generated.resources.attribute_friendly_name_bpk
+import composewalletapp.shared.generated.resources.attribute_friendly_name_date_of_birth
+import composewalletapp.shared.generated.resources.attribute_friendly_name_family_name_birth
+import composewalletapp.shared.generated.resources.attribute_friendly_name_firstname
+import composewalletapp.shared.generated.resources.attribute_friendly_name_given_name_birth
+import composewalletapp.shared.generated.resources.attribute_friendly_name_lastname
+import composewalletapp.shared.generated.resources.attribute_friendly_name_main_address
+import composewalletapp.shared.generated.resources.attribute_friendly_name_main_residence_city
+import composewalletapp.shared.generated.resources.attribute_friendly_name_main_residence_country
+import composewalletapp.shared.generated.resources.attribute_friendly_name_main_residence_house_number
+import composewalletapp.shared.generated.resources.attribute_friendly_name_main_residence_postal_code
+import composewalletapp.shared.generated.resources.attribute_friendly_name_main_residence_state
+import composewalletapp.shared.generated.resources.attribute_friendly_name_main_residence_street
+import composewalletapp.shared.generated.resources.attribute_friendly_name_nationality
+import composewalletapp.shared.generated.resources.attribute_friendly_name_portrait
+import composewalletapp.shared.generated.resources.attribute_friendly_name_sex
 import data.storage.scheme
 import io.github.aakira.napier.Napier
 import io.ktor.util.decodeBase64Bytes
 import io.ktor.util.decodeBase64String
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.StringResource
 
 private val SubjectCredentialStore.StoreEntry.Vc.unsupportedCredentialSubjectMessage: String
     get() = "Unsupported credential subject: ${this.vc.vc.credentialSubject}"
@@ -29,6 +58,110 @@ private val SubjectCredentialStore.StoreEntry.unsupportedCredentialStoreEntry: S
     get() = "Unsupported credential store entry: $this"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class AttributeTranslater(val credentialScheme: ConstantIndex.CredentialScheme) {
+    @OptIn(ExperimentalResourceApi::class)
+    fun translate(attributeName: String): StringResource? {
+        return when (credentialScheme) {
+            is IdAustriaScheme -> when (attributeName) {
+                IdAustriaScheme.Attributes.BPK -> Res.string.attribute_friendly_name_bpk
+                IdAustriaScheme.Attributes.FIRSTNAME -> Res.string.attribute_friendly_name_firstname
+                IdAustriaScheme.Attributes.LASTNAME -> Res.string.attribute_friendly_name_lastname
+                IdAustriaScheme.Attributes.DATE_OF_BIRTH -> Res.string.attribute_friendly_name_date_of_birth
+                IdAustriaScheme.Attributes.PORTRAIT -> Res.string.attribute_friendly_name_portrait
+                IdAustriaScheme.Attributes.AGE_OVER_14 -> Res.string.attribute_friendly_name_age_at_least_14
+                IdAustriaScheme.Attributes.AGE_OVER_16 -> Res.string.attribute_friendly_name_age_at_least_16
+                IdAustriaScheme.Attributes.AGE_OVER_18 -> Res.string.attribute_friendly_name_age_at_least_18
+                IdAustriaScheme.Attributes.AGE_OVER_21 -> Res.string.attribute_friendly_name_age_at_least_21
+                IdAustriaScheme.Attributes.MAIN_ADDRESS -> Res.string.attribute_friendly_name_main_address
+                else -> null
+            }
+
+            is EuPidScheme -> when(attributeName) {
+                EuPidScheme.Attributes.GIVEN_NAME -> Res.string.attribute_friendly_name_firstname
+                EuPidScheme.Attributes.FAMILY_NAME -> Res.string.attribute_friendly_name_lastname
+                EuPidScheme.Attributes.BIRTH_DATE -> Res.string.attribute_friendly_name_date_of_birth
+                EuPidScheme.Attributes.AGE_OVER_18 -> Res.string.attribute_friendly_name_age_at_least_18
+                EuPidScheme.Attributes.RESIDENT_ADDRESS -> Res.string.attribute_friendly_name_main_address
+                EuPidScheme.Attributes.RESIDENT_STREET -> Res.string.attribute_friendly_name_main_residence_street
+                EuPidScheme.Attributes.RESIDENT_CITY -> Res.string.attribute_friendly_name_main_residence_city
+                EuPidScheme.Attributes.RESIDENT_POSTAL_CODE -> Res.string.attribute_friendly_name_main_residence_postal_code
+                EuPidScheme.Attributes.RESIDENT_HOUSE_NUMBER -> Res.string.attribute_friendly_name_main_residence_house_number
+                EuPidScheme.Attributes.RESIDENT_COUNTRY -> Res.string.attribute_friendly_name_main_residence_country
+                EuPidScheme.Attributes.RESIDENT_STATE -> Res.string.attribute_friendly_name_main_residence_state
+                EuPidScheme.Attributes.GENDER -> Res.string.attribute_friendly_name_sex
+                EuPidScheme.Attributes.NATIONALITY -> Res.string.attribute_friendly_name_nationality
+                EuPidScheme.Attributes.AGE_IN_YEARS -> Res.string.attribute_friendly_name_age_in_years
+                EuPidScheme.Attributes.AGE_BIRTH_YEAR -> Res.string.attribute_friendly_name_age_birth_year
+                EuPidScheme.Attributes.FAMILY_NAME_BIRTH -> Res.string.attribute_friendly_name_family_name_birth
+                EuPidScheme.Attributes.GIVEN_NAME_BIRTH -> Res.string.attribute_friendly_name_given_name_birth
+                EuPidScheme.Attributes.BIRTH_PLACE -> Res.string.attribute_friendly_name_birth_place
+                EuPidScheme.Attributes.BIRTH_COUNTRY -> Res.string.attribute_friendly_name_birth_country
+                EuPidScheme.Attributes.BIRTH_STATE -> Res.string.attribute_friendly_name_birth_state
+                EuPidScheme.Attributes.BIRTH_CITY -> Res.string.attribute_friendly_name_birth_city
+                else -> null
+            }
+
+            is ConstantIndex.MobileDrivingLicence2023 -> when(attributeName) {
+                MobileDrivingLicenceDataElements.GIVEN_NAME -> Res.string.attribute_friendly_name_firstname
+                MobileDrivingLicenceDataElements.FAMILY_NAME -> Res.string.attribute_friendly_name_lastname
+                MobileDrivingLicenceDataElements.PORTRAIT -> Res.string.attribute_friendly_name_portrait
+                MobileDrivingLicenceDataElements.BIRTH_DATE -> Res.string.attribute_friendly_name_date_of_birth
+                MobileDrivingLicenceDataElements.AGE_OVER_18 -> Res.string.attribute_friendly_name_age_at_least_18
+                MobileDrivingLicenceDataElements.RESIDENT_ADDRESS -> Res.string.attribute_friendly_name_main_address
+                MobileDrivingLicenceDataElements.RESIDENT_CITY -> Res.string.attribute_friendly_name_main_residence_city
+                MobileDrivingLicenceDataElements.RESIDENT_POSTAL_CODE -> Res.string.attribute_friendly_name_main_residence_postal_code
+                MobileDrivingLicenceDataElements.RESIDENT_COUNTRY -> Res.string.attribute_friendly_name_main_residence_country
+                MobileDrivingLicenceDataElements.RESIDENT_STATE -> Res.string.attribute_friendly_name_main_residence_state
+                MobileDrivingLicenceDataElements.NATIONALITY -> Res.string.attribute_friendly_name_nationality
+                MobileDrivingLicenceDataElements.AGE_IN_YEARS -> Res.string.attribute_friendly_name_age_in_years
+                MobileDrivingLicenceDataElements.AGE_BIRTH_YEAR -> Res.string.attribute_friendly_name_age_birth_year
+                MobileDrivingLicenceDataElements.BIRTH_PLACE -> Res.string.attribute_friendly_name_birth_place
+                else -> null
+            }
+
+            else -> null
+        }
+    }
+}
+@OptIn(ExperimentalResourceApi::class)
+val String.attributeTranslation: StringResource?
+    get() = when (this) {
+        IdAustriaScheme.Attributes.BPK -> Res.string.attribute_friendly_name_bpk
+        IdAustriaScheme.Attributes.FIRSTNAME -> Res.string.attribute_friendly_name_firstname
+        IdAustriaScheme.Attributes.LASTNAME -> Res.string.attribute_friendly_name_lastname
+        IdAustriaScheme.Attributes.DATE_OF_BIRTH -> Res.string.attribute_friendly_name_date_of_birth
+        IdAustriaScheme.Attributes.PORTRAIT -> Res.string.attribute_friendly_name_portrait
+        IdAustriaScheme.Attributes.AGE_OVER_14 -> Res.string.attribute_friendly_name_age_at_least_14
+        IdAustriaScheme.Attributes.AGE_OVER_16 -> Res.string.attribute_friendly_name_age_at_least_16
+        IdAustriaScheme.Attributes.AGE_OVER_18 -> Res.string.attribute_friendly_name_age_at_least_18
+        IdAustriaScheme.Attributes.AGE_OVER_21 -> Res.string.attribute_friendly_name_age_at_least_21
+        IdAustriaScheme.Attributes.MAIN_ADDRESS -> Res.string.attribute_friendly_name_main_address
+
+        EuPidScheme.Attributes.GIVEN_NAME -> Res.string.attribute_friendly_name_firstname
+        EuPidScheme.Attributes.FAMILY_NAME -> Res.string.attribute_friendly_name_lastname
+        EuPidScheme.Attributes.BIRTH_DATE -> Res.string.attribute_friendly_name_date_of_birth
+        EuPidScheme.Attributes.AGE_OVER_18 -> Res.string.attribute_friendly_name_age_at_least_18
+        EuPidScheme.Attributes.RESIDENT_ADDRESS -> Res.string.attribute_friendly_name_main_address
+        EuPidScheme.Attributes.RESIDENT_STREET -> Res.string.attribute_friendly_name_main_residence_street
+        EuPidScheme.Attributes.RESIDENT_CITY -> Res.string.attribute_friendly_name_main_residence_city
+        EuPidScheme.Attributes.RESIDENT_POSTAL_CODE -> Res.string.attribute_friendly_name_main_residence_postal_code
+        EuPidScheme.Attributes.RESIDENT_HOUSE_NUMBER -> Res.string.attribute_friendly_name_main_residence_house_number
+        EuPidScheme.Attributes.RESIDENT_COUNTRY -> Res.string.attribute_friendly_name_main_residence_country
+        EuPidScheme.Attributes.RESIDENT_STATE -> Res.string.attribute_friendly_name_main_residence_state
+        EuPidScheme.Attributes.GENDER -> Res.string.attribute_friendly_name_sex
+        EuPidScheme.Attributes.NATIONALITY -> Res.string.attribute_friendly_name_nationality
+        EuPidScheme.Attributes.AGE_IN_YEARS -> Res.string.attribute_friendly_name_age_in_years
+        EuPidScheme.Attributes.AGE_BIRTH_YEAR -> Res.string.attribute_friendly_name_age_birth_year
+        EuPidScheme.Attributes.FAMILY_NAME_BIRTH -> Res.string.attribute_friendly_name_family_name_birth
+        EuPidScheme.Attributes.GIVEN_NAME_BIRTH -> Res.string.attribute_friendly_name_given_name_birth
+        EuPidScheme.Attributes.BIRTH_PLACE -> Res.string.attribute_friendly_name_birth_place
+        EuPidScheme.Attributes.BIRTH_COUNTRY -> Res.string.attribute_friendly_name_birth_country
+        EuPidScheme.Attributes.BIRTH_STATE -> Res.string.attribute_friendly_name_birth_state
+        EuPidScheme.Attributes.BIRTH_CITY -> Res.string.attribute_friendly_name_birth_city
+
+        else -> null
+    }
 
 @Serializable
 private data class IdAustriaMainAddressAdapter(
@@ -91,20 +224,40 @@ class CredentialExtractor(
             }
 
             is ConstantIndex.MobileDrivingLicence2023 -> when (attributeName) {
-                "${ConstantIndex.MobileDrivingLicence2023.isoNamespace}:${MobileDrivingLicenceDataElements.GIVEN_NAME}" -> this.givenName != null
-                "${ConstantIndex.MobileDrivingLicence2023.isoNamespace}:${MobileDrivingLicenceDataElements.FAMILY_NAME}" -> this.familyName != null
-                "${ConstantIndex.MobileDrivingLicence2023.isoNamespace}:${MobileDrivingLicenceDataElements.PORTRAIT}" -> this.portrait != null
-                "${ConstantIndex.MobileDrivingLicence2023.isoNamespace}:${MobileDrivingLicenceDataElements.BIRTH_DATE}" -> this.dateOfBirth != null
-                "${ConstantIndex.MobileDrivingLicence2023.isoNamespace}:${MobileDrivingLicenceDataElements.AGE_OVER_18}" -> this.ageAtLeast18 != null
-                "${ConstantIndex.MobileDrivingLicence2023.isoNamespace}:${MobileDrivingLicenceDataElements.RESIDENT_ADDRESS}" -> this.mainResidenceAddress != null
-                "${ConstantIndex.MobileDrivingLicence2023.isoNamespace}:${MobileDrivingLicenceDataElements.RESIDENT_CITY}" -> this.mainResidenceTownName != null
-                "${ConstantIndex.MobileDrivingLicence2023.isoNamespace}:${MobileDrivingLicenceDataElements.RESIDENT_POSTAL_CODE}" -> this.mainResidencePostalCode != null
-                "${ConstantIndex.MobileDrivingLicence2023.isoNamespace}:${MobileDrivingLicenceDataElements.RESIDENT_COUNTRY}" -> this.mainResidenceCountryName != null
-                "${ConstantIndex.MobileDrivingLicence2023.isoNamespace}:${MobileDrivingLicenceDataElements.RESIDENT_STATE}" -> this.mainResidenceStateName != null
-                "${ConstantIndex.MobileDrivingLicence2023.isoNamespace}:${MobileDrivingLicenceDataElements.AGE_IN_YEARS}" -> this.ageInYears != null
-                "${ConstantIndex.MobileDrivingLicence2023.isoNamespace}:${MobileDrivingLicenceDataElements.AGE_BIRTH_YEAR}" -> this.yearOfBirth != null
-                "${ConstantIndex.MobileDrivingLicence2023.isoNamespace}:${MobileDrivingLicenceDataElements.BIRTH_PLACE}" -> this.birthPlace != null
-                "${ConstantIndex.MobileDrivingLicence2023.isoNamespace}:${MobileDrivingLicenceDataElements.NATIONALITY}" -> this.nationality != null
+                MobileDrivingLicenceDataElements.GIVEN_NAME -> this.givenName != null
+                MobileDrivingLicenceDataElements.FAMILY_NAME -> this.familyName != null
+                MobileDrivingLicenceDataElements.BIRTH_DATE -> this.dateOfBirth != null
+                MobileDrivingLicenceDataElements.AGE_OVER_18 -> this.ageAtLeast18 != null
+                MobileDrivingLicenceDataElements.NATIONALITY -> this.nationality != null
+                MobileDrivingLicenceDataElements.RESIDENT_ADDRESS -> this.mainResidenceAddress != null
+                MobileDrivingLicenceDataElements.RESIDENT_CITY -> this.mainResidenceTownName != null
+                MobileDrivingLicenceDataElements.RESIDENT_POSTAL_CODE -> this.mainResidencePostalCode != null
+                MobileDrivingLicenceDataElements.RESIDENT_COUNTRY -> this.mainResidenceCountryName != null
+                MobileDrivingLicenceDataElements.RESIDENT_STATE -> this.mainResidenceStateName != null
+                MobileDrivingLicenceDataElements.AGE_IN_YEARS -> this.ageInYears != null
+                MobileDrivingLicenceDataElements.AGE_BIRTH_YEAR -> this.yearOfBirth != null
+                MobileDrivingLicenceDataElements.BIRTH_PLACE -> this.birthPlace != null
+                MobileDrivingLicenceDataElements.PORTRAIT -> this.portrait != null
+
+//                const val ISSUE_DATE = "issue_date"
+//                const val EXPIRY_DATE = "expiry_date"
+//                const val ISSUING_COUNTRY = "issuing_country"
+//                const val ISSUING_AUTHORITY = "issuing_authority"
+//                const val DOCUMENT_NUMBER = "document_number"
+//                const val DRIVING_PRIVILEGES = "driving_privileges"
+//                const val UN_DISTINGUISHING_SIGN = "un_distinguishing_sign"
+//                const val ADMINISTRATIVE_NUMBER = "administrative_number"
+//                const val SEX = "sex"
+//                const val HEIGHT = "height"
+//                const val WEIGHT = "weight"
+//                const val EYE_COLOUR = "eye_colour"
+//                const val HAIR_COLOUR = "hair_colour"
+//                const val PORTRAIT_CAPTURE_DATE = "portrait_capture_date"
+//                const val ISSUING_JURISDICTION = "issuing_jurisdiction"
+//                const val FAMILY_NAME_NATIONAL_CHARACTER = "family_name_national_character"
+//                const val GIVEN_NAME_NATIONAL_CHARACTER = "given_name_national_character"
+//                const val SIGNATURE_USUAL_MARK = "signature_usual_mark"
+
                 else -> false
             }
 

@@ -65,7 +65,7 @@ fun CredentialRepresentationInputField(
         OutlinedTextField(
             enabled = enabled,
             readOnly = true,
-            value = value.uiLabel(),
+            value = value.name,
             onValueChange = {},
             label = {
                 Text(stringResource(Res.string.text_label_id_format))
