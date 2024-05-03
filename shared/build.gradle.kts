@@ -36,6 +36,9 @@ kotlin {
                 api(libs.vclib)
                 api(libs.credential.ida)
                 api(libs.credential.eupid)
+                api(libs.kmpCrypto)
+                api(libs.kmpCrypto.jws)
+                api(libs.kmpCrypto.cose)
                 implementation(serialization("json"))
                 api(napier())
                 implementation("androidx.datastore:datastore-preferences-core:1.1.0-alpha07")
@@ -122,4 +125,9 @@ android {
             }
         }
     }
+}
+
+
+repositories {
+    maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
 }

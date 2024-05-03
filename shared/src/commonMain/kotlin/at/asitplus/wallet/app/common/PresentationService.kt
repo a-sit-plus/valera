@@ -6,15 +6,13 @@ import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
 import at.asitplus.wallet.lib.oidc.AuthenticationResponseResult
 import at.asitplus.wallet.lib.oidc.OidcSiopWallet
 import io.github.aakira.napier.Napier
-import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.client.statement.readBytes
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.Url
 import io.ktor.http.parameters
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -27,6 +25,17 @@ class PresentationService(
     httpService: HttpService,
 ) {
     private val client = httpService.buildHttpClient()
+    val oidcSiopWallet = OidcSiopWallet.newInstance(
+        holder = holderAgent,
+        cryptoService = cryptoService,
+        remoteResourceRetriever = { url ->
+            withContext(Dispatchers.IO) {
+                Url(url).parameters["request_uri"]?.let {
+                    client.get(it).bodyAsText()
+                } ?: client.get(url).bodyAsText()
+            }
+        }
+    )
 
     @Throws(Throwable::class)
     suspend fun startSiop(
@@ -34,19 +43,10 @@ class PresentationService(
         fromQrCodeScanner: Boolean
     ) {
         Napier.d("Start SIOP process: $authenticationRequestParameters")
-        val oidcSiopWallet = OidcSiopWallet.newInstance(
-            holder = holderAgent,
-            cryptoService = cryptoService,
-            remoteResourceRetriever = { url ->
-                withContext(Dispatchers.IO) {
-                    client.get(url).bodyAsText()
-                }
-            }
-        )
         oidcSiopWallet.createAuthnResponse(authenticationRequestParameters).fold(
             onSuccess = {
                 when (it) {
-                    is AuthenticationResponseResult.Post  -> {
+                    is AuthenticationResponseResult.Post -> {
                         Napier.d("Post ${it.url}")
                         val response = client.submitForm(
                             url = it.url,

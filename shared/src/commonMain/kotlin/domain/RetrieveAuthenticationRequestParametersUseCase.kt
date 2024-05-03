@@ -3,6 +3,7 @@ package domain
 import at.asitplus.crypto.datatypes.jws.JwsSigned
 import at.asitplus.wallet.lib.jws.VerifierJwsService
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
+import at.asitplus.wallet.lib.oidc.OidcSiopWallet
 import at.asitplus.wallet.lib.oidc.OpenIdConstants
 import at.asitplus.wallet.lib.oidvci.OAuth2Exception
 import at.asitplus.wallet.lib.oidvci.decodeFromUrlQuery
@@ -17,6 +18,7 @@ import io.ktor.util.flattenEntries
 class RetrieveAuthenticationRequestParametersUseCase(
     private val client: HttpClient,
     private val verifierJwsService: VerifierJwsService,
+    private val oidcSiopWallet: OidcSiopWallet,
 ) {
     suspend operator fun invoke(input: String): AuthenticationRequestParameters {
         return retrieveAuthenticationRequestParameters(input)
@@ -24,6 +26,7 @@ class RetrieveAuthenticationRequestParametersUseCase(
 
     // copied from OidcSiopWallet
     private suspend fun retrieveAuthenticationRequestParameters(input: String): AuthenticationRequestParameters {
+        // TODO return oidcSiopWallet.retrieveAuthenticationRequestParameters(input)
         val params = kotlin.run {
             // maybe it's already a request jws?
             parseRequestObjectJws(input)
@@ -84,7 +87,12 @@ class RetrieveAuthenticationRequestParametersUseCase(
     private fun parseRequestObjectJws(requestObject: String): AuthenticationRequestParameters? {
         JwsSigned.parse(requestObject)?.let { jws ->
             if (verifierJwsService.verifyJwsObject(jws)) {
-                return AuthenticationRequestParameters.deserialize(jws.payload.decodeToString())
+                return AuthenticationRequestParameters.deserialize(jws.payload.decodeToString()).getOrElse {
+                    Napier.w("parseRequestObjectJws failed", it)
+                    return null
+                }
+            } else {
+                Napier.w("parseRequestObjectJws could not validate $jws")
             }
         }
         return null

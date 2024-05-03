@@ -117,6 +117,7 @@ fun Navigator(walletMain: WalletMain) {
                         retrieveAuthenticationRequestParametersUseCase = RetrieveAuthenticationRequestParametersUseCase(
                             client = walletMain.httpService.buildHttpClient(),
                             verifierJwsService = DefaultVerifierJwsService(),
+                            oidcSiopWallet = walletMain.presentationService.oidcSiopWallet
                         )
                     )
 
@@ -256,6 +257,7 @@ fun MainNavigator(
                             authenticationQrCodeScannerViewModel = AuthenticationQrCodeScannerViewModel(
                                 client = walletMain.httpService.buildHttpClient(),
                                 verifierJwsService = DefaultVerifierJwsService(),
+                                oidcSiopWallet = walletMain.presentationService.oidcSiopWallet,
                             ),
                             walletMain = walletMain,
                         )

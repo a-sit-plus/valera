@@ -7,7 +7,6 @@ import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.iso.IssuerSigned
-import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
 import at.asitplus.wallet.lib.oidc.AuthenticationResponseParameters
 import at.asitplus.wallet.lib.oidc.OpenIdConstants
 import at.asitplus.wallet.lib.oidc.OpenIdConstants.TOKEN_PREFIX_BEARER
@@ -185,7 +184,7 @@ class ProvisioningService(
                 .decodeFromUrlQuery<AuthenticationResponseParameters>()
         val code = authnResponse.code
             ?: throw Exception("code is null")
-        val tokenRequest = oid4vciService.createTokenRequestParameters(authnResponse, requestOptions)
+        val tokenRequest = oid4vciService.createTokenRequestParameters(requestOptions, code, requestOptions.state)
         Napier.d("Created tokenRequest")
         val tokenResponse: TokenResponseParameters =
             client.submitForm(metadata.tokenEndpointUrl.toString()) {
@@ -194,7 +193,7 @@ class ProvisioningService(
 
         Napier.d("Received tokenResponse")
         val credentialRequest =
-            oid4vciService.createCredentialRequestJwt(tokenResponse, metadata, requestOptions).getOrThrow()
+            oid4vciService.createCredentialRequestJwt(requestOptions, tokenResponse.clientNonce, metadata.credentialIssuer).getOrThrow()
         Napier.d("Created credentialRequest")
         val credentialResponse: CredentialResponseParameters =
             client.post(metadata.credentialEndpointUrl.toString()) {

@@ -53,6 +53,10 @@ fun AuthenticationConsentScreen(
             AttributeIndex.resolveAttributeType(it)
                 ?: AttributeIndex.resolveSchemaUri(it)
                 ?: AttributeIndex.resolveIsoNamespace(it)
+        } ?: authenticationRequestParameters.presentationDefinition?.inputDescriptors?.firstOrNull()?.id?.let {
+            AttributeIndex.resolveAttributeType(it)
+                ?: AttributeIndex.resolveSchemaUri(it)
+                ?: AttributeIndex.resolveIsoNamespace(it)
         } ?: throw Exception("Unable to deduce credential scheme")
 
     val requestedAttributes =
@@ -124,7 +128,8 @@ fun StatefulAuthenticationConsentView(
                 attributeCategory.second.mapNotNull { claim ->
                     if (requestedAttributes.contains(claim) == false) null else AttributeAvailability(
                         // also supports claims that are not supported yet (for example claims that may be added later on before the wallet is updated)
-                        attributeName = AttributeTranslater(requestedCredentialScheme).translate(claim)?.let { stringResource(it) }
+                        attributeName = AttributeTranslater(requestedCredentialScheme).translate(claim)
+                            ?.let { stringResource(it) }
                             ?: claim,
                         isAvailable = credentialExtractor.containsAttribute(requestedCredentialScheme, claim),
                     )
@@ -178,3 +183,5 @@ val PresentationDefinition.claims: List<String>
         .filter { it != "$.mdoc.namespace" }
         .map { it.removePrefix("\$.mdoc.") }
         .map { it.removePrefix("\$.") }
+        .map { it.removePrefix("\$['org.iso.18013.5.1']['").removeSuffix("']") }
+        .map { it.removePrefix("\$['eu.europa.ec.eudiw.pid.1']['").removeSuffix("']") }

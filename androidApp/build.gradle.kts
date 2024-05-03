@@ -67,3 +67,7 @@ android {
         resources.excludes.add("META-INF/versions/9/previous-compilation-data.bin")
     }
 }
+
+repositories {
+    maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+}

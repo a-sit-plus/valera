@@ -3,6 +3,7 @@ package view
 import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.jws.VerifierJwsService
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
+import at.asitplus.wallet.lib.oidc.OidcSiopWallet
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import domain.RetrieveAuthenticationRequestParametersUseCase
 import domain.RetrieveRelyingPartyMetadataFromAuthenticationRequestParametersUseCase
@@ -22,11 +23,13 @@ class AuthenticationQrCodeScannerViewModel(
     constructor(
         client: HttpClient,
         verifierJwsService: VerifierJwsService,
+        oidcSiopWallet: OidcSiopWallet,
     ) : this(
         buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase = BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
             retrieveAuthenticationRequestParametersUseCase = RetrieveAuthenticationRequestParametersUseCase(
                 client = client,
                 verifierJwsService = verifierJwsService,
+                oidcSiopWallet = oidcSiopWallet,
             ),
         ),
         retrieveRelyingPartyMetadataFromAuthenticationRequestParametersUseCase = RetrieveRelyingPartyMetadataFromAuthenticationRequestParametersUseCase(

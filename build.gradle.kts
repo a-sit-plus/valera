@@ -6,3 +6,7 @@ plugins {
     id("org.jetbrains.compose").apply(false)
     id("at.asitplus.gradle.conventions") version "1.9.23+20240319"
 }
+
+repositories {
+    maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+}
