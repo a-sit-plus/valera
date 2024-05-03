@@ -3,9 +3,11 @@ package at.asitplus.wallet.app.common
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
-import at.asitplus.wallet.lib.oidc.JsonWebKeySet
+import at.asitplus.wallet.lib.oidc.AuthenticationResponseResult
 import at.asitplus.wallet.lib.oidc.OidcSiopWallet
 import io.github.aakira.napier.Napier
+import io.ktor.client.request.forms.formData
+import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -13,9 +15,9 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.client.statement.readBytes
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.parameters
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 class PresentationService(
@@ -35,23 +37,23 @@ class PresentationService(
         val oidcSiopWallet = OidcSiopWallet.newInstance(
             holder = holderAgent,
             cryptoService = cryptoService,
-            jwkSetRetriever = { jwksUrl ->
-                runBlocking {
-                    withContext(Dispatchers.IO) {
-                        val response = client.get(jwksUrl)
-                        JsonWebKeySet.deserialize(response.bodyAsText())
-                    }
+            remoteResourceRetriever = { url ->
+                withContext(Dispatchers.IO) {
+                    client.get(url).bodyAsText()
                 }
             }
         )
         oidcSiopWallet.createAuthnResponse(authenticationRequestParameters).fold(
             onSuccess = {
                 when (it) {
-                    is OidcSiopWallet.AuthenticationResponseResult.Post -> {
+                    is AuthenticationResponseResult.Post  -> {
                         Napier.d("Post ${it.url}")
-                        val response = client.post(it.url) {
-                            setBody(it.content)
-                        }
+                        val response = client.submitForm(
+                            url = it.url,
+                            formParameters = parameters {
+                                it.params.forEach { append(it.key, it.value) }
+                            }
+                        )
                         Napier.d("response $response")
                         when (response.status.value) {
                             HttpStatusCode.InternalServerError.value -> {
@@ -74,7 +76,7 @@ class PresentationService(
                         }
                     }
 
-                    is OidcSiopWallet.AuthenticationResponseResult.Redirect -> {
+                    is AuthenticationResponseResult.Redirect -> {
                         Napier.d("Opening ${it.url}")
                         if (!fromQrCodeScanner) {
                             platformAdapter.openUrl(it.url)

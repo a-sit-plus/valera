@@ -38,10 +38,11 @@ class RetrieveAuthenticationRequestParametersUseCase(
             // 2. use resonse body as new starting point
             // - maybe it's just a jws that needs to be parsed, but let's also support a url there
             val url = Url(input)
-            val response = client.get(url)
+            val response = runCatching { client.get(url) }.getOrNull()
             val candidates = listOfNotNull(
-                response.headers[HttpHeaders.Location],
-                response.bodyAsText(),
+                response?.headers?.get(HttpHeaders.Location),
+                response?.bodyAsText(),
+                url.parameters["request_uri"]?.let { client.get(it).bodyAsText() }
             )
             var result: AuthenticationRequestParameters? = null
             for (candidate in candidates) {

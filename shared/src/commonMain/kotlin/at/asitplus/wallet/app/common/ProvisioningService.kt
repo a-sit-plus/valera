@@ -7,6 +7,8 @@ import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.iso.IssuerSigned
+import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
+import at.asitplus.wallet.lib.oidc.AuthenticationResponseParameters
 import at.asitplus.wallet.lib.oidc.OpenIdConstants
 import at.asitplus.wallet.lib.oidc.OpenIdConstants.TOKEN_PREFIX_BEARER
 import at.asitplus.wallet.lib.oidvci.CredentialFormatEnum
@@ -14,6 +16,7 @@ import at.asitplus.wallet.lib.oidvci.CredentialResponseParameters
 import at.asitplus.wallet.lib.oidvci.IssuerMetadata
 import at.asitplus.wallet.lib.oidvci.TokenResponseParameters
 import at.asitplus.wallet.lib.oidvci.WalletService
+import at.asitplus.wallet.lib.oidvci.decodeFromUrlQuery
 import at.asitplus.wallet.lib.oidvci.encodeToParameters
 import at.asitplus.wallet.lib.oidvci.formUrlEncode
 import data.storage.DataStoreService
@@ -29,6 +32,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.Url
 import io.ktor.http.contentType
+import io.ktor.util.flattenEntries
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -62,7 +66,7 @@ class ProvisioningService(
         host: String,
         credentialScheme: ConstantIndex.CredentialScheme,
         credentialRepresentation: ConstantIndex.CredentialRepresentation,
-        requestedAttributes: Collection<String>?,
+        requestedAttributes: Set<String>?,
     ) {
         config.set(
             host = host,
@@ -136,7 +140,7 @@ class ProvisioningService(
 
         val url = Url(link)
         url.parameters[OpenIdConstants.PARAMETER_STATE]?.let {
-            if(it == provisioningContext.state) true else null
+            if (it == provisioningContext.state) true else null
         } ?: throw Exception("Inconsistent provisioning state")
 
         Napier.d("Create request with x-auth: $xAuthToken")
@@ -150,18 +154,26 @@ class ProvisioningService(
         }.body()
 
         val oid4vciService = WalletService(
-            credentialScheme = credentialScheme,
-            credentialRepresentation = credentialRepresentation,
             clientId = "$host/m1",
             cryptoService = cryptoService,
-            requestedAttributes = requestedAttributes,
         )
 
         Napier.d("Oid4vciService.createAuthRequest")
-        val authRequest = oid4vciService.createAuthRequest()
+        val requestOptions = WalletService.RequestOptions(
+            credentialScheme = credentialScheme,
+            representation = credentialRepresentation,
+            requestedAttributes = requestedAttributes?.ifEmpty { null }
+        )
+        val authRequest = oid4vciService.createAuthRequest(
+            requestOptions = requestOptions
+        )
 
-        Napier.d("HTTP.GET (${metadata.authorizationEndpointUrl})")
-        val codeUrl = client.get(metadata.authorizationEndpointUrl) {
+        val authorizationEndpointUrl = metadata.authorizationEndpointUrl
+            ?: metadata.authorizationServers?.firstOrNull()
+            ?: metadata.credentialIssuer
+            ?: throw Exception("no authorizaitonEndpointUrl")
+        Napier.d("HTTP.GET ($authorizationEndpointUrl)")
+        val codeUrl = client.get(authorizationEndpointUrl) {
             authRequest.encodeToParameters().forEach {
                 this.parameter(it.key, it.value)
             }
@@ -169,10 +181,11 @@ class ProvisioningService(
         }.headers[HttpHeaders.Location]
             ?: throw Exception("codeUrl is null")
 
-        val code = Url(codeUrl).parameters["code"]
+        val authnResponse = Url(codeUrl).parameters.flattenEntries().toMap()
+                .decodeFromUrlQuery<AuthenticationResponseParameters>()
+        val code = authnResponse.code
             ?: throw Exception("code is null")
-
-        val tokenRequest = oid4vciService.createTokenRequestParameters(code)
+        val tokenRequest = oid4vciService.createTokenRequestParameters(authnResponse, requestOptions)
         Napier.d("Created tokenRequest")
         val tokenResponse: TokenResponseParameters =
             client.submitForm(metadata.tokenEndpointUrl.toString()) {
@@ -181,7 +194,7 @@ class ProvisioningService(
 
         Napier.d("Received tokenResponse")
         val credentialRequest =
-            oid4vciService.createCredentialRequest(tokenResponse, metadata).getOrThrow()
+            oid4vciService.createCredentialRequestJwt(tokenResponse, metadata, requestOptions).getOrThrow()
         Napier.d("Created credentialRequest")
         val credentialResponse: CredentialResponseParameters =
             client.post(metadata.credentialEndpointUrl.toString()) {
@@ -205,7 +218,7 @@ class ProvisioningService(
                         )
                     )
 
-                CredentialFormatEnum.JWT_VC_SD ->
+                CredentialFormatEnum.JWT_VC_SD_UNOFFICIAL, CredentialFormatEnum.VC_SD_JWT ->
                     holderAgent.storeCredentials(
                         listOf(
                             Holder.StoreCredentialInput.SdJwt(
@@ -244,7 +257,7 @@ private data class ProvisioningContext(
     val host: String,
     val credentialRepresentation: ConstantIndex.CredentialRepresentation,
     private val credentialSchemeVcType: String,
-    val requestedAttributes: Collection<String>?,
+    val requestedAttributes: Set<String>?,
 ) {
     val credentialScheme: ConstantIndex.CredentialScheme
         get() = AttributeIndex.resolveAttributeType(this.credentialSchemeVcType)
