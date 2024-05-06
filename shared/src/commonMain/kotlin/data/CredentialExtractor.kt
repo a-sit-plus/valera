@@ -22,9 +22,13 @@ import composewalletapp.shared.generated.resources.attribute_friendly_name_birth
 import composewalletapp.shared.generated.resources.attribute_friendly_name_birth_state
 import composewalletapp.shared.generated.resources.attribute_friendly_name_bpk
 import composewalletapp.shared.generated.resources.attribute_friendly_name_date_of_birth
+import composewalletapp.shared.generated.resources.attribute_friendly_name_document_number
+import composewalletapp.shared.generated.resources.attribute_friendly_name_expiry_date
 import composewalletapp.shared.generated.resources.attribute_friendly_name_family_name_birth
 import composewalletapp.shared.generated.resources.attribute_friendly_name_firstname
 import composewalletapp.shared.generated.resources.attribute_friendly_name_given_name_birth
+import composewalletapp.shared.generated.resources.attribute_friendly_name_issue_date
+import composewalletapp.shared.generated.resources.attribute_friendly_name_issuing_authority
 import composewalletapp.shared.generated.resources.attribute_friendly_name_lastname
 import composewalletapp.shared.generated.resources.attribute_friendly_name_main_address
 import composewalletapp.shared.generated.resources.attribute_friendly_name_main_residence_city
@@ -77,7 +81,7 @@ class AttributeTranslater(val credentialScheme: ConstantIndex.CredentialScheme) 
                 else -> null
             }
 
-            is EuPidScheme -> when(attributeName) {
+            is EuPidScheme -> when (attributeName) {
                 EuPidScheme.Attributes.GIVEN_NAME -> Res.string.attribute_friendly_name_firstname
                 EuPidScheme.Attributes.FAMILY_NAME -> Res.string.attribute_friendly_name_lastname
                 EuPidScheme.Attributes.BIRTH_DATE -> Res.string.attribute_friendly_name_date_of_birth
@@ -102,7 +106,7 @@ class AttributeTranslater(val credentialScheme: ConstantIndex.CredentialScheme) 
                 else -> null
             }
 
-            is ConstantIndex.MobileDrivingLicence2023 -> when(attributeName) {
+            is ConstantIndex.MobileDrivingLicence2023 -> when (attributeName) {
                 MobileDrivingLicenceDataElements.GIVEN_NAME -> Res.string.attribute_friendly_name_firstname
                 MobileDrivingLicenceDataElements.FAMILY_NAME -> Res.string.attribute_friendly_name_lastname
                 MobileDrivingLicenceDataElements.PORTRAIT -> Res.string.attribute_friendly_name_portrait
@@ -117,6 +121,10 @@ class AttributeTranslater(val credentialScheme: ConstantIndex.CredentialScheme) 
                 MobileDrivingLicenceDataElements.AGE_IN_YEARS -> Res.string.attribute_friendly_name_age_in_years
                 MobileDrivingLicenceDataElements.AGE_BIRTH_YEAR -> Res.string.attribute_friendly_name_age_birth_year
                 MobileDrivingLicenceDataElements.BIRTH_PLACE -> Res.string.attribute_friendly_name_birth_place
+                MobileDrivingLicenceDataElements.DOCUMENT_NUMBER -> Res.string.attribute_friendly_name_document_number
+                MobileDrivingLicenceDataElements.ISSUE_DATE -> Res.string.attribute_friendly_name_issue_date
+                MobileDrivingLicenceDataElements.ISSUING_AUTHORITY -> Res.string.attribute_friendly_name_issuing_authority
+                MobileDrivingLicenceDataElements.EXPIRY_DATE -> Res.string.attribute_friendly_name_expiry_date
                 else -> null
             }
 
@@ -124,6 +132,7 @@ class AttributeTranslater(val credentialScheme: ConstantIndex.CredentialScheme) 
         }
     }
 }
+
 @OptIn(ExperimentalResourceApi::class)
 val String.attributeTranslation: StringResource?
     get() = when (this) {
@@ -238,7 +247,10 @@ class CredentialExtractor(
                 MobileDrivingLicenceDataElements.AGE_BIRTH_YEAR -> this.yearOfBirth != null
                 MobileDrivingLicenceDataElements.BIRTH_PLACE -> this.birthPlace != null
                 MobileDrivingLicenceDataElements.PORTRAIT -> this.portrait != null
-
+                MobileDrivingLicenceDataElements.DOCUMENT_NUMBER -> this.documentNumber != null
+                MobileDrivingLicenceDataElements.ISSUING_AUTHORITY -> this.issuingAuthority != null
+                MobileDrivingLicenceDataElements.ISSUE_DATE -> this.issueDate != null
+                MobileDrivingLicenceDataElements.EXPIRY_DATE -> this.expiryDate != null
                 else -> false
             }
 
@@ -777,7 +789,7 @@ class CredentialExtractor(
                         }?.value?.elementValue?.boolean
 
                         is ConstantIndex.MobileDrivingLicence2023 -> credential.issuerSigned.namespaces?.get(
-                            EuPidScheme.isoNamespace
+                            ConstantIndex.MobileDrivingLicence2023.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == MobileDrivingLicenceDataElements.AGE_OVER_18
                         }?.value?.elementValue?.boolean
@@ -1661,6 +1673,138 @@ class CredentialExtractor(
                         is EuPidScheme -> credential.issuerSigned.namespaces?.get(EuPidScheme.isoNamespace)?.entries?.firstOrNull {
                             it.value.elementIdentifier == EuPidScheme.Attributes.BIRTH_CITY
                         }?.value?.elementValue?.string
+
+                        else -> null
+                    }
+                }
+
+                else -> TODO(credential.unsupportedCredentialStoreEntry)
+            }
+        }
+
+    val documentNumber: String?
+        get() = credentials.firstNotNullOfOrNull { credential ->
+            when (credential) {
+                is SubjectCredentialStore.StoreEntry.Vc -> null
+
+                is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                    when (credential.scheme) {
+                        is ConstantIndex.MobileDrivingLicence2023 -> credential.disclosures.filter {
+                            it.value?.claimName == MobileDrivingLicenceDataElements.DOCUMENT_NUMBER
+                        }.firstNotNullOfOrNull { it.value?.claimValue as String }
+
+                        else -> null
+                    }
+                }
+
+                is SubjectCredentialStore.StoreEntry.Iso -> {
+                    when (credential.scheme) {
+                        is ConstantIndex.MobileDrivingLicence2023 -> credential.issuerSigned.namespaces?.get(
+                            ConstantIndex.MobileDrivingLicence2023.isoNamespace
+                        )?.entries?.firstOrNull {
+                            it.value.elementIdentifier == MobileDrivingLicenceDataElements.DOCUMENT_NUMBER
+                        }?.value?.elementValue?.string
+
+                        else -> null
+                    }
+                }
+
+                else -> TODO(credential.unsupportedCredentialStoreEntry)
+            }
+        }
+
+    val issuingAuthority: String?
+        get() = credentials.firstNotNullOfOrNull { credential ->
+            when (credential) {
+                is SubjectCredentialStore.StoreEntry.Vc -> null
+
+                is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                    when (credential.scheme) {
+                        is ConstantIndex.MobileDrivingLicence2023 -> credential.disclosures.filter {
+                            it.value?.claimName == MobileDrivingLicenceDataElements.ISSUING_AUTHORITY
+                        }.firstNotNullOfOrNull { it.value?.claimValue as String }
+
+                        else -> null
+                    }
+                }
+
+                is SubjectCredentialStore.StoreEntry.Iso -> {
+                    when (credential.scheme) {
+                        is ConstantIndex.MobileDrivingLicence2023 -> credential.issuerSigned.namespaces?.get(
+                            ConstantIndex.MobileDrivingLicence2023.isoNamespace
+                        )?.entries?.firstOrNull {
+                            it.value.elementIdentifier == MobileDrivingLicenceDataElements.ISSUING_AUTHORITY
+                        }?.value?.elementValue?.string
+
+                        else -> null
+                    }
+                }
+
+                else -> TODO(credential.unsupportedCredentialStoreEntry)
+            }
+        }
+
+    val issueDate: LocalDate?
+        get() = credentials.firstNotNullOfOrNull { credential ->
+            when (credential) {
+                is SubjectCredentialStore.StoreEntry.Vc -> null
+
+                is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                    when (credential.scheme) {
+                        is ConstantIndex.MobileDrivingLicence2023 -> credential.disclosures.filter {
+                            it.value?.claimName == MobileDrivingLicenceDataElements.ISSUE_DATE
+                        }.firstNotNullOfOrNull { it.value?.claimValue as String }
+                            ?.let { LocalDate.parse(it) }
+
+                        else -> null
+                    }
+                }
+
+                is SubjectCredentialStore.StoreEntry.Iso -> {
+                    when (credential.scheme) {
+                        is ConstantIndex.MobileDrivingLicence2023 -> {
+                            val elementValue = credential.issuerSigned.namespaces?.get(
+                                ConstantIndex.MobileDrivingLicence2023.isoNamespace
+                            )?.entries?.firstOrNull {
+                                it.value.elementIdentifier == MobileDrivingLicenceDataElements.ISSUE_DATE
+                            }?.value?.elementValue
+                            elementValue?.date ?: elementValue?.string?.let { LocalDate.parse(it) }
+                        }
+
+                        else -> null
+                    }
+                }
+
+                else -> TODO(credential.unsupportedCredentialStoreEntry)
+            }
+        }
+
+    val expiryDate: LocalDate?
+        get() = credentials.firstNotNullOfOrNull { credential ->
+            when (credential) {
+                is SubjectCredentialStore.StoreEntry.Vc -> null
+
+                is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                    when (credential.scheme) {
+                        is ConstantIndex.MobileDrivingLicence2023 -> credential.disclosures.filter {
+                            it.value?.claimName == MobileDrivingLicenceDataElements.EXPIRY_DATE
+                        }.firstNotNullOfOrNull { it.value?.claimValue as String }
+                            ?.let { LocalDate.parse(it) }
+
+                        else -> null
+                    }
+                }
+
+                is SubjectCredentialStore.StoreEntry.Iso -> {
+                    when (credential.scheme) {
+                        is ConstantIndex.MobileDrivingLicence2023 -> {
+                            val elementValue = credential.issuerSigned.namespaces?.get(
+                                ConstantIndex.MobileDrivingLicence2023.isoNamespace
+                            )?.entries?.firstOrNull {
+                                it.value.elementIdentifier == MobileDrivingLicenceDataElements.EXPIRY_DATE
+                            }?.value?.elementValue
+                            elementValue?.date ?: elementValue?.string?.let { LocalDate.parse(it) }
+                        }
 
                         else -> null
                     }

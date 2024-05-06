@@ -62,6 +62,10 @@
     <string name="attribute_friendly_name_birth_country">Geburtsland</string>
     <string name="attribute_friendly_name_birth_state">Geburtsstaat</string>
     <string name="attribute_friendly_name_birth_city">Geburtsstadt</string>
+    <string name="attribute_friendly_name_document_number">Ausweisnummer</string>
+    <string name="attribute_friendly_name_issue_date">Ausstellungsdatum</string>
+    <string name="attribute_friendly_name_issuing_authority">Ausstellende Behörde</string>
+    <string name="attribute_friendly_name_expiry_date">Ablaufdatum</string>
 
     <string name="attribute_friendly_name_data_recipient_name">Name</string>
     <string name="attribute_friendly_name_data_recipient_location">Ort</string>
