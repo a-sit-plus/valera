@@ -26,11 +26,10 @@ class RetrieveAuthenticationRequestParametersUseCase(
 
     // copied from OidcSiopWallet
     private suspend fun retrieveAuthenticationRequestParameters(input: String): AuthenticationRequestParameters {
-        // TODO return oidcSiopWallet.retrieveAuthenticationRequestParameters(input)
-        val params = kotlin.run {
+        val params = kotlin.runCatching {
             // maybe it's already a request jws?
             parseRequestObjectJws(input)
-        } ?: kotlin.runCatching {
+        }.getOrNull() ?: kotlin.runCatching {
             // maybe it's a url that already encodes the authentication request as url parameters
             Url(input).parameters.flattenEntries().toMap()
                 .decodeFromUrlQuery<AuthenticationRequestParameters>()
@@ -45,7 +44,9 @@ class RetrieveAuthenticationRequestParametersUseCase(
             val candidates = listOfNotNull(
                 response?.headers?.get(HttpHeaders.Location),
                 response?.bodyAsText(),
-                url.parameters["request_uri"]?.let { client.get(it).bodyAsText() }
+                url.parameters["request_uri"]?.let {
+                    client.get(it).bodyAsText()
+                }
             )
             var result: AuthenticationRequestParameters? = null
             for (candidate in candidates) {

@@ -239,25 +239,6 @@ class CredentialExtractor(
                 MobileDrivingLicenceDataElements.BIRTH_PLACE -> this.birthPlace != null
                 MobileDrivingLicenceDataElements.PORTRAIT -> this.portrait != null
 
-//                const val ISSUE_DATE = "issue_date"
-//                const val EXPIRY_DATE = "expiry_date"
-//                const val ISSUING_COUNTRY = "issuing_country"
-//                const val ISSUING_AUTHORITY = "issuing_authority"
-//                const val DOCUMENT_NUMBER = "document_number"
-//                const val DRIVING_PRIVILEGES = "driving_privileges"
-//                const val UN_DISTINGUISHING_SIGN = "un_distinguishing_sign"
-//                const val ADMINISTRATIVE_NUMBER = "administrative_number"
-//                const val SEX = "sex"
-//                const val HEIGHT = "height"
-//                const val WEIGHT = "weight"
-//                const val EYE_COLOUR = "eye_colour"
-//                const val HAIR_COLOUR = "hair_colour"
-//                const val PORTRAIT_CAPTURE_DATE = "portrait_capture_date"
-//                const val ISSUING_JURISDICTION = "issuing_jurisdiction"
-//                const val FAMILY_NAME_NATIONAL_CHARACTER = "family_name_national_character"
-//                const val GIVEN_NAME_NATIONAL_CHARACTER = "given_name_national_character"
-//                const val SIGNATURE_USUAL_MARK = "signature_usual_mark"
-
                 else -> false
             }
 

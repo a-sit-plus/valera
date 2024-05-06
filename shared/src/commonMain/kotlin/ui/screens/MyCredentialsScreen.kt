@@ -103,6 +103,9 @@ fun MyCredentialsScreen(
                             credentials = storeContainer.credentials,
                             decodeImage = walletMain.platformAdapter::decodeImage,
                         )
+                        storeContainer.credentials.forEach {
+                            SingleCredentialCard(it)
+                        }
                     }
                 }
             }

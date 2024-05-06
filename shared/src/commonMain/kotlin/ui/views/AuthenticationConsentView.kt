@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -112,12 +113,9 @@ fun AuthenticationConsentView(
                             stringResource(Res.string.prompt_send_all_data)
                         }
 
-                    val bottomBarContinueButton: @Composable () -> Unit = {
-                        if (hasMissingAttributes) {
-                            ReloadDataButton(loadMissingData)
-                        } else {
-                            ConsentButton(consentToDataTransmission)
-                        }
+                    val bottomBarContinueButton: @Composable RowScope.() -> Unit = {
+                        ReloadDataButton(loadMissingData)
+                        ConsentButton(consentToDataTransmission)
                     }
 
                     Text(
@@ -131,7 +129,9 @@ fun AuthenticationConsentView(
                     ) {
                         CancelButton(cancelAuthentication)
                         Spacer(modifier = Modifier.width(16.dp))
-                        bottomBarContinueButton()
+                        ReloadDataButton(loadMissingData)
+                        Spacer(modifier = Modifier.width(16.dp))
+                        ConsentButton(consentToDataTransmission)
                     }
                 }
             }

@@ -1,6 +1,5 @@
 rootProject.name = "ComposeWalletApp"
 
-include(":desktopApp")
 include(":androidApp")
 include(":shared")
 
