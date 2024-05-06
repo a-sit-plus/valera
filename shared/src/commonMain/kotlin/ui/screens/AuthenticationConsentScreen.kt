@@ -66,7 +66,7 @@ fun AuthenticationConsentScreen(
     val requestedAttributes =
         authenticationRequestParameters.presentationDefinition?.claims ?: listOf()
 
-    if(requestedCredentialScheme == null) {
+    if (requestedCredentialScheme == null) {
         Text("Unable to deduce credential schema: $authenticationRequestParameters")
     } else storeContainerState?.let { storeContainer ->
         val credentialExtractor =

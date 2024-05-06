@@ -27,8 +27,6 @@ class AuthenticationQrCodeScannerViewModel(
     ) : this(
         buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase = BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
             retrieveAuthenticationRequestParametersUseCase = RetrieveAuthenticationRequestParametersUseCase(
-                client = client,
-                verifierJwsService = verifierJwsService,
                 oidcSiopWallet = oidcSiopWallet,
             ),
         ),

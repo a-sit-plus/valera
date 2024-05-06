@@ -113,8 +113,6 @@ fun Navigator(walletMain: WalletMain) {
                 val buildAuthenticationConsentPage =
                     BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
                         retrieveAuthenticationRequestParametersUseCase = RetrieveAuthenticationRequestParametersUseCase(
-                            client = walletMain.httpService.buildHttpClient(),
-                            verifierJwsService = DefaultVerifierJwsService(),
                             oidcSiopWallet = walletMain.presentationService.oidcSiopWallet
                         )
                     )

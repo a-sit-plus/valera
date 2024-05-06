@@ -12,7 +12,6 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.client.statement.readBytes
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.Url
 import io.ktor.http.parameters
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -30,9 +29,7 @@ class PresentationService(
         cryptoService = cryptoService,
         remoteResourceRetriever = { url ->
             withContext(Dispatchers.IO) {
-                Url(url).parameters["request_uri"]?.let {
-                    client.get(it).bodyAsText()
-                } ?: client.get(url).bodyAsText()
+                client.get(url).bodyAsText()
             }
         }
     )
@@ -84,7 +81,7 @@ class PresentationService(
                     }
                 }
             }, onFailure = {
-                throw Exception("Failure in received authentication response")
+                throw Exception("Failure in received authentication response", it)
             })
     }
 }
