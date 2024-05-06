@@ -77,7 +77,7 @@ class ProvisioningService(
         Napier.d("Start provisioning")
 
         runCatching {
-            client.get("$host/m1/oauth2/authorization/idaq")
+            client.get("$host/oauth2/authorization/idaq")
         }.onSuccess { response ->
             val urlToOpen = response.headers[HttpHeaders.Location]
 
@@ -148,12 +148,12 @@ class ProvisioningService(
         }
 
         Napier.d("Load X-Auth-Token: $xAuthToken")
-        val metadata: IssuerMetadata = client.get("$host/m1$PATH_WELL_KNOWN_CREDENTIAL_ISSUER") {
+        val metadata: IssuerMetadata = client.get("$host$PATH_WELL_KNOWN_CREDENTIAL_ISSUER") {
             headers[HttpHeaders.xAuthToken] = xAuthToken
         }.body()
 
         val oid4vciService = WalletService(
-            clientId = "$host/m1",
+            clientId = host,
             cryptoService = cryptoService,
         )
 

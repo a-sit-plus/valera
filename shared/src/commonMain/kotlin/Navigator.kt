@@ -90,9 +90,7 @@ fun Navigator(walletMain: WalletMain) {
             if (pars.contains("error")) {
                 runBlocking {
                     walletMain.errorService.emit(
-                        Exception(
-                            pars["error_description"] ?: "Unknown Exception"
-                        )
+                        Exception(pars["error_description"] ?: "Unknown Exception")
                     )
                 }
                 appLink.value = null

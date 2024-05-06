@@ -88,10 +88,7 @@ class RetrieveAuthenticationRequestParametersUseCase(
     private fun parseRequestObjectJws(requestObject: String): AuthenticationRequestParameters? {
         JwsSigned.parse(requestObject)?.let { jws ->
             if (verifierJwsService.verifyJwsObject(jws)) {
-                return AuthenticationRequestParameters.deserialize(jws.payload.decodeToString()).getOrElse {
-                    Napier.w("parseRequestObjectJws failed", it)
-                    return null
-                }
+                return AuthenticationRequestParameters.deserialize(jws.payload.decodeToString()).getOrNull()
             } else {
                 Napier.w("parseRequestObjectJws could not validate $jws")
             }
