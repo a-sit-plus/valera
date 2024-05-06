@@ -1,5 +1,6 @@
 package ui.screens
 
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -57,12 +58,17 @@ fun AuthenticationConsentScreen(
             AttributeIndex.resolveAttributeType(it)
                 ?: AttributeIndex.resolveSchemaUri(it)
                 ?: AttributeIndex.resolveIsoNamespace(it)
-        } ?: throw Exception("Unable to deduce credential scheme")
+        } ?: null.also {
+            walletMain.errorService.emit(Exception("Unable to deduce credential schema: $authenticationRequestParameters"))
+            navigateUp()
+        }
 
     val requestedAttributes =
         authenticationRequestParameters.presentationDefinition?.claims ?: listOf()
 
-    storeContainerState?.let { storeContainer ->
+    if(requestedCredentialScheme == null) {
+        Text("Unable to deduce credential schema: $authenticationRequestParameters")
+    } else storeContainerState?.let { storeContainer ->
         val credentialExtractor =
             CredentialExtractor(storeContainer.credentials.filter { it.scheme == requestedCredentialScheme })
 

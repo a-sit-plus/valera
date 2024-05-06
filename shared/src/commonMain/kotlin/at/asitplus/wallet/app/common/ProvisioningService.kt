@@ -232,7 +232,7 @@ class ProvisioningService(
                 CredentialFormatEnum.MSO_MDOC -> {
                     it.decodeBase64()?.toByteArray()?.let {
                         IssuerSigned.deserialize(it)
-                    }?.also { issuerSigned ->
+                    }?.getOrNull()?.also { issuerSigned ->
                         holderAgent.storeCredentials(
                             listOf(
                                 Holder.StoreCredentialInput.Iso(

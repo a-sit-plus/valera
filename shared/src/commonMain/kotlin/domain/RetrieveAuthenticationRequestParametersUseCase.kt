@@ -31,7 +31,9 @@ class RetrieveAuthenticationRequestParametersUseCase(
             parseRequestObjectJws(input)
         }.getOrNull() ?: kotlin.runCatching {
             // maybe it's a url that already encodes the authentication request as url parameters
-            Url(input).parameters.flattenEntries().toMap()
+            Url(input).parameters.also {
+                Napier.d("parameters: $it")
+            }.flattenEntries().toMap()
                 .decodeFromUrlQuery<AuthenticationRequestParameters>()
         }.getOrNull() ?: kotlin.runCatching {
             // maybe it's a url that yields the request object in some other way

@@ -63,18 +63,27 @@ class AuthenticationQrCodeScannerViewModel(
                         fromQrCodeScanner = true,
                     )
                 }
-            val authenticationRequestParameters = jsonSerializer.decodeFromString<AuthenticationRequestParameters>(authenticationConsentPage.authenticationRequestParametersSerialized)
+            val authenticationRequestParameters =
+                jsonSerializer.decodeFromString<AuthenticationRequestParameters>(
+                    authenticationConsentPage.authenticationRequestParametersSerialized
+                )
             val clientMetadataPayload =
-                retrieveRelyingPartyMetadataFromAuthenticationRequestParametersUseCase(authenticationRequestParameters)
+                retrieveRelyingPartyMetadataFromAuthenticationRequestParametersUseCase(
+                    authenticationRequestParameters
+                )
 
-            clientMetadataPayload?.redirectUris?.run {
-                if (!contains(authenticationRequestParameters.clientId)) {
-                    val redirectUris = this.joinToString(", ") { "`${this}`" }
-                    val message =
-                        "Client id not in client metadata redirect uris: ${authenticationRequestParameters.clientId} not in: $redirectUris)"
-                    throw Throwable(message)
-                } else {
-                    Napier.d("Valid client id: ${authenticationRequestParameters.clientId}")
+            authenticationRequestParameters.clientId?.let { clientId ->
+                clientMetadataPayload?.redirectUris?.run {
+                    if (!all {
+                            it.substringAfter("//").substringBefore("/").endsWith(clientId)
+                        }) {
+                        val redirectUris = this.joinToString(", ") { "`${this}`" }
+                        val message =
+                            "Client id not in client metadata redirect uris: ${authenticationRequestParameters.clientId} not in: $redirectUris)"
+                        throw Throwable(message)
+                    } else {
+                        Napier.d("Valid client id: ${authenticationRequestParameters.clientId}")
+                    }
                 }
             }
 

@@ -88,7 +88,7 @@ private data class ConfigData(
 )
 
 private val ConfigDataDefaults = ConfigData(
-    host = "https://wallet.a-sit.at",
+    host = "https://wallet.a-sit.at/m2",
     credentialRepresentation = ConstantIndex.CredentialRepresentation.SD_JWT,
     credentialSchemeVcType = IdAustriaScheme.vcType,
     isConditionsAccepted = false
