@@ -40,48 +40,45 @@ class PresentationService(
         fromQrCodeScanner: Boolean
     ) {
         Napier.d("Start SIOP process: $authenticationRequestParameters")
-        oidcSiopWallet.createAuthnResponse(authenticationRequestParameters).fold(
-            onSuccess = {
-                when (it) {
-                    is AuthenticationResponseResult.Post -> {
-                        Napier.d("Post ${it.url}")
-                        val response = client.submitForm(
-                            url = it.url,
-                            formParameters = parameters {
-                                it.params.forEach { append(it.key, it.value) }
-                            }
-                        )
-                        Napier.d("response $response")
-                        when (response.status.value) {
-                            HttpStatusCode.InternalServerError.value -> {
-                                throw Exception(
-                                    "InternalServerErrorException",
-                                    Exception(response.bodyAsText()),
-                                )
-                            }
+        oidcSiopWallet.createAuthnResponse(authenticationRequestParameters).getOrThrow().let {
+            when (it) {
+                is AuthenticationResponseResult.Post -> {
+                    Napier.d("Post ${it.url}: $it")
+                    val response = client.submitForm(
+                        url = it.url,
+                        formParameters = parameters {
+                            it.params.forEach { append(it.key, it.value) }
+                        }
+                    )
+                    Napier.d("response $response")
+                    when (response.status.value) {
+                        HttpStatusCode.InternalServerError.value -> {
+                            throw Exception(
+                                "InternalServerErrorException",
+                                Exception(response.bodyAsText()),
+                            )
+                        }
 
-                            in 200..399 -> {
-                                val location = response.headers[HttpHeaders.Location]
-                                if (location != null && fromQrCodeScanner == false) {
-                                    platformAdapter.openUrl(location)
-                                }
-                            }
-
-                            else -> {
-                                throw Exception(response.readBytes().decodeToString())
+                        in 200..399 -> {
+                            val location = response.headers[HttpHeaders.Location]
+                            if (location != null && fromQrCodeScanner == false) {
+                                platformAdapter.openUrl(location)
                             }
                         }
-                    }
 
-                    is AuthenticationResponseResult.Redirect -> {
-                        Napier.d("Opening ${it.url}")
-                        if (!fromQrCodeScanner) {
-                            platformAdapter.openUrl(it.url)
+                        else -> {
+                            throw Exception(response.readBytes().decodeToString())
                         }
                     }
                 }
-            }, onFailure = {
-                throw Exception("Failure in received authentication response", it)
-            })
+
+                is AuthenticationResponseResult.Redirect -> {
+                    Napier.d("Opening ${it.url}")
+                    if (!fromQrCodeScanner) {
+                        platformAdapter.openUrl(it.url)
+                    }
+                }
+            }
+        }
     }
 }

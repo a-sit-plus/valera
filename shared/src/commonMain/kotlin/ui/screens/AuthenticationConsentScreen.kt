@@ -1,6 +1,5 @@
 package ui.screens
 
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -16,9 +15,10 @@ import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.error_authentication_at_sp_failed
-import data.AttributeTranslater
+import data.AttributeTranslator
 import data.CredentialExtractor
 import data.storage.scheme
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -54,21 +54,19 @@ fun AuthenticationConsentScreen(
             AttributeIndex.resolveAttributeType(it)
                 ?: AttributeIndex.resolveSchemaUri(it)
                 ?: AttributeIndex.resolveIsoNamespace(it)
-        } ?: authenticationRequestParameters.presentationDefinition?.inputDescriptors?.firstOrNull()?.id?.let {
-            AttributeIndex.resolveAttributeType(it)
-                ?: AttributeIndex.resolveSchemaUri(it)
-                ?: AttributeIndex.resolveIsoNamespace(it)
-        } ?: null.also {
-            walletMain.errorService.emit(Exception("Unable to deduce credential schema: $authenticationRequestParameters"))
-            navigateUp()
         }
+            ?: authenticationRequestParameters.presentationDefinition?.inputDescriptors?.firstOrNull()?.id?.let {
+                AttributeIndex.resolveAttributeType(it)
+                    ?: AttributeIndex.resolveSchemaUri(it)
+                    ?: AttributeIndex.resolveIsoNamespace(it)
+            } ?: null.also {
+                Napier.d("Unable to deduce credential scheme: $authenticationRequestParameters")
+            }
 
     val requestedAttributes =
         authenticationRequestParameters.presentationDefinition?.claims ?: listOf()
 
-    if (requestedCredentialScheme == null) {
-        Text("Unable to deduce credential schema: $authenticationRequestParameters")
-    } else storeContainerState?.let { storeContainer ->
+    storeContainerState?.let { storeContainer ->
         val credentialExtractor =
             CredentialExtractor(storeContainer.credentials.filter { it.scheme == requestedCredentialScheme })
 
@@ -103,7 +101,7 @@ fun StatefulAuthenticationConsentView(
     spName: String,
     spLocation: String,
     spImage: ImageBitmap?,
-    requestedCredentialScheme: ConstantIndex.CredentialScheme,
+    requestedCredentialScheme: ConstantIndex.CredentialScheme?,
     requestedAttributes: List<String>,
     authenticationRequestParameters: AuthenticationRequestParameters,
     credentialExtractor: CredentialExtractor,
@@ -114,7 +112,7 @@ fun StatefulAuthenticationConsentView(
     walletMain: WalletMain,
 ) {
     val attributeCategorization = attributeCategorizationOrder.associateWith {
-        it.attributes.get(requestedCredentialScheme) ?: listOf()
+        it.attributes[requestedCredentialScheme] ?: listOf()
     }
 
     val categorizedClaims = attributeCategorization.toList().flatMap {
@@ -134,10 +132,16 @@ fun StatefulAuthenticationConsentView(
                 attributeCategory.second.mapNotNull { claim ->
                     if (requestedAttributes.contains(claim) == false) null else AttributeAvailability(
                         // also supports claims that are not supported yet (for example claims that may be added later on before the wallet is updated)
-                        attributeName = AttributeTranslater(requestedCredentialScheme).translate(claim)
-                            ?.let { stringResource(it) }
+                        attributeName = requestedCredentialScheme?.let {
+                            AttributeTranslator(requestedCredentialScheme)
+                        }?.translate(claim)?.let { stringResource(it) }
                             ?: claim,
-                        isAvailable = credentialExtractor.containsAttribute(requestedCredentialScheme, claim),
+                        isAvailable = requestedCredentialScheme?.let {
+                            credentialExtractor.containsAttribute(
+                                requestedCredentialScheme,
+                                claim
+                            )
+                        } ?: false,
                     )
                 }
             )

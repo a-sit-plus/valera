@@ -39,7 +39,7 @@ import composewalletapp.shared.generated.resources.info_text_redirection_to_id_a
 import composewalletapp.shared.generated.resources.section_heading_available_data
 import composewalletapp.shared.generated.resources.section_heading_configuration
 import composewalletapp.shared.generated.resources.section_heading_missing_data
-import data.AttributeTranslater
+import data.AttributeTranslator
 import data.CredentialExtractor
 import data.storage.scheme
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -391,7 +391,7 @@ fun CategorySelectionRow(
             },
             attributeSelections = attributeCategory.value.map {
                 AttributeSelection(
-                    attributeLabel = AttributeTranslater(requestedCredentialScheme).translate(it)
+                    attributeLabel = AttributeTranslator(requestedCredentialScheme).translate(it)
                         ?.let { stringResource(it) }
                         ?: it,
                     isSelected = requestedAttributes.contains(it)
