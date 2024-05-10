@@ -65,6 +65,9 @@
     <string name="attribute_friendly_name_issue_date">UNTRANSLATED:attribute_friendly_name_issue_date</string>
     <string name="attribute_friendly_name_issuing_authority">UNTRANSLATED:attribute_friendly_name_issuing_authority</string>
     <string name="attribute_friendly_name_expiry_date">UNTRANSLATED:attribute_friendly_name_expiry_date</string>
+    <string name="attribute_friendly_name_issuing_country">UNTRANSLATED:attribute_friendly_name_issuing_country</string>
+    <string name="attribute_friendly_name_driving_privileges">UNTRANSLATED:attribute_friendly_name_driving_privileges</string>
+    <string name="attribute_friendly_name_distinguishing_sign">UNTRANSLATED:attribute_friendly_name_distinguishing_sign</string>
 
     <string name="attribute_friendly_name_data_recipient_name">UNTRANSLATED:attribute_friendly_name_data_recipient_name</string>
     <string name="attribute_friendly_name_data_recipient_location">UNTRANSLATED:attribute_friendly_name_data_recipient_location</string>

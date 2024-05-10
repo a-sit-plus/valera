@@ -17,13 +17,16 @@ import composewalletapp.shared.generated.resources.attribute_friendly_name_birth
 import composewalletapp.shared.generated.resources.attribute_friendly_name_birth_state
 import composewalletapp.shared.generated.resources.attribute_friendly_name_bpk
 import composewalletapp.shared.generated.resources.attribute_friendly_name_date_of_birth
+import composewalletapp.shared.generated.resources.attribute_friendly_name_distinguishing_sign
 import composewalletapp.shared.generated.resources.attribute_friendly_name_document_number
+import composewalletapp.shared.generated.resources.attribute_friendly_name_driving_privileges
 import composewalletapp.shared.generated.resources.attribute_friendly_name_expiry_date
 import composewalletapp.shared.generated.resources.attribute_friendly_name_family_name_birth
 import composewalletapp.shared.generated.resources.attribute_friendly_name_firstname
 import composewalletapp.shared.generated.resources.attribute_friendly_name_given_name_birth
 import composewalletapp.shared.generated.resources.attribute_friendly_name_issue_date
 import composewalletapp.shared.generated.resources.attribute_friendly_name_issuing_authority
+import composewalletapp.shared.generated.resources.attribute_friendly_name_issuing_country
 import composewalletapp.shared.generated.resources.attribute_friendly_name_lastname
 import composewalletapp.shared.generated.resources.attribute_friendly_name_main_address
 import composewalletapp.shared.generated.resources.attribute_friendly_name_main_residence_city
@@ -101,6 +104,9 @@ class AttributeTranslator(val credentialScheme: ConstantIndex.CredentialScheme) 
                 MobileDrivingLicenceDataElements.ISSUE_DATE -> Res.string.attribute_friendly_name_issue_date
                 MobileDrivingLicenceDataElements.ISSUING_AUTHORITY -> Res.string.attribute_friendly_name_issuing_authority
                 MobileDrivingLicenceDataElements.EXPIRY_DATE -> Res.string.attribute_friendly_name_expiry_date
+                MobileDrivingLicenceDataElements.ISSUING_COUNTRY -> Res.string.attribute_friendly_name_issuing_country
+                MobileDrivingLicenceDataElements.DRIVING_PRIVILEGES -> Res.string.attribute_friendly_name_driving_privileges
+                MobileDrivingLicenceDataElements.UN_DISTINGUISHING_SIGN -> Res.string.attribute_friendly_name_distinguishing_sign
                 else -> null
             }
 

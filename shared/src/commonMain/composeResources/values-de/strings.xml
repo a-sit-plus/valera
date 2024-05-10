@@ -66,6 +66,9 @@
     <string name="attribute_friendly_name_issue_date">Ausstellungsdatum</string>
     <string name="attribute_friendly_name_issuing_authority">Ausstellende Behörde</string>
     <string name="attribute_friendly_name_expiry_date">Ablaufdatum</string>
+    <string name="attribute_friendly_name_issuing_country">Ausstellungsland</string>
+    <string name="attribute_friendly_name_driving_privileges">Lenkberechtigungen</string>
+    <string name="attribute_friendly_name_distinguishing_sign">Ausstellungsland (Code)</string>
 
     <string name="attribute_friendly_name_data_recipient_name">Name</string>
     <string name="attribute_friendly_name_data_recipient_location">Ort</string>

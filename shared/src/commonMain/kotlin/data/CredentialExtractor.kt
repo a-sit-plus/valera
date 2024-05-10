@@ -8,6 +8,7 @@ import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.jsonSerializer
+import at.asitplus.wallet.lib.iso.DrivingPrivilege
 import at.asitplus.wallet.lib.iso.MobileDrivingLicenceDataElements
 import io.github.aakira.napier.Napier
 import io.ktor.util.decodeBase64Bytes
@@ -98,6 +99,9 @@ class CredentialExtractor(
                 MobileDrivingLicenceDataElements.ISSUING_AUTHORITY -> this.issuingAuthority != null
                 MobileDrivingLicenceDataElements.ISSUE_DATE -> this.issueDate != null
                 MobileDrivingLicenceDataElements.EXPIRY_DATE -> this.expiryDate != null
+                MobileDrivingLicenceDataElements.ISSUING_COUNTRY -> this.issuingCountry != null
+                MobileDrivingLicenceDataElements.DRIVING_PRIVILEGES -> this.drivingPrivileges != null
+                MobileDrivingLicenceDataElements.UN_DISTINGUISHING_SIGN -> this.distinguishingSign != null
                 else -> false
             }
 
@@ -1567,6 +1571,105 @@ class CredentialExtractor(
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == MobileDrivingLicenceDataElements.ISSUING_AUTHORITY
                         }?.value?.elementValue?.string
+
+                        else -> null
+                    }
+                }
+
+                else -> TODO(credential.unsupportedCredentialStoreEntry)
+            }
+        }
+
+    val issuingCountry: String?
+        get() = credentials.firstNotNullOfOrNull { credential ->
+            when (credential) {
+                is SubjectCredentialStore.StoreEntry.Vc -> null
+
+                is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                    when (credential.scheme) {
+                        is ConstantIndex.MobileDrivingLicence2023 -> credential.disclosures.filter {
+                            it.value?.claimName == MobileDrivingLicenceDataElements.ISSUING_COUNTRY
+                        }.firstNotNullOfOrNull { it.value?.claimValue as String }
+
+                        else -> null
+                    }
+                }
+
+                is SubjectCredentialStore.StoreEntry.Iso -> {
+                    when (credential.scheme) {
+                        is ConstantIndex.MobileDrivingLicence2023 -> credential.issuerSigned.namespaces?.get(
+                            ConstantIndex.MobileDrivingLicence2023.isoNamespace
+                        )?.entries?.firstOrNull {
+                            it.value.elementIdentifier == MobileDrivingLicenceDataElements.ISSUING_COUNTRY
+                        }?.value?.elementValue?.string
+
+                        else -> null
+                    }
+                }
+
+                else -> TODO(credential.unsupportedCredentialStoreEntry)
+            }
+        }
+
+    val distinguishingSign: String?
+        get() = credentials.firstNotNullOfOrNull { credential ->
+            when (credential) {
+                is SubjectCredentialStore.StoreEntry.Vc -> null
+
+                is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                    when (credential.scheme) {
+                        is ConstantIndex.MobileDrivingLicence2023 -> credential.disclosures.filter {
+                            it.value?.claimName == MobileDrivingLicenceDataElements.UN_DISTINGUISHING_SIGN
+                        }.firstNotNullOfOrNull { it.value?.claimValue as String }
+
+                        else -> null
+                    }
+                }
+
+                is SubjectCredentialStore.StoreEntry.Iso -> {
+                    when (credential.scheme) {
+                        is ConstantIndex.MobileDrivingLicence2023 -> credential.issuerSigned.namespaces?.get(
+                            ConstantIndex.MobileDrivingLicence2023.isoNamespace
+                        )?.entries?.firstOrNull {
+                            it.value.elementIdentifier == MobileDrivingLicenceDataElements.UN_DISTINGUISHING_SIGN
+                        }?.value?.elementValue?.string
+
+                        else -> null
+                    }
+                }
+
+                else -> TODO(credential.unsupportedCredentialStoreEntry)
+            }
+        }
+
+    val drivingPrivileges: Array<DrivingPrivilege>?
+        get() = credentials.firstNotNullOfOrNull { credential ->
+            when (credential) {
+                is SubjectCredentialStore.StoreEntry.Vc -> null
+
+                is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                    when (credential.scheme) {
+                        is ConstantIndex.MobileDrivingLicence2023 -> credential.disclosures.filter {
+                            it.value?.claimName == MobileDrivingLicenceDataElements.DRIVING_PRIVILEGES
+                        }.firstNotNullOfOrNull {
+                            kotlin.runCatching { it.value?.claimValue as Array<DrivingPrivilege>? }.getOrNull()
+                                ?: kotlin.runCatching {
+                                    it.value?.claimValue?.toString()
+                                        ?.let { jsonSerializer.decodeFromString<Array<DrivingPrivilege>>(it) }
+                                }.getOrNull()
+                        }
+
+                        else -> null
+                    }
+                }
+
+                is SubjectCredentialStore.StoreEntry.Iso -> {
+                    when (credential.scheme) {
+                        is ConstantIndex.MobileDrivingLicence2023 -> credential.issuerSigned.namespaces?.get(
+                            ConstantIndex.MobileDrivingLicence2023.isoNamespace
+                        )?.entries?.firstOrNull {
+                            it.value.elementIdentifier == MobileDrivingLicenceDataElements.DRIVING_PRIVILEGES
+                        }?.value?.elementValue?.drivingPrivilege
 
                         else -> null
                     }
