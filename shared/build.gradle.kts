@@ -64,7 +64,7 @@ kotlin {
                 api("androidx.appcompat:appcompat:1.6.1")
                 api("androidx.core:core-ktx:1.12.0")
                 implementation("uk.uuid.slf4j:slf4j-android:1.7.30-0")
-
+                implementation(ktor("client-android"))
                 implementation("androidx.camera:camera-camera2:1.3.0")
                 implementation("androidx.camera:camera-lifecycle:1.3.0")
                 implementation("androidx.camera:camera-view:1.3.0")
