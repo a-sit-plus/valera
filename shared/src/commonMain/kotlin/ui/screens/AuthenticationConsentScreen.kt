@@ -19,7 +19,13 @@ import data.AttributeTranslator
 import data.CredentialExtractor
 import data.storage.scheme
 import io.github.aakira.napier.Napier
+import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.getString
@@ -45,8 +51,21 @@ fun AuthenticationConsentScreen(
     val storeContainerState by walletMain.subjectCredentialStore.observeStoreContainer()
         .collectAsState(null)
 
+    // TODO Should be handled by OidcSiopWallet, but it's not available here?
+    val presDefinition = authenticationRequestParameters.presentationDefinition
+        ?: authenticationRequestParameters.presentationDefinitionUrl?.let {
+            runBlocking {
+                withContext(Dispatchers.IO) {
+                    kotlin.runCatching {
+                        walletMain.httpService.buildHttpClient().get(it).bodyAsText()
+                    }.getOrNull()?.let {
+                        PresentationDefinition.deserialize(it).getOrNull()
+                    }
+                }
+            }
+        }
     val requestedCredentialScheme =
-        authenticationRequestParameters.presentationDefinition?.inputDescriptors?.first()?.constraints?.fields?.firstOrNull {
+        presDefinition?.inputDescriptors?.first()?.constraints?.fields?.firstOrNull {
             it.path.contains("$.type") or it.path.contains("\$.mdoc.doctype") or it.path.contains("\$.mdoc.namespace")
         }?.filter?.let {
             it.pattern ?: it.const
@@ -55,7 +74,7 @@ fun AuthenticationConsentScreen(
                 ?: AttributeIndex.resolveSchemaUri(it)
                 ?: AttributeIndex.resolveIsoNamespace(it)
         }
-            ?: authenticationRequestParameters.presentationDefinition?.inputDescriptors?.firstOrNull()?.id?.let {
+            ?: presDefinition?.inputDescriptors?.firstOrNull()?.id?.let {
                 AttributeIndex.resolveAttributeType(it)
                     ?: AttributeIndex.resolveSchemaUri(it)
                     ?: AttributeIndex.resolveIsoNamespace(it)
@@ -63,8 +82,7 @@ fun AuthenticationConsentScreen(
                 Napier.d("Unable to deduce credential scheme: $authenticationRequestParameters")
             }
 
-    val requestedAttributes =
-        authenticationRequestParameters.presentationDefinition?.claims ?: listOf()
+    val requestedAttributes = presDefinition?.claims ?: listOf()
 
     storeContainerState?.let { storeContainer ->
         val credentialExtractor =
