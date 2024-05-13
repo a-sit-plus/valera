@@ -16,6 +16,7 @@ import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.error_authentication_at_sp_failed
 import data.CredentialExtractor
 import data.attributeTranslation
+import data.storage.PersistentSubjectCredentialStore
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.getString
@@ -36,7 +37,7 @@ fun AuthenticationConsentScreen(
     navigateToAuthenticationSuccessPage: () -> Unit,
     walletMain: WalletMain,
 ) {
-    val storeContainerState by walletMain.subjectCredentialStore.observeStoreContainer()
+    val storeContainerState by (walletMain.subjectCredentialStore as PersistentSubjectCredentialStore).observeStoreContainer()
         .collectAsState(null)
 
     storeContainerState?.let { storeContainer ->

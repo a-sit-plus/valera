@@ -29,6 +29,7 @@ import composewalletapp.shared.generated.resources.content_description_refresh_c
 import composewalletapp.shared.generated.resources.heading_label_my_data_screen
 import composewalletapp.shared.generated.resources.info_text_no_credentials_available
 import composewalletapp.shared.generated.resources.Res
+import data.storage.PersistentSubjectCredentialStore
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.LoadDataButton
@@ -40,7 +41,7 @@ fun MyCredentialsScreen(
     navigateToRefreshCredentialsPage: () -> Unit,
     walletMain: WalletMain,
 ) {
-    val storeContainerState by walletMain.subjectCredentialStore.observeStoreContainer()
+        val storeContainerState by (walletMain.subjectCredentialStore as PersistentSubjectCredentialStore).observeStoreContainer()
         .collectAsState(null)
 
     Scaffold(
