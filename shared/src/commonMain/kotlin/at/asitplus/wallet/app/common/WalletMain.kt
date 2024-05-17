@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
+import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import data.storage.AntilogAdapter
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
@@ -19,13 +20,13 @@ class WalletMain(
     val objectFactory: ObjectFactory,
     private val dataStoreService: DataStoreService,
     val platformAdapter: PlatformAdapter,
+    var subjectCredentialStore: PersistentSubjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService),
     val buildContext: BuildContext,
     val errorService: ErrorService = ErrorService(mutableStateOf(false), mutableStateOf(null)),
 ) {
     lateinit var walletConfig: WalletConfig
-    private lateinit var cryptoService: CryptoService
-    lateinit var subjectCredentialStore: PersistentSubjectCredentialStore
-    private lateinit var holderAgent: HolderAgent
+    lateinit var cryptoService: CryptoService
+    lateinit var holderAgent: HolderAgent
     private lateinit var holderKeyService: HolderKeyService
     lateinit var provisioningService: ProvisioningService
     lateinit var httpService: HttpService
@@ -74,7 +75,7 @@ class WalletMain(
     suspend fun resetApp() {
         dataStoreService.clearLog()
 
-        subjectCredentialStore.reset()
+        (subjectCredentialStore as PersistentSubjectCredentialStore).reset()
 
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_VCS)
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT)
@@ -169,7 +170,7 @@ class DummyPlatformAdapter : PlatformAdapter {
     }
 
     override fun decodeImage(image: ByteArray): ImageBitmap {
-        return ImageBitmap(0, 0)
+        return ImageBitmap(1, 1)
     }
 
     override fun writeToFile(text: String, fileName: String, folderName: String) {
