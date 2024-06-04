@@ -4,6 +4,8 @@ import at.asitplus.gradle.kmmresult
 import at.asitplus.gradle.ktor
 import at.asitplus.gradle.napier
 import at.asitplus.gradle.serialization
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
 import org.jetbrains.kotlin.gradle.plugin.extraProperties
 
 plugins {
@@ -16,7 +18,17 @@ plugins {
 }
 
 kotlin {
-    androidTarget()
+    androidTarget {
+        @OptIn(ExperimentalKotlinGradlePluginApi::class)
+        instrumentedTestVariant {
+            sourceSetTree.set(KotlinSourceSetTree.test)
+
+            dependencies {
+                implementation("androidx.compose.ui:ui-test-junit4-android:1.5.4")
+                debugImplementation("androidx.compose.ui:ui-test-manifest:1.5.4")
+            }
+        }
+    }
     iosX64()
     iosArm64()
     iosSimulatorArm64()
@@ -52,9 +64,15 @@ kotlin {
             }
         }
 
-        commonTest {
+        val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
+                implementation(kotlin("test-common"))
+                //implementation(kotlin("test-annonations-common"))
+
+                @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
+                implementation(compose.uiTest)
+
             }
         }
 
@@ -113,7 +131,13 @@ android {
 
     packaging {
         resources.excludes.add("META-INF/versions/9/previous-compilation-data.bin")
+        resources.excludes.add("**/attach_hotspot_windows.dll")
+        resources.excludes.add("META-INF/licenses/**")
+        resources.excludes.add("META-INF/AL2.0")
+        resources.excludes.add("META-INF/LGPL2.1")
+
     }
+
     testOptions {
         managedDevices {
             localDevices {
@@ -125,6 +149,7 @@ android {
             }
         }
     }
+
 }
 
 
