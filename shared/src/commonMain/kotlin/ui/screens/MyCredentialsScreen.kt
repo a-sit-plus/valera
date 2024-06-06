@@ -2,6 +2,7 @@ package ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -38,6 +39,7 @@ import composewalletapp.shared.generated.resources.info_text_no_credentials_avai
 import io.ktor.http.quote
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.FloatingActionButtonHeightSpacer
 import ui.composables.LabeledText
 import ui.composables.buttons.LoadDataButton
 import ui.composables.inputFields.uiLabel
@@ -104,8 +106,13 @@ fun MyCredentialsScreen(
                             decodeImage = walletMain.platformAdapter::decodeImage,
                         )
                         storeContainer.credentials.forEach {
-                            SingleCredentialCard(it)
+                            SingleCredentialCard(
+                                it,
+                                modifier = Modifier.padding(16.dp),
+                            )
                         }
+                        // make sufficient scroll space for FAB
+                        FloatingActionButtonHeightSpacer()
                     }
                 }
             }
@@ -128,6 +135,7 @@ private fun SingleCredentialCard(
             credential = credential,
             modifier = modifier
         )
+
         is SubjectCredentialStore.StoreEntry.Iso -> SingleIsoCredentialView(
             credential = credential,
             modifier = modifier
@@ -141,7 +149,7 @@ private fun SingleVcCredentialCard(
     credential: SubjectCredentialStore.StoreEntry.Vc,
     modifier: Modifier = Modifier,
 ) {
-    ElevatedCard(
+    SingleCredentialCardLayout(
         modifier = modifier,
     ) {
         LabeledText(
@@ -158,7 +166,7 @@ private fun SingleSdJwtCredentialView(
     credential: SubjectCredentialStore.StoreEntry.SdJwt,
     modifier: Modifier = Modifier,
 ) {
-    ElevatedCard(
+    SingleCredentialCardLayout(
         modifier = modifier,
     ) {
         LabeledText(
@@ -180,7 +188,7 @@ private fun SingleIsoCredentialView(
     credential: SubjectCredentialStore.StoreEntry.Iso,
     modifier: Modifier = Modifier,
 ) {
-    ElevatedCard(
+    SingleCredentialCardLayout(
         modifier = modifier,
     ) {
         LabeledText(
@@ -200,6 +208,26 @@ private fun SingleIsoCredentialView(
                     label = "\$[${namespace.key.quote()}][${entry.value.elementIdentifier.quote()}]"
                 )
             }
+        }
+    }
+}
+
+
+@Composable
+private fun SingleCredentialCardLayout(
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    ElevatedCard(
+        modifier = modifier,
+    ) {
+        Column(
+            modifier = Modifier.padding(
+                horizontal = 8.dp,
+                vertical = 16.dp
+            ),
+        ) {
+            content()
         }
     }
 }
