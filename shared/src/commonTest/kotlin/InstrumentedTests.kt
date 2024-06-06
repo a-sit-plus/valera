@@ -1,4 +1,5 @@
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasText
@@ -11,7 +12,6 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.runComposeUiTest
 import androidx.compose.ui.test.waitUntilDoesNotExist
 import at.asitplus.wallet.app.common.BuildContext
-import at.asitplus.wallet.app.common.DummyPlatformAdapter
 import at.asitplus.wallet.app.common.ObjectFactory
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.WalletMain
@@ -49,7 +49,7 @@ class InstrumentedTests {
             val walletMain = WalletMain(
                 objectFactory = getObjectFactory(),
                 dataStoreService = DummyDataStoreService(),
-                platformAdapter = DummyPlatformAdapter(),
+                platformAdapter = getPlatformAdapter(),
                 buildContext = BuildContext(
                     buildType = "debug",
                     versionCode = 0,
@@ -72,7 +72,7 @@ class InstrumentedTests {
             val walletMain = WalletMain(
                 objectFactory = getObjectFactory(),
                 dataStoreService = DummyDataStoreService(),
-                platformAdapter = DummyPlatformAdapter(),
+                platformAdapter = getPlatformAdapter(),
                 buildContext = BuildContext(
                     buildType = "debug",
                     versionCode = 0,
@@ -98,7 +98,7 @@ class InstrumentedTests {
             val walletMain = WalletMain(
                 objectFactory = getObjectFactory(),
                 dataStoreService = DummyDataStoreService(),
-                platformAdapter = DummyPlatformAdapter(),
+                platformAdapter = getPlatformAdapter(),
                 buildContext = BuildContext(
                     buildType = "debug",
                     versionCode = 0,
@@ -200,4 +200,5 @@ class InstrumentedTests {
 
 expect fun getObjectFactory(): ObjectFactory
 
+@Composable
 expect fun getPlatformAdapter(): PlatformAdapter

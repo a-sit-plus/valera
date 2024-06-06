@@ -1,10 +1,14 @@
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import at.asitplus.wallet.app.common.ObjectFactory
 import at.asitplus.wallet.app.common.PlatformAdapter
 
-actual fun getObjectFactory(): ObjectFactory {
-    return AndroidObjectFactory()
+@Composable
+actual fun getPlatformAdapter(): PlatformAdapter {
+    val context = LocalContext.current
+    return AndroidPlatformAdapter(context)
 }
 
-actual fun getPlatformAdapter(): PlatformAdapter {
-    TODO("Not yet implemented")
+actual fun getObjectFactory(): ObjectFactory {
+    return AndroidObjectFactory()
 }
