@@ -12,20 +12,17 @@ import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.dif.PresentationDefinition
 import at.asitplus.wallet.lib.data.jsonSerializer
-import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
+import at.asitplus.wallet.lib.oidc.AuthenticationRequestParametersFrom
+import at.asitplus.wallet.lib.oidc.AuthenticationResponseParameters
+import at.asitplus.wallet.lib.oidc.AuthenticationResponseResult
+import at.asitplus.wallet.lib.oidvci.decode
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.error_authentication_at_sp_failed
 import data.AttributeTranslator
 import data.CredentialExtractor
 import data.storage.scheme
 import io.github.aakira.napier.Napier
-import io.ktor.client.request.get
-import io.ktor.client.statement.bodyAsText
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.getString
@@ -41,7 +38,8 @@ fun AuthenticationConsentScreen(
     spName: String,
     spLocation: String,
     spImage: ImageBitmap?,
-    authenticationRequestParameters: AuthenticationRequestParameters,
+    authenticationRequestParametersFrom: AuthenticationRequestParametersFrom<*>,
+    authenticationResponseResult: AuthenticationResponseResult,
     fromQrCodeScanner: Boolean,
     navigateUp: () -> Unit,
     navigateToRefreshCredentialsPage: (RefreshRequirements?) -> Unit,
@@ -52,18 +50,17 @@ fun AuthenticationConsentScreen(
         .collectAsState(null)
 
     // TODO Should be handled by OidcSiopWallet, but it's not available here?
-    val presDefinition = authenticationRequestParameters.presentationDefinition
-        ?: authenticationRequestParameters.presentationDefinitionUrl?.let {
-            runBlocking {
-                withContext(Dispatchers.IO) {
-                    kotlin.runCatching {
-                        walletMain.httpService.buildHttpClient().get(it).bodyAsText()
-                    }.getOrNull()?.let {
-                        PresentationDefinition.deserialize(it).getOrNull()
-                    }
-                }
-            }
-        }
+    val presDefinition = authenticationRequestParametersFrom.parameters.presentationDefinition
+
+    val responseParameters = when(authenticationResponseResult) {
+        is AuthenticationResponseResult.Post -> authenticationResponseResult.params.decode<AuthenticationResponseParameters>()
+        is AuthenticationResponseResult.Redirect -> authenticationResponseResult.params
+    }
+
+    responseParameters.vpToken?.let {
+        
+    }
+
     val requestedCredentialScheme =
         presDefinition?.inputDescriptors?.first()?.constraints?.fields?.firstOrNull {
             it.path.contains("$.type") or it.path.contains("\$.mdoc.doctype") or it.path.contains("\$.mdoc.namespace")
@@ -79,7 +76,7 @@ fun AuthenticationConsentScreen(
                     ?: AttributeIndex.resolveSchemaUri(it)
                     ?: AttributeIndex.resolveIsoNamespace(it)
             } ?: null.also {
-                Napier.d("Unable to deduce credential scheme: $authenticationRequestParameters")
+                Napier.d("Unable to deduce credential scheme: $authenticationRequestParametersFrom")
             }
 
     val requestedAttributes = presDefinition?.claims ?: listOf()
@@ -94,7 +91,7 @@ fun AuthenticationConsentScreen(
             spImage = spImage,
             requestedCredentialScheme = requestedCredentialScheme,
             requestedAttributes = requestedAttributes,
-            authenticationRequestParameters = authenticationRequestParameters,
+            authenticationRequest = authenticationRequestParametersFrom,
             credentialExtractor = credentialExtractor,
             fromQrCodeScanner = fromQrCodeScanner,
             navigateUp = navigateUp,
@@ -102,7 +99,7 @@ fun AuthenticationConsentScreen(
                 navigateToRefreshCredentialsPage(
                     RefreshRequirements(
                         authenticationRequestParametersStringified = jsonSerializer.encodeToString(
-                            authenticationRequestParameters
+                            authenticationRequestParametersFrom
                         )
                     )
                 )
@@ -121,7 +118,7 @@ fun StatefulAuthenticationConsentView(
     spImage: ImageBitmap?,
     requestedCredentialScheme: ConstantIndex.CredentialScheme?,
     requestedAttributes: List<String>,
-    authenticationRequestParameters: AuthenticationRequestParameters,
+    authenticationRequest: AuthenticationRequestParametersFrom<*>,
     credentialExtractor: CredentialExtractor,
     fromQrCodeScanner: Boolean,
     navigateUp: () -> Unit,
@@ -184,7 +181,7 @@ fun StatefulAuthenticationConsentView(
             walletMain.scope.launch {
                 try {
                     walletMain.presentationService.startSiop(
-                        authenticationRequestParameters,
+                        authenticationRequest,
                         fromQrCodeScanner
                     )
                     navigateUp()
