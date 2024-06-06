@@ -129,6 +129,7 @@
     <string name="content_description_navigate_back">Back</string>
     <string name="content_description_portrait">Portrait</string>
     <string name="content_description_refresh_credentials">Load Data</string>
+    <string name="content_description_add_credential">Load more data</string>
     <string name="content_description_show_attributes">Show attributes</string>
     <string name="content_description_hide_attributes">Hide attributes</string>
 

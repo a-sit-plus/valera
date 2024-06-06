@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -31,7 +31,7 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.iso.ElementValue
 import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.content_description_refresh_credentials
+import composewalletapp.shared.generated.resources.content_description_add_credential
 import composewalletapp.shared.generated.resources.credential_representation_format_label_mso_mdoc
 import composewalletapp.shared.generated.resources.credential_representation_format_label_plain_jwt
 import composewalletapp.shared.generated.resources.credential_representation_format_label_sd_jwt
@@ -44,12 +44,11 @@ import ui.composables.FloatingActionButtonHeightSpacer
 import ui.composables.LabeledText
 import ui.composables.buttons.LoadDataButton
 import ui.composables.inputFields.uiLabel
-import ui.views.MyCredentialsView
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
 @Composable
 fun MyCredentialsScreen(
-    navigateToRefreshCredentialsPage: () -> Unit,
+    navigateToAddCredentialsPage: () -> Unit,
     walletMain: WalletMain,
 ) {
     val storeContainerState by walletMain.subjectCredentialStore.observeStoreContainer()
@@ -70,11 +69,11 @@ fun MyCredentialsScreen(
             storeContainerState?.let { storeContainer ->
                 if (storeContainer.credentials.isNotEmpty()) {
                     FloatingActionButton(
-                        onClick = navigateToRefreshCredentialsPage,
+                        onClick = navigateToAddCredentialsPage,
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = stringResource(Res.string.content_description_refresh_credentials),
+                            imageVector = Icons.Default.Add,
+                            contentDescription = stringResource(Res.string.content_description_add_credential),
                         )
                     }
                 }
@@ -95,7 +94,7 @@ fun MyCredentialsScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         LoadDataButton(
-                            onClick = navigateToRefreshCredentialsPage
+                            onClick = navigateToAddCredentialsPage
                         )
                     }
                 } else {
@@ -105,11 +104,13 @@ fun MyCredentialsScreen(
                         storeContainer.credentials.forEach {
                             SingleCredentialCard(
                                 it,
-                                modifier = Modifier.padding(16.dp),
+                                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
                             )
                         }
                         // make sufficient scroll space for FAB
-                        FloatingActionButtonHeightSpacer()
+                        FloatingActionButtonHeightSpacer(
+                            externalPadding = 16.dp
+                        )
                     }
                 }
             }

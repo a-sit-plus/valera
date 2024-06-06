@@ -189,7 +189,7 @@ fun MainNavigator(
                 when (page) {
                     is HomePage -> {
                         MyCredentialsScreen(
-                            navigateToRefreshCredentialsPage = {
+                            navigateToAddCredentialsPage = {
                                 navigationStack.push(RefreshCredentialsPage())
                             },
                             walletMain = walletMain,
