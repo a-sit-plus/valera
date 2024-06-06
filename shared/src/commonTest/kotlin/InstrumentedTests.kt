@@ -43,8 +43,6 @@ import kotlin.time.Duration.Companion.minutes
 @OptIn(ExperimentalResourceApi::class, ExperimentalTestApi::class)
 class InstrumentedTests {
 
-    //@Composable
-   // @OptIn(ExperimentalTestApi::class)
     @Test
     fun givenNewAppInstallation_whenStartingApp_thenAppActuallyStarts() = runComposeUiTest() {
         // Start the app
@@ -66,8 +64,6 @@ class InstrumentedTests {
             .assertIsDisplayed()
     }
 
-
-    //@Composable
     @Test
     fun givenNewAppInstallation_whenStartingApp_thenShowsOnboardingStartScreen() = runComposeUiTest(){
         // Start the app
