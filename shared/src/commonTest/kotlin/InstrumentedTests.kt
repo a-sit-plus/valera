@@ -1,6 +1,7 @@
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isDisplayed
@@ -9,8 +10,10 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.runComposeUiTest
 import androidx.compose.ui.test.waitUntilDoesNotExist
+import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.ObjectFactory
 import at.asitplus.wallet.app.common.PlatformAdapter
@@ -165,19 +168,18 @@ class InstrumentedTests {
             onNodeWithText(getString(Res.string.button_label_accept)).performClick()
             waitUntilDoesNotExist(hasText(getString(Res.string.button_label_accept)), 10000)
 
-
-
-            onNodeWithContentDescription(getString(Res.string.content_description_portrait)).assertExists()
-            onNodeWithText("XXXÉliás XXXTörőcsik").assertExists()
-            onNodeWithText("11.10.1965").assertExists()
-            onNodeWithText("≥14").assertExists()
-            onNodeWithText("≥16").assertExists()
-            onNodeWithText("≥18").assertExists()
-            onNodeWithText("≥21").assertExists()
-            //onNodeWithText("Testgasse 1a-2b").assertExists()
-            //onNodeWithText("Stiege Stg. 3c-4d").assertExists()
-            //onNodeWithText("Tür: D6").assertExists()
-            //onNodeWithText("0088 Testort A").assertExists()
+            onNodeWithContentDescription(getString(Res.string.content_description_portrait)).assertHeightIsAtLeast(1.dp)
+            onNodeWithText("XXXÉliás XXXTörőcsik").assertIsDisplayed()
+            onNodeWithText("11.10.1965").assertIsDisplayed()
+            onNodeWithText("≥14").assertIsDisplayed()
+            onNodeWithText("≥16").assertIsDisplayed()
+            onNodeWithText("≥18").assertIsDisplayed()
+            onNodeWithText("≥21").assertIsDisplayed()
+            onNodeWithText("Testgasse 1a-2b").assertIsDisplayed()
+            onNodeWithText("Stiege Stg. 3c-4d").assertIsDisplayed()
+            onNodeWithText("Tür: D6").assertIsDisplayed()
+            onNodeWithText("0088 Testort A").performScrollTo()
+            onNodeWithText("0088 Testort A").assertIsDisplayed()
         }
     }
 
