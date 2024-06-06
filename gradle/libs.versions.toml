@@ -1,10 +1,10 @@
 [versions]
 encoding = "1.2.3"
 bignum = "0.3.9"
-vcLib = "3.7.0-SNAPSHOT"
-kmpCrypto = "2.6.0"
+vcLib = "3.7.0"
+kmpCrypto = "3.1.0"
 ida = "3.4.0"
-eupid = "1.0.0"
+eupid = "2.0.1"
 atomicfu = "0.23.2"
 
 
