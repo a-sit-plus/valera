@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -101,10 +102,6 @@ fun MyCredentialsScreen(
                     Column(
                         modifier = Modifier.verticalScroll(state = rememberScrollState())
                     ) {
-                        MyCredentialsView(
-                            credentials = storeContainer.credentials,
-                            decodeImage = walletMain.platformAdapter::decodeImage,
-                        )
                         storeContainer.credentials.forEach {
                             SingleCredentialCard(
                                 it,
@@ -225,7 +222,7 @@ private fun SingleCredentialCardLayout(
             modifier = Modifier.padding(
                 horizontal = 8.dp,
                 vertical = 16.dp
-            ),
+            ).fillMaxWidth(),
         ) {
             content()
         }
