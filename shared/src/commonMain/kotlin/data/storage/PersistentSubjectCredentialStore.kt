@@ -213,6 +213,17 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         exportToDataStore(newContainer)
     }
 
+    suspend fun removeStoreEntryByIndex(index: Int) {
+        val newContainer = container.first().let {
+            it.copy(
+                credentials = it.credentials.filterIndexed { credentialIndex, _ ->
+                    credentialIndex != index
+                },
+            )
+        }
+        exportToDataStore(newContainer)
+    }
+
     fun observeStoreEntryById(id: String): Flow<SubjectCredentialStore.StoreEntry?> {
         return container.map {
             it.credentials.firstOrNull { entry ->

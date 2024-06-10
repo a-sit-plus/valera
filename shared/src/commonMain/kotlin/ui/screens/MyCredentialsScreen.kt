@@ -3,19 +3,21 @@ package ui.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -29,14 +31,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.iso.ElementValue
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.content_description_add_credential
-import composewalletapp.shared.generated.resources.credential_representation_format_label_mso_mdoc
-import composewalletapp.shared.generated.resources.credential_representation_format_label_plain_jwt
-import composewalletapp.shared.generated.resources.credential_representation_format_label_sd_jwt
+import composewalletapp.shared.generated.resources.content_description_delete_credential
 import composewalletapp.shared.generated.resources.heading_label_my_data_screen
 import composewalletapp.shared.generated.resources.info_text_no_credentials_available
+import data.storage.scheme
 import io.ktor.http.quote
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
@@ -45,14 +47,24 @@ import ui.composables.LabeledText
 import ui.composables.buttons.LoadDataButton
 import ui.composables.inputFields.uiLabel
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
 @Composable
 fun MyCredentialsScreen(
     navigateToAddCredentialsPage: () -> Unit,
     walletMain: WalletMain,
 ) {
-    val storeContainerState by walletMain.subjectCredentialStore.observeStoreContainer()
-        .collectAsState(null)
+    MyCredentialsScreen(
+        navigateToAddCredentialsPage = navigateToAddCredentialsPage,
+        viewModel =  CredentialScreenViewModel(walletMain)
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
+@Composable
+fun MyCredentialsScreen(
+    navigateToAddCredentialsPage: () -> Unit,
+    viewModel: CredentialScreenViewModel,
+) {
+    val storeContainerState by viewModel.storeContainer.collectAsState(null)
 
     Scaffold(
         topBar = {
@@ -98,19 +110,32 @@ fun MyCredentialsScreen(
                         )
                     }
                 } else {
-                    Column(
-                        modifier = Modifier.verticalScroll(state = rememberScrollState())
-                    ) {
-                        storeContainer.credentials.forEach {
+                    LazyColumn {
+                        items(
+                            storeContainer.credentials.size,
+                            key = {
+                                storeContainer.credentials[it].hashCode()
+                            }
+                        ) { index ->
+                            val credential = storeContainer.credentials[index]
+
                             SingleCredentialCard(
-                                it,
-                                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                                credential,
+                                onDelete = {
+                                    viewModel.removeCredentialByIndex(index)
+                                },
+                                modifier = Modifier.padding(
+                                    start = 16.dp,
+                                    end = 16.dp,
+                                    bottom = 16.dp
+                                ),
                             )
                         }
-                        // make sufficient scroll space for FAB
-                        FloatingActionButtonHeightSpacer(
-                            externalPadding = 16.dp
-                        )
+                        item {
+                            FloatingActionButtonHeightSpacer(
+                                externalPadding = 16.dp
+                            )
+                        }
                     }
                 }
             }
@@ -119,93 +144,79 @@ fun MyCredentialsScreen(
 }
 
 @Composable
-private fun SingleCredentialCard(
+private fun ColumnScope.SingleCredentialCard(
     credential: SubjectCredentialStore.StoreEntry,
-    modifier: Modifier = Modifier,
-) {
-    when (credential) {
-        is SubjectCredentialStore.StoreEntry.Vc -> SingleVcCredentialCard(
-            credential = credential,
-            modifier = modifier
-        )
-
-        is SubjectCredentialStore.StoreEntry.SdJwt -> SingleSdJwtCredentialView(
-            credential = credential,
-            modifier = modifier
-        )
-
-        is SubjectCredentialStore.StoreEntry.Iso -> SingleIsoCredentialView(
-            credential = credential,
-            modifier = modifier
-        )
-    }
-}
-
-@OptIn(ExperimentalResourceApi::class)
-@Composable
-private fun SingleVcCredentialCard(
-    credential: SubjectCredentialStore.StoreEntry.Vc,
+    onDelete: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     SingleCredentialCardLayout(
         modifier = modifier,
     ) {
-        LabeledText(
-            text = credential.scheme.uiLabel(),
-            label = stringResource(Res.string.credential_representation_format_label_plain_jwt),
-        )
-        Text(credential.vc.toString())
-    }
-}
-
-@OptIn(ExperimentalResourceApi::class)
-@Composable
-private fun SingleSdJwtCredentialView(
-    credential: SubjectCredentialStore.StoreEntry.SdJwt,
-    modifier: Modifier = Modifier,
-) {
-    SingleCredentialCardLayout(
-        modifier = modifier,
-    ) {
-        LabeledText(
-            text = credential.scheme.uiLabel(),
-            label = stringResource(Res.string.credential_representation_format_label_sd_jwt),
-        )
-        credential.disclosures.forEach {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
             LabeledText(
-                text = it.value?.claimValue?.toString() ?: "unknown claim value",
-                label = it.value?.claimName ?: "unknown claim name"
+                text = credential.scheme.uiLabel(),
+                label = credential.representation.uiLabel(),
+            )
+            onDelete?.let {
+                SingleCredentialCardDeleteButton(
+                    onClick = onDelete
+                )
+            }
+        }
+        when (credential) {
+            is SubjectCredentialStore.StoreEntry.Vc -> SingleVcCredentialCardContent(
+                credential = credential,
+            )
+
+            is SubjectCredentialStore.StoreEntry.SdJwt -> SingleSdJwtCredentialCardContent(
+                credential = credential,
+            )
+
+            is SubjectCredentialStore.StoreEntry.Iso -> SingleIsoCredentialCardContent(
+                credential = credential,
             )
         }
     }
 }
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
-private fun SingleIsoCredentialView(
-    credential: SubjectCredentialStore.StoreEntry.Iso,
-    modifier: Modifier = Modifier,
+private fun ColumnScope.SingleVcCredentialCardContent(
+    credential: SubjectCredentialStore.StoreEntry.Vc,
 ) {
-    SingleCredentialCardLayout(
-        modifier = modifier,
-    ) {
+    Text(credential.vc.toString())
+}
+
+@Composable
+private fun ColumnScope.SingleSdJwtCredentialCardContent(
+    credential: SubjectCredentialStore.StoreEntry.SdJwt,
+) {
+    credential.disclosures.forEach {
         LabeledText(
-            text = credential.scheme.uiLabel(),
-            label = stringResource(Res.string.credential_representation_format_label_mso_mdoc),
+            text = it.value?.claimValue?.toString() ?: "unknown claim value",
+            label = it.value?.claimName ?: "unknown claim name"
         )
-        credential.issuerSigned.namespaces?.forEach { namespace ->
-            namespace.value.entries.forEach { entry ->
-                LabeledText(
-                    text = entry.value.elementValue.let {
-                        it.string
-                            ?: it.boolean?.toString()
-                            ?: it.drivingPrivilege?.toString()
-                            ?: it.date?.toString()
-                            ?: it.bytes?.toString()!!
-                    },
-                    label = "\$[${namespace.key.quote()}][${entry.value.elementIdentifier.quote()}]"
-                )
-            }
+    }
+}
+
+@Composable
+private fun ColumnScope.SingleIsoCredentialCardContent(
+    credential: SubjectCredentialStore.StoreEntry.Iso,
+) {
+    credential.issuerSigned.namespaces?.forEach { namespace ->
+        namespace.value.entries.forEach { entry ->
+            LabeledText(
+                text = entry.value.elementValue.let {
+                    it.string
+                        ?: it.boolean?.toString()
+                        ?: it.drivingPrivilege?.toString()
+                        ?: it.date?.toString()
+                        ?: it.bytes?.toString()!!
+                },
+                label = "\$[${namespace.key.quote()}][${entry.value.elementIdentifier.quote()}]"
+            )
         }
     }
 }
@@ -237,3 +248,27 @@ private fun ElementValue.toUiString(): String {
         ?: this.date?.toString()
         ?: this.bytes?.toString()!!
 }
+
+@OptIn(ExperimentalResourceApi::class)
+@Composable
+private fun SingleCredentialCardDeleteButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    IconButton(
+        onClick = onClick,
+        modifier = modifier,
+    ) {
+        Icon(
+            imageVector = Icons.Default.Delete,
+            contentDescription = stringResource(Res.string.content_description_delete_credential) // TODO: content description
+        )
+    }
+}
+
+private val SubjectCredentialStore.StoreEntry.representation: ConstantIndex.CredentialRepresentation
+    get() = when (this) {
+        is SubjectCredentialStore.StoreEntry.Vc -> ConstantIndex.CredentialRepresentation.PLAIN_JWT
+        is SubjectCredentialStore.StoreEntry.SdJwt -> ConstantIndex.CredentialRepresentation.SD_JWT
+        is SubjectCredentialStore.StoreEntry.Iso -> ConstantIndex.CredentialRepresentation.ISO_MDOC
+    }

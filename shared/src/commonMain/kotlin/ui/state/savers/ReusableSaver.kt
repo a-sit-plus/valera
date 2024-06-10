@@ -1,4 +1,4 @@
-package ui.savers
+package ui.state.savers
 
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.SaverScope

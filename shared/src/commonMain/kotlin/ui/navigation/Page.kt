@@ -33,6 +33,8 @@ expect class RefreshCredentialsPage(
     val refreshRequirements: RefreshRequirements?
 }
 
+expect class AddCredentialPage() : Page
+
 
 
 expect class AuthenticationQrCodeScannerPage() : Page

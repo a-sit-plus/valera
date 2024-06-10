@@ -32,6 +32,7 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
+import ui.navigation.AddCredentialPage
 import ui.navigation.AuthenticationConsentPage
 import ui.navigation.AuthenticationLoadingPage
 import ui.navigation.AuthenticationQrCodeScannerPage
@@ -43,6 +44,7 @@ import ui.navigation.Page
 import ui.navigation.ProvisioningLoadingPage
 import ui.navigation.RefreshCredentialsPage
 import ui.navigation.SettingsPage
+import ui.screens.AddCredentialScreen
 import ui.screens.AuthenticationConsentScreen
 import ui.screens.AuthenticationQrCodeScannerScreen
 import ui.screens.AuthenticationSuccessScreen
@@ -190,8 +192,15 @@ fun MainNavigator(
                     is HomePage -> {
                         MyCredentialsScreen(
                             navigateToAddCredentialsPage = {
-                                navigationStack.push(RefreshCredentialsPage())
+                                navigationStack.push(AddCredentialPage())
                             },
+                            walletMain = walletMain,
+                        )
+                    }
+
+                    is AddCredentialPage -> {
+                        AddCredentialScreen(
+                            navigateUp = navigateUp,
                             walletMain = walletMain,
                         )
                     }
@@ -279,11 +288,6 @@ fun MainNavigator(
                                         authenticationResponseResult = result.toAuthenticationResponseResult(),
                                         fromQrCodeScanner = page.fromQrCodeScanner,
                                         navigateUp = navigateUp,
-                                        navigateToRefreshCredentialsPage = {
-                                            navigationStack.push(
-                                                RefreshCredentialsPage(it)
-                                            )
-                                        },
                                         navigateToAuthenticationSuccessPage = {
                                             navigationStack.push(
                                                 AuthenticationSuccessPage()

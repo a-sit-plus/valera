@@ -116,6 +116,7 @@
     <string name="heading_label_data_protection">Datenschutz</string>
     <string name="heading_label_terms_of_use_and_data_protection">Nutzungsbedingungen &amp; Datenschutz</string>
     <string name="heading_label_load_data_screen">Daten laden</string>
+    <string name="heading_label_add_credential_screen">Daten laden</string>
     <string name="heading_label_refresh_data_screen">Daten laden</string>
     <string name="heading_label_authenticate_at_device_screen">Anmelden\nan Schalter oder Maschine</string>
 
@@ -127,6 +128,7 @@
     <string name="biometric_authentication_prompt_to_load_data_subtitle">Daten laden</string>
 
     <string name="content_description_navigate_back">Zurück</string>
+    <string name="content_description_delete_credential">Löschen</string>
     <string name="content_description_portrait">Porträt</string>
     <string name="content_description_refresh_credentials">Daten laden</string>
     <string name="content_description_add_credential">Zusätzliche daten laden</string>
@@ -168,6 +170,7 @@
     <string name="info_text_redirection_to_id_austria_for_credential_provisioning">Zur Abfrage Ihrer Daten werden Sie zu ID Austria weitergeleitet.</string>
     <string name="info_text_notice_development_provisioning_using_qr_code_credentials">Zu Entwicklungszwecken gibt es auch die Möglichkeit, Daten über einen QR-Code zu laden.</string>
     <string name="info_text_enthusiastic_welcome_end">Daten laden und los geht's!</string>
+    <string name="info_text_submission_preview_disabled">Vorschau von Übermittelten Daten ist derzeit nicht verfügbar.</string>
 
     <string name="section_heading_authenticate_at_device_title">Anmelden</string>
     <string name="section_heading_authenticate_at_device_subtitle">an Schalter oder Maschine</string>
@@ -193,6 +196,7 @@
     <string name="section_heading_residence_data">Meldeadresse</string>
     <string name="section_heading_residence_data_icon_text">MA</string>
     <string name="section_heading_missing_data">Neue Daten laden</string>
+    <string name="section_heading_load_data_selection">Verfügbare Daten</string>
     <string name="section_heading_available_data">Bestehende Daten aktualisieren</string>
 
 

@@ -1,4 +1,4 @@
-package ui.savers
+package ui.state.savers
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf

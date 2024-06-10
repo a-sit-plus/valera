@@ -28,6 +28,7 @@ actual class RefreshRequirements actual constructor(
 actual class RefreshCredentialsPage actual constructor(
     actual val refreshRequirements: RefreshRequirements?,
 ) : Page
+actual class AddCredentialPage : Page
 
 actual class AuthenticationConsentPage actual constructor(
     actual val authenticationRequestSerialized: String,

@@ -24,9 +24,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import ui.navigation.RefreshRequirements
-import ui.savers.CredentialSchemeSaver
-import ui.savers.asMutableStateSaver
-import ui.views.StatefulLoadDataView
+import ui.state.savers.CredentialSchemeSaver
+import ui.state.savers.asMutableStateSaver
+import ui.views.StatefulLoadDataViewWithAvailabilitySeparation
 
 @Composable
 fun LoadDataScreen(
@@ -116,7 +116,7 @@ fun LoadDataScreen(
 
     val isEditEnabled = refreshRequirements == null
 
-    StatefulLoadDataView(
+    StatefulLoadDataViewWithAvailabilitySeparation(
         isEditEnabled = isEditEnabled,
         host = host,
         onChangeHost = {

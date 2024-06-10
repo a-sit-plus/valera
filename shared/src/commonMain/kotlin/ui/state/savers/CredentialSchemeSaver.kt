@@ -1,4 +1,4 @@
-package ui.savers
+package ui.state.savers
 
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex

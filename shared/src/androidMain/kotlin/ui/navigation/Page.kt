@@ -44,6 +44,9 @@ actual class RefreshCredentialsPage actual constructor(
 ) : Page, Parcelable
 
 @Parcelize
+actual class AddCredentialPage actual constructor() : Page, Parcelable
+
+@Parcelize
 actual class AuthenticationConsentPage actual constructor(
     actual val authenticationRequestSerialized: String,
     actual val authenticationResponseSerialized: String,

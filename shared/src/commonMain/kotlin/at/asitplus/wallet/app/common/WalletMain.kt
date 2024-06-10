@@ -5,13 +5,14 @@ import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
-import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.ConstantIndex
 import data.storage.AntilogAdapter
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 /**
  * Main class to hold all services needed in the Compose App.
@@ -86,6 +87,28 @@ class WalletMain(
     fun getLog(): List<String> {
         val rawLog = platformAdapter.readFromFile("log.txt", "logs")
         return rawLog?.split(regex = regex)?.filter { it.isNotEmpty() } ?: listOf("")
+    }
+
+    fun startProvisioning(
+        host: String,
+        credentialScheme: ConstantIndex.CredentialScheme,
+        credentialRepresentation: ConstantIndex.CredentialRepresentation,
+        requestedAttributes: Set<String>?,
+        onSuccess: () -> Unit,
+    ) {
+        scope.launch {
+            try {
+                provisioningService.startProvisioning(
+                    host = host,
+                    credentialScheme = credentialScheme,
+                    credentialRepresentation = credentialRepresentation,
+                    requestedAttributes = requestedAttributes,
+                )
+                onSuccess()
+            } catch (e: Exception) {
+                errorService.emit(e)
+            }
+        }
     }
 }
 
