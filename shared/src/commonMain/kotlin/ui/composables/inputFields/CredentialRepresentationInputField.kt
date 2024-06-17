@@ -26,8 +26,23 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun StatefulCredentialRepresentationInputField(
     value: ConstantIndex.CredentialRepresentation,
+    onValueChange: ((ConstantIndex.CredentialRepresentation) -> Unit)?,
+    modifier: Modifier = Modifier,
+) {
+    StatefulCredentialRepresentationInputField(
+        value = value,
+        onValueChange = onValueChange ?: {},
+        enabled = onValueChange != null,
+        modifier = modifier,
+    )
+}
+
+
+@Composable
+fun StatefulCredentialRepresentationInputField(
+    value: ConstantIndex.CredentialRepresentation,
     onValueChange: (ConstantIndex.CredentialRepresentation) -> Unit,
-    enabled: Boolean = true,
+    enabled: Boolean,
     modifier: Modifier = Modifier,
 ) {
     var showMenu by remember { mutableStateOf(false) }
@@ -40,7 +55,9 @@ fun StatefulCredentialRepresentationInputField(
         },
         expanded = showMenu,
         onExpandedChange = {
-            showMenu = it
+            if (enabled) {
+                showMenu = it
+            }
         },
         enabled = enabled,
         modifier = modifier,
@@ -54,12 +71,12 @@ fun CredentialRepresentationInputField(
     onValueChange: (ConstantIndex.CredentialRepresentation) -> Unit,
     expanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
-    enabled: Boolean = true,
+    enabled: Boolean,
     modifier: Modifier = Modifier,
 ) {
     ExposedDropdownMenuBox(
         expanded = expanded,
-        onExpandedChange = onExpandedChange,
+        onExpandedChange = onExpandedChange ?: {},
         modifier = modifier,
     ) {
         OutlinedTextField(
@@ -80,7 +97,7 @@ fun CredentialRepresentationInputField(
             },
             modifier = Modifier.fillMaxWidth(),
         ) {
-            for(credentialRepresentation in listOf(
+            for (credentialRepresentation in listOf(
                 ConstantIndex.CredentialRepresentation.PLAIN_JWT,
                 ConstantIndex.CredentialRepresentation.SD_JWT,
                 ConstantIndex.CredentialRepresentation.ISO_MDOC,

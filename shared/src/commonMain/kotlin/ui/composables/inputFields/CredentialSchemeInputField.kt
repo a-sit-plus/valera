@@ -27,6 +27,20 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun StatefulCredentialSchemeInputField(
     value: ConstantIndex.CredentialScheme,
+    onValueChange: ((ConstantIndex.CredentialScheme) -> Unit)?,
+    modifier: Modifier = Modifier,
+) {
+    StatefulCredentialSchemeInputField(
+        value = value,
+        onValueChange = onValueChange ?: {},
+        enabled = onValueChange != null,
+        modifier = modifier,
+    )
+}
+
+@Composable
+fun StatefulCredentialSchemeInputField(
+    value: ConstantIndex.CredentialScheme,
     onValueChange: (ConstantIndex.CredentialScheme) -> Unit,
     enabled: Boolean = true,
     modifier: Modifier = Modifier,
@@ -41,7 +55,9 @@ fun StatefulCredentialSchemeInputField(
         },
         expanded = showMenu,
         onExpandedChange = {
-            showMenu = it
+            if (enabled) {
+                showMenu = it
+            }
         },
         enabled = enabled,
         modifier = modifier,

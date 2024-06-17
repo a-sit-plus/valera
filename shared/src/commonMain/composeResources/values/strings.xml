@@ -114,6 +114,7 @@
     <string name="heading_label_terms_of_use">UNTRANSLATED:heading_label_terms_of_use</string>
     <string name="heading_label_data_protection">UNTRANSLATED:heading_label_data_protection</string>
     <string name="heading_label_terms_of_use_and_data_protection">UNTRANSLATED:heading_label_terms_of_use_and_data_protection</string>
+    <string name="heading_label_add_credential_screen">UNTRANSLATED:heading_label_add_credential_screen</string>
     <string name="heading_label_load_data_screen">UNTRANSLATED:heading_label_load_data_screen</string>
     <string name="heading_label_refresh_data_screen">UNTRANSLATED:heading_label_refresh_data_screen</string>
     <string name="heading_label_authenticate_at_device_screen">UNTRANSLATED:heading_label_authenticate_at_device_screen</string>
@@ -124,8 +125,10 @@
     <string name="biometric_authentication_prompt_to_load_data_title">UNTRANSLATED:biometric_authentication_prompt_to_load_data_title</string>
     <string name="biometric_authentication_prompt_to_load_data_subtitle">UNTRANSLATED:biometric_authentication_prompt_to_load_data_subtitle</string>
     <string name="content_description_navigate_back">UNTRANSLATED:content_description_navigate_back</string>
+    <string name="content_description_delete_credential">UNTRANSLATED:content_description_delete_credential</string>
     <string name="content_description_portrait">UNTRANSLATED:content_description_portrait</string>
     <string name="content_description_refresh_credentials">UNTRANSLATED:content_description_refresh_credentials</string>
+    <string name="content_description_add_credential">UNTRANSLATED:content_description_add_credential</string>
     <string name="content_description_show_attributes">UNTRANSLATED:content_description_show_attributes</string>
     <string name="content_description_hide_attributes">UNTRANSLATED:content_description_hide_attributes</string>
 
@@ -164,6 +167,7 @@
     <string name="info_text_redirection_to_id_austria_for_credential_provisioning">UNTRANSLATED:info_text_redirection_to_id_austria_for_credential_provisioning</string>
     <string name="info_text_notice_development_provisioning_using_qr_code_credentials">UNTRANSLATED:info_text_notice_development_provisioning_using_qr_code_credentials</string>
     <string name="info_text_enthusiastic_welcome_end">UNTRANSLATED:info_text_enthusiastic_welcome_end</string>
+    <string name="info_text_submission_preview_disabled">UNTRANSLATED:info_text_submission_preview_disabled</string>
 
     <string name="section_heading_authenticate_at_device_title">UNTRANSLATED:section_heading_authenticate_at_device_title</string>
     <string name="section_heading_authenticate_at_device_subtitle">UNTRANSLATED:section_heading_authenticate_at_device_subtitle</string>
@@ -188,6 +192,7 @@
     <string name="section_heading_identity_data_icon_text">UNTRANSLATED:section_heading_identity_data_icon_text</string>
     <string name="section_heading_residence_data">UNTRANSLATED:section_heading_residence_data</string>
     <string name="section_heading_residence_data_icon_text">UNTRANSLATED:section_heading_residence_data_icon_text</string>
+    <string name="section_heading_load_data_selection">UNTRANSLATED:section_heading_load_data_selection</string>
     <string name="section_heading_missing_data">UNTRANSLATED:section_heading_missing_data</string>
     <string name="section_heading_available_data">UNTRANSLATED:section_heading_available_data</string>
 

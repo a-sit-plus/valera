@@ -4,9 +4,10 @@ import at.asitplus.KmmResult
 import at.asitplus.KmmResult.Companion.wrap
 import at.asitplus.crypto.datatypes.CryptoAlgorithm
 import at.asitplus.crypto.datatypes.CryptoPublicKey
+import at.asitplus.crypto.datatypes.CryptoPublicKey.EC.Companion.fromUncompressed
 import at.asitplus.crypto.datatypes.CryptoSignature
 import at.asitplus.crypto.datatypes.Digest
-import at.asitplus.crypto.datatypes.EcCurve
+import at.asitplus.crypto.datatypes.ECCurve
 import at.asitplus.crypto.datatypes.asn1.ensureSize
 import at.asitplus.crypto.datatypes.cose.CoseKey
 import at.asitplus.crypto.datatypes.cose.toCoseAlgorithm
@@ -45,7 +46,7 @@ class AndroidCryptoService(
     override val certificate: X509Certificate
 ) : CryptoService {
 
-    private val ecCurve: EcCurve = EcCurve.SECP_256_R_1
+    private val ecCurve: ECCurve = ECCurve.SECP_256_R_1
     private val cryptoPublicKey: CryptoPublicKey
     override val algorithm: CryptoAlgorithm
         get() = CryptoAlgorithm.ES256
@@ -132,7 +133,7 @@ class AndroidCryptoService(
     ): KmmResult<ByteArray> =
         KmmResult.failure(NotImplementedError())
 
-    override fun generateEphemeralKeyPair(ecCurve: EcCurve): KmmResult<EphemeralKeyHolder> =
+    override fun generateEphemeralKeyPair(ecCurve: ECCurve): KmmResult<EphemeralKeyHolder> =
         KmmResult.success(JvmEphemeralKeyHolder(ecCurve))
 
     override fun messageDigest(input: ByteArray, digest: Digest): KmmResult<ByteArray> = try {
@@ -145,6 +146,6 @@ class AndroidCryptoService(
         val ecPublicKey = keyPair.public as ECPublicKey
         val keyX = ecPublicKey.w.affineX.toByteArray().ensureSize(ecCurve.coordinateLengthBytes)
         val keyY = ecPublicKey.w.affineY.toByteArray().ensureSize(ecCurve.coordinateLengthBytes)
-        this.cryptoPublicKey = CryptoPublicKey.Ec(curve = EcCurve.SECP_256_R_1, x = keyX, y = keyY)
+        this.cryptoPublicKey = fromUncompressed(curve = ECCurve.SECP_256_R_1, x = keyX, y = keyY)
     }
 }

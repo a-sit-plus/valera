@@ -4,9 +4,10 @@ plugins {
     id("com.android.application").apply(false)
     id("com.android.library").apply(false)
     id("org.jetbrains.compose").apply(false)
-    id("at.asitplus.gradle.conventions") version "1.9.23+20240319"
+    id("at.asitplus.gradle.conventions") version "1.9.23+20240501"
 }
 
 repositories {
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+    maven("https://oss.sonatype.org/content/repositories/snapshots/")
 }

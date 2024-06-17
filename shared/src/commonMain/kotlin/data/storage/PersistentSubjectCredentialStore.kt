@@ -24,20 +24,16 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
     private val container = this.observeStoreContainer()
 
     override suspend fun storeCredential(
-        vc: VerifiableCredentialJws,
-        vcSerialized: String,
-        scheme: ConstantIndex.CredentialScheme
+        vc: VerifiableCredentialJws, vcSerialized: String, scheme: ConstantIndex.CredentialScheme
     ) {
-        val newContainer = container.first().let { containerInstance ->
-            containerInstance.filterNotScheme(scheme).copy(
-                credentials = listOf(
+        val newContainer = container.first().let {
+            it.copy(
+                credentials = it.credentials + listOf(
                     SubjectCredentialStore.StoreEntry.Vc(
-                        vcSerialized,
-                        vc,
-                        scheme
+                        vcSerialized, vc, scheme
                     )
                 ),
-                attachments = listOf(),
+                attachments = it.attachments,
             )
         }
         exportToDataStore(newContainer)
@@ -49,38 +45,31 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         disclosures: Map<String, SelectiveDisclosureItem?>,
         scheme: ConstantIndex.CredentialScheme
     ) {
-        val newContainer = container.first().let { containerInstance ->
-            containerInstance.filterNotScheme(scheme).copy(
-                credentials = listOf(
+        val newContainer = container.first().let {
+            it.copy(
+                credentials = it.credentials + listOf(
                     SubjectCredentialStore.StoreEntry.SdJwt(
-                        vcSerialized,
-                        vc,
-                        disclosures,
-                        scheme
+                        vcSerialized, vc, disclosures, scheme
                     ),
                 ),
-                attachments = listOf(),
+                attachments = it.attachments,
             )
         }
         exportToDataStore(newContainer)
     }
 
     override suspend fun storeCredential(
-        issuerSigned: IssuerSigned,
-        scheme: ConstantIndex.CredentialScheme
+        issuerSigned: IssuerSigned, scheme: ConstantIndex.CredentialScheme
     ) {
-        val newContainer = container.first().let { containerInstance ->
-            containerInstance.filterNotScheme(scheme).let {
-                it.copy(
-                    credentials = listOf(
-                        SubjectCredentialStore.StoreEntry.Iso(
-                            issuerSigned,
-                            scheme
-                        ),
+        val newContainer = container.first().let {
+            it.copy(
+                credentials = it.credentials + listOf(
+                    SubjectCredentialStore.StoreEntry.Iso(
+                        issuerSigned, scheme
                     ),
-                    attachments = listOf(),
-                )
-            }
+                ),
+                attachments = it.attachments,
+            )
         }
         exportToDataStore(newContainer)
     }
@@ -90,9 +79,9 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
             storeContainer.copy(
                 credentials = storeContainer.credentials,
                 // consider attachments unique by vcId and attachment name
-                attachments = storeContainer.attachments.filterNot { attachment ->
-                    attachment.vcId == vcId && attachment.name == name
-                } + SubjectCredentialStore.AttachmentEntry(name, data, vcId),
+                attachments = storeContainer.attachments + SubjectCredentialStore.AttachmentEntry(
+                    name, data, vcId
+                ),
             )
         }
         exportToDataStore(newContainer)
@@ -114,19 +103,13 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
 
     override suspend fun getAttachment(name: String) =
         container.first().attachments.firstOrNull { it.name == name }?.data?.let {
-            KmmResult.success(
-                it
-            )
-        }
-            ?: KmmResult.failure(NullPointerException("Attachment not found"))
+            KmmResult.success(it)
+        } ?: KmmResult.failure(NullPointerException("Attachment not found"))
 
     override suspend fun getAttachment(name: String, vcId: String) =
         container.first().attachments.firstOrNull { it.name == name && it.vcId == vcId }?.data?.let {
-            KmmResult.success(
-                it
-            )
-        }
-            ?: KmmResult.failure(NullPointerException("Attachment not found"))
+            KmmResult.success(it)
+        } ?: KmmResult.failure(NullPointerException("Attachment not found"))
 
     private suspend fun exportToDataStore(newContainer: StoreContainer) {
         val exportableCredentials = mutableListOf<ExportableStoreEntry>()
@@ -144,7 +127,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
                     exportableCredentials.add(
                         ExportableStoreEntry.Iso(
                             issuerSigned = it.issuerSigned,
-                            scheme = scheme
+                            scheme = scheme,
                         )
                     )
                 }
@@ -179,7 +162,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
                         ExportableStoreEntry.Vc(
                             vcSerialized = it.vcSerialized,
                             vc = it.vc,
-                            scheme = scheme
+                            scheme = scheme,
                         )
                     )
                 }
@@ -192,7 +175,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
                 ExportableAttachmentEntry(
                     name = it.name,
                     data = it.data,
-                    vcId = it.vcId
+                    vcId = it.vcId,
                 )
             )
         }
@@ -210,22 +193,32 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
 
     suspend fun removeStoreEntryById(id: String) {
         val newContainer = container.first().let {
-            it.copy(
-                credentials = it.credentials.filterNot { entry ->
-                    when (entry) {
-                        is SubjectCredentialStore.StoreEntry.Vc -> {
-                            entry.vc.jwtId == id
-                        }
+            it.copy(credentials = it.credentials.filterNot { entry ->
+                when (entry) {
+                    is SubjectCredentialStore.StoreEntry.Vc -> {
+                        entry.vc.jwtId == id
+                    }
 
-                        is SubjectCredentialStore.StoreEntry.SdJwt -> {
-                            entry.sdJwt.jwtId == id
-                        }
+                    is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                        entry.sdJwt.jwtId == id
+                    }
 
-                        is SubjectCredentialStore.StoreEntry.Iso -> {
-                            false
-                        }
+                    is SubjectCredentialStore.StoreEntry.Iso -> {
+                        // TODO: identifier for mdoc credentials?
+                        false
                     }
                 }
+            })
+        }
+        exportToDataStore(newContainer)
+    }
+
+    suspend fun removeStoreEntryByIndex(index: Int) {
+        val newContainer = container.first().let {
+            it.copy(
+                credentials = it.credentials.filterIndexed { credentialIndex, _ ->
+                    credentialIndex != index
+                },
             )
         }
         exportToDataStore(newContainer)
@@ -281,8 +274,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
                         }
                         credentials.add(
                             SubjectCredentialStore.StoreEntry.Iso(
-                                it.issuerSigned,
-                                scheme
+                                it.issuerSigned, scheme
                             )
                         )
                     }
@@ -313,9 +305,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
                         }
                         credentials.add(
                             SubjectCredentialStore.StoreEntry.Vc(
-                                vcSerialized = it.vcSerialized,
-                                vc = it.vc,
-                                scheme = scheme
+                                vcSerialized = it.vcSerialized, vc = it.vc, scheme = scheme
                             )
                         )
                     }
@@ -324,9 +314,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
             export.attachments.forEach {
                 attachments.add(
                     SubjectCredentialStore.AttachmentEntry(
-                        name = it.name,
-                        data = it.data,
-                        vcId = it.vcId
+                        name = it.name, data = it.data, vcId = it.vcId
                     )
                 )
             }
@@ -433,8 +421,7 @@ sealed class ExportableStoreEntry {
 
     @Serializable
     data class Iso(
-        val issuerSigned: IssuerSigned,
-        val scheme: ExportableCredentialScheme
+        val issuerSigned: IssuerSigned, val scheme: ExportableCredentialScheme
     ) : ExportableStoreEntry()
 }
 
@@ -460,9 +447,6 @@ data class ExportableAttachmentEntry(val name: String, val data: ByteArray, val 
 }
 
 enum class ExportableCredentialScheme {
-    AtomicAttribute2023,
-    IdAustriaScheme,
-    MobileDrivingLicence2023,
-    EuPidScheme,
+    AtomicAttribute2023, IdAustriaScheme, MobileDrivingLicence2023, EuPidScheme,
 }
 
