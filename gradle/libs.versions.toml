@@ -2,6 +2,7 @@
 encoding = "1.2.3"
 bignum = "0.3.9"
 vcLib = "4.0.0-SNAPSHOT"
+mdl = "1.0.0-SNAPSHOT"
 kmpCrypto = "3.2.0"
 ida = "3.4.0"
 eupid = "2.0.1"
@@ -22,6 +23,7 @@ credential-ida = { module = "at.asitplus.wallet:idacredential", version.ref = "i
 credential-eupid = { module = "at.asitplus.wallet:eupidcredential", version.ref = "eupid" }
 atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version.ref = "atomicfu" }
 vclib-openid = { group = "at.asitplus.wallet", name = "vclib-openid", version.ref = "vcLib" }
+vclib-mdl = { group = "at.asitplus.wallet", name = "mobiledrivinglicence", version.ref = "mdl" }
 
 [plugins]
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }

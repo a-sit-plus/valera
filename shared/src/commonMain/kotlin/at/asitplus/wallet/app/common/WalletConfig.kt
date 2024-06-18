@@ -54,7 +54,7 @@ class WalletConfig(
                 val newConfig = ConfigData(
                     host = host ?: this@WalletConfig.host.first(),
                     credentialSchemeVcType = credentialSchemeVcType
-                        ?: this@WalletConfig.credentialScheme.first().vcType,
+                        ?: this@WalletConfig.credentialScheme.first().vcType!!,
                     credentialRepresentation = credentialRepresentation
                         ?: this@WalletConfig.credentialRepresentation.first(),
                     isConditionsAccepted = isConditionsAccepted

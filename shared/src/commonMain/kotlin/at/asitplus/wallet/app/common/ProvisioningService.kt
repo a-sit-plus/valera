@@ -103,7 +103,7 @@ class ProvisioningService(
                     xAuthToken = xAuthToken,
                     host = host,
                     credentialRepresentation = credentialRepresentation,
-                    credentialSchemeVcType = credentialScheme.vcType,
+                    credentialSchemeVcType = credentialScheme.vcType!!,
                     requestedAttributes = requestedAttributes,
                 )
 

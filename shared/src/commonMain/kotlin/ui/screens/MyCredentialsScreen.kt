@@ -34,7 +34,6 @@ import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
-import at.asitplus.wallet.lib.iso.ElementValue
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.content_description_add_credential
 import composewalletapp.shared.generated.resources.content_description_delete_credential
@@ -210,17 +209,11 @@ private fun ColumnScope.SingleIsoCredentialCardContent(
     credential.issuerSigned.namespaces?.forEach { namespace ->
         namespace.value.entries.forEach { entry ->
             LabeledText(
-                text = entry.value.elementValue.let {
-                    it.string
-                        ?: it.boolean?.toString()
-                        ?: it.drivingPrivilege?.toString()
-                        ?: it.date?.toString()
-                        ?: it.bytes?.toString()!!
-                },
+                text = entry.value.elementValue.toString(),
                 label = NormalizedJsonPath(
                     NormalizedJsonPathSegment.NameSegment(namespace.key),
                     NormalizedJsonPathSegment.NameSegment(entry.value.elementIdentifier),
-                ).toString()
+                ).toString(),
             )
         }
     }
@@ -246,15 +239,6 @@ private fun SingleCredentialCardLayout(
     }
 }
 
-private fun ElementValue.toUiString(): String {
-    return this.string
-        ?: this.boolean?.toString()
-        ?: this.drivingPrivilege?.toString()
-        ?: this.date?.toString()
-        ?: this.bytes?.toString()!!
-}
-
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 private fun SingleCredentialCardDeleteButton(
     onClick: () -> Unit,

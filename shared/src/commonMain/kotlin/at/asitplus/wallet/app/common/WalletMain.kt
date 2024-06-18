@@ -39,6 +39,7 @@ class WalletMain(
     init {
         at.asitplus.wallet.idaustria.Initializer.initWithVcLib()
         at.asitplus.wallet.eupid.Initializer.initWithVcLib()
+        at.asitplus.wallet.mdl.Initializer.initWithVcLib()
         Napier.takeLogarithm()
         Napier.base(AntilogAdapter(platformAdapter, ""))
     }
@@ -49,7 +50,7 @@ class WalletMain(
             WalletConfig(dataStoreService = this.dataStoreService, errorService = errorService)
         cryptoService = objectFactory.loadCryptoService().getOrThrow()
         subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
-        holderAgent = HolderAgent.newDefaultInstance(
+        holderAgent = HolderAgent(
             cryptoService = cryptoService,
             subjectCredentialStore = subjectCredentialStore,
         )
