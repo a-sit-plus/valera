@@ -9,7 +9,8 @@ import org.jetbrains.kotlin.gradle.plugin.extraProperties
 plugins {
     kotlin("multiplatform")
     id("com.android.library")
-    id("org.jetbrains.compose")
+    alias(libs.plugins.jetbrainsCompose)
+    alias(libs.plugins.compose.compiler)
     id("at.asitplus.gradle.conventions")
     id("kotlin-parcelize")
     kotlin("plugin.serialization")
