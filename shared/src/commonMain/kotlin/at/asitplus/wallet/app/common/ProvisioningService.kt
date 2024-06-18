@@ -3,6 +3,7 @@ package at.asitplus.wallet.app.common
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.Holder
 import at.asitplus.wallet.lib.agent.HolderAgent
+import at.asitplus.wallet.lib.agent.Verifier
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.jsonSerializer
@@ -181,10 +182,11 @@ class ProvisioningService(
             ?: throw Exception("codeUrl is null")
 
         val authnResponse = Url(codeUrl).parameters.flattenEntries().toMap()
-                .decodeFromUrlQuery<AuthenticationResponseParameters>()
+            .decodeFromUrlQuery<AuthenticationResponseParameters>()
         val code = authnResponse.code
             ?: throw Exception("code is null")
-        val tokenRequest = oid4vciService.createTokenRequestParameters(requestOptions, code, requestOptions.state)
+        val tokenRequest =
+            oid4vciService.createTokenRequestParameters(requestOptions, code, requestOptions.state)
         Napier.d("Created tokenRequest")
         val tokenResponse: TokenResponseParameters =
             client.submitForm(metadata.tokenEndpointUrl.toString()) {
@@ -193,7 +195,11 @@ class ProvisioningService(
 
         Napier.d("Received tokenResponse")
         val credentialRequest =
-            oid4vciService.createCredentialRequestJwt(requestOptions, tokenResponse.clientNonce, metadata.credentialIssuer).getOrThrow()
+            oid4vciService.createCredentialRequestJwt(
+                requestOptions,
+                tokenResponse.clientNonce,
+                metadata.credentialIssuer
+            ).getOrThrow()
         Napier.d("Created credentialRequest")
         val credentialResponse: CredentialResponseParameters =
             client.post(metadata.credentialEndpointUrl.toString()) {
@@ -232,7 +238,7 @@ class ProvisioningService(
                 CredentialFormatEnum.MSO_MDOC -> {
                     it.decodeBase64()?.toByteArray()?.let {
                         IssuerSigned.deserialize(it)
-                    }?.getOrNull()?.also { issuerSigned ->
+                    }?.getOrNull()?.let { issuerSigned ->
                         holderAgent.storeCredentials(
                             listOf(
                                 Holder.StoreCredentialInput.Iso(
@@ -243,6 +249,10 @@ class ProvisioningService(
                         )
                     } ?: throw Exception("Invalid credential format: $it")
                 }
+            }
+        }?.let {
+            if (it.rejected.isNotEmpty()) {
+                throw Exception("Provisioning Failed for ${it.rejected.size}/${it.rejected.size + it.acceptedIso.size + it.acceptedSdJwt.size + it.acceptedVcJwt.size} credentials.")
             }
         }
     }
