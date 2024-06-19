@@ -113,7 +113,7 @@ android {
     }
 
     packaging {
-        resources.excludes+=("META-INF/versions/*")
+        resources.excludes+=("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
     }
     testOptions {
         managedDevices {
