@@ -37,9 +37,9 @@ class WalletMain(
     val scope = CoroutineScope(Dispatchers.Default)
 
     init {
+        at.asitplus.wallet.mdl.Initializer.initWithVcLib()
         at.asitplus.wallet.idaustria.Initializer.initWithVcLib()
         at.asitplus.wallet.eupid.Initializer.initWithVcLib()
-        at.asitplus.wallet.mdl.Initializer.initWithVcLib()
         Napier.takeLogarithm()
         Napier.base(AntilogAdapter(platformAdapter, ""))
     }
