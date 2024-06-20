@@ -29,6 +29,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
@@ -54,7 +56,7 @@ fun MyCredentialsScreen(
 ) {
     MyCredentialsScreen(
         navigateToAddCredentialsPage = navigateToAddCredentialsPage,
-        viewModel =  CredentialScreenViewModel(walletMain)
+        viewModel = CredentialScreenViewModel(walletMain)
     )
 }
 
@@ -215,7 +217,10 @@ private fun ColumnScope.SingleIsoCredentialCardContent(
                         ?: it.date?.toString()
                         ?: it.bytes?.toString()!!
                 },
-                label = "\$[${namespace.key.quote()}][${entry.value.elementIdentifier.quote()}]"
+                label = NormalizedJsonPath(
+                    NormalizedJsonPathSegment.NameSegment(namespace.key),
+                    NormalizedJsonPathSegment.NameSegment(entry.value.elementIdentifier),
+                ).toString()
             )
         }
     }
