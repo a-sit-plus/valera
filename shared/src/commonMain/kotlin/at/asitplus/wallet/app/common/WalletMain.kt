@@ -50,7 +50,7 @@ class WalletMain(
             WalletConfig(dataStoreService = this.dataStoreService, errorService = errorService)
         cryptoService = objectFactory.loadCryptoService().getOrThrow()
         subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
-        holderAgent = HolderAgent(
+        holderAgent = HolderAgent.newDefaultInstance(
             cryptoService = cryptoService,
             subjectCredentialStore = subjectCredentialStore,
         )
