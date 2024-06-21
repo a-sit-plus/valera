@@ -9,10 +9,12 @@ data class BiometryPromptDismissResult(
 
 class BiometryPromptSuccessResult
 
-@Composable
-expect fun BiometryPrompt(
-    title: String,
-    subtitle: String,
-    onSuccess: (BiometryPromptSuccessResult) -> Unit,
-    onDismiss: (BiometryPromptDismissResult) -> Unit,
-)
+fun interface BiometryPrompt {
+    @Composable
+    operator fun invoke(
+        title: String,
+        subtitle: String,
+        onSuccess: (BiometryPromptSuccessResult) -> Unit,
+        onDismiss: (BiometryPromptDismissResult) -> Unit,
+    )
+}

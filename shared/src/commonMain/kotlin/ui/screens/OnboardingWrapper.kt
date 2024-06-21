@@ -1,5 +1,6 @@
 package ui.screens
 
+import LocalUiProvider
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.Scaffold
@@ -59,6 +60,7 @@ fun OnboardingNavigator(
     onOnboardingComplete: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val uiProvider = LocalUiProvider.current
     // Modified from https://github.com/JetBrains/compose-multiplatform/tree/master/examples/imageviewer
     val navigationStack = rememberSaveable(
         saver = listSaver(
@@ -66,7 +68,7 @@ fun OnboardingNavigator(
             save = { it.stack },
         )
     ) {
-        NavigationStack<OnboardingPage>(OnboardingStartPage())
+        NavigationStack<OnboardingPage>(uiProvider.navigationPages.onboardingStartPage())
     }
     val snackbarHostState = remember { SnackbarHostState() }
     val snackbarService = SnackbarService(CoroutineScope(Dispatchers.Default), snackbarHostState)
@@ -82,7 +84,7 @@ fun OnboardingNavigator(
                 is OnboardingStartPage -> {
                     OnboardingStartScreen(
                         onClickStart = {
-                            navigationStack.push(OnboardingInformationPage())
+                            navigationStack.push(uiProvider.navigationPages.onboardingInformationPage())
                         },
                         modifier = Modifier.testTag(OnboardingWrapperTestTags.onboardingStartScreen),
                     )
@@ -91,7 +93,7 @@ fun OnboardingNavigator(
                 is OnboardingInformationPage -> {
                     OnboardingInformationScreen(
                         onClickContinue = {
-                            navigationStack.push(OnboardingTermsPage())
+                            navigationStack.push(uiProvider.navigationPages.onboardingTermsPage())
                         }
                     )
                 }

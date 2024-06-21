@@ -1,9 +1,9 @@
-
-import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -11,7 +11,6 @@ import androidx.compose.ui.platform.testTag
 import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
-import ui.theme.WalletTheme
 
 
 /**
@@ -35,29 +34,29 @@ internal object AppTestTags {
 }
 
 @Composable
-fun App(walletMain: WalletMain) {
+fun App(walletMain: WalletMain, uiProvider: UiProvider) {
     val snackbarHostState = remember { SnackbarHostState() }
     val snackbarService = SnackbarService(walletMain.scope, snackbarHostState)
 
     try {
         walletMain.initialize(snackbarService)
-    } catch (e: Throwable){
+    } catch (e: Throwable) {
         walletMain.errorService.emit(UncorrectableErrorException(e))
     }
 
-    WalletTheme {
-        Scaffold(
-            snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
-            },
-            modifier = Modifier.testTag(AppTestTags.rootScaffold)
-        ) { _ ->
-            Navigator(walletMain)
+    MaterialTheme(
+        colorScheme = uiProvider.colorScheme,
+    ) {
+        CompositionLocalProvider(
+            LocalUiProvider provides uiProvider,
+        ) {
+            Scaffold(
+                snackbarHost = {
+                    SnackbarHost(hostState = snackbarHostState)
+                }, modifier = Modifier.testTag(AppTestTags.rootScaffold)
+            ) { _ ->
+                Navigator(walletMain)
+            }
         }
     }
 }
-
-expect fun getPlatformName(): String
-
-@Composable
-expect fun getColorScheme(): ColorScheme

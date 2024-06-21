@@ -9,13 +9,14 @@ import at.asitplus.wallet.app.common.WalletMain
 import data.storage.RealDataStoreService
 import data.storage.createDataStore
 import platform.UIKit.UIViewController
+import ui.composables.IosBiometryPrompt
+import ui.navigation.NavigationPages
 import ui.theme.darkScheme
 import ui.theme.lightScheme
-
-actual fun getPlatformName(): String = "iOS"
+import ui.views.IosCameraView
 
 @Composable
-actual fun getColorScheme(): ColorScheme {
+fun getColorScheme(): ColorScheme {
     return if (isSystemInDarkTheme()) {
         darkScheme
     } else {
@@ -23,18 +24,32 @@ actual fun getColorScheme(): ColorScheme {
     }
 }
 
+@Composable
+fun IosApp(
+    walletMain: WalletMain,
+) {
+    App(
+        walletMain,
+        UiProvider(
+            colorScheme = getColorScheme(),
+            cameraView = IosCameraView,
+            biometryPrompt = IosBiometryPrompt,
+            navigationPages = NavigationPages.createWithDefaults(),
+        ),
+    )
+}
 
 fun MainViewController(
     objectFactory: ObjectFactory,
     platformAdapter: PlatformAdapter,
     buildContext: BuildContext,
 ): UIViewController = ComposeUIViewController {
-    App(
-        WalletMain(
-            objectFactory,
-            RealDataStoreService(createDataStore(), platformAdapter),
-            platformAdapter,
-            buildContext,
+    IosApp(
+        WalletMain.createWithDefaults(
+            objectFactory = objectFactory,
+            dataStoreService = RealDataStoreService(createDataStore(), platformAdapter),
+            platformAdapter = platformAdapter,
+            buildContext = buildContext,
         )
     )
 }

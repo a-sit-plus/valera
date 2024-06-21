@@ -42,14 +42,12 @@ import ui.navigation.LogPage
 import ui.navigation.NavigationStack
 import ui.navigation.Page
 import ui.navigation.ProvisioningLoadingPage
-import ui.navigation.RefreshCredentialsPage
 import ui.navigation.SettingsPage
 import ui.screens.AddCredentialScreen
 import ui.screens.AuthenticationConsentScreen
 import ui.screens.AuthenticationQrCodeScannerScreen
 import ui.screens.AuthenticationSuccessScreen
 import ui.screens.ErrorScreen
-import ui.screens.LoadDataScreen
 import ui.screens.LoadingScreen
 import ui.screens.LogScreen
 import ui.screens.MyCredentialsScreen
@@ -64,6 +62,7 @@ internal object NavigatorTestTags {
 
 @Composable
 fun Navigator(walletMain: WalletMain) {
+    val uiProvider = LocalUiProvider.current
     // Modified from https://github.com/JetBrains/compose-multiplatform/tree/master/examples/imageviewer
     val mainNavigationStack = rememberSaveable(
         saver = listSaver<NavigationStack<Page>, Page>(
@@ -71,7 +70,7 @@ fun Navigator(walletMain: WalletMain) {
             save = { it.stack },
         )
     ) {
-        NavigationStack(HomePage())
+        NavigationStack(uiProvider.navigationPages.homePage())
     }
 
     LaunchedEffect(appLink.value) {
@@ -97,9 +96,7 @@ fun Navigator(walletMain: WalletMain) {
             if (walletMain.provisioningService.redirectUri?.let { link.contains(it) } == true) {
                 walletMain.provisioningService.redirectUri = null
                 mainNavigationStack.push(
-                    ProvisioningLoadingPage(
-                        link = link
-                    )
+                    uiProvider.navigationPages.provisioningLoadingPage(link)
                 )
                 appLink.value = null
                 return@LaunchedEffect
@@ -109,7 +106,9 @@ fun Navigator(walletMain: WalletMain) {
             kotlin.run {
                 val consentPageBuilder =
                     BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
-                        oidcSiopWallet = walletMain.presentationService.oidcSiopWallet
+                        oidcSiopWallet = walletMain.presentationService.oidcSiopWallet,
+                        consentPageBuilder = uiProvider.navigationPages.authenticationConsentPage,
+                        fromQrCodeScanner = false,
                     )
 
                 consentPageBuilder(link).unwrap().onSuccess {
@@ -150,6 +149,7 @@ fun MainNavigator(
     walletMain: WalletMain,
     modifier: Modifier = Modifier,
 ) {
+    val uiProvider = LocalUiProvider.current
     Scaffold(
         bottomBar = {
             val (_, page) = navigationStack.lastWithIndex()
@@ -168,6 +168,7 @@ fun MainNavigator(
                         NavigationData.AUTHENTICATION_SCANNING_SCREEN,
                         NavigationData.INFORMATION_SCREEN,
                     )) {
+                        val destination = route.destination()
                         NavigationBarItem(
                             icon = route.icon,
                             label = {
@@ -175,7 +176,7 @@ fun MainNavigator(
                             },
                             onClick = {
                                 if (route.isActive(page) == false) {
-                                    navigationStack.push(route.destination)
+                                    navigationStack.push(destination)
                                 }
                             },
                             selected = route.isActive(page),
@@ -192,7 +193,7 @@ fun MainNavigator(
                     is HomePage -> {
                         MyCredentialsScreen(
                             navigateToAddCredentialsPage = {
-                                navigationStack.push(AddCredentialPage())
+                                navigationStack.push(uiProvider.navigationPages.addCredentialPage())
                             },
                             walletMain = walletMain,
                         )
@@ -200,14 +201,6 @@ fun MainNavigator(
 
                     is AddCredentialPage -> {
                         AddCredentialScreen(
-                            navigateUp = navigateUp,
-                            walletMain = walletMain,
-                        )
-                    }
-
-                    is RefreshCredentialsPage -> {
-                        LoadDataScreen(
-                            refreshRequirements = page.refreshRequirements,
                             navigateUp = navigateUp,
                             walletMain = walletMain,
                         )
@@ -224,7 +217,7 @@ fun MainNavigator(
                     is SettingsPage -> {
                         SettingsScreen(
                             navigateToLogPage = {
-                                navigationStack.push(LogPage())
+                                navigationStack.push(uiProvider.navigationPages.logPage())
                             },
                             onClickResetApp = {
                                 val resetMessage = runBlocking {
@@ -251,10 +244,11 @@ fun MainNavigator(
                             navigateUp = navigateUp,
                             navigateToConsentScreen = navigationStack::push,
                             navigateToLoadingScreen = {
-                                navigationStack.push(AuthenticationLoadingPage())
+                                navigationStack.push(uiProvider.navigationPages.authenticationLoadingPage())
                             },
                             authenticationQrCodeScannerViewModel = AuthenticationQrCodeScannerViewModel(
                                 oidcSiopWallet = walletMain.presentationService.oidcSiopWallet,
+                                consentPageBuilder = uiProvider.navigationPages.authenticationConsentPage,
                             ),
                             walletMain = walletMain,
                         )
@@ -290,7 +284,7 @@ fun MainNavigator(
                                         navigateUp = navigateUp,
                                         navigateToAuthenticationSuccessPage = {
                                             navigationStack.push(
-                                                AuthenticationSuccessPage()
+                                                uiProvider.navigationPages.authenticationSuccessPage()
                                             )
                                         },
                                         walletMain = walletMain,
@@ -320,7 +314,7 @@ fun MainNavigator(
 private enum class NavigationData(
     val title: StringResource,
     val icon: @Composable () -> Unit,
-    val destination: Page,
+    val destination: @Composable () -> Page,
     val isActive: (Page) -> Boolean
 ) {
     HOME_SCREEN(
@@ -331,7 +325,9 @@ private enum class NavigationData(
                 contentDescription = null,
             )
         },
-        destination = HomePage(),
+        destination = {
+            LocalUiProvider.current.navigationPages.homePage()
+        },
         isActive = {
             when (it) {
                 is HomePage -> true
@@ -347,7 +343,9 @@ private enum class NavigationData(
                 contentDescription = null,
             )
         },
-        destination = AuthenticationQrCodeScannerPage(),
+        destination = {
+            LocalUiProvider.current.navigationPages.authenticationQrCodeScannerPage()
+        },
         isActive = {
             when (it) {
                 is AuthenticationQrCodeScannerPage -> true
@@ -363,7 +361,9 @@ private enum class NavigationData(
                 contentDescription = null,
             )
         },
-        destination = SettingsPage(),
+        destination = {
+            LocalUiProvider.current.navigationPages.settingsPage()
+        },
         isActive = {
             when (it) {
                 is SettingsPage -> true

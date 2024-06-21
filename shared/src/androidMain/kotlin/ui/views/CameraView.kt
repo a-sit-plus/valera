@@ -42,29 +42,31 @@ import kotlin.math.absoluteValue
 
 private val executor = Executors.newSingleThreadExecutor()
 
-@OptIn(ExperimentalPermissionsApi::class)
-@Composable
-actual fun CameraView(
-    onFoundPayload: (text: String) -> Unit,
-    modifier: Modifier,
-) {
-    val cameraPermissionState = rememberMultiplePermissionsState(
-        listOf(
-            android.Manifest.permission.CAMERA,
+object AndroidCameraView : CameraView {
+    @OptIn(ExperimentalPermissionsApi::class)
+    @Composable
+    override operator fun invoke(
+        onFoundPayload: (text: String) -> Unit,
+        modifier: Modifier,
+    ) {
+        val cameraPermissionState = rememberMultiplePermissionsState(
+            listOf(
+                android.Manifest.permission.CAMERA,
+            )
         )
-    )
-    if (cameraPermissionState.allPermissionsGranted) {
-        CameraWithGrantedPermission(
-            onFoundPayload,
-            modifier = modifier,
-        )
-    } else {
-        LaunchedEffect(Unit) {
-            Napier.d("Get Camera Permission")
-            cameraPermissionState.launchMultiplePermissionRequest()
+        if (cameraPermissionState.allPermissionsGranted) {
+            CameraWithGrantedPermission(
+                onFoundPayload,
+                modifier = modifier,
+            )
+        } else {
+            LaunchedEffect(Unit) {
+                Napier.d("Get Camera Permission")
+                cameraPermissionState.launchMultiplePermissionRequest()
+            }
         }
-    }
 
+    }
 }
 
 @androidx.annotation.OptIn(ExperimentalGetImage::class) @Composable

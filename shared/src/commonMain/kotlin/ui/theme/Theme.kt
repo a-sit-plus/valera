@@ -1,12 +1,12 @@
 package ui.theme
 
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
-import getColorScheme
 
 
 val lightScheme = lightColorScheme(
@@ -88,12 +88,11 @@ val unspecified_scheme = ColorFamily(
 
 @Composable
 fun WalletTheme(
+    colorScheme: ColorScheme,
     content: @Composable () -> Unit
 ) {
-    val colors = getColorScheme()
-
     MaterialTheme(
-        colorScheme = colors,
+        colorScheme = colorScheme,
         content = content
     )
 }

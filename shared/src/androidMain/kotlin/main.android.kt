@@ -23,15 +23,28 @@ import at.asitplus.wallet.lib.agent.CryptoService
 import data.storage.RealDataStoreService
 import data.storage.getDataStore
 import io.github.aakira.napier.Napier
+import ui.composables.AndroidBiometryPrompt
+import ui.navigation.AndroidAddCredentialPage
+import ui.navigation.AndroidAuthenticationConsentPage
+import ui.navigation.AndroidAuthenticationLoadingPage
+import ui.navigation.AndroidAuthenticationQrCodeScannerPage
+import ui.navigation.AndroidAuthenticationSuccessPage
+import ui.navigation.AndroidHomePage
+import ui.navigation.AndroidLogPage
+import ui.navigation.AndroidOnboardingInformationPage
+import ui.navigation.AndroidOnboardingStartPage
+import ui.navigation.AndroidOnboardingTermsPage
+import ui.navigation.AndroidProvisioningLoadingPage
+import ui.navigation.AndroidSettingsPage
+import ui.navigation.NavigationPages
 import ui.theme.darkScheme
 import ui.theme.lightScheme
+import ui.views.AndroidCameraView
 import java.io.File
-
-actual fun getPlatformName(): String = "Android"
 
 // Modified from https://developer.android.com/jetpack/compose/designsystems/material3
 @Composable
-actual fun getColorScheme(): ColorScheme {
+fun getColorScheme(): ColorScheme {
     // Dynamic color is available on Android 12+, but let's use our color scheme for branding
     return if (isSystemInDarkTheme()) {
         darkScheme
@@ -41,16 +54,44 @@ actual fun getColorScheme(): ColorScheme {
 }
 
 @Composable
+fun AndroidApp(
+    walletMain: WalletMain,
+) {
+    App(
+        walletMain,
+        uiProvider = UiProvider(
+            colorScheme = getColorScheme(),
+            biometryPrompt = AndroidBiometryPrompt,
+            cameraView = AndroidCameraView,
+            navigationPages = NavigationPages(
+                homePage = ::AndroidHomePage,
+                logPage = ::AndroidLogPage,
+                settingsPage = ::AndroidSettingsPage,
+                provisioningLoadingPage = ::AndroidProvisioningLoadingPage,
+                addCredentialPage = ::AndroidAddCredentialPage,
+                authenticationQrCodeScannerPage = ::AndroidAuthenticationQrCodeScannerPage,
+                authenticationLoadingPage = ::AndroidAuthenticationLoadingPage,
+                authenticationConsentPage = ::AndroidAuthenticationConsentPage,
+                authenticationSuccessPage = ::AndroidAuthenticationSuccessPage,
+                onboardingStartPage = ::AndroidOnboardingStartPage,
+                onboardingInformationPage = ::AndroidOnboardingInformationPage,
+                onboardingTermsPage = ::AndroidOnboardingTermsPage,
+            ),
+        )
+    )
+}
+
+@Composable
 fun MainView(buildContext: BuildContext) {
     val platformAdapter = AndroidPlatformAdapter(LocalContext.current)
 
-    App(
-        WalletMain(
+    AndroidApp(
+        WalletMain.createWithDefaults(
             objectFactory = AndroidObjectFactory(),
-            RealDataStoreService(getDataStore(LocalContext.current), platformAdapter),
+            dataStoreService = RealDataStoreService(getDataStore(LocalContext.current), platformAdapter),
             platformAdapter = platformAdapter,
             buildContext = buildContext,
-        )
+        ),
     )
 }
 

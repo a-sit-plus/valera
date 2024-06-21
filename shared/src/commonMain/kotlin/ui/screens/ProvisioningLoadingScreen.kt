@@ -1,5 +1,6 @@
 package ui.screens
 
+import LocalUiProvider
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,17 +19,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import at.asitplus.wallet.app.common.WalletMain
+import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.biometric_authentication_prompt_to_load_data_subtitle
 import composewalletapp.shared.generated.resources.biometric_authentication_prompt_to_load_data_title
 import composewalletapp.shared.generated.resources.heading_label_load_data_screen
-import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.snackbar_credential_loaded_successfully
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
-import ui.composables.BiometryPrompt
 import ui.composables.buttons.NavigateUpButton
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
@@ -71,7 +71,7 @@ fun ProvisioningLoadingScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (showBiometry) {
-                BiometryPrompt(
+                LocalUiProvider.current.biometryPrompt(
                     title = stringResource(Res.string.biometric_authentication_prompt_to_load_data_title),
                     subtitle = stringResource(Res.string.biometric_authentication_prompt_to_load_data_subtitle),
                     onDismiss = {

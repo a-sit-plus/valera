@@ -9,6 +9,8 @@ import ui.navigation.AuthenticationConsentPage
 
 class BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
     val oidcSiopWallet: OidcSiopWallet,
+    val consentPageBuilder: AuthenticationConsentPage.Companion.Builder,
+    val fromQrCodeScanner: Boolean,
 ) {
     suspend operator fun invoke(requestUri: String): KmmResult<AuthenticationConsentPage> {
         val request =
@@ -23,7 +25,7 @@ class BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
 
         // TODO: extract recipient name from the metadataResponse; the data is not yet being delivered though
         return KmmResult.success(
-            AuthenticationConsentPage(
+            consentPageBuilder(
                 authenticationRequestSerialized = request.let {
                     AuthenticationRequest.createInstance(it)
                 }.serialize(),
@@ -34,6 +36,7 @@ class BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
 
                 recipientName = "SERVICE_NAME_DUMMY_VALUE",
                 recipientLocation = request.parameters.clientId ?: "",
+                fromQrCodeScanner = fromQrCodeScanner,
             )
         )
     }

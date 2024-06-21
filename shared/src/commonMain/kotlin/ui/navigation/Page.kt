@@ -2,57 +2,130 @@ package ui.navigation
 
 interface Page
 
-expect class HomePage() : Page
+interface HomePage : Page
 
-expect class LogPage() : Page
+interface LogPage : Page
 
-expect class SettingsPage() : Page
+interface SettingsPage : Page
 
-
-interface OnboardingPage
-
-expect class OnboardingStartPage() : OnboardingPage
-
-expect class OnboardingInformationPage() : OnboardingPage
-
-expect class OnboardingTermsPage() : OnboardingPage
-
-expect class ProvisioningLoadingPage(link: String) : Page {
+interface ProvisioningLoadingPage : Page {
     val link: String
 }
 
-expect class RefreshRequirements(
-    authenticationRequestParametersStringified: String,
-) {
-    val authenticationRequestParametersStringified: String
-}
-
-expect class RefreshCredentialsPage(
-    refreshRequirements: RefreshRequirements? = null,
-) : Page {
-    val refreshRequirements: RefreshRequirements?
-}
-
-expect class AddCredentialPage() : Page
+interface AddCredentialPage : Page
 
 
+interface AuthenticationQrCodeScannerPage : Page
 
-expect class AuthenticationQrCodeScannerPage() : Page
+interface AuthenticationLoadingPage : Page
 
-expect class AuthenticationLoadingPage() : Page
-
-expect class AuthenticationConsentPage(
-    authenticationRequestSerialized: String, // AuthenticationRequest
-    authenticationResponseSerialized: String, // AuthenticationResultParameters
-    recipientName: String,
-    recipientLocation: String,
-    fromQrCodeScanner: Boolean = false
-) : Page {
+interface AuthenticationConsentPage : Page {
     val authenticationRequestSerialized: String
     val authenticationResponseSerialized: String
     val recipientName: String
     val recipientLocation: String
     val fromQrCodeScanner: Boolean
+
+    companion object {
+        fun interface Builder {
+            operator fun invoke(
+                authenticationRequestSerialized: String,
+                authenticationResponseSerialized: String,
+                recipientName: String,
+                recipientLocation: String,
+                fromQrCodeScanner: Boolean
+            ): AuthenticationConsentPage
+        }
+    }
 }
 
-expect class AuthenticationSuccessPage() : Page
+interface AuthenticationSuccessPage : Page
+
+
+interface OnboardingPage
+
+interface OnboardingStartPage : OnboardingPage
+
+interface OnboardingInformationPage : OnboardingPage
+
+interface OnboardingTermsPage : OnboardingPage
+
+
+class NavigationPages(
+    val homePage: () -> HomePage,
+    val logPage: () -> LogPage,
+    val settingsPage: () -> SettingsPage,
+    val provisioningLoadingPage: (link: String) -> ProvisioningLoadingPage,
+    val addCredentialPage: () -> AddCredentialPage,
+    val authenticationQrCodeScannerPage: () -> AuthenticationQrCodeScannerPage,
+    val authenticationLoadingPage: () -> AuthenticationLoadingPage,
+    val authenticationConsentPage: AuthenticationConsentPage.Companion.Builder,
+    val authenticationSuccessPage: () -> AuthenticationSuccessPage,
+
+    val onboardingStartPage: () -> OnboardingStartPage,
+    val onboardingInformationPage: () -> OnboardingInformationPage,
+    val onboardingTermsPage: () -> OnboardingTermsPage,
+) {
+    companion object {
+        fun createWithDefaults(
+            homePageBuilder: (() -> HomePage)? = null,
+            logPageBuilder: (() -> LogPage)? = null,
+            settingsPageBuilder: (() -> SettingsPage)? = null,
+            provisioningLoadingPageBuilder: ((link: String) -> ProvisioningLoadingPage)? = null,
+            addCredentialPageBuilder: (() -> AddCredentialPage)? = null,
+            authenticationQrCodeScannerPageBuilder: (() -> AuthenticationQrCodeScannerPage)? = null,
+            authenticationLoadingPageBuilder: (() -> AuthenticationLoadingPage)? = null,
+            authenticationConsentPageBuilder: AuthenticationConsentPage.Companion.Builder? = null,
+            authenticationSuccessPageBuilder: (() -> AuthenticationSuccessPage)? = null,
+
+            onboardingStartPageBuilder: (() -> OnboardingStartPage)? = null,
+            onboardingInformationPageBuilder: (() -> OnboardingInformationPage)? = null,
+            onboardingTermsPageBuilder: (() -> OnboardingTermsPage)? = null,
+        ) = NavigationPages(
+            homePage = homePageBuilder ?: { object : HomePage {} },
+            logPage = logPageBuilder ?: { object : LogPage {} },
+            settingsPage = settingsPageBuilder ?: { object : SettingsPage {} },
+            provisioningLoadingPage = provisioningLoadingPageBuilder ?: { link ->
+                object : ProvisioningLoadingPage {
+                    override val link: String
+                        get() = link
+                }
+            },
+            addCredentialPage = addCredentialPageBuilder ?: {
+                object : AddCredentialPage {}
+            },
+            authenticationQrCodeScannerPage = authenticationQrCodeScannerPageBuilder
+                ?: { object : AuthenticationQrCodeScannerPage {} },
+            authenticationLoadingPage = authenticationLoadingPageBuilder ?: {
+                object : AuthenticationLoadingPage {}
+            },
+            authenticationConsentPage = authenticationConsentPageBuilder
+                ?: AuthenticationConsentPage.Companion.Builder { authenticationRequestSerialized, authenticationResponseSerialized, recipientName, recipientLocation, fromQrCodeScanner ->
+                    object : AuthenticationConsentPage {
+                        override val authenticationRequestSerialized: String
+                            get() = authenticationRequestSerialized
+                        override val authenticationResponseSerialized: String
+                            get() = authenticationResponseSerialized
+                        override val recipientName: String
+                            get() = recipientName
+                        override val recipientLocation: String
+                            get() = recipientLocation
+                        override val fromQrCodeScanner: Boolean
+                            get() = fromQrCodeScanner
+                    }
+                },
+            authenticationSuccessPage = authenticationSuccessPageBuilder ?: {
+                object : AuthenticationSuccessPage {}
+            },
+            onboardingStartPage = onboardingStartPageBuilder ?: {
+                object : OnboardingStartPage {}
+            },
+            onboardingInformationPage = onboardingInformationPageBuilder ?: {
+                object : OnboardingInformationPage {}
+            },
+            onboardingTermsPage = onboardingTermsPageBuilder ?: {
+                object : OnboardingTermsPage {}
+            },
+        )
+    }
+}

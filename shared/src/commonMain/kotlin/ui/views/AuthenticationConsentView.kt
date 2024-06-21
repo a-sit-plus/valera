@@ -1,5 +1,6 @@
 package ui.views
 
+import LocalUiProvider
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,7 +40,6 @@ import composewalletapp.shared.generated.resources.prompt_send_above_data
 import composewalletapp.shared.generated.resources.section_heading_data_recipient
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
-import ui.composables.BiometryPrompt
 import ui.composables.BiometryPromptDismissResult
 import ui.composables.BiometryPromptSuccessResult
 import ui.composables.DataDisplaySection
@@ -103,7 +103,7 @@ fun AuthenticationConsentView(
         }
     ) {
         if (showBiometry) {
-            BiometryPrompt(
+            LocalUiProvider.current.biometryPrompt(
                 title = stringResource(Res.string.biometric_authentication_prompt_for_data_transmission_consent_title),
                 subtitle = "${stringResource(Res.string.biometric_authentication_prompt_for_data_transmission_consent_subtitle)}: $spName",
                 onSuccess = onBiometrySuccess,

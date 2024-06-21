@@ -17,14 +17,36 @@ import kotlinx.coroutines.launch
 /**
  * Main class to hold all services needed in the Compose App.
  */
-class WalletMain(
+class WalletMain private constructor(
     val objectFactory: ObjectFactory,
     private val dataStoreService: DataStoreService,
     val platformAdapter: PlatformAdapter,
-    var subjectCredentialStore: PersistentSubjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService),
+    var subjectCredentialStore: PersistentSubjectCredentialStore,
     val buildContext: BuildContext,
-    val errorService: ErrorService = ErrorService(mutableStateOf(false), mutableStateOf(null)),
+    val errorService: ErrorService,
 ) {
+    companion object {
+        fun createWithDefaults(
+            objectFactory: ObjectFactory,
+            dataStoreService: DataStoreService,
+            platformAdapter: PlatformAdapter,
+            subjectCredentialStore: PersistentSubjectCredentialStore? = null,
+            buildContext: BuildContext,
+            errorService: ErrorService? = null,
+        ) = WalletMain(
+            objectFactory = objectFactory,
+            dataStoreService = dataStoreService,
+            platformAdapter = platformAdapter,
+            subjectCredentialStore = subjectCredentialStore ?: PersistentSubjectCredentialStore(
+                dataStoreService
+            ),
+            buildContext = buildContext,
+            errorService = errorService ?: ErrorService(
+                mutableStateOf(false), mutableStateOf(null)
+            ),
+        )
+    }
+
     lateinit var walletConfig: WalletConfig
     lateinit var cryptoService: CryptoService
     lateinit var holderAgent: HolderAgent
@@ -65,10 +87,7 @@ class WalletMain(
             httpService
         )
         presentationService = PresentationService(
-            platformAdapter,
-            cryptoService,
-            holderAgent,
-            httpService
+            platformAdapter, cryptoService, holderAgent, httpService
         )
         this.snackbarService = snackbarService
     }

@@ -47,7 +47,7 @@ class InstrumentedTests {
     fun givenNewAppInstallation_whenStartingApp_thenAppActuallyStarts() {
         // Start the app
         composeTestRule.setContent {
-            val walletMain = WalletMain(
+            val walletMain = WalletMain.createWithDefaults(
                 objectFactory = AndroidObjectFactory(),
                 dataStoreService = DummyDataStoreService(),
                 platformAdapter = DummyPlatformAdapter(),
@@ -57,7 +57,7 @@ class InstrumentedTests {
                     versionName = "0.0.0",
                 )
             )
-            App(walletMain)
+            AndroidApp(walletMain)
         }
 
         composeTestRule.onNodeWithTag(AppTestTags.rootScaffold)
@@ -69,7 +69,7 @@ class InstrumentedTests {
     fun givenNewAppInstallation_whenStartingApp_thenShowsOnboardingStartScreen() {
         // Start the app
         composeTestRule.setContent {
-            val walletMain = WalletMain(
+            val walletMain = WalletMain.createWithDefaults(
                 objectFactory = AndroidObjectFactory(),
                 dataStoreService = DummyDataStoreService(),
                 platformAdapter = DummyPlatformAdapter(),
@@ -79,7 +79,7 @@ class InstrumentedTests {
                     versionName = "0.0.0",
                 )
             )
-            App(walletMain)
+            AndroidApp(walletMain)
         }
 
         composeTestRule.waitUntil {
@@ -95,7 +95,7 @@ class InstrumentedTests {
     fun givenNewAppInstallation_whenStartingApp_thenShowsOnboardingStartButton() {
         // Start the app
         composeTestRule.setContent {
-            val walletMain = WalletMain(
+            val walletMain = WalletMain.createWithDefaults(
                 objectFactory = AndroidObjectFactory(),
                 dataStoreService = DummyDataStoreService(),
                 platformAdapter = DummyPlatformAdapter(),
@@ -105,7 +105,7 @@ class InstrumentedTests {
                     versionName = "0.0.0",
                 )
             )
-            App(walletMain)
+            AndroidApp(walletMain)
         }
 
         composeTestRule.waitUntil {
@@ -127,7 +127,7 @@ class InstrumentedTests {
     fun givenNewAppInstallation_whenStartingApp_thenShowAttributesOnMyCredentialsScreen() {
         composeTestRule.setContent {
             val dataStoreService = DummyDataStoreService()
-            val walletMain = WalletMain(
+            val walletMain = WalletMain.createWithDefaults(
                 objectFactory = AndroidObjectFactory(),
                 dataStoreService = dataStoreService,
                 platformAdapter = AndroidDummyPlatformAdapter(),
@@ -138,7 +138,7 @@ class InstrumentedTests {
                     versionName = "0.0.0",
                 )
             )
-            App(walletMain)
+            AndroidApp(walletMain)
 
             val issuer = IssuerAgent.newDefaultInstance()
             runBlocking {
@@ -199,7 +199,7 @@ class InstrumentedTests {
     fun givenNewAppInstallation_whenStartingApp_thenLoadAttributesAndShowData() {
         composeTestRule.setContent {
             val dataStoreService = DummyDataStoreService()
-            val walletMain = WalletMain(
+            val walletMain = WalletMain.createWithDefaults(
                 objectFactory = AndroidObjectFactory(),
                 dataStoreService = dataStoreService,
                 platformAdapter = AndroidDummyPlatformAdapter(),
@@ -210,7 +210,7 @@ class InstrumentedTests {
                     versionName = "0.0.0",
                 )
             )
-            App(walletMain)
+            AndroidApp(walletMain)
 
             val issuer = IssuerAgent.newDefaultInstance()
             runBlocking {

@@ -9,6 +9,7 @@ kotlin {
     androidTarget()
     sourceSets {
         androidMain {
+            dependsOn(commonMain.get())
             dependencies {
                 implementation(project(":shared"))
             }

@@ -1,5 +1,6 @@
 package ui.screens
 
+import LocalUiProvider
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -12,14 +13,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import at.asitplus.wallet.app.common.WalletMain
+import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.heading_label_authenticate_at_device_subtitle
 import composewalletapp.shared.generated.resources.heading_label_authenticate_at_device_title
-import composewalletapp.shared.generated.resources.Res
-import ui.navigation.AuthenticationConsentPage
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton
-import ui.views.CameraView
+import ui.navigation.AuthenticationConsentPage
 import view.AuthenticationQrCodeScannerViewModel
 
 @Composable
@@ -80,7 +80,7 @@ fun AuthenticationQrCodeScannerView(
         },
     ) {
         Column(modifier = Modifier.padding(it).fillMaxSize()) {
-            CameraView(
+            LocalUiProvider.current.cameraView(
                 onFoundPayload = onFoundPayload,
                 modifier = Modifier.fillMaxSize(),
             )

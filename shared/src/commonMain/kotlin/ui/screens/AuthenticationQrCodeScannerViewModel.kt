@@ -14,9 +14,12 @@ class AuthenticationQrCodeScannerViewModel(
 ) {
     constructor(
         oidcSiopWallet: OidcSiopWallet,
+        consentPageBuilder: AuthenticationConsentPage.Companion.Builder,
     ) : this(
         buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase = BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
             oidcSiopWallet = oidcSiopWallet,
+            consentPageBuilder = consentPageBuilder,
+            fromQrCodeScanner = true,
         ),
     )
 
@@ -37,15 +40,7 @@ class AuthenticationQrCodeScannerViewModel(
 
         CoroutineScope(Dispatchers.Main).launch(coroutineExceptionHandler) {
             val authenticationConsentPage =
-                buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(link).getOrThrow().let {
-                    AuthenticationConsentPage(
-                        authenticationRequestSerialized = it.authenticationRequestSerialized,
-                        authenticationResponseSerialized = it.authenticationResponseSerialized,
-                        recipientLocation = it.recipientLocation,
-                        recipientName = it.recipientName,
-                        fromQrCodeScanner = true,
-                    )
-                }
+                buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(link).getOrThrow()
 
             stopLoadingCallback()
             onSuccess(authenticationConsentPage)

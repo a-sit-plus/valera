@@ -69,50 +69,49 @@ import platform.darwin.dispatch_queue_t
 
 // Modified from https://github.com/JetBrains/compose-multiplatform/blob/master/examples/imageviewer/shared/src/iosMain/kotlin/example/imageviewer/view/CameraView.ios.kt
 
-@OptIn(ExperimentalResourceApi::class)
-@Composable
-actual fun CameraView(
-    onFoundPayload: (text: String) -> Unit,
-    modifier: Modifier,
-) {
-    var cameraAccess: Boolean? by remember { mutableStateOf(null) }
-    LaunchedEffect(Unit) {
-        when (AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeVideo)) {
-            AVAuthorizationStatusAuthorized -> {
-                cameraAccess = true
-            }
+object IosCameraView : CameraView {
+    @OptIn(ExperimentalResourceApi::class)
+    @Composable
+    override fun invoke(onFoundPayload: (text: String) -> Unit, modifier: Modifier) {
+        var cameraAccess: Boolean? by remember { mutableStateOf(null) }
+        LaunchedEffect(Unit) {
+            when (AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeVideo)) {
+                AVAuthorizationStatusAuthorized -> {
+                    cameraAccess = true
+                }
 
-            AVAuthorizationStatusDenied, AVAuthorizationStatusRestricted -> {
-                cameraAccess = false
-            }
+                AVAuthorizationStatusDenied, AVAuthorizationStatusRestricted -> {
+                    cameraAccess = false
+                }
 
-            AVAuthorizationStatusNotDetermined -> {
-                AVCaptureDevice.requestAccessForMediaType(
-                    mediaType = AVMediaTypeVideo
-                ) { success ->
-                    cameraAccess = success
+                AVAuthorizationStatusNotDetermined -> {
+                    AVCaptureDevice.requestAccessForMediaType(
+                        mediaType = AVMediaTypeVideo
+                    ) { success ->
+                        cameraAccess = success
+                    }
                 }
             }
         }
-    }
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = modifier,
-    ) {
-        when (cameraAccess) {
-            null -> {
-                // Waiting for the user to accept permission
-            }
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = modifier,
+        ) {
+            when (cameraAccess) {
+                null -> {
+                    // Waiting for the user to accept permission
+                }
 
-            false -> {
-                Text(stringResource(Res.string.camera_access_denied), color = Color.White)
-            }
+                false -> {
+                    Text(stringResource(Res.string.camera_access_denied), color = Color.White)
+                }
 
-            true -> {
-                AuthorizedCamera(
-                    onFoundPayload,
-                    modifier = modifier,
-                )
+                true -> {
+                    AuthorizedCamera(
+                        onFoundPayload,
+                        modifier = modifier,
+                    )
+                }
             }
         }
     }

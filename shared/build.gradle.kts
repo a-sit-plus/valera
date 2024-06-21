@@ -16,6 +16,7 @@ plugins {
 }
 
 kotlin {
+    applyDefaultHierarchyTemplate()
     androidTarget()
     iosX64()
     iosArm64()
@@ -24,8 +25,6 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation("androidx.biometric:biometric:1.2.0-alpha05")
-
                 implementation(compose.runtime)
                 implementation(compose.foundation)
                 implementation(compose.material3)
@@ -59,7 +58,9 @@ kotlin {
         }
 
         androidMain {
+            dependsOn(commonMain.get())
             dependencies {
+                implementation("androidx.biometric:biometric:1.2.0-alpha05")
                 api("androidx.activity:activity-compose:1.8.1")
                 api("androidx.appcompat:appcompat:1.6.1")
                 api("androidx.core:core-ktx:1.12.0")
@@ -75,12 +76,18 @@ kotlin {
         }
 
         val androidInstrumentedTest by getting {
+            dependsOn(commonMain.get())
             dependencies {
                 implementation("androidx.compose.ui:ui-test-junit4")
                 implementation("androidx.compose.ui:ui-test-manifest")
             }
         }
-        iosMain { dependencies { implementation(ktor("client-darwin")) } }
+        iosMain {
+            dependsOn(commonMain.get())
+            dependencies {
+                implementation(ktor("client-darwin"))
+            }
+        }
     }
 }
 
