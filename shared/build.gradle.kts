@@ -86,11 +86,12 @@ kotlin {
 }
 
 exportIosFramework(
-    name = "shared", static = true, libs.vclib,
+    name = "shared", static = true,
+    vclibCatalog.vclib,
     libs.credential.ida,
     datetime(),
-    libs.bignum,
-    kmmresult(),
+    kmpCryptoCatalog.bignum,
+    kmpCryptoCatalog.kmmresult,
     libs.kmpCrypto,
     libs.kmpCrypto.jws,
     libs.kmpCrypto.cose,

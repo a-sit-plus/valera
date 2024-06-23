@@ -1,6 +1,5 @@
 [versions]
 encoding = "1.2.3"
-bignum = "0.3.9"
 vcLib = "3.8.0"
 mdl = "1.0.0"
 kmpCrypto = "3.2.0"
@@ -14,7 +13,6 @@ kotlin = "2.0.0"
 [libraries]
 base16 = { group = "io.matthewnelson.kotlin-components", name = "encoding-base16", version.ref = "encoding" }
 base64 = { group = "io.matthewnelson.kotlin-components", name = "encoding-base64", version.ref = "encoding" }
-bignum = { group = "com.ionspin.kotlin", name = "bignum", version.ref = "bignum" }
 vclib = { group = "at.asitplus.wallet", name = "vclib", version.ref = "vcLib" }
 kmpCrypto = { group = "at.asitplus.crypto", name = "datatypes", version.ref = "kmpCrypto" }
 kmpCrypto-jws = { group = "at.asitplus.crypto", name = "datatypes-jws", version.ref = "kmpCrypto" }
