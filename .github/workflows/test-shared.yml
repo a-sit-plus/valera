@@ -14,6 +14,8 @@ jobs:
           java-version: '17'
       - name: Run tests
         run:  ./gradlew :shared:connectedAndroidTest
+      - name: Run tests
+        run: ./gradlew :shared:iosSimulatorArm64Test
       - name: Test Report
         uses: dorny/test-reporter@v1
         if: success() || failure()
