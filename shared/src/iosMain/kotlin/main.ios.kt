@@ -31,10 +31,10 @@ fun MainViewController(
 ): UIViewController = ComposeUIViewController {
     App(
         WalletMain(
-            objectFactory,
+            objectFactory = objectFactory,
             RealDataStoreService(createDataStore(), platformAdapter),
-            platformAdapter,
-            buildContext,
+            platformAdapter = platformAdapter,
+            buildContext = buildContext,
         )
     )
 }
