@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app.common
 
+import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.identifier
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
@@ -46,15 +47,15 @@ class WalletConfig(
     fun set(
         host: String? = null,
         credentialRepresentation: ConstantIndex.CredentialRepresentation? = null,
-        credentialSchemeVcType: String? = null,
+        credentialSchemeIdentifier: String? = null,
         isConditionsAccepted: Boolean? = null,
     ) {
         try {
             runBlocking {
                 val newConfig = ConfigData(
                     host = host ?: this@WalletConfig.host.first(),
-                    credentialSchemeVcType = credentialSchemeVcType
-                        ?: this@WalletConfig.credentialScheme.first().vcType!!,
+                    credentialSchemeVcType = credentialSchemeIdentifier
+                        ?: this@WalletConfig.credentialScheme.first().identifier,
                     credentialRepresentation = credentialRepresentation
                         ?: this@WalletConfig.credentialRepresentation.first(),
                     isConditionsAccepted = isConditionsAccepted

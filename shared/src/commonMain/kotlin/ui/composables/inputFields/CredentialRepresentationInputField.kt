@@ -64,7 +64,7 @@ fun StatefulCredentialRepresentationInputField(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CredentialRepresentationInputField(
     value: ConstantIndex.CredentialRepresentation,
