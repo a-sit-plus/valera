@@ -1,6 +1,7 @@
 package at.asitplus.wallet.app.common
 
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.identifier
+import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.resolveSchemeByIdentifier
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
@@ -36,7 +37,7 @@ class WalletConfig(
     }
 
     val credentialScheme: Flow<ConstantIndex.CredentialScheme> = config.map {
-        AttributeIndex.resolveAttributeType(it.credentialSchemeVcType)
+        AttributeIndex.resolveSchemeByIdentifier(it.credentialSchemeIdentifier)
             ?: throw Exception("Unsupported attribute type: $it")
     }
 
@@ -54,7 +55,7 @@ class WalletConfig(
             runBlocking {
                 val newConfig = ConfigData(
                     host = host ?: this@WalletConfig.host.first(),
-                    credentialSchemeVcType = credentialSchemeIdentifier
+                    credentialSchemeIdentifier = credentialSchemeIdentifier
                         ?: this@WalletConfig.credentialScheme.first().identifier,
                     credentialRepresentation = credentialRepresentation
                         ?: this@WalletConfig.credentialRepresentation.first(),
@@ -83,14 +84,14 @@ class WalletConfig(
 @Serializable
 private data class ConfigData(
     val host: String,
-    val credentialRepresentation: ConstantIndex.CredentialRepresentation = ConstantIndex.CredentialRepresentation.SD_JWT,
-    val credentialSchemeVcType: String = IdAustriaScheme.vcType,
+    val credentialRepresentation: ConstantIndex.CredentialRepresentation = ConstantIndex.CredentialRepresentation.ISO_MDOC,
+    val credentialSchemeIdentifier: String = IdAustriaScheme.identifier,
     val isConditionsAccepted: Boolean = false
 )
 
 private val ConfigDataDefaults = ConfigData(
-    host = "https://wallet.a-sit.at/m2",
-    credentialRepresentation = ConstantIndex.CredentialRepresentation.SD_JWT,
-    credentialSchemeVcType = IdAustriaScheme.vcType,
+    host = "https://wallet.a-sit.at/m3",
+    credentialRepresentation = ConstantIndex.CredentialRepresentation.ISO_MDOC,
+    credentialSchemeIdentifier = IdAustriaScheme.identifier,
     isConditionsAccepted = false
 )
