@@ -60,7 +60,7 @@ class AndroidCryptoService(
     override val publicKey: CryptoPublicKey
         get() = cryptoPublicKey
 
-    override suspend fun sign(input: ByteArray): KmmResult<CryptoSignature> = runCatching {
+    override suspend fun doSign(input: ByteArray): KmmResult<CryptoSignature> = runCatching {
         val sig = Signature.getInstance(algorithm.jcaName).apply {
             this@AndroidCryptoService.algorithm.jcaParams?.let { setParameter(it) }
             initSign(keyPair.private)

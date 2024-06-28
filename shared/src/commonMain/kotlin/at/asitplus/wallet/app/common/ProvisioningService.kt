@@ -1,5 +1,7 @@
 package at.asitplus.wallet.app.common
 
+import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.identifier
+import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.resolveSchemeByIdentifier
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.Holder
 import at.asitplus.wallet.lib.agent.HolderAgent
@@ -70,7 +72,7 @@ class ProvisioningService(
     ) {
         config.set(
             host = host,
-            credentialSchemeVcType = credentialScheme.vcType,
+            credentialSchemeIdentifier = credentialScheme.identifier,
             credentialRepresentation = credentialRepresentation,
         )
 
@@ -103,7 +105,7 @@ class ProvisioningService(
                     xAuthToken = xAuthToken,
                     host = host,
                     credentialRepresentation = credentialRepresentation,
-                    credentialSchemeVcType = credentialScheme.vcType,
+                    credentialSchemeIdentifier = credentialScheme.identifier,
                     requestedAttributes = requestedAttributes,
                 )
 
@@ -159,32 +161,27 @@ class ProvisioningService(
         )
 
         Napier.d("Oid4vciService.createAuthRequest")
-        val requestOptions = WalletService.RequestOptions(
-            credentialScheme = credentialScheme,
+        val requestOptions = WalletService.RequestOptions(credentialScheme = credentialScheme,
             representation = credentialRepresentation,
-            requestedAttributes = requestedAttributes?.ifEmpty { null }
-        )
+            requestedAttributes = requestedAttributes?.ifEmpty { null })
         val authRequest = oid4vciService.createAuthRequest(
             requestOptions = requestOptions
         )
 
-        val authorizationEndpointUrl = metadata.authorizationEndpointUrl
-            ?: metadata.authorizationServers?.firstOrNull()
-            ?: metadata.credentialIssuer
-            ?: throw Exception("no authorizaitonEndpointUrl")
+        val authorizationEndpointUrl =
+            metadata.authorizationEndpointUrl ?: metadata.authorizationServers?.firstOrNull()
+            ?: metadata.credentialIssuer ?: throw Exception("no authorizaitonEndpointUrl")
         Napier.d("HTTP.GET ($authorizationEndpointUrl)")
         val codeUrl = client.get(authorizationEndpointUrl) {
             authRequest.encodeToParameters().forEach {
                 this.parameter(it.key, it.value)
             }
             headers[HttpHeaders.xAuthToken] = xAuthToken
-        }.headers[HttpHeaders.Location]
-            ?: throw Exception("codeUrl is null")
+        }.headers[HttpHeaders.Location] ?: throw Exception("codeUrl is null")
 
         val authnResponse = Url(codeUrl).parameters.flattenEntries().toMap()
             .decodeFromUrlQuery<AuthenticationResponseParameters>()
-        val code = authnResponse.code
-            ?: throw Exception("code is null")
+        val code = authnResponse.code ?: throw Exception("code is null")
         val tokenRequest =
             oid4vciService.createTokenRequestParameters(requestOptions, code, requestOptions.state)
         Napier.d("Created tokenRequest")
@@ -194,12 +191,9 @@ class ProvisioningService(
             }.body()
 
         Napier.d("Received tokenResponse")
-        val credentialRequest =
-            oid4vciService.createCredentialRequestJwt(
-                requestOptions,
-                tokenResponse.clientNonce,
-                metadata.credentialIssuer
-            ).getOrThrow()
+        val credentialRequest = oid4vciService.createCredentialRequestJwt(
+            requestOptions, tokenResponse.clientNonce, metadata.credentialIssuer
+        ).getOrThrow()
         Napier.d("Created credentialRequest")
         val credentialResponse: CredentialResponseParameters =
             client.post(metadata.credentialEndpointUrl.toString()) {
@@ -212,26 +206,24 @@ class ProvisioningService(
         credentialResponse.credential?.let {
             when (credentialResponse.format) {
                 CredentialFormatEnum.NONE -> TODO("Function not implemented")
-                CredentialFormatEnum.JWT_VC ->
-                    holderAgent.storeCredentials(
-                        listOf(
-                            Holder.StoreCredentialInput.Vc(
-                                vcJws = it,
-                                scheme = credentialScheme,
-                                attachments = null
-                            )
+                CredentialFormatEnum.JWT_VC -> holderAgent.storeCredentials(
+                    listOf(
+                        Holder.StoreCredentialInput.Vc(
+                            vcJws = it,
+                            scheme = credentialScheme,
+                            attachments = null,
                         )
                     )
+                )
 
-                CredentialFormatEnum.JWT_VC_SD_UNOFFICIAL, CredentialFormatEnum.VC_SD_JWT ->
-                    holderAgent.storeCredentials(
-                        listOf(
-                            Holder.StoreCredentialInput.SdJwt(
-                                vcSdJwt = it,
-                                scheme = credentialScheme
-                            )
+                CredentialFormatEnum.JWT_VC_SD_UNOFFICIAL, CredentialFormatEnum.VC_SD_JWT -> holderAgent.storeCredentials(
+                    listOf(
+                        Holder.StoreCredentialInput.SdJwt(
+                            vcSdJwt = it,
+                            scheme = credentialScheme,
                         )
                     )
+                )
 
                 CredentialFormatEnum.JWT_VC_JSON_LD -> TODO("Function not implemented")
                 CredentialFormatEnum.JSON_LD -> TODO("Function not implemented")
@@ -243,7 +235,7 @@ class ProvisioningService(
                             listOf(
                                 Holder.StoreCredentialInput.Iso(
                                     issuerSigned = issuerSigned,
-                                    scheme = credentialScheme
+                                    scheme = credentialScheme,
                                 )
                             )
                         )
@@ -265,10 +257,13 @@ private data class ProvisioningContext(
     val redirectUri: String,
     val host: String,
     val credentialRepresentation: ConstantIndex.CredentialRepresentation,
-    private val credentialSchemeVcType: String,
+    private val credentialSchemeIdentifier: String,
     val requestedAttributes: Set<String>?,
 ) {
     val credentialScheme: ConstantIndex.CredentialScheme
-        get() = AttributeIndex.resolveAttributeType(this.credentialSchemeVcType)
-            ?: throw Exception("Unsupported credential scheme: ${this.credentialSchemeVcType}")
+        get() = AttributeIndex.resolveSchemeByIdentifier(this.credentialSchemeIdentifier)
+            ?: throw Exception(
+                "Unsupported credential scheme: ${this.credentialSchemeIdentifier}"
+            )
 }
+

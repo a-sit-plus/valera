@@ -8,8 +8,9 @@ import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.jsonSerializer
-import at.asitplus.wallet.lib.iso.DrivingPrivilege
-import at.asitplus.wallet.lib.iso.MobileDrivingLicenceDataElements
+import at.asitplus.wallet.mdl.DrivingPrivilege
+import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
+import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import io.github.aakira.napier.Napier
 import io.ktor.util.decodeBase64Bytes
 import io.ktor.util.decodeBase64String
@@ -80,7 +81,7 @@ class CredentialExtractor(
                 else -> false
             }
 
-            is ConstantIndex.MobileDrivingLicence2023 -> when (attributeName) {
+            is MobileDrivingLicenceScheme -> when (attributeName) {
                 MobileDrivingLicenceDataElements.GIVEN_NAME -> this.givenName != null
                 MobileDrivingLicenceDataElements.FAMILY_NAME -> this.familyName != null
                 MobileDrivingLicenceDataElements.BIRTH_DATE -> this.dateOfBirth != null
@@ -141,7 +142,7 @@ class CredentialExtractor(
                             IdAustriaScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == IdAustriaScheme.Attributes.BPK
-                        }?.value?.elementValue?.string
+                        }?.value?.elementValue?.let { (it as String) }
 
                         is EuPidScheme -> null
 
@@ -176,7 +177,7 @@ class CredentialExtractor(
                             it.value?.claimName == EuPidScheme.Attributes.GIVEN_NAME
                         }.firstNotNullOfOrNull { it.value?.claimValue as String }
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.disclosures.filter {
+                        is MobileDrivingLicenceScheme -> credential.disclosures.filter {
                             it.value?.claimName == MobileDrivingLicenceDataElements.GIVEN_NAME
                         }.firstNotNullOfOrNull { it.value?.claimValue as String }
 
@@ -190,19 +191,19 @@ class CredentialExtractor(
                             IdAustriaScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == IdAustriaScheme.Attributes.FIRSTNAME
-                        }?.value?.elementValue?.string
+                        }?.value?.elementValue
 
                         is EuPidScheme -> credential.issuerSigned.namespaces?.get(
                             EuPidScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == EuPidScheme.Attributes.GIVEN_NAME
-                        }?.value?.elementValue?.string
+                        }?.value?.elementValue
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.issuerSigned.namespaces?.get(
-                            ConstantIndex.MobileDrivingLicence2023.isoNamespace
+                        is MobileDrivingLicenceScheme -> credential.issuerSigned.namespaces?.get(
+                            MobileDrivingLicenceScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == MobileDrivingLicenceDataElements.GIVEN_NAME
-                        }?.value?.elementValue?.string
+                        }?.value?.elementValue
 
                         else -> null
                     }
@@ -210,7 +211,7 @@ class CredentialExtractor(
 
                 else -> TODO(credential.unsupportedCredentialStoreEntry)
             }
-        }
+        } as String?
 
     val familyName: String?
         get() = credentials.firstNotNullOfOrNull { credential ->
@@ -235,7 +236,7 @@ class CredentialExtractor(
                             it.value?.claimName == EuPidScheme.Attributes.FAMILY_NAME
                         }.firstNotNullOfOrNull { it.value?.claimValue as String }
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.disclosures.filter {
+                        is MobileDrivingLicenceScheme -> credential.disclosures.filter {
                             it.value?.claimName == MobileDrivingLicenceDataElements.FAMILY_NAME
                         }.firstNotNullOfOrNull { it.value?.claimValue as String }
 
@@ -249,17 +250,17 @@ class CredentialExtractor(
                             IdAustriaScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == IdAustriaScheme.Attributes.LASTNAME
-                        }?.value?.elementValue?.string
+                        }?.value?.elementValue
 
                         is EuPidScheme -> credential.issuerSigned.namespaces?.get(EuPidScheme.isoNamespace)?.entries?.firstOrNull {
                             it.value.elementIdentifier == EuPidScheme.Attributes.FAMILY_NAME
-                        }?.value?.elementValue?.string
+                        }?.value?.elementValue
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.issuerSigned.namespaces?.get(
-                            ConstantIndex.MobileDrivingLicence2023.isoNamespace
+                        is MobileDrivingLicenceScheme -> credential.issuerSigned.namespaces?.get(
+                            MobileDrivingLicenceScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == MobileDrivingLicenceDataElements.FAMILY_NAME
-                        }?.value?.elementValue?.string
+                        }?.value?.elementValue
 
                         else -> null
                     }
@@ -267,7 +268,7 @@ class CredentialExtractor(
 
                 else -> TODO(credential.unsupportedCredentialStoreEntry)
             }
-        }
+        } as String?
 
     val dateOfBirth: LocalDate?
         get() = credentials.firstNotNullOfOrNull { credential ->
@@ -294,7 +295,7 @@ class CredentialExtractor(
                         }.firstNotNullOfOrNull { it.value?.claimValue as String }
                             ?.let { LocalDate.parse(it) }
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.disclosures.filter {
+                        is MobileDrivingLicenceScheme -> credential.disclosures.filter {
                             it.value?.claimName == MobileDrivingLicenceDataElements.BIRTH_DATE
                         }.firstNotNullOfOrNull { it.value?.claimValue as String }
                             ?.let { LocalDate.parse(it) }
@@ -309,24 +310,24 @@ class CredentialExtractor(
                             IdAustriaScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == IdAustriaScheme.Attributes.DATE_OF_BIRTH
-                        }?.value?.elementValue?.date
+                        }?.value?.elementValue
 
                         is EuPidScheme -> credential.issuerSigned.namespaces?.get(EuPidScheme.isoNamespace)?.entries?.firstOrNull {
                             it.value.elementIdentifier == EuPidScheme.Attributes.BIRTH_DATE
-                        }?.value?.elementValue?.date
+                        }?.value?.elementValue
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.issuerSigned.namespaces?.get(
-                            ConstantIndex.MobileDrivingLicence2023.isoNamespace
+                        is MobileDrivingLicenceScheme -> credential.issuerSigned.namespaces?.get(
+                            MobileDrivingLicenceScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == MobileDrivingLicenceDataElements.BIRTH_DATE
-                        }?.value?.elementValue?.date
+                        }?.value?.elementValue
 
                         else -> null
                     }
                 }
 
                 else -> TODO(credential.unsupportedCredentialStoreEntry)
-            }
+            } as LocalDate?
         }
 
     val portrait: ByteArray?
@@ -351,7 +352,7 @@ class CredentialExtractor(
 
                         is EuPidScheme -> null
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.disclosures.filter {
+                        is MobileDrivingLicenceScheme -> credential.disclosures.filter {
                             it.value?.claimName == MobileDrivingLicenceDataElements.PORTRAIT
                         }.firstNotNullOfOrNull { it.value?.claimValue as String }
                             ?.decodeBase64Bytes()
@@ -366,15 +367,15 @@ class CredentialExtractor(
                             IdAustriaScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == IdAustriaScheme.Attributes.PORTRAIT
-                        }?.value?.elementValue?.string?.decodeBase64Bytes()
+                        }?.value?.elementValue?.let { (it as String).decodeBase64Bytes() }
 
                         is EuPidScheme -> null
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.issuerSigned.namespaces?.get(
-                            ConstantIndex.MobileDrivingLicence2023.isoNamespace
+                        is MobileDrivingLicenceScheme -> credential.issuerSigned.namespaces?.get(
+                            MobileDrivingLicenceScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == MobileDrivingLicenceDataElements.PORTRAIT
-                        }?.value?.elementValue?.string?.decodeBase64Bytes()
+                        }?.value?.elementValue?.let { (it as String).decodeBase64Bytes() }
 
                         else -> null
                     }
@@ -418,11 +419,7 @@ class CredentialExtractor(
                             )?.entries?.firstOrNull {
                                 it.value.elementIdentifier == EuPidScheme.Attributes.GENDER
                             }?.value?.elementValue
-                            Napier.d("gender string value: ${value?.string}")
-                            Napier.d("gender bytes value: ${value?.bytes}")
-                            Napier.d("gender boolean value: ${value?.boolean}")
-                            Napier.d("gender date value: ${value?.date}")
-                            Napier.d("gender drivingPrivilege value: ${value?.drivingPrivilege}")
+                            Napier.d("gender value: $value")
                             null
                         }
 
@@ -455,7 +452,7 @@ class CredentialExtractor(
                             it.value?.claimName == EuPidScheme.Attributes.NATIONALITY
                         }.firstNotNullOfOrNull { it.value?.claimValue as String }
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.disclosures.filter {
+                        is MobileDrivingLicenceScheme -> credential.disclosures.filter {
                             it.value?.claimName == MobileDrivingLicenceDataElements.NATIONALITY
                         }.firstNotNullOfOrNull { it.value?.claimValue as String }
 
@@ -471,13 +468,13 @@ class CredentialExtractor(
                             EuPidScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == EuPidScheme.Attributes.NATIONALITY
-                        }?.value?.elementValue?.string
+                        }?.value?.elementValue?.let { (it as String)}
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.issuerSigned.namespaces?.get(
-                            ConstantIndex.MobileDrivingLicence2023.isoNamespace
+                        is MobileDrivingLicenceScheme -> credential.issuerSigned.namespaces?.get(
+                            MobileDrivingLicenceScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == MobileDrivingLicenceDataElements.NATIONALITY
-                        }?.value?.elementValue?.string
+                        }?.value?.elementValue?.let { (it as String) }
 
                         else -> null
                     }
@@ -507,7 +504,7 @@ class CredentialExtractor(
 
                         is EuPidScheme -> null
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> null
+                        is MobileDrivingLicenceScheme -> null
 
                         else -> null
                     }
@@ -519,11 +516,11 @@ class CredentialExtractor(
                             IdAustriaScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == IdAustriaScheme.Attributes.AGE_OVER_14
-                        }?.value?.elementValue?.boolean
+                        }?.value?.elementValue?.let { (it as Boolean) }
 
                         is EuPidScheme -> null
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> null
+                        is MobileDrivingLicenceScheme -> null
 
                         else -> null
                     }
@@ -553,7 +550,7 @@ class CredentialExtractor(
 
                         is EuPidScheme -> null
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> null
+                        is MobileDrivingLicenceScheme -> null
 
                         else -> null
                     }
@@ -565,11 +562,11 @@ class CredentialExtractor(
                             IdAustriaScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == IdAustriaScheme.Attributes.AGE_OVER_16
-                        }?.value?.elementValue?.boolean
+                        }?.value?.elementValue?.let { (it as Boolean) }
 
                         is EuPidScheme -> null
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> null
+                        is MobileDrivingLicenceScheme -> null
 
                         else -> null
                     }
@@ -602,7 +599,7 @@ class CredentialExtractor(
                             it.value?.claimName == EuPidScheme.Attributes.AGE_OVER_18
                         }.firstNotNullOfOrNull { it.value?.claimValue as Boolean }
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.disclosures.filter {
+                        is MobileDrivingLicenceScheme -> credential.disclosures.filter {
                             it.value?.claimName == MobileDrivingLicenceDataElements.AGE_OVER_18
                         }.firstNotNullOfOrNull { it.value?.claimValue as Boolean }
 
@@ -616,19 +613,19 @@ class CredentialExtractor(
                             IdAustriaScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == IdAustriaScheme.Attributes.AGE_OVER_18
-                        }?.value?.elementValue?.boolean
+                        }?.value?.elementValue?.let { (it as Boolean) }
 
                         is EuPidScheme -> credential.issuerSigned.namespaces?.get(
                             EuPidScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == EuPidScheme.Attributes.AGE_OVER_18
-                        }?.value?.elementValue?.boolean
+                        }?.value?.elementValue?.let { (it as Boolean) }
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.issuerSigned.namespaces?.get(
-                            ConstantIndex.MobileDrivingLicence2023.isoNamespace
+                        is MobileDrivingLicenceScheme -> credential.issuerSigned.namespaces?.get(
+                            MobileDrivingLicenceScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == MobileDrivingLicenceDataElements.AGE_OVER_18
-                        }?.value?.elementValue?.boolean
+                        }?.value?.elementValue?.let { (it as Boolean) }
 
                         else -> null
                     }
@@ -658,7 +655,7 @@ class CredentialExtractor(
 
                         is EuPidScheme -> null
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> null
+                        is MobileDrivingLicenceScheme -> null
 
                         else -> null
                     }
@@ -670,7 +667,7 @@ class CredentialExtractor(
                             IdAustriaScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == IdAustriaScheme.Attributes.AGE_OVER_21
-                        }?.value?.elementValue?.boolean
+                        }?.value?.elementValue?.let { (it as Boolean) }
 
                         is EuPidScheme -> null
 
@@ -712,7 +709,7 @@ class CredentialExtractor(
                         IdAustriaScheme.isoNamespace
                     )?.entries?.firstOrNull {
                         it.value.elementIdentifier == IdAustriaScheme.Attributes.MAIN_ADDRESS
-                    }?.value?.elementValue?.string
+                    }?.value?.elementValue?.let { (it as String) }
 
                     else -> null
                 }
@@ -744,7 +741,7 @@ class CredentialExtractor(
                             it.value?.claimName == EuPidScheme.Attributes.RESIDENT_ADDRESS
                         }.firstNotNullOfOrNull { it.value?.claimValue as String }
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.disclosures.filter {
+                        is MobileDrivingLicenceScheme -> credential.disclosures.filter {
                             it.value?.claimName == MobileDrivingLicenceDataElements.RESIDENT_ADDRESS
                         }.firstNotNullOfOrNull { it.value?.claimValue as String }
 
@@ -760,13 +757,13 @@ class CredentialExtractor(
                             EuPidScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == EuPidScheme.Attributes.RESIDENT_ADDRESS
-                        }?.value?.elementValue?.string
+                        }?.value?.elementValue?.let { (it as String) }
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.issuerSigned.namespaces?.get(
-                            ConstantIndex.MobileDrivingLicence2023.isoNamespace
+                        is MobileDrivingLicenceScheme -> credential.issuerSigned.namespaces?.get(
+                            MobileDrivingLicenceScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == MobileDrivingLicenceDataElements.RESIDENT_ADDRESS
-                        }?.value?.elementValue?.string
+                        }?.value?.elementValue?.let { (it as String) }
 
                         else -> null
                     }
@@ -797,7 +794,7 @@ class CredentialExtractor(
                             it.value?.claimName == EuPidScheme.Attributes.RESIDENT_STREET
                         }.firstNotNullOfOrNull { it.value?.claimValue as String }
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> null
+                        is MobileDrivingLicenceScheme -> null
 
                         else -> null
                     }
@@ -811,9 +808,9 @@ class CredentialExtractor(
                             EuPidScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == EuPidScheme.Attributes.RESIDENT_STREET
-                        }?.value?.elementValue?.string
+                        }?.value?.elementValue?.let { (it as String) }
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> null
+                        is MobileDrivingLicenceScheme -> null
 
                         else -> null
                     }
@@ -843,7 +840,7 @@ class CredentialExtractor(
                         is EuPidScheme -> credential.disclosures.filter { it.value?.claimName == EuPidScheme.Attributes.RESIDENT_HOUSE_NUMBER }
                             .firstNotNullOfOrNull { it.value?.claimValue as String }
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> null
+                        is MobileDrivingLicenceScheme -> null
 
                         else -> null
                     }
@@ -855,9 +852,9 @@ class CredentialExtractor(
 
                         is EuPidScheme -> credential.issuerSigned.namespaces?.get(EuPidScheme.isoNamespace)?.entries?.firstOrNull {
                             it.value.elementIdentifier == EuPidScheme.Attributes.RESIDENT_HOUSE_NUMBER
-                        }?.value?.elementValue?.string
+                        }?.value?.elementValue?.let { (it as String) }
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> null
+                        is MobileDrivingLicenceScheme -> null
 
                         else -> null
                     }
@@ -886,7 +883,7 @@ class CredentialExtractor(
 
                         is EuPidScheme -> null
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> null
+                        is MobileDrivingLicenceScheme -> null
 
                         else -> null
                     }
@@ -898,7 +895,7 @@ class CredentialExtractor(
 
                         is EuPidScheme -> null
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> null
+                        is MobileDrivingLicenceScheme -> null
 
                         else -> null
                     }
@@ -927,7 +924,7 @@ class CredentialExtractor(
 
                         is EuPidScheme -> null
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> null
+                        is MobileDrivingLicenceScheme -> null
 
                         else -> null
                     }
@@ -939,7 +936,7 @@ class CredentialExtractor(
 
                         is EuPidScheme -> null
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> null
+                        is MobileDrivingLicenceScheme -> null
 
                         else -> null
                     }
@@ -970,7 +967,7 @@ class CredentialExtractor(
                             it.value?.claimName == EuPidScheme.Attributes.RESIDENT_CITY
                         }.firstNotNullOfOrNull { it.value?.claimValue as String }
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.disclosures.filter {
+                        is MobileDrivingLicenceScheme -> credential.disclosures.filter {
                             it.value?.claimName == MobileDrivingLicenceDataElements.RESIDENT_CITY
                         }.firstNotNullOfOrNull { it.value?.claimValue as String }
 
@@ -986,13 +983,13 @@ class CredentialExtractor(
                             EuPidScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == EuPidScheme.Attributes.RESIDENT_CITY
-                        }?.value?.elementValue?.string
+                        }?.value?.elementValue?.let { (it as String) }
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.issuerSigned.namespaces?.get(
-                            ConstantIndex.MobileDrivingLicence2023.isoNamespace
+                        is MobileDrivingLicenceScheme -> credential.issuerSigned.namespaces?.get(
+                            MobileDrivingLicenceScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == MobileDrivingLicenceDataElements.RESIDENT_CITY
-                        }?.value?.elementValue?.string
+                        }?.value?.elementValue?.let { (it as String) }
 
                         else -> null
                     }
@@ -1023,7 +1020,7 @@ class CredentialExtractor(
                             it.value?.claimName == EuPidScheme.Attributes.RESIDENT_POSTAL_CODE
                         }.firstNotNullOfOrNull { it.value?.claimValue as String }
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.disclosures.filter {
+                        is MobileDrivingLicenceScheme -> credential.disclosures.filter {
                             it.value?.claimName == MobileDrivingLicenceDataElements.RESIDENT_POSTAL_CODE
                         }.firstNotNullOfOrNull { it.value?.claimValue as String }
 
@@ -1039,13 +1036,13 @@ class CredentialExtractor(
                             EuPidScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == EuPidScheme.Attributes.RESIDENT_POSTAL_CODE
-                        }?.value?.elementValue?.string
+                        }?.value?.elementValue?.let { (it as String) }
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.issuerSigned.namespaces?.get(
-                            ConstantIndex.MobileDrivingLicence2023.isoNamespace
+                        is MobileDrivingLicenceScheme -> credential.issuerSigned.namespaces?.get(
+                            MobileDrivingLicenceScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == MobileDrivingLicenceDataElements.RESIDENT_POSTAL_CODE
-                        }?.value?.elementValue?.string
+                        }?.value?.elementValue?.let { (it as String) }
 
                         else -> null
                     }
@@ -1076,7 +1073,7 @@ class CredentialExtractor(
                             it.value?.claimName == EuPidScheme.Attributes.RESIDENT_STATE
                         }.firstNotNullOfOrNull { it.value?.claimValue as String }
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.disclosures.filter {
+                        is MobileDrivingLicenceScheme -> credential.disclosures.filter {
                             it.value?.claimName == MobileDrivingLicenceDataElements.RESIDENT_STATE
                         }.firstNotNullOfOrNull { it.value?.claimValue as String }
 
@@ -1090,13 +1087,13 @@ class CredentialExtractor(
 
                         is EuPidScheme -> credential.issuerSigned.namespaces?.get(EuPidScheme.isoNamespace)?.entries?.firstOrNull {
                             it.value.elementIdentifier == EuPidScheme.Attributes.RESIDENT_STATE
-                        }?.value?.elementValue?.string
+                        }?.value?.elementValue?.let { (it as String) }
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.issuerSigned.namespaces?.get(
-                            ConstantIndex.MobileDrivingLicence2023.isoNamespace
+                        is MobileDrivingLicenceScheme -> credential.issuerSigned.namespaces?.get(
+                            MobileDrivingLicenceScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == MobileDrivingLicenceDataElements.RESIDENT_STATE
-                        }?.value?.elementValue?.string
+                        }?.value?.elementValue?.let { (it as String) }
 
                         else -> null
                     }
@@ -1127,7 +1124,7 @@ class CredentialExtractor(
                             it.value?.claimName == EuPidScheme.Attributes.RESIDENT_COUNTRY
                         }.firstNotNullOfOrNull { it.value?.claimValue as String }
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.disclosures.filter {
+                        is MobileDrivingLicenceScheme -> credential.disclosures.filter {
                             it.value?.claimName == MobileDrivingLicenceDataElements.RESIDENT_COUNTRY
                         }.firstNotNullOfOrNull { it.value?.claimValue as String }
 
@@ -1143,13 +1140,13 @@ class CredentialExtractor(
                             EuPidScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == EuPidScheme.Attributes.RESIDENT_COUNTRY
-                        }?.value?.elementValue?.string
+                        }?.value?.elementValue?.let { (it as String) }
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.issuerSigned.namespaces?.get(
-                            ConstantIndex.MobileDrivingLicence2023.isoNamespace
+                        is MobileDrivingLicenceScheme -> credential.issuerSigned.namespaces?.get(
+                            MobileDrivingLicenceScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == MobileDrivingLicenceDataElements.RESIDENT_COUNTRY
-                        }?.value?.elementValue?.string
+                        }?.value?.elementValue?.let { (it as String) }
 
                         else -> null
                     }
@@ -1180,7 +1177,7 @@ class CredentialExtractor(
                             it.value?.claimName == EuPidScheme.Attributes.AGE_IN_YEARS
                         }.firstNotNullOfOrNull { it.value?.claimValue as UInt }
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.disclosures.filter {
+                        is MobileDrivingLicenceScheme -> credential.disclosures.filter {
                             it.value?.claimName == MobileDrivingLicenceDataElements.AGE_IN_YEARS
                         }.firstNotNullOfOrNull { it.value?.claimValue as UInt }
 
@@ -1196,13 +1193,13 @@ class CredentialExtractor(
                             EuPidScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == EuPidScheme.Attributes.AGE_IN_YEARS
-                        }?.value?.elementValue?.string?.toUInt()
+                        }?.value?.elementValue?.let { (it as String) }?.toUInt()
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.issuerSigned.namespaces?.get(
-                            ConstantIndex.MobileDrivingLicence2023.isoNamespace
+                        is MobileDrivingLicenceScheme -> credential.issuerSigned.namespaces?.get(
+                            MobileDrivingLicenceScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == MobileDrivingLicenceDataElements.AGE_IN_YEARS
-                        }?.value?.elementValue?.string?.toUInt()
+                        }?.value?.elementValue?.let { (it as String) }?.toUInt()
 
                         else -> null
                     }
@@ -1233,7 +1230,7 @@ class CredentialExtractor(
                             it.value?.claimName == EuPidScheme.Attributes.AGE_BIRTH_YEAR
                         }.firstNotNullOfOrNull { it.value?.claimValue as UInt }
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.disclosures.filter {
+                        is MobileDrivingLicenceScheme -> credential.disclosures.filter {
                             it.value?.claimName == MobileDrivingLicenceDataElements.AGE_BIRTH_YEAR
                         }.firstNotNullOfOrNull { it.value?.claimValue as UInt }
 
@@ -1249,13 +1246,13 @@ class CredentialExtractor(
                             EuPidScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == EuPidScheme.Attributes.AGE_BIRTH_YEAR
-                        }?.value?.elementValue?.string?.toUInt()
+                        }?.value?.elementValue?.let { (it as String) }?.toUInt()
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.issuerSigned.namespaces?.get(
-                            ConstantIndex.MobileDrivingLicence2023.isoNamespace
+                        is MobileDrivingLicenceScheme -> credential.issuerSigned.namespaces?.get(
+                            MobileDrivingLicenceScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == MobileDrivingLicenceDataElements.AGE_BIRTH_YEAR
-                        }?.value?.elementValue?.string?.toUInt()
+                        }?.value?.elementValue?.let { (it as String) }?.toUInt()
 
                         else -> null
                     }
@@ -1295,7 +1292,7 @@ class CredentialExtractor(
 
                         is EuPidScheme -> credential.issuerSigned.namespaces?.get(EuPidScheme.isoNamespace)?.entries?.firstOrNull {
                             it.value.elementIdentifier == EuPidScheme.Attributes.FAMILY_NAME_BIRTH
-                        }?.value?.elementValue?.string
+                        }?.value?.elementValue?.let { (it as String) }
 
                         else -> null
                     }
@@ -1335,7 +1332,7 @@ class CredentialExtractor(
 
                         is EuPidScheme -> credential.issuerSigned.namespaces?.get(EuPidScheme.isoNamespace)?.entries?.firstOrNull {
                             it.value.elementIdentifier == EuPidScheme.Attributes.GIVEN_NAME_BIRTH
-                        }?.value?.elementValue?.string
+                        }?.value?.elementValue?.let { (it as String) }
 
                         else -> null
                     }
@@ -1366,7 +1363,7 @@ class CredentialExtractor(
                             it.value?.claimName == EuPidScheme.Attributes.BIRTH_PLACE
                         }.firstNotNullOfOrNull { it.value?.claimValue as String }
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.disclosures.filter {
+                        is MobileDrivingLicenceScheme -> credential.disclosures.filter {
                             it.value?.claimName == MobileDrivingLicenceDataElements.BIRTH_PLACE
                         }.firstNotNullOfOrNull { it.value?.claimValue as String }
 
@@ -1382,13 +1379,13 @@ class CredentialExtractor(
                             EuPidScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == EuPidScheme.Attributes.BIRTH_PLACE
-                        }?.value?.elementValue?.string
+                        }?.value?.elementValue?.let { (it as String) }
 
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.issuerSigned.namespaces?.get(
-                            ConstantIndex.MobileDrivingLicence2023.isoNamespace
+                        is MobileDrivingLicenceScheme -> credential.issuerSigned.namespaces?.get(
+                            MobileDrivingLicenceScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == MobileDrivingLicenceDataElements.BIRTH_PLACE
-                        }?.value?.elementValue?.string
+                        }?.value?.elementValue?.let { (it as String) }
 
                         else -> null
                     }
@@ -1428,7 +1425,7 @@ class CredentialExtractor(
 
                         is EuPidScheme -> credential.issuerSigned.namespaces?.get(EuPidScheme.isoNamespace)?.entries?.firstOrNull {
                             it.value.elementIdentifier == EuPidScheme.Attributes.BIRTH_COUNTRY
-                        }?.value?.elementValue?.string
+                        }?.value?.elementValue?.let { (it as String) }
 
                         else -> null
                     }
@@ -1468,7 +1465,7 @@ class CredentialExtractor(
 
                         is EuPidScheme -> credential.issuerSigned.namespaces?.get(EuPidScheme.isoNamespace)?.entries?.firstOrNull {
                             it.value.elementIdentifier == EuPidScheme.Attributes.BIRTH_STATE
-                        }?.value?.elementValue?.string
+                        }?.value?.elementValue?.let { (it as String) }
 
                         else -> null
                     }
@@ -1508,7 +1505,7 @@ class CredentialExtractor(
 
                         is EuPidScheme -> credential.issuerSigned.namespaces?.get(EuPidScheme.isoNamespace)?.entries?.firstOrNull {
                             it.value.elementIdentifier == EuPidScheme.Attributes.BIRTH_CITY
-                        }?.value?.elementValue?.string
+                        }?.value?.elementValue?.let { (it as String) }
 
                         else -> null
                     }
@@ -1525,7 +1522,7 @@ class CredentialExtractor(
 
                 is SubjectCredentialStore.StoreEntry.SdJwt -> {
                     when (credential.scheme) {
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.disclosures.filter {
+                        is MobileDrivingLicenceScheme -> credential.disclosures.filter {
                             it.value?.claimName == MobileDrivingLicenceDataElements.DOCUMENT_NUMBER
                         }.firstNotNullOfOrNull { it.value?.claimValue as String }
 
@@ -1535,11 +1532,11 @@ class CredentialExtractor(
 
                 is SubjectCredentialStore.StoreEntry.Iso -> {
                     when (credential.scheme) {
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.issuerSigned.namespaces?.get(
-                            ConstantIndex.MobileDrivingLicence2023.isoNamespace
+                        is MobileDrivingLicenceScheme -> credential.issuerSigned.namespaces?.get(
+                            MobileDrivingLicenceScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == MobileDrivingLicenceDataElements.DOCUMENT_NUMBER
-                        }?.value?.elementValue?.string
+                        }?.value?.elementValue?.let { (it as String) }
 
                         else -> null
                     }
@@ -1556,7 +1553,7 @@ class CredentialExtractor(
 
                 is SubjectCredentialStore.StoreEntry.SdJwt -> {
                     when (credential.scheme) {
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.disclosures.filter {
+                        is MobileDrivingLicenceScheme -> credential.disclosures.filter {
                             it.value?.claimName == MobileDrivingLicenceDataElements.ISSUING_AUTHORITY
                         }.firstNotNullOfOrNull { it.value?.claimValue as String }
 
@@ -1566,11 +1563,11 @@ class CredentialExtractor(
 
                 is SubjectCredentialStore.StoreEntry.Iso -> {
                     when (credential.scheme) {
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.issuerSigned.namespaces?.get(
-                            ConstantIndex.MobileDrivingLicence2023.isoNamespace
+                        is MobileDrivingLicenceScheme -> credential.issuerSigned.namespaces?.get(
+                            MobileDrivingLicenceScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == MobileDrivingLicenceDataElements.ISSUING_AUTHORITY
-                        }?.value?.elementValue?.string
+                        }?.value?.elementValue?.let { (it as String) }
 
                         else -> null
                     }
@@ -1587,7 +1584,7 @@ class CredentialExtractor(
 
                 is SubjectCredentialStore.StoreEntry.SdJwt -> {
                     when (credential.scheme) {
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.disclosures.filter {
+                        is MobileDrivingLicenceScheme -> credential.disclosures.filter {
                             it.value?.claimName == MobileDrivingLicenceDataElements.ISSUING_COUNTRY
                         }.firstNotNullOfOrNull { it.value?.claimValue as String }
 
@@ -1597,11 +1594,11 @@ class CredentialExtractor(
 
                 is SubjectCredentialStore.StoreEntry.Iso -> {
                     when (credential.scheme) {
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.issuerSigned.namespaces?.get(
-                            ConstantIndex.MobileDrivingLicence2023.isoNamespace
+                        is MobileDrivingLicenceScheme -> credential.issuerSigned.namespaces?.get(
+                            MobileDrivingLicenceScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == MobileDrivingLicenceDataElements.ISSUING_COUNTRY
-                        }?.value?.elementValue?.string
+                        }?.value?.elementValue?.let { (it as String) }
 
                         else -> null
                     }
@@ -1618,7 +1615,7 @@ class CredentialExtractor(
 
                 is SubjectCredentialStore.StoreEntry.SdJwt -> {
                     when (credential.scheme) {
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.disclosures.filter {
+                        is MobileDrivingLicenceScheme -> credential.disclosures.filter {
                             it.value?.claimName == MobileDrivingLicenceDataElements.UN_DISTINGUISHING_SIGN
                         }.firstNotNullOfOrNull { it.value?.claimValue as String }
 
@@ -1628,11 +1625,11 @@ class CredentialExtractor(
 
                 is SubjectCredentialStore.StoreEntry.Iso -> {
                     when (credential.scheme) {
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.issuerSigned.namespaces?.get(
-                            ConstantIndex.MobileDrivingLicence2023.isoNamespace
+                        is MobileDrivingLicenceScheme -> credential.issuerSigned.namespaces?.get(
+                            MobileDrivingLicenceScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == MobileDrivingLicenceDataElements.UN_DISTINGUISHING_SIGN
-                        }?.value?.elementValue?.string
+                        }?.value?.elementValue?.let { (it as String) }
 
                         else -> null
                     }
@@ -1649,7 +1646,7 @@ class CredentialExtractor(
 
                 is SubjectCredentialStore.StoreEntry.SdJwt -> {
                     when (credential.scheme) {
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.disclosures.filter {
+                        is MobileDrivingLicenceScheme -> credential.disclosures.filter {
                             it.value?.claimName == MobileDrivingLicenceDataElements.DRIVING_PRIVILEGES
                         }.firstNotNullOfOrNull {
                             kotlin.runCatching { it.value?.claimValue as Array<DrivingPrivilege>? }.getOrNull()
@@ -1665,11 +1662,11 @@ class CredentialExtractor(
 
                 is SubjectCredentialStore.StoreEntry.Iso -> {
                     when (credential.scheme) {
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.issuerSigned.namespaces?.get(
-                            ConstantIndex.MobileDrivingLicence2023.isoNamespace
+                        is MobileDrivingLicenceScheme -> credential.issuerSigned.namespaces?.get(
+                            MobileDrivingLicenceScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == MobileDrivingLicenceDataElements.DRIVING_PRIVILEGES
-                        }?.value?.elementValue?.drivingPrivilege
+                        }?.value?.elementValue?.let { (it as Array<DrivingPrivilege>) }
 
                         else -> null
                     }
@@ -1686,7 +1683,7 @@ class CredentialExtractor(
 
                 is SubjectCredentialStore.StoreEntry.SdJwt -> {
                     when (credential.scheme) {
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.disclosures.filter {
+                        is MobileDrivingLicenceScheme -> credential.disclosures.filter {
                             it.value?.claimName == MobileDrivingLicenceDataElements.ISSUE_DATE
                         }.firstNotNullOfOrNull { it.value?.claimValue as String }
                             ?.let { LocalDate.parse(it) }
@@ -1697,13 +1694,13 @@ class CredentialExtractor(
 
                 is SubjectCredentialStore.StoreEntry.Iso -> {
                     when (credential.scheme) {
-                        is ConstantIndex.MobileDrivingLicence2023 -> {
+                        is MobileDrivingLicenceScheme -> {
                             val elementValue = credential.issuerSigned.namespaces?.get(
-                                ConstantIndex.MobileDrivingLicence2023.isoNamespace
+                                MobileDrivingLicenceScheme.isoNamespace
                             )?.entries?.firstOrNull {
                                 it.value.elementIdentifier == MobileDrivingLicenceDataElements.ISSUE_DATE
                             }?.value?.elementValue
-                            elementValue?.date ?: elementValue?.string?.let { LocalDate.parse(it) }
+                            elementValue?.let { it as LocalDate } ?: elementValue?.let { (it as String) }?.let { LocalDate.parse(it) }
                         }
 
                         else -> null
@@ -1721,7 +1718,7 @@ class CredentialExtractor(
 
                 is SubjectCredentialStore.StoreEntry.SdJwt -> {
                     when (credential.scheme) {
-                        is ConstantIndex.MobileDrivingLicence2023 -> credential.disclosures.filter {
+                        is MobileDrivingLicenceScheme -> credential.disclosures.filter {
                             it.value?.claimName == MobileDrivingLicenceDataElements.EXPIRY_DATE
                         }.firstNotNullOfOrNull { it.value?.claimValue as String }
                             ?.let { LocalDate.parse(it) }
@@ -1732,13 +1729,13 @@ class CredentialExtractor(
 
                 is SubjectCredentialStore.StoreEntry.Iso -> {
                     when (credential.scheme) {
-                        is ConstantIndex.MobileDrivingLicence2023 -> {
+                        is MobileDrivingLicenceScheme -> {
                             val elementValue = credential.issuerSigned.namespaces?.get(
-                                ConstantIndex.MobileDrivingLicence2023.isoNamespace
+                                MobileDrivingLicenceScheme.isoNamespace
                             )?.entries?.firstOrNull {
                                 it.value.elementIdentifier == MobileDrivingLicenceDataElements.EXPIRY_DATE
                             }?.value?.elementValue
-                            elementValue?.date ?: elementValue?.string?.let { LocalDate.parse(it) }
+                            elementValue?.let { it as LocalDate } ?: elementValue?.let { (it as String) }?.let { LocalDate.parse(it) }
                         }
 
                         else -> null
@@ -1780,7 +1777,7 @@ class CredentialExtractor(
 
                         is EuPidScheme -> credential.issuerSigned.namespaces?.get(EuPidScheme.isoNamespace)?.entries?.firstOrNull {
                             it.value.elementIdentifier == EuPidScheme.Attributes.BIRTH_PLACE
-                        }?.value?.elementValue?.string?.let { LocalDate.parse(it) }
+                        }?.value?.elementValue?.let { (it as String) }?.let { LocalDate.parse(it) }
 
                         else -> null
                     }

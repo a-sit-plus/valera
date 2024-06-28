@@ -2,7 +2,8 @@ plugins {
     kotlin("multiplatform")
     id("com.android.application")
     id("at.asitplus.gradle.conventions")
-    id("org.jetbrains.compose")
+    alias(libs.plugins.jetbrainsCompose)
+    alias(libs.plugins.compose.compiler)
 }
 
 kotlin {
@@ -60,7 +61,7 @@ android {
     }
 
     packaging {
-        resources.excludes.add("META-INF/versions/9/previous-compilation-data.bin")
+        resources.excludes+=("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
     }
 }
 

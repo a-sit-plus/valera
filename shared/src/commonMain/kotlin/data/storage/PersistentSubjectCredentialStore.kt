@@ -12,6 +12,7 @@ import at.asitplus.wallet.lib.data.VerifiableCredentialJws
 import at.asitplus.wallet.lib.data.VerifiableCredentialSdJwt
 import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.iso.IssuerSigned
+import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -119,7 +120,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
                 is SubjectCredentialStore.StoreEntry.Iso -> {
                     scheme = when (it.scheme) {
                         ConstantIndex.AtomicAttribute2023 -> ExportableCredentialScheme.AtomicAttribute2023
-                        ConstantIndex.MobileDrivingLicence2023 -> ExportableCredentialScheme.MobileDrivingLicence2023
+                        MobileDrivingLicenceScheme -> ExportableCredentialScheme.MobileDrivingLicence2023
                         IdAustriaScheme -> ExportableCredentialScheme.IdAustriaScheme
                         EuPidScheme -> ExportableCredentialScheme.EuPidScheme
                         else -> throw Exception("Unknown CredentialScheme")
@@ -135,7 +136,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
                 is SubjectCredentialStore.StoreEntry.SdJwt -> {
                     scheme = when (it.scheme) {
                         ConstantIndex.AtomicAttribute2023 -> ExportableCredentialScheme.AtomicAttribute2023
-                        ConstantIndex.MobileDrivingLicence2023 -> ExportableCredentialScheme.MobileDrivingLicence2023
+                        MobileDrivingLicenceScheme -> ExportableCredentialScheme.MobileDrivingLicence2023
                         IdAustriaScheme -> ExportableCredentialScheme.IdAustriaScheme
                         EuPidScheme -> ExportableCredentialScheme.EuPidScheme
                         else -> throw Exception("Unknown CredentialScheme")
@@ -153,7 +154,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
                 is SubjectCredentialStore.StoreEntry.Vc -> {
                     scheme = when (it.scheme) {
                         ConstantIndex.AtomicAttribute2023 -> ExportableCredentialScheme.AtomicAttribute2023
-                        ConstantIndex.MobileDrivingLicence2023 -> ExportableCredentialScheme.MobileDrivingLicence2023
+                        MobileDrivingLicenceScheme -> ExportableCredentialScheme.MobileDrivingLicence2023
                         IdAustriaScheme -> ExportableCredentialScheme.IdAustriaScheme
                         EuPidScheme -> ExportableCredentialScheme.EuPidScheme
                         else -> throw Exception("Unknown CredentialScheme")
@@ -268,7 +269,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
                     is ExportableStoreEntry.Iso -> {
                         scheme = when (it.scheme) {
                             ExportableCredentialScheme.AtomicAttribute2023 -> ConstantIndex.AtomicAttribute2023
-                            ExportableCredentialScheme.MobileDrivingLicence2023 -> ConstantIndex.MobileDrivingLicence2023
+                            ExportableCredentialScheme.MobileDrivingLicence2023 -> MobileDrivingLicenceScheme
                             ExportableCredentialScheme.IdAustriaScheme -> IdAustriaScheme
                             ExportableCredentialScheme.EuPidScheme -> EuPidScheme
                         }
@@ -282,7 +283,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
                     is ExportableStoreEntry.SdJwt -> {
                         scheme = when (it.scheme) {
                             ExportableCredentialScheme.AtomicAttribute2023 -> ConstantIndex.AtomicAttribute2023
-                            ExportableCredentialScheme.MobileDrivingLicence2023 -> ConstantIndex.MobileDrivingLicence2023
+                            ExportableCredentialScheme.MobileDrivingLicence2023 -> MobileDrivingLicenceScheme
                             ExportableCredentialScheme.IdAustriaScheme -> IdAustriaScheme
                             ExportableCredentialScheme.EuPidScheme -> EuPidScheme
                         }
@@ -299,7 +300,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
                     is ExportableStoreEntry.Vc -> {
                         scheme = when (it.scheme) {
                             ExportableCredentialScheme.AtomicAttribute2023 -> ConstantIndex.AtomicAttribute2023
-                            ExportableCredentialScheme.MobileDrivingLicence2023 -> ConstantIndex.MobileDrivingLicence2023
+                            ExportableCredentialScheme.MobileDrivingLicence2023 -> MobileDrivingLicenceScheme
                             ExportableCredentialScheme.IdAustriaScheme -> IdAustriaScheme
                             ExportableCredentialScheme.EuPidScheme -> EuPidScheme
                         }

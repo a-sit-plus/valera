@@ -140,7 +140,7 @@ class InstrumentedTests {
             )
             App(walletMain)
 
-            val issuer = IssuerAgent.newDefaultInstance()
+            val issuer = IssuerAgent()
             runBlocking {
                 walletMain.holderAgent.storeCredentials(
                     issuer.issueCredential(
@@ -212,7 +212,7 @@ class InstrumentedTests {
             )
             App(walletMain)
 
-            val issuer = IssuerAgent.newDefaultInstance()
+            val issuer = IssuerAgent()
             runBlocking {
                 walletMain.holderAgent.storeCredentials(
                     issuer.issueCredential(
