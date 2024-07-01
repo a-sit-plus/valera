@@ -61,12 +61,7 @@ public class RealKeyChainService : KeyChainService, HolderKeyService {
     public func generateKeyPair() async throws {
         NapierProxy.companion.i(msg: "generateKeyPair")
         clear()
-        /*guard let authContext = await authenticateUser(String("Create new key pair")) else {
-            NapierProxy.companion.e(msg: "generateKeyPair: Cannot authenticate user")
-            throw "user auth failed"
-        }*/
-
-        let flags: SecAccessControlCreateFlags = [.privateKeyUsage]//, .userPresence]
+        let flags: SecAccessControlCreateFlags = [.privateKeyUsage, .userPresence]
         let authContext : LAContext? = nil
         var error: Unmanaged<CFError>?
         guard let access = SecAccessControlCreateWithFlags(kCFAllocatorDefault, kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly, flags, &error) else {
@@ -124,8 +119,9 @@ public class RealKeyChainService : KeyChainService, HolderKeyService {
 
     public func loadPrivateKey(authContext: LAContext? = nil) -> SecureEnclave.P256.Signing.PrivateKey? {
         NapierProxy.companion.d(msg: "loadPrivateKey")
+        let authContextToUse = authContext ?? cachedAuthContext ?? nil
         if let privateKey = self.privateKey {
-            guard let privateKey = try? SecureEnclave.P256.Signing.PrivateKey(dataRepresentation: privateKey.dataRepresentation, authenticationContext: authContext ?? cachedAuthContext ?? nil) else {
+            guard let privateKey = try? SecureEnclave.P256.Signing.PrivateKey(dataRepresentation: privateKey.dataRepresentation, authenticationContext: authContextToUse) else {
                 NapierProxy.companion.e(msg: "loadPrivateKey: Cannot reconstruct CryptoKit key")
                 return nil
             }
@@ -150,7 +146,7 @@ public class RealKeyChainService : KeyChainService, HolderKeyService {
                 NapierProxy.companion.e(msg: "loadPrivateKey: Cannot decode data")
                 return nil
             }
-            guard let privateKey = try? SecureEnclave.P256.Signing.PrivateKey(dataRepresentation: data, authenticationContext: authContext ?? cachedAuthContext ?? nil) else {
+            guard let privateKey = try? SecureEnclave.P256.Signing.PrivateKey(dataRepresentation: data, authenticationContext: authContextToUse) else {
                 NapierProxy.companion.e(msg: "loadPrivateKey: Cannot reconstruct CryptoKit key")
                 return nil
             }
@@ -265,9 +261,7 @@ public class RealKeyChainService : KeyChainService, HolderKeyService {
             return cachedAuthContext
         }
         let authContext = LAContext()
-        if #available(iOS 15, *) {
-            authContext.localizedFallbackTitle = String(localized: "auth_passcode")
-        }
+        authContext.localizedFallbackTitle = "Passcode"
         let isSuccess = try? await authContext.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: detailText)
         guard let isSuccess = isSuccess,
               isSuccess else {

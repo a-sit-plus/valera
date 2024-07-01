@@ -1,12 +1,9 @@
-import at.asitplus.gradle.env
-import at.asitplus.gradle.envExtra
-import org.jetbrains.kotlin.gradle.plugin.extraProperties
-
 plugins {
     kotlin("multiplatform")
     id("com.android.application")
     id("at.asitplus.gradle.conventions")
-    id("org.jetbrains.compose")
+    alias(libs.plugins.jetbrainsCompose)
+    alias(libs.plugins.compose.compiler)
 }
 
 kotlin {
@@ -64,6 +61,11 @@ android {
     }
 
     packaging {
-        resources.excludes.add("META-INF/versions/9/previous-compilation-data.bin")
+        resources.excludes+=("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
     }
+}
+
+repositories {
+    maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+    maven("https://oss.sonatype.org/content/repositories/snapshots/")
 }

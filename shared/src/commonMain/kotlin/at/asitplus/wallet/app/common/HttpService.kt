@@ -13,6 +13,7 @@ import io.ktor.client.request.header
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.json.Json
 
 /**
  * Central place to build [HttpClient]
@@ -21,7 +22,10 @@ class HttpService {
     fun buildHttpClient(cookieStorage: CookiesStorage? = null) = HttpClient {
         followRedirects = false
         install(ContentNegotiation) {
-            json()
+            json(Json {
+                isLenient = true
+                ignoreUnknownKeys = true
+            })
         }
 
         install(DefaultRequest) {

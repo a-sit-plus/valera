@@ -21,7 +21,19 @@ expect class ProvisioningLoadingPage(link: String) : Page {
     val link: String
 }
 
-expect class RefreshCredentialsPage() : Page
+expect class RefreshRequirements(
+    authenticationRequestParametersStringified: String,
+) {
+    val authenticationRequestParametersStringified: String
+}
+
+expect class RefreshCredentialsPage(
+    refreshRequirements: RefreshRequirements? = null,
+) : Page {
+    val refreshRequirements: RefreshRequirements?
+}
+
+expect class AddCredentialPage() : Page
 
 
 
@@ -30,12 +42,14 @@ expect class AuthenticationQrCodeScannerPage() : Page
 expect class AuthenticationLoadingPage() : Page
 
 expect class AuthenticationConsentPage(
-    authenticationRequestParametersSerialized: String,
+    authenticationRequestSerialized: String, // AuthenticationRequest
+    authenticationResponseSerialized: String, // AuthenticationResultParameters
     recipientName: String,
     recipientLocation: String,
     fromQrCodeScanner: Boolean = false
 ) : Page {
-    val authenticationRequestParametersSerialized: String
+    val authenticationRequestSerialized: String
+    val authenticationResponseSerialized: String
     val recipientName: String
     val recipientLocation: String
     val fromQrCodeScanner: Boolean

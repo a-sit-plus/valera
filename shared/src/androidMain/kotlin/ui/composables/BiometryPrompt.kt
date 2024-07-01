@@ -1,7 +1,10 @@
 package ui.composables
 
+import android.os.Build
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
+import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
+import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import androidx.biometric.BiometricPrompt
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
@@ -11,16 +14,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
-import composewalletapp.shared.generated.resources.button_label_cancel
+import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.button_label_confirm
 import composewalletapp.shared.generated.resources.error_biometric_error_hardware_unavailable
-import composewalletapp.shared.generated.resources.error_biometric_error_none_enrolled
 import composewalletapp.shared.generated.resources.error_biometric_error_no_hardware
+import composewalletapp.shared.generated.resources.error_biometric_error_none_enrolled
 import composewalletapp.shared.generated.resources.error_biometric_error_security_update_required
 import composewalletapp.shared.generated.resources.error_biometric_error_unknown
 import composewalletapp.shared.generated.resources.error_biometric_error_unsupported
 import composewalletapp.shared.generated.resources.error_biometric_status_unknown
-import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.warning
 import io.github.aakira.napier.Napier
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -38,8 +40,13 @@ actual fun BiometryPrompt(
     val context = LocalContext.current
     val biometricManager = remember { BiometricManager.from(context) }
 
+    val authenticators = when (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
+        true -> BIOMETRIC_WEAK or DEVICE_CREDENTIAL
+        false -> BIOMETRIC_STRONG or DEVICE_CREDENTIAL
+    }
+
     val isBiometricAvailable = remember {
-        biometricManager.canAuthenticate(BIOMETRIC_STRONG)
+        biometricManager.canAuthenticate(authenticators)
     }
     when (isBiometricAvailable) {
         BiometricManager.BIOMETRIC_SUCCESS -> {
@@ -50,10 +57,12 @@ actual fun BiometryPrompt(
                 object : BiometricPrompt.AuthenticationCallback() {
                     override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                         Napier.d("Authentication failed with error code $errorCode: $errString")
-                        onDismiss(BiometryPromptDismissResult(
-                            errorCode = errorCode,
-                            errorString = errString.toString(),
-                        ))
+                        onDismiss(
+                            BiometryPromptDismissResult(
+                                errorCode = errorCode,
+                                errorString = errString.toString(),
+                            )
+                        )
                     }
 
                     override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
@@ -64,10 +73,9 @@ actual fun BiometryPrompt(
             )
 
             val promptInfo = BiometricPrompt.PromptInfo.Builder()
-                .setAllowedAuthenticators(BIOMETRIC_STRONG)
+                .setAllowedAuthenticators(authenticators)
                 .setTitle(title)
                 .setSubtitle(subtitle)
-                .setNegativeButtonText(stringResource(Res.string.button_label_cancel))
                 .build()
 
             biometricPrompt.authenticate(promptInfo)
@@ -119,10 +127,12 @@ actual fun BiometryPrompt(
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            onDismiss(BiometryPromptDismissResult(
-                                errorCode = -1,
-                                errorString = text,
-                            ))
+                            onDismiss(
+                                BiometryPromptDismissResult(
+                                    errorCode = -1,
+                                    errorString = text,
+                                )
+                            )
                         },
                     ) {
                         Text(stringResource(Res.string.button_label_confirm))

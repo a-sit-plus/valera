@@ -1,6 +1,5 @@
 rootProject.name = "ComposeWalletApp"
 
-include(":desktopApp")
 include(":androidApp")
 include(":shared")
 
@@ -23,11 +22,21 @@ pluginManagement {
 }
 
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version("0.4.0")
+    id("org.gradle.toolchains.foojay-resolver-convention") version ("0.4.0")
 }
 
 dependencyResolutionManagement {
     repositories {
+        mavenCentral()
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+    }
+
+    versionCatalogs {
+        create("vclibCatalog") {
+            from("at.asitplus.wallet:vclib-openid-versionCatalog:3.8.0")
+        }
+        create("kmpCryptoCatalog") {
+            from("at.asitplus.crypto:datatypes-versionCatalog:3.2.0")
+        }
     }
 }

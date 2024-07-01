@@ -1,5 +1,7 @@
 package at.asitplus.wallet.app.common
 
+import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.identifier
+import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.resolveSchemeByIdentifier
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
@@ -35,7 +37,8 @@ class WalletConfig(
     }
 
     val credentialScheme: Flow<ConstantIndex.CredentialScheme> = config.map {
-        AttributeIndex.resolveAttributeType(it.credentialSchemeVcType) ?: throw Exception("Unsupported attribute type: $it")
+        AttributeIndex.resolveSchemeByIdentifier(it.credentialSchemeIdentifier)
+            ?: throw Exception("Unsupported attribute type: $it")
     }
 
     val isConditionsAccepted: Flow<Boolean> = config.map {
@@ -45,15 +48,15 @@ class WalletConfig(
     fun set(
         host: String? = null,
         credentialRepresentation: ConstantIndex.CredentialRepresentation? = null,
-        credentialSchemeVcType: String? = null,
+        credentialSchemeIdentifier: String? = null,
         isConditionsAccepted: Boolean? = null,
     ) {
         try {
             runBlocking {
                 val newConfig = ConfigData(
                     host = host ?: this@WalletConfig.host.first(),
-                    credentialSchemeVcType = credentialSchemeVcType
-                        ?: this@WalletConfig.credentialScheme.first().vcType,
+                    credentialSchemeIdentifier = credentialSchemeIdentifier
+                        ?: this@WalletConfig.credentialScheme.first().identifier,
                     credentialRepresentation = credentialRepresentation
                         ?: this@WalletConfig.credentialRepresentation.first(),
                     isConditionsAccepted = isConditionsAccepted
@@ -81,14 +84,14 @@ class WalletConfig(
 @Serializable
 private data class ConfigData(
     val host: String,
-    val credentialRepresentation: ConstantIndex.CredentialRepresentation = ConstantIndex.CredentialRepresentation.SD_JWT,
-    val credentialSchemeVcType: String = IdAustriaScheme.vcType,
+    val credentialRepresentation: ConstantIndex.CredentialRepresentation = ConstantIndex.CredentialRepresentation.ISO_MDOC,
+    val credentialSchemeIdentifier: String = IdAustriaScheme.identifier,
     val isConditionsAccepted: Boolean = false
 )
 
 private val ConfigDataDefaults = ConfigData(
-    host = "https://wallet.a-sit.at",
-    credentialRepresentation = ConstantIndex.CredentialRepresentation.SD_JWT,
-    credentialSchemeVcType = IdAustriaScheme.vcType,
+    host = "https://wallet.a-sit.at/m3",
+    credentialRepresentation = ConstantIndex.CredentialRepresentation.ISO_MDOC,
+    credentialSchemeIdentifier = IdAustriaScheme.identifier,
     isConditionsAccepted = false
 )

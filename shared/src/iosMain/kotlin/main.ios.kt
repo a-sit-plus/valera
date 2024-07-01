@@ -34,7 +34,7 @@ fun MainViewController(
             objectFactory,
             RealDataStoreService(createDataStore(), platformAdapter),
             platformAdapter,
-            buildContext,
+           buildContext =  buildContext,
         )
     )
 }

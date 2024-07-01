@@ -13,8 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.Badge
-import androidx.compose.material3.Divider
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -28,8 +27,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import composewalletapp.shared.generated.resources.info_text_data_items_missing
 import composewalletapp.shared.generated.resources.Res
+import composewalletapp.shared.generated.resources.info_text_data_items_missing
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 
@@ -39,7 +38,7 @@ data class AttributeAvailability(
     val isAvailable: Boolean,
 )
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
+@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun DataCategoryDisplaySection(
     title: String,
@@ -68,61 +67,56 @@ fun DataCategoryDisplaySection(
                     !it.isAvailable
                 }
                 Column {
-                    Row(
+                    DataCategoryDisplaySectionItem(
+                        iconText = stringResource(category.first.iconText),
+                        iconColor = MaterialTheme.colorScheme.secondaryContainer,
+                        title = stringResource(category.first.categoryTitle),
+                        titleFontWeight = FontWeight.Normal,
                         modifier = paddingModifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
-                        DataCategoryDisplaySectionItem(
-                            iconText = stringResource(category.first.iconText),
-                            iconColor = MaterialTheme.colorScheme.secondaryContainer,
-                            title = stringResource(category.first.categoryTitle),
-                            titleFontWeight = FontWeight.Normal,
-                            modifier = Modifier.fillMaxWidth(),
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxHeight(),
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.fillMaxHeight(),
-                            ) {
-                                if (missingAttributeCount > 0) {
-                                    Text(
-                                        text = stringResource(Res.string.info_text_data_items_missing),
-                                        color = MaterialTheme.colorScheme.error,
-                                    )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Badge(
-                                        containerColor = MaterialTheme.colorScheme.error,
-                                    ) {
-                                        Text(
-                                            text = missingAttributeCount.toString(),
-                                        )
-                                    }
-                                }
-                                IconButton(
-                                    onClick = {
-                                        if (openSections.value.contains(categoryIndex)) {
-                                            openSections.value = openSections.value - categoryIndex
-                                        } else {
-                                            openSections.value = openSections.value + categoryIndex
-                                        }
-                                    },
+                            if (missingAttributeCount > 0) {
+                                Text(
+                                    text = stringResource(Res.string.info_text_data_items_missing),
+                                    color = MaterialTheme.colorScheme.error,
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Badge(
+                                    containerColor = MaterialTheme.colorScheme.error,
                                 ) {
+                                    Text(
+                                        text = missingAttributeCount.toString(),
+                                    )
+                                }
+                            }
+                            IconButton(
+                                onClick = {
                                     if (openSections.value.contains(categoryIndex)) {
-                                        Icon(
-                                            imageVector = Icons.Default.ExpandLess,
-                                            contentDescription = null
-                                        )
+                                        openSections.value = openSections.value - categoryIndex
                                     } else {
-                                        Icon(
-                                            imageVector = Icons.Default.ExpandMore,
-                                            contentDescription = null
-                                        )
+                                        openSections.value = openSections.value + categoryIndex
                                     }
+                                },
+                            ) {
+                                if (openSections.value.contains(categoryIndex)) {
+                                    Icon(
+                                        imageVector = Icons.Default.ExpandLess,
+                                        contentDescription = null
+                                    )
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Default.ExpandMore,
+                                        contentDescription = null
+                                    )
                                 }
                             }
                         }
                     }
                     if (openSections.value.contains(categoryIndex)) {
-                        Divider(modifier = Modifier.fillMaxWidth())
+                        HorizontalDivider(modifier = Modifier.fillMaxWidth())
                         for (item in category.second) {
                             DataCategoryDisplaySectionItem(
                                 iconText = "",
@@ -134,7 +128,7 @@ fun DataCategoryDisplaySection(
                                 modifier = paddingModifier.fillMaxWidth(),
                             )
                         }
-                        Divider(modifier = Modifier.fillMaxWidth())
+                        HorizontalDivider(modifier = Modifier.fillMaxWidth())
                     }
                 }
             }
@@ -157,6 +151,7 @@ fun DataCategoryDisplaySectionItem(
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

@@ -1,17 +1,18 @@
 [versions]
 encoding = "1.2.3"
-bignum = "0.3.9"
-vcLib = "3.5.0"
-kmpCrypto = "2.5.0"
-ida = "3.4.0"
-eupid = "1.0.0"
+vcLib = "3.8.0"
+mdl = "1.0.0"
+kmpCrypto = "3.2.0"
+ida = "3.8.1"
+eupid = "2.1.1"
 atomicfu = "0.23.2"
+compose-plugin = "1.6.11"
+kotlin = "2.0.0"
 
 
 [libraries]
 base16 = { group = "io.matthewnelson.kotlin-components", name = "encoding-base16", version.ref = "encoding" }
 base64 = { group = "io.matthewnelson.kotlin-components", name = "encoding-base64", version.ref = "encoding" }
-bignum = { group = "com.ionspin.kotlin", name = "bignum", version.ref = "bignum" }
 vclib = { group = "at.asitplus.wallet", name = "vclib", version.ref = "vcLib" }
 kmpCrypto = { group = "at.asitplus.crypto", name = "datatypes", version.ref = "kmpCrypto" }
 kmpCrypto-jws = { group = "at.asitplus.crypto", name = "datatypes-jws", version.ref = "kmpCrypto" }
@@ -20,4 +21,9 @@ credential-ida = { module = "at.asitplus.wallet:idacredential", version.ref = "i
 credential-eupid = { module = "at.asitplus.wallet:eupidcredential", version.ref = "eupid" }
 atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version.ref = "atomicfu" }
 vclib-openid = { group = "at.asitplus.wallet", name = "vclib-openid", version.ref = "vcLib" }
+vclib-mdl = { group = "at.asitplus.wallet", name = "mobiledrivinglicence", version.ref = "mdl" }
 
+[plugins]
+jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
+kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

@@ -6,6 +6,8 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
@@ -28,6 +30,10 @@ var appLink = mutableStateOf<String?>(null)
  */
 var iosTestValue = Configuration.IOS_TEST_VALUE
 
+internal object AppTestTags {
+    const val rootScaffold = "rootScaffold"
+}
+
 @Composable
 fun App(walletMain: WalletMain) {
     val snackbarHostState = remember { SnackbarHostState() }
@@ -43,7 +49,8 @@ fun App(walletMain: WalletMain) {
         Scaffold(
             snackbarHost = {
                 SnackbarHost(hostState = snackbarHostState)
-            }
+            },
+            modifier = Modifier.testTag(AppTestTags.rootScaffold)
         ) { _ ->
             Navigator(walletMain)
         }

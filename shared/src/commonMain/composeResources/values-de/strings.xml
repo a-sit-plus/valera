@@ -23,6 +23,7 @@
     <string name="button_label_share">Teilen</string>
     <string name="button_label_load_data">Daten laden</string>
     <string name="button_label_reload_data">Daten nachladen</string>
+    <string name="button_label_refresh_data">Daten laden</string>
     <string name="button_label_start">Starten</string>
     <string name="button_label_save">Speichern</string>
     <string name="button_label_conclude">Abschließen</string>
@@ -32,12 +33,14 @@
     <string name="button_label_data_protection_policy">Datenschutzrichtlinie</string>
     <string name="button_label_share_log_file">Log-Datei teilen</string>
     <string name="button_label_reset_app">App zurücksetzen</string>
+    <string name="button_label_all_missing_data">Alle neuen Daten</string>
+    <string name="button_label_all_available_data">Alle bestehenden Daten</string>
 
     <string name="attribute_friendly_name_bpk">BPK</string>
     <string name="attribute_friendly_name_firstname">Vorname</string>
     <string name="attribute_friendly_name_lastname">Nachname</string>
     <string name="attribute_friendly_name_date_of_birth">Geburtsdatum</string>
-    <string name="attribute_friendly_name_portrait">Portrait</string>
+    <string name="attribute_friendly_name_portrait">Porträt</string>
     <string name="attribute_friendly_name_age_at_least_14">Zumindest 14 Jahre alt</string>
     <string name="attribute_friendly_name_age_at_least_16">Zumindest 16 Jahre alt</string>
     <string name="attribute_friendly_name_age_at_least_18">Zumindest 18 Jahre alt</string>
@@ -59,9 +62,24 @@
     <string name="attribute_friendly_name_birth_country">Geburtsland</string>
     <string name="attribute_friendly_name_birth_state">Geburtsstaat</string>
     <string name="attribute_friendly_name_birth_city">Geburtsstadt</string>
+    <string name="attribute_friendly_name_document_number">Ausweisnummer</string>
+    <string name="attribute_friendly_name_issue_date">Ausstellungsdatum</string>
+    <string name="attribute_friendly_name_issuing_authority">Ausstellende Behörde</string>
+    <string name="attribute_friendly_name_expiry_date">Ablaufdatum</string>
+    <string name="attribute_friendly_name_issuing_country">Ausstellungsland</string>
+    <string name="attribute_friendly_name_driving_privileges">Lenkberechtigungen</string>
+    <string name="attribute_friendly_name_distinguishing_sign">Ausstellungsland (Code)</string>
 
     <string name="attribute_friendly_name_data_recipient_name">Name</string>
     <string name="attribute_friendly_name_data_recipient_location">Ort</string>
+
+    <string name="credential_representation_format_label_plain_jwt">Plain JWT</string>
+    <string name="credential_representation_format_label_sd_jwt">SD-JWT</string>
+    <string name="credential_representation_format_label_mso_mdoc">ISO mDoc</string>
+
+    <string name="credential_scheme_label_mdl">mDL</string>
+    <string name="credential_scheme_label_eu_pid">PID</string>
+    <string name="credential_scheme_label_id_austria">IDA Credential</string>
 
     <string name="navigation_button_label_show_data">Daten Vorzeigen</string>
     <string name="navigation_button_label_my_data">Meine Daten</string>
@@ -72,8 +90,8 @@
     <string name="id_format_iso_mdoc_label">ISO_MDOC</string>
 
     <string name="text_label_issuing_service">Ausstellservice</string>
-    <string name="text_label_id_format">ID-Format</string>
-    <string name="text_label_id_scheme">ID-Schema</string>
+    <string name="text_label_id_format">Datenrepräsentation</string>
+    <string name="text_label_id_scheme">Credential Typ</string>
     <string name="text_label_sex">Geschlecht</string>
     <string name="text_label_stair">Stiege</string>
     <string name="text_label_door">Tür</string>
@@ -88,17 +106,19 @@
     <string name="heading_label_authentication_success">Angemeldet</string>
     <string name="heading_label_settings_screen">Einstellungen</string>
     <string name="heading_label_error_screen">Error</string>
-    <string name="heading_label_loading_screen">Loading</string>
+    <string name="heading_label_loading_screen">Laden</string>
     <string name="heading_label_credential_scanner_screen">Credential Scanner</string>
     <string name="heading_label_log_screen">Log</string>
     <string name="heading_label_information_screen">Information</string>
     <string name="heading_label_my_data_screen">Meine Daten</string>
     <string name="heading_label_navigate_back">Zurück</string>
     <string name="heading_label_terms_of_use">Nutzungsbedingungen</string>
-    <string name="HEADING_LABEL_DATA_PROTECTION">Datenschutz</string>
+    <string name="heading_label_data_protection">Datenschutz</string>
     <string name="heading_label_terms_of_use_and_data_protection">Nutzungsbedingungen &amp; Datenschutz</string>
     <string name="heading_label_load_data_screen">Daten laden</string>
-    <string name="heading_label_authenticate_at_device_screen">Anmelden an\nSchalter oder Maschine</string>
+    <string name="heading_label_add_credential_screen">Daten laden</string>
+    <string name="heading_label_refresh_data_screen">Daten laden</string>
+    <string name="heading_label_authenticate_at_device_screen">Anmelden\nan Schalter oder Maschine</string>
 
     <string name="description_read_terms">Bitte lesen und akzeptieren Sie die Nutzungsbedingungen und Datenschutzerklärung.</string>
 
@@ -108,8 +128,12 @@
     <string name="biometric_authentication_prompt_to_load_data_subtitle">Daten laden</string>
 
     <string name="content_description_navigate_back">Zurück</string>
-    <string name="content_description_portrait">Portrait</string>
-    <string name="content_description_refresh_credentials">Daten aktualisieren</string>
+    <string name="content_description_delete_credential">Löschen</string>
+    <string name="content_description_portrait">Porträt</string>
+    <string name="content_description_refresh_credentials">Daten laden</string>
+    <string name="content_description_add_credential">Zusätzliche daten laden</string>
+    <string name="content_description_show_attributes">Attribute anzeigen</string>
+    <string name="content_description_hide_attributes">Attribute verbergen</string>
 
     <string name="prompt_ask_load_missing_data">Sollen die fehlenden Daten nachgeladen werden?</string>
     <string name="prompt_send_above_data">Sollen diese Daten übermittelt werden?</string>
@@ -146,9 +170,10 @@
     <string name="info_text_redirection_to_id_austria_for_credential_provisioning">Zur Abfrage Ihrer Daten werden Sie zu ID Austria weitergeleitet.</string>
     <string name="info_text_notice_development_provisioning_using_qr_code_credentials">Zu Entwicklungszwecken gibt es auch die Möglichkeit, Daten über einen QR-Code zu laden.</string>
     <string name="info_text_enthusiastic_welcome_end">Daten laden und los geht's!</string>
+    <string name="info_text_submission_preview_disabled">Vorschau von Übermittelten Daten ist derzeit nicht verfügbar.</string>
 
-    <string name="section_heading_authenticate_at_device_title">Anmelden an</string>
-    <string name="section_heading_authenticate_at_device_subtitle">Schalter oder Maschine</string>
+    <string name="section_heading_authenticate_at_device_title">Anmelden</string>
+    <string name="section_heading_authenticate_at_device_subtitle">an Schalter oder Maschine</string>
     <string name="section_heading_show_data_to_executive_title">Daten vorzeigen an</string>
     <string name="section_heading_show_data_to_executive_subtitle">Exekutive</string>
     <string name="section_heading_show_data_to_other_citizen_title">Daten vorzeigen an</string>
@@ -170,6 +195,10 @@
     <string name="section_heading_identity_data_icon_text">ID</string>
     <string name="section_heading_residence_data">Meldeadresse</string>
     <string name="section_heading_residence_data_icon_text">MA</string>
+    <string name="section_heading_missing_data">Neue Daten laden</string>
+    <string name="section_heading_load_data_selection">Verfügbare Daten</string>
+    <string name="section_heading_available_data">Bestehende Daten aktualisieren</string>
+
 
     <string name="onboarding_section_terms_and_data_protection_icon_text">1</string>
     <string name="onboarding_section_terms_and_data_protection_title">Nutzungsbedingungen und Datenschutz</string>
