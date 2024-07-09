@@ -17,14 +17,11 @@ import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.button_label_all_missing_data
 import composewalletapp.shared.generated.resources.section_heading_load_data_selection
 import data.PersonalDataCategory
-import data.attributeCategorizationOrder
 import data.credentialAttributeCategorization
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.CategorySelectionRow
 import ui.composables.LabeledTriStateCheckbox
-import ui.views.CategorySelectionRow
-import ui.views.CategorySelectionRowDefaults
-import ui.views.toggleableState
+import ui.state.toggleableState
 
 
 @Composable
@@ -53,7 +50,7 @@ fun CredentialAttributeSelectionForm(
             modifier = Modifier.padding(top = 8.dp),
         ) {
             Row(
-                modifier = CategorySelectionRowDefaults.modifier,
+                modifier = ui.composables.CategorySelectionRowDefaults.modifier,
             ) {
                 attributeCategorization.values.flatten().map {
                     requestedAttributes.contains(it)

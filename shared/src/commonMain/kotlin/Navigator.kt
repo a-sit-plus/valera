@@ -42,14 +42,12 @@ import ui.navigation.LogPage
 import ui.navigation.NavigationStack
 import ui.navigation.Page
 import ui.navigation.ProvisioningLoadingPage
-import ui.navigation.RefreshCredentialsPage
 import ui.navigation.SettingsPage
 import ui.screens.AddCredentialScreen
 import ui.screens.AuthenticationConsentScreen
 import ui.screens.AuthenticationQrCodeScannerScreen
 import ui.screens.AuthenticationSuccessScreen
 import ui.screens.ErrorScreen
-import ui.screens.LoadDataScreen
 import ui.screens.LoadingScreen
 import ui.screens.LogScreen
 import ui.screens.MyCredentialsScreen
@@ -200,14 +198,6 @@ fun MainNavigator(
 
                     is AddCredentialPage -> {
                         AddCredentialScreen(
-                            navigateUp = navigateUp,
-                            walletMain = walletMain,
-                        )
-                    }
-
-                    is RefreshCredentialsPage -> {
-                        LoadDataScreen(
-                            refreshRequirements = page.refreshRequirements,
                             navigateUp = navigateUp,
                             walletMain = walletMain,
                         )

@@ -21,7 +21,6 @@ import composewalletapp.shared.generated.resources.info_text_redirection_to_id_a
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import data.PersonalDataCategory
-import data.attributeCategorizationOrder
 import data.credentialAttributeCategorization
 
 @Composable
