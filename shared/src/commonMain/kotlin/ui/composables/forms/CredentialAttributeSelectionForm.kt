@@ -11,12 +11,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.unit.dp
+import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.identifier
 import at.asitplus.wallet.lib.data.ConstantIndex
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.button_label_all_missing_data
 import composewalletapp.shared.generated.resources.section_heading_load_data_selection
 import data.PersonalDataCategory
 import data.attributeCategorizationOrder
+import data.credentialAttributeCategorization
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.LabeledTriStateCheckbox
@@ -25,7 +27,6 @@ import ui.views.CategorySelectionRowDefaults
 import ui.views.toggleableState
 
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun CredentialAttributeSelectionForm(
     credentialScheme: ConstantIndex.CredentialScheme,
@@ -35,18 +36,8 @@ fun CredentialAttributeSelectionForm(
     onSetAttributeCategoriesExpanded: ((Pair<PersonalDataCategory, Boolean>) -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
-    val attributeCategorization = attributeCategorizationOrder.associateWith { category ->
-        category.attributes[credentialScheme]?.toList() ?: listOf()
-    }.let {
-        it + it.values.flatten().let { categorizedAttributes ->
-            Pair(
-                PersonalDataCategory.OtherData,
-                credentialScheme.claimNames.filter {
-                    !categorizedAttributes.contains(it)
-                },
-            )
-        }
-    }
+    val attributeCategorization = credentialAttributeCategorization[credentialScheme]?.toMap()
+        ?: throw IllegalArgumentException("credentialScheme: ${credentialScheme.identifier}")
 
     Column(
         modifier = modifier,

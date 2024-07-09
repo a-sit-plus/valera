@@ -14,6 +14,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.identifier
 import at.asitplus.wallet.lib.data.ConstantIndex
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.info_text_redirection_to_id_austria_for_credential_provisioning
@@ -21,6 +22,7 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import data.PersonalDataCategory
 import data.attributeCategorizationOrder
+import data.credentialAttributeCategorization
 
 @Composable
 fun StatefulLoadDataForm(
@@ -35,7 +37,10 @@ fun StatefulLoadDataForm(
     modifier: Modifier = Modifier,
 ) {
     var attributeCategoriesExpanded by rememberSaveable(credentialScheme) {
-        mutableStateOf(attributeCategorizationOrder.associateWith {
+        val attributeCategorization = credentialAttributeCategorization[credentialScheme]
+            ?: throw IllegalArgumentException("credentialScheme: ${credentialScheme.identifier}")
+
+        mutableStateOf(attributeCategorization.map { it.first }.associateWith {
             false
         })
     }
