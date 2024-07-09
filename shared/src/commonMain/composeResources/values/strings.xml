@@ -87,6 +87,8 @@
     <string name="credential_scheme_label_mdl">UNTRANSLATED:credential_scheme_label_mdl</string>
     <string name="credential_scheme_label_eu_pid">UNTRANSLATED:credential_scheme_label_eu_pid</string>
     <string name="credential_scheme_label_id_austria">UNTRANSLATED:credential_scheme_label_id_austria</string>
+    <string name="credential_scheme_label_power_of_representation">UNTRANSLATED:credential_scheme_label_power_of_representation</string>
+    <string name="credential_scheme_label_certificate_of_residence">UNTRANSLATED:credential_scheme_label_certificate_of_residence</string>
 
     <string name="text_label_issuing_service">UNTRANSLATED:text_label_issuing_service</string>
     <string name="text_label_id_format">UNTRANSLATED:text_label_id_format</string>

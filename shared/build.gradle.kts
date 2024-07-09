@@ -36,6 +36,8 @@ kotlin {
                 api(libs.vclib)
                 api(libs.credential.ida)
                 api(libs.credential.eupid)
+                api(libs.credential.powerofrepresentation)
+                api(libs.credential.certificateofresidence)
                 api(libs.kmpCrypto)
                 api(libs.kmpCrypto.jws)
                 api(libs.kmpCrypto.cose)

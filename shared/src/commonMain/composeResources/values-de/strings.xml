@@ -80,6 +80,8 @@
     <string name="credential_scheme_label_mdl">mDL</string>
     <string name="credential_scheme_label_eu_pid">PID</string>
     <string name="credential_scheme_label_id_austria">IDA Credential</string>
+    <string name="credential_scheme_label_power_of_representation">Power of representation</string>
+    <string name="credential_scheme_label_certificate_of_residence">Certificate of residence</string>
 
     <string name="navigation_button_label_show_data">Daten Vorzeigen</string>
     <string name="navigation_button_label_my_data">Meine Daten</string>

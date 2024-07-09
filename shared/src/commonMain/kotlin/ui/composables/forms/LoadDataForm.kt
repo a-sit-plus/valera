@@ -19,8 +19,8 @@ import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.info_text_redirection_to_id_austria_for_credential_provisioning
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
-import ui.composables.PersonalDataCategory
-import ui.composables.attributeCategorizationOrder
+import data.PersonalDataCategory
+import data.attributeCategorizationOrder
 
 @Composable
 fun StatefulLoadDataForm(

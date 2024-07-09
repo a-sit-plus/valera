@@ -15,11 +15,11 @@ import at.asitplus.wallet.lib.data.ConstantIndex
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.button_label_all_missing_data
 import composewalletapp.shared.generated.resources.section_heading_load_data_selection
+import data.PersonalDataCategory
+import data.attributeCategorizationOrder
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.LabeledTriStateCheckbox
-import ui.composables.PersonalDataCategory
-import ui.composables.attributeCategorizationOrder
 import ui.views.CategorySelectionRow
 import ui.views.CategorySelectionRowDefaults
 import ui.views.toggleableState

@@ -1,10 +1,12 @@
-package ui.composables
+package data
 
+import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
+import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.section_heading_admission_data
 import composewalletapp.shared.generated.resources.section_heading_admission_data_icon_text

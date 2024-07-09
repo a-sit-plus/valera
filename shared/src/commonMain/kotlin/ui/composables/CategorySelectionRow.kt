@@ -18,6 +18,7 @@ import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.content_description_hide_attributes
 import composewalletapp.shared.generated.resources.content_description_show_attributes
 import data.AttributeTranslator
+import data.PersonalDataCategory
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.views.toggleableState

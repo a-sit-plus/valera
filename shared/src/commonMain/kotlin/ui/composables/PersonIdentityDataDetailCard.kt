@@ -32,6 +32,7 @@ import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.content_description_portrait
 import composewalletapp.shared.generated.resources.text_label_sex
 import data.CredentialExtractor
+import data.PersonalDataCategory
 import kotlinx.datetime.LocalDate
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource

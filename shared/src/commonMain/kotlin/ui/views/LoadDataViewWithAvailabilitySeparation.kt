@@ -46,8 +46,8 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.LabeledCheckbox
 import ui.composables.LabeledTriStateCheckbox
-import ui.composables.PersonalDataCategory
-import ui.composables.attributeCategorizationOrder
+import data.PersonalDataCategory
+import data.attributeCategorizationOrder
 import ui.composables.buttons.LoadDataButton
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.inputFields.IssuingServiceInputField
