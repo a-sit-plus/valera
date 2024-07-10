@@ -5,12 +5,22 @@ import composewalletapp.shared.generated.resources.section_heading_admission_dat
 import composewalletapp.shared.generated.resources.section_heading_admission_data_icon_text
 import composewalletapp.shared.generated.resources.section_heading_age_data
 import composewalletapp.shared.generated.resources.section_heading_age_data_icon_text
+import composewalletapp.shared.generated.resources.section_heading_appearance_data
+import composewalletapp.shared.generated.resources.section_heading_appearance_data_icon_text
+import composewalletapp.shared.generated.resources.section_heading_biometric_data
+import composewalletapp.shared.generated.resources.section_heading_biometric_data_icon_text
+import composewalletapp.shared.generated.resources.section_heading_birth_data
+import composewalletapp.shared.generated.resources.section_heading_birth_data_icon_text
 import composewalletapp.shared.generated.resources.section_heading_driving_permission_data
 import composewalletapp.shared.generated.resources.section_heading_driving_permission_data_icon_text
 import composewalletapp.shared.generated.resources.section_heading_identity_data
 import composewalletapp.shared.generated.resources.section_heading_identity_data_icon_text
+import composewalletapp.shared.generated.resources.section_heading_metadata
+import composewalletapp.shared.generated.resources.section_heading_metadata_icon_text
 import composewalletapp.shared.generated.resources.section_heading_other_data_category_icon_text
 import composewalletapp.shared.generated.resources.section_heading_other_data_category_title
+import composewalletapp.shared.generated.resources.section_heading_representation_data
+import composewalletapp.shared.generated.resources.section_heading_representation_data_icon_text
 import composewalletapp.shared.generated.resources.section_heading_residence_data
 import composewalletapp.shared.generated.resources.section_heading_residence_data_icon_text
 import org.jetbrains.compose.resources.StringResource
@@ -22,6 +32,22 @@ enum class PersonalDataCategory(
     IdentityData(
         iconText = Res.string.section_heading_identity_data_icon_text,
         categoryTitle = Res.string.section_heading_identity_data,
+    ),
+    BirthData(
+        iconText = Res.string.section_heading_birth_data_icon_text,
+        categoryTitle = Res.string.section_heading_birth_data,
+    ),
+    AppearanceData(
+        iconText = Res.string.section_heading_appearance_data_icon_text,
+        categoryTitle = Res.string.section_heading_appearance_data,
+    ),
+    BiometricData(
+        iconText = Res.string.section_heading_biometric_data_icon_text,
+        categoryTitle = Res.string.section_heading_biometric_data,
+    ),
+    RepresentationData(
+        iconText = Res.string.section_heading_representation_data_icon_text,
+        categoryTitle = Res.string.section_heading_representation_data,
     ),
     AgeData(
         iconText = Res.string.section_heading_age_data_icon_text,
@@ -38,6 +64,10 @@ enum class PersonalDataCategory(
     AdmissionData(
         iconText = Res.string.section_heading_admission_data_icon_text,
         categoryTitle = Res.string.section_heading_admission_data
+    ),
+    Metadata(
+        iconText = Res.string.section_heading_metadata_icon_text,
+        categoryTitle = Res.string.section_heading_metadata
     ),
     OtherData(
         iconText = Res.string.section_heading_other_data_category_icon_text,
