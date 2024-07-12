@@ -1,6 +1,7 @@
 import at.asitplus.gradle.datetime
 import at.asitplus.gradle.exportIosFramework
 import at.asitplus.gradle.kmmresult
+import at.asitplus.gradle.kotest
 import at.asitplus.gradle.ktor
 import at.asitplus.gradle.napier
 import at.asitplus.gradle.serialization
@@ -13,9 +14,9 @@ plugins {
     id("com.android.library")
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
-    id("at.asitplus.gradle.conventions")
     id("kotlin-parcelize")
     kotlin("plugin.serialization")
+    id("at.asitplus.gradle.conventions")
 }
 
 kotlin {
@@ -68,10 +69,8 @@ kotlin {
             dependencies {
                 implementation(kotlin("test"))
                 implementation(kotlin("test-common"))
-
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.uiTest)
-
             }
         }
 
@@ -117,6 +116,19 @@ exportIosFramework(
     napier()
 )
 
+
+
+configurations.all {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.jetbrains.kotlin" && requested.name == "kotlin-reflect" && requested.version == "1.9.23") {
+            useVersion("2.0.0")
+            because("of reasons! This is only a workaround until the underlying issue is sorted out")
+        }
+    }
+}
+
+
+
 android {
     compileSdk = (extraProperties["android.compileSdk"] as String).toInt()
     namespace = "at.asitplus.wallet.app.common"
@@ -136,6 +148,7 @@ android {
         resources.excludes.add("META-INF/licenses/**")
         resources.excludes.add("META-INF/AL2.0")
         resources.excludes.add("META-INF/LGPL2.1")
+        resources.excludes.add("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
 
     }
     testOptions {
