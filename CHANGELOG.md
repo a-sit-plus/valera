@@ -1,4 +1,7 @@
 
+Release 2.0.2:
+ - iOS Signature
+
 Release 2.0.1:
  - Fix serialization issues
 
