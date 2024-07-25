@@ -41,6 +41,11 @@
     <string name="button_label_reset_app">App zurücksetzen</string>
     <string name="button_label_all_missing_data">Alle neuen Daten</string>
     <string name="button_label_all_available_data">Alle bestehenden Daten</string>
+    <string name="button_label_check_identity">Identität Prüfen</string>
+    <string name="button_label_check_license">Führerschein Prüfen</string>
+    <string name="button_label_check_age">Alter Prüfen</string>
+    <string name="button_label_check_custom">Individuelle Anfrage</string>
+    <string name="button_label_check_over_age">Über </string>
     <string name="button_label_clear_log">Log löschen</string>
     <string name="button_label_provision_credential_browser">Über Browser beziehen</string>
     <string name="button_label_provision_credential_qr">Mit QR-Code beziehen</string>
@@ -88,20 +93,6 @@
     <string name="attribute_friendly_name_issuing_country">Ausstellungsland</string>
     <string name="attribute_friendly_name_driving_privileges">Lenkberechtigungen</string>
     <string name="attribute_friendly_name_distinguishing_sign">Ausstellungsland (Code)</string>
-    <string name="attribute_friendly_name_signature_usual_mark">Unterschrift</string>
-
-    <string name="attribute_friendly_name_country_code">Ländercode</string>
-    <string name="attribute_friendly_name_one_time_token">One Time Token</string>
-    <string name="attribute_friendly_name_valid_until">Gültig bis</string>
-
-    <string name="id_austria_credential_attribute_friendly_name_main_address_street">Straße</string>
-    <string name="id_austria_credential_attribute_friendly_name_main_address_house_number">Hausnummer</string>
-    <string name="id_austria_credential_attribute_friendly_name_main_address_stair">Stiege</string>
-    <string name="id_austria_credential_attribute_friendly_name_main_address_door">Tür</string>
-    <string name="id_austria_credential_attribute_friendly_name_main_address_postal_code">Postleitzahl</string>
-    <string name="id_austria_credential_attribute_friendly_name_main_address_location">Ortschaft</string>
-    <string name="id_austria_credential_attribute_friendly_name_main_address_municipality_name">Gemeindebezeichnung</string>
-    <string name="id_austria_credential_attribute_friendly_name_main_address_municipality_code">Gemeindekennziffer</string>
 
     <string name="attribute_friendly_name_legal_person_identifier">Name der juristischen Person</string>
     <string name="attribute_friendly_name_legal_name">Identifier der juristischen Person</string>
@@ -142,6 +133,7 @@
     <string name="navigation_button_label_show_data">Daten Vorzeigen</string>
     <string name="navigation_button_label_my_data">Meine Daten</string>
     <string name="navigation_button_label_settings">Einstellungen</string>
+    <string name="navigation_button_label_check">Prüfen</string>
 
     <string name="id_format_plain_jwt_label">PLAIN_JWT</string>
     <string name="sid_format_sd_jwt_label">SD-JWT</string>
@@ -178,7 +170,7 @@
     <string name="heading_label_load_data_screen">Daten laden</string>
     <string name="heading_label_add_credential_screen">Daten laden</string>
     <string name="heading_label_refresh_data_screen">Daten laden</string>
-    <string name="heading_label_authenticate_at_device_screen">Anmelden\nan Service Provider</string>
+    <string name="heading_label_authenticate_at_device_screen">Anmelden\nan Schalter oder Maschine</string>
 
     <string name="description_read_terms">Bitte lesen und akzeptieren Sie die Nutzungsbedingungen und Datenschutzerklärung.</string>
 
@@ -272,7 +264,12 @@
     <string name="section_heading_missing_data">Neue Daten laden</string>
     <string name="section_heading_load_data_selection">Verfügbare Daten</string>
     <string name="section_heading_available_data">Bestehende Daten aktualisieren</string>
-
+    <string name="section_heading_request_eausweiße">eAusweiße Anfragen</string>
+    <string name="section_heading_request_license">Andere Anfragen</string>
+    <string name="section_heading_request_custom">Individuelle Anfragen</string>
+    <string name="section_heading_select_document_type">Wähle ein Dokument Typ:</string>
+    <string name="section_heading_selected_namespace">Namespace: </string>
+    <string name="section_heading_select_requested_data_entrys">Wähle anzufordernde Daten</string>
 
     <string name="onboarding_section_terms_and_data_protection_icon_text">1</string>
     <string name="onboarding_section_terms_and_data_protection_title">Nutzungsbedingungen und Datenschutz</string>
