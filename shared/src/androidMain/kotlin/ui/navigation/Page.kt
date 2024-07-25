@@ -76,3 +76,14 @@ actual class CustomDataRetrievalPage : Page, Parcelable
 actual class QrDeviceEngagementPage actual constructor(
     actual val document: Verifier.Document
 ) : Page
+
+actual class LoadRequestedDataPage actual constructor(
+    actual val document: Verifier.Document,
+    actual val payload: String
+): Page
+
+@Parcelize
+actual class RequestedDataLogOutputPage : Page, Parcelable
+
+@Parcelize
+actual class RequestedDataShowPage: Page, Parcelable

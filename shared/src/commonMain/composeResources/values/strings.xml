@@ -218,6 +218,8 @@
     <string name="heading_label_select_data_retrieval_screen">UNTRANSLATED:heading_label_select_data_retrieval_screen</string>
     <string name="heading_label_select_custom_data_retrieval_screen">UNTRANSLATED:heading_label_select_custom_data_retrieval_screen</string>
     <string name="heading_label_check_scan_qr_code">UNTRANSLATED:heading_label_check_scan_qr_code</string>
+    <string name="heading_label_requested_data">UNTRANSLATED:heading_label_requested_data</string>
+    <string name="heading_label_request_log">UNTRANSLATED:heading_label_request_log</string>
 
     <string name="description_read_terms">UNTRANSLATED:description_read_terms</string>
     <string name="biometric_authentication_prompt_for_data_transmission_consent_title">UNTRANSLATED:biometric_authentication_prompt_for_data_transmission_consent_title</string>

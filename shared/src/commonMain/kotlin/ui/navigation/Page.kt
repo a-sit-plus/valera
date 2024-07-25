@@ -75,3 +75,16 @@ expect class QrDeviceEngagementPage(
 ) : Page {
     val document: Verifier.Document
 }
+
+expect class LoadRequestedDataPage(
+    document: Verifier.Document,
+    payload: String
+): Page {
+    val document: Verifier.Document
+    val payload: String
+}
+
+expect class RequestedDataLogOutputPage() : Page
+
+expect class RequestedDataShowPage() : Page
+
