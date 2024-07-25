@@ -20,6 +20,7 @@
     <string name="button_label_confirm">Bestätigen</string>
     <string name="button_label_dismiss">Abbrechen</string>
     <string name="button_label_ok">Ok</string>
+    <string name="button_label_close_app">Beenden</string>
     <string name="button_label_authenticate">Anmelden</string>
     <string name="button_label_show_data">Vorzeigen</string>
     <string name="button_label_accept">Akzeptieren</string>
@@ -49,6 +50,11 @@
     <string name="button_label_select">Auswählen</string>
     <string name="button_label_show_technical_details">Technische Details einblenden</string>
     <string name="button_label_hide_technical_details">Technische Details ausblenden</string>
+    <string name="button_label_check_identity">Identität Prüfen</string>
+    <string name="button_label_check_license">Führerschein Prüfen</string>
+    <string name="button_label_check_age">Alter Prüfen</string>
+    <string name="button_label_check_custom">Individuelle Anfrage</string>
+    <string name="button_label_check_over_age">Über </string>
 
     <string name="attribute_friendly_name_bpk">BPK</string>
     <string name="attribute_friendly_name_firstname">Vorname</string>
@@ -105,6 +111,9 @@
     <string name="id_austria_credential_attribute_friendly_name_main_address_location">Ortschaft</string>
     <string name="id_austria_credential_attribute_friendly_name_main_address_municipality_name">Gemeindebezeichnung</string>
     <string name="id_austria_credential_attribute_friendly_name_main_address_municipality_code">Gemeindekennziffer</string>
+
+    <string name="attribute_friendly_name_signature">Signatur</string>
+    <string name="attribute_friendly_name_gender">Geschlecht</string>
 
     <string name="attribute_friendly_name_legal_person_identifier">Name der juristischen Person</string>
     <string name="attribute_friendly_name_legal_name">Identifier der juristischen Person</string>
@@ -170,6 +179,7 @@
     <string name="navigation_button_label_show_data">Daten Vorzeigen</string>
     <string name="navigation_button_label_my_data">Meine Daten</string>
     <string name="navigation_button_label_settings">Einstellungen</string>
+    <string name="navigation_button_label_check">Prüfen</string>
 
     <string name="id_format_plain_jwt_label">PLAIN_JWT</string>
     <string name="sid_format_sd_jwt_label">SD-JWT</string>
@@ -188,7 +198,7 @@
     <string name="text_label_build">Build</string>
 
     <string name="heading_label_authenticate_at_device_title">Anmelden</string>
-    <string name="heading_label_authenticate_at_device_subtitle">an Service Provider</string>
+    <string name="heading_label_authenticate_at_device_subtitle">an Schalter oder Maschine</string>
     <string name="heading_label_show_data">Daten Vorzeigen</string>
     <string name="heading_label_authentication_success">Angemeldet</string>
     <string name="heading_label_settings_screen">Einstellungen</string>
@@ -207,6 +217,9 @@
     <string name="heading_label_add_credential_screen">Daten laden</string>
     <string name="heading_label_refresh_data_screen">Daten laden</string>
     <string name="heading_label_authenticate_at_device_screen">Anmelden\nan Service Provider</string>
+    <string name="heading_label_authenticate_at_device_screen">Anmelden\nan Schalter oder Maschine</string>
+    <string name="heading_label_select_data_retrieval_screen">Prüfen</string>
+    <string name="heading_label_select_custom_data_retrieval_screen">Individuelle Anfrage</string>
 
     <string name="description_read_terms">Bitte lesen und akzeptieren Sie die Nutzungsbedingungen und Datenschutzerklärung.</string>
 
@@ -256,23 +269,27 @@
     <string name="info_text_show_data_situation">In welcher Situation möchten Sie Ihre Daten vorzeigen?</string>
     <string name="info_text_error_occurred">Es ist ein Fehler aufgetreten.</string>
     <string name="info_text_to_start_screen">Sie werden zur Startseite weitergeleitet.</string>
+    <string name="info_text_irrevocable_error">Der Fehler kann nicht behoben werden.</string>
+    <string name="info_text_restart_app">Bitte starten Sie die App erneut.</string>
     <string name="info_text_data_items_missing">fehlend</string>
     <string name="info_text_authentication_success">Die Anmeldung wurde erfolgreich durchgeführt.</string>
     <string name="info_text_no_credentials_available">Es sind noch keine Daten verfügbar.</string>
     <string name="info_text_redirection_to_browser_for_credential_provisioning">Zur Abfrage Ihrer Daten werden Sie in den Browser weitergeleitet.</string>
+    <string name="info_text_redirection_to_id_austria_for_credential_provisioning">Zur Abfrage Ihrer Daten werden Sie zu ID Austria weitergeleitet.</string>
     <string name="info_text_notice_development_provisioning_using_qr_code_credentials">Zu Entwicklungszwecken gibt es auch die Möglichkeit, Daten über einen QR-Code zu laden.</string>
     <string name="info_text_enthusiastic_welcome_end">Daten laden und los geht's!</string>
     <string name="info_text_submission_preview_disabled">Vorschau von Übermittelten Daten ist derzeit nicht verfügbar.</string>
     <string name="info_text_no_matching_credential">Es wurde kein passendes Credential für die Anfrage gefunden.</string>
 
     <string name="section_heading_authenticate_at_device_title">Anmelden</string>
-    <string name="section_heading_authenticate_at_device_subtitle">an Service Provider</string>
+    <string name="section_heading_authenticate_at_device_subtitle">an Schalter oder Maschine</string>
     <string name="section_heading_show_data_to_executive_title">Daten vorzeigen an</string>
     <string name="section_heading_show_data_to_executive_subtitle">Exekutive</string>
     <string name="section_heading_show_data_to_other_citizen_title">Daten vorzeigen an</string>
     <string name="section_heading_show_data_to_other_citizen_subtitle">dritte Bürger</string>
     <string name="section_heading_actions">Aktionen</string>
     <string name="section_heading_information">Information</string>
+    <string name="section_heading_configuration">Konfiguration</string>
     <string name="section_heading_requested_data">Angefragte Daten</string>
     <string name="section_heading_data_recipient">Empfänger</string>
     <string name="section_heading_admission_data">Zulassungsdaten</string>
@@ -302,7 +319,12 @@
     <string name="section_heading_missing_data">Neue Daten laden</string>
     <string name="section_heading_load_data_selection">Verfügbare Daten</string>
     <string name="section_heading_available_data">Bestehende Daten aktualisieren</string>
-
+    <string name="section_heading_request_eausweiße">eAusweiße Anfragen</string>
+    <string name="section_heading_request_license">Andere Anfragen</string>
+    <string name="section_heading_request_custom">Individuelle Anfragen</string>
+    <string name="section_heading_select_document_type">Wähle ein Dokument Typ:</string>
+    <string name="section_heading_selected_namespace">Namespace: </string>
+    <string name="section_heading_select_requested_data_entrys">Wähle anzufordernde Daten</string>
 
     <string name="onboarding_section_terms_and_data_protection_icon_text">1</string>
     <string name="onboarding_section_terms_and_data_protection_title">Nutzungsbedingungen und Datenschutz</string>
@@ -311,7 +333,7 @@
     <string name="onboarding_section_load_data_subtitle">mit einmaligem Kontakt zum zentralen ID Austria</string>
     <string name="onboarding_section_show_data_icon_text">3</string>
     <string name="onboarding_section_show_data_title">Daten vorzeigen</string>
-    <string name="onboarding_section_show_data_subtitle">am Service Provider</string>
+    <string name="onboarding_section_show_data_subtitle">am Schalter oder bei Maschinen</string>
     <string name="onboarding_section_data_usage_authenticate_at_mashine_icon_text">A</string>
     <string name="onboarding_section_data_usage_authenticate_at_mashine_title">am Schalter oder bei Maschinen</string>
     <string name="onboarding_section_data_usage_authenticate_at_mashine_subtitle">bspw. bei Amtswegen</string>
