@@ -45,9 +45,10 @@ import ui.composables.buttons.NavigateUpButton
 @Composable
 fun CustomDataRetrievalScreen(
     navigateUp: () -> Unit,
+    navigateToQrDeviceEngagementPage: (Verifier.Document) -> Unit,
 ) {
     CustomDataRetrievalView(
-        onClick={}, //TODO
+        onClick = navigateToQrDeviceEngagementPage,
         navigateUp = navigateUp,
     )
 }

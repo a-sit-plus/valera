@@ -1,5 +1,7 @@
 package ui.navigation
 
+import data.verifier.Verifier
+
 import data.storage.StoreEntryId
 
 actual class HomePage : Page
@@ -49,3 +51,5 @@ actual class AuthenticationSuccessPage : Page
 actual class SelectDataRetrievalPage : Page
 
 actual class CustomDataRetrievalPage : Page
+
+actual class QrDeviceEngagementPage actual constructor(actual val document: Verifier.Document) : Page

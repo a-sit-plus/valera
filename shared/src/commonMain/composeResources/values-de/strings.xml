@@ -220,6 +220,7 @@
     <string name="heading_label_authenticate_at_device_screen">Anmelden\nan Schalter oder Maschine</string>
     <string name="heading_label_select_data_retrieval_screen">Prüfen</string>
     <string name="heading_label_select_custom_data_retrieval_screen">Individuelle Anfrage</string>
+    <string name="heading_label_check_scan_qr_code">QR-Code Scannen</string>
 
     <string name="description_read_terms">Bitte lesen und akzeptieren Sie die Nutzungsbedingungen und Datenschutzerklärung.</string>
 
