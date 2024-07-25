@@ -59,7 +59,7 @@ fun SelectDataRetrievalView(
     onClickPreDefined: (Verifier.Document) -> Unit,
     onClickCustom: () -> Unit
 ) {
-    var showDropDown = remember { mutableStateOf(false) }
+    val showDropDown = remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
