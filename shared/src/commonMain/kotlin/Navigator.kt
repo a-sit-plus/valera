@@ -2,6 +2,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Settings
@@ -25,6 +26,9 @@ import composewalletapp.shared.generated.resources.navigation_button_label_my_da
 import composewalletapp.shared.generated.resources.navigation_button_label_settings
 import composewalletapp.shared.generated.resources.navigation_button_label_show_data
 import composewalletapp.shared.generated.resources.snackbar_reset_app_successfully
+import composewalletapp.shared.generated.resources.navigation_button_label_check
+import data.vclib.AuthenticationRequest
+import data.vclib.AuthenticationResponseResultSerializable
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier
 import io.ktor.http.parseQueryString
@@ -38,17 +42,21 @@ import ui.navigation.AuthenticationConsentPage
 import ui.navigation.AuthenticationLoadingPage
 import ui.navigation.AuthenticationQrCodeScannerPage
 import ui.navigation.AuthenticationSuccessPage
+import ui.navigation.CustomDataRetrievalPage
 import ui.navigation.CredentialDetailsPage
 import ui.navigation.HomePage
 import ui.navigation.LogPage
 import ui.navigation.NavigationStack
 import ui.navigation.Page
 import ui.navigation.ProvisioningLoadingPage
+import ui.navigation.RefreshCredentialsPage
+import ui.navigation.SelectDataRetrievalPage
 import ui.navigation.SettingsPage
 import ui.screens.AddCredentialScreen
 import ui.screens.AuthenticationConsentScreen
 import ui.screens.AuthenticationQrCodeScannerScreen
 import ui.screens.AuthenticationSuccessScreen
+import ui.screens.CustomDataRetrievalScreen
 import ui.screens.CredentialDetailsScreen
 import ui.screens.ErrorScreen
 import ui.screens.LoadingScreen
@@ -56,6 +64,7 @@ import ui.screens.LogScreen
 import ui.screens.MyCredentialsScreen
 import ui.screens.OnboardingWrapper
 import ui.screens.ProvisioningLoadingScreen
+import ui.screens.SelectDataRetrievalScreen
 import ui.screens.SettingsScreen
 import view.AuthenticationQrCodeScannerViewModel
 
@@ -159,6 +168,8 @@ fun MainNavigator(
 
                 is SettingsPage -> NavigationData.INFORMATION_SCREEN
 
+                is SelectDataRetrievalPage -> NavigationData.VERIFIER_SELECTION_SCREEN
+
                 else -> null
             }
 
@@ -167,6 +178,7 @@ fun MainNavigator(
                     for (route in listOf(
                         NavigationData.HOME_SCREEN,
                         NavigationData.AUTHENTICATION_SCANNING_SCREEN,
+                        NavigationData.VERIFIER_SELECTION_SCREEN,
                         NavigationData.INFORMATION_SCREEN,
                     )) {
                         NavigationBarItem(
@@ -306,6 +318,19 @@ fun MainNavigator(
                             navigateUp = navigateUp,
                         )
                     }
+
+                    is SelectDataRetrievalPage -> {
+                        SelectDataRetrievalScreen(
+                            navigateToCustomSelectionPage = {
+                                navigationStack.push(CustomDataRetrievalPage())
+                            }
+                        )
+                    }
+                    is CustomDataRetrievalPage -> {
+                        CustomDataRetrievalScreen(
+                            navigateUp = navigateUp,
+                        )
+                    }
                 }
             }
         }
@@ -348,6 +373,22 @@ private enum class NavigationData(
         isActive = {
             when (it) {
                 is AuthenticationQrCodeScannerPage -> true
+                else -> false
+            }
+        },
+    ),
+    VERIFIER_SELECTION_SCREEN(
+        title = Res.string.navigation_button_label_check,
+        icon = {
+            Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = null,
+            )
+        },
+        destination = SelectDataRetrievalPage(),
+        isActive = {
+            when (it) {
+                is SelectDataRetrievalPage -> true
                 else -> false
             }
         },

@@ -64,3 +64,7 @@ expect class AuthenticationConsentPage(
 }
 
 expect class AuthenticationSuccessPage() : Page
+
+expect class SelectDataRetrievalPage() : Page
+
+expect class CustomDataRetrievalPage() : Page

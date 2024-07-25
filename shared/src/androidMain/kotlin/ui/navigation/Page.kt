@@ -63,3 +63,10 @@ actual class AuthenticationConsentPage actual constructor(
 
 @Parcelize
 actual class AuthenticationSuccessPage : Page, Parcelable
+
+@Parcelize
+actual class SelectDataRetrievalPage : Page, Parcelable
+
+@Parcelize
+actual class CustomDataRetrievalPage : Page, Parcelable
+

@@ -45,3 +45,7 @@ actual class AuthenticationConsentPage actual constructor(
 ) : Page
 
 actual class AuthenticationSuccessPage : Page
+
+actual class SelectDataRetrievalPage : Page
+
+actual class CustomDataRetrievalPage : Page
