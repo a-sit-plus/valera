@@ -1,5 +1,6 @@
 package ui.screens
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Person
@@ -24,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -49,78 +52,42 @@ import ui.navigation.RequestedDataLogOutputPage
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoadRequestedDataScreen(document: Verifier.Document, payload: String, navigateUp: () -> Unit) {
-    var logsState by remember { mutableStateOf(listOf<String>()) }
-    var entryState by remember { mutableStateOf(listOf<Entry>()) }
-    var currentpage by remember { mutableStateOf<Page>(RequestedDataLogOutputPage()) }
+    val logsState: MutableState<List<String>> = mutableStateOf(emptyList())
+    val entryState: MutableState<List<Entry>> = mutableStateOf(emptyList())
 
-    val verifier: Verifier = remember { getVerifier() }
-    var permission by remember { mutableStateOf(false) }
-    if (!permission) {
-        verifier.getRequirements { b -> permission = b }
-    }
-
-    LaunchedEffect(Unit) {
-        val updateLog: (String?, String) -> Unit = { TAG, updateLog ->
-            logsState += updateLog
-            Napier.d(tag= TAG?: "DebugScreen", message = updateLog)
-        }
+    val currentpage: MutableState<Page> = mutableStateOf(RequestedDataLogOutputPage())
 
         val updateData: (List<Entry>) -> Unit = { entry ->
             entryState += entry
         }
 
-        updateLog(null, "Start Connection and Data Transfer")
-        verifier.verify(payload, document, updateLog, updateData)
-    }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            verifier.disconnect()
-        }
-    }
-
-    if (!permission) {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = {},
-                    navigationIcon = {
-                        NavigateUpButton(navigateUp)
-                    },
-                )
-            },
-        ) { scaffoldPadding ->
-            Box(modifier = Modifier.padding(scaffoldPadding)) {
-                Text(stringResource(Res.string.error_missing_permissions))
-            }
-        }
-    } else {
-        Scaffold(
-            bottomBar = {
-                NavigationBar {
-                    for (route in listOf(
-                        LocalNavigationData.LOG_SCREEN,
-                        LocalNavigationData.DATA_SCREEN,
-                    )) {
-                        NavigationBarItem(
-                            icon = route.icon,
-                            label = {
-                                Text(stringResource(route.title))
-                            },
-                            onClick = {
-                                if (!route.isActive(currentpage)) {
-                                    currentpage = route.destination
-                                }
-                            },
-                            selected = route.isActive(currentpage),
-                        )
-                    }
+    Scaffold(
+        bottomBar = {
+            NavigationBar {
+                for (route in listOf(
+                    LocalNavigationData.LOG_SCREEN,
+                    LocalNavigationData.DATA_SCREEN,
+                )) {
+                    NavigationBarItem(
+                        icon = route.icon,
+                        label = {
+                            Text(stringResource(route.title))
+                        },
+                        onClick = {
+                            if (!route.isActive(currentpage.value)) {
+                                currentpage.value = route.destination
+                            }
+                        },
+                        selected = route.isActive(currentpage.value),
+                    )
                 }
-            },
-            modifier = Modifier,
-        ) { scaffoldPadding ->
-            Box(modifier = Modifier.padding(scaffoldPadding)) {
-                when (currentpage) {
+            }
+        },
+        modifier = Modifier,
+    ) { scaffoldPadding ->
+        Box(modifier = Modifier.padding(scaffoldPadding)) {
+            AnimatedContent(targetState = currentpage) { (page) ->
+                when (page) {
                     is RequestedDataLogOutputPage -> {
                         LoadRequestedDataLogOutputView(
                             logsState = logsState,
@@ -138,12 +105,13 @@ fun LoadRequestedDataScreen(document: Verifier.Document, payload: String, naviga
             }
         }
     }
+
 }
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoadRequestedDataLogOutputView(logsState: List<String>, navigateUp: () -> Unit) {
+fun LoadRequestedDataLogOutputView(logsState: MutableState<List<String>>, navigateUp: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -163,8 +131,8 @@ fun LoadRequestedDataLogOutputView(logsState: List<String>, navigateUp: () -> Un
     ) { scaffoldPadding ->
         Box(modifier = Modifier.padding(scaffoldPadding)) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(logsState.size) { index ->
-                    Text(text = logsState[index])
+                items(logsState.value.size) { index ->
+                    BasicText(text = logsState.value[index])
                     Divider(modifier = Modifier.padding(vertical = 4.dp))
                 }
             }
@@ -174,7 +142,7 @@ fun LoadRequestedDataLogOutputView(logsState: List<String>, navigateUp: () -> Un
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoadRequestedDataView(entryState: List<Entry>, navigateUp: () -> Unit) {
+fun LoadRequestedDataView(entryState: MutableState<List<Entry>>, navigateUp: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -193,7 +161,7 @@ fun LoadRequestedDataView(entryState: List<Entry>, navigateUp: () -> Unit) {
         },
     ) { scaffoldPadding ->
         Box(modifier = Modifier.padding(scaffoldPadding)) {
-            if (entryState.isEmpty()) {
+            if (entryState.value.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -203,13 +171,13 @@ fun LoadRequestedDataView(entryState: List<Entry>, navigateUp: () -> Unit) {
                     ) {
                         CircularProgressIndicator()
                         Spacer(modifier = Modifier.height(16.dp))
-                        Text(stringResource(Res.string.info_text_data_is_being_loaded))
+                        Text("Loading Data")
                     }
                 }
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(entryState.size) { index ->
-                        entryState[index].show()
+                    items(entryState.value.size) { index ->
+                        entryState.value[index].show()
                     }
                 }
             }
