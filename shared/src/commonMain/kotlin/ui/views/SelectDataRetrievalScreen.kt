@@ -45,9 +45,10 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun SelectDataRetrievalScreen(
     navigateToCustomSelectionPage: () -> Unit,
+    navigateToQrDeviceEngagementPage: (Verifier.Document) -> Unit,
     ) {
     SelectDataRetrievalView(
-        onClickPreDefined={},//TODO
+        onClickPreDefined=navigateToQrDeviceEngagementPage,
         onClickCustom=navigateToCustomSelectionPage
     )
 }
