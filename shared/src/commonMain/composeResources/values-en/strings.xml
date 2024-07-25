@@ -165,6 +165,7 @@
     <string name="heading_label_authenticate_at_device_screen">Authenticate at\ncounter or mashine</string>
     <string name="heading_label_select_data_retrieval_screen">Check</string>
     <string name="heading_label_select_custom_data_retrieval_screen">Custom Request</string>
+    <string name="heading_label_check_scan_qr_code">QR-Code Scannen</string>
 
     <string name="description_read_terms">Please read and accept the terms of use and the privacy policy.</string>
 

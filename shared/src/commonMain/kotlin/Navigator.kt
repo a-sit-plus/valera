@@ -49,6 +49,7 @@ import ui.navigation.LogPage
 import ui.navigation.NavigationStack
 import ui.navigation.Page
 import ui.navigation.ProvisioningLoadingPage
+import ui.navigation.QrDeviceEngagementPage
 import ui.navigation.RefreshCredentialsPage
 import ui.navigation.SelectDataRetrievalPage
 import ui.navigation.SettingsPage
@@ -64,6 +65,7 @@ import ui.screens.LogScreen
 import ui.screens.MyCredentialsScreen
 import ui.screens.OnboardingWrapper
 import ui.screens.ProvisioningLoadingScreen
+import ui.screens.QrDeviceEngagementScreen
 import ui.screens.SelectDataRetrievalScreen
 import ui.screens.SettingsScreen
 import view.AuthenticationQrCodeScannerViewModel
@@ -323,12 +325,27 @@ fun MainNavigator(
                         SelectDataRetrievalScreen(
                             navigateToCustomSelectionPage = {
                                 navigationStack.push(CustomDataRetrievalPage())
+                            },
+                            navigateToQrDeviceEngagementPage = { doc ->
+                                navigationStack.push(QrDeviceEngagementPage(doc))
                             }
                         )
                     }
                     is CustomDataRetrievalPage -> {
                         CustomDataRetrievalScreen(
                             navigateUp = navigateUp,
+                            navigateToQrDeviceEngagementPage = { doc ->
+                                navigationStack.back()
+                                navigationStack.push(QrDeviceEngagementPage(doc))
+                            },
+                        )
+                    }
+                    is QrDeviceEngagementPage -> {
+                        QrDeviceEngagementScreen(
+                            navigateUp = navigateUp,
+                            onFoundPayload = {payload ->
+                                //TODO go to next page (page.document, payload)
+                            }
                         )
                     }
                 }
