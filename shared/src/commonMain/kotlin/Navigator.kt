@@ -45,6 +45,7 @@ import ui.navigation.AuthenticationSuccessPage
 import ui.navigation.CustomDataRetrievalPage
 import ui.navigation.CredentialDetailsPage
 import ui.navigation.HomePage
+import ui.navigation.LoadRequestedDataPage
 import ui.navigation.LogPage
 import ui.navigation.NavigationStack
 import ui.navigation.Page
@@ -60,6 +61,8 @@ import ui.screens.AuthenticationSuccessScreen
 import ui.screens.CustomDataRetrievalScreen
 import ui.screens.CredentialDetailsScreen
 import ui.screens.ErrorScreen
+import ui.screens.LoadDataScreen
+import ui.screens.LoadRequestedDataScreen
 import ui.screens.LoadingScreen
 import ui.screens.LogScreen
 import ui.screens.MyCredentialsScreen
@@ -334,9 +337,9 @@ fun MainNavigator(
                     is CustomDataRetrievalPage -> {
                         CustomDataRetrievalScreen(
                             navigateUp = navigateUp,
-                            navigateToQrDeviceEngagementPage = { doc ->
+                            navigateToQrDeviceEngagementPage = { document ->
                                 navigationStack.back()
-                                navigationStack.push(QrDeviceEngagementPage(doc))
+                                navigationStack.push(QrDeviceEngagementPage(document))
                             },
                         )
                     }
@@ -344,8 +347,16 @@ fun MainNavigator(
                         QrDeviceEngagementScreen(
                             navigateUp = navigateUp,
                             onFoundPayload = {payload ->
-                                //TODO go to next page (page.document, payload)
+                                navigationStack.back()
+                                navigationStack.push(LoadRequestedDataPage(page.document, payload))
                             }
+                        )
+                    }
+                    is LoadRequestedDataPage -> {
+                        LoadRequestedDataScreen(
+                            document = page.document,
+                            payload = page.payload,
+                            navigateUp = navigateUp,
                         )
                     }
                 }
