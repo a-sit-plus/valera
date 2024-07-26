@@ -104,8 +104,6 @@ kotlin {
         }
         iosMain { dependencies { implementation(ktor("client-darwin")) } }
     }
-
-
 }
 
 android {
