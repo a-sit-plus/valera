@@ -72,6 +72,16 @@ kotlin {
                 implementation("androidx.camera:camera-view:1.3.0")
                 implementation("com.google.accompanist:accompanist-permissions:0.30.1")
                 implementation("com.google.mlkit:barcode-scanning:17.2.0")
+
+                implementation("com.android.identity:identity-credential-android:+"){
+                    exclude(group = "org.bouncycastle")
+                }
+                implementation("com.android.identity:identity-credential:20231002") {
+                    exclude(group = "org.bouncycastle")
+                }
+                implementation("com.fasterxml.jackson.core:jackson-databind:2.16.0")
+                implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.16.0")
+                implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.16.0")
             }
         }
 
