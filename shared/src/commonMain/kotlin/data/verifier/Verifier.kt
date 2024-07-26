@@ -6,7 +6,7 @@ expect fun getVerifier(): Verifier
 
 interface Verifier {
     @Composable
-    fun getRequirements()
+    fun getRequirements(check: (Boolean) -> Unit)
 
     fun verify(qrcode: String, requestedDocument: Document, updateLogs: (String) -> Unit, updateData: (Entry) -> Unit)
 

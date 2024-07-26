@@ -4,12 +4,15 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.ImageBitmap
+import composewalletapp.shared.generated.resources.Res
+import composewalletapp.shared.generated.resources.section_heading_selected_namespace
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -92,7 +95,10 @@ class Entry(
 ) {
     @Composable
     fun show() {
-        Text(text = "${stringResource(displayName)}:")
+        Text(
+            text = "${stringResource(displayName)}:",
+            style = MaterialTheme.typography.titleMedium,
+        )
         Box(modifier = Modifier.padding(16.dp)) {
             value?.showData()
         }
