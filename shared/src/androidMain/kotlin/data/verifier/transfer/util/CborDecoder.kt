@@ -17,9 +17,8 @@ import data.verifier.IntEntry
 import data.verifier.StringEntry
 import data.verifier.VehicleRegistration
 import java.security.PrivateKey
-
 class CborDecoder(
-    var updateLogs: (String) -> Unit = {}
+    var updateLogs: (String?, String) -> Unit = { _: String?, _: String -> }
 ) {
     private val TAG: String = "CborDecoder"
     private val cborFactory: CBORFactory = CBORFactory()
@@ -68,20 +67,20 @@ class CborDecoder(
     }
 
     fun decode(encodedDeviceResponse: ByteArray,
-               sessionTranscript: ByteArray,
-               ephemeralReaderKey: PrivateKey
+               sessionTranscript: ByteArray?,
+               ephemeralReaderKey: PrivateKey?
     ) {
-        updateLogs("Decoding received cbor byte array")
-        updateLogs("version: " + cborMapExtractString(encodedDeviceResponse, "version"))// expected 1.0
+        updateLogs(TAG, "Decoding received cbor byte array")
+        //updateLogs(TAG, "version: " + cborMapExtractString(encodedDeviceResponse, "version"))// expected 1.0
 
         val documents: List<Map<String, Any>>? = cborMapExtractArray(encodedDeviceResponse, "documents")
 
         if (documents == null) {
-            updateLogs("No documents found!")
+            updateLogs(TAG, "No documents found!")
             return
         }
 
-        updateLogs("Found ${documents.size} documents")
+        updateLogs(TAG, "Found ${documents.size} documents")
 
         for (document in documents) {
             val docType = document["docType"] as? String
@@ -119,7 +118,7 @@ class CborDecoder(
 
         Log.d(TAG,"status: " + cborMapExtractNumber(encodedDeviceResponse, "status"))
 
-        updateLogs("cbor byte array decoded")
+        //updateLogs(TAG, "cbor byte array decoded")
     }
 
 
