@@ -8,7 +8,12 @@ interface Verifier {
     @Composable
     fun getRequirements(check: (Boolean) -> Unit)
 
-    fun verify(qrcode: String, requestedDocument: Document, updateLogs: (String) -> Unit, updateData: (Entry) -> Unit)
+    fun verify(
+        qrcode: String,
+        requestedDocument: Document,
+        updateLogs: (String?, String) -> Unit,
+        updateData: (List<Entry>) -> Unit
+    )
 
     fun disconnect()
 
