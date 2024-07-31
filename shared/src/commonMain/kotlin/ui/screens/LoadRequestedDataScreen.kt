@@ -1,6 +1,5 @@
 package ui.screens
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -8,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Person
@@ -25,7 +23,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,19 +53,21 @@ fun LoadRequestedDataScreen(document: Verifier.Document, payload: String, naviga
 
     val verifier: Verifier = remember { getVerifier() }
     var permission by remember { mutableStateOf(false) }
-
-    verifier.getRequirements { b -> permission = b }
+    if (!permission) {
+        verifier.getRequirements { b -> permission = b }
+    }
 
     LaunchedEffect(Unit) {
-        val updateLog: (String) -> Unit = { log ->
-            logsState += log
+        val updateLog: (String?, String) -> Unit = { TAG, updateLog ->
+            logsState += updateLog
+            Napier.d(tag= TAG?: "DebugScreen", message = updateLog)
         }
 
-        val updateData: (Entry) -> Unit = { entry ->
+        val updateData: (List<Entry>) -> Unit = { entry ->
             entryState += entry
         }
 
-        updateLog("Start Connection and Data Transfer")
+        updateLog(null, "Start Connection and Data Transfer")
         verifier.verify(payload, document, updateLog, updateData)
     }
 

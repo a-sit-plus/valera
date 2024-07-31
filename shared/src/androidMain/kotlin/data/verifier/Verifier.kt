@@ -26,33 +26,36 @@ class AndroidVerifier: Verifier {
         transferManager = TransferManager.getInstance(LocalContext.current)
     }
     private var transferManager: TransferManager? = null
+    private val TAG: String = "AndroidVerifier"
 
-    override fun verify(qrcode: String, requestedDocument: Verifier.Document, updateLogs: (String) -> Unit, updateData: (Entry) -> Unit) {
-
-        val logoutput: (String) -> Unit = { s ->
-            Log.d("DebugScreen", s)
-            updateLogs(s)
-        }
-        CoroutineScope(Dispatchers.Main).launch {
-            logoutput("Waiting for requirements to load")
+    override fun verify(
+        qrcode: String,
+        requestedDocument: Verifier.Document,
+        updateLogs: (String?, String) -> Unit,
+        updateData: (List<Entry>) -> Unit
+    ) {
+        CoroutineScope(Dispatchers.IO).launch {
+            updateLogs(TAG, "Waiting for requirements to load")
             while (transferManager == null) {
                 delay(500)
-                Log.d("AndroidVerifier", "waiting for Transfer Manager")
+                Log.d(TAG, "waiting for Transfer Manager")
             }
-            logoutput("Waiting for ble and location permissions")
+            updateLogs(TAG, "Waiting for ble and location permissions")
             while (!permission) {
                 delay(500)
-                Log.d("AndroidVerifier", "waiting for Permissions")
+                Log.d(TAG, "waiting for Permissions")
             }
-            logoutput("Requirements are loaded and needed permissions given")
+            updateLogs(TAG, "Requirements are loaded and needed permissions given")
+            Log.d(TAG, "Transfer Manager is here")
 
-            Log.d("AndroidVerifier", "Transfer Manager is here")
 
-
-            logoutput("Starting Device engagement with scanned Qr-code")
+            updateLogs(TAG, "Starting Device engagement with scanned Qr-code")
 
             val tM: TransferManager = transferManager!!
-            tM.setUpdateAndRequest(logoutput, requestedDocument, updateData)
+            tM.setUpdateAndRequest(updateLogs, requestedDocument) { le: List<Entry> ->
+                updateData(le)
+                transferManager?.closeConnection()
+            }
             tM.initVerificationHelper()
             tM.setQrDeviceEngagement(qrcode)
         }
