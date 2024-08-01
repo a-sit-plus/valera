@@ -88,3 +88,5 @@ expect class RequestedDataLogOutputPage() : Page
 
 expect class RequestedDataShowPage() : Page
 
+expect class ShowQrCodePage(): Page
+
