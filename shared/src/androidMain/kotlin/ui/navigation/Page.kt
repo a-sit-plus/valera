@@ -87,3 +87,6 @@ actual class RequestedDataLogOutputPage : Page, Parcelable
 
 @Parcelize
 actual class RequestedDataShowPage: Page, Parcelable
+
+@Parcelize
+actual class ShowQrCodePage: Page, Parcelable

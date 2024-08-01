@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
@@ -25,6 +26,7 @@ import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.navigation_button_label_my_data
 import composewalletapp.shared.generated.resources.navigation_button_label_settings
 import composewalletapp.shared.generated.resources.navigation_button_label_show_data
+import composewalletapp.shared.generated.resources.navigation_button_label_show_qr_code
 import composewalletapp.shared.generated.resources.snackbar_reset_app_successfully
 import composewalletapp.shared.generated.resources.navigation_button_label_check
 import composewalletapp.shared.generated.resources.navigation_button_label_check
@@ -55,6 +57,7 @@ import ui.navigation.QrDeviceEngagementPage
 import ui.navigation.SelectDataRetrievalPage
 import ui.navigation.RefreshCredentialsPage
 import ui.navigation.SettingsPage
+import ui.navigation.ShowQrCodePage
 import ui.screens.AddCredentialScreen
 import ui.screens.AuthenticationConsentScreen
 import ui.screens.AuthenticationQrCodeScannerScreen
@@ -73,6 +76,7 @@ import ui.screens.ProvisioningLoadingScreen
 import ui.screens.QrDeviceEngagementScreen
 import ui.screens.SelectDataRetrievalScreen
 import ui.screens.SettingsScreen
+import ui.screens.ShowQrCodeScreen
 import view.AuthenticationQrCodeScannerViewModel
 
 internal object NavigatorTestTags {
@@ -177,6 +181,8 @@ fun MainNavigator(
 
                 is SelectDataRetrievalPage -> NavigationData.VERIFIER_SELECTION_SCREEN
 
+                is ShowQrCodePage -> NavigationData.SHOW_QR_CODE_SCREEN
+
                 else -> null
             }
 
@@ -185,6 +191,7 @@ fun MainNavigator(
                     for (route in listOf(
                         NavigationData.HOME_SCREEN,
                         NavigationData.AUTHENTICATION_SCANNING_SCREEN,
+                        NavigationData.SHOW_QR_CODE_SCREEN,
                         NavigationData.VERIFIER_SELECTION_SCREEN,
                         NavigationData.INFORMATION_SCREEN,
                     )) {
@@ -336,6 +343,7 @@ fun MainNavigator(
                             }
                         )
                     }
+
                     is CustomDataRetrievalPage -> {
                         CustomDataRetrievalScreen(
                             navigateUp = navigateUp,
@@ -345,6 +353,7 @@ fun MainNavigator(
                             },
                         )
                     }
+
                     is QrDeviceEngagementPage -> {
                         QrDeviceEngagementScreen(
                             navigateUp = navigateUp,
@@ -354,12 +363,17 @@ fun MainNavigator(
                             }
                         )
                     }
+
                     is LoadRequestedDataPage -> {
                         LoadRequestedDataScreen(
                             document = page.document,
                             payload = page.payload,
                             navigateUp = navigateUp,
                         )
+                    }
+
+                    is ShowQrCodePage -> {
+                        ShowQrCodeScreen()
                     }
                 }
             }
@@ -403,6 +417,22 @@ private enum class NavigationData(
         isActive = {
             when (it) {
                 is AuthenticationQrCodeScannerPage -> true
+                else -> false
+            }
+        },
+    ),
+    SHOW_QR_CODE_SCREEN(
+        title = Res.string.navigation_button_label_show_qr_code,
+        icon = {
+            Icon(
+                imageVector = Icons.Default.QrCode,
+                contentDescription = null,
+            )
+        },
+        destination = ShowQrCodePage(),
+        isActive = {
+            when (it) {
+                is ShowQrCodePage -> true
                 else -> false
             }
         },

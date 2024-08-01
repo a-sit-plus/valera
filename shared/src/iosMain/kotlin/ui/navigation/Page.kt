@@ -63,3 +63,4 @@ actual class RequestedDataLogOutputPage : Page
 
 actual class RequestedDataShowPage: Page
 
+actual class ShowQrCodePage: Page
