@@ -6,6 +6,7 @@ import android.util.Log
 import com.android.identity.android.legacy.*
 import com.android.mdl.app.transfer.Communication
 import com.android.mdl.app.transfer.QrCommunicationSetup
+import data.verifier.transfer.util.CborDecoder
 
 class TransferManager private constructor(private val context: Context) {
 
@@ -51,7 +52,16 @@ class TransferManager private constructor(private val context: Context) {
             },
             onNewDeviceRequest = { deviceRequest ->
                 communication.setDeviceRequest(deviceRequest)
+
+                val cbordec: CborDecoder = CborDecoder { a, b -> Log.d(a, b) }
+                cbordec.decodeRequest(deviceRequest)
+
                 Log.d(TAG, "REQUEST received")
+
+                val doc = cbordec.documentRequests
+                for (i in doc) {
+                    i.log()
+                }
             },
             onDisconnected = {
                 Log.d(TAG, "DISCONNECTED")

@@ -14,6 +14,7 @@ import data.verifier.EntryValue
 import data.verifier.ImageArray
 import data.verifier.ImageEntry
 import data.verifier.IntEntry
+import data.verifier.ReceivedDocument
 import data.verifier.StringEntry
 import data.verifier.VehicleRegistration
 import io.github.aakira.napier.Napier
@@ -28,6 +29,9 @@ class CborDecoder(
     }
 
     var entryList: List<Entry> = listOf()
+
+    var documentRequests: List<ReceivedDocument> = listOf()
+
 
     private fun addEntry(cborData: ByteArray) {
         val identifier: String = cborMapExtractString(cborData, "elementIdentifier") ?: return
@@ -68,9 +72,9 @@ class CborDecoder(
         }
     }
 
-    fun decode(encodedDeviceResponse: ByteArray,
-               sessionTranscript: ByteArray?,
-               ephemeralReaderKey: PrivateKey?
+    fun decodeResponse(encodedDeviceResponse: ByteArray,
+                       sessionTranscript: ByteArray?,
+                       ephemeralReaderKey: PrivateKey?
     ) {
         val documents: List<Map<String, Any>>? = cborMapExtractArray(encodedDeviceResponse, "documents")
 
@@ -109,7 +113,44 @@ class CborDecoder(
         Napier.d(tag = TAG, message = "status: " + cborMapExtractNumber(encodedDeviceResponse, "status"))
     }
 
+    fun decodeRequest(encodedDeviceRequest: ByteArray
+    ) {
+        updateLogs(TAG, "Decoding received cbor byte array")
 
+        val docRequests: List<Map<String, Any>>? = cborMapExtractArray(encodedDeviceRequest, "docRequest")
+
+        if (docRequests == null) {
+            updateLogs(TAG, "No documents found!")
+            return
+        }
+
+        updateLogs(TAG, "Found ${docRequests.size} docRequests")
+
+
+
+        for (request in docRequests) {
+            val items = request["itemsRequest"] as? ByteArray
+
+            if (items != null) {
+                val item: Map<String, *> = decodeCborData(items)
+                val docType: String? = item["docType"] as? String
+                val nameSpaces = item["nameSpaces"] as? Map<String, Map<String, *>>
+                if (docType != null && nameSpaces != null) {
+                    val document = ReceivedDocument(docType)
+                    for (namespace in nameSpaces.keys) {
+                        val nameSpaceObject: ReceivedDocument.NameSpace = ReceivedDocument.NameSpace(namespace)
+                        for (attribute in nameSpaces[namespace]?.keys ?: emptyList()) {
+                            nameSpaceObject.addAttribute(DocumentAttributes.fromValue(attribute))
+                        }
+                        document.addNameSpace(nameSpaceObject)
+                    }
+
+
+                    documentRequests += document
+                }
+            }
+        }
+    }
 
     private fun cborMapExtractString(cborData: ByteArray, key: String): String? =
         (decodeCborData(cborData) as Map<String, Any>)[key] as? String
