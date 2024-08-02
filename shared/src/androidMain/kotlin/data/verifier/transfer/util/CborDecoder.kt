@@ -118,32 +118,21 @@ class CborDecoder(
 
 
 
-    private fun cborMapExtractString(cborData: ByteArray, key: String): String? {
-        val decodedMap: Map<String, Any> = decodeCborData(cborData)
-        return decodedMap[key] as? String
-    }
+    private fun cborMapExtractString(cborData: ByteArray, key: String): String? =
+        (decodeCborData(cborData) as Map<String, Any>)[key] as? String
 
-    private fun cborMapExtractNumber(cborData: ByteArray, key: String): Number? {
-        val decodedMap: Map<String, Any> = decodeCborData(cborData)
-        return decodedMap[key] as? Number
-    }
+    private fun cborMapExtractNumber(cborData: ByteArray, key: String): Number? =
+        (decodeCborData(cborData) as Map<String, Any>)[key] as? Number
 
-    private fun cborMapExtractArray(cborData: ByteArray, key: String): List<Map<String, Any>>? {
-        val decodedMap: Map<String, Any> = decodeCborData(cborData)
-        return decodedMap[key] as? List<Map<String, Any>>
-    }
+    private fun cborMapExtractArray(cborData: ByteArray, key: String): List<Map<String, Any>>? =
+        (decodeCborData(cborData) as Map<String, Any>)[key] as? List<Map<String, Any>>
 
-    private fun cborMapExtractByteArray(cborData: ByteArray, key: String): ByteArray? {
-        val decodedMap: Map<String, Any> = decodeCborData(cborData)
-        return decodedMap[key] as? ByteArray
-    }
+    private fun cborMapExtractByteArray(cborData: ByteArray, key: String): ByteArray? =
+        (decodeCborData(cborData) as Map<String, Any>)[key] as? ByteArray
 
-    private fun cborMapExtractBoolean(cborData: ByteArray, key: String): Boolean? {
-        val decodedMap: Map<String, Any> = decodeCborData(cborData)
-        return decodedMap[key] as? Boolean
-    }
+    private fun cborMapExtractBoolean(cborData: ByteArray, key: String): Boolean? =
+        (decodeCborData(cborData) as Map<String, Any>)[key] as? Boolean
 
-    private fun decodeCborData(cborData: ByteArray): Map<String, Any> {
-        return objectMapper.readValue(cborData, Map::class.java) as Map<String, Any>
-    }
+    private fun decodeCborData(cborData: ByteArray): Map<String, Any> =
+        objectMapper.readValue(cborData, Map::class.java) as Map<String, Any>
 }
