@@ -70,9 +70,6 @@ class CborDecoder(
                sessionTranscript: ByteArray?,
                ephemeralReaderKey: PrivateKey?
     ) {
-        updateLogs(TAG, "Decoding received cbor byte array")
-        //updateLogs(TAG, "version: " + cborMapExtractString(encodedDeviceResponse, "version"))// expected 1.0
-
         val documents: List<Map<String, Any>>? = cborMapExtractArray(encodedDeviceResponse, "documents")
 
         if (documents == null) {
@@ -117,8 +114,6 @@ class CborDecoder(
         }
 
         Log.d(TAG,"status: " + cborMapExtractNumber(encodedDeviceResponse, "status"))
-
-        //updateLogs(TAG, "cbor byte array decoded")
     }
 
 
