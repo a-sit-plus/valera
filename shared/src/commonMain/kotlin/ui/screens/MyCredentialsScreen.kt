@@ -40,7 +40,6 @@ import composewalletapp.shared.generated.resources.content_description_delete_cr
 import composewalletapp.shared.generated.resources.heading_label_my_data_screen
 import composewalletapp.shared.generated.resources.info_text_no_credentials_available
 import data.storage.scheme
-import io.ktor.http.quote
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.FloatingActionButtonHeightSpacer
@@ -187,7 +186,7 @@ private fun ColumnScope.SingleCredentialCard(
 private fun ColumnScope.SingleVcCredentialCardContent(
     credential: SubjectCredentialStore.StoreEntry.Vc,
 ) {
-    Text(credential.vc.toString())
+    Text(credential.vc.vc.credentialSubject.toString().replace("""\[.+]""".toRegex(), "[...]").replace(", ", "\n"))
 }
 
 @Composable
@@ -209,7 +208,7 @@ private fun ColumnScope.SingleIsoCredentialCardContent(
     credential.issuerSigned.namespaces?.forEach { namespace ->
         namespace.value.entries.forEach { entry ->
             LabeledText(
-                text = entry.value.elementValue.toString(),
+                text = entry.value.elementValue.prettyToString(),
                 label = NormalizedJsonPath(
                     NormalizedJsonPathSegment.NameSegment(namespace.key),
                     NormalizedJsonPathSegment.NameSegment(entry.value.elementIdentifier),
@@ -217,6 +216,11 @@ private fun ColumnScope.SingleIsoCredentialCardContent(
             )
         }
     }
+}
+
+private fun Any.prettyToString() = when (this) {
+    is Array<*> -> contentToString()
+    else -> toString()
 }
 
 
