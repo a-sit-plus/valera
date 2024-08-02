@@ -5,7 +5,6 @@ import android.content.Context
 import android.util.Log
 import com.android.identity.android.legacy.*
 import data.bletransfer.util.CborDecoder
-import data.bletransfer.verifier.ReceivedDocument
 
 class TransferManager private constructor(private val context: Context) {
 
@@ -30,7 +29,7 @@ class TransferManager private constructor(private val context: Context) {
 
 
 
-    fun startQrEngagement(updateQrCode: (String) -> Unit, updateRequestedAttributes: (List<ReceivedDocument>) -> Unit) {
+    fun startQrEngagement(updateQrCode: (String) -> Unit, updateRequestedAttributes: (List<RequestedDocument>) -> Unit) {
         if (hasStarted) {
             throw IllegalStateException("Transfer has already started.")
         }
@@ -52,7 +51,7 @@ class TransferManager private constructor(private val context: Context) {
             onNewDeviceRequest = { deviceRequest ->
                 communication.setDeviceRequest(deviceRequest)
 
-                val cbordec: CborDecoder = CborDecoder { a, b -> Log.d(a, b) }
+                val cbordec: CborDecoder = CborDecoder { tag, message -> Log.d(tag, message) }
                 cbordec.decodeRequest(deviceRequest)
                 updateRequestedAttributes(cbordec.documentRequests)
                 Log.d(TAG, "REQUEST received")
