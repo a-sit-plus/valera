@@ -70,7 +70,6 @@ class TransferManager private constructor(private val context: Context) {
     }
 
     fun setQrDeviceEngagement(qrDeviceEngagement: String) {
-        Log.d(TAG, "setQrDeviceEngagement")
         updateLogs(TAG, "Extracting bluetooth connection information from QR code")
         verification?.setDeviceEngagementFromQrCode(qrDeviceEngagement)
     }
@@ -83,7 +82,6 @@ class TransferManager private constructor(private val context: Context) {
     }
 
     fun connect() {
-        Log.d(TAG, "connect")
         updateLogs(TAG, "Starting connection to Device")
         if (hasStarted)
             throw IllegalStateException("Connection has already started. It is necessary to stop verification before starting a new one.")
@@ -151,9 +149,7 @@ class TransferManager private constructor(private val context: Context) {
 
         override fun onDeviceEngagementReceived(connectionMethods: MutableList<ConnectionMethod>) {
             updateLogs(TAG, "Ready for device engagement")
-
             setAvailableTransferMethods(ConnectionMethod.disambiguate(connectionMethods))
-            Log.d(TAG, "Device.ENGAGED")
 
             connect()
         }
@@ -163,7 +159,6 @@ class TransferManager private constructor(private val context: Context) {
         }
 
         override fun onDeviceConnected() {
-            Log.d(TAG, "Device.CONNECTED")
             if (!sentRequest) {
                 sentRequest = true
                 updateLogs(TAG, "Connected to Device sending Request")
@@ -178,7 +173,6 @@ class TransferManager private constructor(private val context: Context) {
 
         override fun onResponseReceived(deviceResponseBytes: ByteArray) {
             responseBytes = deviceResponseBytes
-            Log.d(TAG, "Device.RESPONSE")
             updateLogs(TAG, "Response received")
             val sessionTranscript = verification?.sessionTranscript
             val ephemeralReaderKey = verification?.ephemeralReaderKey
@@ -194,13 +188,11 @@ class TransferManager private constructor(private val context: Context) {
         }
 
         override fun onDeviceDisconnected(transportSpecificTermination: Boolean) {
-            Log.d(TAG, "Device.DISCONNECTED")
             updateLogs(TAG, "Device disconnected")
             stopVerification(false, transportSpecificTermination)
         }
 
         override fun onError(error: Throwable) {
-            Log.e("TransferManager", "onError: ${error.message}")
             updateLogs(TAG, "Following error has occurred: ${error.message}")
             stopVerification(
                 sendSessionTerminationMessage = false,
