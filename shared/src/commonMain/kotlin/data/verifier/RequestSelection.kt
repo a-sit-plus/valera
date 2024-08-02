@@ -36,6 +36,7 @@ import composewalletapp.shared.generated.resources.attribute_friendly_name_sex
 import composewalletapp.shared.generated.resources.attribute_friendly_name_signature
 import composewalletapp.shared.generated.resources.attribute_friendly_name_gender
 import composewalletapp.shared.generated.resources.attribute_friendly_name_administrative_number
+import io.github.aakira.napier.Napier
 import org.jetbrains.compose.resources.StringResource
 
 
@@ -147,6 +148,9 @@ enum class DocumentAttributes(val value: String, val displayName: StringResource
                 entries.find { it.displayName == displayName }?.value
             }.toSet()
         }
+        fun fromValue(value: String): DocumentAttributes? {
+            return entries.find { it.value == value }
+        }
     }
 }
 
@@ -158,4 +162,45 @@ enum class ValueType {
     INT,
     ARRAY
 }
+
+
+class ReceivedDocument(
+    val docType: String,
+    var nameSpaces: List<NameSpace> = listOf()
+) {
+
+    fun addNameSpace(namespace: NameSpace?) {
+        if (namespace != null) {
+            nameSpaces += namespace
+        }
+    }
+
+    fun log() {
+        Napier.d("$docType: {", tag="myTag")
+        for (namespace in nameSpaces) {
+            namespace.log()
+        }
+        Napier.d("}", tag="myTag")
+    }
+
+    class NameSpace(
+        val nameSpace: String,
+        var attributes: List<DocumentAttributes> = listOf()
+    ) {
+        fun addAttribute(attribute: DocumentAttributes?) {
+            if (attribute != null) {
+                attributes += attribute
+            }
+        }
+        fun log() {
+            Napier.d("$nameSpace: [", tag="myTag")
+            for (attribute in attributes) {
+                Napier.d("${attribute.value},", tag="myTag")
+            }
+            Napier.d("]", tag="myTag")
+        }
+    }
+}
+
+
 
