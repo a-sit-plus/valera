@@ -118,10 +118,10 @@ class CborDecoder(
     ) {
         updateLogs(TAG, "Decoding received cbor byte array")
 
-        val docRequests: List<Map<String, Any>>? = cborMapExtractArray(encodedDeviceRequest, "docRequest")
+        val docRequests: List<Map<String, Any>>? = cborMapExtractArray(encodedDeviceRequest, "docRequests")
 
         if (docRequests == null) {
-            updateLogs(TAG, "No documents found!")
+            updateLogs(TAG, "No docRequests found!")
             return
         }
 

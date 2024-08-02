@@ -51,7 +51,7 @@ class TransferManager private constructor(private val context: Context) {
             onNewDeviceRequest = { deviceRequest ->
                 communication.setDeviceRequest(deviceRequest)
 
-                val cbordec: CborDecoder = CborDecoder { tag, message -> Log.d(tag, message) }
+                val cbordec = CborDecoder { tag, message -> Log.d(tag, message) }
                 cbordec.decodeRequest(deviceRequest)
                 updateRequestedAttributes(cbordec.documentRequests)
                 Log.d(TAG, "REQUEST received")
