@@ -31,6 +31,7 @@ class CborDecoder(
     private fun addEntry(cborData: ByteArray) {
         val identifier: String = cborMapExtractString(cborData, "elementIdentifier") ?: return
         val entryData: ValueType = DocumentAttributes.entries.associate { it.value to it.type }[identifier] ?: return
+
         val eval: EntryValue = when (entryData) {
             ValueType.DATE,
             ValueType.STRING -> StringEntry(cborMapExtractString(cborData, "elementValue") ?: "NOT FOUND")
@@ -82,15 +83,13 @@ class CborDecoder(
         for (document in documents) {
             val docType = document["docType"] as? String
             Log.d(TAG,"docType: $docType")
-            val issuerSigned = document["issuerSigned"] as? Map<String, *>
-            if (issuerSigned != null) {
-                val namespaces = issuerSigned["nameSpaces"] as? Map<String, *>
-                if (namespaces != null) {
+
+            (document["issuerSigned"] as? Map<String, *>)?.let { issuerSigned ->
+                (issuerSigned["nameSpaces"] as? Map<String, *>)?.let { namespaces ->
                     for (namespace: String in namespaces.keys) {
                         Log.d(TAG,"namespace: $namespace")
-                        val entrys = namespaces[namespace] as? List<*>
+                        (namespaces[namespace] as? List<*>)?.let { entrys ->
 
-                        if (entrys != null) {
                             for (entry in entrys) {
                                 Log.d(TAG,"elementIdentifier: $entry")
                                 if (entry != null) {
@@ -100,17 +99,10 @@ class CborDecoder(
                                 }
 
                             }
-                        } else {
-                            Log.d(TAG,"entrys is null")
-                        }
+                        } ?: Log.d(TAG,"entrys is null")
                     }
-                    Log.d(TAG,"nameSpaces is: $namespaces")
-                } else {
-                    Log.d(TAG,"nameSpaces is null")
-                }
-            } else {
-                Log.d(TAG,"issuer signed is null")
-            }
+                } ?: Log.d(TAG,"nameSpaces is null")
+            } ?: Log.d(TAG,"issuer signed is null")
         }
 
         Log.d(TAG,"status: " + cborMapExtractNumber(encodedDeviceResponse, "status"))
