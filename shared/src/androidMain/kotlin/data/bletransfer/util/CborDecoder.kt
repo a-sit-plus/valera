@@ -16,6 +16,7 @@ import data.bletransfer.verifier.EntryValue
 import data.bletransfer.verifier.ImageArray
 import data.bletransfer.verifier.ImageEntry
 import data.bletransfer.verifier.IntEntry
+import data.bletransfer.verifier.ReceivedDocument
 import data.bletransfer.verifier.StringEntry
 import data.bletransfer.verifier.VehicleRegistration
 import io.github.aakira.napier.Napier
@@ -127,7 +128,6 @@ class CborDecoder(
         }
 
         updateLogs(TAG, "Found ${docRequests.size} docRequests")
-
 
         for (request in docRequests) {
             (request["itemsRequest"] as? ByteArray)?.let { items ->

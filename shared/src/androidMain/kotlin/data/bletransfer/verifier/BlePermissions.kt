@@ -1,4 +1,4 @@
-package data.verifier.transfer
+package data.bletransfer.verifier
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -14,7 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 
 @Composable
-fun RequestBluetoothPermissions(BluetoothPermissionRequestLauncher: (Boolean) -> Unit) {
+fun RequestBluetoothPermissions(onPermissionsResult: (Boolean) -> Unit) {
     val appPermissions: Array<String> =
         if (android.os.Build.VERSION.SDK_INT >= 31) {
             arrayOf(
@@ -43,14 +43,14 @@ fun RequestBluetoothPermissions(BluetoothPermissionRequestLauncher: (Boolean) ->
                 }
             }
         }
-        BluetoothPermissionRequestLauncher(allPermissionsGranted)
+        onPermissionsResult(allPermissionsGranted)
     }
 
     LaunchedEffect(permissionsNeeded) {
         if (permissionsNeeded.isNotEmpty()) {
             permissionsLauncher.launch(permissionsNeeded.toTypedArray())
         } else {
-            BluetoothPermissionRequestLauncher(true)
+            onPermissionsResult(true)
         }
     }
 }
