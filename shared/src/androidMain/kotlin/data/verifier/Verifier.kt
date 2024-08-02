@@ -40,13 +40,11 @@ class AndroidVerifier: Verifier {
                 delay(500)
                 Log.d(TAG, "waiting for Transfer Manager")
             }
-            updateLogs(TAG, "Waiting for ble and location permissions")
             while (!permission) {
                 delay(500)
                 Log.d(TAG, "waiting for Permissions")
             }
             updateLogs(TAG, "Requirements are loaded and needed permissions given")
-            Log.d(TAG, "Transfer Manager is here")
 
 
             updateLogs(TAG, "Starting Device engagement with scanned Qr-code")
