@@ -46,6 +46,7 @@ import ui.navigation.AuthenticationLoadingPage
 import ui.navigation.AuthenticationQrCodeScannerPage
 import ui.navigation.AuthenticationSuccessPage
 import ui.navigation.CustomDataRetrievalPage
+import ui.navigation.HandleRequestedDataPage
 import ui.navigation.CredentialDetailsPage
 import ui.navigation.HomePage
 import ui.navigation.LoadRequestedDataPage
@@ -375,7 +376,14 @@ fun MainNavigator(
                     is ShowQrCodePage -> {
                         ShowQrCodeScreen(
                             walletMain = walletMain,
+                            onConnection = { holder ->
+                                navigationStack.push(HandleRequestedDataPage(holder))
+                            }
                         )
+                    }
+
+                    is HandleRequestedDataPage -> {
+
                     }
                 }
             }
