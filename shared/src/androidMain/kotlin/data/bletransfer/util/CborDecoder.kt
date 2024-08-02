@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.cbor.CBORFactory
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import data.bletransfer.holder.RequestedDocument
 import data.bletransfer.verifier.DocumentAttributes
 import data.bletransfer.verifier.ValueType
 import data.bletransfer.verifier.BooleanEntry
@@ -14,11 +15,11 @@ import data.bletransfer.verifier.EntryValue
 import data.bletransfer.verifier.ImageArray
 import data.bletransfer.verifier.ImageEntry
 import data.bletransfer.verifier.IntEntry
-import data.bletransfer.verifier.ReceivedDocument
 import data.bletransfer.verifier.StringEntry
 import data.bletransfer.verifier.VehicleRegistration
 import io.github.aakira.napier.Napier
 import java.security.PrivateKey
+
 class CborDecoder(
     var updateLogs: (String?, String) -> Unit = { _: String?, _: String -> }
 ) {
@@ -30,7 +31,7 @@ class CborDecoder(
 
     var entryList: List<Entry> = listOf()
 
-    var documentRequests: List<ReceivedDocument> = listOf()
+    var documentRequests: List<RequestedDocument> = listOf()
 
 
     private fun addEntry(cborData: ByteArray) {
@@ -132,10 +133,10 @@ class CborDecoder(
 
                 val item: Map<String, *> = decodeCborData(items)
                 (item["docType"] as? String)?.let { docType ->
-                val document = ReceivedDocument(docType)
+                val document = RequestedDocument(docType)
                     (item["nameSpaces"] as? Map<String, Map<String, *>>)?.let { nameSpaces ->
                         for (namespace in nameSpaces.keys) {
-                            val nameSpaceObject: ReceivedDocument.NameSpace = ReceivedDocument.NameSpace(namespace)
+                            val nameSpaceObject: RequestedDocument.NameSpace = RequestedDocument.NameSpace(namespace)
                             for (attribute in nameSpaces[namespace]?.keys ?: emptyList()) {
                                 nameSpaceObject.addAttribute(DocumentAttributes.fromValue(attribute))
                             }
