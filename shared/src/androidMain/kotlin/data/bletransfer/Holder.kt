@@ -1,12 +1,11 @@
-package data.holder
+package data.bletransfer
 
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
-import data.holder.transfer.TransferManager
-import data.holder.transfer.util.PreferencesHelper
-import data.verifier.Entry
-import data.verifier.transfer.RequestBluetoothPermissions
+import data.bletransfer.holder.TransferManager
+import data.bletransfer.holder.PreferencesHelper
+import data.bletransfer.verifier.RequestBluetoothPermissions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay

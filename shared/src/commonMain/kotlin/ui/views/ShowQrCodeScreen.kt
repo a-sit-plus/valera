@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -23,18 +22,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.app.common.WalletMain
 import composewalletapp.shared.generated.resources.Res
 import org.jetbrains.compose.resources.stringResource
 import composewalletapp.shared.generated.resources.heading_label_show_qr_code_screen
-import data.holder.Holder
-import data.holder.getHolder
-import data.verifier.Entry
-import data.verifier.Verifier
-import data.verifier.getVerifier
-import io.github.aakira.napier.Napier
+import data.bletransfer.Holder
+import data.bletransfer.getHolder
 import qrcode.QRCode
 
 @OptIn(ExperimentalMaterial3Api::class)
