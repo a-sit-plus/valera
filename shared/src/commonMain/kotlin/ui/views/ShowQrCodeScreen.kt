@@ -29,6 +29,7 @@ import org.jetbrains.compose.resources.stringResource
 import composewalletapp.shared.generated.resources.heading_label_show_qr_code_screen
 import data.bletransfer.Holder
 import data.bletransfer.getHolder
+import data.bletransfer.verifier.ReceivedDocument
 import qrcode.QRCode
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,27 +48,17 @@ fun ShowQrCodeView(walletMain: WalletMain) {
     val holder: Holder = remember { getHolder() }
     var permission by remember { mutableStateOf(false) }
     var qrcodeText by remember { mutableStateOf("") }
+    var requestedAttributes by remember { mutableStateOf(listOf<ReceivedDocument>()) }
 
     if (!permission) {
         holder.getRequirements { b -> permission = b }
     }
 
     LaunchedEffect(Unit) {
-        /*val updateLog: (String?, String) -> Unit = { TAG, updateLog ->
-            logsState += updateLog
-            Napier.d(tag= TAG?: "DebugScreen", message = updateLog)
-        }
-
-        val updateData: (List<Entry>) -> Unit = { entry ->
-            entryState += entry
-        }
-
-        updateLog(null, "Start Connection and Data Transfer")
-        verifier.verify(payload, document, updateLog, updateData)*/
-
         val updateQrCode: (String) -> Unit =  { str -> qrcodeText = str }
+        val updateRequestedAttributes: (List<ReceivedDocument>) -> Unit = {l -> requestedAttributes = l}
 
-        holder.hold(updateQrCode)
+        holder.hold(updateQrCode, updateRequestedAttributes)
     }
 
     DisposableEffect(Unit) {
@@ -77,7 +68,16 @@ fun ShowQrCodeView(walletMain: WalletMain) {
     }
 
 
+    if (requestedAttributes.isEmpty()) {
+        QrCodeView(walletMain, permission, qrcodeText)
+    } else {
+        TODO("Not Implemented Yet")
+    }
+}
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun QrCodeView(walletMain: WalletMain, permission: Boolean, qrcodeText: String) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -110,7 +110,6 @@ fun ShowQrCodeView(walletMain: WalletMain) {
                     val imageBitmap = walletMain.platformAdapter.decodeImage(qrCode)
                     Image(bitmap = imageBitmap, contentDescription = null)
                 }
-
             }
         }
     }
@@ -119,15 +118,8 @@ fun ShowQrCodeView(walletMain: WalletMain) {
 
 
 fun createQrCode(str: String): ByteArray {
-    //val str = "mdoc:owBjMS4wAYIB2BhYS6QBAiABIVgg9wnmwlhryhSiEzpZawihe23JSm-7uJeaEo1iQ1LB7EMiWCDCxVkZmTHMopRblja1qqn-4ivazuL_v9rj3UoRK-t2KQKBgwIBowD0AfULULgeyOTLZkkDpUDM72qV7Rw"
-
     return QRCode.ofSquares()
         .build(str)
         .renderToBytes()
-    /*val squareQRCode = QRCode.ofSquares()
-        .build(str)
-    val squarePngData = squareQRCode.renderToBytes()
-
-    return squarePngData*/
 }
 

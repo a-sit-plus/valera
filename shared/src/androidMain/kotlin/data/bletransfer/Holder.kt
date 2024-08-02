@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import data.bletransfer.holder.TransferManager
 import data.bletransfer.holder.PreferencesHelper
+import data.bletransfer.verifier.ReceivedDocument
 import data.bletransfer.verifier.RequestBluetoothPermissions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -30,7 +31,7 @@ class AndroidHolder: Holder {
     private var transferManager: TransferManager? = null
     private val TAG: String = "AndroidHolder"
 
-    override fun hold(updateQrCode: (String) -> Unit) {
+    override fun hold(updateQrCode: (String) -> Unit, updateRequestedAttributes: (List<ReceivedDocument>) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             while (transferManager == null) {
                 delay(500)
@@ -41,7 +42,7 @@ class AndroidHolder: Holder {
                 Log.d(TAG, "waiting for Permissions")
             }
             Log.d(TAG, "Transfer Manager is here")
-            transferManager!!.startQrEngagement(updateQrCode)
+            transferManager!!.startQrEngagement(updateQrCode, updateRequestedAttributes)
         }
     }
 
