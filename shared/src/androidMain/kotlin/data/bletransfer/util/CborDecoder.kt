@@ -127,28 +127,24 @@ class CborDecoder(
         updateLogs(TAG, "Found ${docRequests.size} docRequests")
 
 
-
         for (request in docRequests) {
-            val items = request["itemsRequest"] as? ByteArray
+            (request["itemsRequest"] as? ByteArray)?.let { items ->
 
-            if (items != null) {
                 val item: Map<String, *> = decodeCborData(items)
-                val docType: String? = item["docType"] as? String
-                val nameSpaces = item["nameSpaces"] as? Map<String, Map<String, *>>
-                if (docType != null && nameSpaces != null) {
-                    val document = ReceivedDocument(docType)
-                    for (namespace in nameSpaces.keys) {
-                        val nameSpaceObject: ReceivedDocument.NameSpace = ReceivedDocument.NameSpace(namespace)
-                        for (attribute in nameSpaces[namespace]?.keys ?: emptyList()) {
-                            nameSpaceObject.addAttribute(DocumentAttributes.fromValue(attribute))
+                (item["docType"] as? String)?.let { docType ->
+                val document = ReceivedDocument(docType)
+                    (item["nameSpaces"] as? Map<String, Map<String, *>>)?.let { nameSpaces ->
+                        for (namespace in nameSpaces.keys) {
+                            val nameSpaceObject: ReceivedDocument.NameSpace = ReceivedDocument.NameSpace(namespace)
+                            for (attribute in nameSpaces[namespace]?.keys ?: emptyList()) {
+                                nameSpaceObject.addAttribute(DocumentAttributes.fromValue(attribute))
+                            }
+                            document.addNameSpace(nameSpaceObject)
                         }
-                        document.addNameSpace(nameSpaceObject)
-                    }
-
-
+                    } ?: Log.d(TAG,"nameSpaces is null")
                     documentRequests += document
-                }
-            }
+                } ?: Log.d(TAG,"docType is null")
+            } ?: Log.d(TAG,"itemsRequest is null")
         }
     }
 
