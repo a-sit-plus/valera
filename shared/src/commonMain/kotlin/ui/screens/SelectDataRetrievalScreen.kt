@@ -36,10 +36,10 @@ import composewalletapp.shared.generated.resources.button_label_check_custom
 import composewalletapp.shared.generated.resources.section_heading_request_eausweiße
 import composewalletapp.shared.generated.resources.section_heading_request_license
 import composewalletapp.shared.generated.resources.section_heading_request_custom
-import data.verifier.Verifier
-import data.verifier.getAgeVerificationDocument
-import data.verifier.getIdentityDocument
-import data.verifier.getLicenseDocument
+import data.bletransfer.Verifier
+import data.bletransfer.verifier.getAgeVerificationDocument
+import data.bletransfer.verifier.getIdentityDocument
+import data.bletransfer.verifier.getLicenseDocument
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

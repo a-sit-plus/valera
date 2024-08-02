@@ -1,4 +1,4 @@
-package ui.data.transfer
+package data.bletransfer.verifier
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -8,9 +8,8 @@ import com.android.identity.android.mdoc.deviceretrieval.VerificationHelper
 import com.android.identity.android.mdoc.transport.DataTransportOptions
 import com.android.identity.mdoc.connectionmethod.ConnectionMethod
 import com.android.identity.mdoc.request.DeviceRequestGenerator
-import data.verifier.Entry
-import data.verifier.Verifier
-import data.verifier.transfer.util.CborDecoder
+import data.bletransfer.Verifier
+import data.bletransfer.util.CborDecoder
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor

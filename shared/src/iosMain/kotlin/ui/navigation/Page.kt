@@ -1,6 +1,6 @@
 package ui.navigation
 
-import data.verifier.Verifier
+import data.bletransfer.Verifier
 
 import data.storage.StoreEntryId
 

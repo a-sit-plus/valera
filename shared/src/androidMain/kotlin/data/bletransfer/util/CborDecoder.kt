@@ -1,4 +1,4 @@
-package data.verifier.transfer.util
+package data.bletransfer.util
 
 import android.graphics.BitmapFactory
 import android.util.Log
@@ -6,17 +6,17 @@ import androidx.compose.ui.graphics.asImageBitmap
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.cbor.CBORFactory
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import data.verifier.DocumentAttributes
-import data.verifier.ValueType
-import data.verifier.BooleanEntry
-import data.verifier.Entry
-import data.verifier.EntryValue
-import data.verifier.ImageArray
-import data.verifier.ImageEntry
-import data.verifier.IntEntry
-import data.verifier.ReceivedDocument
-import data.verifier.StringEntry
-import data.verifier.VehicleRegistration
+import data.bletransfer.verifier.DocumentAttributes
+import data.bletransfer.verifier.ValueType
+import data.bletransfer.verifier.BooleanEntry
+import data.bletransfer.verifier.Entry
+import data.bletransfer.verifier.EntryValue
+import data.bletransfer.verifier.ImageArray
+import data.bletransfer.verifier.ImageEntry
+import data.bletransfer.verifier.IntEntry
+import data.bletransfer.verifier.ReceivedDocument
+import data.bletransfer.verifier.StringEntry
+import data.bletransfer.verifier.VehicleRegistration
 import io.github.aakira.napier.Napier
 import java.security.PrivateKey
 class CborDecoder(

@@ -1,4 +1,4 @@
-package data.verifier
+package data.bletransfer.verifier
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box

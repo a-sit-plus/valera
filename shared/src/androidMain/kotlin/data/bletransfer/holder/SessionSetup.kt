@@ -1,4 +1,4 @@
-package data.holder.transfer
+package data.bletransfer.holder
 
 import com.android.identity.android.legacy.IdentityCredentialStore.CIPHERSUITE_ECDHE_HKDF_ECDSA_WITH_AES_256_GCM_SHA256
 import com.android.identity.android.legacy.PresentationSession
