@@ -373,7 +373,9 @@ fun MainNavigator(
                     }
 
                     is ShowQrCodePage -> {
-                        ShowQrCodeScreen()
+                        ShowQrCodeScreen(
+                            walletMain = walletMain,
+                        )
                     }
                 }
             }
