@@ -73,7 +73,7 @@ kotlin {
                 implementation("com.google.accompanist:accompanist-permissions:0.30.1")
                 implementation("com.google.mlkit:barcode-scanning:17.2.0")
 
-                implementation("com.android.identity:identity-credential-android:+"){
+                implementation("com.android.identity:identity-credential-android:20231002"){
                     exclude(group = "org.bouncycastle")
                 }
                 implementation("com.android.identity:identity-credential:20231002") {
