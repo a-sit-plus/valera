@@ -58,6 +58,7 @@ kotlin {
                 implementation(ktor("serialization-kotlinx-json"))
                 implementation(libs.identity)
                 implementation(libs.semver)
+                implementation(libs.qrcode.kotlin)
             }
         }
 
