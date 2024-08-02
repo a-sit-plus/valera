@@ -4,8 +4,8 @@ import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import data.bletransfer.verifier.Entry
-import data.bletransfer.verifier.RequestBluetoothPermissions
 import io.github.aakira.napier.Napier
+import data.bletransfer.util.RequestBluetoothPermissions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay

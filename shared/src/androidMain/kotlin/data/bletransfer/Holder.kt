@@ -6,7 +6,7 @@ import androidx.compose.ui.platform.LocalContext
 import data.bletransfer.holder.TransferManager
 import data.bletransfer.holder.PreferencesHelper
 import data.bletransfer.verifier.ReceivedDocument
-import data.bletransfer.verifier.RequestBluetoothPermissions
+import data.bletransfer.util.RequestBluetoothPermissions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
