@@ -28,10 +28,17 @@ class AndroidHolder: Holder {
         PreferencesHelper.initialize(LocalContext.current)
         transferManager = TransferManager.getInstance(LocalContext.current)
     }
+
     private var transferManager: TransferManager? = null
     private val TAG: String = "AndroidHolder"
 
-    override fun hold(updateQrCode: (String) -> Unit, updateRequestedAttributes: (List<RequestedDocument>) -> Unit) {
+    private var requestedAttributes: List<RequestedDocument>? = null
+
+    override fun getAttributes(): List<RequestedDocument> {
+        return requestedAttributes ?: listOf()
+    }
+
+    override fun hold(updateQrCode: (String) -> Unit, onRequestedAttributes: () -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             while (transferManager == null) {
                 delay(500)
@@ -42,7 +49,10 @@ class AndroidHolder: Holder {
                 Log.d(TAG, "waiting for Permissions")
             }
             Log.d(TAG, "Transfer Manager is here")
-            transferManager!!.startQrEngagement(updateQrCode, updateRequestedAttributes)
+            transferManager!!.startQrEngagement(updateQrCode) {rA ->
+                requestedAttributes = rA
+                onRequestedAttributes()
+            }
         }
     }
 

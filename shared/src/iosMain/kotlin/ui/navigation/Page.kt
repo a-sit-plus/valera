@@ -1,5 +1,6 @@
 package ui.navigation
 
+import data.bletransfer.Holder
 import data.bletransfer.Verifier
 
 import data.storage.StoreEntryId
@@ -64,3 +65,7 @@ actual class RequestedDataLogOutputPage : Page
 actual class RequestedDataShowPage: Page
 
 actual class ShowQrCodePage: Page
+
+actual class HandleRequestedDataPage actual constructor(
+    actual val holder: Holder
+): Page

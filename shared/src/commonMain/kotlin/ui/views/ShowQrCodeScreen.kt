@@ -29,26 +29,26 @@ import org.jetbrains.compose.resources.stringResource
 import composewalletapp.shared.generated.resources.heading_label_show_qr_code_screen
 import data.bletransfer.Holder
 import data.bletransfer.getHolder
-import data.bletransfer.holder.RequestedDocument
 import qrcode.QRCode
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
-fun ShowQrCodeScreen(walletMain: WalletMain) {
+fun ShowQrCodeScreen(walletMain: WalletMain, onConnection: (Holder) -> Unit) {
     ShowQrCodeView(
-        walletMain = walletMain
+        walletMain = walletMain,
+        onConnection = onConnection,
     )
 }
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShowQrCodeView(walletMain: WalletMain) {
+fun ShowQrCodeView(walletMain: WalletMain, onConnection: (Holder) -> Unit) {
 
     val holder: Holder = remember { getHolder() }
     var permission by remember { mutableStateOf(false) }
     var qrcodeText by remember { mutableStateOf("") }
-    var requestedAttributes by remember { mutableStateOf(listOf<RequestedDocument>()) }
+    var shouldDisconnect by remember { mutableStateOf(true) }
 
     if (!permission) {
         holder.getRequirements { b -> permission = b }
@@ -56,28 +56,22 @@ fun ShowQrCodeView(walletMain: WalletMain) {
 
     LaunchedEffect(Unit) {
         val updateQrCode: (String) -> Unit =  { str -> qrcodeText = str }
-        val updateRequestedAttributes: (List<RequestedDocument>) -> Unit = {l -> requestedAttributes = l}
 
-        holder.hold(updateQrCode, updateRequestedAttributes)
+        holder.hold(updateQrCode) {
+            shouldDisconnect = false
+            onConnection(holder)
+        }
     }
 
     DisposableEffect(Unit) {
         onDispose {
-            holder.disconnect()
+            if (shouldDisconnect) {
+                holder.disconnect()
+            }
         }
     }
 
 
-    if (requestedAttributes.isEmpty()) {
-        QrCodeView(walletMain, permission, qrcodeText)
-    } else {
-        TODO("Not Implemented Yet")
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun QrCodeView(walletMain: WalletMain, permission: Boolean, qrcodeText: String) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -114,7 +108,6 @@ fun QrCodeView(walletMain: WalletMain, permission: Boolean, qrcodeText: String) 
         }
     }
 }
-
 
 
 fun createQrCode(str: String): ByteArray {

@@ -2,7 +2,8 @@ package ui.navigation
 
 import android.os.Parcel
 import android.os.Parcelable
-import data.verifier.Verifier
+import data.bletransfer.Holder
+import data.bletransfer.Verifier
 import data.storage.StoreEntryId
 import kotlinx.parcelize.Parcelize
 import org.intellij.lang.annotations.Pattern
@@ -90,3 +91,7 @@ actual class RequestedDataShowPage: Page, Parcelable
 
 @Parcelize
 actual class ShowQrCodePage: Page, Parcelable
+
+actual class HandleRequestedDataPage actual constructor(
+    actual val holder: Holder
+): Page

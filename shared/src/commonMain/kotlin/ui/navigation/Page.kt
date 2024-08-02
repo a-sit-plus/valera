@@ -1,6 +1,8 @@
 package ui.navigation
 
+import data.bletransfer.Holder
 import data.bletransfer.Verifier
+import data.bletransfer.holder.RequestedDocument
 import data.storage.StoreEntryId
 
 interface Page
@@ -89,4 +91,10 @@ expect class RequestedDataLogOutputPage() : Page
 expect class RequestedDataShowPage() : Page
 
 expect class ShowQrCodePage(): Page
+
+expect class HandleRequestedDataPage(
+    holder: Holder
+): Page {
+    val holder: Holder
+}
 

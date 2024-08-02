@@ -9,7 +9,9 @@ interface Holder {
     @Composable
     fun getRequirements(check: (Boolean) -> Unit)
 
-    fun hold(updateQrCode: (String) -> Unit, updateRequestedAttributes: (List<RequestedDocument>) -> Unit)
+    fun getAttributes(): List<RequestedDocument>
+
+    fun hold(updateQrCode: (String) -> Unit, onRequestedAttributes: () -> Unit)
 
     fun disconnect()
 }
