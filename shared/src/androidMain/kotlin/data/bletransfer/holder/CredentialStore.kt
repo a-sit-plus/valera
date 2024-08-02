@@ -1,8 +1,7 @@
-package data.holder.transfer
+package data.bletransfer.holder
 
 import android.content.Context
 import com.android.identity.android.legacy.IdentityCredentialStore
-import data.holder.transfer.util.PreferencesHelper
 
 class CredentialStore(
     private val context: Context

@@ -1,4 +1,4 @@
-package data.holder.transfer.util
+package data.bletransfer.holder
 
 import android.content.Context
 import android.content.SharedPreferences

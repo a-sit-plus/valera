@@ -1,3 +1,3 @@
-package data.verifier
+package data.bletransfer
 
 actual fun getVerifier(): Verifier { throw NotImplementedError("Verifier is not implemented for iOS yet")}

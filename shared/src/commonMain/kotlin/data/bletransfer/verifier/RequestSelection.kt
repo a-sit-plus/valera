@@ -1,4 +1,4 @@
-package data.verifier
+package data.bletransfer.verifier
 
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.attribute_friendly_name_age_at_least_14
@@ -36,6 +36,7 @@ import composewalletapp.shared.generated.resources.attribute_friendly_name_sex
 import composewalletapp.shared.generated.resources.attribute_friendly_name_signature
 import composewalletapp.shared.generated.resources.attribute_friendly_name_gender
 import composewalletapp.shared.generated.resources.attribute_friendly_name_administrative_number
+import data.bletransfer.Verifier
 import io.github.aakira.napier.Napier
 import org.jetbrains.compose.resources.StringResource
 
@@ -112,35 +113,71 @@ enum class DocumentAttributes(val value: String, val displayName: StringResource
     AGE_OVER_21("age_over_21", Res.string.attribute_friendly_name_age_at_least_21, ValueType.BOOL),
     GIVEN_NAME("given_name", Res.string.attribute_friendly_name_firstname, ValueType.STRING),
     FAMILY_NAME("family_name", Res.string.attribute_friendly_name_lastname, ValueType.STRING),
-    SIGNATURE_USUAL_MARK("signature_usual_mark", Res.string.attribute_friendly_name_signature, ValueType.IMAGE),
+    SIGNATURE_USUAL_MARK("signature_usual_mark", Res.string.attribute_friendly_name_signature,
+        ValueType.IMAGE
+    ),
     BIRTH_DATE("birth_date", Res.string.attribute_friendly_name_date_of_birth, ValueType.STRING),
-    FAMILY_NAME_BIRTH("family_name_birth", Res.string.attribute_friendly_name_family_name_birth, ValueType.STRING),
-    GIVEN_NAME_BIRTH("given_name_birth", Res.string.attribute_friendly_name_given_name_birth, ValueType.STRING),
+    FAMILY_NAME_BIRTH("family_name_birth", Res.string.attribute_friendly_name_family_name_birth,
+        ValueType.STRING
+    ),
+    GIVEN_NAME_BIRTH("given_name_birth", Res.string.attribute_friendly_name_given_name_birth,
+        ValueType.STRING
+    ),
     BIRTH_PLACE("birth_place", Res.string.attribute_friendly_name_birth_place, ValueType.STRING),
-    BIRTH_COUNTRY("birth_country", Res.string.attribute_friendly_name_birth_country, ValueType.STRING),
+    BIRTH_COUNTRY("birth_country", Res.string.attribute_friendly_name_birth_country,
+        ValueType.STRING
+    ),
     BIRTH_STATE("birth_state", Res.string.attribute_friendly_name_birth_state, ValueType.STRING),
     BIRTH_CITY("birth_city", Res.string.attribute_friendly_name_birth_city, ValueType.STRING),
     AGE_IN_YEARS("age_in_years", Res.string.attribute_friendly_name_age_in_years, ValueType.INT),
-    AGE_BIRTH_YEAR("age_birth_year", Res.string.attribute_friendly_name_age_birth_year, ValueType.INT),
-    RESIDENT_ADDRESS("resident_address", Res.string.attribute_friendly_name_main_address, ValueType.STRING),
-    RESIDENT_COUNTRY("resident_country", Res.string.attribute_friendly_name_main_residence_country, ValueType.STRING),
-    RESIDENT_STATE("resident_state", Res.string.attribute_friendly_name_main_residence_state, ValueType.STRING),
-    RESIDENT_CITY("resident_city", Res.string.attribute_friendly_name_main_residence_city, ValueType.STRING),
-    RESIDENT_POSTAL_CODE("resident_postal_code", Res.string.attribute_friendly_name_main_residence_postal_code, ValueType.STRING),
-    RESIDENT_STREET("resident_street", Res.string.attribute_friendly_name_main_residence_street, ValueType.STRING),
-    RESIDENT_HOUSE_NUMBER("resident_house_number", Res.string.attribute_friendly_name_main_residence_house_number, ValueType.INT),
+    AGE_BIRTH_YEAR("age_birth_year", Res.string.attribute_friendly_name_age_birth_year,
+        ValueType.INT
+    ),
+    RESIDENT_ADDRESS("resident_address", Res.string.attribute_friendly_name_main_address,
+        ValueType.STRING
+    ),
+    RESIDENT_COUNTRY("resident_country", Res.string.attribute_friendly_name_main_residence_country,
+        ValueType.STRING
+    ),
+    RESIDENT_STATE("resident_state", Res.string.attribute_friendly_name_main_residence_state,
+        ValueType.STRING
+    ),
+    RESIDENT_CITY("resident_city", Res.string.attribute_friendly_name_main_residence_city,
+        ValueType.STRING
+    ),
+    RESIDENT_POSTAL_CODE("resident_postal_code", Res.string.attribute_friendly_name_main_residence_postal_code,
+        ValueType.STRING
+    ),
+    RESIDENT_STREET("resident_street", Res.string.attribute_friendly_name_main_residence_street,
+        ValueType.STRING
+    ),
+    RESIDENT_HOUSE_NUMBER("resident_house_number", Res.string.attribute_friendly_name_main_residence_house_number,
+        ValueType.INT
+    ),
     GENDER("gender", Res.string.attribute_friendly_name_gender, ValueType.INT),
     SEX("sex", Res.string.attribute_friendly_name_sex, ValueType.INT),
     NATIONALITY("nationality", Res.string.attribute_friendly_name_nationality, ValueType.STRING),
     ISSUANCE_DATE("issuance_date", Res.string.attribute_friendly_name_issue_date, ValueType.STRING),
     ISSUE_DATE("issue_date", Res.string.attribute_friendly_name_issue_date, ValueType.STRING),
     EXPIRY_DATE("expiry_date", Res.string.attribute_friendly_name_expiry_date, ValueType.STRING),
-    ISSUING_AUTHORITY("issuing_authority", Res.string.attribute_friendly_name_issuing_authority, ValueType.STRING),
-    DOCUMENT_NUMBER("document_number", Res.string.attribute_friendly_name_document_number, ValueType.STRING),
-    ADMINISTRATIVE_NUMBER("administrative_number", Res.string.attribute_friendly_name_administrative_number, ValueType.STRING),
-    ISSUING_COUNTRY("issuing_country", Res.string.attribute_friendly_name_issuing_country, ValueType.STRING),
-    ISSUING_JURISDICTION("issuing_jurisdiction", Res.string.attribute_friendly_name_distinguishing_sign, ValueType.STRING),
-    DRIVING_PRIVILEGES("driving_privileges", Res.string.attribute_friendly_name_driving_privileges, ValueType.ARRAY);
+    ISSUING_AUTHORITY("issuing_authority", Res.string.attribute_friendly_name_issuing_authority,
+        ValueType.STRING
+    ),
+    DOCUMENT_NUMBER("document_number", Res.string.attribute_friendly_name_document_number,
+        ValueType.STRING
+    ),
+    ADMINISTRATIVE_NUMBER("administrative_number", Res.string.attribute_friendly_name_administrative_number,
+        ValueType.STRING
+    ),
+    ISSUING_COUNTRY("issuing_country", Res.string.attribute_friendly_name_issuing_country,
+        ValueType.STRING
+    ),
+    ISSUING_JURISDICTION("issuing_jurisdiction", Res.string.attribute_friendly_name_distinguishing_sign,
+        ValueType.STRING
+    ),
+    DRIVING_PRIVILEGES("driving_privileges", Res.string.attribute_friendly_name_driving_privileges,
+        ValueType.ARRAY
+    );
 
     companion object {
         fun getValuesFromDisplayNames(displayNames: Set<StringResource>): Set<String> {

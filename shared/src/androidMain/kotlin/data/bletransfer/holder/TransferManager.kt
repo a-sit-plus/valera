@@ -1,12 +1,10 @@
-package data.holder.transfer
+package data.bletransfer.holder
 
 import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
 import com.android.identity.android.legacy.*
-import com.android.mdl.app.transfer.Communication
-import com.android.mdl.app.transfer.QrCommunicationSetup
-import data.verifier.transfer.util.CborDecoder
+import data.bletransfer.util.CborDecoder
 
 class TransferManager private constructor(private val context: Context) {
 

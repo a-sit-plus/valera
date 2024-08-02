@@ -1,4 +1,4 @@
-package com.android.mdl.app.transfer
+package data.bletransfer.holder
 
 import android.content.Context
 import android.util.Log
@@ -6,9 +6,6 @@ import com.android.identity.android.mdoc.transport.DataTransport
 import com.android.identity.android.mdoc.deviceretrieval.DeviceRetrievalHelper
 import com.android.identity.android.legacy.PresentationSession
 import com.android.identity.android.mdoc.engagement.QrEngagementHelper
-import data.holder.transfer.ConnectionSetup
-import data.holder.transfer.CredentialStore
-import data.holder.transfer.SessionSetup
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
 import java.security.PublicKey

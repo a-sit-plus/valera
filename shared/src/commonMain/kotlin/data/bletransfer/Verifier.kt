@@ -1,6 +1,7 @@
-package data.verifier
+package data.bletransfer
 
 import androidx.compose.runtime.Composable
+import data.bletransfer.verifier.Entry
 
 expect fun getVerifier(): Verifier
 

@@ -1,4 +1,4 @@
-package data.verifier.transfer
+package data.bletransfer.verifier
 
 import android.Manifest
 import android.content.pm.PackageManager

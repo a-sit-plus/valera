@@ -37,10 +37,10 @@ import composewalletapp.shared.generated.resources.heading_label_select_custom_d
 import composewalletapp.shared.generated.resources.section_heading_select_document_type
 import composewalletapp.shared.generated.resources.section_heading_selected_namespace
 import composewalletapp.shared.generated.resources.section_heading_select_requested_data_entrys
-import data.verifier.DocumentAttributes
-import data.verifier.Verifier
-import data.verifier.documentTypeToNameSpace
-import data.verifier.itemsToDocument
+import data.bletransfer.verifier.DocumentAttributes
+import data.bletransfer.Verifier
+import data.bletransfer.verifier.documentTypeToNameSpace
+import data.bletransfer.verifier.itemsToDocument
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton

@@ -37,10 +37,10 @@ import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.error_missing_permissions
 import composewalletapp.shared.generated.resources.heading_label_request_log
 import composewalletapp.shared.generated.resources.heading_label_requested_data
+import data.bletransfer.verifier.Entry
+import data.bletransfer.Verifier
+import data.bletransfer.getVerifier
 import composewalletapp.shared.generated.resources.info_text_data_is_being_loaded
-import data.verifier.Entry
-import data.verifier.Verifier
-import data.verifier.getVerifier
 import io.github.aakira.napier.Napier
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
