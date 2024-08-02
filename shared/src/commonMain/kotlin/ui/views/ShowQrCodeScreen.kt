@@ -29,7 +29,7 @@ import org.jetbrains.compose.resources.stringResource
 import composewalletapp.shared.generated.resources.heading_label_show_qr_code_screen
 import data.bletransfer.Holder
 import data.bletransfer.getHolder
-import data.bletransfer.verifier.ReceivedDocument
+import data.bletransfer.holder.RequestedDocument
 import qrcode.QRCode
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -48,7 +48,7 @@ fun ShowQrCodeView(walletMain: WalletMain) {
     val holder: Holder = remember { getHolder() }
     var permission by remember { mutableStateOf(false) }
     var qrcodeText by remember { mutableStateOf("") }
-    var requestedAttributes by remember { mutableStateOf(listOf<ReceivedDocument>()) }
+    var requestedAttributes by remember { mutableStateOf(listOf<RequestedDocument>()) }
 
     if (!permission) {
         holder.getRequirements { b -> permission = b }
@@ -56,7 +56,7 @@ fun ShowQrCodeView(walletMain: WalletMain) {
 
     LaunchedEffect(Unit) {
         val updateQrCode: (String) -> Unit =  { str -> qrcodeText = str }
-        val updateRequestedAttributes: (List<ReceivedDocument>) -> Unit = {l -> requestedAttributes = l}
+        val updateRequestedAttributes: (List<RequestedDocument>) -> Unit = {l -> requestedAttributes = l}
 
         holder.hold(updateQrCode, updateRequestedAttributes)
     }
