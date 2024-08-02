@@ -87,9 +87,6 @@ kotlin {
                 implementation(libs.play.services.identity.credentials)
                 implementation(libs.identity.android)
 
-                implementation("com.android.identity:identity-credential-android:+"){
-                    exclude(group = "org.bouncycastle")
-                }
                 implementation("com.android.identity:identity-credential:20231002") {
                     exclude(group = "org.bouncycastle")
                 }
