@@ -49,13 +49,14 @@ class AndroidVerifier: Verifier {
 
             updateLogs(TAG, "Starting Device engagement with scanned Qr-code")
 
-            val tM: TransferManager = transferManager!!
-            tM.setUpdateAndRequest(updateLogs, requestedDocument) { le: List<Entry> ->
-                updateData(le)
-                transferManager?.closeConnection()
+            transferManager!!.let {
+                it.setUpdateAndRequest(updateLogs, requestedDocument) { le: List<Entry> ->
+                    updateData(le)
+                    transferManager?.closeConnection()
+                }
+                it.initVerificationHelper()
+                it.setQrDeviceEngagement(qrcode)
             }
-            tM.initVerificationHelper()
-            tM.setQrDeviceEngagement(qrcode)
         }
     }
 
