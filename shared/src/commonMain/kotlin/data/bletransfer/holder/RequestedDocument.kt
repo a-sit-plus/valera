@@ -40,3 +40,22 @@ class RequestedDocument(
         }
     }
 }
+
+/*class ResponseDocument(
+    val namespace: String,
+    val entry: Entry
+) {
+
+    class Entry(
+        val entryType: DocumentAttributes
+    ) {
+
+        class EString(val item: String){
+
+        }: Entry
+        class EImage(val item: String){
+
+        }: Entry
+    }
+}*/
+
