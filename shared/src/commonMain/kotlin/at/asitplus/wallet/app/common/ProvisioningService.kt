@@ -1,11 +1,9 @@
 package at.asitplus.wallet.app.common
 
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.identifier
-import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.resolveSchemeByIdentifier
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.Holder
 import at.asitplus.wallet.lib.agent.HolderAgent
-import at.asitplus.wallet.lib.agent.Verifier
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.jsonSerializer
@@ -182,8 +180,11 @@ class ProvisioningService(
         val authnResponse = Url(codeUrl).parameters.flattenEntries().toMap()
             .decodeFromUrlQuery<AuthenticationResponseParameters>()
         val code = authnResponse.code ?: throw Exception("code is null")
-        val tokenRequest =
-            oid4vciService.createTokenRequestParameters(requestOptions, code, requestOptions.state)
+        val tokenRequest = oid4vciService.createTokenRequestParameters(
+            requestOptions,
+            authorization = WalletService.AuthorizationForToken.Code(code)
+        )
+
         Napier.d("Created tokenRequest")
         val tokenResponse: TokenResponseParameters =
             client.submitForm(metadata.tokenEndpointUrl.toString()) {
@@ -191,7 +192,7 @@ class ProvisioningService(
             }.body()
 
         Napier.d("Received tokenResponse")
-        val credentialRequest = oid4vciService.createCredentialRequestJwt(
+        val credentialRequest = oid4vciService.createCredentialRequest(
             requestOptions,
             tokenResponse.clientNonce,
             metadata.credentialIssuer,
@@ -208,22 +209,17 @@ class ProvisioningService(
         credentialResponse.credential?.let {
             when (credentialResponse.format) {
                 CredentialFormatEnum.NONE -> TODO("Function not implemented")
-                CredentialFormatEnum.JWT_VC -> holderAgent.storeCredentials(
-                    listOf(
-                        Holder.StoreCredentialInput.Vc(
-                            vcJws = it,
-                            scheme = credentialScheme,
-                            attachments = null,
-                        )
+                CredentialFormatEnum.JWT_VC -> holderAgent.storeCredential(
+                    Holder.StoreCredentialInput.Vc(
+                        vcJws = it,
+                        scheme = credentialScheme,
                     )
                 )
 
-                CredentialFormatEnum.JWT_VC_SD_UNOFFICIAL, CredentialFormatEnum.VC_SD_JWT -> holderAgent.storeCredentials(
-                    listOf(
-                        Holder.StoreCredentialInput.SdJwt(
-                            vcSdJwt = it,
-                            scheme = credentialScheme,
-                        )
+                CredentialFormatEnum.JWT_VC_SD_UNOFFICIAL, CredentialFormatEnum.VC_SD_JWT -> holderAgent.storeCredential(
+                    Holder.StoreCredentialInput.SdJwt(
+                        vcSdJwt = it,
+                        scheme = credentialScheme,
                     )
                 )
 
@@ -233,22 +229,20 @@ class ProvisioningService(
                     it.decodeBase64()?.toByteArray()?.let {
                         IssuerSigned.deserialize(it)
                     }?.getOrNull()?.let { issuerSigned ->
-                        holderAgent.storeCredentials(
-                            listOf(
-                                Holder.StoreCredentialInput.Iso(
-                                    issuerSigned = issuerSigned,
-                                    scheme = credentialScheme,
-                                )
+                        holderAgent.storeCredential(
+                            Holder.StoreCredentialInput.Iso(
+                                issuerSigned = issuerSigned,
+                                scheme = credentialScheme,
                             )
                         )
                     } ?: throw Exception("Invalid credential format: $it")
                 }
+
+                null -> TODO("Function not implemented")
+            }.getOrElse {
+                throw Exception("Provisioning failed")
             }
-        }?.let {
-            if (it.rejected.isNotEmpty()) {
-                throw Exception("Provisioning Failed for ${it.rejected.size}/${it.rejected.size + it.acceptedIso.size + it.acceptedSdJwt.size + it.acceptedVcJwt.size} credentials.")
-            }
-        }
+        } ?: throw Exception("No credential was received")
     }
 }
 
@@ -263,7 +257,7 @@ private data class ProvisioningContext(
     val requestedAttributes: Set<String>?,
 ) {
     val credentialScheme: ConstantIndex.CredentialScheme
-        get() = AttributeIndex.resolveSchemeByIdentifier(this.credentialSchemeIdentifier)
+        get() = AttributeIndex.resolveCredential(this.credentialSchemeIdentifier)?.first
             ?: throw Exception(
                 "Unsupported credential scheme: ${this.credentialSchemeIdentifier}"
             )

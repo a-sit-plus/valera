@@ -1,11 +1,8 @@
 package ui.screens
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
+import at.asitplus.wallet.app.common.CryptoServiceAuthorizationPromptContext
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.data.dif.PresentationDefinition
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParametersFrom
@@ -22,7 +19,7 @@ fun AuthenticationConsentScreen(
     spName: String,
     spLocation: String,
     spImage: ImageBitmap?,
-    authenticationRequestParametersFrom: AuthenticationRequestParametersFrom<*>,
+    authenticationRequestParametersFrom: AuthenticationRequestParametersFrom,
     authenticationResponseResult: AuthenticationResponseResult,
     fromQrCodeScanner: Boolean,
     navigateUp: () -> Unit,
@@ -47,13 +44,13 @@ fun StatefulAuthenticationConsentView(
     spName: String,
     spLocation: String,
     spImage: ImageBitmap?,
-    authenticationRequest: AuthenticationRequestParametersFrom<*>,
+    authenticationRequest: AuthenticationRequestParametersFrom,
     fromQrCodeScanner: Boolean,
     navigateUp: () -> Unit,
     navigateToAuthenticationSuccessPage: () -> Unit,
     walletMain: WalletMain,
 ) {
-    var showBiometry by rememberSaveable { mutableStateOf(false) }
+    val authorizationPromptContext = presentationAuthorizationPromptContext()
 
     AuthenticationConsentView(
         spName = spName,
@@ -62,17 +59,14 @@ fun StatefulAuthenticationConsentView(
         navigateUp = navigateUp,
         cancelAuthentication = navigateUp,
         consentToDataTransmission = {
-            showBiometry = true
-        },
-        showBiometry = showBiometry,
-        onBiometrySuccess = {
-            showBiometry = false
             walletMain.scope.launch {
                 try {
-                    walletMain.presentationService.startSiop(
-                        authenticationRequest,
-                        fromQrCodeScanner
-                    )
+                    walletMain.cryptoService.runWithAuthorizationPrompt(authorizationPromptContext) {
+                        walletMain.presentationService.startSiop(
+                            authenticationRequest,
+                            fromQrCodeScanner
+                        )
+                    }
                     navigateUp()
                     navigateToAuthenticationSuccessPage()
                 } catch (e: Throwable) {
@@ -80,10 +74,6 @@ fun StatefulAuthenticationConsentView(
                     walletMain.snackbarService.showSnackbar(getString(Res.string.error_authentication_at_sp_failed))
                 }
             }
-        },
-        onBiometryDismissed = { biometryPromptDismissResult ->
-            walletMain.snackbarService.showSnackbar(biometryPromptDismissResult.errorString)
-            showBiometry = false
         },
     )
 }
@@ -99,3 +89,7 @@ val PresentationDefinition.claims: List<String>
         .map { it.removePrefix("\$.") }
         .map { it.removePrefix("\$['org.iso.18013.5.1']['").removeSuffix("']") }
         .map { it.removePrefix("\$['eu.europa.ec.eudiw.pid.1']['").removeSuffix("']") }
+
+
+@Composable
+expect fun presentationAuthorizationPromptContext(): CryptoServiceAuthorizationPromptContext

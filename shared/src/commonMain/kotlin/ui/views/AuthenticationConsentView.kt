@@ -30,8 +30,6 @@ import androidx.compose.ui.unit.dp
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.attribute_friendly_name_data_recipient_location
 import composewalletapp.shared.generated.resources.attribute_friendly_name_data_recipient_name
-import composewalletapp.shared.generated.resources.biometric_authentication_prompt_for_data_transmission_consent_subtitle
-import composewalletapp.shared.generated.resources.biometric_authentication_prompt_for_data_transmission_consent_title
 import composewalletapp.shared.generated.resources.heading_label_authenticate_at_device_screen
 import composewalletapp.shared.generated.resources.heading_label_navigate_back
 import composewalletapp.shared.generated.resources.info_text_submission_preview_disabled
@@ -39,9 +37,6 @@ import composewalletapp.shared.generated.resources.prompt_send_above_data
 import composewalletapp.shared.generated.resources.section_heading_data_recipient
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
-import ui.composables.BiometryPrompt
-import ui.composables.BiometryPromptDismissResult
-import ui.composables.BiometryPromptSuccessResult
 import ui.composables.DataDisplaySection
 import ui.composables.buttons.CancelButton
 import ui.composables.buttons.ConsentButton
@@ -56,9 +51,6 @@ fun AuthenticationConsentView(
     navigateUp: () -> Unit,
     consentToDataTransmission: () -> Unit,
     cancelAuthentication: () -> Unit,
-    showBiometry: Boolean,
-    onBiometrySuccess: (BiometryPromptSuccessResult) -> Unit,
-    onBiometryDismissed: (BiometryPromptDismissResult) -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -102,14 +94,6 @@ fun AuthenticationConsentView(
             }
         }
     ) {
-        if (showBiometry) {
-            BiometryPrompt(
-                title = stringResource(Res.string.biometric_authentication_prompt_for_data_transmission_consent_title),
-                subtitle = "${stringResource(Res.string.biometric_authentication_prompt_for_data_transmission_consent_subtitle)}: $spName",
-                onSuccess = onBiometrySuccess,
-                onDismiss = onBiometryDismissed,
-            )
-        }
         Box(modifier = Modifier.padding(it)) {
             Column(
                 modifier = Modifier.padding(horizontal = 16.dp)

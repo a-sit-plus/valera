@@ -1,7 +1,6 @@
 package at.asitplus.wallet.app.common
 
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.identifier
-import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.resolveSchemeByIdentifier
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
@@ -37,7 +36,7 @@ class WalletConfig(
     }
 
     val credentialScheme: Flow<ConstantIndex.CredentialScheme> = config.map {
-        AttributeIndex.resolveSchemeByIdentifier(it.credentialSchemeIdentifier)
+        AttributeIndex.resolveCredential(it.credentialSchemeIdentifier)?.first
             ?: throw Exception("Unsupported attribute type: $it")
     }
 

@@ -1,7 +1,9 @@
 
 
-# UNRELEASED Release 2.1.0:
- * Added credentials: POR, COR
+# UNRELEASED Release 3.0.0:
+* Update to VcLib 4.0.0
+* Add crypto service prompt customization
+* Added credentials: POR, COR
 
 # Release 2.0.3:
  * Fix loading of SD-JWT credentials

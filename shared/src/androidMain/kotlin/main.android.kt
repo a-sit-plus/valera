@@ -18,8 +18,8 @@ import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.HolderKeyService
 import at.asitplus.wallet.app.common.ObjectFactory
 import at.asitplus.wallet.app.common.PlatformAdapter
+import at.asitplus.wallet.app.common.WalletCryptoService
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.lib.agent.CryptoService
 import data.storage.RealDataStoreService
 import data.storage.getDataStore
 import io.github.aakira.napier.Napier
@@ -57,13 +57,16 @@ fun MainView(buildContext: BuildContext) {
 class AndroidObjectFactory : ObjectFactory {
     val keyStoreService: AndroidKeyStoreService by lazy { AndroidKeyStoreService() }
 
-    override fun loadCryptoService(): KmmResult<CryptoService> {
+    override fun loadCryptoService(): KmmResult<WalletCryptoService> {
         val keyPair = keyStoreService.loadKeyPair()
             ?: return KmmResult.failure(Throwable("Could not create key pair"))
         val certificate =
             keyStoreService.loadCertificate()?.let { X509Certificate.decodeFromDer(it.encoded) }
                 ?: return KmmResult.failure(Throwable("Could not load certificate"))
-        val cryptoService = AndroidCryptoService(keyPair, certificate)
+        val cryptoService = AndroidCryptoService(
+            keyPair,
+            certificate,
+        )
         return KmmResult.success(cryptoService)
     }
 

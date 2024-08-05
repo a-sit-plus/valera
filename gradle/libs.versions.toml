@@ -1,8 +1,8 @@
 [versions]
 encoding = "1.2.3"
-vcLib = "3.8.0"
+vcLib = "4.0.0"
 mdl = "1.0.0"
-kmpCrypto = "3.2.0"
+kmpCrypto = "3.5.0"
 ida = "3.8.1"
 eupid = "2.1.1"
 powerofrepresentation = "1.0.0"

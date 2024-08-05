@@ -15,7 +15,7 @@ data class AuthenticationRequest(
 
     fun serialize() = jsonSerializer.encodeToString(this)
 
-    fun toAuthenticationRequestParametersFrom(): AuthenticationRequestParametersFrom<*> {
+    fun toAuthenticationRequestParametersFrom(): AuthenticationRequestParametersFrom {
         return when(source) {
             is AuthenticationRequestSource.Json -> AuthenticationRequestParametersFrom.Json(
                 jsonString = source.jsonString,
@@ -39,19 +39,19 @@ data class AuthenticationRequest(
             jsonSerializer.decodeFromString<AuthenticationRequest>(it)
         }.wrap()
 
-        fun createInstance(parametersFrom: AuthenticationRequestParametersFrom<*>): AuthenticationRequest {
+        fun createInstance(parametersFrom: AuthenticationRequestParametersFrom): AuthenticationRequest {
             return AuthenticationRequest(
                 source = when (parametersFrom) {
                     is AuthenticationRequestParametersFrom.JwsSigned -> AuthenticationRequestSource.JwsSigned(
-                        jwsSignedSerialized = parametersFrom.source.serialize()
+                        jwsSignedSerialized = parametersFrom.jwsSigned.serialize()
                     )
 
                     is AuthenticationRequestParametersFrom.Json -> AuthenticationRequestSource.Json(
-                        jsonString = parametersFrom.source
+                        jsonString = parametersFrom.jsonString
                     )
 
                     is AuthenticationRequestParametersFrom.Uri -> AuthenticationRequestSource.Uri(
-                        urlSerialized = parametersFrom.source.toString()
+                        urlSerialized = parametersFrom.url.toString()
                     )
                 },
                 parameters = parametersFrom.parameters
