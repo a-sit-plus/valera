@@ -67,6 +67,7 @@ import ui.screens.CustomDataRetrievalScreen
 import ui.screens.CredentialDetailsScreen
 import ui.screens.CustomDataRetrievalScreen
 import ui.screens.ErrorScreen
+import ui.screens.HandleRequestedDataScreen
 import ui.screens.LoadDataScreen
 import ui.screens.LoadRequestedDataScreen
 import ui.screens.LoadingScreen
@@ -383,7 +384,11 @@ fun MainNavigator(
                     }
 
                     is HandleRequestedDataPage -> {
-
+                        HandleRequestedDataScreen(
+                            walletMain = walletMain,
+                            holder = page.holder,
+                            navigateUp = navigateUp,
+                        )
                     }
                 }
             }

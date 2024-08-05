@@ -185,8 +185,17 @@ enum class DocumentAttributes(val value: String, val displayName: StringResource
                 entries.find { it.displayName == displayName }?.value
             }.toSet()
         }
+
         fun fromValue(value: String): DocumentAttributes? {
             return entries.find { it.value == value }
+        }
+
+        fun getValuesList(): List<String> {
+            return entries.map { it.value }
+        }
+
+        fun getDisplayNamesList(): List<StringResource> {
+            return entries.map { it.displayName }
         }
     }
 }
@@ -200,3 +209,6 @@ enum class ValueType {
     ARRAY
 }
 
+fun DocumentAttributes.isAgeOver(): Boolean {
+    return this.value.startsWith("age_over_")
+}
