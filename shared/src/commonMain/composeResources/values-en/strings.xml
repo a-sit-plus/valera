@@ -125,9 +125,11 @@
     <string name="description_read_terms">Please read and accept the terms of use and the privacy policy.</string>
 
     <string name="biometric_authentication_prompt_for_data_transmission_consent_title">Biometric Authentication</string>
-    <string name="biometric_authentication_prompt_for_data_transmission_consent_subtitle">Authenticate at</string>
+    <string name="biometric_authentication_prompt_for_data_transmission_consent_subtitle">Disclose data</string>
     <string name="biometric_authentication_prompt_to_load_data_title">Biometric Authentication</string>
-    <string name="biometric_authentication_prompt_to_load_data_subtitle">Load Data</string>
+    <string name="biometric_authentication_prompt_to_load_data_subtitle">Load data</string>
+    <string name="biometric_authentication_prompt_to_bind_credentials_title">Biometric Authentication</string>
+    <string name="biometric_authentication_prompt_to_bind_credentials_subtitle">Create device binding</string>
 
     <string name="content_description_navigate_back">Back</string>
     <string name="content_description_delete_credential">Delete</string>

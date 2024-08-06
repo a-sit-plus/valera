@@ -1,14 +1,20 @@
 package ui.screens
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.wallet.app.common.CryptoServiceAuthorizationPromptContext
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.data.dif.PresentationDefinition
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParametersFrom
-import at.asitplus.wallet.lib.oidc.AuthenticationResponseResult
+import at.asitplus.wallet.lib.oidc.helpers.AuthorizationResponsePreparationState
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.error_authentication_at_sp_failed
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.getString
@@ -20,7 +26,7 @@ fun AuthenticationConsentScreen(
     spLocation: String,
     spImage: ImageBitmap?,
     authenticationRequestParametersFrom: AuthenticationRequestParametersFrom,
-    authenticationResponseResult: AuthenticationResponseResult,
+    authorizationResponsePreparationState: AuthorizationResponsePreparationState,
     fromQrCodeScanner: Boolean,
     navigateUp: () -> Unit,
     navigateToAuthenticationSuccessPage: () -> Unit,
@@ -50,6 +56,7 @@ fun StatefulAuthenticationConsentView(
     navigateToAuthenticationSuccessPage: () -> Unit,
     walletMain: WalletMain,
 ) {
+    var showBiometry by rememberSaveable { mutableStateOf(false) }
     val authorizationPromptContext = presentationAuthorizationPromptContext()
 
     AuthenticationConsentView(
@@ -59,7 +66,12 @@ fun StatefulAuthenticationConsentView(
         navigateUp = navigateUp,
         cancelAuthentication = navigateUp,
         consentToDataTransmission = {
-            walletMain.scope.launch {
+            showBiometry = true
+        },
+        showBiometry = showBiometry,
+        onBiometrySuccess = {
+            showBiometry = false
+            CoroutineScope(Dispatchers.Main).launch {
                 try {
                     walletMain.cryptoService.runWithAuthorizationPrompt(authorizationPromptContext) {
                         walletMain.presentationService.startSiop(
@@ -74,6 +86,10 @@ fun StatefulAuthenticationConsentView(
                     walletMain.snackbarService.showSnackbar(getString(Res.string.error_authentication_at_sp_failed))
                 }
             }
+        },
+        onBiometryDismissed = { biometryPromptDismissResult ->
+            walletMain.snackbarService.showSnackbar(biometryPromptDismissResult.errorString)
+            showBiometry = false
         },
     )
 }

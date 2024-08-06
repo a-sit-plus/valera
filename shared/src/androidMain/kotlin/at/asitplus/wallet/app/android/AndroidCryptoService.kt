@@ -5,29 +5,28 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import at.asitplus.KmmResult
 import at.asitplus.KmmResult.Companion.wrap
-import at.asitplus.crypto.datatypes.CryptoPublicKey
-import at.asitplus.crypto.datatypes.CryptoPublicKey.EC.Companion.fromUncompressed
-import at.asitplus.crypto.datatypes.CryptoSignature
-import at.asitplus.crypto.datatypes.Digest
-import at.asitplus.crypto.datatypes.ECCurve
-import at.asitplus.crypto.datatypes.X509SignatureAlgorithm
-import at.asitplus.crypto.datatypes.asn1.ensureSize
-import at.asitplus.crypto.datatypes.cose.CoseKey
-import at.asitplus.crypto.datatypes.cose.toCoseAlgorithm
-import at.asitplus.crypto.datatypes.cose.toCoseKey
-import at.asitplus.crypto.datatypes.getJCASignatureInstance
-import at.asitplus.crypto.datatypes.getJcaPublicKey
-import at.asitplus.crypto.datatypes.jcaName
-import at.asitplus.crypto.datatypes.jcaPSSParams
-import at.asitplus.crypto.datatypes.jws.JsonWebKey
-import at.asitplus.crypto.datatypes.jws.JweAlgorithm
-import at.asitplus.crypto.datatypes.jws.JweEncryption
-import at.asitplus.crypto.datatypes.jws.jcaKeySpecName
-import at.asitplus.crypto.datatypes.jws.jcaName
-import at.asitplus.crypto.datatypes.jws.jwkId
-import at.asitplus.crypto.datatypes.jws.toJsonWebKey
-import at.asitplus.crypto.datatypes.parseFromJca
-import at.asitplus.crypto.datatypes.pki.X509Certificate
+import at.asitplus.signum.indispensable.CryptoPublicKey
+import at.asitplus.signum.indispensable.CryptoPublicKey.EC.Companion.fromUncompressed
+import at.asitplus.signum.indispensable.CryptoSignature
+import at.asitplus.signum.indispensable.Digest
+import at.asitplus.signum.indispensable.ECCurve
+import at.asitplus.signum.indispensable.X509SignatureAlgorithm
+import at.asitplus.signum.indispensable.asn1.ensureSize
+import at.asitplus.signum.indispensable.cosef.CoseKey
+import at.asitplus.signum.indispensable.cosef.toCoseAlgorithm
+import at.asitplus.signum.indispensable.cosef.toCoseKey
+import at.asitplus.signum.indispensable.getJCASignatureInstance
+import at.asitplus.signum.indispensable.getJcaPublicKey
+import at.asitplus.signum.indispensable.jcaName
+import at.asitplus.signum.indispensable.josef.JsonWebKey
+import at.asitplus.signum.indispensable.josef.JweAlgorithm
+import at.asitplus.signum.indispensable.josef.JweEncryption
+import at.asitplus.signum.indispensable.josef.jcaKeySpecName
+import at.asitplus.signum.indispensable.josef.jcaName
+import at.asitplus.signum.indispensable.josef.jwkId
+import at.asitplus.signum.indispensable.josef.toJsonWebKey
+import at.asitplus.signum.indispensable.parseFromJca
+import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.wallet.app.common.AndroidCryptoServiceAuthorizationPromptContext
 import at.asitplus.wallet.app.common.CryptoServiceAuthorizationPromptContext
 import at.asitplus.wallet.app.common.WalletCryptoService
@@ -35,10 +34,6 @@ import at.asitplus.wallet.lib.agent.AuthenticatedCiphertext
 import at.asitplus.wallet.lib.agent.EphemeralKeyHolder
 import at.asitplus.wallet.lib.agent.JvmEphemeralKeyHolder
 import at.asitplus.wallet.lib.agent.KeyPairAdapter
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.security.KeyPair
@@ -64,47 +59,63 @@ class AndroidCryptoService(
     val defaultAuthorizationPromptContext: AndroidCryptoServiceAuthorizationPromptContext? = null,
 ) : WalletCryptoService {
     private var authorizationPromptContext: AndroidCryptoServiceAuthorizationPromptContext? = null
+    private var authorizationResult: BiometricPrompt.AuthenticationResult? = null
     private var authorizationPromptMutex = Mutex()
-    override suspend fun runWithAuthorizationPrompt(
+    override suspend fun <T> runWithAuthorizationPrompt(
         context: CryptoServiceAuthorizationPromptContext,
-        block: suspend WalletCryptoService.() -> Unit
-    ) = CoroutineScope(Dispatchers.IO).launch {
-        authorizationPromptMutex.withLock {
-            when (context) {
-                is AndroidCryptoServiceAuthorizationPromptContext -> {
-                    authorizationPromptContext = context
-                }
+        block: suspend WalletCryptoService.() -> T,
+    ) = authorizationPromptMutex.withLock {
+        when (context) {
+            is AndroidCryptoServiceAuthorizationPromptContext -> {
+                authorizationPromptContext = context
+            }
 
-                else -> throw IllegalArgumentException("context")
-            }
-            runBlocking {
-                block()
-            }
-            authorizationPromptContext = null
+            else -> throw IllegalArgumentException("context")
         }
+        val result = block()
+        authorizationPromptContext = null
+        authorizationResult = null
+        result
     }
 
     fun showBiometryPrompt(callback: BiometricPrompt.AuthenticationCallback) {
-        val authorizationContext = authorizationPromptContext ?: defaultAuthorizationPromptContext
-        ?: throw IllegalStateException("Missing authorization prompt context is available")
+        authorizationResult?.let {
+            callback.onAuthenticationSucceeded(it)
+        } ?: run {
+            val authorizationContext =
+                authorizationPromptContext ?: defaultAuthorizationPromptContext
+                ?: throw IllegalStateException("Missing authorization prompt context")
 
-        val context = authorizationContext.context
-        val executor = ContextCompat.getMainExecutor(context)
-        val biometricPrompt = BiometricPrompt(
-            context as FragmentActivity,
-            executor,
-            callback,
-        )
+            val context = authorizationContext.context
+            val executor = ContextCompat.getMainExecutor(context)
+            val biometricPrompt = BiometricPrompt(
+                context as FragmentActivity,
+                executor,
+                object : BiometricPrompt.AuthenticationCallback() {
+                    override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                        callback.onAuthenticationError(errorCode, errString)
+                    }
 
-        // TODO: the example code also differentiates whether a crypto object is used or not
-        //  2024-08-05: acrusage: I think we always want to have a crypto object here though
-        val signature = algorithm.getJCASignatureInstance().getOrThrow().apply {
-            setParameter(this@AndroidCryptoService.algorithm.digest.jcaPSSParams)
+                    override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                        authorizationResult = result
+                        callback.onAuthenticationSucceeded(result)
+                    }
+
+                    override fun onAuthenticationFailed() {
+                        callback.onAuthenticationFailed()
+                    }
+                },
+            )
+
+            // TODO: the example code also differentiates whether a crypto object is used or not
+            //  2024-08-05: acrusage: I think we always want to have a crypto object here though
+            val signature = algorithm.getJCASignatureInstance().getOrThrow()
+            signature.initSign(keyPair.private)
+            biometricPrompt.authenticate(
+                authorizationContext.promptInfo,
+                BiometricPrompt.CryptoObject(signature),
+            )
         }
-        signature.initSign(keyPair.private)
-        val cryptoObject = BiometricPrompt.CryptoObject(signature)
-
-        biometricPrompt.authenticate(authorizationContext.promptInfo, cryptoObject)
     }
 
 
@@ -146,24 +157,26 @@ class AndroidCryptoService(
             showBiometryPrompt(
                 object : BiometricPrompt.AuthenticationCallback() {
                     override fun onAuthenticationError(
-                        @BiometricPrompt.AuthenticationError errorCode: Int,
-                        errString: CharSequence
+                        @BiometricPrompt.AuthenticationError errorCode: Int, errString: CharSequence
                     ) {
                         continuation.resumeWithException(Exception("$errorCode:$errString"))
                     }
 
                     override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                        val sig = result.cryptoObject?.signature?.apply {
-                            update(input)
-                        }?.sign()
+                        val signer = result.cryptoObject?.signature
                             ?: throw IllegalStateException("Missing CryptoObject or Signature")
-                        continuation.resume(CryptoSignature.parseFromJca(sig, algorithm))
+
+                        val signature = signer.run {
+                            update(input)
+                            sign()
+                        }
+                        continuation.resume(CryptoSignature.parseFromJca(signature, algorithm))
                     }
 
                     override fun onAuthenticationFailed() {
                         continuation.resumeWithException(Exception())
                     }
-                }
+                },
             )
         }
     }.wrap()

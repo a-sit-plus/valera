@@ -5,6 +5,7 @@ import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.jsonSerializer
+import at.asitplus.wallet.lib.data.vckJsonSerializer
 import data.storage.DataStoreService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -63,7 +64,7 @@ class WalletConfig(
                 )
 
                 dataStoreService.setPreference(
-                    jsonSerializer.encodeToString(newConfig),
+                    vckJsonSerializer.encodeToString(newConfig),
                     Configuration.DATASTORE_KEY_CONFIG
                 )
             }
@@ -89,7 +90,7 @@ private data class ConfigData(
 )
 
 private val ConfigDataDefaults = ConfigData(
-    host = "https://wallet.a-sit.at/m3",
+    host = "https://wallet.a-sit.at/m4",
     credentialRepresentation = ConstantIndex.CredentialRepresentation.ISO_MDOC,
     credentialSchemeIdentifier = IdAustriaScheme.identifier,
     isConditionsAccepted = false

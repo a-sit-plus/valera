@@ -1,10 +1,9 @@
-import at.asitplus.crypto.datatypes.CryptoAlgorithm
-import at.asitplus.crypto.datatypes.CryptoPublicKey
-import at.asitplus.crypto.datatypes.X509SignatureAlgorithm
-import at.asitplus.crypto.datatypes.cose.CoseKey
-import at.asitplus.crypto.datatypes.jws.JsonWebKey
-import at.asitplus.crypto.datatypes.pki.X509Certificate
-import at.asitplus.wallet.lib.agent.CryptoService
+import at.asitplus.signum.indispensable.CryptoPublicKey
+import at.asitplus.signum.indispensable.X509SignatureAlgorithm
+import at.asitplus.signum.indispensable.cosef.CoseKey
+import at.asitplus.signum.indispensable.josef.JsonWebKey
+import at.asitplus.signum.indispensable.pki.X509Certificate
+import at.asitplus.wallet.app.common.WalletCryptoService
 
 abstract class CryptoServiceAdapter(
     override val publicKey: CryptoPublicKey,
@@ -12,4 +11,4 @@ abstract class CryptoServiceAdapter(
     override val coseKey: CoseKey,
     override val jsonWebKey: JsonWebKey,
     override val certificate: X509Certificate?
-) : CryptoService
+) : WalletCryptoService

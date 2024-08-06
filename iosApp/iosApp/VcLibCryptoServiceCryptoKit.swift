@@ -129,6 +129,7 @@ public class VcLibCryptoServiceCryptoKit: CryptoServiceAdapter {
         guard let signature = try? privateKey.signature(for: input.data) else {
             return KmmResultFailure(KotlinThrowable(message: "Signature error"))
         }
+
         // Cast is needed, because the generic Asn1Decodable interface declares the return type as Asn1Encodable, and the implementing classes fix the return type to a specific class
         // Apparently this gets lost when generating ObjC headers
         return KmmResultSuccess(try CryptoSignatureEC.companion.fromRawBytes(input: signature.rawRepresentation.kotlinByteArray))

@@ -126,6 +126,9 @@
     <string name="biometric_authentication_prompt_for_data_transmission_consent_subtitle">UNTRANSLATED:biometric_authentication_prompt_for_data_transmission_consent_subtitle</string>
     <string name="biometric_authentication_prompt_to_load_data_title">UNTRANSLATED:biometric_authentication_prompt_to_load_data_title</string>
     <string name="biometric_authentication_prompt_to_load_data_subtitle">UNTRANSLATED:biometric_authentication_prompt_to_load_data_subtitle</string>
+    <string name="biometric_authentication_prompt_to_bind_credentials_title">UNTRANSLATED:biometric_authentication_prompt_to_bind_credentials_title</string>
+    <string name="biometric_authentication_prompt_to_bind_credentials_subtitle">UNTRANSLATED:biometric_authentication_prompt_to_bind_credentials_subtitle</string>
+
     <string name="content_description_navigate_back">UNTRANSLATED:content_description_navigate_back</string>
     <string name="content_description_delete_credential">UNTRANSLATED:content_description_delete_credential</string>
     <string name="content_description_portrait">UNTRANSLATED:content_description_portrait</string>

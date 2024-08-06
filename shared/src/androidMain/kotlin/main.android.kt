@@ -11,7 +11,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import at.asitplus.KmmResult
-import at.asitplus.crypto.datatypes.pki.X509Certificate
+import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.wallet.app.android.AndroidCryptoService
 import at.asitplus.wallet.app.android.AndroidKeyStoreService
 import at.asitplus.wallet.app.common.BuildContext

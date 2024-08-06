@@ -17,12 +17,15 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import at.asitplus.wallet.app.common.CryptoServiceAuthorizationPromptContext
 import at.asitplus.wallet.app.common.WalletMain
 import composewalletapp.shared.generated.resources.biometric_authentication_prompt_to_load_data_subtitle
 import composewalletapp.shared.generated.resources.biometric_authentication_prompt_to_load_data_title
 import composewalletapp.shared.generated.resources.heading_label_load_data_screen
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.snackbar_credential_loaded_successfully
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -38,6 +41,7 @@ fun ProvisioningLoadingScreen(
     navigateUp: () -> Unit,
     walletMain: WalletMain,
 ) {
+    val authorizationPromptContext = provisioningAuthorizationPromptContext()
     var showBiometry by rememberSaveable {
         mutableStateOf(true)
     }
@@ -80,9 +84,11 @@ fun ProvisioningLoadingScreen(
                     },
                     onSuccess = {
                         showBiometry = false
-                        currentLoadingJob = walletMain.scope.launch {
+                        currentLoadingJob = CoroutineScope(Dispatchers.Main).launch {
                             try {
-                                walletMain.provisioningService.handleResponse(link)
+                                walletMain.cryptoService.runWithAuthorizationPrompt(authorizationPromptContext) {
+                                    walletMain.provisioningService.handleResponse(link)
+                                }
                                 walletMain.snackbarService.showSnackbar(
                                     getString(Res.string.snackbar_credential_loaded_successfully)
                                 )
@@ -103,3 +109,7 @@ fun ProvisioningLoadingScreen(
         }
     }
 }
+
+
+@Composable
+expect fun provisioningAuthorizationPromptContext(): CryptoServiceAuthorizationPromptContext

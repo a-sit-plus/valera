@@ -1,8 +1,8 @@
 
 
 # UNRELEASED Release 3.0.0:
-* Update to VcLib 4.0.0
-* Add crypto service prompt customization
+* Update to VcLib 4.1.1
+* Add crypto service prompt customization for android
 * Added credentials: POR, COR
 
 # Release 2.0.3:

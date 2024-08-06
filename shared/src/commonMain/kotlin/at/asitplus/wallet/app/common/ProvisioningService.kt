@@ -159,9 +159,11 @@ class ProvisioningService(
         )
 
         Napier.d("Oid4vciService.createAuthRequest")
-        val requestOptions = WalletService.RequestOptions(credentialScheme = credentialScheme,
+        val requestOptions = WalletService.RequestOptions(
+            credentialScheme = credentialScheme,
             representation = credentialRepresentation,
-            requestedAttributes = requestedAttributes?.ifEmpty { null })
+            requestedAttributes = requestedAttributes?.ifEmpty { null },
+        )
         val authRequest = oid4vciService.createAuthRequest(
             requestOptions = requestOptions
         )
@@ -239,9 +241,7 @@ class ProvisioningService(
                 }
 
                 null -> TODO("Function not implemented")
-            }.getOrElse {
-                throw Exception("Provisioning failed")
-            }
+            }.getOrThrow()
         } ?: throw Exception("No credential was received")
     }
 }

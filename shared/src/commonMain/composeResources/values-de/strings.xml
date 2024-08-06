@@ -125,9 +125,11 @@
     <string name="description_read_terms">Bitte lesen und akzeptieren Sie die Nutzungsbedingungen und Datenschutzerklärung.</string>
 
     <string name="biometric_authentication_prompt_for_data_transmission_consent_title">Biometrische Authentifizierung</string>
-    <string name="biometric_authentication_prompt_for_data_transmission_consent_subtitle">Anmelden bei</string>
+    <string name="biometric_authentication_prompt_for_data_transmission_consent_subtitle">Daten vorzeigen</string>
     <string name="biometric_authentication_prompt_to_load_data_title">Biometrische Authentifizierung</string>
     <string name="biometric_authentication_prompt_to_load_data_subtitle">Daten laden</string>
+    <string name="biometric_authentication_prompt_to_bind_credentials_title">Biometrische Authentifizierung</string>
+    <string name="biometric_authentication_prompt_to_bind_credentials_subtitle">Gerätbindung erzeugen</string>
 
     <string name="content_description_navigate_back">Zurück</string>
     <string name="content_description_delete_credential">Löschen</string>

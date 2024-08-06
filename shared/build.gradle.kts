@@ -31,16 +31,16 @@ kotlin {
                 implementation(compose.materialIconsExtended)
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
-                api(libs.vclib.openid)
-                api(libs.vclib.mdl)
-                api(libs.vclib)
+                api(libs.vck.openid)
+                api(libs.vck)
+                api(libs.credential.mdl)
                 api(libs.credential.ida)
                 api(libs.credential.eupid)
                 api(libs.credential.powerofrepresentation)
                 api(libs.credential.certificateofresidence)
-                api(libs.kmpCrypto)
-                api(libs.kmpCrypto.jws)
-                api(libs.kmpCrypto.cose)
+                api(libs.signum)
+                api(libs.signum.jws)
+                api(libs.signum.cose)
                 implementation(serialization("json"))
                 api(napier())
                 implementation("androidx.datastore:datastore-preferences-core:1.1.0-alpha07")
@@ -94,9 +94,9 @@ exportIosFramework(
     datetime(),
     kmpCryptoCatalog.bignum,
     kmpCryptoCatalog.kmmresult,
-    libs.kmpCrypto,
-    libs.kmpCrypto.jws,
-    libs.kmpCrypto.cose,
+    libs.signum,
+    libs.signum.jws,
+    libs.signum.cose,
     libs.base16,
     libs.base64,
     napier()
