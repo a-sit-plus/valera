@@ -67,7 +67,6 @@ fun HandleRequestedDataScreen(holder: Holder, navigateUp: () -> Unit, walletMain
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HandleRequestedDataView(walletMain: WalletMain, holder: Holder, requestedAttributes: List<RequestedDocument>, navigateUp: () -> Unit) {
-
     val storeContainer = walletMain.subjectCredentialStore.observeStoreContainer()
     val storeContainerState by storeContainer.collectAsState(null)
     var view by remember { mutableStateOf(HandleRequestedDataView.SELECTION) }
@@ -106,7 +105,7 @@ fun HandleRequestedDataView(walletMain: WalletMain, holder: Holder, requestedAtt
                     sendingRequestedDataView()
                 }
 
-                HandleRequestedDataView.SENT -> {
+                HandleRequestedDataView.SENT -> { // TODO we never get here!
                     sentRequestedDataView()
                 }
             }
@@ -124,11 +123,7 @@ fun getSelectedCredentials(
         val ret = createDocument(reqDocument, credentials)
         selectedCredentials.addNull(ret)
     }
-
-
-    //Napier.d(tag = "myTag", message = "here we have our data:")
-    //Napier.d(tag = "myTag", message = selectedCredentials.toString())
-
+    // TODO Images wont work
     return selectedCredentials
 }
 
@@ -137,7 +132,6 @@ fun createDocument(
     credentials: List<SubjectCredentialStore.StoreEntry>?
 ): Document? {
     var issuerSigned: IssuerSigned? = null
-    var deviceSigned: DeviceSigned? = DeviceSigned(byteArrayOf(), DeviceAuth())
 
     reqDocument.nameSpaces.forEach { nameSpace ->
         val correctCredentials = credentials?.filter { cred ->
@@ -175,9 +169,7 @@ fun createDocument(
 
 
     issuerSigned?.let { issuerSigned ->
-        deviceSigned?.let { deviceSigned ->
-            return Document(reqDocument.docType, issuerSigned, deviceSigned)
-        }
+        return Document(reqDocument.docType, issuerSigned, DeviceSigned(byteArrayOf(), DeviceAuth()))
     }
     return null
 }
