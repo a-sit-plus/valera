@@ -3,6 +3,9 @@ package data.bletransfer
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import at.asitplus.wallet.lib.iso.Document
+import com.android.identity.mdoc.response.DeviceResponseGenerator
+import com.android.identity.util.Constants.DEVICE_RESPONSE_STATUS_OK
 import data.bletransfer.holder.TransferManager
 import data.bletransfer.holder.PreferencesHelper
 import data.bletransfer.holder.RequestedDocument
@@ -60,4 +63,18 @@ class AndroidHolder: Holder {
         transferManager?.stopPresentation(true, false)
     }
 
+    override fun send(credentials: List<Document>, function: () -> Unit) {
+        Log.d("myTag", credentials.toString())
+
+        val responseGenerator = DeviceResponseGenerator(DEVICE_RESPONSE_STATUS_OK)
+
+        credentials.forEach { cred ->
+            responseGenerator.addDocument(cred.serialize())
+        }
+        transferManager!!.sendResponse(
+            responseGenerator.generate(),
+            false
+        )
+        function()
+    }
 }
