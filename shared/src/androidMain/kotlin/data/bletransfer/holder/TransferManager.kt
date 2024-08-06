@@ -74,6 +74,15 @@ class TransferManager private constructor(private val context: Context) {
         hasStarted = true
     }
 
+    fun sendResponse(deviceResponse: ByteArray, closeAfterSending: Boolean) {
+        Log.d(TAG, "sendResponse")
+        communication.sendResponse(deviceResponse, closeAfterSending)
+
+        if (closeAfterSending && false) { // this doesnt work!!
+            disconnect()
+        }
+    }
+
     fun stopPresentation(
         sendSessionTerminationMessage: Boolean,
         useTransportSpecificSessionTermination: Boolean

@@ -24,17 +24,23 @@ class RequestedDocument(
 
     class NameSpace(
         val nameSpace: String,
-        var attributes: List<DocumentAttributes> = listOf()
+        var attributesMap: MutableMap<DocumentAttributes, Boolean> = mutableMapOf()
     ) {
+        val attributes: List<DocumentAttributes>
+            get() = attributesMap.keys.toList()
+
+        val trueAttributes: List<DocumentAttributes>
+            get() = attributesMap.filter { it.value }.keys.toList()
+
         fun addAttribute(attribute: DocumentAttributes?) {
             if (attribute != null) {
-                attributes += attribute
+                attributesMap[attribute] = false
             }
         }
         fun log() {
             Napier.d("$nameSpace: [", tag="myTag")
-            for (attribute in attributes) {
-                Napier.d("${attribute.value},", tag="myTag")
+            for (attribute in attributesMap) {
+                Napier.d("${attribute.key.value} to ${attribute.value},", tag="myTag")
             }
             Napier.d("]", tag="myTag")
         }
