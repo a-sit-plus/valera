@@ -9,3 +9,8 @@ fun ToggleableState.fromSelection(selection: List<Boolean>): ToggleableState {
         else ToggleableState.Indeterminate
     }
 }
+
+val List<Boolean>.toggleableState: ToggleableState
+    get() = if (this.all { it }) ToggleableState.On
+    else if (this.any { it }) ToggleableState.Indeterminate
+    else ToggleableState.Off

@@ -192,7 +192,9 @@ class ProvisioningService(
 
         Napier.d("Received tokenResponse")
         val credentialRequest = oid4vciService.createCredentialRequestJwt(
-            requestOptions, tokenResponse.clientNonce, metadata.credentialIssuer
+            requestOptions,
+            tokenResponse.clientNonce,
+            metadata.credentialIssuer,
         ).getOrThrow()
         Napier.d("Created credentialRequest")
         val credentialResponse: CredentialResponseParameters =

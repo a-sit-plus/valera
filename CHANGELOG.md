@@ -1,7 +1,7 @@
 
 
 # UNRELEASED Release 2.1.0:
-* 
+ * Added credentials: POR, COR
 
 # Release 2.0.3:
  * Fix loading of SD-JWT credentials

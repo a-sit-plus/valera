@@ -87,6 +87,8 @@
     <string name="credential_scheme_label_mdl">UNTRANSLATED:credential_scheme_label_mdl</string>
     <string name="credential_scheme_label_eu_pid">UNTRANSLATED:credential_scheme_label_eu_pid</string>
     <string name="credential_scheme_label_id_austria">UNTRANSLATED:credential_scheme_label_id_austria</string>
+    <string name="credential_scheme_label_power_of_representation">UNTRANSLATED:credential_scheme_label_power_of_representation</string>
+    <string name="credential_scheme_label_certificate_of_residence">UNTRANSLATED:credential_scheme_label_certificate_of_residence</string>
 
     <string name="text_label_issuing_service">UNTRANSLATED:text_label_issuing_service</string>
     <string name="text_label_id_format">UNTRANSLATED:text_label_id_format</string>
@@ -186,12 +188,22 @@
     <string name="section_heading_other_data_category_icon_text">UNTRANSLATED:section_heading_other_data_category_icon_text</string>
     <string name="section_heading_age_data">UNTRANSLATED:section_heading_age_data</string>
     <string name="section_heading_age_data_icon_text">UNTRANSLATED:section_heading_age_data_icon_text</string>
+    <string name="section_heading_birth_data">UNTRANSLATED:section_heading_birth_data</string>
+    <string name="section_heading_birth_data_icon_text">UNTRANSLATED:section_heading_birth_data_icon_text</string>
     <string name="section_heading_driving_permission_data">UNTRANSLATED:section_heading_driving_permission_data</string>
     <string name="section_heading_driving_permission_data_icon_text">UNTRANSLATED:section_heading_driving_permission_data_icon_text</string>
     <string name="section_heading_identity_data">UNTRANSLATED:section_heading_identity_data</string>
     <string name="section_heading_identity_data_icon_text">UNTRANSLATED:section_heading_identity_data_icon_text</string>
+    <string name="section_heading_representation_data">UNTRANSLATED:section_heading_representation_data</string>
+    <string name="section_heading_representation_data_icon_text">UNTRANSLATED:section_heading_representation_data_icon_text</string>
     <string name="section_heading_residence_data">UNTRANSLATED:section_heading_residence_data</string>
     <string name="section_heading_residence_data_icon_text">UNTRANSLATED:section_heading_residence_data_icon_text</string>
+    <string name="section_heading_appearance_data">UNTRANSLATED:section_heading_appearance_data</string>
+    <string name="section_heading_appearance_data_icon_text">UNTRANSLATED:section_heading_appearance_data_icon_text</string>
+    <string name="section_heading_biometric_data">UNTRANSLATED:section_heading_biometric_data</string>
+    <string name="section_heading_biometric_data_icon_text">UNTRANSLATED:section_heading_biometric_data_icon_text</string>
+    <string name="section_heading_metadata">UNTRANSLATED:section_heading_metadata</string>
+    <string name="section_heading_metadata_icon_text">UNTRANSLATED:section_heading_metadata_icon_text</string>
     <string name="section_heading_load_data_selection">UNTRANSLATED:section_heading_load_data_selection</string>
     <string name="section_heading_missing_data">UNTRANSLATED:section_heading_missing_data</string>
     <string name="section_heading_available_data">UNTRANSLATED:section_heading_available_data</string>
