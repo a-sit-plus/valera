@@ -1,6 +1,5 @@
 import at.asitplus.gradle.datetime
 import at.asitplus.gradle.exportIosFramework
-import at.asitplus.gradle.kmmresult
 import at.asitplus.gradle.ktor
 import at.asitplus.gradle.napier
 import at.asitplus.gradle.serialization
@@ -73,7 +72,6 @@ kotlin {
                 implementation("androidx.camera:camera-view:1.3.0")
                 implementation("com.google.accompanist:accompanist-permissions:0.30.1")
                 implementation("com.google.mlkit:barcode-scanning:17.2.0")
-
             }
         }
 
@@ -89,17 +87,21 @@ kotlin {
 
 exportIosFramework(
     name = "shared", static = true,
-    vclibCatalog.vclib,
-    libs.credential.ida,
+    vclibCatalog.vck,
     datetime(),
-    kmpCryptoCatalog.bignum,
-    kmpCryptoCatalog.kmmresult,
+    signumCatalog.bignum,
+    signumCatalog.kmmresult,
     libs.signum,
     libs.signum.jws,
     libs.signum.cose,
-    libs.base16,
-    libs.base64,
-    napier()
+//    libs.base16,
+//    libs.base64,
+    libs.credential.ida,
+    libs.credential.mdl,
+    libs.credential.eupid,
+    libs.credential.powerofrepresentation,
+    libs.credential.certificateofresidence,
+    napier(),
 )
 
 android {
@@ -116,7 +118,7 @@ android {
     }
 
     packaging {
-        resources.excludes+=("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
+        resources.excludes += ("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
     }
     testOptions {
         managedDevices {

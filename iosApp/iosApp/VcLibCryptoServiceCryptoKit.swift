@@ -5,7 +5,6 @@ import shared
 
 public class VcLibCryptoServiceCryptoKit: CryptoServiceAdapter {
    
-    public var identifier: String
     private let keyChainService: KeyChainService
 
     public init?(keyChainService: KeyChainService) {
@@ -18,11 +17,15 @@ public class VcLibCryptoServiceCryptoKit: CryptoServiceAdapter {
             NapierProxy.companion.w(msg: "Cannot convert publicKey")
             return nil
         }
+
         
-        self.identifier = publicKey.toJsonWebKey().identifier
-        super.init(publicKey: publicKey, algorithm: .es256,coseKey: publicKey.toCoseKey(algorithm: nil).getOrThrow()!, jsonWebKey: publicKey.toJsonWebKey(), certificate: nil )
-      
-       
+        super.init(
+            publicKey: publicKey,
+            algorithm: .es256,
+            coseKey: publicKey.toCoseKey(algorithm: nil, keyId: publicKey.coseKid).getOrThrow()!,
+            jsonWebKey: publicKey.toJsonWebKey(keyId: publicKey.jwkId),
+            certificate: nil
+        )
     }
 
     public override func decrypt(key: KotlinByteArray, iv: KotlinByteArray, aad: KotlinByteArray, input: KotlinByteArray, authTag: KotlinByteArray, algorithm: JweEncryption) async throws -> KmmResult<KotlinByteArray> {

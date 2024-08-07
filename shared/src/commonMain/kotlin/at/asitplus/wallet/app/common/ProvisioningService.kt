@@ -7,6 +7,7 @@ import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.jsonSerializer
+import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.iso.IssuerSigned
 import at.asitplus.wallet.lib.oidc.AuthenticationResponseParameters
 import at.asitplus.wallet.lib.oidc.OpenIdConstants
@@ -129,7 +130,7 @@ class ProvisioningService(
             key = Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT,
         ).firstOrNull() ?: throw Exception("Missing provisioning context")
         val provisioningContext =
-            jsonSerializer.decodeFromString<ProvisioningContext>(fetchedProvisioningContext)
+            vckJsonSerializer.decodeFromString<ProvisioningContext>(fetchedProvisioningContext)
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT)
 
         val credentialScheme = provisioningContext.credentialScheme

@@ -127,7 +127,7 @@ class SwiftPlatformAdapter: PlatformAdapter {
 class SwiftObjectFactory: ObjectFactory {
     lazy var keyChainService: RealKeyChainService = {RealKeyChainService()}()
     
-    func loadCryptoService() -> KmmResult<CryptoService> {
+    func loadCryptoService() -> KmmResult<WalletCryptoService> {
         do {
             try keyChainService.initialize()
             guard let cryptoService = VcLibCryptoServiceCryptoKit(keyChainService: keyChainService) else {

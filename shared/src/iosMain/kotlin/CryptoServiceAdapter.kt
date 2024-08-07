@@ -3,6 +3,7 @@ import at.asitplus.signum.indispensable.X509SignatureAlgorithm
 import at.asitplus.signum.indispensable.cosef.CoseKey
 import at.asitplus.signum.indispensable.josef.JsonWebKey
 import at.asitplus.signum.indispensable.pki.X509Certificate
+import at.asitplus.wallet.app.common.CryptoServiceAuthorizationPromptContext
 import at.asitplus.wallet.app.common.WalletCryptoService
 import at.asitplus.wallet.lib.agent.KeyPairAdapter
 
@@ -33,4 +34,10 @@ abstract class CryptoServiceAdapter(
             override val signingAlgorithm: X509SignatureAlgorithm
                 get() = this@CryptoServiceAdapter.algorithm
         }
+
+    // TODO: properly consume authorization context here or in native code
+    override suspend fun <T> runWithAuthorizationPrompt(
+        context: CryptoServiceAuthorizationPromptContext,
+        block: suspend WalletCryptoService.() -> T
+    ) = block()
 }
