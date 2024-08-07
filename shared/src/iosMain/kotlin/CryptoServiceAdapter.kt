@@ -6,13 +6,14 @@ import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.wallet.app.common.CryptoServiceAuthorizationPromptContext
 import at.asitplus.wallet.app.common.WalletCryptoService
 import at.asitplus.wallet.lib.agent.KeyPairAdapter
+import at.asitplus.wallet.lib.agent.generateSelfSignedCertificate
 
 abstract class CryptoServiceAdapter(
     val publicKey: CryptoPublicKey,
     val algorithm: X509SignatureAlgorithm,
     val coseKey: CoseKey,
     val jsonWebKey: JsonWebKey,
-    val certificate: X509Certificate?
+    private val certificate: X509Certificate?
 ) : WalletCryptoService {
     override val keyPairAdapter: KeyPairAdapter
         get() = object : KeyPairAdapter {
@@ -20,7 +21,14 @@ abstract class CryptoServiceAdapter(
                 get() = this@CryptoServiceAdapter.publicKey
 
             override val certificate: X509Certificate?
-                get() = this@CryptoServiceAdapter.certificate
+                    by lazy {
+                        this@CryptoServiceAdapter.certificate ?: run {
+                            X509Certificate.generateSelfSignedCertificate(
+                                publicKey,
+                                X509SignatureAlgorithm.ES256
+                            ) { sign(it) }
+                        }
+                    }
 
             override val coseKey: CoseKey
                 get() = this@CryptoServiceAdapter.coseKey
