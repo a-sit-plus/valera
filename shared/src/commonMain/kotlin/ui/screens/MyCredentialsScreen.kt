@@ -39,7 +39,6 @@ import composewalletapp.shared.generated.resources.content_description_add_crede
 import composewalletapp.shared.generated.resources.content_description_delete_credential
 import composewalletapp.shared.generated.resources.heading_label_my_data_screen
 import composewalletapp.shared.generated.resources.info_text_no_credentials_available
-import data.storage.scheme
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.FloatingActionButtonHeightSpacer

@@ -45,10 +45,9 @@ class WalletMain(
     init {
         at.asitplus.wallet.mdl.Initializer.initWithVck()
         at.asitplus.wallet.idaustria.Initializer.initWithVCK()
-        at.asitplus.wallet.idaustria.IdAustriaScheme
         at.asitplus.wallet.eupid.Initializer.initWithVCK()
-        at.asitplus.wallet.cor.Initializer.initWithVcLib()
-        at.asitplus.wallet.por.Initializer.initWithVcLib()
+        at.asitplus.wallet.cor.Initializer.initWithVCK()
+        at.asitplus.wallet.por.Initializer.initWithVCK()
         Napier.takeLogarithm()
         Napier.base(AntilogAdapter(platformAdapter, ""))
     }

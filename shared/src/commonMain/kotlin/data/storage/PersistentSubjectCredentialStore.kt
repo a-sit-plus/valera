@@ -2,18 +2,19 @@ package data.storage
 
 import at.asitplus.KmmResult
 import at.asitplus.wallet.app.common.Configuration
+import at.asitplus.wallet.por.PowerOfRepresentationScheme
+import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.SelectiveDisclosureItem
-import at.asitplus.wallet.lib.data.VerifiableCredential
 import at.asitplus.wallet.lib.data.VerifiableCredentialJws
 import at.asitplus.wallet.lib.data.VerifiableCredentialSdJwt
-import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.iso.IssuerSigned
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
+import data.storage.ExportableCredentialScheme.Companion.toExportableCredentialScheme
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -89,55 +90,33 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
     private suspend fun exportToDataStore(newContainer: StoreContainer) {
         val exportableCredentials = mutableListOf<ExportableStoreEntry>()
         newContainer.credentials.forEach {
-            val scheme: ExportableCredentialScheme
             when (it) {
                 is SubjectCredentialStore.StoreEntry.Iso -> {
-                    scheme = when (it.scheme) {
-                        ConstantIndex.AtomicAttribute2023 -> ExportableCredentialScheme.AtomicAttribute2023
-                        MobileDrivingLicenceScheme -> ExportableCredentialScheme.MobileDrivingLicence2023
-                        IdAustriaScheme -> ExportableCredentialScheme.IdAustriaScheme
-                        EuPidScheme -> ExportableCredentialScheme.EuPidScheme
-                        else -> throw Exception("Unknown CredentialScheme")
-                    }
                     exportableCredentials.add(
                         ExportableStoreEntry.Iso(
                             issuerSigned = it.issuerSigned,
-                            scheme = scheme,
+                            exportableCredentialScheme = it.scheme.toExportableCredentialScheme()
                         )
                     )
                 }
 
                 is SubjectCredentialStore.StoreEntry.SdJwt -> {
-                    scheme = when (it.scheme) {
-                        ConstantIndex.AtomicAttribute2023 -> ExportableCredentialScheme.AtomicAttribute2023
-                        MobileDrivingLicenceScheme -> ExportableCredentialScheme.MobileDrivingLicence2023
-                        IdAustriaScheme -> ExportableCredentialScheme.IdAustriaScheme
-                        EuPidScheme -> ExportableCredentialScheme.EuPidScheme
-                        else -> throw Exception("Unknown CredentialScheme")
-                    }
                     exportableCredentials.add(
                         ExportableStoreEntry.SdJwt(
                             vcSerialized = it.vcSerialized,
                             sdJwt = it.sdJwt,
                             disclosures = it.disclosures,
-                            scheme = scheme
+                            exportableCredentialScheme = it.scheme.toExportableCredentialScheme()
                         )
                     )
                 }
 
                 is SubjectCredentialStore.StoreEntry.Vc -> {
-                    scheme = when (it.scheme) {
-                        ConstantIndex.AtomicAttribute2023 -> ExportableCredentialScheme.AtomicAttribute2023
-                        MobileDrivingLicenceScheme -> ExportableCredentialScheme.MobileDrivingLicence2023
-                        IdAustriaScheme -> ExportableCredentialScheme.IdAustriaScheme
-                        EuPidScheme -> ExportableCredentialScheme.EuPidScheme
-                        else -> throw Exception("Unknown CredentialScheme")
-                    }
                     exportableCredentials.add(
                         ExportableStoreEntry.Vc(
                             vcSerialized = it.vcSerialized,
                             vc = it.vc,
-                            scheme = scheme,
+                            exportableCredentialScheme = it.scheme.toExportableCredentialScheme(),
                         )
                     )
                 }
@@ -169,53 +148,36 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         if (input == null) {
             return StoreContainer(credentials = mutableListOf())
         } else {
-            val export: ExportableStoreContainer = jsonSerializer.decodeFromString(input)
+            val export: ExportableStoreContainer = vckJsonSerializer.decodeFromString(input)
             val credentials = mutableListOf<SubjectCredentialStore.StoreEntry>()
 
             export.credentials.forEach {
                 val scheme: ConstantIndex.CredentialScheme
                 when (it) {
                     is ExportableStoreEntry.Iso -> {
-                        scheme = when (it.scheme) {
-                            ExportableCredentialScheme.AtomicAttribute2023 -> ConstantIndex.AtomicAttribute2023
-                            ExportableCredentialScheme.MobileDrivingLicence2023 -> MobileDrivingLicenceScheme
-                            ExportableCredentialScheme.IdAustriaScheme -> IdAustriaScheme
-                            ExportableCredentialScheme.EuPidScheme -> EuPidScheme
-                        }
                         credentials.add(
                             SubjectCredentialStore.StoreEntry.Iso(
-                                it.issuerSigned, scheme
+                                it.issuerSigned,
+                                it.exportableCredentialScheme.toScheme()
                             )
                         )
                     }
 
                     is ExportableStoreEntry.SdJwt -> {
-                        scheme = when (it.scheme) {
-                            ExportableCredentialScheme.AtomicAttribute2023 -> ConstantIndex.AtomicAttribute2023
-                            ExportableCredentialScheme.MobileDrivingLicence2023 -> MobileDrivingLicenceScheme
-                            ExportableCredentialScheme.IdAustriaScheme -> IdAustriaScheme
-                            ExportableCredentialScheme.EuPidScheme -> EuPidScheme
-                        }
                         credentials.add(
                             SubjectCredentialStore.StoreEntry.SdJwt(
                                 vcSerialized = it.vcSerialized,
                                 sdJwt = it.sdJwt,
                                 disclosures = it.disclosures,
-                                scheme = scheme
+                                scheme = it.exportableCredentialScheme.toScheme()
                             )
                         )
                     }
 
                     is ExportableStoreEntry.Vc -> {
-                        scheme = when (it.scheme) {
-                            ExportableCredentialScheme.AtomicAttribute2023 -> ConstantIndex.AtomicAttribute2023
-                            ExportableCredentialScheme.MobileDrivingLicence2023 -> MobileDrivingLicenceScheme
-                            ExportableCredentialScheme.IdAustriaScheme -> IdAustriaScheme
-                            ExportableCredentialScheme.EuPidScheme -> EuPidScheme
-                        }
                         credentials.add(
                             SubjectCredentialStore.StoreEntry.Vc(
-                                vcSerialized = it.vcSerialized, vc = it.vc, scheme = scheme
+                                vcSerialized = it.vcSerialized, vc = it.vc, scheme = it.exportableCredentialScheme.toScheme()
                             )
                         )
                     }
@@ -238,18 +200,20 @@ data class StoreContainer(
 )
 
 @Serializable
-data class ExportableStoreContainer(
+private data class ExportableStoreContainer(
     val credentials: MutableList<ExportableStoreEntry>,
 )
 
 @Serializable
-sealed class ExportableStoreEntry {
+private sealed interface ExportableStoreEntry {
+    val exportableCredentialScheme: ExportableCredentialScheme
+
     @Serializable
     data class Vc(
         val vcSerialized: String,
         val vc: VerifiableCredentialJws,
-        val scheme: ExportableCredentialScheme
-    ) : ExportableStoreEntry()
+        override val exportableCredentialScheme: ExportableCredentialScheme
+    ) : ExportableStoreEntry
 
     @Serializable
     data class SdJwt(
@@ -259,15 +223,42 @@ sealed class ExportableStoreEntry {
          * Map of original serialized disclosure item to parsed item
          */
         val disclosures: Map<String, SelectiveDisclosureItem?>,
-        val scheme: ExportableCredentialScheme
-    ) : ExportableStoreEntry()
+        override val exportableCredentialScheme: ExportableCredentialScheme
+    ) : ExportableStoreEntry
 
     @Serializable
     data class Iso(
-        val issuerSigned: IssuerSigned, val scheme: ExportableCredentialScheme
-    ) : ExportableStoreEntry()
+        val issuerSigned: IssuerSigned,
+        override val exportableCredentialScheme: ExportableCredentialScheme
+    ) : ExportableStoreEntry
 }
 
-enum class ExportableCredentialScheme {
-    AtomicAttribute2023, IdAustriaScheme, MobileDrivingLicence2023, EuPidScheme,
+private enum class ExportableCredentialScheme {
+    AtomicAttribute2023,
+    IdAustriaScheme,
+    MobileDrivingLicence2023,
+    EuPidScheme,
+    PowerOfRepresentationScheme,
+    CertificateOfResidenceScheme;
+
+    fun toScheme() = when(this) {
+        AtomicAttribute2023 -> ConstantIndex.AtomicAttribute2023
+        MobileDrivingLicence2023 -> MobileDrivingLicenceScheme
+        IdAustriaScheme -> at.asitplus.wallet.idaustria.IdAustriaScheme
+        EuPidScheme -> at.asitplus.wallet.eupid.EuPidScheme
+        PowerOfRepresentationScheme -> at.asitplus.wallet.por.PowerOfRepresentationScheme
+        CertificateOfResidenceScheme -> at.asitplus.wallet.cor.CertificateOfResidenceScheme
+    }
+
+    companion object {
+        fun ConstantIndex.CredentialScheme.toExportableCredentialScheme() = when (this) {
+            ConstantIndex.AtomicAttribute2023 -> AtomicAttribute2023
+            MobileDrivingLicenceScheme -> MobileDrivingLicence2023
+            at.asitplus.wallet.idaustria.IdAustriaScheme -> IdAustriaScheme
+            at.asitplus.wallet.eupid.EuPidScheme -> EuPidScheme
+            at.asitplus.wallet.por.PowerOfRepresentationScheme -> PowerOfRepresentationScheme
+            at.asitplus.wallet.cor.CertificateOfResidenceScheme -> CertificateOfResidenceScheme
+            else -> throw Exception("Unknown CredentialScheme")
+        }
+    }
 }

@@ -5,6 +5,6 @@ import at.asitplus.wallet.app.common.CryptoServiceAuthorizationPromptContext
 import at.asitplus.wallet.app.common.IosCryptoServiceAuthorizationPromptContext
 
 @Composable
-actual fun presentationAuthorizationPromptContext(): CryptoServiceAuthorizationPromptContext {
+actual fun provisioningAuthorizationPromptContext(): CryptoServiceAuthorizationPromptContext {
     return IosCryptoServiceAuthorizationPromptContext()
 }
