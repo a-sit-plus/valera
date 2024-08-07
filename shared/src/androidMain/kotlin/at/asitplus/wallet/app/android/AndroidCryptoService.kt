@@ -20,6 +20,7 @@ import at.asitplus.crypto.datatypes.jws.JweAlgorithm
 import at.asitplus.crypto.datatypes.jws.JweEncryption
 import at.asitplus.crypto.datatypes.jws.jcaKeySpecName
 import at.asitplus.crypto.datatypes.jws.jcaName
+import at.asitplus.crypto.datatypes.jws.jwkId
 import at.asitplus.crypto.datatypes.jws.toJsonWebKey
 import at.asitplus.crypto.datatypes.parseFromJca
 import at.asitplus.crypto.datatypes.pki.X509Certificate
@@ -147,5 +148,6 @@ class AndroidCryptoService(
         val keyX = ecPublicKey.w.affineX.toByteArray().ensureSize(ecCurve.coordinateLengthBytes)
         val keyY = ecPublicKey.w.affineY.toByteArray().ensureSize(ecCurve.coordinateLengthBytes)
         this.cryptoPublicKey = fromUncompressed(curve = ECCurve.SECP_256_R_1, x = keyX, y = keyY)
+            .also { it.jwkId = it.didEncoded }
     }
 }
