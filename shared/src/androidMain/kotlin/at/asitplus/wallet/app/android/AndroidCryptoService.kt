@@ -184,7 +184,11 @@ class AndroidCryptoService(
     }.wrap()
 
     override fun encrypt(
-        key: ByteArray, iv: ByteArray, aad: ByteArray, input: ByteArray, algorithm: JweEncryption
+        key: ByteArray,
+        iv: ByteArray,
+        aad: ByteArray,
+        input: ByteArray,
+        algorithm: JweEncryption,
     ): KmmResult<AuthenticatedCiphertext> = try {
         val jcaCiphertext = Cipher.getInstance(algorithm.jcaName).also {
             it.init(
@@ -207,7 +211,7 @@ class AndroidCryptoService(
         aad: ByteArray,
         input: ByteArray,
         authTag: ByteArray,
-        algorithm: JweEncryption
+        algorithm: JweEncryption,
     ): KmmResult<ByteArray> = try {
         val plaintext = Cipher.getInstance(algorithm.jcaName, "AndroidKeyStore").also {
             it.init(
@@ -224,7 +228,9 @@ class AndroidCryptoService(
 
 
     override fun performKeyAgreement(
-        ephemeralKey: EphemeralKeyHolder, recipientKey: JsonWebKey, algorithm: JweAlgorithm
+        ephemeralKey: EphemeralKeyHolder,
+        recipientKey: JsonWebKey,
+        algorithm: JweAlgorithm,
     ): KmmResult<ByteArray> = runCatching {
         require(ephemeralKey is JvmEphemeralKeyHolder) { "JVM Type expected" }
 
@@ -236,7 +242,8 @@ class AndroidCryptoService(
     }.wrap()
 
     override fun performKeyAgreement(
-        ephemeralKey: JsonWebKey, algorithm: JweAlgorithm
+        ephemeralKey: JsonWebKey,
+        algorithm: JweAlgorithm,
     ): KmmResult<ByteArray> = KmmResult.failure(NotImplementedError())
 
     override fun generateEphemeralKeyPair(ecCurve: ECCurve): KmmResult<EphemeralKeyHolder> =

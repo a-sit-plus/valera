@@ -94,8 +94,6 @@ exportIosFramework(
     libs.signum,
     libs.signum.jws,
     libs.signum.cose,
-//    libs.base16,
-//    libs.base64,
     libs.credential.ida,
     libs.credential.mdl,
     libs.credential.eupid,
