@@ -198,6 +198,7 @@ interface PlatformAdapter {
      * @param image the image as ByteArray
      * @return returns the image as an ImageBitmap
      */
+    fun decodeImage(image: ByteArray): ImageBitmap
 
     /**
      * Writes an user defined string to a file in a specific folder
@@ -223,9 +224,19 @@ interface PlatformAdapter {
     fun clearFile(fileName: String, folderName: String)
 
     /**
+     * Exits the app in the event of an uncorrectable error
+     */
+    fun exitApp()
+
+    /**
      * Opens the platform specific share dialog
      */
     fun shareLog()
+
+    /**
+     * Decodes an image that is encoded as Base64 as string and returns it as Bytearray
+     */
+    fun imageStringToBytearray(imageString: String): ByteArray
 
     /**
      * Registers credentials with the digital credentials browser API
@@ -253,6 +264,10 @@ class DummyPlatformAdapter : PlatformAdapter {
     override fun openUrl(url: String) {
     }
 
+    override fun decodeImage(image: ByteArray): ImageBitmap {
+        return ImageBitmap(1, 1)
+    }
+
     override fun writeToFile(text: String, fileName: String, folderName: String) {
     }
 
@@ -263,7 +278,14 @@ class DummyPlatformAdapter : PlatformAdapter {
     override fun clearFile(fileName: String, folderName: String) {
     }
 
+    override fun exitApp() {
+    }
+
     override fun shareLog() {
+    }
+
+    override fun imageStringToBytearray(imageString: String): ByteArray {
+        return byteArrayOf()
     }
 
     override fun registerWithDigitalCredentialsAPI(entries: CredentialsContainer) {
@@ -275,5 +297,4 @@ class DummyPlatformAdapter : PlatformAdapter {
 
     override fun prepareDCAPICredentialResponse(responseJson: ByteArray, dcApiRequest: DCAPIRequest) {
     }
-
 }

@@ -96,6 +96,11 @@ class AndroidPlatformAdapter(
         context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
     }
 
+    override fun decodeImage(image: ByteArray): ImageBitmap {
+        val bitmap = BitmapFactory.decodeByteArray(image, 0, image.size)
+        return bitmap.asImageBitmap()
+    }
+
     override fun writeToFile(text: String, fileName: String, folderName: String) {
         val folder = File(context.filesDir, folderName)
         if (!folder.exists()) {
@@ -134,6 +139,12 @@ class AndroidPlatformAdapter(
         }
     }
 
+    override fun exitApp() {
+        Napier.d("Exit App gracefully")
+        val activity = context as Activity
+        activity.finish()
+    }
+
     override fun shareLog() {
         val folder = File(context.filesDir, "logs")
         val file = File(folder, "log.txt")
@@ -150,6 +161,14 @@ class AndroidPlatformAdapter(
             type = "application/text"
         }
         context.startActivity(Intent.createChooser(intent, null))
+    }
+
+    override fun imageStringToBytearray(imageString: String): ByteArray {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Base64.getDecoder().decode(imageString)
+        } else {
+            TODO("VERSION.SDK_INT < O")
+        }
     }
 
     override fun registerWithDigitalCredentialsAPI(entries: CredentialsContainer) {
