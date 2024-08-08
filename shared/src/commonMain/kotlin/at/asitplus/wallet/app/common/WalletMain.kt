@@ -201,6 +201,11 @@ interface PlatformAdapter {
      * Opens the platform specific share dialog
      */
     fun shareLog()
+
+    /**
+     * Decodes an image that is encoded as Base64 as string and returns it as Bytearray
+     */
+    fun imageStringToBytearray(imageString: String): ByteArray
 }
 
 class DummyPlatformAdapter : PlatformAdapter {
@@ -225,6 +230,10 @@ class DummyPlatformAdapter : PlatformAdapter {
     }
 
     override fun shareLog() {
+    }
+
+    override fun imageStringToBytearray(imageString: String): ByteArray {
+        return byteArrayOf()
     }
 
 }

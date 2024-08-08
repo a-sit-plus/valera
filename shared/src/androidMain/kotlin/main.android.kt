@@ -2,6 +2,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
+import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
@@ -26,6 +27,7 @@ import io.github.aakira.napier.Napier
 import ui.theme.darkScheme
 import ui.theme.lightScheme
 import java.io.File
+import java.util.Base64
 
 actual fun getPlatformName(): String = "Android"
 
@@ -146,5 +148,13 @@ class AndroidPlatformAdapter(val context: Context) : PlatformAdapter {
             type = "application/text"
         }
         context.startActivity(Intent.createChooser(intent, null))
+    }
+
+    override fun imageStringToBytearray(imageString: String): ByteArray {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Base64.getDecoder().decode(imageString)
+        } else {
+            TODO("VERSION.SDK_INT < O")
+        }
     }
 }
