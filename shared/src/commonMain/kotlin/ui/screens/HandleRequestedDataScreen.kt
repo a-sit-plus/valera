@@ -50,9 +50,12 @@ import data.bletransfer.Holder
 import data.bletransfer.holder.RequestedDocument
 import data.bletransfer.verifier.DocumentAttributes
 import data.bletransfer.verifier.ValueType
-import data.bletransfer.verifier.isAgeOver
 import data.storage.StoreContainer
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.launch
 import kotlinx.serialization.cbor.ByteStringWrapper
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton
@@ -109,7 +112,7 @@ fun HandleRequestedDataView(walletMain: WalletMain, holder: Holder, requestedAtt
                     sendingRequestedDataView()
                 }
 
-                HandleRequestedDataView.SENT -> { // TODO we never get here!
+                HandleRequestedDataView.SENT -> {
                     sentRequestedDataView()
                 }
             }
@@ -226,9 +229,11 @@ fun selectRequestedDataView(
                     },
                     label = {},
                     onClick = {
-                        val documentsToSend = getSelectedCredentials(walletMain, credentials, requestedAttributes)
-                        holder.send(documentsToSend, changeToSent)
-                        changeToLoading()
+                        CoroutineScope(Dispatchers.IO).launch {
+                            changeToLoading()
+                            val documentsToSend = getSelectedCredentials(walletMain, credentials, requestedAttributes)
+                            holder.send(documentsToSend, changeToSent)
+                        }
                     },
                     selected = false,
                 )
