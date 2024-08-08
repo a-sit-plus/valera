@@ -9,6 +9,8 @@
     <string name="snackbar_credential_loaded_successfully">UNTRANSLATED:snackbar_credential_loaded_successfully</string>
     <string name="snackbar_reset_app_successfully">UNTRANSLATED:snackbar_reset_app_successfully</string>
 
+
+    <string name="button_label_use_device_credential">UNTRANSLATED:button_label_use_device_credential</string>
     <string name="button_label_confirm">UNTRANSLATED:button_label_confirm</string>
     <string name="button_label_dismiss">UNTRANSLATED:button_label_dismiss</string>
     <string name="button_label_close_app">UNTRANSLATED:button_label_close_app</string>

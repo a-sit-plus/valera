@@ -1,3 +1,0 @@
-package at.asitplus.wallet.app.common
-
-interface CryptoServiceAuthorizationPromptContext

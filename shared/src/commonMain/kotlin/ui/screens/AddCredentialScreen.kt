@@ -11,12 +11,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
-import at.asitplus.wallet.app.common.CryptoServiceAuthorizationPromptContext
 import at.asitplus.wallet.app.common.WalletMain
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.heading_label_add_credential_screen
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource

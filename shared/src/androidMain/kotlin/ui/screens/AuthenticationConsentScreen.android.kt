@@ -7,8 +7,8 @@ import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import androidx.biometric.BiometricPrompt
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
-import at.asitplus.wallet.app.common.AndroidCryptoServiceAuthorizationPromptContext
-import at.asitplus.wallet.app.common.CryptoServiceAuthorizationPromptContext
+import at.asitplus.wallet.app.common.AndroidCryptoServiceAuthorizationContext
+import at.asitplus.wallet.app.common.CryptoServiceAuthorizationContext
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.biometric_authentication_prompt_for_data_transmission_consent_subtitle
 import composewalletapp.shared.generated.resources.biometric_authentication_prompt_for_data_transmission_consent_title
@@ -16,8 +16,8 @@ import org.jetbrains.compose.resources.stringResource
 
 
 @Composable
-actual fun presentationAuthorizationPromptContext(): CryptoServiceAuthorizationPromptContext {
-    return AndroidCryptoServiceAuthorizationPromptContext(
+actual fun presentationAuthorizationContext(): CryptoServiceAuthorizationContext {
+    return AndroidCryptoServiceAuthorizationContext(
         context = LocalContext.current,
         promptInfo = BiometricPrompt.PromptInfo.Builder().apply {
             setTitle(stringResource(Res.string.biometric_authentication_prompt_for_data_transmission_consent_title))

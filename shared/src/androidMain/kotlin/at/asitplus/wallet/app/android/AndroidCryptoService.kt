@@ -5,6 +5,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import at.asitplus.KmmResult
 import at.asitplus.KmmResult.Companion.wrap
+import at.asitplus.catching
 import at.asitplus.signum.indispensable.CryptoPublicKey
 import at.asitplus.signum.indispensable.CryptoPublicKey.EC.Companion.fromUncompressed
 import at.asitplus.signum.indispensable.CryptoSignature
@@ -27,8 +28,8 @@ import at.asitplus.signum.indispensable.josef.jwkId
 import at.asitplus.signum.indispensable.josef.toJsonWebKey
 import at.asitplus.signum.indispensable.parseFromJca
 import at.asitplus.signum.indispensable.pki.X509Certificate
-import at.asitplus.wallet.app.common.AndroidCryptoServiceAuthorizationPromptContext
-import at.asitplus.wallet.app.common.CryptoServiceAuthorizationPromptContext
+import at.asitplus.wallet.app.common.AndroidCryptoServiceAuthorizationContext
+import at.asitplus.wallet.app.common.CryptoServiceAuthorizationContext
 import at.asitplus.wallet.app.common.WalletCryptoService
 import at.asitplus.wallet.lib.agent.AuthenticatedCiphertext
 import at.asitplus.wallet.lib.agent.EphemeralKeyHolder
@@ -56,26 +57,27 @@ import kotlin.coroutines.suspendCoroutine
 class AndroidCryptoService(
     private val keyPair: KeyPair,
     val certificate: X509Certificate,
-    val defaultAuthorizationPromptContext: AndroidCryptoServiceAuthorizationPromptContext? = null,
-) : WalletCryptoService {
-    private var authorizationPromptContext: AndroidCryptoServiceAuthorizationPromptContext? = null
+    val defaultAuthorizationPromptContext: AndroidCryptoServiceAuthorizationContext? = null,
+) : WalletCryptoService() {
+    private var authorizationPromptContext: AndroidCryptoServiceAuthorizationContext? = null
     private var authorizationResult: BiometricPrompt.AuthenticationResult? = null
     private var authorizationPromptMutex = Mutex()
-    override suspend fun <T> runWithAuthorizationPrompt(
-        context: CryptoServiceAuthorizationPromptContext,
-        block: suspend WalletCryptoService.() -> T,
-    ) = authorizationPromptMutex.withLock {
-        when (context) {
-            is AndroidCryptoServiceAuthorizationPromptContext -> {
-                authorizationPromptContext = context
-            }
+    override suspend fun useAuthorizationContext(
+        context: CryptoServiceAuthorizationContext,
+        block: suspend () -> Unit
+    ) = catching {
+        authorizationPromptMutex.withLock {
+            when (context) {
+                is AndroidCryptoServiceAuthorizationContext -> {
+                    authorizationPromptContext = context
+                }
 
-            else -> throw IllegalArgumentException("context")
+                else -> throw IllegalArgumentException("context")
+            }
+            block()
+            authorizationPromptContext = null
+            authorizationResult = null
         }
-        val result = block()
-        authorizationPromptContext = null
-        authorizationResult = null
-        result
     }
 
     fun showBiometryPrompt(callback: BiometricPrompt.AuthenticationCallback) {

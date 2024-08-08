@@ -6,7 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
-import at.asitplus.wallet.app.common.CryptoServiceAuthorizationPromptContext
+import at.asitplus.wallet.app.common.CryptoServiceAuthorizationContext
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.data.dif.PresentationDefinition
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParametersFrom
@@ -57,7 +57,7 @@ fun StatefulAuthenticationConsentView(
     walletMain: WalletMain,
 ) {
     var showBiometry by rememberSaveable { mutableStateOf(false) }
-    val authorizationPromptContext = presentationAuthorizationPromptContext()
+    val authorizationContext = presentationAuthorizationContext()
 
     AuthenticationConsentView(
         spName = spName,
@@ -68,17 +68,18 @@ fun StatefulAuthenticationConsentView(
         consentToDataTransmission = {
             showBiometry = true
         },
+        authorizationContext = authorizationContext,
         showBiometry = showBiometry,
         onBiometrySuccess = {
             showBiometry = false
             CoroutineScope(Dispatchers.Main).launch {
                 try {
-                    walletMain.cryptoService.runWithAuthorizationPrompt(authorizationPromptContext) {
+                    walletMain.cryptoService.useAuthorizationContext(authorizationContext) {
                         walletMain.presentationService.startSiop(
                             authenticationRequest,
                             fromQrCodeScanner
                         )
-                    }
+                    }.getOrThrow()
                     navigateUp()
                     navigateToAuthenticationSuccessPage()
                 } catch (e: Throwable) {
@@ -108,4 +109,4 @@ val PresentationDefinition.claims: List<String>
 
 
 @Composable
-expect fun presentationAuthorizationPromptContext(): CryptoServiceAuthorizationPromptContext
+expect fun presentationAuthorizationContext(): CryptoServiceAuthorizationContext

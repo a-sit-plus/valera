@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import at.asitplus.wallet.app.common.CryptoServiceAuthorizationContext
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.button_label_confirm
 import composewalletapp.shared.generated.resources.error_biometric_error_hardware_unavailable
@@ -31,8 +32,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 actual fun BiometryPrompt(
-    title: String,
-    subtitle: String,
+    authorizationContext: CryptoServiceAuthorizationContext,
     onSuccess: (BiometryPromptSuccessResult) -> Unit,
     onDismiss: (BiometryPromptDismissResult) -> Unit,
 ) {

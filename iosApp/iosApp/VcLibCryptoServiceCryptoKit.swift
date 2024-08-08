@@ -1,12 +1,12 @@
 import Foundation
 import CryptoKit
 import shared
-
+import os
 
 public class VcLibCryptoServiceCryptoKit: CryptoServiceAdapter {
-   
+    
     private let keyChainService: KeyChainService
-
+    
     public init?(keyChainService: KeyChainService) {
         NapierProxy.companion.d(msg: "Init VcLibCryptoServiceCryptoKit")
         guard let privateKey = keyChainService.loadPrivateKey() else {
@@ -18,7 +18,6 @@ public class VcLibCryptoServiceCryptoKit: CryptoServiceAdapter {
             return nil
         }
 
-        
         super.init(
             publicKey: publicKey,
             algorithm: .es256,
@@ -26,6 +25,14 @@ public class VcLibCryptoServiceCryptoKit: CryptoServiceAdapter {
             jsonWebKey: publicKey.toJsonWebKey(keyId: publicKey.jwkId),
             certificate: nil
         )
+    }
+    
+    private func loadPrivateKey() -> SecureEnclave.P256.Signing.PrivateKey? {
+        if let prompt = super.currentAuthorizationContext as? IosCryptoServiceAuthorizationContext {
+            return keyChainService.loadPrivateKey(authContext: prompt.contex)
+        } else {
+            return keyChainService.loadPrivateKey()
+        }
     }
 
     public override func decrypt(key: KotlinByteArray, iv: KotlinByteArray, aad: KotlinByteArray, input: KotlinByteArray, authTag: KotlinByteArray, algorithm: JweEncryption) async throws -> KmmResult<KotlinByteArray> {
@@ -103,7 +110,7 @@ public class VcLibCryptoServiceCryptoKit: CryptoServiceAdapter {
     public override func performKeyAgreement(ephemeralKey: JsonWebKey, algorithm: JweAlgorithm) -> KmmResult<KotlinByteArray> {
         switch algorithm.identifier {
         case "ECDH-ES":
-            guard let privateKey = keyChainService.loadPrivateKey() else {
+            guard let privateKey = self.loadPrivateKey() else {
                 return KmmResultFailure(KotlinThrowable(message: "Could not load private key"))
             }
             let ephemeralKeyBytes = ephemeralKey.toCryptoPublicKey()
@@ -126,7 +133,7 @@ public class VcLibCryptoServiceCryptoKit: CryptoServiceAdapter {
     }
 
     public override func sign(input: KotlinByteArray) async throws -> KmmResult<CryptoSignatureRawByteEncodable> {
-        guard let privateKey = keyChainService.loadPrivateKey() else {
+        guard let privateKey = self.loadPrivateKey() else {
             return KmmResultFailure(KotlinThrowable(message: "Could not load private key"))
         }
         guard let signature = try? privateKey.signature(for: input.data) else {

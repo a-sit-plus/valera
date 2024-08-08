@@ -17,10 +17,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import at.asitplus.wallet.app.common.CryptoServiceAuthorizationPromptContext
+import at.asitplus.wallet.app.common.CryptoServiceAuthorizationContext
 import at.asitplus.wallet.app.common.WalletMain
-import composewalletapp.shared.generated.resources.biometric_authentication_prompt_to_load_data_subtitle
-import composewalletapp.shared.generated.resources.biometric_authentication_prompt_to_load_data_title
 import composewalletapp.shared.generated.resources.heading_label_load_data_screen
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.snackbar_credential_loaded_successfully
@@ -41,7 +39,7 @@ fun ProvisioningLoadingScreen(
     navigateUp: () -> Unit,
     walletMain: WalletMain,
 ) {
-    val authorizationPromptContext = provisioningAuthorizationPromptContext()
+    val authorizationContext = provisioningAuthorizationContext()
     var showBiometry by rememberSaveable {
         mutableStateOf(true)
     }
@@ -76,8 +74,7 @@ fun ProvisioningLoadingScreen(
         ) {
             if (showBiometry) {
                 BiometryPrompt(
-                    title = stringResource(Res.string.biometric_authentication_prompt_to_load_data_title),
-                    subtitle = stringResource(Res.string.biometric_authentication_prompt_to_load_data_subtitle),
+                    authorizationContext = authorizationContext,
                     onDismiss = {
                         showBiometry = false
                         navigateUp()
@@ -86,9 +83,9 @@ fun ProvisioningLoadingScreen(
                         showBiometry = false
                         currentLoadingJob = CoroutineScope(Dispatchers.Main).launch {
                             try {
-                                walletMain.cryptoService.runWithAuthorizationPrompt(authorizationPromptContext) {
+                                walletMain.cryptoService.useAuthorizationContext(authorizationContext) {
                                     walletMain.provisioningService.handleResponse(link)
-                                }
+                                }.getOrThrow()
                                 walletMain.snackbarService.showSnackbar(
                                     getString(Res.string.snackbar_credential_loaded_successfully)
                                 )
@@ -112,4 +109,4 @@ fun ProvisioningLoadingScreen(
 
 
 @Composable
-expect fun provisioningAuthorizationPromptContext(): CryptoServiceAuthorizationPromptContext
+expect fun provisioningAuthorizationContext(): CryptoServiceAuthorizationContext

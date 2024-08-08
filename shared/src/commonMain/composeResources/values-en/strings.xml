@@ -10,6 +10,7 @@
     <string name="snackbar_credential_loaded_successfully">Data has been loaded successfully</string>
     <string name="snackbar_reset_app_successfully">App has been reset successfully</string>
 
+    <string name="button_label_use_device_credential">Passcode</string>
     <string name="button_label_confirm">Confirm</string>
     <string name="button_label_dismiss">Dismiss</string>
     <string name="button_label_close_app">Exit</string>

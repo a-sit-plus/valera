@@ -1,3 +1,0 @@
-package at.asitplus.wallet.app.common
-
-class IosCryptoServiceAuthorizationPromptContext: CryptoServiceAuthorizationPromptContext
