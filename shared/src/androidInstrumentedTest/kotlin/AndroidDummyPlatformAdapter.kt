@@ -1,5 +1,6 @@
 
 import at.asitplus.wallet.app.common.PlatformAdapter
+import java.util.Base64
 
 class AndroidDummyPlatformAdapter() : PlatformAdapter {
     override fun openUrl(url: String) {
@@ -17,5 +18,9 @@ class AndroidDummyPlatformAdapter() : PlatformAdapter {
     }
 
     override fun shareLog() {
+    }
+
+    override fun imageStringToBytearray(imageString: String): ByteArray {
+        return Base64.getDecoder().decode(imageString)
     }
 }

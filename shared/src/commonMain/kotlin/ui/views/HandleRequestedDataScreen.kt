@@ -42,15 +42,18 @@ import at.asitplus.wallet.lib.iso.DeviceAuth
 import at.asitplus.wallet.lib.iso.DeviceSigned
 import at.asitplus.wallet.lib.iso.Document
 import at.asitplus.wallet.lib.iso.IssuerSigned
+import at.asitplus.wallet.lib.iso.IssuerSignedItem
 import at.asitplus.wallet.lib.iso.IssuerSignedList
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.heading_label_select_custom_data_retrieval_screen
 import data.bletransfer.Holder
 import data.bletransfer.holder.RequestedDocument
 import data.bletransfer.verifier.DocumentAttributes
+import data.bletransfer.verifier.ValueType
 import data.bletransfer.verifier.isAgeOver
 import data.storage.StoreContainer
 import io.github.aakira.napier.Napier
+import kotlinx.serialization.cbor.ByteStringWrapper
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton
 
@@ -93,6 +96,7 @@ fun HandleRequestedDataView(walletMain: WalletMain, holder: Holder, requestedAtt
             when (view) {
                 HandleRequestedDataView.SELECTION -> {
                     selectRequestedDataView(
+                        walletMain = walletMain,
                         holder = holder,
                         requestedAttributes = requestedAttributes,
                         storeContainerState = storeContainerState,
@@ -114,24 +118,24 @@ fun HandleRequestedDataView(walletMain: WalletMain, holder: Holder, requestedAtt
 }
 
 fun getSelectedCredentials(
+    walletMain: WalletMain,
     credentials: List<SubjectCredentialStore.StoreEntry>?,
     requestedAttributes: List<RequestedDocument>
 ): MutableList<Document> {
     val selectedCredentials: MutableList<Document> = mutableListOf()
 
     requestedAttributes.forEach { reqDocument ->
-        val ret = createDocument(reqDocument, credentials)
+        val ret = createDocument(walletMain, reqDocument, credentials)
         selectedCredentials.addNull(ret)
     }
-    // TODO Images wont work
     return selectedCredentials
 }
 
 fun createDocument(
+    walletMain: WalletMain,
     reqDocument: RequestedDocument,
     credentials: List<SubjectCredentialStore.StoreEntry>?
 ): Document? {
-    var issuerSigned: IssuerSigned? = null
 
     reqDocument.nameSpaces.forEach { nameSpace ->
         val correctCredentials = credentials?.filter { cred ->
@@ -145,31 +149,54 @@ fun createDocument(
                 else -> false
             }
         }
-        // TODO maybe make the User decide which document should be presented
+        // Here could be more than one credentials if the app has 2 credentials with the same nameSpace.
         correctCredentials?.get(0)?.let { cCred ->
             when (cCred) {
                 is SubjectCredentialStore.StoreEntry.Iso -> {
                     cCred.issuerSigned.namespaces?.get(nameSpace.nameSpace)?.let { namespace ->
 
-                        val newnamespaces = namespace.entries.filter { entry ->
+                        val newnamespaces: List<ByteStringWrapper<IssuerSignedItem>> = namespace.entries.filter { entry ->
                             nameSpace.trueAttributes.contains(DocumentAttributes.fromValue(entry.value.elementIdentifier))
                         }
 
-                        val map = mapOf(
-                            nameSpace.nameSpace to IssuerSignedList(newnamespaces)
-                        )
 
-                        issuerSigned = IssuerSigned(map, cCred.issuerSigned.issuerAuth)
+                        val imageAttributes: List<String> = DocumentAttributes.entries
+                            .filter { it.type == ValueType.IMAGE }
+                            .map { it.value }
+
+                        // TODO image is now bytearray but still gets sent as string!!!
+                        val updatedNamespaces: List<ByteStringWrapper<IssuerSignedItem>> = newnamespaces.map { byteStringWrapper ->
+                            val issuerSignedItem = byteStringWrapper.value
+                            if (imageAttributes.contains(issuerSignedItem.elementIdentifier)) {
+                                println(issuerSignedItem)
+
+                                val valAsByteArray: ByteArray = when (issuerSignedItem.elementValue) {
+                                        is String -> walletMain.platformAdapter.imageStringToBytearray(issuerSignedItem.elementValue as String)
+                                        is ByteArray -> issuerSignedItem.elementValue as ByteArray
+                                        else -> byteArrayOf()
+                                    }
+
+
+                                val updatedIssuerSignedItem = issuerSignedItem.copy(elementValue = valAsByteArray)
+                                ByteStringWrapper(updatedIssuerSignedItem, byteStringWrapper.serialized)
+                            } else {
+                                byteStringWrapper
+                            }
+                        }
+
+                        if (updatedNamespaces.isNotEmpty()) {
+                            val map = mapOf(
+                                nameSpace.nameSpace to IssuerSignedList(newnamespaces)
+                            )
+
+                            val issuerSigned = IssuerSigned(map, cCred.issuerSigned.issuerAuth)
+                            return Document(reqDocument.docType, issuerSigned, DeviceSigned(byteArrayOf(), DeviceAuth()))
+                        }
                     }
                 }
                 else -> {}
             }
         }
-    }
-
-
-    issuerSigned?.let { issuerSigned ->
-        return Document(reqDocument.docType, issuerSigned, DeviceSigned(byteArrayOf(), DeviceAuth()))
     }
     return null
 }
@@ -177,6 +204,7 @@ fun createDocument(
 
 @Composable
 fun selectRequestedDataView(
+    walletMain: WalletMain,
     holder: Holder,
     requestedAttributes: List<RequestedDocument>,
     storeContainerState: StoreContainer?,
@@ -198,7 +226,7 @@ fun selectRequestedDataView(
                     },
                     label = {},
                     onClick = {
-                        val documentsToSend = getSelectedCredentials(credentials, requestedAttributes)
+                        val documentsToSend = getSelectedCredentials(walletMain, credentials, requestedAttributes)
                         holder.send(documentsToSend, changeToSent)
                         changeToLoading()
                     },
@@ -237,8 +265,7 @@ fun selectRequestedDataView(
                                 modifier = Modifier.weight(2f)
                             )
 
-                            val isAvailableChecked =
-                                item.isAgeOver() || credentialsContainAttribute(
+                            val isAvailableChecked = credentialsContainAttribute(
                                     storeContainerState,
                                     item
                                 )
