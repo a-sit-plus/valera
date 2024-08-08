@@ -223,6 +223,7 @@
     <string name="heading_label_requested_data">UNTRANSLATED:heading_label_requested_data</string>
     <string name="heading_label_request_log">UNTRANSLATED:heading_label_request_log</string>
     <string name="heading_label_show_qr_code_screen">UNTRANSLATED:heading_label_show_qr_code_screen</string>
+    <string name="heading_label_select_requested_data">UNTRANSLATED:heading_label_select_requested_data</string>
 
 
     <string name="description_read_terms">UNTRANSLATED:description_read_terms</string>
@@ -334,6 +335,11 @@
     <string name="section_heading_vehicle_category">UNTRANSLATED:section_heading_vehicle_category</string>
     <string name="section_heading_date_of_issue">UNTRANSLATED:section_heading_date_of_issue</string>
     <string name="section_heading_date_of_expiry">UNTRANSLATED:section_heading_date_of_expiry</string>
+    <string name="section_heading_requested">UNTRANSLATED:section_heading_requested</string>
+    <string name="section_heading_available">UNTRANSLATED:section_heading_available</string>
+    <string name="section_heading_selected">UNTRANSLATED:section_heading_selected</string>
+    <string name="section_heading_sending_response">UNTRANSLATED:section_heading_sending_response</string>
+    <string name="section_heading_response_sent">UNTRANSLATED:section_heading_response_sent</string>
 
     <string name="onboarding_section_terms_and_data_protection_icon_text">UNTRANSLATED:onboarding_section_terms_and_data_protection_icon_text</string>
     <string name="onboarding_section_terms_and_data_protection_title">UNTRANSLATED:onboarding_section_terms_and_data_protection_title</string>

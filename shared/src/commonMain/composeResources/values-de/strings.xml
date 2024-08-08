@@ -228,6 +228,7 @@
     <string name="heading_label_requested_data">Daten</string>
     <string name="heading_label_request_log">Protokollausgabe</string>
     <string name="heading_label_show_qr_code_screen">Scan mich!</string>
+    <string name="heading_label_select_requested_data">Angeforderte Daten</string>
 
     <string name="description_read_terms">Bitte lesen und akzeptieren Sie die Nutzungsbedingungen und Datenschutzerklärung.</string>
 
@@ -339,6 +340,11 @@
     <string name="section_heading_vehicle_category">Fahrzeugkategorie:</string>
     <string name="section_heading_date_of_issue">Datum der Ausstellung:</string>
     <string name="section_heading_date_of_expiry">Ablaufdatum:</string>
+    <string name="section_heading_requested">Angefordert</string>
+    <string name="section_heading_available">Verfügbar</string>
+    <string name="section_heading_selected">Ausgewählt</string>
+    <string name="section_heading_sending_response">Antwort senden</string>
+    <string name="section_heading_response_sent">Antwort gesendet</string>
 
     <string name="onboarding_section_terms_and_data_protection_icon_text">1</string>
     <string name="onboarding_section_terms_and_data_protection_title">Nutzungsbedingungen und Datenschutz</string>

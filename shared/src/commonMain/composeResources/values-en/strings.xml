@@ -227,6 +227,7 @@
     <string name="heading_label_requested_data">Data Tab</string>
     <string name="heading_label_request_log">Log Output Tab</string>
     <string name="heading_label_show_qr_code_screen">Scan me!</string>
+    <string name="heading_label_select_requested_data">Requested Data</string>
 
     <string name="description_read_terms">Please read and accept the terms of use and the privacy policy.</string>
 
@@ -338,6 +339,11 @@
     <string name="section_heading_vehicle_category">Vehicle category:</string>
     <string name="section_heading_date_of_issue">Date of issue:</string>
     <string name="section_heading_date_of_expiry">Date of expiry:</string>
+    <string name="section_heading_requested">Requested</string>
+    <string name="section_heading_available">Available</string>
+    <string name="section_heading_selected">Selected</string>
+    <string name="section_heading_sending_response">Sending Response</string>
+    <string name="section_heading_response_sent">Response Sent</string>
 
     <string name="onboarding_section_terms_and_data_protection_icon_text">1</string>
     <string name="onboarding_section_terms_and_data_protection_title">Terms of use and privacy policy</string>
