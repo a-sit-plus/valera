@@ -3,7 +3,9 @@
 # UNRELEASED Release 4.0.0:
 * Update to VcLib 4.1.1
 * Add crypto service prompt customization for android
-* Added credentials: POR, COR
+* Add credentials: POR, COR
+* Add FaceId support for iOS
+* Remove mutli-authorization on signing the presentation
 
 # Release 2.0.3:
  * Fix loading of SD-JWT credentials
