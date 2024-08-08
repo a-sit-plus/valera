@@ -45,13 +45,17 @@ import at.asitplus.wallet.lib.iso.IssuerSigned
 import at.asitplus.wallet.lib.iso.IssuerSignedItem
 import at.asitplus.wallet.lib.iso.IssuerSignedList
 import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.heading_label_select_custom_data_retrieval_screen
+import composewalletapp.shared.generated.resources.heading_label_select_requested_data
+import composewalletapp.shared.generated.resources.section_heading_selected
+import composewalletapp.shared.generated.resources.section_heading_available
+import composewalletapp.shared.generated.resources.section_heading_requested
+import composewalletapp.shared.generated.resources.section_heading_response_sent
+import composewalletapp.shared.generated.resources.section_heading_sending_response
 import data.bletransfer.Holder
 import data.bletransfer.holder.RequestedDocument
 import data.bletransfer.verifier.DocumentAttributes
 import data.bletransfer.verifier.ValueType
 import data.storage.StoreContainer
-import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -83,7 +87,7 @@ fun HandleRequestedDataView(walletMain: WalletMain, holder: Holder, requestedAtt
                 title = {
                     Column {
                         Text(
-                            stringResource(Res.string.heading_label_select_custom_data_retrieval_screen),//TODO change text
+                            stringResource(Res.string.heading_label_select_requested_data),
                             style = MaterialTheme.typography.headlineLarge,
                         )
                     }
@@ -253,10 +257,15 @@ fun selectRequestedDataView(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        //TODO text to resource and text font a bit bigger
-                        Text(text = "Requested", modifier = Modifier.weight(2f))
-                        Text(text = "Available",modifier = Modifier.weight(1f))
-                        Text(text = "Sending", modifier = Modifier.weight(1f))
+                        Text(text = stringResource(Res.string.section_heading_requested),
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.weight(2f))
+                        Text(text = stringResource(Res.string.section_heading_available),
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.weight(1f))
+                        Text(text = stringResource(Res.string.section_heading_selected),
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.weight(1f))
                     }
 
                     nameSpace.attributes.forEach { item: DocumentAttributes ->
@@ -313,7 +322,8 @@ fun sendingRequestedDataView() {
         ) {
             CircularProgressIndicator()
             Spacer(modifier = Modifier.height(16.dp))
-            Text("Sending Response")
+            Text(text = stringResource(Res.string.section_heading_sending_response),
+                style = MaterialTheme.typography.titleMedium)
         }
     }
 }
@@ -330,7 +340,8 @@ fun sentRequestedDataView() {
             Icon(painter = rememberVectorPainter(Icons.Default.Check),
                 contentDescription = "")
             Spacer(modifier = Modifier.height(16.dp))
-            Text("Response Sent")
+            Text(text = stringResource(Res.string.section_heading_response_sent),
+                style = MaterialTheme.typography.titleMedium)
         }
     }
 }
