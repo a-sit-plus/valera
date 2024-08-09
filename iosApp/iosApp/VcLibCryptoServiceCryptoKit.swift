@@ -1,7 +1,6 @@
 import Foundation
 import CryptoKit
 import shared
-import os
 
 public class VcLibCryptoServiceCryptoKit: CryptoServiceAdapter {
     
