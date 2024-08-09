@@ -35,6 +35,9 @@ import at.asitplus.wallet.lib.agent.AuthenticatedCiphertext
 import at.asitplus.wallet.lib.agent.EphemeralKeyHolder
 import at.asitplus.wallet.lib.agent.JvmEphemeralKeyHolder
 import at.asitplus.wallet.lib.agent.KeyPairAdapter
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.security.KeyPair
@@ -83,7 +86,7 @@ class AndroidCryptoService(
     fun showBiometryPrompt(callback: BiometricPrompt.AuthenticationCallback) {
         authorizationResult?.let {
             callback.onAuthenticationSucceeded(it)
-        } ?: run {
+        } ?: CoroutineScope(Dispatchers.Main).launch {
             val authorizationContext =
                 authorizationPromptContext ?: defaultAuthorizationPromptContext
                 ?: throw IllegalStateException("Missing authorization prompt context")

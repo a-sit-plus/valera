@@ -81,7 +81,7 @@ fun ProvisioningLoadingScreen(
                     },
                     onSuccess = {
                         showBiometry = false
-                        currentLoadingJob = CoroutineScope(Dispatchers.Main).launch {
+                        walletMain.scope.launch {
                             try {
                                 walletMain.cryptoService.useAuthorizationContext(authorizationContext) {
                                     walletMain.provisioningService.handleResponse(link)

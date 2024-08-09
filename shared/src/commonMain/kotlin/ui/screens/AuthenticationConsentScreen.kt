@@ -72,7 +72,7 @@ fun StatefulAuthenticationConsentView(
         showBiometry = showBiometry,
         onBiometrySuccess = {
             showBiometry = false
-            CoroutineScope(Dispatchers.Main).launch {
+            walletMain.scope.launch {
                 try {
                     walletMain.cryptoService.useAuthorizationContext(authorizationContext) {
                         walletMain.presentationService.startSiop(
