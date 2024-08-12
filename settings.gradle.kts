@@ -32,11 +32,12 @@ dependencyResolutionManagement {
     }
 
     versionCatalogs {
-        create("vclibCatalog") {
-            from("at.asitplus.wallet:vclib-openid-versionCatalog:3.8.0")
+        create("signumCatalog") {
+            from("at.asitplus.signum:indispensable-versionCatalog:3.6.0")
         }
-        create("kmpCryptoCatalog") {
-            from("at.asitplus.crypto:datatypes-versionCatalog:3.2.0")
+
+        create("vclibCatalog") {
+            from("at.asitplus.wallet:vck-openid-versionCatalog:4.1.1")
         }
     }
 }

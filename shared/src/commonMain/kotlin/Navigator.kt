@@ -17,13 +17,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.lib.data.vckJsonSerializer
+import at.asitplus.wallet.lib.oidc.AuthenticationRequestParametersFrom
+import at.asitplus.wallet.lib.oidc.helpers.AuthorizationResponsePreparationState
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.navigation_button_label_my_data
 import composewalletapp.shared.generated.resources.navigation_button_label_settings
 import composewalletapp.shared.generated.resources.navigation_button_label_show_data
 import composewalletapp.shared.generated.resources.snackbar_reset_app_successfully
-import data.vclib.AuthenticationRequest
-import data.vclib.AuthenticationResponseResultSerializable
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier
 import io.ktor.http.parseQueryString
@@ -42,14 +43,12 @@ import ui.navigation.LogPage
 import ui.navigation.NavigationStack
 import ui.navigation.Page
 import ui.navigation.ProvisioningLoadingPage
-import ui.navigation.RefreshCredentialsPage
 import ui.navigation.SettingsPage
 import ui.screens.AddCredentialScreen
 import ui.screens.AuthenticationConsentScreen
 import ui.screens.AuthenticationQrCodeScannerScreen
 import ui.screens.AuthenticationSuccessScreen
 import ui.screens.ErrorScreen
-import ui.screens.LoadDataScreen
 import ui.screens.LoadingScreen
 import ui.screens.LogScreen
 import ui.screens.MyCredentialsScreen
@@ -205,14 +204,6 @@ fun MainNavigator(
                         )
                     }
 
-                    is RefreshCredentialsPage -> {
-                        LoadDataScreen(
-                            refreshRequirements = page.refreshRequirements,
-                            navigateUp = navigateUp,
-                            walletMain = walletMain,
-                        )
-                    }
-
                     is ProvisioningLoadingPage -> {
                         ProvisioningLoadingScreen(
                             link = page.link,
@@ -267,35 +258,28 @@ fun MainNavigator(
                     is AuthenticationConsentPage -> {
                         kotlin.runCatching {
                             val request =
-                                AuthenticationRequest.deserialize(page.authenticationRequestSerialized)
+                                AuthenticationRequestParametersFrom.deserialize(page.authenticationRequestParametersFromSerialized)
                                     .getOrThrow()
-                            val result =
-                                AuthenticationResponseResultSerializable.deserialize(page.authenticationResponseSerialized)
-                                    .getOrThrow()
+                            val preparationState =
+                                vckJsonSerializer.decodeFromString<AuthorizationResponsePreparationState>(
+                                    page.authorizationPreparationStateSerialized,
+                                )
 
-                            AuthenticationRequest.deserialize(page.authenticationRequestSerialized)
-                                .unwrap().onFailure {
-                                    LaunchedEffect(true) {
-                                        navigateUp()
-                                        walletMain.errorService.emit(it)
-                                    }
-                                }.onSuccess {
-                                    AuthenticationConsentScreen(
-                                        spName = page.recipientName,
-                                        spLocation = page.recipientLocation,
-                                        spImage = null,
-                                        authenticationRequestParametersFrom = request.toAuthenticationRequestParametersFrom(),
-                                        authenticationResponseResult = result.toAuthenticationResponseResult(),
-                                        fromQrCodeScanner = page.fromQrCodeScanner,
-                                        navigateUp = navigateUp,
-                                        navigateToAuthenticationSuccessPage = {
-                                            navigationStack.push(
-                                                AuthenticationSuccessPage()
-                                            )
-                                        },
-                                        walletMain = walletMain,
+                            AuthenticationConsentScreen(
+                                spName = page.recipientName,
+                                spLocation = page.recipientLocation,
+                                spImage = null,
+                                authenticationRequestParametersFrom = request,
+                                authorizationResponsePreparationState = preparationState,
+                                fromQrCodeScanner = page.fromQrCodeScanner,
+                                navigateUp = navigateUp,
+                                navigateToAuthenticationSuccessPage = {
+                                    navigationStack.push(
+                                        AuthenticationSuccessPage()
                                     )
-                                }
+                                },
+                                walletMain = walletMain,
+                            )
                         }.onFailure {
                             LaunchedEffect(true) {
                                 navigateUp()

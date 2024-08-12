@@ -4,8 +4,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.CryptoService
+import at.asitplus.wallet.lib.agent.DefaultCryptoService
+import at.asitplus.wallet.lib.agent.DefaultVerifierCryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
+import at.asitplus.wallet.lib.agent.Parser
+import at.asitplus.wallet.lib.agent.Validator
+import at.asitplus.wallet.lib.cbor.DefaultCoseService
 import at.asitplus.wallet.lib.data.ConstantIndex
+import at.asitplus.wallet.lib.jws.DefaultJwsService
 import data.storage.AntilogAdapter
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
@@ -26,7 +32,7 @@ class WalletMain(
     val errorService: ErrorService = ErrorService(mutableStateOf(false), mutableStateOf(null)),
 ) {
     lateinit var walletConfig: WalletConfig
-    lateinit var cryptoService: CryptoService
+    lateinit var cryptoService: WalletCryptoService
     lateinit var holderAgent: HolderAgent
     private lateinit var holderKeyService: HolderKeyService
     lateinit var provisioningService: ProvisioningService
@@ -37,9 +43,11 @@ class WalletMain(
     val scope = CoroutineScope(Dispatchers.Default)
 
     init {
-        at.asitplus.wallet.mdl.Initializer.initWithVcLib()
-        at.asitplus.wallet.idaustria.Initializer.initWithVcLib()
-        at.asitplus.wallet.eupid.Initializer.initWithVcLib()
+        at.asitplus.wallet.mdl.Initializer.initWithVck()
+        at.asitplus.wallet.idaustria.Initializer.initWithVCK()
+        at.asitplus.wallet.eupid.Initializer.initWithVCK()
+        at.asitplus.wallet.cor.Initializer.initWithVCK()
+        at.asitplus.wallet.por.Initializer.initWithVCK()
         Napier.takeLogarithm()
         Napier.base(AntilogAdapter(platformAdapter, ""))
     }
@@ -50,10 +58,14 @@ class WalletMain(
             WalletConfig(dataStoreService = this.dataStoreService, errorService = errorService)
         cryptoService = objectFactory.loadCryptoService().getOrThrow()
         subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
-        holderAgent = HolderAgent.newDefaultInstance(
-            cryptoService = cryptoService,
+        holderAgent = HolderAgent(
+            validator = Validator.newDefaultInstance(DefaultVerifierCryptoService(), Parser()),
             subjectCredentialStore = subjectCredentialStore,
+            jwsService = DefaultJwsService(cryptoService),
+            coseService = DefaultCoseService(cryptoService),
+            keyPair = cryptoService.keyPairAdapter,
         )
+
         holderKeyService = objectFactory.loadHolderKeyService().getOrThrow()
         httpService = HttpService()
         provisioningService = ProvisioningService(
@@ -124,7 +136,7 @@ class WalletMain(
  * efficiently.
  */
 interface ObjectFactory {
-    fun loadCryptoService(): KmmResult<CryptoService>
+    fun loadCryptoService(): KmmResult<WalletCryptoService>
     fun loadHolderKeyService(): KmmResult<HolderKeyService>
 }
 

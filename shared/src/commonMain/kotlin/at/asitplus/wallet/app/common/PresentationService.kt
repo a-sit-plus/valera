@@ -1,7 +1,7 @@
 package at.asitplus.wallet.app.common
 
-import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
+import at.asitplus.wallet.lib.jws.DefaultJwsService
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParametersFrom
 import at.asitplus.wallet.lib.oidc.AuthenticationResponseResult
 import at.asitplus.wallet.lib.oidc.OidcSiopWallet
@@ -19,24 +19,27 @@ import kotlinx.coroutines.withContext
 
 class PresentationService(
     val platformAdapter: PlatformAdapter,
-    private val cryptoService: CryptoService,
+    private val cryptoService: WalletCryptoService,
     private val holderAgent: HolderAgent,
     httpService: HttpService,
 ) {
     private val client = httpService.buildHttpClient()
-    val oidcSiopWallet = OidcSiopWallet.newDefaultInstance(
+    val oidcSiopWallet = OidcSiopWallet(
         holder = holderAgent,
-        cryptoService = cryptoService,
+        agentPublicKey = cryptoService.keyPairAdapter.publicKey,
+        jwsService = DefaultJwsService(cryptoService),
         remoteResourceRetriever = { url ->
             withContext(Dispatchers.IO) {
                 client.get(url).bodyAsText()
             }
-        }
+        },
+        requestObjectJwsVerifier = { _, _ -> true }, // unsure about this one?
+        scopePresentationDefinitionRetriever = { null }
     )
 
     @Throws(Throwable::class)
     suspend fun startSiop(
-        authenticationRequestParameters: AuthenticationRequestParametersFrom<*>,
+        authenticationRequestParameters: AuthenticationRequestParametersFrom,
         fromQrCodeScanner: Boolean
     ) {
         Napier.d("Start SIOP process: $authenticationRequestParameters")

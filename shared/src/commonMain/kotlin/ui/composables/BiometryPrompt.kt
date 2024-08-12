@@ -1,6 +1,7 @@
 package ui.composables
 
 import androidx.compose.runtime.Composable
+import at.asitplus.wallet.app.common.CryptoServiceAuthorizationContext
 
 data class BiometryPromptDismissResult(
     val errorCode: Int,
@@ -11,8 +12,7 @@ class BiometryPromptSuccessResult
 
 @Composable
 expect fun BiometryPrompt(
-    title: String,
-    subtitle: String,
+    authorizationContext: CryptoServiceAuthorizationContext,
     onSuccess: (BiometryPromptSuccessResult) -> Unit,
     onDismiss: (BiometryPromptDismissResult) -> Unit,
 )

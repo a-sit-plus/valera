@@ -18,12 +18,13 @@ import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.content_description_hide_attributes
 import composewalletapp.shared.generated.resources.content_description_show_attributes
 import data.AttributeTranslator
+import data.PersonalDataCategory
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
-import ui.views.toggleableState
+import ui.state.toggleableState
 
 
-@OptIn(ExperimentalResourceApi::class)
+
 @Composable
 fun CategorySelectionRow(
     attributeCategory: Map.Entry<PersonalDataCategory, List<String>>,
@@ -31,7 +32,7 @@ fun CategorySelectionRow(
     onToggleExpanded: (Boolean) -> Unit,
     requestedCredentialScheme: ConstantIndex.CredentialScheme,
     requestedAttributes: Set<String>,
-    onChangeRequestedAttributes: (Set<String>) -> Unit,
+    onChangeRequestedAttributes: ((Set<String>) -> Unit)?,
     isEditSelectionEnabled: Boolean = true,
 ) {
     val categoryAttributes = attributeCategory.value
@@ -41,9 +42,9 @@ fun CategorySelectionRow(
             state = state,
             onClick = {
                 if (state == ToggleableState.On) {
-                    onChangeRequestedAttributes(requestedAttributes - categoryAttributes)
+                    onChangeRequestedAttributes?.invoke(requestedAttributes - categoryAttributes)
                 } else {
-                    onChangeRequestedAttributes(requestedAttributes + categoryAttributes)
+                    onChangeRequestedAttributes?.invoke(requestedAttributes + categoryAttributes)
                 }
             },
             isExpanded = isExpanded,
@@ -51,25 +52,26 @@ fun CategorySelectionRow(
                 onToggleExpanded(!isExpanded)
             },
             attributeSelections = attributeCategory.value.map {
-                AttributeSelection(attributeLabel = AttributeTranslator(requestedCredentialScheme).translate(
-                    it
-                )?.let { stringResource(it) } ?: it,
-                    isSelected = requestedAttributes.contains(it))
+                AttributeSelection(
+                    attributeLabel = AttributeTranslator(requestedCredentialScheme).translate(it)
+                        ?.let { stringResource(it) }
+                        ?: it,
+                    isSelected = requestedAttributes.contains(it)
+                )
             },
             onToggleAttributeSelection = { index ->
                 val attribute = categoryAttributes[index]
                 if (requestedAttributes.contains(attribute)) {
-                    onChangeRequestedAttributes(requestedAttributes - attribute)
+                    onChangeRequestedAttributes?.invoke(requestedAttributes - attribute)
                 } else {
-                    onChangeRequestedAttributes(requestedAttributes + attribute)
+                    onChangeRequestedAttributes?.invoke(requestedAttributes + attribute)
                 }
             },
-            isEditSelectionEnabled = isEditSelectionEnabled,
+            isEditSelectionEnabled = onChangeRequestedAttributes != null && isEditSelectionEnabled,
         )
     }
 }
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun CategorySelectionRow(
     label: String,

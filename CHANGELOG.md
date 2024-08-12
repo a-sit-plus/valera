@@ -1,5 +1,11 @@
 
 
+# Release 4.0.0:
+* Update to VcLib 4.1.1
+* Add credentials: POR, COR
+* Add FaceId support for iOS
+* Remove mutli-authorization on signing the presentation
+
 # Release 2.0.3:
  * Fix loading of SD-JWT credentials
 

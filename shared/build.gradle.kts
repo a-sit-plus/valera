@@ -1,6 +1,5 @@
 import at.asitplus.gradle.datetime
 import at.asitplus.gradle.exportIosFramework
-import at.asitplus.gradle.kmmresult
 import at.asitplus.gradle.ktor
 import at.asitplus.gradle.napier
 import at.asitplus.gradle.serialization
@@ -31,14 +30,16 @@ kotlin {
                 implementation(compose.materialIconsExtended)
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
-                api(libs.vclib.openid)
-                api(libs.vclib.mdl)
-                api(libs.vclib)
+                api(libs.vck.openid)
+                api(libs.vck)
+                api(libs.credential.mdl)
                 api(libs.credential.ida)
                 api(libs.credential.eupid)
-                api(libs.kmpCrypto)
-                api(libs.kmpCrypto.jws)
-                api(libs.kmpCrypto.cose)
+                api(libs.credential.powerofrepresentation)
+                api(libs.credential.certificateofresidence)
+                api(libs.signum)
+                api(libs.signum.jws)
+                api(libs.signum.cose)
                 implementation(serialization("json"))
                 api(napier())
                 implementation("androidx.datastore:datastore-preferences-core:1.1.0-alpha07")
@@ -71,7 +72,6 @@ kotlin {
                 implementation("androidx.camera:camera-view:1.3.0")
                 implementation("com.google.accompanist:accompanist-permissions:0.30.1")
                 implementation("com.google.mlkit:barcode-scanning:17.2.0")
-
             }
         }
 
@@ -87,17 +87,19 @@ kotlin {
 
 exportIosFramework(
     name = "shared", static = true,
-    vclibCatalog.vclib,
-    libs.credential.ida,
+    vclibCatalog.vck,
     datetime(),
-    kmpCryptoCatalog.bignum,
-    kmpCryptoCatalog.kmmresult,
-    libs.kmpCrypto,
-    libs.kmpCrypto.jws,
-    libs.kmpCrypto.cose,
-    libs.base16,
-    libs.base64,
-    napier()
+    signumCatalog.bignum,
+    signumCatalog.kmmresult,
+    libs.signum,
+    libs.signum.jws,
+    libs.signum.cose,
+    libs.credential.ida,
+    libs.credential.mdl,
+    libs.credential.eupid,
+    libs.credential.powerofrepresentation,
+    libs.credential.certificateofresidence,
+    napier(),
 )
 
 android {
@@ -114,7 +116,7 @@ android {
     }
 
     packaging {
-        resources.excludes+=("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
+        resources.excludes += ("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
     }
     testOptions {
         managedDevices {

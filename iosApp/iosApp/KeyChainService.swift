@@ -15,7 +15,6 @@ public protocol KeyChainService {
     func loadAttestedPublicKey() -> String?
     func sign(data: Data, using key: SecureEnclave.P256.Signing.PrivateKey) throws -> Data
     func clear()
-    func authenticateUser(_ detailText: String) async -> LAContext?
 }
 
 extension String: Error {}
@@ -254,21 +253,6 @@ public class RealKeyChainService : KeyChainService, HolderKeyService {
             return nil
         }
         return (cert as! Data)
-    }
-
-    public func authenticateUser(_ detailText: String) async -> LAContext? {
-        if cachedAuthContext != nil {
-            return cachedAuthContext
-        }
-        let authContext = LAContext()
-        authContext.localizedFallbackTitle = "Passcode"
-        let isSuccess = try? await authContext.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: detailText)
-        guard let isSuccess = isSuccess,
-              isSuccess else {
-            return nil
-        }
-        cachedAuthContext = authContext
-        return authContext
     }
 
     private func clearCertificate(for alias: String) {
