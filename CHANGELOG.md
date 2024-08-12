@@ -1,6 +1,6 @@
 
 
-# UNRELEASED Release 4.0.0:
+# Release 4.0.0:
 * Update to VcLib 4.1.1
 * Add credentials: POR, COR
 * Add FaceId support for iOS
