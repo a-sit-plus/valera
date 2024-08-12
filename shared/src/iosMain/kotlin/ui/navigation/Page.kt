@@ -31,8 +31,8 @@ actual class RefreshCredentialsPage actual constructor(
 actual class AddCredentialPage : Page
 
 actual class AuthenticationConsentPage actual constructor(
-    actual val authenticationRequestSerialized: String,
-    actual val authenticationResponseSerialized: String,
+    actual val authenticationRequestParametersFromSerialized: String,
+    actual val authorizationPreparationStateSerialized: String,
     actual val recipientName: String,
     actual val recipientLocation: String,
     actual val fromQrCodeScanner: Boolean,

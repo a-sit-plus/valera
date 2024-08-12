@@ -2,12 +2,10 @@ import Foundation
 import CryptoKit
 import shared
 
-
 public class VcLibCryptoServiceCryptoKit: CryptoServiceAdapter {
-   
-    public var identifier: String
+    
     private let keyChainService: KeyChainService
-
+    
     public init?(keyChainService: KeyChainService) {
         NapierProxy.companion.d(msg: "Init VcLibCryptoServiceCryptoKit")
         guard let privateKey = keyChainService.loadPrivateKey() else {
@@ -18,11 +16,22 @@ public class VcLibCryptoServiceCryptoKit: CryptoServiceAdapter {
             NapierProxy.companion.w(msg: "Cannot convert publicKey")
             return nil
         }
-        
-        self.identifier = publicKey.toJsonWebKey().identifier
-        super.init(publicKey: publicKey, algorithm: .es256,coseKey: publicKey.toCoseKey(algorithm: nil).getOrThrow()!, jsonWebKey: publicKey.toJsonWebKey(), certificate: nil )
-      
-       
+
+        super.init(
+            publicKey: publicKey,
+            algorithm: .es256,
+            coseKey: publicKey.toCoseKey(algorithm: nil, keyId: publicKey.coseKid).getOrThrow()!,
+            jsonWebKey: publicKey.toJsonWebKey(keyId: publicKey.jwkId),
+            certificate: nil
+        )
+    }
+    
+    private func loadPrivateKey() -> SecureEnclave.P256.Signing.PrivateKey? {
+        if let prompt = super.currentAuthorizationContext as? IosCryptoServiceAuthorizationContext {
+            return keyChainService.loadPrivateKey(authContext: prompt.contex)
+        } else {
+            return keyChainService.loadPrivateKey()
+        }
     }
 
     public override func decrypt(key: KotlinByteArray, iv: KotlinByteArray, aad: KotlinByteArray, input: KotlinByteArray, authTag: KotlinByteArray, algorithm: JweEncryption) async throws -> KmmResult<KotlinByteArray> {
@@ -100,7 +109,7 @@ public class VcLibCryptoServiceCryptoKit: CryptoServiceAdapter {
     public override func performKeyAgreement(ephemeralKey: JsonWebKey, algorithm: JweAlgorithm) -> KmmResult<KotlinByteArray> {
         switch algorithm.identifier {
         case "ECDH-ES":
-            guard let privateKey = keyChainService.loadPrivateKey() else {
+            guard let privateKey = self.loadPrivateKey() else {
                 return KmmResultFailure(KotlinThrowable(message: "Could not load private key"))
             }
             let ephemeralKeyBytes = ephemeralKey.toCryptoPublicKey()
@@ -123,12 +132,13 @@ public class VcLibCryptoServiceCryptoKit: CryptoServiceAdapter {
     }
 
     public override func sign(input: KotlinByteArray) async throws -> KmmResult<CryptoSignatureRawByteEncodable> {
-        guard let privateKey = keyChainService.loadPrivateKey() else {
+        guard let privateKey = self.loadPrivateKey() else {
             return KmmResultFailure(KotlinThrowable(message: "Could not load private key"))
         }
         guard let signature = try? privateKey.signature(for: input.data) else {
             return KmmResultFailure(KotlinThrowable(message: "Signature error"))
         }
+
         // Cast is needed, because the generic Asn1Decodable interface declares the return type as Asn1Encodable, and the implementing classes fix the return type to a specific class
         // Apparently this gets lost when generating ObjC headers
         return KmmResultSuccess(try CryptoSignatureEC.companion.fromRawBytes(input: signature.rawRepresentation.kotlinByteArray))

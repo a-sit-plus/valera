@@ -9,6 +9,8 @@
     <string name="snackbar_credential_loaded_successfully">UNTRANSLATED:snackbar_credential_loaded_successfully</string>
     <string name="snackbar_reset_app_successfully">UNTRANSLATED:snackbar_reset_app_successfully</string>
 
+
+    <string name="button_label_use_device_credential">UNTRANSLATED:button_label_use_device_credential</string>
     <string name="button_label_confirm">UNTRANSLATED:button_label_confirm</string>
     <string name="button_label_dismiss">UNTRANSLATED:button_label_dismiss</string>
     <string name="button_label_close_app">UNTRANSLATED:button_label_close_app</string>
@@ -126,6 +128,9 @@
     <string name="biometric_authentication_prompt_for_data_transmission_consent_subtitle">UNTRANSLATED:biometric_authentication_prompt_for_data_transmission_consent_subtitle</string>
     <string name="biometric_authentication_prompt_to_load_data_title">UNTRANSLATED:biometric_authentication_prompt_to_load_data_title</string>
     <string name="biometric_authentication_prompt_to_load_data_subtitle">UNTRANSLATED:biometric_authentication_prompt_to_load_data_subtitle</string>
+    <string name="biometric_authentication_prompt_to_bind_credentials_title">UNTRANSLATED:biometric_authentication_prompt_to_bind_credentials_title</string>
+    <string name="biometric_authentication_prompt_to_bind_credentials_subtitle">UNTRANSLATED:biometric_authentication_prompt_to_bind_credentials_subtitle</string>
+
     <string name="content_description_navigate_back">UNTRANSLATED:content_description_navigate_back</string>
     <string name="content_description_delete_credential">UNTRANSLATED:content_description_delete_credential</string>
     <string name="content_description_portrait">UNTRANSLATED:content_description_portrait</string>

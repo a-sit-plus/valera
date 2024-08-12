@@ -1,10 +1,10 @@
 package domain
 
 import at.asitplus.KmmResult
+import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.oidc.OidcSiopWallet
-import data.vclib.AuthenticationRequest
-import data.vclib.AuthenticationResponseResultSerializable
 import io.github.aakira.napier.Napier
+import kotlinx.serialization.encodeToString
 import ui.navigation.AuthenticationConsentPage
 
 class BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
@@ -17,20 +17,16 @@ class BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
                 return KmmResult.failure(it)
             }
 
-        val response = oidcSiopWallet.createAuthnResponse(request).getOrElse {
+        val preparationState = oidcSiopWallet.startAuthorizationResponsePreparation(request).getOrElse {
             return KmmResult.failure(it)
         }
 
         // TODO: extract recipient name from the metadataResponse; the data is not yet being delivered though
         return KmmResult.success(
             AuthenticationConsentPage(
-                authenticationRequestSerialized = request.let {
-                    AuthenticationRequest.createInstance(it)
-                }.serialize(),
+                authenticationRequestParametersFromSerialized = vckJsonSerializer.encodeToString(request),
 
-                authenticationResponseSerialized = response.let {
-                    AuthenticationResponseResultSerializable.createInstance(it).serialize()
-                },
+                authorizationPreparationStateSerialized = vckJsonSerializer.encodeToString(preparationState),
 
                 recipientName = "SERVICE_NAME_DUMMY_VALUE",
                 recipientLocation = request.parameters.clientId ?: "",

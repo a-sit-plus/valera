@@ -39,8 +39,8 @@ class AuthenticationQrCodeScannerViewModel(
             val authenticationConsentPage =
                 buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(link).getOrThrow().let {
                     AuthenticationConsentPage(
-                        authenticationRequestSerialized = it.authenticationRequestSerialized,
-                        authenticationResponseSerialized = it.authenticationResponseSerialized,
+                        authenticationRequestParametersFromSerialized = it.authenticationRequestParametersFromSerialized,
+                        authorizationPreparationStateSerialized = it.authorizationPreparationStateSerialized,
                         recipientLocation = it.recipientLocation,
                         recipientName = it.recipientName,
                         fromQrCodeScanner = true,

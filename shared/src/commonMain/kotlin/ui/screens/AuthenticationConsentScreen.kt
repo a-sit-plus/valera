@@ -6,12 +6,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
+import at.asitplus.wallet.app.common.CryptoServiceAuthorizationContext
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.data.dif.PresentationDefinition
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParametersFrom
-import at.asitplus.wallet.lib.oidc.AuthenticationResponseResult
+import at.asitplus.wallet.lib.oidc.helpers.AuthorizationResponsePreparationState
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.error_authentication_at_sp_failed
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.getString
@@ -22,8 +25,8 @@ fun AuthenticationConsentScreen(
     spName: String,
     spLocation: String,
     spImage: ImageBitmap?,
-    authenticationRequestParametersFrom: AuthenticationRequestParametersFrom<*>,
-    authenticationResponseResult: AuthenticationResponseResult,
+    authenticationRequestParametersFrom: AuthenticationRequestParametersFrom,
+    authorizationResponsePreparationState: AuthorizationResponsePreparationState,
     fromQrCodeScanner: Boolean,
     navigateUp: () -> Unit,
     navigateToAuthenticationSuccessPage: () -> Unit,
@@ -47,13 +50,14 @@ fun StatefulAuthenticationConsentView(
     spName: String,
     spLocation: String,
     spImage: ImageBitmap?,
-    authenticationRequest: AuthenticationRequestParametersFrom<*>,
+    authenticationRequest: AuthenticationRequestParametersFrom,
     fromQrCodeScanner: Boolean,
     navigateUp: () -> Unit,
     navigateToAuthenticationSuccessPage: () -> Unit,
     walletMain: WalletMain,
 ) {
     var showBiometry by rememberSaveable { mutableStateOf(false) }
+    val authorizationContext = presentationAuthorizationContext()
 
     AuthenticationConsentView(
         spName = spName,
@@ -64,15 +68,18 @@ fun StatefulAuthenticationConsentView(
         consentToDataTransmission = {
             showBiometry = true
         },
+        authorizationContext = authorizationContext,
         showBiometry = showBiometry,
         onBiometrySuccess = {
             showBiometry = false
             walletMain.scope.launch {
                 try {
-                    walletMain.presentationService.startSiop(
-                        authenticationRequest,
-                        fromQrCodeScanner
-                    )
+                    walletMain.cryptoService.useAuthorizationContext(authorizationContext) {
+                        walletMain.presentationService.startSiop(
+                            authenticationRequest,
+                            fromQrCodeScanner
+                        )
+                    }.getOrThrow()
                     navigateUp()
                     navigateToAuthenticationSuccessPage()
                 } catch (e: Throwable) {
@@ -99,3 +106,7 @@ val PresentationDefinition.claims: List<String>
         .map { it.removePrefix("\$.") }
         .map { it.removePrefix("\$['org.iso.18013.5.1']['").removeSuffix("']") }
         .map { it.removePrefix("\$['eu.europa.ec.eudiw.pid.1']['").removeSuffix("']") }
+
+
+@Composable
+expect fun presentationAuthorizationContext(): CryptoServiceAuthorizationContext

@@ -10,6 +10,7 @@
     <string name="snackbar_credential_loaded_successfully">Data has been loaded successfully</string>
     <string name="snackbar_reset_app_successfully">App has been reset successfully</string>
 
+    <string name="button_label_use_device_credential">Passcode</string>
     <string name="button_label_confirm">Confirm</string>
     <string name="button_label_dismiss">Dismiss</string>
     <string name="button_label_close_app">Exit</string>
@@ -125,9 +126,11 @@
     <string name="description_read_terms">Please read and accept the terms of use and the privacy policy.</string>
 
     <string name="biometric_authentication_prompt_for_data_transmission_consent_title">Biometric Authentication</string>
-    <string name="biometric_authentication_prompt_for_data_transmission_consent_subtitle">Authenticate at</string>
+    <string name="biometric_authentication_prompt_for_data_transmission_consent_subtitle">Disclose data</string>
     <string name="biometric_authentication_prompt_to_load_data_title">Biometric Authentication</string>
-    <string name="biometric_authentication_prompt_to_load_data_subtitle">Load Data</string>
+    <string name="biometric_authentication_prompt_to_load_data_subtitle">Load data</string>
+    <string name="biometric_authentication_prompt_to_bind_credentials_title">Biometric Authentication</string>
+    <string name="biometric_authentication_prompt_to_bind_credentials_subtitle">Create device binding</string>
 
     <string name="content_description_navigate_back">Back</string>
     <string name="content_description_delete_credential">Delete</string>
