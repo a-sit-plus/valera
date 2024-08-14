@@ -78,10 +78,15 @@
     <string name="credential_representation_format_label_sd_jwt">SD-JWT</string>
     <string name="credential_representation_format_label_mso_mdoc">ISO mDoc</string>
 
+    <string name="credential_scheme_icon_label_mdl">mDL</string>
     <string name="credential_scheme_label_mdl">mDL</string>
+    <string name="credential_scheme_icon_label_eu_pid">PID</string>
     <string name="credential_scheme_label_eu_pid">PID</string>
+    <string name="credential_scheme_icon_label_id_austria">IDA</string>
     <string name="credential_scheme_label_id_austria">IDA Credential</string>
+    <string name="credential_scheme_icon_label_power_of_representation">POR</string>
     <string name="credential_scheme_label_power_of_representation">Power of representation</string>
+    <string name="credential_scheme_icon_label_certificate_of_residence">COR</string>
     <string name="credential_scheme_label_certificate_of_residence">Certificate of residence</string>
 
     <string name="navigation_button_label_show_data">Daten Vorzeigen</string>
