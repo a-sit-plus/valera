@@ -125,12 +125,10 @@ private class IdAustriaCredentialSdJwtAdapter(
 }
 
 private class IdAustriaCredentialIsoMdocAdapter(
-    val idAustriaNamespace: Map<String, Any>,
+    namespaces: Map<String, Map<String, Any>>?,
 ) : IdAustriaCredentialAdapter {
-    constructor(namespaces: Map<String, Map<String, Any>>?) : this(
-        idAustriaNamespace = namespaces?.get(IdAustriaScheme.isoNamespace)
-            ?: throw IllegalArgumentException("namespaces"), // contains required attributes
-    )
+    private val idAustriaNamespace = namespaces?.get(IdAustriaScheme.isoNamespace)
+        ?: throw IllegalArgumentException("namespaces") // contains required attributes
 
     override val bpk: String
         get() = idAustriaNamespace[IdAustriaScheme.Attributes.BPK] as String
