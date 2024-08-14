@@ -10,11 +10,9 @@ class CredentialScreenViewModel(
 ) {
     val storeContainer = walletMain.subjectCredentialStore.observeStoreContainer()
 
-    fun removeCredentialByIndex(index: Int) {
+    fun removeCredentialById(storeEntryId: StoreEntryId) {
         walletMain.scope.launch(Dispatchers.IO) {
-            walletMain.subjectCredentialStore.removeStoreEntryByIndex(
-                index
-            )
+            walletMain.subjectCredentialStore.removeStoreEntryById(storeEntryId)
         }
     }
 }
