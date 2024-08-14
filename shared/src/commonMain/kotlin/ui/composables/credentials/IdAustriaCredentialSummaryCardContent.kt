@@ -34,7 +34,7 @@ fun IdAustriaCredentialSummaryCardContent(
     imageDecoder: (ByteArray) -> ImageBitmap,
     modifier: Modifier = Modifier,
 ) {
-    val credentialAdapter = IdAustriaCredentialAdapter.createFromCredential(credential)
+    val credentialAdapter = IdAustriaCredentialAdapter.createFromStoreEntry(credential)
 
     var columnSize by remember { mutableStateOf(Size.Zero) }
     Row(
@@ -45,11 +45,14 @@ fun IdAustriaCredentialSummaryCardContent(
             }
     ) {
         credentialAdapter.portrait?.let { portrait ->
+            val imageBitmap = remember {
+                imageDecoder(portrait)
+            }
             // source: https://stackoverflow.com/questions/69455135/does-jetpack-compose-have-maxheight-and-maxwidth-like-xml
             // weird way to get "at most 1/4th of max width"
             val maxWidth = LocalDensity.current.run { (0.25f * columnSize.width).toDp() }
             Image(
-                bitmap =  imageDecoder(portrait),
+                bitmap =  imageBitmap,
                 contentDescription = stringResource(Res.string.content_description_portrait),
                 modifier = Modifier.widthIn(0.dp, maxWidth).padding(end = 16.dp),
                 contentScale = ContentScale.FillWidth,
