@@ -116,12 +116,13 @@ fun MyCredentialsScreen(
                                 storeContainer.credentials[it].hashCode()
                             }
                         ) { index ->
-                            val credential = storeContainer.credentials[index]
+                            val storeEntry = storeContainer.credentials[index]
+                            val credential = storeEntry.second
 
                             SingleCredentialCard(
                                 credential,
                                 onDelete = {
-                                    viewModel.removeCredentialByIndex(index)
+                                    viewModel.removeCredentialById(index)
                                 },
                                 modifier = Modifier.padding(
                                     start = 16.dp,
