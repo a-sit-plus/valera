@@ -2,10 +2,6 @@ package data.storage
 
 import at.asitplus.KmmResult
 import at.asitplus.wallet.app.common.Configuration
-import at.asitplus.wallet.por.PowerOfRepresentationScheme
-import at.asitplus.wallet.cor.CertificateOfResidenceScheme
-import at.asitplus.wallet.eupid.EuPidScheme
-import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.SelectiveDisclosureItem
@@ -16,108 +12,96 @@ import at.asitplus.wallet.lib.iso.IssuerSigned
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.storage.ExportableCredentialScheme.Companion.toExportableCredentialScheme
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
-
+import kotlin.random.Random
 
 class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) :
     SubjectCredentialStore {
     private val container = this.observeStoreContainer()
 
+    private suspend fun addStoreEntry(storeEntry: SubjectCredentialStore.StoreEntry) {
+        val newContainer = container.last().let {
+            it.copy(it.credentials + listOf(Random.nextLong() to storeEntry))
+        }
+        exportToDataStore(newContainer)
+    }
+
     override suspend fun storeCredential(
         vc: VerifiableCredentialJws,
         vcSerialized: String,
         scheme: ConstantIndex.CredentialScheme,
-    ): SubjectCredentialStore.StoreEntry {
-        val storeEntry = SubjectCredentialStore.StoreEntry.Vc(
-            vcSerialized,
-            vc,
-            scheme,
-        )
-        val newContainer = container.first().let {
-            it.copy(it.credentials + listOf(storeEntry))
-        }
-        exportToDataStore(newContainer)
-        return storeEntry
+    ) = SubjectCredentialStore.StoreEntry.Vc(
+        vcSerialized,
+        vc,
+        scheme,
+    ).also {
+        addStoreEntry(it)
     }
+
 
     override suspend fun storeCredential(
         vc: VerifiableCredentialSdJwt,
         vcSerialized: String,
         disclosures: Map<String, SelectiveDisclosureItem?>,
         scheme: ConstantIndex.CredentialScheme
-    ): SubjectCredentialStore.StoreEntry {
-        val storeEntry = SubjectCredentialStore.StoreEntry.SdJwt(
-            vcSerialized,
-            vc,
-            disclosures,
-            scheme,
-        )
-        val newContainer = container.first().let {
-            it.copy(it.credentials + listOf(storeEntry))
-        }
-        exportToDataStore(newContainer)
-        return storeEntry
+    ) = SubjectCredentialStore.StoreEntry.SdJwt(
+        vcSerialized,
+        vc,
+        disclosures,
+        scheme,
+    ).also {
+        addStoreEntry(it)
     }
 
     override suspend fun storeCredential(
         issuerSigned: IssuerSigned, scheme: ConstantIndex.CredentialScheme
-    ): SubjectCredentialStore.StoreEntry {
-        val storeEntry = SubjectCredentialStore.StoreEntry.Iso(issuerSigned, scheme)
-        val newContainer = container.first().let {
-            it.copy(it.credentials + listOf(storeEntry))
-        }
-        exportToDataStore(newContainer)
-        return storeEntry
+    ) = SubjectCredentialStore.StoreEntry.Iso(issuerSigned, scheme).also {
+        addStoreEntry(it)
     }
 
     override suspend fun getCredentials(
         credentialSchemes: Collection<ConstantIndex.CredentialScheme>?,
     ): KmmResult<List<SubjectCredentialStore.StoreEntry>> {
+        val latestCredentials = container.last().credentials.map { it.second }
         return credentialSchemes?.let { schemes ->
-            KmmResult.success(container.first().credentials.filter {
+            KmmResult.success(latestCredentials.filter {
                 when (it) {
                     is SubjectCredentialStore.StoreEntry.Iso -> it.scheme in schemes
                     is SubjectCredentialStore.StoreEntry.SdJwt -> it.scheme in schemes
                     is SubjectCredentialStore.StoreEntry.Vc -> it.scheme in schemes
                 }
             }.toList())
-        } ?: KmmResult.success(container.first().credentials)
+        } ?: KmmResult.success(latestCredentials)
     }
 
     private suspend fun exportToDataStore(newContainer: StoreContainer) {
-        val exportableCredentials = mutableListOf<ExportableStoreEntry>()
-        newContainer.credentials.forEach {
-            when (it) {
+        val exportableCredentials = newContainer.credentials.map {
+            val storeEntry = it.second
+            it.first to when (storeEntry) {
                 is SubjectCredentialStore.StoreEntry.Iso -> {
-                    exportableCredentials.add(
-                        ExportableStoreEntry.Iso(
-                            issuerSigned = it.issuerSigned,
-                            exportableCredentialScheme = it.scheme.toExportableCredentialScheme()
-                        )
+                    ExportableStoreEntry.Iso(
+                        issuerSigned = storeEntry.issuerSigned,
+                        exportableCredentialScheme = storeEntry.scheme.toExportableCredentialScheme()
                     )
                 }
 
                 is SubjectCredentialStore.StoreEntry.SdJwt -> {
-                    exportableCredentials.add(
-                        ExportableStoreEntry.SdJwt(
-                            vcSerialized = it.vcSerialized,
-                            sdJwt = it.sdJwt,
-                            disclosures = it.disclosures,
-                            exportableCredentialScheme = it.scheme.toExportableCredentialScheme()
-                        )
+                    ExportableStoreEntry.SdJwt(
+                        vcSerialized = storeEntry.vcSerialized,
+                        sdJwt = storeEntry.sdJwt,
+                        disclosures = storeEntry.disclosures,
+                        exportableCredentialScheme = storeEntry.scheme.toExportableCredentialScheme()
                     )
                 }
 
                 is SubjectCredentialStore.StoreEntry.Vc -> {
-                    exportableCredentials.add(
-                        ExportableStoreEntry.Vc(
-                            vcSerialized = it.vcSerialized,
-                            vc = it.vc,
-                            exportableCredentialScheme = it.scheme.toExportableCredentialScheme(),
-                        )
+                    ExportableStoreEntry.Vc(
+                        vcSerialized = storeEntry.vcSerialized,
+                        vc = storeEntry.vc,
+                        exportableCredentialScheme = storeEntry.scheme.toExportableCredentialScheme(),
                     )
                 }
             }
@@ -133,11 +117,11 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         exportToDataStore(StoreContainer(credentials = listOf()))
     }
 
-    suspend fun removeStoreEntryByIndex(index: Int) {
-        val newContainer = container.first().let {
-            it.copy(
-                credentials = it.credentials.filterIndexed { credentialIndex, _ ->
-                    credentialIndex != index
+    suspend fun removeStoreEntryById(storeEntryId: StoreEntryId) {
+        val newContainer = container.last().let { latestContainer ->
+            latestContainer.copy(
+                credentials = latestContainer.credentials.filter {
+                    it.first != storeEntryId
                 },
             )
         }
@@ -149,41 +133,40 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
             return StoreContainer(credentials = mutableListOf())
         } else {
             val export: ExportableStoreContainer = vckJsonSerializer.decodeFromString(input)
-            val credentials = mutableListOf<SubjectCredentialStore.StoreEntry>()
-
-            export.credentials.forEach {
-                val scheme: ConstantIndex.CredentialScheme
-                when (it) {
+            val credentials = export.credentials.map {
+                val storeEntryId = it.first
+                val storeEntry = it.second
+                when (storeEntry) {
                     is ExportableStoreEntry.Iso -> {
-                        credentials.add(
-                            SubjectCredentialStore.StoreEntry.Iso(
-                                it.issuerSigned,
-                                it.exportableCredentialScheme.toScheme()
-                            )
+                        SubjectCredentialStore.StoreEntry.Iso(
+                            storeEntry.issuerSigned,
+                            storeEntry.exportableCredentialScheme.toScheme(),
                         )
                     }
 
                     is ExportableStoreEntry.SdJwt -> {
-                        credentials.add(
-                            SubjectCredentialStore.StoreEntry.SdJwt(
-                                vcSerialized = it.vcSerialized,
-                                sdJwt = it.sdJwt,
-                                disclosures = it.disclosures,
-                                scheme = it.exportableCredentialScheme.toScheme()
-                            )
+                        SubjectCredentialStore.StoreEntry.SdJwt(
+                            vcSerialized = storeEntry.vcSerialized,
+                            sdJwt = storeEntry.sdJwt,
+                            disclosures = storeEntry.disclosures,
+                            scheme = storeEntry.exportableCredentialScheme.toScheme()
                         )
                     }
 
                     is ExportableStoreEntry.Vc -> {
-                        credentials.add(
-                            SubjectCredentialStore.StoreEntry.Vc(
-                                vcSerialized = it.vcSerialized, vc = it.vc, scheme = it.exportableCredentialScheme.toScheme()
-                            )
+                        SubjectCredentialStore.StoreEntry.Vc(
+                            vcSerialized = storeEntry.vcSerialized,
+                            vc = storeEntry.vc,
+                            scheme = storeEntry.exportableCredentialScheme.toScheme()
                         )
                     }
                 }
             }
-            return StoreContainer(credentials)
+            return StoreContainer(
+                credentials.map {
+                    Random.nextLong() to it
+                },
+            )
         }
     }
 
@@ -194,14 +177,16 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
     }
 }
 
+typealias StoreEntryId = Long
+
 @Serializable
 data class StoreContainer(
-    val credentials: List<SubjectCredentialStore.StoreEntry>,
+    val credentials: List<Pair<StoreEntryId, SubjectCredentialStore.StoreEntry>>,
 )
 
 @Serializable
 private data class ExportableStoreContainer(
-    val credentials: MutableList<ExportableStoreEntry>,
+    val credentials: List<Pair<StoreEntryId, ExportableStoreEntry>>,
 )
 
 @Serializable
@@ -234,14 +219,9 @@ private sealed interface ExportableStoreEntry {
 }
 
 private enum class ExportableCredentialScheme {
-    AtomicAttribute2023,
-    IdAustriaScheme,
-    MobileDrivingLicence2023,
-    EuPidScheme,
-    PowerOfRepresentationScheme,
-    CertificateOfResidenceScheme;
+    AtomicAttribute2023, IdAustriaScheme, MobileDrivingLicence2023, EuPidScheme, PowerOfRepresentationScheme, CertificateOfResidenceScheme;
 
-    fun toScheme() = when(this) {
+    fun toScheme() = when (this) {
         AtomicAttribute2023 -> ConstantIndex.AtomicAttribute2023
         MobileDrivingLicence2023 -> MobileDrivingLicenceScheme
         IdAustriaScheme -> at.asitplus.wallet.idaustria.IdAustriaScheme
