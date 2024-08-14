@@ -1,6 +1,7 @@
 package ui.screens
 
 import at.asitplus.wallet.app.common.WalletMain
+import data.storage.StoreEntryId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch

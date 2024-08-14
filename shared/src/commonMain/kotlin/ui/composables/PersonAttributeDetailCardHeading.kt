@@ -23,17 +23,10 @@ fun PersonAttributeDetailCardHeading(
 ) {
     PersonAttributeDetailCardHeading(
         icon = {
-            HeadingTextIcon(
-                text = iconText,
-                fontWeight = FontWeight.Bold,
-            )
+            PersonAttributeDetailCardHeadingIcon(iconText)
         },
         title = {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
+            PersonAttributeDetailCardHeadingText(title)
         },
     ) {
         actionButtons()
@@ -63,4 +56,28 @@ fun PersonAttributeDetailCardHeading(
     }
 }
 
+@Composable
+fun PersonAttributeDetailCardHeadingText(
+    title: String,
+    modifier: Modifier = Modifier,
+) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.SemiBold,
+        modifier = modifier,
+    )
+}
+
+@Composable
+fun PersonAttributeDetailCardHeadingIcon(
+    iconText: String,
+    modifier: Modifier = Modifier,
+) {
+    HeadingTextIcon(
+        text = iconText,
+        fontWeight = FontWeight.Bold,
+        modifier = modifier,
+    )
+}
 
