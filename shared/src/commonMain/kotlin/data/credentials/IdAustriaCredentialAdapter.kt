@@ -3,10 +3,12 @@ package data.credentials
 import at.asitplus.wallet.idaustria.IdAustriaCredential
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import data.credentials.CredentialAdapter.Companion.toAttributeMap
+import data.credentials.CredentialAdapter.Companion.toNamespaceAttributeMap
 import io.ktor.util.decodeBase64Bytes
 import kotlinx.datetime.LocalDate
 
-sealed interface IdAustriaCredentialAdapter {
+sealed interface IdAustriaCredentialAdapter : CredentialAdapter {
     val bpk: String
     val givenName: String
     val familyName: String
@@ -19,32 +21,26 @@ sealed interface IdAustriaCredentialAdapter {
     val mainAddressRaw: String?
 
     companion object {
-        fun createFromCredential(credential: SubjectCredentialStore.StoreEntry): IdAustriaCredentialAdapter {
-            if (credential.scheme !is IdAustriaScheme) {
+        fun createFromStoreEntry(storeEntry: SubjectCredentialStore.StoreEntry): IdAustriaCredentialAdapter {
+            if (storeEntry.scheme !is IdAustriaScheme) {
                 throw IllegalArgumentException("credential")
             }
-            return when (credential) {
+            return when (storeEntry) {
                 is SubjectCredentialStore.StoreEntry.Vc -> {
-                    (credential.vc.vc.credentialSubject as? IdAustriaCredential)?.let {
+                    (storeEntry.vc.vc.credentialSubject as? IdAustriaCredential)?.let {
                         IdAustriaCredentialVcAdapter(it)
                     } ?: throw IllegalArgumentException("credential")
                 }
 
                 is SubjectCredentialStore.StoreEntry.SdJwt -> {
                     IdAustriaCredentialSdJwtAdapter(
-                        credential.disclosures.values.filterNotNull().associate {
-                            it.claimName to it.claimValue
-                        },
+                        storeEntry.toAttributeMap(),
                     )
                 }
 
                 is SubjectCredentialStore.StoreEntry.Iso -> {
                     IdAustriaCredentialIsoMdocAdapter(
-                        credential.issuerSigned.namespaces?.mapValues { namespace ->
-                            namespace.value.entries.associate {
-                                it.value.elementIdentifier to it.value.elementValue
-                            }
-                        },
+                        storeEntry.toNamespaceAttributeMap(),
                     )
                 }
             }
@@ -103,8 +99,8 @@ private class IdAustriaCredentialSdJwtAdapter(
             LocalDate.parse(it as String)
         }
 
-    override val portrait: ByteArray
-        get() = attributes[IdAustriaScheme.Attributes.PORTRAIT].let {
+    override val portrait: ByteArray?
+        get() = attributes[IdAustriaScheme.Attributes.PORTRAIT]?.let {
             (it as String).decodeBase64Bytes()
         }
 
@@ -130,35 +126,35 @@ private class IdAustriaCredentialIsoMdocAdapter(
     private val idAustriaNamespace = namespaces?.get(IdAustriaScheme.isoNamespace)
         ?: throw IllegalArgumentException("namespaces") // contains required attributes
 
+    private val idAustriaNamespaceProxy = IdAustriaCredentialSdJwtAdapter(idAustriaNamespace)
+
     override val bpk: String
-        get() = idAustriaNamespace[IdAustriaScheme.Attributes.BPK] as String
+        get() = idAustriaNamespaceProxy.bpk
 
     override val givenName: String
-        get() = idAustriaNamespace[IdAustriaScheme.Attributes.FIRSTNAME] as String
+        get() = idAustriaNamespaceProxy.givenName
 
     override val familyName: String
-        get() = idAustriaNamespace[IdAustriaScheme.Attributes.LASTNAME] as String
+        get() = idAustriaNamespaceProxy.familyName
 
     override val dateOfBirth: LocalDate
         get() = idAustriaNamespace[IdAustriaScheme.Attributes.DATE_OF_BIRTH] as LocalDate
 
     override val portrait: ByteArray?
-        get() = idAustriaNamespace[IdAustriaScheme.Attributes.PORTRAIT]?.let {
-            (it as String).decodeBase64Bytes()
-        }
+        get() = idAustriaNamespaceProxy.portrait
 
     override val ageAtLeast14: Boolean?
-        get() = idAustriaNamespace[IdAustriaScheme.Attributes.AGE_OVER_14] as Boolean?
+        get() = idAustriaNamespaceProxy.ageAtLeast14
 
     override val ageAtLeast16: Boolean?
-        get() = idAustriaNamespace[IdAustriaScheme.Attributes.AGE_OVER_16] as Boolean?
+        get() = idAustriaNamespaceProxy.ageAtLeast16
 
     override val ageAtLeast18: Boolean?
-        get() = idAustriaNamespace[IdAustriaScheme.Attributes.AGE_OVER_18] as Boolean?
+        get() = idAustriaNamespaceProxy.ageAtLeast18
 
     override val ageAtLeast21: Boolean?
-        get() = idAustriaNamespace[IdAustriaScheme.Attributes.AGE_OVER_21] as Boolean?
+        get() = idAustriaNamespaceProxy.ageAtLeast21
 
     override val mainAddressRaw: String?
-        get() = idAustriaNamespace[IdAustriaScheme.Attributes.MAIN_ADDRESS] as String?
+        get() = idAustriaNamespaceProxy.mainAddressRaw
 }
