@@ -122,7 +122,7 @@ fun MyCredentialsScreen(
                             SingleCredentialCard(
                                 credential,
                                 onDelete = {
-                                    viewModel.removeCredentialById(index)
+                                    viewModel.removeCredentialById(storeEntry.first)
                                 },
                                 modifier = Modifier.padding(
                                     start = 16.dp,
