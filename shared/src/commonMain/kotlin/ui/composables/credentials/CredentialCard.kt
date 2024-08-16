@@ -11,7 +11,8 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 fun CredentialCard(
     credential: SubjectCredentialStore.StoreEntry,
     imageDecoder: (ByteArray) -> ImageBitmap,
-    onDelete: (() -> Unit)?,
+    onDelete: () -> Unit,
+    onOpenDetails: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     CredentialCardLayout(
@@ -22,18 +23,10 @@ fun CredentialCard(
             onDelete = onDelete,
             modifier = Modifier.fillMaxWidth(),
         )
-        when (credential.scheme) {
-            is IdAustriaScheme -> {
-                IdAustriaCredentialSummaryCardContent(
-                    credential,
-                    imageDecoder = imageDecoder,
-                )
-            }
-
-            else -> GenericCredentialSummaryCardContent(
-                credential = credential,
-                onDelete = onDelete,
-            )
-        }
+        CredentialSummaryCardContent(
+            credential = credential,
+            imageDecoder = imageDecoder,
+        )
+        CredentialCardFooter(onOpenDetails, modifier = Modifier.fillMaxWidth())
     }
 }

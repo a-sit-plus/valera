@@ -1,5 +1,6 @@
 package ui.composables.credentials
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -11,23 +12,26 @@ import ui.composables.LabeledText
 
 
 @Composable
-fun ColumnScope.GenericCredentialSummaryCardContent(
+fun GenericCredentialSummaryCardContent(
     credential: SubjectCredentialStore.StoreEntry,
-    onDelete: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
-    when (credential) {
-        is SubjectCredentialStore.StoreEntry.Vc -> SingleVcCredentialCardContent(
-            credential = credential,
-        )
+    Column(
+        modifier = modifier
+    ) {
+        when (credential) {
+            is SubjectCredentialStore.StoreEntry.Vc -> SingleVcCredentialCardContent(
+                credential = credential,
+            )
 
-        is SubjectCredentialStore.StoreEntry.SdJwt -> SingleSdJwtCredentialCardContent(
-            credential = credential,
-        )
+            is SubjectCredentialStore.StoreEntry.SdJwt -> SingleSdJwtCredentialCardContent(
+                credential = credential,
+            )
 
-        is SubjectCredentialStore.StoreEntry.Iso -> SingleIsoCredentialCardContent(
-            credential = credential,
-        )
+            is SubjectCredentialStore.StoreEntry.Iso -> SingleIsoCredentialCardContent(
+                credential = credential,
+            )
+        }
     }
 }
 
@@ -35,7 +39,11 @@ fun ColumnScope.GenericCredentialSummaryCardContent(
 private fun ColumnScope.SingleVcCredentialCardContent(
     credential: SubjectCredentialStore.StoreEntry.Vc,
 ) {
-    Text(credential.vc.vc.credentialSubject.toString().replace("""\[.+]""".toRegex(), "[...]").replace(", ", "\n"))
+    Text(
+        credential.vc.vc.credentialSubject.toString().replace("""\[.+]""".toRegex(), "[...]")
+            .replace(", ", "\n")
+    )
+
 }
 
 @Composable

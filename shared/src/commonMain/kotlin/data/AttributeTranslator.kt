@@ -44,7 +44,6 @@ import org.jetbrains.compose.resources.StringResource
 
 
 class AttributeTranslator(val credentialScheme: ConstantIndex.CredentialScheme) {
-    @OptIn(ExperimentalResourceApi::class)
     fun translate(attributeName: String): StringResource? {
         return when (credentialScheme) {
             is IdAustriaScheme -> when (attributeName) {

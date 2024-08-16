@@ -11,7 +11,9 @@ import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.iso.IssuerSigned
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.storage.ExportableCredentialScheme.Companion.toExportableCredentialScheme
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
@@ -23,7 +25,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
     private val container = this.observeStoreContainer()
 
     private suspend fun addStoreEntry(storeEntry: SubjectCredentialStore.StoreEntry) {
-        val newContainer = container.last().let {
+        val newContainer = container.first().let {
             it.copy(it.credentials + listOf(Random.nextLong() to storeEntry))
         }
         exportToDataStore(newContainer)
@@ -46,7 +48,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         vc: VerifiableCredentialSdJwt,
         vcSerialized: String,
         disclosures: Map<String, SelectiveDisclosureItem?>,
-        scheme: ConstantIndex.CredentialScheme
+        scheme: ConstantIndex.CredentialScheme,
     ) = SubjectCredentialStore.StoreEntry.SdJwt(
         vcSerialized,
         vc,
@@ -57,7 +59,8 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
     }
 
     override suspend fun storeCredential(
-        issuerSigned: IssuerSigned, scheme: ConstantIndex.CredentialScheme
+        issuerSigned: IssuerSigned,
+        scheme: ConstantIndex.CredentialScheme,
     ) = SubjectCredentialStore.StoreEntry.Iso(issuerSigned, scheme).also {
         addStoreEntry(it)
     }
@@ -65,7 +68,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
     override suspend fun getCredentials(
         credentialSchemes: Collection<ConstantIndex.CredentialScheme>?,
     ): KmmResult<List<SubjectCredentialStore.StoreEntry>> {
-        val latestCredentials = container.last().credentials.map { it.second }
+        val latestCredentials = container.first().credentials.map { it.second }
         return credentialSchemes?.let { schemes ->
             KmmResult.success(latestCredentials.filter {
                 when (it) {
@@ -118,7 +121,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
     }
 
     suspend fun removeStoreEntryById(storeEntryId: StoreEntryId) {
-        val newContainer = container.last().let { latestContainer ->
+        val newContainer = container.first().let { latestContainer ->
             latestContainer.copy(
                 credentials = latestContainer.credentials.filter {
                     it.first != storeEntryId
@@ -136,7 +139,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
             val credentials = export.credentials.map {
                 val storeEntryId = it.first
                 val storeEntry = it.second
-                when (storeEntry) {
+                storeEntryId to when (storeEntry) {
                     is ExportableStoreEntry.Iso -> {
                         SubjectCredentialStore.StoreEntry.Iso(
                             storeEntry.issuerSigned,
@@ -162,11 +165,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
                     }
                 }
             }
-            return StoreContainer(
-                credentials.map {
-                    Random.nextLong() to it
-                },
-            )
+            return StoreContainer(credentials)
         }
     }
 

@@ -1,4 +1,7 @@
 <resources>
+    <string name="dictionary_yes">Yes</string>
+    <string name="dictionary_no">No</string>
+
     <string name="camera_access_denied">Camera access denied</string>
 
     <string name="warning">Warning</string>
@@ -21,6 +24,7 @@
     <string name="button_label_consent">Consent</string>
     <string name="button_label_continue">Continue</string>
     <string name="button_label_details">Details</string>
+    <string name="button_label_delete_credential">Delete</string>
     <string name="button_label_share">Share</string>
     <string name="button_label_load_data">Load Data</string>
     <string name="button_label_reload_data">Load Data</string>
@@ -120,6 +124,7 @@
     <string name="heading_label_log_screen">Log</string>
     <string name="heading_label_information_screen">Information</string>
     <string name="heading_label_my_data_screen">My Data</string>
+    <string name="heading_label_credential_details_screen">Details</string>
     <string name="heading_label_navigate_back">Back</string>
     <string name="heading_label_terms_of_use">Terms of use</string>
     <string name="heading_label_data_protection">Privacy policy</string>

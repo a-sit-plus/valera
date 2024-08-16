@@ -1,5 +1,7 @@
 package ui.navigation
 
+import data.storage.StoreEntryId
+
 interface Page
 
 expect class HomePage() : Page
@@ -34,6 +36,12 @@ expect class RefreshCredentialsPage(
 }
 
 expect class AddCredentialPage() : Page
+
+expect class CredentialDetailsPage(
+    storeEntryId: StoreEntryId
+) : Page {
+    val storeEntryId: StoreEntryId
+}
 
 
 

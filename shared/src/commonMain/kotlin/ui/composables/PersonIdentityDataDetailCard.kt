@@ -103,7 +103,6 @@ val CredentialExtractor.preIdentityData: PreIdentityData
         nationality = this.nationality,
     )
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun PersonIdentityDataDetailCard(
     identityData: IdentityData,
