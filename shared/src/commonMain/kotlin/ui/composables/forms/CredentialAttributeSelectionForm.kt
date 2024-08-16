@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.unit.dp
+import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.identifier
 import at.asitplus.wallet.lib.data.ConstantIndex
 import composewalletapp.shared.generated.resources.Res
@@ -27,8 +28,8 @@ import ui.state.toggleableState
 @Composable
 fun CredentialAttributeSelectionForm(
     credentialScheme: ConstantIndex.CredentialScheme,
-    requestedAttributes: Set<String>,
-    onChangeRequestedAttributes: ((Set<String>) -> Unit)?,
+    requestedAttributes: Set<NormalizedJsonPath>,
+    onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
     attributeCategoriesExpanded: Map<PersonalDataCategory, Boolean>,
     onSetAttributeCategoriesExpanded: ((Pair<PersonalDataCategory, Boolean>) -> Unit)?,
     modifier: Modifier = Modifier,

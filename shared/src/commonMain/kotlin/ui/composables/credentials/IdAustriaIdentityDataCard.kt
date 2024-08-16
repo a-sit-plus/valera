@@ -1,6 +1,5 @@
 package ui.composables.credentials
 
-import ExpandButtonUpDown
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -19,110 +18,51 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
+import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.content_description_portrait
-import data.AttributeTranslator
 import data.PersonalDataCategory
 import data.credentials.IdAustriaCredentialAdapter
 import org.jetbrains.compose.resources.stringResource
-import ui.composables.AttributeRepresentation
+import ui.composables.getGenericAttributeRepresentations
 
 @Composable
 fun IdAustriaIdentityDataCard(
     credentialAdapter: IdAustriaCredentialAdapter,
-    imageDecoder: (ByteArray) -> ImageBitmap,
     modifier: Modifier = Modifier,
 ) {
-    var isExpanded by rememberSaveable {
-        mutableStateOf(false)
-    }
-
-    val portraitBitmap = remember {
-        credentialAdapter.portrait?.let(imageDecoder)
-    }
-
-    IdAustriaIdentityDataCard(
-        isExpanded = isExpanded,
-        onChangeIsExpanded = { isExpanded = !isExpanded },
+    CredentialDetailCard(
+        credentialScheme = IdAustriaScheme,
+        personalDataCategory = PersonalDataCategory.IdentityData,
         credentialAdapter = credentialAdapter,
-        portraitBitmap = portraitBitmap,
-        modifier = modifier,
-    )
-}
-
-@Composable
-fun IdAustriaIdentityDataCard(
-    isExpanded: Boolean,
-    onChangeIsExpanded: (Boolean) -> Unit,
-    credentialAdapter: IdAustriaCredentialAdapter,
-    portraitBitmap: ImageBitmap?,
-    modifier: Modifier = Modifier,
-) {
-    ElevatedCard(
         modifier = modifier,
     ) {
-        Column(
-            modifier = Modifier.padding(bottom = 16.dp, start = 16.dp, end = 16.dp).fillMaxWidth()
-        ) {
-            CredentialDetailCardHeader(
-                iconText = PersonalDataCategory.IdentityData.iconText,
-                title = PersonalDataCategory.IdentityData.categoryTitle,
-                isExpanded = isExpanded,
-                onChangeIsExpanded = onChangeIsExpanded,
-            )
-            if (isExpanded) {
-                GenericDataCardContent(
-                    listOfNotNull<Pair<String, @Composable () -> Unit>>(
-                        IdAustriaScheme.Attributes.FIRSTNAME to {
-                            AttributeRepresentation(credentialAdapter.givenName)
-                        },
-                        IdAustriaScheme.Attributes.LASTNAME to {
-                            AttributeRepresentation(credentialAdapter.familyName)
-                        },
-                        IdAustriaScheme.Attributes.DATE_OF_BIRTH to {
-                            AttributeRepresentation(credentialAdapter.dateOfBirth)
-                        },
-                        portraitBitmap?.let {
-                            IdAustriaScheme.Attributes.PORTRAIT to {
-                                AttributeRepresentation(it)
-                            }
-                        },
-                    ).map {
-                        val translation =
-                            AttributeTranslator(IdAustriaScheme).translate(it.first)?.let {
-                                stringResource(it)
-                            } ?: it.first
-                        translation to it.second
-                    },
-                )
-            } else {
-                IdAustriaIdentityDataCardContent(
-                    credentialAdapter = credentialAdapter,
-                    portraitBitmap = portraitBitmap,
-                )
-            }
-        }
+        IdAustriaIdentityDataCardContent(
+            credentialAdapter = credentialAdapter,
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+        )
     }
 }
 
 @Composable
 fun IdAustriaIdentityDataCardContent(
     credentialAdapter: IdAustriaCredentialAdapter,
-    portraitBitmap: ImageBitmap?,
+    modifier: Modifier = Modifier
 ) {
     var columnSize by remember { mutableStateOf(Size.Zero) }
-    Row(horizontalArrangement = Arrangement.Start,
-        modifier = Modifier.fillMaxWidth().onGloballyPositioned { layoutCoordinates ->
+    Row(
+        horizontalArrangement = Arrangement.Start,
+        modifier = modifier.fillMaxWidth().onGloballyPositioned { layoutCoordinates ->
             columnSize = layoutCoordinates.size.toSize()
-        }) {
-        portraitBitmap?.let {
+        },
+    ) {
+        credentialAdapter.portraitBitmap?.let { portraitBitmap ->
             // source: https://stackoverflow.com/questions/69455135/does-jetpack-compose-have-maxheight-and-maxwidth-like-xml
             // weird way to get "at most 1/4th of max width"
             val maxWidth = LocalDensity.current.run { (0.25f * columnSize.width).toDp() }

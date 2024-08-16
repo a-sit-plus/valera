@@ -31,12 +31,11 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun IdAustriaCredentialSummaryCardContent(
     credential: SubjectCredentialStore.StoreEntry,
-    imageDecoder: (ByteArray) -> ImageBitmap,
+    decodeImage: (ByteArray) -> ImageBitmap,
     modifier: Modifier = Modifier,
 ) {
-    val credentialAdapter = IdAustriaCredentialAdapter.createFromStoreEntry(credential)
-    val portraitBitmap = remember {
-        credentialAdapter.portrait?.let(imageDecoder)
+    val credentialAdapter = remember {
+        IdAustriaCredentialAdapter.createFromStoreEntry(credential, decodeImage = decodeImage)
     }
 
     var columnSize by remember { mutableStateOf(Size.Zero) }
@@ -46,7 +45,7 @@ fun IdAustriaCredentialSummaryCardContent(
             columnSize = layoutCoordinates.size.toSize()
         }
     ) {
-        portraitBitmap?.let {
+        credentialAdapter.portraitBitmap?.let { portraitBitmap ->
             // source: https://stackoverflow.com/questions/69455135/does-jetpack-compose-have-maxheight-and-maxwidth-like-xml
             // weird way to get "at most 1/4th of max width"
             val maxWidth = LocalDensity.current.run { (0.25f * columnSize.width).toDp() }

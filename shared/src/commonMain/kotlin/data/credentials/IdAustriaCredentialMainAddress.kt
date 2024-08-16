@@ -5,20 +5,31 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class IdAustriaCredentialMainAddress(
-    @SerialName("Gemeindekennziffer")
+    @SerialName(GEMEINDEKENNZIFFER)
     val municipalityCode: String? = null,
-    @SerialName("Gemeindebezeichnung")
+    @SerialName(GEMEINDEBEZEICHNUNG)
     val municipalityName: String? = null,
-    @SerialName("Postleitzahl")
+    @SerialName(POSTLEITZAHL)
     val postalCode: String? = null,
-    @SerialName("Ortschaft")
+    @SerialName(ORTSCHAFT)
     val locality: String? = null,
-    @SerialName("Strasse")
+    @SerialName(STRASSE)
     val street: String? = null,
-    @SerialName("Hausnummer")
+    @SerialName(HAUSNUMMER)
     val doorNumber: String? = null,
-    @SerialName("Stiege")
+    @SerialName(STIEGE)
     val stair: String? = null,
-    @SerialName("Tuer")
+    @SerialName(TUER)
     val door: String? = null,
-)
+) {
+    companion object {
+        const val GEMEINDEKENNZIFFER = "Gemeindekennziffer"
+        const val GEMEINDEBEZEICHNUNG = "Gemeindebezeichnung"
+        const val POSTLEITZAHL = "Postleitzahl"
+        const val ORTSCHAFT = "Ortschaft"
+        const val STRASSE = "Strasse"
+        const val HAUSNUMMER = "Hausnummer"
+        const val STIEGE = "Stiege"
+        const val TUER = "Tuer"
+    }
+}

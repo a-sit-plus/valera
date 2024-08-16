@@ -11,6 +11,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
+import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.app.common.WalletMain
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.heading_label_add_credential_screen
@@ -52,7 +53,7 @@ fun AddCredentialScreen(
 
     var requestedAttributes by rememberSaveable(credentialScheme) {
         runBlocking {
-            mutableStateOf(setOf<String>())
+            mutableStateOf(setOf<NormalizedJsonPath>())
         }
     }
 

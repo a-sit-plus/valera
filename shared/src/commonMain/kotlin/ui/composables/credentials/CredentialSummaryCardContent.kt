@@ -14,7 +14,7 @@ fun CredentialSummaryCardContent(
         is IdAustriaScheme -> {
             IdAustriaCredentialSummaryCardContent(
                 credential,
-                imageDecoder = imageDecoder,
+                decodeImage = imageDecoder,
             )
         }
 

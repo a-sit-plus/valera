@@ -1,22 +1,15 @@
 package data.credentials
 
-import at.asitplus.wallet.eupid.EuPidScheme
-import at.asitplus.wallet.idaustria.IdAustriaScheme
+import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
+import at.asitplus.wallet.lib.data.ConstantIndex
+import data.Attribute
 
 sealed interface CredentialAdapter {
+    val scheme: ConstantIndex.CredentialScheme
+    fun getAttribute(path: NormalizedJsonPath): Attribute?
+
     companion object {
-        fun createFromStoreEntry(storeEntry: SubjectCredentialStore.StoreEntry): CredentialAdapter {
-            return when (storeEntry.scheme) {
-                is IdAustriaScheme -> IdAustriaCredentialAdapter.createFromStoreEntry(storeEntry)
-                is EuPidScheme -> EuPidCredentialAdapter.createFromStoreEntry(storeEntry)
-                is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialAdapter.createFromStoreEntry(storeEntry)
-
-                else -> throw IllegalArgumentException("storeEntry")
-            }
-        }
-
         fun SubjectCredentialStore.StoreEntry.SdJwt.toAttributeMap() =
             disclosures.values.filterNotNull().associate {
                 it.claimName to it.claimValue
