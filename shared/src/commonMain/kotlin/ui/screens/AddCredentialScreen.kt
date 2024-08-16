@@ -24,7 +24,7 @@ import ui.state.savers.CredentialSchemeSaver
 import ui.state.savers.asMutableStateSaver
 import ui.views.LoadDataView
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddCredentialScreen(
     navigateUp: () -> Unit,

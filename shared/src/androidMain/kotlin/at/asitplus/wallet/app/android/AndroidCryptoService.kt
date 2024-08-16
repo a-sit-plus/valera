@@ -35,6 +35,7 @@ import at.asitplus.wallet.lib.agent.AuthenticatedCiphertext
 import at.asitplus.wallet.lib.agent.EphemeralKeyHolder
 import at.asitplus.wallet.lib.agent.JvmEphemeralKeyHolder
 import at.asitplus.wallet.lib.agent.KeyPairAdapter
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -66,8 +67,7 @@ class AndroidCryptoService(
     private var authorizationResult: BiometricPrompt.AuthenticationResult? = null
     private var authorizationPromptMutex = Mutex()
     override suspend fun useAuthorizationContext(
-        context: CryptoServiceAuthorizationContext,
-        block: suspend () -> Unit
+        context: CryptoServiceAuthorizationContext, block: suspend () -> Unit
     ) = catching {
         authorizationPromptMutex.withLock {
             when (context) {
@@ -112,10 +112,12 @@ class AndroidCryptoService(
                 },
             )
 
+
             // TODO: the example code also differentiates whether a crypto object is used or not
             //  2024-08-05: acrusage: I think we always want to have a crypto object here though
             val signature = algorithm.getJCASignatureInstance().getOrThrow()
             signature.initSign(keyPair.private)
+            Napier.d("opening biometry prompt")
             biometricPrompt.authenticate(
                 authorizationContext.promptInfo,
                 BiometricPrompt.CryptoObject(signature),
@@ -169,7 +171,9 @@ class AndroidCryptoService(
 
                     override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                         val signer = result.cryptoObject?.signature
-                            ?: throw IllegalStateException("Missing CryptoObject or Signature")
+                            ?: return continuation.resumeWithException(
+                                IllegalStateException("Missing CryptoObject or Signature")
+                            )
 
                         val signature = signer.run {
                             update(input)
@@ -262,7 +266,9 @@ class AndroidCryptoService(
         val ecPublicKey = keyPair.public as ECPublicKey
         val keyX = ecPublicKey.w.affineX.toByteArray().ensureSize(ecCurve.coordinateLength.bytes)
         val keyY = ecPublicKey.w.affineY.toByteArray().ensureSize(ecCurve.coordinateLength.bytes)
-        this.cryptoPublicKey = fromUncompressed(curve = ECCurve.SECP_256_R_1, x = keyX, y = keyY)
-            .also { it.jwkId = it.didEncoded }
+        this.cryptoPublicKey =
+            fromUncompressed(curve = ECCurve.SECP_256_R_1, x = keyX, y = keyY).also {
+                    it.jwkId = it.didEncoded
+                }
     }
 }

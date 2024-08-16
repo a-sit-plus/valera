@@ -37,10 +37,12 @@ import ui.composables.credentials.CredentialCard
 @Composable
 fun MyCredentialsScreen(
     navigateToAddCredentialsPage: () -> Unit,
+    navigateToCredentialDetailsPage: (Long) -> Unit,
     walletMain: WalletMain,
 ) {
     MyCredentialsScreen(
         navigateToAddCredentialsPage = navigateToAddCredentialsPage,
+        navigateToCredentialDetailsPage = navigateToCredentialDetailsPage,
         viewModel = CredentialScreenViewModel(walletMain),
         imageDecoder = walletMain.platformAdapter::decodeImage,
     )
@@ -50,6 +52,7 @@ fun MyCredentialsScreen(
 @Composable
 fun MyCredentialsScreen(
     navigateToAddCredentialsPage: () -> Unit,
+    navigateToCredentialDetailsPage: (Long) -> Unit,
     imageDecoder: (ByteArray) -> ImageBitmap,
     viewModel: CredentialScreenViewModel,
 ) {
@@ -107,20 +110,26 @@ fun MyCredentialsScreen(
                             }
                         ) { index ->
                             val storeEntry = storeContainer.credentials[index]
+                            val storeEntryIdentifier = storeEntry.first
                             val credential = storeEntry.second
 
-                            CredentialCard(
-                                credential,
-                                onDelete = {
-                                    viewModel.removeCredentialById(storeEntry.first)
-                                },
-                                imageDecoder = imageDecoder,
-                                modifier = Modifier.padding(
-                                    start = 16.dp,
-                                    end = 16.dp,
-                                    bottom = 16.dp
-                                ),
-                            )
+                            Column {
+                                CredentialCard(
+                                    credential,
+                                    onDelete = {
+                                        viewModel.removeStoreEntryById(storeEntryIdentifier)
+                                    },
+                                    onOpenDetails = {
+                                        navigateToCredentialDetailsPage(storeEntryIdentifier)
+                                    },
+                                    imageDecoder = imageDecoder,
+                                    modifier = Modifier.padding(
+                                        start = 16.dp,
+                                        end = 16.dp,
+                                        bottom = 16.dp
+                                    ),
+                                )
+                            }
                         }
                         item {
                             FloatingActionButtonHeightSpacer(

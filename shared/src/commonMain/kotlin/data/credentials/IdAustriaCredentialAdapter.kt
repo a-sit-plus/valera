@@ -138,7 +138,7 @@ private class IdAustriaCredentialIsoMdocAdapter(
         get() = idAustriaNamespaceProxy.familyName
 
     override val dateOfBirth: LocalDate
-        get() = idAustriaNamespace[IdAustriaScheme.Attributes.DATE_OF_BIRTH] as LocalDate
+        get() = idAustriaNamespaceProxy.dateOfBirth
 
     override val portrait: ByteArray?
         get() = idAustriaNamespaceProxy.portrait
