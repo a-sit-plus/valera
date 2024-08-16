@@ -1,5 +1,7 @@
 package at.asitplus.wallet.app.common
 
+import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.identifier
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.Holder
@@ -67,7 +69,7 @@ class ProvisioningService(
         host: String,
         credentialScheme: ConstantIndex.CredentialScheme,
         credentialRepresentation: ConstantIndex.CredentialRepresentation,
-        requestedAttributes: Set<String>?,
+        requestedAttributes: Set<NormalizedJsonPath>?,
     ) {
         config.set(
             host = host,
@@ -163,7 +165,11 @@ class ProvisioningService(
         val requestOptions = WalletService.RequestOptions(
             credentialScheme = credentialScheme,
             representation = credentialRepresentation,
-            requestedAttributes = requestedAttributes?.ifEmpty { null },
+            requestedAttributes = requestedAttributes?.ifEmpty { null }?.map {
+                // TODO: vck currently does not take json paths, only pure attribute names
+                // TODO: vck should probably replace attribute names with normalized json paths
+                (it.segments.first() as NormalizedJsonPathSegment.NameSegment).memberName
+            }?.toSet(),
         )
         val authRequest = oid4vciService.createAuthRequest(
             requestOptions = requestOptions
@@ -255,7 +261,7 @@ private data class ProvisioningContext(
     val host: String,
     val credentialRepresentation: ConstantIndex.CredentialRepresentation,
     private val credentialSchemeIdentifier: String,
-    val requestedAttributes: Set<String>?,
+    val requestedAttributes: Set<NormalizedJsonPath>?,
 ) {
     val credentialScheme: ConstantIndex.CredentialScheme
         get() = AttributeIndex.resolveCredential(this.credentialSchemeIdentifier)?.first

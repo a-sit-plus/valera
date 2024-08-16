@@ -35,13 +35,14 @@ fun IdAustriaCredentialView(
     imageDecoder: (ByteArray) -> ImageBitmap,
     modifier: Modifier = Modifier,
 ) {
-    val credentialAdapter = IdAustriaCredentialAdapter.createFromStoreEntry(credential)
+    val credentialAdapter = remember {
+        IdAustriaCredentialAdapter.createFromStoreEntry(credential, imageDecoder)
+    }
 
     Column(modifier = modifier) {
         val spacingModifier = Modifier.padding(bottom = 16.dp)
         IdAustriaIdentityDataCard(
             credentialAdapter = credentialAdapter,
-            imageDecoder = imageDecoder,
             modifier = spacingModifier,
         )
         IdAustriaAgeDataCard(

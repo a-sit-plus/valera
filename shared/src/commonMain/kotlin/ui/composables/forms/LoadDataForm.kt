@@ -14,6 +14,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.identifier
 import at.asitplus.wallet.lib.data.ConstantIndex
 import composewalletapp.shared.generated.resources.Res
@@ -31,15 +32,15 @@ fun StatefulLoadDataForm(
     onChangeCredentialRepresentation: ((ConstantIndex.CredentialRepresentation) -> Unit)?,
     credentialScheme: ConstantIndex.CredentialScheme,
     onChangeCredentialScheme: ((ConstantIndex.CredentialScheme) -> Unit)?,
-    requestedAttributes: Set<String>,
-    onChangeRequestedAttributes: ((Set<String>) -> Unit)?,
+    requestedAttributes: Set<NormalizedJsonPath>,
+    onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     var attributeCategoriesExpanded by rememberSaveable(credentialScheme) {
-        val attributeCategorization = credentialAttributeCategorization[credentialScheme]
+        val attributeCategorization = credentialAttributeCategorization[credentialScheme]?.entries?.toList()
             ?: throw IllegalArgumentException("credentialScheme: ${credentialScheme.identifier}")
 
-        mutableStateOf(attributeCategorization.map { it.first }.associateWith {
+        mutableStateOf(attributeCategorization.map { it.key }.associateWith {
             false
         })
     }
@@ -70,8 +71,8 @@ fun LoadDataForm(
     onChangeCredentialRepresentation: ((ConstantIndex.CredentialRepresentation) -> Unit)?,
     credentialScheme: ConstantIndex.CredentialScheme,
     onChangeCredentialScheme: ((ConstantIndex.CredentialScheme) -> Unit)?,
-    requestedAttributes: Set<String>,
-    onChangeRequestedAttributes: ((Set<String>) -> Unit)?,
+    requestedAttributes: Set<NormalizedJsonPath>,
+    onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
     attributeCategoriesExpanded: Map<PersonalDataCategory, Boolean>,
     onSetAttributeCategoriesExpanded: (Pair<PersonalDataCategory, Boolean>) -> Unit,
     modifier: Modifier = Modifier,
