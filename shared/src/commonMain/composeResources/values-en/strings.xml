@@ -75,6 +75,15 @@
     <string name="attribute_friendly_name_driving_privileges">Driving privileges</string>
     <string name="attribute_friendly_name_distinguishing_sign">Issuing country (code)</string>
 
+    <string name="id_austria_credential_attribute_friendly_name_main_address_street">Street</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_house_number">House Number</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_stair">Stair</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_door">Door</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_postal_code">Postal Code</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_location">Location</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_municipality_name">Municipality Name</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_municipality_code">Municipality Code</string>
+
     <string name="attribute_friendly_name_data_recipient_name">Name</string>
     <string name="attribute_friendly_name_data_recipient_location">Location</string>
 

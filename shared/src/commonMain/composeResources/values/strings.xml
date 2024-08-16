@@ -41,6 +41,16 @@
     <string name="button_label_all_missing_data">UNTRANSLATED:button_label_all_missing_data</string>
     <string name="button_label_all_available_data">UNTRANSLATED:button_label_all_available_data</string>
 
+
+    <string name="id_austria_credential_attribute_friendly_name_main_address_street">UNTRANSLATED:id_austria_credential_attribute_friendly_name_main_address_street</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_house_number">UNTRANSLATED:id_austria_credential_attribute_friendly_name_main_address_house_number</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_stair">UNTRANSLATED:id_austria_credential_attribute_friendly_name_main_address_stair</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_door">UNTRANSLATED:id_austria_credential_attribute_friendly_name_main_address_door</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_postal_code">UNTRANSLATED:id_austria_credential_attribute_friendly_name_main_address_postal_code</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_location">UNTRANSLATED:id_austria_credential_attribute_friendly_name_main_address_location</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_municipality_name">UNTRANSLATED:id_austria_credential_attribute_friendly_name_main_address_municipality_name</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_municipality_code">UNTRANSLATED:id_austria_credential_attribute_friendly_name_main_address_municipality_code</string>
+
     <string name="attribute_friendly_name_bpk">UNTRANSLATED:attribute_friendly_name_bpk</string>
     <string name="attribute_friendly_name_firstname">UNTRANSLATED:attribute_friendly_name_firstname</string>
     <string name="attribute_friendly_name_lastname">UNTRANSLATED:attribute_friendly_name_lastname</string>
