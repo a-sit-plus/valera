@@ -49,5 +49,9 @@ fun IdAustriaCredentialView(
             credentialAdapter = credentialAdapter,
             modifier = spacingModifier,
         )
+        IdAustriaResidenceDataCard(
+            credentialAdapter = credentialAdapter,
+            modifier = spacingModifier,
+        )
     }
 }

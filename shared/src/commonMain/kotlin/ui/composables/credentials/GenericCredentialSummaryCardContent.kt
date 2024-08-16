@@ -9,6 +9,7 @@ import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import ui.composables.LabeledText
+import kotlin.math.min
 
 
 @Composable
@@ -52,7 +53,7 @@ private fun ColumnScope.SingleSdJwtCredentialCardContent(
 ) {
     credential.disclosures.forEach {
         LabeledText(
-            text = it.value?.claimValue?.toString() ?: "unknown claim value",
+            text = it.value?.claimValue?.toString()?.run { slice(0..min(lastIndex, 100)) } ?: "unknown claim value",
             label = it.value?.claimName ?: "unknown claim name"
         )
     }
@@ -65,7 +66,7 @@ private fun ColumnScope.SingleIsoCredentialCardContent(
     credential.issuerSigned.namespaces?.forEach { namespace ->
         namespace.value.entries.forEach { entry ->
             LabeledText(
-                text = entry.value.elementValue.prettyToString(),
+                text = entry.value.elementValue.prettyToString().run { slice(0..min(lastIndex, 100)) },
                 label = NormalizedJsonPath(
                     NormalizedJsonPathSegment.NameSegment(namespace.key),
                     NormalizedJsonPathSegment.NameSegment(entry.value.elementIdentifier),

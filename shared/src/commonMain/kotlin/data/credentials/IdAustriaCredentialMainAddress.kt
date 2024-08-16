@@ -16,7 +16,7 @@ data class IdAustriaCredentialMainAddress(
     @SerialName(STRASSE)
     val street: String? = null,
     @SerialName(HAUSNUMMER)
-    val doorNumber: String? = null,
+    val houseNumber: String? = null,
     @SerialName(STIEGE)
     val stair: String? = null,
     @SerialName(TUER)
