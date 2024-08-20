@@ -25,5 +25,17 @@ fun MobileDrivingLicenceCredentialView(
 
     Column(modifier = modifier) {
         val spacingModifier = Modifier.padding(bottom = 16.dp)
+        MobileDrivingLicenceCredentialIdentityDataCard(
+            credentialAdapter = credentialAdapter,
+            modifier = spacingModifier,
+        )
+        MobileDrivingLicenceCredentialAgeDataCard(
+            credentialAdapter = credentialAdapter,
+            modifier = spacingModifier,
+        )
+        MobileDrivingLicenceCredentialResidenceDataCard(
+            credentialAdapter = credentialAdapter,
+            modifier = spacingModifier,
+        )
     }
 }

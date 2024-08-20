@@ -24,7 +24,7 @@ sealed class MobileDrivingLicenceCredentialAdapter(
                     NormalizedJsonPath(path.segments.slice(1..path.segments.lastIndex))
                 )
 
-                // maybe the attribute is specified without its corresponding namespace?
+                // maybe the attribute is specified without its corresponding namespace - which is definitely the case at the moment!
                 else -> getAttributeFromMdlNamespace(path)
             }
 
@@ -115,7 +115,7 @@ sealed class MobileDrivingLicenceCredentialAdapter(
             storeEntry: SubjectCredentialStore.StoreEntry,
             decodePortrait: (ByteArray) -> ImageBitmap,
         ): MobileDrivingLicenceCredentialAdapter {
-            if (storeEntry.scheme !is IdAustriaScheme) {
+            if (storeEntry.scheme !is MobileDrivingLicenceScheme) {
                 throw IllegalArgumentException("credential")
             }
             return when (storeEntry) {

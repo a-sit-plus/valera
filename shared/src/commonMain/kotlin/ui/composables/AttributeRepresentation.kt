@@ -4,16 +4,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
-import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.wallet.idaustria.IdAustriaScheme
-import at.asitplus.wallet.lib.data.ConstantIndex
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.dictionary_no
 import composewalletapp.shared.generated.resources.dictionary_yes
 import data.Attribute
-import data.PersonalDataCategory
-import data.credentialAttributeCategorization
-import data.credentials.CredentialAdapter
 import kotlinx.datetime.LocalDate
 import org.jetbrains.compose.resources.stringResource
 

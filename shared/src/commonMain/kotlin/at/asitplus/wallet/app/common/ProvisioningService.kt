@@ -69,7 +69,7 @@ class ProvisioningService(
         host: String,
         credentialScheme: ConstantIndex.CredentialScheme,
         credentialRepresentation: ConstantIndex.CredentialRepresentation,
-        requestedAttributes: Set<String>?,
+        requestedAttributes: Set<NormalizedJsonPath>?,
     ) {
         config.set(
             host = host,
@@ -107,7 +107,10 @@ class ProvisioningService(
                     host = host,
                     credentialRepresentation = credentialRepresentation,
                     credentialSchemeIdentifier = credentialScheme.identifier,
-                    requestedAttributes = requestedAttributes,
+                    requestedAttributes = requestedAttributes?.map {
+                        // for now the attribute name is encoded at the first part
+                        (it.segments.first() as NormalizedJsonPathSegment.NameSegment).memberName
+                    }?.toSet(),
                 )
 
                 Napier.d("Store provisioning context: $provisioningContext")

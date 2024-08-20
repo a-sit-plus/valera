@@ -4,6 +4,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
 import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.DefaultCryptoService
 import at.asitplus.wallet.lib.agent.DefaultVerifierCryptoService
@@ -107,7 +108,7 @@ class WalletMain(
         host: String,
         credentialScheme: ConstantIndex.CredentialScheme,
         credentialRepresentation: ConstantIndex.CredentialRepresentation,
-        requestedAttributes: Set<String>?,
+        requestedAttributes: Set<NormalizedJsonPath>?,
         onSuccess: () -> Unit,
     ) {
         scope.launch {

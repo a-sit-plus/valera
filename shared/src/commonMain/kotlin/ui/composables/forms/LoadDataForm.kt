@@ -19,10 +19,9 @@ import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.ide
 import at.asitplus.wallet.lib.data.ConstantIndex
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.info_text_redirection_to_id_austria_for_credential_provisioning
-import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.stringResource
 import data.PersonalDataCategory
 import data.credentialAttributeCategorization
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun StatefulLoadDataForm(
@@ -32,13 +31,14 @@ fun StatefulLoadDataForm(
     onChangeCredentialRepresentation: ((ConstantIndex.CredentialRepresentation) -> Unit)?,
     credentialScheme: ConstantIndex.CredentialScheme,
     onChangeCredentialScheme: ((ConstantIndex.CredentialScheme) -> Unit)?,
-    requestedAttributes: Set<String>,
-    onChangeRequestedAttributes: ((Set<String>) -> Unit)?,
+    requestedAttributes: Set<NormalizedJsonPath>,
+    onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     var attributeCategoriesExpanded by rememberSaveable(credentialScheme) {
-        val attributeCategorization = credentialAttributeCategorization[credentialScheme]?.entries?.toList()
-            ?: throw IllegalArgumentException("credentialScheme: ${credentialScheme.identifier}")
+        val attributeCategorization =
+            credentialAttributeCategorization[credentialScheme]?.entries?.toList()
+                ?: throw IllegalArgumentException("credentialScheme: ${credentialScheme.identifier}")
 
         mutableStateOf(attributeCategorization.map { it.key }.associateWith {
             false

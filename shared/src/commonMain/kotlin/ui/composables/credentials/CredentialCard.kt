@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
-import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 
 @Composable
@@ -25,7 +24,7 @@ fun CredentialCard(
         )
         CredentialSummaryCardContent(
             credential = credential,
-            imageDecoder = imageDecoder,
+            decodeToBitmap = imageDecoder,
         )
         CredentialCardFooter(onOpenDetails, modifier = Modifier.fillMaxWidth())
     }
