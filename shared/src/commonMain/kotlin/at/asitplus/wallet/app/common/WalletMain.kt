@@ -14,6 +14,7 @@ import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.jws.DefaultJwsService
 import data.storage.AntilogAdapter
 import data.storage.DataStoreService
+import data.storage.PersistentCookieStorage
 import data.storage.PersistentSubjectCredentialStore
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
@@ -39,6 +40,7 @@ class WalletMain(
     lateinit var httpService: HttpService
     lateinit var presentationService: PresentationService
     lateinit var snackbarService: SnackbarService
+    lateinit var signingService: SigningService
     private val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
     val scope = CoroutineScope(Dispatchers.Default)
 
@@ -84,6 +86,7 @@ class WalletMain(
             httpService
         )
         this.snackbarService = snackbarService
+        signingService = SigningService(platformAdapter, httpService)
     }
 
     suspend fun resetApp() {

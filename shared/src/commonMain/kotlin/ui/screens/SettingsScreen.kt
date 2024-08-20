@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.SettingsBackupRestore
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
@@ -39,6 +40,7 @@ import composewalletapp.shared.generated.resources.button_label_faq
 import composewalletapp.shared.generated.resources.button_label_licenses
 import composewalletapp.shared.generated.resources.button_label_reset_app
 import composewalletapp.shared.generated.resources.button_label_share_log_file
+import composewalletapp.shared.generated.resources.button_label_sign
 import composewalletapp.shared.generated.resources.error_feature_not_yet_available
 import composewalletapp.shared.generated.resources.heading_label_settings_screen
 import composewalletapp.shared.generated.resources.reset_app_alert_text
@@ -57,6 +59,7 @@ import org.jetbrains.compose.resources.stringResource
 fun SettingsScreen(
     navigateToLogPage: () -> Unit,
     onClickResetApp: () -> Unit,
+    onClickSign: () -> Unit,
     walletMain: WalletMain,
 ) {
     val stage = Configuration.BUILD_FOR_STAGE
@@ -84,6 +87,7 @@ fun SettingsScreen(
         },
         onClickShareLogFile = navigateToLogPage,
         onClickResetApp = onClickResetApp,
+        onClickSign = onClickSign
     )
 }
 
@@ -98,6 +102,7 @@ fun SettingsView(
     onClickLicenses: () -> Unit,
     onClickShareLogFile: () -> Unit,
     onClickResetApp: () -> Unit,
+    onClickSign: () -> Unit
 ) {
     val showAlert = remember { mutableStateOf(false) }
     if (showAlert.value) {
@@ -198,6 +203,17 @@ fun SettingsView(
                         },
                         label = stringResource(Res.string.button_label_share_log_file),
                         onClick = onClickShareLogFile,
+                        modifier = listSpacingModifier.fillMaxWidth(),
+                    )
+                    TextIconButtonListItem(
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Key,
+                                contentDescription = null,
+                            )
+                        },
+                        label = stringResource(Res.string.button_label_sign),
+                        onClick = onClickSign,
                         modifier = listSpacingModifier.fillMaxWidth(),
                     )
                     TextIconButtonListItem(

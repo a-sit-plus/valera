@@ -225,6 +225,9 @@ fun MainNavigator(
                                 walletMain.snackbarService.showSnackbar(resetMessage)
                                 navigationStack.reset()
                             },
+                            onClickSign = {
+                                walletMain.signingService.sign()
+                            },
                             walletMain = walletMain,
                         )
                     }
