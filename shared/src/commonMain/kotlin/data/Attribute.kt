@@ -2,6 +2,7 @@ package data
 
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.wallet.eupid.IsoIec5218Gender
+import at.asitplus.wallet.mdl.DrivingPrivilege
 import kotlinx.datetime.LocalDate
 
 sealed interface Attribute {
@@ -13,6 +14,7 @@ sealed interface Attribute {
         fun fromValue(value: Boolean?) = value?.let { BooleanAttribute(it) }
         fun fromValue(value: LocalDate?) = value?.let { DateAttribute(it) }
         fun fromValue(value: ImageBitmap?) = value?.let { ImageAttribute(it) }
+        fun fromValue(value: List<DrivingPrivilege>?) = value?.let { DrivingPrivilegeAttribute(it) }
     }
 
     data class StringAttribute(val value: String) : Attribute
@@ -22,4 +24,5 @@ sealed interface Attribute {
     data class BooleanAttribute(val value: Boolean) : Attribute
     data class DateAttribute(val value: LocalDate) : Attribute
     data class ImageAttribute(val value: ImageBitmap) : Attribute
+    data class DrivingPrivilegeAttribute(val value: List<DrivingPrivilege>) : Attribute
 }

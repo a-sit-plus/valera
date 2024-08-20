@@ -32,8 +32,8 @@ fun StatefulLoadDataForm(
     onChangeCredentialRepresentation: ((ConstantIndex.CredentialRepresentation) -> Unit)?,
     credentialScheme: ConstantIndex.CredentialScheme,
     onChangeCredentialScheme: ((ConstantIndex.CredentialScheme) -> Unit)?,
-    requestedAttributes: Set<NormalizedJsonPath>,
-    onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
+    requestedAttributes: Set<String>,
+    onChangeRequestedAttributes: ((Set<String>) -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     var attributeCategoriesExpanded by rememberSaveable(credentialScheme) {
@@ -62,7 +62,6 @@ fun StatefulLoadDataForm(
     )
 }
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun LoadDataForm(
     host: TextFieldValue,

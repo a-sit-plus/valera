@@ -24,8 +24,8 @@ fun LoadDataView(
     onChangeCredentialRepresentation: ((ConstantIndex.CredentialRepresentation) -> Unit)?,
     credentialScheme: ConstantIndex.CredentialScheme,
     onChangeCredentialScheme: ((ConstantIndex.CredentialScheme) -> Unit)?,
-    requestedAttributes: Set<NormalizedJsonPath>,
-    onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
+    requestedAttributes: Set<String>,
+    onChangeRequestedAttributes: ((Set<String>) -> Unit)?,
     // other
     onSubmit: () -> Unit,
     modifier: Modifier = Modifier,

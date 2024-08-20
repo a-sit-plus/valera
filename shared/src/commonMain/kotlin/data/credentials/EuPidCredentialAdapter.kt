@@ -14,7 +14,6 @@ import data.credentials.CredentialAdapter.Companion.toNamespaceAttributeMap
 import kotlinx.datetime.LocalDate
 
 sealed class EuPidCredentialAdapter : CredentialAdapter {
-    override val scheme = EuPidScheme
     override fun getAttribute(path: NormalizedJsonPath) = path.segments.firstOrNull()?.let { first ->
         when (first) {
             is NormalizedJsonPathSegment.NameSegment -> when(first.memberName) {
@@ -162,80 +161,84 @@ private class EuPidCredentialVcAdapter(
         get() = credentialSubject.birthCity
 }
 
-private class EuPidCredentialSdJwtAdapter(
-    val attributes: Map<String, Any>
-) : EuPidCredentialAdapter() {
-    override val givenName: String
-        get() = attributes[EuPidScheme.Attributes.GIVEN_NAME] as String
-
-    override val familyName: String
-        get() = attributes[EuPidScheme.Attributes.FAMILY_NAME] as String
-
-    override val birthDate: LocalDate
-        get() = attributes[EuPidScheme.Attributes.BIRTH_DATE] as LocalDate
-
-    override val ageAtLeast18: Boolean?
-        get() = attributes[EuPidScheme.Attributes.AGE_OVER_18] as Boolean?
-
-    override val residentAddress: String?
-        get() = attributes[EuPidScheme.Attributes.RESIDENT_ADDRESS] as String?
-
-    override val residentStreet: String?
-        get() = attributes[EuPidScheme.Attributes.RESIDENT_STREET] as String?
-
-    override val residentCity: String?
-        get() = attributes[EuPidScheme.Attributes.RESIDENT_CITY] as String?
-
-    override val residentPostalCode: String?
-        get() = attributes[EuPidScheme.Attributes.RESIDENT_POSTAL_CODE] as String?
-
-    override val residentHouseNumber: String?
-        get() = attributes[EuPidScheme.Attributes.RESIDENT_HOUSE_NUMBER] as String?
-
-    override val residentCountry: String?
-        get() = attributes[EuPidScheme.Attributes.RESIDENT_COUNTRY] as String?
-
-    override val residentState: String?
-        get() = attributes[EuPidScheme.Attributes.RESIDENT_STATE] as String?
-
-    override val gender: IsoIec5218Gender?
-        get() = attributes[EuPidScheme.Attributes.GENDER] as IsoIec5218Gender?
-
-    override val nationality: String?
-        get() = attributes[EuPidScheme.Attributes.NATIONALITY] as String?
-
-    override val ageInYears: UInt?
-        get() = attributes[EuPidScheme.Attributes.AGE_IN_YEARS] as UInt?
-
-    override val ageBirthYear: UInt?
-        get() = attributes[EuPidScheme.Attributes.AGE_BIRTH_YEAR] as UInt?
-
-    override val familyNameBirth: String?
-        get() = attributes[EuPidScheme.Attributes.FAMILY_NAME_BIRTH] as String?
-
-    override val givenNameBirth: String?
-        get() = attributes[EuPidScheme.Attributes.GIVEN_NAME_BIRTH] as String?
-
-    override val birthPlace: String?
-        get() = attributes[EuPidScheme.Attributes.BIRTH_PLACE] as String?
-
-    override val birthCountry: String?
-        get() = attributes[EuPidScheme.Attributes.BIRTH_COUNTRY] as String?
-
-    override val birthState: String?
-        get() = attributes[EuPidScheme.Attributes.BIRTH_STATE] as String?
-
-    override val birthCity: String?
-        get() = attributes[EuPidScheme.Attributes.BIRTH_CITY] as String?
-}
-
 private class EuPidCredentialIsoMdocAdapter(
     namespaces: Map<String, Map<String, Any>>?,
 ) : EuPidCredentialAdapter() {
     private val euPidNamespace = namespaces?.get(EuPidScheme.isoNamespace)
         ?: throw IllegalArgumentException("namespaces") // contains required attributes
 
-    private val euPidNamespaceCredentialProxy = EuPidCredentialSdJwtAdapter(euPidNamespace)
+    override val givenName: String
+        get() = euPidNamespace[EuPidScheme.Attributes.GIVEN_NAME] as String
+
+    override val familyName: String
+        get() = euPidNamespace[EuPidScheme.Attributes.FAMILY_NAME] as String
+
+    override val birthDate: LocalDate
+        get() = euPidNamespace[EuPidScheme.Attributes.BIRTH_DATE].let {
+            LocalDate.parse(it as String)
+        }
+
+    override val ageAtLeast18: Boolean?
+        get() = euPidNamespace[EuPidScheme.Attributes.AGE_OVER_18] as Boolean?
+
+    override val residentAddress: String?
+        get() = euPidNamespace[EuPidScheme.Attributes.RESIDENT_ADDRESS] as String?
+
+    override val residentStreet: String?
+        get() = euPidNamespace[EuPidScheme.Attributes.RESIDENT_STREET] as String?
+
+    override val residentCity: String?
+        get() = euPidNamespace[EuPidScheme.Attributes.RESIDENT_CITY] as String?
+
+    override val residentPostalCode: String?
+        get() = euPidNamespace[EuPidScheme.Attributes.RESIDENT_POSTAL_CODE] as String?
+
+    override val residentHouseNumber: String?
+        get() = euPidNamespace[EuPidScheme.Attributes.RESIDENT_HOUSE_NUMBER] as String?
+
+    override val residentCountry: String?
+        get() = euPidNamespace[EuPidScheme.Attributes.RESIDENT_COUNTRY] as String?
+
+    override val residentState: String?
+        get() = euPidNamespace[EuPidScheme.Attributes.RESIDENT_STATE] as String?
+
+    override val gender: IsoIec5218Gender?
+        get() = euPidNamespace[EuPidScheme.Attributes.GENDER] as IsoIec5218Gender?
+
+    override val nationality: String?
+        get() = euPidNamespace[EuPidScheme.Attributes.NATIONALITY] as String?
+
+    override val ageInYears: UInt?
+        get() = euPidNamespace[EuPidScheme.Attributes.AGE_IN_YEARS] as UInt?
+
+    override val ageBirthYear: UInt?
+        get() = euPidNamespace[EuPidScheme.Attributes.AGE_BIRTH_YEAR] as UInt?
+
+    override val familyNameBirth: String?
+        get() = euPidNamespace[EuPidScheme.Attributes.FAMILY_NAME_BIRTH] as String?
+
+    override val givenNameBirth: String?
+        get() = euPidNamespace[EuPidScheme.Attributes.GIVEN_NAME_BIRTH] as String?
+
+    override val birthPlace: String?
+        get() = euPidNamespace[EuPidScheme.Attributes.BIRTH_PLACE] as String?
+
+    override val birthCountry: String?
+        get() = euPidNamespace[EuPidScheme.Attributes.BIRTH_COUNTRY] as String?
+
+    override val birthState: String?
+        get() = euPidNamespace[EuPidScheme.Attributes.BIRTH_STATE] as String?
+
+    override val birthCity: String?
+        get() = euPidNamespace[EuPidScheme.Attributes.BIRTH_CITY] as String?
+}
+
+private class EuPidCredentialSdJwtAdapter(
+    attributes: Map<String, Any>
+) : EuPidCredentialAdapter() {
+    private val euPidNamespaceCredentialProxy = EuPidCredentialIsoMdocAdapter(
+        namespaces = mapOf(EuPidScheme.isoNamespace to attributes)
+    )
 
     override val givenName: String
         get() = euPidNamespaceCredentialProxy.givenName

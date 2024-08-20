@@ -8,31 +8,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import data.credentials.IdAustriaCredentialAdapter
+import data.credentials.MobileDrivingLicenceCredentialAdapter
 
 @Composable
-fun IdAustriaCredentialView(
+fun MobileDrivingLicenceCredentialView(
     credential: SubjectCredentialStore.StoreEntry,
-    imageDecoder: (ByteArray) -> ImageBitmap,
+    decodeImage: (ByteArray) -> ImageBitmap,
     modifier: Modifier = Modifier,
 ) {
     val credentialAdapter = remember {
-        IdAustriaCredentialAdapter.createFromStoreEntry(credential, imageDecoder)
+        MobileDrivingLicenceCredentialAdapter.createFromStoreEntry(
+            credential,
+            decodePortrait = decodeImage,
+        )
     }
 
     Column(modifier = modifier) {
         val spacingModifier = Modifier.padding(bottom = 16.dp)
-        IdAustriaCredentialIdentityDataCard(
-            credentialAdapter = credentialAdapter,
-            modifier = spacingModifier,
-        )
-        IdAustriaCredentialAgeDataCard(
-            credentialAdapter = credentialAdapter,
-            modifier = spacingModifier,
-        )
-        IdAustriaCredentialResidenceDataCard(
-            credentialAdapter = credentialAdapter,
-            modifier = spacingModifier,
-        )
     }
 }

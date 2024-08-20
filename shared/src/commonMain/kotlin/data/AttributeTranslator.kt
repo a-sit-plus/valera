@@ -70,10 +70,7 @@ class AttributeTranslator(val credentialScheme: ConstantIndex.CredentialScheme) 
                         IdAustriaScheme.Attributes.AGE_OVER_18 -> Res.string.attribute_friendly_name_age_at_least_18
                         IdAustriaScheme.Attributes.AGE_OVER_21 -> Res.string.attribute_friendly_name_age_at_least_21
                         IdAustriaScheme.Attributes.MAIN_ADDRESS -> {
-                            val second = attributeName.segments.getOrNull(1)
-                            if (second == null) {
-                                Res.string.attribute_friendly_name_main_address
-                            } else when (second) {
+                            when (val second = attributeName.segments.getOrNull(1)) {
                                 is NormalizedJsonPathSegment.NameSegment -> when (second.memberName) {
                                     IdAustriaCredentialMainAddress.GEMEINDEKENNZIFFER -> Res.string.id_austria_credential_attribute_friendly_name_main_address_municipality_code
                                     IdAustriaCredentialMainAddress.GEMEINDEBEZEICHNUNG -> Res.string.id_austria_credential_attribute_friendly_name_main_address_municipality_name
@@ -86,9 +83,12 @@ class AttributeTranslator(val credentialScheme: ConstantIndex.CredentialScheme) 
                                     else -> null
                                 }
 
+                                null -> Res.string.attribute_friendly_name_main_address
+
                                 else -> null
                             }
                         }
+
                         else -> null
                     }
 
