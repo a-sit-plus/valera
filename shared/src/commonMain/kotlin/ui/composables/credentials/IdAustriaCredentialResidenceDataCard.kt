@@ -11,15 +11,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.idaustria.IdAustriaScheme
-import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.text_label_door
-import composewalletapp.shared.generated.resources.text_label_stair
 import data.PersonalDataCategory
 import data.credentials.IdAustriaCredentialAdapter
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun IdAustriaResidenceDataCard(
+fun IdAustriaCredentialResidenceDataCard(
     credentialAdapter: IdAustriaCredentialAdapter,
     modifier: Modifier = Modifier,
 ) {
@@ -29,27 +25,28 @@ fun IdAustriaResidenceDataCard(
         credentialAdapter = credentialAdapter,
         modifier = modifier,
     ) {
-        IdAustriaResidenceDataCardContent(
+        IdAustriaCredentialResidenceDataCardContent(
             credentialAdapter = credentialAdapter,
             modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
         )
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun IdAustriaResidenceDataCardContent(
+fun IdAustriaCredentialResidenceDataCardContent(
     credentialAdapter: IdAustriaCredentialAdapter,
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = Modifier.padding(horizontal = 16.dp),
+        modifier = modifier,
         horizontalAlignment = Alignment.Start,
     ) {
         if (
             listOfNotNull(
                 credentialAdapter.mainAddress?.street,
                 credentialAdapter.mainAddress?.houseNumber,
+                credentialAdapter.mainAddress?.stair,
+                credentialAdapter.mainAddress?.door,
             ).any { it.isNotBlank() }
         ) {
             val untilHouseNumber = listOfNotNull(

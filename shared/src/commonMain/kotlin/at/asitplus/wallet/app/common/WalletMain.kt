@@ -107,7 +107,7 @@ class WalletMain(
         host: String,
         credentialScheme: ConstantIndex.CredentialScheme,
         credentialRepresentation: ConstantIndex.CredentialRepresentation,
-        requestedAttributes: Set<NormalizedJsonPath>?,
+        requestedAttributes: Set<String>?,
         onSuccess: () -> Unit,
     ) {
         scope.launch {

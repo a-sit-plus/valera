@@ -53,7 +53,7 @@ fun AddCredentialScreen(
 
     var requestedAttributes by rememberSaveable(credentialScheme) {
         runBlocking {
-            mutableStateOf(setOf<NormalizedJsonPath>())
+            mutableStateOf(setOf<String>())
         }
     }
 

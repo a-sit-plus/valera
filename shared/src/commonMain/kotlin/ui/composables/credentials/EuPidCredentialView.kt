@@ -2,35 +2,36 @@ package ui.composables.credentials
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import data.credentials.EuPidCredentialAdapter
 import data.credentials.IdAustriaCredentialAdapter
 
 @Composable
-fun IdAustriaCredentialView(
+fun EuPidCredentialView(
     credential: SubjectCredentialStore.StoreEntry,
-    imageDecoder: (ByteArray) -> ImageBitmap,
     modifier: Modifier = Modifier,
 ) {
     val credentialAdapter = remember {
-        IdAustriaCredentialAdapter.createFromStoreEntry(credential, imageDecoder)
+        EuPidCredentialAdapter.createFromStoreEntry(credential)
     }
 
     Column(modifier = modifier) {
         val spacingModifier = Modifier.padding(bottom = 16.dp)
-        IdAustriaCredentialIdentityDataCard(
+        EuPidCredentialIdentityDataCard(
             credentialAdapter = credentialAdapter,
             modifier = spacingModifier,
         )
-        IdAustriaCredentialAgeDataCard(
+        EuPidCredentialAgeDataCard(
             credentialAdapter = credentialAdapter,
             modifier = spacingModifier,
         )
-        IdAustriaCredentialResidenceDataCard(
+        EuPidCredentialResidenceDataCard(
             credentialAdapter = credentialAdapter,
             modifier = spacingModifier,
         )

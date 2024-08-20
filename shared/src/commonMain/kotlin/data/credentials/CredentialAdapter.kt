@@ -6,7 +6,6 @@ import at.asitplus.wallet.lib.data.ConstantIndex
 import data.Attribute
 
 sealed interface CredentialAdapter {
-    val scheme: ConstantIndex.CredentialScheme
     fun getAttribute(path: NormalizedJsonPath): Attribute?
 
     companion object {

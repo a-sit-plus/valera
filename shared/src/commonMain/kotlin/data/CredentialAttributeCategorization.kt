@@ -1,7 +1,6 @@
 package data
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment.NameSegment
 import at.asitplus.wallet.app.common.third_parts.at.asitplus.jsonpath.core.plus
 import at.asitplus.wallet.cor.CertificateOfResidenceDataElements
@@ -42,13 +41,14 @@ val credentialAttributeCategorization = mapOf(
                 it + IdAustriaCredentialMainAddress.ORTSCHAFT,
                 it + IdAustriaCredentialMainAddress.GEMEINDEBEZEICHNUNG,
                 it + IdAustriaCredentialMainAddress.GEMEINDEKENNZIFFER,
+                it
             )
         },
 
         PersonalDataCategory.AdmissionData to listOf(
             IdAustriaScheme.Attributes.VEHICLE_REGISTRATION, // TODO: Extract data
         ).map { NormalizedJsonPath(NameSegment(it)) },
-    ).withOthersFrom(IdAustriaScheme.claimNames),
+    ).withOthersFrom(IdAustriaScheme.claimNames.map { NormalizedJsonPath(NameSegment(it)) }),
 
     EuPidScheme to mapOf(
         PersonalDataCategory.IdentityData to listOf(
@@ -75,15 +75,17 @@ val credentialAttributeCategorization = mapOf(
         ).map { NormalizedJsonPath(NameSegment(it)) },
 
         PersonalDataCategory.ResidenceData to listOf(
-            EuPidScheme.Attributes.RESIDENT_ADDRESS,
-            EuPidScheme.Attributes.RESIDENT_COUNTRY,
-            EuPidScheme.Attributes.RESIDENT_STATE,
-            EuPidScheme.Attributes.RESIDENT_CITY,
-            EuPidScheme.Attributes.RESIDENT_POSTAL_CODE,
             EuPidScheme.Attributes.RESIDENT_STREET,
             EuPidScheme.Attributes.RESIDENT_HOUSE_NUMBER,
+            EuPidScheme.Attributes.RESIDENT_POSTAL_CODE,
+            EuPidScheme.Attributes.RESIDENT_CITY,
+            EuPidScheme.Attributes.RESIDENT_COUNTRY,
+            EuPidScheme.Attributes.RESIDENT_STATE,
+            EuPidScheme.Attributes.RESIDENT_ADDRESS,
         ).map { NormalizedJsonPath(NameSegment(it)) },
-    ).withOthersFrom(EuPidScheme.claimNames),
+    ).withOthersFrom(EuPidScheme.claimNames.map {
+        NormalizedJsonPath() + it
+    }),
 
     MobileDrivingLicenceScheme to mapOf(
         PersonalDataCategory.IdentityData to listOf(
@@ -96,17 +98,17 @@ val credentialAttributeCategorization = mapOf(
             MobileDrivingLicenceDataElements.PORTRAIT_CAPTURE_DATE,
 
             MobileDrivingLicenceDataElements.NATIONALITY, // TODO: not in figma?
-        ).map { NormalizedJsonPath(NameSegment(it)) },
+        ).map { NormalizedJsonPath() + it },
 
         PersonalDataCategory.AgeData to listOf(
             MobileDrivingLicenceDataElements.AGE_OVER_18,
             MobileDrivingLicenceDataElements.AGE_BIRTH_YEAR,
             MobileDrivingLicenceDataElements.AGE_IN_YEARS,
-        ).map { NormalizedJsonPath(NameSegment(it)) },
+        ).map { NormalizedJsonPath() + it },
 
         PersonalDataCategory.BirthData to listOf(
             MobileDrivingLicenceDataElements.BIRTH_PLACE,
-        ).map { NormalizedJsonPath(NameSegment(it)) },
+        ).map { NormalizedJsonPath() + it },
 
         PersonalDataCategory.ResidenceData to listOf(
             MobileDrivingLicenceDataElements.RESIDENT_ADDRESS,
@@ -114,7 +116,7 @@ val credentialAttributeCategorization = mapOf(
             MobileDrivingLicenceDataElements.RESIDENT_POSTAL_CODE,
             MobileDrivingLicenceDataElements.RESIDENT_COUNTRY,
             MobileDrivingLicenceDataElements.RESIDENT_STATE,
-        ).map { NormalizedJsonPath(NameSegment(it)) },
+        ).map { NormalizedJsonPath() + it },
 
         PersonalDataCategory.AppearanceData to listOf(
             MobileDrivingLicenceDataElements.SEX,
@@ -122,16 +124,16 @@ val credentialAttributeCategorization = mapOf(
             MobileDrivingLicenceDataElements.WEIGHT,
             MobileDrivingLicenceDataElements.EYE_COLOUR,
             MobileDrivingLicenceDataElements.HAIR_COLOUR,
-        ).map { NormalizedJsonPath(NameSegment(it)) },
+        ).map { NormalizedJsonPath() + it },
 
         PersonalDataCategory.DrivingPermissions to listOf(
             MobileDrivingLicenceDataElements.DRIVING_PRIVILEGES, // TODO: extract data
-        ).map { NormalizedJsonPath(NameSegment(it)) },
+        ).map { NormalizedJsonPath() + it },
 
         PersonalDataCategory.BiometricData to listOf(
             MobileDrivingLicenceDataElements.SIGNATURE_USUAL_MARK, // TODO: extract data
             MobileDrivingLicenceDataElements.UN_DISTINGUISHING_SIGN, // TODO: extract data
-        ).map { NormalizedJsonPath(NameSegment(it)) },
+        ).map { NormalizedJsonPath() + it },
 
         PersonalDataCategory.Metadata to listOf(
             MobileDrivingLicenceDataElements.ISSUE_DATE,
@@ -141,8 +143,10 @@ val credentialAttributeCategorization = mapOf(
             MobileDrivingLicenceDataElements.ISSUING_JURISDICTION,
             MobileDrivingLicenceDataElements.DOCUMENT_NUMBER,
             MobileDrivingLicenceDataElements.ADMINISTRATIVE_NUMBER,
-        ).map { NormalizedJsonPath(NameSegment(it)) },
-    ).withOthersFrom(MobileDrivingLicenceDataElements.ALL_ELEMENTS),
+        ).map { NormalizedJsonPath() + it },
+    ).withOthersFrom(MobileDrivingLicenceDataElements.ALL_ELEMENTS.map {
+        NormalizedJsonPath() + it
+    }),
 
     PowerOfRepresentationScheme to mapOf(
         PersonalDataCategory.RepresentationData to listOf(
@@ -152,7 +156,7 @@ val credentialAttributeCategorization = mapOf(
             PowerOfRepresentationDataElements.E_SERVICE,
             PowerOfRepresentationDataElements.EFFECTIVE_FROM_DATE,
             PowerOfRepresentationDataElements.EFFECTIVE_UNTIL_DATE,
-        ).map { NormalizedJsonPath(NameSegment(it)) },
+        ).map { NormalizedJsonPath() + it },
         PersonalDataCategory.Metadata to listOf(
             PowerOfRepresentationDataElements.ISSUANCE_DATE,
             PowerOfRepresentationDataElements.EXPIRY_DATE,
@@ -161,8 +165,10 @@ val credentialAttributeCategorization = mapOf(
             PowerOfRepresentationDataElements.ISSUING_JURISDICTION,
             PowerOfRepresentationDataElements.DOCUMENT_NUMBER,
             PowerOfRepresentationDataElements.ADMINISTRATIVE_NUMBER,
-        ).map { NormalizedJsonPath(NameSegment(it)) },
-    ).withOthersFrom(PowerOfRepresentationDataElements.ALL_ELEMENTS),
+        ).map { NormalizedJsonPath() + it },
+    ).withOthersFrom(PowerOfRepresentationDataElements.ALL_ELEMENTS.map {
+        NormalizedJsonPath() + it
+    }),
 
     CertificateOfResidenceScheme to mapOf(
         PersonalDataCategory.IdentityData to listOf(
@@ -172,10 +178,10 @@ val credentialAttributeCategorization = mapOf(
             CertificateOfResidenceDataElements.NATIONALITY,
             CertificateOfResidenceDataElements.BIRTH_PLACE,
             CertificateOfResidenceDataElements.GENDER,
-        ).map { NormalizedJsonPath(NameSegment(it)) },
+        ).map { NormalizedJsonPath() + it },
         PersonalDataCategory.ResidenceData to listOf(
             CertificateOfResidenceDataElements.RESIDENCE_ADDRESS, // TODO: allow display of child elements
-        ).map { NormalizedJsonPath(NameSegment(it)) },
+        ).map { NormalizedJsonPath() + it },
         PersonalDataCategory.Metadata to listOf(
             CertificateOfResidenceDataElements.ISSUANCE_DATE,
             CertificateOfResidenceDataElements.EXPIRY_DATE,
@@ -184,17 +190,21 @@ val credentialAttributeCategorization = mapOf(
             CertificateOfResidenceDataElements.ISSUING_JURISDICTION,
             CertificateOfResidenceDataElements.DOCUMENT_NUMBER,
             CertificateOfResidenceDataElements.ADMINISTRATIVE_NUMBER,
-        ).map { NormalizedJsonPath(NameSegment(it)) },
-    ).withOthersFrom(CertificateOfResidenceDataElements.ALL_ELEMENTS),
+        ).map { NormalizedJsonPath() + it },
+    ).withOthersFrom(CertificateOfResidenceDataElements.ALL_ELEMENTS.map {
+        NormalizedJsonPath() + it
+    }),
 )
 
-private fun Map<PersonalDataCategory, List<NormalizedJsonPath>>.withOthersFrom(allAttributes: Collection<String>): Map<PersonalDataCategory, List<NormalizedJsonPath>> {
+private fun Map<PersonalDataCategory, List<NormalizedJsonPath>>.withOthersFrom(allAttributes: Collection<NormalizedJsonPath>): Map<PersonalDataCategory, List<NormalizedJsonPath>> {
     val categorization = this
-    val categorizedAttributes = categorization.map { it.value.map { it.toString() } }.flatten()
-    val otherAttributes = allAttributes.filterNot {
-        categorizedAttributes.contains(it)
+    val categorizedAttributes = categorization.map { it.value }.flatten()
+    val otherAttributes = allAttributes.filterNot { uncategorized ->
+        categorizedAttributes.any { categorized ->
+            categorized.toString() == uncategorized.toString()
+        }
     }
     return categorization + if (otherAttributes.isEmpty()) listOf() else listOf(
-        PersonalDataCategory.OtherData to otherAttributes.map { NormalizedJsonPath(NameSegment(it)) },
+        PersonalDataCategory.OtherData to otherAttributes.map { NormalizedJsonPath() + it },
     )
 }

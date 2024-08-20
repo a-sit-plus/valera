@@ -3,29 +3,25 @@ package ui.composables.credentials
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import data.PersonalDataCategory
+import data.credentials.EuPidCredentialAdapter
 import data.credentials.IdAustriaCredentialAdapter
-import ui.composables.getGenericAttributeRepresentations
 
 @Composable
-fun IdAustriaAgeDataCard(
-    credentialAdapter: IdAustriaCredentialAdapter,
+fun EuPidCredentialAgeDataCard(
+    credentialAdapter: EuPidCredentialAdapter,
     modifier: Modifier = Modifier,
 ) {
     CredentialDetailCard(
@@ -34,7 +30,7 @@ fun IdAustriaAgeDataCard(
         credentialAdapter = credentialAdapter,
         modifier = modifier,
     ) {
-        IdAustriaAgeDataCardContent(
+        EuPidCredentialAgeDataCardContent(
             credentialAdapter = credentialAdapter,
         )
     }
@@ -42,15 +38,12 @@ fun IdAustriaAgeDataCard(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun IdAustriaAgeDataCardContent(
-    credentialAdapter: IdAustriaCredentialAdapter,
+fun EuPidCredentialAgeDataCardContent(
+    credentialAdapter: EuPidCredentialAdapter,
     modifier: Modifier = Modifier,
 ) {
     val agesAtLeastN = listOf(
-        14 to credentialAdapter.ageAtLeast14,
-        16 to credentialAdapter.ageAtLeast16,
         18 to credentialAdapter.ageAtLeast18,
-        21 to credentialAdapter.ageAtLeast21,
     )
 
     Column(modifier = modifier) {

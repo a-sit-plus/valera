@@ -28,6 +28,7 @@ fun AttributeRepresentation(attribute: Attribute) {
         is Attribute.ImageAttribute -> AttributeRepresentation(attribute.value)
         is Attribute.IntegerAttribute -> TODO() // AttributeRepresentation(attribute.value)
         is Attribute.UnsignedIntegerAttribute -> TODO() // AttributeRepresentation(attribute.value)
+        is Attribute.DrivingPrivilegeAttribute -> TODO() // AttributeRepresentation(attribute.value)
     }
 }
 
@@ -66,22 +67,4 @@ fun AttributeRepresentation(
             stringResource(Res.string.dictionary_no)
         }
     )
-}
-
-fun getGenericAttributeRepresentations(
-    credentialScheme: ConstantIndex.CredentialScheme,
-    personalDataCategory: PersonalDataCategory,
-    credentialAdapter: CredentialAdapter,
-): List<Pair<NormalizedJsonPath, @Composable () -> Unit>> {
-    val attributeNames = credentialAttributeCategorization.get(credentialScheme)
-        ?.get(personalDataCategory)
-        ?: throw IllegalStateException("credentialAttributeCategorization")
-
-    return attributeNames.mapNotNull { attributeName ->
-        credentialAdapter.getAttribute(attributeName)?.let { attribute ->
-            attributeName to {
-                AttributeRepresentation(attribute)
-            }
-        }
-    }
 }

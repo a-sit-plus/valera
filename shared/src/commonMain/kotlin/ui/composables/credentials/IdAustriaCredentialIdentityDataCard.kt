@@ -7,13 +7,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,17 +21,15 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
-import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.content_description_portrait
 import data.PersonalDataCategory
 import data.credentials.IdAustriaCredentialAdapter
 import org.jetbrains.compose.resources.stringResource
-import ui.composables.getGenericAttributeRepresentations
 
 @Composable
-fun IdAustriaIdentityDataCard(
+fun IdAustriaCredentialIdentityDataCard(
     credentialAdapter: IdAustriaCredentialAdapter,
     modifier: Modifier = Modifier,
 ) {
@@ -43,7 +39,7 @@ fun IdAustriaIdentityDataCard(
         credentialAdapter = credentialAdapter,
         modifier = modifier,
     ) {
-        IdAustriaIdentityDataCardContent(
+        IdAustriaCredentialIdentityDataCardContent(
             credentialAdapter = credentialAdapter,
             modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
         )
@@ -51,7 +47,7 @@ fun IdAustriaIdentityDataCard(
 }
 
 @Composable
-fun IdAustriaIdentityDataCardContent(
+fun IdAustriaCredentialIdentityDataCardContent(
     credentialAdapter: IdAustriaCredentialAdapter,
     modifier: Modifier = Modifier
 ) {
