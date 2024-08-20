@@ -1,10 +1,12 @@
 package ui.composables.credentials
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -14,25 +16,32 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
-import at.asitplus.wallet.eupid.EuPidScheme
+import at.asitplus.wallet.idaustria.IdAustriaScheme
+import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
+import composewalletapp.shared.generated.resources.Res
+import composewalletapp.shared.generated.resources.content_description_portrait
 import data.PersonalDataCategory
-import data.credentials.EuPidCredentialAdapter
+import data.credentials.IdAustriaCredentialAdapter
+import data.credentials.MobileDrivingLicenceCredentialAdapter
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun EuPidCredentialIdentityDataCard(
-    credentialAdapter: EuPidCredentialAdapter,
+fun MobileDrivingLicenceCredentialIdentityDataCard(
+    credentialAdapter: MobileDrivingLicenceCredentialAdapter,
     modifier: Modifier = Modifier,
 ) {
     CredentialDetailCard(
-        credentialScheme = EuPidScheme,
+        credentialScheme = MobileDrivingLicenceScheme,
         personalDataCategory = PersonalDataCategory.IdentityData,
         credentialAdapter = credentialAdapter,
         modifier = modifier,
     ) {
-        EuPidCredentialIdentityDataCardContent(
+        MobileDrivingLicenceCredentialIdentityDataCardContent(
             credentialAdapter = credentialAdapter,
             modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
         )
@@ -40,8 +49,8 @@ fun EuPidCredentialIdentityDataCard(
 }
 
 @Composable
-fun EuPidCredentialIdentityDataCardContent(
-    credentialAdapter: EuPidCredentialAdapter,
+fun MobileDrivingLicenceCredentialIdentityDataCardContent(
+    credentialAdapter: MobileDrivingLicenceCredentialAdapter,
     modifier: Modifier = Modifier
 ) {
     var columnSize by remember { mutableStateOf(Size.Zero) }
@@ -51,6 +60,17 @@ fun EuPidCredentialIdentityDataCardContent(
             columnSize = layoutCoordinates.size.toSize()
         },
     ) {
+        credentialAdapter.portraitBitmap?.let { portraitBitmap ->
+            // source: https://stackoverflow.com/questions/69455135/does-jetpack-compose-have-maxheight-and-maxwidth-like-xml
+            // weird way to get "at most 1/4th of max width"
+            val maxWidth = LocalDensity.current.run { (0.25f * columnSize.width).toDp() }
+            Image(
+                bitmap = portraitBitmap,
+                contentDescription = stringResource(Res.string.content_description_portrait),
+                modifier = Modifier.widthIn(0.dp, maxWidth).padding(end = 16.dp),
+                contentScale = ContentScale.FillWidth,
+            )
+        }
         val textGap = 4.dp
         Column(
             horizontalAlignment = Alignment.Start,
@@ -62,9 +82,6 @@ fun EuPidCredentialIdentityDataCardContent(
                 modifier = Modifier.padding(bottom = textGap),
             )
             Text(credentialAdapter.birthDate.run { "$dayOfMonth.$monthNumber.$year" })
-            credentialAdapter.nationality?.let {
-                Text(it)
-            }
         }
     }
 }

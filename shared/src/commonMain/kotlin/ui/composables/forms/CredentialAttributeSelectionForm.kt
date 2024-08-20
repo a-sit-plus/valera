@@ -34,8 +34,12 @@ fun CredentialAttributeSelectionForm(
     onSetAttributeCategoriesExpanded: ((Pair<PersonalDataCategory, Boolean>) -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
-    val attributeCategorization = credentialAttributeCategorization[credentialScheme]?.toMap()
+    val credentialSchemeAttributes = credentialAttributeCategorization[credentialScheme]
         ?: throw IllegalArgumentException("credentialScheme: ${credentialScheme.identifier}")
+
+    val attributeCategorization = credentialSchemeAttributes.mapValues {
+        it.value.map { it.first }
+    }
 
     Column(
         modifier = modifier,
