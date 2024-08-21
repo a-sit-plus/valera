@@ -24,6 +24,7 @@ var globalBack: () -> Unit = {}
  * to compose whenever the app gets called via an associated domain
  */
 var appLink = mutableStateOf<String?>(null)
+var pdfLink = mutableStateOf<String?>(null)
 
 /**
  * Global variable to test at least something from the iOS UITest
