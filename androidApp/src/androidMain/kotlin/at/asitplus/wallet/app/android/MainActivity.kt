@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import appLink
 import at.asitplus.wallet.app.common.BuildContext
+import pdfLink
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,7 +28,12 @@ class MainActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         if (intent != null) {
-            appLink.value = intent.data?.toString()
+            if (intent.type?.contains("pdf") == true) {
+                val uri = intent.extras?.get(Intent.EXTRA_STREAM)
+                pdfLink.value = uri.toString()
+            } else {
+                appLink.value = intent.data?.toString()
+            }
         }
     }
 }
