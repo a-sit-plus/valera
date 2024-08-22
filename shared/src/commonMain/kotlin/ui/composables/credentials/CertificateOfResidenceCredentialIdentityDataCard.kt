@@ -21,66 +21,55 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
+import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.content_description_portrait
 import data.PersonalDataCategory
+import data.credentials.CertificateOfResidenceCredentialAdapter
 import data.credentials.IdAustriaCredentialAdapter
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.AttributeRepresentation
 
 @Composable
-fun IdAustriaCredentialIdentityDataCard(
-    credentialAdapter: IdAustriaCredentialAdapter,
+fun CertificateOfResidenceCredentialIdentityDataCard(
+    credentialAdapter: CertificateOfResidenceCredentialAdapter,
     modifier: Modifier = Modifier,
 ) {
     CredentialDetailCard(
-        credentialScheme = IdAustriaScheme,
+        credentialScheme = CertificateOfResidenceScheme,
         personalDataCategory = PersonalDataCategory.IdentityData,
         credentialAdapter = credentialAdapter,
         modifier = modifier,
     ) {
-        IdAustriaCredentialIdentityDataCardContent(
+        CertificateOfResidenceCredentialIdentityDataCardContent(
             credentialAdapter = credentialAdapter,
-            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
         )
     }
 }
 
 @Composable
-fun IdAustriaCredentialIdentityDataCardContent(
-    credentialAdapter: IdAustriaCredentialAdapter,
+    fun CertificateOfResidenceCredentialIdentityDataCardContent(
+    credentialAdapter: CertificateOfResidenceCredentialAdapter,
     modifier: Modifier = Modifier
 ) {
-    var columnSize by remember { mutableStateOf(Size.Zero) }
-    Row(
-        horizontalArrangement = Arrangement.Start,
-        modifier = modifier.fillMaxWidth().onGloballyPositioned { layoutCoordinates ->
-            columnSize = layoutCoordinates.size.toSize()
-        },
+    Column(
+        horizontalAlignment = Alignment.Start,
+        modifier = modifier,
     ) {
-        credentialAdapter.portraitBitmap?.let { portraitBitmap ->
-            // source: https://stackoverflow.com/questions/69455135/does-jetpack-compose-have-maxheight-and-maxwidth-like-xml
-            // weird way to get "at most 1/4th of max width"
-            val maxWidth = LocalDensity.current.run { (0.25f * columnSize.width).toDp() }
-            Image(
-                bitmap = portraitBitmap,
-                contentDescription = stringResource(Res.string.content_description_portrait),
-                modifier = Modifier.widthIn(0.dp, maxWidth).padding(end = 16.dp),
-                contentScale = ContentScale.FillWidth,
-            )
-        }
-        Column(
-            horizontalAlignment = Alignment.Start,
-        ) {
-            val spacingModifier = Modifier.padding(bottom = 4.dp)
+        val spacingModifier = Modifier.padding(bottom = 4.dp)
+        if (credentialAdapter.givenName != null || credentialAdapter.familyName != null) {
             AttributeRepresentation(
                 value = listOfNotNull(
-                    credentialAdapter.givenName, credentialAdapter.familyName
+                    credentialAdapter.givenName,
+                    credentialAdapter.familyName
                 ).joinToString(" "),
                 modifier = spacingModifier,
             )
-            AttributeRepresentation(credentialAdapter.dateOfBirth)
+        }
+        credentialAdapter.birthDate?.let {
+            AttributeRepresentation(it, modifier = spacingModifier)
         }
     }
 }

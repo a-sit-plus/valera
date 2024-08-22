@@ -15,6 +15,7 @@ import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.PersonalDataCategory
 import data.credentials.IdAustriaCredentialAdapter
 import data.credentials.MobileDrivingLicenceCredentialAdapter
+import ui.composables.AttributeRepresentation
 
 @Composable
 fun MobileDrivingLicenceCredentialResidenceDataCard(
@@ -47,32 +48,32 @@ fun MobileDrivingLicenceCredentialResidenceDataCardContent(
             Text(it)
         }
 
-        if (
-            listOfNotNull(
-                credentialAdapter.residentPostalCode,
-                credentialAdapter.residentCity,
-            ).any { it.isNotBlank() }
-        ) {
-            Text(
-                text = listOfNotNull(
-                    credentialAdapter.residentPostalCode,
-                    credentialAdapter.residentCity,
-                ).filter { it.isNotBlank() }.joinToString(" "),
-            )
+        listOfNotNull(
+            credentialAdapter.residentPostalCode,
+            credentialAdapter.residentCity,
+        ).any { it.isNotBlank() }.let {
+            if (it) {
+                AttributeRepresentation(
+                    value = listOfNotNull(
+                        credentialAdapter.residentPostalCode,
+                        credentialAdapter.residentCity,
+                    ).filter { it.isNotBlank() }.joinToString(" "),
+                )
+            }
         }
 
-        if (
-            listOfNotNull(
-                credentialAdapter.residentCountry,
-                credentialAdapter.residentState,
-            ).any { it.isNotBlank() }
-        ) {
-            Text(
-                text = listOfNotNull(
-                    credentialAdapter.residentCountry,
-                    credentialAdapter.residentState,
-                ).filter { it.isNotBlank() }.joinToString(" "),
-            )
+        listOfNotNull(
+            credentialAdapter.residentCountry,
+            credentialAdapter.residentState,
+        ).any { it.isNotBlank() }.let {
+            if (it) {
+                AttributeRepresentation(
+                    value = listOfNotNull(
+                        credentialAdapter.residentCountry,
+                        credentialAdapter.residentState,
+                    ).filter { it.isNotBlank() }.joinToString(" "),
+                )
+            }
         }
     }
 }

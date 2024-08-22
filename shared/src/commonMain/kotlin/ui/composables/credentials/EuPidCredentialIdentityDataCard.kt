@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.toSize
 import at.asitplus.wallet.eupid.EuPidScheme
 import data.PersonalDataCategory
 import data.credentials.EuPidCredentialAdapter
+import ui.composables.AttributeRepresentation
 
 @Composable
 fun EuPidCredentialIdentityDataCard(
@@ -34,7 +35,7 @@ fun EuPidCredentialIdentityDataCard(
     ) {
         EuPidCredentialIdentityDataCardContent(
             credentialAdapter = credentialAdapter,
-            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
         )
     }
 }
@@ -42,7 +43,7 @@ fun EuPidCredentialIdentityDataCard(
 @Composable
 fun EuPidCredentialIdentityDataCardContent(
     credentialAdapter: EuPidCredentialAdapter,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     var columnSize by remember { mutableStateOf(Size.Zero) }
     Row(
@@ -51,19 +52,26 @@ fun EuPidCredentialIdentityDataCardContent(
             columnSize = layoutCoordinates.size.toSize()
         },
     ) {
-        val textGap = 4.dp
         Column(
             horizontalAlignment = Alignment.Start,
         ) {
-            Text(
-                text = listOfNotNull(
-                    credentialAdapter.givenName, credentialAdapter.familyName
+            val spacingModifier = Modifier.padding(bottom = 4.dp)
+            AttributeRepresentation(
+                value = listOfNotNull(
+                    credentialAdapter.givenName,
+                    credentialAdapter.familyName,
                 ).joinToString(" "),
-                modifier = Modifier.padding(bottom = textGap),
+                modifier = spacingModifier,
             )
-            Text(credentialAdapter.birthDate.run { "$dayOfMonth.$monthNumber.$year" })
+            AttributeRepresentation(
+                value = credentialAdapter.birthDate,
+                modifier = spacingModifier,
+            )
             credentialAdapter.nationality?.let {
-                Text(it)
+                AttributeRepresentation(
+                    value = it,
+                    modifier = spacingModifier,
+                )
             }
         }
     }

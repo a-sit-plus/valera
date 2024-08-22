@@ -2,20 +2,18 @@ package ui.composables.credentials
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import data.credentials.IdAustriaCredentialAdapter
+import data.credentials.PowerOfRepresentationCredentialAdapter
 
 @Composable
-fun IdAustriaCredentialSummaryCardContent(
+fun PowerOfRepresentationCredentialSummaryCardContent(
     credential: SubjectCredentialStore.StoreEntry,
-    decodeImage: (ByteArray) -> ImageBitmap,
 ) {
     val credentialAdapter = remember {
-        IdAustriaCredentialAdapter.createFromStoreEntry(credential, decodeImage = decodeImage)
+        PowerOfRepresentationCredentialAdapter.createFromStoreEntry(credential)
     }
 
-    IdAustriaCredentialIdentityDataCardContent(
+    PowerOfRepresentationCredentialRepresentationDataCardContent(
         credentialAdapter = credentialAdapter,
     )
 }
