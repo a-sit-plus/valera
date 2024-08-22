@@ -5,15 +5,11 @@ import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.eupid.EuPidCredential
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.eupid.IsoIec5218Gender
-import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.data.ConstantIndex
 import data.Attribute
-import data.credentials.CredentialAdapter.Companion.toAttributeMap
-import data.credentials.CredentialAdapter.Companion.toNamespaceAttributeMap
 import kotlinx.datetime.LocalDate
 
-sealed class EuPidCredentialAdapter : CredentialAdapter {
+sealed class EuPidCredentialAdapter : CredentialAdapter() {
     override fun getAttribute(path: NormalizedJsonPath) = path.segments.firstOrNull()?.let { first ->
         when (first) {
             is NormalizedJsonPathSegment.NameSegment -> when(first.memberName) {
@@ -161,6 +157,77 @@ private class EuPidCredentialVcAdapter(
         get() = credentialSubject.birthCity
 }
 
+private class EuPidCredentialSdJwtAdapter(
+    attributes: Map<String, Any>
+) : EuPidCredentialAdapter() {
+    private val proxy = EuPidCredentialIsoMdocAdapter(
+        namespaces = mapOf(EuPidScheme.isoNamespace to attributes)
+    )
+
+    override val givenName: String
+        get() = proxy.givenName
+
+    override val familyName: String
+        get() = proxy.familyName
+
+    override val birthDate: LocalDate
+        get() = proxy.birthDate
+
+    override val ageAtLeast18: Boolean?
+        get() = proxy.ageAtLeast18
+
+    override val residentAddress: String?
+        get() = proxy.residentAddress
+
+    override val residentStreet: String?
+        get() = proxy.residentStreet
+
+    override val residentCity: String?
+        get() = proxy.residentCity
+
+    override val residentPostalCode: String?
+        get() = proxy.residentPostalCode
+
+    override val residentHouseNumber: String?
+        get() = proxy.residentHouseNumber
+
+    override val residentCountry: String?
+        get() = proxy.residentCountry
+
+    override val residentState: String?
+        get() = proxy.residentState
+
+    override val gender: IsoIec5218Gender?
+        get() = proxy.gender
+
+    override val nationality: String?
+        get() = proxy.nationality
+
+    override val ageInYears: UInt?
+        get() = proxy.ageInYears
+
+    override val ageBirthYear: UInt?
+        get() = proxy.ageBirthYear
+
+    override val familyNameBirth: String?
+        get() = proxy.familyNameBirth
+
+    override val givenNameBirth: String?
+        get() = proxy.givenNameBirth
+
+    override val birthPlace: String?
+        get() = proxy.birthPlace
+
+    override val birthCountry: String?
+        get() = proxy.birthCountry
+
+    override val birthState: String?
+        get() = proxy.birthState
+
+    override val birthCity: String?
+        get() = proxy.birthCity
+}
+
 private class EuPidCredentialIsoMdocAdapter(
     namespaces: Map<String, Map<String, Any>>?,
 ) : EuPidCredentialAdapter() {
@@ -174,9 +241,7 @@ private class EuPidCredentialIsoMdocAdapter(
         get() = euPidNamespace[EuPidScheme.Attributes.FAMILY_NAME] as String
 
     override val birthDate: LocalDate
-        get() = euPidNamespace[EuPidScheme.Attributes.BIRTH_DATE].let {
-            LocalDate.parse(it as String)
-        }
+        get() = euPidNamespace[EuPidScheme.Attributes.BIRTH_DATE].toLocalDateOrNull()!!
 
     override val ageAtLeast18: Boolean?
         get() = euPidNamespace[EuPidScheme.Attributes.AGE_OVER_18] as Boolean?
@@ -231,75 +296,4 @@ private class EuPidCredentialIsoMdocAdapter(
 
     override val birthCity: String?
         get() = euPidNamespace[EuPidScheme.Attributes.BIRTH_CITY] as String?
-}
-
-private class EuPidCredentialSdJwtAdapter(
-    attributes: Map<String, Any>
-) : EuPidCredentialAdapter() {
-    private val euPidNamespaceCredentialProxy = EuPidCredentialIsoMdocAdapter(
-        namespaces = mapOf(EuPidScheme.isoNamespace to attributes)
-    )
-
-    override val givenName: String
-        get() = euPidNamespaceCredentialProxy.givenName
-
-    override val familyName: String
-        get() = euPidNamespaceCredentialProxy.familyName
-
-    override val birthDate: LocalDate
-        get() = euPidNamespaceCredentialProxy.birthDate
-
-    override val ageAtLeast18: Boolean?
-        get() = euPidNamespaceCredentialProxy.ageAtLeast18
-
-    override val residentAddress: String?
-        get() = euPidNamespaceCredentialProxy.residentAddress
-
-    override val residentStreet: String?
-        get() = euPidNamespaceCredentialProxy.residentStreet
-
-    override val residentCity: String?
-        get() = euPidNamespaceCredentialProxy.residentCity
-
-    override val residentPostalCode: String?
-        get() = euPidNamespaceCredentialProxy.residentPostalCode
-
-    override val residentHouseNumber: String?
-        get() = euPidNamespaceCredentialProxy.residentHouseNumber
-
-    override val residentCountry: String?
-        get() = euPidNamespaceCredentialProxy.residentCountry
-
-    override val residentState: String?
-        get() = euPidNamespaceCredentialProxy.residentState
-
-    override val gender: IsoIec5218Gender?
-        get() = euPidNamespaceCredentialProxy.gender
-
-    override val nationality: String?
-        get() = euPidNamespaceCredentialProxy.nationality
-
-    override val ageInYears: UInt?
-        get() = euPidNamespaceCredentialProxy.ageInYears
-
-    override val ageBirthYear: UInt?
-        get() = euPidNamespaceCredentialProxy.ageBirthYear
-
-    override val familyNameBirth: String?
-        get() = euPidNamespaceCredentialProxy.familyNameBirth
-
-    override val givenNameBirth: String?
-        get() = euPidNamespaceCredentialProxy.givenNameBirth
-
-    override val birthPlace: String?
-        get() = euPidNamespaceCredentialProxy.birthPlace
-
-    override val birthCountry: String?
-        get() = euPidNamespaceCredentialProxy.birthCountry
-
-    override val birthState: String?
-        get() = euPidNamespaceCredentialProxy.birthState
-
-    override val birthCity: String?
-        get() = euPidNamespaceCredentialProxy.birthCity
 }

@@ -166,6 +166,7 @@ val credentialAttributeCategorization: Map<ConstantIndex.CredentialScheme, Map<P
                 PowerOfRepresentationDataElements.EFFECTIVE_FROM_DATE,
                 PowerOfRepresentationDataElements.EFFECTIVE_UNTIL_DATE,
             ).map { NormalizedJsonPath() + it to null },
+
             PersonalDataCategory.Metadata to listOf(
                 PowerOfRepresentationDataElements.ISSUANCE_DATE,
                 PowerOfRepresentationDataElements.EXPIRY_DATE,

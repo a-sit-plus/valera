@@ -90,10 +90,7 @@ fun CredentialAttributeSelectionForm(
                 isExpanded = attributeCategoriesExpanded[attributeCategory.key] ?: true,
                 onToggleExpanded = {
                     onSetAttributeCategoriesExpanded?.invoke(
-                        Pair(
-                            attributeCategory.key,
-                            it,
-                        )
+                        attributeCategory.key to it
                     )
                 },
                 isEditSelectionEnabled = onSetAttributeCategoriesExpanded != null,

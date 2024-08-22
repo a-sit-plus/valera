@@ -34,6 +34,7 @@ import data.PersonalDataCategory
 import data.credentials.IdAustriaCredentialAdapter
 import data.credentials.MobileDrivingLicenceCredentialAdapter
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.AttributeRepresentation
 
 @Composable
 fun MobileDrivingLicenceCredentialAgeDataCard(
@@ -69,11 +70,11 @@ fun MobileDrivingLicenceCredentialAgeDataCardContent(
             credentialAdapter.ageBirthYear,
         ).any { it.isNotBlank() }.let {
             if (it) {
-                Text(
-                    text = listOfNotNull(
+                AttributeRepresentation(
+                    value = listOfNotNull(
                         credentialAdapter.ageInYears,
                         credentialAdapter.ageBirthYear,
-                    ).filter { it.isNotBlank() }.joinToString("|"),
+                    ).filter { it.isNotBlank() }.joinToString(" | "),
                 )
             }
         }

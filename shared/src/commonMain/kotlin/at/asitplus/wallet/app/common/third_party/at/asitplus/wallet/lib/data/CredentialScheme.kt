@@ -25,8 +25,8 @@ fun ConstantIndex.CredentialScheme.uiLabel(): String = when (this) {
     is IdAustriaScheme -> stringResource(Res.string.credential_scheme_label_id_austria)
     is EuPidScheme -> stringResource(Res.string.credential_scheme_label_eu_pid)
     is MobileDrivingLicenceScheme -> stringResource(Res.string.credential_scheme_label_mdl)
-    is CertificateOfResidenceScheme -> stringResource(Res.string.credential_scheme_label_power_of_representation)
-    is PowerOfRepresentationScheme -> stringResource(Res.string.credential_scheme_label_certificate_of_residence)
+    is PowerOfRepresentationScheme -> stringResource(Res.string.credential_scheme_label_power_of_representation)
+    is CertificateOfResidenceScheme -> stringResource(Res.string.credential_scheme_label_certificate_of_residence)
     else -> this.identifier
 }
 
@@ -35,7 +35,7 @@ fun ConstantIndex.CredentialScheme.iconLabel(): String = when (this) {
     is IdAustriaScheme -> stringResource(Res.string.credential_scheme_icon_label_id_austria)
     is EuPidScheme -> stringResource(Res.string.credential_scheme_icon_label_eu_pid)
     is MobileDrivingLicenceScheme -> stringResource(Res.string.credential_scheme_icon_label_mdl)
-    is CertificateOfResidenceScheme -> stringResource(Res.string.credential_scheme_icon_label_power_of_representation)
-    is PowerOfRepresentationScheme -> stringResource(Res.string.credential_scheme_icon_label_certificate_of_residence)
+    is PowerOfRepresentationScheme -> stringResource(Res.string.credential_scheme_icon_label_power_of_representation)
+    is CertificateOfResidenceScheme -> stringResource(Res.string.credential_scheme_icon_label_certificate_of_residence)
     else -> this.identifier
 }

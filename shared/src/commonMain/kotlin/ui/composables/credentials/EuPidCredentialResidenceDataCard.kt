@@ -31,6 +31,7 @@ import data.PersonalDataCategory
 import data.credentials.EuPidCredentialAdapter
 import data.credentials.IdAustriaCredentialAdapter
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.AttributeRepresentation
 
 @Composable
 fun EuPidCredentialResidenceDataCard(
@@ -52,55 +53,56 @@ fun EuPidCredentialResidenceDataCard(
 
 @Composable
 fun EuPidCredentialResidenceDataCardContent(
-    credentialAdapter: EuPidCredentialAdapter,
-    modifier: Modifier = Modifier
+    credentialAdapter: EuPidCredentialAdapter, modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.Start,
     ) {
-        if (
-            listOfNotNull(
-                credentialAdapter.residentStreet,
-                credentialAdapter.residentHouseNumber,
-            ).any { it.isNotBlank() }
-        ) {
-            val firstAddressLine = listOfNotNull(
-                credentialAdapter.residentStreet,
-                credentialAdapter.residentHouseNumber,
-            ).filter {
-                it.isNotBlank()
-            }.joinToString(" ")
+        listOfNotNull(
+            credentialAdapter.residentStreet,
+            credentialAdapter.residentHouseNumber,
+        ).any { it.isNotBlank() }.let {
+            if (it) {
+                val firstAddressLine = listOfNotNull(
+                    credentialAdapter.residentStreet,
+                    credentialAdapter.residentHouseNumber,
+                ).filter {
+                    it.isNotBlank()
+                }.joinToString(" ")
 
-            Text(firstAddressLine)
+                AttributeRepresentation(
+                    value = firstAddressLine,
+                )
+            }
         }
 
-        if (
-            listOfNotNull(
-                credentialAdapter.residentPostalCode,
-                credentialAdapter.residentCity,
-            ).any { it.isNotBlank() }
-        ) {
-            Text(
-                text = listOfNotNull(
-                    credentialAdapter.residentPostalCode,
-                    credentialAdapter.residentCity,
-                ).filter { it.isNotBlank() }.joinToString(" "),
-            )
+        listOfNotNull(
+            credentialAdapter.residentPostalCode,
+            credentialAdapter.residentCity,
+        ).any { it.isNotBlank() }.let {
+            if (it) {
+                AttributeRepresentation(
+                    value = listOfNotNull(
+                        credentialAdapter.residentPostalCode,
+                        credentialAdapter.residentCity,
+                    ).filter { it.isNotBlank() }.joinToString(" "),
+                )
+            }
         }
 
-        if (
-            listOfNotNull(
-                credentialAdapter.residentCountry,
-                credentialAdapter.residentState,
-            ).any { it.isNotBlank() }
-        ) {
-            Text(
-                text = listOfNotNull(
-                    credentialAdapter.residentCountry,
-                    credentialAdapter.residentState,
-                ).filter { it.isNotBlank() }.joinToString(" "),
-            )
+        listOfNotNull(
+            credentialAdapter.residentCountry,
+            credentialAdapter.residentState,
+        ).any { it.isNotBlank() }.let {
+            if (it) {
+                AttributeRepresentation(
+                    value = listOfNotNull(
+                        credentialAdapter.residentCountry,
+                        credentialAdapter.residentState,
+                    ).filter { it.isNotBlank() }.joinToString(" "),
+                )
+            }
         }
     }
 }

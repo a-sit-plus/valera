@@ -75,6 +75,17 @@
     <string name="attribute_friendly_name_driving_privileges">Lenkberechtigungen</string>
     <string name="attribute_friendly_name_distinguishing_sign">Ausstellungsland (Code)</string>
 
+    <string name="attribute_friendly_name_legal_person_identifier">Name der juristischen Person</string>
+    <string name="attribute_friendly_name_legal_name">Identifier der juristischen Person</string>
+    <string name="attribute_friendly_name_full_powers">Volle Vertretungskraft</string>
+    <string name="attribute_friendly_name_e_service">Vertretungskraft für Funktion</string>
+    <string name="attribute_friendly_name_effective_from_date">Startdatum</string>
+    <string name="attribute_friendly_name_effective_until_date">Enddatum</string>
+    <string name="attribute_friendly_name_administrative_number">Administrative Nummer</string>
+    <string name="attribute_friendly_name_issuing_jurisdiction">Ausstellende Jurisdiktion</string>
+
+    <string name="attribute_friendly_name_residence_address">Wohnadresse</string>
+    <string name="attribute_friendly_name_arrival_date">Ankunftsdatum</string>
 
     <string name="id_austria_credential_attribute_friendly_name_main_address_street">Straße</string>
     <string name="id_austria_credential_attribute_friendly_name_main_address_house_number">Hausnummer</string>

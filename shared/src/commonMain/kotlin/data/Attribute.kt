@@ -3,7 +3,10 @@ package data
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.wallet.eupid.IsoIec5218Gender
 import at.asitplus.wallet.mdl.DrivingPrivilege
+import at.asitplus.wallet.mdl.IsoSexEnum
+import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
 
 sealed interface Attribute {
     companion object {
@@ -13,6 +16,8 @@ sealed interface Attribute {
         fun fromValue(value: UInt?) = value?.let { UnsignedIntegerAttribute(it) }
         fun fromValue(value: Boolean?) = value?.let { BooleanAttribute(it) }
         fun fromValue(value: LocalDate?) = value?.let { DateAttribute(it) }
+        fun fromValue(value: LocalDateTime?) = value?.let { DateTimeAttribute(it) }
+        fun fromValue(value: Instant?) = value?.let { InstantAttribute(it) }
         fun fromValue(value: ImageBitmap?) = value?.let { ImageAttribute(it) }
         fun fromValue(value: List<DrivingPrivilege>?) = value?.let { DrivingPrivilegeAttribute(it) }
     }
@@ -23,6 +28,8 @@ sealed interface Attribute {
     data class UnsignedIntegerAttribute(val value: UInt) : Attribute
     data class BooleanAttribute(val value: Boolean) : Attribute
     data class DateAttribute(val value: LocalDate) : Attribute
+    data class DateTimeAttribute(val value: LocalDateTime) : Attribute
+    data class InstantAttribute(val value: Instant) : Attribute
     data class ImageAttribute(val value: ImageBitmap) : Attribute
     data class DrivingPrivilegeAttribute(val value: List<DrivingPrivilege>) : Attribute
 }

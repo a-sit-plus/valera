@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import data.PersonalDataCategory
 import data.credentials.IdAustriaCredentialAdapter
+import ui.composables.AttributeRepresentation
 
 @Composable
 fun IdAustriaCredentialResidenceDataCard(
@@ -41,51 +42,50 @@ fun IdAustriaCredentialResidenceDataCardContent(
         modifier = modifier,
         horizontalAlignment = Alignment.Start,
     ) {
-        if (
-            listOfNotNull(
-                credentialAdapter.mainAddress?.street,
-                credentialAdapter.mainAddress?.houseNumber,
-                credentialAdapter.mainAddress?.stair,
-                credentialAdapter.mainAddress?.door,
-            ).any { it.isNotBlank() }
-        ) {
-            val untilHouseNumber = listOfNotNull(
-                credentialAdapter.mainAddress?.street,
-                credentialAdapter.mainAddress?.houseNumber,
-            ).filter {
-                it.isNotBlank()
-            }.joinToString(" ")
+        listOfNotNull(
+            credentialAdapter.mainAddress?.street,
+            credentialAdapter.mainAddress?.houseNumber,
+            credentialAdapter.mainAddress?.stair,
+            credentialAdapter.mainAddress?.door,
+        ).any { it.isNotBlank() }.let {
+            if (it) {
+                val untilHouseNumber = listOfNotNull(
+                    credentialAdapter.mainAddress?.street,
+                    credentialAdapter.mainAddress?.houseNumber,
+                ).filter {
+                    it.isNotBlank()
+                }.joinToString(" ")
 
-            val afterHouseNumber = listOfNotNull(
-                credentialAdapter.mainAddress?.stair,
-                credentialAdapter.mainAddress?.door,
-            ).filter {
-                it.isNotBlank()
-            }.joinToString("/")
+                val afterHouseNumber = listOfNotNull(
+                    credentialAdapter.mainAddress?.stair,
+                    credentialAdapter.mainAddress?.door,
+                ).filter {
+                    it.isNotBlank()
+                }.joinToString("/")
 
-            val firstLine = listOfNotNull(
-                untilHouseNumber,
-                afterHouseNumber,
-            ).filter {
-                it.isNotBlank()
-            }.joinToString("/")
+                val firstLine = listOfNotNull(
+                    untilHouseNumber,
+                    afterHouseNumber,
+                ).filter {
+                    it.isNotBlank()
+                }.joinToString("/")
 
-            Text(firstLine)
+                AttributeRepresentation(firstLine)
+            }
         }
 
-        if (
-            listOfNotNull(
-                credentialAdapter.mainAddress?.postalCode,
-                credentialAdapter.mainAddress?.locality,
-            ).any { it.isNotBlank() }
-        ) {
-            Text(
-                text = listOfNotNull(
-                    credentialAdapter.mainAddress?.postalCode,
-                    credentialAdapter.mainAddress?.locality,
-                ).filter { it.isNotBlank() }.joinToString(" "),
-            )
+        listOfNotNull(
+            credentialAdapter.mainAddress?.postalCode,
+            credentialAdapter.mainAddress?.locality,
+        ).any { it.isNotBlank() }.let {
+            if (it) {
+                AttributeRepresentation(
+                    value = listOfNotNull(
+                        credentialAdapter.mainAddress?.postalCode,
+                        credentialAdapter.mainAddress?.locality,
+                    ).filter { it.isNotBlank() }.joinToString(" "),
+                )
+            }
         }
-        Spacer(modifier = Modifier.height(16.dp))
     }
 }

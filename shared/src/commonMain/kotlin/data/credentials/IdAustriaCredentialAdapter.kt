@@ -6,18 +6,7 @@ import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.idaustria.IdAustriaCredential
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.id_austria_credential_attribute_friendly_name_main_address_door
-import composewalletapp.shared.generated.resources.id_austria_credential_attribute_friendly_name_main_address_house_number
-import composewalletapp.shared.generated.resources.id_austria_credential_attribute_friendly_name_main_address_location
-import composewalletapp.shared.generated.resources.id_austria_credential_attribute_friendly_name_main_address_municipality_code
-import composewalletapp.shared.generated.resources.id_austria_credential_attribute_friendly_name_main_address_municipality_name
-import composewalletapp.shared.generated.resources.id_austria_credential_attribute_friendly_name_main_address_postal_code
-import composewalletapp.shared.generated.resources.id_austria_credential_attribute_friendly_name_main_address_stair
-import composewalletapp.shared.generated.resources.id_austria_credential_attribute_friendly_name_main_address_street
 import data.Attribute
-import data.credentials.CredentialAdapter.Companion.toAttributeMap
-import data.credentials.CredentialAdapter.Companion.toNamespaceAttributeMap
 import io.ktor.util.decodeBase64Bytes
 import io.ktor.util.decodeBase64String
 import kotlinx.datetime.LocalDate
@@ -25,7 +14,7 @@ import kotlinx.serialization.json.Json
 
 sealed class IdAustriaCredentialAdapter(
     private val decodePortrait: (ByteArray) -> ImageBitmap,
-) : CredentialAdapter {
+) : CredentialAdapter() {
     override fun getAttribute(path: NormalizedJsonPath) =
         path.segments.firstOrNull()?.let { first ->
             when (first) {
@@ -171,43 +160,43 @@ private class IdAustriaCredentialVcAdapter(
 }
 
 private class IdAustriaCredentialSdJwtAdapter(
-    val attributes: Map<String, Any>,
+    attributes: Map<String, Any>,
     decodeImage: (ByteArray) -> ImageBitmap,
 ) : IdAustriaCredentialAdapter(decodeImage) {
-    private val idAustriaNamespaceProxy = IdAustriaCredentialIsoMdocAdapter(
+    private val proxy = IdAustriaCredentialIsoMdocAdapter(
         namespaces = mapOf(IdAustriaScheme.isoNamespace to attributes),
         decodeImage = decodeImage,
     )
 
     override val bpk: String
-        get() = idAustriaNamespaceProxy.bpk
+        get() = proxy.bpk
 
     override val givenName: String
-        get() = idAustriaNamespaceProxy.givenName
+        get() = proxy.givenName
 
     override val familyName: String
-        get() = idAustriaNamespaceProxy.familyName
+        get() = proxy.familyName
 
     override val dateOfBirth: LocalDate
-        get() = idAustriaNamespaceProxy.dateOfBirth
+        get() = proxy.dateOfBirth
 
     override val portraitRaw: ByteArray?
-        get() = idAustriaNamespaceProxy.portraitRaw
+        get() = proxy.portraitRaw
 
     override val ageAtLeast14: Boolean?
-        get() = idAustriaNamespaceProxy.ageAtLeast14
+        get() = proxy.ageAtLeast14
 
     override val ageAtLeast16: Boolean?
-        get() = idAustriaNamespaceProxy.ageAtLeast16
+        get() = proxy.ageAtLeast16
 
     override val ageAtLeast18: Boolean?
-        get() = idAustriaNamespaceProxy.ageAtLeast18
+        get() = proxy.ageAtLeast18
 
     override val ageAtLeast21: Boolean?
-        get() = idAustriaNamespaceProxy.ageAtLeast21
+        get() = proxy.ageAtLeast21
 
     override val mainAddressRaw: String?
-        get() = idAustriaNamespaceProxy.mainAddressRaw
+        get() = proxy.mainAddressRaw
 }
 
 private class IdAustriaCredentialIsoMdocAdapter(
@@ -227,9 +216,7 @@ private class IdAustriaCredentialIsoMdocAdapter(
         get() = idAustriaNamespace[IdAustriaScheme.Attributes.LASTNAME] as String
 
     override val dateOfBirth: LocalDate
-        get() = idAustriaNamespace[IdAustriaScheme.Attributes.DATE_OF_BIRTH].let {
-            LocalDate.parse(it as String)
-        }
+        get() = idAustriaNamespace[IdAustriaScheme.Attributes.DATE_OF_BIRTH].toLocalDateOrNull()!!
 
     override val portraitRaw: ByteArray? by lazy {
         idAustriaNamespace[IdAustriaScheme.Attributes.PORTRAIT]?.let {

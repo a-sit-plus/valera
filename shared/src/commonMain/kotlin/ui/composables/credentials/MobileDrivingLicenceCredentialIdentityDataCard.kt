@@ -29,6 +29,7 @@ import data.PersonalDataCategory
 import data.credentials.IdAustriaCredentialAdapter
 import data.credentials.MobileDrivingLicenceCredentialAdapter
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.AttributeRepresentation
 
 @Composable
 fun MobileDrivingLicenceCredentialIdentityDataCard(
@@ -75,13 +76,13 @@ fun MobileDrivingLicenceCredentialIdentityDataCardContent(
         Column(
             horizontalAlignment = Alignment.Start,
         ) {
-            Text(
-                text = listOfNotNull(
+            AttributeRepresentation(
+                value = listOfNotNull(
                     credentialAdapter.givenName, credentialAdapter.familyName
                 ).joinToString(" "),
                 modifier = Modifier.padding(bottom = textGap),
             )
-            Text(credentialAdapter.birthDate.run { "$dayOfMonth.$monthNumber.$year" })
+            AttributeRepresentation(credentialAdapter.birthDate)
         }
     }
 }
