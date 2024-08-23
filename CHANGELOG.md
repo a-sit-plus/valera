@@ -1,6 +1,7 @@
 
 
 # UNRELEASED Release 4.1.0:
+* improved display of credentials
 * 
 
 # Release 4.0.0:
