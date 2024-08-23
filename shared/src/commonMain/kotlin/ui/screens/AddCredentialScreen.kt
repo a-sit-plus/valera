@@ -5,6 +5,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -37,18 +38,24 @@ fun AddCredentialScreen(
         }
     }
 
-    var credentialRepresentation by rememberSaveable {
-        mutableStateOf(runBlocking {
-            walletMain.walletConfig.credentialRepresentation.first()
-        })
-    }
-
     var credentialScheme by rememberSaveable(
         saver = CredentialSchemeSaver().asMutableStateSaver()
     ) {
         mutableStateOf(runBlocking {
             walletMain.walletConfig.credentialScheme.first()
         })
+    }
+
+    var credentialRepresentation by rememberSaveable {
+        mutableStateOf(runBlocking {
+            walletMain.walletConfig.credentialRepresentation.first()
+        })
+    }
+
+    LaunchedEffect(credentialScheme) {
+        if(credentialRepresentation !in credentialScheme.supportedRepresentations) {
+            credentialRepresentation = credentialScheme.supportedRepresentations.first()
+        }
     }
 
     var requestedAttributes by rememberSaveable(credentialScheme) {
