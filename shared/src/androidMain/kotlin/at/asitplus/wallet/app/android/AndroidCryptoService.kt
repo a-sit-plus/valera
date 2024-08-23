@@ -67,7 +67,8 @@ class AndroidCryptoService(
     private var authorizationResult: BiometricPrompt.AuthenticationResult? = null
     private var authorizationPromptMutex = Mutex()
     override suspend fun useAuthorizationContext(
-        context: CryptoServiceAuthorizationContext, block: suspend () -> Unit
+        context: CryptoServiceAuthorizationContext,
+        block: suspend () -> Unit,
     ) = catching {
         authorizationPromptMutex.withLock {
             when (context) {
@@ -117,7 +118,6 @@ class AndroidCryptoService(
             //  2024-08-05: acrusage: I think we always want to have a crypto object here though
             val signature = algorithm.getJCASignatureInstance().getOrThrow()
             signature.initSign(keyPair.private)
-            Napier.d("opening biometry prompt")
             biometricPrompt.authenticate(
                 authorizationContext.promptInfo,
                 BiometricPrompt.CryptoObject(signature),
@@ -268,7 +268,7 @@ class AndroidCryptoService(
         val keyY = ecPublicKey.w.affineY.toByteArray().ensureSize(ecCurve.coordinateLength.bytes)
         this.cryptoPublicKey =
             fromUncompressed(curve = ECCurve.SECP_256_R_1, x = keyX, y = keyY).also {
-                    it.jwkId = it.didEncoded
-                }
+                it.jwkId = it.didEncoded
+            }
     }
 }
