@@ -19,11 +19,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.agent.representation
-import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
@@ -32,10 +29,8 @@ import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.heading_label_credential_details_screen
-import data.credentialAttributeCategorization
 import data.storage.StoreEntryId
 import org.jetbrains.compose.resources.stringResource
-import ui.composables.LabeledText
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.CertificateOfResidenceCredentialView
 import ui.composables.credentials.EuPidCredentialView
