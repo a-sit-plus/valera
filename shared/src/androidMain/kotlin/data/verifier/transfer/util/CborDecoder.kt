@@ -16,6 +16,7 @@ import data.verifier.ImageEntry
 import data.verifier.IntEntry
 import data.verifier.StringEntry
 import data.verifier.VehicleRegistration
+import io.github.aakira.napier.Napier
 import java.security.PrivateKey
 class CborDecoder(
     var updateLogs: (String?, String) -> Unit = { _: String?, _: String -> }
@@ -82,30 +83,30 @@ class CborDecoder(
 
         for (document in documents) {
             val docType = document["docType"] as? String
-            Log.d(TAG,"docType: $docType")
+            Napier.d(tag = TAG, message = "docType: $docType")
 
             (document["issuerSigned"] as? Map<String, *>)?.let { issuerSigned ->
                 (issuerSigned["nameSpaces"] as? Map<String, *>)?.let { namespaces ->
                     for (namespace: String in namespaces.keys) {
-                        Log.d(TAG,"namespace: $namespace")
+                        Napier.d(tag = TAG, message = "namespace: $namespace")
                         (namespaces[namespace] as? List<*>)?.let { entrys ->
 
                             for (entry in entrys) {
-                                Log.d(TAG,"elementIdentifier: $entry")
+                                Napier.d(tag = TAG, message = "elementIdentifier: $entry")
                                 if (entry != null) {
                                     val cbordata = entry as ByteArray
-                                    Log.d(TAG,"identifier?: ${cborMapExtractString(cbordata, "elementIdentifier")}")
+                                    Napier.d(tag = TAG, message = "identifier?: ${cborMapExtractString(cbordata, "elementIdentifier")}")
                                     addEntry(cbordata)
                                 }
 
                             }
-                        } ?: Log.d(TAG,"entrys is null")
+                        } ?: Napier.d(tag = TAG, message = "entrys is null")
                     }
-                } ?: Log.d(TAG,"nameSpaces is null")
-            } ?: Log.d(TAG,"issuer signed is null")
+                } ?: Napier.d(tag = TAG, message = "nameSpaces is null")
+            } ?: Napier.d(tag = TAG, message = "issuer signed is null")
         }
 
-        Log.d(TAG,"status: " + cborMapExtractNumber(encodedDeviceResponse, "status"))
+        Napier.d(tag = TAG, message = "status: " + cborMapExtractNumber(encodedDeviceResponse, "status"))
     }
 
 

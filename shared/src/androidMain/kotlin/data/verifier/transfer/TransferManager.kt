@@ -11,6 +11,7 @@ import com.android.identity.mdoc.request.DeviceRequestGenerator
 import data.verifier.Entry
 import data.verifier.Verifier
 import data.verifier.transfer.util.CborDecoder
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
 import java.security.Signature
@@ -120,7 +121,7 @@ class TransferManager private constructor(private val context: Context) {
                 verification?.setUseTransportSpecificSessionTermination(true)
             }
         } catch (e: IllegalStateException) {
-            Log.e("TransferManager", "Error ignored. $e")
+            Napier.e(tag = TAG, message =  "Error ignored. $e")
         }
         disconnect()
     }
@@ -129,7 +130,7 @@ class TransferManager private constructor(private val context: Context) {
         try {
             verification?.disconnect()
         } catch (e: RuntimeException) {
-            Log.e("TransferManager", "Error ignored. $e")
+            Napier.e(tag = TAG, message =  "Error ignored. $e")
         }
         destroy()
         hasStarted = false
@@ -180,9 +181,6 @@ class TransferManager private constructor(private val context: Context) {
 
             val cborfact = CborDecoder(updateLogs)
             cborfact.decode(deviceResponseBytes, sessionTranscript, ephemeralReaderKey)
-            Log.d(TAG, "Session Transcript: $sessionTranscript")
-            Log.d(TAG, "Ephemeral Reader Key: $ephemeralReaderKey")
-            Log.d(TAG, "is Transport Specific Termination Supported: $iTSTS")
 
             updateData(cborfact.entryList)
         }

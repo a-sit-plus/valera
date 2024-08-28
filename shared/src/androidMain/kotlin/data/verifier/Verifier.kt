@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import data.verifier.transfer.RequestBluetoothPermissions
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -38,25 +39,25 @@ class AndroidVerifier: Verifier {
             updateLogs(TAG, "Waiting for requirements to load")
             while (transferManager == null) {
                 delay(500)
-                Log.d(TAG, "waiting for Transfer Manager")
+                Napier.d(tag = TAG, message = "waiting for Transfer Manager")
             }
             while (!permission) {
                 delay(500)
-                Log.d(TAG, "waiting for Permissions")
+                Napier.d(tag = TAG, message = "waiting for Permissions")
             }
             updateLogs(TAG, "Requirements are loaded and needed permissions given")
 
 
             updateLogs(TAG, "Starting Device engagement with scanned Qr-code")
 
-            transferManager!!.let {
+            transferManager?.let {
                 it.setUpdateAndRequest(updateLogs, requestedDocument) { le: List<Entry> ->
                     updateData(le)
                     transferManager?.closeConnection()
                 }
                 it.initVerificationHelper()
                 it.setQrDeviceEngagement(qrcode)
-            }
+            } ?: Napier.d(tag = TAG, message = "The transferManager was set to null which should not have happened")
         }
     }
 
