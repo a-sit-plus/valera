@@ -20,7 +20,7 @@ import at.asitplus.wallet.lib.data.ConstantIndex
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.info_text_redirection_to_id_austria_for_credential_provisioning
 import data.PersonalDataCategory
-import data.credentialAttributeCategorization
+import data.credentials.CredentialAttributeCategorization
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -37,10 +37,10 @@ fun StatefulLoadDataForm(
 ) {
     var attributeCategoriesExpanded by rememberSaveable(credentialScheme) {
         val attributeCategorization =
-            credentialAttributeCategorization[credentialScheme]?.entries?.toList()
+            CredentialAttributeCategorization[credentialScheme]?.availableCategories
                 ?: throw IllegalArgumentException("credentialScheme: ${credentialScheme.identifier}")
 
-        mutableStateOf(attributeCategorization.map { it.key }.associateWith {
+        mutableStateOf(attributeCategorization.associateWith {
             false
         })
     }

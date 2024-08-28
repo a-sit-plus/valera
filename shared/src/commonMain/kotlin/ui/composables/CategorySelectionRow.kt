@@ -18,10 +18,8 @@ import at.asitplus.wallet.lib.data.ConstantIndex
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.content_description_hide_attributes
 import composewalletapp.shared.generated.resources.content_description_show_attributes
-import data.AttributeTranslator
 import data.PersonalDataCategory
 import data.credentials.CredentialAttributeTranslator
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.state.toggleableState
 
@@ -36,7 +34,7 @@ fun CategorySelectionRow(
     onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
     isEditSelectionEnabled: Boolean = true,
 ) {
-    val attributeTranslator = CredentialAttributeTranslator.getSchemeTranslator(requestedCredentialScheme)
+    val attributeTranslator = CredentialAttributeTranslator.get(requestedCredentialScheme)
     val categoryAttributes = attributeCategory.value
     categoryAttributes.map { requestedAttributes.contains(it) }.toggleableState.let { state ->
         CategorySelectionRow(

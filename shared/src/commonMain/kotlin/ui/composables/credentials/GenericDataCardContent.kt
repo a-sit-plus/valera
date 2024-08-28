@@ -6,22 +6,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.jsonpath.core.NormalizedJsonPathSegment.NameSegment
-import at.asitplus.wallet.app.common.third_parts.at.asitplus.jsonpath.core.plus
-import at.asitplus.wallet.cor.CertificateOfResidenceDataElements
-import at.asitplus.wallet.cor.CertificateOfResidenceScheme
-import at.asitplus.wallet.eupid.EuPidScheme
-import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.ConstantIndex
-import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
-import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
-import at.asitplus.wallet.por.PowerOfRepresentationDataElements
-import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import data.PersonalDataCategory
-import data.credentialAttributeCategorization
 import data.credentials.CredentialAdapter
+import data.credentials.CredentialAttributeCategorization
 import data.credentials.CredentialAttributeTranslator
-import data.credentials.IdAustriaCredentialMainAddress
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.AttributeRepresentation
 import ui.composables.LabeledContent
@@ -36,10 +25,10 @@ fun GenericDataCardContent(
     Column(modifier = modifier) {
         attributes.mapIndexed { index, it ->
             LabeledContent(
-                label = CredentialAttributeTranslator.getSchemeTranslator(credentialScheme)
+                label = CredentialAttributeTranslator[credentialScheme]
                     ?.translate(it.first)?.let {
-                    stringResource(it)
-                } ?: it.first.toString(),
+                        stringResource(it)
+                    } ?: it.first.toString(),
                 content = it.second,
                 modifier = if (index == attributes.lastIndex) {
                     Modifier
@@ -56,9 +45,9 @@ fun getGenericAttributeRepresentations(
     personalDataCategory: PersonalDataCategory,
     credentialAdapter: CredentialAdapter,
 ): List<Pair<NormalizedJsonPath, @Composable () -> Unit>> {
-    val attributeCategorization = credentialAttributeCategorization.get(credentialScheme)
-        ?.get(personalDataCategory)
-        ?: throw IllegalStateException("credentialAttributeCategorization")
+    val attributeCategorization =
+        CredentialAttributeCategorization[credentialScheme]?.get(personalDataCategory)
+            ?: throw IllegalStateException("credentialAttributeCategorization")
 
     val attributes = attributeCategorization.flatMap { virtualCategory ->
         virtualCategory.second?.map { virtualCategory.first + it } ?: listOf(virtualCategory.first)

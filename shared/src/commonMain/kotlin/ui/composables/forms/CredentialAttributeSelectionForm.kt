@@ -18,7 +18,7 @@ import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.button_label_all_missing_data
 import composewalletapp.shared.generated.resources.section_heading_load_data_selection
 import data.PersonalDataCategory
-import data.credentialAttributeCategorization
+import data.credentials.CredentialAttributeCategorization
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.CategorySelectionRow
 import ui.composables.LabeledTriStateCheckbox
@@ -34,12 +34,9 @@ fun CredentialAttributeSelectionForm(
     onSetAttributeCategoriesExpanded: ((Pair<PersonalDataCategory, Boolean>) -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
-    val credentialSchemeAttributes = credentialAttributeCategorization[credentialScheme]
-        ?: throw IllegalArgumentException("credentialScheme: ${credentialScheme.identifier}")
-
-    val attributeCategorization = credentialSchemeAttributes.mapValues {
-        it.value.map { it.first }
-    }
+    val attributeCategorization =
+        CredentialAttributeCategorization[credentialScheme]?.sourceAttributeCategorization
+            ?: throw IllegalArgumentException("credentialScheme: ${credentialScheme.identifier}")
 
     Column(
         modifier = modifier,
