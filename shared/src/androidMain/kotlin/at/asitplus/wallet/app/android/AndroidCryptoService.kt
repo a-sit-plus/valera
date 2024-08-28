@@ -129,9 +129,6 @@ class AndroidCryptoService(
                 },
             )
 
-
-            // TODO: the example code also differentiates whether a crypto object is used or not
-            //  2024-08-05: acrusage: I think we always want to have a crypto object here though
             runCatching {
                 signature.initSign(keyPair.private)
             }.onFailure {
