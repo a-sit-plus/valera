@@ -16,7 +16,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlin.random.Random
 
@@ -135,7 +137,14 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         if (input == null) {
             return StoreContainer(credentials = mutableListOf())
         } else {
-            val export: ExportableStoreContainer = vckJsonSerializer.decodeFromString(input)
+            val export: ExportableStoreContainer = kotlin.runCatching {
+                vckJsonSerializer.decodeFromString<ExportableStoreContainer>(input)
+            }.getOrElse {
+                ExportableStoreContainer(
+                    vckJsonSerializer.decodeFromString<OldExportableStoreContainer>(input)
+                        .credentials.associateBy { Random.nextLong() }.toList()
+                )
+            }
             val credentials = export.credentials.map {
                 val storeEntryId = it.first
                 val storeEntry = it.second
@@ -186,6 +195,14 @@ data class StoreContainer(
 @Serializable
 private data class ExportableStoreContainer(
     val credentials: List<Pair<StoreEntryId, ExportableStoreEntry>>,
+)
+
+/**
+ * Used prior to 4.1.0 of the app
+ */
+@Serializable
+private data class OldExportableStoreContainer(
+    val credentials: List<ExportableStoreEntry>,
 )
 
 @Serializable
