@@ -1,4 +1,7 @@
 <resources>
+    <string name="dictionary_yes">Yes</string>
+    <string name="dictionary_no">No</string>
+
     <string name="camera_access_denied">Camera access denied</string>
 
     <string name="warning">Warning</string>
@@ -21,6 +24,7 @@
     <string name="button_label_consent">Consent</string>
     <string name="button_label_continue">Continue</string>
     <string name="button_label_details">Details</string>
+    <string name="button_label_delete_credential">Delete</string>
     <string name="button_label_share">Share</string>
     <string name="button_label_load_data">Load Data</string>
     <string name="button_label_reload_data">Load Data</string>
@@ -71,6 +75,27 @@
     <string name="attribute_friendly_name_driving_privileges">Driving privileges</string>
     <string name="attribute_friendly_name_distinguishing_sign">Issuing country (code)</string>
 
+    <string name="attribute_friendly_name_legal_person_identifier">Legal person identifier</string>
+    <string name="attribute_friendly_name_legal_name">Legal name</string>
+    <string name="attribute_friendly_name_full_powers">Full powers</string>
+    <string name="attribute_friendly_name_e_service">eService</string>
+    <string name="attribute_friendly_name_effective_from_date">Effective from</string>
+    <string name="attribute_friendly_name_effective_until_date">Effective until</string>
+    <string name="attribute_friendly_name_administrative_number">Administrative number</string>
+    <string name="attribute_friendly_name_issuing_jurisdiction">Issuing jurisdiction</string>
+
+    <string name="attribute_friendly_name_residence_address">Residence address</string>
+    <string name="attribute_friendly_name_arrival_date">Arrival date</string>
+
+    <string name="id_austria_credential_attribute_friendly_name_main_address_street">Street</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_house_number">House Number</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_stair">Stair</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_door">Door</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_postal_code">Postal Code</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_location">Location</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_municipality_name">Municipality Name</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_municipality_code">Municipality Code</string>
+
     <string name="attribute_friendly_name_data_recipient_name">Name</string>
     <string name="attribute_friendly_name_data_recipient_location">Location</string>
 
@@ -78,11 +103,17 @@
     <string name="credential_representation_format_label_sd_jwt">SD-JWT</string>
     <string name="credential_representation_format_label_mso_mdoc">ISO mDoc</string>
 
+    <string name="credential_scheme_icon_label_mdl">mDL</string>
     <string name="credential_scheme_label_mdl">mDL</string>
+    <string name="credential_scheme_icon_label_eu_pid">PID</string>
     <string name="credential_scheme_label_eu_pid">PID</string>
+    <string name="credential_scheme_icon_label_id_austria">IDA</string>
     <string name="credential_scheme_label_id_austria">IDA Credential</string>
+    <string name="credential_scheme_icon_label_power_of_representation">POR</string>
     <string name="credential_scheme_label_power_of_representation">Power of representation</string>
+    <string name="credential_scheme_icon_label_certificate_of_residence">COR</string>
     <string name="credential_scheme_label_certificate_of_residence">Certificate of residence</string>
+
 
     <string name="navigation_button_label_show_data">Show Data</string>
     <string name="navigation_button_label_my_data">My Data</string>
@@ -114,6 +145,7 @@
     <string name="heading_label_log_screen">Log</string>
     <string name="heading_label_information_screen">Information</string>
     <string name="heading_label_my_data_screen">My Data</string>
+    <string name="heading_label_credential_details_screen">Details</string>
     <string name="heading_label_navigate_back">Back</string>
     <string name="heading_label_terms_of_use">Terms of use</string>
     <string name="heading_label_data_protection">Privacy policy</string>

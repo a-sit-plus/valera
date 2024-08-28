@@ -1,6 +1,7 @@
 package ui.screens
 
 import at.asitplus.wallet.app.common.WalletMain
+import data.storage.StoreEntryId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
@@ -10,11 +11,9 @@ class CredentialScreenViewModel(
 ) {
     val storeContainer = walletMain.subjectCredentialStore.observeStoreContainer()
 
-    fun removeCredentialByIndex(index: Int) {
+    fun removeStoreEntryById(storeEntryId: StoreEntryId) {
         walletMain.scope.launch(Dispatchers.IO) {
-            walletMain.subjectCredentialStore.removeStoreEntryByIndex(
-                index
-            )
+            walletMain.subjectCredentialStore.removeStoreEntryById(storeEntryId)
         }
     }
 }

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,17 +24,10 @@ fun PersonAttributeDetailCardHeading(
 ) {
     PersonAttributeDetailCardHeading(
         icon = {
-            HeadingTextIcon(
-                text = iconText,
-                fontWeight = FontWeight.Bold,
-            )
+            PersonAttributeDetailCardHeadingIcon(iconText)
         },
         title = {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
+            PersonAttributeDetailCardHeadingText(title)
         },
     ) {
         actionButtons()
@@ -63,4 +57,28 @@ fun PersonAttributeDetailCardHeading(
     }
 }
 
+@Composable
+fun PersonAttributeDetailCardHeadingText(
+    title: String,
+    modifier: Modifier = Modifier,
+) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.SemiBold,
+        modifier = modifier,
+    )
+}
+
+@Composable
+fun PersonAttributeDetailCardHeadingIcon(
+    iconText: String,
+    modifier: Modifier = Modifier,
+) {
+    HeadingTextIcon(
+        text = iconText,
+        fontWeight = FontWeight.Bold,
+        modifier = modifier,
+    )
+}
 

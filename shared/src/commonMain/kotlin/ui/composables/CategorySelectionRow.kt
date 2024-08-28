@@ -13,28 +13,28 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.unit.dp
+import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.lib.data.ConstantIndex
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.content_description_hide_attributes
 import composewalletapp.shared.generated.resources.content_description_show_attributes
-import data.AttributeTranslator
 import data.PersonalDataCategory
-import org.jetbrains.compose.resources.ExperimentalResourceApi
+import data.credentials.CredentialAttributeTranslator
 import org.jetbrains.compose.resources.stringResource
 import ui.state.toggleableState
 
 
-
 @Composable
 fun CategorySelectionRow(
-    attributeCategory: Map.Entry<PersonalDataCategory, List<String>>,
+    attributeCategory: Map.Entry<PersonalDataCategory, List<NormalizedJsonPath>>,
     isExpanded: Boolean,
     onToggleExpanded: (Boolean) -> Unit,
     requestedCredentialScheme: ConstantIndex.CredentialScheme,
-    requestedAttributes: Set<String>,
-    onChangeRequestedAttributes: ((Set<String>) -> Unit)?,
+    requestedAttributes: Set<NormalizedJsonPath>,
+    onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
     isEditSelectionEnabled: Boolean = true,
 ) {
+    val attributeTranslator = CredentialAttributeTranslator.get(requestedCredentialScheme)
     val categoryAttributes = attributeCategory.value
     categoryAttributes.map { requestedAttributes.contains(it) }.toggleableState.let { state ->
         CategorySelectionRow(
@@ -53,10 +53,9 @@ fun CategorySelectionRow(
             },
             attributeSelections = attributeCategory.value.map {
                 AttributeSelection(
-                    attributeLabel = AttributeTranslator(requestedCredentialScheme).translate(it)
-                        ?.let { stringResource(it) }
-                        ?: it,
-                    isSelected = requestedAttributes.contains(it)
+                    attributeLabel = attributeTranslator?.translate(it)?.let { stringResource(it) }
+                        ?: it.toString(),
+                    isSelected = requestedAttributes.contains(it),
                 )
             },
             onToggleAttributeSelection = { index ->

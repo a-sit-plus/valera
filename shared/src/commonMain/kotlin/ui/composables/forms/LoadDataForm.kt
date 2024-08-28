@@ -14,14 +14,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.identifier
 import at.asitplus.wallet.lib.data.ConstantIndex
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.info_text_redirection_to_id_austria_for_credential_provisioning
-import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.stringResource
 import data.PersonalDataCategory
-import data.credentialAttributeCategorization
+import data.credentials.CredentialAttributeCategorization
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun StatefulLoadDataForm(
@@ -31,15 +31,16 @@ fun StatefulLoadDataForm(
     onChangeCredentialRepresentation: ((ConstantIndex.CredentialRepresentation) -> Unit)?,
     credentialScheme: ConstantIndex.CredentialScheme,
     onChangeCredentialScheme: ((ConstantIndex.CredentialScheme) -> Unit)?,
-    requestedAttributes: Set<String>,
-    onChangeRequestedAttributes: ((Set<String>) -> Unit)?,
+    requestedAttributes: Set<NormalizedJsonPath>,
+    onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     var attributeCategoriesExpanded by rememberSaveable(credentialScheme) {
-        val attributeCategorization = credentialAttributeCategorization[credentialScheme]
-            ?: throw IllegalArgumentException("credentialScheme: ${credentialScheme.identifier}")
+        val attributeCategorization =
+            CredentialAttributeCategorization[credentialScheme]?.availableCategories
+                ?: throw IllegalArgumentException("credentialScheme: ${credentialScheme.identifier}")
 
-        mutableStateOf(attributeCategorization.map { it.first }.associateWith {
+        mutableStateOf(attributeCategorization.associateWith {
             false
         })
     }
@@ -61,7 +62,6 @@ fun StatefulLoadDataForm(
     )
 }
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun LoadDataForm(
     host: TextFieldValue,
@@ -70,8 +70,8 @@ fun LoadDataForm(
     onChangeCredentialRepresentation: ((ConstantIndex.CredentialRepresentation) -> Unit)?,
     credentialScheme: ConstantIndex.CredentialScheme,
     onChangeCredentialScheme: ((ConstantIndex.CredentialScheme) -> Unit)?,
-    requestedAttributes: Set<String>,
-    onChangeRequestedAttributes: ((Set<String>) -> Unit)?,
+    requestedAttributes: Set<NormalizedJsonPath>,
+    onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
     attributeCategoriesExpanded: Map<PersonalDataCategory, Boolean>,
     onSetAttributeCategoriesExpanded: (Pair<PersonalDataCategory, Boolean>) -> Unit,
     modifier: Modifier = Modifier,

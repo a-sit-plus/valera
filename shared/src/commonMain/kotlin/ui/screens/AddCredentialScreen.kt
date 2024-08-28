@@ -5,12 +5,14 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
+import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.app.common.WalletMain
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.heading_label_add_credential_screen
@@ -24,7 +26,7 @@ import ui.state.savers.CredentialSchemeSaver
 import ui.state.savers.asMutableStateSaver
 import ui.views.LoadDataView
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddCredentialScreen(
     navigateUp: () -> Unit,
@@ -36,12 +38,6 @@ fun AddCredentialScreen(
         }
     }
 
-    var credentialRepresentation by rememberSaveable {
-        mutableStateOf(runBlocking {
-            walletMain.walletConfig.credentialRepresentation.first()
-        })
-    }
-
     var credentialScheme by rememberSaveable(
         saver = CredentialSchemeSaver().asMutableStateSaver()
     ) {
@@ -50,9 +46,21 @@ fun AddCredentialScreen(
         })
     }
 
+    var credentialRepresentation by rememberSaveable {
+        mutableStateOf(runBlocking {
+            walletMain.walletConfig.credentialRepresentation.first()
+        })
+    }
+
+    LaunchedEffect(credentialScheme) {
+        if(credentialRepresentation !in credentialScheme.supportedRepresentations) {
+            credentialRepresentation = credentialScheme.supportedRepresentations.first()
+        }
+    }
+
     var requestedAttributes by rememberSaveable(credentialScheme) {
         runBlocking {
-            mutableStateOf(setOf<String>())
+            mutableStateOf(setOf<NormalizedJsonPath>())
         }
     }
 

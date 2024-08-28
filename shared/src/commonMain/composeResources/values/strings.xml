@@ -1,4 +1,7 @@
 <resources>
+    <string name="dictionary_yes">UNTRANSLATED:dictionary_yes</string>
+    <string name="dictionary_no">UNTRANSLATED:dictionary_no</string>
+
     <string name="camera_access_denied">UNTRANSLATED:camera_access_denied</string>
 
     <string name="warning">UNTRANSLATED:warning</string>
@@ -21,6 +24,7 @@
     <string name="button_label_consent">UNTRANSLATED:button_label_consent</string>
     <string name="button_label_continue">UNTRANSLATED:button_label_continue</string>
     <string name="button_label_details">UNTRANSLATED:button_label_details</string>
+    <string name="button_label_delete_credential">UNTRANSLATED:button_label_delete_credential</string>
     <string name="button_label_share">UNTRANSLATED:button_label_share</string>
     <string name="button_label_load_data">UNTRANSLATED:button_label_load_data</string>
     <string name="button_label_reload_data">UNTRANSLATED:button_label_reload_data</string>
@@ -36,6 +40,27 @@
     <string name="button_label_reset_app">UNTRANSLATED:button_label_reset_app</string>
     <string name="button_label_all_missing_data">UNTRANSLATED:button_label_all_missing_data</string>
     <string name="button_label_all_available_data">UNTRANSLATED:button_label_all_available_data</string>
+
+
+    <string name="id_austria_credential_attribute_friendly_name_main_address_street">UNTRANSLATED:id_austria_credential_attribute_friendly_name_main_address_street</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_house_number">UNTRANSLATED:id_austria_credential_attribute_friendly_name_main_address_house_number</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_stair">UNTRANSLATED:id_austria_credential_attribute_friendly_name_main_address_stair</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_door">UNTRANSLATED:id_austria_credential_attribute_friendly_name_main_address_door</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_postal_code">UNTRANSLATED:id_austria_credential_attribute_friendly_name_main_address_postal_code</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_location">UNTRANSLATED:id_austria_credential_attribute_friendly_name_main_address_location</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_municipality_name">UNTRANSLATED:id_austria_credential_attribute_friendly_name_main_address_municipality_name</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_municipality_code">UNTRANSLATED:id_austria_credential_attribute_friendly_name_main_address_municipality_code</string>
+
+    <string name="attribute_friendly_name_legal_person_identifier">UNTRANSLATED:attribute_friendly_name_legal_person_identifier</string>
+    <string name="attribute_friendly_name_legal_name">UNTRANSLATED:attribute_friendly_name_legal_name</string>
+    <string name="attribute_friendly_name_full_powers">UNTRANSLATED:attribute_friendly_name_full_powers</string>
+    <string name="attribute_friendly_name_e_service">UNTRANSLATED:attribute_friendly_name_e_service</string>
+    <string name="attribute_friendly_name_effective_from_date">UNTRANSLATED:attribute_friendly_name_effective_from_date</string>
+    <string name="attribute_friendly_name_effective_until_date">UNTRANSLATED:attribute_friendly_name_effective_until_date</string>
+    <string name="attribute_friendly_name_administrative_number">UNTRANSLATED:attribute_friendly_name_administrative_number</string>
+    <string name="attribute_friendly_name_issuing_jurisdiction">UNTRANSLATED:attribute_friendly_name_issuing_jurisdiction</string>
+    <string name="attribute_friendly_name_residence_address">UNTRANSLATED:attribute_friendly_name_residence_address</string>
+    <string name="attribute_friendly_name_arrival_date">UNTRANSLATED:attribute_friendly_name_arrival_date</string>
 
     <string name="attribute_friendly_name_bpk">UNTRANSLATED:attribute_friendly_name_bpk</string>
     <string name="attribute_friendly_name_firstname">UNTRANSLATED:attribute_friendly_name_firstname</string>
@@ -86,10 +111,15 @@
     <string name="id_format_sd_jwt_label">UNTRANSLATED:id_format_sd_jwt_label</string>
     <string name="id_format_iso_mdoc_label">UNTRANSLATED:id_format_iso_mdoc_label</string>
 
+    <string name="credential_scheme_icon_label_mdl">UNTRANSLATED:credential_scheme_icon_label_mdl</string>
     <string name="credential_scheme_label_mdl">UNTRANSLATED:credential_scheme_label_mdl</string>
+    <string name="credential_scheme_icon_label_eu_pid">UNTRANSLATED:credential_scheme_icon_label_eu_pid</string>
     <string name="credential_scheme_label_eu_pid">UNTRANSLATED:credential_scheme_label_eu_pid</string>
+    <string name="credential_scheme_icon_label_id_austria">UNTRANSLATED:credential_scheme_icon_label_id_austria</string>
     <string name="credential_scheme_label_id_austria">UNTRANSLATED:credential_scheme_label_id_austria</string>
+    <string name="credential_scheme_icon_label_power_of_representation">UNTRANSLATED:credential_scheme_icon_label_power_of_representation</string>
     <string name="credential_scheme_label_power_of_representation">UNTRANSLATED:credential_scheme_label_power_of_representation</string>
+    <string name="credential_scheme_icon_label_certificate_of_residence">UNTRANSLATED:credential_scheme_icon_label_certificate_of_residence</string>
     <string name="credential_scheme_label_certificate_of_residence">UNTRANSLATED:credential_scheme_label_certificate_of_residence</string>
 
     <string name="text_label_issuing_service">UNTRANSLATED:text_label_issuing_service</string>
@@ -114,6 +144,7 @@
     <string name="heading_label_log_screen">UNTRANSLATED:heading_label_log_screen</string>
     <string name="heading_label_information_screen">UNTRANSLATED:heading_label_information_screen</string>
     <string name="heading_label_my_data_screen">UNTRANSLATED:heading_label_my_data_screen</string>
+    <string name="heading_label_credential_details_screen">UNTRANSLATED:heading_label_credential_details_screen</string>
     <string name="heading_label_navigate_back">UNTRANSLATED:heading_label_navigate_back</string>
     <string name="heading_label_terms_of_use">UNTRANSLATED:heading_label_terms_of_use</string>
     <string name="heading_label_data_protection">UNTRANSLATED:heading_label_data_protection</string>

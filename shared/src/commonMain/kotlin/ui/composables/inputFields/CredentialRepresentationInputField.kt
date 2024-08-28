@@ -8,11 +8,13 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.lib.data.ConstantIndex
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.credential_representation_format_label_mso_mdoc
@@ -27,11 +29,13 @@ import org.jetbrains.compose.resources.stringResource
 fun StatefulCredentialRepresentationInputField(
     value: ConstantIndex.CredentialRepresentation,
     onValueChange: ((ConstantIndex.CredentialRepresentation) -> Unit)?,
+    options: List<ConstantIndex. CredentialRepresentation>,
     modifier: Modifier = Modifier,
 ) {
     StatefulCredentialRepresentationInputField(
         value = value,
         onValueChange = onValueChange ?: {},
+        options = options,
         enabled = onValueChange != null,
         modifier = modifier,
     )
@@ -42,6 +46,7 @@ fun StatefulCredentialRepresentationInputField(
 fun StatefulCredentialRepresentationInputField(
     value: ConstantIndex.CredentialRepresentation,
     onValueChange: (ConstantIndex.CredentialRepresentation) -> Unit,
+    options: List<ConstantIndex. CredentialRepresentation>,
     enabled: Boolean,
     modifier: Modifier = Modifier,
 ) {
@@ -53,6 +58,7 @@ fun StatefulCredentialRepresentationInputField(
             onValueChange(it)
             showMenu = false
         },
+        options = options,
         expanded = showMenu,
         onExpandedChange = {
             if (enabled) {
@@ -69,6 +75,7 @@ fun StatefulCredentialRepresentationInputField(
 fun CredentialRepresentationInputField(
     value: ConstantIndex.CredentialRepresentation,
     onValueChange: (ConstantIndex.CredentialRepresentation) -> Unit,
+    options: List<ConstantIndex. CredentialRepresentation>,
     expanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
     enabled: Boolean,
@@ -97,11 +104,7 @@ fun CredentialRepresentationInputField(
             },
             modifier = Modifier.fillMaxWidth(),
         ) {
-            for (credentialRepresentation in listOf(
-                ConstantIndex.CredentialRepresentation.PLAIN_JWT,
-                ConstantIndex.CredentialRepresentation.SD_JWT,
-                ConstantIndex.CredentialRepresentation.ISO_MDOC,
-            )) {
+            for (credentialRepresentation in options) {
                 DropdownMenuItem(
                     text = {
                         Text(credentialRepresentation.uiLabel())
@@ -115,12 +118,4 @@ fun CredentialRepresentationInputField(
             }
         }
     }
-}
-
-@OptIn(ExperimentalResourceApi::class)
-@Composable
-fun ConstantIndex.CredentialRepresentation.uiLabel(): String = when (this) {
-    ConstantIndex.CredentialRepresentation.PLAIN_JWT -> stringResource(Res.string.credential_representation_format_label_plain_jwt)
-    ConstantIndex.CredentialRepresentation.SD_JWT -> stringResource(Res.string.credential_representation_format_label_sd_jwt)
-    ConstantIndex.CredentialRepresentation.ISO_MDOC -> stringResource(Res.string.credential_representation_format_label_mso_mdoc)
 }

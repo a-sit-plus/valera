@@ -11,13 +11,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.unit.dp
+import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.identifier
 import at.asitplus.wallet.lib.data.ConstantIndex
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.button_label_all_missing_data
 import composewalletapp.shared.generated.resources.section_heading_load_data_selection
 import data.PersonalDataCategory
-import data.credentialAttributeCategorization
+import data.credentials.CredentialAttributeCategorization
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.CategorySelectionRow
 import ui.composables.LabeledTriStateCheckbox
@@ -27,14 +28,15 @@ import ui.state.toggleableState
 @Composable
 fun CredentialAttributeSelectionForm(
     credentialScheme: ConstantIndex.CredentialScheme,
-    requestedAttributes: Set<String>,
-    onChangeRequestedAttributes: ((Set<String>) -> Unit)?,
+    requestedAttributes: Set<NormalizedJsonPath>,
+    onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
     attributeCategoriesExpanded: Map<PersonalDataCategory, Boolean>,
     onSetAttributeCategoriesExpanded: ((Pair<PersonalDataCategory, Boolean>) -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
-    val attributeCategorization = credentialAttributeCategorization[credentialScheme]?.toMap()
-        ?: throw IllegalArgumentException("credentialScheme: ${credentialScheme.identifier}")
+    val attributeCategorization =
+        CredentialAttributeCategorization[credentialScheme]?.sourceAttributeCategorization
+            ?: throw IllegalArgumentException("credentialScheme: ${credentialScheme.identifier}")
 
     Column(
         modifier = modifier,
@@ -85,10 +87,7 @@ fun CredentialAttributeSelectionForm(
                 isExpanded = attributeCategoriesExpanded[attributeCategory.key] ?: true,
                 onToggleExpanded = {
                     onSetAttributeCategoriesExpanded?.invoke(
-                        Pair(
-                            attributeCategory.key,
-                            it,
-                        )
+                        attributeCategory.key to it
                     )
                 },
                 isEditSelectionEnabled = onSetAttributeCategoriesExpanded != null,
