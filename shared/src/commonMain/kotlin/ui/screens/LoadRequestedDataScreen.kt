@@ -31,8 +31,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import composewalletapp.shared.generated.resources.Res
+import composewalletapp.shared.generated.resources.error_missing_permissions
 import composewalletapp.shared.generated.resources.heading_label_request_log
 import composewalletapp.shared.generated.resources.heading_label_requested_data
+import composewalletapp.shared.generated.resources.info_text_data_is_being_loaded
 import data.verifier.Entry
 import data.verifier.Verifier
 import data.verifier.getVerifier
@@ -89,7 +91,7 @@ fun LoadRequestedDataScreen(document: Verifier.Document, payload: String, naviga
             },
         ) { scaffoldPadding ->
             Box(modifier = Modifier.padding(scaffoldPadding)) {
-                Text("Permission Denied")
+                Text(stringResource(Res.string.error_missing_permissions))
             }
         }
     } else {
@@ -201,7 +203,7 @@ fun LoadRequestedDataView(entryState: List<Entry>, navigateUp: () -> Unit) {
                     ) {
                         CircularProgressIndicator()
                         Spacer(modifier = Modifier.height(16.dp))
-                        Text("Loading Data")
+                        Text(stringResource(Res.string.info_text_data_is_being_loaded))
                     }
                 }
             } else {

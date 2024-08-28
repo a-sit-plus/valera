@@ -82,6 +82,8 @@
     <string name="attribute_friendly_name_signature">Signatur</string>
     <string name="attribute_friendly_name_gender">Geschlecht</string>
     <string name="attribute_friendly_name_administrative_number">Administrative Nummer</string>
+    <string name="attribute_friendly_age_above">Ja</string>
+    <string name="attribute_friendly_age_below">Nein</string>
 
     <string name="attribute_friendly_name_legal_person_identifier">Name der juristischen Person</string>
     <string name="attribute_friendly_name_legal_name">Identifier der juristischen Person</string>
@@ -210,6 +212,8 @@
     <string name="error_qr_code_scanning_invalid_metadata_jws_object">Invalid metadataJws</string>
     <string name="error_qr_code_scanning_invalid_metadata_jws_object_signature">Invalid metadataJws signature</string>
     <string name="error_qr_code_scanning_client_id_not_in_redirect_uris">Client id not in client metadata redirect uris</string>
+    <string name="error_missing_permissions">Fehlende Erlaubnis</string>
+    <string name="error_missing_value">Fehler es sind keine Daten gegeben</string>
 
     <string name="info_text_show_data_situation">In welcher Situation möchten Sie Ihre Daten vorzeigen?</string>
     <string name="info_text_irrevocable_error">Der Fehler kann nicht behoben werden.</string>
@@ -221,6 +225,7 @@
     <string name="info_text_notice_development_provisioning_using_qr_code_credentials">Zu Entwicklungszwecken gibt es auch die Möglichkeit, Daten über einen QR-Code zu laden.</string>
     <string name="info_text_enthusiastic_welcome_end">Daten laden und los geht's!</string>
     <string name="info_text_submission_preview_disabled">Vorschau von Übermittelten Daten ist derzeit nicht verfügbar.</string>
+    <string name="info_text_data_is_being_loaded">Daten werden geladen</string>
 
     <string name="section_heading_authenticate_at_device_title">Anmelden</string>
     <string name="section_heading_authenticate_at_device_subtitle">an Schalter oder Maschine</string>
@@ -264,6 +269,9 @@
     <string name="section_heading_select_document_type">Wähle ein Dokument Typ:</string>
     <string name="section_heading_selected_namespace">Namespace: </string>
     <string name="section_heading_select_requested_data_entrys">Wähle anzufordernde Daten</string>
+    <string name="section_heading_vehicle_category">Fahrzeugkategorie:</string>
+    <string name="section_heading_date_of_issue">Datum der Ausstellung:</string>
+    <string name="section_heading_date_of_expiry">Ablaufdatum:</string>
 
     <string name="onboarding_section_terms_and_data_protection_icon_text">1</string>
     <string name="onboarding_section_terms_and_data_protection_title">Nutzungsbedingungen und Datenschutz</string>

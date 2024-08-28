@@ -82,6 +82,8 @@
     <string name="attribute_friendly_name_signature">Signature</string>
     <string name="attribute_friendly_name_gender">Gender</string>
     <string name="attribute_friendly_name_administrative_number">Administrative number</string>
+    <string name="attribute_friendly_age_above">yes</string>
+    <string name="attribute_friendly_age_below">no</string>
 
     <string name="attribute_friendly_name_legal_person_identifier">Legal person identifier</string>
     <string name="attribute_friendly_name_legal_name">Legal name</string>
@@ -211,6 +213,8 @@
     <string name="error_qr_code_scanning_invalid_metadata_jws_object">Invalid metadataJws</string>
     <string name="error_qr_code_scanning_invalid_metadata_jws_object_signature">Invalid metadataJws signature</string>
     <string name="error_qr_code_scanning_client_id_not_in_redirect_uris">Client id not in client metadata redirect uris</string>
+    <string name="error_missing_permissions">Permission Denied</string>
+    <string name="error_missing_value">Error no value given</string>
 
     <string name="info_text_show_data_situation">In which Situation do you want to present your data?</string>
     <string name="info_text_irrevocable_error">The error can not be rectified.</string>
@@ -222,6 +226,7 @@
     <string name="info_text_notice_development_provisioning_using_qr_code_credentials">For development purposes, there is also the option to load data via a QR code.</string>
     <string name="info_text_enthusiastic_welcome_end">Load your data and off you go!</string>
     <string name="info_text_submission_preview_disabled">Preview of data to be submitted is currently not available.</string>
+    <string name="info_text_data_is_being_loaded">Loading Data</string>
 
     <string name="section_heading_authenticate_at_device_title">Authenticate</string>
     <string name="section_heading_authenticate_at_device_subtitle">at counters or mashines</string>
@@ -265,6 +270,9 @@
     <string name="section_heading_select_document_type">Select document type:</string>
     <string name="section_heading_selected_namespace">Namespace: </string>
     <string name="section_heading_select_requested_data_entrys">Select data entrys:</string>
+    <string name="section_heading_vehicle_category">Vehicle category:</string>
+    <string name="section_heading_date_of_issue">Date of issue:</string>
+    <string name="section_heading_date_of_expiry">Date of expiry:</string>
 
     <string name="onboarding_section_terms_and_data_protection_icon_text">1</string>
     <string name="onboarding_section_terms_and_data_protection_title">Terms of use and privacy policy</string>

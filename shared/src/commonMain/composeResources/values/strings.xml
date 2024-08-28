@@ -103,6 +103,8 @@
     <string name="attribute_friendly_name_signature">UNTRANSLATED:attribute_friendly_name_signature</string>
     <string name="attribute_friendly_name_gender">UNTRANSLATED:attribute_friendly_name_gender</string>
     <string name="attribute_friendly_name_administrative_number">UNTRANSLATED:attribute_friendly_name_administrative_number</string>
+    <string name="attribute_friendly_age_above">UNTRANSLATED:attribute_friendly_age_above</string>
+    <string name="attribute_friendly_age_below">UNTRANSLATED:attribute_friendly_age_below</string>
 
     <string name="attribute_friendly_name_data_recipient_name">UNTRANSLATED:attribute_friendly_name_data_recipient_name</string>
     <string name="attribute_friendly_name_data_recipient_location">UNTRANSLATED:attribute_friendly_name_data_recipient_location</string>
@@ -209,6 +211,8 @@
     <string name="error_qr_code_scanning_invalid_metadata_jws_object">UNTRANSLATED:error_qr_code_scanning_invalid_metadata_jws_object</string>
     <string name="error_qr_code_scanning_invalid_metadata_jws_object_signature">UNTRANSLATED:error_qr_code_scanning_invalid_metadata_jws_object_signature</string>
     <string name="error_qr_code_scanning_client_id_not_in_redirect_uris">UNTRANSLATED:error_qr_code_scanning_client_id_not_in_redirect_uris</string>
+    <string name="error_missing_permissions">UNTRANSLATED:error_missing_permissions</string>
+    <string name="error_missing_value">UNTRANSLATED:error_missing_value</string>
 
     <string name="info_text_show_data_situation">UNTRANSLATED:info_text_show_data_situation</string>
     <string name="info_text_irrevocable_error">UNTRANSLATED:info_text_irrevocable_error</string>
@@ -220,6 +224,7 @@
     <string name="info_text_notice_development_provisioning_using_qr_code_credentials">UNTRANSLATED:info_text_notice_development_provisioning_using_qr_code_credentials</string>
     <string name="info_text_enthusiastic_welcome_end">UNTRANSLATED:info_text_enthusiastic_welcome_end</string>
     <string name="info_text_submission_preview_disabled">UNTRANSLATED:info_text_submission_preview_disabled</string>
+    <string name="info_text_data_is_being_loaded">UNTRANSLATED:info_text_data_is_being_loaded</string>
 
     <string name="section_heading_authenticate_at_device_title">UNTRANSLATED:section_heading_authenticate_at_device_title</string>
     <string name="section_heading_authenticate_at_device_subtitle">UNTRANSLATED:section_heading_authenticate_at_device_subtitle</string>
@@ -263,6 +268,9 @@
     <string name="section_heading_select_document_type">UNTRANSLATED:section_heading_select_document_type</string>
     <string name="section_heading_selected_namespace">UNTRANSLATED:section_heading_selected_namespace </string>
     <string name="section_heading_select_requested_data_entrys">UNTRANSLATED:section_heading_select_requested_data_entrys</string>
+    <string name="section_heading_vehicle_category">UNTRANSLATED:section_heading_vehicle_category</string>
+    <string name="section_heading_date_of_issue">UNTRANSLATED:section_heading_date_of_issue</string>
+    <string name="section_heading_date_of_expiry">UNTRANSLATED:section_heading_date_of_expiry</string>
 
     <string name="onboarding_section_terms_and_data_protection_icon_text">UNTRANSLATED:onboarding_section_terms_and_data_protection_icon_text</string>
     <string name="onboarding_section_terms_and_data_protection_title">UNTRANSLATED:onboarding_section_terms_and_data_protection_title</string>

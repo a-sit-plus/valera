@@ -14,7 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 
 @Composable
-fun RequestBluetoothPermissions(onPermissionsResult: (Boolean) -> Unit) {
+fun RequestBluetoothPermissions(BluetoothPermissionRequestLauncher: (Boolean) -> Unit) {
     val appPermissions: Array<String> =
         if (android.os.Build.VERSION.SDK_INT >= 31) {
             arrayOf(
@@ -43,14 +43,14 @@ fun RequestBluetoothPermissions(onPermissionsResult: (Boolean) -> Unit) {
                 }
             }
         }
-        onPermissionsResult(allPermissionsGranted)
+        BluetoothPermissionRequestLauncher(allPermissionsGranted)
     }
 
     LaunchedEffect(permissionsNeeded) {
         if (permissionsNeeded.isNotEmpty()) {
             permissionsLauncher.launch(permissionsNeeded.toTypedArray())
         } else {
-            onPermissionsResult(true)
+            BluetoothPermissionRequestLauncher(true)
         }
     }
 }
