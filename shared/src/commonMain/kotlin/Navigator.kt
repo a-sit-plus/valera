@@ -27,8 +27,6 @@ import composewalletapp.shared.generated.resources.navigation_button_label_setti
 import composewalletapp.shared.generated.resources.navigation_button_label_show_data
 import composewalletapp.shared.generated.resources.snackbar_reset_app_successfully
 import composewalletapp.shared.generated.resources.navigation_button_label_check
-import data.vclib.AuthenticationRequest
-import data.vclib.AuthenticationResponseResultSerializable
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier
 import io.ktor.http.parseQueryString
@@ -51,7 +49,6 @@ import ui.navigation.NavigationStack
 import ui.navigation.Page
 import ui.navigation.ProvisioningLoadingPage
 import ui.navigation.QrDeviceEngagementPage
-import ui.navigation.RefreshCredentialsPage
 import ui.navigation.SelectDataRetrievalPage
 import ui.navigation.SettingsPage
 import ui.screens.AddCredentialScreen
@@ -61,7 +58,6 @@ import ui.screens.AuthenticationSuccessScreen
 import ui.screens.CustomDataRetrievalScreen
 import ui.screens.CredentialDetailsScreen
 import ui.screens.ErrorScreen
-import ui.screens.LoadDataScreen
 import ui.screens.LoadRequestedDataScreen
 import ui.screens.LoadingScreen
 import ui.screens.LogScreen
