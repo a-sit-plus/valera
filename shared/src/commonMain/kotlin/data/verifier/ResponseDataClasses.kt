@@ -12,7 +12,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.ImageBitmap
 import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.section_heading_selected_namespace
+import composewalletapp.shared.generated.resources.section_heading_date_of_expiry
+import composewalletapp.shared.generated.resources.section_heading_date_of_issue
+import composewalletapp.shared.generated.resources.attribute_friendly_age_above
+import composewalletapp.shared.generated.resources.attribute_friendly_age_below
+import composewalletapp.shared.generated.resources.error_missing_value
+import composewalletapp.shared.generated.resources.section_heading_vehicle_category
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -29,12 +34,12 @@ class VehicleRegistration(
 ): EntryValueItem {
     @Composable
     override fun showData() {
-        Text("Vehicle category:")
+        Text(stringResource(Res.string.section_heading_vehicle_category))
         Text(vehicleCategory ,fontWeight = FontWeight.Bold)
-        Text("Date of issue:")
+        Text(stringResource(Res.string.section_heading_date_of_issue))
         Text(issueDate, fontWeight = FontWeight.Bold)
         if (expiryDate != null) {
-            Text("Date of expiry:")
+            Text(stringResource(Res.string.section_heading_date_of_expiry))
             Text(expiryDate, fontWeight = FontWeight.Bold)
         }
     }
@@ -54,7 +59,11 @@ class StringEntry(private val value: String): EntryValue {
 class BooleanEntry(private val value: Boolean?): EntryValue {
     @Composable
     override fun showData() {
-        Text(if (value== null) "null" else if(value) "yes" else  "no", fontWeight = FontWeight.Bold)
+        Text(
+            text = if (value== null) stringResource(Res.string.error_missing_value)
+            else if(value) stringResource(Res.string.attribute_friendly_age_above)
+            else  stringResource(Res.string.attribute_friendly_age_below),
+            fontWeight = FontWeight.Bold)
     }
 }
 
