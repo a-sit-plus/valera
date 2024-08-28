@@ -220,7 +220,11 @@ private class IdAustriaCredentialIsoMdocAdapter(
 
     override val portraitRaw: ByteArray? by lazy {
         idAustriaNamespace[IdAustriaScheme.Attributes.PORTRAIT]?.let {
-            (it as String).decodeBase64Bytes()
+            when (it) {
+                is ByteArray -> it
+                is String -> it.decodeBase64Bytes()
+                else -> null
+            }
         }
     }
 

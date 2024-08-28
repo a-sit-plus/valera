@@ -260,7 +260,11 @@ private class MobileDrivingLicenceCredentialIsoMdocAdapter(
 
     override val portraitRaw: ByteArray?
         get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.PORTRAIT]?.let {
-            (it as String).decodeBase64Bytes()
+            when (it) {
+                is ByteArray -> it
+                is String -> it.decodeBase64Bytes()
+                else -> null
+            }
         }
 
     override val documentNumber: String?

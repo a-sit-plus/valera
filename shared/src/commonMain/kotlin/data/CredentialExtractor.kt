@@ -347,15 +347,25 @@ class CredentialExtractor(
                     when (credential.scheme) {
                         is IdAustriaScheme -> credential.disclosures.filter {
                             it.value?.claimName == IdAustriaScheme.Attributes.PORTRAIT
-                        }.firstNotNullOfOrNull { it.value?.claimValue as String }
-                            ?.decodeBase64Bytes()
+                        }.firstNotNullOfOrNull {
+                            when (val value = it.value?.claimValue) {
+                                is ByteArray -> value
+                                is String -> value.decodeBase64Bytes()
+                                else -> null
+                            }
+                        }
 
                         is EuPidScheme -> null
 
                         is MobileDrivingLicenceScheme -> credential.disclosures.filter {
                             it.value?.claimName == MobileDrivingLicenceDataElements.PORTRAIT
-                        }.firstNotNullOfOrNull { it.value?.claimValue as String }
-                            ?.decodeBase64Bytes()
+                        }.firstNotNullOfOrNull {
+                            when (val value = it.value?.claimValue) {
+                                is ByteArray -> value
+                                is String -> value.decodeBase64Bytes()
+                                else -> null
+                            }
+                        }
 
                         else -> null
                     }
@@ -367,7 +377,13 @@ class CredentialExtractor(
                             IdAustriaScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == IdAustriaScheme.Attributes.PORTRAIT
-                        }?.value?.elementValue?.let { (it as String).decodeBase64Bytes() }
+                        }?.value?.elementValue?.let {
+                            when (it) {
+                                is ByteArray -> it
+                                is String -> it.decodeBase64Bytes()
+                                else -> null
+                            }
+                        }
 
                         is EuPidScheme -> null
 
@@ -375,7 +391,13 @@ class CredentialExtractor(
                             MobileDrivingLicenceScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == MobileDrivingLicenceDataElements.PORTRAIT
-                        }?.value?.elementValue?.let { (it as String).decodeBase64Bytes() }
+                        }?.value?.elementValue?.let {
+                            when (it) {
+                                is ByteArray -> it
+                                is String -> it.decodeBase64Bytes()
+                                else -> null
+                            }
+                        }
 
                         else -> null
                     }
@@ -468,7 +490,7 @@ class CredentialExtractor(
                             EuPidScheme.isoNamespace
                         )?.entries?.firstOrNull {
                             it.value.elementIdentifier == EuPidScheme.Attributes.NATIONALITY
-                        }?.value?.elementValue?.let { (it as String)}
+                        }?.value?.elementValue?.let { (it as String) }
 
                         is MobileDrivingLicenceScheme -> credential.issuerSigned.namespaces?.get(
                             MobileDrivingLicenceScheme.isoNamespace
@@ -1700,7 +1722,8 @@ class CredentialExtractor(
                             )?.entries?.firstOrNull {
                                 it.value.elementIdentifier == MobileDrivingLicenceDataElements.ISSUE_DATE
                             }?.value?.elementValue
-                            elementValue?.let { it as LocalDate } ?: elementValue?.let { (it as String) }?.let { LocalDate.parse(it) }
+                            elementValue?.let { it as LocalDate } ?: elementValue?.let { (it as String) }
+                                ?.let { LocalDate.parse(it) }
                         }
 
                         else -> null
@@ -1735,7 +1758,8 @@ class CredentialExtractor(
                             )?.entries?.firstOrNull {
                                 it.value.elementIdentifier == MobileDrivingLicenceDataElements.EXPIRY_DATE
                             }?.value?.elementValue
-                            elementValue?.let { it as LocalDate } ?: elementValue?.let { (it as String) }?.let { LocalDate.parse(it) }
+                            elementValue?.let { it as LocalDate } ?: elementValue?.let { (it as String) }
+                                ?.let { LocalDate.parse(it) }
                         }
 
                         else -> null
