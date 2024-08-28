@@ -139,10 +139,11 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         } else {
             val export: ExportableStoreContainer = kotlin.runCatching {
                 vckJsonSerializer.decodeFromString<ExportableStoreContainer>(input)
-            }.getOrElse {
+            }.getOrElse { _ ->
                 ExportableStoreContainer(
-                    vckJsonSerializer.decodeFromString<OldExportableStoreContainer>(input)
-                        .credentials.associateBy { Random.nextLong() }.toList()
+                    vckJsonSerializer.decodeFromString<OldExportableStoreContainer>(input).credentials.mapIndexed { index, it ->
+                        index.toLong() to it
+                    }
                 )
             }
             val credentials = export.credentials.map {
