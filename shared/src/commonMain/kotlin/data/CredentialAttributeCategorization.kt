@@ -15,16 +15,18 @@ import at.asitplus.wallet.por.PowerOfRepresentationDataElements
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import data.credentials.IdAustriaCredentialMainAddress
 
+typealias AttributeUnpackingInformation = Pair<NormalizedJsonPath, List<NormalizedJsonPath>?>
+
 /**
  * I'm sorry, this got a little overloaded..
  *
  * This should centralize credentials displayed in the view where attributes to be loaded are selected, and the generic credential view.
  * The usage of the outer type Map<CredentialScheme, Map<PersonalDataCategory, ...>> should therefore be clear.
  *
- * The inner type, `List<Pair<NormalizedJsonPath, List<NormalizedJsonPath>?>>`, is there to
+ * The inner type, `List<AttributeUnpackingInformation>`, is there to
  *  separate between the attribute to be requested (which is the first entry in the pair) and the subfields (e.g. if the field itself is an encoded json object) to be displayed in the generic data view (if any, otherwise null)
  */
-val credentialAttributeCategorization: Map<ConstantIndex.CredentialScheme, Map<PersonalDataCategory, List<Pair<NormalizedJsonPath, List<NormalizedJsonPath>?>>>> =
+val credentialAttributeCategorization: Map<ConstantIndex.CredentialScheme, Map<PersonalDataCategory, List<AttributeUnpackingInformation>>> =
     mapOf(
         IdAustriaScheme to mapOf(
             PersonalDataCategory.IdentityData to listOf(
