@@ -1,6 +1,8 @@
 package at.asitplus.wallet.app.android
 
+import android.security.keystore.UserNotAuthenticatedException
 import androidx.biometric.BiometricPrompt
+import androidx.biometric.BiometricPrompt.AuthenticationResult
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import at.asitplus.KmmResult
@@ -35,7 +37,6 @@ import at.asitplus.wallet.lib.agent.AuthenticatedCiphertext
 import at.asitplus.wallet.lib.agent.EphemeralKeyHolder
 import at.asitplus.wallet.lib.agent.JvmEphemeralKeyHolder
 import at.asitplus.wallet.lib.agent.KeyPairAdapter
-import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -43,6 +44,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.security.KeyPair
 import java.security.MessageDigest
+import java.security.Signature
 import java.security.interfaces.ECPublicKey
 import javax.crypto.Cipher
 import javax.crypto.KeyAgreement
@@ -78,15 +80,26 @@ class AndroidCryptoService(
 
                 else -> throw IllegalArgumentException("context")
             }
+            authorizationResult = null
             block()
             authorizationPromptContext = null
-            authorizationResult = null
         }
     }
 
-    fun showBiometryPrompt(callback: BiometricPrompt.AuthenticationCallback) {
+    interface AuthenticationCallback {
+        fun onAuthenticationSucceeded(result: AuthenticationResult, signature: Signature)
+        fun onAuthenticationError(errorCode: Int, errString: CharSequence)
+        fun onAuthenticationFailed()
+
+    }
+
+    fun showBiometryPrompt(callback: AuthenticationCallback) {
+        val signature = algorithm.getJCASignatureInstance().getOrThrow()
         authorizationResult?.let {
-            callback.onAuthenticationSucceeded(it)
+            if (it.cryptoObject == null) {
+                signature.initSign(keyPair.private)
+            }
+            callback.onAuthenticationSucceeded(it, it.cryptoObject?.signature ?: signature)
         } ?: CoroutineScope(Dispatchers.Main).launch {
             val authorizationContext =
                 authorizationPromptContext ?: defaultAuthorizationPromptContext
@@ -104,7 +117,10 @@ class AndroidCryptoService(
 
                     override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                         authorizationResult = result
-                        callback.onAuthenticationSucceeded(result)
+                        if (result.cryptoObject == null) {
+                            signature.initSign(keyPair.private)
+                        }
+                        callback.onAuthenticationSucceeded(result, result.cryptoObject?.signature ?: signature)
                     }
 
                     override fun onAuthenticationFailed() {
@@ -116,12 +132,15 @@ class AndroidCryptoService(
 
             // TODO: the example code also differentiates whether a crypto object is used or not
             //  2024-08-05: acrusage: I think we always want to have a crypto object here though
-            val signature = algorithm.getJCASignatureInstance().getOrThrow()
-            signature.initSign(keyPair.private)
-            biometricPrompt.authenticate(
-                authorizationContext.promptInfo,
-                BiometricPrompt.CryptoObject(signature),
-            )
+            runCatching {
+                signature.initSign(keyPair.private)
+            }.onFailure {
+                if (it is UserNotAuthenticatedException) {
+                    biometricPrompt.authenticate(authorizationContext.promptInfo)
+                }
+            }.onSuccess {
+                biometricPrompt.authenticate(authorizationContext.promptInfo, BiometricPrompt.CryptoObject(signature))
+            }
         }
     }
 
@@ -162,24 +181,19 @@ class AndroidCryptoService(
     override suspend fun doSign(input: ByteArray): KmmResult<CryptoSignature> = runCatching {
         suspendCoroutine<CryptoSignature> { continuation ->
             showBiometryPrompt(
-                object : BiometricPrompt.AuthenticationCallback() {
+                object : AuthenticationCallback {
                     override fun onAuthenticationError(
                         @BiometricPrompt.AuthenticationError errorCode: Int, errString: CharSequence
                     ) {
                         continuation.resumeWithException(Exception("$errorCode:$errString"))
                     }
 
-                    override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                        val signer = result.cryptoObject?.signature
-                            ?: return continuation.resumeWithException(
-                                IllegalStateException("Missing CryptoObject or Signature")
-                            )
-
-                        val signature = signer.run {
+                    override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult, signature: Signature) {
+                        val signatureResult = signature.run {
                             update(input)
                             sign()
                         }
-                        continuation.resume(CryptoSignature.parseFromJca(signature, algorithm))
+                        continuation.resume(CryptoSignature.parseFromJca(signatureResult, algorithm))
                     }
 
                     override fun onAuthenticationFailed() {
