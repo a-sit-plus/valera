@@ -1,15 +1,15 @@
 [versions]
 encoding = "1.2.3"
-vck = "4.1.1"
+vck = "4.2.0-SNAPSHOT"
 mdl = "1.0.2"
-signum = "3.6.0"
+signum = "3.7.0-SNAPSHOT"
 ida = "3.8.3"
 eupid = "2.1.3"
 powerofrepresentation = "1.0.2"
 certificateofresidence = "1.0.2"
 atomicfu = "0.23.2"
 compose-plugin = "1.6.11"
-kotlin = "2.0.0"
+kotlin = "2.0.20"
 
 
 [libraries]
@@ -29,5 +29,4 @@ credential-mdl = { group = "at.asitplus.wallet", name = "mobiledrivinglicence", 
 
 [plugins]
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
-kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

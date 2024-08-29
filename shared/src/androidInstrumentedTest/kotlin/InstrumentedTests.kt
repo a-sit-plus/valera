@@ -142,12 +142,12 @@ class InstrumentedTests {
 
             val issuer = IssuerAgent()
             runBlocking {
-                walletMain.holderAgent.storeCredentials(
+                walletMain.holderAgent.storeCredential(
                     issuer.issueCredential(
                         CredentialToBeIssued.VcSd(getAttributes(),
                             Clock.System.now().plus(3600.minutes)
                         ),
-                        walletMain.cryptoService.publicKey,
+                        walletMain.cryptoService.keyPairAdapter.publicKey,
                         IdAustriaScheme
                     ).toStoreCredentialInput()
                 )
@@ -214,12 +214,12 @@ class InstrumentedTests {
 
             val issuer = IssuerAgent()
             runBlocking {
-                walletMain.holderAgent.storeCredentials(
+                walletMain.holderAgent.storeCredential(
                     issuer.issueCredential(
                         CredentialToBeIssued.VcSd(getAttributes(),
                             Clock.System.now().plus(3600.minutes)
                         ),
-                        walletMain.cryptoService.publicKey,
+                        walletMain.cryptoService.keyPairAdapter.publicKey,
                         IdAustriaScheme
                     ).toStoreCredentialInput()
                 )

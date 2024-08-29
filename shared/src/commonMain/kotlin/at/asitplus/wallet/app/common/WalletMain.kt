@@ -55,7 +55,7 @@ class WalletMain(
     }
 
     @Throws(Throwable::class)
-    fun initialize(snackbarService: SnackbarService) {
+     fun initialize(snackbarService: SnackbarService) {
         walletConfig =
             WalletConfig(dataStoreService = this.dataStoreService, errorService = errorService)
         cryptoService = objectFactory.loadCryptoService().getOrThrow()
@@ -138,7 +138,7 @@ class WalletMain(
  * efficiently.
  */
 interface ObjectFactory {
-    fun loadCryptoService(): KmmResult<WalletCryptoService>
+     fun loadCryptoService(): KmmResult<WalletCryptoService>
     fun loadHolderKeyService(): KmmResult<HolderKeyService>
 }
 
