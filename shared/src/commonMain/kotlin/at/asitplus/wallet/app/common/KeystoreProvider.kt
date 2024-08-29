@@ -1,19 +1,31 @@
 package at.asitplus.wallet.app.common
 
+import at.asitplus.signum.indispensable.X509SignatureAlgorithm
+import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.signum.supreme.os.SigningProvider
+import at.asitplus.signum.supreme.sign.SignatureInput
 import at.asitplus.signum.supreme.sign.Signer
+import at.asitplus.wallet.lib.agent.generateSelfSignedCertificate
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.runBlocking
 import kotlin.time.Duration.Companion.seconds
 
+class SignerWithCert(signer: Signer, val certificate: X509Certificate) : Signer by signer
 
 class KeystoreService : HolderKeyService {
 
-    suspend fun getSigner(): Signer {
+    suspend fun getSigner(): SignerWithCert {
 
         Napier.d("getSigner")
         getProvider().let { provider ->
-            provider.getSignerForKey(Configuration.KS_ALIAS).onSuccess { return it }
+            provider.getSignerForKey(Configuration.KS_ALIAS).onSuccess {
+                return it.run {
+                    SignerWithCert(this, X509Certificate.generateSelfSignedCertificate(
+                        publicKey,
+                        X509SignatureAlgorithm.ES256
+                    ) { sign(SignatureInput(it)) })
+                }
+            }
             return provider.createSigningKey(alias = Configuration.KS_ALIAS) {
                 hardware {
                     protection {
@@ -24,7 +36,12 @@ class KeystoreService : HolderKeyService {
                     }
                 }
 
-            }.getOrThrow()
+            }.getOrThrow().run { //TODO STORE CERT SOMEWHERE
+                SignerWithCert(this, X509Certificate.generateSelfSignedCertificate(
+                    publicKey,
+                    X509SignatureAlgorithm.ES256
+                ) { sign(SignatureInput(it)) })
+            }
         }
 
     }
