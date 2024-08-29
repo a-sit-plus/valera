@@ -1,8 +1,11 @@
 package ui.navigation
 
+import android.os.Parcel
 import android.os.Parcelable
+import data.verifier.Verifier
 import data.storage.StoreEntryId
 import kotlinx.parcelize.Parcelize
+import org.intellij.lang.annotations.Pattern
 
 @Parcelize
 actual class HomePage : Page, Parcelable
@@ -63,3 +66,24 @@ actual class AuthenticationConsentPage actual constructor(
 
 @Parcelize
 actual class AuthenticationSuccessPage : Page, Parcelable
+
+@Parcelize
+actual class SelectDataRetrievalPage : Page, Parcelable
+
+@Parcelize
+actual class CustomDataRetrievalPage : Page, Parcelable
+
+actual class QrDeviceEngagementPage actual constructor(
+    actual val document: Verifier.Document
+) : Page
+
+actual class LoadRequestedDataPage actual constructor(
+    actual val document: Verifier.Document,
+    actual val payload: String
+): Page
+
+@Parcelize
+actual class RequestedDataLogOutputPage : Page, Parcelable
+
+@Parcelize
+actual class RequestedDataShowPage: Page, Parcelable

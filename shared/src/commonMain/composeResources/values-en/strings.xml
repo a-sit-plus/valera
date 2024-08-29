@@ -40,6 +40,11 @@
     <string name="button_label_reset_app">Reset App</string>
     <string name="button_label_all_missing_data">All new Data</string>
     <string name="button_label_all_available_data">All existing Data</string>
+    <string name="button_label_check_identity">Check Identity</string>
+    <string name="button_label_check_license">Check License</string>
+    <string name="button_label_check_age">Check Age</string>
+    <string name="button_label_check_custom">Custom Request</string>
+    <string name="button_label_check_over_age">Over </string>
 
     <string name="attribute_friendly_name_bpk">BPK</string>
     <string name="attribute_friendly_name_firstname">Given name</string>
@@ -74,6 +79,11 @@
     <string name="attribute_friendly_name_issuing_country">Issuing country</string>
     <string name="attribute_friendly_name_driving_privileges">Driving privileges</string>
     <string name="attribute_friendly_name_distinguishing_sign">Issuing country (code)</string>
+    <string name="attribute_friendly_name_signature">Signature</string>
+    <string name="attribute_friendly_name_gender">Gender</string>
+    <string name="attribute_friendly_name_administrative_number">Administrative number</string>
+    <string name="attribute_friendly_age_above">yes</string>
+    <string name="attribute_friendly_age_below">no</string>
 
     <string name="attribute_friendly_name_legal_person_identifier">Legal person identifier</string>
     <string name="attribute_friendly_name_legal_name">Legal name</string>
@@ -81,7 +91,6 @@
     <string name="attribute_friendly_name_e_service">eService</string>
     <string name="attribute_friendly_name_effective_from_date">Effective from</string>
     <string name="attribute_friendly_name_effective_until_date">Effective until</string>
-    <string name="attribute_friendly_name_administrative_number">Administrative number</string>
     <string name="attribute_friendly_name_issuing_jurisdiction">Issuing jurisdiction</string>
 
     <string name="attribute_friendly_name_residence_address">Residence address</string>
@@ -118,6 +127,7 @@
     <string name="navigation_button_label_show_data">Show Data</string>
     <string name="navigation_button_label_my_data">My Data</string>
     <string name="navigation_button_label_settings">Settings</string>
+    <string name="navigation_button_label_check">Check</string>
 
     <string name="id_format_plain_jwt_label">PLAIN_JWT</string>
     <string name="id_format_sd_jwt_label">SD-JWT</string>
@@ -154,6 +164,11 @@
     <string name="heading_label_add_credential_screen">Load data</string>
     <string name="heading_label_refresh_data_screen">Load data</string>
     <string name="heading_label_authenticate_at_device_screen">Authenticate at\ncounter or mashine</string>
+    <string name="heading_label_select_data_retrieval_screen">Check</string>
+    <string name="heading_label_select_custom_data_retrieval_screen">Custom Request</string>
+    <string name="heading_label_check_scan_qr_code">QR-Code Scannen</string>
+    <string name="heading_label_requested_data">Data Tab</string>
+    <string name="heading_label_request_log">Log Output Tab</string>
 
     <string name="description_read_terms">Please read and accept the terms of use and the privacy policy.</string>
 
@@ -197,6 +212,8 @@
     <string name="error_qr_code_scanning_invalid_metadata_jws_object">Invalid metadataJws</string>
     <string name="error_qr_code_scanning_invalid_metadata_jws_object_signature">Invalid metadataJws signature</string>
     <string name="error_qr_code_scanning_client_id_not_in_redirect_uris">Client id not in client metadata redirect uris</string>
+    <string name="error_missing_permissions">Permission Denied</string>
+    <string name="error_missing_value">Error no value given</string>
 
     <string name="info_text_show_data_situation">In which Situation do you want to present your data?</string>
     <string name="info_text_irrevocable_error">The error can not be rectified.</string>
@@ -208,6 +225,7 @@
     <string name="info_text_notice_development_provisioning_using_qr_code_credentials">For development purposes, there is also the option to load data via a QR code.</string>
     <string name="info_text_enthusiastic_welcome_end">Load your data and off you go!</string>
     <string name="info_text_submission_preview_disabled">Preview of data to be submitted is currently not available.</string>
+    <string name="info_text_data_is_being_loaded">Loading Data</string>
 
     <string name="section_heading_authenticate_at_device_title">Authenticate</string>
     <string name="section_heading_authenticate_at_device_subtitle">at counters or mashines</string>
@@ -245,6 +263,15 @@
     <string name="section_heading_load_data_selection">Available data</string>
     <string name="section_heading_missing_data">Load new data</string>
     <string name="section_heading_available_data">Refresh existing data</string>
+    <string name="section_heading_request_eausweiße">eAusweiße request</string>
+    <string name="section_heading_request_license">Other request</string>
+    <string name="section_heading_request_custom">Custom request</string>
+    <string name="section_heading_select_document_type">Select document type:</string>
+    <string name="section_heading_selected_namespace">Namespace: </string>
+    <string name="section_heading_select_requested_data_entrys">Select data entrys:</string>
+    <string name="section_heading_vehicle_category">Vehicle category:</string>
+    <string name="section_heading_date_of_issue">Date of issue:</string>
+    <string name="section_heading_date_of_expiry">Date of expiry:</string>
 
     <string name="onboarding_section_terms_and_data_protection_icon_text">1</string>
     <string name="onboarding_section_terms_and_data_protection_title">Terms of use and privacy policy</string>

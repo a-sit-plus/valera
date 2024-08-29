@@ -1,5 +1,6 @@
 package ui.navigation
 
+import data.verifier.Verifier
 import data.storage.StoreEntryId
 
 interface Page
@@ -64,3 +65,26 @@ expect class AuthenticationConsentPage(
 }
 
 expect class AuthenticationSuccessPage() : Page
+
+expect class SelectDataRetrievalPage() : Page
+
+expect class CustomDataRetrievalPage() : Page
+
+expect class QrDeviceEngagementPage(
+    document: Verifier.Document
+) : Page {
+    val document: Verifier.Document
+}
+
+expect class LoadRequestedDataPage(
+    document: Verifier.Document,
+    payload: String
+): Page {
+    val document: Verifier.Document
+    val payload: String
+}
+
+expect class RequestedDataLogOutputPage() : Page
+
+expect class RequestedDataShowPage() : Page
+
