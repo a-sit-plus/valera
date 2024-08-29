@@ -102,7 +102,6 @@
     <string name="attribute_friendly_name_distinguishing_sign">UNTRANSLATED:attribute_friendly_name_distinguishing_sign</string>
     <string name="attribute_friendly_name_signature">UNTRANSLATED:attribute_friendly_name_signature</string>
     <string name="attribute_friendly_name_gender">UNTRANSLATED:attribute_friendly_name_gender</string>
-    <string name="attribute_friendly_name_administrative_number">UNTRANSLATED:attribute_friendly_name_administrative_number</string>
     <string name="attribute_friendly_age_above">UNTRANSLATED:attribute_friendly_age_above</string>
     <string name="attribute_friendly_age_below">UNTRANSLATED:attribute_friendly_age_below</string>
 
