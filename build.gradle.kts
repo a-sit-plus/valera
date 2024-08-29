@@ -9,27 +9,36 @@ plugins {
     alias(libs.plugins.compose.compiler) apply false
 }
 
-task<Exec>("prepareSupreme"){
+task("prepareSupreme") {
     doFirst {
-        rootProject.layout.projectDirectory.file("local.properties").asFile.also { src->
+        rootProject.layout.projectDirectory.file("local.properties").asFile.also { src ->
 
-            src.copyTo( rootProject.layout.projectDirectory.dir("vck").file("local.properties").asFile)
-            src.copyTo( rootProject.layout.projectDirectory.dir("vck").dir("signum").file("local.properties").asFile)
-        }
-      exec {
-          workingDir= File("${rootDir}/vck/signum")
-          commandLine("./gradlew", "publishAllPublicationsToLocalRepository")
-      }
-        exec {
-            workingDir= File("${rootDir}/vck")
-            commandLine("./gradlew", "publishAllPublicationsToLocalRepository")
+            src.copyTo(
+                rootProject.layout.projectDirectory.dir("vck").file("local.properties").asFile,
+                overwrite = true
+            )
+            src.copyTo(
+                rootProject.layout.projectDirectory.dir("vck").dir("signum")
+                    .file("local.properties").asFile,
+                overwrite = true
+            )
+            exec {
+                workingDir = File("${rootDir}/vck/signum")
+                commandLine("./gradlew", "publishAllPublicationsToLocalRepository")
+            }
+            exec {
+                workingDir = File("${rootDir}/vck")
+                commandLine("./gradlew", "publishAllPublicationsToLocalRepository")
+            }
         }
     }
-
     doLast {
-        rootProject.layout.projectDirectory.dir("vck").dir("signum").dir("repo").asFile.copyRecursively(
-            rootProject.layout.projectDirectory.dir("vck").dir("repo").asFile
-        )
+        rootProject.layout.projectDirectory.dir("vck").dir("signum")
+            .dir("repo").asFile.copyRecursively(
+                rootProject.layout.projectDirectory.dir("vck").dir("repo").asFile,
+                overwrite = true
+            )
+
     }
 }
 
