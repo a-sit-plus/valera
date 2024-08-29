@@ -1,6 +1,4 @@
-
-
-# UNRELEASED Release 4.1.0:
+# Release 4.1.0:
 * improved display of credentials
 * Handle portraits encoded as actual byte arrays
 
