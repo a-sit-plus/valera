@@ -12,4 +12,6 @@ object Configuration {
     const val DEBUG_DATASTORE_VALUE = "DBGVALUE"
 
     const val IOS_TEST_VALUE = "TESTVALUE"
+
+    const val KS_ALIAS = "binding"
 }

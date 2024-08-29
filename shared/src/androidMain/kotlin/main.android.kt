@@ -11,12 +11,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import at.asitplus.KmmResult
-import at.asitplus.catching
-import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.wallet.app.android.AndroidCryptoService
-import at.asitplus.wallet.app.android.AndroidKeyStoreService
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.HolderKeyService
+import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.ObjectFactory
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.WalletCryptoService
@@ -57,7 +55,7 @@ fun MainView(buildContext: BuildContext) {
 }
 
 class AndroidObjectFactory : ObjectFactory {
-    val keyStoreService: AndroidKeyStoreService by lazy { AndroidKeyStoreService() }
+    val keyStoreService: KeystoreService by lazy { KeystoreService() }
 
     override fun loadCryptoService(): KmmResult<WalletCryptoService> {
         val keyPair = at.asitplus.catching { runBlocking {   keyStoreService.getSigner()}}
