@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.unit.dp
+import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.iso.DeviceAuth
@@ -60,7 +61,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
-import kotlinx.serialization.cbor.ByteStringWrapper
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton
 
@@ -235,7 +235,7 @@ fun selectRequestedDataView(
                     onClick = {
                         CoroutineScope(Dispatchers.IO).launch {
                             changeToLoading()
-                            val documentsToSend = getSelectedCredentials(walletMain, credentials, requestedAttributes)
+                            val documentsToSend = getSelectedCredentials(walletMain, credentials?.map { it.second }, requestedAttributes)
                             holder.send(documentsToSend, changeToSent)
                         }
                     },
@@ -350,9 +350,10 @@ fun sentRequestedDataView() {
 fun credentialsContainAttribute(storeContainerState:  StoreContainer?, attribute: DocumentAttributes): Boolean {
     return storeContainerState?.let { storeContainer ->
         storeContainer.credentials.any { cred ->
-            when (cred) {
+            val credsecond = cred.second
+            when (credsecond) {
                 is SubjectCredentialStore.StoreEntry.Iso -> {
-                    cred.issuerSigned.namespaces?.any { namespace ->
+                    credsecond.issuerSigned.namespaces?.any { namespace ->
                         namespace.value.entries.any { entry ->
                             entry.value.elementIdentifier == attribute.value
                         }

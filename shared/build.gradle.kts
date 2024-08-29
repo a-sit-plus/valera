@@ -50,7 +50,7 @@ kotlin {
                 implementation(ktor("client-logging"))
                 implementation(ktor("client-content-negotiation"))
                 implementation(ktor("serialization-kotlinx-json"))
-                implementation(libs.qrcode.kotlin)
+                implementation("io.github.g0dkar:qrcode-kotlin:4.1.1")
             }
         }
 
