@@ -3,6 +3,7 @@ encoding = "1.2.3"
 vck = "4.2.0-SNAPSHOT"
 mdl = "1.0.2"
 signum = "3.7.0-SNAPSHOT"
+supreme = "0.2.0-SNAPSHOT"
 ida = "3.8.3"
 eupid = "2.1.3"
 powerofrepresentation = "1.0.2"
@@ -20,6 +21,7 @@ vck-openid = { group = "at.asitplus.wallet", name = "vclib-openid", version.ref 
 signum = { group = "at.asitplus.signum", name = "indispensable", version.ref = "signum" }
 signum-jws = { group = "at.asitplus.signum", name = "indispensable-josef", version.ref = "signum" }
 signum-cose = { group = "at.asitplus.signum", name = "indispensable-cosef", version.ref = "signum" }
+signum-supreme = { group = "at.asitplus.signum", name = "supreme", version.ref = "supreme" }
 atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version.ref = "atomicfu" }
 credential-ida = { module = "at.asitplus.wallet:idacredential", version.ref = "ida" }
 credential-eupid = { module = "at.asitplus.wallet:eupidcredential", version.ref = "eupid" }

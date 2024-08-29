@@ -92,6 +92,7 @@ exportIosFramework(
     signumCatalog.bignum,
     signumCatalog.kmmresult,
     libs.signum,
+    libs.signum.supreme,
     libs.signum.jws,
     libs.signum.cose,
     libs.credential.ida,
