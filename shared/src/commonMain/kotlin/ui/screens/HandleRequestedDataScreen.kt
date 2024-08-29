@@ -171,27 +171,7 @@ fun createDocument(
                             .filter { it.type == ValueType.IMAGE }
                             .map { it.value }
 
-                        // TODO image is now bytearray but still gets sent as string!!!
-                        val updatedNamespaces: List<ByteStringWrapper<IssuerSignedItem>> = newnamespaces.map { byteStringWrapper ->
-                            val issuerSignedItem = byteStringWrapper.value
-                            if (imageAttributes.contains(issuerSignedItem.elementIdentifier)) {
-                                println(issuerSignedItem)
-
-                                val valAsByteArray: ByteArray = when (issuerSignedItem.elementValue) {
-                                        is String -> walletMain.platformAdapter.imageStringToBytearray(issuerSignedItem.elementValue as String)
-                                        is ByteArray -> issuerSignedItem.elementValue as ByteArray
-                                        else -> byteArrayOf()
-                                    }
-
-
-                                val updatedIssuerSignedItem = issuerSignedItem.copy(elementValue = valAsByteArray)
-                                ByteStringWrapper(updatedIssuerSignedItem, byteStringWrapper.serialized)
-                            } else {
-                                byteStringWrapper
-                            }
-                        }
-
-                        if (updatedNamespaces.isNotEmpty()) {
+                        if (imageAttributes.isNotEmpty()) {
                             val map = mapOf(
                                 nameSpace.nameSpace to IssuerSignedList(newnamespaces)
                             )
