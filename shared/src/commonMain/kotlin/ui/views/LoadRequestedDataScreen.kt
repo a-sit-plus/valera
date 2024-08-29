@@ -57,10 +57,6 @@ fun LoadRequestedDataScreen(document: Verifier.Document, payload: String, naviga
 
     val currentpage: MutableState<Page> = mutableStateOf(RequestedDataLogOutputPage())
 
-        val updateData: (List<Entry>) -> Unit = { entry ->
-            entryState += entry
-        }
-
     Scaffold(
         bottomBar = {
             NavigationBar {
