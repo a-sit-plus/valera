@@ -37,8 +37,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.unit.dp
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
+import at.asitplus.wallet.app.common.CryptoServiceAuthorizationContext
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.lib.agent.PresentationException
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.cbor.CoseService
+import at.asitplus.wallet.lib.cbor.DefaultCoseService
 import at.asitplus.wallet.lib.iso.DeviceAuth
 import at.asitplus.wallet.lib.iso.DeviceSigned
 import at.asitplus.wallet.lib.iso.Document
@@ -57,10 +61,12 @@ import data.bletransfer.holder.RequestedDocument
 import data.bletransfer.verifier.DocumentAttributes
 import data.bletransfer.verifier.ValueType
 import data.storage.StoreContainer
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton
 
@@ -76,7 +82,12 @@ fun HandleRequestedDataScreen(holder: Holder, navigateUp: () -> Unit, walletMain
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HandleRequestedDataView(walletMain: WalletMain, holder: Holder, requestedAttributes: List<RequestedDocument>, navigateUp: () -> Unit) {
+fun HandleRequestedDataView(
+    walletMain: WalletMain,
+    holder: Holder,
+    requestedAttributes: List<RequestedDocument>,
+    navigateUp: () -> Unit
+) {
     val storeContainer = walletMain.subjectCredentialStore.observeStoreContainer()
     val storeContainerState by storeContainer.collectAsState(null)
     var view by remember { mutableStateOf(HandleRequestedDataView.SELECTION) }
@@ -162,9 +173,10 @@ fun createDocument(
                 is SubjectCredentialStore.StoreEntry.Iso -> {
                     cCred.issuerSigned.namespaces?.get(nameSpace.nameSpace)?.let { namespace ->
 
-                        val newnamespaces: List<ByteStringWrapper<IssuerSignedItem>> = namespace.entries.filter { entry ->
-                            nameSpace.trueAttributes.contains(DocumentAttributes.fromValue(entry.value.elementIdentifier))
-                        }
+                        val newnamespaces: List<ByteStringWrapper<IssuerSignedItem>> =
+                            namespace.entries.filter { entry ->
+                                nameSpace.trueAttributes.contains(DocumentAttributes.fromValue(entry.value.elementIdentifier))
+                            }
 
 
                         val imageAttributes: List<String> = DocumentAttributes.entries
@@ -175,12 +187,33 @@ fun createDocument(
                             val map = mapOf(
                                 nameSpace.nameSpace to IssuerSignedList(newnamespaces)
                             )
+                            return runBlocking {
+                                val coseService: CoseService =
+                                    DefaultCoseService(walletMain.cryptoService)
+                                val deviceSignature = coseService.createSignedCose(
+                                    addKeyId = false
+                                ).getOrElse {
+                                    Napier.w("Could not create DeviceAuth for presentation", it)
+                                    throw PresentationException(it)
+                                }
 
-                            val issuerSigned = IssuerSigned(map, cCred.issuerSigned.issuerAuth)
-                            return Document(reqDocument.docType, issuerSigned, DeviceSigned(byteArrayOf(), DeviceAuth()))
+
+                                val issuerSigned = IssuerSigned(map, cCred.issuerSigned.issuerAuth)
+                                Document(
+                                    reqDocument.docType, issuerSigned,
+                                    DeviceSigned(
+                                        namespaces = byteArrayOf(),
+                                        deviceAuth = DeviceAuth(
+                                            deviceSignature = deviceSignature
+                                        )
+                                    )
+                                )
+
+                            }
                         }
                     }
                 }
+
                 else -> {}
             }
         }
@@ -200,7 +233,7 @@ fun selectRequestedDataView(
 ) {
     val uncheckedAttributes = remember { mutableStateListOf<DocumentAttributes>() }
     val credentials = storeContainerState?.credentials
-
+    val authorizationContext = presentationAuthorizationContext()
     Scaffold(
         bottomBar = {
             NavigationBar {
@@ -214,9 +247,15 @@ fun selectRequestedDataView(
                     label = {},
                     onClick = {
                         CoroutineScope(Dispatchers.IO).launch {
-                            changeToLoading()
-                            val documentsToSend = getSelectedCredentials(walletMain, credentials?.map { it.second }, requestedAttributes)
-                            holder.send(documentsToSend, changeToSent)
+                            walletMain.cryptoService.useAuthorizationContext(authorizationContext) {
+                                changeToLoading()
+                                val documentsToSend = getSelectedCredentials(
+                                    walletMain,
+                                    credentials?.map { it.second },
+                                    requestedAttributes
+                                )
+                                holder.send(documentsToSend, changeToSent)
+                            }
                         }
                     },
                     selected = false,
@@ -237,15 +276,21 @@ fun selectRequestedDataView(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(text = stringResource(Res.string.section_heading_requested),
+                        Text(
+                            text = stringResource(Res.string.section_heading_requested),
                             style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.weight(2f))
-                        Text(text = stringResource(Res.string.section_heading_available),
+                            modifier = Modifier.weight(2f)
+                        )
+                        Text(
+                            text = stringResource(Res.string.section_heading_available),
                             style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.weight(1f))
-                        Text(text = stringResource(Res.string.section_heading_selected),
+                            modifier = Modifier.weight(1f)
+                        )
+                        Text(
+                            text = stringResource(Res.string.section_heading_selected),
                             style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.weight(1f))
+                            modifier = Modifier.weight(1f)
+                        )
                     }
 
                     nameSpace.attributes.forEach { item: DocumentAttributes ->
@@ -260,9 +305,9 @@ fun selectRequestedDataView(
                             )
 
                             val isAvailableChecked = credentialsContainAttribute(
-                                    storeContainerState,
-                                    item
-                                )
+                                storeContainerState,
+                                item
+                            )
                             Checkbox(
                                 checked = isAvailableChecked,
                                 onCheckedChange = {},
@@ -302,8 +347,10 @@ fun sendingRequestedDataView() {
         ) {
             CircularProgressIndicator()
             Spacer(modifier = Modifier.height(16.dp))
-            Text(text = stringResource(Res.string.section_heading_sending_response),
-                style = MaterialTheme.typography.titleMedium)
+            Text(
+                text = stringResource(Res.string.section_heading_sending_response),
+                style = MaterialTheme.typography.titleMedium
+            )
         }
     }
 }
@@ -317,17 +364,24 @@ fun sentRequestedDataView() {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(painter = rememberVectorPainter(Icons.Default.Check),
-                contentDescription = "")
+            Icon(
+                painter = rememberVectorPainter(Icons.Default.Check),
+                contentDescription = ""
+            )
             Spacer(modifier = Modifier.height(16.dp))
-            Text(text = stringResource(Res.string.section_heading_response_sent),
-                style = MaterialTheme.typography.titleMedium)
+            Text(
+                text = stringResource(Res.string.section_heading_response_sent),
+                style = MaterialTheme.typography.titleMedium
+            )
         }
     }
 }
 
 @Composable
-fun credentialsContainAttribute(storeContainerState:  StoreContainer?, attribute: DocumentAttributes): Boolean {
+fun credentialsContainAttribute(
+    storeContainerState: StoreContainer?,
+    attribute: DocumentAttributes
+): Boolean {
     return storeContainerState?.let { storeContainer ->
         storeContainer.credentials.any { cred ->
             val credsecond = cred.second

@@ -5,6 +5,7 @@ import android.content.Context
 import android.util.Log
 import com.android.identity.android.legacy.*
 import data.bletransfer.util.CborDecoder
+import io.github.aakira.napier.Napier
 
 class TransferManager private constructor(private val context: Context) {
 
@@ -37,24 +38,24 @@ class TransferManager private constructor(private val context: Context) {
         qrCommunicationSetup = QrCommunicationSetup(
             context = context,
             onConnecting = {
-                Log.d(TAG, "CONNECTING")
+                Napier.d( tag = TAG, message = "CONNECTING")
             },
             onQrEngagementReady = { qrText ->
-                Log.d(TAG, "QrCode: $qrText")
+                Napier.d( tag = TAG, message = "QrCode: $qrText")
                 updateQrCode(qrText)
             },
             onDeviceRetrievalHelperReady = { session, deviceRetrievalHelper ->
                 this.session = session
                 communication.setupPresentation(deviceRetrievalHelper)
-                Log.d(TAG, "CONNECTED")
+                Napier.d( tag = TAG, message = "CONNECTED")
             },
             onNewDeviceRequest = { deviceRequest ->
                 communication.setDeviceRequest(deviceRequest)
 
-                val cbordec = CborDecoder { tag, message -> Log.d(tag, message) }
+                val cbordec = CborDecoder { tag, message -> Napier.d( tag = TAG, message = message) }
                 cbordec.decodeRequest(deviceRequest)
                 updateRequestedAttributes(cbordec.documentRequests)
-                Log.d(TAG, "REQUEST received")
+                Napier.d( tag = TAG, message = "REQUEST received")
 
                 val doc = cbordec.documentRequests
                 for (i in doc) {
@@ -62,11 +63,11 @@ class TransferManager private constructor(private val context: Context) {
                 }
             },
             onDisconnected = {
-                Log.d(TAG, "DISCONNECTED")
+                Napier.d( tag = TAG, message = "DISCONNECTED")
                 stopPresentation(false, false)
             },
             onCommunicationError = { error ->
-                Log.d(TAG, "onError: ${error.message}")
+                Napier.d( tag = TAG, message = "onError: ${error.message}")
             }
         ).apply {
             configure()
@@ -75,12 +76,8 @@ class TransferManager private constructor(private val context: Context) {
     }
 
     fun sendResponse(deviceResponse: ByteArray, closeAfterSending: Boolean) {
-        Log.d(TAG, "sendResponse")
+        Napier.d( tag = TAG, message = "sendResponse")
         communication.sendResponse(deviceResponse, closeAfterSending)
-
-        if (closeAfterSending && false) { // this doesnt work!!
-            disconnect()
-        }
     }
 
     fun stopPresentation(
