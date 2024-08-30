@@ -46,6 +46,9 @@ class KeystoreService : HolderKeyService {
 
     }
 
+    fun getSignerBlocking() = runBlocking { getSigner() }
+
+
     /*  override suspend fun loadKeyPair(): KeyPair? {
           try {
               Napier.d("loadKeyPair")

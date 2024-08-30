@@ -124,17 +124,27 @@ class SwiftPlatformAdapter: PlatformAdapter {
     }
 }
 
+class TmpWalletCryptoService :WalletCryptoService{
+     init(keyPairAdapter: KeyPairAdapter) {
+        super.init(defaultCryptoService: DefaultCryptoService(keyPairAdapter: keyPairAdapter))
+    }
+}
+
+class TmpKeyPairAdapter : DefaultKeyPairAdapter{
+    init(signer:  SignerWithCert) {
+        super.init(signer:signer, extensions: signer.certificate.tbsCertificate.extensions!)
+    }
+}
+
 class SwiftObjectFactory: ObjectFactory {
-    lazy var keyChainService: RealKeyChainService = {RealKeyChainService()}()
+    lazy var keyChainService: KeystoreService = {KeystoreService()}()
+    lazy var walletCryptoService: WalletCryptoService = {TmpWalletCryptoService(keyPairAdapter: TmpKeyPairAdapter(signer: keyChainService.getSignerBlocking()))}()
+   
     
     func loadCryptoService() -> KmmResult<WalletCryptoService> {
         do {
-            try keyChainService.initialize()
-            guard let cryptoService = VcLibCryptoServiceCryptoKit(keyChainService: keyChainService) else {
-                NapierProxy.companion.e(msg: "Error on creating VcLibCryptoServiceCryptoKit")
-                return KmmResultFailure(KotlinThrowable(message: "Error on creating VcLibCryptoServiceCryptoKit"))
-            }
-            return KmmResultSuccess(cryptoService)
+            NapierProxy.companion.i(msg: "loading CryptoService")
+            return KmmResultSuccess(walletCryptoService)
         } catch {
             NapierProxy.companion.e(msg: "Error from keyChainService.generateKeyPair")
             return KmmResultFailure(KotlinThrowable(message: "Error from keyChainService.generateKeyPair"))
