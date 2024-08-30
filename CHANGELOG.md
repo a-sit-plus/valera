@@ -5,10 +5,6 @@
 * improved display of credentials
 * Handle portraits encoded as actual byte arrays
 
-# UNRELEASED Release 4.1.0:
-* improved display of credentials
-* Handle portraits encoded as actual byte arrays
-
 # Release 4.0.0:
 * Update to VcLib 4.1.1
 * Add credentials: POR, COR
