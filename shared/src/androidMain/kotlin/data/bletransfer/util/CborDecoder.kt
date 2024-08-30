@@ -134,18 +134,24 @@ class CborDecoder(
                 val item: Map<String, *> = decodeCborData(items)
                 (item["docType"] as? String)?.let { docType ->
                 val document = RequestedDocument(docType)
-                    (item["nameSpaces"] as? Map<String, Map<String, *>>)?.let { nameSpaces ->
-                        for (namespace in nameSpaces.keys) {
-                            val nameSpaceObject: RequestedDocument.NameSpace = RequestedDocument.NameSpace(namespace)
-                            for (attribute in nameSpaces[namespace]?.keys ?: emptyList()) {
-                                nameSpaceObject.addAttribute(DocumentAttributes.fromValue(attribute))
+                    val any =
+                        (item["nameSpaces"] as? Map<String, Map<String, *>>)?.let { nameSpaces ->
+                            for (namespace in nameSpaces.keys) {
+                                val nameSpaceObject: RequestedDocument.NameSpace =
+                                    RequestedDocument.NameSpace(namespace)
+                                for (attribute in nameSpaces[namespace]?.keys ?: emptyList()) {
+                                    nameSpaceObject.addAttribute(
+                                        DocumentAttributes.fromValue(
+                                            attribute
+                                        )
+                                    )
+                                }
+                                document.addNameSpace(nameSpaceObject)
                             }
-                            document.addNameSpace(nameSpaceObject)
-                        }
-                    } ?: Log.d(TAG,"nameSpaces is null")
+                        } ?: Napier.d( tag = TAG, message = "nameSpaces is null")
                     documentRequests += document
-                } ?: Log.d(TAG,"docType is null")
-            } ?: Log.d(TAG,"itemsRequest is null")
+                } ?: Napier.d( tag = TAG, message ="docType is null")
+            } ?: Napier.d( tag = TAG, message ="itemsRequest is null")
         }
     }
 
