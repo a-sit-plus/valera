@@ -33,7 +33,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun MobileDrivingLicenceCredentialSummaryCardContent(
     credential: SubjectCredentialStore.StoreEntry,
-    decodeToBitmap: (ByteArray) -> ImageBitmap,
+    decodeToBitmap: (ByteArray) -> ImageBitmap?,
     modifier: Modifier = Modifier,
 ) {
     val credentialAdapter = remember {

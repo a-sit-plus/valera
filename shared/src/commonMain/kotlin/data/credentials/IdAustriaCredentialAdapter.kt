@@ -7,13 +7,14 @@ import at.asitplus.wallet.idaustria.IdAustriaCredential
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import data.Attribute
+import io.github.aakira.napier.Napier
 import io.ktor.util.decodeBase64Bytes
 import io.ktor.util.decodeBase64String
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.json.Json
 
 sealed class IdAustriaCredentialAdapter(
-    private val decodePortrait: (ByteArray) -> ImageBitmap,
+    private val decodePortrait: (ByteArray) -> ImageBitmap?,
 ) : CredentialAdapter() {
     override fun getAttribute(path: NormalizedJsonPath) =
         path.segments.firstOrNull()?.let { first ->
@@ -94,7 +95,7 @@ sealed class IdAustriaCredentialAdapter(
     companion object {
         fun createFromStoreEntry(
             storeEntry: SubjectCredentialStore.StoreEntry,
-            decodeImage: (ByteArray) -> ImageBitmap,
+            decodeImage: (ByteArray) -> ImageBitmap?,
         ): IdAustriaCredentialAdapter {
             if (storeEntry.scheme !is IdAustriaScheme) {
                 throw IllegalArgumentException("credential")
@@ -126,7 +127,7 @@ sealed class IdAustriaCredentialAdapter(
 
 private class IdAustriaCredentialVcAdapter(
     val credentialSubject: IdAustriaCredential,
-    decodeImage: (ByteArray) -> ImageBitmap,
+    decodeImage: (ByteArray) -> ImageBitmap?,
 ) : IdAustriaCredentialAdapter(decodeImage) {
     override val bpk: String
         get() = credentialSubject.bpk
@@ -161,7 +162,7 @@ private class IdAustriaCredentialVcAdapter(
 
 private class IdAustriaCredentialSdJwtAdapter(
     attributes: Map<String, Any>,
-    decodeImage: (ByteArray) -> ImageBitmap,
+    decodeImage: (ByteArray) -> ImageBitmap?,
 ) : IdAustriaCredentialAdapter(decodeImage) {
     private val proxy = IdAustriaCredentialIsoMdocAdapter(
         namespaces = mapOf(IdAustriaScheme.isoNamespace to attributes),
@@ -201,7 +202,7 @@ private class IdAustriaCredentialSdJwtAdapter(
 
 private class IdAustriaCredentialIsoMdocAdapter(
     namespaces: Map<String, Map<String, Any>>?,
-    decodeImage: (ByteArray) -> ImageBitmap,
+    decodeImage: (ByteArray) -> ImageBitmap?,
 ) : IdAustriaCredentialAdapter(decodeImage) {
     private val idAustriaNamespace = namespaces?.get(IdAustriaScheme.isoNamespace)
         ?: throw IllegalArgumentException("namespaces") // contains required attributes

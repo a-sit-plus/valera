@@ -82,7 +82,12 @@ class AndroidPlatformAdapter(val context: Context) : PlatformAdapter {
     }
 
     override fun decodeImage(image: ByteArray): ImageBitmap {
+        Napier.d("byte array: $image")
+        Napier.d("byte array length: ${image.size}")
         val bitmap = BitmapFactory.decodeByteArray(image, 0, image.size)
+        Napier.d {
+            "decoded bitmap: $bitmap"
+        }
         return bitmap.asImageBitmap()
     }
 

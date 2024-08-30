@@ -1,3 +1,6 @@
+# Release 4.1.1:
+* handle image decoding error
+
 # Release 4.1.0:
 * improved display of credentials
 * Handle portraits encoded as actual byte arrays

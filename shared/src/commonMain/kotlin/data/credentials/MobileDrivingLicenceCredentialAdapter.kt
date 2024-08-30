@@ -12,7 +12,7 @@ import io.ktor.util.decodeBase64Bytes
 import kotlinx.datetime.LocalDate
 
 sealed class MobileDrivingLicenceCredentialAdapter(
-    private val decodePortrait: (ByteArray) -> ImageBitmap,
+    private val decodePortrait: (ByteArray) -> ImageBitmap?,
 ) : CredentialAdapter() {
     override fun getAttribute(path: NormalizedJsonPath) =
         when (val first = path.segments.firstOrNull()) {
@@ -110,7 +110,7 @@ sealed class MobileDrivingLicenceCredentialAdapter(
     companion object {
         fun createFromStoreEntry(
             storeEntry: SubjectCredentialStore.StoreEntry,
-            decodePortrait: (ByteArray) -> ImageBitmap,
+            decodePortrait: (ByteArray) -> ImageBitmap?,
         ): MobileDrivingLicenceCredentialAdapter {
             if (storeEntry.scheme !is MobileDrivingLicenceScheme) {
                 throw IllegalArgumentException("credential")
@@ -140,7 +140,7 @@ sealed class MobileDrivingLicenceCredentialAdapter(
 
 private class MobileDrivingLicenceCredentialSdJwtAdapter(
     attributes: Map<String, Any>,
-    decodePortrait: (ByteArray) -> ImageBitmap,
+    decodePortrait: (ByteArray) -> ImageBitmap?,
 ) : MobileDrivingLicenceCredentialAdapter(decodePortrait) {
     private val proxy = MobileDrivingLicenceCredentialIsoMdocAdapter(
         namespaces = mapOf(MobileDrivingLicenceScheme.isoNamespace to attributes),
@@ -213,7 +213,7 @@ private class MobileDrivingLicenceCredentialSdJwtAdapter(
 
 private class MobileDrivingLicenceCredentialIsoMdocAdapter(
     namespaces: Map<String, Map<String, Any>>?,
-    decodePortrait: (ByteArray) -> ImageBitmap,
+    decodePortrait: (ByteArray) -> ImageBitmap?,
 ) : MobileDrivingLicenceCredentialAdapter(decodePortrait) {
     private val mobileDrivingLicenceNamespace =
         namespaces?.get(MobileDrivingLicenceScheme.isoNamespace)

@@ -13,7 +13,7 @@ import at.asitplus.wallet.por.PowerOfRepresentationScheme
 @Composable
 fun CredentialSummaryCardContent(
     credential: SubjectCredentialStore.StoreEntry,
-    decodeToBitmap: (ByteArray) -> ImageBitmap,
+    decodeToBitmap: (ByteArray) -> ImageBitmap?,
 ) {
     when (credential.scheme) {
         is IdAustriaScheme -> IdAustriaCredentialSummaryCardContent(
