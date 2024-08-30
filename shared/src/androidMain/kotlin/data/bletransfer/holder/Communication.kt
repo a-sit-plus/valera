@@ -6,6 +6,7 @@ import android.util.Log
 import com.android.identity.util.Constants
 import com.android.identity.mdoc.request.DeviceRequestParser
 import com.android.identity.android.mdoc.deviceretrieval.DeviceRetrievalHelper
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
 import java.util.OptionalLong
@@ -44,9 +45,9 @@ class Communication private constructor(
 
     fun sendResponse(deviceResponse: ByteArray, closeAfterSending: Boolean) {
         val progressListener: (Long, Long) -> Unit = { progress, max ->
-            Log.d(TAG, "Progress: $progress of $max")
+            Napier.d( tag = TAG, message = "Progress: $progress of $max")
             if (progress == max) {
-                Log.d(TAG, "Completed...")
+                Napier.d( tag = TAG, message = "Completed...")
             }
         }
         if (closeAfterSending) {
@@ -89,7 +90,7 @@ class Communication private constructor(
         try {
             deviceRetrievalHelper?.disconnect()
         } catch (e: RuntimeException) {
-            Log.d("Error ignored closing presentation", e.toString())
+            Napier.e(message = "Error ignored closing presentation $e")
         }
     }
 

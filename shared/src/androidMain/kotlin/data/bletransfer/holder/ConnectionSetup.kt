@@ -6,6 +6,7 @@ import com.android.identity.mdoc.connectionmethod.ConnectionMethodBle
 import com.android.identity.mdoc.connectionmethod.ConnectionMethodNfc
 import com.android.identity.mdoc.connectionmethod.ConnectionMethodWifiAware
 import com.android.identity.android.mdoc.transport.DataTransportOptions
+import io.github.aakira.napier.Napier
 import java.util.ArrayList
 import java.util.OptionalLong
 import java.util.UUID
@@ -40,26 +41,6 @@ class ConnectionSetup(
                     false,
                     UUID.randomUUID(),
                     null
-                )
-            )
-        }
-        if (PreferencesHelper.isWifiDataRetrievalEnabled()) {
-            val empty = OptionalLong.empty()
-            connectionMethods.add(
-                ConnectionMethodWifiAware(
-                    null,
-                    empty,
-                    empty,
-                    null
-                )
-            )
-        }
-        if (PreferencesHelper.isNfcDataRetrievalEnabled()) {
-            // TODO: Add API to ConnectionMethodNfc to get sizes appropriate for the device
-            connectionMethods.add(
-                ConnectionMethodNfc(
-                    0xffff,
-                    0x10000
                 )
             )
         }

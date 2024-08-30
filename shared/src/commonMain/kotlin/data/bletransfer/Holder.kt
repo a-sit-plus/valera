@@ -16,5 +16,5 @@ interface Holder {
 
     fun disconnect()
 
-    fun send(credentials: List<Document>, function: () -> Unit)
+    fun send(credentials: List<Document>, launchAfterSuccessfulSend: () -> Unit)
 }

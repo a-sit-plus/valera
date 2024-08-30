@@ -1,11 +1,11 @@
 package data.bletransfer.holder
 
 import android.content.Context
-import android.util.Log
 import com.android.identity.android.mdoc.transport.DataTransport
 import com.android.identity.android.mdoc.deviceretrieval.DeviceRetrievalHelper
 import com.android.identity.android.legacy.PresentationSession
 import com.android.identity.android.mdoc.engagement.QrEngagementHelper
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
 import java.security.PublicKey
@@ -27,21 +27,21 @@ class QrCommunicationSetup(
     private val qrEngagementListener = object : QrEngagementHelper.Listener {
 
         override fun onDeviceEngagementReady() {
-            Log.d(TAG, "QR Engagement: Device Engagement Ready")
+            Napier.d( tag = TAG, message = "QR Engagement: Device Engagement Ready")
             onQrEngagementReady(deviceEngagementUriEncoded)
         }
 
         override fun onDeviceConnecting() {
-            Log.d(TAG, "QR Engagement: Device Connecting")
+            Napier.d( tag = TAG, message = "QR Engagement: Device Connecting")
             onConnecting()
         }
 
         override fun onDeviceConnected(transport: DataTransport) {
             if (deviceRetrievalHelper != null) {
-                Log.d(TAG, "OnDeviceConnected for QR engagement -> ignoring due to active presentation")
+                Napier.d( tag = TAG, message = "OnDeviceConnected for QR engagement -> ignoring due to active presentation")
                 return
             }
-            Log.d(TAG, "OnDeviceConnected via QR: qrEngagement=$qrEngagement")
+            Napier.d( tag = TAG, message = "OnDeviceConnected via QR: qrEngagement=$qrEngagement")
             val builder = DeviceRetrievalHelper.Builder(
                 context,
                 deviceRetrievalHelperListener,
@@ -59,30 +59,30 @@ class QrCommunicationSetup(
         }
 
         override fun onError(error: Throwable) {
-            Log.d(TAG, "QR onError: ${error.message}")
+            Napier.d( tag = TAG, message = "QR onError: ${error.message}")
             onCommunicationError(error)
         }
     }
 
     private val deviceRetrievalHelperListener = object : DeviceRetrievalHelper.Listener {
         override fun onEReaderKeyReceived(eReaderKey: PublicKey) {
-            Log.d(TAG, "DeviceRetrievalHelper Listener (QR): OnEReaderKeyReceived")
+            Napier.d( tag = TAG, message = "DeviceRetrievalHelper Listener (QR): OnEReaderKeyReceived")
             session.setSessionTranscript(deviceRetrievalHelper!!.sessionTranscript)
             session.setReaderEphemeralPublicKey(eReaderKey)
         }
 
         override fun onDeviceRequest(deviceRequestBytes: ByteArray) {
-            Log.d(TAG, "DeviceRetrievalHelper Listener (QR): OnDeviceRequest")
+            Napier.d( tag = TAG, message = "DeviceRetrievalHelper Listener (QR): OnDeviceRequest")
             onNewDeviceRequest(deviceRequestBytes)
         }
 
         override fun onDeviceDisconnected(transportSpecificTermination: Boolean) {
-            Log.d(TAG, "DeviceRetrievalHelper Listener (QR): onDeviceDisconnected")
+            Napier.d( tag = TAG, message = "DeviceRetrievalHelper Listener (QR): onDeviceDisconnected")
             onDisconnected(transportSpecificTermination)
         }
 
         override fun onError(error: Throwable) {
-            Log.d(TAG, "DeviceRetrievalHelper Listener (QR): onError -> ${error.message}")
+            Napier.d( tag = TAG, message = "DeviceRetrievalHelper Listener (QR): onError -> ${error.message}")
             onCommunicationError(error)
         }
     }
@@ -110,7 +110,7 @@ class QrCommunicationSetup(
         try {
             qrEngagement.close()
         } catch (exception: RuntimeException) {
-            Log.d(TAG, "Error closing QR engagement", exception)
+            Napier.d( tag = TAG, message = "Error closing QR engagement $exception")
         }
     }
 }

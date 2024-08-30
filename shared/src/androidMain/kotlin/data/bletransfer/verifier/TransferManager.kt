@@ -176,13 +176,9 @@ class TransferManager private constructor(private val context: Context) {
             updateLogs(TAG, "Response received")
             val sessionTranscript = verification?.sessionTranscript
             val ephemeralReaderKey = verification?.ephemeralReaderKey
-            val iTSTS = verification?.isTransportSpecificTerminationSupported
 
             val cborfact = CborDecoder(updateLogs)
             cborfact.decodeResponse(deviceResponseBytes, sessionTranscript, ephemeralReaderKey)
-            Log.d(TAG, "Session Transcript: $sessionTranscript")
-            Log.d(TAG, "Ephemeral Reader Key: $ephemeralReaderKey")
-            Log.d(TAG, "is Transport Specific Termination Supported: $iTSTS")
 
             updateData(cborfact.entryList)
         }
