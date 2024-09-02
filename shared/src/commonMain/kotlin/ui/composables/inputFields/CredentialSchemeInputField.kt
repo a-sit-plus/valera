@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.identifier
+import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
@@ -122,14 +123,4 @@ fun CredentialSchemeInputField(
             }
         }
     }
-}
-
-@Composable
-fun ConstantIndex.CredentialScheme.uiLabel(): String = when (this) {
-    is IdAustriaScheme -> stringResource(Res.string.credential_scheme_label_id_austria)
-    is EuPidScheme -> stringResource(Res.string.credential_scheme_label_eu_pid)
-    is MobileDrivingLicenceScheme -> stringResource(Res.string.credential_scheme_label_mdl)
-    is CertificateOfResidenceScheme -> stringResource(Res.string.credential_scheme_label_power_of_representation)
-    is PowerOfRepresentationScheme -> stringResource(Res.string.credential_scheme_label_certificate_of_residence)
-    else -> this.identifier
 }

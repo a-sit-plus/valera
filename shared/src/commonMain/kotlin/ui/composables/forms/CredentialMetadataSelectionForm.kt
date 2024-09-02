@@ -19,7 +19,6 @@ import ui.composables.inputFields.StatefulCredentialRepresentationInputField
 import ui.composables.inputFields.StatefulCredentialSchemeInputField
 
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun CredentialMetadataSelectionForm(
     host: TextFieldValue,
@@ -44,14 +43,15 @@ fun CredentialMetadataSelectionForm(
             onValueChange = onChangeHost,
             modifier = listSpacingModifier.fillMaxWidth(),
         )
-        StatefulCredentialRepresentationInputField(
-            value = credentialRepresentation,
-            onValueChange = onChangeCredentialRepresentation,
-            modifier = listSpacingModifier.fillMaxWidth(),
-        )
         StatefulCredentialSchemeInputField(
             value = credentialScheme,
             onValueChange = onChangeCredentialScheme,
+            modifier = listSpacingModifier.fillMaxWidth(),
+        )
+        StatefulCredentialRepresentationInputField(
+            value = credentialRepresentation,
+            onValueChange = onChangeCredentialRepresentation,
+            options = credentialScheme.supportedRepresentations.toList(),
             modifier = listSpacingModifier.fillMaxWidth(),
         )
     }

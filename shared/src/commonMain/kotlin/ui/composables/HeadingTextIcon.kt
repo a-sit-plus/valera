@@ -17,6 +17,7 @@ fun HeadingTextIcon(
     fontWeight: FontWeight = FontWeight.Bold,
     color: Color = TextIconDefaults.color(),
     contentColor: Color = contentColorFor(color),
+    modifier: Modifier = Modifier,
 ) {
     HeadingTextIcon(
         text = text,
@@ -27,6 +28,7 @@ fun HeadingTextIcon(
             disabledContainerColor = color,
             disabledContentColor = contentColor,
         ),
+        modifier = modifier,
     )
 }
 
@@ -35,8 +37,11 @@ fun HeadingTextIcon(
     text: String,
     fontWeight: FontWeight = FontWeight.Bold,
     colors: IconButtonColors,
+    modifier: Modifier = Modifier,
 ) {
-    HeadingTextIconContainer {
+    HeadingTextIconContainer(
+        modifier = modifier,
+    ) {
         TextIcon(
             text = text,
             fontWeight = fontWeight,
@@ -47,10 +52,11 @@ fun HeadingTextIcon(
 
 @Composable
 fun HeadingTextIconContainer(
+    modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
     Box(
-        modifier = Modifier.size(width = 40.dp, height = 40.dp)
+        modifier = modifier.size(width = 40.dp, height = 40.dp)
     ) {
         content()
     }

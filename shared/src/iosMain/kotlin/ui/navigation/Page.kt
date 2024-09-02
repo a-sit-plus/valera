@@ -1,5 +1,7 @@
 package ui.navigation
 
+import data.storage.StoreEntryId
+
 actual class HomePage : Page
 
 actual class LogPage : Page
@@ -29,6 +31,10 @@ actual class RefreshCredentialsPage actual constructor(
     actual val refreshRequirements: RefreshRequirements?,
 ) : Page
 actual class AddCredentialPage : Page
+
+actual class CredentialDetailsPage actual constructor(
+    actual val storeEntryId: StoreEntryId
+) : Page
 
 actual class AuthenticationConsentPage actual constructor(
     actual val authenticationRequestParametersFromSerialized: String,
