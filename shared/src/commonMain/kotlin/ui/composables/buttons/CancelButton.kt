@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalResourceApi::class)
-
 package ui.composables.buttons
 
 import androidx.compose.material.icons.Icons
@@ -14,7 +12,6 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.OutlinedTextIconButton
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun CancelButton(
     onClick: () -> Unit,

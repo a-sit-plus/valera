@@ -38,6 +38,7 @@ import ui.navigation.AuthenticationConsentPage
 import ui.navigation.AuthenticationLoadingPage
 import ui.navigation.AuthenticationQrCodeScannerPage
 import ui.navigation.AuthenticationSuccessPage
+import ui.navigation.CredentialDetailsPage
 import ui.navigation.HomePage
 import ui.navigation.LogPage
 import ui.navigation.NavigationStack
@@ -48,6 +49,7 @@ import ui.screens.AddCredentialScreen
 import ui.screens.AuthenticationConsentScreen
 import ui.screens.AuthenticationQrCodeScannerScreen
 import ui.screens.AuthenticationSuccessScreen
+import ui.screens.CredentialDetailsScreen
 import ui.screens.ErrorScreen
 import ui.screens.LoadingScreen
 import ui.screens.LogScreen
@@ -193,12 +195,23 @@ fun MainNavigator(
                             navigateToAddCredentialsPage = {
                                 navigationStack.push(AddCredentialPage())
                             },
+                            navigateToCredentialDetailsPage = {
+                                navigationStack.push(CredentialDetailsPage(it))
+                            },
                             walletMain = walletMain,
                         )
                     }
 
                     is AddCredentialPage -> {
                         AddCredentialScreen(
+                            navigateUp = navigateUp,
+                            walletMain = walletMain,
+                        )
+                    }
+
+                    is CredentialDetailsPage -> {
+                        CredentialDetailsScreen(
+                            storeEntryId = page.storeEntryId,
                             navigateUp = navigateUp,
                             walletMain = walletMain,
                         )

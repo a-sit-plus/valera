@@ -14,16 +14,15 @@ import composewalletapp.shared.generated.resources.button_label_details
 import composewalletapp.shared.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.OutlinedTextIconButton
 import ui.composables.TextIconButton
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun DetailsButton(
     onClick: () -> Unit,
-    colors: ButtonColors = ButtonDefaults.buttonColors(),
     modifier: Modifier = Modifier,
 ) {
-    TextIconButton(
+    OutlinedTextIconButton(
         icon = {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowForward,
@@ -34,7 +33,6 @@ fun DetailsButton(
             Text(stringResource(Res.string.button_label_details))
         },
         onClick = onClick,
-        colors = colors,
         modifier = modifier,
     )
 }

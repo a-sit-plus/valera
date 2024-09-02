@@ -44,11 +44,6 @@ fun OnboardingTermsScreen(
     onClickReadDataProtectionPolicy: () -> Unit,
     onClickAccept: () -> Unit,
 ) {
-    val detailButtonColors = ButtonDefaults.buttonColors(
-        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-        contentColor = contentColorFor(MaterialTheme.colorScheme.secondaryContainer),
-    )
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -113,7 +108,6 @@ fun OnboardingTermsScreen(
                     ) {
                         DetailsButton(
                             onClick = onClickReadGeneralTermsAndConditions,
-                            colors = detailButtonColors,
                             modifier = Modifier.padding(16.dp),
                         )
                     }
@@ -134,7 +128,6 @@ fun OnboardingTermsScreen(
                     ) {
                         DetailsButton(
                             onClick = onClickReadDataProtectionPolicy,
-                            colors = detailButtonColors,
                             modifier = Modifier.padding(16.dp),
                         )
                     }

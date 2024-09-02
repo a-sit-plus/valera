@@ -1,6 +1,7 @@
 package ui.navigation
 
 import android.os.Parcelable
+import data.storage.StoreEntryId
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -45,6 +46,11 @@ actual class RefreshCredentialsPage actual constructor(
 
 @Parcelize
 actual class AddCredentialPage actual constructor() : Page, Parcelable
+
+@Parcelize
+actual class CredentialDetailsPage actual constructor(
+    actual val storeEntryId: StoreEntryId
+) : Page, Parcelable
 
 @Parcelize
 actual class AuthenticationConsentPage actual constructor(
