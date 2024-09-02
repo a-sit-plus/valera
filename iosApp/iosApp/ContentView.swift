@@ -81,6 +81,12 @@ class SwiftPlatformAdapter: PlatformAdapter {
         }
         return nil
     }
+    
+    func readFileUrl(url: String) -> KotlinByteArray? {
+        let url = NSURL(fileURLWithPath: url) as URL
+        let data = try? Data(contentsOf: url)
+        return data?.kotlinByteArray
+    }
 
     func clearFile(fileName: String, folderName: String) {
         if let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {

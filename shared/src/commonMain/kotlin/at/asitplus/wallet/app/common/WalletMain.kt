@@ -186,6 +186,8 @@ interface PlatformAdapter {
      */
     fun readFromFile(fileName: String, folderName: String): String?
 
+    fun readFileUrl(url: String): ByteArray?
+
     /**
      * Clears the content of a file
      * @param fileName the name of the file
@@ -216,6 +218,10 @@ class DummyPlatformAdapter : PlatformAdapter {
     }
 
     override fun readFromFile(fileName: String, folderName: String): String? {
+        return null
+    }
+
+    override fun readFileUrl(url: String): ByteArray? {
         return null
     }
 

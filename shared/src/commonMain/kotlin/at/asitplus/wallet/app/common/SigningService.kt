@@ -9,4 +9,8 @@ class SigningService(
     fun sign() {
         println("SigningService: sign()")
     }
+
+    fun sign(byteArray: ByteArray) {
+        println("SigningService: sign " + byteArray.size.toString())
+    }
 }

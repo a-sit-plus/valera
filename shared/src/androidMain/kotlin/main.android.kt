@@ -2,6 +2,9 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
+import android.net.Uri
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
@@ -9,6 +12,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
+import androidx.core.net.toFile
 import androidx.core.net.toUri
 import at.asitplus.KmmResult
 import at.asitplus.signum.indispensable.pki.X509Certificate
@@ -111,6 +115,15 @@ class AndroidPlatformAdapter(val context: Context) : PlatformAdapter {
         } else {
             null
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    override fun readFileUrl(url: String): ByteArray? {
+        val uri = Uri.parse(url)
+        val inputStream = context.contentResolver.openInputStream(uri)
+        val stream = inputStream?.readAllBytes()
+        inputStream?.close()
+        return stream
     }
 
     override fun clearFile(fileName: String, folderName: String) {

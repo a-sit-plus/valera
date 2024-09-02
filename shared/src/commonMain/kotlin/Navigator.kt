@@ -79,6 +79,16 @@ fun Navigator(walletMain: WalletMain) {
             // resetting error service so that the intent can be displayed as intended
             walletMain.errorService.reset()
 
+            if (link.contains("wallet-pdf")) {
+                var pdfLink = link.replace("wallet-pdf://file//", "")
+                val byteArray = walletMain.platformAdapter.readFileUrl(pdfLink)
+                if (byteArray != null) {
+                    walletMain.signingService.sign(byteArray)
+                } else {
+                    Napier.d("Error reading pdf")
+                }
+                return@LaunchedEffect
+            }
             Napier.d("new app link: ${link}")
             val parameterIndex = link.indexOfFirst { it == '?' }
             val pars = parseQueryString(link, startIndex = parameterIndex + 1)

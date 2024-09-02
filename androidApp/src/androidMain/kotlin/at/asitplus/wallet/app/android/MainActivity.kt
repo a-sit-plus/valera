@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity() {
         if (intent != null) {
             if (intent.type?.contains("pdf") == true) {
                 val uri = intent.extras?.get(Intent.EXTRA_STREAM)
-                pdfLink.value = uri.toString()
+                appLink.value = "wallet-pdf://file//" + uri.toString()
             } else {
                 appLink.value = intent.data?.toString()
             }
