@@ -36,6 +36,7 @@ import composewalletapp.shared.generated.resources.heading_label_navigate_back
 import composewalletapp.shared.generated.resources.info_text_submission_preview_disabled
 import composewalletapp.shared.generated.resources.prompt_send_above_data
 import composewalletapp.shared.generated.resources.section_heading_data_recipient
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.BiometryPrompt
@@ -54,11 +55,7 @@ fun AuthenticationConsentView(
     spImage: ImageBitmap?,
     navigateUp: () -> Unit,
     consentToDataTransmission: () -> Unit,
-    cancelAuthentication: () -> Unit,
-    authorizationContext: CryptoServiceAuthorizationContext,
-    showBiometry: Boolean,
-    onBiometrySuccess: (BiometryPromptSuccessResult) -> Unit,
-    onBiometryDismissed: (BiometryPromptDismissResult) -> Unit,
+    cancelAuthentication: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -102,13 +99,6 @@ fun AuthenticationConsentView(
             }
         }
     ) {
-        if (showBiometry) {
-            BiometryPrompt(
-                authorizationContext = authorizationContext,
-                onSuccess = onBiometrySuccess,
-                onDismiss = onBiometryDismissed,
-            )
-        }
         Box(modifier = Modifier.padding(it)) {
             Column(
                 modifier = Modifier.padding(horizontal = 16.dp)

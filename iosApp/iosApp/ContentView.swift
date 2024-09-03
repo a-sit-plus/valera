@@ -124,21 +124,10 @@ class SwiftPlatformAdapter: PlatformAdapter {
     }
 }
 
-class TmpWalletCryptoService :WalletCryptoService{
-     init(keyPairAdapter: KeyPairAdapter) {
-        super.init(defaultCryptoService: DefaultCryptoService(keyPairAdapter: keyPairAdapter))
-    }
-}
-
-class TmpKeyPairAdapter : DefaultKeyPairAdapter{
-    init(signer:  SignerWithCert) {
-        super.init(signer:signer, extensions: signer.certificate.tbsCertificate.extensions!)
-    }
-}
-
 class SwiftObjectFactory: ObjectFactory {
     lazy var keyChainService: KeystoreService = {KeystoreService()}()
-    lazy var walletCryptoService: WalletCryptoService = {TmpWalletCryptoService(keyPairAdapter: TmpKeyPairAdapter(signer: keyChainService.getSignerBlocking()))}()
+    lazy var walletCryptoService: WalletCryptoService = {WalletCryptoService(keyPairAdapter: SignerKeyPairAdapter(signerWithCert: keyChainService.getSignerBlocking()))
+    }()
    
     
     func loadCryptoService() -> KmmResult<WalletCryptoService> {

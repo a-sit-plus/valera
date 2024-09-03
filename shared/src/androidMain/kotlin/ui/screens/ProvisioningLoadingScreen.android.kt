@@ -20,7 +20,7 @@ actual fun provisioningAuthorizationContext(): CryptoServiceAuthorizationContext
         context = LocalContext.current,
         promptInfo = BiometricPrompt.PromptInfo.Builder().apply {
             setTitle(stringResource(Res.string.biometric_authentication_prompt_to_bind_credentials_title))
-            setTitle(stringResource(Res.string.biometric_authentication_prompt_to_bind_credentials_subtitle))
+            setSubtitle(stringResource(Res.string.biometric_authentication_prompt_to_bind_credentials_subtitle))
             setAllowedAuthenticators(
                 when (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
                     true -> BIOMETRIC_WEAK or DEVICE_CREDENTIAL

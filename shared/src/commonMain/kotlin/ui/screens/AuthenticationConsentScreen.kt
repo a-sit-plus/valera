@@ -13,9 +13,11 @@ import at.asitplus.wallet.lib.oidc.AuthenticationRequestParametersFrom
 import at.asitplus.wallet.lib.oidc.helpers.AuthorizationResponsePreparationState
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.error_authentication_at_sp_failed
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.getString
 import ui.views.AuthenticationConsentView
@@ -56,8 +58,11 @@ fun StatefulAuthenticationConsentView(
     navigateToAuthenticationSuccessPage: () -> Unit,
     walletMain: WalletMain,
 ) {
-    var showBiometry by rememberSaveable { mutableStateOf(false) }
     val authorizationContext = presentationAuthorizationContext()
+
+
+    walletMain.cryptoService.onUnauthenticated = navigateUp
+
 
     AuthenticationConsentView(
         spName = spName,
@@ -66,14 +71,9 @@ fun StatefulAuthenticationConsentView(
         navigateUp = navigateUp,
         cancelAuthentication = navigateUp,
         consentToDataTransmission = {
-            showBiometry = true
-        },
-        authorizationContext = authorizationContext,
-        showBiometry = showBiometry,
-        onBiometrySuccess = {
-            showBiometry = false
             walletMain.scope.launch {
                 try {
+                    Napier.e { "signed!" }
                     walletMain.cryptoService.useAuthorizationContext(authorizationContext) {
                         walletMain.presentationService.startSiop(
                             authenticationRequest,
@@ -87,11 +87,7 @@ fun StatefulAuthenticationConsentView(
                     walletMain.snackbarService.showSnackbar(getString(Res.string.error_authentication_at_sp_failed))
                 }
             }
-        },
-        onBiometryDismissed = { biometryPromptDismissResult ->
-            walletMain.snackbarService.showSnackbar(biometryPromptDismissResult.errorString)
-            showBiometry = false
-        },
+        }
     )
 }
 

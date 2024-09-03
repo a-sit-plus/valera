@@ -26,6 +26,16 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version ("0.4.0")
 }
 
+if (System.getProperty("publishing.excludeIncludedBuilds") != "true") {
+    includeBuild("vck") {
+        dependencySubstitution {
+            substitute(module("at.asitplus.wallet:vck")).using(project(":vck"))
+            substitute(module("at.asitplus.wallet:vck-openid")).using(project(":vck-openid"))
+            substitute(module("at.asitplus.wallet:vck-aries")).using(project(":vck-aries"))
+        }
+    }
+} else logger.lifecycle("Excluding Signum from this build")
+
 dependencyResolutionManagement {
     repositories {
         mavenCentral()

@@ -22,6 +22,8 @@ import at.asitplus.wallet.app.common.WalletMain
 import data.storage.RealDataStoreService
 import data.storage.getDataStore
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import ui.theme.darkScheme
 import ui.theme.lightScheme
@@ -43,33 +45,21 @@ actual fun getColorScheme(): ColorScheme {
 @Composable
 fun MainView(buildContext: BuildContext) {
     val platformAdapter = AndroidPlatformAdapter(LocalContext.current)
-
+    val ks = KeystoreService()
+    val scope = CoroutineScope(Dispatchers.Default)
     App(
         WalletMain(
-            objectFactory = AndroidObjectFactory(),
-            RealDataStoreService(getDataStore(LocalContext.current), platformAdapter),
+            cryptoService = ks.let { runBlocking { AndroidCryptoService(it.getSigner()) } }, //TODO
+            holderKeyService = ks,
+            dataStoreService = RealDataStoreService(
+                getDataStore(LocalContext.current),
+                platformAdapter
+            ),
             platformAdapter = platformAdapter,
             buildContext = buildContext,
+            scope = scope
         )
     )
-}
-
-class AndroidObjectFactory : ObjectFactory {
-    val keyStoreService: KeystoreService by lazy { KeystoreService() }
-
-    override fun loadCryptoService(): KmmResult<WalletCryptoService> {
-        val keyPair = at.asitplus.catching { runBlocking {   keyStoreService.getSigner()}}
-          if(keyPair.isFailure) return KmmResult.failure(keyPair.exceptionOrNull()!!) //TODO
-        //TODO CERT???
-        val cryptoService = AndroidCryptoService(
-            keyPair.getOrThrow(), //TODO
-        )
-        return KmmResult.success(cryptoService)
-    }
-
-    override fun loadHolderKeyService(): KmmResult<HolderKeyService> {
-        return KmmResult.success(keyStoreService)
-    }
 }
 
 class AndroidPlatformAdapter(val context: Context) : PlatformAdapter {

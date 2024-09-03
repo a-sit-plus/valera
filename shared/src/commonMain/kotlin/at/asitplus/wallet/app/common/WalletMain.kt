@@ -26,23 +26,23 @@ import kotlinx.coroutines.launch
  * Main class to hold all services needed in the Compose App.
  */
 class WalletMain(
-    val objectFactory: ObjectFactory,
+    val cryptoService: WalletCryptoService,
+    private  val holderKeyService: HolderKeyService,
     private val dataStoreService: DataStoreService,
     val platformAdapter: PlatformAdapter,
     var subjectCredentialStore: PersistentSubjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService),
     val buildContext: BuildContext,
     val errorService: ErrorService = ErrorService(mutableStateOf(false), mutableStateOf(null)),
+    val scope:CoroutineScope,
 ) {
     lateinit var walletConfig: WalletConfig
-    lateinit var cryptoService: WalletCryptoService
     lateinit var holderAgent: HolderAgent
-    private lateinit var holderKeyService: HolderKeyService
     lateinit var provisioningService: ProvisioningService
     lateinit var httpService: HttpService
     lateinit var presentationService: PresentationService
     lateinit var snackbarService: SnackbarService
     private val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
-    val scope = CoroutineScope(Dispatchers.Default)
+
 
     init {
         at.asitplus.wallet.mdl.Initializer.initWithVck()
@@ -58,7 +58,6 @@ class WalletMain(
      fun initialize(snackbarService: SnackbarService) {
         walletConfig =
             WalletConfig(dataStoreService = this.dataStoreService, errorService = errorService)
-        cryptoService = objectFactory.loadCryptoService().getOrThrow()
         subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
         holderAgent = HolderAgent(
             validator = Validator.newDefaultInstance(DefaultVerifierCryptoService(), Parser()),
@@ -68,7 +67,6 @@ class WalletMain(
             keyPair = cryptoService.keyPairAdapter,
         )
 
-        holderKeyService = objectFactory.loadHolderKeyService().getOrThrow()
         httpService = HttpService()
         provisioningService = ProvisioningService(
             platformAdapter,

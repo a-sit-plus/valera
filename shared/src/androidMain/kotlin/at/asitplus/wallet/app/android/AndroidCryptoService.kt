@@ -10,6 +10,8 @@ import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.signum.supreme.sign.Signer
 import at.asitplus.wallet.app.common.AndroidCryptoServiceAuthorizationContext
 import at.asitplus.wallet.app.common.CryptoServiceAuthorizationContext
+import at.asitplus.wallet.app.common.SignerKeyPairAdapter
+import at.asitplus.wallet.app.common.SignerWithCert
 import at.asitplus.wallet.app.common.WalletCryptoService
 import at.asitplus.wallet.lib.agent.AuthenticatedCiphertext
 import at.asitplus.wallet.lib.agent.DefaultCryptoService
@@ -31,15 +33,13 @@ class AndroidCryptoService(
     override val keyPairAdapter: KeyPairAdapter,
     // val certificate: X509Certificate, TODO????
     val defaultAuthorizationPromptContext: AndroidCryptoServiceAuthorizationContext? = null,
-) : WalletCryptoService(DefaultCryptoService(keyPairAdapter)) {
+) : WalletCryptoService(keyPairAdapter) {
 
     constructor(
-        signer: Signer,
+        signer: SignerWithCert,
         // certificate: X509Certificate,
         defaultAuthorizationPromptContext: AndroidCryptoServiceAuthorizationContext? = null
-    ) : this(
-        object :
-            DefaultKeyPairAdapter(signer, listOf()) {},
+    ) : this(SignerKeyPairAdapter(signer),
         defaultAuthorizationPromptContext
     )
 

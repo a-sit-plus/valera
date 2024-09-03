@@ -5,12 +5,25 @@ import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.signum.supreme.os.SigningProvider
 import at.asitplus.signum.supreme.sign.SignatureInput
 import at.asitplus.signum.supreme.sign.Signer
+import at.asitplus.signum.supreme.wrap
+import at.asitplus.wallet.lib.agent.DefaultKeyPairAdapter
 import at.asitplus.wallet.lib.agent.generateSelfSignedCertificate
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.runBlocking
 import kotlin.time.Duration.Companion.seconds
 
-class SignerWithCert(signer: Signer, val certificate: X509Certificate) : Signer by signer
+class SignerWithCert(signer: Signer, genSigner: () -> X509Certificate) : Signer by signer {
+    val certificate: X509Certificate by lazy {
+
+        Napier.e { "SIGN CERT" }
+        genSigner() }
+}
+
+
+class SignerKeyPairAdapter(signerWithCert: SignerWithCert) : DefaultKeyPairAdapter(
+    signerWithCert,
+    signerWithCert.certificate.tbsCertificate.extensions!!
+) //TODO
 
 class KeystoreService : HolderKeyService {
 
@@ -20,10 +33,12 @@ class KeystoreService : HolderKeyService {
         getProvider().let { provider ->
             provider.getSignerForKey(Configuration.KS_ALIAS).onSuccess {
                 return it.run {
-                    SignerWithCert(this, X509Certificate.generateSelfSignedCertificate(
-                        publicKey,
-                        X509SignatureAlgorithm.ES256
-                    ) { sign(SignatureInput(it)) })
+                    SignerWithCert(this) {
+                        X509Certificate.generateSelfSignedCertificate(
+                            publicKey,
+                            X509SignatureAlgorithm.ES256
+                        ) { sign(SignatureInput(it)).wrap() /*TODO*/ }
+                    }
                 }
             }
             return provider.createSigningKey(alias = Configuration.KS_ALIAS) {
@@ -37,15 +52,18 @@ class KeystoreService : HolderKeyService {
                 }
 
             }.getOrThrow().run { //TODO STORE CERT SOMEWHERE
-                SignerWithCert(this, X509Certificate.generateSelfSignedCertificate(
-                    publicKey,
-                    X509SignatureAlgorithm.ES256
-                ) { sign(SignatureInput(it)) })
+                SignerWithCert(this) {
+                    X509Certificate.generateSelfSignedCertificate(
+                        publicKey,
+                        X509SignatureAlgorithm.ES256
+                    ) { sign(SignatureInput(it)).wrap() /*TODO*/ }
+                }
             }
         }
 
     }
 
+    //TMP for iOS
     fun getSignerBlocking() = runBlocking { getSigner() }
 
 

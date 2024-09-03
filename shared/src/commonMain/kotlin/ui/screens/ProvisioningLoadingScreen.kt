@@ -72,32 +72,25 @@ fun ProvisioningLoadingScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (showBiometry) {
-                BiometryPrompt(
-                    authorizationContext = authorizationContext,
-                    onDismiss = {
-                        showBiometry = false
-                        navigateUp()
-                    },
-                    onSuccess = {
-                        showBiometry = false
-                        walletMain.scope.launch {
-                            try {
-                                walletMain.cryptoService.useAuthorizationContext(authorizationContext) {
-                                    walletMain.provisioningService.handleResponse(link)
-                                }.getOrThrow()
-                                walletMain.snackbarService.showSnackbar(
-                                    getString(Res.string.snackbar_credential_loaded_successfully)
-                                )
-                                navigateUp()
-                            } catch (e: Throwable) {
-                                navigateUp()
-                                walletMain.errorService.emit(e)
-                            }
-                        }
-                    }
-                )
+
+            walletMain.cryptoService.onUnauthenticated = navigateUp
+            showBiometry = false
+            currentLoadingJob = walletMain.scope.launch {
+                try {
+                    walletMain.cryptoService.useAuthorizationContext(authorizationContext) {
+                        walletMain.provisioningService.handleResponse(link)
+                    }.getOrThrow()
+                    walletMain.snackbarService.showSnackbar(
+                        getString(Res.string.snackbar_credential_loaded_successfully)
+                    )
+                    navigateUp()
+                } catch (e: Throwable) {
+                    navigateUp()
+                    walletMain.errorService.emit(e)
+                }
             }
+
+
             CircularProgressIndicator(
                 color = MaterialTheme.colorScheme.secondary,
                 trackColor = MaterialTheme.colorScheme.surfaceVariant,
