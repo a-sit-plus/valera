@@ -2,7 +2,7 @@ package at.asitplus.wallet.app.common
 
 object Configuration {
     val BUILD_FOR_STAGE = BuildEnvironment.Development.abbreviation
-    val USER_AUTHENTICATION_TIMEOUT_SECONDS = 15
+    val USER_AUTHENTICATION_TIMEOUT_SECONDS = 150
 
     const val DATASTORE_KEY_CONFIG = "config"
     const val DATASTORE_KEY_VCS = "VCs"
@@ -13,5 +13,5 @@ object Configuration {
 
     const val IOS_TEST_VALUE = "TESTVALUE"
 
-    const val KS_ALIAS = "binding-supreme"
+    const val KS_ALIAS = "supreme-binding"
 }

@@ -10,14 +10,10 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
-import at.asitplus.KmmResult
 import at.asitplus.wallet.app.android.AndroidCryptoService
 import at.asitplus.wallet.app.common.BuildContext
-import at.asitplus.wallet.app.common.HolderKeyService
 import at.asitplus.wallet.app.common.KeystoreService
-import at.asitplus.wallet.app.common.ObjectFactory
 import at.asitplus.wallet.app.common.PlatformAdapter
-import at.asitplus.wallet.app.common.WalletCryptoService
 import at.asitplus.wallet.app.common.WalletMain
 import data.storage.RealDataStoreService
 import data.storage.getDataStore
@@ -45,16 +41,17 @@ actual fun getColorScheme(): ColorScheme {
 @Composable
 fun MainView(buildContext: BuildContext) {
     val platformAdapter = AndroidPlatformAdapter(LocalContext.current)
-    val ks = KeystoreService()
     val scope = CoroutineScope(Dispatchers.Default)
+    val dataStoreService = RealDataStoreService(
+        getDataStore(LocalContext.current),
+        platformAdapter
+    )
+    val ks = KeystoreService(dataStoreService)
     App(
         WalletMain(
             cryptoService = ks.let { runBlocking { AndroidCryptoService(it.getSigner()) } }, //TODO
             holderKeyService = ks,
-            dataStoreService = RealDataStoreService(
-                getDataStore(LocalContext.current),
-                platformAdapter
-            ),
+            dataStoreService = dataStoreService,
             platformAdapter = platformAdapter,
             buildContext = buildContext,
             scope = scope

@@ -11,7 +11,6 @@ struct ComposeView: UIViewControllerRepresentable {
         let buildType = "release"
         #endif
         return Main_iosKt.MainViewController(
-            objectFactory: SwiftObjectFactory(),
             platformAdapter: SwiftPlatformAdapter(),
             buildContext: BuildContext(
                 buildType: buildType,
@@ -122,28 +121,5 @@ class SwiftPlatformAdapter: PlatformAdapter {
                 currentController?.present(activityViewController, animated: true, completion: {})
             }
     }
-}
-
-class SwiftObjectFactory: ObjectFactory {
-    lazy var keyChainService: KeystoreService = {KeystoreService()}()
-    lazy var walletCryptoService: WalletCryptoService = {WalletCryptoService(keyPairAdapter: SignerKeyPairAdapter(signerWithCert: keyChainService.getSignerBlocking()))
-    }()
-   
-    
-    func loadCryptoService() -> KmmResult<WalletCryptoService> {
-        do {
-            NapierProxy.companion.i(msg: "loading CryptoService")
-            return KmmResultSuccess(walletCryptoService)
-        } catch {
-            NapierProxy.companion.e(msg: "Error from keyChainService.generateKeyPair")
-            return KmmResultFailure(KotlinThrowable(message: "Error from keyChainService.generateKeyPair"))
-        }
-    }
-
-    func loadHolderKeyService() -> KmmResult<HolderKeyService> {
-        return KmmResultSuccess(keyChainService)
-    }
-    
-
 }
 
