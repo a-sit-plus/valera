@@ -1,23 +1,16 @@
 package ui.screens
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
-import at.asitplus.wallet.app.common.CryptoServiceAuthorizationContext
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.data.dif.PresentationDefinition
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParametersFrom
 import at.asitplus.wallet.lib.oidc.helpers.AuthorizationResponsePreparationState
 import composewalletapp.shared.generated.resources.Res
+import composewalletapp.shared.generated.resources.biometric_authentication_prompt_for_data_transmission_consent_title
 import composewalletapp.shared.generated.resources.error_authentication_at_sp_failed
 import io.github.aakira.napier.Napier
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.getString
 import ui.views.AuthenticationConsentView
@@ -58,8 +51,6 @@ fun StatefulAuthenticationConsentView(
     navigateToAuthenticationSuccessPage: () -> Unit,
     walletMain: WalletMain,
 ) {
-    val authorizationContext = presentationAuthorizationContext()
-
 
     walletMain.cryptoService.onUnauthenticated = navigateUp
 
@@ -74,12 +65,12 @@ fun StatefulAuthenticationConsentView(
             walletMain.scope.launch {
                 try {
                     Napier.e { "signed!" }
-                    walletMain.cryptoService.useAuthorizationContext(authorizationContext) {
-                        walletMain.presentationService.startSiop(
-                            authenticationRequest,
-                            fromQrCodeScanner
-                        )
-                    }.getOrThrow()
+                    walletMain.cryptoService.promptInfo =
+                        getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_title)
+                    walletMain.presentationService.startSiop(
+                        authenticationRequest,
+                        fromQrCodeScanner
+                    )
                     navigateUp()
                     navigateToAuthenticationSuccessPage()
                 } catch (e: Throwable) {
@@ -103,6 +94,3 @@ val PresentationDefinition.claims: List<String>
         .map { it.removePrefix("\$['org.iso.18013.5.1']['").removeSuffix("']") }
         .map { it.removePrefix("\$['eu.europa.ec.eudiw.pid.1']['").removeSuffix("']") }
 
-
-@Composable
-expect fun presentationAuthorizationContext(): CryptoServiceAuthorizationContext

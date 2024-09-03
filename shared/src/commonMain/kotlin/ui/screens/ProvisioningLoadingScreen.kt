@@ -17,19 +17,16 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import at.asitplus.wallet.app.common.CryptoServiceAuthorizationContext
 import at.asitplus.wallet.app.common.WalletMain
 import composewalletapp.shared.generated.resources.heading_label_load_data_screen
 import composewalletapp.shared.generated.resources.Res
+import composewalletapp.shared.generated.resources.biometric_authentication_prompt_to_bind_credentials_title
 import composewalletapp.shared.generated.resources.snackbar_credential_loaded_successfully
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
-import ui.composables.BiometryPrompt
 import ui.composables.buttons.NavigateUpButton
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
@@ -39,7 +36,6 @@ fun ProvisioningLoadingScreen(
     navigateUp: () -> Unit,
     walletMain: WalletMain,
 ) {
-    val authorizationContext = provisioningAuthorizationContext()
     var showBiometry by rememberSaveable {
         mutableStateOf(true)
     }
@@ -77,9 +73,8 @@ fun ProvisioningLoadingScreen(
             showBiometry = false
             currentLoadingJob = walletMain.scope.launch {
                 try {
-                    walletMain.cryptoService.useAuthorizationContext(authorizationContext) {
+                    walletMain.cryptoService.promptInfo=getString(Res.string.biometric_authentication_prompt_to_bind_credentials_title)
                         walletMain.provisioningService.handleResponse(link)
-                    }.getOrThrow()
                     walletMain.snackbarService.showSnackbar(
                         getString(Res.string.snackbar_credential_loaded_successfully)
                     )
@@ -90,7 +85,6 @@ fun ProvisioningLoadingScreen(
                 }
             }
 
-
             CircularProgressIndicator(
                 color = MaterialTheme.colorScheme.secondary,
                 trackColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -99,7 +93,3 @@ fun ProvisioningLoadingScreen(
         }
     }
 }
-
-
-@Composable
-expect fun provisioningAuthorizationContext(): CryptoServiceAuthorizationContext

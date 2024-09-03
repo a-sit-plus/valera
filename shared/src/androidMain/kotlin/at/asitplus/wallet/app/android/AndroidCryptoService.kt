@@ -43,27 +43,6 @@ class AndroidCryptoService(
         defaultAuthorizationPromptContext
     )
 
-    private var authorizationPromptContext: AndroidCryptoServiceAuthorizationContext? = null
-    private var authorizationResult: BiometricPrompt.AuthenticationResult? = null
-    private var authorizationPromptMutex = Mutex()
-    override suspend fun useAuthorizationContext(
-        context: CryptoServiceAuthorizationContext,
-        block: suspend () -> Unit,
-    ) = catching {
-        authorizationPromptMutex.withLock {
-            when (context) {
-                is AndroidCryptoServiceAuthorizationContext -> {
-                    authorizationPromptContext = context
-                }
-
-                else -> throw IllegalArgumentException("context")
-            }
-            authorizationResult = null
-            block()
-            authorizationPromptContext = null
-        }
-    }
-
     override fun encrypt(
         key: ByteArray,
         iv: ByteArray,
