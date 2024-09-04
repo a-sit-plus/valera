@@ -12,8 +12,6 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-      - name: Prepare Supreme
-        run: ./gradlew prepareSupreme
       - name: Run tests
         run: |
           xcodebuild \

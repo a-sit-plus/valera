@@ -1,3 +1,5 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
 rootProject.name = "ComposeWalletApp"
 
 include(":androidApp")
@@ -45,21 +47,48 @@ dependencyResolutionManagement {
             name = "vck + signum"
         }
     }
-    if (!File("./vck/repo/at/asitplus/wallet/vck-openid-versionCatalog/4.2.0-SNAPSHOT/maven-metadata.xml").exists()) logger.error(
-        "Run ./gradlew prepareSupreme first!"
-    )
-    else if (!File("./vck/repo/at/asitplus/signum/supreme-versionCatalog/0.2.0-SNAPSHOT/maven-metadata.xml").exists()) logger.error(
-        "Run ./gradlew prepareSupreme first!"
-    )
-    else {
-        versionCatalogs {
-            create("signumCatalog") {
-                from("at.asitplus.signum:indispensable-versionCatalog:3.7.0-SNAPSHOT")
-            }
+    if (!File("./vck/repo/at/asitplus/wallet/vck-openid-versionCatalog/4.2.0-SNAPSHOT/maven-metadata.xml").exists()) {
+        logger.lifecycle("building contained projects for version catalogs. this will take a long time!")
+        file("local.properties").also { src ->
 
-            create("vclibCatalog") {
-                from("at.asitplus.wallet:vck-openid-versionCatalog:4.2.0-SNAPSHOT")
+            src.copyTo(
+                file("./vck/local.properties"),
+                overwrite = true
+            )
+            src.copyTo(
+                file("./vck/signum/local.properties"),
+                overwrite = true
+            )
+            exec {
+                workingDir = File("${rootDir}/vck/signum")
+
+                commandLine(
+                    if (!Os.isFamily(Os.FAMILY_WINDOWS)) "./gradlew" else "./gradlew.bat",
+                    "publishAllPublicationsToLocalRepository"
+                )
+            }
+            exec {
+                workingDir = File("${rootDir}/vck")
+                commandLine(
+                    if (!Os.isFamily(Os.FAMILY_WINDOWS)) "./gradlew" else "./gradlew.bat",
+                    "publishAllPublicationsToLocalRepository"
+                )
             }
         }
+        file("./vck/signum/repo").copyRecursively(
+            file("./vck/repo"),
+            overwrite = true
+        )
+
     }
+    versionCatalogs {
+        create("signumCatalog") {
+            from("at.asitplus.signum:indispensable-versionCatalog:3.7.0-SNAPSHOT")
+        }
+
+        create("vclibCatalog") {
+            from("at.asitplus.wallet:vck-openid-versionCatalog:4.2.0-SNAPSHOT")
+        }
+    }
+
 }

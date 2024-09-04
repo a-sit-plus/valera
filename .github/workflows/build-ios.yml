@@ -12,8 +12,6 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-      - name: Prepare Supreme
-        run: ./gradlew prepareSupreme
       - name: Prepare files from secrets
         run: |
           echo "${{ secrets.APPLE_CERT_CONTENT }}" | base64 -d - > iosApp/cert.p12
