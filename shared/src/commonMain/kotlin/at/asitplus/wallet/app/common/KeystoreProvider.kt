@@ -50,6 +50,8 @@ class KeystoreService(
                         ).map { it!!.multibaseDecode() }
                             .map { X509Certificate.decodeFromDer(it!!) }
                             .first().also { println(it.encodeToTlv().prettyPrint()) }
+
+                    override fun getUnderLyingSigner(): Signer = it
                 }
 
 
@@ -79,6 +81,8 @@ class KeystoreService(
                                 )
                             }
                         }
+
+                        override fun getUnderLyingSigner(): Signer = it
                     }
                 }
             }

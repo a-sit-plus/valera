@@ -4,10 +4,12 @@ import at.asitplus.KmmResult
 import at.asitplus.signum.indispensable.josef.JweEncryption
 import at.asitplus.signum.indispensable.josef.jcaKeySpecName
 import at.asitplus.signum.indispensable.josef.jcaName
-import at.asitplus.wallet.app.common.AndroidCryptoServiceAuthorizationContext
+import at.asitplus.signum.supreme.asKmmResult
+import at.asitplus.signum.supreme.os.AndroidKeystoreSigner
 import at.asitplus.wallet.app.common.WalletCryptoService
 import at.asitplus.wallet.lib.agent.AuthenticatedCiphertext
 import at.asitplus.wallet.lib.agent.KeyWithCert
+import io.github.aakira.napier.Napier
 import javax.crypto.Cipher
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.SecretKeySpec
@@ -16,12 +18,23 @@ import javax.crypto.spec.SecretKeySpec
 /**
  * Fork of the vclib `DefaultCryptoService`, but with biometric callbacks to authenticate the user
  *
- * TODO Implement biometric collbacks
  */
 class AndroidCryptoService(
-    override val keyWithCert: KeyWithCert,
-    // val certificate: X509Certificate, TODO????
+    override val keyWithCert: KeyWithCert
 ) : WalletCryptoService(keyWithCert) {
+
+    override suspend fun sign(input: ByteArray) =
+        if (keyWithCert.getUnderLyingSigner() is AndroidKeystoreSigner) { //TODO: we need a far better strategy to pass prompt messages
+            Napier.d { "ANDROID KS with prompt title: $promptText and subtitle $promptSubtitle" }
+            (keyWithCert.getUnderLyingSigner() as AndroidKeystoreSigner).sign(input) {
+                unlockPrompt {
+                    promptText?.let { message = it }
+                    promptSubtitle?.let { subtitle = it }
+                    promptCancelText?.let { cancelText = it }
+                }
+            }
+        } else super.sign(input)
+
 
     override fun encrypt(
         key: ByteArray,

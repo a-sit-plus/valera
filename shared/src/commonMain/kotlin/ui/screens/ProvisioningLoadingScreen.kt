@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import at.asitplus.wallet.app.common.WalletMain
 import composewalletapp.shared.generated.resources.heading_label_load_data_screen
 import composewalletapp.shared.generated.resources.Res
+import composewalletapp.shared.generated.resources.biometric_authentication_prompt_to_bind_credentials_subtitle
 import composewalletapp.shared.generated.resources.biometric_authentication_prompt_to_bind_credentials_title
 import composewalletapp.shared.generated.resources.snackbar_credential_loaded_successfully
 import kotlinx.coroutines.CoroutineScope
@@ -79,7 +80,8 @@ fun ProvisioningLoadingScreen(
             )
             currentLoadingJob = CoroutineScope(Dispatchers.Unconfined).launch {
                 try {
-                    walletMain.cryptoService.promptInfo=getString(Res.string.biometric_authentication_prompt_to_bind_credentials_title)
+                    walletMain.cryptoService.promptText=getString(Res.string.biometric_authentication_prompt_to_bind_credentials_title)
+                    walletMain.cryptoService.promptSubtitle=getString(Res.string.biometric_authentication_prompt_to_bind_credentials_subtitle)
                         walletMain.provisioningService.handleResponse(link)
                     walletMain.snackbarService.showSnackbar(
                         getString(Res.string.snackbar_credential_loaded_successfully)
