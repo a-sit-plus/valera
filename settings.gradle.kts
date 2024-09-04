@@ -47,23 +47,23 @@ dependencyResolutionManagement {
             name = "vck + signum"
         }
     }
-    if (!File("./vck/repo/at/asitplus/wallet/vck-openid-versionCatalog/4.2.0-SNAPSHOT/maven-metadata.xml").exists()) {
-        logger.lifecycle("building contained projects for version catalogs. this will take a long time!")
+    if (!File("${rootDir.absolutePath}/vck/repo/at/asitplus/wallet/vck-openid-versionCatalog/4.2.0-SNAPSHOT/maven-metadata.xml").exists()) {
+        logger.lifecycle("building VC-K and Signum for version catalogs. this will take a long time!")
         kotlin.runCatching {
             file("local.properties").also { src ->
 
                 src.copyTo(
-                    file("./vck/local.properties"),
+                    file("${rootDir.absolutePath}/vck/local.properties"),
                     overwrite = true
                 )
                 src.copyTo(
-                    file("./vck/signum/local.properties"),
+                    file("${rootDir.absolutePath}/vck/signum/local.properties"),
                     overwrite = true
                 )
             }
         }
         exec {
-            workingDir = File("${rootDir}/vck/signum")
+            workingDir = File("${rootDir.absolutePath}/vck/signum")
 
             commandLine(
                 if (!Os.isFamily(Os.FAMILY_WINDOWS)) "./gradlew" else "./gradlew.bat",
@@ -71,7 +71,7 @@ dependencyResolutionManagement {
             )
         }
         exec {
-            workingDir = File("${rootDir}/vck")
+            workingDir = File("${rootDir.absolutePath}/vck")
             commandLine(
                 if (!Os.isFamily(Os.FAMILY_WINDOWS)) "./gradlew" else "./gradlew.bat",
                 "publishAllPublicationsToLocalRepository"
