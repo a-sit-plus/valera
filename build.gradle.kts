@@ -11,26 +11,30 @@ plugins {
 
 task("prepareSupreme") {
     doFirst {
-        rootProject.layout.projectDirectory.file("local.properties").asFile.also { src ->
+        kotlin.runCatching {
+            rootProject.layout.projectDirectory.file("local.properties").asFile.also { src ->
+                src.copyTo(
+                    rootProject.layout.projectDirectory.dir("vck").file("local.properties").asFile,
+                    overwrite = true
+                )
+                src.copyTo(
+                    rootProject.layout.projectDirectory.dir("vck").dir("signum")
+                        .file("local.properties").asFile,
+                    overwrite = true
 
-            src.copyTo(
-                rootProject.layout.projectDirectory.dir("vck").file("local.properties").asFile,
-                overwrite = true
-            )
-            src.copyTo(
-                rootProject.layout.projectDirectory.dir("vck").dir("signum")
-                    .file("local.properties").asFile,
-                overwrite = true
-            )
-            exec {
-                workingDir = File("${rootDir}/vck/signum")
-                commandLine("./gradlew", "publishAllPublicationsToLocalRepository")
-            }
-            exec {
-                workingDir = File("${rootDir}/vck")
-                commandLine("./gradlew", "publishAllPublicationsToLocalRepository")
+                )
+
             }
         }
+        exec {
+            workingDir = File("${rootDir}/vck/signum")
+            commandLine("./gradlew", "publishAllPublicationsToLocalRepository")
+        }
+        exec {
+            workingDir = File("${rootDir}/vck")
+            commandLine("./gradlew", "publishAllPublicationsToLocalRepository")
+        }
+
     }
     doLast {
         rootProject.layout.projectDirectory.dir("vck").dir("signum")
