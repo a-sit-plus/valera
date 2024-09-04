@@ -12,6 +12,8 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+      - name: Prepare Supreme
+        run: ./gradlew prepareSupreme
       - name: Build apk
         run: ./gradlew :androidApp:assemble
         env:
