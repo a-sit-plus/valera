@@ -36,7 +36,10 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.Url
 import io.ktor.http.contentType
 import io.ktor.util.flattenEntries
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import okio.ByteString.Companion.decodeBase64
@@ -79,7 +82,8 @@ class ProvisioningService(
 
         cookieStorage.reset()
         Napier.d("Start provisioning")
-
+        //load cert
+        CoroutineScope(Dispatchers.Unconfined).launch { cryptoService.keyWithCert.getCertificate() }
         runCatching {
             client.get("$host/oauth2/authorization/idaq")
         }.onSuccess { response ->

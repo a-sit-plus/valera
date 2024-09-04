@@ -26,7 +26,7 @@ class PresentationService(
     private val client = httpService.buildHttpClient()
     val oidcSiopWallet = OidcSiopWallet(
         holder = holderAgent,
-        agentPublicKey = cryptoService.keyPairAdapter.publicKey,
+        agentPublicKey = cryptoService.keyWithCert.publicKey,
         jwsService = DefaultJwsService(cryptoService),
         remoteResourceRetriever = { url ->
             withContext(Dispatchers.IO) {

@@ -147,7 +147,7 @@ class InstrumentedTests {
                         CredentialToBeIssued.VcSd(getAttributes(),
                             Clock.System.now().plus(3600.minutes)
                         ),
-                        walletMain.cryptoService.keyPairAdapter.publicKey,
+                        walletMain.cryptoService.keyWithCert.publicKey,
                         IdAustriaScheme
                     ).toStoreCredentialInput()
                 )
@@ -219,7 +219,7 @@ class InstrumentedTests {
                         CredentialToBeIssued.VcSd(getAttributes(),
                             Clock.System.now().plus(3600.minutes)
                         ),
-                        walletMain.cryptoService.keyPairAdapter.publicKey,
+                        walletMain.cryptoService.keyWithCert.publicKey,
                         IdAustriaScheme
                     ).toStoreCredentialInput()
                 )

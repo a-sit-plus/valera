@@ -1,24 +1,13 @@
 package at.asitplus.wallet.app.android
 
-import androidx.biometric.BiometricPrompt
 import at.asitplus.KmmResult
-import at.asitplus.catching
 import at.asitplus.signum.indispensable.josef.JweEncryption
 import at.asitplus.signum.indispensable.josef.jcaKeySpecName
 import at.asitplus.signum.indispensable.josef.jcaName
-import at.asitplus.signum.indispensable.pki.X509Certificate
-import at.asitplus.signum.supreme.sign.Signer
 import at.asitplus.wallet.app.common.AndroidCryptoServiceAuthorizationContext
-import at.asitplus.wallet.app.common.CryptoServiceAuthorizationContext
-import at.asitplus.wallet.app.common.SignerKeyPairAdapter
-import at.asitplus.wallet.app.common.SignerWithCert
 import at.asitplus.wallet.app.common.WalletCryptoService
 import at.asitplus.wallet.lib.agent.AuthenticatedCiphertext
-import at.asitplus.wallet.lib.agent.DefaultCryptoService
-import at.asitplus.wallet.lib.agent.DefaultKeyPairAdapter
-import at.asitplus.wallet.lib.agent.KeyPairAdapter
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import at.asitplus.wallet.lib.agent.KeyWithCert
 import javax.crypto.Cipher
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.SecretKeySpec
@@ -30,18 +19,9 @@ import javax.crypto.spec.SecretKeySpec
  * TODO Implement biometric collbacks
  */
 class AndroidCryptoService(
-    override val keyPairAdapter: KeyPairAdapter,
+    override val keyWithCert: KeyWithCert,
     // val certificate: X509Certificate, TODO????
-    val defaultAuthorizationPromptContext: AndroidCryptoServiceAuthorizationContext? = null,
-) : WalletCryptoService(keyPairAdapter) {
-
-    constructor(
-        signer: SignerWithCert,
-        // certificate: X509Certificate,
-        defaultAuthorizationPromptContext: AndroidCryptoServiceAuthorizationContext? = null
-    ) : this(SignerKeyPairAdapter(signer),
-        defaultAuthorizationPromptContext
-    )
+) : WalletCryptoService(keyWithCert) {
 
     override fun encrypt(
         key: ByteArray,

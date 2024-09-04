@@ -3,13 +3,12 @@ package at.asitplus.wallet.app.common
 import at.asitplus.signum.supreme.SignatureResult
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.DefaultCryptoService
-import at.asitplus.wallet.lib.agent.KeyPairAdapter
-import kotlinx.coroutines.sync.Mutex
+import at.asitplus.wallet.lib.agent.KeyWithCert
 
 open class WalletCryptoService(private val defaultCryptoService: DefaultCryptoService) :
     CryptoService by defaultCryptoService {
 
-    constructor(keyPairAdapter: KeyPairAdapter) : this(DefaultCryptoService(keyPairAdapter))
+    constructor(keyWithCert: KeyWithCert) : this(DefaultCryptoService(keyWithCert))
 
     override suspend fun doSign(
         input: ByteArray,

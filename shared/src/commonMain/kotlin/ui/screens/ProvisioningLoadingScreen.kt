@@ -22,6 +22,8 @@ import composewalletapp.shared.generated.resources.heading_label_load_data_scree
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.biometric_authentication_prompt_to_bind_credentials_title
 import composewalletapp.shared.generated.resources.snackbar_credential_loaded_successfully
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -70,8 +72,12 @@ fun ProvisioningLoadingScreen(
         ) {
 
             walletMain.cryptoService.onUnauthenticated = navigateUp
-            showBiometry = false
-            currentLoadingJob = walletMain.scope.launch {
+            CircularProgressIndicator(
+                color = MaterialTheme.colorScheme.secondary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                modifier = Modifier.fillMaxSize(0.5f),
+            )
+            currentLoadingJob = CoroutineScope(Dispatchers.Unconfined).launch {
                 try {
                     walletMain.cryptoService.promptInfo=getString(Res.string.biometric_authentication_prompt_to_bind_credentials_title)
                         walletMain.provisioningService.handleResponse(link)
@@ -85,11 +91,7 @@ fun ProvisioningLoadingScreen(
                 }
             }
 
-            CircularProgressIndicator(
-                color = MaterialTheme.colorScheme.secondary,
-                trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                modifier = Modifier.fillMaxSize(0.5f),
-            )
+
         }
     }
 }
