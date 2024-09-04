@@ -46,7 +46,7 @@ class KeystoreService(
                 return object : KeyWithSelfSignedCert(listOf()), Signer by it {
                     override suspend fun getCertificate(): X509Certificate =
                         dataStoreService.getPreference(
-                            "MB64_USER_CERT"
+                            "MB64_CERT_SELF_SIGNED"
                         ).map { it!!.multibaseDecode() }
                             .map { X509Certificate.decodeFromDer(it!!) }
                             .first().also { println(it.encodeToTlv().prettyPrint()) }
@@ -75,7 +75,7 @@ class KeystoreService(
                                 Napier.e { "STORE CERT" }
                                 dataStoreService.setPreference(
                                     it.encodeToDer().multibaseEncode(MultiBase.Base.BASE64),
-                                    "MB64_USER_CERT"
+                                    "MB64_CERT_SELF_SIGNED"
                                 )
                             }
                         }

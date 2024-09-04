@@ -45,14 +45,21 @@ dependencyResolutionManagement {
             name = "vck + signum"
         }
     }
+    if (!File("./vck/repo/at/asitplus/wallet/vck-openid-versionCatalog/4.2.0-SNAPSHOT/maven-metadata.xml").exists()) logger.error(
+        "Run ./gradlew prepareSupreme first!"
+    )
+    else if (!File("./vck/repo/at/asitplus/signum/supreme-versionCatalog/0.2.0-SNAPSHOT/maven-metadata.xml").exists()) logger.error(
+        "Run ./gradlew prepareSupreme first!"
+    )
+    else {
+        versionCatalogs {
+            create("signumCatalog") {
+                from("at.asitplus.signum:indispensable-versionCatalog:3.7.0-SNAPSHOT")
+            }
 
-    versionCatalogs {
-        create("signumCatalog") {
-            from("at.asitplus.signum:indispensable-versionCatalog:3.7.0-SNAPSHOT")
-        }
-
-        create("vclibCatalog") {
-            from("at.asitplus.wallet:vck-openid-versionCatalog:4.2.0-SNAPSHOT")
+            create("vclibCatalog") {
+                from("at.asitplus.wallet:vck-openid-versionCatalog:4.2.0-SNAPSHOT")
+            }
         }
     }
 }

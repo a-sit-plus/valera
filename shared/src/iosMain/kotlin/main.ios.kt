@@ -5,7 +5,6 @@ import androidx.compose.ui.window.ComposeUIViewController
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
-import at.asitplus.wallet.app.common.SignerKeyPairAdapter
 import at.asitplus.wallet.app.common.WalletCryptoService
 import at.asitplus.wallet.app.common.WalletMain
 import data.storage.RealDataStoreService
@@ -37,7 +36,7 @@ fun MainViewController(
     return ComposeUIViewController {
         App(
             WalletMain(
-                WalletCryptoService(keyWithCert= SignerKeyPairAdapter(signerWithCert= keystoreService.getSignerBlocking())),
+                WalletCryptoService(keyWithCert = keystoreService.getSignerBlocking()),
                  keystoreService,
                 dataStoreService,
                 platformAdapter,

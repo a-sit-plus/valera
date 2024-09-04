@@ -13,5 +13,5 @@ object Configuration {
 
     const val IOS_TEST_VALUE = "TESTVALUE"
 
-    const val KS_ALIAS = "supreme-binding"
+    const val KS_ALIAS = "wallet-supreme-binding-key"
 }
