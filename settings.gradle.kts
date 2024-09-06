@@ -1,7 +1,26 @@
 import org.apache.tools.ant.taskdefs.condition.Os
+System.setProperty("publishing.excludeIncludedBuilds", "true")
+if (!File("${rootDir.absolutePath}/vck/repo/at/asitplus/wallet/vck-openid-versionCatalog/4.2.0-SNAPSHOT/maven-metadata.xml").exists()) {
+    logger.lifecycle("building VC-K for version catalogs. this will take a long time!")
+    kotlin.runCatching {
+        file("local.properties").also { src ->
 
-rootProject.name = "ComposeWalletApp"
+            src.copyTo(
+                file("${rootDir.absolutePath}/vck/local.properties"),
+                overwrite = true
+            )
+        }
+    }
+    exec {
+        workingDir = File("${rootDir.absolutePath}/vck")
+        commandLine(
+            if (!Os.isFamily(Os.FAMILY_WINDOWS)) "./gradlew" else "./gradlew.bat",
+            "-Dpublishing.excludeIncludedBuilds=true",
+            "publishAllPublicationsToLocalRepository"
+        )
+    }
 
+}
 include(":androidApp")
 include(":shared")
 
@@ -28,7 +47,8 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version ("0.4.0")
 }
 
-if (System.getProperty("publishing.excludeIncludedBuilds") != "true") {
+if (System.getProperty("publishing.excludeIncludedVCKBuilds") != "true") {
+    //Set it here, so vck does not include signum, but work with the published version instead:
     includeBuild("vck") {
         dependencySubstitution {
             substitute(module("at.asitplus.wallet:vck")).using(project(":vck"))
@@ -47,46 +67,10 @@ dependencyResolutionManagement {
             name = "vck + signum"
         }
     }
-    if (!File("${rootDir.absolutePath}/vck/repo/at/asitplus/wallet/vck-openid-versionCatalog/4.2.0-SNAPSHOT/maven-metadata.xml").exists()) {
-        logger.lifecycle("building VC-K and Signum for version catalogs. this will take a long time!")
-        kotlin.runCatching {
-            file("local.properties").also { src ->
 
-                src.copyTo(
-                    file("${rootDir.absolutePath}/vck/local.properties"),
-                    overwrite = true
-                )
-                src.copyTo(
-                    file("${rootDir.absolutePath}/vck/signum/local.properties"),
-                    overwrite = true
-                )
-            }
-        }
-        exec {
-            workingDir = File("${rootDir.absolutePath}/vck/signum")
-
-            commandLine(
-                if (!Os.isFamily(Os.FAMILY_WINDOWS)) "./gradlew" else "./gradlew.bat",
-                "publishAllPublicationsToLocalRepository"
-            )
-        }
-        exec {
-            workingDir = File("${rootDir.absolutePath}/vck")
-            commandLine(
-                if (!Os.isFamily(Os.FAMILY_WINDOWS)) "./gradlew" else "./gradlew.bat",
-                "publishAllPublicationsToLocalRepository"
-            )
-        }
-
-        file("./vck/signum/repo").copyRecursively(
-            file("./vck/repo"),
-            overwrite = true
-        )
-
-    }
     versionCatalogs {
         create("signumCatalog") {
-            from("at.asitplus.signum:indispensable-versionCatalog:3.7.0-SNAPSHOT")
+            from("at.asitplus.signum:indispensable-versionCatalog:3.7.0")
         }
 
         create("vclibCatalog") {
