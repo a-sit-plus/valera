@@ -5,6 +5,7 @@ include(":shared")
 
 pluginManagement {
     repositories {
+        mavenLocal()
         gradlePluginPortal()
         mavenCentral()
         google()
@@ -27,6 +28,7 @@ plugins {
 
 dependencyResolutionManagement {
     repositories {
+        mavenLocal()
         mavenCentral()
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     }
@@ -37,7 +39,7 @@ dependencyResolutionManagement {
         }
 
         create("vclibCatalog") {
-            from("at.asitplus.wallet:vck-openid-versionCatalog:4.1.1")
+            from("at.asitplus.wallet:vck-openid-versionCatalog:4.2.0-UC5")
         }
     }
 }

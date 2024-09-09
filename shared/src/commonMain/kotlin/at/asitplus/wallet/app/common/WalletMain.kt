@@ -63,15 +63,18 @@ class WalletMain(
         cryptoService = objectFactory.loadCryptoService().getOrThrow()
         subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
         holderAgent = HolderAgent(
-            validator = Validator.newDefaultInstance(DefaultVerifierCryptoService(), Parser()),
+            validator = Validator(DefaultVerifierCryptoService(), Parser()),
             subjectCredentialStore = subjectCredentialStore,
             jwsService = DefaultJwsService(cryptoService),
             coseService = DefaultCoseService(cryptoService),
             keyPair = cryptoService.keyPairAdapter,
         )
 
+
         holderKeyService = objectFactory.loadHolderKeyService().getOrThrow()
         httpService = HttpService()
+
+        signingService = SigningService(platformAdapter, httpService)
         provisioningService = ProvisioningService(
             platformAdapter,
             dataStoreService,
@@ -85,10 +88,10 @@ class WalletMain(
             platformAdapter,
             cryptoService,
             holderAgent,
-            httpService
+            httpService,
+            signingService
         )
         this.snackbarService = snackbarService
-        signingService = SigningService(platformAdapter, httpService)
     }
 
     suspend fun resetApp() {

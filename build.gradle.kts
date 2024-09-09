@@ -10,6 +10,7 @@ plugins {
 }
 
 repositories {
+    mavenLocal()
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
     maven("https://oss.sonatype.org/content/repositories/snapshots/")
 
@@ -17,6 +18,7 @@ repositories {
 
 allprojects {
     repositories {
+        mavenLocal()
         maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
         maven("https://oss.sonatype.org/content/repositories/snapshots/")
         maven(url = uri("https://s01.oss.sonatype.org/content/repositories/atasitplus-1173/"))

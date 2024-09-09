@@ -12,6 +12,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.client.statement.readBytes
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.Url
 import io.ktor.http.parameters
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -22,6 +23,7 @@ class PresentationService(
     private val cryptoService: WalletCryptoService,
     private val holderAgent: HolderAgent,
     httpService: HttpService,
+    val signingService: SigningService
 ) {
     private val client = httpService.buildHttpClient()
     val oidcSiopWallet = OidcSiopWallet(
@@ -65,7 +67,11 @@ class PresentationService(
                         in 200..399 -> {
                             val location = response.headers[HttpHeaders.Location]
                             if (location != null && fromQrCodeScanner == false) {
-                                platformAdapter.openUrl(location)
+                                //TODO: redo to take into account route or something else
+                                when {
+                                    Url(location).parameters.contains("code") -> signingService.oauth2TokenAfterSuccessfulPresentationCSC(location)
+                                    else -> platformAdapter.openUrl(location)
+                                }
                             }
                         }
 

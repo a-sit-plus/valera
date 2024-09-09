@@ -1,6 +1,6 @@
 [versions]
 encoding = "1.2.3"
-vck = "4.1.1"
+vck = "4.2.0-UC5"
 mdl = "1.0.2"
 signum = "3.6.0"
 ida = "3.8.3"
@@ -16,7 +16,7 @@ kotlin = "2.0.0"
 base16 = { group = "io.matthewnelson.kotlin-components", name = "encoding-base16", version.ref = "encoding" }
 base64 = { group = "io.matthewnelson.kotlin-components", name = "encoding-base64", version.ref = "encoding" }
 vck = { group = "at.asitplus.wallet", name = "vck", version.ref = "vck" }
-vck-openid = { group = "at.asitplus.wallet", name = "vclib-openid", version.ref = "vck" }
+vck-openid = { group = "at.asitplus.wallet", name = "vck-openid", version.ref = "vck" }
 signum = { group = "at.asitplus.signum", name = "indispensable", version.ref = "signum" }
 signum-jws = { group = "at.asitplus.signum", name = "indispensable-josef", version.ref = "signum" }
 signum-cose = { group = "at.asitplus.signum", name = "indispensable-cosef", version.ref = "signum" }

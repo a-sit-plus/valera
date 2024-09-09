@@ -249,7 +249,7 @@ fun MainNavigator(
                                 navigationStack.reset()
                             },
                             onClickSign = {
-                                walletMain.signingService.sign()
+                                runBlocking { walletMain.signingService.sign() }
                             },
                             walletMain = walletMain,
                         )
