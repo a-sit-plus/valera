@@ -20,12 +20,12 @@ import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.ClaimToBeIssued
 import at.asitplus.wallet.lib.agent.CredentialToBeIssued
 import at.asitplus.wallet.lib.agent.IssuerAgent
-import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.button_label_accept
-import composewalletapp.shared.generated.resources.button_label_consent
-import composewalletapp.shared.generated.resources.button_label_continue
-import composewalletapp.shared.generated.resources.button_label_start
-import composewalletapp.shared.generated.resources.content_description_portrait
+import compose_wallet_app.shared.generated.resources.Res
+import compose_wallet_app.shared.generated.resources.button_label_accept
+import compose_wallet_app.shared.generated.resources.button_label_consent
+import compose_wallet_app.shared.generated.resources.button_label_continue
+import compose_wallet_app.shared.generated.resources.button_label_start
+import compose_wallet_app.shared.generated.resources.content_description_portrait
 import data.storage.PersistentSubjectCredentialStore
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
@@ -147,7 +147,7 @@ class InstrumentedTests {
                         CredentialToBeIssued.VcSd(getAttributes(),
                             Clock.System.now().plus(3600.minutes)
                         ),
-                        walletMain.cryptoService.keyWithCert.publicKey,
+                        walletMain.cryptoService.keyMaterial.publicKey,
                         IdAustriaScheme
                     ).toStoreCredentialInput()
                 )
@@ -219,7 +219,7 @@ class InstrumentedTests {
                         CredentialToBeIssued.VcSd(getAttributes(),
                             Clock.System.now().plus(3600.minutes)
                         ),
-                        walletMain.cryptoService.keyWithCert.publicKey,
+                        walletMain.cryptoService.keyMaterial.publicKey,
                         IdAustriaScheme
                     ).toStoreCredentialInput()
                 )

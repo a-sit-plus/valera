@@ -60,11 +60,11 @@ class WalletMain(
             WalletConfig(dataStoreService = this.dataStoreService, errorService = errorService)
         subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
         holderAgent = HolderAgent(
-            validator = Validator.newDefaultInstance(DefaultVerifierCryptoService(), Parser()),
+            validator = Validator(DefaultVerifierCryptoService(), Parser()),
             subjectCredentialStore = subjectCredentialStore,
             jwsService = DefaultJwsService(cryptoService),
             coseService = DefaultCoseService(cryptoService),
-            keyPair = cryptoService.keyWithCert,
+            keyPair = cryptoService.keyMaterial,
         )
 
         httpService = HttpService()

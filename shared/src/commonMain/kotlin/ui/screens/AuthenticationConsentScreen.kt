@@ -2,14 +2,14 @@ package ui.screens
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
+import at.asitplus.dif.PresentationDefinition
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.lib.data.dif.PresentationDefinition
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParametersFrom
 import at.asitplus.wallet.lib.oidc.helpers.AuthorizationResponsePreparationState
-import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.biometric_authentication_prompt_for_data_transmission_consent_subtitle
-import composewalletapp.shared.generated.resources.biometric_authentication_prompt_for_data_transmission_consent_title
-import composewalletapp.shared.generated.resources.error_authentication_at_sp_failed
+import compose_wallet_app.shared.generated.resources.Res
+import compose_wallet_app.shared.generated.resources.biometric_authentication_prompt_for_data_transmission_consent_subtitle
+import compose_wallet_app.shared.generated.resources.biometric_authentication_prompt_for_data_transmission_consent_title
+import compose_wallet_app.shared.generated.resources.error_authentication_at_sp_failed
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -65,7 +65,7 @@ fun StatefulAuthenticationConsentView(
         consentToDataTransmission = {
             walletMain.scope.launch {
                 try {
-                    Napier.e { "signed!" }
+                    Napier.d { "signed!" }
                     walletMain.cryptoService.promptText =
                         getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_title)
                     walletMain.cryptoService.promptSubtitle =

@@ -36,7 +36,7 @@ fun MainViewController(
     return ComposeUIViewController {
         App(
             WalletMain(
-                WalletCryptoService(keyWithCert = keystoreService.getSignerBlocking()),
+                WalletCryptoService(keyMaterial = keystoreService.getSignerBlocking()),
                  keystoreService,
                 dataStoreService,
                 platformAdapter,

@@ -1,6 +1,6 @@
 [versions]
 encoding = "1.2.3"
-vck = "4.2.0-SNAPSHOT"
+vck = "4.3.0-SNAPSHOT"
 mdl = "1.0.2"
 signum = "3.7.0"
 supreme = "0.2.0"

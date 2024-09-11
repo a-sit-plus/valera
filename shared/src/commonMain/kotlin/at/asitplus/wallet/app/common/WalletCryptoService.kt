@@ -6,17 +6,17 @@ import at.asitplus.signum.supreme.asKmmResult
 import at.asitplus.signum.supreme.os.PlatformSigningProviderSigner
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.DefaultCryptoService
-import at.asitplus.wallet.lib.agent.KeyWithCert
+import at.asitplus.wallet.lib.agent.KeyMaterial
 
 open class WalletCryptoService(private val defaultCryptoService: DefaultCryptoService) :
     CryptoService by defaultCryptoService {
 
-    constructor(keyWithCert: KeyWithCert) : this(DefaultCryptoService(keyWithCert))
+    constructor(keyMaterial: KeyMaterial) : this(DefaultCryptoService(keyMaterial))
 
     override suspend fun sign(
         input: ByteArray
     ): SignatureResult<CryptoSignature.RawByteEncodable> = defaultCryptoService.run {
-        return when (val signer = keyWithCert.getUnderLyingSigner()) {
+         when (val signer = keyMaterial.getUnderLyingSigner()) {
             is PlatformSigningProviderSigner<*> -> signer.sign(input) {
                 unlockPrompt {
                     promptText?.let { message = it }

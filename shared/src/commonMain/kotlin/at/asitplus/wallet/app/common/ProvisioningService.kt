@@ -2,6 +2,13 @@ package at.asitplus.wallet.app.common
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
+import at.asitplus.openid.AuthenticationResponseParameters
+import at.asitplus.openid.CredentialFormatEnum
+import at.asitplus.openid.CredentialResponseParameters
+import at.asitplus.openid.IssuerMetadata
+import at.asitplus.openid.OpenIdConstants
+import at.asitplus.openid.OpenIdConstants.TOKEN_PREFIX_BEARER
+import at.asitplus.openid.TokenResponseParameters
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.identifier
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.Holder
@@ -11,13 +18,6 @@ import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.iso.IssuerSigned
-import at.asitplus.wallet.lib.oidc.AuthenticationResponseParameters
-import at.asitplus.wallet.lib.oidc.OpenIdConstants
-import at.asitplus.wallet.lib.oidc.OpenIdConstants.TOKEN_PREFIX_BEARER
-import at.asitplus.wallet.lib.oidvci.CredentialFormatEnum
-import at.asitplus.wallet.lib.oidvci.CredentialResponseParameters
-import at.asitplus.wallet.lib.oidvci.IssuerMetadata
-import at.asitplus.wallet.lib.oidvci.TokenResponseParameters
 import at.asitplus.wallet.lib.oidvci.WalletService
 import at.asitplus.wallet.lib.oidvci.decodeFromUrlQuery
 import at.asitplus.wallet.lib.oidvci.encodeToParameters
@@ -83,7 +83,7 @@ class ProvisioningService(
         cookieStorage.reset()
         Napier.d("Start provisioning")
         //load cert
-        CoroutineScope(Dispatchers.Unconfined).launch { cryptoService.keyWithCert.getCertificate() }
+        CoroutineScope(Dispatchers.Unconfined).launch { cryptoService.keyMaterial.getCertificate() }
         runCatching {
             client.get("$host/oauth2/authorization/idaq")
         }.onSuccess { response ->

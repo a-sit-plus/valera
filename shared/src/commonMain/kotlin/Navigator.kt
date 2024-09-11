@@ -20,11 +20,12 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParametersFrom
 import at.asitplus.wallet.lib.oidc.helpers.AuthorizationResponsePreparationState
-import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.navigation_button_label_my_data
-import composewalletapp.shared.generated.resources.navigation_button_label_settings
-import composewalletapp.shared.generated.resources.navigation_button_label_show_data
-import composewalletapp.shared.generated.resources.snackbar_reset_app_successfully
+import compose_wallet_app.shared.generated.resources.Res
+import compose_wallet_app.shared.generated.resources.snackbar_reset_app_successfully
+import compose_wallet_app.shared.generated.resources.navigation_button_label_my_data
+import compose_wallet_app.shared.generated.resources.navigation_button_label_settings
+import compose_wallet_app.shared.generated.resources.navigation_button_label_show_data
+import compose_wallet_app.shared.generated.resources.snackbar_reset_app_successfully
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier
 import io.ktor.http.parseQueryString

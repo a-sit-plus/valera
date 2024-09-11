@@ -49,7 +49,7 @@ fun MainView(buildContext: BuildContext) {
     val ks = KeystoreService(dataStoreService)
     App(
         WalletMain(
-            cryptoService = ks.let { runBlocking { AndroidCryptoService(it.getSigner()) } }, //TODO
+            cryptoService = ks.let { runBlocking { AndroidCryptoService(it.getSigner()) } },
             holderKeyService = ks,
             dataStoreService = dataStoreService,
             platformAdapter = platformAdapter,

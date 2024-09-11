@@ -8,7 +8,7 @@ import at.asitplus.signum.supreme.asKmmResult
 import at.asitplus.signum.supreme.os.AndroidKeystoreSigner
 import at.asitplus.wallet.app.common.WalletCryptoService
 import at.asitplus.wallet.lib.agent.AuthenticatedCiphertext
-import at.asitplus.wallet.lib.agent.KeyWithCert
+import at.asitplus.wallet.lib.agent.KeyMaterial
 import io.github.aakira.napier.Napier
 import javax.crypto.Cipher
 import javax.crypto.spec.GCMParameterSpec
@@ -20,13 +20,13 @@ import javax.crypto.spec.SecretKeySpec
  *
  */
 class AndroidCryptoService(
-    override val keyWithCert: KeyWithCert
-) : WalletCryptoService(keyWithCert) {
+    override val keyMaterial: KeyMaterial
+) : WalletCryptoService(keyMaterial) {
 
     override suspend fun sign(input: ByteArray) =
-        if (keyWithCert.getUnderLyingSigner() is AndroidKeystoreSigner) { //TODO: we need a far better strategy to pass prompt messages
+        if (keyMaterial.getUnderLyingSigner() is AndroidKeystoreSigner) { //TODO: we need a far better strategy to pass prompt messages
             Napier.d { "ANDROID KS with prompt title: $promptText and subtitle $promptSubtitle" }
-            (keyWithCert.getUnderLyingSigner() as AndroidKeystoreSigner).sign(input) {
+            (keyMaterial.getUnderLyingSigner() as AndroidKeystoreSigner).sign(input) {
                 unlockPrompt {
                     promptText?.let { message = it }
                     promptSubtitle?.let { subtitle = it }
@@ -80,3 +80,4 @@ class AndroidCryptoService(
     }
 
 }
+

@@ -21,10 +21,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
-import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.app_display_name
-import composewalletapp.shared.generated.resources.button_label_start
-import composewalletapp.shared.generated.resources.onboardingBackground
+import compose_wallet_app.shared.generated.resources.Res
+import compose_wallet_app.shared.generated.resources.app_display_name
+import compose_wallet_app.shared.generated.resources.button_label_start
+import compose_wallet_app.shared.generated.resources.onboardingBackground
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource

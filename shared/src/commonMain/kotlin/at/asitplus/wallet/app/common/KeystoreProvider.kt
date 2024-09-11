@@ -7,7 +7,7 @@ import at.asitplus.signum.indispensable.equalsCryptographically
 import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.signum.supreme.os.SigningProvider
 import at.asitplus.signum.supreme.sign.Signer
-import at.asitplus.wallet.lib.agent.KeyWithCert
+import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.agent.KeyWithSelfSignedCert
 import data.storage.DataStoreService
 import io.github.aakira.napier.Napier
@@ -18,14 +18,16 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 
+private const val CERT_STORAGE_KEY = "MB64_CERT_SELF_SIGNED"
+
 class KeystoreService(
     private val dataStoreService: DataStoreService
 ) : HolderKeyService {
+    private  val sMut = Mutex()
+    suspend fun getSigner(): KeyMaterial {
 
-    suspend fun getSigner(): KeyWithCert {
 
-        val sMut = Mutex()
-        var signer: KeyWithCert? = null
+        var signer: KeyMaterial? = null
 
         Napier.d("getSigner")
 
@@ -63,7 +65,7 @@ class KeystoreService(
                             return it
                         else {
                             Napier.d { "Pre-stored Certificate mismatch. deleting!" }
-                            dataStoreService.deletePreference("MB64_CERT_SELF_SIGNED")
+                            dataStoreService.deletePreference(CERT_STORAGE_KEY)
                             null
                         }
                     }) ?: super.getCertificate()?.let { it.store(); _certificate = it; return it }
@@ -75,7 +77,7 @@ class KeystoreService(
 
         private suspend fun X509Certificate.Companion.load(): X509Certificate? =
             dataStoreService.getPreference(
-                "MB64_CERT_SELF_SIGNED"
+                CERT_STORAGE_KEY
             ).map { it?.multibaseDecode() }
                 .map { it?.let { X509Certificate.decodeFromDer(it) } }
                 .firstOrNull()
@@ -86,7 +88,7 @@ class KeystoreService(
             Napier.d { "Persistently storing certificate" }
             dataStoreService.setPreference(
                 encodeToDer().multibaseEncode(MultiBase.Base.BASE64),
-                "MB64_CERT_SELF_SIGNED"
+                CERT_STORAGE_KEY
             )
         }
 
