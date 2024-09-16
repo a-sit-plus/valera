@@ -27,6 +27,7 @@ import composewalletapp.shared.generated.resources.navigation_button_label_show_
 import composewalletapp.shared.generated.resources.snackbar_reset_app_successfully
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier
+import io.ktor.http.Url
 import io.ktor.http.parseQueryString
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -81,16 +82,28 @@ fun Navigator(walletMain: WalletMain) {
             // resetting error service so that the intent can be displayed as intended
             walletMain.errorService.reset()
 
-            if (link.contains("wallet-pdf")) {
-                var pdfLink = link.replace("wallet-pdf://file//", "")
-                val byteArray = walletMain.platformAdapter.readFileUrl(pdfLink)
-                if (byteArray != null) {
-                    walletMain.signingService.sign(byteArray)
-                } else {
-                    Napier.d("Error reading pdf")
+            val param = Url(link).parameters
+            with(param) {
+                when {
+                    this.contains("client_id") && this.contains("request_uri") -> {
+                        walletMain.signingService.sign(
+                            this["request_uri"]!!,
+                            this["client_id"]!!
+                        )
+                        return@LaunchedEffect
+                    }
+
+                    else -> {}
                 }
-                return@LaunchedEffect
             }
+//            //TODO nagivator switch-case
+//            runCatching {
+//                val parsed = vckJsonSerializer.encodeToJsonElement(Url(link).parameters)
+//                vckJsonSerializer.decodeFromJsonElement<RqesRequest>(parsed)
+//            }.wrap().getOrNull()?.let {
+//                walletMain.signingService.sign(it)
+//                return@LaunchedEffect
+//            }
             Napier.d("new app link: ${link}")
             val parameterIndex = link.indexOfFirst { it == '?' }
             val pars = parseQueryString(link, startIndex = parameterIndex + 1)

@@ -20,10 +20,10 @@ import kotlinx.coroutines.withContext
 
 class PresentationService(
     val platformAdapter: PlatformAdapter,
-    private val cryptoService: WalletCryptoService,
-    private val holderAgent: HolderAgent,
+    cryptoService: WalletCryptoService,
+    holderAgent: HolderAgent,
     httpService: HttpService,
-    val signingService: SigningService
+    private val signingService: SigningService
 ) {
     private val client = httpService.buildHttpClient()
     val oidcSiopWallet = OidcSiopWallet(
@@ -67,9 +67,10 @@ class PresentationService(
                         in 200..399 -> {
                             val location = response.headers[HttpHeaders.Location]
                             if (location != null && fromQrCodeScanner == false) {
-                                //TODO: redo to take into account route or something else
+                                //TODO: Move to navigator
+                                val url = Url(location)
                                 when {
-                                    Url(location).parameters.contains("code") -> signingService.oauth2TokenAfterSuccessfulPresentationCSC(location)
+                                    url.parameters.contains("code") -> signingService.oauth2TokenAfterSuccessfulPresentationCSC(location)
                                     else -> platformAdapter.openUrl(location)
                                 }
                             }
