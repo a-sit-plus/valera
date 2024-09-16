@@ -85,7 +85,7 @@ fun Navigator(walletMain: WalletMain) {
             val param = Url(link).parameters
             with(param) {
                 when {
-                    this.contains("client_id") && this.contains("request_uri") -> {
+                    this.contains("client_id") && this.contains("request_uri") && !this.contains("client_metadata_uri")-> {
                         walletMain.signingService.sign(
                             this["request_uri"]!!,
                             this["client_id"]!!

@@ -5,12 +5,14 @@ include(":shared")
 
 pluginManagement {
     repositories {
-        mavenLocal()
         gradlePluginPortal()
         mavenCentral()
         google()
+        maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+        maven("https://oss.sonatype.org/content/repositories/snapshots/")
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
         maven("https://raw.githubusercontent.com/a-sit-plus/gradle-conventions-plugin/mvn/repo")
+//        mavenLocal()
     }
 
     plugins {
@@ -28,9 +30,11 @@ plugins {
 
 dependencyResolutionManagement {
     repositories {
-        mavenLocal()
         mavenCentral()
+        maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+        maven("https://oss.sonatype.org/content/repositories/snapshots/")
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+//        mavenLocal()
     }
 
     versionCatalogs {
@@ -39,7 +43,7 @@ dependencyResolutionManagement {
         }
 
         create("vclibCatalog") {
-            from("at.asitplus.wallet:vck-openid-versionCatalog:4.2.0-UC5")
+            from("at.asitplus.wallet:vck-openid-versionCatalog:4.2.0-SNAPSHOT")
         }
     }
 }

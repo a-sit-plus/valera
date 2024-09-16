@@ -33,8 +33,10 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
+import kotlin.collections.set
 
 private data class RqesEntry(
+    val clientId: String,
     val rqesRequest: RqesRequest,
     val authorizationDetails: AuthorizationDetails,
 )
@@ -45,8 +47,8 @@ class SigningService(
 ) {
     private val client = httpService.buildHttpClient()
 
-    //    private val target = "https://apps.egiz.gv.at/qtsp"
-    private val target = "http://127.0.0.1:7086/qtsp"
+    private val target = "https://apps.egiz.gv.at/qtsp"
+//    private val target = "http://127.0.0.1:7086/qtsp"
     private val clientId = "https://wallet.a-sit.at/mobile"
 
     private val rqesWalletService = RqesWalletService(
@@ -72,20 +74,39 @@ class SigningService(
             ),
             documentLocations = listOf(
                 DocumentLocation(
-                    uri = Url("https://www.google.com"), method = Method.Public
+                    uri = "https://www.google.com", method = Method.Public
                 )
             ),
             clientData = null
         )
-        sign(testRequest)
+        sign(testRequest, clientId)
     }
 
-    suspend fun sign(request: RqesRequest) {
+    suspend fun sign(redirectUrl: String, clientId: String) {
+        val url = Url(redirectUrl)
+        val test = client.get(url)
+
+        /**
+         * TODO: Cleaner...
+         * We receive a JWT with the body being a base64 encoded [RqesRequest]
+         * Also currently hashOID missing
+         */
+        val body = test.body<String>().split(".")
+        val bodyDecoded = body[1].decodeBase64String()
+        val rqesRequest = vckJsonSerializer.decodeFromString<RqesRequest>(bodyDecoded)
+
+
+        Napier.d { "${test.status} with $rqesRequest" }
+        sign(rqesRequest, clientId)
+
+    }
+
+    private suspend fun sign(request: RqesRequest, clientId: String) {
 
         val authRequest = rqesWalletService.createOAuth2AuthRequest(
             request
         )
-        rqesMutex[authRequest.state ?: throw Exception("no state")] = RqesEntry(request, authRequest.authorizationDetails!!.first())
+        rqesMutex[authRequest.state ?: throw Exception("no state")] = RqesEntry(clientId, request, authRequest.authorizationDetails!!.first())
 
         /**
          * Using browser in case TOS needs to be accepted etc (current default and only way)
@@ -117,20 +138,21 @@ class SigningService(
     suspend fun oauth2TokenAfterSuccessfulPresentationCSC(location: String) {
         val test = Url(location)
         val state = test.parameters["state"] ?: throw Exception("No state in URL")
+        val mutexEntry = rqesMutex[state] ?: throw Exception("Cannot find Entry associated with this state")
+
         val tokenRequest = rqesWalletService.createOauth2TokenRequestParameters(
             state = state,
-            authorizationDetails = rqesMutex[state]?.authorizationDetails?.let { setOf(it) } ?: throw Exception("Missing authorizationDetails"),
+            authorizationDetails = setOf(mutexEntry.authorizationDetails),
             authorization = WalletService.AuthorizationForToken.Code(
                 test.parameters["code"] ?: throw Exception("Missing authorization")
             )
         )
 
-        val test131 = tokenRequest.encodeToParameters().formUrlEncode()
         val tokenResponse = client.post("$target/oauth2/token") {
             contentType(FormUrlEncoded)
             accept(Json)
             setBody(
-                test131
+                tokenRequest.encodeToParameters().formUrlEncode()
             )
         }.body<String>().also {
             Napier.d { "TokenResponseParameter $it" }
@@ -157,11 +179,11 @@ class SigningService(
          * QTSP requires SAD, which may or may not be correct?
          */
         val testSignDoc = (rqesWalletService.createSignDocRequestParameters(
-            rqesMutex[state]?.rqesRequest ?: throw Exception("Missing original Request")
+             mutexEntry.rqesRequest
         ) as SignDocParameters).copy(
             sad = tokenResponseParameters.accessToken
         )
-        val testSign = client.post("$target/csc/v2/signatures/signDoc") {
+        val signatures = client.post("$target/csc/v2/signatures/signDoc") {
             contentType(Json)
             accept(Json)
             setBody(testSignDoc)
@@ -170,44 +192,24 @@ class SigningService(
         /**
          * TODO echte data class in VCK
          */
-        val body = testSign.body<String>()
-        val code = testSign.status
+        val body = signatures.body<String>()
+        val code = signatures.status
         Napier.d { "$code and $body" }
-        /**
-         * TODO respond to driving application
-         */
-    }
 
-    suspend fun sign(redirectUrl: String, clientId: String) {
-        val url = Url(redirectUrl)
-        val test = client.get(url)
+        val testUrl = URLBuilder(mutexEntry.rqesRequest.responseUri!!).apply {
+            parameters.append("state", state)
+            parameters.append("signatureObject", body)
+        }.buildString()
 
-        /**
-         * TODO: Cleaner...
-         * We receive a JWT with the body being a base64 encoded [RqesRequest]
-         * Also currently hashOID missing
-         */
-        val body = test.body<String>().split(".")
-        val bodyDecoded = body[1].decodeBase64String()
-        val rqesRequest = vckJsonSerializer.decodeFromString<RqesRequest>(bodyDecoded)
+        val test111 = client.post(testUrl) {
+            contentType(Json)
+            accept(Json)
+            setBody(testSignDoc)
+        }
 
-
-        Napier.d { "${test.status} with $rqesRequest" }
-        sign(rqesRequest)
+        val finalredirect = test111.headers["Location"]
+        Napier.d { "${test111.status} has redirect $finalredirect" }
 
     }
 
 }
-
-//private fun RqesRequest.toOAuth2AuthenticationRequest(): AuthenticationRequestParameters {
-//    val cscCredential = AuthorizationDetails.CSCCredential(
-//        documentDigests = this.documentDigests,
-//        documentLocations = this.documentLocations,
-//        hashAlgorithmOID = this.hashAlgorithmOid,
-//    )
-//
-//    val test = AuthenticationRequestParameters(
-//
-//    )
-//
-//}
