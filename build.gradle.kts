@@ -3,7 +3,7 @@ plugins {
     // in each subproject's classloader
     id("com.android.application").apply(false)
     id("com.android.library").apply(false)
-    id("at.asitplus.gradle.conventions") version "2.0.20+20240905"
+    id("at.asitplus.gradle.conventions") version "2.0.20+20240920"
 
     alias(libs.plugins.jetbrainsCompose) apply false
     alias(libs.plugins.compose.compiler) apply false
