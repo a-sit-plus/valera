@@ -15,8 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
-import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.error_feature_not_yet_available
+import compose_wallet_app.shared.generated.resources.Res
+import compose_wallet_app.shared.generated.resources.error_feature_not_yet_available
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking

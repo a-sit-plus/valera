@@ -5,9 +5,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
-import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.dictionary_no
-import composewalletapp.shared.generated.resources.dictionary_yes
+import compose_wallet_app.shared.generated.resources.Res
+import compose_wallet_app.shared.generated.resources.dictionary_no
+import compose_wallet_app.shared.generated.resources.dictionary_yes
 import data.Attribute
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate

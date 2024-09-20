@@ -22,8 +22,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import at.asitplus.wallet.app.common.WalletMain
-import composewalletapp.shared.generated.resources.heading_label_log_screen
-import composewalletapp.shared.generated.resources.Res
+import compose_wallet_app.shared.generated.resources.heading_label_log_screen
+import compose_wallet_app.shared.generated.resources.Res
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource

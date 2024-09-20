@@ -28,8 +28,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
-import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.content_description_portrait
+import compose_wallet_app.shared.generated.resources.Res
+import compose_wallet_app.shared.generated.resources.content_description_portrait
 import data.PersonalDataCategory
 import data.credentials.IdAustriaCredentialAdapter
 import data.credentials.MobileDrivingLicenceCredentialAdapter

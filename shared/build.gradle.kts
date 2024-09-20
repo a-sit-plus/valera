@@ -41,11 +41,12 @@ kotlin {
                 api(libs.signum)
                 api(libs.signum.jws)
                 api(libs.signum.cose)
+                api(libs.signum.supreme)
                 implementation(serialization("json"))
                 api(napier())
                 implementation("androidx.datastore:datastore-preferences-core:1.1.0-alpha07")
                 implementation("androidx.datastore:datastore-core-okio:1.1.0-alpha07")
-                implementation(libs.atomicfu)
+                api(libs.atomicfu)
                 implementation(ktor("client-core"))
                 implementation(ktor("client-cio"))
                 implementation(ktor("client-logging"))
@@ -87,12 +88,13 @@ kotlin {
 }
 
 exportIosFramework(
-    name = "shared", static = true,
+    name = "shared", transitiveExports = false,
     vclibCatalog.vck,
     datetime(),
     signumCatalog.bignum,
     signumCatalog.kmmresult,
     libs.signum,
+    libs.signum.supreme,
     libs.signum.jws,
     libs.signum.cose,
     libs.credential.ida,

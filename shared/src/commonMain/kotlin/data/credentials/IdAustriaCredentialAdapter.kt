@@ -79,7 +79,10 @@ sealed class IdAustriaCredentialAdapter(
     abstract val dateOfBirth: LocalDate
     abstract val portraitRaw: ByteArray?
     val portraitBitmap: ImageBitmap? by lazy {
-        portraitRaw?.let(decodePortrait)
+
+        kotlin.runCatching {
+            portraitRaw?.let(decodePortrait)
+        }.onFailure { Napier.e(throwable = it) { "Error decoding image" } }.getOrNull()
     }
     abstract val ageAtLeast14: Boolean?
     abstract val ageAtLeast16: Boolean?

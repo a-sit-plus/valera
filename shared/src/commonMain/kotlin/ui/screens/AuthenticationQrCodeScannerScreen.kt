@@ -12,9 +12,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import at.asitplus.wallet.app.common.WalletMain
-import composewalletapp.shared.generated.resources.heading_label_authenticate_at_device_subtitle
-import composewalletapp.shared.generated.resources.heading_label_authenticate_at_device_title
-import composewalletapp.shared.generated.resources.Res
+import compose_wallet_app.shared.generated.resources.heading_label_authenticate_at_device_subtitle
+import compose_wallet_app.shared.generated.resources.heading_label_authenticate_at_device_title
+import compose_wallet_app.shared.generated.resources.Res
 import ui.navigation.AuthenticationConsentPage
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
