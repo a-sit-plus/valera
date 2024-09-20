@@ -25,12 +25,8 @@ class KeystoreService(
 ) : HolderKeyService {
     private  val sMut = Mutex()
     suspend fun getSigner(): KeyMaterial {
-
-
         var signer: KeyMaterial? = null
-
         Napier.d("getSigner")
-
         sMut.withLock {
             if (signer == null)
                 signer = initSigner()
