@@ -16,11 +16,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.lib.data.ConstantIndex
-import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.credential_representation_format_label_mso_mdoc
-import composewalletapp.shared.generated.resources.credential_representation_format_label_plain_jwt
-import composewalletapp.shared.generated.resources.credential_representation_format_label_sd_jwt
-import composewalletapp.shared.generated.resources.text_label_id_format
+import compose_wallet_app.shared.generated.resources.Res
+import compose_wallet_app.shared.generated.resources.credential_representation_format_label_mso_mdoc
+import compose_wallet_app.shared.generated.resources.credential_representation_format_label_plain_jwt
+import compose_wallet_app.shared.generated.resources.credential_representation_format_label_sd_jwt
+import compose_wallet_app.shared.generated.resources.text_label_id_format
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 

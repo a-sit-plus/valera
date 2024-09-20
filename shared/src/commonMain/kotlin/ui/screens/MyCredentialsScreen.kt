@@ -25,10 +25,10 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.app.common.WalletMain
-import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.content_description_add_credential
-import composewalletapp.shared.generated.resources.heading_label_my_data_screen
-import composewalletapp.shared.generated.resources.info_text_no_credentials_available
+import compose_wallet_app.shared.generated.resources.Res
+import compose_wallet_app.shared.generated.resources.content_description_add_credential
+import compose_wallet_app.shared.generated.resources.heading_label_my_data_screen
+import compose_wallet_app.shared.generated.resources.info_text_no_credentials_available
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.FloatingActionButtonHeightSpacer
 import ui.composables.buttons.LoadDataButton

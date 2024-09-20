@@ -17,11 +17,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import at.asitplus.wallet.app.common.CryptoServiceAuthorizationContext
 import at.asitplus.wallet.app.common.WalletMain
-import composewalletapp.shared.generated.resources.heading_label_load_data_screen
-import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.snackbar_credential_loaded_successfully
+import compose_wallet_app.shared.generated.resources.heading_label_load_data_screen
+import compose_wallet_app.shared.generated.resources.Res
+import compose_wallet_app.shared.generated.resources.biometric_authentication_prompt_to_bind_credentials_subtitle
+import compose_wallet_app.shared.generated.resources.biometric_authentication_prompt_to_bind_credentials_title
+import compose_wallet_app.shared.generated.resources.snackbar_credential_loaded_successfully
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -29,7 +30,6 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
-import ui.composables.BiometryPrompt
 import ui.composables.buttons.NavigateUpButton
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
@@ -39,7 +39,6 @@ fun ProvisioningLoadingScreen(
     navigateUp: () -> Unit,
     walletMain: WalletMain,
 ) {
-    val authorizationContext = provisioningAuthorizationContext()
     var showBiometry by rememberSaveable {
         mutableStateOf(true)
     }
@@ -72,41 +71,29 @@ fun ProvisioningLoadingScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (showBiometry) {
-                BiometryPrompt(
-                    authorizationContext = authorizationContext,
-                    onDismiss = {
-                        showBiometry = false
-                        navigateUp()
-                    },
-                    onSuccess = {
-                        showBiometry = false
-                        walletMain.scope.launch {
-                            try {
-                                walletMain.cryptoService.useAuthorizationContext(authorizationContext) {
-                                    walletMain.provisioningService.handleResponse(link)
-                                }.getOrThrow()
-                                walletMain.snackbarService.showSnackbar(
-                                    getString(Res.string.snackbar_credential_loaded_successfully)
-                                )
-                                navigateUp()
-                            } catch (e: Throwable) {
-                                navigateUp()
-                                walletMain.errorService.emit(e)
-                            }
-                        }
-                    }
-                )
-            }
+
+            walletMain.cryptoService.onUnauthenticated = navigateUp
             CircularProgressIndicator(
                 color = MaterialTheme.colorScheme.secondary,
                 trackColor = MaterialTheme.colorScheme.surfaceVariant,
                 modifier = Modifier.fillMaxSize(0.5f),
             )
+            currentLoadingJob = CoroutineScope(Dispatchers.Unconfined).launch {
+                try {
+                    walletMain.cryptoService.promptText=getString(Res.string.biometric_authentication_prompt_to_bind_credentials_title)
+                    walletMain.cryptoService.promptSubtitle=getString(Res.string.biometric_authentication_prompt_to_bind_credentials_subtitle)
+                        walletMain.provisioningService.handleResponse(link)
+                    walletMain.snackbarService.showSnackbar(
+                        getString(Res.string.snackbar_credential_loaded_successfully)
+                    )
+                    navigateUp()
+                } catch (e: Throwable) {
+                    navigateUp()
+                    walletMain.errorService.emit(e)
+                }
+            }
+
+
         }
     }
 }
-
-
-@Composable
-expect fun provisioningAuthorizationContext(): CryptoServiceAuthorizationContext

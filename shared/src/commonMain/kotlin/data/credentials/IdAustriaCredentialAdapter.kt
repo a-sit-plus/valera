@@ -7,6 +7,7 @@ import at.asitplus.wallet.idaustria.IdAustriaCredential
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import data.Attribute
+import io.github.aakira.napier.Napier
 import io.ktor.util.decodeBase64Bytes
 import io.ktor.util.decodeBase64String
 import kotlinx.datetime.LocalDate
@@ -78,7 +79,10 @@ sealed class IdAustriaCredentialAdapter(
     abstract val dateOfBirth: LocalDate
     abstract val portraitRaw: ByteArray?
     val portraitBitmap: ImageBitmap? by lazy {
-        portraitRaw?.let(decodePortrait)
+
+        kotlin.runCatching {
+            portraitRaw?.let(decodePortrait)
+        }.onFailure { Napier.e(throwable = it) { "Error decoding image" } }.getOrNull()
     }
     abstract val ageAtLeast14: Boolean?
     abstract val ageAtLeast16: Boolean?

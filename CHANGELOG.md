@@ -1,6 +1,8 @@
+# Release NEXT
+* Dependency updates to VC-K 4.2.0-SNAPSHOT
+* Remove custom crypto code and rely on Supreme Crypto Provider
 
-
-# UNRELEASED Release 4.1.0:
+# Release 4.1.0:
 * improved display of credentials
 * Handle portraits encoded as actual byte arrays
 
