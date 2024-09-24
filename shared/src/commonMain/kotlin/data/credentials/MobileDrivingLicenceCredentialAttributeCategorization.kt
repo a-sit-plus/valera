@@ -55,12 +55,12 @@ object MobileDrivingLicenceCredentialAttributeCategorization : CredentialAttribu
         ).map { NormalizedJsonPath() + it to null },
 
         PersonalDataCategory.Metadata to listOf(
+            MobileDrivingLicenceDataElements.DOCUMENT_NUMBER,
             MobileDrivingLicenceDataElements.ISSUE_DATE,
             MobileDrivingLicenceDataElements.EXPIRY_DATE,
             MobileDrivingLicenceDataElements.ISSUING_COUNTRY,
             MobileDrivingLicenceDataElements.ISSUING_AUTHORITY,
             MobileDrivingLicenceDataElements.ISSUING_JURISDICTION,
-            MobileDrivingLicenceDataElements.DOCUMENT_NUMBER,
             MobileDrivingLicenceDataElements.ADMINISTRATIVE_NUMBER,
         ).map { NormalizedJsonPath() + it to null },
     ),
