@@ -114,13 +114,18 @@ class SwiftPlatformAdapter: PlatformAdapter {
     }
 
     func shareLog() {
-            if let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
-                let folderUrl = url.appendingPathComponent("logs")
-                let fileUrl = folderUrl.appendingPathComponent("log.txt") as NSURL
-                let currentController = UIApplication.shared.windows.first(where: \.isKeyWindow)?.rootViewController
+        if let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+            let folderUrl = url.appendingPathComponent("logs")
+            let fileUrl = folderUrl.appendingPathComponent("log.txt") as NSURL
+            
+            DispatchQueue.main.async {
+                let connectedScenes = UIApplication.shared.connectedScenes
+                let uiWindowScene = connectedScenes.first as? UIWindowScene
+                let currentController = uiWindowScene?.windows.first(where: \.isKeyWindow)?.rootViewController
                 let activityViewController = UIActivityViewController(activityItems: [fileUrl], applicationActivities: nil)
                 currentController?.present(activityViewController, animated: true, completion: {})
             }
+        }
     }
 }
 
