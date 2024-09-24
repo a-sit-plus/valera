@@ -12,7 +12,7 @@ import kotlinx.datetime.LocalDate
 sealed class EuPidCredentialAdapter : CredentialAdapter() {
     override fun getAttribute(path: NormalizedJsonPath) = path.segments.firstOrNull()?.let { first ->
         when (first) {
-            is NormalizedJsonPathSegment.NameSegment -> when(first.memberName) {
+            is NormalizedJsonPathSegment.NameSegment -> when (first.memberName) {
                 EuPidScheme.Attributes.GIVEN_NAME -> Attribute.fromValue(givenName)
                 EuPidScheme.Attributes.FAMILY_NAME -> Attribute.fromValue(familyName)
                 EuPidScheme.Attributes.BIRTH_DATE -> Attribute.fromValue(birthDate)
@@ -36,6 +36,7 @@ sealed class EuPidCredentialAdapter : CredentialAdapter() {
                 EuPidScheme.Attributes.BIRTH_CITY -> Attribute.fromValue(birthCity)
                 else -> null
             }
+
             else -> null
         }
     }
@@ -256,10 +257,10 @@ private class EuPidCredentialIsoMdocAdapter(
         get() = euPidNamespace[EuPidScheme.Attributes.RESIDENT_CITY] as String?
 
     override val residentPostalCode: String?
-        get() = euPidNamespace[EuPidScheme.Attributes.RESIDENT_POSTAL_CODE] as String?
+        get() = euPidNamespace[EuPidScheme.Attributes.RESIDENT_POSTAL_CODE]?.toString()
 
     override val residentHouseNumber: String?
-        get() = euPidNamespace[EuPidScheme.Attributes.RESIDENT_HOUSE_NUMBER] as String?
+        get() = euPidNamespace[EuPidScheme.Attributes.RESIDENT_HOUSE_NUMBER]?.toString()
 
     override val residentCountry: String?
         get() = euPidNamespace[EuPidScheme.Attributes.RESIDENT_COUNTRY] as String?
@@ -268,7 +269,8 @@ private class EuPidCredentialIsoMdocAdapter(
         get() = euPidNamespace[EuPidScheme.Attributes.RESIDENT_STATE] as String?
 
     override val gender: IsoIec5218Gender?
-        get() = euPidNamespace[EuPidScheme.Attributes.GENDER] as IsoIec5218Gender?
+        get() = euPidNamespace[EuPidScheme.Attributes.GENDER]
+            ?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code } }
 
     override val nationality: String?
         get() = euPidNamespace[EuPidScheme.Attributes.NATIONALITY] as String?
