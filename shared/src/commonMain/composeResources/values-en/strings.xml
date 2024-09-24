@@ -58,9 +58,16 @@
     <string name="attribute_friendly_name_main_residence_street">Street</string>
     <string name="attribute_friendly_name_main_residence_house_number">House number</string>
     <string name="attribute_friendly_name_sex">Sex</string>
+    <string name="attribute_friendly_name_height">Height</string>
+    <string name="attribute_friendly_name_weight">Weight</string>
+    <string name="attribute_friendly_name_eye_colour">Eye colour</string>
+    <string name="attribute_friendly_name_hair_colour">Hair colour</string>
+    <string name="attribute_friendly_name_portrait_capture_date">Portrait capture date</string>
     <string name="attribute_friendly_name_nationality">Nationality</string>
     <string name="attribute_friendly_name_age_in_years">Age</string>
-    <string name="attribute_friendly_name_family_name_birth">First name (at birth)</string>
+    <string name="attribute_friendly_name_family_name_national_character">Family name (national)</string>
+    <string name="attribute_friendly_name_given_name_national_character">Given name (national)</string>
+    <string name="attribute_friendly_name_family_name_birth">Family name (at birth)</string>
     <string name="attribute_friendly_name_given_name_birth">Given name (at birth)</string>
     <string name="attribute_friendly_name_age_birth_year">Birth year</string>
     <string name="attribute_friendly_name_birth_place">Birth place</string>
@@ -74,6 +81,7 @@
     <string name="attribute_friendly_name_issuing_country">Issuing country</string>
     <string name="attribute_friendly_name_driving_privileges">Driving privileges</string>
     <string name="attribute_friendly_name_distinguishing_sign">Issuing country (code)</string>
+    <string name="attribute_friendly_name_signature_usual_mark">Signature/usual mark</string>
 
     <string name="attribute_friendly_name_legal_person_identifier">Legal person identifier</string>
     <string name="attribute_friendly_name_legal_name">Legal name</string>

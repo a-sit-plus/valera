@@ -58,10 +58,17 @@
     <string name="attribute_friendly_name_main_residence_street">Straße</string>
     <string name="attribute_friendly_name_main_residence_house_number">Hausnummer</string>
     <string name="attribute_friendly_name_sex">Geschlecht</string>
+    <string name="attribute_friendly_name_height">Größe</string>
+    <string name="attribute_friendly_name_weight">Gewicht</string>
+    <string name="attribute_friendly_name_eye_colour">Augenfarbe</string>
+    <string name="attribute_friendly_name_hair_colour">Haarfarbe</string>
+    <string name="attribute_friendly_name_portrait_capture_date">Aufnahmedatum Portrait</string>
     <string name="attribute_friendly_name_nationality">Nationalität</string>
     <string name="attribute_friendly_name_age_in_years">Alter</string>
-    <string name="attribute_friendly_name_family_name_birth">Vorname (Geburt)</string>
-    <string name="attribute_friendly_name_given_name_birth">Nachname (Geburt)</string>
+    <string name="attribute_friendly_name_family_name_national_character">Nachname (national)</string>
+    <string name="attribute_friendly_name_given_name_national_character">Vorname (national)</string>
+    <string name="attribute_friendly_name_family_name_birth">Nachname (Geburt)</string>
+    <string name="attribute_friendly_name_given_name_birth">Vorname (Geburt)</string>
     <string name="attribute_friendly_name_age_birth_year">Geburtsjahr</string>
     <string name="attribute_friendly_name_birth_place">Geburtsort</string>
     <string name="attribute_friendly_name_birth_country">Geburtsland</string>
@@ -74,6 +81,7 @@
     <string name="attribute_friendly_name_issuing_country">Ausstellungsland</string>
     <string name="attribute_friendly_name_driving_privileges">Lenkberechtigungen</string>
     <string name="attribute_friendly_name_distinguishing_sign">Ausstellungsland (Code)</string>
+    <string name="attribute_friendly_name_signature_usual_mark">Unterschrift</string>
 
     <string name="attribute_friendly_name_legal_person_identifier">Name der juristischen Person</string>
     <string name="attribute_friendly_name_legal_name">Identifier der juristischen Person</string>
@@ -119,7 +127,7 @@
     <string name="navigation_button_label_settings">Einstellungen</string>
 
     <string name="id_format_plain_jwt_label">PLAIN_JWT</string>
-    <string name="id_format_sd_jwt_label">SD-JWT</string>
+    <string name="sid_format_sd_jwt_label">SD-JWT</string>
     <string name="id_format_iso_mdoc_label">ISO_MDOC</string>
 
     <string name="text_label_issuing_service">Ausstellservice</string>

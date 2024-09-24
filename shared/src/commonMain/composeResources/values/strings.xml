@@ -79,9 +79,16 @@
     <string name="attribute_friendly_name_main_residence_street">UNTRANSLATED:attribute_friendly_name_main_residence_street</string>
     <string name="attribute_friendly_name_main_residence_house_number">UNTRANSLATED:attribute_friendly_name_main_residence_house_number</string>
     <string name="attribute_friendly_name_sex">UNTRANSLATED:attribute_friendly_name_sex</string>
+    <string name="attribute_friendly_name_height">UNTRANSLATED:attribute_friendly_name_height</string>
+    <string name="attribute_friendly_name_weight">UNTRANSLATED:attribute_friendly_name_weight</string>
+    <string name="attribute_friendly_name_eye_colour">UNTRANSLATED:attribute_friendly_name_eye_colour</string>
+    <string name="attribute_friendly_name_hair_colour">UNTRANSLATED:attribute_friendly_name_hair_colour</string>
+    <string name="attribute_friendly_name_portrait_capture_date">UNTRANSLATED:attribute_friendly_name_portrait_capture_date</string>
     <string name="attribute_friendly_name_nationality">UNTRANSLATED:attribute_friendly_name_nationality</string>
     <string name="attribute_friendly_name_age_in_years">UNTRANSLATED:attribute_friendly_name_age_in_years</string>
     <string name="attribute_friendly_name_age_birth_year">UNTRANSLATED:attribute_friendly_name_age_birth_year</string>
+    <string name="attribute_friendly_name_family_name_national_character">UNTRANSLATED:attribute_friendly_name_family_name_national_character</string>
+    <string name="attribute_friendly_name_given_name_national_character">UNTRANSLATED:attribute_friendly_name_given_name_national_character</string>
     <string name="attribute_friendly_name_family_name_birth">UNTRANSLATED:attribute_friendly_name_family_name_birth</string>
     <string name="attribute_friendly_name_given_name_birth">UNTRANSLATED:attribute_friendly_name_given_name_birth</string>
     <string name="attribute_friendly_name_birth_place">UNTRANSLATED:attribute_friendly_name_birth_place</string>
@@ -95,6 +102,7 @@
     <string name="attribute_friendly_name_issuing_country">UNTRANSLATED:attribute_friendly_name_issuing_country</string>
     <string name="attribute_friendly_name_driving_privileges">UNTRANSLATED:attribute_friendly_name_driving_privileges</string>
     <string name="attribute_friendly_name_distinguishing_sign">UNTRANSLATED:attribute_friendly_name_distinguishing_sign</string>
+    <string name="attribute_friendly_name_signature_usual_mark">UNTRANSLATED:attribute_friendly_name_signature_usual_mark</string>
 
     <string name="attribute_friendly_name_data_recipient_name">UNTRANSLATED:attribute_friendly_name_data_recipient_name</string>
     <string name="attribute_friendly_name_data_recipient_location">UNTRANSLATED:attribute_friendly_name_data_recipient_location</string>
