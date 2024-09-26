@@ -37,6 +37,7 @@ kotlin {
                 api(libs.credential.eupid)
                 api(libs.credential.powerofrepresentation)
                 api(libs.credential.certificateofresidence)
+                api(libs.credential.eprescription)
                 api(libs.signum)
                 api(libs.signum.jws)
                 api(libs.signum.cose)
@@ -99,6 +100,7 @@ exportIosFramework(
     libs.credential.eupid,
     libs.credential.powerofrepresentation,
     libs.credential.certificateofresidence,
+    libs.credential.eprescription,
     napier(),
 )
 

@@ -103,6 +103,9 @@
     <string name="attribute_friendly_name_driving_privileges">UNTRANSLATED:attribute_friendly_name_driving_privileges</string>
     <string name="attribute_friendly_name_distinguishing_sign">UNTRANSLATED:attribute_friendly_name_distinguishing_sign</string>
     <string name="attribute_friendly_name_signature_usual_mark">UNTRANSLATED:attribute_friendly_name_signature_usual_mark</string>
+    <string name="attribute_friendly_name_country_code">UNTRANSLATED:attribute_friendly_name_country_code</string>
+    <string name="attribute_friendly_name_one_time_token">UNTRANSLATED:attribute_friendly_name_one_time_token</string>
+    <string name="attribute_friendly_name_valid_until">UNTRANSLATED:attribute_friendly_name_valid_until</string>
 
     <string name="attribute_friendly_name_data_recipient_name">UNTRANSLATED:attribute_friendly_name_data_recipient_name</string>
     <string name="attribute_friendly_name_data_recipient_location">UNTRANSLATED:attribute_friendly_name_data_recipient_location</string>
@@ -129,6 +132,7 @@
     <string name="credential_scheme_label_power_of_representation">UNTRANSLATED:credential_scheme_label_power_of_representation</string>
     <string name="credential_scheme_icon_label_certificate_of_residence">UNTRANSLATED:credential_scheme_icon_label_certificate_of_residence</string>
     <string name="credential_scheme_label_certificate_of_residence">UNTRANSLATED:credential_scheme_label_certificate_of_residence</string>
+    <string name="credential_scheme_label_eprescription">UNTRANSLATED:credential_scheme_label_eprescription</string>
 
     <string name="text_label_issuing_service">UNTRANSLATED:text_label_issuing_service</string>
     <string name="text_label_id_format">UNTRANSLATED:text_label_id_format</string>

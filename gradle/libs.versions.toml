@@ -7,6 +7,7 @@ ida = "3.8.3"
 eupid = "2.1.3"
 powerofrepresentation = "1.0.2"
 certificateofresidence = "1.0.2"
+eprescription = "1.0.1"
 atomicfu = "0.23.2"
 compose-plugin = "1.6.11"
 kotlin = "2.0.0"
@@ -26,6 +27,7 @@ credential-eupid = { module = "at.asitplus.wallet:eupidcredential", version.ref 
 credential-powerofrepresentation = { module = "at.asitplus.wallet:powerofrepresentation", version.ref = "powerofrepresentation" }
 credential-certificateofresidence = { module = "at.asitplus.wallet:certificateofresidence", version.ref = "certificateofresidence" }
 credential-mdl = { group = "at.asitplus.wallet", name = "mobiledrivinglicence", version.ref = "mdl" }
+credential-eprescription = { module = "at.asitplus.wallet:eprescription", version.ref = "eprescription"}
 
 [plugins]
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }

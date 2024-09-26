@@ -83,6 +83,9 @@
     <string name="attribute_friendly_name_distinguishing_sign">Ausstellungsland (Code)</string>
     <string name="attribute_friendly_name_signature_usual_mark">Unterschrift</string>
 
+    <string name="attribute_friendly_name_country_code">Ländercode</string>
+    <string name="attribute_friendly_name_one_time_token">One Time Token</string>
+    <string name="attribute_friendly_name_valid_until">Gültig bis</string>
     <string name="attribute_friendly_name_legal_person_identifier">Name der juristischen Person</string>
     <string name="attribute_friendly_name_legal_name">Identifier der juristischen Person</string>
     <string name="attribute_friendly_name_full_powers">Volle Vertretungskraft</string>
@@ -121,6 +124,7 @@
     <string name="credential_scheme_label_power_of_representation">Power of representation</string>
     <string name="credential_scheme_icon_label_certificate_of_residence">COR</string>
     <string name="credential_scheme_label_certificate_of_residence">Certificate of residence</string>
+    <string name="credential_scheme_label_epresciption">e-Prescription</string>
 
     <string name="navigation_button_label_show_data">Daten Vorzeigen</string>
     <string name="navigation_button_label_my_data">Meine Daten</string>

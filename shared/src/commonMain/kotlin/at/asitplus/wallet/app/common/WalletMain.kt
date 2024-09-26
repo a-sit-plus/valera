@@ -50,6 +50,7 @@ class WalletMain(
         at.asitplus.wallet.eupid.Initializer.initWithVCK()
         at.asitplus.wallet.cor.Initializer.initWithVCK()
         at.asitplus.wallet.por.Initializer.initWithVCK()
+        at.asitplus.wallet.eprescription.Initializer.initWithVCK()
         Napier.takeLogarithm()
         Napier.base(AntilogAdapter(platformAdapter, ""))
     }

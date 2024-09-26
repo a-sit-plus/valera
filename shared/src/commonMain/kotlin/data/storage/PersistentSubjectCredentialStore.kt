@@ -2,6 +2,7 @@ package data.storage
 
 import at.asitplus.KmmResult
 import at.asitplus.wallet.app.common.Configuration
+import at.asitplus.wallet.eprescription.EPrescriptionScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.SelectiveDisclosureItem
@@ -236,7 +237,7 @@ private sealed interface ExportableStoreEntry {
 }
 
 private enum class ExportableCredentialScheme {
-    AtomicAttribute2023, IdAustriaScheme, MobileDrivingLicence2023, EuPidScheme, PowerOfRepresentationScheme, CertificateOfResidenceScheme;
+    AtomicAttribute2023, IdAustriaScheme, MobileDrivingLicence2023, EuPidScheme, PowerOfRepresentationScheme, CertificateOfResidenceScheme, EPrescriptionScheme;
 
     fun toScheme() = when (this) {
         AtomicAttribute2023 -> ConstantIndex.AtomicAttribute2023
@@ -245,6 +246,7 @@ private enum class ExportableCredentialScheme {
         EuPidScheme -> at.asitplus.wallet.eupid.EuPidScheme
         PowerOfRepresentationScheme -> at.asitplus.wallet.por.PowerOfRepresentationScheme
         CertificateOfResidenceScheme -> at.asitplus.wallet.cor.CertificateOfResidenceScheme
+        EPrescriptionScheme -> at.asitplus.wallet.eprescription.EPrescriptionScheme
     }
 
     companion object {
@@ -255,6 +257,7 @@ private enum class ExportableCredentialScheme {
             at.asitplus.wallet.eupid.EuPidScheme -> EuPidScheme
             at.asitplus.wallet.por.PowerOfRepresentationScheme -> PowerOfRepresentationScheme
             at.asitplus.wallet.cor.CertificateOfResidenceScheme -> CertificateOfResidenceScheme
+            at.asitplus.wallet.eprescription.EPrescriptionScheme -> EPrescriptionScheme
             else -> throw Exception("Unknown CredentialScheme")
         }
     }

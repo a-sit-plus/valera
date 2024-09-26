@@ -83,6 +83,9 @@
     <string name="attribute_friendly_name_distinguishing_sign">Issuing country (code)</string>
     <string name="attribute_friendly_name_signature_usual_mark">Signature/usual mark</string>
 
+    <string name="attribute_friendly_name_country_code">Country code</string>
+    <string name="attribute_friendly_name_one_time_token">One-time token</string>
+    <string name="attribute_friendly_name_valid_until">Valid until</string>
     <string name="attribute_friendly_name_legal_person_identifier">Legal person identifier</string>
     <string name="attribute_friendly_name_legal_name">Legal name</string>
     <string name="attribute_friendly_name_full_powers">Full powers</string>
@@ -121,6 +124,7 @@
     <string name="credential_scheme_label_power_of_representation">Power of representation</string>
     <string name="credential_scheme_icon_label_certificate_of_residence">COR</string>
     <string name="credential_scheme_label_certificate_of_residence">Certificate of residence</string>
+    <string name="credential_scheme_label_epresciption">e-Prescription</string>
 
 
     <string name="navigation_button_label_show_data">Show Data</string>

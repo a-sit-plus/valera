@@ -2,6 +2,10 @@ package data
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
+import at.asitplus.wallet.eprescription.EPrescriptionDataElements.COUNTRY_CODE
+import at.asitplus.wallet.eprescription.EPrescriptionDataElements.OTT
+import at.asitplus.wallet.eprescription.EPrescriptionDataElements.VALID_UNTIL
+import at.asitplus.wallet.eprescription.EPrescriptionScheme
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.ConstantIndex
@@ -20,6 +24,7 @@ import composewalletapp.shared.generated.resources.attribute_friendly_name_birth
 import composewalletapp.shared.generated.resources.attribute_friendly_name_birth_place
 import composewalletapp.shared.generated.resources.attribute_friendly_name_birth_state
 import composewalletapp.shared.generated.resources.attribute_friendly_name_bpk
+import composewalletapp.shared.generated.resources.attribute_friendly_name_country_code
 import composewalletapp.shared.generated.resources.attribute_friendly_name_date_of_birth
 import composewalletapp.shared.generated.resources.attribute_friendly_name_distinguishing_sign
 import composewalletapp.shared.generated.resources.attribute_friendly_name_document_number
@@ -46,10 +51,12 @@ import composewalletapp.shared.generated.resources.attribute_friendly_name_main_
 import composewalletapp.shared.generated.resources.attribute_friendly_name_main_residence_state
 import composewalletapp.shared.generated.resources.attribute_friendly_name_main_residence_street
 import composewalletapp.shared.generated.resources.attribute_friendly_name_nationality
+import composewalletapp.shared.generated.resources.attribute_friendly_name_one_time_token
 import composewalletapp.shared.generated.resources.attribute_friendly_name_portrait
 import composewalletapp.shared.generated.resources.attribute_friendly_name_portrait_capture_date
 import composewalletapp.shared.generated.resources.attribute_friendly_name_sex
 import composewalletapp.shared.generated.resources.attribute_friendly_name_signature_usual_mark
+import composewalletapp.shared.generated.resources.attribute_friendly_name_valid_until
 import composewalletapp.shared.generated.resources.attribute_friendly_name_weight
 import composewalletapp.shared.generated.resources.id_austria_credential_attribute_friendly_name_main_address_door
 import composewalletapp.shared.generated.resources.id_austria_credential_attribute_friendly_name_main_address_house_number
@@ -130,6 +137,19 @@ class AttributeTranslator(val credentialScheme: ConstantIndex.CredentialScheme) 
                         EuPidScheme.Attributes.BIRTH_COUNTRY -> Res.string.attribute_friendly_name_birth_country
                         EuPidScheme.Attributes.BIRTH_STATE -> Res.string.attribute_friendly_name_birth_state
                         EuPidScheme.Attributes.BIRTH_CITY -> Res.string.attribute_friendly_name_birth_city
+                        else -> null
+                    }
+
+                    else -> null
+                }
+            }
+
+            is EPrescriptionScheme -> attributeName.segments.firstOrNull()?.let { first ->
+                when (first) {
+                    is NormalizedJsonPathSegment.NameSegment -> when (first.memberName) {
+                        OTT -> Res.string.attribute_friendly_name_one_time_token
+                        VALID_UNTIL -> Res.string.attribute_friendly_name_valid_until
+                        COUNTRY_CODE -> Res.string.attribute_friendly_name_country_code
                         else -> null
                     }
 
