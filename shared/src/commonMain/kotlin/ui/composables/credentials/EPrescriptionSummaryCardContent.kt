@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import data.credentials.EPrescriptionCredentialAdapter
-import data.credentials.PowerOfRepresentationCredentialAdapter
 
 @Composable
 fun EPrescriptionSummaryCardContent(

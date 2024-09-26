@@ -1,18 +1,14 @@
 package ui.composables.credentials
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.eprescription.EPrescriptionScheme
-import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import data.PersonalDataCategory
 import data.credentials.EPrescriptionCredentialAdapter
-import data.credentials.PowerOfRepresentationCredentialAdapter
 import ui.composables.AttributeRepresentation
 
 @Composable

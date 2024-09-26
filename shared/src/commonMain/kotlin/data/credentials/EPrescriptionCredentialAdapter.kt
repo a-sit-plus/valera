@@ -9,7 +9,6 @@ import at.asitplus.wallet.eprescription.EPrescriptionScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import data.Attribute
 import kotlinx.datetime.Instant
-import kotlinx.datetime.LocalDate
 
 sealed class EPrescriptionCredentialAdapter : CredentialAdapter() {
     override fun getAttribute(path: NormalizedJsonPath) = path.segments.firstOrNull()?.let { first ->
