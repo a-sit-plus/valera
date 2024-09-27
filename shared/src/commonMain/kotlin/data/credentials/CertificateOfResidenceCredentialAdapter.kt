@@ -174,7 +174,8 @@ private class CertificateOfResidenceCredentialIsoMdocAdapter(
         get() = namespace[RESIDENCE_ADDRESS] as String?
 
     override val gender: IsoIec5218Gender?
-        get() = namespace[GENDER] as IsoIec5218Gender?
+        get() = namespace[GENDER]
+            ?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code } }
 
     override val birthPlace: String?
         get() = namespace[BIRTH_PLACE] as String?
