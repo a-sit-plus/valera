@@ -29,6 +29,7 @@ object CertificateOfResidenceCredentialAttributeCategorization : CredentialAttri
             CertificateOfResidenceDataElements.ISSUING_JURISDICTION,
             CertificateOfResidenceDataElements.DOCUMENT_NUMBER,
             CertificateOfResidenceDataElements.ADMINISTRATIVE_NUMBER,
+            CertificateOfResidenceDataElements.ARRIVAL_DATE
         ).map { NormalizedJsonPath() + it to null },
     ),
     allAttributes = CertificateOfResidenceDataElements.ALL_ELEMENTS.map {
