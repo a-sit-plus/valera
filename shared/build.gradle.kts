@@ -38,10 +38,6 @@ kotlin {
                 api(libs.credential.powerofrepresentation)
                 api(libs.credential.certificateofresidence)
                 api(libs.credential.eprescription)
-                api(libs.signum)
-                api(libs.signum.jws)
-                api(libs.signum.cose)
-                api(libs.signum.supreme)
                 implementation(serialization("json"))
                 api(napier())
                 implementation("androidx.datastore:datastore-preferences-core:1.1.0-alpha07")
@@ -88,15 +84,7 @@ kotlin {
 }
 
 exportIosFramework(
-    name = "shared", transitiveExports = false,
-    vclibCatalog.vck,
-    datetime(),
-    signumCatalog.bignum,
-    signumCatalog.kmmresult,
-    libs.signum,
-    libs.signum.supreme,
-    libs.signum.jws,
-    libs.signum.cose,
+    name = "shared", transitiveExports = true,
     libs.credential.ida,
     libs.credential.mdl,
     libs.credential.eupid,
