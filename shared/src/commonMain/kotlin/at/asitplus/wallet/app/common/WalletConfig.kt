@@ -4,7 +4,6 @@ import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.ide
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
-import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import data.storage.DataStoreService
 import kotlinx.coroutines.flow.Flow
@@ -23,9 +22,8 @@ class WalletConfig(
 ) {
     private val config: Flow<ConfigData> =
         dataStoreService.getPreference(Configuration.DATASTORE_KEY_CONFIG).map {
-            it?.let {
-                jsonSerializer.decodeFromString<ConfigData>(it)
-            } ?: ConfigDataDefaults
+            it?.let { vckJsonSerializer.decodeFromString<ConfigData>(it) }
+                ?: ConfigDataDefaults
         }
 
     val host: Flow<String> = config.map {
