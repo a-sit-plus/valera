@@ -19,7 +19,7 @@ sealed interface Attribute {
         fun fromValue(value: LocalDateTime?) = value?.let { DateTimeAttribute(it) }
         fun fromValue(value: Instant?) = value?.let { InstantAttribute(it) }
         fun fromValue(value: ImageBitmap?) = value?.let { ImageAttribute(it) }
-        fun fromValue(value: List<DrivingPrivilege>?) = value?.let { DrivingPrivilegeAttribute(it) }
+        fun fromValue(value: Array<DrivingPrivilege>?) = value?.let { DrivingPrivilegeAttribute(it) }
     }
 
     data class StringAttribute(val value: String) : Attribute
@@ -31,5 +31,5 @@ sealed interface Attribute {
     data class DateTimeAttribute(val value: LocalDateTime) : Attribute
     data class InstantAttribute(val value: Instant) : Attribute
     data class ImageAttribute(val value: ImageBitmap) : Attribute
-    data class DrivingPrivilegeAttribute(val value: List<DrivingPrivilege>) : Attribute
+    data class DrivingPrivilegeAttribute(val value: Array<DrivingPrivilege>) : Attribute
 }

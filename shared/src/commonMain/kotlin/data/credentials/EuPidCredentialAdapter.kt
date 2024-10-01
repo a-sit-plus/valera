@@ -8,6 +8,9 @@ import at.asitplus.wallet.eupid.IsoIec5218Gender
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import data.Attribute
 import kotlinx.datetime.LocalDate
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.contentOrNull
 
 sealed class EuPidCredentialAdapter : CredentialAdapter() {
     override fun getAttribute(path: NormalizedJsonPath) = path.segments.firstOrNull()?.let { first ->
@@ -40,9 +43,9 @@ sealed class EuPidCredentialAdapter : CredentialAdapter() {
         }
     }
 
-    abstract val givenName: String
-    abstract val familyName: String
-    abstract val birthDate: LocalDate
+    abstract val givenName: String?
+    abstract val familyName: String?
+    abstract val birthDate: LocalDate?
     abstract val ageAtLeast18: Boolean?
     abstract val residentAddress: String?
     abstract val residentStreet: String?
@@ -158,74 +161,71 @@ private class EuPidCredentialVcAdapter(
 }
 
 private class EuPidCredentialSdJwtAdapter(
-    attributes: Map<String, Any>
+    private val attributes: Map<String, JsonPrimitive>
 ) : EuPidCredentialAdapter() {
-    private val proxy = EuPidCredentialIsoMdocAdapter(
-        namespaces = mapOf(EuPidScheme.isoNamespace to attributes)
-    )
 
-    override val givenName: String
-        get() = proxy.givenName
+    override val givenName: String?
+        get() = attributes[EuPidScheme.Attributes.GIVEN_NAME]?.contentOrNull
 
-    override val familyName: String
-        get() = proxy.familyName
+    override val familyName: String?
+        get() = attributes[EuPidScheme.Attributes.FAMILY_NAME]?.contentOrNull
 
-    override val birthDate: LocalDate
-        get() = proxy.birthDate
+    override val birthDate: LocalDate?
+        get() = attributes[EuPidScheme.Attributes.BIRTH_DATE]?.contentOrNull?.toLocalDateOrNull()
 
     override val ageAtLeast18: Boolean?
-        get() = proxy.ageAtLeast18
+        get() = attributes[EuPidScheme.Attributes.AGE_OVER_18]?.booleanOrNull
 
     override val residentAddress: String?
-        get() = proxy.residentAddress
+        get() = attributes[EuPidScheme.Attributes.RESIDENT_ADDRESS]?.contentOrNull
 
     override val residentStreet: String?
-        get() = proxy.residentStreet
+        get() = attributes[EuPidScheme.Attributes.RESIDENT_STREET]?.contentOrNull
 
     override val residentCity: String?
-        get() = proxy.residentCity
+        get() = attributes[EuPidScheme.Attributes.RESIDENT_CITY]?.contentOrNull
 
     override val residentPostalCode: String?
-        get() = proxy.residentPostalCode
+        get() = attributes[EuPidScheme.Attributes.RESIDENT_POSTAL_CODE]?.contentOrNull
 
     override val residentHouseNumber: String?
-        get() = proxy.residentHouseNumber
+        get() = attributes[EuPidScheme.Attributes.RESIDENT_HOUSE_NUMBER]?.contentOrNull
 
     override val residentCountry: String?
-        get() = proxy.residentCountry
+        get() = attributes[EuPidScheme.Attributes.RESIDENT_COUNTRY]?.contentOrNull
 
     override val residentState: String?
-        get() = proxy.residentState
+        get() = attributes[EuPidScheme.Attributes.RESIDENT_STATE]?.contentOrNull
 
     override val gender: IsoIec5218Gender?
-        get() = proxy.gender
+        get() = attributes[EuPidScheme.Attributes.GENDER]?.contentOrNull?.let { IsoIec5218Gender.valueOf(it) }
 
     override val nationality: String?
-        get() = proxy.nationality
+        get() = attributes[EuPidScheme.Attributes.NATIONALITY]?.contentOrNull
 
     override val ageInYears: UInt?
-        get() = proxy.ageInYears
+        get() = attributes[EuPidScheme.Attributes.AGE_IN_YEARS]?.contentOrNull?.toUIntOrNull()
 
     override val ageBirthYear: UInt?
-        get() = proxy.ageBirthYear
+        get() = attributes[EuPidScheme.Attributes.AGE_BIRTH_YEAR]?.contentOrNull?.toUIntOrNull()
 
     override val familyNameBirth: String?
-        get() = proxy.familyNameBirth
+        get() = attributes[EuPidScheme.Attributes.FAMILY_NAME_BIRTH]?.contentOrNull
 
     override val givenNameBirth: String?
-        get() = proxy.givenNameBirth
+        get() = attributes[EuPidScheme.Attributes.GIVEN_NAME_BIRTH]?.contentOrNull
 
     override val birthPlace: String?
-        get() = proxy.birthPlace
+        get() = attributes[EuPidScheme.Attributes.BIRTH_PLACE]?.contentOrNull
 
     override val birthCountry: String?
-        get() = proxy.birthCountry
+        get() = attributes[EuPidScheme.Attributes.BIRTH_COUNTRY]?.contentOrNull
 
     override val birthState: String?
-        get() = proxy.birthState
+        get() = attributes[EuPidScheme.Attributes.BIRTH_STATE]?.contentOrNull
 
     override val birthCity: String?
-        get() = proxy.birthCity
+        get() = attributes[EuPidScheme.Attributes.BIRTH_CITY]?.contentOrNull
 }
 
 private class EuPidCredentialIsoMdocAdapter(
