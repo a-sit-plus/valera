@@ -8,6 +8,7 @@ import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
 import compose_wallet_app.shared.generated.resources.Res
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
+import compose_wallet_app.shared.generated.resources.attribute_friendly_name_administrative_number
 import compose_wallet_app.shared.generated.resources.attribute_friendly_name_age_at_least_14
 import compose_wallet_app.shared.generated.resources.attribute_friendly_name_age_at_least_16
 import compose_wallet_app.shared.generated.resources.attribute_friendly_name_age_at_least_18
@@ -30,6 +31,7 @@ import compose_wallet_app.shared.generated.resources.attribute_friendly_name_giv
 import compose_wallet_app.shared.generated.resources.attribute_friendly_name_issue_date
 import compose_wallet_app.shared.generated.resources.attribute_friendly_name_issuing_authority
 import compose_wallet_app.shared.generated.resources.attribute_friendly_name_issuing_country
+import compose_wallet_app.shared.generated.resources.attribute_friendly_name_issuing_jurisdiction
 import compose_wallet_app.shared.generated.resources.attribute_friendly_name_lastname
 import compose_wallet_app.shared.generated.resources.attribute_friendly_name_main_address
 import compose_wallet_app.shared.generated.resources.attribute_friendly_name_main_residence_city
@@ -59,19 +61,10 @@ object EuPidCredentialAttributeTranslator : CredentialAttributeTranslator {
         with(EuPidScheme.Attributes) {
             when (val first = attributeName.segments.firstOrNull()) {
                 is NormalizedJsonPathSegment.NameSegment -> when (first.memberName) {
-                    GIVEN_NAME -> Res.string.attribute_friendly_name_firstname
                     FAMILY_NAME -> Res.string.attribute_friendly_name_lastname
+                    GIVEN_NAME -> Res.string.attribute_friendly_name_firstname
                     BIRTH_DATE -> Res.string.attribute_friendly_name_date_of_birth
                     AGE_OVER_18 -> Res.string.attribute_friendly_name_age_at_least_18
-                    RESIDENT_ADDRESS -> Res.string.attribute_friendly_name_main_address
-                    RESIDENT_STREET -> Res.string.attribute_friendly_name_main_residence_street
-                    RESIDENT_CITY -> Res.string.attribute_friendly_name_main_residence_city
-                    RESIDENT_POSTAL_CODE -> Res.string.attribute_friendly_name_main_residence_postal_code
-                    RESIDENT_HOUSE_NUMBER -> Res.string.attribute_friendly_name_main_residence_house_number
-                    RESIDENT_COUNTRY -> Res.string.attribute_friendly_name_main_residence_country
-                    RESIDENT_STATE -> Res.string.attribute_friendly_name_main_residence_state
-                    GENDER -> Res.string.attribute_friendly_name_sex
-                    NATIONALITY -> Res.string.attribute_friendly_name_nationality
                     AGE_IN_YEARS -> Res.string.attribute_friendly_name_age_in_years
                     AGE_BIRTH_YEAR -> Res.string.attribute_friendly_name_age_birth_year
                     FAMILY_NAME_BIRTH -> Res.string.attribute_friendly_name_family_name_birth
@@ -80,6 +73,22 @@ object EuPidCredentialAttributeTranslator : CredentialAttributeTranslator {
                     BIRTH_COUNTRY -> Res.string.attribute_friendly_name_birth_country
                     BIRTH_STATE -> Res.string.attribute_friendly_name_birth_state
                     BIRTH_CITY -> Res.string.attribute_friendly_name_birth_city
+                    RESIDENT_ADDRESS -> Res.string.attribute_friendly_name_main_address
+                    RESIDENT_COUNTRY -> Res.string.attribute_friendly_name_main_residence_country
+                    RESIDENT_STATE -> Res.string.attribute_friendly_name_main_residence_state
+                    RESIDENT_CITY -> Res.string.attribute_friendly_name_main_residence_city
+                    RESIDENT_POSTAL_CODE -> Res.string.attribute_friendly_name_main_residence_postal_code
+                    RESIDENT_STREET -> Res.string.attribute_friendly_name_main_residence_street
+                    RESIDENT_HOUSE_NUMBER -> Res.string.attribute_friendly_name_main_residence_house_number
+                    GENDER -> Res.string.attribute_friendly_name_sex
+                    NATIONALITY -> Res.string.attribute_friendly_name_nationality
+                    ISSUANCE_DATE -> Res.string.attribute_friendly_name_issue_date
+                    EXPIRY_DATE -> Res.string.attribute_friendly_name_expiry_date
+                    ISSUING_AUTHORITY -> Res.string.attribute_friendly_name_issuing_authority
+                    DOCUMENT_NUMBER -> Res.string.attribute_friendly_name_document_number
+                    ADMINISTRATIVE_NUMBER -> Res.string.attribute_friendly_name_administrative_number
+                    ISSUING_COUNTRY -> Res.string.attribute_friendly_name_issuing_country
+                    ISSUING_JURISDICTION -> Res.string.attribute_friendly_name_issuing_jurisdiction
                     else -> null
                 }
 

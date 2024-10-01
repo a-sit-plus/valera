@@ -7,6 +7,7 @@ import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.eupid.IsoIec5218Gender
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import data.Attribute
+import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
@@ -37,6 +38,13 @@ sealed class EuPidCredentialAdapter : CredentialAdapter() {
                 EuPidScheme.Attributes.BIRTH_COUNTRY -> Attribute.fromValue(birthCountry)
                 EuPidScheme.Attributes.BIRTH_STATE -> Attribute.fromValue(birthState)
                 EuPidScheme.Attributes.BIRTH_CITY -> Attribute.fromValue(birthCity)
+                EuPidScheme.Attributes.ISSUANCE_DATE -> Attribute.fromValue(issuanceDate)
+                EuPidScheme.Attributes.EXPIRY_DATE -> Attribute.fromValue(expiryDate)
+                EuPidScheme.Attributes.ISSUING_AUTHORITY -> Attribute.fromValue(issuingAuthority)
+                EuPidScheme.Attributes.DOCUMENT_NUMBER -> Attribute.fromValue(documentNumber)
+                EuPidScheme.Attributes.ADMINISTRATIVE_NUMBER -> Attribute.fromValue(administrativeNumber)
+                EuPidScheme.Attributes.ISSUING_COUNTRY -> Attribute.fromValue(issuingCountry)
+                EuPidScheme.Attributes.ISSUING_JURISDICTION -> Attribute.fromValue(issuingJurisdiction)
                 else -> null
             }
 
@@ -65,6 +73,13 @@ sealed class EuPidCredentialAdapter : CredentialAdapter() {
     abstract val birthCountry: String?
     abstract val birthState: String?
     abstract val birthCity: String?
+    abstract val issuanceDate: Instant?
+    abstract val expiryDate: Instant?
+    abstract val issuingAuthority: String?
+    abstract val documentNumber: String?
+    abstract val administrativeNumber: String?
+    abstract val issuingCountry: String?
+    abstract val issuingJurisdiction: String?
 
     companion object {
         fun createFromStoreEntry(storeEntry: SubjectCredentialStore.StoreEntry): EuPidCredentialAdapter {
@@ -159,6 +174,27 @@ private class EuPidCredentialVcAdapter(
 
     override val birthCity: String?
         get() = credentialSubject.birthCity
+
+    override val issuanceDate: Instant?
+        get() = credentialSubject.issuanceDate
+
+    override val expiryDate: Instant?
+        get() = credentialSubject.expiryDate
+
+    override val issuingAuthority: String?
+        get() = credentialSubject.issuingAuthority
+
+    override val documentNumber: String?
+        get() = credentialSubject.documentNumber
+
+    override val administrativeNumber: String?
+        get() = credentialSubject.administrativeNumber
+
+    override val issuingCountry: String?
+        get() = credentialSubject.issuingCountry
+
+    override val issuingJurisdiction: String?
+        get() = credentialSubject.issuingJurisdiction
 }
 
 private class EuPidCredentialSdJwtAdapter(
@@ -228,6 +264,27 @@ private class EuPidCredentialSdJwtAdapter(
 
     override val birthCity: String?
         get() = attributes[EuPidScheme.Attributes.BIRTH_CITY]?.contentOrNull
+
+    override val issuanceDate: Instant?
+        get() = attributes[EuPidScheme.Attributes.ISSUANCE_DATE]?.contentOrNull?.toInstantOrNull()
+
+    override val expiryDate: Instant?
+        get() = attributes[EuPidScheme.Attributes.EXPIRY_DATE]?.contentOrNull?.toInstantOrNull()
+
+    override val issuingAuthority: String?
+        get() = attributes[EuPidScheme.Attributes.ISSUING_AUTHORITY]?.contentOrNull
+
+    override val documentNumber: String?
+        get() = attributes[EuPidScheme.Attributes.DOCUMENT_NUMBER]?.contentOrNull
+
+    override val administrativeNumber: String?
+        get() = attributes[EuPidScheme.Attributes.ADMINISTRATIVE_NUMBER]?.contentOrNull
+
+    override val issuingCountry: String?
+        get() = attributes[EuPidScheme.Attributes.ISSUING_COUNTRY]?.contentOrNull
+
+    override val issuingJurisdiction: String?
+        get() = attributes[EuPidScheme.Attributes.ISSUING_JURISDICTION]?.contentOrNull
 }
 
 private class EuPidCredentialIsoMdocAdapter(
@@ -236,17 +293,18 @@ private class EuPidCredentialIsoMdocAdapter(
     private val euPidNamespace = namespaces?.get(EuPidScheme.isoNamespace)
         ?: throw IllegalArgumentException("namespaces") // contains required attributes
 
-    override val givenName: String
-        get() = euPidNamespace[EuPidScheme.Attributes.GIVEN_NAME] as String
+    override val givenName: String?
+        get() = euPidNamespace[EuPidScheme.Attributes.GIVEN_NAME] as String?
 
-    override val familyName: String
-        get() = euPidNamespace[EuPidScheme.Attributes.FAMILY_NAME] as String
+    override val familyName: String?
+        get() = euPidNamespace[EuPidScheme.Attributes.FAMILY_NAME] as String?
 
-    override val birthDate: LocalDate
-        get() = euPidNamespace[EuPidScheme.Attributes.BIRTH_DATE].toLocalDateOrNull()!!
+    override val birthDate: LocalDate?
+        get() = euPidNamespace[EuPidScheme.Attributes.BIRTH_DATE] as? LocalDate?
+            ?: euPidNamespace[EuPidScheme.Attributes.BIRTH_DATE]?.toString()?.toLocalDateOrNull()
 
     override val ageAtLeast18: Boolean?
-        get() = euPidNamespace[EuPidScheme.Attributes.AGE_OVER_18] as Boolean?
+        get() = euPidNamespace[EuPidScheme.Attributes.AGE_OVER_18] as? Boolean?
 
     override val residentAddress: String?
         get() = euPidNamespace[EuPidScheme.Attributes.RESIDENT_ADDRESS] as String?
@@ -299,4 +357,27 @@ private class EuPidCredentialIsoMdocAdapter(
 
     override val birthCity: String?
         get() = euPidNamespace[EuPidScheme.Attributes.BIRTH_CITY] as String?
+
+    override val issuanceDate: Instant?
+        get() = euPidNamespace[EuPidScheme.Attributes.ISSUANCE_DATE] as Instant?
+            ?: euPidNamespace[EuPidScheme.Attributes.ISSUANCE_DATE]?.toString()?.toInstantOrNull()
+
+    override val expiryDate: Instant?
+        get() = euPidNamespace[EuPidScheme.Attributes.EXPIRY_DATE] as Instant?
+            ?: euPidNamespace[EuPidScheme.Attributes.EXPIRY_DATE]?.toString()?.toInstantOrNull()
+
+    override val issuingAuthority: String?
+        get() = euPidNamespace[EuPidScheme.Attributes.ISSUING_AUTHORITY] as String?
+
+    override val documentNumber: String?
+        get() = euPidNamespace[EuPidScheme.Attributes.DOCUMENT_NUMBER] as String?
+
+    override val administrativeNumber: String?
+        get() = euPidNamespace[EuPidScheme.Attributes.ADMINISTRATIVE_NUMBER] as String?
+
+    override val issuingCountry: String?
+        get() = euPidNamespace[EuPidScheme.Attributes.ISSUING_COUNTRY] as String?
+
+    override val issuingJurisdiction: String?
+        get() = euPidNamespace[EuPidScheme.Attributes.ISSUING_JURISDICTION] as String?
 }

@@ -41,12 +41,12 @@ object EuPidCredentialAttributeCategorization : CredentialAttributeCategorizatio
         ).map { NormalizedJsonPath() + it to null },
 
         PersonalDataCategory.Metadata to listOf(
+            EuPidScheme.Attributes.DOCUMENT_NUMBER,
             EuPidScheme.Attributes.ISSUANCE_DATE,
             EuPidScheme.Attributes.EXPIRY_DATE,
             EuPidScheme.Attributes.ISSUING_COUNTRY,
             EuPidScheme.Attributes.ISSUING_AUTHORITY,
             EuPidScheme.Attributes.ISSUING_JURISDICTION,
-            EuPidScheme.Attributes.DOCUMENT_NUMBER,
             EuPidScheme.Attributes.ADMINISTRATIVE_NUMBER,
         ).map { NormalizedJsonPath() + it to null },
     ),
