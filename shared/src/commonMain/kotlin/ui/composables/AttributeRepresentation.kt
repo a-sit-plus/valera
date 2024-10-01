@@ -26,6 +26,7 @@ fun AttributeRepresentation(attribute: Attribute) {
         is Attribute.DateTimeAttribute -> AttributeRepresentation(attribute.value)
         is Attribute.InstantAttribute -> AttributeRepresentation(attribute.value)
         is Attribute.GenderAttribute -> AttributeRepresentation(attribute.value.name)
+        is Attribute.SexAttribute -> AttributeRepresentation(attribute.value.name)
         is Attribute.ImageAttribute -> AttributeRepresentation(attribute.value)
         is Attribute.IntegerAttribute -> AttributeRepresentation(attribute.value.toString())
         is Attribute.UnsignedIntegerAttribute -> AttributeRepresentation(attribute.value.toString())

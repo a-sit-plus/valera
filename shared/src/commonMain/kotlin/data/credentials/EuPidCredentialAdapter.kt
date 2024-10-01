@@ -199,7 +199,8 @@ private class EuPidCredentialSdJwtAdapter(
         get() = attributes[EuPidScheme.Attributes.RESIDENT_STATE]?.contentOrNull
 
     override val gender: IsoIec5218Gender?
-        get() = attributes[EuPidScheme.Attributes.GENDER]?.contentOrNull?.let { IsoIec5218Gender.valueOf(it) }
+        get() = attributes[EuPidScheme.Attributes.GENDER]?.contentOrNull?.toIntOrNull()
+            ?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code } }
 
     override val nationality: String?
         get() = attributes[EuPidScheme.Attributes.NATIONALITY]?.contentOrNull

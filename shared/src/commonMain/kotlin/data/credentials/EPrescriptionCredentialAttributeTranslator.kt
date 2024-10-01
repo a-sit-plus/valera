@@ -5,10 +5,10 @@ import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.eprescription.EPrescriptionDataElements.OTT
 import at.asitplus.wallet.eprescription.EPrescriptionDataElements.VALID_UNTIL
 import at.asitplus.wallet.eprescription.EPrescriptionDataElements.COUNTRY_CODE
-import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.attribute_friendly_name_country_code
-import composewalletapp.shared.generated.resources.attribute_friendly_name_one_time_token
-import composewalletapp.shared.generated.resources.attribute_friendly_name_valid_until
+import compose_wallet_app.shared.generated.resources.Res
+import compose_wallet_app.shared.generated.resources.attribute_friendly_name_country_code
+import compose_wallet_app.shared.generated.resources.attribute_friendly_name_one_time_token
+import compose_wallet_app.shared.generated.resources.attribute_friendly_name_valid_until
 import org.jetbrains.compose.resources.StringResource
 
 

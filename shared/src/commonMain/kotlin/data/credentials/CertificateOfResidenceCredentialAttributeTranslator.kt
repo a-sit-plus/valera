@@ -2,21 +2,7 @@ package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
-import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.ADMINISTRATIVE_NUMBER
-import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.ARRIVAL_DATE
-import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.BIRTH_DATE
-import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.BIRTH_PLACE
-import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.DOCUMENT_NUMBER
-import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.EXPIRY_DATE
-import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.FAMILY_NAME
-import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.GENDER
-import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.GIVEN_NAME
-import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.ISSUANCE_DATE
-import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.ISSUING_AUTHORITY
-import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.ISSUING_COUNTRY
-import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.ISSUING_JURISDICTION
-import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.NATIONALITY
-import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.RESIDENCE_ADDRESS
+import at.asitplus.wallet.cor.CertificateOfResidenceDataElements
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.attribute_friendly_name_administrative_number
 import compose_wallet_app.shared.generated.resources.attribute_friendly_name_arrival_date
@@ -48,7 +34,6 @@ object CertificateOfResidenceCredentialAttributeTranslator : CredentialAttribute
                     DOCUMENT_NUMBER -> Res.string.attribute_friendly_name_document_number
                     ISSUING_COUNTRY -> Res.string.attribute_friendly_name_issuing_country
                     ISSUING_JURISDICTION -> Res.string.attribute_friendly_name_issuing_jurisdiction
-
                     FAMILY_NAME -> Res.string.attribute_friendly_name_firstname
                     GIVEN_NAME -> Res.string.attribute_friendly_name_lastname
                     BIRTH_DATE -> Res.string.attribute_friendly_name_date_of_birth
@@ -57,7 +42,6 @@ object CertificateOfResidenceCredentialAttributeTranslator : CredentialAttribute
                     BIRTH_PLACE -> Res.string.attribute_friendly_name_birth_place
                     ARRIVAL_DATE -> Res.string.attribute_friendly_name_arrival_date
                     NATIONALITY -> Res.string.attribute_friendly_name_nationality
-
                     else -> null
                 }
 

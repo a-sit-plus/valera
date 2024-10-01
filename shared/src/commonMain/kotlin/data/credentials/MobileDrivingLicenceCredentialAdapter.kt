@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.signum.indispensable.io.Base64UrlStrict
+import at.asitplus.wallet.eupid.IsoIec5218Gender
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.mdl.DrivingPrivilege
 import at.asitplus.wallet.mdl.IsoSexEnum
@@ -102,7 +103,7 @@ sealed class MobileDrivingLicenceCredentialAdapter(
     }
     abstract val documentNumber: String?
     abstract val administrativeNumber: String?
-    abstract val sex: String?
+    abstract val sex: IsoSexEnum?
     abstract val height: UInt?
     abstract val weight: UInt?
     abstract val eyeColour: String?
@@ -156,13 +157,13 @@ private class MobileDrivingLicenceCredentialSdJwtAdapter(
         get() = attributes[MobileDrivingLicenceDataElements.GIVEN_NAME]?.contentOrNull
 
     override val givenNameNational: String?
-        get() = attributes[MobileDrivingLicenceDataElements.GIVEN_NAME_NATIONAL]?.contentOrNull
+        get() = attributes[MobileDrivingLicenceDataElements.GIVEN_NAME_NATIONAL_CHARACTER]?.contentOrNull
 
     override val familyName: String?
         get() = attributes[MobileDrivingLicenceDataElements.FAMILY_NAME]?.contentOrNull
 
     override val familyNameNational: String?
-        get() = attributes[MobileDrivingLicenceDataElements.FAMILY_NAME_NATIONAL]?.contentOrNull
+        get() = attributes[MobileDrivingLicenceDataElements.FAMILY_NAME_NATIONAL_CHARACTER]?.contentOrNull
 
     override val birthDate: LocalDate?
         get() = attributes[MobileDrivingLicenceDataElements.BIRTH_DATE]?.contentOrNull?.toLocalDateOrNull()
@@ -198,42 +199,43 @@ private class MobileDrivingLicenceCredentialSdJwtAdapter(
         get() = attributes[MobileDrivingLicenceDataElements.BIRTH_PLACE]?.contentOrNull
 
     override val portraitRaw: ByteArray?
-        get() = attributes[MobileDrivingLicenceDataElements.PORTRAIT]?.contentOrNull?.decodeToByteArray(
-            Base64UrlStrict
-        )
+        get() = attributes[MobileDrivingLicenceDataElements.PORTRAIT]?.contentOrNull?.decodeToByteArray(Base64UrlStrict)
 
     override val signatureRaw: ByteArray?
-        get() = proxy.signatureRaw
+        get() = attributes[MobileDrivingLicenceDataElements.SIGNATURE_USUAL_MARK]?.contentOrNull?.decodeToByteArray(
+            Base64UrlStrict
+        )
 
     override val documentNumber: String?
         get() = attributes[MobileDrivingLicenceDataElements.DOCUMENT_NUMBER]?.contentOrNull
 
     override val administrativeNumber: String?
-        get() = proxy.administrativeNumber
+        get() = attributes[MobileDrivingLicenceDataElements.ADMINISTRATIVE_NUMBER]?.contentOrNull
 
-    override val sex: String?
-        get() = proxy.sex
+    override val sex: IsoSexEnum?
+        get() = attributes[MobileDrivingLicenceDataElements.SEX]?.contentOrNull?.toIntOrNull()
+            ?.let { code -> IsoSexEnum.entries.firstOrNull { it.code == code } }
 
     override val height: UInt?
-        get() = proxy.height
+        get() = attributes[MobileDrivingLicenceDataElements.HEIGHT]?.contentOrNull?.toUIntOrNull()
 
     override val weight: UInt?
-        get() = proxy.weight
+        get() = attributes[MobileDrivingLicenceDataElements.WEIGHT]?.contentOrNull?.toUIntOrNull()
 
     override val eyeColour: String?
-        get() = proxy.eyeColour
+        get() = attributes[MobileDrivingLicenceDataElements.EYE_COLOUR]?.contentOrNull
 
     override val hairColour: String?
-        get() = proxy.issuingAuthority
+        get() = attributes[MobileDrivingLicenceDataElements.HAIR_COLOUR]?.contentOrNull
 
     override val portraitCaptureDate: LocalDate?
-        get() = proxy.portraitCaptureDate
+        get() = attributes[MobileDrivingLicenceDataElements.PORTRAIT_CAPTURE_DATE]?.contentOrNull?.toLocalDateOrNull()
 
     override val issuingAuthority: String?
         get() = attributes[MobileDrivingLicenceDataElements.ISSUING_AUTHORITY]?.contentOrNull
 
     override val issuingJurisdiction: String?
-        get() = proxy.issuingJurisdiction
+        get() = attributes[MobileDrivingLicenceDataElements.ISSUING_JURISDICTION]?.contentOrNull
 
     override val issueDate: LocalDate?
         get() = attributes[MobileDrivingLicenceDataElements.ISSUE_DATE]?.contentOrNull?.toLocalDateOrNull()
@@ -276,7 +278,8 @@ private class MobileDrivingLicenceCredentialIsoMdocAdapter(
         get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.BIRTH_DATE].toLocalDateOrNull()!!
 
     override val ageAtLeast18: Boolean?
-        get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.AGE_OVER_18]?.toString()?.toBooleanStrictOrNull()
+        get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.AGE_OVER_18]?.toString()
+            ?.toBooleanStrictOrNull()
 
     override val nationality: String?
         get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.NATIONALITY] as String?
@@ -329,8 +332,10 @@ private class MobileDrivingLicenceCredentialIsoMdocAdapter(
     override val administrativeNumber: String?
         get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.ADMINISTRATIVE_NUMBER] as String?
 
-    override val sex: String?
-        get() = (mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.SEX] as IsoSexEnum?)?.name
+    override val sex: IsoSexEnum?
+        get() = (mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.SEX] as? IsoSexEnum?)
+            ?: mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.SEX]?.toString()?.toIntOrNull()
+                ?.let { code -> IsoSexEnum.entries.firstOrNull { it.code == code } }
 
     override val height: UInt?
         get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.HEIGHT] as UInt?
