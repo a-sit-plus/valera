@@ -25,11 +25,12 @@ fun AttributeRepresentation(attribute: Attribute) {
         is Attribute.DateAttribute -> AttributeRepresentation(attribute.value)
         is Attribute.DateTimeAttribute -> AttributeRepresentation(attribute.value)
         is Attribute.InstantAttribute -> AttributeRepresentation(attribute.value)
-        is Attribute.GenderAttribute -> TODO() // AttributeRepresentation(attribute.value)
+        is Attribute.GenderAttribute -> AttributeRepresentation(attribute.value.name)
         is Attribute.ImageAttribute -> AttributeRepresentation(attribute.value)
-        is Attribute.IntegerAttribute -> TODO() // AttributeRepresentation(attribute.value)
-        is Attribute.UnsignedIntegerAttribute -> TODO() // AttributeRepresentation(attribute.value)
-        is Attribute.DrivingPrivilegeAttribute -> TODO() // AttributeRepresentation(attribute.value)
+        is Attribute.IntegerAttribute -> AttributeRepresentation(attribute.value.toString())
+        is Attribute.UnsignedIntegerAttribute -> AttributeRepresentation(attribute.value.toString())
+        // TODO Nice representation for driving privileges
+        is Attribute.DrivingPrivilegeAttribute -> AttributeRepresentation(attribute.value.joinToString { ", " })
     }
 }
 

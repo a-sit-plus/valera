@@ -45,7 +45,7 @@ import kotlinx.serialization.encodeToString
 import okio.ByteString.Companion.decodeBase64
 
 const val PATH_WELL_KNOWN_CREDENTIAL_ISSUER = "/.well-known/openid-credential-issuer"
-const val PATH_WELL_KNOWN_AUTH_SERVER = "/.well-known/openid-credential-issuer"
+const val PATH_WELL_KNOWN_AUTH_SERVER = "/.well-known/openid-configuration"
 const val X_AUTH_TOKEN: String = "X-Auth-Token"
 const val PARAMETER_STATE: String = "state"
 const val PARAMETER_REDIRECT_URI: String = "redirect_uri"

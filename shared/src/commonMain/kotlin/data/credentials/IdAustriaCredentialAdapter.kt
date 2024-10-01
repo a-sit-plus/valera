@@ -3,15 +3,21 @@ package data.credentials
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
+import at.asitplus.signum.indispensable.io.Base64UrlStrict
 import at.asitplus.wallet.idaustria.IdAustriaCredential
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.por.PowerOfRepresentationDataElements
 import data.Attribute
 import io.github.aakira.napier.Napier
 import io.ktor.util.decodeBase64Bytes
 import io.ktor.util.decodeBase64String
+import io.matthewnelson.encoding.core.Decoder.Companion.decodeToByteArray
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.contentOrNull
 
 sealed class IdAustriaCredentialAdapter(
     private val decodePortrait: (ByteArray) -> ImageBitmap?,
@@ -73,10 +79,10 @@ sealed class IdAustriaCredentialAdapter(
             }
         }
 
-    abstract val bpk: String
-    abstract val givenName: String
-    abstract val familyName: String
-    abstract val dateOfBirth: LocalDate
+    abstract val bpk: String?
+    abstract val givenName: String?
+    abstract val familyName: String?
+    abstract val dateOfBirth: LocalDate?
     abstract val portraitRaw: ByteArray?
     val portraitBitmap: ImageBitmap? by lazy {
 
@@ -164,43 +170,39 @@ private class IdAustriaCredentialVcAdapter(
 }
 
 private class IdAustriaCredentialSdJwtAdapter(
-    attributes: Map<String, Any>,
-    decodeImage: (ByteArray) -> ImageBitmap?,
+    private val attributes: Map<String, JsonPrimitive>,
+    private val decodeImage: (ByteArray) -> ImageBitmap?,
 ) : IdAustriaCredentialAdapter(decodeImage) {
-    private val proxy = IdAustriaCredentialIsoMdocAdapter(
-        namespaces = mapOf(IdAustriaScheme.isoNamespace to attributes),
-        decodeImage = decodeImage,
-    )
 
-    override val bpk: String
-        get() = proxy.bpk
+    override val bpk: String?
+        get() = attributes[IdAustriaScheme.Attributes.BPK]?.contentOrNull
 
-    override val givenName: String
-        get() = proxy.givenName
+    override val givenName: String?
+        get() = attributes[IdAustriaScheme.Attributes.FIRSTNAME]?.contentOrNull
 
-    override val familyName: String
-        get() = proxy.familyName
+    override val familyName: String?
+        get() = attributes[IdAustriaScheme.Attributes.LASTNAME]?.contentOrNull
 
-    override val dateOfBirth: LocalDate
-        get() = proxy.dateOfBirth
+    override val dateOfBirth: LocalDate?
+        get() = attributes[IdAustriaScheme.Attributes.DATE_OF_BIRTH]?.contentOrNull?.toLocalDateOrNull()
 
     override val portraitRaw: ByteArray?
-        get() = proxy.portraitRaw
+        get() = attributes[IdAustriaScheme.Attributes.PORTRAIT]?.contentOrNull?.decodeToByteArray(Base64UrlStrict)
 
     override val ageAtLeast14: Boolean?
-        get() = proxy.ageAtLeast14
+        get() = attributes[IdAustriaScheme.Attributes.AGE_OVER_14]?.booleanOrNull
 
     override val ageAtLeast16: Boolean?
-        get() = proxy.ageAtLeast16
+        get() = attributes[IdAustriaScheme.Attributes.AGE_OVER_16]?.booleanOrNull
 
     override val ageAtLeast18: Boolean?
-        get() = proxy.ageAtLeast18
+        get() = attributes[IdAustriaScheme.Attributes.AGE_OVER_18]?.booleanOrNull
 
     override val ageAtLeast21: Boolean?
-        get() = proxy.ageAtLeast21
+        get() = attributes[IdAustriaScheme.Attributes.AGE_OVER_21]?.booleanOrNull
 
     override val mainAddressRaw: String?
-        get() = proxy.mainAddressRaw
+        get() = attributes[IdAustriaScheme.Attributes.MAIN_ADDRESS]?.contentOrNull
 }
 
 private class IdAustriaCredentialIsoMdocAdapter(

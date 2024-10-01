@@ -2,6 +2,7 @@ package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
+import at.asitplus.wallet.cor.CertificateOfResidenceDataElements
 import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.ADMINISTRATIVE_NUMBER
 import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.ARRIVAL_DATE
 import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.BIRTH_DATE
@@ -20,10 +21,11 @@ import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.RESIDENCE_ADDRE
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.eupid.IsoIec5218Gender
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.Attribute
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 
 sealed class CertificateOfResidenceCredentialAdapter : CredentialAdapter() {
     override fun getAttribute(path: NormalizedJsonPath) = path.segments.firstOrNull()?.let { first ->
@@ -94,57 +96,56 @@ sealed class CertificateOfResidenceCredentialAdapter : CredentialAdapter() {
         }
     }
 }
+
 private class CertificateOfResidenceCredentialSdJwtAdapter(
-    attributes: Map<String, Any>,
+    private val attributes: Map<String, JsonPrimitive>,
 ) : CertificateOfResidenceCredentialAdapter() {
-    private val proxy = CertificateOfResidenceCredentialIsoMdocAdapter(
-        namespaces = mapOf(CertificateOfResidenceScheme.toString() to attributes),
-    )
 
     override val documentNumber: String?
-        get() = proxy.documentNumber
+        get() = attributes[DOCUMENT_NUMBER]?.contentOrNull
 
     override val issuingAuthority: String?
-        get() = proxy.issuingAuthority
+        get() = attributes[ISSUING_AUTHORITY]?.contentOrNull
 
     override val familyName: String?
-        get() = proxy.familyName
+        get() = attributes[FAMILY_NAME]?.contentOrNull
 
     override val givenName: String?
-        get() = proxy.givenName
+        get() = attributes[GIVEN_NAME]?.contentOrNull
 
     override val birthDate: LocalDate?
-        get() = proxy.birthDate
+        get() = attributes[BIRTH_DATE]?.contentOrNull?.toLocalDateOrNull()
 
     override val residenceAddress: String?
-        get() = proxy.residenceAddress
+        get() = attributes[RESIDENCE_ADDRESS]?.contentOrNull
 
     override val gender: IsoIec5218Gender?
-        get() = proxy.gender
+        get() = attributes[GENDER]?.contentOrNull
+            ?.let { s -> IsoIec5218Gender.entries.firstOrNull { it.name == s } }
 
     override val birthPlace: String?
-        get() = proxy.birthPlace
+        get() = attributes[BIRTH_PLACE]?.contentOrNull
 
     override val arrivalDate: LocalDate?
-        get() = proxy.arrivalDate
+        get() = attributes[ARRIVAL_DATE]?.contentOrNull?.toLocalDateOrNull()
 
     override val nationality: String?
-        get() = proxy.nationality
+        get() = attributes[NATIONALITY]?.contentOrNull
 
     override val administrativeNumber: String?
-        get() = proxy.administrativeNumber
+        get() = attributes[ADMINISTRATIVE_NUMBER]?.contentOrNull
 
     override val issuanceDate: Instant?
-        get() = proxy.issuanceDate
+        get() = attributes[ISSUANCE_DATE]?.contentOrNull?.toInstantOrNull()
 
     override val expiryDate: Instant?
-        get() = proxy.expiryDate
+        get() = attributes[EXPIRY_DATE]?.contentOrNull?.toInstantOrNull()
 
     override val issuingCountry: String?
-        get() = proxy.issuingCountry
+        get() = attributes[ISSUING_COUNTRY]?.contentOrNull
 
     override val issuingJurisdiction: String?
-        get() = proxy.issuingJurisdiction
+        get() = attributes[ISSUING_JURISDICTION]?.contentOrNull
 }
 
 private class CertificateOfResidenceCredentialIsoMdocAdapter(
