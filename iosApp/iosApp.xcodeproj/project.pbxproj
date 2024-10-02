@@ -157,6 +157,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 7555FFA5242A565B00829871 /* Build configuration list for PBXNativeTarget "iosApp" */;
 			buildPhases = (
+				4863F9F82CA6FCCA00D231F5 /* Run Script */,
 				05D91A922A5F233C00F138EB /* Compile Kotlin */,
 				7555FF77242A565900829871 /* Sources */,
 				7555FF79242A565900829871 /* Resources */,
@@ -264,6 +265,24 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "cd \"$SRCROOT/..\"\n./gradlew :shared:embedAndSignAppleFrameworkForXcode\n";
+		};
+		4863F9F82CA6FCCA00D231F5 /* Run Script */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Run Script";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cd \"$SRCROOT/..\"\nv=$(sed -e '/version\\.name/!d' -e 's/version\\.name=//g' gradle.properties)\ncd iosApp\ncd Configuration\nsed -i -e \"s/VERSION_NAME=.*/VERSION_NAME=${v}/g\" Config.xcconfig\nrm -f Config.xcconfig-e\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -500,7 +519,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 4.1.1;
+				MARKETING_VERSION = "$(VERSION_NAME)";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
@@ -540,7 +559,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 4.1.1;
+				MARKETING_VERSION = "$(VERSION_NAME)";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
