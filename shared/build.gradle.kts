@@ -84,7 +84,12 @@ kotlin {
 }
 
 exportIosFramework(
-    name = "shared", transitiveExports = true,
+    name = "shared", transitiveExports = false,
+    libs.vck,
+    libs.vck.openid,
+    libs.indispensable,
+    libs.supreme,
+    libs.kmmresult,
     libs.credential.ida,
     libs.credential.mdl,
     libs.credential.eupid,

@@ -34,10 +34,11 @@ extension KotlinByteArray {
 }
 
 
-func KmmResultFailure<T>(_ error: KotlinThrowable) -> KmmResult<T> where T: AnyObject {
-    return KmmResult(failure: error) as! KmmResult<T>
+func KmmResultFailure<T>(_ error: KotlinThrowable) -> KmmresultKmmResult<T> where T: AnyObject {
+    return KmmresultKmmResult(failure: error) as! KmmresultKmmResult<T>
 }
 
-func KmmResultSuccess<T>(_ value: T) -> KmmResult<T> where T: AnyObject {
-    return KmmResult(value: value) as! KmmResult<T>
+func KmmResultSuccess<T>(_ value: T) -> KmmresultKmmResult<T> where T: AnyObject {
+    return KmmresultKmmResult(value: value) as! KmmresultKmmResult<T>
 }
+
