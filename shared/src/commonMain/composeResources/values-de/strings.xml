@@ -12,6 +12,7 @@
     <string name="app_display_name">Wallet Demo App</string>
     <string name="snackbar_credential_loaded_successfully">Daten wurden erfolgreich geladen</string>
     <string name="snackbar_reset_app_successfully">App erfolgreich zurückgesetzt</string>
+    <string name="snackbar_clear_log_successfully">Log erfolgreich gelöscht</string>
 
     <string name="button_label_use_device_credential">Passwort</string>
     <string name="button_label_confirm">Bestätigen</string>
@@ -40,6 +41,7 @@
     <string name="button_label_reset_app">App zurücksetzen</string>
     <string name="button_label_all_missing_data">Alle neuen Daten</string>
     <string name="button_label_all_available_data">Alle bestehenden Daten</string>
+    <string name="button_label_clear_log">Log löschen</string>
 
     <string name="attribute_friendly_name_bpk">BPK</string>
     <string name="attribute_friendly_name_firstname">Vorname</string>

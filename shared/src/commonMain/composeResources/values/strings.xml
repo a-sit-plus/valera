@@ -11,6 +11,7 @@
     <string name="app_display_name">UNTRANSLATED:app_display_name</string>
     <string name="snackbar_credential_loaded_successfully">UNTRANSLATED:snackbar_credential_loaded_successfully</string>
     <string name="snackbar_reset_app_successfully">UNTRANSLATED:snackbar_reset_app_successfully</string>
+    <string name="snackbar_clear_log_successfully">UNTRANSLATED:snackbar_clear_log_successfully</string>
 
 
     <string name="button_label_use_device_credential">UNTRANSLATED:button_label_use_device_credential</string>
@@ -40,6 +41,8 @@
     <string name="button_label_reset_app">UNTRANSLATED:button_label_reset_app</string>
     <string name="button_label_all_missing_data">UNTRANSLATED:button_label_all_missing_data</string>
     <string name="button_label_all_available_data">UNTRANSLATED:button_label_all_available_data</string>
+    <string name="button_label_clear_log">UNTRANSLATED:button_label_clear_log</string>
+
 
 
     <string name="id_austria_credential_attribute_friendly_name_main_address_street">UNTRANSLATED:id_austria_credential_attribute_friendly_name_main_address_street</string>
