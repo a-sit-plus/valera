@@ -2,6 +2,7 @@ package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
+import at.asitplus.wallet.eprescription.EPrescriptionDataElements
 import at.asitplus.wallet.eprescription.EPrescriptionDataElements.OTT
 import at.asitplus.wallet.eprescription.EPrescriptionDataElements.VALID_UNTIL
 import at.asitplus.wallet.eprescription.EPrescriptionDataElements.COUNTRY_CODE
@@ -9,6 +10,8 @@ import at.asitplus.wallet.eprescription.EPrescriptionScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import data.Attribute
 import kotlinx.datetime.Instant
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 
 sealed class EPrescriptionCredentialAdapter : CredentialAdapter() {
     override fun getAttribute(path: NormalizedJsonPath) = path.segments.firstOrNull()?.let { first ->
@@ -54,20 +57,17 @@ sealed class EPrescriptionCredentialAdapter : CredentialAdapter() {
     }
 }
 private class EPrescriptionCredentialSdJwtAdapter(
-    attributes: Map<String, Any>,
+    private val attributes: Map<String, JsonPrimitive>,
 ) : EPrescriptionCredentialAdapter() {
-    private val proxy = EPrescriptionCredentialIsoMdocAdapter(
-        namespaces = mapOf(EPrescriptionScheme.toString() to attributes),
-    )
 
     override val validUntil: Instant?
-        get() = proxy.validUntil
+        get() = attributes[EPrescriptionDataElements.VALID_UNTIL]?.contentOrNull?.toInstantOrNull()
 
     override val ott: String?
-        get() = proxy.ott
+        get() = attributes[EPrescriptionDataElements.OTT]?.contentOrNull
 
     override val countryCode: String?
-        get() = proxy.countryCode
+        get() = attributes[EPrescriptionDataElements.COUNTRY_CODE]?.contentOrNull
 }
 
 private class EPrescriptionCredentialIsoMdocAdapter(
