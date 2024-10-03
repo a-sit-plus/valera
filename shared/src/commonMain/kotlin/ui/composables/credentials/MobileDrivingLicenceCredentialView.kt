@@ -37,6 +37,10 @@ fun MobileDrivingLicenceCredentialView(
             credentialAdapter = credentialAdapter,
             modifier = spacingModifier,
         )
+        MobileDrivingLicenceCredentialAppearanceDataCard(
+            credentialAdapter = credentialAdapter,
+            modifier = spacingModifier,
+        )
         MobileDrivingLicenceCredentialMetadataCard(
             credentialAdapter = credentialAdapter,
             modifier = spacingModifier,

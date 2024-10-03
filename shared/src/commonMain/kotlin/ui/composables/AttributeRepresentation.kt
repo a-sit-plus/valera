@@ -5,6 +5,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
+import at.asitplus.wallet.mdl.IsoSexEnum
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.dictionary_no
 import compose_wallet_app.shared.generated.resources.dictionary_yes
@@ -47,6 +48,27 @@ fun AttributeRepresentation(
     )
 }
 
+@Composable
+fun AttributeRepresentation(
+    value: IsoSexEnum,
+    modifier: Modifier = Modifier,
+) {
+    Text(
+        value.name,
+        modifier = modifier,
+    )
+}
+
+@Composable
+fun AttributeRepresentation(
+    value: UInt,
+    modifier: Modifier = Modifier,
+) {
+    Text(
+        value.toString(),
+        modifier = modifier,
+    )
+}
 
 @Composable
 fun AttributeRepresentation(
