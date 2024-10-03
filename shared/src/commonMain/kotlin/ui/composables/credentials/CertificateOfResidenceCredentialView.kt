@@ -27,5 +27,9 @@ fun CertificateOfResidenceCredentialView(
             credentialAdapter = credentialAdapter,
             modifier = spacingModifier,
         )
+        CertificateOfResidenceCredentialMetaDataCard(
+            credentialAdapter = credentialAdapter,
+            modifier = spacingModifier,
+        )
     }
 }
