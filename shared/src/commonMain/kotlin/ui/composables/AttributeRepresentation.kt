@@ -5,6 +5,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
+import at.asitplus.wallet.mdl.DrivingPrivilege
 import at.asitplus.wallet.mdl.IsoSexEnum
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.dictionary_no
@@ -32,7 +33,7 @@ fun AttributeRepresentation(attribute: Attribute) {
         is Attribute.IntegerAttribute -> AttributeRepresentation(attribute.value.toString())
         is Attribute.UnsignedIntegerAttribute -> AttributeRepresentation(attribute.value.toString())
         // TODO Nice representation for driving privileges
-        is Attribute.DrivingPrivilegeAttribute -> AttributeRepresentation(attribute.value.joinToString { ", " })
+        is Attribute.DrivingPrivilegeAttribute -> AttributeRepresentation(attribute.value)
     }
 }
 
@@ -55,6 +56,18 @@ fun AttributeRepresentation(
 ) {
     Text(
         value.name,
+        modifier = modifier,
+    )
+}
+
+@Composable
+fun AttributeRepresentation(
+    value: Array<DrivingPrivilege>,
+    modifier: Modifier = Modifier,
+) {
+    val text = value.flatMap { it.vehicleCategoryCode.toList() }
+    Text(
+        text = text.joinToString(separator = ", "),
         modifier = modifier,
     )
 }
