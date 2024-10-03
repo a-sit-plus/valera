@@ -4,6 +4,8 @@ import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.openid.AuthenticationResponseParameters
 import at.asitplus.openid.CredentialFormatEnum
+import at.asitplus.openid.CredentialOffer
+import at.asitplus.openid.CredentialOfferGrantsPreAuthCode
 import at.asitplus.openid.CredentialResponseParameters
 import at.asitplus.openid.IssuerMetadata
 import at.asitplus.openid.OAuth2AuthorizationServerMetadata
@@ -18,6 +20,7 @@ import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.iso.IssuerSigned
 import at.asitplus.wallet.lib.oauth2.OAuth2Client
 import at.asitplus.wallet.lib.oidvci.WalletService
+import at.asitplus.wallet.lib.oidvci.decodeFromCredentialIdentifier
 import at.asitplus.wallet.lib.oidvci.decodeFromUrlQuery
 import at.asitplus.wallet.lib.oidvci.encodeToParameters
 import at.asitplus.wallet.lib.oidvci.formUrlEncode
@@ -63,6 +66,9 @@ class ProvisioningService(
     private val cookieStorage = PersistentCookieStorage(dataStoreService, errorService)
     private val client = httpService.buildHttpClient(cookieStorage = cookieStorage)
 
+    /**
+     * Starts provisioning, ends with a redirect to the ID Austria app, i.e. an Intent to be opened.
+     */
     @Throws(Throwable::class)
     suspend fun startProvisioning(
         host: String,
@@ -129,6 +135,9 @@ class ProvisioningService(
         }
     }
 
+    /**
+     * Called after getting called back (with an Intent) from the ID Austria app.
+     */
     @Throws(Throwable::class)
     suspend fun handleResponse(link: String) {
         val fetchedProvisioningContext = dataStoreService.getPreference(
@@ -216,27 +225,100 @@ class ProvisioningService(
         Napier.d("Received credentialResponse")
 
         credentialResponse.credential?.let {
-            when (credentialResponse.format) {
-                CredentialFormatEnum.JWT_VC -> holderAgent.storeCredential(
-                    Holder.StoreCredentialInput.Vc(it, credentialScheme)
+            storeCredential(it, credentialResponse.format, credentialScheme).getOrThrow()
+        } ?: throw Exception("No credential was received")
+    }
+
+    private suspend fun storeCredential(
+        it: String,
+        format: CredentialFormatEnum?,
+        credentialScheme: ConstantIndex.CredentialScheme,
+    ) = when (format) {
+        CredentialFormatEnum.JWT_VC -> holderAgent.storeCredential(
+            Holder.StoreCredentialInput.Vc(it, credentialScheme)
+        )
+
+        CredentialFormatEnum.VC_SD_JWT -> holderAgent.storeCredential(
+            Holder.StoreCredentialInput.SdJwt(it, credentialScheme)
+        )
+
+        CredentialFormatEnum.MSO_MDOC -> {
+            it.decodeBase64()?.toByteArray()?.let {
+                IssuerSigned.deserialize(it)
+            }?.getOrNull()?.let { issuerSigned ->
+                holderAgent.storeCredential(
+                    Holder.StoreCredentialInput.Iso(issuerSigned, credentialScheme)
                 )
+            } ?: throw Exception("Invalid credential format: $it")
+        }
 
-                CredentialFormatEnum.VC_SD_JWT -> holderAgent.storeCredential(
-                    Holder.StoreCredentialInput.SdJwt(it, credentialScheme)
-                )
+        else -> TODO("Function not implemented")
+    }
 
-                CredentialFormatEnum.MSO_MDOC -> {
-                    it.decodeBase64()?.toByteArray()?.let {
-                        IssuerSigned.deserialize(it)
-                    }?.getOrNull()?.let { issuerSigned ->
-                        holderAgent.storeCredential(
-                            Holder.StoreCredentialInput.Iso(issuerSigned, credentialScheme)
-                        )
-                    } ?: throw Exception("Invalid credential format: $it")
-                }
+    /**
+     * Decodes the content of a scanned QR code, expected to contain a [at.asitplus.openid.CredentialOffer].
+     *
+     * @param qrCodeContent as scanned
+     */
+    @Throws(Throwable::class)
+    suspend fun decodeCredentialOffer(
+        qrCodeContent: String
+    ): CredentialOfferInfo {
+        val walletService = WalletService(cryptoService = cryptoService)
+        val credentialOffer = walletService.parseCredentialOffer(qrCodeContent).getOrThrow()
+        val mappedCredentials = credentialOffer.configurationIds
+            .mapNotNull { ma -> decodeFromCredentialIdentifier(ma)?.let { ma to it } }
+            .toMap()
+        return CredentialOfferInfo(credentialOffer, mappedCredentials)
+    }
 
-                else -> TODO("Function not implemented")
-            }.getOrThrow()
+    /**
+     * Loads a user-selected credential with pre-authorized code from the OID4VCI credential issuer
+     *
+     * @param credentialIssuer from [at.asitplus.openid.CredentialOffer.credentialIssuer]
+     * @param preAuthorizedCode from [at.asitplus.openid.CredentialOffer.grants], more specifically [CredentialOfferGrantsPreAuthCode.preAuthorizedCode]
+     * @param credentialIdToRequest one from [at.asitplus.openid.CredentialOffer.configurationIds]
+     */
+    @Throws(Throwable::class)
+    suspend fun loadCredentialWithPreAuthn(
+        credentialIssuer: String,
+        preAuthorizedCode: String,
+        credentialIdToRequest: String,
+    ) {
+        val credentialScheme = decodeFromCredentialIdentifier(credentialIdToRequest)?.first
+            ?: throw Exception("can't resolve credential scheme")
+        val issuerMetadata: IssuerMetadata = client.get("$credentialIssuer$PATH_WELL_KNOWN_CREDENTIAL_ISSUER").body()
+        val authorizationServer = issuerMetadata.authorizationServers?.firstOrNull() ?: credentialIssuer
+        val oauthMetadataPath = "$authorizationServer$PATH_WELL_KNOWN_AUTH_SERVER"
+        val oauthMetadata: OAuth2AuthorizationServerMetadata = client.get(oauthMetadataPath).body()
+        val tokenEndpointUrl = oauthMetadata.tokenEndpoint
+            ?: throw Exception("no tokenEndpoint in $oauthMetadata")
+        val walletService = WalletService(cryptoService = cryptoService)
+        val state = uuid4().toString()
+        val tokenRequest = walletService.oauth2Client.createTokenRequestParameters(
+            state = state,
+            authorization = OAuth2Client.AuthorizationForToken.PreAuthCode(preAuthorizedCode),
+            authorizationDetails = walletService.buildAuthorizationDetails(
+                credentialIdToRequest,
+                issuerMetadata.authorizationServers
+            )
+        )
+        val token: TokenResponseParameters = client.submitForm(tokenEndpointUrl) {
+            setBody(tokenRequest.encodeToParameters().formUrlEncode())
+        }.body()
+        val credentialRequest = walletService.createCredentialRequest(
+            input = WalletService.CredentialRequestInput.CredentialIdentifier(credentialIdToRequest),
+            clientNonce = token.clientNonce,
+            credentialIssuer = issuerMetadata.credentialIssuer
+        ).getOrThrow()
+
+        val credentialResponse: CredentialResponseParameters = client.post(issuerMetadata.credentialEndpointUrl) {
+            contentType(ContentType.Application.Json)
+            setBody(credentialRequest)
+            headers["Authorization"] = "${token.tokenType} ${token.accessToken}"
+        }.body()
+        credentialResponse.credential?.let {
+            storeCredential(it, credentialResponse.format, credentialScheme).getOrThrow()
         } ?: throw Exception("No credential was received")
     }
 }
@@ -258,3 +340,13 @@ private data class ProvisioningContext(
             )
 }
 
+data class CredentialOfferInfo(
+    /**
+     * The credential offer as parsed
+     */
+    val credentialOffer: CredentialOffer,
+    /**
+     * Maps entries from [at.asitplus.openid.CredentialOffer.configurationIds] to resolved credential scheme
+     */
+    val credentials: Map<String, Pair<ConstantIndex.CredentialScheme, CredentialFormatEnum>>,
+)
