@@ -241,8 +241,8 @@
     <string name="section_heading_birth_data_icon_text">G</string>
     <string name="section_heading_driving_permission_data">Lenkberechtigung</string>
     <string name="section_heading_driving_permission_data_icon_text">LB</string>
-    <string name="section_heading_appearance_data">E</string>
-    <string name="section_heading_appearance_data_icon_text">Erscheinungsbild</string>
+    <string name="section_heading_appearance_data">Erscheinungsbild</string>
+    <string name="section_heading_appearance_data_icon_text">E</string>
     <string name="section_heading_identity_data">Identitätsdaten</string>
     <string name="section_heading_identity_data_icon_text">ID</string>
     <string name="section_heading_biometric_data">Biometrie</string>
