@@ -1,4 +1,4 @@
-# Release NEXT
+# Release 5.0.0
 * Dependency updates to VC-K 4.2.0-SNAPSHOT
 * Remove custom crypto code and rely on Supreme Crypto Provider
 
