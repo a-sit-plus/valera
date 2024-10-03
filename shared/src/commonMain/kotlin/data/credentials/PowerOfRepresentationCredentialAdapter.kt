@@ -57,8 +57,8 @@ sealed class PowerOfRepresentationCredentialAdapter : CredentialAdapter() {
     abstract val effectiveFromDate: Instant?
     abstract val effectiveUntilDate: Instant?
     abstract val administrativeNumber: String?
-    abstract val issuanceDate: LocalDate?
-    abstract val expiryDate: LocalDate?
+    abstract val issuanceDate: Instant?
+    abstract val expiryDate: Instant?
     abstract val issuingAuthority: String?
     abstract val documentNumber: String?
     abstract val issuingCountry: String?
@@ -121,11 +121,11 @@ private class PowerOfRepresentationCredentialSdJwtAdapter(
     override val administrativeNumber: String?
         get() = attributes[PowerOfRepresentationDataElements.ADMINISTRATIVE_NUMBER]?.contentOrNull
 
-    override val issuanceDate: LocalDate?
-        get() = attributes[PowerOfRepresentationDataElements.ISSUANCE_DATE]?.contentOrNull?.toLocalDateOrNull()
+    override val issuanceDate: Instant?
+        get() = attributes[PowerOfRepresentationDataElements.ISSUANCE_DATE]?.contentOrNull?.toInstantOrNull()
 
-    override val expiryDate: LocalDate?
-        get() = attributes[PowerOfRepresentationDataElements.EXPIRY_DATE]?.contentOrNull?.toLocalDateOrNull()
+    override val expiryDate: Instant?
+        get() = attributes[PowerOfRepresentationDataElements.EXPIRY_DATE]?.contentOrNull?.toInstantOrNull()
 
     override val issuingCountry: String?
         get() = attributes[PowerOfRepresentationDataElements.ISSUING_COUNTRY]?.contentOrNull
@@ -169,11 +169,11 @@ private class PowerOfRepresentationCredentialIsoMdocAdapter(
     override val administrativeNumber: String?
         get() = mobileDrivingLicenceNamespace[ADMINISTRATIVE_NUMBER] as String?
 
-    override val issuanceDate: LocalDate?
-        get() = mobileDrivingLicenceNamespace[ISSUANCE_DATE].toLocalDateOrNull()
+    override val issuanceDate: Instant?
+        get() = mobileDrivingLicenceNamespace[ISSUANCE_DATE].toInstantOrNull()
 
-    override val expiryDate: LocalDate?
-        get() = mobileDrivingLicenceNamespace[EXPIRY_DATE].toLocalDateOrNull()
+    override val expiryDate: Instant?
+        get() = mobileDrivingLicenceNamespace[EXPIRY_DATE].toInstantOrNull()
 
     override val issuingCountry: String?
         get() = mobileDrivingLicenceNamespace[ISSUING_COUNTRY] as String?

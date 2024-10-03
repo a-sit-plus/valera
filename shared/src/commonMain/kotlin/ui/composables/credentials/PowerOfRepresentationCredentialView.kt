@@ -26,5 +26,9 @@ fun PowerOfRepresentationCredentialView(
             credentialAdapter = credentialAdapter,
             modifier = spacingModifier,
         )
+        PowerOfRepresentationCredentialMetaDataCard(
+            credentialAdapter = credentialAdapter,
+            modifier = spacingModifier,
+        )
     }
 }
