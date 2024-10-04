@@ -35,8 +35,8 @@ fun MobileDrivingLicenceCredentialDrivingPermissionsDataCardContent(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
-        credentialAdapter.drivingPrivileges?.let {
-            AttributeRepresentation(value = it)
+        credentialAdapter.drivingPrivileges?.let { privileges ->
+            AttributeRepresentation(value = privileges.joinToString(separator = " - ") { it.vehicleCategoryCode })
         }
     }
 }

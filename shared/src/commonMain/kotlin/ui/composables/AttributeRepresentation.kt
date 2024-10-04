@@ -65,11 +65,12 @@ fun AttributeRepresentation(
     value: Array<DrivingPrivilege>,
     modifier: Modifier = Modifier,
 ) {
-    val text = value.flatMap { it.vehicleCategoryCode.toList() }
-    Text(
-        text = text.joinToString(separator = ", "),
-        modifier = modifier,
-    )
+    value.forEach { privilege ->
+        Text(
+            text = "${privilege.vehicleCategoryCode} (${privilege.issueDate} | ${privilege.expiryDate})",
+            modifier = modifier,
+        )
+    }
 }
 
 @Composable
