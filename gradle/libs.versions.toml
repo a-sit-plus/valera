@@ -1,8 +1,8 @@
 [versions]
 vck = "5.0.0"
 mdl = "1.1.0"
-ida = "3.9.0"
-eupid = "2.2.0"
+ida = "3.9.1"
+eupid = "2.2.1"
 powerofrepresentation = "1.1.0"
 certificateofresidence = "2.1.0"
 eprescription = "1.1.0-SNAPSHOT"
