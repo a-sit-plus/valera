@@ -84,70 +84,57 @@ class ProvisioningService(
             credentialSchemeIdentifier = credentialScheme.identifier,
             credentialRepresentation = credentialRepresentation,
         )
-
         cookieStorage.reset()
-        Napier.d("Start provisioning")
-        //load cert
+        Napier.d("Start provisioning at $host")
+        // Load certificate, might trigger biometric prompt?
         CoroutineScope(Dispatchers.Unconfined).launch { cryptoService.keyMaterial.getCertificate() }
-        runCatching {
-            client.get("$host/oauth2/authorization/idaq")
-        }.onSuccess { response ->
-            val urlToOpen = response.headers[HttpHeaders.Location]
+        val response = client.get("$host/oauth2/authorization/idaq")
+        val urlToOpen = response.headers[HttpHeaders.Location]
+            ?: throw Exception("Redirect not found in header")
+        val xAuthToken = response.headers[X_AUTH_TOKEN]
+            ?: throw Exception("X-Auth-Token not received")
+        val parameters = Url(urlToOpen).parameters
+        val state = parameters[PARAMETER_STATE]
+            ?: throw Exception("State not received")
+        val redirectUri = parameters[PARAMETER_REDIRECT_URI]
+            .also { this.redirectUri = it }
+            ?: throw Exception("Missing redirect uri")
 
-            val xAuthToken = response.headers[X_AUTH_TOKEN]
-                ?: throw Exception("X-Auth-Token not received")
+        Napier.d("Set provisioningService.intentUrl to $redirectUri")
+        val provisioningContext = ProvisioningContext(
+            redirectUri = redirectUri,
+            state = state,
+            xAuthToken = xAuthToken,
+            host = host,
+            credentialRepresentation = credentialRepresentation,
+            credentialSchemeIdentifier = credentialScheme.identifier,
+            requestedAttributes = requestedAttributes?.map {
+                // for now the attribute name is encoded at the first part
+                (it.segments.first() as NormalizedJsonPathSegment.NameSegment).memberName
+            }?.toSet(),
+        )
 
-            if (urlToOpen != null) {
-                val parameters = Url(urlToOpen).parameters
-                val state = parameters[PARAMETER_STATE]
-                    ?: throw Exception("State not received")
+        Napier.d("Store provisioning context: $provisioningContext")
+        dataStoreService.setPreference(
+            key = Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT,
+            value = vckJsonSerializer.encodeToString(provisioningContext),
+        )
 
-                val redirectUri = parameters[PARAMETER_REDIRECT_URI]
-                this.redirectUri = redirectUri
-                Napier.d("Set provisioningService.intentUrl to $redirectUri")
-                if (redirectUri == null) {
-                    throw Exception("Missing redirect uri")
-                }
-
-                val provisioningContext = ProvisioningContext(
-                    redirectUri = redirectUri,
-                    state = state,
-                    xAuthToken = xAuthToken,
-                    host = host,
-                    credentialRepresentation = credentialRepresentation,
-                    credentialSchemeIdentifier = credentialScheme.identifier,
-                    requestedAttributes = requestedAttributes?.map {
-                        // for now the attribute name is encoded at the first part
-                        (it.segments.first() as NormalizedJsonPathSegment.NameSegment).memberName
-                    }?.toSet(),
-                )
-
-                Napier.d("Store provisioning context: $provisioningContext")
-                dataStoreService.setPreference(
-                    key = Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT,
-                    value = vckJsonSerializer.encodeToString(provisioningContext),
-                )
-
-                Napier.d("Open URL: $urlToOpen")
-                platformAdapter.openUrl(urlToOpen)
-            } else {
-                throw Exception("Redirect not found in header")
-            }
-        }.onFailure {
-            throw Exception(it)
-        }
+        Napier.d("Open URL: $urlToOpen")
+        platformAdapter.openUrl(urlToOpen)
     }
 
     /**
      * Called after getting called back (with an Intent) from the ID Austria app.
      */
     @Throws(Throwable::class)
-    suspend fun handleResponse(link: String) {
-        val fetchedProvisioningContext = dataStoreService.getPreference(
-            key = Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT,
-        ).firstOrNull() ?: throw Exception("Missing provisioning context")
-        val provisioningContext =
-            vckJsonSerializer.decodeFromString<ProvisioningContext>(fetchedProvisioningContext)
+    suspend fun handleResponse(inputUrl: String) {
+        val provisioningContext = dataStoreService.getPreference(
+            Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT,
+        ).firstOrNull()
+            ?.let { vckJsonSerializer.decodeFromString<ProvisioningContext>(it) }
+            ?: throw Exception("Missing provisioning context")
+
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT)
 
         val credentialScheme = provisioningContext.credentialScheme
@@ -156,13 +143,12 @@ class ProvisioningService(
         val xAuthToken = provisioningContext.xAuthToken
         val requestedAttributes = provisioningContext.requestedAttributes
 
-        val url = Url(link)
-        url.parameters[PARAMETER_STATE]?.let {
+        Url(inputUrl).parameters[PARAMETER_STATE]?.let {
             if (it == provisioningContext.state) true else null
         } ?: throw Exception("Inconsistent provisioning state")
 
         Napier.d("Create request with x-auth: $xAuthToken")
-        client.get(link) {
+        client.get(inputUrl) {
             headers[xAuthToken] = xAuthToken
         }
 
@@ -227,35 +213,11 @@ class ProvisioningService(
         }.body()
         Napier.d("Received credentialResponse")
 
-        credentialResponse.credential?.let {
-            storeCredential(it, credentialResponse.format, credentialScheme).getOrThrow()
+        val storeCredentialInput = credentialResponse.credential?.let {
+            it.toStoreCredentialInput(credentialResponse.format, credentialScheme)
         } ?: throw Exception("No credential was received")
-    }
 
-    private suspend fun storeCredential(
-        it: String,
-        format: CredentialFormatEnum?,
-        credentialScheme: ConstantIndex.CredentialScheme,
-    ) = when (format) {
-        CredentialFormatEnum.JWT_VC -> holderAgent.storeCredential(
-            Holder.StoreCredentialInput.Vc(it, credentialScheme)
-        )
-
-        CredentialFormatEnum.VC_SD_JWT -> holderAgent.storeCredential(
-            Holder.StoreCredentialInput.SdJwt(it, credentialScheme)
-        )
-
-        CredentialFormatEnum.MSO_MDOC -> {
-            it.decodeBase64()?.toByteArray()?.let {
-                IssuerSigned.deserialize(it)
-            }?.getOrNull()?.let { issuerSigned ->
-                holderAgent.storeCredential(
-                    Holder.StoreCredentialInput.Iso(issuerSigned, credentialScheme)
-                )
-            } ?: throw Exception("Invalid credential format: $it")
-        }
-
-        else -> TODO("Function not implemented")
+        holderAgent.storeCredential(storeCredentialInput).getOrThrow()
     }
 
     /**
@@ -326,10 +288,33 @@ class ProvisioningService(
             setBody(credentialRequest)
             headers["Authorization"] = "${token.tokenType} ${token.accessToken}"
         }.body()
-        credentialResponse.credential?.let {
-            storeCredential(it, credentialResponse.format, credentialScheme).getOrThrow()
+
+        val storeCredentialInput = credentialResponse.credential?.let {
+            it.toStoreCredentialInput(credentialResponse.format, credentialScheme)
         } ?: throw Exception("No credential was received")
+
+        holderAgent.storeCredential(storeCredentialInput).getOrThrow()
     }
+
+    private fun String.toStoreCredentialInput(
+        format: CredentialFormatEnum?,
+        credentialScheme: ConstantIndex.CredentialScheme,
+    ) = when (format) {
+        CredentialFormatEnum.JWT_VC -> Holder.StoreCredentialInput.Vc(this, credentialScheme)
+
+        CredentialFormatEnum.VC_SD_JWT -> Holder.StoreCredentialInput.SdJwt(this, credentialScheme)
+
+        CredentialFormatEnum.MSO_MDOC -> {
+            decodeBase64()?.toByteArray()?.let {
+                IssuerSigned.deserialize(it)
+            }?.getOrNull()?.let { issuerSigned ->
+                Holder.StoreCredentialInput.Iso(issuerSigned, credentialScheme)
+            } ?: throw Exception("Invalid credential format: $this")
+        }
+
+        else -> throw Exception("Invalid credential format: $this")
+    }
+
 }
 
 @Serializable
