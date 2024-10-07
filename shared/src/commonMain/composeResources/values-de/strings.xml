@@ -16,7 +16,7 @@
     <string name="button_label_use_device_credential">Passwort</string>
     <string name="button_label_confirm">Bestätigen</string>
     <string name="button_label_dismiss">Abbrechen</string>
-    <string name="button_label_close_app">Beenden</string>
+    <string name="button_label_ok">Ok</string>
     <string name="button_label_authenticate">Anmelden</string>
     <string name="button_label_show_data">Vorzeigen</string>
     <string name="button_label_accept">Akzeptieren</string>
@@ -150,7 +150,7 @@
     <string name="heading_label_show_data">Daten Vorzeigen</string>
     <string name="heading_label_authentication_success">Angemeldet</string>
     <string name="heading_label_settings_screen">Einstellungen</string>
-    <string name="heading_label_error_screen">Error</string>
+    <string name="heading_label_error_screen">Fehler</string>
     <string name="heading_label_loading_screen">Laden</string>
     <string name="heading_label_credential_scanner_screen">Credential Scanner</string>
     <string name="heading_label_log_screen">Log</string>
@@ -210,8 +210,8 @@
     <string name="error_qr_code_scanning_client_id_not_in_redirect_uris">Client id not in client metadata redirect uris</string>
 
     <string name="info_text_show_data_situation">In welcher Situation möchten Sie Ihre Daten vorzeigen?</string>
-    <string name="info_text_irrevocable_error">Der Fehler kann nicht behoben werden.</string>
-    <string name="info_text_restart_app">Bitte starten Sie die App erneut.</string>
+    <string name="info_text_error_occurred">Es ist ein Fehler aufgetreten.</string>
+    <string name="info_text_to_start_screen">Sie werden zur Startseite weitergeleitet.</string>
     <string name="info_text_data_items_missing">fehlend</string>
     <string name="info_text_authentication_success">Die Anmeldung wurde erfolgreich durchgeführt.</string>
     <string name="info_text_no_credentials_available">Es sind noch keine Daten verfügbar.</string>

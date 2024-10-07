@@ -16,7 +16,7 @@
     <string name="button_label_use_device_credential">UNTRANSLATED:button_label_use_device_credential</string>
     <string name="button_label_confirm">UNTRANSLATED:button_label_confirm</string>
     <string name="button_label_dismiss">UNTRANSLATED:button_label_dismiss</string>
-    <string name="button_label_close_app">UNTRANSLATED:button_label_close_app</string>
+    <string name="button_label_ok">UNTRANSLATED:button_label_ok</string>
     <string name="button_label_authenticate">UNTRANSLATED:button_label_authenticate</string>
     <string name="button_label_show_data">UNTRANSLATED:button_label_show_data</string>
     <string name="button_label_accept">UNTRANSLATED:button_label_accept</string>
@@ -209,8 +209,8 @@
     <string name="error_qr_code_scanning_client_id_not_in_redirect_uris">UNTRANSLATED:error_qr_code_scanning_client_id_not_in_redirect_uris</string>
 
     <string name="info_text_show_data_situation">UNTRANSLATED:info_text_show_data_situation</string>
-    <string name="info_text_irrevocable_error">UNTRANSLATED:info_text_irrevocable_error</string>
-    <string name="info_text_restart_app">UNTRANSLATED:info_text_restart_app</string>
+    <string name="info_text_error_occurred">UNTRANSLATED:info_text_error_occurred</string>
+    <string name="info_text_to_start_screen">UNTRANSLATED:info_text_to_start_screen</string>
     <string name="info_text_data_items_missing">UNTRANSLATED:info_text_data_items_missing</string>
     <string name="info_text_authentication_success">UNTRANSLATED:info_text_authentication_success</string>
     <string name="info_text_no_credentials_available">UNTRANSLATED:info_text_no_credentials_available</string>

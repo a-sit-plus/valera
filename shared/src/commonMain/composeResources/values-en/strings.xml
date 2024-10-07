@@ -16,7 +16,7 @@
     <string name="button_label_use_device_credential">Passcode</string>
     <string name="button_label_confirm">Confirm</string>
     <string name="button_label_dismiss">Dismiss</string>
-    <string name="button_label_close_app">Exit</string>
+    <string name="button_label_ok">Ok</string>
     <string name="button_label_authenticate">Authenticate</string>
     <string name="button_label_show_data">Show</string>
     <string name="button_label_accept">Accept</string>
@@ -211,8 +211,8 @@
     <string name="error_qr_code_scanning_client_id_not_in_redirect_uris">Client id not in client metadata redirect uris</string>
 
     <string name="info_text_show_data_situation">In which Situation do you want to present your data?</string>
-    <string name="info_text_irrevocable_error">The error can not be rectified.</string>
-    <string name="info_text_restart_app">Please restart the app.</string>
+    <string name="info_text_error_occurred">An error occurred.</string>
+    <string name="info_text_to_start_screen">You get redirected to the start screen.</string>
     <string name="info_text_data_items_missing">missing</string>
     <string name="info_text_authentication_success">The authentication has been carried out successfully.</string>
     <string name="info_text_no_credentials_available">No data is available yet.</string>

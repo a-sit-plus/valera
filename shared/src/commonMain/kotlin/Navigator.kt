@@ -127,6 +127,7 @@ fun Navigator(walletMain: WalletMain) {
     }
 
     globalBack = { mainNavigationStack.back() }
+    val resetStack = {mainNavigationStack.reset()}
 
     if (walletMain.errorService.showError.value == false) {
         OnboardingWrapper(
@@ -140,7 +141,7 @@ fun Navigator(walletMain: WalletMain) {
             )
         }
     } else {
-        ErrorScreen(walletMain)
+        ErrorScreen(walletMain, resetStack)
     }
 }
 
