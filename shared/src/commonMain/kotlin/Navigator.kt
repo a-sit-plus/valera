@@ -126,8 +126,8 @@ fun Navigator(walletMain: WalletMain) {
         }
     }
 
-    globalBack = { mainNavigationStack.back() }
-    val resetStack = {mainNavigationStack.reset()}
+    val globalBack = { mainNavigationStack.back() }
+    val resetStack = { mainNavigationStack.reset() }
 
     if (walletMain.errorService.showError.value == false) {
         OnboardingWrapper(
@@ -222,7 +222,7 @@ fun MainNavigator(
                     is ProvisioningLoadingPage -> {
                         ProvisioningLoadingScreen(
                             link = page.link,
-                            navigateUp = globalBack,
+                            navigateUp = navigateUp,
                             walletMain = walletMain,
                         )
                     }
