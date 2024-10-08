@@ -1,11 +1,11 @@
 [versions]
 vck = "5.0.0"
-mdl = "1.1.0"
+mdl = "1.1.1"
 ida = "3.9.1"
 eupid = "2.2.1"
 powerofrepresentation = "1.1.0"
 certificateofresidence = "2.1.0"
-eprescription = "1.1.0-SNAPSHOT"
+eprescription = "1.1.0"
 atomicfu = "0.23.2"
 compose-plugin = "1.6.11"
 kotlin = "2.0.20"
