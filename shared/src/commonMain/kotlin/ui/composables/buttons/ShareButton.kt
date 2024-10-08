@@ -8,8 +8,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.button_label_share
+import compose_wallet_app.shared.generated.resources.Res
+import compose_wallet_app.shared.generated.resources.button_label_share
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.TextIconButton

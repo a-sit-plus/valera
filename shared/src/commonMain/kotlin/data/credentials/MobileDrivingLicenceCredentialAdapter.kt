@@ -3,16 +3,23 @@ package data.credentials
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
+import at.asitplus.signum.indispensable.io.Base64UrlStrict
+import at.asitplus.wallet.eupid.IsoIec5218Gender
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.mdl.DrivingPrivilege
+import at.asitplus.wallet.mdl.IsoSexEnum
 import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.Attribute
 import io.ktor.util.decodeBase64Bytes
+import io.matthewnelson.encoding.core.Decoder.Companion.decodeToByteArray
 import kotlinx.datetime.LocalDate
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.contentOrNull
 
 sealed class MobileDrivingLicenceCredentialAdapter(
-    private val decodePortrait: (ByteArray) -> ImageBitmap,
+    private val decodePortrait: (ByteArray) -> ImageBitmap?,
 ) : CredentialAdapter() {
     override fun getAttribute(path: NormalizedJsonPath) =
         when (val first = path.segments.firstOrNull()) {
@@ -29,62 +36,53 @@ sealed class MobileDrivingLicenceCredentialAdapter(
         }
 
     private fun getAttributeFromMdlNamespace(path: NormalizedJsonPath): Attribute? =
-        when (val attribute = path.segments.firstOrNull()) {
-            is NormalizedJsonPathSegment.NameSegment -> when (attribute.memberName) {
-                MobileDrivingLicenceDataElements.FAMILY_NAME -> Attribute.fromValue(familyName)
-                MobileDrivingLicenceDataElements.GIVEN_NAME -> Attribute.fromValue(givenName)
-                MobileDrivingLicenceDataElements.BIRTH_DATE -> Attribute.fromValue(birthDate)
-                MobileDrivingLicenceDataElements.AGE_OVER_18 -> Attribute.fromValue(ageAtLeast18)
-                MobileDrivingLicenceDataElements.NATIONALITY -> Attribute.fromValue(nationality)
-                MobileDrivingLicenceDataElements.RESIDENT_ADDRESS -> Attribute.fromValue(
-                    residentAddress
-                )
-
-                MobileDrivingLicenceDataElements.RESIDENT_CITY -> Attribute.fromValue(residentCity)
-                MobileDrivingLicenceDataElements.RESIDENT_POSTAL_CODE -> Attribute.fromValue(
-                    residentPostalCode
-                )
-
-                MobileDrivingLicenceDataElements.RESIDENT_COUNTRY -> Attribute.fromValue(
-                    residentCountry
-                )
-
-                MobileDrivingLicenceDataElements.RESIDENT_STATE -> Attribute.fromValue(residentState)
-                MobileDrivingLicenceDataElements.AGE_IN_YEARS -> Attribute.fromValue(ageInYears)
-                MobileDrivingLicenceDataElements.AGE_BIRTH_YEAR -> Attribute.fromValue(ageBirthYear)
-                MobileDrivingLicenceDataElements.BIRTH_PLACE -> Attribute.fromValue(birthPlace)
-                MobileDrivingLicenceDataElements.PORTRAIT -> Attribute.fromValue(portraitBitmap)
-                MobileDrivingLicenceDataElements.DOCUMENT_NUMBER -> Attribute.fromValue(
-                    documentNumber
-                )
-
-                MobileDrivingLicenceDataElements.ISSUING_AUTHORITY -> Attribute.fromValue(
-                    issuingAuthority
-                )
-
-                MobileDrivingLicenceDataElements.ISSUE_DATE -> Attribute.fromValue(issueDate)
-                MobileDrivingLicenceDataElements.EXPIRY_DATE -> Attribute.fromValue(expiryDate)
-                MobileDrivingLicenceDataElements.ISSUING_COUNTRY -> Attribute.fromValue(
-                    issuingCountry
-                )
-
-                MobileDrivingLicenceDataElements.DRIVING_PRIVILEGES -> Attribute.fromValue(
-                    drivingPrivileges
-                )
-
-                MobileDrivingLicenceDataElements.UN_DISTINGUISHING_SIGN -> Attribute.fromValue(
-                    undistinguishingSign
-                )
+        with(MobileDrivingLicenceDataElements) {
+            when (val attribute = path.segments.firstOrNull()) {
+                is NormalizedJsonPathSegment.NameSegment -> when (attribute.memberName) {
+                    GIVEN_NAME -> Attribute.fromValue(givenName)
+                    FAMILY_NAME -> Attribute.fromValue(familyName)
+                    BIRTH_DATE -> Attribute.fromValue(birthDate)
+                    ISSUE_DATE -> Attribute.fromValue(issueDate)
+                    EXPIRY_DATE -> Attribute.fromValue(expiryDate)
+                    ISSUING_COUNTRY -> Attribute.fromValue(issuingCountry)
+                    ISSUING_AUTHORITY -> Attribute.fromValue(issuingAuthority)
+                    DOCUMENT_NUMBER -> Attribute.fromValue(documentNumber)
+                    PORTRAIT -> Attribute.fromValue(portraitBitmap)
+                    DRIVING_PRIVILEGES -> Attribute.fromValue(drivingPrivileges)
+                    UN_DISTINGUISHING_SIGN -> Attribute.fromValue(undistinguishingSign)
+                    ADMINISTRATIVE_NUMBER -> Attribute.fromValue(administrativeNumber)
+                    SEX -> Attribute.fromValue(sex)
+                    HEIGHT -> Attribute.fromValue(height)
+                    WEIGHT -> Attribute.fromValue(weight)
+                    EYE_COLOUR -> Attribute.fromValue(eyeColour)
+                    HAIR_COLOUR -> Attribute.fromValue(hairColour)
+                    BIRTH_PLACE -> Attribute.fromValue(birthPlace)
+                    RESIDENT_ADDRESS -> Attribute.fromValue(residentAddress)
+                    PORTRAIT_CAPTURE_DATE -> Attribute.fromValue(portraitCaptureDate)
+                    AGE_IN_YEARS -> Attribute.fromValue(ageInYears)
+                    AGE_BIRTH_YEAR -> Attribute.fromValue(ageBirthYear)
+                    AGE_OVER_18 -> Attribute.fromValue(ageAtLeast18)
+                    ISSUING_JURISDICTION -> Attribute.fromValue(issuingJurisdiction)
+                    NATIONALITY -> Attribute.fromValue(nationality)
+                    RESIDENT_CITY -> Attribute.fromValue(residentCity)
+                    RESIDENT_STATE -> Attribute.fromValue(residentState)
+                    RESIDENT_POSTAL_CODE -> Attribute.fromValue(residentPostalCode)
+                    RESIDENT_COUNTRY -> Attribute.fromValue(residentCountry)
+                    FAMILY_NAME_NATIONAL_CHARACTER -> Attribute.fromValue(familyNameNational)
+                    GIVEN_NAME_NATIONAL_CHARACTER -> Attribute.fromValue(givenNameNational)
+                    SIGNATURE_USUAL_MARK -> Attribute.fromValue(signatureBitmap)
+                    else -> null
+                }
 
                 else -> null
             }
-
-            else -> null
         }
 
-    abstract val givenName: String
-    abstract val familyName: String
-    abstract val birthDate: LocalDate
+    abstract val givenName: String?
+    abstract val givenNameNational: String?
+    abstract val familyName: String?
+    abstract val familyNameNational: String?
+    abstract val birthDate: LocalDate?
     abstract val ageAtLeast18: Boolean?
     abstract val nationality: String?
     abstract val residentAddress: String?
@@ -92,25 +90,37 @@ sealed class MobileDrivingLicenceCredentialAdapter(
     abstract val residentPostalCode: String?
     abstract val residentCountry: String?
     abstract val residentState: String?
-    abstract val ageInYears: String?
-    abstract val ageBirthYear: String?
+    abstract val ageInYears: UInt?
+    abstract val ageBirthYear: UInt?
     abstract val birthPlace: String?
     abstract val portraitRaw: ByteArray?
     val portraitBitmap: ImageBitmap? by lazy {
         portraitRaw?.let(decodePortrait)
     }
+    abstract val signatureRaw: ByteArray?
+    val signatureBitmap: ImageBitmap? by lazy {
+        signatureRaw?.let(decodePortrait)
+    }
     abstract val documentNumber: String?
+    abstract val administrativeNumber: String?
+    abstract val sex: IsoSexEnum?
+    abstract val height: UInt?
+    abstract val weight: UInt?
+    abstract val eyeColour: String?
+    abstract val hairColour: String?
+    abstract val portraitCaptureDate: LocalDate?
     abstract val issuingAuthority: String?
+    abstract val issuingJurisdiction: String?
     abstract val issueDate: LocalDate?
     abstract val expiryDate: LocalDate?
     abstract val issuingCountry: String?
-    abstract val drivingPrivileges: List<DrivingPrivilege>?
+    abstract val drivingPrivileges: Array<DrivingPrivilege>?
     abstract val undistinguishingSign: String?
 
     companion object {
         fun createFromStoreEntry(
             storeEntry: SubjectCredentialStore.StoreEntry,
-            decodePortrait: (ByteArray) -> ImageBitmap,
+            decodePortrait: (ByteArray) -> ImageBitmap?,
         ): MobileDrivingLicenceCredentialAdapter {
             if (storeEntry.scheme !is MobileDrivingLicenceScheme) {
                 throw IllegalArgumentException("credential")
@@ -139,81 +149,113 @@ sealed class MobileDrivingLicenceCredentialAdapter(
 }
 
 private class MobileDrivingLicenceCredentialSdJwtAdapter(
-    attributes: Map<String, Any>,
-    decodePortrait: (ByteArray) -> ImageBitmap,
+    private val attributes: Map<String, JsonPrimitive>,
+    private val decodePortrait: (ByteArray) -> ImageBitmap?,
 ) : MobileDrivingLicenceCredentialAdapter(decodePortrait) {
-    private val proxy = MobileDrivingLicenceCredentialIsoMdocAdapter(
-        namespaces = mapOf(MobileDrivingLicenceScheme.isoNamespace to attributes),
-        decodePortrait = decodePortrait,
-    )
 
-    override val givenName: String
-        get() = proxy.givenName
+    override val givenName: String?
+        get() = attributes[MobileDrivingLicenceDataElements.GIVEN_NAME]?.contentOrNull
 
-    override val familyName: String
-        get() = proxy.familyName
+    override val givenNameNational: String?
+        get() = attributes[MobileDrivingLicenceDataElements.GIVEN_NAME_NATIONAL_CHARACTER]?.contentOrNull
 
-    override val birthDate: LocalDate
-        get() = proxy.birthDate
+    override val familyName: String?
+        get() = attributes[MobileDrivingLicenceDataElements.FAMILY_NAME]?.contentOrNull
+
+    override val familyNameNational: String?
+        get() = attributes[MobileDrivingLicenceDataElements.FAMILY_NAME_NATIONAL_CHARACTER]?.contentOrNull
+
+    override val birthDate: LocalDate?
+        get() = attributes[MobileDrivingLicenceDataElements.BIRTH_DATE]?.contentOrNull?.toLocalDateOrNull()
 
     override val ageAtLeast18: Boolean?
-        get() = proxy.ageAtLeast18
+        get() = attributes[MobileDrivingLicenceDataElements.AGE_OVER_18]?.booleanOrNull
 
     override val nationality: String?
-        get() = proxy.nationality
+        get() = attributes[MobileDrivingLicenceDataElements.NATIONALITY]?.contentOrNull
 
     override val residentAddress: String?
-        get() = proxy.residentAddress
+        get() = attributes[MobileDrivingLicenceDataElements.RESIDENT_ADDRESS]?.contentOrNull
 
     override val residentCity: String?
-        get() = proxy.residentCity
+        get() = attributes[MobileDrivingLicenceDataElements.RESIDENT_CITY]?.contentOrNull
 
     override val residentPostalCode: String?
-        get() = proxy.residentPostalCode
+        get() = attributes[MobileDrivingLicenceDataElements.RESIDENT_POSTAL_CODE]?.contentOrNull
 
     override val residentCountry: String?
-        get() = proxy.residentCountry
+        get() = attributes[MobileDrivingLicenceDataElements.RESIDENT_COUNTRY]?.contentOrNull
 
     override val residentState: String?
-        get() = proxy.residentState
+        get() = attributes[MobileDrivingLicenceDataElements.RESIDENT_STATE]?.contentOrNull
 
-    override val ageInYears: String?
-        get() = proxy.ageInYears
+    override val ageInYears: UInt?
+        get() = attributes[MobileDrivingLicenceDataElements.AGE_IN_YEARS]?.contentOrNull?.toUIntOrNull()
 
-    override val ageBirthYear: String?
-        get() = proxy.ageBirthYear
+    override val ageBirthYear: UInt?
+        get() = attributes[MobileDrivingLicenceDataElements.AGE_BIRTH_YEAR]?.contentOrNull?.toUIntOrNull()
 
     override val birthPlace: String?
-        get() = proxy.birthPlace
+        get() = attributes[MobileDrivingLicenceDataElements.BIRTH_PLACE]?.contentOrNull
 
     override val portraitRaw: ByteArray?
-        get() = proxy.portraitRaw
+        get() = attributes[MobileDrivingLicenceDataElements.PORTRAIT]?.contentOrNull?.decodeToByteArray(Base64UrlStrict)
+
+    override val signatureRaw: ByteArray?
+        get() = attributes[MobileDrivingLicenceDataElements.SIGNATURE_USUAL_MARK]?.contentOrNull
+            ?.decodeToByteArray(Base64UrlStrict)
 
     override val documentNumber: String?
-        get() = proxy.documentNumber
+        get() = attributes[MobileDrivingLicenceDataElements.DOCUMENT_NUMBER]?.contentOrNull
+
+    override val administrativeNumber: String?
+        get() = attributes[MobileDrivingLicenceDataElements.ADMINISTRATIVE_NUMBER]?.contentOrNull
+
+    override val sex: IsoSexEnum?
+        get() = attributes[MobileDrivingLicenceDataElements.SEX]?.contentOrNull?.toIntOrNull()
+            ?.let { code -> IsoSexEnum.entries.firstOrNull { it.code == code } }
+
+    override val height: UInt?
+        get() = attributes[MobileDrivingLicenceDataElements.HEIGHT]?.contentOrNull?.toUIntOrNull()
+
+    override val weight: UInt?
+        get() = attributes[MobileDrivingLicenceDataElements.WEIGHT]?.contentOrNull?.toUIntOrNull()
+
+    override val eyeColour: String?
+        get() = attributes[MobileDrivingLicenceDataElements.EYE_COLOUR]?.contentOrNull
+
+    override val hairColour: String?
+        get() = attributes[MobileDrivingLicenceDataElements.HAIR_COLOUR]?.contentOrNull
+
+    override val portraitCaptureDate: LocalDate?
+        get() = attributes[MobileDrivingLicenceDataElements.PORTRAIT_CAPTURE_DATE]?.contentOrNull?.toLocalDateOrNull()
 
     override val issuingAuthority: String?
-        get() = proxy.issuingAuthority
+        get() = attributes[MobileDrivingLicenceDataElements.ISSUING_AUTHORITY]?.contentOrNull
+
+    override val issuingJurisdiction: String?
+        get() = attributes[MobileDrivingLicenceDataElements.ISSUING_JURISDICTION]?.contentOrNull
 
     override val issueDate: LocalDate?
-        get() = proxy.issueDate
+        get() = attributes[MobileDrivingLicenceDataElements.ISSUE_DATE]?.contentOrNull?.toLocalDateOrNull()
 
     override val expiryDate: LocalDate?
-        get() = proxy.expiryDate
+        get() = attributes[MobileDrivingLicenceDataElements.EXPIRY_DATE]?.contentOrNull?.toLocalDateOrNull()
 
     override val issuingCountry: String?
-        get() = proxy.issuingCountry
+        get() = attributes[MobileDrivingLicenceDataElements.ISSUING_COUNTRY]?.contentOrNull
 
-    override val drivingPrivileges: List<DrivingPrivilege>?
-        get() = proxy.drivingPrivileges
+    // TODO How to decode this?
+    override val drivingPrivileges: Array<DrivingPrivilege>?
+        get() = arrayOf()
 
     override val undistinguishingSign: String?
-        get() = proxy.undistinguishingSign
+        get() = attributes[MobileDrivingLicenceDataElements.UN_DISTINGUISHING_SIGN]?.contentOrNull
 }
 
 private class MobileDrivingLicenceCredentialIsoMdocAdapter(
     namespaces: Map<String, Map<String, Any>>?,
-    decodePortrait: (ByteArray) -> ImageBitmap,
+    decodePortrait: (ByteArray) -> ImageBitmap?,
 ) : MobileDrivingLicenceCredentialAdapter(decodePortrait) {
     private val mobileDrivingLicenceNamespace =
         namespaces?.get(MobileDrivingLicenceScheme.isoNamespace)
@@ -222,14 +264,21 @@ private class MobileDrivingLicenceCredentialIsoMdocAdapter(
     override val givenName: String
         get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.GIVEN_NAME] as String
 
+    override val givenNameNational: String?
+        get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.GIVEN_NAME_NATIONAL_CHARACTER] as String?
+
     override val familyName: String
         get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.FAMILY_NAME] as String
+
+    override val familyNameNational: String?
+        get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.FAMILY_NAME_NATIONAL_CHARACTER] as String?
 
     override val birthDate: LocalDate
         get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.BIRTH_DATE].toLocalDateOrNull()!!
 
     override val ageAtLeast18: Boolean?
-        get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.AGE_OVER_18] as Boolean?
+        get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.AGE_OVER_18]?.toString()
+            ?.toBooleanStrictOrNull()
 
     override val nationality: String?
         get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.NATIONALITY] as String?
@@ -249,11 +298,11 @@ private class MobileDrivingLicenceCredentialIsoMdocAdapter(
     override val residentState: String?
         get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.RESIDENT_STATE] as String?
 
-    override val ageInYears: String?
-        get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.AGE_IN_YEARS] as String?
+    override val ageInYears: UInt?
+        get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.AGE_IN_YEARS] as UInt?
 
-    override val ageBirthYear: String?
-        get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.AGE_BIRTH_YEAR] as String?
+    override val ageBirthYear: UInt?
+        get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.AGE_BIRTH_YEAR] as UInt?
 
     override val birthPlace: String?
         get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.BIRTH_PLACE] as String?
@@ -267,11 +316,46 @@ private class MobileDrivingLicenceCredentialIsoMdocAdapter(
             }
         }
 
+    override val signatureRaw: ByteArray?
+        get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.SIGNATURE_USUAL_MARK]?.let {
+            when (it) {
+                is ByteArray -> it
+                is String -> it.decodeBase64Bytes()
+                else -> null
+            }
+        }
+
     override val documentNumber: String?
         get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.DOCUMENT_NUMBER] as String?
 
+    override val administrativeNumber: String?
+        get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.ADMINISTRATIVE_NUMBER] as String?
+
+    override val sex: IsoSexEnum?
+        get() = (mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.SEX] as? IsoSexEnum?)
+            ?: mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.SEX]?.toString()?.toIntOrNull()
+                ?.let { code -> IsoSexEnum.entries.firstOrNull { it.code == code } }
+
+    override val height: UInt?
+        get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.HEIGHT] as UInt?
+
+    override val weight: UInt?
+        get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.WEIGHT] as UInt?
+
+    override val eyeColour: String?
+        get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.EYE_COLOUR] as String?
+
+    override val hairColour: String?
+        get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.HAIR_COLOUR] as String?
+
+    override val portraitCaptureDate: LocalDate?
+        get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.PORTRAIT_CAPTURE_DATE]?.toLocalDateOrNull()
+
     override val issuingAuthority: String?
         get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.ISSUING_AUTHORITY] as String?
+
+    override val issuingJurisdiction: String?
+        get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.ISSUING_JURISDICTION] as String?
 
     override val issueDate: LocalDate?
         get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.ISSUE_DATE]?.toLocalDateOrNull()
@@ -282,10 +366,10 @@ private class MobileDrivingLicenceCredentialIsoMdocAdapter(
     override val issuingCountry: String?
         get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.ISSUING_COUNTRY] as String?
 
-    override val drivingPrivileges: List<DrivingPrivilege>?
-        get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.DRIVING_PRIVILEGES]?.let {
-            it as List<DrivingPrivilege>
-        }
+    @Suppress("UNCHECKED_CAST")
+    override val drivingPrivileges: Array<DrivingPrivilege>?
+        get() = mobileDrivingLicenceNamespace[MobileDrivingLicenceDataElements.DRIVING_PRIVILEGES]
+            ?.let { it as Array<DrivingPrivilege> }
 
 
     override val undistinguishingSign: String?

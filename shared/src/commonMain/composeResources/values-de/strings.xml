@@ -17,7 +17,7 @@
     <string name="button_label_use_device_credential">Passwort</string>
     <string name="button_label_confirm">Bestätigen</string>
     <string name="button_label_dismiss">Abbrechen</string>
-    <string name="button_label_close_app">Beenden</string>
+    <string name="button_label_ok">Ok</string>
     <string name="button_label_authenticate">Anmelden</string>
     <string name="button_label_show_data">Vorzeigen</string>
     <string name="button_label_accept">Akzeptieren</string>
@@ -60,10 +60,17 @@
     <string name="attribute_friendly_name_main_residence_street">Straße</string>
     <string name="attribute_friendly_name_main_residence_house_number">Hausnummer</string>
     <string name="attribute_friendly_name_sex">Geschlecht</string>
+    <string name="attribute_friendly_name_height">Größe</string>
+    <string name="attribute_friendly_name_weight">Gewicht</string>
+    <string name="attribute_friendly_name_eye_colour">Augenfarbe</string>
+    <string name="attribute_friendly_name_hair_colour">Haarfarbe</string>
+    <string name="attribute_friendly_name_portrait_capture_date">Aufnahmedatum Portrait</string>
     <string name="attribute_friendly_name_nationality">Nationalität</string>
     <string name="attribute_friendly_name_age_in_years">Alter</string>
-    <string name="attribute_friendly_name_family_name_birth">Vorname (Geburt)</string>
-    <string name="attribute_friendly_name_given_name_birth">Nachname (Geburt)</string>
+    <string name="attribute_friendly_name_family_name_national_character">Nachname (national)</string>
+    <string name="attribute_friendly_name_given_name_national_character">Vorname (national)</string>
+    <string name="attribute_friendly_name_family_name_birth">Nachname (Geburt)</string>
+    <string name="attribute_friendly_name_given_name_birth">Vorname (Geburt)</string>
     <string name="attribute_friendly_name_age_birth_year">Geburtsjahr</string>
     <string name="attribute_friendly_name_birth_place">Geburtsort</string>
     <string name="attribute_friendly_name_birth_country">Geburtsland</string>
@@ -76,6 +83,20 @@
     <string name="attribute_friendly_name_issuing_country">Ausstellungsland</string>
     <string name="attribute_friendly_name_driving_privileges">Lenkberechtigungen</string>
     <string name="attribute_friendly_name_distinguishing_sign">Ausstellungsland (Code)</string>
+    <string name="attribute_friendly_name_signature_usual_mark">Unterschrift</string>
+
+    <string name="attribute_friendly_name_country_code">Ländercode</string>
+    <string name="attribute_friendly_name_one_time_token">One Time Token</string>
+    <string name="attribute_friendly_name_valid_until">Gültig bis</string>
+
+    <string name="id_austria_credential_attribute_friendly_name_main_address_street">Straße</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_house_number">Hausnummer</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_stair">Stiege</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_door">Tür</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_postal_code">Postleitzahl</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_location">Ortschaft</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_municipality_name">Gemeindebezeichnung</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_municipality_code">Gemeindekennziffer</string>
 
     <string name="attribute_friendly_name_legal_person_identifier">Name der juristischen Person</string>
     <string name="attribute_friendly_name_legal_name">Identifier der juristischen Person</string>
@@ -88,15 +109,6 @@
 
     <string name="attribute_friendly_name_residence_address">Wohnadresse</string>
     <string name="attribute_friendly_name_arrival_date">Ankunftsdatum</string>
-
-    <string name="id_austria_credential_attribute_friendly_name_main_address_street">Straße</string>
-    <string name="id_austria_credential_attribute_friendly_name_main_address_house_number">Hausnummer</string>
-    <string name="id_austria_credential_attribute_friendly_name_main_address_stair">Stiege</string>
-    <string name="id_austria_credential_attribute_friendly_name_main_address_door">Tür</string>
-    <string name="id_austria_credential_attribute_friendly_name_main_address_postal_code">Postleitzahl</string>
-    <string name="id_austria_credential_attribute_friendly_name_main_address_location">Ortschaft</string>
-    <string name="id_austria_credential_attribute_friendly_name_main_address_municipality_name">Gemeindebezeichnung</string>
-    <string name="id_austria_credential_attribute_friendly_name_main_address_municipality_code">Gemeindekennziffer</string>
 
     <string name="attribute_friendly_name_data_recipient_name">Name</string>
     <string name="attribute_friendly_name_data_recipient_location">Ort</string>
@@ -115,13 +127,14 @@
     <string name="credential_scheme_label_power_of_representation">Power of representation</string>
     <string name="credential_scheme_icon_label_certificate_of_residence">COR</string>
     <string name="credential_scheme_label_certificate_of_residence">Certificate of residence</string>
+    <string name="credential_scheme_label_epresciption">e-Prescription</string>
 
     <string name="navigation_button_label_show_data">Daten Vorzeigen</string>
     <string name="navigation_button_label_my_data">Meine Daten</string>
     <string name="navigation_button_label_settings">Einstellungen</string>
 
     <string name="id_format_plain_jwt_label">PLAIN_JWT</string>
-    <string name="id_format_sd_jwt_label">SD-JWT</string>
+    <string name="sid_format_sd_jwt_label">SD-JWT</string>
     <string name="id_format_iso_mdoc_label">ISO_MDOC</string>
 
     <string name="text_label_issuing_service">Ausstellservice</string>
@@ -140,7 +153,7 @@
     <string name="heading_label_show_data">Daten Vorzeigen</string>
     <string name="heading_label_authentication_success">Angemeldet</string>
     <string name="heading_label_settings_screen">Einstellungen</string>
-    <string name="heading_label_error_screen">Error</string>
+    <string name="heading_label_error_screen">Fehler</string>
     <string name="heading_label_loading_screen">Laden</string>
     <string name="heading_label_credential_scanner_screen">Credential Scanner</string>
     <string name="heading_label_log_screen">Log</string>
@@ -200,8 +213,8 @@
     <string name="error_qr_code_scanning_client_id_not_in_redirect_uris">Client id not in client metadata redirect uris</string>
 
     <string name="info_text_show_data_situation">In welcher Situation möchten Sie Ihre Daten vorzeigen?</string>
-    <string name="info_text_irrevocable_error">Der Fehler kann nicht behoben werden.</string>
-    <string name="info_text_restart_app">Bitte starten Sie die App erneut.</string>
+    <string name="info_text_error_occurred">Es ist ein Fehler aufgetreten.</string>
+    <string name="info_text_to_start_screen">Sie werden zur Startseite weitergeleitet.</string>
     <string name="info_text_data_items_missing">fehlend</string>
     <string name="info_text_authentication_success">Die Anmeldung wurde erfolgreich durchgeführt.</string>
     <string name="info_text_no_credentials_available">Es sind noch keine Daten verfügbar.</string>
@@ -231,8 +244,8 @@
     <string name="section_heading_birth_data_icon_text">G</string>
     <string name="section_heading_driving_permission_data">Lenkberechtigung</string>
     <string name="section_heading_driving_permission_data_icon_text">LB</string>
-    <string name="section_heading_appearance_data">E</string>
-    <string name="section_heading_appearance_data_icon_text">Erscheinungsbild</string>
+    <string name="section_heading_appearance_data">Erscheinungsbild</string>
+    <string name="section_heading_appearance_data_icon_text">E</string>
     <string name="section_heading_identity_data">Identitätsdaten</string>
     <string name="section_heading_identity_data_icon_text">ID</string>
     <string name="section_heading_biometric_data">Biometrie</string>

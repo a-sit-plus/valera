@@ -13,8 +13,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.interop.UIKitView
-import composewalletapp.shared.generated.resources.camera_access_denied
-import composewalletapp.shared.generated.resources.Res
+import compose_wallet_app.shared.generated.resources.camera_access_denied
+import compose_wallet_app.shared.generated.resources.Res
 import io.github.aakira.napier.Napier
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.CValue

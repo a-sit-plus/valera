@@ -4,9 +4,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.lib.agent.CryptoService
-import at.asitplus.wallet.lib.agent.DefaultCryptoService
 import at.asitplus.wallet.lib.agent.DefaultVerifierCryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.Parser
@@ -26,30 +24,33 @@ import kotlinx.coroutines.launch
  * Main class to hold all services needed in the Compose App.
  */
 class WalletMain(
-    val objectFactory: ObjectFactory,
+    val cryptoService: WalletCryptoService,
+    private val holderKeyService: HolderKeyService,
     private val dataStoreService: DataStoreService,
     val platformAdapter: PlatformAdapter,
-    var subjectCredentialStore: PersistentSubjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService),
+    var subjectCredentialStore: PersistentSubjectCredentialStore = PersistentSubjectCredentialStore(
+        dataStoreService
+    ),
     val buildContext: BuildContext,
     val errorService: ErrorService = ErrorService(mutableStateOf(false), mutableStateOf(null)),
+    val scope: CoroutineScope,
 ) {
     lateinit var walletConfig: WalletConfig
-    lateinit var cryptoService: WalletCryptoService
     lateinit var holderAgent: HolderAgent
-    private lateinit var holderKeyService: HolderKeyService
     lateinit var provisioningService: ProvisioningService
     lateinit var httpService: HttpService
     lateinit var presentationService: PresentationService
     lateinit var snackbarService: SnackbarService
     private val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
-    val scope = CoroutineScope(Dispatchers.Default)
+
 
     init {
-        at.asitplus.wallet.mdl.Initializer.initWithVck()
+        at.asitplus.wallet.mdl.Initializer.initWithVCK()
         at.asitplus.wallet.idaustria.Initializer.initWithVCK()
         at.asitplus.wallet.eupid.Initializer.initWithVCK()
         at.asitplus.wallet.cor.Initializer.initWithVCK()
         at.asitplus.wallet.por.Initializer.initWithVCK()
+        at.asitplus.wallet.eprescription.Initializer.initWithVCK()
         Napier.takeLogarithm()
         Napier.base(AntilogAdapter(platformAdapter, ""))
     }
@@ -58,17 +59,15 @@ class WalletMain(
     fun initialize(snackbarService: SnackbarService) {
         walletConfig =
             WalletConfig(dataStoreService = this.dataStoreService, errorService = errorService)
-        cryptoService = objectFactory.loadCryptoService().getOrThrow()
         subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
         holderAgent = HolderAgent(
-            validator = Validator.newDefaultInstance(DefaultVerifierCryptoService(), Parser()),
+            validator = Validator(DefaultVerifierCryptoService(), Parser()),
             subjectCredentialStore = subjectCredentialStore,
             jwsService = DefaultJwsService(cryptoService),
             coseService = DefaultCoseService(cryptoService),
-            keyPair = cryptoService.keyPairAdapter,
+            keyPair = cryptoService.keyMaterial,
         )
 
-        holderKeyService = objectFactory.loadHolderKeyService().getOrThrow()
         httpService = HttpService()
         provisioningService = ProvisioningService(
             platformAdapter,
@@ -86,6 +85,8 @@ class WalletMain(
             httpService
         )
         this.snackbarService = snackbarService
+
+
     }
 
     suspend fun resetApp() {
@@ -129,21 +130,6 @@ class WalletMain(
             }
         }
     }
-}
-
-/**
- * Factory to call back to native code to create service objects needed in [WalletMain].
- *
- * Especially useful to call back to Swift code, i.e. to create a [CryptoService] based
- * on Apple's CryptoKit.
- *
- * Most methods are suspending to be able to use biometric authentication or show some other
- * dialogs. Also return `KmmResult` to be able to transport exceptions across system boundaries
- * efficiently.
- */
-interface ObjectFactory {
-    fun loadCryptoService(): KmmResult<WalletCryptoService>
-    fun loadHolderKeyService(): KmmResult<HolderKeyService>
 }
 
 /**

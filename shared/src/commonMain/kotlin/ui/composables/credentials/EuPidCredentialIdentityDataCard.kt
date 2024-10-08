@@ -63,10 +63,12 @@ fun EuPidCredentialIdentityDataCardContent(
                 ).joinToString(" "),
                 modifier = spacingModifier,
             )
-            AttributeRepresentation(
-                value = credentialAdapter.birthDate,
-                modifier = spacingModifier,
-            )
+            credentialAdapter.birthDate?.let {
+                AttributeRepresentation(
+                    value = it,
+                    modifier = spacingModifier,
+                )
+            }
             credentialAdapter.nationality?.let {
                 AttributeRepresentation(
                     value = it,

@@ -23,13 +23,10 @@ fun EuPidCredentialView(
 
     Column(modifier = modifier) {
         val spacingModifier = Modifier.padding(bottom = 16.dp)
-        EuPidCredentialIdentityDataCard(
-            credentialAdapter = credentialAdapter,
-            modifier = spacingModifier,
-        )
-        EuPidCredentialResidenceDataCard(
-            credentialAdapter = credentialAdapter,
-            modifier = spacingModifier,
-        )
+        EuPidCredentialIdentityDataCard(credentialAdapter, spacingModifier)
+        EuPidCredentialBirthdataDataCard(credentialAdapter, spacingModifier)
+        EuPidCredentialAgeDataCard(credentialAdapter, spacingModifier)
+        EuPidCredentialResidenceDataCard(credentialAdapter, spacingModifier)
+        EuPidCredentialMetadataCard(credentialAdapter, spacingModifier)
     }
 }

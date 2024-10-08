@@ -5,9 +5,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
-import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.dictionary_no
-import composewalletapp.shared.generated.resources.dictionary_yes
+import at.asitplus.wallet.mdl.DrivingPrivilege
+import at.asitplus.wallet.mdl.IsoSexEnum
+import compose_wallet_app.shared.generated.resources.Res
+import compose_wallet_app.shared.generated.resources.dictionary_no
+import compose_wallet_app.shared.generated.resources.dictionary_yes
 import data.Attribute
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
@@ -25,11 +27,13 @@ fun AttributeRepresentation(attribute: Attribute) {
         is Attribute.DateAttribute -> AttributeRepresentation(attribute.value)
         is Attribute.DateTimeAttribute -> AttributeRepresentation(attribute.value)
         is Attribute.InstantAttribute -> AttributeRepresentation(attribute.value)
-        is Attribute.GenderAttribute -> TODO() // AttributeRepresentation(attribute.value)
+        is Attribute.GenderAttribute -> AttributeRepresentation(attribute.value.name)
+        is Attribute.SexAttribute -> AttributeRepresentation(attribute.value.name)
         is Attribute.ImageAttribute -> AttributeRepresentation(attribute.value)
-        is Attribute.IntegerAttribute -> TODO() // AttributeRepresentation(attribute.value)
-        is Attribute.UnsignedIntegerAttribute -> TODO() // AttributeRepresentation(attribute.value)
-        is Attribute.DrivingPrivilegeAttribute -> TODO() // AttributeRepresentation(attribute.value)
+        is Attribute.IntegerAttribute -> AttributeRepresentation(attribute.value.toString())
+        is Attribute.UnsignedIntegerAttribute -> AttributeRepresentation(attribute.value.toString())
+        // TODO Nice representation for driving privileges
+        is Attribute.DrivingPrivilegeAttribute -> AttributeRepresentation(attribute.value)
     }
 }
 
@@ -45,6 +49,40 @@ fun AttributeRepresentation(
     )
 }
 
+@Composable
+fun AttributeRepresentation(
+    value: IsoSexEnum,
+    modifier: Modifier = Modifier,
+) {
+    Text(
+        value.name,
+        modifier = modifier,
+    )
+}
+
+@Composable
+fun AttributeRepresentation(
+    value: Array<DrivingPrivilege>,
+    modifier: Modifier = Modifier,
+) {
+    value.forEach { privilege ->
+        Text(
+            text = "${privilege.vehicleCategoryCode} (${privilege.issueDate} | ${privilege.expiryDate})",
+            modifier = modifier,
+        )
+    }
+}
+
+@Composable
+fun AttributeRepresentation(
+    value: UInt,
+    modifier: Modifier = Modifier,
+) {
+    Text(
+        value.toString(),
+        modifier = modifier,
+    )
+}
 
 @Composable
 fun AttributeRepresentation(

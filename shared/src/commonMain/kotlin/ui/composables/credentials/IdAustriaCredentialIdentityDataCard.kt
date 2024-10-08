@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,8 +21,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import at.asitplus.wallet.idaustria.IdAustriaScheme
-import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.content_description_portrait
+import compose_wallet_app.shared.generated.resources.Res
+import compose_wallet_app.shared.generated.resources.content_description_portrait
 import data.PersonalDataCategory
 import data.credentials.IdAustriaCredentialAdapter
 import org.jetbrains.compose.resources.stringResource
@@ -80,7 +79,7 @@ fun IdAustriaCredentialIdentityDataCardContent(
                 ).joinToString(" "),
                 modifier = spacingModifier,
             )
-            AttributeRepresentation(credentialAdapter.dateOfBirth)
+            credentialAdapter.dateOfBirth?.let { AttributeRepresentation(it) }
         }
     }
 }

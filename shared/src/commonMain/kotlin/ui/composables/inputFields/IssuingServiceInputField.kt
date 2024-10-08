@@ -7,8 +7,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
-import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.text_label_issuing_service
+import compose_wallet_app.shared.generated.resources.Res
+import compose_wallet_app.shared.generated.resources.text_label_issuing_service
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 

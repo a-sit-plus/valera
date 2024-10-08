@@ -1,10 +1,10 @@
 package at.asitplus.wallet.app.common
 
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.identifier
+import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
-import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import data.storage.DataStoreService
 import kotlinx.coroutines.flow.Flow
@@ -23,9 +23,8 @@ class WalletConfig(
 ) {
     private val config: Flow<ConfigData> =
         dataStoreService.getPreference(Configuration.DATASTORE_KEY_CONFIG).map {
-            it?.let {
-                jsonSerializer.decodeFromString<ConfigData>(it)
-            } ?: ConfigDataDefaults
+            it?.let { vckJsonSerializer.decodeFromString<ConfigData>(it) }
+                ?: ConfigDataDefaults
         }
 
     val host: Flow<String> = config.map {
@@ -85,13 +84,13 @@ class WalletConfig(
 private data class ConfigData(
     val host: String,
     val credentialRepresentation: ConstantIndex.CredentialRepresentation = ConstantIndex.CredentialRepresentation.ISO_MDOC,
-    val credentialSchemeIdentifier: String = IdAustriaScheme.identifier,
+    val credentialSchemeIdentifier: String = EuPidScheme.identifier,
     val isConditionsAccepted: Boolean = false
 )
 
 private val ConfigDataDefaults = ConfigData(
-    host = "https://wallet.a-sit.at/m4",
+    host = "https://wallet.a-sit.at/m5",
     credentialRepresentation = ConstantIndex.CredentialRepresentation.ISO_MDOC,
-    credentialSchemeIdentifier = IdAustriaScheme.identifier,
+    credentialSchemeIdentifier = EuPidScheme.identifier,
     isConditionsAccepted = false
 )

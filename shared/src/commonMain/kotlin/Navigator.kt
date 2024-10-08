@@ -20,12 +20,12 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParametersFrom
 import at.asitplus.wallet.lib.oidc.helpers.AuthorizationResponsePreparationState
-import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.navigation_button_label_my_data
-import composewalletapp.shared.generated.resources.navigation_button_label_settings
-import composewalletapp.shared.generated.resources.navigation_button_label_show_data
-import composewalletapp.shared.generated.resources.snackbar_clear_log_successfully
-import composewalletapp.shared.generated.resources.snackbar_reset_app_successfully
+import compose_wallet_app.shared.generated.resources.Res
+import compose_wallet_app.shared.generated.resources.navigation_button_label_my_data
+import compose_wallet_app.shared.generated.resources.navigation_button_label_settings
+import compose_wallet_app.shared.generated.resources.navigation_button_label_show_data
+import compose_wallet_app.shared.generated.resources.snackbar_clear_log_successfully
+import compose_wallet_app.shared.generated.resources.snackbar_reset_app_successfully
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier
 import io.ktor.http.parseQueryString
@@ -126,7 +126,8 @@ fun Navigator(walletMain: WalletMain) {
         }
     }
 
-    globalBack = { mainNavigationStack.back() }
+    val globalBack = { mainNavigationStack.back() }
+    val resetStack = { mainNavigationStack.reset() }
 
     if (walletMain.errorService.showError.value == false) {
         OnboardingWrapper(
@@ -140,7 +141,7 @@ fun Navigator(walletMain: WalletMain) {
             )
         }
     } else {
-        ErrorScreen(walletMain)
+        ErrorScreen(walletMain, resetStack)
     }
 }
 
@@ -221,7 +222,7 @@ fun MainNavigator(
                     is ProvisioningLoadingPage -> {
                         ProvisioningLoadingScreen(
                             link = page.link,
-                            navigateUp = globalBack,
+                            navigateUp = navigateUp,
                             walletMain = walletMain,
                         )
                     }

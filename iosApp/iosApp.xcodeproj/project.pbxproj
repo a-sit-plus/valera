@@ -11,8 +11,6 @@
 		058557D9273AAEEB004C7B11 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 058557D8273AAEEB004C7B11 /* Preview Assets.xcassets */; };
 		2152FB042600AC8F00CF470E /* iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2152FB032600AC8F00CF470E /* iOSApp.swift */; };
 		33E9045A2AB1FBC000FCC5AC /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33E904572AB1FBC000FCC5AC /* Extensions.swift */; };
-		33E9045B2AB1FBC000FCC5AC /* KeyChainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33E904582AB1FBC000FCC5AC /* KeyChainService.swift */; };
-		33E9045C2AB1FBC000FCC5AC /* VcLibCryptoServiceCryptoKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33E904592AB1FBC000FCC5AC /* VcLibCryptoServiceCryptoKit.swift */; };
 		48048AF52B4EE2E60096D8D7 /* Compose_WalletUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48048AF42B4EE2E60096D8D7 /* Compose_WalletUITests.swift */; };
 		48048AF72B4EE2E60096D8D7 /* Compose_WalletUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48048AF62B4EE2E60096D8D7 /* Compose_WalletUITestsLaunchTests.swift */; };
 		7555FF83242A565900829871 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7555FF82242A565900829871 /* ContentView.swift */; };
@@ -33,8 +31,6 @@
 		058557D8273AAEEB004C7B11 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		2152FB032600AC8F00CF470E /* iOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSApp.swift; sourceTree = "<group>"; };
 		33E904572AB1FBC000FCC5AC /* Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
-		33E904582AB1FBC000FCC5AC /* KeyChainService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeyChainService.swift; sourceTree = "<group>"; };
-		33E904592AB1FBC000FCC5AC /* VcLibCryptoServiceCryptoKit.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VcLibCryptoServiceCryptoKit.swift; sourceTree = "<group>"; };
 		48048AF22B4EE2E60096D8D7 /* Compose WalletUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Compose WalletUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		48048AF42B4EE2E60096D8D7 /* Compose_WalletUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Compose_WalletUITests.swift; sourceTree = "<group>"; };
 		48048AF62B4EE2E60096D8D7 /* Compose_WalletUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Compose_WalletUITestsLaunchTests.swift; sourceTree = "<group>"; };
@@ -112,8 +108,6 @@
 			children = (
 				483243FF2B0E01780033904D /* iosApp.entitlements */,
 				33E904572AB1FBC000FCC5AC /* Extensions.swift */,
-				33E904582AB1FBC000FCC5AC /* KeyChainService.swift */,
-				33E904592AB1FBC000FCC5AC /* VcLibCryptoServiceCryptoKit.swift */,
 				058557BA273AAA24004C7B11 /* Assets.xcassets */,
 				7555FF82242A565900829871 /* ContentView.swift */,
 				7555FF8C242A565B00829871 /* Info.plist */,
@@ -282,8 +276,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				2152FB042600AC8F00CF470E /* iOSApp.swift in Sources */,
-				33E9045B2AB1FBC000FCC5AC /* KeyChainService.swift in Sources */,
-				33E9045C2AB1FBC000FCC5AC /* VcLibCryptoServiceCryptoKit.swift in Sources */,
 				33E9045A2AB1FBC000FCC5AC /* Extensions.swift in Sources */,
 				7555FF83242A565900829871 /* ContentView.swift in Sources */,
 			);
@@ -500,7 +492,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 4.1.0;
+				MARKETING_VERSION = 5.0.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
@@ -540,7 +532,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 4.1.0;
+				MARKETING_VERSION = 5.0.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",

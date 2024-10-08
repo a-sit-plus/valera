@@ -9,7 +9,7 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 @Composable
 fun CredentialCard(
     credential: SubjectCredentialStore.StoreEntry,
-    imageDecoder: (ByteArray) -> ImageBitmap,
+    imageDecoder: (ByteArray) -> ImageBitmap?,
     onDelete: () -> Unit,
     onOpenDetails: (() -> Unit)?,
     modifier: Modifier = Modifier,

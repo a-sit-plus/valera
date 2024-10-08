@@ -37,14 +37,12 @@ kotlin {
                 api(libs.credential.eupid)
                 api(libs.credential.powerofrepresentation)
                 api(libs.credential.certificateofresidence)
-                api(libs.signum)
-                api(libs.signum.jws)
-                api(libs.signum.cose)
+                api(libs.credential.eprescription)
                 implementation(serialization("json"))
                 api(napier())
                 implementation("androidx.datastore:datastore-preferences-core:1.1.0-alpha07")
                 implementation("androidx.datastore:datastore-core-okio:1.1.0-alpha07")
-                implementation(libs.atomicfu)
+                api(libs.atomicfu)
                 implementation(ktor("client-core"))
                 implementation(ktor("client-cio"))
                 implementation(ktor("client-logging"))
@@ -86,19 +84,18 @@ kotlin {
 }
 
 exportIosFramework(
-    name = "shared", static = true,
-    vclibCatalog.vck,
-    datetime(),
-    signumCatalog.bignum,
-    signumCatalog.kmmresult,
-    libs.signum,
-    libs.signum.jws,
-    libs.signum.cose,
+    name = "shared", transitiveExports = false,
+    libs.vck,
+    libs.vck.openid,
+    libs.indispensable,
+    libs.supreme,
+    libs.kmmresult,
     libs.credential.ida,
     libs.credential.mdl,
     libs.credential.eupid,
     libs.credential.powerofrepresentation,
     libs.credential.certificateofresidence,
+    libs.credential.eprescription,
     napier(),
 )
 

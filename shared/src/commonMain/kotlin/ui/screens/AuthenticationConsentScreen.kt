@@ -1,20 +1,16 @@
 package ui.screens
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
-import at.asitplus.wallet.app.common.CryptoServiceAuthorizationContext
+import at.asitplus.dif.PresentationDefinition
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.lib.data.dif.PresentationDefinition
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParametersFrom
 import at.asitplus.wallet.lib.oidc.helpers.AuthorizationResponsePreparationState
-import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.error_authentication_at_sp_failed
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import compose_wallet_app.shared.generated.resources.Res
+import compose_wallet_app.shared.generated.resources.biometric_authentication_prompt_for_data_transmission_consent_subtitle
+import compose_wallet_app.shared.generated.resources.biometric_authentication_prompt_for_data_transmission_consent_title
+import compose_wallet_app.shared.generated.resources.error_authentication_at_sp_failed
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.getString
@@ -56,8 +52,9 @@ fun StatefulAuthenticationConsentView(
     navigateToAuthenticationSuccessPage: () -> Unit,
     walletMain: WalletMain,
 ) {
-    var showBiometry by rememberSaveable { mutableStateOf(false) }
-    val authorizationContext = presentationAuthorizationContext()
+
+    walletMain.cryptoService.onUnauthenticated = navigateUp
+
 
     AuthenticationConsentView(
         spName = spName,
@@ -66,20 +63,17 @@ fun StatefulAuthenticationConsentView(
         navigateUp = navigateUp,
         cancelAuthentication = navigateUp,
         consentToDataTransmission = {
-            showBiometry = true
-        },
-        authorizationContext = authorizationContext,
-        showBiometry = showBiometry,
-        onBiometrySuccess = {
-            showBiometry = false
             walletMain.scope.launch {
                 try {
-                    walletMain.cryptoService.useAuthorizationContext(authorizationContext) {
-                        walletMain.presentationService.startSiop(
-                            authenticationRequest,
-                            fromQrCodeScanner
-                        )
-                    }.getOrThrow()
+                    Napier.d { "signed!" }
+                    walletMain.cryptoService.promptText =
+                        getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_title)
+                    walletMain.cryptoService.promptSubtitle =
+                        getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_subtitle)
+                    walletMain.presentationService.startSiop(
+                        authenticationRequest,
+                        fromQrCodeScanner
+                    )
                     navigateUp()
                     navigateToAuthenticationSuccessPage()
                 } catch (e: Throwable) {
@@ -87,11 +81,7 @@ fun StatefulAuthenticationConsentView(
                     walletMain.snackbarService.showSnackbar(getString(Res.string.error_authentication_at_sp_failed))
                 }
             }
-        },
-        onBiometryDismissed = { biometryPromptDismissResult ->
-            walletMain.snackbarService.showSnackbar(biometryPromptDismissResult.errorString)
-            showBiometry = false
-        },
+        }
     )
 }
 
@@ -107,6 +97,3 @@ val PresentationDefinition.claims: List<String>
         .map { it.removePrefix("\$['org.iso.18013.5.1']['").removeSuffix("']") }
         .map { it.removePrefix("\$['eu.europa.ec.eudiw.pid.1']['").removeSuffix("']") }
 
-
-@Composable
-expect fun presentationAuthorizationContext(): CryptoServiceAuthorizationContext
