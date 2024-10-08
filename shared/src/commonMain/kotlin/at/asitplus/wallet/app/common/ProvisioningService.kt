@@ -6,8 +6,7 @@ import at.asitplus.openid.AuthenticationResponseParameters
 import at.asitplus.openid.CredentialFormatEnum
 import at.asitplus.openid.CredentialResponseParameters
 import at.asitplus.openid.IssuerMetadata
-import at.asitplus.openid.OpenIdConstants
-import at.asitplus.openid.OpenIdConstants.TOKEN_PREFIX_BEARER
+import at.asitplus.openid.OAuth2AuthorizationServerMetadata
 import at.asitplus.openid.TokenResponseParameters
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.identifier
 import at.asitplus.wallet.lib.agent.CryptoService
@@ -15,13 +14,14 @@ import at.asitplus.wallet.lib.agent.Holder
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
-import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.iso.IssuerSigned
+import at.asitplus.wallet.lib.oauth2.OAuth2Client
 import at.asitplus.wallet.lib.oidvci.WalletService
 import at.asitplus.wallet.lib.oidvci.decodeFromUrlQuery
 import at.asitplus.wallet.lib.oidvci.encodeToParameters
 import at.asitplus.wallet.lib.oidvci.formUrlEncode
+import com.benasher44.uuid.uuid4
 import data.storage.DataStoreService
 import data.storage.PersistentCookieStorage
 import io.github.aakira.napier.Napier
@@ -45,14 +45,10 @@ import kotlinx.serialization.encodeToString
 import okio.ByteString.Companion.decodeBase64
 
 const val PATH_WELL_KNOWN_CREDENTIAL_ISSUER = "/.well-known/openid-credential-issuer"
-
-val HttpHeaders.xAuthToken: String
-    get() = "X-Auth-Token"
-
-val OpenIdConstants.PARAMETER_STATE: String
-    get() = "state"
-val OpenIdConstants.PARAMETER_REDIRECT_URI: String
-    get() = "redirect_uri"
+const val PATH_WELL_KNOWN_AUTH_SERVER = "/.well-known/openid-configuration"
+const val X_AUTH_TOKEN: String = "X-Auth-Token"
+const val PARAMETER_STATE: String = "state"
+const val PARAMETER_REDIRECT_URI: String = "redirect_uri"
 
 class ProvisioningService(
     val platformAdapter: PlatformAdapter,
@@ -89,15 +85,15 @@ class ProvisioningService(
         }.onSuccess { response ->
             val urlToOpen = response.headers[HttpHeaders.Location]
 
-            val xAuthToken = response.headers[HttpHeaders.xAuthToken]
+            val xAuthToken = response.headers[X_AUTH_TOKEN]
                 ?: throw Exception("X-Auth-Token not received")
 
             if (urlToOpen != null) {
                 val parameters = Url(urlToOpen).parameters
-                val state = parameters[OpenIdConstants.PARAMETER_STATE]
+                val state = parameters[PARAMETER_STATE]
                     ?: throw Exception("State not received")
 
-                val redirectUri = parameters[OpenIdConstants.PARAMETER_REDIRECT_URI]
+                val redirectUri = parameters[PARAMETER_REDIRECT_URI]
                 this.redirectUri = redirectUri
                 Napier.d("Set provisioningService.intentUrl to $redirectUri")
                 if (redirectUri == null) {
@@ -120,7 +116,7 @@ class ProvisioningService(
                 Napier.d("Store provisioning context: $provisioningContext")
                 dataStoreService.setPreference(
                     key = Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT,
-                    value = jsonSerializer.encodeToString(provisioningContext),
+                    value = vckJsonSerializer.encodeToString(provisioningContext),
                 )
 
                 Napier.d("Open URL: $urlToOpen")
@@ -149,19 +145,20 @@ class ProvisioningService(
         val requestedAttributes = provisioningContext.requestedAttributes
 
         val url = Url(link)
-        url.parameters[OpenIdConstants.PARAMETER_STATE]?.let {
+        url.parameters[PARAMETER_STATE]?.let {
             if (it == provisioningContext.state) true else null
         } ?: throw Exception("Inconsistent provisioning state")
 
         Napier.d("Create request with x-auth: $xAuthToken")
         client.get(link) {
-            headers[HttpHeaders.xAuthToken] = xAuthToken
+            headers[xAuthToken] = xAuthToken
         }
 
         Napier.d("Load X-Auth-Token: $xAuthToken")
-        val metadata: IssuerMetadata = client.get("$host$PATH_WELL_KNOWN_CREDENTIAL_ISSUER") {
-            headers[HttpHeaders.xAuthToken] = xAuthToken
-        }.body()
+        val credentialMetadata: IssuerMetadata = client.get("$host$PATH_WELL_KNOWN_CREDENTIAL_ISSUER").body()
+        val oauthMetadataPath =
+            "${credentialMetadata.authorizationServers?.firstOrNull() ?: host}$PATH_WELL_KNOWN_AUTH_SERVER"
+        val oauthMetadata: OAuth2AuthorizationServerMetadata = client.get(oauthMetadataPath).body()
 
         val oid4vciService = WalletService(
             clientId = host,
@@ -169,88 +166,76 @@ class ProvisioningService(
         )
 
         Napier.d("Oid4vciService.createAuthRequest")
+        val state = uuid4().toString()
         val requestOptions = WalletService.RequestOptions(
             credentialScheme = credentialScheme,
             representation = credentialRepresentation,
             requestedAttributes = requestedAttributes?.ifEmpty { null },
         )
-        val authRequest = oid4vciService.createAuthRequest(
-            requestOptions = requestOptions
-        )
+        val authorizationDetails = oid4vciService.buildAuthorizationDetails(requestOptions)
+        val authRequest = oid4vciService.oauth2Client.createAuthRequest(state, authorizationDetails)
 
-        val authorizationEndpointUrl =
-            metadata.authorizationEndpointUrl ?: metadata.authorizationServers?.firstOrNull()
-            ?: metadata.credentialIssuer ?: throw Exception("no authorizaitonEndpointUrl")
+        val authorizationEndpointUrl = oauthMetadata.authorizationEndpoint
+            ?: throw Exception("no authorizationEndpoint in $oauthMetadata")
+        val tokenEndpointUrl = oauthMetadata.tokenEndpoint
+            ?: throw Exception("no tokenEndpoint in $oauthMetadata")
         Napier.d("HTTP.GET ($authorizationEndpointUrl)")
         val codeUrl = client.get(authorizationEndpointUrl) {
             authRequest.encodeToParameters().forEach {
                 this.parameter(it.key, it.value)
             }
-            headers[HttpHeaders.xAuthToken] = xAuthToken
+            headers[xAuthToken] = xAuthToken
         }.headers[HttpHeaders.Location] ?: throw Exception("codeUrl is null")
 
         val authnResponse = Url(codeUrl).parameters.flattenEntries().toMap()
             .decodeFromUrlQuery<AuthenticationResponseParameters>()
         val code = authnResponse.code ?: throw Exception("code is null")
-        val tokenRequest = oid4vciService.createTokenRequestParameters(
-            requestOptions,
-            authorization = WalletService.AuthorizationForToken.Code(code)
+        val tokenRequest = oid4vciService.oauth2Client.createTokenRequestParameters(
+            state = state,
+            authorization = OAuth2Client.AuthorizationForToken.Code(code),
+            authorizationDetails = authorizationDetails,
         )
 
         Napier.d("Created tokenRequest")
-        val tokenResponse: TokenResponseParameters =
-            client.submitForm(metadata.tokenEndpointUrl.toString()) {
-                setBody(tokenRequest.encodeToParameters().formUrlEncode())
-            }.body()
+        val tokenResponse: TokenResponseParameters = client.submitForm(tokenEndpointUrl) {
+            setBody(tokenRequest.encodeToParameters().formUrlEncode())
+        }.body()
 
         Napier.d("Received tokenResponse")
         val credentialRequest = oid4vciService.createCredentialRequest(
-            requestOptions,
-            tokenResponse.clientNonce,
-            metadata.credentialIssuer,
+            input = WalletService.CredentialRequestInput.RequestOptions(requestOptions),
+            clientNonce = tokenResponse.clientNonce,
+            credentialIssuer = credentialMetadata.credentialIssuer,
         ).getOrThrow()
         Napier.d("Created credentialRequest")
-        val credentialResponse: CredentialResponseParameters =
-            client.post(metadata.credentialEndpointUrl.toString()) {
-                contentType(ContentType.Application.Json)
-                setBody(credentialRequest)
-                headers["Authorization"] = "$TOKEN_PREFIX_BEARER${tokenResponse.accessToken}"
-            }.body()
+        val credentialResponse: CredentialResponseParameters = client.post(credentialMetadata.credentialEndpointUrl) {
+            contentType(ContentType.Application.Json)
+            setBody(credentialRequest)
+            headers["Authorization"] = "${tokenResponse.tokenType} ${tokenResponse.accessToken}"
+        }.body()
         Napier.d("Received credentialResponse")
 
         credentialResponse.credential?.let {
             when (credentialResponse.format) {
-                CredentialFormatEnum.NONE -> TODO("Function not implemented")
                 CredentialFormatEnum.JWT_VC -> holderAgent.storeCredential(
-                    Holder.StoreCredentialInput.Vc(
-                        vcJws = it,
-                        scheme = credentialScheme,
-                    )
+                    Holder.StoreCredentialInput.Vc(it, credentialScheme)
                 )
 
-                CredentialFormatEnum.JWT_VC_SD_UNOFFICIAL, CredentialFormatEnum.VC_SD_JWT -> holderAgent.storeCredential(
-                    Holder.StoreCredentialInput.SdJwt(
-                        vcSdJwt = it,
-                        scheme = credentialScheme,
-                    )
+                CredentialFormatEnum.VC_SD_JWT -> holderAgent.storeCredential(
+                    Holder.StoreCredentialInput.SdJwt(it, credentialScheme)
                 )
 
-                CredentialFormatEnum.JWT_VC_JSON_LD -> TODO("Function not implemented")
-                CredentialFormatEnum.JSON_LD -> TODO("Function not implemented")
                 CredentialFormatEnum.MSO_MDOC -> {
                     it.decodeBase64()?.toByteArray()?.let {
                         IssuerSigned.deserialize(it)
                     }?.getOrNull()?.let { issuerSigned ->
                         holderAgent.storeCredential(
-                            Holder.StoreCredentialInput.Iso(
-                                issuerSigned = issuerSigned,
-                                scheme = credentialScheme,
-                            )
+                            Holder.StoreCredentialInput.Iso(issuerSigned, credentialScheme)
                         )
                     } ?: throw Exception("Invalid credential format: $it")
                 }
 
-                null -> TODO("Function not implemented")
+                else -> TODO("Function not implemented")
             }.getOrThrow()
         } ?: throw Exception("No credential was received")
     }

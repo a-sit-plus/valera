@@ -29,6 +29,7 @@ import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.content_description_add_credential
 import compose_wallet_app.shared.generated.resources.heading_label_my_data_screen
 import compose_wallet_app.shared.generated.resources.info_text_no_credentials_available
+import io.github.aakira.napier.Napier
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.FloatingActionButtonHeightSpacer
 import ui.composables.buttons.LoadDataButton
@@ -44,7 +45,15 @@ fun MyCredentialsScreen(
         navigateToAddCredentialsPage = navigateToAddCredentialsPage,
         navigateToCredentialDetailsPage = navigateToCredentialDetailsPage,
         viewModel = CredentialScreenViewModel(walletMain),
-        imageDecoder = walletMain.platformAdapter::decodeImage,
+        imageDecoder = {
+            try {
+                walletMain.platformAdapter.decodeImage(it)
+            } catch (throwable: Throwable) {
+                // TODO: should this be emitted to the error service?
+                Napier.w("Failed Operation: decodeImage")
+                null
+            }
+        },
     )
 }
 
@@ -53,7 +62,7 @@ fun MyCredentialsScreen(
 fun MyCredentialsScreen(
     navigateToAddCredentialsPage: () -> Unit,
     navigateToCredentialDetailsPage: (Long) -> Unit,
-    imageDecoder: (ByteArray) -> ImageBitmap,
+    imageDecoder: (ByteArray) -> ImageBitmap?,
     viewModel: CredentialScreenViewModel,
 ) {
     val storeContainerState by viewModel.storeContainer.collectAsState(null)

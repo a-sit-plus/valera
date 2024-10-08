@@ -82,7 +82,7 @@ fun MobileDrivingLicenceCredentialIdentityDataCardContent(
                 ).joinToString(" "),
                 modifier = Modifier.padding(bottom = textGap),
             )
-            AttributeRepresentation(credentialAdapter.birthDate)
+            credentialAdapter.birthDate?.let { AttributeRepresentation(it) }
         }
     }
 }

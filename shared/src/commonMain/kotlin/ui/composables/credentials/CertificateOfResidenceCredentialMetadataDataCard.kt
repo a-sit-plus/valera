@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -17,33 +16,33 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
-import at.asitplus.wallet.eupid.EuPidScheme
+import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import data.PersonalDataCategory
-import data.credentials.EuPidCredentialAdapter
+import data.credentials.CertificateOfResidenceCredentialAdapter
 import ui.composables.AttributeRepresentation
 
 @Composable
-fun EuPidCredentialIdentityDataCard(
-    credentialAdapter: EuPidCredentialAdapter,
+fun CertificateOfResidenceCredentialMetaDataCard(
+    credentialAdapter: CertificateOfResidenceCredentialAdapter,
     modifier: Modifier = Modifier,
 ) {
     CredentialDetailCard(
-        credentialScheme = EuPidScheme,
-        personalDataCategory = PersonalDataCategory.IdentityData,
+        credentialScheme = PowerOfRepresentationScheme,
+        personalDataCategory = PersonalDataCategory.Metadata,
         credentialAdapter = credentialAdapter,
         modifier = modifier,
     ) {
-        EuPidCredentialIdentityDataCardContent(
+        CertificateOfResidenceCredentialMetaDataCardContent(
             credentialAdapter = credentialAdapter,
-            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
         )
     }
 }
 
 @Composable
-fun EuPidCredentialIdentityDataCardContent(
-    credentialAdapter: EuPidCredentialAdapter,
-    modifier: Modifier = Modifier,
+fun CertificateOfResidenceCredentialMetaDataCardContent(
+    credentialAdapter: CertificateOfResidenceCredentialAdapter,
+    modifier: Modifier = Modifier
 ) {
     var columnSize by remember { mutableStateOf(Size.Zero) }
     Row(
@@ -55,26 +54,15 @@ fun EuPidCredentialIdentityDataCardContent(
         Column(
             horizontalAlignment = Alignment.Start,
         ) {
-            val spacingModifier = Modifier.padding(bottom = 4.dp)
-            AttributeRepresentation(
-                value = listOfNotNull(
-                    credentialAdapter.givenName,
-                    credentialAdapter.familyName,
-                ).joinToString(" "),
-                modifier = spacingModifier,
-            )
-            credentialAdapter.birthDate?.let {
-                AttributeRepresentation(
-                    value = it,
-                    modifier = spacingModifier,
-                )
-            }
-            credentialAdapter.nationality?.let {
-                AttributeRepresentation(
-                    value = it,
-                    modifier = spacingModifier,
-                )
-            }
+            credentialAdapter.issuanceDate?.let { AttributeRepresentation(it) }
+            credentialAdapter.expiryDate?.let { AttributeRepresentation(it) }
+            credentialAdapter.issuingCountry?.let { AttributeRepresentation(it) }
+            credentialAdapter.issuingAuthority?.let { AttributeRepresentation(it) }
+            credentialAdapter.issuingJurisdiction?.let { AttributeRepresentation(it) }
+            credentialAdapter.documentNumber?.let { AttributeRepresentation(it) }
+            credentialAdapter.administrativeNumber?.let { AttributeRepresentation(it) }
+            credentialAdapter.arrivalDate?.let { AttributeRepresentation(it) }
+
         }
     }
 }

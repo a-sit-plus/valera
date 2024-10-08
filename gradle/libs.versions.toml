@@ -1,33 +1,32 @@
 [versions]
-encoding = "1.2.3"
-vck = "4.3.0-20240911.123301-1"
-mdl = "1.0.2"
-signum = "3.7.0"
-supreme = "0.2.0"
-ida = "3.8.3"
-eupid = "2.1.3"
-powerofrepresentation = "1.0.2"
-certificateofresidence = "1.0.2"
+vck = "5.0.0"
+mdl = "1.1.1"
+ida = "3.9.1"
+eupid = "2.2.1"
+powerofrepresentation = "1.1.0"
+certificateofresidence = "2.1.0"
+eprescription = "1.1.0"
 atomicfu = "0.23.2"
 compose-plugin = "1.6.11"
 kotlin = "2.0.20"
+indispensable = "3.9.0"
+supreme = "0.4.0"
+kmmresult = "1.7.0"
 
 
 [libraries]
-base16 = { group = "io.matthewnelson.kotlin-components", name = "encoding-base16", version.ref = "encoding" }
-base64 = { group = "io.matthewnelson.kotlin-components", name = "encoding-base64", version.ref = "encoding" }
 vck = { group = "at.asitplus.wallet", name = "vck", version.ref = "vck" }
 vck-openid = { group = "at.asitplus.wallet", name = "vclib-openid", version.ref = "vck" }
-signum = { group = "at.asitplus.signum", name = "indispensable", version.ref = "signum" }
-signum-jws = { group = "at.asitplus.signum", name = "indispensable-josef", version.ref = "signum" }
-signum-cose = { group = "at.asitplus.signum", name = "indispensable-cosef", version.ref = "signum" }
-signum-supreme = { group = "at.asitplus.signum", name = "supreme", version.ref = "supreme" }
 atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version.ref = "atomicfu" }
 credential-ida = { module = "at.asitplus.wallet:idacredential", version.ref = "ida" }
 credential-eupid = { module = "at.asitplus.wallet:eupidcredential", version.ref = "eupid" }
 credential-powerofrepresentation = { module = "at.asitplus.wallet:powerofrepresentation", version.ref = "powerofrepresentation" }
 credential-certificateofresidence = { module = "at.asitplus.wallet:certificateofresidence", version.ref = "certificateofresidence" }
 credential-mdl = { group = "at.asitplus.wallet", name = "mobiledrivinglicence", version.ref = "mdl" }
+credential-eprescription = { module = "at.asitplus.wallet:eprescription", version.ref = "eprescription"}
+indispensable = { module = "at.asitplus.signum:indispensable", version.ref = "indispensable"}
+supreme = { module = "at.asitplus.signum:supreme", version.ref = "supreme"}
+kmmresult = { module = "at.asitplus:kmmrestul", version.ref = "kmmresult"}
 
 [plugins]
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }

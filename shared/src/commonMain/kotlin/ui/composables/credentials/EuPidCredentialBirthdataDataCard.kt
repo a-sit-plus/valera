@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -23,27 +22,27 @@ import data.credentials.EuPidCredentialAdapter
 import ui.composables.AttributeRepresentation
 
 @Composable
-fun EuPidCredentialIdentityDataCard(
+fun EuPidCredentialBirthdataDataCard(
     credentialAdapter: EuPidCredentialAdapter,
     modifier: Modifier = Modifier,
 ) {
     CredentialDetailCard(
         credentialScheme = EuPidScheme,
-        personalDataCategory = PersonalDataCategory.IdentityData,
+        personalDataCategory = PersonalDataCategory.BirthData,
         credentialAdapter = credentialAdapter,
         modifier = modifier,
     ) {
-        EuPidCredentialIdentityDataCardContent(
+        EuPidCredentialBirthdataDataCardContent(
             credentialAdapter = credentialAdapter,
-            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
         )
     }
 }
 
 @Composable
-fun EuPidCredentialIdentityDataCardContent(
+fun EuPidCredentialBirthdataDataCardContent(
     credentialAdapter: EuPidCredentialAdapter,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     var columnSize by remember { mutableStateOf(Size.Zero) }
     Row(
@@ -55,26 +54,12 @@ fun EuPidCredentialIdentityDataCardContent(
         Column(
             horizontalAlignment = Alignment.Start,
         ) {
-            val spacingModifier = Modifier.padding(bottom = 4.dp)
-            AttributeRepresentation(
-                value = listOfNotNull(
-                    credentialAdapter.givenName,
-                    credentialAdapter.familyName,
-                ).joinToString(" "),
-                modifier = spacingModifier,
-            )
-            credentialAdapter.birthDate?.let {
-                AttributeRepresentation(
-                    value = it,
-                    modifier = spacingModifier,
-                )
-            }
-            credentialAdapter.nationality?.let {
-                AttributeRepresentation(
-                    value = it,
-                    modifier = spacingModifier,
-                )
-            }
+            credentialAdapter.givenNameBirth?.let { AttributeRepresentation(it) }
+            credentialAdapter.familyNameBirth?.let { AttributeRepresentation(it) }
+            credentialAdapter.birthPlace?.let { AttributeRepresentation(it) }
+            credentialAdapter.birthCity?.let { AttributeRepresentation(it) }
+            credentialAdapter.birthCountry?.let { AttributeRepresentation(it) }
+            credentialAdapter.birthState?.let { AttributeRepresentation(it) }
         }
     }
 }

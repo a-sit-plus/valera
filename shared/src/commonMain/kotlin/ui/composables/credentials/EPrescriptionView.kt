@@ -7,26 +7,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import data.credentials.PowerOfRepresentationCredentialAdapter
+import data.credentials.EPrescriptionCredentialAdapter
 
 @Composable
-fun PowerOfRepresentationCredentialView(
+fun EPrescriptionView(
     credential: SubjectCredentialStore.StoreEntry,
     modifier: Modifier = Modifier,
 ) {
     val credentialAdapter = remember {
-        PowerOfRepresentationCredentialAdapter.createFromStoreEntry(
+        EPrescriptionCredentialAdapter.createFromStoreEntry(
             credential,
         )
     }
 
     Column(modifier = modifier) {
         val spacingModifier = Modifier.padding(bottom = 16.dp)
-        PowerOfRepresentationCredentialRepresentationDataCard(
-            credentialAdapter = credentialAdapter,
-            modifier = spacingModifier,
-        )
-        PowerOfRepresentationCredentialMetaDataCard(
+        EPrescriptionRepresentationDataCard(
             credentialAdapter = credentialAdapter,
             modifier = spacingModifier,
         )

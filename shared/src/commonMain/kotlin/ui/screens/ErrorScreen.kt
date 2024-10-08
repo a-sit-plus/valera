@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
@@ -33,20 +34,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.app.common.WalletMain
-import compose_wallet_app.shared.generated.resources.button_label_close_app
+import compose_wallet_app.shared.generated.resources.button_label_ok
 import compose_wallet_app.shared.generated.resources.heading_label_error_screen
-import compose_wallet_app.shared.generated.resources.info_text_irrevocable_error
-import compose_wallet_app.shared.generated.resources.info_text_restart_app
+import compose_wallet_app.shared.generated.resources.info_text_error_occurred
+import compose_wallet_app.shared.generated.resources.info_text_to_start_screen
 import compose_wallet_app.shared.generated.resources.Res
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.TextIconButton
-import ui.composables.buttons.NavigateUpButton
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ErrorScreen(
-    walletMain: WalletMain
+    walletMain: WalletMain,
+    resetStack: () -> Unit
 ) {
     val throwable = walletMain.errorService.throwable.value
     val message = throwable?.message ?: "Unknown Message"
@@ -65,57 +65,43 @@ fun ErrorScreen(
                         style = MaterialTheme.typography.headlineLarge,
                     )
                 },
-                navigationIcon = {
-                    if (throwable !is UncorrectableErrorException) {
-                        NavigateUpButton(
-                            onClick = {
-                                walletMain.errorService.reset()
-                            }
-                        )
-                    }
-                }
+                navigationIcon = {}
             )
         },
         bottomBar = {
-            if (throwable is UncorrectableErrorException) {
-                Surface(
-                    color = MaterialTheme.colorScheme.surfaceColorAtElevation(
-                        BottomAppBarDefaults.ContainerElevation
-                    )
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceColorAtElevation(
+                    BottomAppBarDefaults.ContainerElevation
+                )
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.SpaceEvenly,
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.SpaceEvenly,
-                        modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                    Text(
+                        text = stringResource(Res.string.info_text_error_occurred),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Text(
+                        text = stringResource(Res.string.info_text_to_start_screen),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
                     ) {
-                        Text(
-                            text = stringResource(Res.string.info_text_irrevocable_error),
-                            style = MaterialTheme.typography.bodyMedium,
+                        TextIconButton(
+                            icon = {},
+                            text = {
+                                Text(stringResource(Res.string.button_label_ok))
+                            },
+                            onClick = {
+                                resetStack()
+                                walletMain.errorService.reset()
+                            },
                         )
-                        Text(
-                            text = stringResource(Res.string.info_text_restart_app),
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center,
-                        ) {
-                            TextIconButton(
-                                icon = {
-                                    Icon(
-                                        imageVector = Icons.Default.Close,
-                                        contentDescription = null,
-                                    )
-                                },
-                                text = {
-                                    Text(stringResource(Res.string.button_label_close_app))
-                                },
-                                onClick = {
-                                    walletMain.platformAdapter.exitApp()
-                                },
-                            )
-                        }
                     }
                 }
             }

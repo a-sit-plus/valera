@@ -1,6 +1,12 @@
-# Release NEXT
+# Release 5.0.0
+* Dependency updates to VC-K 5.0.0
+
+# Release 4.2.0
 * Dependency updates to VC-K 4.2.0-SNAPSHOT
 * Remove custom crypto code and rely on Supreme Crypto Provider
+
+# Release 4.1.1:
+* handle image decoding error
 
 # Release 4.1.0:
 * improved display of credentials

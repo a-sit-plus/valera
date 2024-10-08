@@ -32,12 +32,8 @@ dependencyResolutionManagement {
     }
 
     versionCatalogs {
-        create("signumCatalog") {
-            from("at.asitplus.signum:indispensable-versionCatalog:3.7.0")
-        }
-
         create("vclibCatalog") {
-            from("at.asitplus.wallet:vck-openid-versionCatalog:4.3.0-SNAPSHOT")
+            from("at.asitplus.wallet:vck-openid-versionCatalog:5.0.0")
         }
     }
 

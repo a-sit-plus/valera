@@ -12,43 +12,53 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import at.asitplus.wallet.idaustria.IdAustriaScheme
+import at.asitplus.wallet.eupid.EuPidScheme
 import data.PersonalDataCategory
-import data.credentials.IdAustriaCredentialAdapter
+import data.credentials.EuPidCredentialAdapter
+import ui.composables.AttributeRepresentation
 
 @Composable
-fun IdAustriaCredentialAgeDataCard(
-    credentialAdapter: IdAustriaCredentialAdapter,
+fun EuPidCredentialAgeDataCard(
+    credentialAdapter: EuPidCredentialAdapter,
     modifier: Modifier = Modifier,
 ) {
     CredentialDetailCard(
-        credentialScheme = IdAustriaScheme,
+        credentialScheme = EuPidScheme,
         personalDataCategory = PersonalDataCategory.AgeData,
         credentialAdapter = credentialAdapter,
         modifier = modifier,
     ) {
-        IdAustriaCredentialAgeDataCardContent(
+        EuPidCredentialAgeDataCardContent(
             credentialAdapter = credentialAdapter,
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp)
         )
     }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun IdAustriaCredentialAgeDataCardContent(
-    credentialAdapter: IdAustriaCredentialAdapter,
+fun EuPidCredentialAgeDataCardContent(
+    credentialAdapter: EuPidCredentialAdapter,
     modifier: Modifier = Modifier,
 ) {
     val agesAtLeastN = listOf(
-        14 to credentialAdapter.ageAtLeast14,
-        16 to credentialAdapter.ageAtLeast16,
         18 to credentialAdapter.ageAtLeast18,
-        21 to credentialAdapter.ageAtLeast21,
     )
 
     Column(modifier = modifier) {
+        listOfNotNull(
+            credentialAdapter.ageInYears,
+            credentialAdapter.ageBirthYear,
+        ).let {
+            AttributeRepresentation(
+                value = listOfNotNull(
+                    credentialAdapter.ageInYears,
+                    credentialAdapter.ageBirthYear,
+                ).joinToString(" | "),
+            )
+        }
         FlowRow(
-            modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
         ) {
             for (ageString in agesAtLeastN.filter { it.second == true }.map { "≥${it.first}" }) {
                 SuggestionChip(
@@ -61,7 +71,7 @@ fun IdAustriaCredentialAgeDataCardContent(
             }
         }
         FlowRow(
-            modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
         ) {
             for (ageString in agesAtLeastN.filter { it.second == false }.map { "<${it.first}" }) {
                 SuggestionChip(

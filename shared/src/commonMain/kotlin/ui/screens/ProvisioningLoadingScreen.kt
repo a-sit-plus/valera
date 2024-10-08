@@ -80,9 +80,11 @@ fun ProvisioningLoadingScreen(
             )
             currentLoadingJob = CoroutineScope(Dispatchers.Unconfined).launch {
                 try {
-                    walletMain.cryptoService.promptText=getString(Res.string.biometric_authentication_prompt_to_bind_credentials_title)
-                    walletMain.cryptoService.promptSubtitle=getString(Res.string.biometric_authentication_prompt_to_bind_credentials_subtitle)
-                        walletMain.provisioningService.handleResponse(link)
+                    walletMain.cryptoService.promptText =
+                        getString(Res.string.biometric_authentication_prompt_to_bind_credentials_title)
+                    walletMain.cryptoService.promptSubtitle =
+                        getString(Res.string.biometric_authentication_prompt_to_bind_credentials_subtitle)
+                    walletMain.provisioningService.handleResponse(link)
                     walletMain.snackbarService.showSnackbar(
                         getString(Res.string.snackbar_credential_loaded_successfully)
                     )
