@@ -45,6 +45,7 @@ import ui.navigation.HomePage
 import ui.navigation.LogPage
 import ui.navigation.NavigationStack
 import ui.navigation.Page
+import ui.navigation.PreAuthQrCodeScannerPage
 import ui.navigation.ProvisioningLoadingPage
 import ui.navigation.SettingsPage
 import ui.screens.AddCredentialScreen
@@ -57,6 +58,7 @@ import ui.screens.LoadingScreen
 import ui.screens.LogScreen
 import ui.screens.MyCredentialsScreen
 import ui.screens.OnboardingWrapper
+import ui.screens.PreAuthQrCodeScannerScreen
 import ui.screens.ProvisioningLoadingScreen
 import ui.screens.SettingsScreen
 import view.AuthenticationQrCodeScannerViewModel
@@ -198,6 +200,9 @@ fun MainNavigator(
                             navigateToAddCredentialsPage = {
                                 navigationStack.push(AddCredentialPage())
                             },
+                            navigateToQrAddCredentialsPage = {
+                                navigationStack.push(PreAuthQrCodeScannerPage())
+                            },
                             navigateToCredentialDetailsPage = {
                                 navigationStack.push(CredentialDetailsPage(it))
                             },
@@ -250,6 +255,16 @@ fun MainNavigator(
                             },
                             walletMain = walletMain,
                         )
+                    }
+
+                    is PreAuthQrCodeScannerPage -> {
+                        PreAuthQrCodeScannerScreen(onFoundPayload = { payload ->
+                            runBlocking {
+                                walletMain.provisioningService.decodeCredentialOffer(payload).let { offer ->
+                                    // TODO: Add functionality
+                                }
+                            }
+                        }, navigateUp = { navigationStack.reset() })
                     }
 
                     is LogPage -> {

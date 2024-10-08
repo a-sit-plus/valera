@@ -8,6 +8,8 @@ expect class HomePage() : Page
 
 expect class LogPage() : Page
 
+expect class PreAuthQrCodeScannerPage() : Page
+
 expect class SettingsPage() : Page
 
 
