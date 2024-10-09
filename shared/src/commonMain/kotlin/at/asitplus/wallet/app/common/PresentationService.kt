@@ -6,6 +6,7 @@ import at.asitplus.wallet.lib.oidc.AuthenticationRequestParametersFrom
 import at.asitplus.wallet.lib.oidc.AuthenticationResponseResult
 import at.asitplus.wallet.lib.oidc.OidcSiopWallet
 import io.github.aakira.napier.Napier
+import io.ktor.client.call.body
 import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
@@ -16,6 +17,8 @@ import io.ktor.http.parameters
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 class PresentationService(
     val platformAdapter: PlatformAdapter,
@@ -68,8 +71,12 @@ class PresentationService(
                 throw Exception("InternalServerErrorException", Exception(response.bodyAsText()))
 
             in 200..399 -> response.headers[HttpHeaders.Location]?.let {
-                if (!fromQrCodeScanner) {
+                if (it.isNotEmpty() && !fromQrCodeScanner) {
                     platformAdapter.openUrl(it)
+                }
+            } ?: runCatching { response.body<OpenId4VpSuccess>() }.getOrNull()?.let {
+                if (it.redirectUri.isNotEmpty()) {
+                    platformAdapter.openUrl(it.redirectUri)
                 }
             }
 
@@ -77,6 +84,11 @@ class PresentationService(
         }
     }
 
+    @Serializable
+    data class OpenId4VpSuccess(
+        @SerialName("redirect_uri")
+        val redirectUri: String,
+    )
 
     private fun redirectResponse(
         it: AuthenticationResponseResult.Redirect,
