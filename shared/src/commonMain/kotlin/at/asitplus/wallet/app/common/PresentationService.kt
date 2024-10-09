@@ -45,43 +45,47 @@ class PresentationService(
         Napier.d("Start SIOP process: $authenticationRequestParameters")
         oidcSiopWallet.createAuthnResponse(authenticationRequestParameters).getOrThrow().let {
             when (it) {
-                is AuthenticationResponseResult.Post -> {
-                    Napier.d("Post ${it.url}: $it")
-                    val response = client.submitForm(
-                        url = it.url,
-                        formParameters = parameters {
-                            it.params.forEach { append(it.key, it.value) }
-                        }
-                    )
-                    Napier.d("response $response")
-                    when (response.status.value) {
-                        HttpStatusCode.InternalServerError.value -> {
-                            throw Exception(
-                                "InternalServerErrorException",
-                                Exception(response.bodyAsText()),
-                            )
-                        }
-
-                        in 200..399 -> {
-                            val location = response.headers[HttpHeaders.Location]
-                            if (location != null && fromQrCodeScanner == false) {
-                                platformAdapter.openUrl(location)
-                            }
-                        }
-
-                        else -> {
-                            throw Exception(response.readBytes().decodeToString())
-                        }
-                    }
-                }
-
-                is AuthenticationResponseResult.Redirect -> {
-                    Napier.d("Opening ${it.url}")
-                    if (!fromQrCodeScanner) {
-                        platformAdapter.openUrl(it.url)
-                    }
-                }
+                is AuthenticationResponseResult.Post -> postResponse(it, fromQrCodeScanner)
+                is AuthenticationResponseResult.Redirect -> redirectResponse(it, fromQrCodeScanner)
             }
         }
     }
+
+    private suspend fun postResponse(
+        it: AuthenticationResponseResult.Post,
+        fromQrCodeScanner: Boolean
+    ) {
+        Napier.d("Post ${it.url}: $it")
+        val response = client.submitForm(
+            url = it.url,
+            formParameters = parameters {
+                it.params.forEach { append(it.key, it.value) }
+            }
+        )
+        Napier.d("response $response")
+        when (response.status.value) {
+            HttpStatusCode.InternalServerError.value ->
+                throw Exception("InternalServerErrorException", Exception(response.bodyAsText()))
+
+            in 200..399 -> response.headers[HttpHeaders.Location]?.let {
+                if (!fromQrCodeScanner) {
+                    platformAdapter.openUrl(it)
+                }
+            }
+
+            else -> throw Exception(response.readBytes().decodeToString())
+        }
+    }
+
+
+    private fun redirectResponse(
+        it: AuthenticationResponseResult.Redirect,
+        fromQrCodeScanner: Boolean
+    ) {
+        Napier.d("Opening ${it.url}")
+        if (!fromQrCodeScanner) {
+            platformAdapter.openUrl(it.url)
+        }
+    }
+
 }
