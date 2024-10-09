@@ -58,13 +58,11 @@ expect class AuthenticationConsentPage(
     authorizationPreparationStateSerialized: String, // AuthenticationResultParameters
     recipientName: String,
     recipientLocation: String,
-    fromQrCodeScanner: Boolean = false
 ) : Page {
     val authenticationRequestParametersFromSerialized: String
     val authorizationPreparationStateSerialized: String
     val recipientName: String
     val recipientLocation: String
-    val fromQrCodeScanner: Boolean
 }
 
 expect class AuthenticationSuccessPage() : Page

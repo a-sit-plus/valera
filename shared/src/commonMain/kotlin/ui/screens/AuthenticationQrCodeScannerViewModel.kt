@@ -39,7 +39,6 @@ class AuthenticationQrCodeScannerViewModel(
                         authorizationPreparationStateSerialized = it.authorizationPreparationStateSerialized,
                         recipientLocation = it.recipientLocation,
                         recipientName = it.recipientName,
-                        fromQrCodeScanner = true,
                     )
                 }
 

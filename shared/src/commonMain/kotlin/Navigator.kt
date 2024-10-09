@@ -302,7 +302,6 @@ fun MainNavigator(
                                 spImage = null,
                                 authenticationRequestParametersFrom = request,
                                 authorizationResponsePreparationState = preparationState,
-                                fromQrCodeScanner = page.fromQrCodeScanner,
                                 navigateUp = navigateUp,
                                 navigateToAuthenticationSuccessPage = {
                                     navigationStack.push(

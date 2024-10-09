@@ -40,7 +40,6 @@ fun AuthenticationConsentScreen(
     spImage: ImageBitmap?,
     authenticationRequestParametersFrom: AuthenticationRequestParametersFrom,
     authorizationResponsePreparationState: AuthorizationResponsePreparationState,
-    fromQrCodeScanner: Boolean,
     navigateUp: () -> Unit,
     navigateToAuthenticationSuccessPage: () -> Unit,
     walletMain: WalletMain,
@@ -50,7 +49,6 @@ fun AuthenticationConsentScreen(
         spLocation = spLocation,
         spImage = spImage,
         authenticationRequest = authenticationRequestParametersFrom,
-        fromQrCodeScanner = fromQrCodeScanner,
         navigateUp = navigateUp,
         navigateToAuthenticationSuccessPage = navigateToAuthenticationSuccessPage,
         walletMain = walletMain,
@@ -64,7 +62,6 @@ fun StatefulAuthenticationConsentView(
     spLocation: String,
     spImage: ImageBitmap?,
     authenticationRequest: AuthenticationRequestParametersFrom,
-    fromQrCodeScanner: Boolean,
     navigateUp: () -> Unit,
     navigateToAuthenticationSuccessPage: () -> Unit,
     walletMain: WalletMain,
@@ -113,10 +110,7 @@ fun StatefulAuthenticationConsentView(
                         getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_title)
                     walletMain.cryptoService.promptSubtitle =
                         getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_subtitle)
-                    walletMain.presentationService.startSiop(
-                        authenticationRequest,
-                        fromQrCodeScanner
-                    )
+                    walletMain.presentationService.startSiop(authenticationRequest)
                     navigateUp()
                     navigateToAuthenticationSuccessPage()
                 } catch (e: Throwable) {

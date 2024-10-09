@@ -1,5 +1,6 @@
 # Release 5.1.0
  * Parse `redirect_uri` in response to posting SIOPv2 response to service provider, may open browser
+ * Always open browser when sending response to SIOPv2 calls
 
 # Release 5.0.0
 * Dependency updates to VC-K 5.0.0

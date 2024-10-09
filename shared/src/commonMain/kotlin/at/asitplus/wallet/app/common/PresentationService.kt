@@ -22,8 +22,8 @@ import kotlinx.serialization.Serializable
 
 class PresentationService(
     val platformAdapter: PlatformAdapter,
-    private val cryptoService: WalletCryptoService,
-    private val holderAgent: HolderAgent,
+    cryptoService: WalletCryptoService,
+    holderAgent: HolderAgent,
     httpService: HttpService,
 ) {
     private val client = httpService.buildHttpClient()
@@ -43,20 +43,18 @@ class PresentationService(
     @Throws(Throwable::class)
     suspend fun startSiop(
         authenticationRequestParameters: AuthenticationRequestParametersFrom,
-        fromQrCodeScanner: Boolean
     ) {
         Napier.d("Start SIOP process: $authenticationRequestParameters")
         oidcSiopWallet.createAuthnResponse(authenticationRequestParameters).getOrThrow().let {
             when (it) {
-                is AuthenticationResponseResult.Post -> postResponse(it, fromQrCodeScanner)
-                is AuthenticationResponseResult.Redirect -> redirectResponse(it, fromQrCodeScanner)
+                is AuthenticationResponseResult.Post -> postResponse(it)
+                is AuthenticationResponseResult.Redirect -> redirectResponse(it)
             }
         }
     }
 
     private suspend fun postResponse(
         it: AuthenticationResponseResult.Post,
-        fromQrCodeScanner: Boolean
     ) {
         Napier.d("Post ${it.url}: $it")
         val response = client.submitForm(
@@ -71,7 +69,7 @@ class PresentationService(
                 throw Exception("InternalServerErrorException", Exception(response.bodyAsText()))
 
             in 200..399 -> response.headers[HttpHeaders.Location]?.let {
-                if (it.isNotEmpty() && !fromQrCodeScanner) {
+                if (it.isNotEmpty()) {
                     platformAdapter.openUrl(it)
                 }
             } ?: runCatching { response.body<OpenId4VpSuccess>() }.getOrNull()?.let {
@@ -92,12 +90,9 @@ class PresentationService(
 
     private fun redirectResponse(
         it: AuthenticationResponseResult.Redirect,
-        fromQrCodeScanner: Boolean
     ) {
         Napier.d("Opening ${it.url}")
-        if (!fromQrCodeScanner) {
-            platformAdapter.openUrl(it.url)
-        }
+        platformAdapter.openUrl(it.url)
     }
 
 }
