@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.app.common.WalletMain
 import compose_wallet_app.shared.generated.resources.Res
+import compose_wallet_app.shared.generated.resources.button_label_clear_log
 import compose_wallet_app.shared.generated.resources.button_label_confirm
 import compose_wallet_app.shared.generated.resources.button_label_data_protection_policy
 import compose_wallet_app.shared.generated.resources.button_label_dismiss
