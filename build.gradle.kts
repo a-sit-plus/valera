@@ -3,7 +3,7 @@ plugins {
     // in each subproject's classloader
     id("com.android.application").apply(false)
     id("com.android.library").apply(false)
-    id("at.asitplus.gradle.conventions") version "2.0.0+20240725"
+    id("at.asitplus.gradle.conventions") version "2.0.20+20240920"
 
     alias(libs.plugins.jetbrainsCompose) apply false
     alias(libs.plugins.compose.compiler) apply false
@@ -17,10 +17,9 @@ repositories {
 
 allprojects {
     repositories {
+        mavenLocal()
         maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
         maven("https://oss.sonatype.org/content/repositories/snapshots/")
-        maven(url = uri("https://s01.oss.sonatype.org/content/repositories/atasitplus-1173/"))
-        maven(url = uri("https://s01.oss.sonatype.org/content/repositories/atasitplus-1175/"))
     }
 }
 

@@ -51,17 +51,17 @@ object MobileDrivingLicenceCredentialAttributeCategorization : CredentialAttribu
 
         PersonalDataCategory.BiometricData to listOf(
             MobileDrivingLicenceDataElements.SIGNATURE_USUAL_MARK, // TODO: extract data
-            MobileDrivingLicenceDataElements.UN_DISTINGUISHING_SIGN, // TODO: extract data
         ).map { NormalizedJsonPath() + it to null },
 
         PersonalDataCategory.Metadata to listOf(
+            MobileDrivingLicenceDataElements.DOCUMENT_NUMBER,
             MobileDrivingLicenceDataElements.ISSUE_DATE,
             MobileDrivingLicenceDataElements.EXPIRY_DATE,
             MobileDrivingLicenceDataElements.ISSUING_COUNTRY,
             MobileDrivingLicenceDataElements.ISSUING_AUTHORITY,
             MobileDrivingLicenceDataElements.ISSUING_JURISDICTION,
-            MobileDrivingLicenceDataElements.DOCUMENT_NUMBER,
             MobileDrivingLicenceDataElements.ADMINISTRATIVE_NUMBER,
+            MobileDrivingLicenceDataElements.UN_DISTINGUISHING_SIGN, // TODO: extract data
         ).map { NormalizedJsonPath() + it to null },
     ),
     allAttributes = MobileDrivingLicenceDataElements.ALL_ELEMENTS.map {

@@ -1,3 +1,4 @@
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.isDisplayed
 import androidx.compose.ui.test.isNotDisplayed
@@ -8,8 +9,11 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import at.asitplus.wallet.app.android.AndroidCryptoService
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.DummyPlatformAdapter
+import at.asitplus.wallet.app.common.KeystoreService
+import at.asitplus.wallet.app.common.WalletCryptoService
 import at.asitplus.wallet.app.common.WalletMain
 import data.storage.DummyDataStoreService
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -19,14 +23,21 @@ import ui.screens.OnboardingWrapperTestTags
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.ClaimToBeIssued
 import at.asitplus.wallet.lib.agent.CredentialToBeIssued
+import at.asitplus.wallet.lib.agent.Holder
+import at.asitplus.wallet.lib.agent.Issuer
 import at.asitplus.wallet.lib.agent.IssuerAgent
-import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.button_label_accept
-import composewalletapp.shared.generated.resources.button_label_consent
-import composewalletapp.shared.generated.resources.button_label_continue
-import composewalletapp.shared.generated.resources.button_label_start
-import composewalletapp.shared.generated.resources.content_description_portrait
+import at.asitplus.wallet.lib.agent.toStoreCredentialInput
+import compose_wallet_app.shared.generated.resources.Res
+import compose_wallet_app.shared.generated.resources.button_label_accept
+import compose_wallet_app.shared.generated.resources.button_label_consent
+import compose_wallet_app.shared.generated.resources.button_label_continue
+import compose_wallet_app.shared.generated.resources.button_label_start
+import compose_wallet_app.shared.generated.resources.content_description_portrait
 import data.storage.PersistentSubjectCredentialStore
+import data.storage.RealDataStoreService
+import data.storage.getDataStore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 import org.jetbrains.compose.resources.getString
@@ -37,6 +48,7 @@ import kotlin.time.Duration.Companion.minutes
 @OptIn(ExperimentalResourceApi::class, ExperimentalTestApi::class)
 class InstrumentedTests {
 
+
     @get:Rule
     val composeTestRule = createComposeRule()
     // use createAndroidComposeRule<YourActivity>() if you need access to
@@ -45,12 +57,17 @@ class InstrumentedTests {
 
     @Test
     fun givenNewAppInstallation_whenStartingApp_thenAppActuallyStarts() {
+
         // Start the app
         composeTestRule.setContent {
+            val dummyDataStoreService = DummyDataStoreService()
+            val ks = KeystoreService(dummyDataStoreService)
             val walletMain = WalletMain(
-                objectFactory = AndroidObjectFactory(),
-                dataStoreService = DummyDataStoreService(),
+                cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
+                holderKeyService = ks,
+                dataStoreService = dummyDataStoreService,
                 platformAdapter = DummyPlatformAdapter(),
+                scope =  CoroutineScope(Dispatchers.Default),
                 buildContext = BuildContext(
                     buildType = "debug",
                     versionCode = 0,
@@ -69,10 +86,14 @@ class InstrumentedTests {
     fun givenNewAppInstallation_whenStartingApp_thenShowsOnboardingStartScreen() {
         // Start the app
         composeTestRule.setContent {
+            val dummyDataStoreService = DummyDataStoreService()
+            val ks = KeystoreService(dummyDataStoreService)
             val walletMain = WalletMain(
-                objectFactory = AndroidObjectFactory(),
-                dataStoreService = DummyDataStoreService(),
+                cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
+                holderKeyService = ks,
+                dataStoreService = dummyDataStoreService,
                 platformAdapter = DummyPlatformAdapter(),
+                scope =  CoroutineScope(Dispatchers.Default),
                 buildContext = BuildContext(
                     buildType = "debug",
                     versionCode = 0,
@@ -95,10 +116,14 @@ class InstrumentedTests {
     fun givenNewAppInstallation_whenStartingApp_thenShowsOnboardingStartButton() {
         // Start the app
         composeTestRule.setContent {
+            val dummyDataStoreService = DummyDataStoreService()
+            val ks = KeystoreService(dummyDataStoreService)
             val walletMain = WalletMain(
-                objectFactory = AndroidObjectFactory(),
-                dataStoreService = DummyDataStoreService(),
+                cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
+                holderKeyService = ks,
+                dataStoreService = dummyDataStoreService,
                 platformAdapter = DummyPlatformAdapter(),
+                scope =  CoroutineScope(Dispatchers.Default),
                 buildContext = BuildContext(
                     buildType = "debug",
                     versionCode = 0,
@@ -126,12 +151,14 @@ class InstrumentedTests {
     @Test
     fun givenNewAppInstallation_whenStartingApp_thenShowAttributesOnMyCredentialsScreen() {
         composeTestRule.setContent {
-            val dataStoreService = DummyDataStoreService()
+            val dummyDataStoreService = DummyDataStoreService()
+            val ks = KeystoreService(dummyDataStoreService)
             val walletMain = WalletMain(
-                objectFactory = AndroidObjectFactory(),
-                dataStoreService = dataStoreService,
-                platformAdapter = AndroidDummyPlatformAdapter(),
-                subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService),
+                cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
+                holderKeyService = ks,
+                dataStoreService = dummyDataStoreService,
+                platformAdapter = AndroidDummyPlatformAdapter(), //why?
+                scope =  CoroutineScope(Dispatchers.Default),
                 buildContext = BuildContext(
                     buildType = "debug",
                     versionCode = 0,
@@ -142,14 +169,14 @@ class InstrumentedTests {
 
             val issuer = IssuerAgent()
             runBlocking {
-                walletMain.holderAgent.storeCredentials(
+                walletMain.holderAgent.storeCredential(
                     issuer.issueCredential(
                         CredentialToBeIssued.VcSd(getAttributes(),
                             Clock.System.now().plus(3600.minutes)
                         ),
-                        walletMain.cryptoService.publicKey,
+                        walletMain.cryptoService.keyMaterial.publicKey,
                         IdAustriaScheme
-                    ).toStoreCredentialInput()
+                    ).getOrThrow().toStoreCredentialInput()
                 )
             }
         }
@@ -198,12 +225,15 @@ class InstrumentedTests {
     @Test
     fun givenNewAppInstallation_whenStartingApp_thenLoadAttributesAndShowData() {
         composeTestRule.setContent {
-            val dataStoreService = DummyDataStoreService()
+            val dummyDataStoreService = DummyDataStoreService()
+            val ks = KeystoreService(dummyDataStoreService)
             val walletMain = WalletMain(
-                objectFactory = AndroidObjectFactory(),
-                dataStoreService = dataStoreService,
-                platformAdapter = AndroidDummyPlatformAdapter(),
-                subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService),
+                cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
+                holderKeyService = ks,
+                dataStoreService = dummyDataStoreService,
+                platformAdapter = AndroidDummyPlatformAdapter(), //why?
+                scope =  CoroutineScope(Dispatchers.Default),
+                subjectCredentialStore = PersistentSubjectCredentialStore(dummyDataStoreService),
                 buildContext = BuildContext(
                     buildType = "debug",
                     versionCode = 0,
@@ -214,14 +244,14 @@ class InstrumentedTests {
 
             val issuer = IssuerAgent()
             runBlocking {
-                walletMain.holderAgent.storeCredentials(
+                walletMain.holderAgent.storeCredential(
                     issuer.issueCredential(
                         CredentialToBeIssued.VcSd(getAttributes(),
                             Clock.System.now().plus(3600.minutes)
                         ),
-                        walletMain.cryptoService.publicKey,
+                        walletMain.cryptoService.keyMaterial.publicKey,
                         IdAustriaScheme
-                    ).toStoreCredentialInput()
+                    ).getOrThrow().toStoreCredentialInput()
                 )
             }
         }

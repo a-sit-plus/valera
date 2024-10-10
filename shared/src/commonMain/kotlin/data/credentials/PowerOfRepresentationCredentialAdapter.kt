@@ -2,8 +2,8 @@ package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
-import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.por.PowerOfRepresentationDataElements
 import at.asitplus.wallet.por.PowerOfRepresentationDataElements.ADMINISTRATIVE_NUMBER
 import at.asitplus.wallet.por.PowerOfRepresentationDataElements.DOCUMENT_NUMBER
 import at.asitplus.wallet.por.PowerOfRepresentationDataElements.EFFECTIVE_FROM_DATE
@@ -21,6 +21,9 @@ import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import data.Attribute
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.contentOrNull
 
 sealed class PowerOfRepresentationCredentialAdapter : CredentialAdapter() {
 
@@ -54,8 +57,8 @@ sealed class PowerOfRepresentationCredentialAdapter : CredentialAdapter() {
     abstract val effectiveFromDate: Instant?
     abstract val effectiveUntilDate: Instant?
     abstract val administrativeNumber: String?
-    abstract val issuanceDate: LocalDate?
-    abstract val expiryDate: LocalDate?
+    abstract val issuanceDate: Instant?
+    abstract val expiryDate: Instant?
     abstract val issuingAuthority: String?
     abstract val documentNumber: String?
     abstract val issuingCountry: String?
@@ -88,50 +91,47 @@ sealed class PowerOfRepresentationCredentialAdapter : CredentialAdapter() {
 }
 
 private class PowerOfRepresentationCredentialSdJwtAdapter(
-    attributes: Map<String, Any>,
+    private val attributes: Map<String, JsonPrimitive>,
 ) : PowerOfRepresentationCredentialAdapter() {
-    private val proxy = PowerOfRepresentationCredentialIsoMdocAdapter(
-        namespaces = mapOf(PowerOfRepresentationScheme.toString() to attributes),
-    )
 
     override val documentNumber: String?
-        get() = proxy.documentNumber
+        get() = attributes[PowerOfRepresentationDataElements.DOCUMENT_NUMBER]?.contentOrNull
 
     override val issuingAuthority: String?
-        get() = proxy.issuingAuthority
+        get() = attributes[PowerOfRepresentationDataElements.ISSUING_AUTHORITY]?.contentOrNull
 
     override val legalPersonIdentifier: String?
-        get() = proxy.legalPersonIdentifier
+        get() = attributes[PowerOfRepresentationDataElements.LEGAL_PERSON_IDENTIFIER]?.contentOrNull
 
     override val legalName: String?
-        get() = proxy.legalName
+        get() = attributes[PowerOfRepresentationDataElements.LEGAL_NAME]?.contentOrNull
 
     override val fullPowers: Boolean?
-        get() = proxy.fullPowers
+        get() = attributes[PowerOfRepresentationDataElements.FULL_POWERS]?.booleanOrNull
 
     override val eService: String?
-        get() = proxy.eService
+        get() = attributes[PowerOfRepresentationDataElements.E_SERVICE]?.contentOrNull
 
     override val effectiveFromDate: Instant?
-        get() = proxy.effectiveFromDate
+        get() = attributes[PowerOfRepresentationDataElements.EFFECTIVE_FROM_DATE]?.contentOrNull?.toInstantOrNull()
 
     override val effectiveUntilDate: Instant?
-        get() = proxy.effectiveUntilDate
+        get() = attributes[PowerOfRepresentationDataElements.EFFECTIVE_UNTIL_DATE]?.contentOrNull?.toInstantOrNull()
 
     override val administrativeNumber: String?
-        get() = proxy.administrativeNumber
+        get() = attributes[PowerOfRepresentationDataElements.ADMINISTRATIVE_NUMBER]?.contentOrNull
 
-    override val issuanceDate: LocalDate?
-        get() = proxy.issuanceDate
+    override val issuanceDate: Instant?
+        get() = attributes[PowerOfRepresentationDataElements.ISSUANCE_DATE]?.contentOrNull?.toInstantOrNull()
 
-    override val expiryDate: LocalDate?
-        get() = proxy.expiryDate
+    override val expiryDate: Instant?
+        get() = attributes[PowerOfRepresentationDataElements.EXPIRY_DATE]?.contentOrNull?.toInstantOrNull()
 
     override val issuingCountry: String?
-        get() = proxy.issuingCountry
+        get() = attributes[PowerOfRepresentationDataElements.ISSUING_COUNTRY]?.contentOrNull
 
     override val issuingJurisdiction: String?
-        get() = proxy.issuingJurisdiction
+        get() = attributes[PowerOfRepresentationDataElements.ISSUING_JURISDICTION]?.contentOrNull
 }
 
 private class PowerOfRepresentationCredentialIsoMdocAdapter(
@@ -169,11 +169,11 @@ private class PowerOfRepresentationCredentialIsoMdocAdapter(
     override val administrativeNumber: String?
         get() = mobileDrivingLicenceNamespace[ADMINISTRATIVE_NUMBER] as String?
 
-    override val issuanceDate: LocalDate?
-        get() = mobileDrivingLicenceNamespace[ISSUANCE_DATE].toLocalDateOrNull()
+    override val issuanceDate: Instant?
+        get() = mobileDrivingLicenceNamespace[ISSUANCE_DATE].toInstantOrNull()
 
-    override val expiryDate: LocalDate?
-        get() = mobileDrivingLicenceNamespace[EXPIRY_DATE].toLocalDateOrNull()
+    override val expiryDate: Instant?
+        get() = mobileDrivingLicenceNamespace[EXPIRY_DATE].toInstantOrNull()
 
     override val issuingCountry: String?
         get() = mobileDrivingLicenceNamespace[ISSUING_COUNTRY] as String?

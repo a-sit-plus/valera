@@ -27,20 +27,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import at.asitplus.wallet.app.common.CryptoServiceAuthorizationContext
-import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.attribute_friendly_name_data_recipient_location
-import composewalletapp.shared.generated.resources.attribute_friendly_name_data_recipient_name
-import composewalletapp.shared.generated.resources.heading_label_authenticate_at_device_screen
-import composewalletapp.shared.generated.resources.heading_label_navigate_back
-import composewalletapp.shared.generated.resources.info_text_submission_preview_disabled
-import composewalletapp.shared.generated.resources.prompt_send_above_data
-import composewalletapp.shared.generated.resources.section_heading_data_recipient
+import compose_wallet_app.shared.generated.resources.Res
+import compose_wallet_app.shared.generated.resources.attribute_friendly_name_data_recipient_location
+import compose_wallet_app.shared.generated.resources.attribute_friendly_name_data_recipient_name
+import compose_wallet_app.shared.generated.resources.heading_label_authenticate_at_device_screen
+import compose_wallet_app.shared.generated.resources.heading_label_navigate_back
+import compose_wallet_app.shared.generated.resources.info_text_submission_preview_disabled
+import compose_wallet_app.shared.generated.resources.prompt_send_above_data
+import compose_wallet_app.shared.generated.resources.section_heading_data_recipient
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
-import ui.composables.BiometryPrompt
-import ui.composables.BiometryPromptDismissResult
-import ui.composables.BiometryPromptSuccessResult
 import ui.composables.DataDisplaySection
 import ui.composables.buttons.CancelButton
 import ui.composables.buttons.ConsentButton
@@ -54,11 +50,7 @@ fun AuthenticationConsentView(
     spImage: ImageBitmap?,
     navigateUp: () -> Unit,
     consentToDataTransmission: () -> Unit,
-    cancelAuthentication: () -> Unit,
-    authorizationContext: CryptoServiceAuthorizationContext,
-    showBiometry: Boolean,
-    onBiometrySuccess: (BiometryPromptSuccessResult) -> Unit,
-    onBiometryDismissed: (BiometryPromptDismissResult) -> Unit,
+    cancelAuthentication: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -102,13 +94,6 @@ fun AuthenticationConsentView(
             }
         }
     ) {
-        if (showBiometry) {
-            BiometryPrompt(
-                authorizationContext = authorizationContext,
-                onSuccess = onBiometrySuccess,
-                onDismiss = onBiometryDismissed,
-            )
-        }
         Box(modifier = Modifier.padding(it)) {
             Column(
                 modifier = Modifier.padding(horizontal = 16.dp)

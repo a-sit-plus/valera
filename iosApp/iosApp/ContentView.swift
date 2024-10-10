@@ -11,7 +11,6 @@ struct ComposeView: UIViewControllerRepresentable {
         let buildType = "release"
         #endif
         return Main_iosKt.MainViewController(
-            objectFactory: SwiftObjectFactory(),
             platformAdapter: SwiftPlatformAdapter(),
             buildContext: BuildContext(
                 buildType: buildType,
@@ -127,29 +126,5 @@ class SwiftPlatformAdapter: PlatformAdapter {
             }
         }
     }
-}
-
-class SwiftObjectFactory: ObjectFactory {
-    lazy var keyChainService: RealKeyChainService = {RealKeyChainService()}()
-    
-    func loadCryptoService() -> KmmResult<WalletCryptoService> {
-        do {
-            try keyChainService.initialize()
-            guard let cryptoService = VcLibCryptoServiceCryptoKit(keyChainService: keyChainService) else {
-                NapierProxy.companion.e(msg: "Error on creating VcLibCryptoServiceCryptoKit")
-                return KmmResultFailure(KotlinThrowable(message: "Error on creating VcLibCryptoServiceCryptoKit"))
-            }
-            return KmmResultSuccess(cryptoService)
-        } catch {
-            NapierProxy.companion.e(msg: "Error from keyChainService.generateKeyPair")
-            return KmmResultFailure(KotlinThrowable(message: "Error from keyChainService.generateKeyPair"))
-        }
-    }
-
-    func loadHolderKeyService() -> KmmResult<HolderKeyService> {
-        return KmmResultSuccess(keyChainService)
-    }
-    
-
 }
 

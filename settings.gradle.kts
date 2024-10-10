@@ -1,5 +1,3 @@
-rootProject.name = "ComposeWalletApp"
-
 include(":androidApp")
 include(":shared")
 
@@ -8,6 +6,7 @@ pluginManagement {
         gradlePluginPortal()
         mavenCentral()
         google()
+        maven("https://s01.oss.sonatype.org/content/repositories/snapshots")
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
         maven("https://raw.githubusercontent.com/a-sit-plus/gradle-conventions-plugin/mvn/repo")
     }
@@ -29,15 +28,13 @@ dependencyResolutionManagement {
     repositories {
         mavenCentral()
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+        maven("https://s01.oss.sonatype.org/content/repositories/snapshots") //Version catalog and kotest snapshot
     }
 
     versionCatalogs {
-        create("signumCatalog") {
-            from("at.asitplus.signum:indispensable-versionCatalog:3.6.0")
-        }
-
         create("vclibCatalog") {
-            from("at.asitplus.wallet:vck-openid-versionCatalog:4.1.1")
+            from("at.asitplus.wallet:vck-openid-versionCatalog:5.0.0")
         }
     }
+
 }

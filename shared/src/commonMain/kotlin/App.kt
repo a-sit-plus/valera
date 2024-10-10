@@ -13,12 +13,6 @@ import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import ui.theme.WalletTheme
 
-
-/**
- * Global variable to utilize back navigation functionality
- */
-var globalBack: () -> Unit = {}
-
 /**
  * Global variable which especially helps to channel information from swift code
  * to compose whenever the app gets called via an associated domain

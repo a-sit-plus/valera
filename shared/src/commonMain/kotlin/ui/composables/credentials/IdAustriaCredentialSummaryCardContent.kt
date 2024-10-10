@@ -9,7 +9,7 @@ import data.credentials.IdAustriaCredentialAdapter
 @Composable
 fun IdAustriaCredentialSummaryCardContent(
     credential: SubjectCredentialStore.StoreEntry,
-    decodeImage: (ByteArray) -> ImageBitmap,
+    decodeImage: (ByteArray) -> ImageBitmap?,
 ) {
     val credentialAdapter = remember {
         IdAustriaCredentialAdapter.createFromStoreEntry(credential, decodeImage = decodeImage)

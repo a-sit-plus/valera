@@ -22,17 +22,19 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
+import at.asitplus.wallet.eprescription.EPrescriptionScheme
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
-import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.heading_label_credential_details_screen
+import compose_wallet_app.shared.generated.resources.Res
+import compose_wallet_app.shared.generated.resources.heading_label_credential_details_screen
 import data.storage.StoreEntryId
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.CertificateOfResidenceCredentialView
+import ui.composables.credentials.EPrescriptionView
 import ui.composables.credentials.EuPidCredentialView
 import ui.composables.credentials.GenericCredentialSummaryCardContent
 import ui.composables.credentials.IdAustriaCredentialView
@@ -155,6 +157,10 @@ fun CredentialDetailsView(
 
             is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialView(
                 credential = storeEntry,
+            )
+
+            is EPrescriptionScheme -> EPrescriptionView(
+                credential = storeEntry
             )
 
             else -> {}
