@@ -16,6 +16,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
@@ -29,7 +31,10 @@ import io.github.aakira.napier.Napier
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.AdvancedFloatingActionButton
 import ui.composables.FloatingActionButtonHeightSpacer
+import ui.composables.buttons.CancelButton
 import ui.composables.buttons.LoadDataButton
+import ui.composables.buttons.LoadDataIdaButton
+import ui.composables.buttons.LoadDataQrButton
 import ui.composables.credentials.CredentialCard
 
 @Composable
@@ -65,8 +70,6 @@ fun MyCredentialsScreen(
     imageDecoder: (ByteArray) -> ImageBitmap?,
     viewModel: CredentialScreenViewModel,
 ) {
-    val expandedFloatingActionButton = mutableStateOf(false)
-
     val storeContainerState by viewModel.storeContainer.collectAsState(null)
     Scaffold(
         topBar = {
@@ -82,7 +85,7 @@ fun MyCredentialsScreen(
         floatingActionButton = {
             storeContainerState?.let { storeContainer ->
                 if (storeContainer.credentials.isNotEmpty()) {
-                    AdvancedFloatingActionButton(expanded = expandedFloatingActionButton, addCredential = navigateToAddCredentialsPage, addCredentialQr = navigateToQrAddCredentialsPage)
+                    AdvancedFloatingActionButton(addCredential = navigateToAddCredentialsPage, addCredentialQr = navigateToQrAddCredentialsPage)
                 }
             }
         }
@@ -95,14 +98,21 @@ fun MyCredentialsScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.fillMaxSize(),
                     ) {
-                        Text(
-                            text = stringResource(Res.string.info_text_no_credentials_available),
-                            textAlign = TextAlign.Center,
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        LoadDataButton(
-                            onClick = navigateToAddCredentialsPage
-                        )
+                        val selection = rememberSaveable{mutableStateOf(false)}
+                        if (selection.value) {
+                            LoadDataIdaButton(navigateToAddCredentialsPage)
+                            Spacer(modifier = Modifier.height(5.dp))
+                            LoadDataQrButton(navigateToQrAddCredentialsPage)
+                            Spacer(modifier = Modifier.height(20.dp))
+                            CancelButton(onClick = {selection.value = false})
+                        } else {
+                            Text(
+                                text = stringResource(Res.string.info_text_no_credentials_available),
+                                textAlign = TextAlign.Center,
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            LoadDataButton(onClick = {selection.value = true})
+                        }
                     }
                 } else {
                     LazyColumn {

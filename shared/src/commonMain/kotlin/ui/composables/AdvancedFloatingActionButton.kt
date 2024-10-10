@@ -18,6 +18,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -30,7 +32,9 @@ import org.jetbrains.compose.resources.stringResource
 // Modified from https://developer.android.com/develop/ui/compose/animation/composables-modifiers
 
 @Composable
-fun AdvancedFloatingActionButton(expanded: MutableState<Boolean>, addCredentialQr: () -> Unit, addCredential: () -> Unit) {
+fun AdvancedFloatingActionButton(addCredentialQr: () -> Unit, addCredential: () -> Unit) {
+    val expanded = rememberSaveable{mutableStateOf(false)}
+
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         val density = LocalDensity.current
         AnimatedVisibility(

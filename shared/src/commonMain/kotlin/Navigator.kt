@@ -30,6 +30,10 @@ import compose_wallet_app.shared.generated.resources.snackbar_reset_app_successf
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier
 import io.ktor.http.parseQueryString
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.StringResource
@@ -261,7 +265,11 @@ fun MainNavigator(
                         PreAuthQrCodeScannerScreen(onFoundPayload = { payload ->
                             runBlocking {
                                 walletMain.provisioningService.decodeCredentialOffer(payload).let { offer ->
-                                    // TODO: Add functionality
+                                    val credentialIssuer = offer.credentialOffer.credentialIssuer
+                                    val preAuthorizedCode = offer.credentialOffer.grants?.preAuthorizedCode?.preAuthorizedCode.toString()
+                                    val credentialIdToRequest = offer.credentialOffer.configurationIds.first()
+                                    walletMain.provisioningService.loadCredentialWithPreAuthn(credentialIssuer = credentialIssuer, preAuthorizedCode = preAuthorizedCode, credentialIdToRequest = credentialIdToRequest)
+                                    navigationStack.reset()
                                 }
                             }
                         }, navigateUp = { navigationStack.reset() })

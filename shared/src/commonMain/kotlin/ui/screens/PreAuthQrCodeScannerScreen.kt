@@ -10,6 +10,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import compose_wallet_app.shared.generated.resources.Res
+import compose_wallet_app.shared.generated.resources.heading_label_authenticate_at_device_title
+import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton
 import ui.views.CameraView
 
@@ -25,7 +28,7 @@ fun PreAuthQrCodeScannerScreen(
                 title = {
                     Column {
                         Text(
-                            text = "QR Scanner", // TODO: Add proper resource
+                            stringResource(Res.string.heading_label_authenticate_at_device_title),
                             style = MaterialTheme.typography.headlineLarge,
                         )
                     }
