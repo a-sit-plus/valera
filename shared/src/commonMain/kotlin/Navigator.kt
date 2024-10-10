@@ -264,12 +264,17 @@ fun MainNavigator(
                     is PreAuthQrCodeScannerPage -> {
                         PreAuthQrCodeScannerScreen(onFoundPayload = { payload ->
                             runBlocking {
-                                walletMain.provisioningService.decodeCredentialOffer(payload).let { offer ->
-                                    val credentialIssuer = offer.credentialOffer.credentialIssuer
-                                    val preAuthorizedCode = offer.credentialOffer.grants?.preAuthorizedCode?.preAuthorizedCode.toString()
-                                    val credentialIdToRequest = offer.credentialOffer.configurationIds.first()
-                                    walletMain.provisioningService.loadCredentialWithPreAuthn(credentialIssuer = credentialIssuer, preAuthorizedCode = preAuthorizedCode, credentialIdToRequest = credentialIdToRequest)
-                                    navigationStack.reset()
+                                try {
+                                    walletMain.provisioningService.decodeCredentialOffer(payload).let { offer ->
+                                        val credentialIssuer = offer.credentialOffer.credentialIssuer
+                                        val preAuthorizedCode = offer.credentialOffer.grants?.preAuthorizedCode?.preAuthorizedCode.toString()
+                                        val credentialIdToRequest = offer.credentialOffer.configurationIds.first()
+                                        walletMain.provisioningService.loadCredentialWithPreAuthn(credentialIssuer = credentialIssuer, preAuthorizedCode = preAuthorizedCode, credentialIdToRequest = credentialIdToRequest)
+                                        navigationStack.reset()
+                                    }
+                                } catch (e: Throwable) {
+                                    navigateUp()
+                                    walletMain.errorService.emit(e)
                                 }
                             }
                         }, navigateUp = { navigationStack.reset() })
