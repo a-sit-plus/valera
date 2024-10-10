@@ -25,6 +25,7 @@ import compose_wallet_app.shared.generated.resources.snackbar_reset_app_successf
 import compose_wallet_app.shared.generated.resources.navigation_button_label_my_data
 import compose_wallet_app.shared.generated.resources.navigation_button_label_settings
 import compose_wallet_app.shared.generated.resources.navigation_button_label_show_data
+import compose_wallet_app.shared.generated.resources.snackbar_clear_log_successfully
 import compose_wallet_app.shared.generated.resources.snackbar_reset_app_successfully
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier
@@ -239,6 +240,13 @@ fun MainNavigator(
                                 }
                                 walletMain.snackbarService.showSnackbar(resetMessage)
                                 navigationStack.reset()
+                            },
+                            onClickClearLog = {
+                                val clearMessage = runBlocking {
+                                    walletMain.clearLog()
+                                    getString(Res.string.snackbar_clear_log_successfully)
+                                }
+                                walletMain.snackbarService.showSnackbar(clearMessage)
                             },
                             walletMain = walletMain,
                         )

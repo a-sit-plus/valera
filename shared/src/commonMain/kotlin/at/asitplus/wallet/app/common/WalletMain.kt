@@ -105,6 +105,10 @@ class WalletMain(
         return rawLog?.split(regex = regex)?.filter { it.isNotEmpty() } ?: listOf("")
     }
 
+    fun clearLog() {
+        dataStoreService.clearLog()
+    }
+
     fun startProvisioning(
         host: String,
         credentialScheme: ConstantIndex.CredentialScheme,

@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.SettingsBackupRestore
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
@@ -32,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.app.common.WalletMain
 import compose_wallet_app.shared.generated.resources.Res
+import compose_wallet_app.shared.generated.resources.button_label_clear_log
 import compose_wallet_app.shared.generated.resources.button_label_confirm
 import compose_wallet_app.shared.generated.resources.button_label_data_protection_policy
 import compose_wallet_app.shared.generated.resources.button_label_dismiss
@@ -57,6 +59,7 @@ import org.jetbrains.compose.resources.stringResource
 fun SettingsScreen(
     navigateToLogPage: () -> Unit,
     onClickResetApp: () -> Unit,
+    onClickClearLog: () -> Unit,
     walletMain: WalletMain,
 ) {
     val stage = Configuration.BUILD_FOR_STAGE
@@ -83,6 +86,7 @@ fun SettingsScreen(
             }
         },
         onClickShareLogFile = navigateToLogPage,
+        onClickClearLogFile = onClickClearLog,
         onClickResetApp = onClickResetApp,
     )
 }
@@ -97,6 +101,7 @@ fun SettingsView(
     onClickDataProtectionPolicy: () -> Unit,
     onClickLicenses: () -> Unit,
     onClickShareLogFile: () -> Unit,
+    onClickClearLogFile: () -> Unit,
     onClickResetApp: () -> Unit,
 ) {
     val showAlert = remember { mutableStateOf(false) }
@@ -198,6 +203,17 @@ fun SettingsView(
                         },
                         label = stringResource(Res.string.button_label_share_log_file),
                         onClick = onClickShareLogFile,
+                        modifier = listSpacingModifier.fillMaxWidth(),
+                    )
+                    TextIconButtonListItem(
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Delete,
+                                contentDescription = null,
+                            )
+                        },
+                        label = stringResource(Res.string.button_label_clear_log),
+                        onClick = onClickClearLogFile,
                         modifier = listSpacingModifier.fillMaxWidth(),
                     )
                     TextIconButtonListItem(
