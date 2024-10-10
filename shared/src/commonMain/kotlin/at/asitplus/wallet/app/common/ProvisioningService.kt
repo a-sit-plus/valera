@@ -34,6 +34,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.Url
@@ -41,8 +42,10 @@ import io.ktor.http.contentType
 import io.ktor.util.flattenEntries
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import okio.ByteString.Companion.decodeBase64
@@ -264,7 +267,13 @@ class ProvisioningService(
     suspend fun decodeCredentialOffer(
         qrCodeContent: String
     ): CredentialOfferInfo {
-        val walletService = WalletService(cryptoService = cryptoService)
+        val walletService = WalletService(
+            cryptoService = cryptoService,
+            remoteResourceRetriever = { url ->
+                withContext(Dispatchers.IO) {
+                    client.get(url).bodyAsText()
+                }
+            })
         val credentialOffer = walletService.parseCredentialOffer(qrCodeContent).getOrThrow()
         val mappedCredentials = credentialOffer.configurationIds
             .mapNotNull { ma -> decodeFromCredentialIdentifier(ma)?.let { ma to it } }
