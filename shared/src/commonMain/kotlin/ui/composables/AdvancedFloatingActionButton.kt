@@ -8,8 +8,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Person
@@ -31,26 +30,26 @@ import org.jetbrains.compose.resources.stringResource
 // Modified from https://developer.android.com/develop/ui/compose/animation/composables-modifiers
 
 @Composable
-fun CustomFloatingActionButton(showMenu: MutableState<Boolean>, addCredentialQr: () -> Unit, addCredential: () -> Unit) {
+fun AdvancedFloatingActionButton(expanded: MutableState<Boolean>, addCredentialQr: () -> Unit, addCredential: () -> Unit) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         val density = LocalDensity.current
         AnimatedVisibility(
-            visible = showMenu.value,
+            visible = expanded.value,
             enter = slideInVertically {
-                with(density) { -40.dp.roundToPx() }
+                with(density) { -20.dp.roundToPx() }
             } + expandVertically(
                 expandFrom = Alignment.Top
             ) + fadeIn(
                 initialAlpha = 0.3f
             ),
             exit = slideOutVertically{
-                with(density) { 40.dp.roundToPx() }
+                with(density) { 20.dp.roundToPx() }
             } + shrinkVertically(shrinkTowards = Alignment.Bottom
             ) + fadeOut(
                 targetAlpha = 0f
             )
         ) {
-            Column {
+            Column (modifier = Modifier.padding(bottom = 20.dp)) {
                 SmallFloatingActionButton(onClick = addCredentialQr) {
                     Icon(
                         imageVector = Icons.Default.QrCode,
@@ -65,13 +64,11 @@ fun CustomFloatingActionButton(showMenu: MutableState<Boolean>, addCredentialQr:
                 }
             }
         }
-        Spacer(modifier = Modifier.size(20.dp))
-
-        FloatingActionButton(onClick = { showMenu.value = !showMenu.value }) {
+        FloatingActionButton(onClick = { expanded.value = !expanded.value }) {
             Icon(
                 imageVector = Icons.Default.Add,
                 contentDescription = stringResource(Res.string.content_description_add_credential),
-                modifier = Modifier.rotate( if (showMenu.value) 45f else 0f)
+                modifier = Modifier.rotate( if (expanded.value) 45f else 0f)
             )
         }
     }

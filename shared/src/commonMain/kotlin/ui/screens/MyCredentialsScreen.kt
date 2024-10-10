@@ -27,7 +27,7 @@ import compose_wallet_app.shared.generated.resources.heading_label_my_data_scree
 import compose_wallet_app.shared.generated.resources.info_text_no_credentials_available
 import io.github.aakira.napier.Napier
 import org.jetbrains.compose.resources.stringResource
-import ui.composables.CustomFloatingActionButton
+import ui.composables.AdvancedFloatingActionButton
 import ui.composables.FloatingActionButtonHeightSpacer
 import ui.composables.buttons.LoadDataButton
 import ui.composables.credentials.CredentialCard
@@ -65,7 +65,7 @@ fun MyCredentialsScreen(
     imageDecoder: (ByteArray) -> ImageBitmap?,
     viewModel: CredentialScreenViewModel,
 ) {
-    val showMenu = mutableStateOf(false)
+    val expandedFloatingActionButton = mutableStateOf(false)
 
     val storeContainerState by viewModel.storeContainer.collectAsState(null)
     Scaffold(
@@ -82,7 +82,7 @@ fun MyCredentialsScreen(
         floatingActionButton = {
             storeContainerState?.let { storeContainer ->
                 if (storeContainer.credentials.isNotEmpty()) {
-                    CustomFloatingActionButton(showMenu = showMenu, addCredential = navigateToAddCredentialsPage, addCredentialQr = navigateToQrAddCredentialsPage)
+                    AdvancedFloatingActionButton(expanded = expandedFloatingActionButton, addCredential = navigateToAddCredentialsPage, addCredentialQr = navigateToQrAddCredentialsPage)
                 }
             }
         }
