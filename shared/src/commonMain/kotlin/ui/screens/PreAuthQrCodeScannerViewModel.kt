@@ -1,10 +1,12 @@
 
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import at.asitplus.wallet.app.common.WalletMain
 import kotlinx.coroutines.launch
 
 class PreAuthQrCodeScannerViewModel(val walletMain: WalletMain, val navigateUp: () -> Unit, val success: () -> Unit) {
-    var isLoading = mutableStateOf(false)
+    var isLoading by mutableStateOf(false)
 
     fun getCredential(payload: String) {
         walletMain.scope.launch {

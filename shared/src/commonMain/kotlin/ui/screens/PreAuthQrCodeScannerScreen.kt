@@ -10,9 +10,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.heading_label_authenticate_at_device_title
@@ -25,10 +23,9 @@ import ui.views.CameraView
 fun PreAuthQrCodeScannerScreen(
     vm: PreAuthQrCodeScannerViewModel
 ) {
-    var isLoading by remember {vm.isLoading}
+    val vm = remember { vm }
 
-
-    if (isLoading) {
+    if (vm.isLoading) {
         LoadingScreen()
     } else {
         Scaffold(
@@ -43,7 +40,7 @@ fun PreAuthQrCodeScannerScreen(
                         }
                     },
                     navigationIcon = { NavigateUpButton({
-                        vm.isLoading.value = true
+                        vm.isLoading = true
                     }) },
                 )
             },
@@ -51,7 +48,7 @@ fun PreAuthQrCodeScannerScreen(
             Column(modifier = Modifier.padding(it).fillMaxSize()) {
                 CameraView(
                     onFoundPayload = { payload ->
-                        isLoading = true
+                        vm.isLoading = true
                         vm.getCredential(payload)
                     },
                     modifier = Modifier.fillMaxSize(),
