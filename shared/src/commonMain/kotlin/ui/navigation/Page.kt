@@ -12,6 +12,8 @@ expect class PreAuthQrCodeScannerPage() : Page
 
 expect class SettingsPage() : Page
 
+expect class LoadingPage() : Page
+
 
 interface OnboardingPage
 

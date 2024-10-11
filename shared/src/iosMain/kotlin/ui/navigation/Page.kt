@@ -10,6 +10,8 @@ actual class PreAuthQrCodeScannerPage : Page
 
 actual class SettingsPage : Page
 
+actual class LoadingPage : Page
+
 
 actual class OnboardingStartPage actual constructor() : OnboardingPage
 

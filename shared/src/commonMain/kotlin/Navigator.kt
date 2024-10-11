@@ -1,3 +1,4 @@
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -41,6 +42,7 @@ import ui.navigation.AuthenticationQrCodeScannerPage
 import ui.navigation.AuthenticationSuccessPage
 import ui.navigation.CredentialDetailsPage
 import ui.navigation.HomePage
+import ui.navigation.LoadingPage
 import ui.navigation.LogPage
 import ui.navigation.NavigationStack
 import ui.navigation.Page
@@ -257,22 +259,8 @@ fun MainNavigator(
                     }
 
                     is PreAuthQrCodeScannerPage -> {
-                        PreAuthQrCodeScannerScreen(onFoundPayload = { payload ->
-                            runBlocking {
-                                try {
-                                    walletMain.provisioningService.decodeCredentialOffer(payload).let { offer ->
-                                        val credentialIssuer = offer.credentialOffer.credentialIssuer
-                                        val preAuthorizedCode = offer.credentialOffer.grants?.preAuthorizedCode?.preAuthorizedCode.toString()
-                                        val credentialIdToRequest = offer.credentialOffer.configurationIds.first()
-                                        walletMain.provisioningService.loadCredentialWithPreAuthn(credentialIssuer = credentialIssuer, preAuthorizedCode = preAuthorizedCode, credentialIdToRequest = credentialIdToRequest)
-                                        navigationStack.reset()
-                                    }
-                                } catch (e: Throwable) {
-                                    navigateUp()
-                                    walletMain.errorService.emit(e)
-                                }
-                            }
-                        }, navigateUp = { navigationStack.reset() })
+                        val vm = PreAuthQrCodeScannerViewModel(walletMain, navigateUp, success = { navigationStack.reset() })
+                        PreAuthQrCodeScannerScreen(vm)
                     }
 
                     is LogPage -> {
@@ -282,6 +270,9 @@ fun MainNavigator(
                         )
                     }
 
+                    is LoadingPage -> {
+                        LoadingScreen()
+                    }
 
                     is AuthenticationQrCodeScannerPage -> {
                         AuthenticationQrCodeScannerScreen(
