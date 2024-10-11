@@ -2,7 +2,6 @@ package at.asitplus.wallet.app.common
 
 import at.asitplus.signum.indispensable.CryptoSignature
 import at.asitplus.signum.supreme.SignatureResult
-import at.asitplus.signum.supreme.asKmmResult
 import at.asitplus.signum.supreme.os.PlatformSigningProviderSigner
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.DefaultCryptoService

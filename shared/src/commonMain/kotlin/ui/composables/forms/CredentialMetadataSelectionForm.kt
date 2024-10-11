@@ -12,7 +12,6 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.lib.data.ConstantIndex
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.section_heading_configuration
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.inputFields.IssuingServiceInputField
 import ui.composables.inputFields.StatefulCredentialRepresentationInputField

@@ -4,7 +4,6 @@ import at.asitplus.KmmResult
 import at.asitplus.signum.indispensable.josef.JweEncryption
 import at.asitplus.signum.indispensable.josef.jcaKeySpecName
 import at.asitplus.signum.indispensable.josef.jcaName
-import at.asitplus.signum.supreme.asKmmResult
 import at.asitplus.signum.supreme.os.AndroidKeystoreSigner
 import at.asitplus.wallet.app.common.WalletCryptoService
 import at.asitplus.wallet.lib.agent.AuthenticatedCiphertext

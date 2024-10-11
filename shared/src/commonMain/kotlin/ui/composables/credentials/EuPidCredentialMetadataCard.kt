@@ -17,10 +17,8 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import at.asitplus.wallet.eupid.EuPidScheme
-import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.PersonalDataCategory
 import data.credentials.EuPidCredentialAdapter
-import data.credentials.MobileDrivingLicenceCredentialAdapter
 import ui.composables.AttributeRepresentation
 
 @Composable

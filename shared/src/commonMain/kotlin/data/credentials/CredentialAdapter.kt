@@ -2,7 +2,6 @@ package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.data.ConstantIndex
 import data.Attribute
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate

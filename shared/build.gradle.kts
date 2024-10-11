@@ -1,4 +1,3 @@
-import at.asitplus.gradle.datetime
 import at.asitplus.gradle.exportIosFramework
 import at.asitplus.gradle.ktor
 import at.asitplus.gradle.napier

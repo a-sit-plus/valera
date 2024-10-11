@@ -8,7 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.button_label_cancel
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.OutlinedTextIconButton
 

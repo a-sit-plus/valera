@@ -8,7 +8,6 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -17,11 +16,7 @@ import androidx.compose.ui.Modifier
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.lib.data.ConstantIndex
 import compose_wallet_app.shared.generated.resources.Res
-import compose_wallet_app.shared.generated.resources.credential_representation_format_label_mso_mdoc
-import compose_wallet_app.shared.generated.resources.credential_representation_format_label_plain_jwt
-import compose_wallet_app.shared.generated.resources.credential_representation_format_label_sd_jwt
 import compose_wallet_app.shared.generated.resources.text_label_id_format
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 
 
