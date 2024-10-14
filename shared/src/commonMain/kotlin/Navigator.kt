@@ -51,7 +51,7 @@ import ui.navigation.ProvisioningLoadingPage
 import ui.navigation.SettingsPage
 import ui.screens.AddCredentialScreen
 import ui.screens.AuthenticationConsentScreen
-import ui.screens.AuthenticationQrCodeScannerScreen
+import ui.screens.AuthenticationQrCodeScannerView
 import ui.screens.AuthenticationSuccessScreen
 import ui.screens.CredentialDetailsScreen
 import ui.screens.ErrorScreen
@@ -275,17 +275,11 @@ fun MainNavigator(
                     }
 
                     is AuthenticationQrCodeScannerPage -> {
-                        AuthenticationQrCodeScannerScreen(
-                            navigateUp = navigateUp,
-                            navigateToConsentScreen = navigationStack::push,
-                            navigateToLoadingScreen = {
-                                navigationStack.push(AuthenticationLoadingPage())
-                            },
-                            authenticationQrCodeScannerViewModel = AuthenticationQrCodeScannerViewModel(
-                                oidcSiopWallet = walletMain.presentationService.oidcSiopWallet,
-                            ),
-                            walletMain = walletMain,
-                        )
+                        val vm = AuthenticationQrCodeScannerViewModel(navigateUp = navigateUp, onSuccess = { page ->
+                            navigationStack.back()
+                            navigationStack.push(page)
+                        }, walletMain = walletMain)
+                        AuthenticationQrCodeScannerView(vm)
                     }
 
                     is AuthenticationLoadingPage -> {

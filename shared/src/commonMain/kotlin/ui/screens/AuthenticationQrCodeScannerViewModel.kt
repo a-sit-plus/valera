@@ -1,6 +1,9 @@
 package view
 
-import at.asitplus.wallet.lib.oidc.OidcSiopWallet
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import at.asitplus.wallet.app.common.WalletMain
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -10,29 +13,22 @@ import kotlinx.coroutines.launch
 import ui.navigation.AuthenticationConsentPage
 
 class AuthenticationQrCodeScannerViewModel(
-    private val buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase: BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase,
+    val navigateUp: (() -> Unit)?,
+    val onSuccess: (AuthenticationConsentPage) -> Unit,
+    val walletMain: WalletMain
 ) {
-    constructor(
-        oidcSiopWallet: OidcSiopWallet,
-    ) : this(
-        buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase = BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
-            oidcSiopWallet = oidcSiopWallet,
-        ),
+    var isLoading by mutableStateOf(false)
+    private val buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase = BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
+        oidcSiopWallet = walletMain.presentationService.oidcSiopWallet,
     )
 
-    fun onScan(
-        link: String,
-        startLoadingCallback: () -> Unit,
-        stopLoadingCallback: () -> Unit,
-        onSuccess: (AuthenticationConsentPage) -> Unit,
-        onFailure: (Throwable) -> Unit,
-    ) {
+    fun onScan(link: String) {
         Napier.d("onScan: $link")
 
-        startLoadingCallback()
+        isLoading = true
         val coroutineExceptionHandler = CoroutineExceptionHandler { _, error ->
-            stopLoadingCallback()
-            onFailure(error)
+            isLoading = false
+            walletMain.errorService.emit(error)
         }
 
         CoroutineScope(Dispatchers.Main).launch(coroutineExceptionHandler) {
@@ -47,7 +43,7 @@ class AuthenticationQrCodeScannerViewModel(
                     )
                 }
 
-            stopLoadingCallback()
+            isLoading = false
             onSuccess(authenticationConsentPage)
         }
     }
