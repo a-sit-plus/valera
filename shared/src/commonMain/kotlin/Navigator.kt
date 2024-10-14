@@ -1,3 +1,4 @@
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -21,7 +22,6 @@ import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParametersFrom
 import at.asitplus.wallet.lib.oidc.helpers.AuthorizationResponsePreparationState
 import compose_wallet_app.shared.generated.resources.Res
-import compose_wallet_app.shared.generated.resources.snackbar_reset_app_successfully
 import compose_wallet_app.shared.generated.resources.navigation_button_label_my_data
 import compose_wallet_app.shared.generated.resources.navigation_button_label_settings
 import compose_wallet_app.shared.generated.resources.navigation_button_label_show_data
@@ -42,9 +42,11 @@ import ui.navigation.AuthenticationQrCodeScannerPage
 import ui.navigation.AuthenticationSuccessPage
 import ui.navigation.CredentialDetailsPage
 import ui.navigation.HomePage
+import ui.navigation.LoadingPage
 import ui.navigation.LogPage
 import ui.navigation.NavigationStack
 import ui.navigation.Page
+import ui.navigation.PreAuthQrCodeScannerPage
 import ui.navigation.ProvisioningLoadingPage
 import ui.navigation.SettingsPage
 import ui.screens.AddCredentialScreen
@@ -57,6 +59,7 @@ import ui.screens.LoadingScreen
 import ui.screens.LogScreen
 import ui.screens.MyCredentialsScreen
 import ui.screens.OnboardingWrapper
+import ui.screens.PreAuthQrCodeScannerScreen
 import ui.screens.ProvisioningLoadingScreen
 import ui.screens.SettingsScreen
 import view.AuthenticationQrCodeScannerViewModel
@@ -198,6 +201,9 @@ fun MainNavigator(
                             navigateToAddCredentialsPage = {
                                 navigationStack.push(AddCredentialPage())
                             },
+                            navigateToQrAddCredentialsPage = {
+                                navigationStack.push(PreAuthQrCodeScannerPage())
+                            },
                             navigateToCredentialDetailsPage = {
                                 navigationStack.push(CredentialDetailsPage(it))
                             },
@@ -252,6 +258,11 @@ fun MainNavigator(
                         )
                     }
 
+                    is PreAuthQrCodeScannerPage -> {
+                        val vm = PreAuthQrCodeScannerViewModel(walletMain, navigateUp, success = { navigationStack.reset() })
+                        PreAuthQrCodeScannerScreen(vm)
+                    }
+
                     is LogPage -> {
                         LogScreen(
                             navigateUp = navigateUp,
@@ -259,6 +270,9 @@ fun MainNavigator(
                         )
                     }
 
+                    is LoadingPage -> {
+                        LoadingScreen()
+                    }
 
                     is AuthenticationQrCodeScannerPage -> {
                         AuthenticationQrCodeScannerScreen(

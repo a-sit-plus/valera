@@ -7,7 +7,6 @@ import at.asitplus.signum.indispensable.io.Base64UrlStrict
 import at.asitplus.wallet.idaustria.IdAustriaCredential
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.por.PowerOfRepresentationDataElements
 import data.Attribute
 import io.github.aakira.napier.Napier
 import io.ktor.util.decodeBase64Bytes

@@ -2,9 +2,7 @@ package at.asitplus.wallet.app.common
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
-import at.asitplus.KmmResult
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.DefaultVerifierCryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.Parser
@@ -17,7 +15,6 @@ import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 /**

@@ -1,17 +1,10 @@
 package ui.screens
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -19,30 +12,30 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.app.common.WalletMain
 import compose_wallet_app.shared.generated.resources.Res
-import compose_wallet_app.shared.generated.resources.content_description_add_credential
 import compose_wallet_app.shared.generated.resources.heading_label_my_data_screen
-import compose_wallet_app.shared.generated.resources.info_text_no_credentials_available
 import io.github.aakira.napier.Napier
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.AdvancedFloatingActionButton
 import ui.composables.FloatingActionButtonHeightSpacer
-import ui.composables.buttons.LoadDataButton
 import ui.composables.credentials.CredentialCard
+import ui.views.NoDataLoadedView
+
 
 @Composable
 fun MyCredentialsScreen(
     navigateToAddCredentialsPage: () -> Unit,
+    navigateToQrAddCredentialsPage: () -> Unit,
     navigateToCredentialDetailsPage: (Long) -> Unit,
     walletMain: WalletMain,
 ) {
     MyCredentialsScreen(
         navigateToAddCredentialsPage = navigateToAddCredentialsPage,
+        navigateToQrAddCredentialsPage = navigateToQrAddCredentialsPage,
         navigateToCredentialDetailsPage = navigateToCredentialDetailsPage,
         viewModel = CredentialScreenViewModel(walletMain),
         imageDecoder = {
@@ -61,12 +54,12 @@ fun MyCredentialsScreen(
 @Composable
 fun MyCredentialsScreen(
     navigateToAddCredentialsPage: () -> Unit,
+    navigateToQrAddCredentialsPage: () -> Unit,
     navigateToCredentialDetailsPage: (Long) -> Unit,
     imageDecoder: (ByteArray) -> ImageBitmap?,
     viewModel: CredentialScreenViewModel,
 ) {
     val storeContainerState by viewModel.storeContainer.collectAsState(null)
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -81,14 +74,7 @@ fun MyCredentialsScreen(
         floatingActionButton = {
             storeContainerState?.let { storeContainer ->
                 if (storeContainer.credentials.isNotEmpty()) {
-                    FloatingActionButton(
-                        onClick = navigateToAddCredentialsPage,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = stringResource(Res.string.content_description_add_credential),
-                        )
-                    }
+                    AdvancedFloatingActionButton(addCredential = navigateToAddCredentialsPage, addCredentialQr = navigateToQrAddCredentialsPage)
                 }
             }
         }
@@ -96,20 +82,7 @@ fun MyCredentialsScreen(
         Column(modifier = Modifier.padding(scaffoldPadding).fillMaxSize()) {
             storeContainerState?.let { storeContainer ->
                 if (storeContainer.credentials.isEmpty()) {
-                    Column(
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.fillMaxSize(),
-                    ) {
-                        Text(
-                            text = stringResource(Res.string.info_text_no_credentials_available),
-                            textAlign = TextAlign.Center,
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        LoadDataButton(
-                            onClick = navigateToAddCredentialsPage
-                        )
-                    }
+                    NoDataLoadedView(navigateToAddCredentialsPage, navigateToQrAddCredentialsPage)
                 } else {
                     LazyColumn {
                         items(

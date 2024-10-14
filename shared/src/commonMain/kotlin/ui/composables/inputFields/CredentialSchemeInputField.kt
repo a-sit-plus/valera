@@ -13,7 +13,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.identifier
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.eprescription.EPrescriptionScheme
@@ -23,11 +22,6 @@ import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import compose_wallet_app.shared.generated.resources.Res
-import compose_wallet_app.shared.generated.resources.credential_scheme_label_certificate_of_residence
-import compose_wallet_app.shared.generated.resources.credential_scheme_label_eu_pid
-import compose_wallet_app.shared.generated.resources.credential_scheme_label_id_austria
-import compose_wallet_app.shared.generated.resources.credential_scheme_label_mdl
-import compose_wallet_app.shared.generated.resources.credential_scheme_label_power_of_representation
 import compose_wallet_app.shared.generated.resources.text_label_id_scheme
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource

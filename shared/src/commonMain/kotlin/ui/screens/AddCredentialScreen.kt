@@ -18,7 +18,6 @@ import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.heading_label_add_credential_screen
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton

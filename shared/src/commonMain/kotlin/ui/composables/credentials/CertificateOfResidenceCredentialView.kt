@@ -8,7 +8,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import data.credentials.CertificateOfResidenceCredentialAdapter
-import data.credentials.PowerOfRepresentationCredentialAdapter
 
 @Composable
 fun CertificateOfResidenceCredentialView(

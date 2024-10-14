@@ -6,7 +6,11 @@ actual class HomePage : Page
 
 actual class LogPage : Page
 
+actual class PreAuthQrCodeScannerPage : Page
+
 actual class SettingsPage : Page
+
+actual class LoadingPage : Page
 
 
 actual class OnboardingStartPage actual constructor() : OnboardingPage

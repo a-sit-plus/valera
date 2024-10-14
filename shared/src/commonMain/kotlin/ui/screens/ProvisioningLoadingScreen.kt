@@ -18,21 +18,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import at.asitplus.wallet.app.common.WalletMain
-import compose_wallet_app.shared.generated.resources.heading_label_load_data_screen
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.biometric_authentication_prompt_to_bind_credentials_subtitle
 import compose_wallet_app.shared.generated.resources.biometric_authentication_prompt_to_bind_credentials_title
+import compose_wallet_app.shared.generated.resources.heading_label_load_data_screen
 import compose_wallet_app.shared.generated.resources.snackbar_credential_loaded_successfully
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProvisioningLoadingScreen(
     link: String,

@@ -20,7 +20,6 @@ import at.asitplus.wallet.por.PowerOfRepresentationDataElements.LEGAL_PERSON_IDE
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import data.Attribute
 import kotlinx.datetime.Instant
-import kotlinx.datetime.LocalDate
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull

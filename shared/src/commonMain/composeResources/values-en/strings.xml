@@ -42,7 +42,8 @@
     <string name="button_label_all_missing_data">All new Data</string>
     <string name="button_label_all_available_data">All existing Data</string>
     <string name="button_label_clear_log">Clear Log</string>
-
+    <string name="button_label_provision_credential_ida">Load via DigitalesAmt</string>
+    <string name="button_label_provision_credential_qr">Load via QR-Code</string>
 
     <string name="attribute_friendly_name_bpk">BPK</string>
     <string name="attribute_friendly_name_firstname">Given name</string>

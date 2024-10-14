@@ -11,8 +11,13 @@ actual class HomePage : Page, Parcelable
 actual class LogPage : Page, Parcelable
 
 @Parcelize
+actual class PreAuthQrCodeScannerPage : Page, Parcelable
+
+@Parcelize
 actual class SettingsPage : Page, Parcelable
 
+@Parcelize
+actual class LoadingPage : Page, Parcelable
 
 @Parcelize
 actual class OnboardingStartPage : OnboardingPage, Parcelable

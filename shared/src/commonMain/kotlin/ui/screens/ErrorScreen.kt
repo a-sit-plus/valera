@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -23,7 +22,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
@@ -34,11 +32,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.app.common.WalletMain
+import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.button_label_ok
 import compose_wallet_app.shared.generated.resources.heading_label_error_screen
 import compose_wallet_app.shared.generated.resources.info_text_error_occurred
 import compose_wallet_app.shared.generated.resources.info_text_to_start_screen
-import compose_wallet_app.shared.generated.resources.Res
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.TextIconButton
 
