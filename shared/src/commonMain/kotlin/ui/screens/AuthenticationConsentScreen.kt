@@ -28,14 +28,13 @@ import data.credentials.MobileDrivingLicenceCredentialAttributeTranslator
 import data.credentials.PowerOfRepresentationCredentialAttributeTranslator
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 import ui.views.AuthenticationConsentView
 
 @Composable
 fun AuthenticationConsentScreen(
-    spName: String,
+    spName: String?,
     spLocation: String,
     spImage: ImageBitmap?,
     authenticationRequestParametersFrom: AuthenticationRequestParametersFrom,
@@ -55,10 +54,9 @@ fun AuthenticationConsentScreen(
     )
 }
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun StatefulAuthenticationConsentView(
-    spName: String,
+    spName: String?,
     spLocation: String,
     spImage: ImageBitmap?,
     authenticationRequest: AuthenticationRequestParametersFrom,
@@ -87,9 +85,10 @@ fun StatefulAuthenticationConsentView(
                 else -> { IdAustriaCredentialAttributeTranslator.translate(it) }
             }
         }
-        val name = params.resolved?.second?.name
-        if (name != null && att != null) {
-            ConsentAttributes(format = name, attributes = att)
+        val format = params.resolved?.second?.name
+        val scheme = params.resolved?.first?.let { it.sdJwtType ?: it.isoDocType ?: it.vcType } ?: "Unknown"
+        if (format != null && att != null) {
+            ConsentAttributes(scheme = scheme, format = format, attributes = att)
         } else {
             null
         }
@@ -122,5 +121,5 @@ fun StatefulAuthenticationConsentView(
     )
 }
 
-class ConsentAttributes (val format: String, val attributes: List<StringResource>)
+class ConsentAttributes(val scheme: String, val format: String, val attributes: List<StringResource>)
 

@@ -46,7 +46,7 @@ import ui.screens.ConsentAttributes
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthenticationConsentView(
-    spName: String,
+    spName: String?,
     spLocation: String,
     spImage: ImageBitmap?,
     consentAttributes: List<ConsentAttributes>?,
@@ -122,10 +122,10 @@ fun AuthenticationConsentView(
                     }
                     DataDisplaySection(
                         title = stringResource(Res.string.section_heading_data_recipient),
-                        data = mapOf(
-                            stringResource(Res.string.attribute_friendly_name_data_recipient_name) to spName,
+                        data = listOfNotNull(
+                            spName?.let { stringResource(Res.string.attribute_friendly_name_data_recipient_name) to spName },
                             stringResource(Res.string.attribute_friendly_name_data_recipient_location) to spLocation,
-                        ).toList(),
+                        ),
                         modifier = paddingModifier,
                     )
                     if (consentAttributes == null) {
@@ -135,7 +135,7 @@ fun AuthenticationConsentView(
                         )
                     } else {
                         consentAttributes.forEach {
-                            ConsentAttributesSection(title = it.format, list = it.attributes)
+                            ConsentAttributesSection(title = "${it.scheme} (${it.format})", list = it.attributes)
                         }
                     }
                 }

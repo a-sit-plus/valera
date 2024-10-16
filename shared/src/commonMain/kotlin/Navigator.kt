@@ -343,7 +343,7 @@ fun MainNavigator(
                                 )
 
                             AuthenticationConsentScreen(
-                                spName = page.recipientName,
+                                spName = null,
                                 spLocation = page.recipientLocation,
                                 spImage = null,
                                 authenticationRequestParametersFrom = request,

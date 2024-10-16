@@ -153,7 +153,7 @@
     <string name="text_label_build">Build</string>
 
     <string name="heading_label_authenticate_at_device_title">Authenticate</string>
-    <string name="heading_label_authenticate_at_device_subtitle">at counter or mashine</string>
+    <string name="heading_label_authenticate_at_device_subtitle">at relying party</string>
     <string name="heading_label_show_data">Show Data</string>
     <string name="heading_label_authentication_success">Authenticated</string>
     <string name="heading_label_settings_screen">Settings</string>
@@ -171,7 +171,7 @@
     <string name="heading_label_load_data_screen">Load data</string>
     <string name="heading_label_add_credential_screen">Load data</string>
     <string name="heading_label_refresh_data_screen">Load data</string>
-    <string name="heading_label_authenticate_at_device_screen">Authenticate at\ncounter or mashine</string>
+    <string name="heading_label_authenticate_at_device_screen">Authenticate at\nrelying party</string>
 
     <string name="description_read_terms">Please read and accept the terms of use and the privacy policy.</string>
 
@@ -228,7 +228,7 @@
     <string name="info_text_submission_preview_disabled">Preview of data to be submitted is currently not available.</string>
 
     <string name="section_heading_authenticate_at_device_title">Authenticate</string>
-    <string name="section_heading_authenticate_at_device_subtitle">at counters or mashines</string>
+    <string name="section_heading_authenticate_at_device_subtitle">at relying party</string>
     <string name="section_heading_show_data_to_executive_title">Show data to</string>
     <string name="section_heading_show_data_to_executive_subtitle">Executive</string>
     <string name="section_heading_show_data_to_other_citizen_title">Show data to</string>

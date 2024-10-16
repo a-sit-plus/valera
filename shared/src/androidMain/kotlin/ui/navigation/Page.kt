@@ -66,7 +66,6 @@ actual class CredentialDetailsPage actual constructor(
 actual class AuthenticationConsentPage actual constructor(
     actual val authenticationRequestParametersFromSerialized: String,
     actual val authorizationPreparationStateSerialized: String,
-    actual val recipientName: String,
     actual val recipientLocation: String,
 ) : Page, Parcelable
 

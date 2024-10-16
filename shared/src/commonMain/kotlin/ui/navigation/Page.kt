@@ -62,12 +62,10 @@ expect class AuthenticationLoadingPage() : Page
 expect class AuthenticationConsentPage(
     authenticationRequestParametersFromSerialized: String, // AuthenticationRequest
     authorizationPreparationStateSerialized: String, // AuthenticationResultParameters
-    recipientName: String,
     recipientLocation: String,
 ) : Page {
     val authenticationRequestParametersFromSerialized: String
     val authorizationPreparationStateSerialized: String
-    val recipientName: String
     val recipientLocation: String
 }
 
