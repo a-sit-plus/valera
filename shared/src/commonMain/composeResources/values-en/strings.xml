@@ -42,7 +42,7 @@
     <string name="button_label_all_missing_data">All new Data</string>
     <string name="button_label_all_available_data">All existing Data</string>
     <string name="button_label_clear_log">Clear Log</string>
-    <string name="button_label_provision_credential_ida">Load via DigitalesAmt</string>
+    <string name="button_label_provision_credential_browser">Load via Browser</string>
     <string name="button_label_provision_credential_qr">Load via QR-Code</string>
 
     <string name="attribute_friendly_name_bpk">BPK</string>
@@ -222,7 +222,7 @@
     <string name="info_text_data_items_missing">missing</string>
     <string name="info_text_authentication_success">The authentication has been carried out successfully.</string>
     <string name="info_text_no_credentials_available">No data is available yet.</string>
-    <string name="info_text_redirection_to_id_austria_for_credential_provisioning">To load your data you will be redirected to ID Austria.</string>
+    <string name="info_text_redirection_to_browser_for_credential_provisioning">To load your data you will be redirected into your browser.</string>
     <string name="info_text_notice_development_provisioning_using_qr_code_credentials">For development purposes, there is also the option to load data via a QR code.</string>
     <string name="info_text_enthusiastic_welcome_end">Load your data and off you go!</string>
     <string name="info_text_submission_preview_disabled">Preview of data to be submitted is currently not available.</string>

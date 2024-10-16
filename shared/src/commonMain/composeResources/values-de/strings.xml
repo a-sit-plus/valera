@@ -42,7 +42,7 @@
     <string name="button_label_all_missing_data">Alle neuen Daten</string>
     <string name="button_label_all_available_data">Alle bestehenden Daten</string>
     <string name="button_label_clear_log">Log löschen</string>
-    <string name="button_label_provision_credential_ida">Über DigitalesAmt beziehen</string>
+    <string name="button_label_provision_credential_browser">Über Browser beziehen</string>
     <string name="button_label_provision_credential_qr">Mit QR-Code beziehen</string>
 
     <string name="attribute_friendly_name_bpk">BPK</string>
@@ -220,7 +220,7 @@
     <string name="info_text_data_items_missing">fehlend</string>
     <string name="info_text_authentication_success">Die Anmeldung wurde erfolgreich durchgeführt.</string>
     <string name="info_text_no_credentials_available">Es sind noch keine Daten verfügbar.</string>
-    <string name="info_text_redirection_to_id_austria_for_credential_provisioning">Zur Abfrage Ihrer Daten werden Sie zu ID Austria weitergeleitet.</string>
+    <string name="info_text_redirection_to_browser_for_credential_provisioning">Zur Abfrage Ihrer Daten werden Sie in den Browser weitergeleitet.</string>
     <string name="info_text_notice_development_provisioning_using_qr_code_credentials">Zu Entwicklungszwecken gibt es auch die Möglichkeit, Daten über einen QR-Code zu laden.</string>
     <string name="info_text_enthusiastic_welcome_end">Daten laden und los geht's!</string>
     <string name="info_text_submission_preview_disabled">Vorschau von Übermittelten Daten ist derzeit nicht verfügbar.</string>

@@ -42,7 +42,7 @@
     <string name="button_label_all_missing_data">UNTRANSLATED:button_label_all_missing_data</string>
     <string name="button_label_all_available_data">UNTRANSLATED:button_label_all_available_data</string>
     <string name="button_label_clear_log">UNTRANSLATED:button_label_clear_log</string>
-    <string name="button_label_provision_credential_ida">UNTRANSLATED:button_label_request_credential_ida</string>
+    <string name="button_label_provision_credential_browser">UNTRANSLATED:button_label_request_credential_browser</string>
     <string name="button_label_provision_credential_qr">UNTRANSLATED:button_label_provision_credential_qr</string>
 
 
@@ -218,7 +218,7 @@
     <string name="info_text_data_items_missing">UNTRANSLATED:info_text_data_items_missing</string>
     <string name="info_text_authentication_success">UNTRANSLATED:info_text_authentication_success</string>
     <string name="info_text_no_credentials_available">UNTRANSLATED:info_text_no_credentials_available</string>
-    <string name="info_text_redirection_to_id_austria_for_credential_provisioning">UNTRANSLATED:info_text_redirection_to_id_austria_for_credential_provisioning</string>
+    <string name="info_text_redirection_to_browser_for_credential_provisioning">UNTRANSLATED:info_text_redirection_to_browser_for_credential_provisioning</string>
     <string name="info_text_notice_development_provisioning_using_qr_code_credentials">UNTRANSLATED:info_text_notice_development_provisioning_using_qr_code_credentials</string>
     <string name="info_text_enthusiastic_welcome_end">UNTRANSLATED:info_text_enthusiastic_welcome_end</string>
     <string name="info_text_submission_preview_disabled">UNTRANSLATED:info_text_submission_preview_disabled</string>
