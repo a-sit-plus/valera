@@ -16,6 +16,7 @@ class PreAuthQrCodeScannerViewModel(val walletMain: WalletMain, val navigateUp: 
                     val preAuthorizedCode =
                         offer.credentialOffer.grants?.preAuthorizedCode?.preAuthorizedCode.toString()
                     val credentialIdToRequest = offer.credentialOffer.configurationIds.first()
+
                     walletMain.provisioningService.loadCredentialWithPreAuthn(
                         credentialIssuer = credentialIssuer,
                         preAuthorizedCode = preAuthorizedCode,

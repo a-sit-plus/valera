@@ -27,6 +27,7 @@ fun CredentialMetadataSelectionForm(
     credentialScheme: ConstantIndex.CredentialScheme,
     onChangeCredentialScheme: ((ConstantIndex.CredentialScheme) -> Unit)?,
     modifier: Modifier = Modifier,
+    availableSchemes: List<ConstantIndex.CredentialScheme>,
 ) {
     Column(
         modifier = modifier,
@@ -46,6 +47,7 @@ fun CredentialMetadataSelectionForm(
             value = credentialScheme,
             onValueChange = onChangeCredentialScheme,
             modifier = listSpacingModifier.fillMaxWidth(),
+            availableSchemes = availableSchemes,
         )
         StatefulCredentialRepresentationInputField(
             value = credentialRepresentation,

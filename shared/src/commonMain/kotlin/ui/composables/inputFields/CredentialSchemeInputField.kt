@@ -23,7 +23,6 @@ import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.text_label_id_scheme
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -31,12 +30,14 @@ fun StatefulCredentialSchemeInputField(
     value: ConstantIndex.CredentialScheme,
     onValueChange: ((ConstantIndex.CredentialScheme) -> Unit)?,
     modifier: Modifier = Modifier,
+    availableSchemes: List<ConstantIndex.CredentialScheme>,
 ) {
     StatefulCredentialSchemeInputField(
         value = value,
         onValueChange = onValueChange ?: {},
         enabled = onValueChange != null,
         modifier = modifier,
+        availableSchemes = availableSchemes,
     )
 }
 
@@ -46,6 +47,7 @@ fun StatefulCredentialSchemeInputField(
     onValueChange: (ConstantIndex.CredentialScheme) -> Unit,
     enabled: Boolean = true,
     modifier: Modifier = Modifier,
+    availableSchemes: List<ConstantIndex.CredentialScheme>,
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
@@ -56,17 +58,18 @@ fun StatefulCredentialSchemeInputField(
             showMenu = false
         },
         expanded = showMenu,
+        enabled = enabled,
         onExpandedChange = {
             if (enabled) {
                 showMenu = it
             }
         },
-        enabled = enabled,
         modifier = modifier,
+        availableSchemes = availableSchemes,
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CredentialSchemeInputField(
     value: ConstantIndex.CredentialScheme,
@@ -75,6 +78,7 @@ fun CredentialSchemeInputField(
     enabled: Boolean = true,
     onExpandedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
+    availableSchemes: List<ConstantIndex.CredentialScheme>,
 ) {
     ExposedDropdownMenuBox(
         expanded = expanded,
@@ -99,14 +103,7 @@ fun CredentialSchemeInputField(
             },
             modifier = Modifier.fillMaxWidth(),
         ) {
-            for (scheme in listOf(
-                MobileDrivingLicenceScheme,
-                IdAustriaScheme,
-                EuPidScheme,
-                CertificateOfResidenceScheme,
-                PowerOfRepresentationScheme,
-                EPrescriptionScheme
-            )) {
+            for (scheme in availableSchemes) {
                 DropdownMenuItem(
                     text = {
                         Text(scheme.uiLabel())

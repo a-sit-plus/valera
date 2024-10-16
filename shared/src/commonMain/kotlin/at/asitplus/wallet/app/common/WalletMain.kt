@@ -3,6 +3,10 @@ package at.asitplus.wallet.app.common
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.wallet.cor.CertificateOfResidenceScheme
+import at.asitplus.wallet.eprescription.EPrescriptionScheme
+import at.asitplus.wallet.eupid.EuPidScheme
+import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.DefaultVerifierCryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.Parser
@@ -10,6 +14,8 @@ import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.cbor.DefaultCoseService
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.jws.DefaultJwsService
+import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
+import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import data.storage.AntilogAdapter
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
@@ -25,9 +31,7 @@ class WalletMain(
     private val holderKeyService: HolderKeyService,
     private val dataStoreService: DataStoreService,
     val platformAdapter: PlatformAdapter,
-    var subjectCredentialStore: PersistentSubjectCredentialStore = PersistentSubjectCredentialStore(
-        dataStoreService
-    ),
+    var subjectCredentialStore: PersistentSubjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService),
     val buildContext: BuildContext,
     val errorService: ErrorService = ErrorService(mutableStateOf(false), mutableStateOf(null)),
     val scope: CoroutineScope,
@@ -51,6 +55,15 @@ class WalletMain(
         Napier.takeLogarithm()
         Napier.base(AntilogAdapter(platformAdapter, ""))
     }
+
+    val availableSchemes = listOf(
+        MobileDrivingLicenceScheme,
+        IdAustriaScheme,
+        EuPidScheme,
+        CertificateOfResidenceScheme,
+        PowerOfRepresentationScheme,
+        EPrescriptionScheme
+    )
 
     @Throws(Throwable::class)
     fun initialize(snackbarService: SnackbarService) {

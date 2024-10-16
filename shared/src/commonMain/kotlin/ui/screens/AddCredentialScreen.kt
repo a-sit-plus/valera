@@ -102,7 +102,8 @@ fun AddCredentialScreen(
                     navigateUp()
                 }
             },
-            modifier = Modifier.padding(scaffoldPadding)
+            modifier = Modifier.padding(scaffoldPadding),
+            availableSchemes = walletMain.availableSchemes
         )
     }
 }
