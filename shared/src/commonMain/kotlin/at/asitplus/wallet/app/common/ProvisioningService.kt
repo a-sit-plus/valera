@@ -26,6 +26,8 @@ import at.asitplus.wallet.lib.oidvci.encodeToParameters
 import at.asitplus.wallet.lib.oidvci.formUrlEncode
 import com.benasher44.uuid.uuid4
 import data.storage.DataStoreService
+import data.storage.ExportableCredentialScheme
+import data.storage.ExportableCredentialScheme.Companion.toExportableCredentialScheme
 import data.storage.PersistentCookieStorage
 import io.github.aakira.napier.Napier
 import io.ktor.client.call.body
@@ -221,7 +223,11 @@ class ProvisioningService(
             })
         val credentialOffer = walletService.parseCredentialOffer(qrCodeContent).getOrThrow()
         val mappedCredentials = credentialOffer.configurationIds
-            .mapNotNull { ma -> decodeFromCredentialIdentifier(ma)?.let { ma to it } }
+            .mapNotNull { ma ->
+                decodeFromCredentialIdentifier(ma)?.let {
+                    ma to Pair(it.first.toExportableCredentialScheme(), it.second)
+                }
+            }
             .toMap()
         return CredentialOfferInfo(credentialOffer, mappedCredentials)
     }
@@ -313,6 +319,7 @@ private data class ProvisioningContext(
             ?: throw Exception("Unsupported credential scheme: ${this.credentialSchemeIdentifier}")
 }
 
+@Serializable
 data class CredentialOfferInfo(
     /**
      * The credential offer as parsed
@@ -321,5 +328,5 @@ data class CredentialOfferInfo(
     /**
      * Maps entries from [at.asitplus.openid.CredentialOffer.configurationIds] to resolved credential scheme
      */
-    val credentials: Map<String, Pair<ConstantIndex.CredentialScheme, CredentialFormatEnum>>,
+    val credentials: Map<String, Pair<ExportableCredentialScheme, CredentialFormatEnum>>,
 )

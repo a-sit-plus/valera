@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.lib.data.ConstantIndex
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.heading_label_add_credential_screen
 import kotlinx.coroutines.flow.first
@@ -30,10 +31,14 @@ import ui.views.LoadDataView
 fun AddCredentialScreen(
     navigateUp: () -> Unit,
     walletMain: WalletMain,
+    onSubmit: (String, ConstantIndex.CredentialScheme, ConstantIndex.CredentialRepresentation, Set<NormalizedJsonPath>?) -> Unit,
+    availableSchemes: List<ConstantIndex.CredentialScheme>,
+    hostString: String,
+    showAttributes: Boolean = true,
 ) {
     var host by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         runBlocking {
-            mutableStateOf(TextFieldValue(walletMain.walletConfig.host.first()))
+            mutableStateOf(TextFieldValue(hostString))
         }
     }
 
@@ -41,7 +46,7 @@ fun AddCredentialScreen(
         saver = CredentialSchemeSaver().asMutableStateSaver()
     ) {
         mutableStateOf(runBlocking {
-            walletMain.walletConfig.credentialScheme.first()
+            availableSchemes.first()
         })
     }
 
@@ -93,17 +98,11 @@ fun AddCredentialScreen(
                 requestedAttributes = it
             },
             onSubmit = {
-                walletMain.startProvisioning(
-                    host = host.text,
-                    credentialScheme = credentialScheme,
-                    credentialRepresentation = credentialRepresentation,
-                    requestedAttributes = requestedAttributes,
-                ) {
-                    navigateUp()
-                }
+                onSubmit(host.text, credentialScheme, credentialRepresentation, requestedAttributes)
             },
             modifier = Modifier.padding(scaffoldPadding),
-            availableSchemes = walletMain.availableSchemes
+            availableSchemes = availableSchemes,
+            showAttributes = showAttributes,
         )
     }
 }

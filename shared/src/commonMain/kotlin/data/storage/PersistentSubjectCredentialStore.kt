@@ -231,7 +231,7 @@ private sealed interface ExportableStoreEntry {
     ) : ExportableStoreEntry
 }
 
-private enum class ExportableCredentialScheme {
+enum class ExportableCredentialScheme {
     AtomicAttribute2023, IdAustriaScheme, MobileDrivingLicence2023, EuPidScheme, PowerOfRepresentationScheme, CertificateOfResidenceScheme, EPrescriptionScheme;
 
     fun toScheme() = when (this) {

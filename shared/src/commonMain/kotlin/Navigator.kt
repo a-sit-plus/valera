@@ -1,4 +1,3 @@
-
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -17,10 +16,12 @@ import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import at.asitplus.wallet.app.common.CredentialOfferInfo
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParametersFrom
 import at.asitplus.wallet.lib.oidc.helpers.AuthorizationResponsePreparationState
+import at.asitplus.wallet.lib.oidvci.toRepresentation
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.navigation_button_label_my_data
 import compose_wallet_app.shared.generated.resources.navigation_button_label_settings
@@ -30,12 +31,17 @@ import compose_wallet_app.shared.generated.resources.snackbar_reset_app_successf
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier
 import io.ktor.http.parseQueryString
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import ui.navigation.AddCredentialPage
+import ui.navigation.AddCredentialPreAuthnPage
 import ui.navigation.AuthenticationConsentPage
 import ui.navigation.AuthenticationLoadingPage
 import ui.navigation.AuthenticationQrCodeScannerPage
@@ -207,12 +213,51 @@ fun MainNavigator(
                         )
                     }
 
+
                     is AddCredentialPage -> {
                         AddCredentialScreen(
                             navigateUp = navigateUp,
                             walletMain = walletMain,
+                            onSubmit = { host, credentialScheme, credentialRepresentation, requestedAttributes ->
+                                walletMain.startProvisioning(
+                                    host = host,
+                                    credentialScheme = credentialScheme,
+                                    credentialRepresentation = credentialRepresentation,
+                                    requestedAttributes = requestedAttributes,
+                                ) {
+                                    navigateUp()
+                                }
+                            },
+                            availableSchemes = walletMain.availableSchemes,
+                            hostString = runBlocking { walletMain.walletConfig.host.first() },
                         )
                     }
+
+                    is AddCredentialPreAuthnPage -> {
+                        val offer = Json.decodeFromString<CredentialOfferInfo>(page.credentialOfferInfoSerialized)
+                        AddCredentialScreen(
+                            navigateUp = navigateUp,
+                            walletMain = walletMain,
+                            onSubmit = { host, credentialScheme, credentialRepresentation, requestedAttributes ->
+                                walletMain.scope.launch {
+                                    walletMain.provisioningService.loadCredentialWithPreAuthn(
+                                        credentialIssuer = host,
+                                        preAuthorizedCode = offer.credentialOffer.grants?.preAuthorizedCode?.preAuthorizedCode.toString(),
+                                        credentialIdToRequest = offer.credentials
+                                            .entries
+                                            .first { it.value.first.toScheme() == credentialScheme && it.value.second.toRepresentation() == credentialRepresentation }
+                                            .key,
+
+                                    )
+                                    navigationStack.reset()
+                                }
+                            },
+                            availableSchemes = offer.credentials.map { it.value.first.toScheme() }.distinct(),
+                            hostString = offer.credentialOffer.credentialIssuer,
+                            showAttributes = false,
+                        )
+                    }
+
 
                     is CredentialDetailsPage -> {
                         CredentialDetailsScreen(
@@ -255,7 +300,12 @@ fun MainNavigator(
                     }
 
                     is PreAuthQrCodeScannerPage -> {
-                        val vm = PreAuthQrCodeScannerViewModel(walletMain, navigateUp, success = { navigationStack.reset() })
+                        val vm = PreAuthQrCodeScannerViewModel(
+                            walletMain = walletMain,
+                            navigateUp = navigateUp,
+                            navigateToAddCredentialsPage = { offer ->
+                                navigationStack.push(AddCredentialPreAuthnPage(Json.encodeToString(offer)))
+                            })
                         PreAuthQrCodeScannerScreen(vm)
                     }
 

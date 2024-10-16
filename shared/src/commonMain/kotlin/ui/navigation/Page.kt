@@ -41,6 +41,12 @@ expect class RefreshCredentialsPage(
 
 expect class AddCredentialPage() : Page
 
+expect class AddCredentialPreAuthnPage(
+    credentialOfferInfoSerialized: String
+) : Page {
+    val credentialOfferInfoSerialized: String
+}
+
 expect class CredentialDetailsPage(
     storeEntryId: StoreEntryId
 ) : Page {

@@ -53,6 +53,11 @@ actual class RefreshCredentialsPage actual constructor(
 actual class AddCredentialPage actual constructor() : Page, Parcelable
 
 @Parcelize
+actual class AddCredentialPreAuthnPage actual constructor(
+    actual val credentialOfferInfoSerialized: String
+) : Page, Parcelable
+
+@Parcelize
 actual class CredentialDetailsPage actual constructor(
     actual val storeEntryId: StoreEntryId
 ) : Page, Parcelable

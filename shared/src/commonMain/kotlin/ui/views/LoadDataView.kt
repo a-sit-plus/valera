@@ -30,6 +30,7 @@ fun LoadDataView(
     onSubmit: () -> Unit,
     modifier: Modifier = Modifier,
     availableSchemes: List<ConstantIndex.CredentialScheme>,
+    showAttributes: Boolean,
 ) {
     Scaffold(
         bottomBar = {
@@ -56,7 +57,8 @@ fun LoadDataView(
             requestedAttributes = requestedAttributes,
             onChangeRequestedAttributes = onChangeRequestedAttributes,
             modifier = Modifier.padding(scaffoldPadding),
-            availableSchemes = availableSchemes
+            availableSchemes = availableSchemes,
+            showAttributes = showAttributes
         )
     }
 }

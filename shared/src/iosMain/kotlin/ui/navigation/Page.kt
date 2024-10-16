@@ -35,6 +35,9 @@ actual class RefreshCredentialsPage actual constructor(
     actual val refreshRequirements: RefreshRequirements?,
 ) : Page
 actual class AddCredentialPage : Page
+actual class AddCredentialPreAuthnPage actual constructor(
+    actual val credentialOfferInfoSerialized: String,
+): Page
 
 actual class CredentialDetailsPage actual constructor(
     actual val storeEntryId: StoreEntryId

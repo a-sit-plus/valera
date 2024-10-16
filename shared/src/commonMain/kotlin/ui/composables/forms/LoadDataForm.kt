@@ -35,6 +35,7 @@ fun StatefulLoadDataForm(
     onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
     modifier: Modifier = Modifier,
     availableSchemes: List<ConstantIndex.CredentialScheme>,
+    showAttributes: Boolean,
 ) {
     var attributeCategoriesExpanded by rememberSaveable(credentialScheme) {
         val attributeCategorization =
@@ -61,6 +62,7 @@ fun StatefulLoadDataForm(
         },
         modifier = modifier,
         availableSchemes = availableSchemes,
+        showAttributes = showAttributes,
     )
 }
 
@@ -78,6 +80,7 @@ fun LoadDataForm(
     onSetAttributeCategoriesExpanded: (Pair<PersonalDataCategory, Boolean>) -> Unit,
     modifier: Modifier = Modifier,
     availableSchemes: List<ConstantIndex.CredentialScheme>,
+    showAttributes: Boolean,
 ) {
     Box(
         modifier = modifier,
@@ -100,15 +103,16 @@ fun LoadDataForm(
                 modifier = columnSpacingModifier,
                 availableSchemes = availableSchemes,
             )
-
-            CredentialAttributeSelectionForm(
-                credentialScheme = credentialScheme,
-                requestedAttributes = requestedAttributes,
-                onChangeRequestedAttributes = onChangeRequestedAttributes,
-                attributeCategoriesExpanded = attributeCategoriesExpanded,
-                onSetAttributeCategoriesExpanded = onSetAttributeCategoriesExpanded,
-                modifier = columnSpacingModifier,
-            )
+            if (showAttributes) {
+                CredentialAttributeSelectionForm(
+                    credentialScheme = credentialScheme,
+                    requestedAttributes = requestedAttributes,
+                    onChangeRequestedAttributes = onChangeRequestedAttributes,
+                    attributeCategoriesExpanded = attributeCategoriesExpanded,
+                    onSetAttributeCategoriesExpanded = onSetAttributeCategoriesExpanded,
+                    modifier = columnSpacingModifier,
+                )
+            }
         }
     }
 }
