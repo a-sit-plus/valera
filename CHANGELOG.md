@@ -1,3 +1,7 @@
+# Release 5.2.0
+ * Display requested attributes on Consent screen
+ * Enable provisioning by scanning QR Code on issiung service (OID4VCI pre-authorized flow)
+
 # Release 5.1.0
  * Parse `redirect_uri` in response to posting SIOPv2 response to service provider, may open browser
  * Always open browser when sending response to SIOPv2 calls
