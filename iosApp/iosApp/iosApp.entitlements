@@ -4,7 +4,7 @@
 <dict>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>applinks:wallet.a-sit.at</string>
+		<string>applinks:wallet.a-sit.at?mode=developer</string>
 	</array>
 </dict>
 </plist>
