@@ -6,7 +6,11 @@ actual class HomePage : Page
 
 actual class LogPage : Page
 
+actual class PreAuthQrCodeScannerPage : Page
+
 actual class SettingsPage : Page
+
+actual class LoadingPage : Page
 
 
 actual class OnboardingStartPage actual constructor() : OnboardingPage
@@ -31,6 +35,9 @@ actual class RefreshCredentialsPage actual constructor(
     actual val refreshRequirements: RefreshRequirements?,
 ) : Page
 actual class AddCredentialPage : Page
+actual class AddCredentialPreAuthnPage actual constructor(
+    actual val credentialOfferInfoSerialized: String,
+): Page
 
 actual class CredentialDetailsPage actual constructor(
     actual val storeEntryId: StoreEntryId
@@ -39,9 +46,7 @@ actual class CredentialDetailsPage actual constructor(
 actual class AuthenticationConsentPage actual constructor(
     actual val authenticationRequestParametersFromSerialized: String,
     actual val authorizationPreparationStateSerialized: String,
-    actual val recipientName: String,
     actual val recipientLocation: String,
-    actual val fromQrCodeScanner: Boolean,
 ) : Page
 
 actual class AuthenticationSuccessPage : Page

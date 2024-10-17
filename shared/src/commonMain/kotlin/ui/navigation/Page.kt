@@ -8,7 +8,11 @@ expect class HomePage() : Page
 
 expect class LogPage() : Page
 
+expect class PreAuthQrCodeScannerPage() : Page
+
 expect class SettingsPage() : Page
+
+expect class LoadingPage() : Page
 
 
 interface OnboardingPage
@@ -37,6 +41,12 @@ expect class RefreshCredentialsPage(
 
 expect class AddCredentialPage() : Page
 
+expect class AddCredentialPreAuthnPage(
+    credentialOfferInfoSerialized: String
+) : Page {
+    val credentialOfferInfoSerialized: String
+}
+
 expect class CredentialDetailsPage(
     storeEntryId: StoreEntryId
 ) : Page {
@@ -52,15 +62,11 @@ expect class AuthenticationLoadingPage() : Page
 expect class AuthenticationConsentPage(
     authenticationRequestParametersFromSerialized: String, // AuthenticationRequest
     authorizationPreparationStateSerialized: String, // AuthenticationResultParameters
-    recipientName: String,
     recipientLocation: String,
-    fromQrCodeScanner: Boolean = false
 ) : Page {
     val authenticationRequestParametersFromSerialized: String
     val authorizationPreparationStateSerialized: String
-    val recipientName: String
     val recipientLocation: String
-    val fromQrCodeScanner: Boolean
 }
 
 expect class AuthenticationSuccessPage() : Page

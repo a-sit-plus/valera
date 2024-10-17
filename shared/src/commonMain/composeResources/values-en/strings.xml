@@ -42,7 +42,8 @@
     <string name="button_label_all_missing_data">All new Data</string>
     <string name="button_label_all_available_data">All existing Data</string>
     <string name="button_label_clear_log">Clear Log</string>
-
+    <string name="button_label_provision_credential_browser">Load via Browser</string>
+    <string name="button_label_provision_credential_qr">Load via QR-Code</string>
 
     <string name="attribute_friendly_name_bpk">BPK</string>
     <string name="attribute_friendly_name_firstname">Given name</string>
@@ -152,7 +153,7 @@
     <string name="text_label_build">Build</string>
 
     <string name="heading_label_authenticate_at_device_title">Authenticate</string>
-    <string name="heading_label_authenticate_at_device_subtitle">at counter or mashine</string>
+    <string name="heading_label_authenticate_at_device_subtitle">at relying party</string>
     <string name="heading_label_show_data">Show Data</string>
     <string name="heading_label_authentication_success">Authenticated</string>
     <string name="heading_label_settings_screen">Settings</string>
@@ -170,7 +171,7 @@
     <string name="heading_label_load_data_screen">Load data</string>
     <string name="heading_label_add_credential_screen">Load data</string>
     <string name="heading_label_refresh_data_screen">Load data</string>
-    <string name="heading_label_authenticate_at_device_screen">Authenticate at\ncounter or mashine</string>
+    <string name="heading_label_authenticate_at_device_screen">Authenticate at\nrelying party</string>
 
     <string name="description_read_terms">Please read and accept the terms of use and the privacy policy.</string>
 
@@ -221,13 +222,13 @@
     <string name="info_text_data_items_missing">missing</string>
     <string name="info_text_authentication_success">The authentication has been carried out successfully.</string>
     <string name="info_text_no_credentials_available">No data is available yet.</string>
-    <string name="info_text_redirection_to_id_austria_for_credential_provisioning">To load your data you will be redirected to ID Austria.</string>
+    <string name="info_text_redirection_to_browser_for_credential_provisioning">To load your data you will be redirected into your browser.</string>
     <string name="info_text_notice_development_provisioning_using_qr_code_credentials">For development purposes, there is also the option to load data via a QR code.</string>
     <string name="info_text_enthusiastic_welcome_end">Load your data and off you go!</string>
     <string name="info_text_submission_preview_disabled">Preview of data to be submitted is currently not available.</string>
 
     <string name="section_heading_authenticate_at_device_title">Authenticate</string>
-    <string name="section_heading_authenticate_at_device_subtitle">at counters or mashines</string>
+    <string name="section_heading_authenticate_at_device_subtitle">at relying party</string>
     <string name="section_heading_show_data_to_executive_title">Show data to</string>
     <string name="section_heading_show_data_to_executive_subtitle">Executive</string>
     <string name="section_heading_show_data_to_other_citizen_title">Show data to</string>

@@ -2,7 +2,6 @@ package data.storage
 
 import at.asitplus.KmmResult
 import at.asitplus.wallet.app.common.Configuration
-import at.asitplus.wallet.eprescription.EPrescriptionScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.SelectiveDisclosureItem
@@ -12,14 +11,10 @@ import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.iso.IssuerSigned
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.storage.ExportableCredentialScheme.Companion.toExportableCredentialScheme
-import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.map
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlin.random.Random
 
@@ -236,7 +231,7 @@ private sealed interface ExportableStoreEntry {
     ) : ExportableStoreEntry
 }
 
-private enum class ExportableCredentialScheme {
+enum class ExportableCredentialScheme {
     AtomicAttribute2023, IdAustriaScheme, MobileDrivingLicence2023, EuPidScheme, PowerOfRepresentationScheme, CertificateOfResidenceScheme, EPrescriptionScheme;
 
     fun toScheme() = when (this) {

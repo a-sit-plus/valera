@@ -3,31 +3,31 @@
 package ui.composables.buttons
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import compose_wallet_app.shared.generated.resources.Res
-import compose_wallet_app.shared.generated.resources.button_label_details
+import compose_wallet_app.shared.generated.resources.button_label_provision_credential_qr
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
-import ui.composables.OutlinedTextIconButton
+import ui.composables.TextIconButton
 
 @Composable
-fun DetailsButton(
+fun LoadDataQrButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    OutlinedTextIconButton(
+    TextIconButton(
         icon = {
             Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                imageVector = Icons.Default.QrCode,
                 contentDescription = null,
             )
         },
         text = {
-            Text(stringResource(Res.string.button_label_details))
+            Text(stringResource(Res.string.button_label_provision_credential_qr))
         },
         onClick = onClick,
         modifier = modifier,

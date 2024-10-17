@@ -2,7 +2,6 @@ package ui.composables.credentials
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
-import at.asitplus.wallet.cor.CertificateOfResidence
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.eprescription.EPrescriptionScheme
 import at.asitplus.wallet.eupid.EuPidScheme

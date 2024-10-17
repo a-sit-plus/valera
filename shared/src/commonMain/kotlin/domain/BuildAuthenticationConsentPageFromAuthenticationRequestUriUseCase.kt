@@ -25,10 +25,7 @@ class BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
         return KmmResult.success(
             AuthenticationConsentPage(
                 authenticationRequestParametersFromSerialized = vckJsonSerializer.encodeToString(request),
-
                 authorizationPreparationStateSerialized = vckJsonSerializer.encodeToString(preparationState),
-
-                recipientName = "SERVICE_NAME_DUMMY_VALUE",
                 recipientLocation = request.parameters.clientId ?: "",
             )
         )

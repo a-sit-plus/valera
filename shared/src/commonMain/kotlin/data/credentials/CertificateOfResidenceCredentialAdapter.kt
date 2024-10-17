@@ -2,7 +2,6 @@ package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
-import at.asitplus.wallet.cor.CertificateOfResidenceDataElements
 import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.ADMINISTRATIVE_NUMBER
 import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.ARRIVAL_DATE
 import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.BIRTH_DATE

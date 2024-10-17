@@ -3,6 +3,7 @@ package ui.composables.credentials
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -43,7 +44,7 @@ fun PowerOfRepresentationCredentialRepresentationDataCardContent(
         credentialAdapter.legalPersonIdentifier?.let {
             AttributeRepresentation(it, modifier = spacingModifier)
         }
-        credentialAdapter.eService?.let {
+        credentialAdapter.legalName?.let {
             AttributeRepresentation(it, modifier = spacingModifier)
         }
         if ((credentialAdapter.effectiveFromDate ?: credentialAdapter.effectiveUntilDate) != null) {
@@ -52,6 +53,8 @@ fun PowerOfRepresentationCredentialRepresentationDataCardContent(
                     AttributeRepresentation(it)
                 }
                 if(credentialAdapter.effectiveFromDate != null && credentialAdapter.effectiveUntilDate != null) {
+                    VerticalDivider()
+                    Text(" — ")
                     VerticalDivider()
                 }
                 credentialAdapter.effectiveUntilDate?.let {

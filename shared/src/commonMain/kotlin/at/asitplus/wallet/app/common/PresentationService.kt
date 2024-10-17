@@ -6,6 +6,7 @@ import at.asitplus.wallet.lib.oidc.AuthenticationRequestParametersFrom
 import at.asitplus.wallet.lib.oidc.AuthenticationResponseResult
 import at.asitplus.wallet.lib.oidc.OidcSiopWallet
 import io.github.aakira.napier.Napier
+import io.ktor.client.call.body
 import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
@@ -16,11 +17,13 @@ import io.ktor.http.parameters
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 class PresentationService(
     val platformAdapter: PlatformAdapter,
-    private val cryptoService: WalletCryptoService,
-    private val holderAgent: HolderAgent,
+    cryptoService: WalletCryptoService,
+    holderAgent: HolderAgent,
     httpService: HttpService,
 ) {
     private val client = httpService.buildHttpClient()
@@ -40,48 +43,56 @@ class PresentationService(
     @Throws(Throwable::class)
     suspend fun startSiop(
         authenticationRequestParameters: AuthenticationRequestParametersFrom,
-        fromQrCodeScanner: Boolean
     ) {
         Napier.d("Start SIOP process: $authenticationRequestParameters")
         oidcSiopWallet.createAuthnResponse(authenticationRequestParameters).getOrThrow().let {
             when (it) {
-                is AuthenticationResponseResult.Post -> {
-                    Napier.d("Post ${it.url}: $it")
-                    val response = client.submitForm(
-                        url = it.url,
-                        formParameters = parameters {
-                            it.params.forEach { append(it.key, it.value) }
-                        }
-                    )
-                    Napier.d("response $response")
-                    when (response.status.value) {
-                        HttpStatusCode.InternalServerError.value -> {
-                            throw Exception(
-                                "InternalServerErrorException",
-                                Exception(response.bodyAsText()),
-                            )
-                        }
-
-                        in 200..399 -> {
-                            val location = response.headers[HttpHeaders.Location]
-                            if (location != null && fromQrCodeScanner == false) {
-                                platformAdapter.openUrl(location)
-                            }
-                        }
-
-                        else -> {
-                            throw Exception(response.readBytes().decodeToString())
-                        }
-                    }
-                }
-
-                is AuthenticationResponseResult.Redirect -> {
-                    Napier.d("Opening ${it.url}")
-                    if (!fromQrCodeScanner) {
-                        platformAdapter.openUrl(it.url)
-                    }
-                }
+                is AuthenticationResponseResult.Post -> postResponse(it)
+                is AuthenticationResponseResult.Redirect -> redirectResponse(it)
             }
         }
     }
+
+    private suspend fun postResponse(
+        it: AuthenticationResponseResult.Post,
+    ) {
+        Napier.d("Post ${it.url}: $it")
+        val response = client.submitForm(
+            url = it.url,
+            formParameters = parameters {
+                it.params.forEach { append(it.key, it.value) }
+            }
+        )
+        Napier.d("response $response")
+        when (response.status.value) {
+            HttpStatusCode.InternalServerError.value ->
+                throw Exception("InternalServerErrorException", Exception(response.bodyAsText()))
+
+            in 200..399 -> response.headers[HttpHeaders.Location]?.let {
+                if (it.isNotEmpty()) {
+                    platformAdapter.openUrl(it)
+                }
+            } ?: runCatching { response.body<OpenId4VpSuccess>() }.getOrNull()?.let {
+                if (it.redirectUri.isNotEmpty()) {
+                    platformAdapter.openUrl(it.redirectUri)
+                }
+            }
+
+            else -> throw Exception(response.readBytes().decodeToString())
+        }
+    }
+
+    @Serializable
+    data class OpenId4VpSuccess(
+        @SerialName("redirect_uri")
+        val redirectUri: String,
+    )
+
+    private fun redirectResponse(
+        it: AuthenticationResponseResult.Redirect,
+    ) {
+        Napier.d("Opening ${it.url}")
+        platformAdapter.openUrl(it.url)
+    }
+
 }

@@ -11,8 +11,13 @@ actual class HomePage : Page, Parcelable
 actual class LogPage : Page, Parcelable
 
 @Parcelize
+actual class PreAuthQrCodeScannerPage : Page, Parcelable
+
+@Parcelize
 actual class SettingsPage : Page, Parcelable
 
+@Parcelize
+actual class LoadingPage : Page, Parcelable
 
 @Parcelize
 actual class OnboardingStartPage : OnboardingPage, Parcelable
@@ -48,6 +53,11 @@ actual class RefreshCredentialsPage actual constructor(
 actual class AddCredentialPage actual constructor() : Page, Parcelable
 
 @Parcelize
+actual class AddCredentialPreAuthnPage actual constructor(
+    actual val credentialOfferInfoSerialized: String
+) : Page, Parcelable
+
+@Parcelize
 actual class CredentialDetailsPage actual constructor(
     actual val storeEntryId: StoreEntryId
 ) : Page, Parcelable
@@ -56,9 +66,7 @@ actual class CredentialDetailsPage actual constructor(
 actual class AuthenticationConsentPage actual constructor(
     actual val authenticationRequestParametersFromSerialized: String,
     actual val authorizationPreparationStateSerialized: String,
-    actual val recipientName: String,
     actual val recipientLocation: String,
-    actual val fromQrCodeScanner: Boolean,
 ) : Page, Parcelable
 
 @Parcelize

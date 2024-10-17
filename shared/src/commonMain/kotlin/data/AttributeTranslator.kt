@@ -2,16 +2,16 @@ package data
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
-import at.asitplus.wallet.eprescription.EPrescriptionScheme
 import at.asitplus.wallet.eprescription.EPrescriptionDataElements.COUNTRY_CODE
 import at.asitplus.wallet.eprescription.EPrescriptionDataElements.OTT
 import at.asitplus.wallet.eprescription.EPrescriptionDataElements.VALID_UNTIL
+import at.asitplus.wallet.eprescription.EPrescriptionScheme
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
-import compose_wallet_app.shared.generated.resources.Res
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
+import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.attribute_friendly_name_administrative_number
 import compose_wallet_app.shared.generated.resources.attribute_friendly_name_age_at_least_14
 import compose_wallet_app.shared.generated.resources.attribute_friendly_name_age_at_least_16
@@ -67,7 +67,6 @@ import compose_wallet_app.shared.generated.resources.id_austria_credential_attri
 import compose_wallet_app.shared.generated.resources.id_austria_credential_attribute_friendly_name_main_address_stair
 import compose_wallet_app.shared.generated.resources.id_austria_credential_attribute_friendly_name_main_address_street
 import data.credentials.IdAustriaCredentialMainAddress
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.StringResource
 
 

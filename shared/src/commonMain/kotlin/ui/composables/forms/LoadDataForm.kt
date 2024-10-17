@@ -18,7 +18,7 @@ import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.identifier
 import at.asitplus.wallet.lib.data.ConstantIndex
 import compose_wallet_app.shared.generated.resources.Res
-import compose_wallet_app.shared.generated.resources.info_text_redirection_to_id_austria_for_credential_provisioning
+import compose_wallet_app.shared.generated.resources.info_text_redirection_to_browser_for_credential_provisioning
 import data.PersonalDataCategory
 import data.credentials.CredentialAttributeCategorization
 import org.jetbrains.compose.resources.stringResource
@@ -34,6 +34,8 @@ fun StatefulLoadDataForm(
     requestedAttributes: Set<NormalizedJsonPath>,
     onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
     modifier: Modifier = Modifier,
+    availableSchemes: List<ConstantIndex.CredentialScheme>,
+    showAttributes: Boolean,
 ) {
     var attributeCategoriesExpanded by rememberSaveable(credentialScheme) {
         val attributeCategorization =
@@ -59,6 +61,8 @@ fun StatefulLoadDataForm(
             attributeCategoriesExpanded += it
         },
         modifier = modifier,
+        availableSchemes = availableSchemes,
+        showAttributes = showAttributes,
     )
 }
 
@@ -75,6 +79,8 @@ fun LoadDataForm(
     attributeCategoriesExpanded: Map<PersonalDataCategory, Boolean>,
     onSetAttributeCategoriesExpanded: (Pair<PersonalDataCategory, Boolean>) -> Unit,
     modifier: Modifier = Modifier,
+    availableSchemes: List<ConstantIndex.CredentialScheme>,
+    showAttributes: Boolean,
 ) {
     Box(
         modifier = modifier,
@@ -84,7 +90,7 @@ fun LoadDataForm(
         ) {
             val columnSpacingModifier = Modifier.padding(top = 16.dp)
             Text(
-                stringResource(Res.string.info_text_redirection_to_id_austria_for_credential_provisioning),
+                stringResource(Res.string.info_text_redirection_to_browser_for_credential_provisioning),
             )
 
             CredentialMetadataSelectionForm(
@@ -95,16 +101,18 @@ fun LoadDataForm(
                 credentialScheme = credentialScheme,
                 onChangeCredentialScheme = onChangeCredentialScheme,
                 modifier = columnSpacingModifier,
+                availableSchemes = availableSchemes,
             )
-
-            CredentialAttributeSelectionForm(
-                credentialScheme = credentialScheme,
-                requestedAttributes = requestedAttributes,
-                onChangeRequestedAttributes = onChangeRequestedAttributes,
-                attributeCategoriesExpanded = attributeCategoriesExpanded,
-                onSetAttributeCategoriesExpanded = onSetAttributeCategoriesExpanded,
-                modifier = columnSpacingModifier,
-            )
+            if (showAttributes) {
+                CredentialAttributeSelectionForm(
+                    credentialScheme = credentialScheme,
+                    requestedAttributes = requestedAttributes,
+                    onChangeRequestedAttributes = onChangeRequestedAttributes,
+                    attributeCategoriesExpanded = attributeCategoriesExpanded,
+                    onSetAttributeCategoriesExpanded = onSetAttributeCategoriesExpanded,
+                    modifier = columnSpacingModifier,
+                )
+            }
         }
     }
 }

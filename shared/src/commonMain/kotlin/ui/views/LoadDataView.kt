@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -30,6 +29,8 @@ fun LoadDataView(
     // other
     onSubmit: () -> Unit,
     modifier: Modifier = Modifier,
+    availableSchemes: List<ConstantIndex.CredentialScheme>,
+    showAttributes: Boolean,
 ) {
     Scaffold(
         bottomBar = {
@@ -55,7 +56,9 @@ fun LoadDataView(
             onChangeCredentialScheme = onChangeCredentialScheme,
             requestedAttributes = requestedAttributes,
             onChangeRequestedAttributes = onChangeRequestedAttributes,
-            modifier = Modifier.padding(scaffoldPadding)
+            modifier = Modifier.padding(scaffoldPadding),
+            availableSchemes = availableSchemes,
+            showAttributes = showAttributes
         )
     }
 }
