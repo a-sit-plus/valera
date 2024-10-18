@@ -281,19 +281,17 @@ fun MainNavigator(
                                 navigationStack.push(LogPage())
                             },
                             onClickResetApp = {
-                                val resetMessage = runBlocking {
+                                walletMain.scope.launch {
                                     walletMain.resetApp()
-                                    getString(Res.string.snackbar_reset_app_successfully)
+                                    walletMain.snackbarService.showSnackbar(getString(Res.string.snackbar_reset_app_successfully))
+                                    navigationStack.reset()
                                 }
-                                walletMain.snackbarService.showSnackbar(resetMessage)
-                                navigationStack.reset()
                             },
                             onClickClearLog = {
-                                val clearMessage = runBlocking {
+                                walletMain.scope.launch {
                                     walletMain.clearLog()
-                                    getString(Res.string.snackbar_clear_log_successfully)
+                                    walletMain.snackbarService.showSnackbar(getString(Res.string.snackbar_clear_log_successfully))
                                 }
-                                walletMain.snackbarService.showSnackbar(clearMessage)
                             },
                             walletMain = walletMain,
                         )
