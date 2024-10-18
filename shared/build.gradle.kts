@@ -41,7 +41,7 @@ kotlin {
                 api(napier())
                 implementation("androidx.datastore:datastore-preferences-core:1.1.1")
                 implementation("androidx.datastore:datastore-core-okio:1.1.1")
-                implementation("org.jetbrains.androidx.navigation:navigation-compose:2.7.0-alpha07")
+                implementation("org.jetbrains.androidx.navigation:navigation-compose:2.8.0-alpha10")
                 api(libs.atomicfu)
                 implementation(ktor("client-core"))
                 implementation(ktor("client-cio"))
