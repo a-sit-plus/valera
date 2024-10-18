@@ -26,10 +26,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
@@ -215,20 +217,21 @@ fun OnboardingNav(walletMain: WalletMain) {
     // Get current back stack entry
     val backStackEntry by navController.currentBackStackEntryAsState()
     // Get the name of the current screen
-    val currentScreen = OnboardingEnums.valueOf(
-        backStackEntry?.destination?.route ?: OnboardingEnums.Start.name
-    )
+    val currentScreen = "onboard?value1=1"
 
 
 
     NavHost(
         navController = navController,
-        startDestination = OnboardingEnums.Start.name,
+        startDestination = "onboard?value=test",
         modifier = Modifier
             .fillMaxSize()
     ) {
-        composable(route = OnboardingEnums.Start.name) {
-            OnboardingStartScreen(onClickStart = {navController.navigate(OnboardingEnums.Information.name)})
+        composable(route = "onboard?value={value}",
+            arguments = listOf(navArgument("value") { type = NavType.StringType })) { backStackEntry ->
+            backStackEntry.arguments?.getString("value")?.let {
+                OnboardingStartScreen(onClickStart = {navController.navigate(OnboardingEnums.Information.name)})
+            }
         }
         composable(route = OnboardingEnums.Information.name) {
             OnboardingInformationScreen(onClickContinue = {navController.navigate(OnboardingEnums.Terms.name)})
