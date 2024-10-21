@@ -1,6 +1,5 @@
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.padding
+
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCodeScanner
@@ -11,375 +10,198 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.saveable.listSaver
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
-import at.asitplus.wallet.app.common.CredentialOfferInfo
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParametersFrom
 import at.asitplus.wallet.lib.oidc.helpers.AuthorizationResponsePreparationState
-import at.asitplus.wallet.lib.oidvci.toRepresentation
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.navigation_button_label_my_data
 import compose_wallet_app.shared.generated.resources.navigation_button_label_settings
 import compose_wallet_app.shared.generated.resources.navigation_button_label_show_data
-import compose_wallet_app.shared.generated.resources.snackbar_clear_log_successfully
-import compose_wallet_app.shared.generated.resources.snackbar_reset_app_successfully
-import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier
-import io.ktor.http.parseQueryString
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.StringResource
-import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
-import ui.navigation.AddCredentialPage
-import ui.navigation.AddCredentialPreAuthnPage
-import ui.navigation.AuthenticationConsentPage
-import ui.navigation.AuthenticationLoadingPage
-import ui.navigation.AuthenticationQrCodeScannerPage
-import ui.navigation.AuthenticationSuccessPage
-import ui.navigation.CredentialDetailsPage
-import ui.navigation.HomePage
-import ui.navigation.LoadingPage
-import ui.navigation.LogPage
-import ui.navigation.NavigationStack
-import ui.navigation.Page
-import ui.navigation.PreAuthQrCodeScannerPage
-import ui.navigation.ProvisioningLoadingPage
-import ui.navigation.SettingsPage
-import ui.screens.AddCredentialScreen
+import ui.navigation.AuthenticationConsentRoute
+import ui.navigation.AuthenticationQrCodeScannerRoute
+import ui.navigation.AuthenticationSuccessRoute
+import ui.navigation.HomeScreenRoute
+import ui.navigation.OnboardingInformation
+import ui.navigation.OnboardingStart
+import ui.navigation.OnboardingTerms
+import ui.navigation.SettingsRoute
 import ui.screens.AuthenticationConsentScreen
 import ui.screens.AuthenticationQrCodeScannerView
 import ui.screens.AuthenticationSuccessScreen
-import ui.screens.CredentialDetailsScreen
-import ui.screens.ErrorScreen
-import ui.screens.LoadingScreen
-import ui.screens.LogScreen
 import ui.screens.MyCredentialsScreen
-import ui.screens.OnboardingWrapper
-import ui.screens.PreAuthQrCodeScannerScreen
-import ui.screens.ProvisioningLoadingScreen
+import ui.screens.OnboardingInformationScreen
+import ui.screens.OnboardingStartScreen
+import ui.screens.OnboardingTermsScreen
 import ui.screens.SettingsScreen
 import view.AuthenticationQrCodeScannerViewModel
 
-internal object NavigatorTestTags {
-    const val postOnboardingContent = "postOnboardingContent"
-}
-
 @Composable
-fun Navigator(walletMain: WalletMain) {
-    // Modified from https://github.com/JetBrains/compose-multiplatform/tree/master/examples/imageviewer
-    val mainNavigationStack = rememberSaveable(
-        saver = listSaver<NavigationStack<Page>, Page>(
-            restore = { NavigationStack(*it.toTypedArray()) },
-            save = { it.stack },
-        )
-    ) {
-        NavigationStack(HomePage())
-    }
+fun BottomBar(push: (Route) -> Unit) {
+    val currentScreen: MutableState<Route> = remember { mutableStateOf(HomeScreenRoute) }
 
-    LaunchedEffect(appLink.value) {
-        Napier.d("app link changed to ${appLink.value}")
-        appLink.value?.let { link ->
-            // resetting error service so that the intent can be displayed as intended
-            walletMain.errorService.reset()
-
-            Napier.d("new app link: ${link}")
-            val parameterIndex = link.indexOfFirst { it == '?' }
-            val pars = parseQueryString(link, startIndex = parameterIndex + 1)
-
-            if (pars.contains("error")) {
-                runBlocking {
-                    walletMain.errorService.emit(
-                        Exception(pars["error_description"] ?: "Unknown Exception")
-                    )
-                }
-                appLink.value = null
-                return@LaunchedEffect
-            }
-
-            if (walletMain.provisioningService.redirectUri?.let { link.contains(it) } == true) {
-                walletMain.provisioningService.redirectUri = null
-                mainNavigationStack.push(ProvisioningLoadingPage(link = link))
-                appLink.value = null
-                return@LaunchedEffect
-            }
-
-            // if this is not for provisioning, it must be an authorization request
-            kotlin.run {
-                val consentPageBuilder =
-                    BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
-                        oidcSiopWallet = walletMain.presentationService.oidcSiopWallet
-                    )
-
-                consentPageBuilder(link).unwrap().onSuccess {
-                    Napier.d("valid authentication request")
-                    mainNavigationStack.push(it)
-                }.onFailure {
-                    Napier.d("invalid authentication request")
-                }
-                appLink.value = null
-                return@LaunchedEffect
+    if (currentScreen.value == HomeScreenRoute || currentScreen.value == SettingsRoute) {
+        NavigationBar {
+            for (route in listOf(
+                NavigationData.HOME_SCREEN,
+                NavigationData.AUTHENTICATION_SCANNING_SCREEN,
+                NavigationData.INFORMATION_SCREEN,
+            )) {
+                NavigationBarItem(
+                    icon = route.icon,
+                    label = {
+                        Text(stringResource(route.title))
+                    },
+                    onClick = {
+                        if (currentScreen.value != route.destination) {
+                            currentScreen.value = route.destination
+                            push(route.destination)
+                        }
+                    },
+                    selected = currentScreen.value == route.destination,
+                )
             }
         }
     }
-
-    val globalBack = { mainNavigationStack.back() }
-    val resetStack = { mainNavigationStack.reset() }
-
-    if (walletMain.errorService.showError.value == false) {
-        OnboardingWrapper(
-            walletMain = walletMain,
-        ) {
-            MainNavigator(
-                navigationStack = mainNavigationStack,
-                navigateUp = globalBack,
-                walletMain = walletMain,
-                modifier = Modifier.testTag(NavigatorTestTags.postOnboardingContent),
-            )
-        }
-    } else {
-        ErrorScreen(walletMain, resetStack)
-    }
 }
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
-fun MainNavigator(
-    navigationStack: NavigationStack<Page>,
-    navigateUp: () -> Unit,
-    walletMain: WalletMain,
-    modifier: Modifier = Modifier,
-) {
+fun WalletNav(walletMain: WalletMain){
+    val navController: NavHostController = rememberNavController()
+    // Get current back stack entry
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    // Get the name of the current screen
+
+    val currentScreen = backStackEntry?.destination?.route ?: "HomeScreenRoute"
+    val current: Route? = backStackEntry?.toRoute()
+
+    Napier.e(current.toString())
+
+
     Scaffold(
         bottomBar = {
-            val (_, page) = navigationStack.lastWithIndex()
-            val pageNavigationData = when (page) {
-                is HomePage -> NavigationData.HOME_SCREEN
-
-                is SettingsPage -> NavigationData.INFORMATION_SCREEN
-
-                else -> null
-            }
-
-            if (pageNavigationData != null) {
-                NavigationBar {
-                    for (route in listOf(
-                        NavigationData.HOME_SCREEN,
-                        NavigationData.AUTHENTICATION_SCANNING_SCREEN,
-                        NavigationData.INFORMATION_SCREEN,
-                    )) {
-                        NavigationBarItem(
-                            icon = route.icon,
-                            label = {
-                                Text(stringResource(route.title))
-                            },
-                            onClick = {
-                                if (route.isActive(page) == false) {
-                                    //navigationStack.push(route.destination)
-                                }
-                            },
-                            selected = route.isActive(page),
-                        )
-                    }
-                }
-            }
+            BottomBar(push = {enum -> navController.navigate(enum)})
         },
-        modifier = modifier,
-    ) { scaffoldPadding ->
-        Box(modifier = Modifier.padding(scaffoldPadding)) {
-            AnimatedContent(targetState = navigationStack.lastWithIndex()) { (_, page) ->
-                when (page) {
-                    is HomePage -> {
-                        MyCredentialsScreen(
-                            navigateToAddCredentialsPage = {
-                                navigationStack.push(AddCredentialPage())
-                            },
-                            navigateToQrAddCredentialsPage = {
-                                navigationStack.push(PreAuthQrCodeScannerPage())
-                            },
-                            navigateToCredentialDetailsPage = {
-                                navigationStack.push(CredentialDetailsPage(it))
-                            },
-                            walletMain = walletMain,
-                        )
-                    }
+        modifier = Modifier,
+    ) {
+        NavHost(
+            navController = navController,
+            startDestination = HomeScreenRoute,
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            composable<HomeScreenRoute> {
+                MyCredentialsScreen(
+                    navigateToAddCredentialsPage = {
 
+                    },
+                    navigateToQrAddCredentialsPage = {
 
-                    is AddCredentialPage -> {
-                        AddCredentialScreen(
-                            navigateUp = navigateUp,
-                            walletMain = walletMain,
-                            onSubmit = { host, credentialScheme, credentialRepresentation, requestedAttributes ->
-                                walletMain.startProvisioning(
-                                    host = host,
-                                    credentialScheme = credentialScheme,
-                                    credentialRepresentation = credentialRepresentation,
-                                    requestedAttributes = requestedAttributes,
-                                ) {
-                                    navigateUp()
-                                }
-                            },
-                            availableSchemes = walletMain.availableSchemes,
-                            hostString = runBlocking { walletMain.walletConfig.host.first() },
-                        )
-                    }
+                    },
+                    navigateToCredentialDetailsPage = {
 
-                    is AddCredentialPreAuthnPage -> {
-                        val offer = Json.decodeFromString<CredentialOfferInfo>(page.credentialOfferInfoSerialized)
-                        AddCredentialScreen(
-                            navigateUp = navigateUp,
-                            walletMain = walletMain,
-                            onSubmit = { host, credentialScheme, credentialRepresentation, requestedAttributes ->
-                                walletMain.scope.launch {
-                                    walletMain.provisioningService.loadCredentialWithPreAuthn(
-                                        credentialIssuer = host,
-                                        preAuthorizedCode = offer.credentialOffer.grants?.preAuthorizedCode?.preAuthorizedCode.toString(),
-                                        credentialIdToRequest = offer.credentials
-                                            .entries
-                                            .first { it.value.first.toScheme() == credentialScheme && it.value.second.toRepresentation() == credentialRepresentation }
-                                            .key,
-
-                                    )
-                                    navigationStack.reset()
-                                }
-                            },
-                            availableSchemes = offer.credentials.map { it.value.first.toScheme() }.distinct(),
-                            hostString = offer.credentialOffer.credentialIssuer,
-                            showAttributes = false,
-                        )
-                    }
-
-
-                    is CredentialDetailsPage -> {
-                        CredentialDetailsScreen(
-                            storeEntryId = page.storeEntryId,
-                            navigateUp = navigateUp,
-                            walletMain = walletMain,
-                        )
-                    }
-
-                    is ProvisioningLoadingPage -> {
-                        ProvisioningLoadingScreen(
-                            link = page.link,
-                            navigateUp = navigateUp,
-                            walletMain = walletMain,
-                        )
-                    }
-
-                    is SettingsPage -> {
-                        SettingsScreen(
-                            navigateToLogPage = {
-                                navigationStack.push(LogPage())
-                            },
-                            onClickResetApp = {
-                                walletMain.scope.launch {
-                                    walletMain.resetApp()
-                                    walletMain.snackbarService.showSnackbar(getString(Res.string.snackbar_reset_app_successfully))
-                                    navigationStack.reset()
-                                }
-                            },
-                            onClickClearLog = {
-                                walletMain.scope.launch {
-                                    walletMain.clearLog()
-                                    walletMain.snackbarService.showSnackbar(getString(Res.string.snackbar_clear_log_successfully))
-                                }
-                            },
-                            walletMain = walletMain,
-                        )
-                    }
-
-                    is PreAuthQrCodeScannerPage -> {
-                        val vm = PreAuthQrCodeScannerViewModel(
-                            walletMain = walletMain,
-                            navigateUp = navigateUp,
-                            navigateToAddCredentialsPage = { offer ->
-                                navigationStack.push(AddCredentialPreAuthnPage(Json.encodeToString(offer)))
-                            })
-                        PreAuthQrCodeScannerScreen(vm)
-                    }
-
-                    is LogPage -> {
-                        LogScreen(
-                            navigateUp = navigateUp,
-                            walletMain = walletMain,
-                        )
-                    }
-
-                    is LoadingPage -> {
-                        LoadingScreen()
-                    }
-
-                    is AuthenticationQrCodeScannerPage -> {
-                        val vm = AuthenticationQrCodeScannerViewModel(navigateUp = navigateUp, onSuccess = { page ->
-                            navigationStack.back()
-                            navigationStack.push(page)
-                        }, walletMain = walletMain)
-                        AuthenticationQrCodeScannerView(vm)
-                    }
-
-                    is AuthenticationLoadingPage -> {
-                        LoadingScreen()
-                    }
-
-                    is AuthenticationConsentPage -> {
-                        kotlin.runCatching {
-                            val request =
-                                AuthenticationRequestParametersFrom.deserialize(page.authenticationRequestParametersFromSerialized)
-                                    .getOrThrow()
-                            val preparationState =
-                                vckJsonSerializer.decodeFromString<AuthorizationResponsePreparationState>(
-                                    page.authorizationPreparationStateSerialized,
-                                )
-
-                            AuthenticationConsentScreen(
-                                spName = null,
-                                spLocation = page.recipientLocation,
-                                spImage = null,
-                                authenticationRequestParametersFrom = request,
-                                authorizationResponsePreparationState = preparationState,
-                                navigateUp = navigateUp,
-                                navigateToAuthenticationSuccessPage = {
-                                    navigationStack.push(
-                                        AuthenticationSuccessPage()
-                                    )
-                                },
-                                walletMain = walletMain,
-                            )
-                        }.onFailure {
-                            LaunchedEffect(true) {
-                                navigateUp()
-                                walletMain.errorService.emit(it)
-                            }
-                        }
-                    }
-
-                    is AuthenticationSuccessPage -> {
-                        AuthenticationSuccessScreen(
-                            navigateUp = navigateUp,
-                        )
-                    }
-                }
+                    },
+                    walletMain = walletMain,
+                )
             }
+            composable<SettingsRoute> {
+                SettingsScreen(navigateToLogPage =  {}, onClickResetApp =  {}, onClickClearLog = {}, walletMain)
+            }
+            composable<AuthenticationQrCodeScannerRoute> {
+                val vm = AuthenticationQrCodeScannerViewModel(navigateUp = { navController.navigateUp() }, onSuccess = { route ->
+                    val test = backStackEntry
+                    Napier.d(test.toString())
+                    navController.navigate(route)
+                }, walletMain = walletMain)
+                AuthenticationQrCodeScannerView(vm)
+            }
+            composable<AuthenticationConsentRoute> { backStackEntry ->
+                val route: AuthenticationConsentRoute = backStackEntry.toRoute()
+
+                val request =
+                    AuthenticationRequestParametersFrom.deserialize(route.authenticationRequestParametersFromSerialized)
+                        .getOrThrow()
+                val preparationState =
+                    vckJsonSerializer.decodeFromString<AuthorizationResponsePreparationState>(
+                        route.authorizationPreparationStateSerialized,
+                    )
+
+                AuthenticationConsentScreen(
+                    spName = null,
+                    spLocation = route.recipientLocation,
+                    spImage = null,
+                    authenticationRequestParametersFrom = request,
+                    authorizationResponsePreparationState = preparationState,
+                    navigateUp = {navController.navigateUp()},
+                    navigateToAuthenticationSuccessPage = {
+                        navController.navigate(AuthenticationSuccessRoute)
+                    },
+                    walletMain = walletMain,
+                )
+            }
+
+            composable<AuthenticationSuccessRoute> { backStackEntry ->
+                AuthenticationSuccessScreen(
+                    navigateUp = { navController.navigateUp() },
+                )
+            }
+        }
+    }
+
+}
+
+@Composable
+fun OnboardingNav(walletMain: WalletMain) {
+    val navController: NavHostController = rememberNavController()
+    // Get current back stack entry
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    // Get the name of the current screen
+    val currentScreen = backStackEntry?.destination?.route
+
+
+
+    NavHost(
+        navController = navController,
+        startDestination = OnboardingStart,
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        composable<OnboardingStart> {
+            OnboardingStartScreen(onClickStart = {navController.navigate(OnboardingInformation)})
+        }
+        composable<OnboardingInformation> {
+            OnboardingInformationScreen(onClickContinue = {navController.navigate(OnboardingTerms)})
+        }
+        composable<OnboardingTerms> {
+            OnboardingTermsScreen(onClickAccept = { walletMain.walletConfig.set(isConditionsAccepted = true) },
+                onClickNavigateBack = {navController.navigateUp()},
+                onClickReadDataProtectionPolicy = {},
+                onClickReadGeneralTermsAndConditions = {})
         }
     }
 }
 
+interface Route
 
-@OptIn(ExperimentalResourceApi::class)
 enum class NavigationData(
     val title: StringResource,
     val icon: @Composable () -> Unit,
-    val destination: WalletNavigation,
-    val isActive: (Page) -> Boolean
+    val destination: Route,
+    val isActive: (Route) -> Boolean
 ) {
     HOME_SCREEN(
         title = Res.string.navigation_button_label_my_data,
@@ -389,10 +211,10 @@ enum class NavigationData(
                 contentDescription = null,
             )
         },
-        destination = WalletNavigation.MyCredentialScreen,
+        destination = HomeScreenRoute,
         isActive = {
             when (it) {
-                is HomePage -> true
+                is HomeScreenRoute -> true
                 else -> false
             }
         },
@@ -405,10 +227,10 @@ enum class NavigationData(
                 contentDescription = null,
             )
         },
-        destination = WalletNavigation.QrCodeScanner,
+        destination = AuthenticationQrCodeScannerRoute,
         isActive = {
             when (it) {
-                is AuthenticationQrCodeScannerPage -> true
+                is AuthenticationQrCodeScannerRoute -> true
                 else -> false
             }
         },
@@ -421,12 +243,13 @@ enum class NavigationData(
                 contentDescription = null,
             )
         },
-        destination = WalletNavigation.Settings,
+        destination = SettingsRoute,
         isActive = {
             when (it) {
-                is SettingsPage -> true
+                is SettingsRoute -> true
                 else -> false
             }
         },
     ),
 }
+
