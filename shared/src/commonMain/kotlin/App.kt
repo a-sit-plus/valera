@@ -126,52 +126,54 @@ fun WalletNav(walletMain: WalletMain){
 
     Scaffold(
         bottomBar = {
-            NavigationBar {
-                NavigationBarItem(
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = null,
-                        )
-                    },
-                    label = {
-                        Text(stringResource(Res.string.navigation_button_label_my_data))
-                    },
-                    onClick = {
-                        navController.navigate(MainEnums.MyCredentialScreen.name)
-                    },
-                    selected = false,
-                )
-                NavigationBarItem(
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.QrCodeScanner,
-                            contentDescription = null,
-                        )
-                    },
-                    label = {
-                        Text(stringResource(Res.string.navigation_button_label_show_data))
-                    },
-                    onClick = {
-                        navController.navigate(MainEnums.QrCodeScanner.name)
-                    },
-                    selected = false,
-                )
-                NavigationBarItem(
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = null,
-                        )
-                    },
-                    label = {
-                        Text(stringResource(Res.string.navigation_button_label_settings))
-                    },
-                    onClick = {
-                        navController.navigate(MainEnums.Settings.name)
-                    },
-                    selected = false,
-                )
+            if (currentScreen == MainEnums.MyCredentialScreen || currentScreen == MainEnums.Settings) {
+                NavigationBar {
+                    NavigationBarItem(
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = null,
+                            )
+                        },
+                        label = {
+                            Text(stringResource(Res.string.navigation_button_label_my_data))
+                        },
+                        onClick = {
+                            navController.navigate(MainEnums.MyCredentialScreen.name)
+                        },
+                        selected = false,
+                    )
+                    NavigationBarItem(
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.QrCodeScanner,
+                                contentDescription = null,
+                            )
+                        },
+                        label = {
+                            Text(stringResource(Res.string.navigation_button_label_show_data))
+                        },
+                        onClick = {
+                            navController.navigate(MainEnums.QrCodeScanner.name)
+                        },
+                        selected = false,
+                    )
+                    NavigationBarItem(
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.Settings,
+                                contentDescription = null,
+                            )
+                        },
+                        label = {
+                            Text(stringResource(Res.string.navigation_button_label_settings))
+                        },
+                        onClick = {
+                            navController.navigate(MainEnums.Settings.name)
+                        },
+                        selected = false,
+                    )
+                }
             }
         },
         modifier = Modifier,
