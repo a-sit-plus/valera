@@ -31,8 +31,8 @@ import ui.theme.WalletTheme
 import view.AuthenticationQrCodeScannerViewModel
 
 @Composable
-fun BottomBar(currentScreen: MainEnums, push: (MainEnums) -> Unit) {
-    if (currentScreen == MainEnums.MyCredentialScreen || currentScreen == MainEnums.Settings) {
+fun BottomBar(currentScreen: WalletNavigation, push: (WalletNavigation) -> Unit) {
+    if (currentScreen == WalletNavigation.MyCredentialScreen || currentScreen == WalletNavigation.Settings) {
         NavigationBar {
             for (route in listOf(
                 NavigationData.HOME_SCREEN,
@@ -62,8 +62,8 @@ fun WalletNav(walletMain: WalletMain){
     // Get current back stack entry
     val backStackEntry by navController.currentBackStackEntryAsState()
     // Get the name of the current screen
-    val currentScreen = MainEnums.valueOf(
-        backStackEntry?.destination?.route ?: MainEnums.MyCredentialScreen.name
+    val currentScreen = WalletNavigation.valueOf(
+        backStackEntry?.destination?.route ?: WalletNavigation.MyCredentialScreen.name
     )
 
     Scaffold(
@@ -74,11 +74,11 @@ fun WalletNav(walletMain: WalletMain){
     ) {
         NavHost(
             navController = navController,
-            startDestination = MainEnums.MyCredentialScreen.name,
+            startDestination = WalletNavigation.MyCredentialScreen.name,
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            composable(route = MainEnums.MyCredentialScreen.name) {
+            composable(route = WalletNavigation.MyCredentialScreen.name) {
                 MyCredentialsScreen(
                     navigateToAddCredentialsPage = {
 
@@ -92,10 +92,10 @@ fun WalletNav(walletMain: WalletMain){
                     walletMain = walletMain,
                 )
             }
-            composable(route = MainEnums.Settings.name) {
+            composable(route = WalletNavigation.Settings.name) {
                 SettingsScreen(navigateToLogPage =  {}, onClickResetApp =  {}, onClickClearLog = {}, walletMain)
             }
-            composable(route = MainEnums.QrCodeScanner.name) {
+            composable(route = WalletNavigation.QrCodeScanner.name) {
                 val vm = AuthenticationQrCodeScannerViewModel(navigateUp = { navController.navigateUp() }, onSuccess = { page ->
                     navController.navigateUp()
                     //navigationStack.push(page)
@@ -126,13 +126,13 @@ fun OnboardingNav(walletMain: WalletMain) {
         composable(route = "onboard?value={value}",
             arguments = listOf(navArgument("value") { type = NavType.StringType })) { backStackEntry ->
             backStackEntry.arguments?.getString("value")?.let {
-                OnboardingStartScreen(onClickStart = {navController.navigate(OnboardingEnums.Information.name)})
+                OnboardingStartScreen(onClickStart = {navController.navigate(OnboardingNavigation.Information.name)})
             }
         }
-        composable(route = OnboardingEnums.Information.name) {
-            OnboardingInformationScreen(onClickContinue = {navController.navigate(OnboardingEnums.Terms.name)})
+        composable(route = OnboardingNavigation.Information.name) {
+            OnboardingInformationScreen(onClickContinue = {navController.navigate(OnboardingNavigation.Terms.name)})
         }
-        composable(route = OnboardingEnums.Terms.name) {
+        composable(route = OnboardingNavigation.Terms.name) {
             OnboardingTermsScreen(onClickAccept = { walletMain.walletConfig.set(isConditionsAccepted = true) },
                 onClickNavigateBack = {navController.navigateUp()},
                 onClickReadDataProtectionPolicy = {},
@@ -141,13 +141,13 @@ fun OnboardingNav(walletMain: WalletMain) {
     }
 }
 
-enum class OnboardingEnums {
+enum class OnboardingNavigation {
     Start,
     Information,
     Terms
 }
 
-enum class MainEnums {
+enum class WalletNavigation {
     MyCredentialScreen,
     Settings,
     QrCodeScanner

@@ -378,7 +378,7 @@ fun MainNavigator(
 enum class NavigationData(
     val title: StringResource,
     val icon: @Composable () -> Unit,
-    val destination: MainEnums,
+    val destination: WalletNavigation,
     val isActive: (Page) -> Boolean
 ) {
     HOME_SCREEN(
@@ -389,7 +389,7 @@ enum class NavigationData(
                 contentDescription = null,
             )
         },
-        destination = MainEnums.MyCredentialScreen,
+        destination = WalletNavigation.MyCredentialScreen,
         isActive = {
             when (it) {
                 is HomePage -> true
@@ -405,7 +405,7 @@ enum class NavigationData(
                 contentDescription = null,
             )
         },
-        destination = MainEnums.QrCodeScanner,
+        destination = WalletNavigation.QrCodeScanner,
         isActive = {
             when (it) {
                 is AuthenticationQrCodeScannerPage -> true
@@ -421,7 +421,7 @@ enum class NavigationData(
                 contentDescription = null,
             )
         },
-        destination = MainEnums.Settings,
+        destination = WalletNavigation.Settings,
         isActive = {
             when (it) {
                 is SettingsPage -> true
