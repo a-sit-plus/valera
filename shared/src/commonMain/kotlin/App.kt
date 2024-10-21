@@ -115,6 +115,32 @@ fun App(walletMain: WalletMain) {
 }
 
 @Composable
+fun BottomBar(currentScreen: MainEnums, push: (MainEnums) -> Unit) {
+    if (currentScreen == MainEnums.MyCredentialScreen || currentScreen == MainEnums.Settings) {
+        NavigationBar {
+            for (route in listOf(
+                NavigationData.HOME_SCREEN,
+                NavigationData.AUTHENTICATION_SCANNING_SCREEN,
+                NavigationData.INFORMATION_SCREEN,
+            )) {
+                NavigationBarItem(
+                    icon = route.icon,
+                    label = {
+                        Text(stringResource(route.title))
+                    },
+                    onClick = {
+                        if (currentScreen != route.destination) {
+                            push(route.destination)
+                        }
+                    },
+                    selected = currentScreen == route.destination,
+                )
+            }
+        }
+    }
+}
+
+@Composable
 fun WalletNav(walletMain: WalletMain){
     val navController: NavHostController = rememberNavController()
     // Get current back stack entry
@@ -126,55 +152,7 @@ fun WalletNav(walletMain: WalletMain){
 
     Scaffold(
         bottomBar = {
-            if (currentScreen == MainEnums.MyCredentialScreen || currentScreen == MainEnums.Settings) {
-                NavigationBar {
-                    NavigationBarItem(
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = null,
-                            )
-                        },
-                        label = {
-                            Text(stringResource(Res.string.navigation_button_label_my_data))
-                        },
-                        onClick = {
-                            navController.navigate(MainEnums.MyCredentialScreen.name)
-                        },
-                        selected = false,
-                    )
-                    NavigationBarItem(
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Default.QrCodeScanner,
-                                contentDescription = null,
-                            )
-                        },
-                        label = {
-                            Text(stringResource(Res.string.navigation_button_label_show_data))
-                        },
-                        onClick = {
-                            navController.navigate(MainEnums.QrCodeScanner.name)
-                        },
-                        selected = false,
-                    )
-                    NavigationBarItem(
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Default.Settings,
-                                contentDescription = null,
-                            )
-                        },
-                        label = {
-                            Text(stringResource(Res.string.navigation_button_label_settings))
-                        },
-                        onClick = {
-                            navController.navigate(MainEnums.Settings.name)
-                        },
-                        selected = false,
-                    )
-                }
-            }
+            BottomBar(currentScreen, push = {enum -> navController.navigate(enum.name)})
         },
         modifier = Modifier,
     ) {

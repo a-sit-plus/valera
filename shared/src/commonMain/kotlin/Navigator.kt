@@ -184,7 +184,7 @@ fun MainNavigator(
                             },
                             onClick = {
                                 if (route.isActive(page) == false) {
-                                    navigationStack.push(route.destination)
+                                    //navigationStack.push(route.destination)
                                 }
                             },
                             selected = route.isActive(page),
@@ -375,10 +375,10 @@ fun MainNavigator(
 
 
 @OptIn(ExperimentalResourceApi::class)
-private enum class NavigationData(
+enum class NavigationData(
     val title: StringResource,
     val icon: @Composable () -> Unit,
-    val destination: Page,
+    val destination: MainEnums,
     val isActive: (Page) -> Boolean
 ) {
     HOME_SCREEN(
@@ -389,7 +389,7 @@ private enum class NavigationData(
                 contentDescription = null,
             )
         },
-        destination = HomePage(),
+        destination = MainEnums.MyCredentialScreen,
         isActive = {
             when (it) {
                 is HomePage -> true
@@ -405,7 +405,7 @@ private enum class NavigationData(
                 contentDescription = null,
             )
         },
-        destination = AuthenticationQrCodeScannerPage(),
+        destination = MainEnums.QrCodeScanner,
         isActive = {
             when (it) {
                 is AuthenticationQrCodeScannerPage -> true
@@ -421,7 +421,7 @@ private enum class NavigationData(
                 contentDescription = null,
             )
         },
-        destination = SettingsPage(),
+        destination = MainEnums.Settings,
         isActive = {
             when (it) {
                 is SettingsPage -> true
