@@ -152,26 +152,3 @@ enum class WalletNavigation {
     Settings,
     QrCodeScanner
 }
-
-@Composable
-fun old(walletMain: WalletMain) {
-    val snackbarHostState = remember { SnackbarHostState() }
-    val snackbarService = SnackbarService(walletMain.scope, snackbarHostState)
-
-    try {
-        walletMain.initialize(snackbarService)
-    } catch (e: Throwable){
-        walletMain.errorService.emit(UncorrectableErrorException(e))
-    }
-
-    WalletTheme {
-        Scaffold(
-            snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
-            },
-            modifier = Modifier.testTag(AppTestTags.rootScaffold)
-        ) { _ ->
-            Navigator(walletMain)
-        }
-    }
-}
