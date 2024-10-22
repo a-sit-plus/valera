@@ -39,6 +39,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.StringResource
@@ -364,7 +365,8 @@ fun OnboardingNav(walletMain: WalletMain) {
     }
 }
 
-interface Route
+@Serializable
+open class Route(val name: String = "test"){}
 
 enum class NavigationData(
     val title: StringResource,

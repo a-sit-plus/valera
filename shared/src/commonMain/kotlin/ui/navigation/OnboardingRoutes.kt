@@ -4,10 +4,10 @@ import Route
 import kotlinx.serialization.Serializable
 
 @Serializable
-object OnboardingStart : Route
+object OnboardingStart : Route()
 
 @Serializable
-object OnboardingInformation : Route
+object OnboardingInformation : Route()
 
 @Serializable
-object OnboardingTerms : Route
+object OnboardingTerms : Route()
