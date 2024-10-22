@@ -16,7 +16,7 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.getString
 
 @Composable
-fun IntentHandler(walletMain: WalletMain, navigate: (Route) -> Unit){
+fun IntentHandler(walletMain: WalletMain, navigate: (Route) -> Unit, navigateBack: () -> Unit){
     LaunchedEffect(appLink.value) {
         Napier.d("app link changed to ${appLink.value}")
         appLink.value?.let { link ->
@@ -38,16 +38,25 @@ fun IntentHandler(walletMain: WalletMain, navigate: (Route) -> Unit){
             }
 
             if (walletMain.provisioningService.redirectUri?.let { link.contains(it) } == true) {
-                walletMain.provisioningService.redirectUri = null
-                walletMain.cryptoService.promptText =
-                    getString(Res.string.biometric_authentication_prompt_to_bind_credentials_title)
-                walletMain.cryptoService.promptSubtitle =
-                    getString(Res.string.biometric_authentication_prompt_to_bind_credentials_subtitle)
-                walletMain.provisioningService.handleResponse(link)
-                walletMain.snackbarService.showSnackbar(
-                    getString(Res.string.snackbar_credential_loaded_successfully)
-                )
-                appLink.value = null
+                navigate(LoadingRoute)
+                kotlin.runCatching {
+                    walletMain.provisioningService.redirectUri = null
+                    walletMain.cryptoService.promptText =
+                        getString(Res.string.biometric_authentication_prompt_to_bind_credentials_title)
+                    walletMain.cryptoService.promptSubtitle =
+                        getString(Res.string.biometric_authentication_prompt_to_bind_credentials_subtitle)
+                    walletMain.provisioningService.handleResponse(link)
+
+                }.onSuccess {
+                    navigateBack()
+                    walletMain.snackbarService.showSnackbar(
+                        getString(Res.string.snackbar_credential_loaded_successfully)
+                    )
+                    appLink.value = null
+                }.onFailure {
+                    navigateBack()
+                    appLink.value = null
+                }
                 return@LaunchedEffect
             }
 

@@ -133,7 +133,7 @@ fun WalletNav(walletMain: WalletMain){
 
     }
 
-    IntentHandler(walletMain = walletMain, navigate = navigate)
+    IntentHandler(walletMain = walletMain, navigate = navigate, navigateBack = navigateBack)
 
 
     Scaffold(
