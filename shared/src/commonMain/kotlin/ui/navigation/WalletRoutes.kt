@@ -1,6 +1,7 @@
 package ui.navigation
 
 import Route
+import data.storage.StoreEntryId
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -10,13 +11,13 @@ object HomeScreenRoute : Route
 object AddCredentialRoute : Route
 
 @Serializable
-object AddCredentialPreAuthnRoute : Route
+data class AddCredentialPreAuthnRoute (val credentialOfferInfoSerialized: String) : Route
 
 @Serializable
-object CredentialDetailsRoute : Route
+data class CredentialDetailsRoute(val storeEntryId: StoreEntryId) : Route
 
 @Serializable
-object ProvisioningLoadingRoute : Route
+data class ProvisioningLoadingRoute(val link: String) : Route
 
 @Serializable
 object SettingsRoute : Route
