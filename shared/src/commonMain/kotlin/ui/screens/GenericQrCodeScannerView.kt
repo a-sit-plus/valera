@@ -2,7 +2,6 @@ package ui.screens
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -49,11 +48,9 @@ fun GenericQrCodeScannerView(
             )
         },
     ) {
-        Column(modifier = Modifier.padding(it).fillMaxSize()) {
-            CameraView(
-                onFoundPayload = onFoundQrCode,
-                modifier = Modifier.fillMaxSize(),
-            )
-        }
+        CameraView(
+            onFoundPayload = onFoundQrCode,
+            modifier = Modifier.fillMaxSize(),
+        )
     }
 }
