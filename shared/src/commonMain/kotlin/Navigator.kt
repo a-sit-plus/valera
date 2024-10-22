@@ -34,6 +34,8 @@ import compose_wallet_app.shared.generated.resources.navigation_button_label_sho
 import compose_wallet_app.shared.generated.resources.snackbar_clear_log_successfully
 import compose_wallet_app.shared.generated.resources.snackbar_reset_app_successfully
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -115,13 +117,19 @@ fun WalletNav(walletMain: WalletMain){
     val current: Route? = backStackEntry?.toRoute()
 
 
-    val navigateBack = {
-        navController.navigateUp()
+    val navigateBack: () -> Unit = {
+        CoroutineScope(Dispatchers.Main).launch {
+            navController.navigateUp()
+
+        }
     }
 
     val navigate: (Route) -> Unit = { route ->
-        Napier.d("Navigate to: $route")
-        navController.navigate(route)
+        CoroutineScope(Dispatchers.Main).launch {
+            Napier.d("Navigate to: $route")
+            navController.navigate(route)
+        }
+
     }
 
     IntentHandler(walletMain = walletMain, navigate = navigate)
