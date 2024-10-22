@@ -210,13 +210,14 @@ fun WalletNav(walletMain: WalletMain){
                     navigateUp = { navigateBack() },
                     walletMain = walletMain,
                     onSubmit = { host, credentialScheme, credentialRepresentation, requestedAttributes ->
+                        navigateBack()
                         walletMain.startProvisioning(
                             host = host,
                             credentialScheme = credentialScheme,
                             credentialRepresentation = credentialRepresentation,
                             requestedAttributes = requestedAttributes,
                         ) {
-                            navigateBack()
+
                         }
                     },
                     availableSchemes = walletMain.availableSchemes,

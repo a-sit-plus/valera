@@ -5,10 +5,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import appLink
 import at.asitplus.wallet.app.common.WalletMain
+import compose_wallet_app.shared.generated.resources.Res
+import compose_wallet_app.shared.generated.resources.biometric_authentication_prompt_to_bind_credentials_subtitle
+import compose_wallet_app.shared.generated.resources.biometric_authentication_prompt_to_bind_credentials_title
+import compose_wallet_app.shared.generated.resources.snackbar_credential_loaded_successfully
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier
 import io.ktor.http.parseQueryString
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.compose.resources.getString
 
 @Composable
 fun IntentHandler(walletMain: WalletMain, navigate: (Route) -> Unit){
@@ -34,7 +39,14 @@ fun IntentHandler(walletMain: WalletMain, navigate: (Route) -> Unit){
 
             if (walletMain.provisioningService.redirectUri?.let { link.contains(it) } == true) {
                 walletMain.provisioningService.redirectUri = null
-                navigate(ProvisioningLoadingRoute(link = link))
+                walletMain.cryptoService.promptText =
+                    getString(Res.string.biometric_authentication_prompt_to_bind_credentials_title)
+                walletMain.cryptoService.promptSubtitle =
+                    getString(Res.string.biometric_authentication_prompt_to_bind_credentials_subtitle)
+                walletMain.provisioningService.handleResponse(link)
+                walletMain.snackbarService.showSnackbar(
+                    getString(Res.string.snackbar_credential_loaded_successfully)
+                )
                 appLink.value = null
                 return@LaunchedEffect
             }
