@@ -52,6 +52,7 @@ import ui.navigation.AuthenticationQrCodeScannerRoute
 import ui.navigation.AuthenticationSuccessRoute
 import ui.navigation.CredentialDetailsRoute
 import ui.navigation.HomeScreenRoute
+import ui.navigation.IntentHandler
 import ui.navigation.LoadingRoute
 import ui.navigation.LogRoute
 import ui.navigation.OnboardingInformation
@@ -115,7 +116,6 @@ fun WalletNav(walletMain: WalletMain){
     val currentScreen = backStackEntry?.destination?.route ?: "HomeScreenRoute"
     val current: Route? = backStackEntry?.toRoute()
 
-    Napier.e(current.toString())
 
     val navigateBack = {
         CoroutineScope(Dispatchers.Main).launch {
@@ -123,11 +123,20 @@ fun WalletNav(walletMain: WalletMain){
         }
     }
 
+    val navigate: (Route) -> Unit = { route ->
+        CoroutineScope(Dispatchers.Main).launch {
+            Napier.d("Navigate to: $route")
+            navController.navigate(route)
+        }
+    }
+
+    IntentHandler(walletMain = walletMain, navigate = navigate)
+
 
     Scaffold(
         bottomBar = {
             if (currentScreen.contains("HomeScreenRoute") || currentScreen.contains("SettingsRoute")){
-                BottomBar(push = {enum -> navController.navigate(enum)})
+                BottomBar(push = {enum -> navigate(enum)})
             }
         },
         modifier = Modifier,
@@ -141,13 +150,13 @@ fun WalletNav(walletMain: WalletMain){
             composable<HomeScreenRoute> {
                 MyCredentialsScreen(
                     navigateToAddCredentialsPage = {
-                        navController.navigate(AddCredentialRoute)
+                        navigate(AddCredentialRoute)
                     },
                     navigateToQrAddCredentialsPage = {
-                        navController.navigate(PreAuthQrCodeScannerRoute)
+                        navigate(PreAuthQrCodeScannerRoute)
                     },
                     navigateToCredentialDetailsPage = {
-                        navController.navigate(CredentialDetailsRoute(it))
+                        navigate(CredentialDetailsRoute(it))
                     },
                     walletMain = walletMain,
                 )
@@ -159,7 +168,7 @@ fun WalletNav(walletMain: WalletMain){
                 val vm = AuthenticationQrCodeScannerViewModel(navigateUp = { navigateBack() }, onSuccess = { route ->
                     val test = backStackEntry
                     Napier.d(test.toString())
-                    navController.navigate(route)
+                    navigate(route)
                 }, walletMain = walletMain)
                 AuthenticationQrCodeScannerView(vm)
             }
@@ -182,7 +191,7 @@ fun WalletNav(walletMain: WalletMain){
                     authorizationResponsePreparationState = preparationState,
                     navigateUp = {navController.navigateUp()},
                     navigateToAuthenticationSuccessPage = {
-                        navController.navigate(AuthenticationSuccessRoute)
+                        navigate(AuthenticationSuccessRoute)
                     },
                     walletMain = walletMain,
                 )
@@ -262,7 +271,7 @@ fun WalletNav(walletMain: WalletMain){
             composable<SettingsRoute> { backStackEntry ->
                 SettingsScreen(
                     navigateToLogPage = {
-                        navController.navigate(LogRoute)
+                        navigate(LogRoute)
                     },
                     onClickResetApp = {
                         val resetMessage = runBlocking {
@@ -288,7 +297,7 @@ fun WalletNav(walletMain: WalletMain){
                     walletMain = walletMain,
                     navigateUp = { navigateBack() },
                     navigateToAddCredentialsPage = { offer ->
-                        navController.navigate(AddCredentialPreAuthnRoute(Json.encodeToString(offer)))
+                        navigate(AddCredentialPreAuthnRoute(Json.encodeToString(offer)))
                     })
                 PreAuthQrCodeScannerScreen(vm)
             }
@@ -307,7 +316,7 @@ fun WalletNav(walletMain: WalletMain){
             composable<AuthenticationQrCodeScannerRoute> { backStackEntry ->
                 val vm = AuthenticationQrCodeScannerViewModel(navigateUp = { navigateBack() }, onSuccess = { route ->
                     navigateBack()
-                    navController.navigate(route)
+                    navigate(route)
                 }, walletMain = walletMain)
                 AuthenticationQrCodeScannerView(vm)
             }
