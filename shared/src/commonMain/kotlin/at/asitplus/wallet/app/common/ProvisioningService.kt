@@ -226,11 +226,38 @@ class ProvisioningService(
             .mapNotNull { ma ->
                 decodeFromCredentialIdentifier(ma)?.let {
                     ma to Pair(it.first.toExportableCredentialScheme(), it.second)
+                } ?: decodeFromEudiCredentialIdentifier(ma)?.let {
+                    ma to Pair(it.first.toExportableCredentialScheme(), it.second)
                 }
             }
             .toMap()
         return CredentialOfferInfo(credentialOffer, mappedCredentials)
     }
+
+    /**
+     * Decodes Identifiers used in the EUDI Wallet Reference Backend
+     * in the form of `eu.europa.ec.eudi.pid_vc_sd_jwt` into a scheme known by our implementation
+     */
+    private fun decodeFromEudiCredentialIdentifier(
+        input: String
+    ): Pair<ConstantIndex.CredentialScheme, CredentialFormatEnum>? {
+        if (input.contains("_")) {
+            val vcTypeOrSdJwtType = input.substringBefore("_")
+            val formatString = input.substringAfter("_")
+                .replace("vc_sd_jwt", "vc+sd-jwt")
+            val credentialScheme = AttributeIndex.resolveSdJwtAttributeType(vcTypeOrSdJwtType)
+                ?: AttributeIndex.resolveAttributeType(vcTypeOrSdJwtType)
+                ?: AttributeIndex.resolveIsoNamespace(vcTypeOrSdJwtType)
+                ?: return null
+            val format = CredentialFormatEnum.parse(formatString)
+                ?: return null
+            return Pair(credentialScheme, format)
+        } else {
+            return AttributeIndex.resolveIsoNamespace(input)
+                ?.let { Pair(it, CredentialFormatEnum.MSO_MDOC) }
+        }
+    }
+
 
     /**
      * Loads a user-selected credential with pre-authorized code from the OID4VCI credential issuer
@@ -246,6 +273,7 @@ class ProvisioningService(
         credentialIdToRequest: String,
     ) {
         val credentialScheme = decodeFromCredentialIdentifier(credentialIdToRequest)?.first
+            ?: decodeFromEudiCredentialIdentifier(credentialIdToRequest)?.first
             ?: throw Exception("can't resolve credential scheme")
         val issuerMetadata: IssuerMetadata = client.get("$credentialIssuer$PATH_WELL_KNOWN_CREDENTIAL_ISSUER").body()
         val authorizationServer = issuerMetadata.authorizationServers?.firstOrNull() ?: credentialIssuer
