@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.testTag
 import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
+import ui.navigation.OnboardingWrapperTestTags
 import ui.theme.WalletTheme
 
 /**
@@ -49,7 +50,7 @@ fun App(walletMain: WalletMain) {
 
     when (isConditionsAccepted) {
         null -> {
-            //Box(modifier = Modifier.testTag(OnboardingWrapperTestTags.onboardingLoadingIndicator))
+            Box(modifier = Modifier.testTag(OnboardingWrapperTestTags.onboardingLoadingIndicator))
         }
         true -> {
             WalletTheme {
