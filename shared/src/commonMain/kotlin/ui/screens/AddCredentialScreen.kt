@@ -32,7 +32,7 @@ fun AddCredentialScreen(
     navigateUp: () -> Unit,
     walletMain: WalletMain,
     onSubmit: (String, ConstantIndex.CredentialScheme, ConstantIndex.CredentialRepresentation, Set<NormalizedJsonPath>?) -> Unit,
-    availableSchemes: List<ConstantIndex.CredentialScheme>,
+    availableSchemeRepresentations: Map<ConstantIndex.CredentialScheme, Collection<ConstantIndex.CredentialRepresentation>>,
     hostString: String,
     showAttributes: Boolean = true,
 ) {
@@ -46,13 +46,14 @@ fun AddCredentialScreen(
         saver = CredentialSchemeSaver().asMutableStateSaver()
     ) {
         mutableStateOf(runBlocking {
-            availableSchemes.first()
+            availableSchemeRepresentations.keys.first()
         })
     }
 
     var credentialRepresentation by rememberSaveable {
         mutableStateOf(runBlocking {
-            walletMain.walletConfig.credentialRepresentation.first()
+            availableSchemeRepresentations.filter { it.key == credentialScheme }.firstNotNullOfOrNull { it.value }?.first()
+                ?: walletMain.walletConfig.credentialRepresentation.first()
         })
     }
 
@@ -101,8 +102,8 @@ fun AddCredentialScreen(
                 onSubmit(host.text, credentialScheme, credentialRepresentation, requestedAttributes)
             },
             modifier = Modifier.padding(scaffoldPadding),
-            availableSchemes = availableSchemes,
             showAttributes = showAttributes,
+            availableSchemeRepresentations = availableSchemeRepresentations,
         )
     }
 }

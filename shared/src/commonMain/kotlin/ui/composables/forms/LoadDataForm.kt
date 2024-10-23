@@ -28,14 +28,14 @@ fun StatefulLoadDataForm(
     host: TextFieldValue,
     onChangeHost: ((TextFieldValue) -> Unit)?,
     credentialRepresentation: ConstantIndex.CredentialRepresentation,
-    onChangeCredentialRepresentation: ((ConstantIndex.CredentialRepresentation) -> Unit)?,
+    onChangeCredentialRepresentation: (ConstantIndex.CredentialRepresentation) -> Unit,
     credentialScheme: ConstantIndex.CredentialScheme,
-    onChangeCredentialScheme: ((ConstantIndex.CredentialScheme) -> Unit)?,
+    onChangeCredentialScheme: (ConstantIndex.CredentialScheme) -> Unit,
     requestedAttributes: Set<NormalizedJsonPath>,
     onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
     modifier: Modifier = Modifier,
-    availableSchemes: List<ConstantIndex.CredentialScheme>,
     showAttributes: Boolean,
+    availableSchemeRepresentations: Map<ConstantIndex.CredentialScheme, Collection<ConstantIndex.CredentialRepresentation>>,
 ) {
     var attributeCategoriesExpanded by rememberSaveable(credentialScheme) {
         val attributeCategorization =
@@ -61,8 +61,8 @@ fun StatefulLoadDataForm(
             attributeCategoriesExpanded += it
         },
         modifier = modifier,
-        availableSchemes = availableSchemes,
         showAttributes = showAttributes,
+        availableSchemeRepresentations = availableSchemeRepresentations,
     )
 }
 
@@ -71,16 +71,16 @@ fun LoadDataForm(
     host: TextFieldValue,
     onChangeHost: ((TextFieldValue) -> Unit)?,
     credentialRepresentation: ConstantIndex.CredentialRepresentation,
-    onChangeCredentialRepresentation: ((ConstantIndex.CredentialRepresentation) -> Unit)?,
+    onChangeCredentialRepresentation: (ConstantIndex.CredentialRepresentation) -> Unit,
     credentialScheme: ConstantIndex.CredentialScheme,
-    onChangeCredentialScheme: ((ConstantIndex.CredentialScheme) -> Unit)?,
+    onChangeCredentialScheme: (ConstantIndex.CredentialScheme) -> Unit,
     requestedAttributes: Set<NormalizedJsonPath>,
     onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
     attributeCategoriesExpanded: Map<PersonalDataCategory, Boolean>,
     onSetAttributeCategoriesExpanded: (Pair<PersonalDataCategory, Boolean>) -> Unit,
     modifier: Modifier = Modifier,
-    availableSchemes: List<ConstantIndex.CredentialScheme>,
     showAttributes: Boolean,
+    availableSchemeRepresentations: Map<ConstantIndex.CredentialScheme, Collection<ConstantIndex.CredentialRepresentation>>,
 ) {
     Box(
         modifier = modifier,
@@ -101,7 +101,7 @@ fun LoadDataForm(
                 credentialScheme = credentialScheme,
                 onChangeCredentialScheme = onChangeCredentialScheme,
                 modifier = columnSpacingModifier,
-                availableSchemes = availableSchemes,
+                availableSchemeRepresentations = availableSchemeRepresentations,
             )
             if (showAttributes) {
                 CredentialAttributeSelectionForm(

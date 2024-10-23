@@ -24,7 +24,7 @@ import org.jetbrains.compose.resources.stringResource
 fun StatefulCredentialRepresentationInputField(
     value: ConstantIndex.CredentialRepresentation,
     onValueChange: ((ConstantIndex.CredentialRepresentation) -> Unit)?,
-    options: List<ConstantIndex. CredentialRepresentation>,
+    options: Collection<ConstantIndex.CredentialRepresentation>,
     modifier: Modifier = Modifier,
 ) {
     StatefulCredentialRepresentationInputField(
@@ -41,7 +41,7 @@ fun StatefulCredentialRepresentationInputField(
 fun StatefulCredentialRepresentationInputField(
     value: ConstantIndex.CredentialRepresentation,
     onValueChange: (ConstantIndex.CredentialRepresentation) -> Unit,
-    options: List<ConstantIndex. CredentialRepresentation>,
+    options: Collection<ConstantIndex.CredentialRepresentation>,
     enabled: Boolean,
     modifier: Modifier = Modifier,
 ) {
@@ -70,7 +70,7 @@ fun StatefulCredentialRepresentationInputField(
 fun CredentialRepresentationInputField(
     value: ConstantIndex.CredentialRepresentation,
     onValueChange: (ConstantIndex.CredentialRepresentation) -> Unit,
-    options: List<ConstantIndex. CredentialRepresentation>,
+    options: Collection<ConstantIndex.CredentialRepresentation>,
     expanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
     enabled: Boolean,

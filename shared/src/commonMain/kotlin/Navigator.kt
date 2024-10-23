@@ -228,7 +228,7 @@ fun MainNavigator(
                                     navigateUp()
                                 }
                             },
-                            availableSchemes = walletMain.availableSchemes,
+                            availableSchemeRepresentations = walletMain.availableSchemes.associateWith { it.supportedRepresentations },
                             hostString = runBlocking { walletMain.walletConfig.host.first() },
                         )
                     }
@@ -240,19 +240,21 @@ fun MainNavigator(
                             walletMain = walletMain,
                             onSubmit = { host, credentialScheme, credentialRepresentation, requestedAttributes ->
                                 walletMain.scope.launch {
-                                    walletMain.provisioningService.loadCredentialWithPreAuthn(
+                                    walletMain.provisioningService.loadCredentialWithOffer(
                                         credentialIssuer = host,
-                                        preAuthorizedCode = offer.credentialOffer.grants?.preAuthorizedCode?.preAuthorizedCode.toString(),
+                                        offerGrants = offer.credentialOffer.grants,
                                         credentialIdToRequest = offer.credentials
                                             .entries
                                             .first { it.value.first.toScheme() == credentialScheme && it.value.second.toRepresentation() == credentialRepresentation }
                                             .key,
-
+                                        credentialRepresentation = credentialRepresentation,
                                     )
                                     navigationStack.reset()
                                 }
                             },
-                            availableSchemes = offer.credentials.map { it.value.first.toScheme() }.distinct(),
+                            availableSchemeRepresentations = offer.credentials.values.map { it.first.toScheme() }
+                                .distinct()
+                                .associateWith { scheme ->  offer.credentials.values.filter { it.first.toScheme() == scheme }.map { it.second.toRepresentation() } },
                             hostString = offer.credentialOffer.credentialIssuer,
                             showAttributes = false,
                         )

@@ -23,11 +23,11 @@ fun CredentialMetadataSelectionForm(
     host: TextFieldValue,
     onChangeHost: ((TextFieldValue) -> Unit)?,
     credentialRepresentation: ConstantIndex.CredentialRepresentation,
-    onChangeCredentialRepresentation: ((ConstantIndex.CredentialRepresentation) -> Unit)?,
+    onChangeCredentialRepresentation: (ConstantIndex.CredentialRepresentation) -> Unit,
     credentialScheme: ConstantIndex.CredentialScheme,
-    onChangeCredentialScheme: ((ConstantIndex.CredentialScheme) -> Unit)?,
+    onChangeCredentialScheme: (ConstantIndex.CredentialScheme) -> Unit,
     modifier: Modifier = Modifier,
-    availableSchemes: List<ConstantIndex.CredentialScheme>,
+    availableSchemeRepresentations: Map<ConstantIndex.CredentialScheme, Collection<ConstantIndex.CredentialRepresentation>>,
 ) {
     Column(
         modifier = modifier,
@@ -47,12 +47,13 @@ fun CredentialMetadataSelectionForm(
             value = credentialScheme,
             onValueChange = onChangeCredentialScheme,
             modifier = listSpacingModifier.fillMaxWidth(),
-            availableSchemes = availableSchemes,
+            availableSchemeRepresentations = availableSchemeRepresentations,
         )
         StatefulCredentialRepresentationInputField(
             value = credentialRepresentation,
             onValueChange = onChangeCredentialRepresentation,
-            options = credentialScheme.supportedRepresentations.toList(),
+            options = availableSchemeRepresentations.entries.filter { it.key == credentialScheme }.firstNotNullOfOrNull { it.value }
+                ?: credentialScheme.supportedRepresentations.toList(),
             modifier = listSpacingModifier.fillMaxWidth(),
         )
     }

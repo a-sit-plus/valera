@@ -19,18 +19,18 @@ import ui.composables.forms.StatefulLoadDataForm
 fun LoadDataView(
     // state
     host: TextFieldValue,
-    onChangeHost: ((TextFieldValue) -> Unit)?,
+    onChangeHost: ((TextFieldValue) -> Unit),
     credentialRepresentation: ConstantIndex.CredentialRepresentation,
-    onChangeCredentialRepresentation: ((ConstantIndex.CredentialRepresentation) -> Unit)?,
+    onChangeCredentialRepresentation: ((ConstantIndex.CredentialRepresentation) -> Unit),
     credentialScheme: ConstantIndex.CredentialScheme,
-    onChangeCredentialScheme: ((ConstantIndex.CredentialScheme) -> Unit)?,
+    onChangeCredentialScheme: ((ConstantIndex.CredentialScheme) -> Unit),
     requestedAttributes: Set<NormalizedJsonPath>,
-    onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
+    onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit),
     // other
     onSubmit: () -> Unit,
     modifier: Modifier = Modifier,
-    availableSchemes: List<ConstantIndex.CredentialScheme>,
     showAttributes: Boolean,
+    availableSchemeRepresentations: Map<ConstantIndex.CredentialScheme, Collection<ConstantIndex.CredentialRepresentation>>,
 ) {
     Scaffold(
         bottomBar = {
@@ -57,8 +57,8 @@ fun LoadDataView(
             requestedAttributes = requestedAttributes,
             onChangeRequestedAttributes = onChangeRequestedAttributes,
             modifier = Modifier.padding(scaffoldPadding),
-            availableSchemes = availableSchemes,
-            showAttributes = showAttributes
+            showAttributes = showAttributes,
+            availableSchemeRepresentations = availableSchemeRepresentations
         )
     }
 }
