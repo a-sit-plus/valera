@@ -6,6 +6,8 @@ import data.Attribute
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonPrimitive
 
 sealed class CredentialAdapter {
     abstract fun getAttribute(path: NormalizedJsonPath): Attribute?
@@ -19,10 +21,15 @@ sealed class CredentialAdapter {
         (this as? LocalDateTime?) ?: (this as String?)?.let { LocalDateTime.parse(it) }
 
     companion object {
+        // Note: May need to refactor this to
+        // SdJwtValidator(SdJwtSigned.parse(vcSerialized)).reconstructedJsonObject
+        // to support complex SD-JWT structures
         fun SubjectCredentialStore.StoreEntry.SdJwt.toAttributeMap() =
-            disclosures.values.filterNotNull().associate {
-                it.claimName to it.claimValue
-            }
+            disclosures.values.filterNotNull()
+                .filter { it.claimName != null }
+                .associate { it.claimName!! to it.claimValue }
+                .filterValues { it is JsonPrimitive }
+                .mapValues { it.value.jsonPrimitive }
 
         fun SubjectCredentialStore.StoreEntry.Iso.toNamespaceAttributeMap() =
             issuerSigned.namespaces?.mapValues { namespace ->
