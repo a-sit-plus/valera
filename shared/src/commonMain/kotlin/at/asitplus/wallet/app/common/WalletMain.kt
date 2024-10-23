@@ -129,7 +129,7 @@ class WalletMain(
         scope.launch {
             try {
                 provisioningService.startProvisioning(
-                    host = host,
+                    credentialIssuer = host,
                     credentialScheme = credentialScheme,
                     credentialRepresentation = credentialRepresentation,
                     requestedAttributes = requestedAttributes,
