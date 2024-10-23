@@ -269,6 +269,7 @@ class ProvisioningService(
         offerGrants: CredentialOfferGrants?,
         credentialIdToRequest: String,
         credentialRepresentation: ConstantIndex.CredentialRepresentation,
+        transactionCode: String?,
     ) {
         val credentialScheme = decodeFromCredentialIdentifier(credentialIdToRequest)?.first
             ?: decodeFromEudiCredentialIdentifier(credentialIdToRequest)?.first
@@ -286,7 +287,7 @@ class ProvisioningService(
             val state = uuid4().toString()
             val tokenRequest = walletService.oauth2Client.createTokenRequestParameters(
                 state = state,
-                authorization = OAuth2Client.AuthorizationForToken.PreAuthCode(it.preAuthorizedCode),
+                authorization = OAuth2Client.AuthorizationForToken.PreAuthCode(it.preAuthorizedCode, transactionCode),
                 authorizationDetails = walletService.buildAuthorizationDetails(
                     credentialIdToRequest,
                     issuerMetadata.authorizationServers

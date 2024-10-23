@@ -218,7 +218,7 @@ fun MainNavigator(
                         AddCredentialScreen(
                             navigateUp = navigateUp,
                             walletMain = walletMain,
-                            onSubmit = { host, credentialScheme, credentialRepresentation, requestedAttributes ->
+                            onSubmit = { host, credentialScheme, credentialRepresentation, requestedAttributes, _ ->
                                 walletMain.startProvisioning(
                                     host = host,
                                     credentialScheme = credentialScheme,
@@ -238,7 +238,7 @@ fun MainNavigator(
                         AddCredentialScreen(
                             navigateUp = navigateUp,
                             walletMain = walletMain,
-                            onSubmit = { host, credentialScheme, credentialRepresentation, requestedAttributes ->
+                            onSubmit = { host, credentialScheme, credentialRepresentation, requestedAttributes, transactionCode ->
                                 walletMain.scope.launch {
                                     walletMain.provisioningService.loadCredentialWithOffer(
                                         credentialIssuer = host,
@@ -248,6 +248,7 @@ fun MainNavigator(
                                             .first { it.value.first.toScheme() == credentialScheme && it.value.second.toRepresentation() == credentialRepresentation }
                                             .key,
                                         credentialRepresentation = credentialRepresentation,
+                                        transactionCode = transactionCode,
                                     )
                                     navigationStack.reset()
                                 }
@@ -257,6 +258,7 @@ fun MainNavigator(
                                 .associateWith { scheme ->  offer.credentials.values.filter { it.first.toScheme() == scheme }.map { it.second.toRepresentation() } },
                             hostString = offer.credentialOffer.credentialIssuer,
                             showAttributes = false,
+                            transactionCodeInfo = offer.transactionCode,
                         )
                     }
 

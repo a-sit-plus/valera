@@ -139,7 +139,8 @@
     <string name="sid_format_sd_jwt_label">SD-JWT</string>
     <string name="id_format_iso_mdoc_label">ISO_MDOC</string>
 
-    <string name="text_label_issuing_service">Ausstellservice</string>
+    <string name="text_label_issuing_service">Issuing Service</string>
+    <string name="text_label_transaction_code">Transaktionscode</string>
     <string name="text_label_id_format">Datenrepräsentation</string>
     <string name="text_label_id_scheme">Credential Typ</string>
     <string name="text_label_sex">Geschlecht</string>

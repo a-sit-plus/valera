@@ -2,6 +2,7 @@ package ui.composables.forms
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -15,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.openid.CredentialOfferGrantsPreAuthCodeTransactionCode
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.identifier
 import at.asitplus.wallet.lib.data.ConstantIndex
 import compose_wallet_app.shared.generated.resources.Res
@@ -22,10 +24,12 @@ import compose_wallet_app.shared.generated.resources.info_text_redirection_to_br
 import data.PersonalDataCategory
 import data.credentials.CredentialAttributeCategorization
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.inputFields.TransactionCodeInputField
 
 @Composable
 fun StatefulLoadDataForm(
     host: TextFieldValue,
+    transactionCode: TextFieldValue,
     onChangeHost: ((TextFieldValue) -> Unit)?,
     credentialRepresentation: ConstantIndex.CredentialRepresentation,
     onChangeCredentialRepresentation: (ConstantIndex.CredentialRepresentation) -> Unit,
@@ -33,8 +37,10 @@ fun StatefulLoadDataForm(
     onChangeCredentialScheme: (ConstantIndex.CredentialScheme) -> Unit,
     requestedAttributes: Set<NormalizedJsonPath>,
     onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
+    onChangeTransactionCode: (TextFieldValue) -> Unit,
     modifier: Modifier = Modifier,
     showAttributes: Boolean,
+    transactionCodeInfo: CredentialOfferGrantsPreAuthCodeTransactionCode?,
     availableSchemeRepresentations: Map<ConstantIndex.CredentialScheme, Collection<ConstantIndex.CredentialRepresentation>>,
 ) {
     var attributeCategoriesExpanded by rememberSaveable(credentialScheme) {
@@ -49,6 +55,7 @@ fun StatefulLoadDataForm(
 
     LoadDataForm(
         host = host,
+        transactionCode = transactionCode,
         onChangeHost = onChangeHost,
         credentialRepresentation = credentialRepresentation,
         onChangeCredentialRepresentation = onChangeCredentialRepresentation,
@@ -56,12 +63,12 @@ fun StatefulLoadDataForm(
         onChangeCredentialScheme = onChangeCredentialScheme,
         requestedAttributes = requestedAttributes,
         onChangeRequestedAttributes = onChangeRequestedAttributes,
+        onChangeTransactionCode = onChangeTransactionCode,
         attributeCategoriesExpanded = attributeCategoriesExpanded,
-        onSetAttributeCategoriesExpanded = {
-            attributeCategoriesExpanded += it
-        },
+        onSetAttributeCategoriesExpanded = { attributeCategoriesExpanded += it },
         modifier = modifier,
         showAttributes = showAttributes,
+        transactionCodeInfo = transactionCodeInfo,
         availableSchemeRepresentations = availableSchemeRepresentations,
     )
 }
@@ -69,6 +76,7 @@ fun StatefulLoadDataForm(
 @Composable
 fun LoadDataForm(
     host: TextFieldValue,
+    transactionCode: TextFieldValue,
     onChangeHost: ((TextFieldValue) -> Unit)?,
     credentialRepresentation: ConstantIndex.CredentialRepresentation,
     onChangeCredentialRepresentation: (ConstantIndex.CredentialRepresentation) -> Unit,
@@ -76,10 +84,12 @@ fun LoadDataForm(
     onChangeCredentialScheme: (ConstantIndex.CredentialScheme) -> Unit,
     requestedAttributes: Set<NormalizedJsonPath>,
     onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
+    onChangeTransactionCode: (TextFieldValue) -> Unit,
     attributeCategoriesExpanded: Map<PersonalDataCategory, Boolean>,
     onSetAttributeCategoriesExpanded: (Pair<PersonalDataCategory, Boolean>) -> Unit,
     modifier: Modifier = Modifier,
     showAttributes: Boolean,
+    transactionCodeInfo: CredentialOfferGrantsPreAuthCodeTransactionCode?,
     availableSchemeRepresentations: Map<ConstantIndex.CredentialScheme, Collection<ConstantIndex.CredentialRepresentation>>,
 ) {
     Box(
@@ -112,6 +122,18 @@ fun LoadDataForm(
                     onSetAttributeCategoriesExpanded = onSetAttributeCategoriesExpanded,
                     modifier = columnSpacingModifier,
                 )
+            }
+            if (transactionCodeInfo != null) {
+                Column(
+                    modifier = modifier,
+                ) {
+                    val listSpacingModifier = Modifier.padding(top = 8.dp)
+                    TransactionCodeInputField(
+                        value = transactionCode,
+                        onValueChange = onChangeTransactionCode,
+                        modifier = listSpacingModifier.fillMaxWidth(),
+                    )
+                }
             }
         }
     }

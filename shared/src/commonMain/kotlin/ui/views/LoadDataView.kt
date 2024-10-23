@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.openid.CredentialOfferGrantsPreAuthCodeTransactionCode
 import at.asitplus.wallet.lib.data.ConstantIndex
 import ui.composables.buttons.LoadDataButton
 import ui.composables.forms.StatefulLoadDataForm
@@ -19,6 +20,7 @@ import ui.composables.forms.StatefulLoadDataForm
 fun LoadDataView(
     // state
     host: TextFieldValue,
+    transactionCode: TextFieldValue,
     onChangeHost: ((TextFieldValue) -> Unit),
     credentialRepresentation: ConstantIndex.CredentialRepresentation,
     onChangeCredentialRepresentation: ((ConstantIndex.CredentialRepresentation) -> Unit),
@@ -26,10 +28,12 @@ fun LoadDataView(
     onChangeCredentialScheme: ((ConstantIndex.CredentialScheme) -> Unit),
     requestedAttributes: Set<NormalizedJsonPath>,
     onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit),
+    onChangeTransactionCode: (TextFieldValue) -> Unit,
     // other
     onSubmit: () -> Unit,
     modifier: Modifier = Modifier,
     showAttributes: Boolean,
+    transactionCodeInfo: CredentialOfferGrantsPreAuthCodeTransactionCode?,
     availableSchemeRepresentations: Map<ConstantIndex.CredentialScheme, Collection<ConstantIndex.CredentialRepresentation>>,
 ) {
     Scaffold(
@@ -49,6 +53,7 @@ fun LoadDataView(
     ) { scaffoldPadding ->
         StatefulLoadDataForm(
             host = host,
+            transactionCode = transactionCode,
             onChangeHost = onChangeHost,
             credentialRepresentation = credentialRepresentation,
             onChangeCredentialRepresentation = onChangeCredentialRepresentation,
@@ -56,8 +61,10 @@ fun LoadDataView(
             onChangeCredentialScheme = onChangeCredentialScheme,
             requestedAttributes = requestedAttributes,
             onChangeRequestedAttributes = onChangeRequestedAttributes,
+            onChangeTransactionCode = onChangeTransactionCode,
             modifier = Modifier.padding(scaffoldPadding),
             showAttributes = showAttributes,
+            transactionCodeInfo = transactionCodeInfo,
             availableSchemeRepresentations = availableSchemeRepresentations
         )
     }
