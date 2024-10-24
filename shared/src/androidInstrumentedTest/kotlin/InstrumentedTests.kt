@@ -39,7 +39,7 @@ import ui.screens.OnboardingWrapperTestTags
 import kotlin.time.Duration.Companion.minutes
 
 // Modified from https://developer.android.com/jetpack/compose/testing
-@OptIn(ExperimentalResourceApi::class, ExperimentalTestApi::class)
+@OptIn(ExperimentalTestApi::class)
 class InstrumentedTests {
 
 
@@ -166,10 +166,10 @@ class InstrumentedTests {
                 walletMain.holderAgent.storeCredential(
                     issuer.issueCredential(
                         CredentialToBeIssued.VcSd(getAttributes(),
-                            Clock.System.now().plus(3600.minutes)
+                            Clock.System.now().plus(3600.minutes),
+                            IdAustriaScheme,
+                            walletMain.cryptoService.keyMaterial.publicKey,
                         ),
-                        walletMain.cryptoService.keyMaterial.publicKey,
-                        IdAustriaScheme
                     ).getOrThrow().toStoreCredentialInput()
                 )
             }
@@ -241,10 +241,10 @@ class InstrumentedTests {
                 walletMain.holderAgent.storeCredential(
                     issuer.issueCredential(
                         CredentialToBeIssued.VcSd(getAttributes(),
-                            Clock.System.now().plus(3600.minutes)
+                            Clock.System.now().plus(3600.minutes),
+                            IdAustriaScheme,
+                            walletMain.cryptoService.keyMaterial.publicKey,
                         ),
-                        walletMain.cryptoService.keyMaterial.publicKey,
-                        IdAustriaScheme
                     ).getOrThrow().toStoreCredentialInput()
                 )
             }

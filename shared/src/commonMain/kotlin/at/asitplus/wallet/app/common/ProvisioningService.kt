@@ -2,6 +2,7 @@ package at.asitplus.wallet.app.common
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
+import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.AuthenticationResponseParameters
 import at.asitplus.openid.AuthorizationDetails
 import at.asitplus.openid.CredentialFormatEnum
@@ -11,6 +12,8 @@ import at.asitplus.openid.CredentialOfferGrantsPreAuthCodeTransactionCode
 import at.asitplus.openid.CredentialResponseParameters
 import at.asitplus.openid.IssuerMetadata
 import at.asitplus.openid.OAuth2AuthorizationServerMetadata
+import at.asitplus.openid.OpenIdConstants.PATH_WELL_KNOWN_CREDENTIAL_ISSUER
+import at.asitplus.openid.OpenIdConstants.PATH_WELL_KNOWN_OPENID_CONFIGURATION
 import at.asitplus.openid.TokenRequestParameters
 import at.asitplus.openid.TokenResponseParameters
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.identifier
@@ -26,6 +29,7 @@ import at.asitplus.wallet.lib.oidvci.WalletService
 import at.asitplus.wallet.lib.oidvci.decodeFromCredentialIdentifier
 import at.asitplus.wallet.lib.oidvci.decodeFromUrlQuery
 import at.asitplus.wallet.lib.oidvci.encodeToParameters
+import at.asitplus.wallet.lib.oidvci.toRepresentation
 import com.benasher44.uuid.uuid4
 import data.storage.DataStoreService
 import data.storage.ExportableCredentialScheme
@@ -44,6 +48,8 @@ import io.ktor.http.Url
 import io.ktor.http.contentType
 import io.ktor.http.parameters
 import io.ktor.util.flattenEntries
+import io.matthewnelson.encoding.base64.Base64
+import io.matthewnelson.encoding.core.Decoder.Companion.decodeToByteArray
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -52,10 +58,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
-import okio.ByteString.Companion.decodeBase64
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 
-const val PATH_WELL_KNOWN_CREDENTIAL_ISSUER = "/.well-known/openid-credential-issuer"
-const val PATH_WELL_KNOWN_AUTH_SERVER = "/.well-known/openid-configuration"
 
 class ProvisioningService(
     val platformAdapter: PlatformAdapter,
@@ -71,7 +76,9 @@ class ProvisioningService(
     private val cookieStorage = PersistentCookieStorage(dataStoreService, errorService)
     private val client = httpService.buildHttpClient(cookieStorage = cookieStorage)
     private val redirectUrl = "asitplus-wallet://wallet.a-sit.at/app/callback"
-    private val oid4vciService = WalletService(cryptoService = cryptoService, redirectUrl = redirectUrl)
+    private val clientId = "wallet-dev"
+    private val oid4vciService =
+        WalletService(clientId = clientId, cryptoService = cryptoService, redirectUrl = redirectUrl)
 
     /**
      * Starts the issuing process at [credentialIssuer]
@@ -92,7 +99,7 @@ class ProvisioningService(
         val credentialMetadata: IssuerMetadata =
             client.get("$credentialIssuer$PATH_WELL_KNOWN_CREDENTIAL_ISSUER").body()
         val authorizationServer = credentialMetadata.authorizationServers?.firstOrNull() ?: credentialIssuer
-        val oauthMetadataPath = "$authorizationServer$PATH_WELL_KNOWN_AUTH_SERVER"
+        val oauthMetadataPath = "$authorizationServer$PATH_WELL_KNOWN_OPENID_CONFIGURATION"
         val oauthMetadata: OAuth2AuthorizationServerMetadata = client.get(oauthMetadataPath).body()
 
         val state = uuid4().toString()
@@ -109,16 +116,20 @@ class ProvisioningService(
             credentialIssuer,
             oauthMetadata.tokenEndpoint
                 ?: throw Exception("no tokenEndpoint in $oauthMetadata"),
-            credentialMetadata.credentialEndpointUrl
+            credentialMetadata.serialize()
         )
+        val requestOptions = WalletService.RequestOptions(credentialScheme, credentialRepresentation)
+        val scope = oid4vciService.buildScope(requestOptions, credentialMetadata)
+        val requirePush = oauthMetadata.requirePushedAuthorizationRequests ?: false
         val authorizationEndpointUrl = oauthMetadata.authorizationEndpoint
             ?: throw Exception("no authorizationEndpoint in $oauthMetadata")
-        val authorizationDetails = oid4vciService.buildAuthorizationDetails(
-            WalletService.RequestOptions(
-                credentialScheme, credentialRepresentation, requestedAttributeStrings?.ifEmpty { null },
-            )
+        openAuthRequestInBrowser(
+            state,
+            authorizationEndpointUrl,
+            null,
+            scope,
+            if (requirePush) oauthMetadata.pushedAuthorizationRequestEndpoint else null,
         )
-        openAuthRequestInBrowser(state, authorizationDetails, authorizationEndpointUrl)
     }
 
     /**
@@ -131,12 +142,10 @@ class ProvisioningService(
         val provisioningContext = loadAndRemoveProvisioningContext()
         this.redirectUri = null
 
-        val requestOptions = WalletService.RequestOptions(
-            credentialScheme = provisioningContext.credentialScheme,
-            representation = provisioningContext.credentialRepresentation,
-            requestedAttributes = provisioningContext.requestedAttributes,
-        )
-        val authorizationDetails = oid4vciService.buildAuthorizationDetails(requestOptions)
+        val requestOptions = with(provisioningContext) {
+            WalletService.RequestOptions(credentialScheme, credentialRepresentation)
+        }
+        val scope = oid4vciService.buildScope(requestOptions, provisioningContext.issuerMetadata)
 
         val authnResponse = Url(redirectedUrl).parameters.flattenEntries().toMap()
             .decodeFromUrlQuery<AuthenticationResponseParameters>()
@@ -144,12 +153,19 @@ class ProvisioningService(
         val authorization = OAuth2Client.AuthorizationForToken.Code(code)
 
         val tokenResponse = with(provisioningContext) {
-            postAndLoadToken(state, authorization, authorizationDetails, tokenEndpointUrl)
+            postAndLoadToken(state, authorization, null, scope, tokenEndpointUrl)
         }
 
         val input = WalletService.CredentialRequestInput.RequestOptions(requestOptions)
         with(provisioningContext) {
-            postCredentialAndStore(input, tokenResponse, credentialIssuer, credentialEndpointUrl, credentialScheme)
+            postCredentialAndStore(
+                input,
+                tokenResponse,
+                credentialIssuer,
+                issuerMetadata.credentialEndpointUrl,
+                credentialScheme,
+                credentialRepresentation
+            )
         }
     }
 
@@ -196,7 +212,8 @@ class ProvisioningService(
         if (input.contains("_")) {
             val vcTypeOrSdJwtType = input.substringBefore("_")
             val formatString = input.substringAfter("_")
-                .replace("vc_sd_jwt", "vc+sd-jwt")
+                .replace("vc_sd_jwt", CredentialFormatEnum.VC_SD_JWT.text)
+                .replace("^mdoc$".toRegex(), CredentialFormatEnum.MSO_MDOC.text)
             val credentialScheme = AttributeIndex.resolveSdJwtAttributeType(vcTypeOrSdJwtType)
                 ?: AttributeIndex.resolveAttributeType(vcTypeOrSdJwtType)
                 ?: AttributeIndex.resolveIsoNamespace(vcTypeOrSdJwtType)
@@ -209,7 +226,6 @@ class ProvisioningService(
                 ?.let { Pair(it, CredentialFormatEnum.MSO_MDOC) }
         }
     }
-
 
     /**
      * Loads a user-selected credential with pre-authorized code from the OID4VCI credential issuer
@@ -234,7 +250,7 @@ class ProvisioningService(
             val issuerMetadata: IssuerMetadata =
                 client.get("$credentialIssuer$PATH_WELL_KNOWN_CREDENTIAL_ISSUER").body()
             val authorizationServer = issuerMetadata.authorizationServers?.firstOrNull() ?: credentialIssuer
-            val oauthMetadataPath = "$authorizationServer$PATH_WELL_KNOWN_AUTH_SERVER"
+            val oauthMetadataPath = "$authorizationServer$PATH_WELL_KNOWN_OPENID_CONFIGURATION"
             val oauthMetadata: OAuth2AuthorizationServerMetadata = client.get(oauthMetadataPath).body()
             val tokenEndpointUrl = oauthMetadata.tokenEndpoint
                 ?: throw Exception("no tokenEndpoint in $oauthMetadata")
@@ -243,11 +259,18 @@ class ProvisioningService(
             val authorizationDetails =
                 oid4vciService.buildAuthorizationDetails(credentialIdToRequest, issuerMetadata.authorizationServers)
             val authorization = OAuth2Client.AuthorizationForToken.PreAuthCode(it.preAuthorizedCode, transactionCode)
-            val tokenResponse = postAndLoadToken(state, authorization, authorizationDetails, tokenEndpointUrl)
+            val tokenResponse = postAndLoadToken(state, authorization, authorizationDetails, null, tokenEndpointUrl)
             val input = WalletService.CredentialRequestInput.CredentialIdentifier(credentialIdToRequest)
 
             with(issuerMetadata) {
-                postCredentialAndStore(input, tokenResponse, credentialIssuer, credentialEndpointUrl, credentialScheme)
+                postCredentialAndStore(
+                    input,
+                    tokenResponse,
+                    credentialIssuer,
+                    credentialEndpointUrl,
+                    credentialScheme,
+                    credentialRepresentation
+                )
             }
         } ?: offerGrants?.authorizationCode?.let {
             val issuerMetadata: IssuerMetadata =
@@ -255,7 +278,7 @@ class ProvisioningService(
             val authorizationServer = it.authorizationServer
                 ?: issuerMetadata.authorizationServers?.first()
                 ?: credentialIssuer
-            val oauthMetadataPath = "$authorizationServer$PATH_WELL_KNOWN_AUTH_SERVER"
+            val oauthMetadataPath = "$authorizationServer$PATH_WELL_KNOWN_OPENID_CONFIGURATION"
             val oauthMetadata: OAuth2AuthorizationServerMetadata = client.get(oauthMetadataPath).body()
             val state = uuid4().toString()
 
@@ -267,15 +290,20 @@ class ProvisioningService(
                 credentialIssuer,
                 oauthMetadata.tokenEndpoint
                     ?: throw Exception("no tokenEndpoint in $oauthMetadata"),
-                issuerMetadata.credentialEndpointUrl
+                issuerMetadata.serialize()
             )
 
-            val authorizationDetails =
-                oid4vciService.buildAuthorizationDetails(credentialIdToRequest, setOf(authorizationServer))
+            val requirePush = oauthMetadata.requirePushedAuthorizationRequests ?: false
             val authorizationEndpointUrl = oauthMetadata.authorizationEndpoint
                 ?: throw Exception("no authorizationEndpoint in $oauthMetadata")
 
-            openAuthRequestInBrowser(state, authorizationDetails, authorizationEndpointUrl)
+            openAuthRequestInBrowser(
+                state,
+                authorizationEndpointUrl,
+                null,
+                credentialIdToRequest,
+                if (requirePush) oauthMetadata.pushedAuthorizationRequestEndpoint else null,
+            )
         } ?: {
             throw Exception("No offer grants received in $offerGrants")
         }
@@ -288,7 +316,7 @@ class ProvisioningService(
         requestedAttributeStrings: Set<String>?,
         credentialIssuer: String,
         tokenEndpointUrl: String,
-        credentialEndpointUrl: String
+        issuerMetadataString: String,
     ) {
         ProvisioningContext(
             state = state,
@@ -297,7 +325,7 @@ class ProvisioningService(
             requestedAttributes = requestedAttributeStrings,
             credentialIssuer = credentialIssuer,
             tokenEndpointUrl = tokenEndpointUrl,
-            credentialEndpointUrl = credentialEndpointUrl,
+            issuerMetadataString = issuerMetadataString,
         ).also {
             Napier.d("Store provisioning context: $it")
             dataStoreService.setPreference(
@@ -310,15 +338,33 @@ class ProvisioningService(
 
     private suspend fun openAuthRequestInBrowser(
         state: String,
-        authorizationDetails: Set<AuthorizationDetails.OpenIdCredential>,
-        authorizationEndpointUrl: String
+        authorizationEndpointUrl: String,
+        authorizationDetails: Set<AuthorizationDetails.OpenIdCredential>? = null,
+        scope: String? = null,
+        pushedAuthorizationRequestEndpoint: String?,
     ) {
-        val authRequest = oid4vciService.oauth2Client.createAuthRequest(state, authorizationDetails)
-        val authorizationUrl = URLBuilder(authorizationEndpointUrl).also { builder ->
-            authRequest.encodeToParameters().forEach {
-                builder.parameters.append(it.key, it.value)
-            }
-        }.build().toString()
+        val authRequest = oid4vciService.oauth2Client.createAuthRequest(state, authorizationDetails, scope)
+        val authorizationUrl = if (pushedAuthorizationRequestEndpoint != null) {
+            val response = client.submitForm(
+                url = pushedAuthorizationRequestEndpoint,
+                formParameters = parameters {
+                    authRequest.encodeToParameters().forEach { append(it.key, it.value) }
+                    append("prompt", "login")
+                }
+            ).body<JsonObject>()
+            // format is {"expires_in":3600,"request_uri":"urn:uuid:c330d8b1-6ecb-4437-8818-cbca64d2e710"}
+            URLBuilder(authorizationEndpointUrl).also { builder ->
+                builder.parameters.append("client_id", clientId)
+                builder.parameters.append("request_uri", (response.getValue("request_uri") as JsonPrimitive).content)
+                builder.parameters.append("state", state)
+            }.build().toString()
+        } else {
+            URLBuilder(authorizationEndpointUrl).also { builder ->
+                authRequest.encodeToParameters<AuthenticationRequestParameters>().forEach {
+                    builder.parameters.append(it.key, it.value)
+                }
+            }.build().toString()
+        }
         Napier.d("Provisioning starts by opening URL $authorizationUrl")
         this.redirectUri = redirectUrl
         platformAdapter.openUrl(authorizationUrl)
@@ -338,7 +384,8 @@ class ProvisioningService(
         tokenResponse: TokenResponseParameters,
         credentialIssuer: String,
         credentialEndpointUrl: String,
-        credentialScheme: ConstantIndex.CredentialScheme
+        credentialScheme: ConstantIndex.CredentialScheme,
+        credentialRepresentation: ConstantIndex.CredentialRepresentation
     ): Holder.StoredCredential {
         val credentialRequest = oid4vciService.createCredentialRequest(
             input = input,
@@ -353,7 +400,10 @@ class ProvisioningService(
         }.body()
 
         val storeCredentialInput = credentialResponse.credential
-            ?.toStoreCredentialInput(credentialResponse.format, credentialScheme)
+            ?.toStoreCredentialInput(
+                credentialResponse.format?.toRepresentation() ?: credentialRepresentation,
+                credentialScheme
+            )
             ?: throw Exception("No credential was received")
 
         return holderAgent.storeCredential(storeCredentialInput).getOrThrow()
@@ -362,13 +412,15 @@ class ProvisioningService(
     private suspend fun postAndLoadToken(
         state: String,
         authorization: OAuth2Client.AuthorizationForToken,
-        authorizationDetails: Set<AuthorizationDetails>,
+        authorizationDetails: Set<AuthorizationDetails>? = null,
+        scope: String? = null,
         tokenEndpointUrl: String
     ): TokenResponseParameters {
         val tokenRequest = oid4vciService.oauth2Client.createTokenRequestParameters(
             state = state,
             authorization = authorization,
             authorizationDetails = authorizationDetails,
+            scope = scope,
         )
         return client.submitForm(
             url = tokenEndpointUrl,
@@ -379,22 +431,18 @@ class ProvisioningService(
     }
 
     private fun String.toStoreCredentialInput(
-        format: CredentialFormatEnum?,
+        representation: ConstantIndex.CredentialRepresentation,
         credentialScheme: ConstantIndex.CredentialScheme,
-    ) = when (format) {
-        CredentialFormatEnum.JWT_VC -> Holder.StoreCredentialInput.Vc(this, credentialScheme)
-
-        CredentialFormatEnum.VC_SD_JWT -> Holder.StoreCredentialInput.SdJwt(this, credentialScheme)
-
-        CredentialFormatEnum.MSO_MDOC -> {
-            decodeBase64()?.toByteArray()?.let {
-                IssuerSigned.deserialize(it)
-            }?.getOrNull()?.let { issuerSigned ->
-                Holder.StoreCredentialInput.Iso(issuerSigned, credentialScheme)
-            } ?: throw Exception("Invalid credential format: $this")
+    ) = when (representation) {
+        ConstantIndex.CredentialRepresentation.PLAIN_JWT -> Holder.StoreCredentialInput.Vc(this, credentialScheme)
+        ConstantIndex.CredentialRepresentation.SD_JWT -> Holder.StoreCredentialInput.SdJwt(this, credentialScheme)
+        ConstantIndex.CredentialRepresentation.ISO_MDOC -> {
+            runCatching { decodeToByteArray(Base64()) }.getOrNull()
+                ?.let { IssuerSigned.deserialize(it) }
+                ?.getOrElse { throw it }
+                ?.let { Holder.StoreCredentialInput.Iso(it, credentialScheme) }
+                ?: throw Exception("Invalid credential format for ISO_MDOC: $this")
         }
-
-        else -> throw Exception("Invalid credential format: $this")
     }
 
 }
@@ -407,11 +455,13 @@ private data class ProvisioningContext(
     val requestedAttributes: Set<String>?,
     val credentialIssuer: String,
     val tokenEndpointUrl: String,
-    val credentialEndpointUrl: String,
+    val issuerMetadataString: String,
 ) {
     val credentialScheme: ConstantIndex.CredentialScheme
         get() = AttributeIndex.resolveCredential(this.credentialSchemeIdentifier)?.first
             ?: throw Exception("Unsupported credential scheme: ${this.credentialSchemeIdentifier}")
+    val issuerMetadata: IssuerMetadata
+        get() = IssuerMetadata.deserialize(issuerMetadataString).getOrThrow()
 }
 
 @Serializable
