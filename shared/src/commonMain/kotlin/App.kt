@@ -58,29 +58,24 @@ fun App(walletMain: WalletMain) {
         Napier.d("Lifecycle.Event.ON_RESUME")
     }
 
-
-
     val isConditionsAccepted by walletMain.walletConfig.isConditionsAccepted.collectAsState(null)
 
-    when (isConditionsAccepted) {
-        null -> {
-            Box(modifier = Modifier.testTag(OnboardingWrapperTestTags.onboardingLoadingIndicator))
-        }
-        true -> {
-            WalletTheme {
-                Scaffold(
-                    snackbarHost = {
-                        SnackbarHost(hostState = snackbarHostState)
-                    },
-                    modifier = Modifier.testTag(AppTestTags.rootScaffold)
-                ) { _ ->
-                    WalletNav(walletMain)
+    WalletTheme {
+        Scaffold(
+            snackbarHost = {
+                SnackbarHost(hostState = snackbarHostState)
+            },
+            modifier = Modifier.testTag(AppTestTags.rootScaffold)
+        ) { _ ->
+            when (isConditionsAccepted) {
+                null -> {
+                    Box(modifier = Modifier.testTag(OnboardingWrapperTestTags.onboardingLoadingIndicator))
                 }
+                true -> WalletNavigation(walletMain)
+                false -> OnboardingNavigation(walletMain)
             }
         }
-        false -> OnboardingNav(walletMain)
     }
-
 }
 
 
