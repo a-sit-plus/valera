@@ -39,22 +39,20 @@ fun IntentHandler(walletMain: WalletMain, navigate: (Route) -> Unit, navigateBac
 
             if (walletMain.provisioningService.redirectUri?.let { link.contains(it) } == true) {
                 navigate(LoadingRoute)
-                kotlin.runCatching {
-                    walletMain.provisioningService.redirectUri = null
+                try {
                     walletMain.cryptoService.promptText =
                         getString(Res.string.biometric_authentication_prompt_to_bind_credentials_title)
                     walletMain.cryptoService.promptSubtitle =
                         getString(Res.string.biometric_authentication_prompt_to_bind_credentials_subtitle)
                     walletMain.provisioningService.handleResponse(link)
-
-                }.onSuccess {
-                    navigateBack()
                     walletMain.snackbarService.showSnackbar(
                         getString(Res.string.snackbar_credential_loaded_successfully)
                     )
-                    appLink.value = null
-                }.onFailure {
                     navigateBack()
+                    appLink.value = null
+                } catch (e: Throwable) {
+                    navigateBack()
+                    walletMain.errorService.emit(e)
                     appLink.value = null
                 }
                 return@LaunchedEffect
