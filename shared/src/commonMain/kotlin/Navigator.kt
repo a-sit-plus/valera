@@ -169,7 +169,7 @@ fun WalletNav(walletMain: WalletMain){
                 spImage = null,
                 authenticationRequestParametersFrom = request,
                 authorizationResponsePreparationState = preparationState,
-                navigateUp = {navController.navigateUp()},
+                navigateUp = {navigateBack()},
                 navigateToAuthenticationSuccessPage = {
                     navigate(AuthenticationSuccessRoute)
                 },
