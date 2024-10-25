@@ -120,6 +120,7 @@ fun WalletNav(walletMain: WalletMain){
 
     val navigateBack: () -> Unit = {
         CoroutineScope(Dispatchers.Main).launch {
+            Napier.d("Navigate back")
             navController.navigateUp()
 
         }
