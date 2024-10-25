@@ -1,5 +1,7 @@
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCodeScanner
@@ -151,196 +153,198 @@ fun WalletNav(walletMain: WalletMain){
             }
         },
         modifier = Modifier,
-    ) {
-        NavHost(
-            navController = navController,
-            startDestination = HomeScreenRoute,
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            composable<HomeScreenRoute> {
-                MyCredentialsScreen(
-                    navigateToAddCredentialsPage = {
-                        navigate(AddCredentialRoute)
-                    },
-                    navigateToQrAddCredentialsPage = {
-                        navigate(PreAuthQrCodeScannerRoute)
-                    },
-                    navigateToCredentialDetailsPage = {
-                        navigate(CredentialDetailsRoute(it))
-                    },
-                    walletMain = walletMain,
-                )
-            }
-            composable<SettingsRoute> {
-                SettingsScreen(navigateToLogPage =  {}, onClickResetApp =  {}, onClickClearLog = {}, walletMain)
-            }
-            composable<AuthenticationQrCodeScannerRoute> {
-                val vm = AuthenticationQrCodeScannerViewModel(navigateUp = { navigateBack() }, onSuccess = { route ->
-                    val test = backStackEntry
-                    Napier.d(test.toString())
-                    navigate(route)
-                }, walletMain = walletMain)
-                AuthenticationQrCodeScannerView(vm)
-            }
-            composable<AuthenticationConsentRoute> { backStackEntry ->
-                val route: AuthenticationConsentRoute = backStackEntry.toRoute()
-
-                val request =
-                    AuthenticationRequestParametersFrom.deserialize(route.authenticationRequestParametersFromSerialized)
-                        .getOrThrow()
-                val preparationState =
-                    vckJsonSerializer.decodeFromString<AuthorizationResponsePreparationState>(
-                        route.authorizationPreparationStateSerialized,
+    ) { scaffoldPadding ->
+        Box(modifier = Modifier.padding(scaffoldPadding)) {
+            NavHost(
+                navController = navController,
+                startDestination = HomeScreenRoute,
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                composable<HomeScreenRoute> {
+                    MyCredentialsScreen(
+                        navigateToAddCredentialsPage = {
+                            navigate(AddCredentialRoute)
+                        },
+                        navigateToQrAddCredentialsPage = {
+                            navigate(PreAuthQrCodeScannerRoute)
+                        },
+                        navigateToCredentialDetailsPage = {
+                            navigate(CredentialDetailsRoute(it))
+                        },
+                        walletMain = walletMain,
                     )
+                }
+                composable<SettingsRoute> {
+                    SettingsScreen(navigateToLogPage =  {}, onClickResetApp =  {}, onClickClearLog = {}, walletMain)
+                }
+                composable<AuthenticationQrCodeScannerRoute> {
+                    val vm = AuthenticationQrCodeScannerViewModel(navigateUp = { navigateBack() }, onSuccess = { route ->
+                        val test = backStackEntry
+                        Napier.d(test.toString())
+                        navigate(route)
+                    }, walletMain = walletMain)
+                    AuthenticationQrCodeScannerView(vm)
+                }
+                composable<AuthenticationConsentRoute> { backStackEntry ->
+                    val route: AuthenticationConsentRoute = backStackEntry.toRoute()
 
-                AuthenticationConsentScreen(
-                    spName = null,
-                    spLocation = route.recipientLocation,
-                    spImage = null,
-                    authenticationRequestParametersFrom = request,
-                    authorizationResponsePreparationState = preparationState,
-                    navigateUp = {navController.navigateUp()},
-                    navigateToAuthenticationSuccessPage = {
-                        navigate(AuthenticationSuccessRoute)
-                    },
-                    walletMain = walletMain,
-                )
-            }
+                    val request =
+                        AuthenticationRequestParametersFrom.deserialize(route.authenticationRequestParametersFromSerialized)
+                            .getOrThrow()
+                    val preparationState =
+                        vckJsonSerializer.decodeFromString<AuthorizationResponsePreparationState>(
+                            route.authorizationPreparationStateSerialized,
+                        )
 
-            composable<AuthenticationSuccessRoute> { backStackEntry ->
-                AuthenticationSuccessScreen(
-                    navigateUp = { navigateBack() },
-                )
-            }
+                    AuthenticationConsentScreen(
+                        spName = null,
+                        spLocation = route.recipientLocation,
+                        spImage = null,
+                        authenticationRequestParametersFrom = request,
+                        authorizationResponsePreparationState = preparationState,
+                        navigateUp = {navController.navigateUp()},
+                        navigateToAuthenticationSuccessPage = {
+                            navigate(AuthenticationSuccessRoute)
+                        },
+                        walletMain = walletMain,
+                    )
+                }
 
-            composable<AddCredentialRoute> { backStackEntry ->
-                val vm = AddCredentialViewModel(walletMain = walletMain,
-                    navigateUp = navigateBack,
-                    hostString = runBlocking { walletMain.walletConfig.host.first() }, availableSchemes = walletMain.availableSchemes, onSubmit = { host, credentialScheme, credentialRepresentation, requestedAttributes ->
-                        popBackStack(HomeScreenRoute)
-                        walletMain.scope.launch {
-                            walletMain.startProvisioning(
-                                host = host,
-                                credentialScheme = credentialScheme,
-                                credentialRepresentation = credentialRepresentation,
-                                requestedAttributes = requestedAttributes,
-                            ) {
-                            }
-                        }
+                composable<AuthenticationSuccessRoute> { backStackEntry ->
+                    AuthenticationSuccessScreen(
+                        navigateUp = { navigateBack() },
+                    )
+                }
 
-                    })
-                AddCredentialScreen(vm)
-            }
-
-            composable<AddCredentialPreAuthnRoute> { backStackEntry ->
-                val route: AddCredentialPreAuthnRoute = backStackEntry.toRoute()
-                val offer = Json.decodeFromString<CredentialOfferInfo>(route.credentialOfferInfoSerialized)
-                val vm = AddCredentialViewModel(walletMain = walletMain,
-                    navigateUp = navigateBack,
-                    hostString = offer.credentialOffer.credentialIssuer,
-                    availableSchemes = offer.credentials.map { it.value.first.toScheme() }.distinct(),
-                    onSubmit = { host, credentialScheme, credentialRepresentation, requestedAttributes ->
-                        popBackStack(HomeScreenRoute)
-                        navigate(LoadingRoute)
-                        walletMain.scope.launch {
-                            try {
-                                walletMain.provisioningService.loadCredentialWithPreAuthn(
-                                    credentialIssuer = host,
-                                    preAuthorizedCode = offer.credentialOffer.grants?.preAuthorizedCode?.preAuthorizedCode.toString(),
-                                    credentialIdToRequest = offer.credentials
-                                        .entries
-                                        .first { it.value.first.toScheme() == credentialScheme && it.value.second.toRepresentation() == credentialRepresentation }
-                                        .key
-                                )
-                            } catch (e: Throwable){
-                                popBackStack(HomeScreenRoute)
-                                walletMain.errorService.emit(e)
-                            }
+                composable<AddCredentialRoute> { backStackEntry ->
+                    val vm = AddCredentialViewModel(walletMain = walletMain,
+                        navigateUp = navigateBack,
+                        hostString = runBlocking { walletMain.walletConfig.host.first() }, availableSchemes = walletMain.availableSchemes, onSubmit = { host, credentialScheme, credentialRepresentation, requestedAttributes ->
                             popBackStack(HomeScreenRoute)
+                            walletMain.scope.launch {
+                                walletMain.startProvisioning(
+                                    host = host,
+                                    credentialScheme = credentialScheme,
+                                    credentialRepresentation = credentialRepresentation,
+                                    requestedAttributes = requestedAttributes,
+                                ) {
+                                }
+                            }
+
+                        })
+                    AddCredentialScreen(vm)
+                }
+
+                composable<AddCredentialPreAuthnRoute> { backStackEntry ->
+                    val route: AddCredentialPreAuthnRoute = backStackEntry.toRoute()
+                    val offer = Json.decodeFromString<CredentialOfferInfo>(route.credentialOfferInfoSerialized)
+                    val vm = AddCredentialViewModel(walletMain = walletMain,
+                        navigateUp = navigateBack,
+                        hostString = offer.credentialOffer.credentialIssuer,
+                        availableSchemes = offer.credentials.map { it.value.first.toScheme() }.distinct(),
+                        onSubmit = { host, credentialScheme, credentialRepresentation, requestedAttributes ->
+                            popBackStack(HomeScreenRoute)
+                            navigate(LoadingRoute)
+                            walletMain.scope.launch {
+                                try {
+                                    walletMain.provisioningService.loadCredentialWithPreAuthn(
+                                        credentialIssuer = host,
+                                        preAuthorizedCode = offer.credentialOffer.grants?.preAuthorizedCode?.preAuthorizedCode.toString(),
+                                        credentialIdToRequest = offer.credentials
+                                            .entries
+                                            .first { it.value.first.toScheme() == credentialScheme && it.value.second.toRepresentation() == credentialRepresentation }
+                                            .key
+                                    )
+                                } catch (e: Throwable){
+                                    popBackStack(HomeScreenRoute)
+                                    walletMain.errorService.emit(e)
+                                }
+                                popBackStack(HomeScreenRoute)
+                            }
                         }
-                    }
                     )
-                AddCredentialScreen(vm)
+                    AddCredentialScreen(vm)
+                }
+
+                composable<CredentialDetailsRoute> { backStackEntry ->
+                    val route: CredentialDetailsRoute = backStackEntry.toRoute()
+
+                    CredentialDetailsScreen(
+                        storeEntryId = route.storeEntryId,
+                        navigateUp = { navigateBack() },
+                        walletMain = walletMain,
+                    )
+                }
+
+                composable<ProvisioningLoadingRoute> { backStackEntry ->
+                    val route: ProvisioningLoadingRoute = backStackEntry.toRoute()
+
+                    ProvisioningLoadingScreen(
+                        link = route.link,
+                        navigateUp = { navigateBack() },
+                        walletMain = walletMain,
+                    )
+                }
+
+                composable<SettingsRoute> { backStackEntry ->
+                    SettingsScreen(
+                        navigateToLogPage = {
+                            navigate(LogRoute)
+                        },
+                        onClickResetApp = {
+                            val resetMessage = runBlocking {
+                                walletMain.resetApp()
+                                getString(Res.string.snackbar_reset_app_successfully)
+                            }
+                            walletMain.snackbarService.showSnackbar(resetMessage)
+                            navController.popBackStack(route = HomeScreenRoute, inclusive = false)
+                        },
+                        onClickClearLog = {
+                            val clearMessage = runBlocking {
+                                walletMain.clearLog()
+                                getString(Res.string.snackbar_clear_log_successfully)
+                            }
+                            walletMain.snackbarService.showSnackbar(clearMessage)
+                        },
+                        walletMain = walletMain,
+                    )
+                }
+
+                composable<PreAuthQrCodeScannerRoute> { backStackEntry ->
+                    val vm = PreAuthQrCodeScannerViewModel(
+                        walletMain = walletMain,
+                        navigateUp = { navigateBack() },
+                        navigateToAddCredentialsPage = { offer ->
+                            navigate(AddCredentialPreAuthnRoute(Json.encodeToString(offer)))
+                        })
+                    PreAuthQrCodeScannerScreen(vm)
+                }
+
+                composable<LogRoute> { backStackEntry ->
+                    LogScreen(
+                        navigateUp = { navigateBack() },
+                        walletMain = walletMain,
+                    )
+                }
+
+                composable<LoadingRoute> { backStackEntry ->
+                    LoadingScreen()
+                }
+
+                composable<AuthenticationQrCodeScannerRoute> { backStackEntry ->
+                    val vm = AuthenticationQrCodeScannerViewModel(navigateUp = { navigateBack() }, onSuccess = { route ->
+                        navigateBack()
+                        navigate(route)
+                    }, walletMain = walletMain)
+                    AuthenticationQrCodeScannerView(vm)
+                }
+
+                composable<AuthenticationLoadingRoute> { backStackEntry ->
+                    LoadingScreen()
+                }
+
             }
-
-            composable<CredentialDetailsRoute> { backStackEntry ->
-                val route: CredentialDetailsRoute = backStackEntry.toRoute()
-
-                CredentialDetailsScreen(
-                    storeEntryId = route.storeEntryId,
-                    navigateUp = { navigateBack() },
-                    walletMain = walletMain,
-                )
-            }
-
-            composable<ProvisioningLoadingRoute> { backStackEntry ->
-                val route: ProvisioningLoadingRoute = backStackEntry.toRoute()
-
-                ProvisioningLoadingScreen(
-                    link = route.link,
-                    navigateUp = { navigateBack() },
-                    walletMain = walletMain,
-                )
-            }
-
-            composable<SettingsRoute> { backStackEntry ->
-                SettingsScreen(
-                    navigateToLogPage = {
-                        navigate(LogRoute)
-                    },
-                    onClickResetApp = {
-                        val resetMessage = runBlocking {
-                            walletMain.resetApp()
-                            getString(Res.string.snackbar_reset_app_successfully)
-                        }
-                        walletMain.snackbarService.showSnackbar(resetMessage)
-                        navController.popBackStack(route = HomeScreenRoute, inclusive = false)
-                    },
-                    onClickClearLog = {
-                        val clearMessage = runBlocking {
-                            walletMain.clearLog()
-                            getString(Res.string.snackbar_clear_log_successfully)
-                        }
-                        walletMain.snackbarService.showSnackbar(clearMessage)
-                    },
-                    walletMain = walletMain,
-                )
-            }
-
-            composable<PreAuthQrCodeScannerRoute> { backStackEntry ->
-                val vm = PreAuthQrCodeScannerViewModel(
-                    walletMain = walletMain,
-                    navigateUp = { navigateBack() },
-                    navigateToAddCredentialsPage = { offer ->
-                        navigate(AddCredentialPreAuthnRoute(Json.encodeToString(offer)))
-                    })
-                PreAuthQrCodeScannerScreen(vm)
-            }
-
-            composable<LogRoute> { backStackEntry ->
-                LogScreen(
-                    navigateUp = { navigateBack() },
-                    walletMain = walletMain,
-                )
-            }
-
-            composable<LoadingRoute> { backStackEntry ->
-                LoadingScreen()
-            }
-
-            composable<AuthenticationQrCodeScannerRoute> { backStackEntry ->
-                val vm = AuthenticationQrCodeScannerViewModel(navigateUp = { navigateBack() }, onSuccess = { route ->
-                    navigateBack()
-                    navigate(route)
-                }, walletMain = walletMain)
-                AuthenticationQrCodeScannerView(vm)
-            }
-
-            composable<AuthenticationLoadingRoute> { backStackEntry ->
-                LoadingScreen()
-            }
-
         }
     }
 
