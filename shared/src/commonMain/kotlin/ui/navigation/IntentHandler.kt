@@ -1,6 +1,5 @@
 package ui.navigation
 
-import Route
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import appLink
@@ -14,6 +13,8 @@ import io.github.aakira.napier.Napier
 import io.ktor.http.parseQueryString
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.getString
+import ui.navigation.Routes.LoadingRoute
+import ui.navigation.Routes.Route
 
 @Composable
 fun IntentHandler(walletMain: WalletMain, navigate: (Route) -> Unit, navigateBack: () -> Unit){

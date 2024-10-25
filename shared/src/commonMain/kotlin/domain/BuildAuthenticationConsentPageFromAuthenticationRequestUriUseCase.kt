@@ -5,7 +5,7 @@ import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.oidc.OidcSiopWallet
 import io.github.aakira.napier.Napier
 import kotlinx.serialization.encodeToString
-import ui.navigation.AuthenticationConsentRoute
+import ui.navigation.Routes.AuthenticationConsentRoute
 
 class BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
     val oidcSiopWallet: OidcSiopWallet,

@@ -5,7 +5,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -14,12 +13,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import io.github.aakira.napier.Napier
-import ui.navigation.OnboardingWrapperTestTags
+import ui.navigation.OnboardingNavigation
+import ui.navigation.Routes.OnboardingWrapperTestTags
+import ui.navigation.WalletNavigation
 import ui.theme.WalletTheme
 
 /**

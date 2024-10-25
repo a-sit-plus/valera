@@ -1,12 +1,24 @@
 package ui.composables
 
-import NavigationData
-import Route
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import compose_wallet_app.shared.generated.resources.Res
+import compose_wallet_app.shared.generated.resources.navigation_button_label_my_data
+import compose_wallet_app.shared.generated.resources.navigation_button_label_settings
+import compose_wallet_app.shared.generated.resources.navigation_button_label_show_data
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
+import ui.navigation.Routes.AuthenticationQrCodeScannerRoute
+import ui.navigation.Routes.HomeScreenRoute
+import ui.navigation.Routes.Route
+import ui.navigation.Routes.SettingsRoute
 
 @Composable
 fun BottomBar(navigate: (Route) -> Unit, selected: NavigationData) {
@@ -30,4 +42,60 @@ fun BottomBar(navigate: (Route) -> Unit, selected: NavigationData) {
             )
         }
     }
+}
+
+enum class NavigationData(
+    val title: StringResource,
+    val icon: @Composable () -> Unit,
+    val destination: Route,
+    val isActive: (Route) -> Boolean
+) {
+    HOME_SCREEN(
+        title = Res.string.navigation_button_label_my_data,
+        icon = {
+            Icon(
+                imageVector = Icons.Default.Person,
+                contentDescription = null,
+            )
+        },
+        destination = HomeScreenRoute,
+        isActive = {
+            when (it) {
+                is HomeScreenRoute -> true
+                else -> false
+            }
+        },
+    ),
+    AUTHENTICATION_SCANNING_SCREEN(
+        title = Res.string.navigation_button_label_show_data,
+        icon = {
+            Icon(
+                imageVector = Icons.Default.QrCodeScanner,
+                contentDescription = null,
+            )
+        },
+        destination = AuthenticationQrCodeScannerRoute,
+        isActive = {
+            when (it) {
+                is AuthenticationQrCodeScannerRoute -> true
+                else -> false
+            }
+        },
+    ),
+    INFORMATION_SCREEN(
+        title = Res.string.navigation_button_label_settings,
+        icon = {
+            Icon(
+                imageVector = Icons.Default.Settings,
+                contentDescription = null,
+            )
+        },
+        destination = SettingsRoute,
+        isActive = {
+            when (it) {
+                is SettingsRoute -> true
+                else -> false
+            }
+        },
+    ),
 }

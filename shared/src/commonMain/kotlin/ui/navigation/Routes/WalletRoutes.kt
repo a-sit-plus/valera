@@ -1,6 +1,5 @@
-package ui.navigation
+package ui.navigation.Routes
 
-import Route
 import data.storage.StoreEntryId
 import kotlinx.serialization.Serializable
 

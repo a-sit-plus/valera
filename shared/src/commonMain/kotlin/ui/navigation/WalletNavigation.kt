@@ -1,14 +1,9 @@
+package ui.navigation
 
+import PreAuthQrCodeScannerViewModel
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.QrCodeScanner
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -23,9 +18,6 @@ import at.asitplus.wallet.lib.oidc.AuthenticationRequestParametersFrom
 import at.asitplus.wallet.lib.oidc.helpers.AuthorizationResponsePreparationState
 import at.asitplus.wallet.lib.oidvci.toRepresentation
 import compose_wallet_app.shared.generated.resources.Res
-import compose_wallet_app.shared.generated.resources.navigation_button_label_my_data
-import compose_wallet_app.shared.generated.resources.navigation_button_label_settings
-import compose_wallet_app.shared.generated.resources.navigation_button_label_show_data
 import compose_wallet_app.shared.generated.resources.snackbar_clear_log_successfully
 import compose_wallet_app.shared.generated.resources.snackbar_reset_app_successfully
 import io.github.aakira.napier.Napier
@@ -34,29 +26,25 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 import ui.composables.BottomBar
-import ui.navigation.AddCredentialPreAuthnRoute
-import ui.navigation.AddCredentialRoute
-import ui.navigation.AuthenticationConsentRoute
-import ui.navigation.AuthenticationLoadingRoute
-import ui.navigation.AuthenticationQrCodeScannerRoute
-import ui.navigation.AuthenticationSuccessRoute
-import ui.navigation.CredentialDetailsRoute
-import ui.navigation.HomeScreenRoute
-import ui.navigation.IntentHandler
-import ui.navigation.LoadingRoute
-import ui.navigation.LogRoute
-import ui.navigation.OnboardingInformation
-import ui.navigation.OnboardingStart
-import ui.navigation.OnboardingTerms
-import ui.navigation.PreAuthQrCodeScannerRoute
-import ui.navigation.ProvisioningLoadingRoute
-import ui.navigation.SettingsRoute
+import ui.composables.NavigationData
+import ui.navigation.Routes.AddCredentialPreAuthnRoute
+import ui.navigation.Routes.AddCredentialRoute
+import ui.navigation.Routes.AuthenticationConsentRoute
+import ui.navigation.Routes.AuthenticationLoadingRoute
+import ui.navigation.Routes.AuthenticationQrCodeScannerRoute
+import ui.navigation.Routes.AuthenticationSuccessRoute
+import ui.navigation.Routes.CredentialDetailsRoute
+import ui.navigation.Routes.HomeScreenRoute
+import ui.navigation.Routes.LoadingRoute
+import ui.navigation.Routes.LogRoute
+import ui.navigation.Routes.PreAuthQrCodeScannerRoute
+import ui.navigation.Routes.ProvisioningLoadingRoute
+import ui.navigation.Routes.Route
+import ui.navigation.Routes.SettingsRoute
 import ui.screens.AddCredentialScreen
 import ui.screens.AddCredentialViewModel
 import ui.screens.AuthenticationConsentScreen
@@ -67,9 +55,6 @@ import ui.screens.CredentialsView
 import ui.screens.CredentialsViewModel
 import ui.screens.LoadingScreen
 import ui.screens.LogScreen
-import ui.screens.OnboardingInformationScreen
-import ui.screens.OnboardingStartScreen
-import ui.screens.OnboardingTermsScreen
 import ui.screens.PreAuthQrCodeScannerScreen
 import ui.screens.ProvisioningLoadingScreen
 import ui.screens.SettingsView
@@ -77,17 +62,9 @@ import ui.screens.SettingsViewModel
 import view.AuthenticationQrCodeScannerViewModel
 
 @Composable
-fun WalletNav(walletMain: WalletMain){
+fun WalletNavigation(walletMain: WalletMain){
     val navController: NavHostController = rememberNavController()
-    // Get current back stack entry
     val backStackEntry by navController.currentBackStackEntryAsState()
-    // Get the name of the current screen
-
-    val showScaffold by remember { mutableStateOf(true) }
-
-    val currentScreen = backStackEntry?.destination?.route ?: "HomeScreenRoute"
-    val current: Route? = backStackEntry?.toRoute()
-
 
     val navigateBack: () -> Unit = {
         CoroutineScope(Dispatchers.Main).launch {
@@ -141,7 +118,7 @@ fun WalletNav(walletMain: WalletMain){
                         null
                     }
                 },
-                bottomBar = {BottomBar(navigate = navigate, selected = NavigationData.HOME_SCREEN)}
+                bottomBar = { BottomBar(navigate = navigate, selected = NavigationData.HOME_SCREEN) }
             )
         }
         composable<AuthenticationQrCodeScannerRoute> {
@@ -275,7 +252,7 @@ fun WalletNav(walletMain: WalletMain){
                 },
                 walletMain = walletMain,
             )
-            SettingsView(vm = vm, bottomBar = {BottomBar(navigate = navigate, selected = NavigationData.INFORMATION_SCREEN)})
+            SettingsView(vm = vm, bottomBar = { BottomBar(navigate = navigate, selected = NavigationData.INFORMATION_SCREEN) })
         }
 
         composable<PreAuthQrCodeScannerRoute> { backStackEntry ->
@@ -313,94 +290,3 @@ fun WalletNav(walletMain: WalletMain){
 
     }
 }
-
-@Composable
-fun OnboardingNav(walletMain: WalletMain) {
-    val navController: NavHostController = rememberNavController()
-    // Get current back stack entry
-    val backStackEntry by navController.currentBackStackEntryAsState()
-    // Get the name of the current screen
-    val currentScreen = backStackEntry?.destination?.route
-
-
-
-    NavHost(
-        navController = navController,
-        startDestination = OnboardingStart,
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        composable<OnboardingStart> {
-            OnboardingStartScreen(onClickStart = {navController.navigate(OnboardingInformation)})
-        }
-        composable<OnboardingInformation> {
-            OnboardingInformationScreen(onClickContinue = {navController.navigate(OnboardingTerms)})
-        }
-        composable<OnboardingTerms> {
-            OnboardingTermsScreen(onClickAccept = { walletMain.walletConfig.set(isConditionsAccepted = true) },
-                onClickNavigateBack = {navController.navigateUp()},
-                onClickReadDataProtectionPolicy = {},
-                onClickReadGeneralTermsAndConditions = {})
-        }
-    }
-}
-
-@Serializable
-open class Route()
-
-enum class NavigationData(
-    val title: StringResource,
-    val icon: @Composable () -> Unit,
-    val destination: Route,
-    val isActive: (Route) -> Boolean
-) {
-    HOME_SCREEN(
-        title = Res.string.navigation_button_label_my_data,
-        icon = {
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = null,
-            )
-        },
-        destination = HomeScreenRoute,
-        isActive = {
-            when (it) {
-                is HomeScreenRoute -> true
-                else -> false
-            }
-        },
-    ),
-    AUTHENTICATION_SCANNING_SCREEN(
-        title = Res.string.navigation_button_label_show_data,
-        icon = {
-            Icon(
-                imageVector = Icons.Default.QrCodeScanner,
-                contentDescription = null,
-            )
-        },
-        destination = AuthenticationQrCodeScannerRoute,
-        isActive = {
-            when (it) {
-                is AuthenticationQrCodeScannerRoute -> true
-                else -> false
-            }
-        },
-    ),
-    INFORMATION_SCREEN(
-        title = Res.string.navigation_button_label_settings,
-        icon = {
-            Icon(
-                imageVector = Icons.Default.Settings,
-                contentDescription = null,
-            )
-        },
-        destination = SettingsRoute,
-        isActive = {
-            when (it) {
-                is SettingsRoute -> true
-                else -> false
-            }
-        },
-    ),
-}
-
