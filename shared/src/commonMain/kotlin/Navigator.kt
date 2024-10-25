@@ -131,7 +131,13 @@ fun WalletNav(walletMain: WalletMain){
             Napier.d("Navigate to: $route")
             navController.navigate(route)
         }
+    }
 
+    val popBackStack: (Route) -> Unit = { route ->
+        CoroutineScope(Dispatchers.Main).launch {
+            Napier.d("popBackStack: $route")
+            navController.popBackStack(route = route, inclusive = false)
+        }
     }
 
     IntentHandler(walletMain = walletMain, navigate = navigate, navigateBack = navigateBack)
