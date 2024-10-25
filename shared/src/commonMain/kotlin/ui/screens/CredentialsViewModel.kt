@@ -6,7 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 
-class CredentialScreenViewModel(
+class CredentialsViewModel(
     val walletMain: WalletMain,
 ) {
     val storeContainer = walletMain.subjectCredentialStore.observeStoreContainer()
