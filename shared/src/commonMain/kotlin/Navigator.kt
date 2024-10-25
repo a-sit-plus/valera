@@ -366,7 +366,7 @@ fun OnboardingNav(walletMain: WalletMain) {
 }
 
 @Serializable
-open class Route(val name: String = "test"){}
+open class Route()
 
 enum class NavigationData(
     val title: StringResource,
