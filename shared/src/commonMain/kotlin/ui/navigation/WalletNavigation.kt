@@ -88,7 +88,7 @@ fun WalletNavigation(walletMain: WalletMain){
         }
     }
 
-    IntentHandler(walletMain = walletMain, navigate = navigate, navigateBack = navigateBack)
+    handleIntent(walletMain = walletMain, navigate = navigate, navigateBack = navigateBack)
 
     NavHost(
         navController = navController,
