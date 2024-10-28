@@ -108,12 +108,6 @@ class AndroidPlatformAdapter(val context: Context) : PlatformAdapter {
         }
     }
 
-    override fun exitApp() {
-        Napier.d("Exit App gracefully")
-        val activity = context as Activity
-        activity.finish()
-    }
-
     override fun shareLog() {
         val folder = File(context.filesDir, "logs")
         val file = File(folder, "log.txt")

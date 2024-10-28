@@ -193,11 +193,6 @@ interface PlatformAdapter {
     fun clearFile(fileName: String, folderName: String)
 
     /**
-     * Exits the app in the event of an uncorrectable error
-     */
-    fun exitApp()
-
-    /**
      * Opens the platform specific share dialog
      */
     fun shareLog()
@@ -219,9 +214,6 @@ class DummyPlatformAdapter : PlatformAdapter {
     }
 
     override fun clearFile(fileName: String, folderName: String) {
-    }
-
-    override fun exitApp() {
     }
 
     override fun shareLog() {
