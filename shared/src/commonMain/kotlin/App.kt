@@ -37,8 +37,6 @@ internal object AppTestTags {
     const val rootScaffold = "rootScaffold"
 }
 
-
-
 @Composable
 fun App(walletMain: WalletMain) {
     val snackbarHostState = remember { SnackbarHostState() }
@@ -77,8 +75,6 @@ fun App(walletMain: WalletMain) {
         }
     }
 }
-
-
 
 expect fun getPlatformName(): String
 

@@ -29,6 +29,5 @@ class BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
                 recipientLocation = request.parameters.clientId ?: "",
             )
         )
-
     }
 }
