@@ -6,12 +6,9 @@ import at.asitplus.wallet.lib.data.ConstantIndex
 
 class AddCredentialViewModel(
     val walletMain: WalletMain,
-    val onSubmit: (String, ConstantIndex.CredentialScheme, ConstantIndex.CredentialRepresentation, Set<NormalizedJsonPath>?) -> Unit,
-    val onSubmitServer: ((String) -> Unit) = {},
+    val onSubmitServer: ((String) -> Unit),
     val navigateUp: () -> Unit,
-    val hostString: String,
-    val availableSchemes: List<ConstantIndex.CredentialScheme>,
-    val showAttributes: Boolean = true
+    val hostString: String
 ) {
 
 }

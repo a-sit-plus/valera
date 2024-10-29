@@ -26,8 +26,8 @@ import ui.views.LoadDataView
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddCredentialScreen(
-    vm: AddCredentialViewModel
+fun LoadCredentialScreen(
+    vm: LoadCredentialViewModel
 ) {
     var host by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         runBlocking {

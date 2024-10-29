@@ -63,7 +63,7 @@ import ui.navigation.Routes.PreAuthQrCodeScannerRoute
 import ui.navigation.Routes.ProvisioningLoadingRoute
 import ui.navigation.Routes.Route
 import ui.navigation.Routes.SettingsRoute
-import ui.screens.AddCredentialScreen
+import ui.screens.LoadCredentialScreen
 import ui.screens.AddCredentialViewModel
 import ui.screens.AuthenticationConsentScreen
 import ui.screens.AuthenticationQrCodeScannerView
@@ -72,6 +72,7 @@ import ui.screens.CredentialDetailsScreen
 import ui.screens.CredentialsView
 import ui.screens.CredentialsViewModel
 import ui.screens.ErrorScreen
+import ui.screens.LoadCredentialViewModel
 import ui.screens.LoadingScreen
 import ui.screens.LogScreen
 import ui.screens.OnboardingInformationScreen
@@ -82,7 +83,6 @@ import ui.screens.ProvisioningLoadingScreen
 import ui.screens.SelectIssuingServerScreen
 import ui.screens.SettingsView
 import ui.screens.SettingsViewModel
-import ui.views.LoadDataView
 import view.AuthenticationQrCodeScannerViewModel
 
 @Composable
@@ -253,20 +253,6 @@ private fun WalletNavHost(
                 walletMain = walletMain,
                 navigateUp = navigateBack,
                 hostString = runBlocking { walletMain.walletConfig.host.first() },
-                availableSchemes = walletMain.availableSchemes,
-                onSubmit = { host, credentialScheme, credentialRepresentation, requestedAttributes ->
-                    // TODO Not needed here
-                    popBackStack(HomeScreenRoute)
-                    walletMain.scope.launch {
-                        walletMain.startProvisioning(
-                            host = host,
-                            credentialScheme = credentialScheme,
-                            credentialRepresentation = credentialRepresentation,
-                            requestedAttributes = requestedAttributes,
-                        ) {
-                        }
-                    }
-                },
                 onSubmitServer = { host ->
                     navigate(LoadCredentialRoute(host))
                 })
@@ -274,10 +260,11 @@ private fun WalletNavHost(
         }
 
         composable<LoadCredentialRoute> { backStackEntry ->
-            val vm = AddCredentialViewModel(
+            val route: LoadCredentialRoute = backStackEntry.toRoute()
+            val vm = LoadCredentialViewModel(
                 walletMain = walletMain,
                 navigateUp = navigateBack,
-                hostString = runBlocking { walletMain.walletConfig.host.first() },
+                hostString = route.host,
                 availableSchemes = walletMain.availableSchemes,
                 onSubmit = { host, credentialScheme, credentialRepresentation, requestedAttributes ->
                     popBackStack(HomeScreenRoute)
@@ -292,13 +279,13 @@ private fun WalletNavHost(
                     }
 
                 })
-            AddCredentialScreen(vm)
+            LoadCredentialScreen(vm)
         }
 
         composable<AddCredentialPreAuthnRoute> { backStackEntry ->
             val route: AddCredentialPreAuthnRoute = backStackEntry.toRoute()
             val offer = Json.decodeFromString<CredentialOfferInfo>(route.credentialOfferInfoSerialized)
-            val vm = AddCredentialViewModel(
+            val vm = LoadCredentialViewModel(
                 walletMain = walletMain,
                 navigateUp = navigateBack,
                 hostString = offer.credentialOffer.credentialIssuer,
@@ -324,7 +311,7 @@ private fun WalletNavHost(
                     }
                 }
             )
-            AddCredentialScreen(vm)
+            LoadCredentialScreen(vm)
         }
 
         composable<CredentialDetailsRoute> { backStackEntry ->
