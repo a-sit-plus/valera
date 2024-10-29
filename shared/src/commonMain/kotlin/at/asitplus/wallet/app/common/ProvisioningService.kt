@@ -75,7 +75,7 @@ class ProvisioningService(
     data class CredentialIdentifierInfo(
         val credentialIdentifier: String,
         val scope: String?,
-        val scheme: ConstantIndex.CredentialScheme,
+        val scheme: ExportableCredentialScheme,
         val representation: ConstantIndex.CredentialRepresentation,
         val attributes: Collection<String>,
     )
@@ -105,7 +105,7 @@ class ProvisioningService(
                 ?: it.value.isoClaims?.flatMap { it.value.keys }
                 ?: listOf()
 
-            CredentialIdentifierInfo(identifier, scope, scheme, representation, attributes)
+            CredentialIdentifierInfo(identifier, scope, scheme.toExportableCredentialScheme(), representation, attributes)
         }
     }
 
@@ -218,7 +218,7 @@ class ProvisioningService(
         Napier.d("Received credentialResponse")
 
         val storeCredentialInput = credentialResponse.credential
-            ?.toStoreCredentialInput(credentialResponse.format, credentialIdentifierInfo.scheme)
+            ?.toStoreCredentialInput(credentialResponse.format, credentialIdentifierInfo.scheme.toScheme())
             ?: throw Exception("No credential was received")
 
         holderAgent.storeCredential(storeCredentialInput).getOrThrow()

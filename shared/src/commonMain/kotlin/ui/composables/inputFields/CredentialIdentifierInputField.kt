@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import at.asitplus.wallet.app.common.ProvisioningService
+import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.text_label_id_identifier
 import org.jetbrains.compose.resources.stringResource
@@ -76,7 +77,7 @@ fun CredentialIdentifierInputField(
     ) {
         OutlinedTextField(
             readOnly = true,
-            value = value.credentialIdentifier,
+            value = value.uiLabel(),
             onValueChange = {},
             label = { Text(stringResource(Res.string.text_label_id_identifier)) },
             enabled = enabled,
@@ -90,7 +91,7 @@ fun CredentialIdentifierInputField(
         ) {
             for (identifier in availableIdentifiers) {
                 DropdownMenuItem(
-                    text = { Text(identifier.credentialIdentifier) },
+                    text = { Text(identifier.uiLabel()) },
                     onClick = { onValueChange(identifier) },
                     enabled = enabled,
                 )
@@ -98,3 +99,7 @@ fun CredentialIdentifierInputField(
         }
     }
 }
+
+@Composable
+private fun ProvisioningService.CredentialIdentifierInfo.uiLabel() =
+    "${scheme.toScheme().uiLabel()} (${representation.uiLabel()})"

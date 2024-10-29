@@ -7,6 +7,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -27,8 +28,10 @@ fun LoadCredentialScreen(
     vm: LoadCredentialViewModel
 ) {
 
-    var credentialIdentifierInfo by rememberSaveable(CredentialIdentifierInfoSaver().asMutableStateSaver()) {
-        mutableStateOf(runBlocking { vm.credentialIdentifiers.first() })
+    val vm = remember { vm }
+
+    var credentialIdentifierInfo by rememberSaveable(saver = CredentialIdentifierInfoSaver().asMutableStateSaver()) {
+        mutableStateOf(vm.credentialIdentifiers.first())
     }
 
     var requestedAttributes by rememberSaveable(credentialIdentifierInfo) {

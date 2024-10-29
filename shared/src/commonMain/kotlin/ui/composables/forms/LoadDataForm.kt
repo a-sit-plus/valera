@@ -21,6 +21,8 @@ import compose_wallet_app.shared.generated.resources.info_text_redirection_to_br
 import data.PersonalDataCategory
 import data.credentials.CredentialAttributeCategorization
 import org.jetbrains.compose.resources.stringResource
+import ui.state.savers.CredentialIdentifierInfoSaver
+import ui.state.savers.asMutableStateSaver
 
 @Composable
 fun StatefulLoadDataForm(
@@ -34,8 +36,8 @@ fun StatefulLoadDataForm(
 ) {
     var attributeCategoriesExpanded by rememberSaveable(credentialIdentifierInfo) {
         val attributeCategorization =
-            CredentialAttributeCategorization[credentialIdentifierInfo.scheme]?.availableCategories
-                ?: throw IllegalArgumentException("credentialScheme: ${credentialIdentifierInfo.scheme.identifier}")
+            CredentialAttributeCategorization[credentialIdentifierInfo.scheme.toScheme()]?.availableCategories
+                ?: throw IllegalArgumentException("credentialScheme: ${credentialIdentifierInfo.scheme.toScheme().identifier}")
 
         mutableStateOf(attributeCategorization.associateWith { false })
     }
@@ -81,7 +83,7 @@ fun LoadDataForm(
                 availableIdentifiers = availableIdentifiers,
             )
             CredentialAttributeSelectionForm(
-                credentialScheme = credentialIdentifierInfo.scheme,
+                credentialScheme = credentialIdentifierInfo.scheme.toScheme(),
                 requestedAttributes = requestedAttributes,
                 onChangeRequestedAttributes = onChangeRequestedAttributes,
                 attributeCategoriesExpanded = attributeCategoriesExpanded,
