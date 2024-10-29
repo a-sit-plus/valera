@@ -1,8 +1,8 @@
 package ui.screens
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.openid.CredentialOffer
 import at.asitplus.openid.CredentialOfferGrantsPreAuthCodeTransactionCode
-import at.asitplus.wallet.app.common.CredentialOfferInfo
 import at.asitplus.wallet.app.common.ProvisioningService
 import at.asitplus.wallet.app.common.WalletMain
 import kotlinx.coroutines.Dispatchers
@@ -41,15 +41,15 @@ class LoadCredentialViewModel {
 
     constructor(
         walletMain: WalletMain,
-        offer: CredentialOfferInfo,
+        offer: CredentialOffer,
         onSubmit: CredentialSelection,
         navigateUp: () -> Unit,
     ) {
         this.walletMain = walletMain
         this.onSubmit = onSubmit
         this.navigateUp = navigateUp
-        this.hostString = offer.credentialOffer.credentialIssuer
-        this.transactionCodeRequirements = offer.credentialOffer.grants?.preAuthorizedCode?.transactionCode
+        this.hostString = offer.credentialIssuer
+        this.transactionCodeRequirements = offer.grants?.preAuthorizedCode?.transactionCode
         credentialIdentifiers = runBlocking {
             withContext(Dispatchers.IO) {
                 walletMain.provisioningService.loadCredentialMetadata(hostString)

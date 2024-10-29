@@ -22,7 +22,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import at.asitplus.wallet.app.common.CredentialOfferInfo
+import at.asitplus.openid.CredentialOffer
 import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
@@ -281,7 +281,7 @@ private fun WalletNavHost(
 
         composable<AddCredentialPreAuthnRoute> { backStackEntry ->
             val route: AddCredentialPreAuthnRoute = backStackEntry.toRoute()
-            val offer = Json.decodeFromString<CredentialOfferInfo>(route.credentialOfferInfoSerialized)
+            val offer = Json.decodeFromString<CredentialOffer>(route.credentialOfferSerialized)
             val vm = LoadCredentialViewModel(
                 walletMain = walletMain,
                 navigateUp = navigateBack,
@@ -292,8 +292,8 @@ private fun WalletNavHost(
                     walletMain.scope.launch {
                         try {
                             walletMain.provisioningService.loadCredentialWithPreAuthn(
-                                credentialIssuer = offer.credentialOffer.credentialIssuer,
-                                preAuthorizedCode = offer.credentialOffer.grants?.preAuthorizedCode?.preAuthorizedCode.toString(),
+                                credentialIssuer = offer.credentialIssuer,
+                                preAuthorizedCode = offer.grants?.preAuthorizedCode?.preAuthorizedCode.toString(),
                                 credentialIdToRequest = credentialIdentifierInfo.credentialIdentifier,
                                 credentialScheme = credentialIdentifierInfo.scheme,
                                 requestedAttributes = requestedAttributes,

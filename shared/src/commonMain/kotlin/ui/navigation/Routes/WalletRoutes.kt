@@ -13,7 +13,7 @@ object AddCredentialRoute : Route()
 class LoadCredentialRoute(val host: String) : Route()
 
 @Serializable
-data class AddCredentialPreAuthnRoute(val credentialOfferInfoSerialized: String) : Route()
+data class AddCredentialPreAuthnRoute(val credentialOfferSerialized: String) : Route()
 
 @Serializable
 data class CredentialDetailsRoute(val storeEntryId: StoreEntryId) : Route()
