@@ -1,17 +1,15 @@
 package ui.screens
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.runtime.remember
 import at.asitplus.dif.InputDescriptor
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.misc.getRequestOptionParameters
-import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.third_parts.at.asitplus.jsonpath.core.plus
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.eprescription.EPrescriptionScheme
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
-import at.asitplus.wallet.lib.oidc.AuthenticationRequestParametersFrom
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import compose_wallet_app.shared.generated.resources.Res
@@ -33,18 +31,13 @@ import ui.views.AuthenticationConsentView
 
 @Composable
 fun StatefulAuthenticationConsentView(
-    spName: String?,
-    spLocation: String,
-    spImage: ImageBitmap?,
-    authenticationRequest: AuthenticationRequestParametersFrom,
-    navigateUp: () -> Unit,
-    navigateToAuthenticationSuccessPage: () -> Unit,
-    walletMain: WalletMain,
+    vm: AuthenticationConsentViewModel
 ) {
+    val vm = remember { vm }
 
-    walletMain.cryptoService.onUnauthenticated = navigateUp
+    vm.walletMain.cryptoService.onUnauthenticated = vm.navigateUp
 
-    val descriptors: Collection<InputDescriptor> = authenticationRequest.parameters.presentationDefinition?.inputDescriptors ?: listOf()
+    val descriptors: Collection<InputDescriptor> = vm.authenticationRequest.parameters.presentationDefinition?.inputDescriptors ?: listOf()
 
     val list: List<RequestOptionParameters> = descriptors.mapNotNull {
         it.getRequestOptionParameters()
@@ -72,26 +65,26 @@ fun StatefulAuthenticationConsentView(
     }
 
     AuthenticationConsentView(
-        spName = spName,
-        spLocation = spLocation,
-        spImage = spImage,
+        spName = vm.spName,
+        spLocation = vm.spLocation,
+        spImage = vm.spImage,
         consentAttributes = consentAttributes,
-        navigateUp = navigateUp,
-        cancelAuthentication = navigateUp,
+        navigateUp = vm.navigateUp,
+        cancelAuthentication = vm.navigateUp,
         consentToDataTransmission = {
-            walletMain.scope.launch {
+            vm.walletMain.scope.launch {
                 try {
                     Napier.d { "signed!" }
-                    walletMain.cryptoService.promptText =
+                    vm.walletMain.cryptoService.promptText =
                         getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_title)
-                    walletMain.cryptoService.promptSubtitle =
+                    vm.walletMain.cryptoService.promptSubtitle =
                         getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_subtitle)
-                    walletMain.presentationService.startSiop(authenticationRequest)
-                    navigateUp()
-                    navigateToAuthenticationSuccessPage()
+                    vm.walletMain.presentationService.startSiop(vm.authenticationRequest)
+                    vm.navigateUp()
+                    vm.navigateToAuthenticationSuccessPage()
                 } catch (e: Throwable) {
-                    walletMain.errorService.emit(e)
-                    walletMain.snackbarService.showSnackbar(getString(Res.string.error_authentication_at_sp_failed))
+                    vm.walletMain.errorService.emit(e)
+                    vm.walletMain.snackbarService.showSnackbar(getString(Res.string.error_authentication_at_sp_failed))
                 }
             }
         }
@@ -99,4 +92,3 @@ fun StatefulAuthenticationConsentView(
 }
 
 class ConsentAttributes(val scheme: String, val format: String, val attributes: List<StringResource>)
-

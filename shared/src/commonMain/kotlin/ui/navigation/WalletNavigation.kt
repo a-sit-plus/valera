@@ -62,6 +62,7 @@ import ui.navigation.Routes.Route
 import ui.navigation.Routes.SettingsRoute
 import ui.screens.AddCredentialScreen
 import ui.screens.AddCredentialViewModel
+import ui.screens.AuthenticationConsentViewModel
 import ui.screens.AuthenticationQrCodeScannerView
 import ui.screens.AuthenticationSuccessView
 import ui.screens.CredentialDetailsView
@@ -221,7 +222,7 @@ private fun WalletNavHost(
                 AuthenticationRequestParametersFrom.deserialize(route.authenticationRequestParametersFromSerialized)
                     .getOrThrow()
 
-            StatefulAuthenticationConsentView(
+            val vm = AuthenticationConsentViewModel(
                 spName = null,
                 spLocation = route.recipientLocation,
                 spImage = null,
@@ -232,6 +233,7 @@ private fun WalletNavHost(
                 },
                 walletMain = walletMain,
             )
+            StatefulAuthenticationConsentView(vm = vm)
         }
 
         composable<AuthenticationSuccessRoute> { backStackEntry ->
