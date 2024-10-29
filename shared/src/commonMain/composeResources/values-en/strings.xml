@@ -119,6 +119,10 @@
     <string name="credential_representation_format_label_sd_jwt">SD-JWT</string>
     <string name="credential_representation_format_label_mso_mdoc">ISO mDoc</string>
 
+    <string name="issuing_label_host">Issuing service</string>
+    <string name="issuing_label_scheme">Scheme</string>
+    <string name="issuing_label_representation">Representation</string>
+
     <string name="credential_scheme_icon_label_mdl">mDL</string>
     <string name="credential_scheme_label_mdl">mDL</string>
     <string name="credential_scheme_icon_label_eu_pid">PID</string>
@@ -236,7 +240,6 @@
     <string name="section_heading_show_data_to_other_citizen_subtitle">other Citizen</string>
     <string name="section_heading_actions">Actions</string>
     <string name="section_heading_information">Information</string>
-    <string name="section_heading_configuration">Configuration</string>
     <string name="section_heading_requested_data">Requested Data</string>
     <string name="section_heading_data_recipient">Recipient</string>
     <string name="section_heading_admission_data">Admission Data</string>
@@ -272,7 +275,7 @@
     <string name="onboarding_section_load_data_subtitle">with a one-time contact to ID Austria</string>
     <string name="onboarding_section_show_data_icon_text">3</string>
     <string name="onboarding_section_show_data_title">Show data</string>
-    <string name="onboarding_section_show_data_subtitle">at counters or mashines</string>
+    <string name="onboarding_section_show_data_subtitle">at counters or machines</string>
 
     <string name="warning_requested_data_not_available_heading">Requested Data is not available</string>
     <string name="warning_requested_data_not_available_content">Not all requested data has already been loaded into the app.\nMissing data can be loaded via ID Austria.</string>

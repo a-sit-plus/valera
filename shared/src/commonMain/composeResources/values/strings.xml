@@ -118,6 +118,10 @@
     <string name="credential_representation_format_label_sd_jwt">UNTRANSLATED:credential_representation_format_label_sd_jwt</string>
     <string name="credential_representation_format_label_mso_mdoc">UNTRANSLATED:credential_representation_format_label_mso_mdoc</string>
 
+    <string name="issuing_label_host">UNTRANSLATED:issuing_label_host</string>
+    <string name="issuing_label_scheme">UNTRANSLATED:issuing_label_scheme</string>
+    <string name="issuing_label_representation">UNTRANSLATED:issuing_label_representation</string>
+
     <string name="navigation_button_label_show_data">UNTRANSLATED:navigation_button_label_show_data</string>
     <string name="navigation_button_label_my_data">UNTRANSLATED:navigation_button_label_my_data</string>
     <string name="navigation_button_label_settings">UNTRANSLATED:navigation_button_label_settings</string>
@@ -232,7 +236,6 @@
     <string name="section_heading_show_data_to_other_citizen_subtitle">UNTRANSLATED:section_heading_show_data_to_other_citizen_subtitle</string>
     <string name="section_heading_actions">UNTRANSLATED:section_heading_actions</string>
     <string name="section_heading_information">UNTRANSLATED:section_heading_information</string>
-    <string name="section_heading_configuration">UNTRANSLATED:section_heading_configuration</string>
     <string name="section_heading_requested_data">UNTRANSLATED:section_heading_requested_data</string>
     <string name="section_heading_data_recipient">UNTRANSLATED:section_heading_data_recipient</string>
     <string name="section_heading_admission_data">UNTRANSLATED:section_heading_admission_data</string>

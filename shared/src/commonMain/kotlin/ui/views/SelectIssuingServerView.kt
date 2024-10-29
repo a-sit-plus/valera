@@ -10,10 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.wallet.lib.data.ConstantIndex
 import ui.composables.buttons.LoadDataButton
-import ui.composables.forms.StatefulLoadDataForm
 import ui.composables.forms.StatefulSelectIssuingServerForm
 
 @Composable
