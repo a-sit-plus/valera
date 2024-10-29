@@ -40,7 +40,7 @@ import ui.composables.TextIconButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ErrorScreen(
+fun ErrorView(
     resetStack: () -> Unit,
     message: String?,
     cause: String?

@@ -1,5 +1,6 @@
 package ui.screens
 
+import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.wallet.app.common.WalletMain
 import data.storage.StoreEntryId
 import kotlinx.coroutines.Dispatchers
@@ -7,10 +8,13 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
-class CredentialDetailsScreenViewModel(
+class CredentialDetailsViewModel(
     val storeEntryId: StoreEntryId,
     val walletMain: WalletMain,
+    val navigateUp: () -> Unit,
 ) {
+    val imageDecoder: (ByteArray) -> ImageBitmap = { byteArray -> walletMain.platformAdapter.decodeImage(byteArray)}
+
     val storeEntry = walletMain.subjectCredentialStore.observeStoreContainer().map { container ->
         container.credentials.find {
             it.first == storeEntryId

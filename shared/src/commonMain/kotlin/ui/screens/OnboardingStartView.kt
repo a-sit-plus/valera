@@ -35,7 +35,7 @@ internal object OnboardingStartScreenTestTag {
 
 @OptIn(ExperimentalResourceApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun OnboardingStartScreen(
+fun OnboardingStartView(
     onClickStart: () -> Unit,
     modifier: Modifier = Modifier,
 ) {

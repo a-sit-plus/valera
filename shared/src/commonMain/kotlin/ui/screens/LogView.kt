@@ -15,52 +15,27 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import at.asitplus.wallet.app.common.WalletMain
-import compose_wallet_app.shared.generated.resources.heading_label_log_screen
 import compose_wallet_app.shared.generated.resources.Res
-import kotlinx.coroutines.launch
+import compose_wallet_app.shared.generated.resources.heading_label_log_screen
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.buttons.ShareButton
 
-@Composable
-fun LogScreen(
-    navigateUp: () -> Unit,
-    walletMain: WalletMain,
-) {
-    val logArray = try {
-        walletMain.getLog()
-    } catch (e: Throwable) {
-        walletMain.errorService.emit(e)
-        listOf()
-    }
-
-    LogView(
-        logArray = logArray,
-        navigateUp = navigateUp,
-        shareLog = {
-            walletMain.scope.launch {
-                walletMain.platformAdapter.shareLog()
-            }
-        }
-    )
-}
-
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
 @Composable
 fun LogView(
-    logArray: List<String>,
-    navigateUp: () -> Unit,
-    shareLog: () -> Unit,
+    vm: LogViewModel
 ) {
+    val vm = remember { vm }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -71,7 +46,7 @@ fun LogView(
                     )
                 },
                 navigationIcon = {
-                    NavigateUpButton(navigateUp)
+                    NavigateUpButton(vm.navigateUp)
                 },
             )
         },
@@ -82,7 +57,7 @@ fun LogView(
                     horizontalArrangement = Arrangement.Center,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    ShareButton(shareLog)
+                    ShareButton(vm.shareLog)
                 }
             }
         }
@@ -91,7 +66,7 @@ fun LogView(
             modifier = Modifier.padding(scaffoldPadding).fillMaxSize(),
         ) {
             LazyColumn {
-                items(logArray.size) {
+                items(vm.logArray.size) {
                     val color: Color
                     color = if (it % 2 == 0) {
                         MaterialTheme.colorScheme.tertiaryContainer
@@ -99,7 +74,7 @@ fun LogView(
                         MaterialTheme.colorScheme.secondaryContainer
                     }
                     Text(
-                        text = logArray[it].trimEnd('\n'),
+                        text = vm.logArray[it].trimEnd('\n'),
                         modifier = Modifier.background(color = color).padding(5.dp).fillMaxWidth(),
                         fontSize = 8.sp,
                         lineHeight = 10.sp,

@@ -33,7 +33,7 @@ import ui.composables.buttons.NavigateUpButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProvisioningLoadingScreen(
+fun ProvisioningLoadingView(
     link: String,
     navigateUp: () -> Unit,
     walletMain: WalletMain,

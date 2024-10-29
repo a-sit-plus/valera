@@ -20,7 +20,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
 @Composable
-fun LoadingScreen() {
+fun LoadingView() {
     Scaffold(
         topBar = {
             TopAppBar(

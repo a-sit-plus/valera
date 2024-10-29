@@ -26,9 +26,7 @@ import at.asitplus.wallet.app.common.CredentialOfferInfo
 import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParametersFrom
-import at.asitplus.wallet.lib.oidc.helpers.AuthorizationResponsePreparationState
 import at.asitplus.wallet.lib.oidvci.toRepresentation
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.snackbar_clear_log_successfully
@@ -64,22 +62,24 @@ import ui.navigation.Routes.Route
 import ui.navigation.Routes.SettingsRoute
 import ui.screens.AddCredentialScreen
 import ui.screens.AddCredentialViewModel
-import ui.screens.AuthenticationConsentScreen
 import ui.screens.AuthenticationQrCodeScannerView
-import ui.screens.AuthenticationSuccessScreen
-import ui.screens.CredentialDetailsScreen
+import ui.screens.AuthenticationSuccessView
+import ui.screens.CredentialDetailsView
+import ui.screens.CredentialDetailsViewModel
 import ui.screens.CredentialsView
 import ui.screens.CredentialsViewModel
-import ui.screens.ErrorScreen
-import ui.screens.LoadingScreen
-import ui.screens.LogScreen
-import ui.screens.OnboardingInformationScreen
-import ui.screens.OnboardingStartScreen
-import ui.screens.OnboardingTermsScreen
+import ui.screens.ErrorView
+import ui.screens.LoadingView
+import ui.screens.LogView
+import ui.screens.LogViewModel
+import ui.screens.OnboardingInformationView
+import ui.screens.OnboardingStartView
+import ui.screens.OnboardingTermsView
 import ui.screens.PreAuthQrCodeScannerScreen
-import ui.screens.ProvisioningLoadingScreen
+import ui.screens.ProvisioningLoadingView
 import ui.screens.SettingsView
 import ui.screens.SettingsViewModel
+import ui.screens.StatefulAuthenticationConsentView
 import view.AuthenticationQrCodeScannerViewModel
 
 @Composable
@@ -164,13 +164,13 @@ private fun WalletNavHost(
             .fillMaxSize()
     ) {
         composable<OnboardingStartRoute> {
-            OnboardingStartScreen(onClickStart = { navigate(OnboardingInformationRoute) })
+            OnboardingStartView(onClickStart = { navigate(OnboardingInformationRoute) })
         }
         composable<OnboardingInformationRoute> {
-            OnboardingInformationScreen(onClickContinue = { navigate(OnboardingTermsRoute) })
+            OnboardingInformationView(onClickContinue = { navigate(OnboardingTermsRoute) })
         }
         composable<OnboardingTermsRoute> {
-            OnboardingTermsScreen(onClickAccept = { walletMain.walletConfig.set(isConditionsAccepted = true) },
+            OnboardingTermsView(onClickAccept = { walletMain.walletConfig.set(isConditionsAccepted = true) },
                 onClickNavigateBack = { navigateBack() },
                 onClickReadDataProtectionPolicy = {},
                 onClickReadGeneralTermsAndConditions = {})
@@ -220,17 +220,12 @@ private fun WalletNavHost(
             val request =
                 AuthenticationRequestParametersFrom.deserialize(route.authenticationRequestParametersFromSerialized)
                     .getOrThrow()
-            val preparationState =
-                vckJsonSerializer.decodeFromString<AuthorizationResponsePreparationState>(
-                    route.authorizationPreparationStateSerialized,
-                )
 
-            AuthenticationConsentScreen(
+            StatefulAuthenticationConsentView(
                 spName = null,
                 spLocation = route.recipientLocation,
                 spImage = null,
-                authenticationRequestParametersFrom = request,
-                authorizationResponsePreparationState = preparationState,
+                authenticationRequest = request,
                 navigateUp = { navigateBack() },
                 navigateToAuthenticationSuccessPage = {
                     navigate(AuthenticationSuccessRoute)
@@ -240,7 +235,7 @@ private fun WalletNavHost(
         }
 
         composable<AuthenticationSuccessRoute> { backStackEntry ->
-            AuthenticationSuccessScreen(
+            AuthenticationSuccessView(
                 navigateUp = { navigateBack() },
             )
         }
@@ -300,18 +295,18 @@ private fun WalletNavHost(
 
         composable<CredentialDetailsRoute> { backStackEntry ->
             val route: CredentialDetailsRoute = backStackEntry.toRoute()
-
-            CredentialDetailsScreen(
+            val vm = CredentialDetailsViewModel(
                 storeEntryId = route.storeEntryId,
                 navigateUp = { navigateBack() },
                 walletMain = walletMain,
             )
+            CredentialDetailsView(vm = vm)
         }
 
         composable<ProvisioningLoadingRoute> { backStackEntry ->
             val route: ProvisioningLoadingRoute = backStackEntry.toRoute()
 
-            ProvisioningLoadingScreen(
+            ProvisioningLoadingView(
                 link = route.link,
                 navigateUp = { navigateBack() },
                 walletMain = walletMain,
@@ -361,19 +356,17 @@ private fun WalletNavHost(
         }
 
         composable<LogRoute> { backStackEntry ->
-            LogScreen(
-                navigateUp = { navigateBack() },
-                walletMain = walletMain,
-            )
+            val vm = LogViewModel(navigateUp = { navigateBack() }, walletMain = walletMain)
+            LogView(vm = vm)
         }
 
         composable<ErrorRoute> { backStackEntry ->
             val route: ErrorRoute = backStackEntry.toRoute()
-            ErrorScreen(resetStack = {popBackStack(HomeScreenRoute)}, message = route.message, cause = route.cause)
+            ErrorView(resetStack = {popBackStack(HomeScreenRoute)}, message = route.message, cause = route.cause)
         }
 
         composable<LoadingRoute> { backStackEntry ->
-            LoadingScreen()
+            LoadingView()
         }
 
         composable<AuthenticationQrCodeScannerRoute> { backStackEntry ->
@@ -388,7 +381,7 @@ private fun WalletNavHost(
         }
 
         composable<AuthenticationLoadingRoute> { backStackEntry ->
-            LoadingScreen()
+            LoadingView()
         }
 
     }

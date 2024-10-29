@@ -15,7 +15,7 @@ fun AuthenticationQrCodeScannerView(
     val vm = remember { vm }
 
     if (vm.isLoading) {
-        LoadingScreen()
+        LoadingView()
     } else {
         GenericQrCodeScannerView(title = stringResource(Res.string.heading_label_authenticate_at_device_title),
             subTitle = stringResource(Res.string.heading_label_authenticate_at_device_subtitle),

@@ -12,7 +12,6 @@ import at.asitplus.wallet.eprescription.EPrescriptionScheme
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParametersFrom
-import at.asitplus.wallet.lib.oidc.helpers.AuthorizationResponsePreparationState
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import compose_wallet_app.shared.generated.resources.Res
@@ -31,28 +30,6 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 import ui.views.AuthenticationConsentView
-
-@Composable
-fun AuthenticationConsentScreen(
-    spName: String?,
-    spLocation: String,
-    spImage: ImageBitmap?,
-    authenticationRequestParametersFrom: AuthenticationRequestParametersFrom,
-    authorizationResponsePreparationState: AuthorizationResponsePreparationState,
-    navigateUp: () -> Unit,
-    navigateToAuthenticationSuccessPage: () -> Unit,
-    walletMain: WalletMain,
-) {
-    StatefulAuthenticationConsentView(
-        spName = spName,
-        spLocation = spLocation,
-        spImage = spImage,
-        authenticationRequest = authenticationRequestParametersFrom,
-        navigateUp = navigateUp,
-        navigateToAuthenticationSuccessPage = navigateToAuthenticationSuccessPage,
-        walletMain = walletMain,
-    )
-}
 
 @Composable
 fun StatefulAuthenticationConsentView(
