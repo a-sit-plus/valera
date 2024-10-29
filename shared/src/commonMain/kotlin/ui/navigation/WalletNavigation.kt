@@ -57,7 +57,6 @@ import ui.navigation.Routes.OnboardingInformationRoute
 import ui.navigation.Routes.OnboardingStartRoute
 import ui.navigation.Routes.OnboardingTermsRoute
 import ui.navigation.Routes.PreAuthQrCodeScannerRoute
-import ui.navigation.Routes.ProvisioningLoadingRoute
 import ui.navigation.Routes.Route
 import ui.navigation.Routes.SettingsRoute
 import ui.screens.AddCredentialScreen
@@ -78,10 +77,9 @@ import ui.screens.OnboardingInformationView
 import ui.screens.OnboardingStartView
 import ui.screens.OnboardingTermsView
 import ui.screens.PreAuthQrCodeScannerScreen
-import ui.screens.ProvisioningLoadingView
 import ui.screens.SettingsView
 import ui.screens.SettingsViewModel
-import ui.screens.StatefulAuthenticationConsentView
+import ui.views.AuthenticationConsentView
 import view.AuthenticationQrCodeScannerViewModel
 
 @Composable
@@ -234,7 +232,7 @@ private fun WalletNavHost(
                 },
                 walletMain = walletMain,
             )
-            StatefulAuthenticationConsentView(vm = vm)
+            AuthenticationConsentView(vm = vm)
         }
 
         composable<AuthenticationSuccessRoute> { backStackEntry ->
@@ -303,16 +301,6 @@ private fun WalletNavHost(
                 walletMain = walletMain,
             )
             CredentialDetailsView(vm = vm)
-        }
-
-        composable<ProvisioningLoadingRoute> { backStackEntry ->
-            val route: ProvisioningLoadingRoute = backStackEntry.toRoute()
-
-            ProvisioningLoadingView(
-                link = route.link,
-                navigateUp = { navigateBack() },
-                walletMain = walletMain,
-            )
         }
 
         composable<SettingsRoute> { backStackEntry ->
