@@ -11,7 +11,6 @@ import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.Parser
 import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.cbor.DefaultCoseService
-import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.jws.DefaultJwsService
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
@@ -118,17 +117,15 @@ class WalletMain(
 
     fun startProvisioning(
         host: String,
-        credentialScheme: ConstantIndex.CredentialScheme,
-        credentialRepresentation: ConstantIndex.CredentialRepresentation,
+        credentialIdentifierInfo: ProvisioningService.CredentialIdentifierInfo,
         requestedAttributes: Set<NormalizedJsonPath>?,
         onSuccess: () -> Unit,
     ) {
         scope.launch {
             try {
-                provisioningService.startProvisioning(
-                    host = host,
-                    credentialScheme = credentialScheme,
-                    credentialRepresentation = credentialRepresentation,
+                provisioningService.startProvisioningWithAuthRequest(
+                    credentialIssuer = host,
+                    credentialIdentifierInfo = credentialIdentifierInfo,
                     requestedAttributes = requestedAttributes,
                 )
                 onSuccess()

@@ -3,7 +3,7 @@ package ui.viewmodels
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import at.asitplus.wallet.app.common.CredentialOfferInfo
+import at.asitplus.openid.CredentialOffer
 import at.asitplus.wallet.app.common.WalletMain
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.launch
@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 class PreAuthQrCodeScannerViewModel(
     val walletMain: WalletMain,
     val navigateUp: () -> Unit,
-    val navigateToAddCredentialsPage: (CredentialOfferInfo) -> Unit
+    val navigateToAddCredentialsPage: (CredentialOffer) -> Unit
 ) {
     var isLoading by mutableStateOf(false)
 
