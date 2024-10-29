@@ -36,7 +36,7 @@ fun handleIntent(walletMain: WalletMain, navigate: (Route) -> Unit, navigateBack
                             getString(Res.string.biometric_authentication_prompt_to_bind_credentials_title)
                         walletMain.cryptoService.promptSubtitle =
                             getString(Res.string.biometric_authentication_prompt_to_bind_credentials_subtitle)
-                        walletMain.provisioningService.handleResponse(link)
+                        walletMain.provisioningService.resumeWithAuthCode(link)
                         walletMain.snackbarService.showSnackbar(
                             getString(Res.string.snackbar_credential_loaded_successfully)
                         )

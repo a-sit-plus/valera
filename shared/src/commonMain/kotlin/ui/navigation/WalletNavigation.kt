@@ -294,7 +294,7 @@ private fun WalletNavHost(
                             walletMain.provisioningService.loadCredentialWithPreAuthn(
                                 credentialIssuer = offer.credentialIssuer,
                                 preAuthorizedCode = offer.grants?.preAuthorizedCode?.preAuthorizedCode.toString(),
-                                credentialIdToRequest = credentialIdentifierInfo.credentialIdentifier,
+                                credentialIdentifier = credentialIdentifierInfo.credentialIdentifier,
                                 credentialScheme = credentialIdentifierInfo.scheme,
                                 requestedAttributes = requestedAttributes,
                                 transactionCode = transactionCode
