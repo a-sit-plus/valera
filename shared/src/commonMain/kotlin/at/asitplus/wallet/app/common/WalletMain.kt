@@ -1,6 +1,5 @@
 package at.asitplus.wallet.app.common
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
@@ -33,7 +32,6 @@ class WalletMain(
     val platformAdapter: PlatformAdapter,
     var subjectCredentialStore: PersistentSubjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService),
     val buildContext: BuildContext,
-    val errorService: ErrorService = ErrorService(mutableStateOf(false), mutableStateOf(null)),
     val scope: CoroutineScope,
 ) {
     lateinit var walletConfig: WalletConfig
@@ -42,6 +40,7 @@ class WalletMain(
     lateinit var httpService: HttpService
     lateinit var presentationService: PresentationService
     lateinit var snackbarService: SnackbarService
+    lateinit var errorService: ErrorService
     private val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
 
 
@@ -95,8 +94,6 @@ class WalletMain(
             httpService
         )
         this.snackbarService = snackbarService
-
-
     }
 
     suspend fun resetApp() {

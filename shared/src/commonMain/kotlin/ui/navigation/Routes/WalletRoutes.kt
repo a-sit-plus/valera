@@ -28,6 +28,9 @@ object PreAuthQrCodeScannerRoute : Route()
 object LogRoute : Route()
 
 @Serializable
+data class ErrorRoute(val message: String?, val cause: String?) : Route()
+
+@Serializable
 object LoadingRoute : Route()
 
 @Serializable

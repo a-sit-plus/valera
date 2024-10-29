@@ -8,10 +8,10 @@ internal object OnboardingWrapperTestTags {
 }
 
 @Serializable
-object OnboardingStart : Route()
+object OnboardingStartRoute : Route()
 
 @Serializable
-object OnboardingInformation : Route()
+object OnboardingInformationRoute : Route()
 
 @Serializable
-object OnboardingTerms : Route()
+object OnboardingTermsRoute : Route()

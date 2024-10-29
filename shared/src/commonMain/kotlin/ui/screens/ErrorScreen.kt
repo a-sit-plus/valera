@@ -1,6 +1,5 @@
 package ui.screens
 
-import UncorrectableErrorException
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -31,7 +30,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import at.asitplus.wallet.app.common.WalletMain
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.button_label_ok
 import compose_wallet_app.shared.generated.resources.heading_label_error_screen
@@ -43,17 +41,15 @@ import ui.composables.TextIconButton
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ErrorScreen(
-    walletMain: WalletMain,
-    resetStack: () -> Unit
+    resetStack: () -> Unit,
+    message: String?,
+    cause: String?
 ) {
-    val throwable = walletMain.errorService.throwable.value
-    val message = throwable?.message ?: "Unknown Message"
-    val cause = throwable?.cause?.message ?: "Unknown Cause"
-    val tint = if (throwable is UncorrectableErrorException) {
-        Color.Red
-    } else {
-        Color(255, 210, 0)
-    }
+    val message = message ?: "Unknown Message"
+    val cause = cause ?: "Unknown Cause"
+
+    val tint = Color(255, 210, 0)
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -97,7 +93,6 @@ fun ErrorScreen(
                             },
                             onClick = {
                                 resetStack()
-                                walletMain.errorService.reset()
                             },
                         )
                     }
