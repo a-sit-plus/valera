@@ -83,7 +83,7 @@ import ui.screens.SettingsViewModel
 import view.AuthenticationQrCodeScannerViewModel
 
 @Composable
-fun WalletNavigation(walletMain: WalletMain){
+fun WalletNavigation(walletMain: WalletMain) {
     val navController: NavHostController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
 
@@ -246,7 +246,8 @@ private fun WalletNavHost(
         }
 
         composable<AddCredentialRoute> { backStackEntry ->
-            val vm = AddCredentialViewModel(walletMain = walletMain,
+            val vm = AddCredentialViewModel(
+                walletMain = walletMain,
                 navigateUp = navigateBack,
                 hostString = runBlocking { walletMain.walletConfig.host.first() },
                 availableSchemes = walletMain.availableSchemes,
@@ -268,9 +269,9 @@ private fun WalletNavHost(
 
         composable<AddCredentialPreAuthnRoute> { backStackEntry ->
             val route: AddCredentialPreAuthnRoute = backStackEntry.toRoute()
-            val offer =
-                Json.decodeFromString<CredentialOfferInfo>(route.credentialOfferInfoSerialized)
-            val vm = AddCredentialViewModel(walletMain = walletMain,
+            val offer = Json.decodeFromString<CredentialOfferInfo>(route.credentialOfferInfoSerialized)
+            val vm = AddCredentialViewModel(
+                walletMain = walletMain,
                 navigateUp = navigateBack,
                 hostString = offer.credentialOffer.credentialIssuer,
                 availableSchemes = offer.credentials.map { it.value.first.toScheme() }.distinct(),
