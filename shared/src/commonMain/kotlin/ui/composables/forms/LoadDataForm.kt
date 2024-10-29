@@ -12,11 +12,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.wallet.app.common.ProvisioningService
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.identifier
-import at.asitplus.wallet.lib.data.ConstantIndex
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.info_text_redirection_to_browser_for_credential_provisioning
 import data.PersonalDataCategory
@@ -25,62 +24,46 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun StatefulLoadDataForm(
-    host: TextFieldValue,
-    onChangeHost: ((TextFieldValue) -> Unit)?,
-    credentialRepresentation: ConstantIndex.CredentialRepresentation,
-    onChangeCredentialRepresentation: ((ConstantIndex.CredentialRepresentation) -> Unit)?,
-    credentialScheme: ConstantIndex.CredentialScheme,
-    onChangeCredentialScheme: ((ConstantIndex.CredentialScheme) -> Unit)?,
+    host: String,
+    credentialIdentifierInfo: ProvisioningService.CredentialIdentifierInfo,
+    onChangeCredentialIdentifierInfo: (ProvisioningService.CredentialIdentifierInfo) -> Unit,
     requestedAttributes: Set<NormalizedJsonPath>,
     onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
     modifier: Modifier = Modifier,
-    availableSchemes: List<ConstantIndex.CredentialScheme>,
-    showAttributes: Boolean,
+    availableIdentifiers: Collection<ProvisioningService.CredentialIdentifierInfo>,
 ) {
-    var attributeCategoriesExpanded by rememberSaveable(credentialScheme) {
+    var attributeCategoriesExpanded by rememberSaveable(credentialIdentifierInfo) {
         val attributeCategorization =
-            CredentialAttributeCategorization[credentialScheme]?.availableCategories
-                ?: throw IllegalArgumentException("credentialScheme: ${credentialScheme.identifier}")
+            CredentialAttributeCategorization[credentialIdentifierInfo.scheme]?.availableCategories
+                ?: throw IllegalArgumentException("credentialScheme: ${credentialIdentifierInfo.scheme.identifier}")
 
-        mutableStateOf(attributeCategorization.associateWith {
-            false
-        })
+        mutableStateOf(attributeCategorization.associateWith { false })
     }
 
     LoadDataForm(
         host = host,
-        onChangeHost = onChangeHost,
-        credentialRepresentation = credentialRepresentation,
-        onChangeCredentialRepresentation = onChangeCredentialRepresentation,
-        credentialScheme = credentialScheme,
-        onChangeCredentialScheme = onChangeCredentialScheme,
+        credentialIdentifierInfo = credentialIdentifierInfo,
+        onChangeCredentialIdentifierInfo = onChangeCredentialIdentifierInfo,
         requestedAttributes = requestedAttributes,
         onChangeRequestedAttributes = onChangeRequestedAttributes,
         attributeCategoriesExpanded = attributeCategoriesExpanded,
-        onSetAttributeCategoriesExpanded = {
-            attributeCategoriesExpanded += it
-        },
+        onSetAttributeCategoriesExpanded = { attributeCategoriesExpanded += it },
         modifier = modifier,
-        availableSchemes = availableSchemes,
-        showAttributes = showAttributes,
+        availableIdentifiers = availableIdentifiers,
     )
 }
 
 @Composable
 fun LoadDataForm(
-    host: TextFieldValue,
-    onChangeHost: ((TextFieldValue) -> Unit)?,
-    credentialRepresentation: ConstantIndex.CredentialRepresentation,
-    onChangeCredentialRepresentation: ((ConstantIndex.CredentialRepresentation) -> Unit)?,
-    credentialScheme: ConstantIndex.CredentialScheme,
-    onChangeCredentialScheme: ((ConstantIndex.CredentialScheme) -> Unit)?,
+    host: String,
+    credentialIdentifierInfo: ProvisioningService.CredentialIdentifierInfo,
+    onChangeCredentialIdentifierInfo: (ProvisioningService.CredentialIdentifierInfo) -> Unit,
     requestedAttributes: Set<NormalizedJsonPath>,
     onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
     attributeCategoriesExpanded: Map<PersonalDataCategory, Boolean>,
     onSetAttributeCategoriesExpanded: (Pair<PersonalDataCategory, Boolean>) -> Unit,
     modifier: Modifier = Modifier,
-    availableSchemes: List<ConstantIndex.CredentialScheme>,
-    showAttributes: Boolean,
+    availableIdentifiers: Collection<ProvisioningService.CredentialIdentifierInfo>,
 ) {
     Box(
         modifier = modifier,
@@ -89,30 +72,22 @@ fun LoadDataForm(
             modifier = Modifier.padding(horizontal = 16.dp).verticalScroll(rememberScrollState())
         ) {
             val columnSpacingModifier = Modifier.padding(top = 16.dp)
-            Text(
-                stringResource(Res.string.info_text_redirection_to_browser_for_credential_provisioning),
-            )
-
+            Text(stringResource(Res.string.info_text_redirection_to_browser_for_credential_provisioning))
             CredentialMetadataSelectionForm(
                 host = host,
-                onChangeHost = onChangeHost,
-                credentialRepresentation = credentialRepresentation,
-                onChangeCredentialRepresentation = onChangeCredentialRepresentation,
-                credentialScheme = credentialScheme,
-                onChangeCredentialScheme = onChangeCredentialScheme,
+                credentialIdentifierInfo = credentialIdentifierInfo,
+                onChangeCredentialIdentifierInfo = onChangeCredentialIdentifierInfo,
                 modifier = columnSpacingModifier,
-                availableSchemes = availableSchemes,
+                availableIdentifiers = availableIdentifiers,
             )
-            if (showAttributes) {
-                CredentialAttributeSelectionForm(
-                    credentialScheme = credentialScheme,
-                    requestedAttributes = requestedAttributes,
-                    onChangeRequestedAttributes = onChangeRequestedAttributes,
-                    attributeCategoriesExpanded = attributeCategoriesExpanded,
-                    onSetAttributeCategoriesExpanded = onSetAttributeCategoriesExpanded,
-                    modifier = columnSpacingModifier,
-                )
-            }
+            CredentialAttributeSelectionForm(
+                credentialScheme = credentialIdentifierInfo.scheme,
+                requestedAttributes = requestedAttributes,
+                onChangeRequestedAttributes = onChangeRequestedAttributes,
+                attributeCategoriesExpanded = attributeCategoriesExpanded,
+                onSetAttributeCategoriesExpanded = onSetAttributeCategoriesExpanded,
+                modifier = columnSpacingModifier,
+            )
         }
     }
 }

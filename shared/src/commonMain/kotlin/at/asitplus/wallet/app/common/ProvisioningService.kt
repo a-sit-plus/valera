@@ -24,6 +24,7 @@ import at.asitplus.wallet.lib.oidvci.decodeFromCredentialIdentifier
 import at.asitplus.wallet.lib.oidvci.decodeFromUrlQuery
 import at.asitplus.wallet.lib.oidvci.encodeToParameters
 import at.asitplus.wallet.lib.oidvci.formUrlEncode
+import at.asitplus.wallet.lib.oidvci.toRepresentation
 import com.benasher44.uuid.uuid4
 import data.storage.DataStoreService
 import data.storage.ExportableCredentialScheme
@@ -69,6 +70,56 @@ class ProvisioningService(
     private val client = httpService.buildHttpClient(cookieStorage = cookieStorage)
     private val redirectUrl = "asitplus-wallet://wallet.a-sit.at/app/callback"
     private val oid4vciService = WalletService(cryptoService = cryptoService, redirectUrl = redirectUrl)
+
+
+    @Serializable
+    data class CredentialIdentifierInfo(
+        val credentialIdentifier: String,
+        val scope: String?,
+        val scheme: ConstantIndex.CredentialScheme,
+        val representation: ConstantIndex.CredentialRepresentation,
+        val attributes: Collection<String>,
+    )
+
+    /**
+     * Loads credential metadata info from [host]
+     */
+    @Throws(Throwable::class)
+    suspend fun loadCredentialMetadata(
+        host: String,
+    ): Collection<CredentialIdentifierInfo> {
+        Napier.d("Load credential metadata from $host")
+        val credentialMetadata: IssuerMetadata = client.get("$host$PATH_WELL_KNOWN_CREDENTIAL_ISSUER").body()
+        val supported = credentialMetadata.supportedCredentialConfigurations
+            ?: throw Throwable("No supported credential configurations")
+        return supported.mapNotNull {
+            val identifier = it.key
+            val representation = it.value.format.toRepresentation()
+            val scope = it.value.scope
+            val scheme =
+                it.value.credentialDefinition?.types?.firstNotNullOfOrNull { AttributeIndex.resolveAttributeType(it) }
+                    ?: it.value.sdJwtVcType?.let { AttributeIndex.resolveSdJwtAttributeType(it) }
+                    ?: it.value.docType?.let { AttributeIndex.resolveIsoDoctype(it) }
+                    ?: return@mapNotNull null
+            val attributes = it.value.credentialDefinition?.credentialSubject?.keys
+                ?: it.value.sdJwtClaims?.keys
+                ?: it.value.isoClaims?.flatMap { it.value.keys }
+                ?: listOf()
+
+            CredentialIdentifierInfo(identifier, scope, scheme, representation, attributes)
+        }
+    }
+    /**
+     * Starts the issuing process at [host]
+     */
+    @Throws(Throwable::class)
+    suspend fun startProvisioning(
+        host: String,
+        credentialIdentifierInfo: CredentialIdentifierInfo,
+        requestedAttributes: Set<NormalizedJsonPath>?,
+    ){
+        TODO()
+    }
 
     /**
      * Starts the issuing process at [host]

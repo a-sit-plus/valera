@@ -118,8 +118,7 @@ class WalletMain(
 
     fun startProvisioning(
         host: String,
-        credentialScheme: ConstantIndex.CredentialScheme,
-        credentialRepresentation: ConstantIndex.CredentialRepresentation,
+        credentialIdentifierInfo: ProvisioningService.CredentialIdentifierInfo,
         requestedAttributes: Set<NormalizedJsonPath>?,
         onSuccess: () -> Unit,
     ) {
@@ -127,8 +126,7 @@ class WalletMain(
             try {
                 provisioningService.startProvisioning(
                     host = host,
-                    credentialScheme = credentialScheme,
-                    credentialRepresentation = credentialRepresentation,
+                    credentialIdentifierInfo = credentialIdentifierInfo,
                     requestedAttributes = requestedAttributes,
                 )
                 onSuccess()

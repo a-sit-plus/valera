@@ -139,6 +139,7 @@
     <string name="credential_scheme_label_eprescription">UNTRANSLATED:credential_scheme_label_eprescription</string>
 
     <string name="text_label_issuing_service">UNTRANSLATED:text_label_issuing_service</string>
+    <string name="text_label_id_identifier">UNTRANSLATED:text_label_id_identifier</string>
     <string name="text_label_id_format">UNTRANSLATED:text_label_id_format</string>
     <string name="text_label_id_scheme">UNTRANSLATED:text_label_id_scheme</string>
     <string name="text_label_sex">UNTRANSLATED:text_label_sex</string>

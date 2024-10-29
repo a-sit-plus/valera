@@ -21,7 +21,6 @@ import org.jetbrains.compose.resources.stringResource
 import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.forms.SelectIssuingServerForm
-import ui.state.savers.CredentialSchemeSaver
 import ui.state.savers.asMutableStateSaver
 import ui.views.LoadDataView
 import ui.views.SelectIssuingServerView

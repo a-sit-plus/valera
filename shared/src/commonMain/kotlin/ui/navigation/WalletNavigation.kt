@@ -265,14 +265,12 @@ private fun WalletNavHost(
                 walletMain = walletMain,
                 navigateUp = navigateBack,
                 hostString = route.host,
-                availableSchemes = walletMain.availableSchemes,
-                onSubmit = { host, credentialScheme, credentialRepresentation, requestedAttributes ->
+                onSubmit = { credentialIdentifierInfo, requestedAttributes ->
                     popBackStack(HomeScreenRoute)
                     walletMain.scope.launch {
                         walletMain.startProvisioning(
-                            host = host,
-                            credentialScheme = credentialScheme,
-                            credentialRepresentation = credentialRepresentation,
+                            host = route.host,
+                            credentialIdentifierInfo = credentialIdentifierInfo,
                             requestedAttributes = requestedAttributes,
                         ) {
                         }
@@ -288,20 +286,16 @@ private fun WalletNavHost(
             val vm = LoadCredentialViewModel(
                 walletMain = walletMain,
                 navigateUp = navigateBack,
-                hostString = offer.credentialOffer.credentialIssuer,
-                availableSchemes = offer.credentials.map { it.value.first.toScheme() }.distinct(),
-                onSubmit = { host, credentialScheme, credentialRepresentation, requestedAttributes ->
+                offer = offer,
+                onSubmit = { credentialIdentifierInfo, requestedAttributes ->
                     popBackStack(HomeScreenRoute)
                     navigate(LoadingRoute)
                     walletMain.scope.launch {
                         try {
                             walletMain.provisioningService.loadCredentialWithPreAuthn(
-                                credentialIssuer = host,
+                                credentialIssuer = offer.credentialOffer.credentialIssuer,
                                 preAuthorizedCode = offer.credentialOffer.grants?.preAuthorizedCode?.preAuthorizedCode.toString(),
-                                credentialIdToRequest = offer.credentials
-                                    .entries
-                                    .first { it.value.first.toScheme() == credentialScheme && it.value.second.toRepresentation() == credentialRepresentation }
-                                    .key
+                                credentialIdToRequest = credentialIdentifierInfo.credentialIdentifier,
                             )
                         } catch (e: Throwable) {
                             popBackStack(HomeScreenRoute)
