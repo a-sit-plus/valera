@@ -26,7 +26,6 @@ import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParametersFrom
-import at.asitplus.wallet.lib.oidc.helpers.AuthorizationResponsePreparationState
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.snackbar_clear_log_successfully
 import compose_wallet_app.shared.generated.resources.snackbar_reset_app_successfully
@@ -59,22 +58,24 @@ import ui.navigation.Routes.OnboardingTermsRoute
 import ui.navigation.Routes.PreAuthQrCodeScannerRoute
 import ui.navigation.Routes.Route
 import ui.navigation.Routes.SettingsRoute
+import ui.screens.SelectIssuingServerView
 import ui.viewmodels.AddCredentialViewModel
 import ui.viewmodels.AuthenticationConsentViewModel
 import ui.viewmodels.AuthenticationQrCodeScannerViewModel
 import ui.viewmodels.AuthenticationSuccessViewModel
 import ui.viewmodels.CredentialDetailsViewModel
 import ui.viewmodels.CredentialsViewModel
+import ui.viewmodels.LoadCredentialViewModel
 import ui.viewmodels.LogViewModel
 import ui.viewmodels.PreAuthQrCodeScannerViewModel
 import ui.viewmodels.SettingsViewModel
-import ui.views.AddCredentialScreen
 import ui.views.AuthenticationConsentView
 import ui.views.AuthenticationQrCodeScannerView
 import ui.views.AuthenticationSuccessView
 import ui.views.CredentialDetailsView
 import ui.views.CredentialsView
 import ui.views.ErrorView
+import ui.views.LoadCredentialView
 import ui.views.LoadingView
 import ui.views.LogView
 import ui.views.OnboardingInformationView
@@ -82,27 +83,6 @@ import ui.views.OnboardingStartView
 import ui.views.OnboardingTermsView
 import ui.views.PreAuthQrCodeScannerScreen
 import ui.views.SettingsView
-import ui.screens.LoadCredentialScreen
-import ui.screens.AddCredentialViewModel
-import ui.screens.AuthenticationConsentScreen
-import ui.screens.AuthenticationQrCodeScannerView
-import ui.screens.AuthenticationSuccessScreen
-import ui.screens.CredentialDetailsScreen
-import ui.screens.CredentialsView
-import ui.screens.CredentialsViewModel
-import ui.screens.ErrorScreen
-import ui.screens.LoadCredentialViewModel
-import ui.screens.LoadingScreen
-import ui.screens.LogScreen
-import ui.screens.OnboardingInformationScreen
-import ui.screens.OnboardingStartScreen
-import ui.screens.OnboardingTermsScreen
-import ui.screens.PreAuthQrCodeScannerScreen
-import ui.screens.ProvisioningLoadingScreen
-import ui.screens.SelectIssuingServerScreen
-import ui.screens.SettingsView
-import ui.screens.SettingsViewModel
-import view.AuthenticationQrCodeScannerViewModel
 
 @Composable
 fun WalletNavigation(walletMain: WalletMain) {
@@ -271,7 +251,7 @@ private fun WalletNavHost(
                 onSubmitServer = { host ->
                     navigate(LoadCredentialRoute(host))
                 })
-            SelectIssuingServerScreen(vm)
+            SelectIssuingServerView(vm)
         }
 
         composable<LoadCredentialRoute> { backStackEntry ->
@@ -292,7 +272,7 @@ private fun WalletNavHost(
                     }
 
                 })
-            LoadCredentialScreen(vm)
+            LoadCredentialView(vm)
         }
 
         composable<AddCredentialPreAuthnRoute> { backStackEntry ->
@@ -321,7 +301,7 @@ private fun WalletNavHost(
                     }
                 }
             )
-            LoadCredentialScreen(vm)
+            LoadCredentialView(vm)
         }
 
         composable<CredentialDetailsRoute> { backStackEntry ->
@@ -383,7 +363,7 @@ private fun WalletNavHost(
 
         composable<ErrorRoute> { backStackEntry ->
             val route: ErrorRoute = backStackEntry.toRoute()
-            ErrorScreen(resetStack = { popBackStack(HomeScreenRoute) }, message = route.message, cause = route.cause)
+            ErrorView(resetStack = { popBackStack(HomeScreenRoute) }, message = route.message, cause = route.cause)
         }
 
         composable<LoadingRoute> { backStackEntry ->

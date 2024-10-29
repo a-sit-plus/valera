@@ -19,14 +19,13 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
-import ui.viewmodels.AddCredentialViewModel
-import ui.state.savers.CredentialSchemeSaver
 import ui.state.savers.CredentialIdentifierInfoSaver
 import ui.state.savers.asMutableStateSaver
+import ui.viewmodels.LoadCredentialViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoadCredentialScreen(
+fun LoadCredentialView(
     vm: LoadCredentialViewModel
 ) {
 
