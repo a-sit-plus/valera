@@ -371,7 +371,7 @@ private fun WalletNavHost(
 
         composable<ErrorRoute> { backStackEntry ->
             val route: ErrorRoute = backStackEntry.toRoute()
-            ErrorScreen(walletMain, resetStack = {popBackStack(HomeScreenRoute)}, message = route.message, cause = route.cause)
+            ErrorScreen(resetStack = {popBackStack(HomeScreenRoute)}, message = route.message, cause = route.cause)
         }
 
         composable<LoadingRoute> { backStackEntry ->
