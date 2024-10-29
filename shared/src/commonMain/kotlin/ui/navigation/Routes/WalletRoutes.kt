@@ -10,7 +10,10 @@ object HomeScreenRoute : Route()
 object AddCredentialRoute : Route()
 
 @Serializable
-data class AddCredentialPreAuthnRoute (val credentialOfferInfoSerialized: String) : Route()
+class LoadCredentialRoute(val host: String) : Route()
+
+@Serializable
+data class AddCredentialPreAuthnRoute(val credentialOfferInfoSerialized: String) : Route()
 
 @Serializable
 data class CredentialDetailsRoute(val storeEntryId: StoreEntryId) : Route()
@@ -43,7 +46,8 @@ object AuthenticationLoadingRoute : Route()
 data class AuthenticationConsentRoute(
     val authenticationRequestParametersFromSerialized: String, // AuthenticationRequest
     val authorizationPreparationStateSerialized: String, // AuthenticationResultParameters
-    val recipientLocation: String) : Route()
+    val recipientLocation: String
+) : Route()
 
 @Serializable
 object AuthenticationSuccessRoute : Route()
