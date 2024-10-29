@@ -35,13 +35,14 @@ import compose_wallet_app.shared.generated.resources.heading_label_navigate_back
 import compose_wallet_app.shared.generated.resources.info_text_submission_preview_disabled
 import compose_wallet_app.shared.generated.resources.prompt_send_above_data
 import compose_wallet_app.shared.generated.resources.section_heading_data_recipient
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.ConsentAttributesSection
 import ui.composables.DataDisplaySection
 import ui.composables.buttons.CancelButton
 import ui.composables.buttons.ConsentButton
 import ui.composables.buttons.NavigateUpButton
-import ui.screens.AuthenticationConsentViewModel
+import ui.viewmodels.AuthenticationConsentViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -139,3 +140,5 @@ fun AuthenticationConsentView(vm: AuthenticationConsentViewModel) {
         }
     }
 }
+
+class ConsentAttributes(val scheme: String, val format: String, val attributes: List<StringResource>)

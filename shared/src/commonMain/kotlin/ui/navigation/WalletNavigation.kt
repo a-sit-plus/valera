@@ -1,7 +1,6 @@
 package ui.navigation
 
 import AppTestTags
-import PreAuthQrCodeScannerViewModel
 import UncorrectableErrorException
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -59,28 +58,29 @@ import ui.navigation.Routes.OnboardingTermsRoute
 import ui.navigation.Routes.PreAuthQrCodeScannerRoute
 import ui.navigation.Routes.Route
 import ui.navigation.Routes.SettingsRoute
-import ui.screens.AddCredentialScreen
-import ui.screens.AddCredentialViewModel
-import ui.screens.AuthenticationConsentViewModel
-import ui.screens.AuthenticationQrCodeScannerView
-import ui.screens.AuthenticationSuccessView
-import ui.screens.AuthenticationSuccessViewModel
-import ui.screens.CredentialDetailsView
-import ui.screens.CredentialDetailsViewModel
-import ui.screens.CredentialsView
-import ui.screens.CredentialsViewModel
-import ui.screens.ErrorView
-import ui.screens.LoadingView
-import ui.screens.LogView
-import ui.screens.LogViewModel
-import ui.screens.OnboardingInformationView
-import ui.screens.OnboardingStartView
-import ui.screens.OnboardingTermsView
-import ui.screens.PreAuthQrCodeScannerScreen
-import ui.screens.SettingsView
-import ui.screens.SettingsViewModel
+import ui.viewmodels.AddCredentialViewModel
+import ui.viewmodels.AuthenticationConsentViewModel
+import ui.viewmodels.AuthenticationQrCodeScannerViewModel
+import ui.viewmodels.AuthenticationSuccessViewModel
+import ui.viewmodels.CredentialDetailsViewModel
+import ui.viewmodels.CredentialsViewModel
+import ui.viewmodels.LogViewModel
+import ui.viewmodels.PreAuthQrCodeScannerViewModel
+import ui.viewmodels.SettingsViewModel
+import ui.views.AddCredentialScreen
 import ui.views.AuthenticationConsentView
-import view.AuthenticationQrCodeScannerViewModel
+import ui.views.AuthenticationQrCodeScannerView
+import ui.views.AuthenticationSuccessView
+import ui.views.CredentialDetailsView
+import ui.views.CredentialsView
+import ui.views.ErrorView
+import ui.views.LoadingView
+import ui.views.LogView
+import ui.views.OnboardingInformationView
+import ui.views.OnboardingStartView
+import ui.views.OnboardingTermsView
+import ui.views.PreAuthQrCodeScannerScreen
+import ui.views.SettingsView
 
 @Composable
 fun WalletNavigation(walletMain: WalletMain){

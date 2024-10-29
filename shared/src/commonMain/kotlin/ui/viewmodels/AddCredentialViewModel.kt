@@ -1,4 +1,4 @@
-package ui.screens
+package ui.viewmodels
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.app.common.WalletMain

@@ -1,4 +1,4 @@
-package ui.screens
+package ui.viewmodels
 
 import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.app.common.WalletMain

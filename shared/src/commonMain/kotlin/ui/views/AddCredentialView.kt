@@ -1,4 +1,4 @@
-package ui.screens
+package ui.views
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -20,9 +20,9 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
+import ui.viewmodels.AddCredentialViewModel
 import ui.state.savers.CredentialSchemeSaver
 import ui.state.savers.asMutableStateSaver
-import ui.views.LoadDataView
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -1,4 +1,4 @@
-package ui.screens
+package ui.views
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

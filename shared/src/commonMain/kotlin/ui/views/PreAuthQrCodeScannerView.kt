@@ -1,6 +1,6 @@
-package ui.screens
+package ui.views
 
-import PreAuthQrCodeScannerViewModel
+import ui.viewmodels.PreAuthQrCodeScannerViewModel
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import compose_wallet_app.shared.generated.resources.Res

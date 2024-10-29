@@ -1,4 +1,4 @@
-package ui.screens
+package ui.viewmodels
 
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.dif.InputDescriptor
@@ -27,6 +27,7 @@ import data.credentials.PowerOfRepresentationCredentialAttributeTranslator
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
+import ui.views.ConsentAttributes
 
 class AuthenticationConsentViewModel(
     val spName: String?,

@@ -1,4 +1,4 @@
-package ui.screens
+package ui.viewmodels
 
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.wallet.app.common.WalletMain

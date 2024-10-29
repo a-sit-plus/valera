@@ -1,4 +1,4 @@
-package ui.screens
+package ui.views
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,7 +21,7 @@ import org.jetbrains.compose.resources.stringResource
 import ui.composables.AdvancedFloatingActionButton
 import ui.composables.FloatingActionButtonHeightSpacer
 import ui.composables.credentials.CredentialCard
-import ui.views.NoDataLoadedView
+import ui.viewmodels.CredentialsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

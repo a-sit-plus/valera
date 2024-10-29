@@ -1,4 +1,4 @@
-package ui.screens
+package ui.views
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,6 +38,8 @@ import ui.composables.credentials.GenericCredentialSummaryCardContent
 import ui.composables.credentials.IdAustriaCredentialView
 import ui.composables.credentials.MobileDrivingLicenceCredentialView
 import ui.composables.credentials.PowerOfRepresentationCredentialView
+import ui.viewmodels.CredentialCardActionMenu
+import ui.viewmodels.CredentialDetailsViewModel
 
 @Composable
 fun CredentialDetailsView(
