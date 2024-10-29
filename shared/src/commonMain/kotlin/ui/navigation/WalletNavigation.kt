@@ -118,18 +118,18 @@ fun WalletNavigation(walletMain: WalletMain) {
 
     val startDestination: Route
 
-    val errorService = ErrorService(showError = { message, cause ->  navigate(ErrorRoute(message, cause)) })
+    val errorService = ErrorService(showError = { message, cause -> navigate(ErrorRoute(message, cause)) })
     walletMain.errorService = errorService
 
     try {
         walletMain.initialize(snackbarService)
-    } catch (e: Throwable){
+    } catch (e: Throwable) {
         walletMain.errorService.emit(UncorrectableErrorException(e))
     }
 
     val isConditionsAccepted = walletMain.walletConfig.isConditionsAccepted.collectAsState(null)
 
-    startDestination = when(isConditionsAccepted.value){
+    startDestination = when (isConditionsAccepted.value) {
         true -> HomeScreenRoute
         false -> OnboardingStartRoute
         null -> LoadingRoute
@@ -208,7 +208,8 @@ private fun WalletNavHost(
             )
         }
         composable<AuthenticationQrCodeScannerRoute> {
-            val vm = AuthenticationQrCodeScannerViewModel(navigateUp = { navigateBack() },
+            val vm = AuthenticationQrCodeScannerViewModel(
+                navigateUp = { navigateBack() },
                 onSuccess = { route ->
                     navigate(route)
                 },
@@ -291,13 +292,11 @@ private fun WalletNavHost(
                     navigate(LoadingRoute)
                     walletMain.scope.launch {
                         try {
-                            walletMain.provisioningService.loadCredentialWithPreAuthn(
-                                credentialIssuer = offer.credentialIssuer,
-                                preAuthorizedCode = offer.grants?.preAuthorizedCode?.preAuthorizedCode.toString(),
-                                credentialIdentifier = credentialIdentifierInfo.credentialIdentifier,
-                                credentialScheme = credentialIdentifierInfo.scheme,
-                                requestedAttributes = requestedAttributes,
-                                transactionCode = transactionCode
+                            walletMain.provisioningService.loadCredentialWithOffer(
+                                credentialOffer = offer,
+                                credentialIdentifierInfo = credentialIdentifierInfo,
+                                transactionCode = transactionCode,
+                                requestedAttributes = requestedAttributes
                             )
                         } catch (e: Throwable) {
                             popBackStack(HomeScreenRoute)
@@ -381,7 +380,7 @@ private fun WalletNavHost(
 
         composable<ErrorRoute> { backStackEntry ->
             val route: ErrorRoute = backStackEntry.toRoute()
-            ErrorScreen(resetStack = {popBackStack(HomeScreenRoute)}, message = route.message, cause = route.cause)
+            ErrorScreen(resetStack = { popBackStack(HomeScreenRoute) }, message = route.message, cause = route.cause)
         }
 
         composable<LoadingRoute> { backStackEntry ->
@@ -389,7 +388,8 @@ private fun WalletNavHost(
         }
 
         composable<AuthenticationQrCodeScannerRoute> { backStackEntry ->
-            val vm = AuthenticationQrCodeScannerViewModel(navigateUp = { navigateBack() },
+            val vm = AuthenticationQrCodeScannerViewModel(
+                navigateUp = { navigateBack() },
                 onSuccess = { route ->
                     navigateBack()
                     navigate(route)
