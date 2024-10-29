@@ -19,7 +19,6 @@ import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.iso.IssuerSigned
 import at.asitplus.wallet.lib.oauth2.OAuth2Client
 import at.asitplus.wallet.lib.oidvci.WalletService
-import at.asitplus.wallet.lib.oidvci.decodeFromCredentialIdentifier
 import at.asitplus.wallet.lib.oidvci.decodeFromUrlQuery
 import at.asitplus.wallet.lib.oidvci.encodeToParameters
 import at.asitplus.wallet.lib.oidvci.formUrlEncode
@@ -250,15 +249,17 @@ class ProvisioningService(
      * @param credentialIssuer from [at.asitplus.openid.CredentialOffer.credentialIssuer]
      * @param preAuthorizedCode from [at.asitplus.openid.CredentialOffer.grants], more specifically [CredentialOfferGrantsPreAuthCode.preAuthorizedCode]
      * @param credentialIdToRequest one from [at.asitplus.openid.CredentialOffer.configurationIds]
+     * @param transactionCode if required from Issuing service, i.e. transmitted out-of-band to the user
      */
     @Throws(Throwable::class)
     suspend fun loadCredentialWithPreAuthn(
         credentialIssuer: String,
         preAuthorizedCode: String,
         credentialIdToRequest: String,
+        transactionCode: String? = null,
+        requestedAttributes: Set<NormalizedJsonPath>?,
+        credentialScheme: ExportableCredentialScheme
     ) {
-        val credentialScheme = decodeFromCredentialIdentifier(credentialIdToRequest)?.first
-            ?: throw Exception("can't resolve credential scheme")
         val issuerMetadata: IssuerMetadata = client.get("$credentialIssuer$PATH_WELL_KNOWN_CREDENTIAL_ISSUER").body()
         val authorizationServer = issuerMetadata.authorizationServers?.firstOrNull() ?: credentialIssuer
         val oauthMetadataPath = "$authorizationServer$PATH_WELL_KNOWN_AUTH_SERVER"
@@ -269,7 +270,7 @@ class ProvisioningService(
         val state = uuid4().toString()
         val tokenRequest = walletService.oauth2Client.createTokenRequestParameters(
             state = state,
-            authorization = OAuth2Client.AuthorizationForToken.PreAuthCode(preAuthorizedCode),
+            authorization = OAuth2Client.AuthorizationForToken.PreAuthCode(preAuthorizedCode, transactionCode),
             authorizationDetails = walletService.buildAuthorizationDetails(
                 credentialIdToRequest,
                 issuerMetadata.authorizationServers
@@ -278,6 +279,11 @@ class ProvisioningService(
         val token: TokenResponseParameters = client.submitForm(tokenEndpointUrl) {
             setBody(tokenRequest.encodeToParameters().formUrlEncode())
         }.body()
+        val requestedAttributeStrings = requestedAttributes?.map {
+            // for now the attribute name is encoded at the first part
+            (it.segments.first() as NormalizedJsonPathSegment.NameSegment).memberName
+        }?.toSet() // TODO use requested attributes
+
         val credentialRequest = walletService.createCredentialRequest(
             input = WalletService.CredentialRequestInput.CredentialIdentifier(credentialIdToRequest),
             clientNonce = token.clientNonce,
@@ -291,7 +297,7 @@ class ProvisioningService(
         }.body()
 
         val storeCredentialInput = credentialResponse.credential
-            ?.toStoreCredentialInput(credentialResponse.format, credentialScheme)
+            ?.toStoreCredentialInput(credentialResponse.format, credentialScheme.toScheme())
             ?: throw Exception("No credential was received")
 
         holderAgent.storeCredential(storeCredentialInput).getOrThrow()

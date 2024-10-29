@@ -8,6 +8,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.app.common.ProvisioningService
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
@@ -17,6 +18,7 @@ import compose_wallet_app.shared.generated.resources.issuing_label_representatio
 import compose_wallet_app.shared.generated.resources.issuing_label_scheme
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.inputFields.StatefulCredentialIdentifierInputField
+import ui.composables.inputFields.TransactionCodeInputField
 
 
 @Composable
@@ -24,8 +26,11 @@ fun CredentialMetadataSelectionForm(
     host: String,
     credentialIdentifierInfo: ProvisioningService.CredentialIdentifierInfo,
     onChangeCredentialIdentifierInfo: (ProvisioningService.CredentialIdentifierInfo) -> Unit,
+    transactionCode: TextFieldValue,
+    onChangeTransactionCode: (TextFieldValue) -> Unit,
     modifier: Modifier = Modifier,
     availableIdentifiers: Collection<ProvisioningService.CredentialIdentifierInfo>,
+    showTransactionCode: Boolean,
 ) {
     Column(
         modifier = modifier,
@@ -68,6 +73,13 @@ fun CredentialMetadataSelectionForm(
             Text(
                 text = credentialIdentifierInfo.representation.uiLabel(),
                 style = MaterialTheme.typography.bodyLarge,
+            )
+        }
+        if (showTransactionCode) {
+            TransactionCodeInputField(
+                value = transactionCode,
+                onValueChange = onChangeTransactionCode,
+                modifier = listSpacingModifier.fillMaxWidth(),
             )
         }
     }

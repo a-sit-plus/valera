@@ -8,6 +8,7 @@ import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.app.common.ProvisioningService
@@ -22,10 +23,13 @@ fun LoadDataView(
     onChangeCredentialIdentifierInfo: (ProvisioningService.CredentialIdentifierInfo) -> Unit,
     requestedAttributes: Set<NormalizedJsonPath>,
     onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
+    transactionCode: TextFieldValue,
+    onChangeTransactionCode: (TextFieldValue) -> Unit,
     // other
     onSubmit: () -> Unit,
     modifier: Modifier = Modifier,
     availableIdentifiers: Collection<ProvisioningService.CredentialIdentifierInfo>,
+    showTransactionCode: Boolean,
 ) {
     Scaffold(
         bottomBar = {
@@ -48,8 +52,11 @@ fun LoadDataView(
             onChangeCredentialIdentifierInfo = onChangeCredentialIdentifierInfo,
             requestedAttributes = requestedAttributes,
             onChangeRequestedAttributes = onChangeRequestedAttributes,
+            transactionCode = transactionCode,
+            onChangeTransactionCode = onChangeTransactionCode,
             modifier = Modifier.padding(scaffoldPadding),
             availableIdentifiers = availableIdentifiers,
+            showTransactionCode = showTransactionCode
         )
     }
 }
