@@ -1,4 +1,4 @@
-import android.app.Activity
+
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
@@ -106,12 +106,6 @@ class AndroidPlatformAdapter(val context: Context) : PlatformAdapter {
         if (file.exists()) {
             file.delete()
         }
-    }
-
-    override fun exitApp() {
-        Napier.d("Exit App gracefully")
-        val activity = context as Activity
-        activity.finish()
     }
 
     override fun shareLog() {

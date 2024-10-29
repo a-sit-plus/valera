@@ -13,8 +13,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.lib.data.ConstantIndex
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.heading_label_add_credential_screen
 import kotlinx.coroutines.flow.first
@@ -29,16 +27,11 @@ import ui.views.LoadDataView
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddCredentialScreen(
-    navigateUp: () -> Unit,
-    walletMain: WalletMain,
-    onSubmit: (String, ConstantIndex.CredentialScheme, ConstantIndex.CredentialRepresentation, Set<NormalizedJsonPath>?) -> Unit,
-    availableSchemes: List<ConstantIndex.CredentialScheme>,
-    hostString: String,
-    showAttributes: Boolean = true,
+    vm: AddCredentialViewModel
 ) {
     var host by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         runBlocking {
-            mutableStateOf(TextFieldValue(hostString))
+            mutableStateOf(TextFieldValue(vm.hostString))
         }
     }
 
@@ -46,13 +39,13 @@ fun AddCredentialScreen(
         saver = CredentialSchemeSaver().asMutableStateSaver()
     ) {
         mutableStateOf(runBlocking {
-            availableSchemes.first()
+            vm.availableSchemes.first()
         })
     }
 
     var credentialRepresentation by rememberSaveable {
         mutableStateOf(runBlocking {
-            walletMain.walletConfig.credentialRepresentation.first()
+            vm.walletMain.walletConfig.credentialRepresentation.first()
         })
     }
 
@@ -75,7 +68,7 @@ fun AddCredentialScreen(
                     ScreenHeading(stringResource(Res.string.heading_label_add_credential_screen))
                 },
                 navigationIcon = {
-                    NavigateUpButton(navigateUp)
+                    NavigateUpButton(vm.navigateUp)
                 },
             )
         },
@@ -98,11 +91,11 @@ fun AddCredentialScreen(
                 requestedAttributes = it
             },
             onSubmit = {
-                onSubmit(host.text, credentialScheme, credentialRepresentation, requestedAttributes)
+                vm.onSubmit(host.text, credentialScheme, credentialRepresentation, requestedAttributes)
             },
             modifier = Modifier.padding(scaffoldPadding),
-            availableSchemes = availableSchemes,
-            showAttributes = showAttributes,
+            availableSchemes = vm.availableSchemes,
+            showAttributes = vm.showAttributes,
         )
     }
 }

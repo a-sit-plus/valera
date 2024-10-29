@@ -1,6 +1,5 @@
 package ui.views
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -9,12 +8,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.interop.UIKitView
-import compose_wallet_app.shared.generated.resources.camera_access_denied
+import androidx.compose.ui.viewinterop.UIKitInteropProperties
+import androidx.compose.ui.viewinterop.UIKitView
 import compose_wallet_app.shared.generated.resources.Res
+import compose_wallet_app.shared.generated.resources.camera_access_denied
 import io.github.aakira.napier.Napier
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.CValue
@@ -54,6 +53,7 @@ import platform.AVFoundation.AVMetadataObjectTypeQRCode
 import platform.AVFoundation.authorizationStatusForMediaType
 import platform.AVFoundation.requestAccessForMediaType
 import platform.CoreGraphics.CGRect
+import platform.CoreGraphics.CGRectMake
 import platform.Foundation.NSNotification
 import platform.Foundation.NSNotificationCenter
 import platform.Foundation.NSSelectorFromString
@@ -95,25 +95,20 @@ actual fun CameraView(
             }
         }
     }
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = modifier,
-    ) {
-        when (cameraAccess) {
-            null -> {
-                // Waiting for the user to accept permission
-            }
+    when (cameraAccess) {
+        null -> {
+            // Waiting for the user to accept permission
+        }
 
-            false -> {
-                Text(stringResource(Res.string.camera_access_denied), color = Color.White)
-            }
+        false -> {
+            Text(stringResource(Res.string.camera_access_denied), color = Color.White)
+        }
 
-            true -> {
-                AuthorizedCamera(
-                    onFoundPayload,
-                    modifier = modifier,
-                )
-            }
+        true -> {
+            AuthorizedCamera(
+                onFoundPayload,
+                modifier = modifier,
+            )
         }
     }
 }
@@ -266,10 +261,8 @@ private fun RealDeviceCamera(
         }
     }
     UIKitView(
-        modifier = modifier,
-        background = Color.Black,
         factory = {
-            val cameraContainer = UIView()
+            val cameraContainer = CustomUIView(CGRectMake(.0, .0, .0, .0), cameraPreviewLayer)
             cameraContainer.layer.addSublayer(cameraPreviewLayer)
             cameraPreviewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill
             CoroutineScope(Dispatchers.Default).launch {
@@ -277,12 +270,23 @@ private fun RealDeviceCamera(
             }
             cameraContainer
         },
-        onResize = { view: UIView, rect: CValue<CGRect> ->
-            CATransaction.begin()
-            CATransaction.setValue(true, kCATransactionDisableActions)
-            view.layer.setFrame(rect)
-            cameraPreviewLayer.setFrame(rect)
-            CATransaction.commit()
-        },
+        modifier = modifier,
+        properties = UIKitInteropProperties(
+            isInteractive = true,
+            isNativeAccessibilityEnabled = true
+        )
     )
+}
+
+@OptIn(ExperimentalForeignApi::class)
+class CustomUIView(frame: CValue<CGRect>, val previewLayer: AVCaptureVideoPreviewLayer) : UIView(frame) {
+    override fun layoutSubviews() {
+        super.layoutSubviews()
+        CATransaction.begin()
+        CATransaction.setValue(true, kCATransactionDisableActions)
+        superview()?.setFrame(frame)
+        previewLayer.setFrame(frame)
+        CATransaction.commit()
+    }
+
 }

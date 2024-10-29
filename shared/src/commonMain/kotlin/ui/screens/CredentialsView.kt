@@ -15,51 +15,25 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
-import at.asitplus.wallet.app.common.WalletMain
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.heading_label_my_data_screen
-import io.github.aakira.napier.Napier
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.AdvancedFloatingActionButton
 import ui.composables.FloatingActionButtonHeightSpacer
 import ui.composables.credentials.CredentialCard
 import ui.views.NoDataLoadedView
 
-
-@Composable
-fun MyCredentialsScreen(
-    navigateToAddCredentialsPage: () -> Unit,
-    navigateToQrAddCredentialsPage: () -> Unit,
-    navigateToCredentialDetailsPage: (Long) -> Unit,
-    walletMain: WalletMain,
-) {
-    MyCredentialsScreen(
-        navigateToAddCredentialsPage = navigateToAddCredentialsPage,
-        navigateToQrAddCredentialsPage = navigateToQrAddCredentialsPage,
-        navigateToCredentialDetailsPage = navigateToCredentialDetailsPage,
-        viewModel = CredentialScreenViewModel(walletMain),
-        imageDecoder = {
-            try {
-                walletMain.platformAdapter.decodeImage(it)
-            } catch (throwable: Throwable) {
-                // TODO: should this be emitted to the error service?
-                Napier.w("Failed Operation: decodeImage")
-                null
-            }
-        },
-    )
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyCredentialsScreen(
+fun CredentialsView(
     navigateToAddCredentialsPage: () -> Unit,
     navigateToQrAddCredentialsPage: () -> Unit,
     navigateToCredentialDetailsPage: (Long) -> Unit,
     imageDecoder: (ByteArray) -> ImageBitmap?,
-    viewModel: CredentialScreenViewModel,
+    vm: CredentialsViewModel,
+    bottomBar: @Composable () -> Unit
 ) {
-    val storeContainerState by viewModel.storeContainer.collectAsState(null)
+    val storeContainerState by vm.storeContainer.collectAsState(null)
     Scaffold(
         topBar = {
             TopAppBar(
@@ -77,7 +51,8 @@ fun MyCredentialsScreen(
                     AdvancedFloatingActionButton(addCredential = navigateToAddCredentialsPage, addCredentialQr = navigateToQrAddCredentialsPage)
                 }
             }
-        }
+        },
+        bottomBar = { bottomBar() }
     ) { scaffoldPadding ->
         Column(modifier = Modifier.padding(scaffoldPadding).fillMaxSize()) {
             storeContainerState?.let { storeContainer ->
@@ -99,7 +74,7 @@ fun MyCredentialsScreen(
                                 CredentialCard(
                                     credential,
                                     onDelete = {
-                                        viewModel.removeStoreEntryById(storeEntryIdentifier)
+                                        vm.removeStoreEntryById(storeEntryIdentifier)
                                     },
                                     onOpenDetails = {
                                         navigateToCredentialDetailsPage(storeEntryIdentifier)

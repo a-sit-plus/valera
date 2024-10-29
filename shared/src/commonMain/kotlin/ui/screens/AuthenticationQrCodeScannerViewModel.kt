@@ -10,11 +10,11 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import ui.navigation.AuthenticationConsentPage
+import ui.navigation.Routes.AuthenticationConsentRoute
 
 class AuthenticationQrCodeScannerViewModel(
     val navigateUp: (() -> Unit)?,
-    val onSuccess: (AuthenticationConsentPage) -> Unit,
+    val onSuccess: (AuthenticationConsentRoute) -> Unit,
     val walletMain: WalletMain
 ) {
     var isLoading by mutableStateOf(false)
@@ -34,7 +34,7 @@ class AuthenticationQrCodeScannerViewModel(
         CoroutineScope(Dispatchers.Main).launch(coroutineExceptionHandler) {
             val authenticationConsentPage =
                 buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(link).getOrThrow().let {
-                    AuthenticationConsentPage(
+                    AuthenticationConsentRoute(
                         authenticationRequestParametersFromSerialized = it.authenticationRequestParametersFromSerialized,
                         authorizationPreparationStateSerialized = it.authorizationPreparationStateSerialized,
                         recipientLocation = it.recipientLocation,
