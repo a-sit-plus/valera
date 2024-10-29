@@ -121,6 +121,7 @@
     <string name="issuing_label_host">UNTRANSLATED:issuing_label_host</string>
     <string name="issuing_label_scheme">UNTRANSLATED:issuing_label_scheme</string>
     <string name="issuing_label_representation">UNTRANSLATED:issuing_label_representation</string>
+    <string name="issuing_label_transaction_code">UNTRANSLATED:issuing_label_transaction_code</string>
 
     <string name="navigation_button_label_show_data">UNTRANSLATED:navigation_button_label_show_data</string>
     <string name="navigation_button_label_my_data">UNTRANSLATED:navigation_button_label_my_data</string>

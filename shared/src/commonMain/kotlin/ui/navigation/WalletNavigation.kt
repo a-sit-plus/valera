@@ -29,7 +29,6 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParametersFrom
 import at.asitplus.wallet.lib.oidc.helpers.AuthorizationResponsePreparationState
-import at.asitplus.wallet.lib.oidvci.toRepresentation
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.snackbar_clear_log_successfully
 import compose_wallet_app.shared.generated.resources.snackbar_reset_app_successfully
@@ -265,7 +264,7 @@ private fun WalletNavHost(
                 walletMain = walletMain,
                 navigateUp = navigateBack,
                 hostString = route.host,
-                onSubmit = { credentialIdentifierInfo, requestedAttributes ->
+                onSubmit = { credentialIdentifierInfo, requestedAttributes, _ ->
                     popBackStack(HomeScreenRoute)
                     walletMain.scope.launch {
                         walletMain.startProvisioning(
@@ -287,7 +286,7 @@ private fun WalletNavHost(
                 walletMain = walletMain,
                 navigateUp = navigateBack,
                 offer = offer,
-                onSubmit = { credentialIdentifierInfo, requestedAttributes ->
+                onSubmit = { credentialIdentifierInfo, requestedAttributes, transactionCode ->
                     popBackStack(HomeScreenRoute)
                     navigate(LoadingRoute)
                     walletMain.scope.launch {
@@ -296,6 +295,9 @@ private fun WalletNavHost(
                                 credentialIssuer = offer.credentialOffer.credentialIssuer,
                                 preAuthorizedCode = offer.credentialOffer.grants?.preAuthorizedCode?.preAuthorizedCode.toString(),
                                 credentialIdToRequest = credentialIdentifierInfo.credentialIdentifier,
+                                credentialScheme = credentialIdentifierInfo.scheme,
+                                requestedAttributes = requestedAttributes,
+                                transactionCode = transactionCode
                             )
                         } catch (e: Throwable) {
                             popBackStack(HomeScreenRoute)

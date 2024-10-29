@@ -7,6 +7,4 @@ class AddCredentialViewModel(
     val onSubmitServer: ((String) -> Unit),
     val navigateUp: () -> Unit,
     val hostString: String
-) {
-
-}
+)
