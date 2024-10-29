@@ -65,6 +65,7 @@ import ui.screens.AddCredentialViewModel
 import ui.screens.AuthenticationConsentViewModel
 import ui.screens.AuthenticationQrCodeScannerView
 import ui.screens.AuthenticationSuccessView
+import ui.screens.AuthenticationSuccessViewModel
 import ui.screens.CredentialDetailsView
 import ui.screens.CredentialDetailsViewModel
 import ui.screens.CredentialsView
@@ -237,9 +238,8 @@ private fun WalletNavHost(
         }
 
         composable<AuthenticationSuccessRoute> { backStackEntry ->
-            AuthenticationSuccessView(
-                navigateUp = { navigateBack() },
-            )
+            val vm = AuthenticationSuccessViewModel(navigateUp = { navigateBack() })
+            AuthenticationSuccessView(vm = vm)
         }
 
         composable<AddCredentialRoute> { backStackEntry ->

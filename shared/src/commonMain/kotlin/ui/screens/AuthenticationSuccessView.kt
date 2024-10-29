@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -30,8 +31,10 @@ import ui.composables.buttons.NavigateUpButton
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
 @Composable
 fun AuthenticationSuccessView(
-    navigateUp: () -> Unit,
+    vm: AuthenticationSuccessViewModel
 ) {
+    val vm = remember { vm }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -42,7 +45,7 @@ fun AuthenticationSuccessView(
                     )
                 },
                 navigationIcon = {
-                    NavigateUpButton(navigateUp)
+                    NavigateUpButton(vm.navigateUp)
                 },
             )
         },
@@ -56,7 +59,7 @@ fun AuthenticationSuccessView(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
                     horizontalArrangement = Arrangement.Center,
                 ) {
-                    ConcludeButton(navigateUp)
+                    ConcludeButton(vm.navigateUp)
                 }
             }
         }
