@@ -38,7 +38,7 @@ import ui.composables.credentials.GenericCredentialSummaryCardContent
 import ui.composables.credentials.IdAustriaCredentialView
 import ui.composables.credentials.MobileDrivingLicenceCredentialView
 import ui.composables.credentials.PowerOfRepresentationCredentialView
-import ui.viewmodels.CredentialCardActionMenu
+import ui.composables.CredentialCardActionMenu
 import ui.viewmodels.CredentialDetailsViewModel
 
 @Composable

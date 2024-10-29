@@ -10,7 +10,7 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import ui.composables.LabeledText
 import ui.composables.PersonAttributeDetailCardHeading
 import ui.composables.PersonAttributeDetailCardHeadingIcon
-import ui.viewmodels.CredentialCardActionMenu
+import ui.composables.CredentialCardActionMenu
 
 
 @Composable
