@@ -120,7 +120,6 @@ class ProvisioningService(
         )
         val requestOptions = WalletService.RequestOptions(credentialScheme, credentialRepresentation)
         val scope = oid4vciService.buildScope(requestOptions, credentialMetadata)
-        val requirePush = oauthMetadata.requirePushedAuthorizationRequests ?: false
         val authorizationEndpointUrl = oauthMetadata.authorizationEndpoint
             ?: throw Exception("no authorizationEndpoint in $oauthMetadata")
         openAuthRequestInBrowser(
@@ -128,7 +127,7 @@ class ProvisioningService(
             authorizationEndpointUrl,
             null,
             scope,
-            if (requirePush) oauthMetadata.pushedAuthorizationRequestEndpoint else null,
+            oauthMetadata.pushedAuthorizationRequestEndpoint,
         )
     }
 
@@ -145,7 +144,10 @@ class ProvisioningService(
         val requestOptions = with(provisioningContext) {
             WalletService.RequestOptions(credentialScheme, credentialRepresentation)
         }
-        val scope = oid4vciService.buildScope(requestOptions, provisioningContext.issuerMetadata)
+        val scope = with(provisioningContext) {
+            oid4vciService.buildScope(requestOptions, issuerMetadata)
+                ?: throw Exception("Can't build scope for $credentialScheme, $credentialRepresentation and $issuerMetadata")
+        }
 
         val authnResponse = Url(redirectedUrl).parameters.flattenEntries().toMap()
             .decodeFromUrlQuery<AuthenticationResponseParameters>()
@@ -206,6 +208,7 @@ class ProvisioningService(
      * Decodes Identifiers used in the EUDI Wallet Reference Backend
      * in the form of `eu.europa.ec.eudi.pid_vc_sd_jwt` into a scheme known by our implementation
      */
+    // TODO Rework
     private fun decodeFromEudiCredentialIdentifier(
         input: String
     ): Pair<ConstantIndex.CredentialScheme, CredentialFormatEnum>? {
@@ -213,6 +216,7 @@ class ProvisioningService(
             val vcTypeOrSdJwtType = input.substringBefore("_")
             val formatString = input.substringAfter("_")
                 .replace("vc_sd_jwt", CredentialFormatEnum.VC_SD_JWT.text)
+                .replace("jwt_vc_json", CredentialFormatEnum.VC_SD_JWT.text)
                 .replace("^mdoc$".toRegex(), CredentialFormatEnum.MSO_MDOC.text)
             val credentialScheme = AttributeIndex.resolveSdJwtAttributeType(vcTypeOrSdJwtType)
                 ?: AttributeIndex.resolveAttributeType(vcTypeOrSdJwtType)
@@ -293,7 +297,6 @@ class ProvisioningService(
                 issuerMetadata.serialize()
             )
 
-            val requirePush = oauthMetadata.requirePushedAuthorizationRequests ?: false
             val authorizationEndpointUrl = oauthMetadata.authorizationEndpoint
                 ?: throw Exception("no authorizationEndpoint in $oauthMetadata")
 
@@ -302,7 +305,7 @@ class ProvisioningService(
                 authorizationEndpointUrl,
                 null,
                 credentialIdToRequest,
-                if (requirePush) oauthMetadata.pushedAuthorizationRequestEndpoint else null,
+                oauthMetadata.pushedAuthorizationRequestEndpoint,
             )
         } ?: {
             throw Exception("No offer grants received in $offerGrants")
