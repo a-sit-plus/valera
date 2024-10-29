@@ -208,8 +208,6 @@ private fun WalletNavHost(
         composable<AuthenticationQrCodeScannerRoute> {
             val vm = AuthenticationQrCodeScannerViewModel(navigateUp = { navigateBack() },
                 onSuccess = { route ->
-                    val test = backStackEntry
-                    Napier.d(test.toString())
                     navigate(route)
                 },
                 walletMain = walletMain
