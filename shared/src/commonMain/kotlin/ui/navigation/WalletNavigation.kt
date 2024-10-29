@@ -53,6 +53,7 @@ import ui.navigation.Routes.AuthenticationSuccessRoute
 import ui.navigation.Routes.CredentialDetailsRoute
 import ui.navigation.Routes.ErrorRoute
 import ui.navigation.Routes.HomeScreenRoute
+import ui.navigation.Routes.LoadCredentialRoute
 import ui.navigation.Routes.LoadingRoute
 import ui.navigation.Routes.LogRoute
 import ui.navigation.Routes.OnboardingInformationRoute
@@ -78,8 +79,10 @@ import ui.screens.OnboardingStartScreen
 import ui.screens.OnboardingTermsScreen
 import ui.screens.PreAuthQrCodeScannerScreen
 import ui.screens.ProvisioningLoadingScreen
+import ui.screens.SelectIssuingServerScreen
 import ui.screens.SettingsView
 import ui.screens.SettingsViewModel
+import ui.views.LoadDataView
 import view.AuthenticationQrCodeScannerViewModel
 
 @Composable
@@ -246,6 +249,31 @@ private fun WalletNavHost(
         }
 
         composable<AddCredentialRoute> { backStackEntry ->
+            val vm = AddCredentialViewModel(
+                walletMain = walletMain,
+                navigateUp = navigateBack,
+                hostString = runBlocking { walletMain.walletConfig.host.first() },
+                availableSchemes = walletMain.availableSchemes,
+                onSubmit = { host, credentialScheme, credentialRepresentation, requestedAttributes ->
+                    // TODO Not needed here
+                    popBackStack(HomeScreenRoute)
+                    walletMain.scope.launch {
+                        walletMain.startProvisioning(
+                            host = host,
+                            credentialScheme = credentialScheme,
+                            credentialRepresentation = credentialRepresentation,
+                            requestedAttributes = requestedAttributes,
+                        ) {
+                        }
+                    }
+                },
+                onSubmitServer = { host ->
+                    navigate(LoadCredentialRoute(host))
+                })
+            SelectIssuingServerScreen(vm)
+        }
+
+        composable<LoadCredentialRoute> { backStackEntry ->
             val vm = AddCredentialViewModel(
                 walletMain = walletMain,
                 navigateUp = navigateBack,
