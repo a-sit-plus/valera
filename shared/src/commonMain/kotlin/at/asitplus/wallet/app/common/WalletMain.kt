@@ -11,7 +11,6 @@ import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.Parser
 import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.cbor.DefaultCoseService
-import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.jws.DefaultJwsService
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
@@ -124,8 +123,8 @@ class WalletMain(
     ) {
         scope.launch {
             try {
-                provisioningService.startProvisioning(
-                    host = host,
+                provisioningService.startProvisioningWithAuthRequest(
+                    credentialIssuer = host,
                     credentialIdentifierInfo = credentialIdentifierInfo,
                     requestedAttributes = requestedAttributes,
                 )
