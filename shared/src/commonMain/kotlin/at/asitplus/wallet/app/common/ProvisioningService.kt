@@ -69,7 +69,6 @@ class ProvisioningService(
     private val redirectUrl = "asitplus-wallet://wallet.a-sit.at/app/callback"
     private val oid4vciService = WalletService(cryptoService = cryptoService, redirectUrl = redirectUrl)
 
-
     @Serializable
     data class CredentialIdentifierInfo(
         val credentialIdentifier: String,
@@ -271,12 +270,11 @@ class ProvisioningService(
         val oauthMetadata: OAuth2AuthorizationServerMetadata = client.get(oauthMetadataPath).body()
         val tokenEndpointUrl = oauthMetadata.tokenEndpoint
             ?: throw Exception("no tokenEndpoint in $oauthMetadata")
-        val walletService = WalletService(cryptoService = cryptoService)
         val state = uuid4().toString()
-        val tokenRequest = walletService.oauth2Client.createTokenRequestParameters(
+        val tokenRequest = oid4vciService.oauth2Client.createTokenRequestParameters(
             state = state,
             authorization = OAuth2Client.AuthorizationForToken.PreAuthCode(preAuthorizedCode, transactionCode),
-            authorizationDetails = walletService.buildAuthorizationDetails(
+            authorizationDetails = oid4vciService.buildAuthorizationDetails(
                 credentialIdToRequest,
                 issuerMetadata.authorizationServers
             )
@@ -289,7 +287,7 @@ class ProvisioningService(
             (it.segments.first() as NormalizedJsonPathSegment.NameSegment).memberName
         }?.toSet() // TODO use requested attributes
 
-        val credentialRequest = walletService.createCredentialRequest(
+        val credentialRequest = oid4vciService.createCredentialRequest(
             input = WalletService.CredentialRequestInput.CredentialIdentifier(credentialIdToRequest),
             clientNonce = token.clientNonce,
             credentialIssuer = issuerMetadata.credentialIssuer
