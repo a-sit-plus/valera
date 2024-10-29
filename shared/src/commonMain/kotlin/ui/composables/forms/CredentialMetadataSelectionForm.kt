@@ -7,27 +7,22 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import at.asitplus.wallet.lib.data.ConstantIndex
+import at.asitplus.wallet.app.common.ProvisioningService
+import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.section_heading_configuration
 import org.jetbrains.compose.resources.stringResource
-import ui.composables.inputFields.IssuingServiceInputField
-import ui.composables.inputFields.StatefulCredentialRepresentationInputField
-import ui.composables.inputFields.StatefulCredentialSchemeInputField
+import ui.composables.inputFields.StatefulCredentialIdentifierInputField
 
 
 @Composable
 fun CredentialMetadataSelectionForm(
-    host: TextFieldValue,
-    onChangeHost: ((TextFieldValue) -> Unit)?,
-    credentialRepresentation: ConstantIndex.CredentialRepresentation,
-    onChangeCredentialRepresentation: ((ConstantIndex.CredentialRepresentation) -> Unit)?,
-    credentialScheme: ConstantIndex.CredentialScheme,
-    onChangeCredentialScheme: ((ConstantIndex.CredentialScheme) -> Unit)?,
+    host: String,
+    credentialIdentifierInfo: ProvisioningService.CredentialIdentifierInfo,
+    onChangeCredentialIdentifierInfo: (ProvisioningService.CredentialIdentifierInfo) -> Unit,
     modifier: Modifier = Modifier,
-    availableSchemes: List<ConstantIndex.CredentialScheme>,
+    availableIdentifiers: Collection<ProvisioningService.CredentialIdentifierInfo>,
 ) {
     Column(
         modifier = modifier,
@@ -37,23 +32,23 @@ fun CredentialMetadataSelectionForm(
             text = stringResource(Res.string.section_heading_configuration),
             style = MaterialTheme.typography.titleMedium,
         )
-
-        IssuingServiceInputField(
-            value = host,
-            onValueChange = onChangeHost,
-            modifier = listSpacingModifier.fillMaxWidth(),
+        Text(
+            text = host,
+            style = MaterialTheme.typography.bodyMedium,
         )
-        StatefulCredentialSchemeInputField(
-            value = credentialScheme,
-            onValueChange = onChangeCredentialScheme,
+        StatefulCredentialIdentifierInputField(
+            value = credentialIdentifierInfo,
+            onValueChange = onChangeCredentialIdentifierInfo,
             modifier = listSpacingModifier.fillMaxWidth(),
-            availableSchemes = availableSchemes,
+            availableIdentifiers = availableIdentifiers
         )
-        StatefulCredentialRepresentationInputField(
-            value = credentialRepresentation,
-            onValueChange = onChangeCredentialRepresentation,
-            options = credentialScheme.supportedRepresentations.toList(),
-            modifier = listSpacingModifier.fillMaxWidth(),
+        Text(
+            text = credentialIdentifierInfo.scheme.uiLabel(),
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        Text(
+            text = credentialIdentifierInfo.representation.uiLabel(),
+            style = MaterialTheme.typography.bodyMedium,
         )
     }
 }

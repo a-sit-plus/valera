@@ -8,29 +8,24 @@ import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.wallet.lib.data.ConstantIndex
+import at.asitplus.wallet.app.common.ProvisioningService
 import ui.composables.buttons.LoadDataButton
 import ui.composables.forms.StatefulLoadDataForm
 
 @Composable
 fun LoadDataView(
     // state
-    host: TextFieldValue,
-    onChangeHost: ((TextFieldValue) -> Unit)?,
-    credentialRepresentation: ConstantIndex.CredentialRepresentation,
-    onChangeCredentialRepresentation: ((ConstantIndex.CredentialRepresentation) -> Unit)?,
-    credentialScheme: ConstantIndex.CredentialScheme,
-    onChangeCredentialScheme: ((ConstantIndex.CredentialScheme) -> Unit)?,
+    host: String,
+    credentialIdentifierInfo: ProvisioningService.CredentialIdentifierInfo,
+    onChangeCredentialIdentifierInfo: (ProvisioningService.CredentialIdentifierInfo) -> Unit,
     requestedAttributes: Set<NormalizedJsonPath>,
     onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
     // other
     onSubmit: () -> Unit,
     modifier: Modifier = Modifier,
-    availableSchemes: List<ConstantIndex.CredentialScheme>,
-    showAttributes: Boolean,
+    availableIdentifiers: Collection<ProvisioningService.CredentialIdentifierInfo>,
 ) {
     Scaffold(
         bottomBar = {
@@ -49,16 +44,12 @@ fun LoadDataView(
     ) { scaffoldPadding ->
         StatefulLoadDataForm(
             host = host,
-            onChangeHost = onChangeHost,
-            credentialRepresentation = credentialRepresentation,
-            onChangeCredentialRepresentation = onChangeCredentialRepresentation,
-            credentialScheme = credentialScheme,
-            onChangeCredentialScheme = onChangeCredentialScheme,
+            credentialIdentifierInfo = credentialIdentifierInfo,
+            onChangeCredentialIdentifierInfo = onChangeCredentialIdentifierInfo,
             requestedAttributes = requestedAttributes,
             onChangeRequestedAttributes = onChangeRequestedAttributes,
             modifier = Modifier.padding(scaffoldPadding),
-            availableSchemes = availableSchemes,
-            showAttributes = showAttributes
+            availableIdentifiers = availableIdentifiers,
         )
     }
 }

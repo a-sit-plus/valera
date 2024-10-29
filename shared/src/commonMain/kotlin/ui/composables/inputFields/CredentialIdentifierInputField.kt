@@ -13,39 +13,38 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
-import at.asitplus.wallet.lib.data.ConstantIndex
+import at.asitplus.wallet.app.common.ProvisioningService
 import compose_wallet_app.shared.generated.resources.Res
-import compose_wallet_app.shared.generated.resources.text_label_id_scheme
+import compose_wallet_app.shared.generated.resources.text_label_id_identifier
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun StatefulCredentialSchemeInputField(
-    value: ConstantIndex.CredentialScheme,
-    onValueChange: ((ConstantIndex.CredentialScheme) -> Unit)?,
+fun StatefulCredentialIdentifierInputField(
+    value: ProvisioningService.CredentialIdentifierInfo,
+    onValueChange: ((ProvisioningService.CredentialIdentifierInfo) -> Unit)?,
     modifier: Modifier = Modifier,
-    availableSchemes: List<ConstantIndex.CredentialScheme>,
+    availableIdentifiers: Collection<ProvisioningService.CredentialIdentifierInfo>,
 ) {
-    StatefulCredentialSchemeInputField(
+    StatefulCredentialIdentifierInputField(
         value = value,
         onValueChange = onValueChange ?: {},
         enabled = onValueChange != null,
         modifier = modifier,
-        availableSchemes = availableSchemes,
+        availableIdentifiers = availableIdentifiers,
     )
 }
 
 @Composable
-fun StatefulCredentialSchemeInputField(
-    value: ConstantIndex.CredentialScheme,
-    onValueChange: (ConstantIndex.CredentialScheme) -> Unit,
+fun StatefulCredentialIdentifierInputField(
+    value: ProvisioningService.CredentialIdentifierInfo,
+    onValueChange: (ProvisioningService.CredentialIdentifierInfo) -> Unit,
     enabled: Boolean = true,
     modifier: Modifier = Modifier,
-    availableSchemes: List<ConstantIndex.CredentialScheme>,
+    availableIdentifiers: Collection<ProvisioningService.CredentialIdentifierInfo>,
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
-    CredentialSchemeInputField(
+    CredentialIdentifierInputField(
         value = value,
         onValueChange = {
             onValueChange(it)
@@ -53,26 +52,22 @@ fun StatefulCredentialSchemeInputField(
         },
         expanded = showMenu,
         enabled = enabled,
-        onExpandedChange = {
-            if (enabled) {
-                showMenu = it
-            }
-        },
+        onExpandedChange = { if (enabled) { showMenu = it } },
         modifier = modifier,
-        availableSchemes = availableSchemes,
+        availableIdentifiers = availableIdentifiers,
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CredentialSchemeInputField(
-    value: ConstantIndex.CredentialScheme,
-    onValueChange: (ConstantIndex.CredentialScheme) -> Unit,
+fun CredentialIdentifierInputField(
+    value: ProvisioningService.CredentialIdentifierInfo,
+    onValueChange: (ProvisioningService.CredentialIdentifierInfo) -> Unit,
     expanded: Boolean,
     enabled: Boolean = true,
     onExpandedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
-    availableSchemes: List<ConstantIndex.CredentialScheme>,
+    availableIdentifiers: Collection<ProvisioningService.CredentialIdentifierInfo>,
 ) {
     ExposedDropdownMenuBox(
         expanded = expanded,
@@ -81,30 +76,22 @@ fun CredentialSchemeInputField(
     ) {
         OutlinedTextField(
             readOnly = true,
-            value = value.uiLabel(),
+            value = value.credentialIdentifier,
             onValueChange = {},
-            label = {
-                Text(stringResource(Res.string.text_label_id_scheme))
-            },
+            label = { Text(stringResource(Res.string.text_label_id_identifier)) },
             enabled = enabled,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier.menuAnchor().fillMaxWidth(),
         )
         ExposedDropdownMenu(
             expanded = expanded,
-            onDismissRequest = {
-                onExpandedChange(false)
-            },
+            onDismissRequest = { onExpandedChange(false) },
             modifier = Modifier.fillMaxWidth(),
         ) {
-            for (scheme in availableSchemes) {
+            for (identifier in availableIdentifiers) {
                 DropdownMenuItem(
-                    text = {
-                        Text(scheme.uiLabel())
-                    },
-                    onClick = {
-                        onValueChange(scheme)
-                    },
+                    text = { Text(identifier.credentialIdentifier) },
+                    onClick = { onValueChange(identifier) },
                     enabled = enabled,
                 )
             }

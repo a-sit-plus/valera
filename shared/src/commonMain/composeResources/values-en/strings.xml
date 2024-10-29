@@ -142,6 +142,7 @@
     <string name="id_format_iso_mdoc_label">ISO_MDOC</string>
 
     <string name="text_label_issuing_service">Issuing Service</string>
+    <string name="text_label_id_identifier">Identifier</string>
     <string name="text_label_id_format">Representation</string>
     <string name="text_label_id_scheme">Credential Type</string>
     <string name="text_label_sex">Sex</string>
