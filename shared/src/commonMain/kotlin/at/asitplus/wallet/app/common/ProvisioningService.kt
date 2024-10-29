@@ -104,7 +104,13 @@ class ProvisioningService(
                 ?: it.value.isoClaims?.flatMap { it.value.keys }
                 ?: listOf()
 
-            CredentialIdentifierInfo(identifier, scope, scheme.toExportableCredentialScheme(), representation, attributes)
+            CredentialIdentifierInfo(
+                identifier,
+                scope,
+                scheme.toExportableCredentialScheme(),
+                representation,
+                attributes
+            )
         }
     }
 
@@ -231,7 +237,7 @@ class ProvisioningService(
     @Throws(Throwable::class)
     suspend fun decodeCredentialOffer(
         qrCodeContent: String
-    ): CredentialOfferInfo {
+    ): CredentialOffer {
         val walletService = WalletService(
             cryptoService = cryptoService,
             remoteResourceRetriever = { url ->
@@ -239,8 +245,7 @@ class ProvisioningService(
                     client.get(url).bodyAsText()
                 }
             })
-        val credentialOffer = walletService.parseCredentialOffer(qrCodeContent).getOrThrow()
-        return CredentialOfferInfo(credentialOffer)
+        return walletService.parseCredentialOffer(qrCodeContent).getOrThrow()
     }
 
     /**
@@ -332,10 +337,3 @@ private data class ProvisioningContext(
     val requestedAttributes: Set<String>?,
 )
 
-@Serializable
-data class CredentialOfferInfo(
-    /**
-     * The credential offer as parsed
-     */
-    val credentialOffer: CredentialOffer,
-)
