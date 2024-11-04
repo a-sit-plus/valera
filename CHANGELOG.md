@@ -1,5 +1,5 @@
 # Release 5.3.0
- * tbd
+ * Update to vck 5.1.0
 
 # Release 5.2.0
  * Display requested attributes on Consent screen

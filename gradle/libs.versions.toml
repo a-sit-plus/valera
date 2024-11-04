@@ -1,5 +1,5 @@
 [versions]
-vck = "5.1.0-SNAPSHOT"
+vck = "5.1.0"
 mdl = "1.1.1"
 ida = "3.9.1"
 eupid = "2.2.1"
