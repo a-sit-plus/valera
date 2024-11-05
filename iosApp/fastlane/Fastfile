@@ -15,8 +15,10 @@ lane :deploy do
     certificate_password: ENV['APPLE_CERT_PASSWORD'],
     keychain_name: "fastlane_tmp_keychain"
   )
-  sigh()
-  increment_build_number
+  get_provisioning_profile(
+    provisioning_name: "Compose Wallet Distribution"
+  )
+  increment_build_number()
   update_project_provisioning()
   build_app(
     xcargs: "-allowProvisioningUpdates",
