@@ -19,9 +19,12 @@ lane :deploy do
     provisioning_name: "Compose Wallet Distribution"
   )
   increment_build_number()
-  update_project_provisioning()
+  update_project_provisioning(
+    build_configuration: "Release"
+  )
   build_app(
     xcargs: "-allowProvisioningUpdates",
+    configuration: "Release",
     export_method: "app-store"
   )
   upload_to_testflight(
