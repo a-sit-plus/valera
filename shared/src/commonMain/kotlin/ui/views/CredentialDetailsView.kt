@@ -1,4 +1,4 @@
-package ui.screens
+package ui.views
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,7 +20,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
-import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.eprescription.EPrescriptionScheme
 import at.asitplus.wallet.eupid.EuPidScheme
@@ -30,7 +29,6 @@ import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.heading_label_credential_details_screen
-import data.storage.StoreEntryId
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.CertificateOfResidenceCredentialView
@@ -40,43 +38,27 @@ import ui.composables.credentials.GenericCredentialSummaryCardContent
 import ui.composables.credentials.IdAustriaCredentialView
 import ui.composables.credentials.MobileDrivingLicenceCredentialView
 import ui.composables.credentials.PowerOfRepresentationCredentialView
+import ui.composables.CredentialCardActionMenu
+import ui.viewmodels.CredentialDetailsViewModel
 
 @Composable
-fun CredentialDetailsScreen(
-    storeEntryId: StoreEntryId,
-    navigateUp: () -> Unit,
-    walletMain: WalletMain,
+fun CredentialDetailsView(
+    vm: CredentialDetailsViewModel,
 ) {
-    CredentialDetailsScreen(
-        navigateUp = navigateUp,
-        viewModel = CredentialDetailsScreenViewModel(
-            storeEntryId = storeEntryId,
-            walletMain = walletMain,
-        ),
-        imageDecoder = walletMain.platformAdapter::decodeImage
-    )
-}
-
-@Composable
-fun CredentialDetailsScreen(
-    navigateUp: () -> Unit,
-    viewModel: CredentialDetailsScreenViewModel,
-    imageDecoder: (ByteArray) -> ImageBitmap,
-) {
-    val storeEntry by viewModel.storeEntry.collectAsState(null)
+    val storeEntry by vm.storeEntry.collectAsState(null)
 
     CredentialDetailsScaffold(
         isStoreEntryAvailable = storeEntry != null,
-        navigateUp = navigateUp,
+        navigateUp = vm.navigateUp,
         onDelete = {
-            viewModel.deleteStoreEntry()
-            navigateUp()
+            vm.deleteStoreEntry()
+            vm.navigateUp()
         },
     ) {
         storeEntry?.let {
-            CredentialDetailsView(
+            CredentialDetailsSummaryView(
                 storeEntry = it,
-                imageDecoder = imageDecoder,
+                imageDecoder = vm.imageDecoder,
             )
         } ?: Column(
             modifier = Modifier.fillMaxSize(),
@@ -131,7 +113,7 @@ fun CredentialDetailsScaffold(
 }
 
 @Composable
-fun CredentialDetailsView(
+fun CredentialDetailsSummaryView(
     storeEntry: SubjectCredentialStore.StoreEntry,
     imageDecoder: (ByteArray) -> ImageBitmap,
 ) {

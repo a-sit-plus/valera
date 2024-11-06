@@ -1,4 +1,4 @@
-package ui.screens
+package ui.views
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -36,7 +36,7 @@ import ui.composables.buttons.NavigateUpButton
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
 @Composable
-fun OnboardingTermsScreen(
+fun OnboardingTermsView(
     onClickNavigateBack: () -> Unit,
     onClickReadGeneralTermsAndConditions: () -> Unit,
     onClickReadDataProtectionPolicy: () -> Unit,

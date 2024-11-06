@@ -1,4 +1,4 @@
-package ui.screens
+package ui.views
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -35,7 +35,7 @@ internal object OnboardingStartScreenTestTag {
 
 @OptIn(ExperimentalResourceApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun OnboardingStartScreen(
+fun OnboardingStartView(
     onClickStart: () -> Unit,
     modifier: Modifier = Modifier,
 ) {

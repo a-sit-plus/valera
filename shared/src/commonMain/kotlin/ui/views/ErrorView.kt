@@ -1,4 +1,4 @@
-package ui.screens
+package ui.views
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -40,7 +40,7 @@ import ui.composables.TextIconButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ErrorScreen(
+fun ErrorView(
     resetStack: () -> Unit,
     message: String?,
     cause: String?

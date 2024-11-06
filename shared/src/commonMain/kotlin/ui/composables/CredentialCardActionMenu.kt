@@ -1,4 +1,4 @@
-package ui.screens
+package ui.composables
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -17,8 +17,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import compose_wallet_app.shared.generated.resources.Res
-import compose_wallet_app.shared.generated.resources.content_description_delete_credential
 import compose_wallet_app.shared.generated.resources.button_label_delete_credential
+import compose_wallet_app.shared.generated.resources.content_description_delete_credential
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

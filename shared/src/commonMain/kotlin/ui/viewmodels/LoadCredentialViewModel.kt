@@ -1,4 +1,4 @@
-package ui.screens
+package ui.viewmodels
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.openid.CredentialOffer
@@ -35,7 +35,11 @@ class LoadCredentialViewModel {
         this.hostString = hostString
         this.transactionCodeRequirements = null
         credentialIdentifiers = runBlocking {
-            withContext(Dispatchers.IO) { walletMain.provisioningService.loadCredentialMetadata(hostString) }
+            withContext(Dispatchers.IO) {
+                walletMain.provisioningService.loadCredentialMetadata(
+                    hostString
+                )
+            }
         }
     }
 
@@ -53,10 +57,8 @@ class LoadCredentialViewModel {
         credentialIdentifiers = runBlocking {
             withContext(Dispatchers.IO) {
                 walletMain.provisioningService.loadCredentialMetadata(hostString)
-                    //TODO.filter { it.credentialIdentifier in offer.credentialOffer.configurationIds }
+                //TODO.filter { it.credentialIdentifier in offer.credentialOffer.configurationIds }
             }
         }
     }
-
-
 }

@@ -1,4 +1,4 @@
-package ui.screens
+package ui.views
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,33 +15,27 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.heading_label_authentication_success
 import compose_wallet_app.shared.generated.resources.info_text_authentication_success
-import compose_wallet_app.shared.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.ConcludeButton
 import ui.composables.buttons.NavigateUpButton
-
-@Composable
-fun AuthenticationSuccessScreen(
-    navigateUp: () -> Unit,
-) {
-    AuthenticationSuccessView(
-        navigateUp = navigateUp,
-    )
-}
-
+import ui.viewmodels.AuthenticationSuccessViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
 @Composable
 fun AuthenticationSuccessView(
-    navigateUp: () -> Unit,
+    vm: AuthenticationSuccessViewModel
 ) {
+    val vm = remember { vm }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -52,7 +46,7 @@ fun AuthenticationSuccessView(
                     )
                 },
                 navigationIcon = {
-                    NavigateUpButton(navigateUp)
+                    NavigateUpButton(vm.navigateUp)
                 },
             )
         },
@@ -66,7 +60,7 @@ fun AuthenticationSuccessView(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
                     horizontalArrangement = Arrangement.Center,
                 ) {
-                    ConcludeButton(navigateUp)
+                    ConcludeButton(vm.navigateUp)
                 }
             }
         }

@@ -1,23 +1,17 @@
-package ui.screens
+package ui.viewmodels
 
 import at.asitplus.wallet.app.common.WalletMain
 import data.storage.StoreEntryId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
-class CredentialDetailsScreenViewModel(
-    val storeEntryId: StoreEntryId,
+class CredentialsViewModel(
     val walletMain: WalletMain,
 ) {
-    val storeEntry = walletMain.subjectCredentialStore.observeStoreContainer().map { container ->
-        container.credentials.find {
-            it.first == storeEntryId
-        }?.second
-    }
+    val storeContainer = walletMain.subjectCredentialStore.observeStoreContainer()
 
-    fun deleteStoreEntry() {
+    fun removeStoreEntryById(storeEntryId: StoreEntryId) {
         walletMain.scope.launch(Dispatchers.IO) {
             walletMain.subjectCredentialStore.removeStoreEntryById(storeEntryId)
         }

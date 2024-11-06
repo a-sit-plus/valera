@@ -1,27 +1,25 @@
-package ui.screens
+package ui.views
 
-import PreAuthQrCodeScannerViewModel
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import compose_wallet_app.shared.generated.resources.Res
+import compose_wallet_app.shared.generated.resources.heading_label_authenticate_at_device_subtitle
 import compose_wallet_app.shared.generated.resources.heading_label_authenticate_at_device_title
 import org.jetbrains.compose.resources.stringResource
+import ui.viewmodels.AuthenticationQrCodeScannerViewModel
 
 @Composable
-fun PreAuthQrCodeScannerScreen(
-    vm: PreAuthQrCodeScannerViewModel
+fun AuthenticationQrCodeScannerView(
+    vm: AuthenticationQrCodeScannerViewModel
 ) {
     val vm = remember { vm }
 
     if (vm.isLoading) {
-        LoadingScreen()
+        LoadingView()
     } else {
         GenericQrCodeScannerView(title = stringResource(Res.string.heading_label_authenticate_at_device_title),
-            subTitle = null,
+            subTitle = stringResource(Res.string.heading_label_authenticate_at_device_subtitle),
             navigateUp = vm.navigateUp,
-            onFoundQrCode = { payload ->
-                vm.isLoading = true
-                vm.getCredential(payload)
-            })
+            onFoundQrCode = { payload -> vm.onScan(payload) })
     }
 }

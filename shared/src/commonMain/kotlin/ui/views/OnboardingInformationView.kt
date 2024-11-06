@@ -1,4 +1,4 @@
-package ui.screens
+package ui.views
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.heading_label_information_screen
 import compose_wallet_app.shared.generated.resources.info_text_enthusiastic_welcome_end
 import compose_wallet_app.shared.generated.resources.onboarding_section_load_data_icon_text
@@ -31,7 +32,6 @@ import compose_wallet_app.shared.generated.resources.onboarding_section_show_dat
 import compose_wallet_app.shared.generated.resources.onboarding_section_show_data_title
 import compose_wallet_app.shared.generated.resources.onboarding_section_terms_and_data_protection_icon_text
 import compose_wallet_app.shared.generated.resources.onboarding_section_terms_and_data_protection_title
-import compose_wallet_app.shared.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.TextIcon
@@ -40,7 +40,7 @@ import ui.composables.buttons.ContinueButton
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
 @Composable
-fun OnboardingInformationScreen(
+fun OnboardingInformationView(
     onClickContinue: () -> Unit,
 ) {
     Scaffold(
