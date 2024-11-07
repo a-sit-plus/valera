@@ -1,7 +1,9 @@
 package ui.composables
 
+import android.os.Build
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
+import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
 import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import androidx.biometric.BiometricPrompt
 import androidx.compose.material3.AlertDialog
@@ -38,7 +40,10 @@ actual fun BiometryPrompt(
     val context = LocalContext.current
     val biometricManager = remember { BiometricManager.from(context) }
 
-    val authenticators = BIOMETRIC_STRONG or DEVICE_CREDENTIAL
+    val authenticators = when (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
+        true -> BIOMETRIC_WEAK or DEVICE_CREDENTIAL
+        false -> BIOMETRIC_STRONG or DEVICE_CREDENTIAL
+    }
 
     val isBiometricAvailable = remember {
         biometricManager.canAuthenticate(authenticators)

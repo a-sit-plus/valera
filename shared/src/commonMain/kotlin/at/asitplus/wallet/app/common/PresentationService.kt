@@ -2,7 +2,7 @@ package at.asitplus.wallet.app.common
 
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
-import at.asitplus.wallet.lib.oidc.AuthenticationRequestParameters
+import at.asitplus.wallet.lib.oidc.AuthenticationRequestParametersFrom
 import at.asitplus.wallet.lib.oidc.AuthenticationResponseResult
 import at.asitplus.wallet.lib.oidc.OidcSiopWallet
 import io.github.aakira.napier.Napier
@@ -36,7 +36,7 @@ class PresentationService(
 
     @Throws(Throwable::class)
     suspend fun startSiop(
-        authenticationRequestParameters: AuthenticationRequestParameters,
+        authenticationRequestParameters: AuthenticationRequestParametersFrom<*>,
         fromQrCodeScanner: Boolean
     ) {
         Napier.d("Start SIOP process: $authenticationRequestParameters")

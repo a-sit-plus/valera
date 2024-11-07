@@ -16,7 +16,23 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun IssuingServiceInputField(
     value: TextFieldValue,
+    onValueChange: ((TextFieldValue) -> Unit)?,
+    modifier: Modifier = Modifier,
+) {
+    IssuingServiceInputField(
+        value = value,
+        onValueChange = onValueChange ?: {},
+        enabled = onValueChange != null,
+        modifier = modifier,
+    )
+}
+
+@OptIn(ExperimentalResourceApi::class)
+@Composable
+fun IssuingServiceInputField(
+    value: TextFieldValue,
     onValueChange: (TextFieldValue) -> Unit,
+    enabled: Boolean,
     modifier: Modifier = Modifier,
 ) {
     OutlinedTextField(
@@ -25,6 +41,7 @@ fun IssuingServiceInputField(
         label = {
             Text(stringResource(Res.string.text_label_issuing_service))
         },
+        enabled = enabled,
         keyboardOptions = KeyboardOptions(
             imeAction = ImeAction.Done
         ),

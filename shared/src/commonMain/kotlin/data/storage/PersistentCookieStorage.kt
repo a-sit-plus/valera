@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.datetime.Instant
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -172,7 +173,8 @@ data class ExportableCookie(
     val encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
     @get:JvmName("getMaxAgeInt")
     val maxAge: Int = 0,
-    @Contextual val expires: GMTDate? = null,
+//    @Contextual val expires: GMTDate? = null,
+    val expires: Instant? = null,
     val domain: String? = null,
     val path: String? = null,
     val secure: Boolean = false,
@@ -195,7 +197,7 @@ fun MutableList<Cookie>.toExportableCookieList(): MutableList<ExportableCookie> 
             value = it.value,
             encoding = it.encoding,
             maxAge = it.maxAge,
-            expires = it.expires,
+            expires = it.expires?.let { Instant.fromEpochMilliseconds(it.timestamp) },
             domain = it.domain,
             path = it.path,
             secure = false,
@@ -212,7 +214,7 @@ fun MutableList<ExportableCookie>.toCookieList(): MutableList<Cookie> {
             value = it.value,
             encoding = it.encoding,
             maxAge = it.maxAge,
-            expires = it.expires,
+            expires = it.expires?.let { GMTDate(it.toEpochMilliseconds()) },
             domain = it.domain,
             path = it.path,
             secure = false,

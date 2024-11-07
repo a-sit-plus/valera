@@ -3,8 +3,9 @@ package data
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.ConstantIndex
-import at.asitplus.wallet.lib.iso.MobileDrivingLicenceDataElements
+import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
 import composewalletapp.shared.generated.resources.Res
+import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import composewalletapp.shared.generated.resources.attribute_friendly_name_age_at_least_14
 import composewalletapp.shared.generated.resources.attribute_friendly_name_age_at_least_16
 import composewalletapp.shared.generated.resources.attribute_friendly_name_age_at_least_18
@@ -85,7 +86,7 @@ class AttributeTranslator(val credentialScheme: ConstantIndex.CredentialScheme) 
                 else -> null
             }
 
-            is ConstantIndex.MobileDrivingLicence2023 -> when (attributeName) {
+            is MobileDrivingLicenceScheme -> when (attributeName) {
                 MobileDrivingLicenceDataElements.GIVEN_NAME -> Res.string.attribute_friendly_name_firstname
                 MobileDrivingLicenceDataElements.FAMILY_NAME -> Res.string.attribute_friendly_name_lastname
                 MobileDrivingLicenceDataElements.PORTRAIT -> Res.string.attribute_friendly_name_portrait

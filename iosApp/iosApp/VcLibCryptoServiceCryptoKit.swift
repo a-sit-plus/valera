@@ -3,13 +3,9 @@ import CryptoKit
 import shared
 
 
-public class VcLibCryptoServiceCryptoKit: CryptoService {
-    public var publicKey: CryptoPublicKey
+public class VcLibCryptoServiceCryptoKit: CryptoServiceAdapter {
+   
     public var identifier: String
-    public var coseKey: CoseKey
-    public var algorithm: CryptoAlgorithm
-    public var jsonWebKey: JsonWebKey
-    public var certificate: X509Certificate?
     private let keyChainService: KeyChainService
 
     public init?(keyChainService: KeyChainService) {
@@ -22,15 +18,14 @@ public class VcLibCryptoServiceCryptoKit: CryptoService {
             NapierProxy.companion.w(msg: "Cannot convert publicKey")
             return nil
         }
-        self.publicKey = publicKey
+        
         self.identifier = publicKey.toJsonWebKey().identifier
-        self.algorithm = .es256
-        self.coseKey = publicKey.toCoseKey(algorithm: nil).getOrThrow()!
-        self.jsonWebKey = publicKey.toJsonWebKey()
-        self.certificate = nil
+        super.init(publicKey: publicKey, algorithm: .es256,coseKey: publicKey.toCoseKey(algorithm: nil).getOrThrow()!, jsonWebKey: publicKey.toJsonWebKey(), certificate: nil )
+      
+       
     }
 
-    public func decrypt(key: KotlinByteArray, iv: KotlinByteArray, aad: KotlinByteArray, input: KotlinByteArray, authTag: KotlinByteArray, algorithm: JweEncryption) async throws -> KmmResult<KotlinByteArray> {
+    public override func decrypt(key: KotlinByteArray, iv: KotlinByteArray, aad: KotlinByteArray, input: KotlinByteArray, authTag: KotlinByteArray, algorithm: JweEncryption) async throws -> KmmResult<KotlinByteArray> {
         switch algorithm {
         case .a256gcm:
             let key = SymmetricKey(data: key.data)
@@ -45,7 +40,7 @@ public class VcLibCryptoServiceCryptoKit: CryptoService {
         }
     }
 
-    public func encrypt(key: KotlinByteArray, iv: KotlinByteArray, aad: KotlinByteArray, input: KotlinByteArray, algorithm: JweEncryption) -> KmmResult<AuthenticatedCiphertext> {
+    public override func encrypt(key: KotlinByteArray, iv: KotlinByteArray, aad: KotlinByteArray, input: KotlinByteArray, algorithm: JweEncryption) -> KmmResult<AuthenticatedCiphertext> {
         switch algorithm {
         case .a256gcm:
             let key = SymmetricKey(data: key.data)
@@ -60,7 +55,7 @@ public class VcLibCryptoServiceCryptoKit: CryptoService {
         }
     }
 
-    public func generateEphemeralKeyPair(ecCurve: EcCurve) -> KmmResult<EphemeralKeyHolder> {
+    public override func generateEphemeralKeyPair(ecCurve: ECCurve) -> KmmResult<EphemeralKeyHolder> {
         switch ecCurve {
         case .secp256R1:
             return KmmResultSuccess(VcLibEphemeralKeyHolder())
@@ -69,7 +64,7 @@ public class VcLibCryptoServiceCryptoKit: CryptoService {
         }
     }
 
-    public func messageDigest(input: KotlinByteArray, digest: KmpCryptoDigest) -> KmmResult<KotlinByteArray> {
+    public override func messageDigest(input: KotlinByteArray, digest: KmpCryptoDigest) -> KmmResult<KotlinByteArray> {
         switch digest {
         case .sha256:
             let digest = SHA256.hash(data: input.data)
@@ -80,9 +75,9 @@ public class VcLibCryptoServiceCryptoKit: CryptoService {
         }
     }
 
-    public func performKeyAgreement(ephemeralKey: EphemeralKeyHolder, recipientKey: JsonWebKey, algorithm: JweAlgorithm) -> KmmResult<KotlinByteArray> {
-        switch algorithm {
-        case .ecdhEs:
+    public override func performKeyAgreement(ephemeralKey: EphemeralKeyHolder, recipientKey: JsonWebKey, algorithm: JweAlgorithm) -> KmmResult<KotlinByteArray> {
+        switch algorithm.identifier {
+        case "ECDH-ES":
             let recipientKeyBytes = recipientKey.toCryptoPublicKey()
             if let throwable = recipientKeyBytes.exceptionOrNull() {
                 return KmmResultFailure(throwable)
@@ -102,9 +97,9 @@ public class VcLibCryptoServiceCryptoKit: CryptoService {
         }
     }
 
-    public func performKeyAgreement(ephemeralKey: JsonWebKey, algorithm: JweAlgorithm) -> KmmResult<KotlinByteArray> {
-        switch algorithm {
-        case .ecdhEs:
+    public override func performKeyAgreement(ephemeralKey: JsonWebKey, algorithm: JweAlgorithm) -> KmmResult<KotlinByteArray> {
+        switch algorithm.identifier {
+        case "ECDH-ES":
             guard let privateKey = keyChainService.loadPrivateKey() else {
                 return KmmResultFailure(KotlinThrowable(message: "Could not load private key"))
             }
@@ -127,7 +122,7 @@ public class VcLibCryptoServiceCryptoKit: CryptoService {
         }
     }
 
-    public func sign(input: KotlinByteArray) async throws -> KmmResult<CryptoSignature> {
+    public override func sign(input: KotlinByteArray) async throws -> KmmResult<CryptoSignatureRawByteEncodable> {
         guard let privateKey = keyChainService.loadPrivateKey() else {
             return KmmResultFailure(KotlinThrowable(message: "Could not load private key"))
         }
@@ -136,7 +131,7 @@ public class VcLibCryptoServiceCryptoKit: CryptoService {
         }
         // Cast is needed, because the generic Asn1Decodable interface declares the return type as Asn1Encodable, and the implementing classes fix the return type to a specific class
         // Apparently this gets lost when generating ObjC headers
-        return KmmResultSuccess(try CryptoSignature.companion.decodeFromDer(src: signature.derRepresentation.kotlinByteArray) as! CryptoSignature)
+        return KmmResultSuccess(try CryptoSignatureEC.companion.fromRawBytes(input: signature.derRepresentation.kotlinByteArray))
     }
 
 
@@ -144,19 +139,19 @@ public class VcLibCryptoServiceCryptoKit: CryptoService {
 
 public class VcLibVerifierCryptoService : VerifierCryptoService {
 
-    public var supportedAlgorithms: [CryptoAlgorithm] = [.es256]
+    public var supportedAlgorithms: [X509SignatureAlgorithm] = [.es256]
 
-    public func verify(input: KotlinByteArray, signature: CryptoSignature, algorithm: CryptoAlgorithm, publicKey: CryptoPublicKey) -> KmmResult<KotlinBoolean> {
+    public func verify(input: KotlinByteArray, signature: CryptoSignature, algorithm: X509SignatureAlgorithm, publicKey: CryptoPublicKey) -> KmmResult<KotlinBoolean> {
         if algorithm != .es256 {
             return KmmResultFailure(KotlinThrowable(message: "Can not verify algorithm \(algorithm.name)"))
         }
         guard let cryptoKitPublicKey = try? P256.Signing.PublicKey(x963Representation: publicKey.iosEncoded.data) else {
             return KmmResultFailure(KotlinThrowable(message: "Can not create CryptoKit key"))
         }
-        if let cryptoKitSignature = try? P256.Signing.ECDSASignature(derRepresentation: signature.rawByteArray.data) {
+        if let cryptoKitSignature = try? P256.Signing.ECDSASignature(derRepresentation: (signature as! CryptoSignatureRawByteEncodable).rawByteArray.data) {
             let valid = cryptoKitPublicKey.isValidSignature(cryptoKitSignature, for: input.data)
             return KmmResultSuccess(KotlinBoolean(value: valid))
-        } else if let cryptoKitSignature = try? P256.Signing.ECDSASignature(rawRepresentation: signature.rawByteArray.data) {
+        } else if let cryptoKitSignature = try? P256.Signing.ECDSASignature(rawRepresentation: (signature as! CryptoSignatureRawByteEncodable).rawByteArray.data) {
             let valid = cryptoKitPublicKey.isValidSignature(cryptoKitSignature, for: input.data)
             return KmmResultSuccess(KotlinBoolean(value: valid))
         } else {

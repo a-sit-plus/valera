@@ -3,7 +3,8 @@ package ui.composables
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.ConstantIndex
-import at.asitplus.wallet.lib.iso.MobileDrivingLicenceDataElements
+import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
+import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.section_heading_admission_data
 import composewalletapp.shared.generated.resources.section_heading_admission_data_icon_text
@@ -51,7 +52,7 @@ enum class PersonalDataCategory(
                 EuPidScheme.Attributes.GENDER,
                 EuPidScheme.Attributes.NATIONALITY,
             ),
-            ConstantIndex.MobileDrivingLicence2023 to listOf(
+            MobileDrivingLicenceScheme to listOf(
                 MobileDrivingLicenceDataElements.GIVEN_NAME,
                 MobileDrivingLicenceDataElements.FAMILY_NAME,
                 MobileDrivingLicenceDataElements.BIRTH_DATE,
@@ -76,7 +77,7 @@ enum class PersonalDataCategory(
             EuPidScheme to listOf(
                 EuPidScheme.Attributes.AGE_OVER_18,
             ),
-            ConstantIndex.MobileDrivingLicence2023 to listOf(
+            MobileDrivingLicenceScheme to listOf(
                 MobileDrivingLicenceDataElements.AGE_OVER_18,
             ),
         ),
@@ -97,7 +98,7 @@ enum class PersonalDataCategory(
                 EuPidScheme.Attributes.RESIDENT_STREET,
                 EuPidScheme.Attributes.RESIDENT_HOUSE_NUMBER,
             ),
-            ConstantIndex.MobileDrivingLicence2023 to listOf(
+            MobileDrivingLicenceScheme to listOf(
                 MobileDrivingLicenceDataElements.RESIDENT_ADDRESS,
                 MobileDrivingLicenceDataElements.RESIDENT_CITY,
                 MobileDrivingLicenceDataElements.RESIDENT_POSTAL_CODE,

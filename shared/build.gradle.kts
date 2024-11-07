@@ -1,6 +1,7 @@
 import at.asitplus.gradle.datetime
 import at.asitplus.gradle.exportIosFramework
 import at.asitplus.gradle.kmmresult
+import at.asitplus.gradle.kotest
 import at.asitplus.gradle.ktor
 import at.asitplus.gradle.napier
 import at.asitplus.gradle.serialization
@@ -11,10 +12,11 @@ import org.jetbrains.kotlin.gradle.plugin.extraProperties
 plugins {
     kotlin("multiplatform")
     id("com.android.library")
-    id("org.jetbrains.compose")
-    id("at.asitplus.gradle.conventions")
+    alias(libs.plugins.jetbrainsCompose)
+    alias(libs.plugins.compose.compiler)
     id("kotlin-parcelize")
     kotlin("plugin.serialization")
+    id("at.asitplus.gradle.conventions")
 }
 
 kotlin {
@@ -36,8 +38,6 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation("androidx.biometric:biometric:1.2.0-alpha05")
-
                 implementation(compose.runtime)
                 implementation(compose.foundation)
                 implementation(compose.material3)
@@ -45,6 +45,7 @@ kotlin {
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
                 api(libs.vclib.openid)
+                api(libs.vclib.mdl)
                 api(libs.vclib)
                 api(libs.credential.ida)
                 api(libs.credential.eupid)
@@ -68,15 +69,15 @@ kotlin {
             dependencies {
                 implementation(kotlin("test"))
                 implementation(kotlin("test-common"))
-
+                
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.uiTest)
-
             }
         }
 
         androidMain {
             dependencies {
+                implementation("androidx.biometric:biometric:1.2.0-alpha05")
                 api("androidx.activity:activity-compose:1.8.1")
                 api("androidx.appcompat:appcompat:1.6.1")
                 api("androidx.core:core-ktx:1.12.0")
@@ -102,11 +103,12 @@ kotlin {
 }
 
 exportIosFramework(
-    name = "shared", static = true, libs.vclib,
+    name = "shared", static = true,
+    vclibCatalog.vclib,
     libs.credential.ida,
     datetime(),
-    libs.bignum,
-    kmmresult(),
+    kmpCryptoCatalog.bignum,
+    kmpCryptoCatalog.kmmresult,
     libs.kmpCrypto,
     libs.kmpCrypto.jws,
     libs.kmpCrypto.cose,
@@ -114,6 +116,19 @@ exportIosFramework(
     libs.base64,
     napier()
 )
+
+
+
+configurations.all {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.jetbrains.kotlin" && requested.name == "kotlin-reflect" && requested.version == "1.9.23") {
+            useVersion("2.0.0")
+            because("of reasons! This is only a workaround until the underlying issue is sorted out")
+        }
+    }
+}
+
+
 
 android {
     compileSdk = (extraProperties["android.compileSdk"] as String).toInt()
@@ -134,6 +149,7 @@ android {
         resources.excludes.add("META-INF/licenses/**")
         resources.excludes.add("META-INF/AL2.0")
         resources.excludes.add("META-INF/LGPL2.1")
+        resources.excludes.add("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
 
     }
 
@@ -154,4 +170,5 @@ android {
 
 repositories {
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+    maven("https://oss.sonatype.org/content/repositories/snapshots/")
 }

@@ -11,7 +11,6 @@ import data.CredentialExtractor
 import ui.composables.AdmissionData
 import ui.composables.AgeData
 import ui.composables.DrivingData
-import ui.composables.FloatingActionButtonHeightSpacer
 import ui.composables.IdentityData
 import ui.composables.PersonAdmissionDataDetailCard
 import ui.composables.PersonAgeDataDetailCard
@@ -131,8 +130,4 @@ fun ColumnScope.MyDataView(
             )
         }
     }
-    // make sufficient scroll space for FAB
-    FloatingActionButtonHeightSpacer(
-        externalPadding = gapSize,
-    )
 }

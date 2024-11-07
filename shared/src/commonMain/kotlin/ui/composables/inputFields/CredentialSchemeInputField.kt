@@ -13,9 +13,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.identifier
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.ConstantIndex
+import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import composewalletapp.shared.generated.resources.Res
 import composewalletapp.shared.generated.resources.credential_scheme_label_eu_pid
 import composewalletapp.shared.generated.resources.credential_scheme_label_id_austria
@@ -23,6 +25,20 @@ import composewalletapp.shared.generated.resources.credential_scheme_label_mdl
 import composewalletapp.shared.generated.resources.text_label_id_scheme
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
+
+@Composable
+fun StatefulCredentialSchemeInputField(
+    value: ConstantIndex.CredentialScheme,
+    onValueChange: ((ConstantIndex.CredentialScheme) -> Unit)?,
+    modifier: Modifier = Modifier,
+) {
+    StatefulCredentialSchemeInputField(
+        value = value,
+        onValueChange = onValueChange ?: {},
+        enabled = onValueChange != null,
+        modifier = modifier,
+    )
+}
 
 @Composable
 fun StatefulCredentialSchemeInputField(
@@ -41,7 +57,9 @@ fun StatefulCredentialSchemeInputField(
         },
         expanded = showMenu,
         onExpandedChange = {
-            showMenu = it
+            if (enabled) {
+                showMenu = it
+            }
         },
         enabled = enabled,
         modifier = modifier,
@@ -82,7 +100,7 @@ fun CredentialSchemeInputField(
             modifier = Modifier.fillMaxWidth(),
         ) {
             for (scheme in listOf(
-                ConstantIndex.MobileDrivingLicence2023,
+                MobileDrivingLicenceScheme,
                 IdAustriaScheme,
                 EuPidScheme,
             )) {
@@ -100,11 +118,10 @@ fun CredentialSchemeInputField(
     }
 }
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun ConstantIndex.CredentialScheme.uiLabel(): String = when (this) {
     is IdAustriaScheme -> stringResource(Res.string.credential_scheme_label_id_austria)
     is EuPidScheme -> stringResource(Res.string.credential_scheme_label_eu_pid)
-    is ConstantIndex.MobileDrivingLicence2023 -> stringResource(Res.string.credential_scheme_label_mdl)
-    else -> this.vcType
+    is MobileDrivingLicenceScheme -> stringResource(Res.string.credential_scheme_label_mdl)
+    else -> this.identifier
 }
