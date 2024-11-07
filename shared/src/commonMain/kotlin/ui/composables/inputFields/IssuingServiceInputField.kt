@@ -9,10 +9,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.text_label_issuing_service
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun IssuingServiceInputField(
     value: TextFieldValue,
@@ -27,7 +25,6 @@ fun IssuingServiceInputField(
     )
 }
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun IssuingServiceInputField(
     value: TextFieldValue,

@@ -5,12 +5,12 @@ import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.oidc.OidcSiopWallet
 import io.github.aakira.napier.Napier
 import kotlinx.serialization.encodeToString
-import ui.navigation.AuthenticationConsentPage
+import ui.navigation.Routes.AuthenticationConsentRoute
 
 class BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
     val oidcSiopWallet: OidcSiopWallet,
 ) {
-    suspend operator fun invoke(requestUri: String): KmmResult<AuthenticationConsentPage> {
+    suspend operator fun invoke(requestUri: String): KmmResult<AuthenticationConsentRoute> {
         val request =
             oidcSiopWallet.parseAuthenticationRequestParameters(requestUri).getOrElse {
                 Napier.d("authenticationRequestParameters: $it")
@@ -23,7 +23,7 @@ class BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
 
         // TODO: extract recipient name from the metadataResponse; the data is not yet being delivered though
         return KmmResult.success(
-            AuthenticationConsentPage(
+            AuthenticationConsentRoute(
                 authenticationRequestParametersFromSerialized = vckJsonSerializer.encodeToString(request),
                 authorizationPreparationStateSerialized = vckJsonSerializer.encodeToString(preparationState),
                 recipientLocation = request.parameters.clientId ?: "",

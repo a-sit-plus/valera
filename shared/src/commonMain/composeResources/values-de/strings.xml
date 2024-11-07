@@ -119,6 +119,11 @@
     <string name="credential_representation_format_label_sd_jwt">SD-JWT</string>
     <string name="credential_representation_format_label_mso_mdoc">ISO mDoc</string>
 
+    <string name="issuing_label_host">Issuing service</string>
+    <string name="issuing_label_scheme">Schema</string>
+    <string name="issuing_label_representation">Repräsentation</string>
+    <string name="issuing_label_transaction_code">Transaktionscode</string>
+
     <string name="credential_scheme_icon_label_mdl">mDL</string>
     <string name="credential_scheme_label_mdl">mDL</string>
     <string name="credential_scheme_icon_label_eu_pid">PID</string>
@@ -140,6 +145,7 @@
     <string name="id_format_iso_mdoc_label">ISO_MDOC</string>
 
     <string name="text_label_issuing_service">Ausstellservice</string>
+    <string name="text_label_id_identifier">Bezeichnung</string>
     <string name="text_label_id_format">Datenrepräsentation</string>
     <string name="text_label_id_scheme">Credential Typ</string>
     <string name="text_label_sex">Geschlecht</string>
@@ -233,7 +239,6 @@
     <string name="section_heading_show_data_to_other_citizen_subtitle">dritte Bürger</string>
     <string name="section_heading_actions">Aktionen</string>
     <string name="section_heading_information">Information</string>
-    <string name="section_heading_configuration">Konfiguration</string>
     <string name="section_heading_requested_data">Angefragte Daten</string>
     <string name="section_heading_data_recipient">Empfänger</string>
     <string name="section_heading_admission_data">Zulassungsdaten</string>

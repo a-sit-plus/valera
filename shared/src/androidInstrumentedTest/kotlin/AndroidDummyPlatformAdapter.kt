@@ -24,9 +24,6 @@ class AndroidDummyPlatformAdapter() : PlatformAdapter {
     override fun clearFile(fileName: String, folderName: String) {
     }
 
-    override fun exitApp() {
-    }
-
     override fun shareLog() {
     }
 }

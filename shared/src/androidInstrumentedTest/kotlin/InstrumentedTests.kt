@@ -34,7 +34,7 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.getString
 import org.junit.Rule
 import org.junit.Test
-import ui.screens.OnboardingStartScreenTestTag
+import ui.views.OnboardingStartScreenTestTag
 import ui.screens.OnboardingWrapperTestTags
 import kotlin.time.Duration.Companion.minutes
 

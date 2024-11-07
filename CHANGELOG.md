@@ -1,3 +1,6 @@
+# Release 5.3.0
+ * Update to vck 5.1.0
+
 # Release 5.2.0
  * Display requested attributes on Consent screen
  * Enable provisioning by scanning QR Code on issiung service (OID4VCI pre-authorized flow)

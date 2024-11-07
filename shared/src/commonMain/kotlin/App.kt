@@ -1,16 +1,13 @@
 
 import androidx.compose.material3.ColorScheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import at.asitplus.wallet.app.common.Configuration
-import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
+import io.github.aakira.napier.Napier
+import ui.navigation.WalletNavigation
 import ui.theme.WalletTheme
 
 /**
@@ -30,24 +27,17 @@ internal object AppTestTags {
 
 @Composable
 fun App(walletMain: WalletMain) {
-    val snackbarHostState = remember { SnackbarHostState() }
-    val snackbarService = SnackbarService(walletMain.scope, snackbarHostState)
 
-    try {
-        walletMain.initialize(snackbarService)
-    } catch (e: Throwable){
-        walletMain.errorService.emit(UncorrectableErrorException(e))
+    LifecycleEventEffect(Lifecycle.Event.ON_CREATE) {
+        Napier.d("Lifecycle.Event.ON_CREATE")
+    }
+
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        Napier.d("Lifecycle.Event.ON_RESUME")
     }
 
     WalletTheme {
-        Scaffold(
-            snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
-            },
-            modifier = Modifier.testTag(AppTestTags.rootScaffold)
-        ) { _ ->
-            Navigator(walletMain)
-        }
+        WalletNavigation(walletMain)
     }
 }
 

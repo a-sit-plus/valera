@@ -1,6 +1,5 @@
 package at.asitplus.wallet.app.common
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
@@ -12,7 +11,6 @@ import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.Parser
 import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.cbor.DefaultCoseService
-import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.jws.DefaultJwsService
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
@@ -33,7 +31,6 @@ class WalletMain(
     val platformAdapter: PlatformAdapter,
     var subjectCredentialStore: PersistentSubjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService),
     val buildContext: BuildContext,
-    val errorService: ErrorService = ErrorService(mutableStateOf(false), mutableStateOf(null)),
     val scope: CoroutineScope,
 ) {
     lateinit var walletConfig: WalletConfig
@@ -42,6 +39,7 @@ class WalletMain(
     lateinit var httpService: HttpService
     lateinit var presentationService: PresentationService
     lateinit var snackbarService: SnackbarService
+    lateinit var errorService: ErrorService
     private val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
 
 
@@ -95,8 +93,6 @@ class WalletMain(
             httpService
         )
         this.snackbarService = snackbarService
-
-
     }
 
     suspend fun resetApp() {
@@ -121,17 +117,15 @@ class WalletMain(
 
     fun startProvisioning(
         host: String,
-        credentialScheme: ConstantIndex.CredentialScheme,
-        credentialRepresentation: ConstantIndex.CredentialRepresentation,
+        credentialIdentifierInfo: ProvisioningService.CredentialIdentifierInfo,
         requestedAttributes: Set<NormalizedJsonPath>?,
         onSuccess: () -> Unit,
     ) {
         scope.launch {
             try {
-                provisioningService.startProvisioning(
-                    host = host,
-                    credentialScheme = credentialScheme,
-                    credentialRepresentation = credentialRepresentation,
+                provisioningService.startProvisioningWithAuthRequest(
+                    credentialIssuer = host,
+                    credentialIdentifierInfo = credentialIdentifierInfo,
                     requestedAttributes = requestedAttributes,
                 )
                 onSuccess()
@@ -193,11 +187,6 @@ interface PlatformAdapter {
     fun clearFile(fileName: String, folderName: String)
 
     /**
-     * Exits the app in the event of an uncorrectable error
-     */
-    fun exitApp()
-
-    /**
      * Opens the platform specific share dialog
      */
     fun shareLog()
@@ -219,9 +208,6 @@ class DummyPlatformAdapter : PlatformAdapter {
     }
 
     override fun clearFile(fileName: String, folderName: String) {
-    }
-
-    override fun exitApp() {
     }
 
     override fun shareLog() {

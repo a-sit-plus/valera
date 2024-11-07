@@ -53,13 +53,19 @@ fun AdvancedFloatingActionButton(addCredentialQr: () -> Unit, addCredential: () 
             )
         ) {
             Column (modifier = Modifier.padding(bottom = 20.dp)) {
-                SmallFloatingActionButton(onClick = addCredentialQr) {
+                SmallFloatingActionButton(onClick = {
+                    expanded.value = false
+                    addCredentialQr()
+                }) {
                     Icon(
                         imageVector = Icons.Default.QrCode,
                         contentDescription = stringResource(Res.string.content_description_add_credential),
                     )
                 }
-                SmallFloatingActionButton(onClick = addCredential) {
+                SmallFloatingActionButton(onClick = {
+                    expanded.value = false
+                    addCredential()
+                }) {
                     Icon(
                         imageVector = Icons.Default.Person,
                         contentDescription = stringResource(Res.string.content_description_add_credential),

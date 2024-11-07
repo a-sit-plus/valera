@@ -107,11 +107,6 @@ class SwiftPlatformAdapter: PlatformAdapter {
         }
     }
 
-    func exitApp() {
-        NapierProxy.companion.d(msg: "Exit App gracefully")
-        exit(0)
-    }
-
     func shareLog() {
         if let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
             let folderUrl = url.appendingPathComponent("logs")

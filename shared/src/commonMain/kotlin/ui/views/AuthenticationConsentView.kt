@@ -22,9 +22,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import compose_wallet_app.shared.generated.resources.Res
@@ -35,25 +35,22 @@ import compose_wallet_app.shared.generated.resources.heading_label_navigate_back
 import compose_wallet_app.shared.generated.resources.info_text_submission_preview_disabled
 import compose_wallet_app.shared.generated.resources.prompt_send_above_data
 import compose_wallet_app.shared.generated.resources.section_heading_data_recipient
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.ConsentAttributesSection
 import ui.composables.DataDisplaySection
 import ui.composables.buttons.CancelButton
 import ui.composables.buttons.ConsentButton
 import ui.composables.buttons.NavigateUpButton
-import ui.screens.ConsentAttributes
+import ui.viewmodels.AuthenticationConsentViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AuthenticationConsentView(
-    spName: String?,
-    spLocation: String,
-    spImage: ImageBitmap?,
-    consentAttributes: List<ConsentAttributes>?,
-    navigateUp: () -> Unit,
-    consentToDataTransmission: () -> Unit,
-    cancelAuthentication: () -> Unit
-) {
+fun AuthenticationConsentView(vm: AuthenticationConsentViewModel) {
+    val vm = remember { vm }
+
+    vm.walletMain.cryptoService.onUnauthenticated = vm.navigateUp
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -64,7 +61,7 @@ fun AuthenticationConsentView(
                     )
                 },
                 navigationIcon = {
-                    NavigateUpButton(navigateUp)
+                    NavigateUpButton(vm.navigateUp)
                 },
             )
         },
@@ -88,9 +85,9 @@ fun AuthenticationConsentView(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center,
                     ) {
-                        CancelButton(cancelAuthentication)
+                        CancelButton(vm.navigateUp)
                         Spacer(modifier = Modifier.width(16.dp))
-                        ConsentButton(consentToDataTransmission)
+                        ConsentButton(vm.consentToDataTransmission)
                     }
                 }
             }
@@ -110,10 +107,10 @@ fun AuthenticationConsentView(
                 Column(
                     modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState()),
                 ) {
-                    if (spImage != null) {
+                    if (vm.spImage != null) {
                         Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                             Image(
-                                bitmap = spImage,
+                                bitmap = vm.spImage,
                                 contentDescription = null,
                                 contentScale = ContentScale.Fit,
                                 modifier = paddingModifier.height(64.dp),
@@ -123,18 +120,18 @@ fun AuthenticationConsentView(
                     DataDisplaySection(
                         title = stringResource(Res.string.section_heading_data_recipient),
                         data = listOfNotNull(
-                            spName?.let { stringResource(Res.string.attribute_friendly_name_data_recipient_name) to spName },
-                            stringResource(Res.string.attribute_friendly_name_data_recipient_location) to spLocation,
+                            vm.spName?.let { stringResource(Res.string.attribute_friendly_name_data_recipient_name) to vm.spName },
+                            stringResource(Res.string.attribute_friendly_name_data_recipient_location) to vm.spLocation,
                         ),
                         modifier = paddingModifier,
                     )
-                    if (consentAttributes == null) {
+                    if (vm.consentAttributes == null) {
                         Text(
                             stringResource(Res.string.info_text_submission_preview_disabled),
                             modifier = Modifier.weight(1.0f, true)
                         )
                     } else {
-                        consentAttributes.forEach {
+                        vm.consentAttributes.forEach {
                             ConsentAttributesSection(title = "${it.scheme} (${it.format})", list = it.attributes)
                         }
                     }
@@ -143,3 +140,5 @@ fun AuthenticationConsentView(
         }
     }
 }
+
+class ConsentAttributes(val scheme: String, val format: String, val attributes: List<StringResource>)
