@@ -1,15 +1,16 @@
-
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isDisplayed
 import androidx.compose.ui.test.isNotDisplayed
-import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.runComposeUiTest
+import androidx.compose.ui.test.waitUntilDoesNotExist
+import androidx.compose.ui.test.waitUntilExactlyOneExists
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.DummyPlatformAdapter
@@ -35,9 +36,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.getString
-import org.junit.Rule
 import org.junit.Test
 import ui.navigation.NavigatorTestTags
 import ui.navigation.Routes.OnboardingWrapperTestTags
@@ -45,21 +44,14 @@ import ui.views.OnboardingStartScreenTestTag
 import kotlin.time.Duration.Companion.minutes
 
 // Modified from https://developer.android.com/jetpack/compose/testing
-@OptIn(ExperimentalResourceApi::class, ExperimentalTestApi::class)
+@OptIn(ExperimentalTestApi::class)
 class InstrumentedTests {
 
-
-    @get:Rule
-    val composeTestRule = createComposeRule()
-    // use createAndroidComposeRule<YourActivity>() if you need access to
-    // an activity
-
-
     @Test
-    fun givenNewAppInstallation_whenStartingApp_thenAppActuallyStarts() {
+    fun givenNewAppInstallation_whenStartingApp_thenAppActuallyStarts() = runComposeUiTest() {
 
         // Start the app
-        composeTestRule.setContent {
+        setContent {
             val dummyDataStoreService = DummyDataStoreService()
             val ks = KeystoreService(dummyDataStoreService)
             val walletMain = WalletMain(
@@ -77,15 +69,15 @@ class InstrumentedTests {
             App(walletMain)
         }
 
-        composeTestRule.onNodeWithTag(AppTestTags.rootScaffold)
+        onNodeWithTag(AppTestTags.rootScaffold)
             .assertIsDisplayed()
     }
 
 
     @Test
-    fun givenNewAppInstallation_whenStartingApp_thenShowsOnboardingStartScreen() {
+    fun givenNewAppInstallation_whenStartingApp_thenShowsOnboardingStartScreen() = runComposeUiTest() {
         // Start the app
-        composeTestRule.setContent {
+        setContent {
             val dummyDataStoreService = DummyDataStoreService()
             val ks = KeystoreService(dummyDataStoreService)
             val walletMain = WalletMain(
@@ -103,19 +95,19 @@ class InstrumentedTests {
             App(walletMain)
         }
 
-        composeTestRule.waitUntil {
-            composeTestRule.onNodeWithTag(NavigatorTestTags.loadingTestTag)
+        waitUntil {
+            onNodeWithTag(NavigatorTestTags.loadingTestTag)
                 .isNotDisplayed()
         }
 
-        composeTestRule.onNodeWithTag(OnboardingWrapperTestTags.onboardingStartScreen)
+        onNodeWithTag(OnboardingWrapperTestTags.onboardingStartScreen)
             .assertIsDisplayed()
     }
 
     @Test
-    fun givenNewAppInstallation_whenStartingApp_thenShowsOnboardingStartButton() {
+    fun givenNewAppInstallation_whenStartingApp_thenShowsOnboardingStartButton() = runComposeUiTest() {
         // Start the app
-        composeTestRule.setContent {
+        setContent {
             val dummyDataStoreService = DummyDataStoreService()
             val ks = KeystoreService(dummyDataStoreService)
             val walletMain = WalletMain(
@@ -133,24 +125,24 @@ class InstrumentedTests {
             App(walletMain)
         }
 
-        composeTestRule.waitUntil {
-            composeTestRule.onNodeWithTag(NavigatorTestTags.loadingTestTag)
+        waitUntil {
+            onNodeWithTag(NavigatorTestTags.loadingTestTag)
                 .isNotDisplayed()
         }
 
-        composeTestRule.waitUntil {
-            composeTestRule.onNodeWithTag(OnboardingWrapperTestTags.onboardingStartScreen)
+        waitUntil {
+            onNodeWithTag(OnboardingWrapperTestTags.onboardingStartScreen)
                 .isDisplayed()
         }
 
-        composeTestRule.onNodeWithTag(OnboardingStartScreenTestTag.startButton)
+        onNodeWithTag(OnboardingStartScreenTestTag.startButton)
             .assertIsDisplayed()
     }
 
 
     @Test
-    fun givenNewAppInstallation_whenStartingApp_thenShowAttributesOnMyCredentialsScreen() {
-        composeTestRule.setContent {
+    fun givenNewAppInstallation_whenStartingApp_thenShowAttributesOnMyCredentialsScreen() = runComposeUiTest() {
+        setContent {
             val dummyDataStoreService = DummyDataStoreService()
             val ks = KeystoreService(dummyDataStoreService)
             val walletMain = WalletMain(
@@ -181,29 +173,29 @@ class InstrumentedTests {
             }
         }
         runBlocking {
-            composeTestRule.onNodeWithText(getString(Res.string.button_label_start))
+            onNodeWithText(getString(Res.string.button_label_start))
                 .assertIsDisplayed()
-            composeTestRule.onNodeWithText(getString(Res.string.button_label_start)).performClick()
-            composeTestRule.onNodeWithText(getString(Res.string.button_label_continue))
+            onNodeWithText(getString(Res.string.button_label_start)).performClick()
+            onNodeWithText(getString(Res.string.button_label_continue))
                 .assertIsDisplayed()
-            composeTestRule.onNodeWithText(getString(Res.string.button_label_continue)).performClick()
-            composeTestRule.onNodeWithText(getString(Res.string.button_label_accept))
+            onNodeWithText(getString(Res.string.button_label_continue)).performClick()
+            onNodeWithText(getString(Res.string.button_label_accept))
                 .assertIsDisplayed()
-            composeTestRule.onNodeWithText(getString(Res.string.button_label_accept)).performClick()
-            composeTestRule.waitUntilDoesNotExist(hasText(getString(Res.string.button_label_accept)), 10000)
+            onNodeWithText(getString(Res.string.button_label_accept)).performClick()
+            waitUntilDoesNotExist(hasText(getString(Res.string.button_label_accept)), 10000)
 
-            composeTestRule.onNodeWithContentDescription(getString(Res.string.content_description_portrait)).assertHeightIsAtLeast(1.dp)
-            composeTestRule.onNodeWithText("XXXÉliás XXXTörőcsik").assertExists()
-            composeTestRule.onNodeWithText("11.10.1965").assertExists()
+            onNodeWithContentDescription(getString(Res.string.content_description_portrait)).assertHeightIsAtLeast(1.dp)
+            onNodeWithText("XXXÉliás XXXTörőcsik").assertExists()
+            onNodeWithText("11.10.1965").assertExists()
 
-            composeTestRule.onNodeWithText(getString(Res.string.button_label_details)).performClick()
-            composeTestRule.waitUntilExactlyOneExists(hasText(getString(Res.string.section_heading_age_data)))
-            composeTestRule.onNodeWithText("≥14").assertExists()
-            composeTestRule.onNodeWithText("≥16").assertExists()
-            composeTestRule.onNodeWithText("≥18").assertExists()
-            composeTestRule.onNodeWithText("≥21").assertExists()
-            composeTestRule.onNodeWithText("Testgasse 1a-2b/Stg. 3c-4d/D6").assertExists()
-            composeTestRule.onNodeWithText("0088 Testort A").assertExists()
+            onNodeWithText(getString(Res.string.button_label_details)).performClick()
+            waitUntilExactlyOneExists(hasText(getString(Res.string.section_heading_age_data)))
+            onNodeWithText("≥14").assertExists()
+            onNodeWithText("≥16").assertExists()
+            onNodeWithText("≥18").assertExists()
+            onNodeWithText("≥21").assertExists()
+            onNodeWithText("Testgasse 1a-2b/Stg. 3c-4d/D6").assertExists()
+            onNodeWithText("0088 Testort A").assertExists()
         }
     }
 
@@ -224,8 +216,8 @@ class InstrumentedTests {
 
     @OptIn(ExperimentalTestApi::class)
     @Test
-    fun givenNewAppInstallation_whenStartingApp_thenLoadAttributesAndShowData() {
-        composeTestRule.setContent {
+    fun givenNewAppInstallation_whenStartingApp_thenLoadAttributesAndShowData() = runComposeUiTest() {
+        setContent {
             val dummyDataStoreService = DummyDataStoreService()
             val ks = KeystoreService(dummyDataStoreService)
             val walletMain = WalletMain(
@@ -258,21 +250,21 @@ class InstrumentedTests {
 
         }
         runBlocking {
-            composeTestRule.onNodeWithText(getString(Res.string.button_label_start))
+            onNodeWithText(getString(Res.string.button_label_start))
                 .assertIsDisplayed()
-            composeTestRule.onNodeWithText(getString(Res.string.button_label_start)).performClick()
-            composeTestRule.onNodeWithText(getString(Res.string.button_label_continue))
+            onNodeWithText(getString(Res.string.button_label_start)).performClick()
+            onNodeWithText(getString(Res.string.button_label_continue))
                 .assertIsDisplayed()
-            composeTestRule.onNodeWithText(getString(Res.string.button_label_continue)).performClick()
-            composeTestRule.onNodeWithText(getString(Res.string.button_label_accept))
+            onNodeWithText(getString(Res.string.button_label_continue)).performClick()
+            onNodeWithText(getString(Res.string.button_label_accept))
                 .assertIsDisplayed()
-            composeTestRule.onNodeWithText(getString(Res.string.button_label_accept)).performClick()
-            composeTestRule.waitUntilDoesNotExist(hasText(getString(Res.string.button_label_accept)), 10000)
+            onNodeWithText(getString(Res.string.button_label_accept)).performClick()
+            waitUntilDoesNotExist(hasText(getString(Res.string.button_label_accept)), 2000)
 
             appLink.value =
                 "https://wallet.a-sit.at/mobile?request_uri=https://apps.egiz.gv.at/customverifier/transaction/get/af123d37-f736-4f1a-9360-6bb40632987c&client_id=apps.egiz.gv.at&client_metadata_uri=https://apps.egiz.gv.at/customverifier/siopv2/metadata"
-            composeTestRule.waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_consent)), 10000)
-            composeTestRule.onNodeWithText(getString(Res.string.button_label_consent)).performClick()
+            waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_consent)), 2000)
+            onNodeWithText(getString(Res.string.button_label_consent)).performClick()
         }
     }
 
