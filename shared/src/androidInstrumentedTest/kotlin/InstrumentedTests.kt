@@ -21,9 +21,12 @@ import at.asitplus.wallet.lib.agent.IssuerAgent
 import at.asitplus.wallet.lib.agent.toStoreCredentialInput
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.button_label_accept
+import compose_wallet_app.shared.generated.resources.button_label_consent
 import compose_wallet_app.shared.generated.resources.button_label_continue
+import compose_wallet_app.shared.generated.resources.button_label_details
 import compose_wallet_app.shared.generated.resources.button_label_start
 import compose_wallet_app.shared.generated.resources.content_description_portrait
+import compose_wallet_app.shared.generated.resources.section_heading_age_data
 import data.storage.DummyDataStoreService
 import data.storage.PersistentSubjectCredentialStore
 import kotlinx.coroutines.CoroutineScope
@@ -190,16 +193,15 @@ class InstrumentedTests {
             composeTestRule.onNodeWithContentDescription(getString(Res.string.content_description_portrait)).assertExists()
             composeTestRule.onNodeWithText("XXXÉliás XXXTörőcsik").assertExists()
             composeTestRule.onNodeWithText("11.10.1965").assertExists()
-            /*
+
+            composeTestRule.onNodeWithText(getString(Res.string.button_label_details)).performClick()
+            composeTestRule.waitUntilExactlyOneExists(hasText(getString(Res.string.section_heading_age_data)))
             composeTestRule.onNodeWithText("≥14").assertExists()
             composeTestRule.onNodeWithText("≥16").assertExists()
             composeTestRule.onNodeWithText("≥18").assertExists()
             composeTestRule.onNodeWithText("≥21").assertExists()
-            composeTestRule.onNodeWithText("Testgasse 1a-2b").assertExists()
-            composeTestRule.onNodeWithText("Stiege Stg. 3c-4d").assertExists()
-            composeTestRule.onNodeWithText("Tür: D6").assertExists()
+            composeTestRule.onNodeWithText("Testgasse 1a-2b/Stg. 3c-4d/D6").assertExists()
             composeTestRule.onNodeWithText("0088 Testort A").assertExists()
-            */
         }
     }
 
@@ -266,10 +268,9 @@ class InstrumentedTests {
             composeTestRule.waitUntilDoesNotExist(hasText(getString(Res.string.button_label_accept)), 10000)
 
             appLink.value =
-                "https://wallet.a-sit.at/mobile?request_uri=https://apps.egiz.gv.at/terminal_sp/siopv2/request&client_id=https://apps.egiz.gv.at/terminal_sp/siopv2/postsuccess&client_metadata_uri=https://apps.egiz.gv.at/terminal_sp/siopv2/metadata"
-
-            //composeTestRule.waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_consent)), 10000)
-            //composeTestRule.onNodeWithText(getString(Res.string.button_label_consent)).performClick()
+                "https://wallet.a-sit.at/mobile?request_uri=https://apps.egiz.gv.at/customverifier/transaction/get/af123d37-f736-4f1a-9360-6bb40632987c&client_id=apps.egiz.gv.at&client_metadata_uri=https://apps.egiz.gv.at/customverifier/siopv2/metadata"
+            composeTestRule.waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_consent)), 10000)
+            composeTestRule.onNodeWithText(getString(Res.string.button_label_consent)).performClick()
         }
     }
 
