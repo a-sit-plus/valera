@@ -36,9 +36,7 @@ class LoadCredentialViewModel {
         this.transactionCodeRequirements = null
         credentialIdentifiers = runBlocking {
             withContext(Dispatchers.IO) {
-                walletMain.provisioningService.loadCredentialMetadata(
-                    hostString
-                )
+                walletMain.provisioningService.loadCredentialMetadata(hostString)
             }
         }
     }
@@ -57,7 +55,7 @@ class LoadCredentialViewModel {
         credentialIdentifiers = runBlocking {
             withContext(Dispatchers.IO) {
                 walletMain.provisioningService.loadCredentialMetadata(hostString)
-                //TODO.filter { it.credentialIdentifier in offer.credentialOffer.configurationIds }
+                    .filter { it.credentialIdentifier in offer.configurationIds }
             }
         }
     }

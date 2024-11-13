@@ -4,12 +4,12 @@ import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.AuthenticationResponseParameters
-import at.asitplus.openid.AuthorizationDetails
 import at.asitplus.openid.CredentialFormatEnum
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.openid.CredentialResponseParameters
 import at.asitplus.openid.IssuerMetadata
 import at.asitplus.openid.OAuth2AuthorizationServerMetadata
+import at.asitplus.openid.OpenIdAuthorizationDetails
 import at.asitplus.openid.OpenIdConstants.PATH_WELL_KNOWN_CREDENTIAL_ISSUER
 import at.asitplus.openid.OpenIdConstants.PATH_WELL_KNOWN_OPENID_CONFIGURATION
 import at.asitplus.openid.TokenRequestParameters
@@ -219,7 +219,7 @@ class ProvisioningService(
     private suspend fun postAndLoadToken(
         state: String,
         authorization: OAuth2Client.AuthorizationForToken.PreAuthCode,
-        authorizationDetails: Set<AuthorizationDetails.OpenIdCredential>,
+        authorizationDetails: Set<OpenIdAuthorizationDetails>,
         tokenEndpointUrl: String
     ): TokenResponseParameters = postToken(
         tokenEndpointUrl, oid4vciService.oauth2Client.createTokenRequestParameters(
@@ -395,7 +395,7 @@ class ProvisioningService(
 
     private suspend fun openAuthRequestInBrowser(
         state: String,
-        authorizationDetails: Set<AuthorizationDetails.OpenIdCredential>,
+        authorizationDetails: Set<OpenIdAuthorizationDetails>,
         authorizationEndpointUrl: String,
         pushedAuthorizationRequestEndpoint: String?
     ) {

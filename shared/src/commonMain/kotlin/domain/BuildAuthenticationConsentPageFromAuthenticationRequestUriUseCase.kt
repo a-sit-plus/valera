@@ -11,11 +11,10 @@ class BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
     val oidcSiopWallet: OidcSiopWallet,
 ) {
     suspend operator fun invoke(requestUri: String): KmmResult<AuthenticationViewRoute> {
-        val request =
-            oidcSiopWallet.parseAuthenticationRequestParameters(requestUri).getOrElse {
-                Napier.d("authenticationRequestParameters: $it")
-                return KmmResult.failure(it)
-            }
+        val request = oidcSiopWallet.parseAuthenticationRequestParameters(requestUri).getOrElse {
+            Napier.d("authenticationRequestParameters: $it")
+            return KmmResult.failure(it)
+        }
 
         val preparationState = oidcSiopWallet.startAuthorizationResponsePreparation(request).getOrElse {
             return KmmResult.failure(it)

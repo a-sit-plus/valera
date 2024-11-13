@@ -2,11 +2,12 @@ package at.asitplus.wallet.app.common
 
 import at.asitplus.dif.ConstraintField
 import at.asitplus.jsonpath.core.NodeList
+import at.asitplus.openid.AuthenticationRequestParameters
+import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.wallet.lib.agent.CredentialSubmission
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.jws.DefaultJwsService
-import at.asitplus.wallet.lib.oidc.AuthenticationRequestParametersFrom
 import at.asitplus.wallet.lib.oidc.AuthenticationResponseResult
 import at.asitplus.wallet.lib.oidc.OidcSiopWallet
 import at.asitplus.wallet.lib.oidc.helpers.AuthorizationResponsePreparationState
@@ -41,13 +42,12 @@ class PresentationService(
                 client.get(url).bodyAsText()
             }
         },
-        requestObjectJwsVerifier = { _, _ -> true }, // unsure about this one?
-        scopePresentationDefinitionRetriever = { null }
+        requestObjectJwsVerifier = { _ -> true }, // unsure about this one?
     )
 
     @Throws(Throwable::class)
     suspend fun startSiop(
-        authenticationRequestParameters: AuthenticationRequestParametersFrom,
+        authenticationRequestParameters: RequestParametersFrom<AuthenticationRequestParameters>,
     ) {
         Napier.d("Start SIOP process: $authenticationRequestParameters")
         oidcSiopWallet.createAuthnResponse(authenticationRequestParameters).getOrThrow().let {
@@ -58,7 +58,7 @@ class PresentationService(
         }
     }
 
-    suspend fun getPreparationState(request: AuthenticationRequestParametersFrom): AuthorizationResponsePreparationState {
+    suspend fun getPreparationState(request: RequestParametersFrom<AuthenticationRequestParameters>): AuthorizationResponsePreparationState {
         val preparationState = oidcSiopWallet.startAuthorizationResponsePreparation(request).getOrThrow()
         return preparationState
     }
@@ -71,8 +71,16 @@ class PresentationService(
         return credentialSubmissions
     }
 
-    suspend fun finalizeAuthorizationResponse(request: AuthenticationRequestParametersFrom, preparationState: AuthorizationResponsePreparationState, inputDescriptorSubmission: Map<String, CredentialSubmission>) {
-        oidcSiopWallet.finalizeAuthorizationResponse(request = request, preparationState = preparationState, inputDescriptorSubmissions = inputDescriptorSubmission).getOrThrow().let {
+    suspend fun finalizeAuthorizationResponse(
+        request: RequestParametersFrom<AuthenticationRequestParameters>,
+        preparationState: AuthorizationResponsePreparationState,
+        inputDescriptorSubmission: Map<String, CredentialSubmission>
+    ) {
+        oidcSiopWallet.finalizeAuthorizationResponse(
+            request = request,
+            preparationState = preparationState,
+            inputDescriptorSubmissions = inputDescriptorSubmission
+        ).getOrThrow().let {
             when (it) {
                 is AuthenticationResponseResult.Post -> postResponse(it)
                 is AuthenticationResponseResult.Redirect -> redirectResponse(it)

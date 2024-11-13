@@ -8,10 +8,11 @@ import at.asitplus.dif.ConstraintField
 import at.asitplus.jsonpath.core.NodeList
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.misc.getRequestOptionParameters
+import at.asitplus.openid.AuthenticationRequestParameters
+import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.CredentialSubmission
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.oidc.AuthenticationRequestParametersFrom
 import at.asitplus.wallet.lib.oidc.helpers.AuthorizationResponsePreparationState
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.biometric_authentication_prompt_for_data_transmission_consent_subtitle
@@ -25,7 +26,7 @@ class AuthenticationViewModel(
     val spName: String?,
     val spLocation: String,
     val spImage: ImageBitmap?,
-    val authenticationRequest: AuthenticationRequestParametersFrom,
+    val authenticationRequest: RequestParametersFrom<AuthenticationRequestParameters>,
     val navigateUp: () -> Unit,
     val navigateToAuthenticationSuccessPage: () -> Unit,
     val navigateToHomeScreen: () -> Unit,
@@ -59,7 +60,7 @@ class AuthenticationViewModel(
 
         if (matchingCredentials.values.find { it.size != 1 } == null) {
             selectedCredentials = matchingCredentials.entries.associate {
-                val requestId = it.key;
+                val requestId = it.key
                 val credential = it.value.keys.first()
                 requestId to credential
             }.toMap()

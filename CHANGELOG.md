@@ -1,6 +1,7 @@
 # NEXT
-* Rebrand to Valera
-* Kotlin 2.0.21
+ * Rebrand to Valera
+ * Kotlin 2.0.21
+ * Update to vck 5.2.0-SNAPSHOT
 
 # Release 5.3.0
  * Update to vck 5.1.0
