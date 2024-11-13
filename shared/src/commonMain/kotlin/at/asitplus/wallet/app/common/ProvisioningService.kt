@@ -198,13 +198,21 @@ class ProvisioningService(
 
         val authorization = OAuth2Client.AuthorizationForToken.Code(code)
         val scope = credentialIdentifierInfo.scope
-        val tokenResponse: TokenResponseParameters =
-            postAndLoadToken(state, authorization, scope, tokenEndpointUrl)
+        val tokenResponse: TokenResponseParameters = postAndLoadToken(state, authorization, scope, tokenEndpointUrl)
 
         Napier.d("Received tokenResponse")
         // Don't know which one to use
-        //val input = WalletService.CredentialRequestInput.CredentialIdentifier(credentialIdentifier)
-        val input = WalletService.CredentialRequestInput.Format(credentialIdentifierInfo.supportedCredentialFormat)
+        val containsAuthnDetails =
+            tokenResponse.authorizationDetails?.any { it is AuthorizationDetails.OpenIdCredential }
+                ?: false
+        val input = if (containsAuthnDetails) {
+            WalletService.CredentialRequestInput.CredentialIdentifier(credentialIdentifier)
+        } else {
+            WalletService.CredentialRequestInput.Format(
+                credentialIdentifierInfo.supportedCredentialFormat,
+                requestedAttributes
+            )
+        }
 
         val credentialScheme = credentialIdentifierInfo.scheme.toScheme()
         postCredentialRequestAndStore(input, tokenResponse, issuerMetadata, credentialScheme)
@@ -438,6 +446,7 @@ class ProvisioningService(
                 authRequest.encodeToParameters<AuthenticationRequestParameters>().forEach {
                     builder.parameters.append(it.key, it.value)
                 }
+                builder.parameters.append("prompt", "login")
             }.build().toString()
         }
         Napier.d("Provisioning starts by opening URL $authorizationUrl")
