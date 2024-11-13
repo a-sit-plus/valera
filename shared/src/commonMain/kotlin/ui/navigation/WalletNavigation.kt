@@ -299,11 +299,10 @@ private fun WalletNavHost(
                                 transactionCode = transactionCode?.ifEmpty { null }?.ifBlank { null },
                                 requestedAttributes = requestedAttributes
                             )
-                        } catch (e: Throwable) {
                             popBackStack(HomeScreenRoute)
+                        } catch (e: Throwable) {
                             walletMain.errorService.emit(e)
                         }
-                        popBackStack(HomeScreenRoute)
                     }
                 }
             )
