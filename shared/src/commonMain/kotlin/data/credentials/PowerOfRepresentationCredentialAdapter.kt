@@ -3,7 +3,6 @@ package data.credentials
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.por.PowerOfRepresentationDataElements
 import at.asitplus.wallet.por.PowerOfRepresentationDataElements.ADMINISTRATIVE_NUMBER
 import at.asitplus.wallet.por.PowerOfRepresentationDataElements.DOCUMENT_NUMBER
 import at.asitplus.wallet.por.PowerOfRepresentationDataElements.EFFECTIVE_FROM_DATE
@@ -94,89 +93,86 @@ private class PowerOfRepresentationCredentialSdJwtAdapter(
 ) : PowerOfRepresentationCredentialAdapter() {
 
     override val documentNumber: String?
-        get() = attributes[PowerOfRepresentationDataElements.DOCUMENT_NUMBER]?.contentOrNull
+        get() = attributes[DOCUMENT_NUMBER]?.contentOrNull
 
     override val issuingAuthority: String?
-        get() = attributes[PowerOfRepresentationDataElements.ISSUING_AUTHORITY]?.contentOrNull
+        get() = attributes[ISSUING_AUTHORITY]?.contentOrNull
 
     override val legalPersonIdentifier: String?
-        get() = attributes[PowerOfRepresentationDataElements.LEGAL_PERSON_IDENTIFIER]?.contentOrNull
+        get() = attributes[LEGAL_PERSON_IDENTIFIER]?.contentOrNull
 
     override val legalName: String?
-        get() = attributes[PowerOfRepresentationDataElements.LEGAL_NAME]?.contentOrNull
+        get() = attributes[LEGAL_NAME]?.contentOrNull
 
     override val fullPowers: Boolean?
-        get() = attributes[PowerOfRepresentationDataElements.FULL_POWERS]?.booleanOrNull
+        get() = attributes[FULL_POWERS]?.booleanOrNull
 
     override val eService: String?
-        get() = attributes[PowerOfRepresentationDataElements.E_SERVICE]?.contentOrNull
+        get() = attributes[E_SERVICE]?.contentOrNull
 
     override val effectiveFromDate: Instant?
-        get() = attributes[PowerOfRepresentationDataElements.EFFECTIVE_FROM_DATE]?.contentOrNull?.toInstantOrNull()
+        get() = attributes[EFFECTIVE_FROM_DATE]?.contentOrNull?.toInstantOrNull()
 
     override val effectiveUntilDate: Instant?
-        get() = attributes[PowerOfRepresentationDataElements.EFFECTIVE_UNTIL_DATE]?.contentOrNull?.toInstantOrNull()
+        get() = attributes[EFFECTIVE_UNTIL_DATE]?.contentOrNull?.toInstantOrNull()
 
     override val administrativeNumber: String?
-        get() = attributes[PowerOfRepresentationDataElements.ADMINISTRATIVE_NUMBER]?.contentOrNull
+        get() = attributes[ADMINISTRATIVE_NUMBER]?.contentOrNull
 
     override val issuanceDate: Instant?
-        get() = attributes[PowerOfRepresentationDataElements.ISSUANCE_DATE]?.contentOrNull?.toInstantOrNull()
+        get() = attributes[ISSUANCE_DATE]?.contentOrNull?.toInstantOrNull()
 
     override val expiryDate: Instant?
-        get() = attributes[PowerOfRepresentationDataElements.EXPIRY_DATE]?.contentOrNull?.toInstantOrNull()
+        get() = attributes[EXPIRY_DATE]?.contentOrNull?.toInstantOrNull()
 
     override val issuingCountry: String?
-        get() = attributes[PowerOfRepresentationDataElements.ISSUING_COUNTRY]?.contentOrNull
+        get() = attributes[ISSUING_COUNTRY]?.contentOrNull
 
     override val issuingJurisdiction: String?
-        get() = attributes[PowerOfRepresentationDataElements.ISSUING_JURISDICTION]?.contentOrNull
+        get() = attributes[ISSUING_JURISDICTION]?.contentOrNull
 }
 
 private class PowerOfRepresentationCredentialIsoMdocAdapter(
     namespaces: Map<String, Map<String, Any>>?,
 ) : PowerOfRepresentationCredentialAdapter() {
-    private val mobileDrivingLicenceNamespace =
-        namespaces?.get(PowerOfRepresentationScheme.toString())
-            ?: throw IllegalArgumentException("namespaces") // contains required attributes
-
+    private val namespace = namespaces?.get(PowerOfRepresentationScheme.isoNamespace)
 
     override val documentNumber: String?
-        get() = mobileDrivingLicenceNamespace[DOCUMENT_NUMBER] as String?
+        get() = namespace?.get(DOCUMENT_NUMBER) as String?
 
     override val issuingAuthority: String?
-        get() = mobileDrivingLicenceNamespace[ISSUING_AUTHORITY] as String?
+        get() = namespace?.get(ISSUING_AUTHORITY) as String?
 
     override val legalPersonIdentifier: String?
-        get() = mobileDrivingLicenceNamespace[LEGAL_PERSON_IDENTIFIER] as String?
+        get() = namespace?.get(LEGAL_PERSON_IDENTIFIER) as String?
 
     override val legalName: String?
-        get() = mobileDrivingLicenceNamespace[LEGAL_NAME] as String?
+        get() = namespace?.get(LEGAL_NAME) as String?
 
     override val fullPowers: Boolean?
-        get() = mobileDrivingLicenceNamespace[FULL_POWERS] as Boolean?
+        get() = namespace?.get(FULL_POWERS) as Boolean?
 
     override val eService: String?
-        get() = mobileDrivingLicenceNamespace[E_SERVICE] as String?
+        get() = namespace?.get(E_SERVICE) as String?
 
     override val effectiveFromDate: Instant?
-        get() = mobileDrivingLicenceNamespace[EFFECTIVE_FROM_DATE].toInstantOrNull()
+        get() = namespace?.get(EFFECTIVE_FROM_DATE)?.toInstantOrNull()
 
     override val effectiveUntilDate: Instant?
-        get() = mobileDrivingLicenceNamespace[EFFECTIVE_UNTIL_DATE].toInstantOrNull()
+        get() = namespace?.get(EFFECTIVE_UNTIL_DATE)?.toInstantOrNull()
 
     override val administrativeNumber: String?
-        get() = mobileDrivingLicenceNamespace[ADMINISTRATIVE_NUMBER] as String?
+        get() = namespace?.get(ADMINISTRATIVE_NUMBER) as String?
 
     override val issuanceDate: Instant?
-        get() = mobileDrivingLicenceNamespace[ISSUANCE_DATE].toInstantOrNull()
+        get() = namespace?.get(ISSUANCE_DATE)?.toInstantOrNull()
 
     override val expiryDate: Instant?
-        get() = mobileDrivingLicenceNamespace[EXPIRY_DATE].toInstantOrNull()
+        get() = namespace?.get(EXPIRY_DATE)?.toInstantOrNull()
 
     override val issuingCountry: String?
-        get() = mobileDrivingLicenceNamespace[ISSUING_COUNTRY] as String?
+        get() = namespace?.get(ISSUING_COUNTRY) as String?
 
     override val issuingJurisdiction: String?
-        get() = mobileDrivingLicenceNamespace[ISSUING_JURISDICTION] as String?
+        get() = namespace?.get(ISSUING_JURISDICTION) as String?
 }

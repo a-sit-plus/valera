@@ -150,54 +150,51 @@ private class CertificateOfResidenceCredentialSdJwtAdapter(
 private class CertificateOfResidenceCredentialIsoMdocAdapter(
     namespaces: Map<String, Map<String, Any>>?,
 ) : CertificateOfResidenceCredentialAdapter() {
-    private val namespace =
-        namespaces?.get(CertificateOfResidenceScheme.toString())
-            ?: throw IllegalArgumentException("namespaces") // contains required attributes
-
+    private val namespace = namespaces?.get(CertificateOfResidenceScheme.isoNamespace)
 
     override val documentNumber: String?
-        get() = namespace[DOCUMENT_NUMBER] as String?
+        get() = namespace?.get(DOCUMENT_NUMBER) as String?
 
     override val issuingAuthority: String?
-        get() = namespace[ISSUING_AUTHORITY] as String?
+        get() = namespace?.get(ISSUING_AUTHORITY) as String?
 
     override val familyName: String?
-        get() = namespace[FAMILY_NAME] as String?
+        get() = namespace?.get(FAMILY_NAME) as String?
 
     override val givenName: String?
-        get() = namespace[GIVEN_NAME] as String?
+        get() = namespace?.get(GIVEN_NAME) as String?
 
     override val birthDate: LocalDate?
-        get() = namespace[BIRTH_DATE].toLocalDateOrNull()
+        get() = namespace?.get(BIRTH_DATE)?.toLocalDateOrNull()
 
     override val residenceAddress: String?
-        get() = namespace[RESIDENCE_ADDRESS] as String?
+        get() = namespace?.get(RESIDENCE_ADDRESS) as String?
 
     override val gender: IsoIec5218Gender?
-        get() = namespace[GENDER]
+        get() = namespace?.get(GENDER)
             ?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code } }
 
     override val birthPlace: String?
-        get() = namespace[BIRTH_PLACE] as String?
+        get() = namespace?.get(BIRTH_PLACE) as String?
 
     override val arrivalDate: LocalDate?
-        get() = namespace[ARRIVAL_DATE].toLocalDateOrNull()
+        get() = namespace?.get(ARRIVAL_DATE)?.toLocalDateOrNull()
 
     override val nationality: String?
-        get() = namespace[NATIONALITY] as String?
+        get() = namespace?.get(NATIONALITY) as String?
 
     override val administrativeNumber: String?
-        get() = namespace[ADMINISTRATIVE_NUMBER] as String?
+        get() = namespace?.get(ADMINISTRATIVE_NUMBER) as String?
 
     override val issuanceDate: Instant?
-        get() = namespace[ISSUANCE_DATE].toInstantOrNull()
+        get() = namespace?.get(ISSUANCE_DATE)?.toInstantOrNull()
 
     override val expiryDate: Instant?
-        get() = namespace[EXPIRY_DATE].toInstantOrNull()
+        get() = namespace?.get(EXPIRY_DATE)?.toInstantOrNull()
 
     override val issuingCountry: String?
-        get() = namespace[ISSUING_COUNTRY] as String?
+        get() = namespace?.get(ISSUING_COUNTRY) as String?
 
     override val issuingJurisdiction: String?
-        get() = namespace[ISSUING_JURISDICTION] as String?
+        get() = namespace?.get(ISSUING_JURISDICTION) as String?
 }

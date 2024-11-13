@@ -170,7 +170,7 @@ private class IdAustriaCredentialVcAdapter(
 
 private class IdAustriaCredentialSdJwtAdapter(
     private val attributes: Map<String, JsonPrimitive>,
-    private val decodeImage: (ByteArray) -> ImageBitmap?,
+    decodeImage: (ByteArray) -> ImageBitmap?,
 ) : IdAustriaCredentialAdapter(decodeImage) {
 
     override val bpk: String?
@@ -209,22 +209,21 @@ private class IdAustriaCredentialIsoMdocAdapter(
     decodeImage: (ByteArray) -> ImageBitmap?,
 ) : IdAustriaCredentialAdapter(decodeImage) {
     private val idAustriaNamespace = namespaces?.get(IdAustriaScheme.isoNamespace)
-        ?: throw IllegalArgumentException("namespaces") // contains required attributes
 
-    override val bpk: String
-        get() = idAustriaNamespace[IdAustriaScheme.Attributes.BPK] as String
+    override val bpk: String?
+        get() = idAustriaNamespace?.get(IdAustriaScheme.Attributes.BPK) as String?
 
-    override val givenName: String
-        get() = idAustriaNamespace[IdAustriaScheme.Attributes.FIRSTNAME] as String
+    override val givenName: String?
+        get() = idAustriaNamespace?.get(IdAustriaScheme.Attributes.FIRSTNAME) as String?
 
-    override val familyName: String
-        get() = idAustriaNamespace[IdAustriaScheme.Attributes.LASTNAME] as String
+    override val familyName: String?
+        get() = idAustriaNamespace?.get(IdAustriaScheme.Attributes.LASTNAME) as String?
 
-    override val dateOfBirth: LocalDate
-        get() = idAustriaNamespace[IdAustriaScheme.Attributes.DATE_OF_BIRTH].toLocalDateOrNull()!!
+    override val dateOfBirth: LocalDate?
+        get() = idAustriaNamespace?.get(IdAustriaScheme.Attributes.DATE_OF_BIRTH)?.toLocalDateOrNull()
 
     override val portraitRaw: ByteArray? by lazy {
-        idAustriaNamespace[IdAustriaScheme.Attributes.PORTRAIT]?.let {
+        idAustriaNamespace?.get(IdAustriaScheme.Attributes.PORTRAIT)?.let {
             when (it) {
                 is ByteArray -> it
                 is String -> it.decodeBase64Bytes()
@@ -234,17 +233,17 @@ private class IdAustriaCredentialIsoMdocAdapter(
     }
 
     override val ageAtLeast14: Boolean?
-        get() = idAustriaNamespace[IdAustriaScheme.Attributes.AGE_OVER_14] as Boolean?
+        get() = idAustriaNamespace?.get(IdAustriaScheme.Attributes.AGE_OVER_14) as Boolean?
 
     override val ageAtLeast16: Boolean?
-        get() = idAustriaNamespace[IdAustriaScheme.Attributes.AGE_OVER_16] as Boolean?
+        get() = idAustriaNamespace?.get(IdAustriaScheme.Attributes.AGE_OVER_16) as Boolean?
 
     override val ageAtLeast18: Boolean?
-        get() = idAustriaNamespace[IdAustriaScheme.Attributes.AGE_OVER_18] as Boolean?
+        get() = idAustriaNamespace?.get(IdAustriaScheme.Attributes.AGE_OVER_18) as Boolean?
 
     override val ageAtLeast21: Boolean?
-        get() = idAustriaNamespace[IdAustriaScheme.Attributes.AGE_OVER_21] as Boolean?
+        get() = idAustriaNamespace?.get(IdAustriaScheme.Attributes.AGE_OVER_21) as Boolean?
 
     override val mainAddressRaw: String?
-        get() = idAustriaNamespace[IdAustriaScheme.Attributes.MAIN_ADDRESS] as String?
+        get() = idAustriaNamespace?.get(IdAustriaScheme.Attributes.MAIN_ADDRESS) as String?
 }
