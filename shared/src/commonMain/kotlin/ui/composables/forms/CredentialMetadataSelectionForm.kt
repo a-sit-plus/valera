@@ -12,6 +12,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.app.common.ProvisioningService
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
+import at.asitplus.wallet.lib.oidvci.toRepresentation
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.issuing_label_host
 import compose_wallet_app.shared.generated.resources.issuing_label_representation
@@ -71,7 +72,7 @@ fun CredentialMetadataSelectionForm(
             )
             Text(": ")
             Text(
-                text = credentialIdentifierInfo.representation.uiLabel(),
+                text = credentialIdentifierInfo.supportedCredentialFormat.format.toRepresentation().uiLabel(),
                 style = MaterialTheme.typography.bodyLarge,
             )
         }

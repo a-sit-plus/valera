@@ -15,6 +15,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import at.asitplus.wallet.app.common.ProvisioningService
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
+import at.asitplus.wallet.lib.oidvci.toRepresentation
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.text_label_id_identifier
 import org.jetbrains.compose.resources.stringResource
@@ -102,4 +103,4 @@ fun CredentialIdentifierInputField(
 
 @Composable
 private fun ProvisioningService.CredentialIdentifierInfo.uiLabel() =
-    "${scheme.toScheme().uiLabel()} (${representation.uiLabel()})"
+    "${scheme.toScheme().uiLabel()} (${supportedCredentialFormat.format.toRepresentation().uiLabel()})"

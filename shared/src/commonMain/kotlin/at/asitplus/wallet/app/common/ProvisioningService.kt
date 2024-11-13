@@ -101,9 +101,7 @@ class ProvisioningService(
     @Serializable
     data class CredentialIdentifierInfo(
         val credentialIdentifier: String,
-        val scope: String?,
         val scheme: ExportableCredentialScheme,
-        val representation: ConstantIndex.CredentialRepresentation,
         val attributes: Collection<String>,
         val supportedCredentialFormat: SupportedCredentialFormat,
     )
@@ -121,8 +119,6 @@ class ProvisioningService(
             ?: throw Throwable("No supported credential configurations")
         return supported.mapNotNull {
             val identifier = it.key
-            val representation = it.value.format.toRepresentation()
-            val scope = it.value.scope
             val scheme =
                 it.value.credentialDefinition?.types?.firstNotNullOfOrNull { AttributeIndex.resolveAttributeType(it) }
                     ?: it.value.sdJwtVcType?.let { AttributeIndex.resolveSdJwtAttributeType(it) }
@@ -134,12 +130,10 @@ class ProvisioningService(
                 ?: listOf()
 
             CredentialIdentifierInfo(
-                identifier,
-                scope,
-                scheme.toExportableCredentialScheme(),
-                representation,
-                attributes,
-                it.value
+                credentialIdentifier = identifier,
+                scheme = scheme.toExportableCredentialScheme(),
+                attributes = attributes,
+                supportedCredentialFormat = it.value
             )
         }
     }
@@ -220,7 +214,7 @@ class ProvisioningService(
         val code = authnResponse.code ?: throw Exception("code is null")
 
         val authorization = OAuth2Client.AuthorizationForToken.Code(code)
-        val scope = credentialIdentifierInfo.scope
+        val scope = credentialIdentifierInfo.supportedCredentialFormat.scope
         val tokenResponse: TokenResponseParameters =
             postAndLoadToken(state, issuerMetadata.credentialIssuer, authorization, scope, tokenEndpointUrl)
 
@@ -485,7 +479,7 @@ class ProvisioningService(
     ) {
         val authRequest =
             oid4vciService.oauth2Client.createAuthRequest(state, authorizationDetails, issuerState = issuerState)
-        val authorizationUrl = if (pushedAuthorizationRequestEndpoint != null/*&&push*/) {
+        val authorizationUrl = if (pushedAuthorizationRequestEndpoint != null && push) {
             val clientAttestationJwt = jwsService.buildClientAttestationJwt(
                 clientId = clientId,
                 issuer = "https://example.com",
