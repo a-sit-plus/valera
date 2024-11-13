@@ -201,12 +201,16 @@ class ProvisioningService(
         val tokenResponse: TokenResponseParameters = postAndLoadToken(state, authorization, scope, tokenEndpointUrl)
 
         Napier.d("Received tokenResponse")
-        // Don't know which one to use
-        val containsAuthnDetails =
-            tokenResponse.authorizationDetails?.any { it is AuthorizationDetails.OpenIdCredential }
-                ?: false
-        val input = if (containsAuthnDetails) {
-            WalletService.CredentialRequestInput.CredentialIdentifier(credentialIdentifier)
+        val authnDetails =
+            tokenResponse.authorizationDetails?.filterIsInstance<AuthorizationDetails.OpenIdCredential>()?.firstOrNull()
+        val input = if (authnDetails != null) {
+            if (authnDetails.credentialConfigurationId != null)
+                WalletService.CredentialRequestInput.CredentialIdentifier(credentialIdentifier)
+            else
+                WalletService.CredentialRequestInput.Format(
+                    credentialIdentifierInfo.supportedCredentialFormat,
+                    requestedAttributes
+                )
         } else {
             WalletService.CredentialRequestInput.Format(
                 credentialIdentifierInfo.supportedCredentialFormat,
