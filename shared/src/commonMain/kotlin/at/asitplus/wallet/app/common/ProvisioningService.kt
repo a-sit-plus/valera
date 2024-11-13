@@ -502,18 +502,15 @@ class ProvisioningService(
                 headers["OAuth-Client-Attestation-PoP"] = clientAttestationPoPJwt.serialize()
             }.body<JsonObject>()
             // format is {"expires_in":3600,"request_uri":"urn:uuid:c330d8b1-6ecb-4437-8818-cbca64d2e710"}
-            response["error_description"]?.jsonPrimitive?.contentOrNull?.let {
-                throw Exception(it)
-            }
-            response["error"]?.jsonPrimitive?.contentOrNull?.let {
-                throw Exception(it)
-            }
+            (response["error_description"] as? JsonPrimitive?)?.contentOrNull
+                ?.let { throw Exception(it) }
+            (response["error"] as? JsonPrimitive?)?.contentOrNull
+                ?.let { throw Exception(it) }
+            val requestUri = (response["request_uri"] as? JsonPrimitive?)?.contentOrNull
+                ?: throw Exception("No request_uri from PAR response")
             URLBuilder(authorizationEndpointUrl).also { builder ->
                 builder.parameters.append("client_id", clientId)
-                builder.parameters.append(
-                    "request_uri",
-                    (response.getValue("request_uri") as JsonPrimitive).content
-                )
+                builder.parameters.append("request_uri", requestUri)
                 builder.parameters.append("state", state)
             }.build().toString()
         } else {
