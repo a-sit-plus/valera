@@ -36,7 +36,7 @@ class PresentationService(
                 client.get(url).bodyAsText()
             }
         },
-        requestObjectJwsVerifier = { _, _ -> true }, // unsure about this one?
+        requestObjectJwsVerifier = { _ -> true }, // unsure about this one?
         scopePresentationDefinitionRetriever = { null }
     )
 
