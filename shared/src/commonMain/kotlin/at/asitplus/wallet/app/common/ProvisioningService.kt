@@ -437,6 +437,12 @@ class ProvisioningService(
                 }
             ).body<JsonObject>()
             // format is {"expires_in":3600,"request_uri":"urn:uuid:c330d8b1-6ecb-4437-8818-cbca64d2e710"}
+            response["error_description"]?.jsonPrimitive?.contentOrNull?.let {
+                throw Exception(it)
+            }
+            response["error"]?.jsonPrimitive?.contentOrNull?.let {
+                throw Exception(it)
+            }
             URLBuilder(authorizationEndpointUrl).also { builder ->
                 builder.parameters.append("client_id", clientId)
                 builder.parameters.append(
