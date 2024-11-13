@@ -207,7 +207,7 @@ class ProvisioningService(
         val issuerMetadata = provisioningContext.issuerMetadata
         val tokenEndpointUrl = provisioningContext.oauthMetadata.tokenEndpoint
             ?: throw Exception("no tokenEndpoint in ${provisioningContext.oauthMetadata}")
-        val requestedAttributes = provisioningContext.requestedAttributes // TODO use them
+        val requestedAttributes = provisioningContext.requestedAttributes
 
         val authnResponse = Url(redirectedUrl).parameters.flattenEntries().toMap()
             .decodeFromUrlQuery<AuthenticationResponseParameters>()
@@ -223,6 +223,7 @@ class ProvisioningService(
             tokenResponse.authorizationDetails?.filterIsInstance<AuthorizationDetails.OpenIdCredential>()?.firstOrNull()
         val input = if (authnDetails != null) {
             if (authnDetails.credentialConfigurationId != null)
+                // TODO What about requested attributes?
                 WalletService.CredentialRequestInput.CredentialIdentifier(credentialIdentifier)
             else
                 WalletService.CredentialRequestInput.Format(
@@ -372,7 +373,7 @@ class ProvisioningService(
         val requestedAttributeStrings = requestedAttributes?.map {
             // for now the attribute name is encoded at the first part
             (it.segments.first() as NormalizedJsonPathSegment.NameSegment).memberName
-        }?.toSet() // TODO use requested attributes
+        }?.toSet()
 
         credentialOffer.grants?.preAuthorizedCode?.let {
             val authorizationDetails = oid4vciService.buildAuthorizationDetails(
