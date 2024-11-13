@@ -12,6 +12,7 @@ import at.asitplus.openid.IssuerMetadata
 import at.asitplus.openid.OAuth2AuthorizationServerMetadata
 import at.asitplus.openid.OpenIdConstants.PATH_WELL_KNOWN_CREDENTIAL_ISSUER
 import at.asitplus.openid.OpenIdConstants.PATH_WELL_KNOWN_OPENID_CONFIGURATION
+import at.asitplus.openid.SupportedCredentialFormat
 import at.asitplus.openid.TokenRequestParameters
 import at.asitplus.openid.TokenResponseParameters
 import at.asitplus.wallet.lib.agent.CryptoService
@@ -44,6 +45,8 @@ import io.ktor.http.Url
 import io.ktor.http.contentType
 import io.ktor.http.parameters
 import io.ktor.util.flattenEntries
+import io.matthewnelson.encoding.base64.Base64
+import io.matthewnelson.encoding.core.Decoder.Companion.decodeToByteArray
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -54,7 +57,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import okio.ByteString.Companion.decodeBase64
 
 class ProvisioningService(
     val platformAdapter: PlatformAdapter,
@@ -81,6 +83,7 @@ class ProvisioningService(
         val scheme: ExportableCredentialScheme,
         val representation: ConstantIndex.CredentialRepresentation,
         val attributes: Collection<String>,
+        val supportedCredentialFormat: SupportedCredentialFormat,
     )
 
     /**
@@ -113,7 +116,8 @@ class ProvisioningService(
                 scope,
                 scheme.toExportableCredentialScheme(),
                 representation,
-                attributes
+                attributes,
+                it.value
             )
         }
     }
@@ -164,7 +168,8 @@ class ProvisioningService(
             state,
             authorizationDetails,
             authorizationEndpointUrl,
-            oauthMetadata.pushedAuthorizationRequestEndpoint
+            oauthMetadata.pushedAuthorizationRequestEndpoint,
+            push = oauthMetadata.requirePushedAuthorizationRequests ?: false,
         )
     }
 
@@ -197,7 +202,9 @@ class ProvisioningService(
             postAndLoadToken(state, authorization, scope, tokenEndpointUrl)
 
         Napier.d("Received tokenResponse")
-        val input = WalletService.CredentialRequestInput.CredentialIdentifier(credentialIdentifier) // TODO use format?
+        // Don't know which one to use
+        //val input = WalletService.CredentialRequestInput.CredentialIdentifier(credentialIdentifier)
+        val input = WalletService.CredentialRequestInput.Format(credentialIdentifierInfo.supportedCredentialFormat)
 
         val credentialScheme = credentialIdentifierInfo.scheme.toScheme()
         postCredentialRequestAndStore(input, tokenResponse, issuerMetadata, credentialScheme)
@@ -240,7 +247,7 @@ class ProvisioningService(
     ).body<TokenResponseParameters>()
 
     private suspend fun postCredentialRequestAndStore(
-        input: WalletService.CredentialRequestInput.CredentialIdentifier,
+        input: WalletService.CredentialRequestInput,
         tokenResponse: TokenResponseParameters,
         issuerMetadata: IssuerMetadata,
         credentialScheme: ConstantIndex.CredentialScheme
@@ -344,7 +351,9 @@ class ProvisioningService(
                 state,
                 authorizationDetails,
                 authorizationEndpointUrl,
-                oauthMetadata.pushedAuthorizationRequestEndpoint
+                oauthMetadata.pushedAuthorizationRequestEndpoint,
+                issuerState = it.issuerState,
+                push = oauthMetadata.requirePushedAuthorizationRequests ?: false
             )
         } ?: {
             throw Exception("No offer grants received in ${credentialOffer.grants}")
@@ -359,15 +368,19 @@ class ProvisioningService(
 
         CredentialFormatEnum.VC_SD_JWT -> Holder.StoreCredentialInput.SdJwt(this, credentialScheme)
 
-        CredentialFormatEnum.MSO_MDOC -> {
-            decodeBase64()?.toByteArray()?.let {
-                IssuerSigned.deserialize(it)
-            }?.getOrNull()?.let { issuerSigned ->
-                Holder.StoreCredentialInput.Iso(issuerSigned, credentialScheme)
-            } ?: throw Exception("Invalid credential format: $this")
-        }
+        CredentialFormatEnum.MSO_MDOC -> kotlin.runCatching { decodeToByteArray(Base64()) }.getOrNull()
+            ?.let { IssuerSigned.deserialize(it) }?.getOrNull()
+            ?.let { Holder.StoreCredentialInput.Iso(it, credentialScheme) }
+            ?: throw Exception("Invalid credential format: $this")
 
-        else -> throw Exception("Invalid credential format: $this")
+        else -> {
+            if (contains("~")) {
+                Holder.StoreCredentialInput.SdJwt(this, credentialScheme)
+            } else runCatching { decodeToByteArray(Base64()) }.getOrNull()
+                ?.let { IssuerSigned.deserialize(it) }?.getOrNull()
+                ?.let { Holder.StoreCredentialInput.Iso(it, credentialScheme) }
+                ?: Holder.StoreCredentialInput.Vc(this, credentialScheme)
+        }
     }
 
     private suspend fun storeProvisioningContext(
@@ -397,10 +410,13 @@ class ProvisioningService(
         state: String,
         authorizationDetails: Set<AuthorizationDetails.OpenIdCredential>,
         authorizationEndpointUrl: String,
-        pushedAuthorizationRequestEndpoint: String?
+        pushedAuthorizationRequestEndpoint: String?,
+        issuerState: String? = null,
+        push: Boolean = false
     ) {
-        val authRequest = oid4vciService.oauth2Client.createAuthRequest(state, authorizationDetails)
-        val authorizationUrl = if (pushedAuthorizationRequestEndpoint != null) {
+        val authRequest =
+            oid4vciService.oauth2Client.createAuthRequest(state, authorizationDetails, issuerState = issuerState)
+        val authorizationUrl = if (pushedAuthorizationRequestEndpoint != null && push) {
             val response = client.submitForm(
                 url = pushedAuthorizationRequestEndpoint,
                 formParameters = parameters {
@@ -411,7 +427,10 @@ class ProvisioningService(
             // format is {"expires_in":3600,"request_uri":"urn:uuid:c330d8b1-6ecb-4437-8818-cbca64d2e710"}
             URLBuilder(authorizationEndpointUrl).also { builder ->
                 builder.parameters.append("client_id", clientId)
-                builder.parameters.append("request_uri", (response.getValue("request_uri") as JsonPrimitive).content)
+                builder.parameters.append(
+                    "request_uri",
+                    (response.getValue("request_uri") as JsonPrimitive).content
+                )
                 builder.parameters.append("state", state)
             }.build().toString()
         } else {
