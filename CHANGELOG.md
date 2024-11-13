@@ -1,3 +1,6 @@
+# Release 5.4.0
+ * Update to vck 5.2.0-SNAPSHOT
+
 # Release 5.3.0
  * Update to vck 5.1.0
  * Update to Compose Multiplatform 1.7.0, refactoring views and viewmodels
