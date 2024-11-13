@@ -34,7 +34,6 @@ import at.asitplus.wallet.lib.oidvci.WalletService
 import at.asitplus.wallet.lib.oidvci.buildDPoPHeader
 import at.asitplus.wallet.lib.oidvci.decodeFromUrlQuery
 import at.asitplus.wallet.lib.oidvci.encodeToParameters
-import at.asitplus.wallet.lib.oidvci.toRepresentation
 import com.benasher44.uuid.uuid4
 import data.storage.DataStoreService
 import data.storage.ExportableCredentialScheme
@@ -68,7 +67,6 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
-import kotlinx.serialization.json.jsonPrimitive
 import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
@@ -87,13 +85,12 @@ class ProvisioningService(
     private val cookieStorage = PersistentCookieStorage(dataStoreService, errorService)
     private val client = httpService.buildHttpClient(cookieStorage = cookieStorage)
 
-    //private val redirectUrl = "asitplus-wallet://wallet.a-sit.at/app/callback"
-    private val redirectUrl = "eudi-openid4ci://authorize/"
-    private val clientId = "track2_full"
+    private val redirectUrl = "asitplus-wallet://wallet.a-sit.at/app/callback"
+    private val clientId = "https://wallet.a-sit.at/app"
+    //private val redirectUrl = "eudi-openid4ci://authorize/"
+    //private val clientId = "track2_full" // for authlete
+    //private val clientId = "wallet-dev" // for EUDI
 
-    // NOTE: "wallet-dev" for EUDI
-    // NOTE: "track1_light" for authlete or "track2_full"
-    // NOTE: https://wallet.a-sit.at/app for us
     private val oid4vciService =
         WalletService(clientId = clientId, cryptoService = cryptoService, redirectUrl = redirectUrl)
     private val jwsService = DefaultJwsService(cryptoService)
@@ -223,7 +220,7 @@ class ProvisioningService(
             tokenResponse.authorizationDetails?.filterIsInstance<AuthorizationDetails.OpenIdCredential>()?.firstOrNull()
         val input = if (authnDetails != null) {
             if (authnDetails.credentialConfigurationId != null)
-                // TODO What about requested attributes?
+            // TODO What about requested attributes?
                 WalletService.CredentialRequestInput.CredentialIdentifier(credentialIdentifier)
             else
                 WalletService.CredentialRequestInput.Format(
@@ -274,6 +271,7 @@ class ProvisioningService(
         credentialIssuer: String,
         tokenRequest: TokenRequestParameters
     ): TokenResponseParameters {
+        // TODO Decide when to set Attestation Header
         val clientAttestationJwt = jwsService.buildClientAttestationJwt(
             clientId = clientId,
             issuer = "https://example.com",
@@ -285,6 +283,7 @@ class ProvisioningService(
             audience = credentialIssuer,
             lifetime = 10.minutes,
         )
+        // TODO Decide when to set DPoP header
         val dpopHeader = jwsService.buildDPoPHeader(
             url = tokenEndpointUrl,
         )
@@ -310,6 +309,7 @@ class ProvisioningService(
             input, tokenResponse.clientNonce, issuerMetadata.credentialIssuer,
         ).getOrThrow()
 
+        // TODO Decide when to set DPoP header
         val dpopHeader = jwsService.buildDPoPHeader(
             url = issuerMetadata.credentialEndpointUrl,
             accessToken = tokenResponse.accessToken
@@ -481,6 +481,7 @@ class ProvisioningService(
         val authRequest =
             oid4vciService.oauth2Client.createAuthRequest(state, authorizationDetails, issuerState = issuerState)
         val authorizationUrl = if (pushedAuthorizationRequestEndpoint != null && push) {
+            // TODO Decide when to set Attestation Header
             val clientAttestationJwt = jwsService.buildClientAttestationJwt(
                 clientId = clientId,
                 issuer = "https://example.com",
@@ -502,6 +503,7 @@ class ProvisioningService(
                 headers["OAuth-Client-Attestation"] = clientAttestationJwt.serialize()
                 headers["OAuth-Client-Attestation-PoP"] = clientAttestationPoPJwt.serialize()
             }.body<JsonObject>()
+
             // format is {"expires_in":3600,"request_uri":"urn:uuid:c330d8b1-6ecb-4437-8818-cbca64d2e710"}
             (response["error_description"] as? JsonPrimitive?)?.contentOrNull
                 ?.let { throw Exception(it) }
@@ -555,6 +557,7 @@ private data class ProvisioningContext(
  *
  * @param issuer a unique identifier for the entity that issued the JWT
  */
+// TODO Will be included in vck 5.2.0
 suspend fun JwsService.buildClientAttestationJwt(
     clientId: String,
     issuer: String,
@@ -587,6 +590,7 @@ suspend fun JwsService.buildClientAttestationJwt(
  *
  * @param audience The RFC8414 issuer identifier URL of the authorization server MUST be used
  */
+// TODO Will be included in vck 5.2.0
 suspend fun JwsService.buildClientAttestationPoPJwt(
     clientId: String,
     audience: String,
