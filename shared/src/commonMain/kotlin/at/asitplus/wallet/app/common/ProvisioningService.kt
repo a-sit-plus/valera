@@ -37,7 +37,7 @@ class ProvisioningService(
     val platformAdapter: PlatformAdapter,
     private val dataStoreService: DataStoreService,
     private val cryptoService: CryptoService,
-    private val holderAgent: HolderAgent,
+    holderAgent: HolderAgent,
     private val config: WalletConfig,
     errorService: ErrorService,
     httpService: HttpService,
@@ -54,7 +54,10 @@ class ProvisioningService(
     //private val clientId = "wallet-dev" // for EUDI
 
     private val provisioningService = ProvisioningServiceVck(
-        openUrlExternally = { platformAdapter.openUrl(it) },
+        openUrlExternally = {
+            this.redirectUri = redirectUrl
+            platformAdapter.openUrl(it)
+        },
         client = client,
         storeProvisioningContext = {
             dataStoreService.setPreference(
@@ -71,7 +74,8 @@ class ProvisioningService(
         },
         cryptoService = cryptoService,
         holderAgent = holderAgent,
-        config = config,
+        redirectUrl = redirectUrl,
+        clientId = clientId,
     )
 
     /**

@@ -55,30 +55,32 @@ import kotlin.time.Duration.Companion.minutes
 
 class ProvisioningServiceVck(
     /**
-     * Used to continue authentication in a web browser
+     * Used to continue authentication in a web browser,
+     * be sure to call back this service at [resumeWithAuthCode]
      */
     private val openUrlExternally: suspend (String) -> Unit,
     /**
      * ktor client to make requests to issuing service
      */
     private val client: HttpClient,
+    /**
+     * Store context before jumping to an external browser with [openUrlExternally]
+     */
     private val storeProvisioningContext: suspend (ProvisioningContext) -> Unit,
+    /**
+     * Load context after resuming with auth code in [resumeWithAuthCode]
+     */
     private val loadProvisioningContext: suspend () -> ProvisioningContext?,
     private val cryptoService: CryptoService,
     private val holderAgent: HolderAgent,
-    private val config: WalletConfig,
+    redirectUrl: String,
+    clientId: String,
 ) {
-    /** Checked by appLink handling whether to jump into [resumeWithAuthCode] */
-    var redirectUri: String? = null
-
-    private val redirectUrl = "asitplus-wallet://wallet.a-sit.at/app/callback"
-    private val clientId = "https://wallet.a-sit.at/app"
-    //private val redirectUrl = "eudi-openid4ci://authorize/"
-    //private val clientId = "track2_full" // for authlete
-    //private val clientId = "wallet-dev" // for EUDI
-
-    private val oid4vciService =
-        WalletService(clientId = clientId, cryptoService = cryptoService, redirectUrl = redirectUrl)
+    private val oid4vciService = WalletService(
+        clientId = clientId,
+        cryptoService = cryptoService,
+        redirectUrl = redirectUrl
+    )
     private val jwsService = DefaultJwsService(cryptoService)
 
     /**
@@ -89,7 +91,8 @@ class ProvisioningServiceVck(
         host: String,
     ): Collection<CredentialIdentifierInfo> {
         Napier.d("Load credential metadata from $host")
-        val credentialMetadata: IssuerMetadata = client.get("$host${OpenIdConstants.PATH_WELL_KNOWN_CREDENTIAL_ISSUER}").body()
+        val credentialMetadata: IssuerMetadata =
+            client.get("$host${OpenIdConstants.PATH_WELL_KNOWN_CREDENTIAL_ISSUER}").body()
         val supported = credentialMetadata.supportedCredentialConfigurations
             ?: throw Throwable("No supported credential configurations")
         return supported.mapNotNull {
@@ -122,7 +125,6 @@ class ProvisioningServiceVck(
         credentialIdentifierInfo: CredentialIdentifierInfo,
         requestedAttributes: Set<NormalizedJsonPath>?,
     ) {
-        config.set(host = credentialIssuer)
         Napier.d("Start provisioning at $credentialIssuer with $credentialIdentifierInfo")
         // Load certificate, might trigger biometric prompt?
         CoroutineScope(Dispatchers.Unconfined).launch { cryptoService.keyMaterial.getCertificate() }
@@ -171,7 +173,6 @@ class ProvisioningServiceVck(
     @Throws(Throwable::class)
     suspend fun resumeWithAuthCode(url: String) {
         Napier.d("resumeWithAuthCode with $url")
-        this.redirectUri = null
 
         val provisioningContext = loadProvisioningContext()
             ?: throw Exception("No provisioning context")
@@ -341,7 +342,8 @@ class ProvisioningServiceVck(
     ) {
         val credentialIssuer = credentialOffer.credentialIssuer
         val preAuthCode = credentialOffer.grants?.preAuthorizedCode?.preAuthorizedCode.toString()
-        val issuerMetadata: IssuerMetadata = client.get("$credentialIssuer${OpenIdConstants.PATH_WELL_KNOWN_CREDENTIAL_ISSUER}").body()
+        val issuerMetadata: IssuerMetadata =
+            client.get("$credentialIssuer${OpenIdConstants.PATH_WELL_KNOWN_CREDENTIAL_ISSUER}").body()
         val authorizationServer = issuerMetadata.authorizationServers?.firstOrNull() ?: credentialIssuer
         val oauthMetadataPath = "$authorizationServer${OpenIdConstants.PATH_WELL_KNOWN_OPENID_CONFIGURATION}"
         val oauthMetadata: OAuth2AuthorizationServerMetadata = client.get(oauthMetadataPath).body()
@@ -500,7 +502,6 @@ class ProvisioningServiceVck(
             }.build().toString()
         }
         Napier.d("Provisioning starts by opening URL $authorizationUrl")
-        this.redirectUri = redirectUrl
         openUrlExternally.invoke(authorizationUrl)
     }
 
