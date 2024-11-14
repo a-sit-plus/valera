@@ -55,6 +55,7 @@ import ui.navigation.Routes.LogRoute
 import ui.navigation.Routes.OnboardingInformationRoute
 import ui.navigation.Routes.OnboardingStartRoute
 import ui.navigation.Routes.OnboardingTermsRoute
+import ui.navigation.Routes.OnboardingWrapperTestTags
 import ui.navigation.Routes.PreAuthQrCodeScannerRoute
 import ui.navigation.Routes.Route
 import ui.navigation.Routes.SettingsRoute
@@ -83,6 +84,10 @@ import ui.views.OnboardingStartView
 import ui.views.OnboardingTermsView
 import ui.views.PreAuthQrCodeScannerScreen
 import ui.views.SettingsView
+
+internal object NavigatorTestTags {
+    const val loadingTestTag = "loadingTestTag"
+}
 
 @Composable
 fun WalletNavigation(walletMain: WalletMain) {
@@ -166,7 +171,8 @@ private fun WalletNavHost(
             .fillMaxSize()
     ) {
         composable<OnboardingStartRoute> {
-            OnboardingStartView(onClickStart = { navigate(OnboardingInformationRoute) })
+            OnboardingStartView(onClickStart = { navigate(OnboardingInformationRoute) },
+                modifier = Modifier.testTag(OnboardingWrapperTestTags.onboardingStartScreen))
         }
         composable<OnboardingInformationRoute> {
             OnboardingInformationView(onClickContinue = { navigate(OnboardingTermsRoute) })
