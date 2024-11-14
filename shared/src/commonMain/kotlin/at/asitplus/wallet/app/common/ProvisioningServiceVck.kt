@@ -23,6 +23,7 @@ import at.asitplus.wallet.lib.iso.IssuerSigned
 import at.asitplus.wallet.lib.jws.DefaultJwsService
 import at.asitplus.wallet.lib.oauth2.OAuth2Client
 import at.asitplus.wallet.lib.oidvci.WalletService
+import at.asitplus.wallet.lib.oidvci.WalletService.CredentialRequestInput
 import at.asitplus.wallet.lib.oidvci.buildDPoPHeader
 import at.asitplus.wallet.lib.oidvci.decodeFromUrlQuery
 import at.asitplus.wallet.lib.oidvci.encodeToParameters
@@ -193,10 +194,17 @@ class ProvisioningServiceVck(
             .decodeFromUrlQuery<AuthenticationResponseParameters>()
         val code = authnResponse.code ?: throw Exception("code is null")
 
-        val authorization = OAuth2Client.AuthorizationForToken.Code(code)
-        val scope = credentialIdentifierInfo.supportedCredentialFormat.scope
-        val tokenResponse: TokenResponseParameters =
-            postAndLoadToken(state, issuerMetadata.credentialIssuer, authorization, scope, tokenEndpointUrl)
+        val tokenResponse: TokenResponseParameters = oid4vciService.oauth2Client.createTokenRequestParameters(
+            state = state,
+            authorization = OAuth2Client.AuthorizationForToken.Code(code),
+            scope = credentialIdentifierInfo.supportedCredentialFormat.scope,
+        ).let {
+            postToken(
+                tokenEndpointUrl = tokenEndpointUrl,
+                credentialIssuer = issuerMetadata.credentialIssuer,
+                tokenRequest = it
+            )
+        }
 
         Napier.d("Received tokenResponse")
         val authnDetails =
@@ -204,14 +212,14 @@ class ProvisioningServiceVck(
         val input = if (authnDetails != null) {
             if (authnDetails.credentialConfigurationId != null)
             // TODO What about requested attributes?
-                WalletService.CredentialRequestInput.CredentialIdentifier(credentialIdentifier)
+                CredentialRequestInput.CredentialIdentifier(credentialIdentifier)
             else
-                WalletService.CredentialRequestInput.Format(
+                CredentialRequestInput.Format(
                     credentialIdentifierInfo.supportedCredentialFormat,
                     requestedAttributes
                 )
         } else {
-            WalletService.CredentialRequestInput.Format(
+            CredentialRequestInput.Format(
                 credentialIdentifierInfo.supportedCredentialFormat,
                 requestedAttributes
             )
@@ -220,34 +228,6 @@ class ProvisioningServiceVck(
         val credentialScheme = credentialIdentifierInfo.scheme.toScheme()
         postCredentialRequestAndStore(input, tokenResponse, issuerMetadata, credentialScheme)
     }
-
-    private suspend fun postAndLoadToken(
-        state: String,
-        credentialIssuer: String,
-        authorization: OAuth2Client.AuthorizationForToken.Code,
-        scope: String?,
-        tokenEndpointUrl: String
-    ): TokenResponseParameters = postToken(
-        tokenEndpointUrl, credentialIssuer, oid4vciService.oauth2Client.createTokenRequestParameters(
-            state = state,
-            authorization = authorization,
-            scope = scope,
-        )
-    )
-
-    private suspend fun postAndLoadToken(
-        state: String,
-        credentialIssuer: String,
-        authorization: OAuth2Client.AuthorizationForToken.PreAuthCode,
-        authorizationDetails: Set<AuthorizationDetails.OpenIdCredential>,
-        tokenEndpointUrl: String
-    ): TokenResponseParameters = postToken(
-        tokenEndpointUrl, credentialIssuer, oid4vciService.oauth2Client.createTokenRequestParameters(
-            state = state,
-            authorization = authorization,
-            authorizationDetails = authorizationDetails
-        )
-    )
 
     private suspend fun postToken(
         tokenEndpointUrl: String,
@@ -283,7 +263,7 @@ class ProvisioningServiceVck(
     }
 
     private suspend fun postCredentialRequestAndStore(
-        input: WalletService.CredentialRequestInput,
+        input: CredentialRequestInput,
         tokenResponse: TokenResponseParameters,
         issuerMetadata: IssuerMetadata,
         credentialScheme: ConstantIndex.CredentialScheme
@@ -348,16 +328,18 @@ class ProvisioningServiceVck(
                 issuerMetadata.authorizationServers
             )
 
-            val authorization = OAuth2Client.AuthorizationForToken.PreAuthCode(preAuthCode, transactionCode)
-            val token: TokenResponseParameters = postAndLoadToken(
-                state,
-                issuerMetadata.credentialIssuer,
-                authorization,
-                authorizationDetails,
-                tokenEndpointUrl
-            )
-            val input =
-                WalletService.CredentialRequestInput.CredentialIdentifier(credentialIdentifierInfo.credentialIdentifier)
+            val token: TokenResponseParameters = oid4vciService.oauth2Client.createTokenRequestParameters(
+                state = state,
+                authorization = OAuth2Client.AuthorizationForToken.PreAuthCode(preAuthCode, transactionCode),
+                authorizationDetails = authorizationDetails
+            ).let {
+                postToken(
+                    tokenEndpointUrl = tokenEndpointUrl,
+                    credentialIssuer = issuerMetadata.credentialIssuer,
+                    tokenRequest = it
+                )
+            }
+            val input = CredentialRequestInput.CredentialIdentifier(credentialIdentifierInfo.credentialIdentifier)
 
             postCredentialRequestAndStore(input, token, issuerMetadata, credentialIdentifierInfo.scheme.toScheme())
         } ?: credentialOffer.grants?.authorizationCode?.let {
