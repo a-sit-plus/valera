@@ -22,6 +22,7 @@ import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.iso.IssuerSigned
 import at.asitplus.wallet.lib.jws.DefaultJwsService
 import at.asitplus.wallet.lib.oauth2.OAuth2Client
+import at.asitplus.wallet.lib.oauth2.OAuth2Client.AuthorizationForToken
 import at.asitplus.wallet.lib.oidvci.WalletService
 import at.asitplus.wallet.lib.oidvci.WalletService.CredentialRequestInput
 import at.asitplus.wallet.lib.oidvci.buildDPoPHeader
@@ -190,17 +191,15 @@ class ProvisioningServiceVck(
             .decodeFromUrlQuery<AuthenticationResponseParameters>()
         val code = authnResponse.code ?: throw Exception("code is null")
 
-        val tokenResponse: TokenResponseParameters = oid4vciService.oauth2Client.createTokenRequestParameters(
-            state = context.state,
-            authorization = OAuth2Client.AuthorizationForToken.Code(code),
-            scope = context.credential.supportedCredentialFormat.scope,
-        ).let {
-            postToken(
-                tokenEndpointUrl = tokenEndpointUrl,
-                credentialIssuer = context.issuerMetadata.credentialIssuer,
-                tokenRequest = it
+        val tokenResponse = postToken(
+            tokenEndpointUrl = tokenEndpointUrl,
+            credentialIssuer = context.issuerMetadata.credentialIssuer,
+            tokenRequest = oid4vciService.oauth2Client.createTokenRequestParameters(
+                state = context.state,
+                authorization = AuthorizationForToken.Code(code),
+                scope = context.credential.supportedCredentialFormat.scope,
             )
-        }
+        )
 
         Napier.d("Received tokenResponse")
         postCredentialRequestAndStore(
@@ -325,17 +324,16 @@ class ProvisioningServiceVck(
                 issuerMetadata.authorizationServers
             )
 
-            val tokenResponse: TokenResponseParameters = oid4vciService.oauth2Client.createTokenRequestParameters(
-                state = state,
-                authorization = OAuth2Client.AuthorizationForToken.PreAuthCode(it.preAuthorizedCode, transactionCode),
-                authorizationDetails = authorizationDetails
-            ).let {
-                postToken(
-                    tokenEndpointUrl = tokenEndpointUrl,
-                    credentialIssuer = issuerMetadata.credentialIssuer,
-                    tokenRequest = it
+            val tokenResponse = postToken(
+                tokenEndpointUrl = tokenEndpointUrl,
+                credentialIssuer = issuerMetadata.credentialIssuer,
+                tokenRequest = oid4vciService.oauth2Client.createTokenRequestParameters(
+                    state = state,
+                    authorization = AuthorizationForToken.PreAuthCode(it.preAuthorizedCode, transactionCode),
+                    authorizationDetails = authorizationDetails
                 )
-            }
+            )
+
             postCredentialRequestAndStore(
                 input = tokenResponse.extractCredentialRequestInput(
                     credentialIdentifier = credentialIdentifierInfo.credentialIdentifier,
