@@ -11,6 +11,7 @@ import at.asitplus.openid.CredentialResponseParameters
 import at.asitplus.openid.IssuerMetadata
 import at.asitplus.openid.OAuth2AuthorizationServerMetadata
 import at.asitplus.openid.OpenIdConstants
+import at.asitplus.openid.SupportedCredentialFormat
 import at.asitplus.openid.TokenRequestParameters
 import at.asitplus.openid.TokenResponseParameters
 import at.asitplus.wallet.lib.agent.CryptoService
@@ -87,30 +88,32 @@ class ProvisioningServiceVck(
         host: String,
     ): Collection<CredentialIdentifierInfo> {
         Napier.d("Load credential metadata from $host")
-        val credentialMetadata: IssuerMetadata =
-            client.get("$host${OpenIdConstants.PATH_WELL_KNOWN_CREDENTIAL_ISSUER}").body()
+        val credentialMetadata = client
+            .get("$host${OpenIdConstants.PATH_WELL_KNOWN_CREDENTIAL_ISSUER}")
+            .body<IssuerMetadata>()
         val supported = credentialMetadata.supportedCredentialConfigurations
             ?: throw Throwable("No supported credential configurations")
         return supported.mapNotNull {
-            val identifier = it.key
-            val scheme =
-                it.value.credentialDefinition?.types?.firstNotNullOfOrNull { AttributeIndex.resolveAttributeType(it) }
-                    ?: it.value.sdJwtVcType?.let { AttributeIndex.resolveSdJwtAttributeType(it) }
-                    ?: it.value.docType?.let { AttributeIndex.resolveIsoDoctype(it) }
-                    ?: return@mapNotNull null
-            val attributes = it.value.credentialDefinition?.credentialSubject?.keys
-                ?: it.value.sdJwtClaims?.keys
-                ?: it.value.isoClaims?.flatMap { it.value.keys }
-                ?: listOf()
-
             CredentialIdentifierInfo(
-                credentialIdentifier = identifier,
-                scheme = scheme,
-                attributes = attributes,
+                credentialIdentifier = it.key,
+                scheme = it.value.resolveCredentialScheme()
+                    ?: return@mapNotNull null,
+                attributes = it.value.resolveAttributes()
+                    ?: listOf(),
                 supportedCredentialFormat = it.value
             )
         }
     }
+
+    private fun SupportedCredentialFormat.resolveAttributes(): Collection<String>? =
+        (credentialDefinition?.credentialSubject?.keys
+            ?: sdJwtClaims?.keys
+            ?: isoClaims?.flatMap { it.value.keys })
+
+    private fun SupportedCredentialFormat.resolveCredentialScheme(): ConstantIndex.CredentialScheme? =
+        (credentialDefinition?.types?.firstNotNullOfOrNull { AttributeIndex.resolveAttributeType(it) }
+            ?: sdJwtVcType?.let { AttributeIndex.resolveSdJwtAttributeType(it) }
+            ?: docType?.let { AttributeIndex.resolveIsoDoctype(it) })
 
     /**
      * Starts the issuing process at [credentialIssuer]
