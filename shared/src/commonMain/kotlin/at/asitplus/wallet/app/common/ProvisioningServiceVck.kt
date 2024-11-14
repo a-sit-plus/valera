@@ -148,14 +148,17 @@ class ProvisioningServiceVck(
             credentialIdentifierInfo.credentialIdentifier,
             issuerMetadata.authorizationServers
         )
-        storeProvisioningContext(
-            state,
-            credentialIssuer,
-            credentialIdentifierInfo,
-            requestedAttributeStrings,
-            oauthMetadata,
-            issuerMetadata
-        )
+        ProvisioningContext(
+            state = state,
+            host = credentialIssuer,
+            credentialIdentifierInfo = credentialIdentifierInfo,
+            requestedAttributes = requestedAttributeStrings,
+            oauthMetadata = oauthMetadata,
+            issuerMetadata = issuerMetadata
+        ).let {
+            storeProvisioningContext.invoke(it)
+            Napier.d("Store context: $it")
+        }
 
         openAuthRequestInBrowser(
             state,
@@ -334,7 +337,7 @@ class ProvisioningServiceVck(
         val tokenEndpointUrl = oauthMetadata.tokenEndpoint
             ?: throw Exception("no tokenEndpoint in $oauthMetadata")
         val state = uuid4().toString()
-            // for now the attribute name is encoded at the first part
+        // for now the attribute name is encoded at the first part
         val requestedAttributeStrings = requestedAttributes
             ?.map { (it.segments.first() as NormalizedJsonPathSegment.NameSegment).memberName }
             ?.toSet()
@@ -358,14 +361,17 @@ class ProvisioningServiceVck(
 
             postCredentialRequestAndStore(input, token, issuerMetadata, credentialIdentifierInfo.scheme.toScheme())
         } ?: credentialOffer.grants?.authorizationCode?.let {
-            storeProvisioningContext(
-                state,
-                credentialIssuer,
-                credentialIdentifierInfo,
-                requestedAttributeStrings,
-                oauthMetadata,
-                issuerMetadata
-            )
+            ProvisioningContext(
+                state = state,
+                host = credentialIssuer,
+                credentialIdentifierInfo = credentialIdentifierInfo,
+                requestedAttributes = requestedAttributeStrings,
+                oauthMetadata = oauthMetadata,
+                issuerMetadata = issuerMetadata
+            ).let {
+                storeProvisioningContext.invoke(it)
+                Napier.d("Store context: $it")
+            }
 
             val authorizationEndpointUrl = oauthMetadata.authorizationEndpoint
                 ?: throw Exception("no authorizationEndpoint in $oauthMetadata")
@@ -408,26 +414,6 @@ class ProvisioningServiceVck(
                 ?.let { Holder.StoreCredentialInput.Iso(it, credentialScheme) }
                 ?: Holder.StoreCredentialInput.Vc(this, credentialScheme)
         }
-    }
-
-    private suspend fun storeProvisioningContext(
-        state: String,
-        credentialIssuer: String,
-        credentialIdentifierInfo: CredentialIdentifierInfo,
-        requestedAttributeStrings: Set<String>?,
-        oauthMetadata: OAuth2AuthorizationServerMetadata,
-        issuerMetadata: IssuerMetadata,
-    ) {
-        val provisioningContext = ProvisioningContext(
-            state,
-            credentialIssuer,
-            credentialIdentifierInfo,
-            requestedAttributeStrings,
-            oauthMetadata,
-            issuerMetadata
-        )
-        Napier.d("Store provisioning context: $provisioningContext")
-        storeProvisioningContext.invoke(provisioningContext)
     }
 
     private suspend fun openAuthRequestInBrowser(
