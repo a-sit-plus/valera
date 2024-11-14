@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.encodeToString
 import kotlin.random.Random
 import kotlin.time.Duration
@@ -185,11 +186,13 @@ data class CredentialIdentifierInfo(
         attributes: Collection<String>,
         supportedCredentialFormat: SupportedCredentialFormat,
     ) : this(
-        credentialIdentifier,
-        scheme.toExportableCredentialScheme(),
-        attributes,
-        supportedCredentialFormat
+        credentialIdentifier = credentialIdentifier,
+        scheme = scheme.toExportableCredentialScheme(),
+        attributes = attributes,
+        supportedCredentialFormat = supportedCredentialFormat
     )
+    @Transient
+    val credentialScheme: ConstantIndex.CredentialScheme = scheme.toScheme()
 }
 
 /**

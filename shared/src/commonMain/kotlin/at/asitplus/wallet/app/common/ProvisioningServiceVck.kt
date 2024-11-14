@@ -221,8 +221,12 @@ class ProvisioningServiceVck(
             )
         }
 
-        val credentialScheme = context.credential.scheme.toScheme()
-        postCredentialRequestAndStore(input, tokenResponse, context.issuerMetadata, credentialScheme)
+        postCredentialRequestAndStore(
+            input = input,
+            tokenResponse = tokenResponse,
+            issuerMetadata = context.issuerMetadata,
+            credentialScheme = context.credential.credentialScheme
+        )
     }
 
     private suspend fun postToken(
@@ -337,7 +341,7 @@ class ProvisioningServiceVck(
             }
             val input = CredentialRequestInput.CredentialIdentifier(credentialIdentifierInfo.credentialIdentifier)
 
-            postCredentialRequestAndStore(input, token, issuerMetadata, credentialIdentifierInfo.scheme.toScheme())
+            postCredentialRequestAndStore(input, token, issuerMetadata, credentialIdentifierInfo.credentialScheme)
         } ?: credentialOffer.grants?.authorizationCode?.let {
             ProvisioningContext(
                 state = state,

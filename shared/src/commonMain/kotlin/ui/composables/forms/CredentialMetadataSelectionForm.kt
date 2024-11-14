@@ -61,7 +61,7 @@ fun CredentialMetadataSelectionForm(
             )
             Text(": ")
             Text(
-                text = credentialIdentifierInfo.scheme.toScheme().uiLabel(),
+                text = credentialIdentifierInfo.credentialScheme.uiLabel(),
                 style = MaterialTheme.typography.bodyLarge,
             )
         }

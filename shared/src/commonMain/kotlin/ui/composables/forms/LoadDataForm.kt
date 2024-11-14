@@ -38,8 +38,8 @@ fun StatefulLoadDataForm(
 ) {
     var attributeCategoriesExpanded by rememberSaveable(credentialIdentifierInfo) {
         val attributeCategorization =
-            CredentialAttributeCategorization[credentialIdentifierInfo.scheme.toScheme()]?.availableCategories
-                ?: throw IllegalArgumentException("credentialScheme: ${credentialIdentifierInfo.scheme.toScheme().identifier}")
+            CredentialAttributeCategorization[credentialIdentifierInfo.credentialScheme]?.availableCategories
+                ?: throw IllegalArgumentException("credentialScheme: ${credentialIdentifierInfo.credentialScheme.identifier}")
 
         mutableStateOf(attributeCategorization.associateWith { false })
     }
@@ -94,7 +94,7 @@ fun LoadDataForm(
                 showTransactionCode = showTransactionCode,
             )
             CredentialAttributeSelectionForm(
-                credentialScheme = credentialIdentifierInfo.scheme.toScheme(),
+                credentialScheme = credentialIdentifierInfo.credentialScheme,
                 requestedAttributes = requestedAttributes,
                 onChangeRequestedAttributes = onChangeRequestedAttributes,
                 attributeCategoriesExpanded = attributeCategoriesExpanded,

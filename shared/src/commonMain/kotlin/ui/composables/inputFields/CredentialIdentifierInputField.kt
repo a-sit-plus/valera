@@ -103,4 +103,4 @@ fun CredentialIdentifierInputField(
 
 @Composable
 private fun CredentialIdentifierInfo.uiLabel() =
-    "${scheme.toScheme().uiLabel()} (${supportedCredentialFormat.format.toRepresentation().uiLabel()})"
+    "${credentialScheme.uiLabel()} (${supportedCredentialFormat.format.toRepresentation().uiLabel()})"
