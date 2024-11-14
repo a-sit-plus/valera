@@ -72,29 +72,28 @@ class PresentationServiceVck(
             HttpStatusCode.InternalServerError.value ->
                 throw Exception("InternalServerErrorException", Exception(response.bodyAsText()))
 
-            in 200..399 -> response.headers[HttpHeaders.Location]?.let {
-                if (it.isNotEmpty()) {
-                    openUrlExternally.invoke(it)
-                }
-            } ?: runCatching { response.body<OpenId4VpSuccess>() }.getOrNull()?.let {
-                if (it.redirectUri.isNotEmpty()) {
-                    openUrlExternally.invoke(it.redirectUri)
-                }
-            }
+            in 200..399 -> response.extractRedirectUri()
+                ?.let { openUrlExternally.invoke(it) }
 
             else -> throw Exception(response.readBytes().decodeToString())
         }
     }
 
-    @Serializable
-    data class OpenId4VpSuccess(
-        @SerialName("redirect_uri")
-        val redirectUri: String,
-    )
-
     private suspend fun redirectResponse(it: AuthenticationResponseResult.Redirect) {
         Napier.i("redirectResponse: ${it.url}")
         openUrlExternally.invoke(it.url)
     }
-
 }
+
+@Serializable
+data class OpenId4VpSuccess(
+    @SerialName("redirect_uri")
+    val redirectUri: String,
+)
+
+private suspend fun HttpResponse.extractRedirectUri(): String? =
+    headers[HttpHeaders.Location]?.let {
+        it.ifEmpty { null }
+    } ?: runCatching { body<OpenId4VpSuccess>() }.getOrNull()?.let {
+        it.redirectUri.ifEmpty { null }
+    }
