@@ -128,17 +128,19 @@ class ProvisioningServiceVck(
         // Load certificate, might trigger biometric prompt?
         CoroutineScope(Dispatchers.Unconfined).launch { cryptoService.keyMaterial.getCertificate() }
 
-        val issuerMetadata: IssuerMetadata =
-            client.get("$credentialIssuer${OpenIdConstants.PATH_WELL_KNOWN_CREDENTIAL_ISSUER}").body()
+        val issuerMetadata = client
+            .get("$credentialIssuer${OpenIdConstants.PATH_WELL_KNOWN_CREDENTIAL_ISSUER}")
+            .body<IssuerMetadata>()
         val authorizationServer = issuerMetadata.authorizationServers?.firstOrNull() ?: credentialIssuer
-        val oauthMetadataPath = "$authorizationServer${OpenIdConstants.PATH_WELL_KNOWN_OPENID_CONFIGURATION}"
-        val oauthMetadata: OAuth2AuthorizationServerMetadata = client.get(oauthMetadataPath).body()
+        val oauthMetadata = client
+            .get("$authorizationServer${OpenIdConstants.PATH_WELL_KNOWN_OPENID_CONFIGURATION}")
+            .body<OAuth2AuthorizationServerMetadata>()
 
         val state = uuid4().toString()
-        val requestedAttributeStrings = requestedAttributes?.map {
-            // for now the attribute name is encoded at the first part
-            (it.segments.first() as NormalizedJsonPathSegment.NameSegment).memberName
-        }?.toSet()
+        // for now the attribute name is encoded at the first part
+        val requestedAttributeStrings = requestedAttributes
+            ?.map { (it.segments.first() as NormalizedJsonPathSegment.NameSegment).memberName }
+            ?.toSet()
 
         val authorizationEndpointUrl = oauthMetadata.authorizationEndpoint
             ?: throw Exception("no authorizationEndpoint in $oauthMetadata")
@@ -322,18 +324,20 @@ class ProvisioningServiceVck(
     ) {
         val credentialIssuer = credentialOffer.credentialIssuer
         val preAuthCode = credentialOffer.grants?.preAuthorizedCode?.preAuthorizedCode.toString()
-        val issuerMetadata: IssuerMetadata =
-            client.get("$credentialIssuer${OpenIdConstants.PATH_WELL_KNOWN_CREDENTIAL_ISSUER}").body()
+        val issuerMetadata = client
+            .get("$credentialIssuer${OpenIdConstants.PATH_WELL_KNOWN_CREDENTIAL_ISSUER}")
+            .body<IssuerMetadata>()
         val authorizationServer = issuerMetadata.authorizationServers?.firstOrNull() ?: credentialIssuer
-        val oauthMetadataPath = "$authorizationServer${OpenIdConstants.PATH_WELL_KNOWN_OPENID_CONFIGURATION}"
-        val oauthMetadata: OAuth2AuthorizationServerMetadata = client.get(oauthMetadataPath).body()
+        val oauthMetadata = client
+            .get("$authorizationServer${OpenIdConstants.PATH_WELL_KNOWN_OPENID_CONFIGURATION}")
+            .body<OAuth2AuthorizationServerMetadata>()
         val tokenEndpointUrl = oauthMetadata.tokenEndpoint
             ?: throw Exception("no tokenEndpoint in $oauthMetadata")
         val state = uuid4().toString()
-        val requestedAttributeStrings = requestedAttributes?.map {
             // for now the attribute name is encoded at the first part
-            (it.segments.first() as NormalizedJsonPathSegment.NameSegment).memberName
-        }?.toSet()
+        val requestedAttributeStrings = requestedAttributes
+            ?.map { (it.segments.first() as NormalizedJsonPathSegment.NameSegment).memberName }
+            ?.toSet()
 
         credentialOffer.grants?.preAuthorizedCode?.let {
             val authorizationDetails = oid4vciService.buildAuthorizationDetails(
