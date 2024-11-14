@@ -26,7 +26,6 @@ import at.asitplus.wallet.lib.oidvci.buildDPoPHeader
 import at.asitplus.wallet.lib.oidvci.decodeFromUrlQuery
 import at.asitplus.wallet.lib.oidvci.encodeToParameters
 import com.benasher44.uuid.uuid4
-import data.storage.ExportableCredentialScheme.Companion.toExportableCredentialScheme
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -34,7 +33,6 @@ import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.URLBuilder
 import io.ktor.http.Url
@@ -45,9 +43,7 @@ import io.matthewnelson.encoding.base64.Base64
 import io.matthewnelson.encoding.core.Decoder.Companion.decodeToByteArray
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
@@ -74,7 +70,7 @@ class ProvisioningServiceVck(
     private val cryptoService: CryptoService,
     private val holderAgent: HolderAgent,
     redirectUrl: String,
-    clientId: String,
+    private val clientId: String,
 ) {
     private val oid4vciService = WalletService(
         clientId = clientId,
@@ -109,7 +105,7 @@ class ProvisioningServiceVck(
 
             CredentialIdentifierInfo(
                 credentialIdentifier = identifier,
-                scheme = scheme.toExportableCredentialScheme(),
+                scheme = scheme,
                 attributes = attributes,
                 supportedCredentialFormat = it.value
             )
@@ -305,25 +301,6 @@ class ProvisioningServiceVck(
             ?: throw Exception("No credential was received")
 
         holderAgent.storeCredential(storeCredentialInput).getOrThrow()
-    }
-
-    /**
-     * Decodes the content of a scanned QR code, expected to contain a [at.asitplus.openid.CredentialOffer].
-     *
-     * @param qrCodeContent as scanned
-     */
-    @Throws(Throwable::class)
-    suspend fun decodeCredentialOffer(
-        qrCodeContent: String
-    ): CredentialOffer {
-        val walletService = WalletService(
-            cryptoService = cryptoService,
-            remoteResourceRetriever = { url ->
-                withContext(Dispatchers.IO) {
-                    client.get(url).bodyAsText()
-                }
-            })
-        return walletService.parseCredentialOffer(qrCodeContent).getOrThrow()
     }
 
     /**

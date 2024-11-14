@@ -12,11 +12,13 @@ import at.asitplus.signum.indispensable.josef.JsonWebToken
 import at.asitplus.signum.indispensable.josef.JwsHeader
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
+import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.jws.JwsService
 import at.asitplus.wallet.lib.oidvci.WalletService
 import data.storage.DataStoreService
 import data.storage.ExportableCredentialScheme
+import data.storage.ExportableCredentialScheme.Companion.toExportableCredentialScheme
 import data.storage.PersistentCookieStorage
 import io.github.aakira.napier.Napier
 import io.ktor.client.request.get
@@ -177,7 +179,19 @@ data class CredentialIdentifierInfo(
     val scheme: ExportableCredentialScheme,
     val attributes: Collection<String>,
     val supportedCredentialFormat: SupportedCredentialFormat,
-)
+) {
+    constructor(
+        credentialIdentifier: String,
+        scheme: ConstantIndex.CredentialScheme,
+        attributes: Collection<String>,
+        supportedCredentialFormat: SupportedCredentialFormat,
+    ) : this(
+        credentialIdentifier,
+        scheme.toExportableCredentialScheme(),
+        attributes,
+        supportedCredentialFormat
+    )
+}
 
 /**
  * Client attestation JWT, issued by the backend service to a client, which can be sent to an OAuth2 Authorization
