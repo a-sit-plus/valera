@@ -34,9 +34,7 @@ fun CredentialAttributeSelectionForm(
     onSetAttributeCategoriesExpanded: ((Pair<PersonalDataCategory, Boolean>) -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
-    val attributeCategorization =
-        CredentialAttributeCategorization[credentialScheme]?.sourceAttributeCategorization
-            ?: throw IllegalArgumentException("credentialScheme: ${credentialScheme.identifier}")
+    val attributeCategorization = CredentialAttributeCategorization[credentialScheme].sourceAttributeCategorization
 
     Column(
         modifier = modifier,
