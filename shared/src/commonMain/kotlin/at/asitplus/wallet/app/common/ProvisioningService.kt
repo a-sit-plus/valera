@@ -12,6 +12,7 @@ import at.asitplus.signum.indispensable.josef.JsonWebToken
 import at.asitplus.signum.indispensable.josef.JwsHeader
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
+import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.jws.JwsService
 import at.asitplus.wallet.lib.oidvci.WalletService
 import data.storage.DataStoreService
@@ -23,9 +24,11 @@ import io.ktor.client.statement.bodyAsText
 import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
 import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
@@ -53,7 +56,19 @@ class ProvisioningService(
     private val provisioningService = ProvisioningServiceVck(
         openUrlExternally = { platformAdapter.openUrl(it) },
         client = client,
-        dataStoreService = dataStoreService,
+        storeProvisioningContext = {
+            dataStoreService.setPreference(
+                key = Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT,
+                value = vckJsonSerializer.encodeToString(it),
+            )
+        },
+        loadProvisioningContext = {
+            dataStoreService.getPreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT).firstOrNull()
+                ?.let {
+                    vckJsonSerializer.decodeFromString<ProvisioningContext>(it)
+                        .also { dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT) }
+                }
+        },
         cryptoService = cryptoService,
         holderAgent = holderAgent,
         config = config,

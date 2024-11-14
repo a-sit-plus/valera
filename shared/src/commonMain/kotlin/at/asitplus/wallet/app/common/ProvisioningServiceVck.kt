@@ -18,7 +18,6 @@ import at.asitplus.wallet.lib.agent.Holder
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
-import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.iso.IssuerSigned
 import at.asitplus.wallet.lib.jws.DefaultJwsService
 import at.asitplus.wallet.lib.oauth2.OAuth2Client
@@ -27,7 +26,6 @@ import at.asitplus.wallet.lib.oidvci.buildDPoPHeader
 import at.asitplus.wallet.lib.oidvci.decodeFromUrlQuery
 import at.asitplus.wallet.lib.oidvci.encodeToParameters
 import com.benasher44.uuid.uuid4
-import data.storage.DataStoreService
 import data.storage.ExportableCredentialScheme.Companion.toExportableCredentialScheme
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
@@ -48,10 +46,8 @@ import io.matthewnelson.encoding.core.Decoder.Companion.decodeToByteArray
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
@@ -62,8 +58,12 @@ class ProvisioningServiceVck(
      * Used to continue authentication in a web browser
      */
     private val openUrlExternally: suspend (String) -> Unit,
+    /**
+     * ktor client to make requests to issuing service
+     */
     private val client: HttpClient,
-    private val dataStoreService: DataStoreService,
+    private val storeProvisioningContext: suspend (ProvisioningContext) -> Unit,
+    private val loadProvisioningContext: suspend () -> ProvisioningContext?,
     private val cryptoService: CryptoService,
     private val holderAgent: HolderAgent,
     private val config: WalletConfig,
@@ -174,6 +174,7 @@ class ProvisioningServiceVck(
         this.redirectUri = null
 
         val provisioningContext = loadProvisioningContext()
+            ?: throw Exception("No provisioning context")
 
         val state = provisioningContext.state
         val credentialIdentifierInfo = provisioningContext.credentialIdentifierInfo
@@ -440,10 +441,7 @@ class ProvisioningServiceVck(
             issuerMetadata
         )
         Napier.d("Store provisioning context: $provisioningContext")
-        dataStoreService.setPreference(
-            key = Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT,
-            value = vckJsonSerializer.encodeToString(provisioningContext),
-        )
+        storeProvisioningContext.invoke(provisioningContext)
     }
 
     private suspend fun openAuthRequestInBrowser(
@@ -505,13 +503,5 @@ class ProvisioningServiceVck(
         this.redirectUri = redirectUrl
         openUrlExternally.invoke(authorizationUrl)
     }
-
-    private suspend fun loadProvisioningContext(): ProvisioningContext =
-        dataStoreService.getPreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT).firstOrNull()
-            ?.let {
-                vckJsonSerializer.decodeFromString<ProvisioningContext>(it)
-                    .also { dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT) }
-            }
-            ?: throw Exception("Missing provisioning context")
 
 }
