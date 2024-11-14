@@ -10,16 +10,9 @@ import at.asitplus.openid.CredentialOffer
 import at.asitplus.openid.CredentialResponseParameters
 import at.asitplus.openid.IssuerMetadata
 import at.asitplus.openid.OAuth2AuthorizationServerMetadata
-import at.asitplus.openid.OpenIdConstants.PATH_WELL_KNOWN_CREDENTIAL_ISSUER
-import at.asitplus.openid.OpenIdConstants.PATH_WELL_KNOWN_OPENID_CONFIGURATION
-import at.asitplus.openid.SupportedCredentialFormat
+import at.asitplus.openid.OpenIdConstants
 import at.asitplus.openid.TokenRequestParameters
 import at.asitplus.openid.TokenResponseParameters
-import at.asitplus.signum.indispensable.io.Base64UrlStrict
-import at.asitplus.signum.indispensable.josef.ConfirmationClaim
-import at.asitplus.signum.indispensable.josef.JsonWebKey
-import at.asitplus.signum.indispensable.josef.JsonWebToken
-import at.asitplus.signum.indispensable.josef.JwsHeader
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.Holder
 import at.asitplus.wallet.lib.agent.HolderAgent
@@ -28,7 +21,6 @@ import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.iso.IssuerSigned
 import at.asitplus.wallet.lib.jws.DefaultJwsService
-import at.asitplus.wallet.lib.jws.JwsService
 import at.asitplus.wallet.lib.oauth2.OAuth2Client
 import at.asitplus.wallet.lib.oidvci.WalletService
 import at.asitplus.wallet.lib.oidvci.buildDPoPHeader
@@ -36,7 +28,6 @@ import at.asitplus.wallet.lib.oidvci.decodeFromUrlQuery
 import at.asitplus.wallet.lib.oidvci.encodeToParameters
 import com.benasher44.uuid.uuid4
 import data.storage.DataStoreService
-import data.storage.ExportableCredentialScheme
 import data.storage.ExportableCredentialScheme.Companion.toExportableCredentialScheme
 import data.storage.PersistentCookieStorage
 import io.github.aakira.napier.Napier
@@ -54,31 +45,29 @@ import io.ktor.http.parameters
 import io.ktor.util.flattenEntries
 import io.matthewnelson.encoding.base64.Base64
 import io.matthewnelson.encoding.core.Decoder.Companion.decodeToByteArray
-import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.datetime.Clock
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
-import kotlin.random.Random
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
-class ProvisioningService(
-    val platformAdapter: PlatformAdapter,
+class ProvisioningServiceVck(
+    /**
+     * Used to continue authentication in a web browser
+     */
+    private val openUrlExternally: (suspend (String) -> Unit),
     private val dataStoreService: DataStoreService,
     private val cryptoService: CryptoService,
     private val holderAgent: HolderAgent,
     private val config: WalletConfig,
-    private val errorService: ErrorService,
-    private val httpService: HttpService,
+    errorService: ErrorService,
+    httpService: HttpService,
 ) {
     /** Checked by appLink handling whether to jump into [resumeWithAuthCode] */
     var redirectUri: String? = null
@@ -95,16 +84,6 @@ class ProvisioningService(
         WalletService(clientId = clientId, cryptoService = cryptoService, redirectUrl = redirectUrl)
     private val jwsService = DefaultJwsService(cryptoService)
 
-    private val provisioningService = ProvisioningServiceVck(
-        openUrlExternally = { platformAdapter.openUrl(it) },
-        dataStoreService = dataStoreService,
-        cryptoService = cryptoService,
-        holderAgent = holderAgent,
-        config = config,
-        errorService = errorService,
-        httpService = httpService,
-    )
-
     /**
      * Loads credential metadata info from [host]
      */
@@ -113,7 +92,7 @@ class ProvisioningService(
         host: String,
     ): Collection<CredentialIdentifierInfo> {
         Napier.d("Load credential metadata from $host")
-        val credentialMetadata: IssuerMetadata = client.get("$host$PATH_WELL_KNOWN_CREDENTIAL_ISSUER").body()
+        val credentialMetadata: IssuerMetadata = client.get("$host${OpenIdConstants.PATH_WELL_KNOWN_CREDENTIAL_ISSUER}").body()
         val supported = credentialMetadata.supportedCredentialConfigurations
             ?: throw Throwable("No supported credential configurations")
         return supported.mapNotNull {
@@ -153,9 +132,9 @@ class ProvisioningService(
         CoroutineScope(Dispatchers.Unconfined).launch { cryptoService.keyMaterial.getCertificate() }
 
         val issuerMetadata: IssuerMetadata =
-            client.get("$credentialIssuer$PATH_WELL_KNOWN_CREDENTIAL_ISSUER").body()
+            client.get("$credentialIssuer${OpenIdConstants.PATH_WELL_KNOWN_CREDENTIAL_ISSUER}").body()
         val authorizationServer = issuerMetadata.authorizationServers?.firstOrNull() ?: credentialIssuer
-        val oauthMetadataPath = "$authorizationServer$PATH_WELL_KNOWN_OPENID_CONFIGURATION"
+        val oauthMetadataPath = "$authorizationServer${OpenIdConstants.PATH_WELL_KNOWN_OPENID_CONFIGURATION}"
         val oauthMetadata: OAuth2AuthorizationServerMetadata = client.get(oauthMetadataPath).body()
 
         val state = uuid4().toString()
@@ -194,8 +173,8 @@ class ProvisioningService(
      * Called after getting the redirect back from ID Austria to the Issuing Service
      */
     @Throws(Throwable::class)
-    suspend fun resumeWithAuthCode(redirectedUrl: String) {
-        Napier.d("handleResponse with $redirectedUrl")
+    suspend fun resumeWithAuthCode(url: String) {
+        Napier.d("resumeWithAuthCode with $url")
         this.redirectUri = null
 
         val provisioningContext = loadProvisioningContext()
@@ -208,7 +187,7 @@ class ProvisioningService(
             ?: throw Exception("no tokenEndpoint in ${provisioningContext.oauthMetadata}")
         val requestedAttributes = provisioningContext.requestedAttributes
 
-        val authnResponse = Url(redirectedUrl).parameters.flattenEntries().toMap()
+        val authnResponse = Url(url).parameters.flattenEntries().toMap()
             .decodeFromUrlQuery<AuthenticationResponseParameters>()
         val code = authnResponse.code ?: throw Exception("code is null")
 
@@ -365,9 +344,9 @@ class ProvisioningService(
     ) {
         val credentialIssuer = credentialOffer.credentialIssuer
         val preAuthCode = credentialOffer.grants?.preAuthorizedCode?.preAuthorizedCode.toString()
-        val issuerMetadata: IssuerMetadata = client.get("$credentialIssuer$PATH_WELL_KNOWN_CREDENTIAL_ISSUER").body()
+        val issuerMetadata: IssuerMetadata = client.get("$credentialIssuer${OpenIdConstants.PATH_WELL_KNOWN_CREDENTIAL_ISSUER}").body()
         val authorizationServer = issuerMetadata.authorizationServers?.firstOrNull() ?: credentialIssuer
-        val oauthMetadataPath = "$authorizationServer$PATH_WELL_KNOWN_OPENID_CONFIGURATION"
+        val oauthMetadataPath = "$authorizationServer${OpenIdConstants.PATH_WELL_KNOWN_OPENID_CONFIGURATION}"
         val oauthMetadata: OAuth2AuthorizationServerMetadata = client.get(oauthMetadataPath).body()
         val tokenEndpointUrl = oauthMetadata.tokenEndpoint
             ?: throw Exception("no tokenEndpoint in $oauthMetadata")
@@ -528,7 +507,7 @@ class ProvisioningService(
         }
         Napier.d("Provisioning starts by opening URL $authorizationUrl")
         this.redirectUri = redirectUrl
-        platformAdapter.openUrl(authorizationUrl)
+        openUrlExternally.invoke(authorizationUrl)
     }
 
     private suspend fun loadProvisioningContext(): ProvisioningContext =
@@ -540,87 +519,3 @@ class ProvisioningService(
             ?: throw Exception("Missing provisioning context")
 
 }
-
-@Serializable
-data class ProvisioningContext(
-    val state: String,
-    val host: String,
-    val credentialIdentifierInfo: CredentialIdentifierInfo,
-    val requestedAttributes: Set<String>?,
-    val oauthMetadata: OAuth2AuthorizationServerMetadata,
-    val issuerMetadata: IssuerMetadata,
-)
-
-
-@Serializable
-data class CredentialIdentifierInfo(
-    val credentialIdentifier: String,
-    val scheme: ExportableCredentialScheme,
-    val attributes: Collection<String>,
-    val supportedCredentialFormat: SupportedCredentialFormat,
-)
-
-/**
- * Client attestation JWT, issued by the backend service to a client, which can be sent to an OAuth2 Authorization
- * Server if needed, e.g. as HTTP header `OAuth-Client-Attestation`, see
- * [OAuth 2.0 Attestation-Based Client Authentication](https://www.ietf.org/archive/id/draft-ietf-oauth-attestation-based-client-auth-04.html)
- *
- * @param issuer a unique identifier for the entity that issued the JWT
- */
-// TODO Will be included in vck 5.2.0
-suspend fun JwsService.buildClientAttestationJwt(
-    clientId: String,
-    issuer: String,
-    lifetime: Duration,
-    clientKey: JsonWebKey,
-) = createSignedJwsAddingParams(
-    header = JwsHeader(
-        algorithm = algorithm,
-        type = "oauth-client-attestation+jwt"
-    ),
-    payload = JsonWebToken(
-        issuer = issuer,
-        subject = clientId,
-        issuedAt = Clock.System.now() - 5.minutes,
-        expiration = Clock.System.now() + lifetime,
-        confirmationClaim = ConfirmationClaim(
-            jsonWebKey = clientKey,
-        )
-    ),
-    serializer = JsonWebToken.serializer(),
-    addKeyId = false,
-    addJsonWebKey = false,
-    addX5c = false,
-).getOrThrow()
-
-/**
- * Client attestation PoP JWT, issued by the client, which can be sent to an OAuth2 Authorization Server if needed,
- * e.g. as HTTP header `OAuth-Client-Attestation-PoP`, see
- * [OAuth 2.0 Attestation-Based Client Authentication](https://www.ietf.org/archive/id/draft-ietf-oauth-attestation-based-client-auth-04.html)
- *
- * @param audience The RFC8414 issuer identifier URL of the authorization server MUST be used
- */
-// TODO Will be included in vck 5.2.0
-suspend fun JwsService.buildClientAttestationPoPJwt(
-    clientId: String,
-    audience: String,
-    lifetime: Duration,
-    nonce: String? = null,
-) = createSignedJwsAddingParams(
-    header = JwsHeader(
-        algorithm = algorithm,
-        type = "oauth-client-attestation-pop+jwt"
-    ),
-    payload = JsonWebToken(
-        issuer = clientId,
-        audience = audience,
-        jwtId = Random.nextBytes(12).encodeToString(Base64UrlStrict),
-        nonce = nonce,
-        issuedAt = Clock.System.now() - 5.minutes,
-        expiration = Clock.System.now() + lifetime,
-    ),
-    serializer = JsonWebToken.serializer(),
-    addKeyId = false,
-    addJsonWebKey = false,
-    addX5c = false,
-).getOrThrow()
