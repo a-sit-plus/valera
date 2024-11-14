@@ -165,8 +165,7 @@ class ProvisioningService(
 @Serializable
 data class ProvisioningContext(
     val state: String,
-    val host: String,
-    val credentialIdentifierInfo: CredentialIdentifierInfo,
+    val credential: CredentialIdentifierInfo,
     val requestedAttributes: Set<String>?,
     val oauthMetadata: OAuth2AuthorizationServerMetadata,
     val issuerMetadata: IssuerMetadata,

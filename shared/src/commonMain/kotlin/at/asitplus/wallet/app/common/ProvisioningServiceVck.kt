@@ -151,8 +151,7 @@ class ProvisioningServiceVck(
         )
         ProvisioningContext(
             state = state,
-            host = credentialIssuer,
-            credentialIdentifierInfo = credentialIdentifierInfo,
+            credential = credentialIdentifierInfo,
             requestedAttributes = requestedAttributeStrings,
             oauthMetadata = oauthMetadata,
             issuerMetadata = issuerMetadata
@@ -179,29 +178,26 @@ class ProvisioningServiceVck(
     suspend fun resumeWithAuthCode(url: String) {
         Napier.d("resumeWithAuthCode with $url")
 
-        val provisioningContext = loadProvisioningContext()
+        val context = loadProvisioningContext()
             ?: throw Exception("No provisioning context")
 
-        val state = provisioningContext.state
-        val credentialIdentifierInfo = provisioningContext.credentialIdentifierInfo
-        val credentialIdentifier = credentialIdentifierInfo.credentialIdentifier
-        val issuerMetadata = provisioningContext.issuerMetadata
-        val tokenEndpointUrl = provisioningContext.oauthMetadata.tokenEndpoint
-            ?: throw Exception("no tokenEndpoint in ${provisioningContext.oauthMetadata}")
-        val requestedAttributes = provisioningContext.requestedAttributes
+        val credentialIdentifier = context.credential.credentialIdentifier
+        val tokenEndpointUrl = context.oauthMetadata.tokenEndpoint
+            ?: throw Exception("no tokenEndpoint in ${context.oauthMetadata}")
+        val requestedAttributes = context.requestedAttributes
 
         val authnResponse = Url(url).parameters.flattenEntries().toMap()
             .decodeFromUrlQuery<AuthenticationResponseParameters>()
         val code = authnResponse.code ?: throw Exception("code is null")
 
         val tokenResponse: TokenResponseParameters = oid4vciService.oauth2Client.createTokenRequestParameters(
-            state = state,
+            state = context.state,
             authorization = OAuth2Client.AuthorizationForToken.Code(code),
-            scope = credentialIdentifierInfo.supportedCredentialFormat.scope,
+            scope = context.credential.supportedCredentialFormat.scope,
         ).let {
             postToken(
                 tokenEndpointUrl = tokenEndpointUrl,
-                credentialIssuer = issuerMetadata.credentialIssuer,
+                credentialIssuer = context.issuerMetadata.credentialIssuer,
                 tokenRequest = it
             )
         }
@@ -215,18 +211,18 @@ class ProvisioningServiceVck(
                 CredentialRequestInput.CredentialIdentifier(credentialIdentifier)
             else
                 CredentialRequestInput.Format(
-                    credentialIdentifierInfo.supportedCredentialFormat,
+                    context.credential.supportedCredentialFormat,
                     requestedAttributes
                 )
         } else {
             CredentialRequestInput.Format(
-                credentialIdentifierInfo.supportedCredentialFormat,
+                context.credential.supportedCredentialFormat,
                 requestedAttributes
             )
         }
 
-        val credentialScheme = credentialIdentifierInfo.scheme.toScheme()
-        postCredentialRequestAndStore(input, tokenResponse, issuerMetadata, credentialScheme)
+        val credentialScheme = context.credential.scheme.toScheme()
+        postCredentialRequestAndStore(input, tokenResponse, context.issuerMetadata, credentialScheme)
     }
 
     private suspend fun postToken(
@@ -345,8 +341,7 @@ class ProvisioningServiceVck(
         } ?: credentialOffer.grants?.authorizationCode?.let {
             ProvisioningContext(
                 state = state,
-                host = credentialIssuer,
-                credentialIdentifierInfo = credentialIdentifierInfo,
+                credential = credentialIdentifierInfo,
                 requestedAttributes = requestedAttributeStrings,
                 oauthMetadata = oauthMetadata,
                 issuerMetadata = issuerMetadata
