@@ -7,6 +7,7 @@ import at.asitplus.wallet.lib.oidc.AuthenticationRequestParametersFrom
 import at.asitplus.wallet.lib.oidc.AuthenticationResponseResult
 import at.asitplus.wallet.lib.oidc.OidcSiopWallet
 import io.github.aakira.napier.Napier
+import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
@@ -23,11 +24,10 @@ import kotlinx.serialization.Serializable
 
 class PresentationServiceVck(
     val platformAdapter: PlatformAdapter,
+    val client: HttpClient,
     cryptoService: CryptoService,
     holderAgent: HolderAgent,
-    httpService: HttpService,
 ) {
-    private val client = httpService.buildHttpClient()
     val oidcSiopWallet = OidcSiopWallet(
         holder = holderAgent,
         agentPublicKey = cryptoService.keyMaterial.publicKey,
@@ -42,11 +42,9 @@ class PresentationServiceVck(
     )
 
     @Throws(Throwable::class)
-    suspend fun startSiop(
-        authenticationRequestParameters: AuthenticationRequestParametersFrom,
-    ) {
-        Napier.i("startSiop: $authenticationRequestParameters")
-        oidcSiopWallet.createAuthnResponse(authenticationRequestParameters).getOrThrow().let {
+    suspend fun startPresentation(request: AuthenticationRequestParametersFrom) {
+        Napier.i("startSiop: $request")
+        oidcSiopWallet.createAuthnResponse(request).getOrThrow().let {
             when (it) {
                 is AuthenticationResponseResult.Post -> postResponse(it)
                 is AuthenticationResponseResult.Redirect -> redirectResponse(it)
