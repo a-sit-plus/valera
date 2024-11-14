@@ -13,7 +13,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import at.asitplus.wallet.app.common.ProvisioningService
+import at.asitplus.wallet.app.common.CredentialIdentifierInfo
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.lib.oidvci.toRepresentation
 import compose_wallet_app.shared.generated.resources.Res
@@ -22,10 +22,10 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun StatefulCredentialIdentifierInputField(
-    value: ProvisioningService.CredentialIdentifierInfo,
-    onValueChange: ((ProvisioningService.CredentialIdentifierInfo) -> Unit)?,
+    value: CredentialIdentifierInfo,
+    onValueChange: ((CredentialIdentifierInfo) -> Unit)?,
     modifier: Modifier = Modifier,
-    availableIdentifiers: Collection<ProvisioningService.CredentialIdentifierInfo>,
+    availableIdentifiers: Collection<CredentialIdentifierInfo>,
 ) {
     StatefulCredentialIdentifierInputField(
         value = value,
@@ -38,11 +38,11 @@ fun StatefulCredentialIdentifierInputField(
 
 @Composable
 fun StatefulCredentialIdentifierInputField(
-    value: ProvisioningService.CredentialIdentifierInfo,
-    onValueChange: (ProvisioningService.CredentialIdentifierInfo) -> Unit,
+    value: CredentialIdentifierInfo,
+    onValueChange: (CredentialIdentifierInfo) -> Unit,
     enabled: Boolean = true,
     modifier: Modifier = Modifier,
-    availableIdentifiers: Collection<ProvisioningService.CredentialIdentifierInfo>,
+    availableIdentifiers: Collection<CredentialIdentifierInfo>,
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
@@ -63,13 +63,13 @@ fun StatefulCredentialIdentifierInputField(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CredentialIdentifierInputField(
-    value: ProvisioningService.CredentialIdentifierInfo,
-    onValueChange: (ProvisioningService.CredentialIdentifierInfo) -> Unit,
+    value: CredentialIdentifierInfo,
+    onValueChange: (CredentialIdentifierInfo) -> Unit,
     expanded: Boolean,
     enabled: Boolean = true,
     onExpandedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
-    availableIdentifiers: Collection<ProvisioningService.CredentialIdentifierInfo>,
+    availableIdentifiers: Collection<CredentialIdentifierInfo>,
 ) {
     ExposedDropdownMenuBox(
         expanded = expanded,
@@ -102,5 +102,5 @@ fun CredentialIdentifierInputField(
 }
 
 @Composable
-private fun ProvisioningService.CredentialIdentifierInfo.uiLabel() =
+private fun CredentialIdentifierInfo.uiLabel() =
     "${scheme.toScheme().uiLabel()} (${supportedCredentialFormat.format.toRepresentation().uiLabel()})"

@@ -3,7 +3,7 @@ package ui.viewmodels
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.openid.CredentialOfferGrantsPreAuthCodeTransactionCode
-import at.asitplus.wallet.app.common.ProvisioningService
+import at.asitplus.wallet.app.common.CredentialIdentifierInfo
 import at.asitplus.wallet.app.common.WalletMain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -13,14 +13,14 @@ import kotlinx.coroutines.withContext
 /**
  * Selected transaction identifier, requested attributes, transaction code
  */
-typealias CredentialSelection = (ProvisioningService.CredentialIdentifierInfo, Set<NormalizedJsonPath>?, String?) -> Unit
+typealias CredentialSelection = (CredentialIdentifierInfo, Set<NormalizedJsonPath>?, String?) -> Unit
 
 class LoadCredentialViewModel {
     val walletMain: WalletMain
     val onSubmit: CredentialSelection
     val navigateUp: () -> Unit
     val hostString: String
-    val credentialIdentifiers: Collection<ProvisioningService.CredentialIdentifierInfo>
+    val credentialIdentifiers: Collection<CredentialIdentifierInfo>
     val transactionCodeRequirements: CredentialOfferGrantsPreAuthCodeTransactionCode?
 
     constructor(

@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.wallet.app.common.ProvisioningService
+import at.asitplus.wallet.app.common.CredentialIdentifierInfo
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.identifier
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.info_text_redirection_to_browser_for_credential_provisioning
@@ -26,14 +26,14 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun StatefulLoadDataForm(
     host: String,
-    credentialIdentifierInfo: ProvisioningService.CredentialIdentifierInfo,
-    onChangeCredentialIdentifierInfo: (ProvisioningService.CredentialIdentifierInfo) -> Unit,
+    credentialIdentifierInfo: CredentialIdentifierInfo,
+    onChangeCredentialIdentifierInfo: (CredentialIdentifierInfo) -> Unit,
     requestedAttributes: Set<NormalizedJsonPath>,
     onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
     transactionCode: TextFieldValue,
     onChangeTransactionCode: (TextFieldValue) -> Unit,
     modifier: Modifier = Modifier,
-    availableIdentifiers: Collection<ProvisioningService.CredentialIdentifierInfo>,
+    availableIdentifiers: Collection<CredentialIdentifierInfo>,
     showTransactionCode: Boolean,
 ) {
     var attributeCategoriesExpanded by rememberSaveable(credentialIdentifierInfo) {
@@ -63,8 +63,8 @@ fun StatefulLoadDataForm(
 @Composable
 fun LoadDataForm(
     host: String,
-    credentialIdentifierInfo: ProvisioningService.CredentialIdentifierInfo,
-    onChangeCredentialIdentifierInfo: (ProvisioningService.CredentialIdentifierInfo) -> Unit,
+    credentialIdentifierInfo: CredentialIdentifierInfo,
+    onChangeCredentialIdentifierInfo: (CredentialIdentifierInfo) -> Unit,
     requestedAttributes: Set<NormalizedJsonPath>,
     onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
     transactionCode: TextFieldValue,
@@ -72,7 +72,7 @@ fun LoadDataForm(
     attributeCategoriesExpanded: Map<PersonalDataCategory, Boolean>,
     onSetAttributeCategoriesExpanded: (Pair<PersonalDataCategory, Boolean>) -> Unit,
     modifier: Modifier = Modifier,
-    availableIdentifiers: Collection<ProvisioningService.CredentialIdentifierInfo>,
+    availableIdentifiers: Collection<CredentialIdentifierInfo>,
     showTransactionCode: Boolean,
 ) {
     Box(

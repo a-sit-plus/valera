@@ -117,7 +117,7 @@ class WalletMain(
 
     fun startProvisioning(
         host: String,
-        credentialIdentifierInfo: ProvisioningService.CredentialIdentifierInfo,
+        credentialIdentifierInfo: CredentialIdentifierInfo,
         requestedAttributes: Set<NormalizedJsonPath>?,
         onSuccess: () -> Unit,
     ) {
