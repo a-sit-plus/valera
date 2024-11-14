@@ -12,7 +12,10 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-      - name: Run tests
+      - name: Run Instrumented Tests
+        uses: ReactiveCircus/android-emulator-runner@v2
+        with:
+          api-level: 30
         run: ./gradlew :shared:connectedAndroidTest
       - name: Run tests
         run: ./gradlew :shared:iosSimulatorArm64Test
