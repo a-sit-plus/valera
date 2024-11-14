@@ -203,31 +203,29 @@ class ProvisioningServiceVck(
         }
 
         Napier.d("Received tokenResponse")
-        val authnDetails =
-            tokenResponse.authorizationDetails?.filterIsInstance<AuthorizationDetails.OpenIdCredential>()?.firstOrNull()
-        val input = if (authnDetails != null) {
-            if (authnDetails.credentialConfigurationId != null)
-            // TODO What about requested attributes?
-                CredentialRequestInput.CredentialIdentifier(credentialIdentifier)
-            else
-                CredentialRequestInput.Format(
-                    context.credential.supportedCredentialFormat,
-                    requestedAttributes
-                )
-        } else {
-            CredentialRequestInput.Format(
-                context.credential.supportedCredentialFormat,
-                requestedAttributes
-            )
-        }
-
         postCredentialRequestAndStore(
-            input = input,
+            input = tokenResponse.extractCredentialRequestInput(
+                credentialIdentifier = credentialIdentifier,
+                requestedAttributes = requestedAttributes,
+                supportedCredentialFormat = context.credential.supportedCredentialFormat
+            ),
             tokenResponse = tokenResponse,
             issuerMetadata = context.issuerMetadata,
             credentialScheme = context.credential.credentialScheme
         )
     }
+
+    private fun TokenResponseParameters.extractCredentialRequestInput(
+        credentialIdentifier: String,
+        requestedAttributes: Set<String>?,
+        supportedCredentialFormat: SupportedCredentialFormat
+    ): CredentialRequestInput =
+        authorizationDetails?.filterIsInstance<AuthorizationDetails.OpenIdCredential>()?.firstOrNull()?.let {
+            if (it.credentialConfigurationId != null)
+                CredentialRequestInput.CredentialIdentifier(credentialIdentifier) // TODO What about requested attributes?
+            else
+                CredentialRequestInput.Format(supportedCredentialFormat, requestedAttributes)
+        } ?: CredentialRequestInput.Format(supportedCredentialFormat, requestedAttributes)
 
     private suspend fun postToken(
         tokenEndpointUrl: String,
@@ -327,7 +325,7 @@ class ProvisioningServiceVck(
                 issuerMetadata.authorizationServers
             )
 
-            val token: TokenResponseParameters = oid4vciService.oauth2Client.createTokenRequestParameters(
+            val tokenResponse: TokenResponseParameters = oid4vciService.oauth2Client.createTokenRequestParameters(
                 state = state,
                 authorization = OAuth2Client.AuthorizationForToken.PreAuthCode(it.preAuthorizedCode, transactionCode),
                 authorizationDetails = authorizationDetails
@@ -338,11 +336,13 @@ class ProvisioningServiceVck(
                     tokenRequest = it
                 )
             }
-            val input = CredentialRequestInput.CredentialIdentifier(credentialIdentifierInfo.credentialIdentifier)
-
             postCredentialRequestAndStore(
-                input = input,
-                tokenResponse = token,
+                input = tokenResponse.extractCredentialRequestInput(
+                    credentialIdentifier = credentialIdentifierInfo.credentialIdentifier,
+                    requestedAttributes = requestedAttributeStrings,
+                    supportedCredentialFormat = credentialIdentifierInfo.supportedCredentialFormat
+                ),
+                tokenResponse = tokenResponse,
                 issuerMetadata = issuerMetadata,
                 credentialScheme = credentialIdentifierInfo.credentialScheme
             )
