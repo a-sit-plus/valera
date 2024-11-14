@@ -21,7 +21,6 @@ import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.iso.IssuerSigned
 import at.asitplus.wallet.lib.jws.DefaultJwsService
-import at.asitplus.wallet.lib.oauth2.OAuth2Client
 import at.asitplus.wallet.lib.oauth2.OAuth2Client.AuthorizationForToken
 import at.asitplus.wallet.lib.oidvci.WalletService
 import at.asitplus.wallet.lib.oidvci.WalletService.CredentialRequestInput
@@ -144,12 +143,6 @@ class ProvisioningServiceVck(
             ?.map { (it.segments.first() as NormalizedJsonPathSegment.NameSegment).memberName }
             ?.toSet()
 
-        val authorizationEndpointUrl = oauthMetadata.authorizationEndpoint
-            ?: throw Exception("no authorizationEndpoint in $oauthMetadata")
-        val authorizationDetails = oid4vciService.buildAuthorizationDetails(
-            credentialIdentifierInfo.credentialIdentifier,
-            issuerMetadata.authorizationServers
-        )
         ProvisioningContext(
             state = state,
             credential = credentialIdentifierInfo,
@@ -162,10 +155,14 @@ class ProvisioningServiceVck(
         }
 
         openAuthRequestInBrowser(
-            state,
-            authorizationDetails,
-            authorizationEndpointUrl,
-            oauthMetadata.pushedAuthorizationRequestEndpoint,
+            state = state,
+            authorizationDetails = oid4vciService.buildAuthorizationDetails(
+                credentialIdentifierInfo.credentialIdentifier,
+                issuerMetadata.authorizationServers
+            ),
+            authorizationEndpointUrl = oauthMetadata.authorizationEndpoint
+                ?: throw Exception("no authorizationEndpoint in $oauthMetadata"),
+            pushedAuthorizationRequestEndpoint = oauthMetadata.pushedAuthorizationRequestEndpoint,
             credentialIssuer = credentialIssuer,
             push = oauthMetadata.requirePushedAuthorizationRequests ?: false,
         )
@@ -356,16 +353,14 @@ class ProvisioningServiceVck(
                 Napier.d("Store context: $it")
             }
 
-            val authorizationEndpointUrl = oauthMetadata.authorizationEndpoint
-                ?: throw Exception("no authorizationEndpoint in $oauthMetadata")
-            val authorizationDetails = oid4vciService.buildAuthorizationDetails(
-                credentialIdentifierInfo.credentialIdentifier,
-                issuerMetadata.authorizationServers
-            )
             openAuthRequestInBrowser(
                 state = state,
-                authorizationDetails = authorizationDetails,
-                authorizationEndpointUrl = authorizationEndpointUrl,
+                authorizationDetails = oid4vciService.buildAuthorizationDetails(
+                    credentialIdentifierInfo.credentialIdentifier,
+                    issuerMetadata.authorizationServers
+                ),
+                authorizationEndpointUrl = oauthMetadata.authorizationEndpoint
+                    ?: throw Exception("no authorizationEndpoint in $oauthMetadata"),
                 pushedAuthorizationRequestEndpoint = oauthMetadata.pushedAuthorizationRequestEndpoint,
                 credentialIssuer = credentialIssuer,
                 issuerState = it.issuerState,
