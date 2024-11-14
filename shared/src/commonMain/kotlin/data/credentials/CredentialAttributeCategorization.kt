@@ -19,14 +19,14 @@ typealias AttributeUnpackingInformation = Pair<NormalizedJsonPath, List<Normaliz
 
 interface CredentialAttributeCategorization {
     companion object {
-        operator fun get(scheme: ConstantIndex.CredentialScheme) = when (scheme) {
+        operator fun get(scheme: ConstantIndex.CredentialScheme?): Template = when (scheme) {
             is IdAustriaScheme -> IdAustriaCredentialAttributeCategorization
             is EuPidScheme -> EuPidCredentialAttributeCategorization
             is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialAttributeCategorization
             is PowerOfRepresentationScheme -> PowerOfRepresentationCredentialAttributeCategorization
             is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialAttributeCategorization
             is EPrescriptionScheme -> EPrescriptionCredentialAttributeCategorization
-            else -> null
+            else -> EmptyCredentialAttributeCategorization
         }
     }
 

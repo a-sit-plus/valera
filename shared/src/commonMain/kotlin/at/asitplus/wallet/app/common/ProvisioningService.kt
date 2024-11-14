@@ -223,9 +223,9 @@ suspend fun JwsService.buildClientAttestationPoPJwt(
 ).getOrThrow()
 
 
-val CredentialIdentifierInfo.credentialScheme: ConstantIndex.CredentialScheme
+val CredentialIdentifierInfo.credentialScheme: ConstantIndex.CredentialScheme?
     get() = with(supportedCredentialFormat) {
         (credentialDefinition?.types?.firstNotNullOfOrNull { AttributeIndex.resolveAttributeType(it) }
             ?: sdJwtVcType?.let { AttributeIndex.resolveSdJwtAttributeType(it) }
             ?: docType?.let { AttributeIndex.resolveIsoDoctype(it) })
-    } ?: ConstantIndex.AtomicAttribute2023
+    }

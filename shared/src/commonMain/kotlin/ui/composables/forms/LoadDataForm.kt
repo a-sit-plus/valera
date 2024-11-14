@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.app.common.CredentialIdentifierInfo
 import at.asitplus.wallet.app.common.credentialScheme
-import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.identifier
+import at.asitplus.wallet.lib.data.ConstantIndex
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.info_text_redirection_to_browser_for_credential_provisioning
 import data.PersonalDataCategory
@@ -38,11 +38,7 @@ fun StatefulLoadDataForm(
     showTransactionCode: Boolean,
 ) {
     var attributeCategoriesExpanded by rememberSaveable(credentialIdentifierInfo) {
-        val attributeCategorization =
-            CredentialAttributeCategorization[credentialIdentifierInfo.credentialScheme]?.availableCategories
-                ?: throw IllegalArgumentException("credentialScheme: ${credentialIdentifierInfo.credentialScheme.identifier}")
-
-        mutableStateOf(attributeCategorization.associateWith { false })
+        mutableStateOf(CredentialAttributeCategorization[credentialIdentifierInfo.credentialScheme].availableCategories.associateWith { false })
     }
 
     LoadDataForm(
@@ -95,7 +91,7 @@ fun LoadDataForm(
                 showTransactionCode = showTransactionCode,
             )
             CredentialAttributeSelectionForm(
-                credentialScheme = credentialIdentifierInfo.credentialScheme,
+                credentialScheme = credentialIdentifierInfo.credentialScheme ?: ConstantIndex.AtomicAttribute2023,
                 requestedAttributes = requestedAttributes,
                 onChangeRequestedAttributes = onChangeRequestedAttributes,
                 attributeCategoriesExpanded = attributeCategoriesExpanded,
