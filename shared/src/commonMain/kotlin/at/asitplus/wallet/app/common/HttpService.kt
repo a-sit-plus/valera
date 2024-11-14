@@ -1,6 +1,7 @@
 package at.asitplus.wallet.app.common
 
 import io.ktor.client.HttpClient
+import io.ktor.client.HttpClientConfig
 import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.cookies.CookiesStorage
@@ -31,15 +32,19 @@ class HttpService {
         install(DefaultRequest) {
             header(HttpHeaders.ContentType, ContentType.Application.Json)
         }
-
-        install(Logging) {
-            logger = Logger.DEFAULT
-            level = LogLevel.ALL
-        }
+        apply(loggingConfig)
         install(HttpCookies) {
             cookieStorage?.let {
                 storage = it
             }
         }
     }
+
+    val loggingConfig: HttpClientConfig<*>.() -> Unit
+        get() = {
+            install(Logging) {
+                logger = Logger.DEFAULT
+                level = LogLevel.ALL
+            }
+        }
 }

@@ -18,9 +18,8 @@ class AuthenticationQrCodeScannerViewModel(
     val walletMain: WalletMain
 ) {
     var isLoading by mutableStateOf(false)
-    private val buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase = BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
-        oidcSiopWallet = walletMain.presentationService.oidcSiopWallet,
-    )
+    private val buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase =
+        BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(walletMain.presentationService,)
 
     fun onScan(link: String) {
         Napier.d("onScan: $link")

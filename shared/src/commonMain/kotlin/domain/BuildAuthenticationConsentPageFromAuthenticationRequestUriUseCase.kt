@@ -1,23 +1,22 @@
 package domain
 
 import at.asitplus.KmmResult
+import at.asitplus.wallet.app.common.PresentationService
 import at.asitplus.wallet.lib.data.vckJsonSerializer
-import at.asitplus.wallet.lib.oidc.OidcSiopWallet
 import io.github.aakira.napier.Napier
 import kotlinx.serialization.encodeToString
 import ui.navigation.Routes.AuthenticationConsentRoute
 
 class BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
-    val oidcSiopWallet: OidcSiopWallet,
+    val presentationService: PresentationService,
 ) {
     suspend operator fun invoke(requestUri: String): KmmResult<AuthenticationConsentRoute> {
-        val request =
-            oidcSiopWallet.parseAuthenticationRequestParameters(requestUri).getOrElse {
-                Napier.d("authenticationRequestParameters: $it")
-                return KmmResult.failure(it)
-            }
+        val request = presentationService.parseAuthenticationRequestParameters(requestUri).getOrElse {
+            Napier.d("authenticationRequestParameters: $it")
+            return KmmResult.failure(it)
+        }
 
-        val preparationState = oidcSiopWallet.startAuthorizationResponsePreparation(request).getOrElse {
+        val preparationState = presentationService.startAuthorizationResponsePreparation(request).getOrElse {
             return KmmResult.failure(it)
         }
 
@@ -26,7 +25,7 @@ class BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
             AuthenticationConsentRoute(
                 authenticationRequestParametersFromSerialized = vckJsonSerializer.encodeToString(request),
                 authorizationPreparationStateSerialized = vckJsonSerializer.encodeToString(preparationState),
-                recipientLocation = request.parameters.clientId ?: "",
+                recipientLocation = request.parameters.clientId,
             )
         )
     }

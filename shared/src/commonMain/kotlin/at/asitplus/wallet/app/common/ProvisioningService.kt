@@ -2,32 +2,29 @@ package at.asitplus.wallet.app.common
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.openid.CredentialOffer
-import at.asitplus.signum.indispensable.io.Base64UrlStrict
-import at.asitplus.signum.indispensable.josef.ConfirmationClaim
-import at.asitplus.signum.indispensable.josef.JsonWebKey
-import at.asitplus.signum.indispensable.josef.JsonWebToken
-import at.asitplus.signum.indispensable.josef.JwsHeader
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.vckJsonSerializer
-import at.asitplus.wallet.lib.jws.JwsService
+import at.asitplus.wallet.lib.jws.DefaultJwsService
+import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
+import at.asitplus.wallet.lib.ktor.openid.OpenId4VciClient
+import at.asitplus.wallet.lib.ktor.openid.ProvisioningContext
 import at.asitplus.wallet.lib.oidvci.WalletService
+import at.asitplus.wallet.lib.oidvci.buildClientAttestationJwt
 import data.storage.DataStoreService
 import data.storage.PersistentCookieStorage
 import io.github.aakira.napier.Napier
+import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
-import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import kotlinx.datetime.Clock
 import kotlinx.serialization.encodeToString
-import kotlin.random.Random
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
 class ProvisioningService(
@@ -46,16 +43,26 @@ class ProvisioningService(
 
     private val redirectUrl = "asitplus-wallet://wallet.a-sit.at/app/callback"
     private val clientId = "https://wallet.a-sit.at/app"
+    private val clientAttestationJwt = runBlocking {
+        DefaultJwsService(cryptoService).buildClientAttestationJwt(
+            clientId = clientId,
+            issuer = "https://example.com",
+            lifetime = 60.minutes,
+            clientKey = cryptoService.keyMaterial.jsonWebKey
+        ).serialize()
+    }
     //private val redirectUrl = "eudi-openid4ci://authorize/"
     //private val clientId = "track2_full" // for authlete
     //private val clientId = "wallet-dev" // for EUDI
 
-    private val provisioningService = ProvisioningServiceVck(
+    private val openId4VciClient = OpenId4VciClient(
         openUrlExternally = {
             this.redirectUri = redirectUrl
             platformAdapter.openUrl(it)
         },
-        client = client,
+        engine = HttpClient().engine,
+        cookiesStorage = cookieStorage,
+        httpClientConfig = httpService.loggingConfig,
         storeProvisioningContext = {
             dataStoreService.setPreference(
                 key = Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT,
@@ -73,6 +80,7 @@ class ProvisioningService(
         holderAgent = holderAgent,
         redirectUrl = redirectUrl,
         clientId = clientId,
+        loadClientAttestationJwt = { clientAttestationJwt }
     )
 
     /**
@@ -82,7 +90,7 @@ class ProvisioningService(
     suspend fun loadCredentialMetadata(
         host: String,
     ): Collection<CredentialIdentifierInfo> {
-        return provisioningService.loadCredentialMetadata(host)
+        return openId4VciClient.loadCredentialMetadata(host)
     }
 
     /**
@@ -96,7 +104,7 @@ class ProvisioningService(
     ) {
         config.set(host = credentialIssuer)
         cookieStorage.reset()
-        provisioningService.startProvisioningWithAuthRequest(
+        openId4VciClient.startProvisioningWithAuthRequest(
             credentialIssuer,
             credentialIdentifierInfo,
             requestedAttributes
@@ -111,7 +119,7 @@ class ProvisioningService(
     suspend fun resumeWithAuthCode(redirectedUrl: String) {
         Napier.d("handleResponse with $redirectedUrl")
         this.redirectUri = null
-        provisioningService.resumeWithAuthCode(redirectedUrl)
+        openId4VciClient.resumeWithAuthCode(redirectedUrl)
     }
 
     /**
@@ -147,7 +155,7 @@ class ProvisioningService(
         transactionCode: String? = null,
         requestedAttributes: Set<NormalizedJsonPath>?
     ) {
-        provisioningService.loadCredentialWithOffer(
+        openId4VciClient.loadCredentialWithOffer(
             credentialOffer,
             credentialIdentifierInfo,
             transactionCode,

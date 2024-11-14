@@ -23,11 +23,12 @@ enum class IntentType {
 }
 
 @Composable
-fun handleIntent(walletMain: WalletMain, navigate: (Route) -> Unit, navigateBack: () -> Unit){
+fun handleIntent(walletMain: WalletMain, navigate: (Route) -> Unit, navigateBack: () -> Unit) {
     LaunchedEffect(appLink.value) {
         Napier.d("app link changed to ${appLink.value}")
         appLink.value?.let { link ->
-            when (parseIntent(walletMain,link)) {
+            // resetting error service so that the intent can be displayed as intended
+            when (parseIntent(walletMain, link)) {
                 IntentType.ProvisioningIntent -> {
                     navigate(LoadingRoute)
                     try {
@@ -63,10 +64,9 @@ fun handleIntent(walletMain: WalletMain, navigate: (Route) -> Unit, navigateBack
 
                 IntentType.AuthorizationIntent -> {
                     kotlin.run {
-                        val consentPageBuilder =
-                            BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
-                                oidcSiopWallet = walletMain.presentationService.oidcSiopWallet
-                            )
+                        val consentPageBuilder = BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
+                            walletMain.presentationService
+                        )
 
                         consentPageBuilder(link).unwrap().onSuccess {
                             Napier.d("valid authentication request")
