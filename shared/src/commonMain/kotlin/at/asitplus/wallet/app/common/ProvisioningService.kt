@@ -154,74 +154,7 @@ class ProvisioningService(
             requestedAttributes
         )
     }
-
 }
-
-/**
- * Client attestation JWT, issued by the backend service to a client, which can be sent to an OAuth2 Authorization
- * Server if needed, e.g. as HTTP header `OAuth-Client-Attestation`, see
- * [OAuth 2.0 Attestation-Based Client Authentication](https://www.ietf.org/archive/id/draft-ietf-oauth-attestation-based-client-auth-04.html)
- *
- * @param issuer a unique identifier for the entity that issued the JWT
- */
-// TODO Will be included in vck 5.2.0
-suspend fun JwsService.buildClientAttestationJwt(
-    clientId: String,
-    issuer: String,
-    lifetime: Duration,
-    clientKey: JsonWebKey,
-) = createSignedJwsAddingParams(
-    header = JwsHeader(
-        algorithm = algorithm,
-        type = "oauth-client-attestation+jwt"
-    ),
-    payload = JsonWebToken(
-        issuer = issuer,
-        subject = clientId,
-        issuedAt = Clock.System.now() - 5.minutes,
-        expiration = Clock.System.now() + lifetime,
-        confirmationClaim = ConfirmationClaim(
-            jsonWebKey = clientKey,
-        )
-    ),
-    serializer = JsonWebToken.serializer(),
-    addKeyId = false,
-    addJsonWebKey = false,
-    addX5c = false,
-).getOrThrow()
-
-/**
- * Client attestation PoP JWT, issued by the client, which can be sent to an OAuth2 Authorization Server if needed,
- * e.g. as HTTP header `OAuth-Client-Attestation-PoP`, see
- * [OAuth 2.0 Attestation-Based Client Authentication](https://www.ietf.org/archive/id/draft-ietf-oauth-attestation-based-client-auth-04.html)
- *
- * @param audience The RFC8414 issuer identifier URL of the authorization server MUST be used
- */
-// TODO Will be included in vck 5.2.0
-suspend fun JwsService.buildClientAttestationPoPJwt(
-    clientId: String,
-    audience: String,
-    lifetime: Duration,
-    nonce: String? = null,
-) = createSignedJwsAddingParams(
-    header = JwsHeader(
-        algorithm = algorithm,
-        type = "oauth-client-attestation-pop+jwt"
-    ),
-    payload = JsonWebToken(
-        issuer = clientId,
-        audience = audience,
-        jwtId = Random.nextBytes(12).encodeToString(Base64UrlStrict),
-        nonce = nonce,
-        issuedAt = Clock.System.now() - 5.minutes,
-        expiration = Clock.System.now() + lifetime,
-    ),
-    serializer = JsonWebToken.serializer(),
-    addKeyId = false,
-    addJsonWebKey = false,
-    addX5c = false,
-).getOrThrow()
-
 
 val CredentialIdentifierInfo.credentialScheme: ConstantIndex.CredentialScheme?
     get() = with(supportedCredentialFormat) {
