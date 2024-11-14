@@ -306,7 +306,6 @@ class ProvisioningServiceVck(
         requestedAttributes: Set<NormalizedJsonPath>?
     ) {
         val credentialIssuer = credentialOffer.credentialIssuer
-        val preAuthCode = credentialOffer.grants?.preAuthorizedCode?.preAuthorizedCode.toString()
         val issuerMetadata = client
             .get("$credentialIssuer${OpenIdConstants.PATH_WELL_KNOWN_CREDENTIAL_ISSUER}")
             .body<IssuerMetadata>()
@@ -330,7 +329,7 @@ class ProvisioningServiceVck(
 
             val token: TokenResponseParameters = oid4vciService.oauth2Client.createTokenRequestParameters(
                 state = state,
-                authorization = OAuth2Client.AuthorizationForToken.PreAuthCode(preAuthCode, transactionCode),
+                authorization = OAuth2Client.AuthorizationForToken.PreAuthCode(it.preAuthorizedCode, transactionCode),
                 authorizationDetails = authorizationDetails
             ).let {
                 postToken(
@@ -341,7 +340,12 @@ class ProvisioningServiceVck(
             }
             val input = CredentialRequestInput.CredentialIdentifier(credentialIdentifierInfo.credentialIdentifier)
 
-            postCredentialRequestAndStore(input, token, issuerMetadata, credentialIdentifierInfo.credentialScheme)
+            postCredentialRequestAndStore(
+                input = input,
+                tokenResponse = token,
+                issuerMetadata = issuerMetadata,
+                credentialScheme = credentialIdentifierInfo.credentialScheme
+            )
         } ?: credentialOffer.grants?.authorizationCode?.let {
             ProvisioningContext(
                 state = state,
@@ -361,10 +365,10 @@ class ProvisioningServiceVck(
                 issuerMetadata.authorizationServers
             )
             openAuthRequestInBrowser(
-                state,
-                authorizationDetails,
-                authorizationEndpointUrl,
-                oauthMetadata.pushedAuthorizationRequestEndpoint,
+                state = state,
+                authorizationDetails = authorizationDetails,
+                authorizationEndpointUrl = authorizationEndpointUrl,
+                pushedAuthorizationRequestEndpoint = oauthMetadata.pushedAuthorizationRequestEndpoint,
                 credentialIssuer = credentialIssuer,
                 issuerState = it.issuerState,
                 push = oauthMetadata.requirePushedAuthorizationRequests ?: false
