@@ -11,6 +11,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
+import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.client.statement.readBytes
 import io.ktor.http.HttpHeaders
@@ -23,12 +24,15 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 class PresentationServiceVck(
-    val platformAdapter: PlatformAdapter,
+    /**
+     * Used to display the success page to the user
+     */
+    private val openUrlExternally: suspend (String) -> Unit,
     val client: HttpClient,
     cryptoService: CryptoService,
     holderAgent: HolderAgent,
 ) {
-    val oidcSiopWallet = OidcSiopWallet(
+    private val oidcSiopWallet = OidcSiopWallet(
         holder = holderAgent,
         agentPublicKey = cryptoService.keyMaterial.publicKey,
         jwsService = DefaultJwsService(cryptoService),
@@ -52,28 +56,29 @@ class PresentationServiceVck(
         }
     }
 
-    private suspend fun postResponse(
-        it: AuthenticationResponseResult.Post,
-    ) {
-        Napier.d("Post ${it.url}: $it")
-        val response = client.submitForm(
+    private suspend fun postResponse(it: AuthenticationResponseResult.Post) {
+        Napier.i("postResponse: $it")
+        handlePostResponse(client.submitForm(
             url = it.url,
             formParameters = parameters {
                 it.params.forEach { append(it.key, it.value) }
             }
-        )
-        Napier.d("response $response")
+        ))
+    }
+
+    private suspend fun handlePostResponse(response: HttpResponse) {
+        Napier.i("handlePostResponse: response $response")
         when (response.status.value) {
             HttpStatusCode.InternalServerError.value ->
                 throw Exception("InternalServerErrorException", Exception(response.bodyAsText()))
 
             in 200..399 -> response.headers[HttpHeaders.Location]?.let {
                 if (it.isNotEmpty()) {
-                    platformAdapter.openUrl(it)
+                    openUrlExternally.invoke(it)
                 }
             } ?: runCatching { response.body<OpenId4VpSuccess>() }.getOrNull()?.let {
                 if (it.redirectUri.isNotEmpty()) {
-                    platformAdapter.openUrl(it.redirectUri)
+                    openUrlExternally.invoke(it.redirectUri)
                 }
             }
 
@@ -87,11 +92,9 @@ class PresentationServiceVck(
         val redirectUri: String,
     )
 
-    private fun redirectResponse(
-        it: AuthenticationResponseResult.Redirect,
-    ) {
-        Napier.d("Opening ${it.url}")
-        platformAdapter.openUrl(it.url)
+    private suspend fun redirectResponse(it: AuthenticationResponseResult.Redirect) {
+        Napier.i("redirectResponse: ${it.url}")
+        openUrlExternally.invoke(it.url)
     }
 
 }

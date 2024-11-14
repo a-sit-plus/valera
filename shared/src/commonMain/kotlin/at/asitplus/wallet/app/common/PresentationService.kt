@@ -10,7 +10,7 @@ class PresentationService(
     httpService: HttpService,
 ) {
     private val presentationService = PresentationServiceVck(
-        platformAdapter = platformAdapter,
+        openUrlExternally = { platformAdapter.openUrl(it) },
         client = httpService.buildHttpClient(),
         cryptoService = cryptoService,
         holderAgent = holderAgent,
