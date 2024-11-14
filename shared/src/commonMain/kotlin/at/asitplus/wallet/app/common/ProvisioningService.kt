@@ -77,8 +77,8 @@ class ProvisioningService(
     private val cryptoService: CryptoService,
     private val holderAgent: HolderAgent,
     private val config: WalletConfig,
-    private val errorService: ErrorService,
-    private val httpService: HttpService,
+    errorService: ErrorService,
+    httpService: HttpService,
 ) {
     /** Checked by appLink handling whether to jump into [resumeWithAuthCode] */
     var redirectUri: String? = null
@@ -97,12 +97,11 @@ class ProvisioningService(
 
     private val provisioningService = ProvisioningServiceVck(
         openUrlExternally = { platformAdapter.openUrl(it) },
+        client = client,
         dataStoreService = dataStoreService,
         cryptoService = cryptoService,
         holderAgent = holderAgent,
         config = config,
-        errorService = errorService,
-        httpService = httpService,
     )
 
     /**

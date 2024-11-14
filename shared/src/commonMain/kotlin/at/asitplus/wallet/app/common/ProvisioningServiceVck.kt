@@ -29,8 +29,8 @@ import at.asitplus.wallet.lib.oidvci.encodeToParameters
 import com.benasher44.uuid.uuid4
 import data.storage.DataStoreService
 import data.storage.ExportableCredentialScheme.Companion.toExportableCredentialScheme
-import data.storage.PersistentCookieStorage
 import io.github.aakira.napier.Napier
+import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
@@ -61,18 +61,15 @@ class ProvisioningServiceVck(
     /**
      * Used to continue authentication in a web browser
      */
-    private val openUrlExternally: (suspend (String) -> Unit),
+    private val openUrlExternally: suspend (String) -> Unit,
+    private val client: HttpClient,
     private val dataStoreService: DataStoreService,
     private val cryptoService: CryptoService,
     private val holderAgent: HolderAgent,
     private val config: WalletConfig,
-    errorService: ErrorService,
-    httpService: HttpService,
 ) {
     /** Checked by appLink handling whether to jump into [resumeWithAuthCode] */
     var redirectUri: String? = null
-    private val cookieStorage = PersistentCookieStorage(dataStoreService, errorService)
-    private val client = httpService.buildHttpClient(cookieStorage = cookieStorage)
 
     private val redirectUrl = "asitplus-wallet://wallet.a-sit.at/app/callback"
     private val clientId = "https://wallet.a-sit.at/app"
@@ -126,7 +123,6 @@ class ProvisioningServiceVck(
         requestedAttributes: Set<NormalizedJsonPath>?,
     ) {
         config.set(host = credentialIssuer)
-        cookieStorage.reset()
         Napier.d("Start provisioning at $credentialIssuer with $credentialIdentifierInfo")
         // Load certificate, might trigger biometric prompt?
         CoroutineScope(Dispatchers.Unconfined).launch { cryptoService.keyMaterial.getCertificate() }
