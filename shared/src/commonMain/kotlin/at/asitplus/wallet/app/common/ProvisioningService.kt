@@ -2,9 +2,6 @@ package at.asitplus.wallet.app.common
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.openid.CredentialOffer
-import at.asitplus.openid.IssuerMetadata
-import at.asitplus.openid.OAuth2AuthorizationServerMetadata
-import at.asitplus.openid.SupportedCredentialFormat
 import at.asitplus.signum.indispensable.io.Base64UrlStrict
 import at.asitplus.signum.indispensable.josef.ConfirmationClaim
 import at.asitplus.signum.indispensable.josef.JsonWebKey
@@ -12,13 +9,12 @@ import at.asitplus.signum.indispensable.josef.JsonWebToken
 import at.asitplus.signum.indispensable.josef.JwsHeader
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
+import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.jws.JwsService
 import at.asitplus.wallet.lib.oidvci.WalletService
 import data.storage.DataStoreService
-import data.storage.ExportableCredentialScheme
-import data.storage.ExportableCredentialScheme.Companion.toExportableCredentialScheme
 import data.storage.PersistentCookieStorage
 import io.github.aakira.napier.Napier
 import io.ktor.client.request.get
@@ -29,8 +25,6 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import kotlinx.serialization.encodeToString
 import kotlin.random.Random
 import kotlin.time.Duration
@@ -163,38 +157,6 @@ class ProvisioningService(
 
 }
 
-@Serializable
-data class ProvisioningContext(
-    val state: String,
-    val credential: CredentialIdentifierInfo,
-    val requestedAttributes: Set<String>?,
-    val oauthMetadata: OAuth2AuthorizationServerMetadata,
-    val issuerMetadata: IssuerMetadata,
-)
-
-
-@Serializable
-data class CredentialIdentifierInfo(
-    val credentialIdentifier: String,
-    val scheme: ExportableCredentialScheme,
-    val attributes: Collection<String>,
-    val supportedCredentialFormat: SupportedCredentialFormat,
-) {
-    constructor(
-        credentialIdentifier: String,
-        scheme: ConstantIndex.CredentialScheme,
-        attributes: Collection<String>,
-        supportedCredentialFormat: SupportedCredentialFormat,
-    ) : this(
-        credentialIdentifier = credentialIdentifier,
-        scheme = scheme.toExportableCredentialScheme(),
-        attributes = attributes,
-        supportedCredentialFormat = supportedCredentialFormat
-    )
-    @Transient
-    val credentialScheme: ConstantIndex.CredentialScheme = scheme.toScheme()
-}
-
 /**
  * Client attestation JWT, issued by the backend service to a client, which can be sent to an OAuth2 Authorization
  * Server if needed, e.g. as HTTP header `OAuth-Client-Attestation`, see
@@ -259,3 +221,11 @@ suspend fun JwsService.buildClientAttestationPoPJwt(
     addJsonWebKey = false,
     addX5c = false,
 ).getOrThrow()
+
+
+val CredentialIdentifierInfo.credentialScheme: ConstantIndex.CredentialScheme
+    get() = with(supportedCredentialFormat) {
+        (credentialDefinition?.types?.firstNotNullOfOrNull { AttributeIndex.resolveAttributeType(it) }
+            ?: sdJwtVcType?.let { AttributeIndex.resolveSdJwtAttributeType(it) }
+            ?: docType?.let { AttributeIndex.resolveIsoDoctype(it) })
+    } ?: ConstantIndex.AtomicAttribute2023

@@ -16,6 +16,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.app.common.CredentialIdentifierInfo
+import at.asitplus.wallet.app.common.credentialScheme
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.identifier
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.info_text_redirection_to_browser_for_credential_provisioning

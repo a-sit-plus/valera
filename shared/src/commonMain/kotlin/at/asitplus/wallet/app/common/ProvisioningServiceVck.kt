@@ -46,6 +46,7 @@ import io.matthewnelson.encoding.core.Decoder.Companion.decodeToByteArray
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
@@ -88,7 +89,7 @@ class ProvisioningServiceVck(
     suspend fun loadCredentialMetadata(
         host: String,
     ): Collection<CredentialIdentifierInfo> {
-        Napier.d("Load credential metadata from $host")
+        Napier.i("loadCredentialMetadata: $host")
         val credentialMetadata = client
             .get("$host${OpenIdConstants.PATH_WELL_KNOWN_CREDENTIAL_ISSUER}")
             .body<IssuerMetadata>()
@@ -97,8 +98,6 @@ class ProvisioningServiceVck(
         return supported.mapNotNull {
             CredentialIdentifierInfo(
                 credentialIdentifier = it.key,
-                scheme = it.value.resolveCredentialScheme()
-                    ?: return@mapNotNull null,
                 attributes = it.value.resolveAttributes()
                     ?: listOf(),
                 supportedCredentialFormat = it.value
@@ -125,7 +124,7 @@ class ProvisioningServiceVck(
         credentialIdentifierInfo: CredentialIdentifierInfo,
         requestedAttributes: Set<NormalizedJsonPath>?,
     ) {
-        Napier.d("Start provisioning at $credentialIssuer with $credentialIdentifierInfo")
+        Napier.i("startProvisioningWithAuthRequest: $credentialIssuer with $credentialIdentifierInfo")
         // Load certificate, might trigger biometric prompt?
         CoroutineScope(Dispatchers.Unconfined).launch { cryptoService.keyMaterial.getCertificate() }
 
@@ -151,7 +150,7 @@ class ProvisioningServiceVck(
             issuerMetadata = issuerMetadata
         ).let {
             storeProvisioningContext.invoke(it)
-            Napier.d("Store context: $it")
+            Napier.i("Store context: $it")
         }
 
         openAuthRequestInBrowser(
@@ -174,22 +173,18 @@ class ProvisioningServiceVck(
      */
     @Throws(Throwable::class)
     suspend fun resumeWithAuthCode(url: String) {
-        Napier.d("resumeWithAuthCode with $url")
-
+        Napier.i("resumeWithAuthCode: $url")
         val context = loadProvisioningContext()
             ?: throw Exception("No provisioning context")
 
-        val credentialIdentifier = context.credential.credentialIdentifier
-        val tokenEndpointUrl = context.oauthMetadata.tokenEndpoint
-            ?: throw Exception("no tokenEndpoint in ${context.oauthMetadata}")
-        val requestedAttributes = context.requestedAttributes
-
         val authnResponse = Url(url).parameters.flattenEntries().toMap()
             .decodeFromUrlQuery<AuthenticationResponseParameters>()
-        val code = authnResponse.code ?: throw Exception("code is null")
+        val code = authnResponse.code
+            ?: throw Exception("No authn code in $url")
 
         val tokenResponse = postToken(
-            tokenEndpointUrl = tokenEndpointUrl,
+            tokenEndpointUrl = context.oauthMetadata.tokenEndpoint
+                ?: throw Exception("No tokenEndpoint in ${context.oauthMetadata}"),
             credentialIssuer = context.issuerMetadata.credentialIssuer,
             tokenRequest = oid4vciService.oauth2Client.createTokenRequestParameters(
                 state = context.state,
@@ -197,17 +192,20 @@ class ProvisioningServiceVck(
                 scope = context.credential.supportedCredentialFormat.scope,
             )
         )
+        Napier.i("Received token response $tokenResponse")
 
-        Napier.d("Received tokenResponse")
+        val credentialScheme = context.credential.supportedCredentialFormat.resolveCredentialScheme()
+            ?: throw Exception("Unknown credential scheme in ${context.credential}")
         postCredentialRequestAndStore(
+            credentialEndpointUrl = context.issuerMetadata.credentialEndpointUrl,
             input = tokenResponse.extractCredentialRequestInput(
-                credentialIdentifier = credentialIdentifier,
-                requestedAttributes = requestedAttributes,
+                credentialIdentifier = context.credential.credentialIdentifier,
+                requestedAttributes = context.requestedAttributes,
                 supportedCredentialFormat = context.credential.supportedCredentialFormat
             ),
             tokenResponse = tokenResponse,
-            issuerMetadata = context.issuerMetadata,
-            credentialScheme = context.credential.credentialScheme
+            credentialScheme = credentialScheme,
+            credentialIssuer = context.issuerMetadata.credentialIssuer
         )
     }
 
@@ -228,6 +226,7 @@ class ProvisioningServiceVck(
         credentialIssuer: String,
         tokenRequest: TokenRequestParameters
     ): TokenResponseParameters {
+        Napier.i("postToken: $tokenEndpointUrl with $tokenRequest")
         // TODO Decide when to set Attestation Header
         val clientAttestationJwt = jwsService.buildClientAttestationJwt(
             clientId = clientId,
@@ -257,21 +256,25 @@ class ProvisioningServiceVck(
     }
 
     private suspend fun postCredentialRequestAndStore(
+        credentialEndpointUrl: String,
         input: CredentialRequestInput,
         tokenResponse: TokenResponseParameters,
-        issuerMetadata: IssuerMetadata,
-        credentialScheme: ConstantIndex.CredentialScheme
+        credentialScheme: ConstantIndex.CredentialScheme,
+        credentialIssuer: String
     ) {
+        Napier.i("postCredentialRequestAndStore: $credentialEndpointUrl with $input")
         val credentialRequest = oid4vciService.createCredentialRequest(
-            input, tokenResponse.clientNonce, issuerMetadata.credentialIssuer,
+            input = input,
+            clientNonce = tokenResponse.clientNonce,
+            credentialIssuer = credentialIssuer,
         ).getOrThrow()
 
         // TODO Decide when to set DPoP header
         val dpopHeader = jwsService.buildDPoPHeader(
-            url = issuerMetadata.credentialEndpointUrl,
+            url = credentialEndpointUrl,
             accessToken = tokenResponse.accessToken
         )
-        val credentialResponse: CredentialResponseParameters = client.post(issuerMetadata.credentialEndpointUrl) {
+        val credentialResponse: CredentialResponseParameters = client.post(credentialEndpointUrl) {
             contentType(ContentType.Application.Json)
             setBody(credentialRequest)
             headers["Authorization"] = "${tokenResponse.tokenType} ${tokenResponse.accessToken}"
@@ -299,6 +302,7 @@ class ProvisioningServiceVck(
         transactionCode: String? = null,
         requestedAttributes: Set<NormalizedJsonPath>?
     ) {
+        Napier.i("loadCredentialWithOffer: $credentialOffer")
         val credentialIssuer = credentialOffer.credentialIssuer
         val issuerMetadata = client
             .get("$credentialIssuer${OpenIdConstants.PATH_WELL_KNOWN_CREDENTIAL_ISSUER}")
@@ -316,6 +320,9 @@ class ProvisioningServiceVck(
             ?.toSet()
 
         credentialOffer.grants?.preAuthorizedCode?.let {
+            val credentialScheme = credentialIdentifierInfo.supportedCredentialFormat.resolveCredentialScheme()
+                ?: throw Exception("Unknown credential scheme in $credentialIdentifierInfo")
+
             val authorizationDetails = oid4vciService.buildAuthorizationDetails(
                 credentialIdentifierInfo.credentialIdentifier,
                 issuerMetadata.authorizationServers
@@ -330,16 +337,18 @@ class ProvisioningServiceVck(
                     authorizationDetails = authorizationDetails
                 )
             )
+            Napier.i("Received token response $tokenResponse")
 
             postCredentialRequestAndStore(
+                credentialEndpointUrl = issuerMetadata.credentialEndpointUrl,
                 input = tokenResponse.extractCredentialRequestInput(
                     credentialIdentifier = credentialIdentifierInfo.credentialIdentifier,
                     requestedAttributes = requestedAttributeStrings,
                     supportedCredentialFormat = credentialIdentifierInfo.supportedCredentialFormat
                 ),
                 tokenResponse = tokenResponse,
-                issuerMetadata = issuerMetadata,
-                credentialScheme = credentialIdentifierInfo.credentialScheme
+                credentialScheme = credentialScheme,
+                credentialIssuer = issuerMetadata.credentialIssuer
             )
         } ?: credentialOffer.grants?.authorizationCode?.let {
             ProvisioningContext(
@@ -454,3 +463,22 @@ class ProvisioningServiceVck(
     }
 
 }
+
+@Serializable
+data class ProvisioningContext(
+    val state: String,
+    val credential: CredentialIdentifierInfo,
+    val requestedAttributes: Set<String>?,
+    val oauthMetadata: OAuth2AuthorizationServerMetadata,
+    val issuerMetadata: IssuerMetadata,
+)
+
+/**
+ * Gets parsed from the credential issuer's metadata
+ */
+@Serializable
+data class CredentialIdentifierInfo(
+    val credentialIdentifier: String,
+    val attributes: Collection<String>,
+    val supportedCredentialFormat: SupportedCredentialFormat,
+)
