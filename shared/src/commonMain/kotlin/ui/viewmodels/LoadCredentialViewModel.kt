@@ -3,8 +3,8 @@ package ui.viewmodels
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.openid.CredentialOfferGrantsPreAuthCodeTransactionCode
-import at.asitplus.wallet.app.common.CredentialIdentifierInfo
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.runBlocking
