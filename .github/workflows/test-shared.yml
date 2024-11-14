@@ -16,7 +16,7 @@ jobs:
         uses: ReactiveCircus/android-emulator-runner@v2
         with:
           api-level: 30
-        run: ./gradlew :shared:connectedAndroidTest
+        script: ./gradlew :shared:connectedAndroidTest
       - name: Run tests
         run: ./gradlew :shared:iosSimulatorArm64Test
       - name: Test Report
