@@ -185,8 +185,7 @@ private fun WalletNavHost(
                 onClickReadGeneralTermsAndConditions = {})
         }
         composable<HomeScreenRoute> {
-            val vm = CredentialsViewModel(walletMain)
-            CredentialsView(
+            val vm = CredentialsViewModel(walletMain,
                 navigateToAddCredentialsPage = {
                     navigate(AddCredentialRoute)
                 },
@@ -196,7 +195,6 @@ private fun WalletNavHost(
                 navigateToCredentialDetailsPage = {
                     navigate(CredentialDetailsRoute(it))
                 },
-                vm = vm,
                 imageDecoder = {
                     try {
                         walletMain.platformAdapter.decodeImage(it)
@@ -205,7 +203,9 @@ private fun WalletNavHost(
                         Napier.w("Failed Operation: decodeImage")
                         null
                     }
-                },
+                })
+            CredentialsView(
+                vm = vm,
                 bottomBar = {
                     BottomBar(
                         navigate = navigate,
