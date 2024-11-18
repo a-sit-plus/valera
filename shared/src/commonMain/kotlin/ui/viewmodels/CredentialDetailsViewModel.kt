@@ -2,6 +2,7 @@ package ui.viewmodels
 
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.app.common.decodeImage
 import data.storage.StoreEntryId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO

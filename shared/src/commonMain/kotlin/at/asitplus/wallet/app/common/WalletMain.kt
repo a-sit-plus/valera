@@ -17,6 +17,7 @@ import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import data.storage.AntilogAdapter
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
+import getImageDecoder
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -161,7 +162,6 @@ interface PlatformAdapter {
      * @param image the image as ByteArray
      * @return returns the image as an ImageBitmap
      */
-    fun decodeImage(image: ByteArray): ImageBitmap
 
     /**
      * Writes an user defined string to a file in a specific folder
@@ -192,12 +192,12 @@ interface PlatformAdapter {
     fun shareLog()
 }
 
+fun PlatformAdapter.decodeImage(image: ByteArray): ImageBitmap {
+    return getImageDecoder((image))
+}
+
 class DummyPlatformAdapter : PlatformAdapter {
     override fun openUrl(url: String) {
-    }
-
-    override fun decodeImage(image: ByteArray): ImageBitmap {
-        return ImageBitmap(1, 1)
     }
 
     override fun writeToFile(text: String, fileName: String, folderName: String) {
@@ -212,5 +212,4 @@ class DummyPlatformAdapter : PlatformAdapter {
 
     override fun shareLog() {
     }
-
 }

@@ -65,11 +65,6 @@ class AndroidPlatformAdapter(val context: Context) : PlatformAdapter {
         context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
     }
 
-    override fun decodeImage(image: ByteArray): ImageBitmap {
-        val bitmap = BitmapFactory.decodeByteArray(image, 0, image.size)
-        return bitmap.asImageBitmap()
-    }
-
     override fun writeToFile(text: String, fileName: String, folderName: String) {
         val folder = File(context.filesDir, folderName)
         if (!folder.exists()) {
@@ -125,4 +120,9 @@ class AndroidPlatformAdapter(val context: Context) : PlatformAdapter {
         }
         context.startActivity(Intent.createChooser(intent, null))
     }
+}
+
+actual fun getImageDecoder(image: ByteArray): ImageBitmap {
+    val bitmap = BitmapFactory.decodeByteArray(image, 0, image.size)
+    return bitmap.asImageBitmap()
 }

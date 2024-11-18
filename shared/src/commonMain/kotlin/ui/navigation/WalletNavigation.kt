@@ -25,6 +25,7 @@ import at.asitplus.openid.CredentialOffer
 import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParametersFrom
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.snackbar_clear_log_successfully
