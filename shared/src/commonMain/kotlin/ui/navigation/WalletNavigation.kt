@@ -44,7 +44,6 @@ import ui.composables.NavigationData
 import ui.navigation.Routes.AddCredentialPreAuthnRoute
 import ui.navigation.Routes.AddCredentialRoute
 import ui.navigation.Routes.AuthenticationConsentRoute
-import ui.navigation.Routes.AuthenticationLoadingRoute
 import ui.navigation.Routes.AuthenticationQrCodeScannerRoute
 import ui.navigation.Routes.AuthenticationSuccessRoute
 import ui.navigation.Routes.CredentialDetailsRoute
@@ -388,10 +387,5 @@ private fun WalletNavHost(
             )
             AuthenticationQrCodeScannerView(vm)
         }
-
-        composable<AuthenticationLoadingRoute> { backStackEntry ->
-            LoadingView()
-        }
-
     }
 }
