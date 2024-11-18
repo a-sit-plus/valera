@@ -23,13 +23,12 @@ import androidx.compose.ui.unit.dp
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.heading_label_authentication_success
 import compose_wallet_app.shared.generated.resources.info_text_authentication_success
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.ConcludeButton
 import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.AuthenticationSuccessViewModel
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthenticationSuccessView(
     vm: AuthenticationSuccessViewModel

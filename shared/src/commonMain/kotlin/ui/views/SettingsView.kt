@@ -47,11 +47,10 @@ import compose_wallet_app.shared.generated.resources.section_heading_information
 import compose_wallet_app.shared.generated.resources.text_label_build
 import compose_wallet_app.shared.generated.resources.text_label_stage
 import compose_wallet_app.shared.generated.resources.warning
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.viewmodels.SettingsViewModel
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsView(
     vm: SettingsViewModel,
@@ -216,7 +215,6 @@ private fun TextIconButtonListItem(
 }
 
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 private fun ResetAlert(
     onDismiss: () -> Unit,
