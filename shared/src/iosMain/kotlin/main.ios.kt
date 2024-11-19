@@ -44,7 +44,6 @@ fun MainViewController(
         App(
             WalletMain(
                 WalletCryptoService(keyMaterial = keystoreService.getSignerBlocking()),
-                 keystoreService,
                 dataStoreService,
                 platformAdapter,
                 buildContext =  buildContext,

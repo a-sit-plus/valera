@@ -50,7 +50,6 @@ fun MainView(buildContext: BuildContext) {
     App(
         WalletMain(
             cryptoService = ks.let { runBlocking { AndroidCryptoService(it.getSigner()) } },
-            holderKeyService = ks,
             dataStoreService = dataStoreService,
             platformAdapter = platformAdapter,
             buildContext = buildContext,

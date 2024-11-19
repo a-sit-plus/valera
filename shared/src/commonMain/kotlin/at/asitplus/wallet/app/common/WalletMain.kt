@@ -27,7 +27,6 @@ import kotlinx.coroutines.launch
  */
 class WalletMain(
     val cryptoService: WalletCryptoService,
-    private val holderKeyService: HolderKeyService,
     private val dataStoreService: DataStoreService,
     val platformAdapter: PlatformAdapter,
     var subjectCredentialStore: PersistentSubjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService),
@@ -136,17 +135,6 @@ class WalletMain(
         }
     }
 }
-
-/**
- * Interface which defines native keychain callbacks for the ID Holder
- */
-interface HolderKeyService {
-    /**
-     * Clears the private and public key from the keychain/keystore
-     */
-    fun clear()
-}
-
 
 /**
  * Adapter to call back to native code without the need for service objects
