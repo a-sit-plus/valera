@@ -20,12 +20,14 @@ jobs:
 
       - name: Run Instrumented Tests
         uses: ReactiveCircus/android-emulator-runner@v2
+        env:
+          ANDROID_CERT_PASSWORD: ${{ secrets.ANDROID_CERT_PASSWORD }}
         with:
           arch: x86_64
           api-level: 33
           target: google_apis
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: ./gradlew connectedCheck
+          script: ./gradlew connectedAndroidTest
       - name: Run tests
         run: ./gradlew :shared:iosSimulatorArm64Test
       - name: Test Report
