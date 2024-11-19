@@ -25,7 +25,7 @@ jobs:
           api-level: 33
           target: google_apis
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: ./gradlew connectedAndroidTest
+          script: ./gradlew connectedCheck
       - name: Run tests
         run: ./gradlew :shared:iosSimulatorArm64Test
       - name: Test Report
