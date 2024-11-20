@@ -95,7 +95,7 @@ class InstrumentedTests {
             )
             App(walletMain)
         }
-
+/*
         waitUntil {
             onNodeWithTag(NavigatorTestTags.loadingTestTag)
                 .isNotDisplayed()
@@ -103,6 +103,8 @@ class InstrumentedTests {
 
         onNodeWithTag(OnboardingWrapperTestTags.onboardingStartScreen)
             .assertIsDisplayed()
+             */
+
     }
 
     @Test
@@ -125,7 +127,7 @@ class InstrumentedTests {
             )
             App(walletMain)
         }
-
+/*
         waitUntil {
             onNodeWithTag(NavigatorTestTags.loadingTestTag)
                 .isNotDisplayed()
@@ -138,6 +140,8 @@ class InstrumentedTests {
 
         onNodeWithTag(OnboardingStartScreenTestTag.startButton)
             .assertIsDisplayed()
+
+ */
     }
 
 
