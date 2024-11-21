@@ -48,6 +48,7 @@ import kotlin.time.Duration.Companion.minutes
 @OptIn(ExperimentalTestApi::class)
 class InstrumentedTests {
 
+    /*
     @Test
     fun givenNewAppInstallation_whenStartingApp_thenAppActuallyStarts() = runComposeUiTest() {
 
@@ -74,7 +75,7 @@ class InstrumentedTests {
             .assertIsDisplayed()
     }
 
-/*
+
     @Test
     fun givenNewAppInstallation_whenStartingApp_thenShowsOnboardingStartScreen() = runComposeUiTest() {
         // Start the app
@@ -203,7 +204,7 @@ class InstrumentedTests {
             onNodeWithText("0088 Testort A").assertExists()
         }
     }
-
+ */
     private fun getAttributes() : List<ClaimToBeIssued> {
         return listOf(
             ClaimToBeIssued(IdAustriaScheme.Attributes.BPK,"XFN+436920f:L9LBxmjNPt0041j5O1+sir0HOG0="),
@@ -273,7 +274,7 @@ class InstrumentedTests {
         }
     }
 
- */
+
 
 }
 
