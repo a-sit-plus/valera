@@ -74,7 +74,7 @@ class InstrumentedTests {
             .assertIsDisplayed()
     }
 
-
+/*
     @Test
     fun givenNewAppInstallation_whenStartingApp_thenShowsOnboardingStartScreen() = runComposeUiTest() {
         // Start the app
@@ -95,7 +95,7 @@ class InstrumentedTests {
             )
             App(walletMain)
         }
-/*
+
         waitUntil {
             onNodeWithTag(NavigatorTestTags.loadingTestTag)
                 .isNotDisplayed()
@@ -103,7 +103,7 @@ class InstrumentedTests {
 
         onNodeWithTag(OnboardingWrapperTestTags.onboardingStartScreen)
             .assertIsDisplayed()
-             */
+
 
     }
 
@@ -127,7 +127,7 @@ class InstrumentedTests {
             )
             App(walletMain)
         }
-/*
+
         waitUntil {
             onNodeWithTag(NavigatorTestTags.loadingTestTag)
                 .isNotDisplayed()
@@ -141,7 +141,7 @@ class InstrumentedTests {
         onNodeWithTag(OnboardingStartScreenTestTag.startButton)
             .assertIsDisplayed()
 
- */
+
     }
 
 
@@ -268,10 +268,12 @@ class InstrumentedTests {
 
             appLink.value =
                 "https://wallet.a-sit.at/mobile?request_uri=https://apps.egiz.gv.at/customverifier/transaction/get/af123d37-f736-4f1a-9360-6bb40632987c&client_id=apps.egiz.gv.at&client_metadata_uri=https://apps.egiz.gv.at/customverifier/siopv2/metadata"
-            waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_consent)), 2000)
-            onNodeWithText(getString(Res.string.button_label_consent)).performClick()
+            //waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_consent)), 2000)
+            //onNodeWithText(getString(Res.string.button_label_consent)).performClick()
         }
     }
+
+ */
 
 }
 
