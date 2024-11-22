@@ -33,6 +33,8 @@ import compose_wallet_app.shared.generated.resources.content_description_portrai
 import compose_wallet_app.shared.generated.resources.section_heading_age_data
 import data.storage.DummyDataStoreService
 import data.storage.PersistentSubjectCredentialStore
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -43,6 +45,14 @@ import ui.navigation.Routes.OnboardingWrapperTestTags
 import ui.views.OnboardingStartScreenTestTag
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.minutes
+import io.ktor.client.request.*
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 // Modified from https://developer.android.com/jetpack/compose/testing
 @OptIn(ExperimentalTestApi::class)
@@ -266,18 +276,45 @@ class InstrumentedTests {
             onNodeWithText(getString(Res.string.button_label_accept)).performClick()
             waitUntilDoesNotExist(hasText(getString(Res.string.button_label_accept)), 2000)
 
-            appLink.value =
-            //    "https://wallet.a-sit.at/mobile?request_uri=https://apps.egiz.gv.at/customverifier/transaction/get/af123d37-f736-4f1a-9360-6bb40632987c&client_id=apps.egiz.gv.at&client_metadata_uri=https://apps.egiz.gv.at/customverifier/siopv2/metadata"
-         //   "https://wallet.a-sit.at/mobile?request_uri=https://apps.egiz.gv.at/customverifier/transaction/get/0ea84341-9ae9-40a0-9376-3432b13c0fb8&client_id=apps.egiz.gv.at&client_metadata_uri=https://apps.egiz.gv.at/customverifier/siopv2/metadata"
-              "https://wallet.a-sit.at/mobile?request_uri=https://apps.egiz.gv.at/customverifier/transaction/get/de4ffb23-8941-4c70-8b75-aa3b593da13d&client_id=apps.egiz.gv.at&client_metadata_uri=https://apps.egiz.gv.at/customverifier/siopv2/metadata"
-                waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_consent)), 2000)
+            val client = HttpClient()
+            val response = client.post("https://apps.egiz.gv.at/customverifier/transaction/create") {
+                contentType(ContentType.Application.Json)
+                setBody(json);
+            }.body<String>()
+
+            val jsonObject = Json.parseToJsonElement(response).jsonObject
+            val qrCodeUrl = jsonObject["qrCodeUrl"]?.jsonPrimitive?.content
+
+            appLink.value = qrCodeUrl
+            waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_consent)), 2000)
             onNodeWithText(getString(Res.string.button_label_consent)).performClick()
         }
     }
-
-
-
 }
+
+val json = Json.encodeToString(RequestBody(
+    "https://wallet.a-sit.at/mobile",
+    listOf(Credential(
+        "urn:eu.europa.ec.eudi:pid:1",
+        "SD_JWT",
+        listOf(
+            "family_name",
+            "given_name",
+            "birth_date",
+            "age_over_18",
+            "issuance_date",
+            "expiry_date",
+            "issuing_authority",
+            "issuing_country"
+        )
+    ))
+))
+
+@Serializable
+data class RequestBody(val urlprefix: String, val credentials: List<Credential>)
+
+@Serializable
+data class Credential(val credentialType: String, val representation: String, val attributes: List<String>)
 
 @Composable
 expect fun getPlatformAdapter(): PlatformAdapter
