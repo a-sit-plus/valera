@@ -48,7 +48,6 @@ import kotlin.time.Duration.Companion.minutes
 @OptIn(ExperimentalTestApi::class)
 class InstrumentedTests {
 
-    /*
     @Test
     fun givenNewAppInstallation_whenStartingApp_thenAppActuallyStarts() = runComposeUiTest() {
 
@@ -134,7 +133,6 @@ class InstrumentedTests {
                 .isNotDisplayed()
         }
 
-        runBlocking {
         waitUntil {
             onNodeWithTag(OnboardingWrapperTestTags.onboardingStartScreen)
                 .isDisplayed()
@@ -146,7 +144,7 @@ class InstrumentedTests {
 
     }
 
-*/
+
     @Test
     fun givenNewAppInstallation_whenStartingApp_thenShowAttributesOnMyCredentialsScreen() = runComposeUiTest() {
         setContent {
