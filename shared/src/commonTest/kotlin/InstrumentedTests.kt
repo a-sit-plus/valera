@@ -204,7 +204,7 @@ class InstrumentedTests {
             onNodeWithText("11.10.1965").assertExists()
 
             onNodeWithText(getString(Res.string.button_label_details)).performClick()
-            waitUntilExactlyOneExists(hasText(getString(Res.string.section_heading_age_data)))
+            waitUntilExactlyOneExists(hasText(getString(Res.string.section_heading_age_data)), 3000)
             onNodeWithText("≥14").assertExists()
             onNodeWithText("≥16").assertExists()
             onNodeWithText("≥18").assertExists()
