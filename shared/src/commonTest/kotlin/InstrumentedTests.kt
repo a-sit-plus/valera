@@ -268,9 +268,10 @@ class InstrumentedTests {
             waitUntilDoesNotExist(hasText(getString(Res.string.button_label_accept)), 2000)
 
             appLink.value =
-                "https://wallet.a-sit.at/mobile?request_uri=https://apps.egiz.gv.at/customverifier/transaction/get/af123d37-f736-4f1a-9360-6bb40632987c&client_id=apps.egiz.gv.at&client_metadata_uri=https://apps.egiz.gv.at/customverifier/siopv2/metadata"
-            //waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_consent)), 2000)
-            //onNodeWithText(getString(Res.string.button_label_consent)).performClick()
+            //    "https://wallet.a-sit.at/mobile?request_uri=https://apps.egiz.gv.at/customverifier/transaction/get/af123d37-f736-4f1a-9360-6bb40632987c&client_id=apps.egiz.gv.at&client_metadata_uri=https://apps.egiz.gv.at/customverifier/siopv2/metadata"
+            "https://wallet.a-sit.at/mobile?request_uri=https://apps.egiz.gv.at/customverifier/transaction/get/0ea84341-9ae9-40a0-9376-3432b13c0fb8&client_id=apps.egiz.gv.at&client_metadata_uri=https://apps.egiz.gv.at/customverifier/siopv2/metadata"
+                waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_consent)), 2000)
+            onNodeWithText(getString(Res.string.button_label_consent)).performClick()
         }
     }
 
