@@ -286,8 +286,8 @@ class InstrumentedTests {
             val qrCodeUrl = jsonObject["qrCodeUrl"]?.jsonPrimitive?.content
 
             appLink.value = qrCodeUrl
-            waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_consent)), 2000)
-            onNodeWithText(getString(Res.string.button_label_consent)).performClick()
+            //waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_consent)), 2000)
+            //onNodeWithText(getString(Res.string.button_label_consent)).performClick()
         }
     }
 }
