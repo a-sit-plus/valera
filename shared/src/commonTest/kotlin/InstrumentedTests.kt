@@ -145,7 +145,7 @@ class InstrumentedTests {
 
     }
 
-
+*/
     @Test
     fun givenNewAppInstallation_whenStartingApp_thenShowAttributesOnMyCredentialsScreen() = runComposeUiTest() {
         setContent {
@@ -204,7 +204,7 @@ class InstrumentedTests {
             onNodeWithText("0088 Testort A").assertExists()
         }
     }
- */
+
     private fun getAttributes() : List<ClaimToBeIssued> {
         return listOf(
             ClaimToBeIssued(IdAustriaScheme.Attributes.BPK,"XFN+436920f:L9LBxmjNPt0041j5O1+sir0HOG0="),
