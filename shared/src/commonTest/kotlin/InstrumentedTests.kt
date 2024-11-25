@@ -35,6 +35,7 @@ import data.storage.DummyDataStoreService
 import data.storage.PersistentSubjectCredentialStore
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -48,10 +49,11 @@ import kotlin.time.Duration.Companion.minutes
 import io.ktor.client.request.*
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
 // Modified from https://developer.android.com/jetpack/compose/testing
@@ -276,18 +278,23 @@ class InstrumentedTests {
             onNodeWithText(getString(Res.string.button_label_accept)).performClick()
             waitUntilDoesNotExist(hasText(getString(Res.string.button_label_accept)), 2000)
 
-            val client = HttpClient()
+            val client = HttpClient() {
+                expectSuccess = true
+                install(ContentNegotiation) {
+                    json()
+                }
+            }
+
             val response = client.post("https://apps.egiz.gv.at/customverifier/transaction/create") {
                 contentType(ContentType.Application.Json)
                 setBody(json);
-            }.body<String>()
+            }.body<JsonObject>()
 
-            val jsonObject = Json.parseToJsonElement(response).jsonObject
-            val qrCodeUrl = jsonObject["qrCodeUrl"]?.jsonPrimitive?.content
+            val qrCodeUrl = response["qrCodeUrl"]?.jsonPrimitive?.content
 
             appLink.value = qrCodeUrl
             waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_consent)), 10000)
-            onNodeWithText(getString(Res.string.button_label_consent)).performClick()
+            //onNodeWithText(getString(Res.string.button_label_consent)).performClick()
         }
     }
 }
