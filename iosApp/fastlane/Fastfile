@@ -18,7 +18,9 @@ lane :deploy do
   get_provisioning_profile(
     provisioning_name: "Compose Wallet Distribution"
   )
-  increment_build_number()
+  increment_build_number(
+    build_number: latest_testflight_build_number + 1
+  )
   update_project_provisioning(
     build_configuration: "Release"
   )
