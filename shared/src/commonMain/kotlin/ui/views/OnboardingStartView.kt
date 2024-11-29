@@ -25,7 +25,6 @@ import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.app_display_name
 import compose_wallet_app.shared.generated.resources.button_label_start
 import compose_wallet_app.shared.generated.resources.onboardingBackground
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -33,7 +32,7 @@ internal object OnboardingStartScreenTestTag {
     const val startButton = "startButton"
 }
 
-@OptIn(ExperimentalResourceApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OnboardingStartView(
     onClickStart: () -> Unit,

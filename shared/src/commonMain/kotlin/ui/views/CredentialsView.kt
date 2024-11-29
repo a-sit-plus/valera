@@ -13,7 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.heading_label_my_data_screen
@@ -26,10 +25,6 @@ import ui.viewmodels.CredentialsViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CredentialsView(
-    navigateToAddCredentialsPage: () -> Unit,
-    navigateToQrAddCredentialsPage: () -> Unit,
-    navigateToCredentialDetailsPage: (Long) -> Unit,
-    imageDecoder: (ByteArray) -> ImageBitmap?,
     vm: CredentialsViewModel,
     bottomBar: @Composable () -> Unit
 ) {
@@ -48,7 +43,7 @@ fun CredentialsView(
         floatingActionButton = {
             storeContainerState?.let { storeContainer ->
                 if (storeContainer.credentials.isNotEmpty()) {
-                    AdvancedFloatingActionButton(addCredential = navigateToAddCredentialsPage, addCredentialQr = navigateToQrAddCredentialsPage)
+                    AdvancedFloatingActionButton(addCredential = vm.navigateToAddCredentialsPage, addCredentialQr = vm.navigateToQrAddCredentialsPage)
                 }
             }
         },
@@ -57,7 +52,7 @@ fun CredentialsView(
         Column(modifier = Modifier.padding(scaffoldPadding).fillMaxSize()) {
             storeContainerState?.let { storeContainer ->
                 if (storeContainer.credentials.isEmpty()) {
-                    NoDataLoadedView(navigateToAddCredentialsPage, navigateToQrAddCredentialsPage)
+                    NoDataLoadedView(vm.navigateToAddCredentialsPage, vm.navigateToQrAddCredentialsPage)
                 } else {
                     LazyColumn {
                         items(
@@ -77,9 +72,9 @@ fun CredentialsView(
                                         vm.removeStoreEntryById(storeEntryIdentifier)
                                     },
                                     onOpenDetails = {
-                                        navigateToCredentialDetailsPage(storeEntryIdentifier)
+                                        vm.navigateToCredentialDetailsPage(storeEntryIdentifier)
                                     },
-                                    imageDecoder = imageDecoder,
+                                    imageDecoder = vm.imageDecoder,
                                     modifier = Modifier.padding(
                                         start = 16.dp,
                                         end = 16.dp,

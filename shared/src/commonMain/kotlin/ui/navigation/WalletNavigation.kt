@@ -25,6 +25,7 @@ import at.asitplus.openid.CredentialOffer
 import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParametersFrom
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.snackbar_clear_log_successfully
@@ -43,7 +44,6 @@ import ui.composables.NavigationData
 import ui.navigation.Routes.AddCredentialPreAuthnRoute
 import ui.navigation.Routes.AddCredentialRoute
 import ui.navigation.Routes.AuthenticationConsentRoute
-import ui.navigation.Routes.AuthenticationLoadingRoute
 import ui.navigation.Routes.AuthenticationQrCodeScannerRoute
 import ui.navigation.Routes.AuthenticationSuccessRoute
 import ui.navigation.Routes.CredentialDetailsRoute
@@ -184,8 +184,7 @@ private fun WalletNavHost(
                 onClickReadGeneralTermsAndConditions = {})
         }
         composable<HomeScreenRoute> {
-            val vm = CredentialsViewModel(walletMain)
-            CredentialsView(
+            val vm = CredentialsViewModel(walletMain,
                 navigateToAddCredentialsPage = {
                     navigate(AddCredentialRoute)
                 },
@@ -195,7 +194,6 @@ private fun WalletNavHost(
                 navigateToCredentialDetailsPage = {
                     navigate(CredentialDetailsRoute(it))
                 },
-                vm = vm,
                 imageDecoder = {
                     try {
                         walletMain.platformAdapter.decodeImage(it)
@@ -204,7 +202,9 @@ private fun WalletNavHost(
                         Napier.w("Failed Operation: decodeImage")
                         null
                     }
-                },
+                })
+            CredentialsView(
+                vm = vm,
                 bottomBar = {
                     BottomBar(
                         navigate = navigate,
@@ -387,10 +387,5 @@ private fun WalletNavHost(
             )
             AuthenticationQrCodeScannerView(vm)
         }
-
-        composable<AuthenticationLoadingRoute> { backStackEntry ->
-            LoadingView()
-        }
-
     }
 }

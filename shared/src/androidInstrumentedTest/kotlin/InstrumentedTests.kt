@@ -56,7 +56,6 @@ class InstrumentedTests {
             val ks = KeystoreService(dummyDataStoreService)
             val walletMain = WalletMain(
                 cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
-                holderKeyService = ks,
                 dataStoreService = dummyDataStoreService,
                 platformAdapter = DummyPlatformAdapter(),
                 scope =  CoroutineScope(Dispatchers.Default),
@@ -82,7 +81,6 @@ class InstrumentedTests {
             val ks = KeystoreService(dummyDataStoreService)
             val walletMain = WalletMain(
                 cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
-                holderKeyService = ks,
                 dataStoreService = dummyDataStoreService,
                 platformAdapter = DummyPlatformAdapter(),
                 scope =  CoroutineScope(Dispatchers.Default),
@@ -112,7 +110,6 @@ class InstrumentedTests {
             val ks = KeystoreService(dummyDataStoreService)
             val walletMain = WalletMain(
                 cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
-                holderKeyService = ks,
                 dataStoreService = dummyDataStoreService,
                 platformAdapter = DummyPlatformAdapter(),
                 scope =  CoroutineScope(Dispatchers.Default),
@@ -147,7 +144,6 @@ class InstrumentedTests {
             val ks = KeystoreService(dummyDataStoreService)
             val walletMain = WalletMain(
                 cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
-                holderKeyService = ks,
                 dataStoreService = dummyDataStoreService,
                 platformAdapter = AndroidDummyPlatformAdapter(), //why?
                 scope =  CoroutineScope(Dispatchers.Default),
@@ -222,7 +218,6 @@ class InstrumentedTests {
             val ks = KeystoreService(dummyDataStoreService)
             val walletMain = WalletMain(
                 cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
-                holderKeyService = ks,
                 dataStoreService = dummyDataStoreService,
                 platformAdapter = AndroidDummyPlatformAdapter(), //why?
                 scope =  CoroutineScope(Dispatchers.Default),

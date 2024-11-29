@@ -2,6 +2,7 @@
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import at.asitplus.wallet.app.common.Configuration
@@ -45,3 +46,5 @@ expect fun getPlatformName(): String
 
 @Composable
 expect fun getColorScheme(): ColorScheme
+
+expect fun getImageDecoder(image: ByteArray): ImageBitmap

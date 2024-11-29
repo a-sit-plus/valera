@@ -50,7 +50,6 @@ fun MainView(buildContext: BuildContext) {
     App(
         WalletMain(
             cryptoService = ks.let { runBlocking { AndroidCryptoService(it.getSigner()) } },
-            holderKeyService = ks,
             dataStoreService = dataStoreService,
             platformAdapter = platformAdapter,
             buildContext = buildContext,
@@ -63,11 +62,6 @@ class AndroidPlatformAdapter(val context: Context) : PlatformAdapter {
     override fun openUrl(url: String) {
         Napier.d("Open URL: ${url.toUri()}")
         context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
-    }
-
-    override fun decodeImage(image: ByteArray): ImageBitmap {
-        val bitmap = BitmapFactory.decodeByteArray(image, 0, image.size)
-        return bitmap.asImageBitmap()
     }
 
     override fun writeToFile(text: String, fileName: String, folderName: String) {
@@ -125,4 +119,9 @@ class AndroidPlatformAdapter(val context: Context) : PlatformAdapter {
         }
         context.startActivity(Intent.createChooser(intent, null))
     }
+}
+
+actual fun getImageDecoder(image: ByteArray): ImageBitmap {
+    val bitmap = BitmapFactory.decodeByteArray(image, 0, image.size)
+    return bitmap.asImageBitmap()
 }

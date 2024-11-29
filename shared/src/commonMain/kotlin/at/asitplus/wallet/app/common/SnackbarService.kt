@@ -9,7 +9,7 @@ class SnackbarService(private val scope: CoroutineScope, private val snackbarHos
     fun showSnackbar(text: String){
         Napier.d("Show Snackbar with text: $text")
         scope.launch {
-            snackbarHostState.showSnackbar(text)
+            snackbarHostState.showSnackbar(message = text, withDismissAction = true)
         }
     }
 }

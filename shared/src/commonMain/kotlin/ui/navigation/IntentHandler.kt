@@ -27,7 +27,6 @@ fun handleIntent(walletMain: WalletMain, navigate: (Route) -> Unit, navigateBack
     LaunchedEffect(appLink.value) {
         Napier.d("app link changed to ${appLink.value}")
         appLink.value?.let { link ->
-            // resetting error service so that the intent can be displayed as intended
             when (parseIntent(walletMain,link)) {
                 IntentType.ProvisioningIntent -> {
                     navigate(LoadingRoute)
