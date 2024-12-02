@@ -6,6 +6,7 @@ import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.eprescription.EPrescriptionScheme
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
+import at.asitplus.wallet.lib.Initializer.initOpenIdModule
 import at.asitplus.wallet.lib.agent.DefaultVerifierCryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.Parser
@@ -45,6 +46,7 @@ class WalletMain(
 
 
     init {
+        initOpenIdModule()
         at.asitplus.wallet.mdl.Initializer.initWithVCK()
         at.asitplus.wallet.idaustria.Initializer.initWithVCK()
         at.asitplus.wallet.eupid.Initializer.initWithVCK()

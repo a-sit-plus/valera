@@ -87,11 +87,7 @@ class ProvisioningService(
      * Loads credential metadata info from [host]
      */
     @Throws(Throwable::class)
-    suspend fun loadCredentialMetadata(
-        host: String,
-    ): Collection<CredentialIdentifierInfo> {
-        return openId4VciClient.loadCredentialMetadata(host)
-    }
+    suspend fun loadCredentialMetadata(host: String) = openId4VciClient.loadCredentialMetadata(host)
 
     /**
      * Starts the issuing process at [credentialIssuer]

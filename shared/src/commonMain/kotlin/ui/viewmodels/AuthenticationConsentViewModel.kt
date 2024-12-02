@@ -4,13 +4,14 @@ import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.dif.InputDescriptor
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.misc.getRequestOptionParameters
+import at.asitplus.openid.AuthenticationRequestParameters
+import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.third_parts.at.asitplus.jsonpath.core.plus
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.eprescription.EPrescriptionScheme
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
-import at.asitplus.wallet.lib.oidc.AuthenticationRequestParametersFrom
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import compose_wallet_app.shared.generated.resources.Res
@@ -31,18 +32,17 @@ import ui.views.ConsentAttributes
 
 class AuthenticationConsentViewModel(
     val spName: String?,
-    val spLocation: String,
+    val spLocation: String?,
     val spImage: ImageBitmap?,
-    val authenticationRequest: AuthenticationRequestParametersFrom,
+    val authenticationRequest: RequestParametersFrom<AuthenticationRequestParameters>,
     val navigateUp: () -> Unit,
     val navigateToAuthenticationSuccessPage: () -> Unit,
     val walletMain: WalletMain,
 ) {
-    val descriptors: Collection<InputDescriptor> = authenticationRequest.parameters.presentationDefinition?.inputDescriptors ?: listOf()
+    val descriptors: Collection<InputDescriptor> = authenticationRequest
+        .parameters.presentationDefinition?.inputDescriptors ?: listOf()
 
-    val list: List<RequestOptionParameters> = descriptors.mapNotNull {
-        it.getRequestOptionParameters()
-    }
+    val list: List<RequestOptionParameters> = descriptors.mapNotNull { it.getRequestOptionParameters() }
 
     val consentAttributes: List<ConsentAttributes> = list.mapNotNull { params ->
         val att = params.attributes?.map { NormalizedJsonPath() + it }?.mapNotNull {

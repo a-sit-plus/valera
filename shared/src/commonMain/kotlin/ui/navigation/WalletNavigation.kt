@@ -21,12 +21,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.CredentialOffer
+import at.asitplus.openid.RequestParametersFrom
+import at.asitplus.openid.odcJsonSerializer
 import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.decodeImage
-import at.asitplus.wallet.lib.oidc.AuthenticationRequestParametersFrom
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.snackbar_clear_log_successfully
 import compose_wallet_app.shared.generated.resources.snackbar_reset_app_successfully
@@ -171,8 +173,10 @@ private fun WalletNavHost(
             .fillMaxSize()
     ) {
         composable<OnboardingStartRoute> {
-            OnboardingStartView(onClickStart = { navigate(OnboardingInformationRoute) },
-                modifier = Modifier.testTag(OnboardingWrapperTestTags.onboardingStartScreen))
+            OnboardingStartView(
+                onClickStart = { navigate(OnboardingInformationRoute) },
+                modifier = Modifier.testTag(OnboardingWrapperTestTags.onboardingStartScreen)
+            )
         }
         composable<OnboardingInformationRoute> {
             OnboardingInformationView(onClickContinue = { navigate(OnboardingTermsRoute) })
@@ -226,9 +230,8 @@ private fun WalletNavHost(
         composable<AuthenticationConsentRoute> { backStackEntry ->
             val route: AuthenticationConsentRoute = backStackEntry.toRoute()
 
-            val request =
-                AuthenticationRequestParametersFrom.deserialize(route.authenticationRequestParametersFromSerialized)
-                    .getOrThrow()
+            val request = odcJsonSerializer
+                .decodeFromString<RequestParametersFrom<AuthenticationRequestParameters>>(route.authenticationRequestParametersFromSerialized)
 
             val vm = AuthenticationConsentViewModel(
                 spName = null,

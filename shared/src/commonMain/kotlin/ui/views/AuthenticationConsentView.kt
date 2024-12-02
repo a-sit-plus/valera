@@ -32,7 +32,6 @@ import compose_wallet_app.shared.generated.resources.attribute_friendly_name_dat
 import compose_wallet_app.shared.generated.resources.attribute_friendly_name_data_recipient_name
 import compose_wallet_app.shared.generated.resources.heading_label_authenticate_at_device_screen
 import compose_wallet_app.shared.generated.resources.heading_label_navigate_back
-import compose_wallet_app.shared.generated.resources.info_text_submission_preview_disabled
 import compose_wallet_app.shared.generated.resources.prompt_send_above_data
 import compose_wallet_app.shared.generated.resources.section_heading_data_recipient
 import org.jetbrains.compose.resources.StringResource
@@ -121,19 +120,12 @@ fun AuthenticationConsentView(vm: AuthenticationConsentViewModel) {
                         title = stringResource(Res.string.section_heading_data_recipient),
                         data = listOfNotNull(
                             vm.spName?.let { stringResource(Res.string.attribute_friendly_name_data_recipient_name) to vm.spName },
-                            stringResource(Res.string.attribute_friendly_name_data_recipient_location) to vm.spLocation,
+                            vm.spLocation?.let { stringResource(Res.string.attribute_friendly_name_data_recipient_location) to vm.spLocation },
                         ),
                         modifier = paddingModifier,
                     )
-                    if (vm.consentAttributes == null) {
-                        Text(
-                            stringResource(Res.string.info_text_submission_preview_disabled),
-                            modifier = Modifier.weight(1.0f, true)
-                        )
-                    } else {
-                        vm.consentAttributes.forEach {
-                            ConsentAttributesSection(title = "${it.scheme} (${it.format})", list = it.attributes)
-                        }
+                    vm.consentAttributes.forEach {
+                        ConsentAttributesSection(title = "${it.scheme} (${it.format})", list = it.attributes)
                     }
                 }
             }
