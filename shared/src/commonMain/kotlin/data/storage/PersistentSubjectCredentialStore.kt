@@ -1,6 +1,8 @@
 package data.storage
 
 import at.asitplus.KmmResult
+import at.asitplus.signum.indispensable.cosef.CoseHeader
+import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
@@ -9,12 +11,21 @@ import at.asitplus.wallet.lib.data.VerifiableCredentialJws
 import at.asitplus.wallet.lib.data.VerifiableCredentialSdJwt
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.iso.IssuerSigned
+import at.asitplus.wallet.lib.iso.IssuerSignedList
+import at.asitplus.wallet.lib.iso.NamespacedIssuerSignedListSerializer
+import at.asitplus.wallet.lib.iso.vckCborSerializer
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.storage.ExportableCredentialScheme.Companion.toExportableCredentialScheme
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.cbor.ByteString
+import kotlinx.serialization.cbor.CborArray
+import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.encodeToString
 import kotlin.random.Random
 
@@ -83,8 +94,8 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
             val storeEntry = it.second
             it.first to when (storeEntry) {
                 is SubjectCredentialStore.StoreEntry.Iso -> {
-                    ExportableStoreEntry.Iso(
-                        issuerSigned = storeEntry.issuerSigned,
+                    ExportableStoreEntry.IsoNew(
+                        issuerSignedSerialized = storeEntry.issuerSigned.serialize(),
                         exportableCredentialScheme = storeEntry.scheme.toExportableCredentialScheme()
                     )
                 }
@@ -135,11 +146,11 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         } else {
             val export: ExportableStoreContainer = kotlin.runCatching {
                 vckJsonSerializer.decodeFromString<ExportableStoreContainer>(input)
-            }.getOrElse { _ ->
+            }.getOrElse { ex ->
+                Napier.w("Could not load ExportableStoreContainer", ex)
                 ExportableStoreContainer(
-                    vckJsonSerializer.decodeFromString<OldExportableStoreContainer>(input).credentials.mapIndexed { index, it ->
-                        index.toLong() to it
-                    }
+                    vckJsonSerializer.decodeFromString<OldExportableStoreContainer>(input).credentials
+                        .mapIndexed { index, it -> index.toLong() to it }
                 )
             }
             val credentials = export.credentials.map {
@@ -148,10 +159,15 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
                 storeEntryId to when (storeEntry) {
                     is ExportableStoreEntry.Iso -> {
                         SubjectCredentialStore.StoreEntry.Iso(
-                            storeEntry.issuerSigned,
+                            IssuerSigned.deserialize(storeEntry.issuerSigned.serialize()).getOrThrow(),
                             storeEntry.exportableCredentialScheme.toScheme(),
                         )
                     }
+
+                    is ExportableStoreEntry.IsoNew -> SubjectCredentialStore.StoreEntry.Iso(
+                        storeEntry.issuerSigned,
+                        storeEntry.exportableCredentialScheme.toScheme(),
+                    )
 
                     is ExportableStoreEntry.SdJwt -> {
                         SubjectCredentialStore.StoreEntry.SdJwt(
@@ -169,6 +185,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
                             scheme = storeEntry.exportableCredentialScheme.toScheme()
                         )
                     }
+
                 }
             }
             return StoreContainer(credentials)
@@ -224,12 +241,96 @@ private sealed interface ExportableStoreEntry {
         override val exportableCredentialScheme: ExportableCredentialScheme
     ) : ExportableStoreEntry
 
+    @Deprecated(replaceWith = ReplaceWith("IsoNew"), message = "Use other data class")
     @Serializable
     data class Iso(
-        val issuerSigned: IssuerSigned,
+        val issuerSigned: IssuerSignedWallet,
         override val exportableCredentialScheme: ExportableCredentialScheme
     ) : ExportableStoreEntry
+
+    @Serializable
+    data class IsoNew(
+        val issuerSignedSerialized: ByteArray,
+        override val exportableCredentialScheme: ExportableCredentialScheme
+    ) : ExportableStoreEntry {
+        val issuerSigned: IssuerSigned by lazy {
+            IssuerSigned.deserialize(issuerSignedSerialized).getOrThrow()
+        }
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other == null || this::class != other::class) return false
+
+            other as IsoNew
+
+            if (!issuerSignedSerialized.contentEquals(other.issuerSignedSerialized)) return false
+            if (exportableCredentialScheme != other.exportableCredentialScheme) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = issuerSignedSerialized.contentHashCode()
+            result = 31 * result + exportableCredentialScheme.hashCode()
+            return result
+        }
+    }
 }
+
+/**
+ * Workaround to deserialize stored entries prior to 5.4.0, then serialize it encoded
+ */
+@Serializable
+private data class IssuerSignedWallet constructor(
+    @SerialName("nameSpaces")
+    @Serializable(with = NamespacedIssuerSignedListSerializer::class)
+    val namespaces: Map<String, @Contextual IssuerSignedList>? = null,
+    @SerialName("issuerAuth")
+    val issuerAuth: CoseSignedWallet,
+) {
+    fun serialize() = vckCborSerializer.encodeToByteArray(this)
+}
+
+/**
+ * Workaround to deserialize stored entries prior to 5.4.0, then serialize it encoded
+ */
+@Serializable
+@CborArray
+private data class CoseSignedWallet(
+    @ByteString
+    val protectedHeader: ByteStringWrapper<CoseHeader>,
+    val unprotectedHeader: CoseHeader?,
+    @ByteString
+    val payload: ByteArray?,
+    @ByteString
+    val signature: ByteArray,
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as CoseSignedWallet
+
+        if (protectedHeader != other.protectedHeader) return false
+        if (unprotectedHeader != other.unprotectedHeader) return false
+        if (payload != null) {
+            if (other.payload == null) return false
+            if (!payload.contentEquals(other.payload)) return false
+        } else if (other.payload != null) return false
+        if (!signature.contentEquals(other.signature)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = protectedHeader.hashCode()
+        result = 31 * result + (unprotectedHeader?.hashCode() ?: 0)
+        result = 31 * result + (payload?.contentHashCode() ?: 0)
+        result = 31 * result + signature.contentHashCode()
+        return result
+    }
+}
+
 
 enum class ExportableCredentialScheme {
     AtomicAttribute2023, IdAustriaScheme, MobileDrivingLicence2023, EuPidScheme, PowerOfRepresentationScheme, CertificateOfResidenceScheme, EPrescriptionScheme;

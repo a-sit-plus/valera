@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app.common
 
+import at.asitplus.wallet.lib.data.vckJsonSerializer
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.plugins.DefaultRequest
@@ -23,10 +24,7 @@ class HttpService {
     fun buildHttpClient(cookieStorage: CookiesStorage? = null) = HttpClient {
         followRedirects = false
         install(ContentNegotiation) {
-            json(Json {
-                isLenient = true
-                ignoreUnknownKeys = true
-            })
+            json(vckJsonSerializer)
         }
 
         install(DefaultRequest) {
