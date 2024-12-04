@@ -234,11 +234,7 @@ class InstrumentedTests {
         }
         }
         runBlocking {
-            waitUntil{
-                onNodeWithText(getString(Res.string.button_label_start))
-                    .assertIsDisplayed()
-            }
-
+            waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_start)))
             onNodeWithText(getString(Res.string.button_label_start)).performClick()
             onNodeWithText(getString(Res.string.button_label_continue))
                 .assertIsDisplayed()
