@@ -6,3 +6,6 @@ import at.asitplus.wallet.app.common.PlatformAdapter
 actual fun getPlatformAdapter(): PlatformAdapter {
     return DummyPlatformAdapter()
 }
+
+actual fun turnScreenOn() {
+}

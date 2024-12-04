@@ -86,6 +86,7 @@ class InstrumentedTests {
             lifecycleOwner = TestLifecycleOwner()
             lifecycleRegistry = LifecycleRegistry(lifecycleOwner)
             lifecycleRegistry.currentState = Lifecycle.State.CREATED
+            turnScreenOn()
         }
     }
 
@@ -315,7 +316,6 @@ class InstrumentedTests {
         }
         runBlocking {
 
-            awaitIdle()
             onNodeWithText(getString(Res.string.button_label_start))
                 .assertIsDisplayed()
             onNodeWithText(getString(Res.string.button_label_start)).performClick()
@@ -395,3 +395,5 @@ data class Credential(val credentialType: String, val representation: String, va
 
 @Composable
 expect fun getPlatformAdapter(): PlatformAdapter
+
+expect fun turnScreenOn()

@@ -7,3 +7,6 @@ actual fun getPlatformAdapter(): PlatformAdapter {
     val context = LocalContext.current
     return AndroidPlatformAdapter(context)
 }
+
+actual fun turnScreenOn() {
+}
