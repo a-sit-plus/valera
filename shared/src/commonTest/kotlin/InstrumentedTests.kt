@@ -234,6 +234,7 @@ class InstrumentedTests {
         }
         }
         runBlocking {
+            awaitIdle()
             waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_start)))
             onNodeWithText(getString(Res.string.button_label_start)).performClick()
             onNodeWithText(getString(Res.string.button_label_continue))
@@ -273,8 +274,6 @@ class InstrumentedTests {
             ClaimToBeIssued(IdAustriaScheme.Attributes.AGE_OVER_21, true),
         )
     }
-
-    /*
 
     @OptIn(ExperimentalTestApi::class)
     @Test
@@ -316,6 +315,7 @@ class InstrumentedTests {
         }
         runBlocking {
 
+            awaitIdle()
             onNodeWithText(getString(Res.string.button_label_start))
                 .assertIsDisplayed()
             onNodeWithText(getString(Res.string.button_label_start)).performClick()
@@ -356,11 +356,10 @@ class InstrumentedTests {
             val url = "https://apps.egiz.gv.at/customverifier/customer-success.html?id=$id"
             val responseSuccess = client.get(url)
             assertTrue { responseSuccess.status.value in 200..299 }
+            //lifecycleRegistry.currentState= Lifecycle.State.DESTROYED
         }
 
     }
-
-     */
 
 
 }
