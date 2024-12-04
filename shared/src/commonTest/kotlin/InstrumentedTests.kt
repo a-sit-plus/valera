@@ -1,4 +1,6 @@
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsDisplayed
@@ -13,6 +15,12 @@ import androidx.compose.ui.test.runComposeUiTest
 import androidx.compose.ui.test.waitUntilDoesNotExist
 import androidx.compose.ui.test.waitUntilExactlyOneExists
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LifecycleRegistry
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
@@ -41,7 +49,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 import org.jetbrains.compose.resources.getString
-import ui.navigation.NavigatorTestTags
 import ui.navigation.Routes.OnboardingWrapperTestTags
 import ui.views.OnboardingStartScreenTestTag
 import kotlin.test.Test
@@ -50,15 +57,49 @@ import io.ktor.client.request.*
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import ui.navigation.NavigatorTestTags
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.assertTrue
+
 
 // Modified from https://developer.android.com/jetpack/compose/testing
 @OptIn(ExperimentalTestApi::class)
 class InstrumentedTests {
+
+
+    private lateinit var lifecycleRegistry: LifecycleRegistry
+    private lateinit var lifecycleOwner: TestLifecycleOwner
+
+
+
+    @BeforeTest
+    fun setup() = runTest {
+        withContext(Dispatchers.Main) {
+            lifecycleOwner = TestLifecycleOwner()
+            lifecycleRegistry = LifecycleRegistry(lifecycleOwner)
+            lifecycleRegistry.currentState = Lifecycle.State.CREATED
+        }
+    }
+
+    @AfterTest
+    fun teardown() = runTest {
+        withContext(Dispatchers.Main) {
+            lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
+        }
+    }
+
+
+
+
+
 
     @Test
     fun givenNewAppInstallation_whenStartingApp_thenAppActuallyStarts() = runComposeUiTest() {
@@ -159,6 +200,7 @@ class InstrumentedTests {
 
     @Test
     fun givenNewAppInstallation_whenStartingApp_thenShowAttributesOnMyCredentialsScreen() = runComposeUiTest() {
+
         setContent {
             val dummyDataStoreService = DummyDataStoreService()
             val ks = KeystoreService(dummyDataStoreService)
@@ -235,38 +277,42 @@ class InstrumentedTests {
     @Test
     fun givenNewAppInstallation_whenStartingApp_thenLoadAttributesAndShowData() = runComposeUiTest() {
         setContent {
-            val dummyDataStoreService = DummyDataStoreService()
-            val ks = KeystoreService(dummyDataStoreService)
-            val walletMain = WalletMain(
-                cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
-                holderKeyService = ks,
-                dataStoreService = dummyDataStoreService,
-                platformAdapter = getPlatformAdapter(),
-                scope =  CoroutineScope(Dispatchers.Default),
-                subjectCredentialStore = PersistentSubjectCredentialStore(dummyDataStoreService),
-                buildContext = BuildContext(
-                    buildType = "debug",
-                    versionCode = 0,
-                    versionName = "0.0.0",
+            CompositionLocalProvider(LocalLifecycleOwner provides lifecycleOwner) {
+                val dummyDataStoreService = DummyDataStoreService()
+                val ks = KeystoreService(dummyDataStoreService)
+                val walletMain = WalletMain(
+                    cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
+                    holderKeyService = ks,
+                    dataStoreService = dummyDataStoreService,
+                    platformAdapter = getPlatformAdapter(),
+                    scope = CoroutineScope(Dispatchers.Default),
+                    subjectCredentialStore = PersistentSubjectCredentialStore(dummyDataStoreService),
+                    buildContext = BuildContext(
+                        buildType = "debug",
+                        versionCode = 0,
+                        versionName = "0.0.0",
+                    )
                 )
-            )
-            App(walletMain)
+                App(walletMain)
 
-            val issuer = IssuerAgent()
-            runBlocking {
-                walletMain.holderAgent.storeCredential(
-                    issuer.issueCredential(
-                        CredentialToBeIssued.VcSd(getAttributes(),
-                            Clock.System.now().plus(3600.minutes),
-                            IdAustriaScheme,
-                            walletMain.cryptoService.keyMaterial.publicKey,
-                        )
-                    ).getOrThrow().toStoreCredentialInput()
-                )
+                val issuer = IssuerAgent()
+
+                runBlocking {
+                    walletMain.holderAgent.storeCredential(
+                        issuer.issueCredential(
+                            CredentialToBeIssued.VcSd(
+                                getAttributes(),
+                                Clock.System.now().plus(3600.minutes),
+                                IdAustriaScheme,
+                                walletMain.cryptoService.keyMaterial.publicKey,
+                            )
+                        ).getOrThrow().toStoreCredentialInput()
+                    )
+                }
             }
-
         }
         runBlocking {
+
             onNodeWithText(getString(Res.string.button_label_start))
                 .assertIsDisplayed()
             onNodeWithText(getString(Res.string.button_label_start)).performClick()
@@ -285,37 +331,57 @@ class InstrumentedTests {
                 }
             }
 
-            val response = client.post("https://apps.egiz.gv.at/customverifier/transaction/create") {
-                contentType(ContentType.Application.Json)
-                setBody(json);
-            }.body<JsonObject>()
 
-            val qrCodeUrl = response["qrCodeUrl"]?.jsonPrimitive?.content
+            val responseGenerateRequest =
+                client.post("https://apps.egiz.gv.at/customverifier/transaction/create") {
+                    contentType(ContentType.Application.Json)
+                    setBody(request)
+                }.body<JsonObject>()
+
+            val qrCodeUrl = responseGenerateRequest["qrCodeUrl"]?.jsonPrimitive?.content
+            val id = responseGenerateRequest["id"]?.jsonPrimitive?.content
 
             appLink.value = qrCodeUrl
-            waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_consent)), 10000)
-            //onNodeWithText(getString(Res.string.button_label_consent)).performClick()
+
+            waitUntilExactlyOneExists(
+                hasText(getString(Res.string.button_label_consent)),
+                10000
+            )
+
+            onNodeWithText(getString(Res.string.button_label_consent)).performClick()
+
+            val url = "https://apps.egiz.gv.at/customverifier/customer-success.html?id=$id"
+            val responseSuccess = client.get(url)
+            assertTrue { responseSuccess.status.value in 200..299 }
         }
+
     }
+
+
 }
 
-val json = Json.encodeToString(RequestBody(
+val request = Json.encodeToString(RequestBody(
     "https://wallet.a-sit.at/mobile",
     listOf(Credential(
-        "urn:eu.europa.ec.eudi:pid:1",
+        "at.gv.id-austria.2023.1",
         "SD_JWT",
         listOf(
-            "family_name",
-            "given_name",
-            "birth_date",
-            "age_over_18",
-            "issuance_date",
-            "expiry_date",
-            "issuing_authority",
-            "issuing_country"
+            "bpk",
+            "firstname",
+            "lastname",
+            "date-of-birth",
+            "portrait",
+            "main-address",
+            "age-over-18",
         )
     ))
 ))
+
+
+private class TestLifecycleOwner : LifecycleOwner {
+    private val _lifecycle = LifecycleRegistry(this)
+    override val lifecycle: Lifecycle get() = _lifecycle
+}
 
 @Serializable
 data class RequestBody(val urlprefix: String, val credentials: List<Credential>)
