@@ -66,9 +66,10 @@ fun handleIntent(walletMain: WalletMain, navigate: (Route) -> Unit, navigateBack
 
                 IntentType.AuthorizationIntent -> {
                     kotlin.run {
-                        val consentPageBuilder = BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
-                            walletMain.presentationService
-                        )
+                        val consentPageBuilder =
+                            BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
+                                walletMain.presentationService
+                            )
 
                         consentPageBuilder(link).unwrap().onSuccess {
                             Napier.d("valid authentication request")
@@ -80,17 +81,27 @@ fun handleIntent(walletMain: WalletMain, navigate: (Route) -> Unit, navigateBack
                         return@LaunchedEffect
                     }
                 }
+
+                IntentType.SigningIntent ->
+                    run {
+                        val param = Url(link).parameters
+                        walletMain.signingService.sign(
+                            param["request_uri"]!!,
+                            param["client_id"]!!
+                        )
+                    }
             }
         }
     }
 }
 
-fun parseIntent(walletMain: WalletMain, url: String): IntentType {
-    return if (walletMain.provisioningService.redirectUri?.let { url.contains(it) } == true) {
-        IntentType.ProvisioningIntent
+fun parseIntent(walletMain: WalletMain, url: String): IntentType =
+    if (url.contains("client_id") && url.contains("request_uri") && !url.contains("client_metadata_uri")) {
+        IntentType.SigningIntent
     } else if (url.contains("error")) {
         IntentType.ErrorIntent
+    } else if (walletMain.provisioningService.redirectUri?.let { url.contains(it) } == true) {
+        IntentType.ProvisioningIntent
     } else {
         IntentType.AuthorizationIntent
     }
-}
