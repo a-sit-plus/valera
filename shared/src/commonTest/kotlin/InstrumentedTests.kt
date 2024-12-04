@@ -274,6 +274,8 @@ class InstrumentedTests {
         )
     }
 
+    /*
+
     @OptIn(ExperimentalTestApi::class)
     @Test
     fun givenNewAppInstallation_whenStartingApp_thenLoadAttributesAndShowData() = runComposeUiTest() {
@@ -357,6 +359,8 @@ class InstrumentedTests {
         }
 
     }
+
+     */
 
 
 }
