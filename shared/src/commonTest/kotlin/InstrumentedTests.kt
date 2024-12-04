@@ -234,8 +234,11 @@ class InstrumentedTests {
         }
         }
         runBlocking {
-            onNodeWithText(getString(Res.string.button_label_start))
-                .assertIsDisplayed()
+            waitUntil{
+                onNodeWithText(getString(Res.string.button_label_start))
+                    .assertIsDisplayed()
+            }
+
             onNodeWithText(getString(Res.string.button_label_start)).performClick()
             onNodeWithText(getString(Res.string.button_label_continue))
                 .assertIsDisplayed()
