@@ -202,6 +202,7 @@ class InstrumentedTests {
     fun givenNewAppInstallation_whenStartingApp_thenShowAttributesOnMyCredentialsScreen() = runComposeUiTest() {
 
         setContent {
+            CompositionLocalProvider(LocalLifecycleOwner provides lifecycleOwner) {
             val dummyDataStoreService = DummyDataStoreService()
             val ks = KeystoreService(dummyDataStoreService)
             val walletMain = WalletMain(
@@ -230,6 +231,7 @@ class InstrumentedTests {
                     ).getOrThrow().toStoreCredentialInput()
                 )
             }
+        }
         }
         runBlocking {
             onNodeWithText(getString(Res.string.button_label_start))
