@@ -10,6 +10,7 @@ import compose_wallet_app.shared.generated.resources.biometric_authentication_pr
 import compose_wallet_app.shared.generated.resources.snackbar_credential_loaded_successfully
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier
+import io.ktor.http.Url
 import io.ktor.http.parseQueryString
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.getString
@@ -19,7 +20,8 @@ import ui.navigation.Routes.Route
 enum class IntentType {
     ErrorIntent,
     ProvisioningIntent,
-    AuthorizationIntent
+    AuthorizationIntent,
+    SigningIntent
 }
 
 @Composable

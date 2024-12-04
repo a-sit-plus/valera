@@ -18,6 +18,7 @@ kmmresult = "1.7.0"
 vck = { group = "at.asitplus.wallet", name = "vck", version.ref = "vck" }
 vck-openid = { group = "at.asitplus.wallet", name = "vck-openid", version.ref = "vck" }
 vck-openid-ktor = { group = "at.asitplus.wallet", name = "vck-openid-ktor", version.ref = "vck" }
+vck-rqes = { group = "at.asitplus.wallet", name = "vck-rqes", version.ref = "vck" }
 atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version.ref = "atomicfu" }
 credential-ida = { module = "at.asitplus.wallet:idacredential", version.ref = "ida" }
 credential-eupid = { module = "at.asitplus.wallet:eupidcredential", version.ref = "eupid" }

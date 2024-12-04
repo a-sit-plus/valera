@@ -6,7 +6,6 @@ import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.eprescription.EPrescriptionScheme
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
-import at.asitplus.wallet.lib.Initializer.initOpenIdModule
 import at.asitplus.wallet.lib.agent.DefaultVerifierCryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.Parser
@@ -14,6 +13,7 @@ import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.cbor.DefaultCoseService
 import at.asitplus.wallet.lib.jws.DefaultJwsService
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
+import at.asitplus.wallet.lib.rqes.Initializer.initRqesModule
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import data.storage.AntilogAdapter
@@ -31,7 +31,9 @@ class WalletMain(
     val cryptoService: WalletCryptoService,
     private val dataStoreService: DataStoreService,
     val platformAdapter: PlatformAdapter,
-    var subjectCredentialStore: PersistentSubjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService),
+    var subjectCredentialStore: PersistentSubjectCredentialStore = PersistentSubjectCredentialStore(
+        dataStoreService
+    ),
     val buildContext: BuildContext,
     val scope: CoroutineScope,
 ) {
@@ -42,11 +44,12 @@ class WalletMain(
     lateinit var presentationService: PresentationService
     lateinit var snackbarService: SnackbarService
     lateinit var errorService: ErrorService
+    lateinit var signingService: SigningService
     private val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
 
 
     init {
-        initOpenIdModule()
+        initRqesModule()
         at.asitplus.wallet.mdl.Initializer.initWithVCK()
         at.asitplus.wallet.idaustria.Initializer.initWithVCK()
         at.asitplus.wallet.eupid.Initializer.initWithVCK()
@@ -80,6 +83,7 @@ class WalletMain(
         )
 
         httpService = HttpService()
+        signingService = SigningService(platformAdapter, httpService)
         provisioningService = ProvisioningService(
             platformAdapter,
             dataStoreService,
@@ -93,7 +97,8 @@ class WalletMain(
             platformAdapter,
             cryptoService,
             holderAgent,
-            httpService
+            httpService,
+            signingService
         )
         this.snackbarService = snackbarService
     }

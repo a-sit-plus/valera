@@ -13,6 +13,7 @@ class PresentationService(
     cryptoService: WalletCryptoService,
     holderAgent: HolderAgent,
     httpService: HttpService,
+    val signingService: SigningService
 ) {
     private val presentationService = OpenId4VpWallet(
         openUrlExternally = { platformAdapter.openUrl(it) },

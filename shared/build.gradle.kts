@@ -32,6 +32,7 @@ kotlin {
                 api(libs.vck)
                 api(libs.vck.openid)
                 api(libs.vck.openid.ktor)
+                api(libs.vck.rqes)
                 api(libs.credential.mdl)
                 api(libs.credential.ida)
                 api(libs.credential.eupid)
