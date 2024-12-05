@@ -43,9 +43,9 @@ import ui.composables.BottomBar
 import ui.composables.NavigationData
 import ui.navigation.Routes.AddCredentialPreAuthnRoute
 import ui.navigation.Routes.AddCredentialRoute
-import ui.navigation.Routes.AuthenticationConsentRoute
 import ui.navigation.Routes.AuthenticationQrCodeScannerRoute
 import ui.navigation.Routes.AuthenticationSuccessRoute
+import ui.navigation.Routes.AuthenticationViewRoute
 import ui.navigation.Routes.CredentialDetailsRoute
 import ui.navigation.Routes.ErrorRoute
 import ui.navigation.Routes.HomeScreenRoute
@@ -61,18 +61,18 @@ import ui.navigation.Routes.Route
 import ui.navigation.Routes.SettingsRoute
 import ui.screens.SelectIssuingServerView
 import ui.viewmodels.AddCredentialViewModel
-import ui.viewmodels.AuthenticationConsentViewModel
 import ui.viewmodels.AuthenticationQrCodeScannerViewModel
 import ui.viewmodels.AuthenticationSuccessViewModel
+import ui.viewmodels.AuthenticationViewModel
 import ui.viewmodels.CredentialDetailsViewModel
 import ui.viewmodels.CredentialsViewModel
 import ui.viewmodels.LoadCredentialViewModel
 import ui.viewmodels.LogViewModel
 import ui.viewmodels.PreAuthQrCodeScannerViewModel
 import ui.viewmodels.SettingsViewModel
-import ui.views.AuthenticationConsentView
 import ui.views.AuthenticationQrCodeScannerView
 import ui.views.AuthenticationSuccessView
+import ui.views.AuthenticationView
 import ui.views.CredentialDetailsView
 import ui.views.CredentialsView
 import ui.views.ErrorView
@@ -223,14 +223,14 @@ private fun WalletNavHost(
             )
             AuthenticationQrCodeScannerView(vm)
         }
-        composable<AuthenticationConsentRoute> { backStackEntry ->
-            val route: AuthenticationConsentRoute = backStackEntry.toRoute()
+        composable<AuthenticationViewRoute> { backStackEntry ->
+            val route: AuthenticationViewRoute = backStackEntry.toRoute()
 
             val request =
                 AuthenticationRequestParametersFrom.deserialize(route.authenticationRequestParametersFromSerialized)
                     .getOrThrow()
 
-            val vm = AuthenticationConsentViewModel(
+            val vm = AuthenticationViewModel(
                 spName = null,
                 spLocation = route.recipientLocation,
                 spImage = null,
@@ -239,9 +239,12 @@ private fun WalletNavHost(
                 navigateToAuthenticationSuccessPage = {
                     navigate(AuthenticationSuccessRoute)
                 },
+                navigateToHomeScreen = {
+                    popBackStack(HomeScreenRoute)
+                },
                 walletMain = walletMain,
             )
-            AuthenticationConsentView(vm = vm)
+            AuthenticationView(vm = vm)
         }
 
         composable<AuthenticationSuccessRoute> { backStackEntry ->

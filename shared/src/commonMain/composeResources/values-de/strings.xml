@@ -44,6 +44,8 @@
     <string name="button_label_clear_log">Log löschen</string>
     <string name="button_label_provision_credential_browser">Über Browser beziehen</string>
     <string name="button_label_provision_credential_qr">Mit QR-Code beziehen</string>
+    <string name="button_label_select">Auswählen</string>
+
 
     <string name="attribute_friendly_name_bpk">BPK</string>
     <string name="attribute_friendly_name_firstname">Vorname</string>
@@ -176,6 +178,8 @@
     <string name="heading_label_add_credential_screen">Daten laden</string>
     <string name="heading_label_refresh_data_screen">Daten laden</string>
     <string name="heading_label_authenticate_at_device_screen">Anmelden\nan Service Provider</string>
+    <string name="heading_label_authenticate_credential_selection">Credential Auswahl</string>
+
 
     <string name="description_read_terms">Bitte lesen und akzeptieren Sie die Nutzungsbedingungen und Datenschutzerklärung.</string>
 
@@ -197,6 +201,8 @@
     <string name="prompt_ask_load_missing_data">Sollen die fehlenden Daten nachgeladen werden?</string>
     <string name="prompt_send_above_data">Sollen diese Daten übermittelt werden?</string>
     <string name="prompt_send_all_data">Sollen alle Daten übermittelt werden?</string>
+    <string name="prompt_select_credential">Welches Credential soll verwendet werden?</string>
+    <string name="prompt_select_attribute">Welche Attribute sollen übermittelt werden?</string>
 
     <string name="error_feature_not_yet_available">Incomplete Implementation</string>
     <string name="error_authentication_at_sp_failed">Authentication failed</string>
@@ -230,6 +236,7 @@
     <string name="info_text_notice_development_provisioning_using_qr_code_credentials">Zu Entwicklungszwecken gibt es auch die Möglichkeit, Daten über einen QR-Code zu laden.</string>
     <string name="info_text_enthusiastic_welcome_end">Daten laden und los geht's!</string>
     <string name="info_text_submission_preview_disabled">Vorschau von Übermittelten Daten ist derzeit nicht verfügbar.</string>
+    <string name="info_text_no_matching_credential">Es wurde kein passendes Credential für die Anfrage gefunden.</string>
 
     <string name="section_heading_authenticate_at_device_title">Anmelden</string>
     <string name="section_heading_authenticate_at_device_subtitle">an Service Provider</string>
