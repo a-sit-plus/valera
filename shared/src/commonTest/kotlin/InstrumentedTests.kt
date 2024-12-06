@@ -35,6 +35,7 @@ import data.storage.DummyDataStoreService
 import data.storage.PersistentSubjectCredentialStore
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
@@ -53,6 +54,7 @@ import ui.navigation.NavigatorTestTags
 import ui.navigation.Routes.OnboardingWrapperTestTags
 import ui.views.OnboardingStartScreenTestTag
 import kotlin.test.Test
+import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.minutes
 
 // Modified from https://developer.android.com/jetpack/compose/testing
@@ -275,10 +277,15 @@ class InstrumentedTests {
             }.body<String>()
             val jsonObject = Json.parseToJsonElement(response).jsonObject
             val qrCodeUrl = jsonObject["qrCodeUrl"]?.jsonPrimitive?.content
+            val id = jsonObject["id"]?.jsonPrimitive?.content
             appLink.value = qrCodeUrl
 
             waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_consent)), 2000)
             onNodeWithText(getString(Res.string.button_label_consent)).performClick()
+
+            val url = "https://apps.egiz.gv.at/customverifier/customer-success.html?id=$id"
+            val responseSuccess = client.get(url)
+            assertTrue { responseSuccess.status.value in 200..299 }
         }
     }
 
