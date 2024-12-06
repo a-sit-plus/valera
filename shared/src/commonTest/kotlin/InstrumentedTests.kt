@@ -1,3 +1,4 @@
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsDisplayed
@@ -13,8 +14,8 @@ import androidx.compose.ui.test.waitUntilDoesNotExist
 import androidx.compose.ui.test.waitUntilExactlyOneExists
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.app.common.BuildContext
-import at.asitplus.wallet.app.common.DummyPlatformAdapter
 import at.asitplus.wallet.app.common.KeystoreService
+import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.WalletCryptoService
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.idaustria.IdAustriaScheme
@@ -37,10 +38,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 import org.jetbrains.compose.resources.getString
-import org.junit.Test
 import ui.navigation.NavigatorTestTags
 import ui.navigation.Routes.OnboardingWrapperTestTags
 import ui.views.OnboardingStartScreenTestTag
+import kotlin.test.Test
 import kotlin.time.Duration.Companion.minutes
 
 // Modified from https://developer.android.com/jetpack/compose/testing
@@ -57,7 +58,7 @@ class InstrumentedTests {
             val walletMain = WalletMain(
                 cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
                 dataStoreService = dummyDataStoreService,
-                platformAdapter = DummyPlatformAdapter(),
+                platformAdapter = getPlatformAdapter(),
                 scope =  CoroutineScope(Dispatchers.Default),
                 buildContext = BuildContext(
                     buildType = "debug",
@@ -82,7 +83,7 @@ class InstrumentedTests {
             val walletMain = WalletMain(
                 cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
                 dataStoreService = dummyDataStoreService,
-                platformAdapter = DummyPlatformAdapter(),
+                platformAdapter = getPlatformAdapter(),
                 scope =  CoroutineScope(Dispatchers.Default),
                 buildContext = BuildContext(
                     buildType = "debug",
@@ -111,7 +112,7 @@ class InstrumentedTests {
             val walletMain = WalletMain(
                 cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
                 dataStoreService = dummyDataStoreService,
-                platformAdapter = DummyPlatformAdapter(),
+                platformAdapter = getPlatformAdapter(),
                 scope =  CoroutineScope(Dispatchers.Default),
                 buildContext = BuildContext(
                     buildType = "debug",
@@ -145,7 +146,7 @@ class InstrumentedTests {
             val walletMain = WalletMain(
                 cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
                 dataStoreService = dummyDataStoreService,
-                platformAdapter = AndroidDummyPlatformAdapter(), //why?
+                platformAdapter = getPlatformAdapter(),
                 scope =  CoroutineScope(Dispatchers.Default),
                 buildContext = BuildContext(
                     buildType = "debug",
@@ -219,7 +220,7 @@ class InstrumentedTests {
             val walletMain = WalletMain(
                 cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
                 dataStoreService = dummyDataStoreService,
-                platformAdapter = AndroidDummyPlatformAdapter(), //why?
+                platformAdapter = getPlatformAdapter(),
                 scope =  CoroutineScope(Dispatchers.Default),
                 subjectCredentialStore = PersistentSubjectCredentialStore(dummyDataStoreService),
                 buildContext = BuildContext(
@@ -238,7 +239,7 @@ class InstrumentedTests {
                             Clock.System.now().plus(3600.minutes),
                             IdAustriaScheme,
                             walletMain.cryptoService.keyMaterial.publicKey,
-                            )
+                        )
                     ).getOrThrow().toStoreCredentialInput()
                 )
             }
@@ -264,3 +265,7 @@ class InstrumentedTests {
     }
 
 }
+
+@Composable
+expect fun getPlatformAdapter(): PlatformAdapter
+
