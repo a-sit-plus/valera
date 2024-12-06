@@ -33,10 +33,21 @@ import compose_wallet_app.shared.generated.resources.content_description_portrai
 import compose_wallet_app.shared.generated.resources.section_heading_age_data
 import data.storage.DummyDataStoreService
 import data.storage.PersistentSubjectCredentialStore
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.jetbrains.compose.resources.getString
 import ui.navigation.NavigatorTestTags
 import ui.navigation.Routes.OnboardingWrapperTestTags
@@ -257,14 +268,44 @@ class InstrumentedTests {
             onNodeWithText(getString(Res.string.button_label_accept)).performClick()
             waitUntilDoesNotExist(hasText(getString(Res.string.button_label_accept)), 2000)
 
-            appLink.value =
-                "https://wallet.a-sit.at/mobile?request_uri=https://apps.egiz.gv.at/customverifier/transaction/get/af123d37-f736-4f1a-9360-6bb40632987c&client_id=apps.egiz.gv.at&client_metadata_uri=https://apps.egiz.gv.at/customverifier/siopv2/metadata"
+            val client = HttpClient()
+            val response = client.post("https://apps.egiz.gv.at/customverifier/transaction/create") {
+                contentType(ContentType.Application.Json)
+                setBody(request)
+            }.body<String>()
+            val jsonObject = Json.parseToJsonElement(response).jsonObject
+            val qrCodeUrl = jsonObject["qrCodeUrl"]?.jsonPrimitive?.content
+            appLink.value = qrCodeUrl
+
             waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_consent)), 2000)
             onNodeWithText(getString(Res.string.button_label_consent)).performClick()
         }
     }
 
 }
+
+val request = Json.encodeToString(RequestBody(
+    "https://wallet.a-sit.at/mobile",
+    listOf(Credential(
+        "at.gv.id-austria.2023.1",
+        "SD_JWT",
+        listOf(
+            "bpk",
+            "firstname",
+            "lastname",
+            "date-of-birth",
+            "portrait",
+            "main-address",
+            "age-over-18",
+        )
+    ))
+))
+
+@Serializable
+data class RequestBody(val urlprefix: String, val credentials: List<Credential>)
+
+@Serializable
+data class Credential(val credentialType: String, val representation: String, val attributes: List<String>)
 
 @Composable
 expect fun getPlatformAdapter(): PlatformAdapter
