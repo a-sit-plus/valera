@@ -1,4 +1,4 @@
-package ui.views
+package ui.views.Authentication
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -43,7 +43,7 @@ import ui.composables.DataDisplaySection
 import ui.composables.buttons.CancelButton
 import ui.composables.buttons.ContinueButton
 import ui.composables.buttons.NavigateUpButton
-import ui.viewmodels.AuthenticationConsentViewModel
+import ui.viewmodels.Authentication.AuthenticationConsentViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

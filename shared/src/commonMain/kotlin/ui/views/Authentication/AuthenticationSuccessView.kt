@@ -1,4 +1,4 @@
-package ui.views
+package ui.views.Authentication
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,7 +26,7 @@ import compose_wallet_app.shared.generated.resources.info_text_authentication_su
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.ConcludeButton
 import ui.composables.buttons.NavigateUpButton
-import ui.viewmodels.AuthenticationSuccessViewModel
+import ui.viewmodels.Authentication.AuthenticationSuccessViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

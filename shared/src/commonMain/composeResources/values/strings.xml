@@ -13,7 +13,6 @@
     <string name="snackbar_reset_app_successfully">UNTRANSLATED:snackbar_reset_app_successfully</string>
     <string name="snackbar_clear_log_successfully">UNTRANSLATED:snackbar_clear_log_successfully</string>
 
-
     <string name="button_label_use_device_credential">UNTRANSLATED:button_label_use_device_credential</string>
     <string name="button_label_confirm">UNTRANSLATED:button_label_confirm</string>
     <string name="button_label_dismiss">UNTRANSLATED:button_label_dismiss</string>
@@ -45,8 +44,6 @@
     <string name="button_label_provision_credential_browser">UNTRANSLATED:button_label_request_credential_browser</string>
     <string name="button_label_provision_credential_qr">UNTRANSLATED:button_label_provision_credential_qr</string>
     <string name="button_label_select">UNTRANSLATED:button_label_select</string>
-
-
 
     <string name="id_austria_credential_attribute_friendly_name_main_address_street">UNTRANSLATED:id_austria_credential_attribute_friendly_name_main_address_street</string>
     <string name="id_austria_credential_attribute_friendly_name_main_address_house_number">UNTRANSLATED:id_austria_credential_attribute_friendly_name_main_address_house_number</string>
@@ -177,8 +174,6 @@
     <string name="heading_label_load_data_screen">UNTRANSLATED:heading_label_load_data_screen</string>
     <string name="heading_label_refresh_data_screen">UNTRANSLATED:heading_label_refresh_data_screen</string>
     <string name="heading_label_authenticate_at_device_screen">UNTRANSLATED:heading_label_authenticate_at_device_screen</string>
-    <string name="heading_label_authenticate_credential_selection">UNTRANSLATED:heading_label_authenticate_credential_selection</string>
-
 
     <string name="description_read_terms">UNTRANSLATED:description_read_terms</string>
     <string name="biometric_authentication_prompt_for_data_transmission_consent_title">UNTRANSLATED:biometric_authentication_prompt_for_data_transmission_consent_title</string>

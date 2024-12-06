@@ -5,7 +5,6 @@ import at.asitplus.jsonpath.core.NodeList
 import at.asitplus.wallet.lib.agent.CredentialSubmission
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.agent.toDefaultSubmission
 import at.asitplus.wallet.lib.jws.DefaultJwsService
 import at.asitplus.wallet.lib.oidc.AuthenticationRequestParametersFrom
 import at.asitplus.wallet.lib.oidc.AuthenticationResponseResult
@@ -69,7 +68,6 @@ class PresentationService(
             inputDescriptors = preparationState.presentationDefinition?.inputDescriptors!!,
             fallbackFormatHolder = preparationState.clientMetadata?.vpFormats,
         ).getOrThrow()
-        val default = credentialSubmissions.toDefaultSubmission()
         return credentialSubmissions
     }
 

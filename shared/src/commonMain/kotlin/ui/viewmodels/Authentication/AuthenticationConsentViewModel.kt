@@ -1,4 +1,4 @@
-package ui.viewmodels
+package ui.viewmodels.Authentication
 
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.wallet.app.common.WalletMain

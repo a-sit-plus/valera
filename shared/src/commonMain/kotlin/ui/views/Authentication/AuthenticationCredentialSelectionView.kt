@@ -1,4 +1,4 @@
-package ui.views
+package ui.views.Authentication
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,14 +19,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.app.common.decodeImage
-import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.button_label_continue
 import compose_wallet_app.shared.generated.resources.heading_label_navigate_back
@@ -34,13 +32,11 @@ import compose_wallet_app.shared.generated.resources.prompt_select_credential
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.CredentialSelectionGroup
-import ui.viewmodels.AuthenticationCredentialSelectionViewModel
+import ui.viewmodels.Authentication.AuthenticationCredentialSelectionViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthenticationCredentialSelectionView(vm: AuthenticationCredentialSelectionViewModel) {
-    val selectedCredential: MutableMap<String, MutableState<SubjectCredentialStore.StoreEntry>> = mutableMapOf()
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -76,7 +72,7 @@ fun AuthenticationCredentialSelectionView(vm: AuthenticationCredentialSelectionV
                         horizontalArrangement = Arrangement.Center,
                     ) {
                         Button(onClick = {
-                            vm.selectCredential(selectedCredential.entries.associate { (it.key to it.value.value) })
+                            vm.selectCredential(vm.selectedCredential.entries.associate { (it.key to it.value.value) })
                         }){
                             Text(stringResource(Res.string.button_label_continue))
                         }
@@ -91,13 +87,14 @@ fun AuthenticationCredentialSelectionView(vm: AuthenticationCredentialSelectionV
             ) {
                 vm.requests.forEach { request ->
                     val selection = mutableStateOf(request.value.second.keys.first())
-                    selectedCredential[request.key] = selection
+                    vm.selectedCredential[request.key] = selection
+                    val credentials = request.value.second.keys
                     if(request.value.second.size > 1) {
                         Text(text = request.value.first.credentialIdentifier,
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.secondary,
                             fontWeight = FontWeight.SemiBold,)
-                        CredentialSelectionGroup(selectedCredential = selection, request = request, imageDecoder = {byteArray -> vm.walletMain.platformAdapter.decodeImage(byteArray)})
+                        CredentialSelectionGroup(selectedCredential = selection, credentials = credentials, imageDecoder = {byteArray -> vm.walletMain.platformAdapter.decodeImage(byteArray)})
                     }
                 }
             }

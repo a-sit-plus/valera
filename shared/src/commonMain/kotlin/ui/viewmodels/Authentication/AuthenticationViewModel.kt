@@ -1,4 +1,4 @@
-package ui.viewmodels
+package ui.viewmodels.Authentication
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,16 +34,12 @@ class AuthenticationViewModel(
     var viewState by mutableStateOf(AuthenticationViewState.Consent)
     var descriptors = authenticationRequest.parameters.presentationDefinition?.inputDescriptors ?: listOf()
     var parametersMap = descriptors.mapNotNull {
-        val parameter = it.getRequestOptionParameters()
-        if (parameter != null){
-            Pair(it.id,parameter)
-        }else {
-            null
-        }
+        val parameter = it.getRequestOptionParameters() ?: return@mapNotNull null
+        Pair(it.id,parameter)
     }.toMap()
 
     lateinit var preparationState: AuthorizationResponsePreparationState
-    lateinit var selectedCredentials: Map<String, SubjectCredentialStore. StoreEntry>
+    lateinit var selectedCredentials: Map<String, SubjectCredentialStore.StoreEntry>
     var requestMap: Map<String, Pair<RequestOptionParameters,Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, NodeList>>>> = mutableMapOf()
 
     fun onConsent(){
@@ -51,19 +47,15 @@ class AuthenticationViewModel(
         val matchingCredentials = runBlocking { walletMain.presentationService.getMatchingCredentials(preparationState =  preparationState)}
 
         requestMap = descriptors.mapNotNull {
-            val parameter = parametersMap[it.id]
-            val credential = matchingCredentials[it.id]
-            if (parameter != null && credential != null){
-                Pair(it.id, Pair(parameter, credential))
-            } else {
-                null
-            }
+            val parameter = parametersMap[it.id] ?: return@mapNotNull null
+            val credential = matchingCredentials[it.id] ?: return@mapNotNull null
+            Pair(it.id, Pair(parameter, credential))
         }.toMap()
 
-        if (matchingCredentials.values.find { it.isEmpty() } == null) {
-            viewState = AuthenticationViewState.CredentialSelection
+        viewState = if (matchingCredentials.values.find { it.isEmpty() } == null) {
+            AuthenticationViewState.CredentialSelection
         } else {
-            viewState = AuthenticationViewState.NoMatchingCredential
+            AuthenticationViewState.NoMatchingCredential
         }
     }
 
@@ -74,13 +66,9 @@ class AuthenticationViewModel(
     fun selectAttributes(selectedAttributes:  Map<String, Set<NormalizedJsonPath>>){
         walletMain.scope.launch {
             val submissions = descriptors.mapNotNull {
-                val credential = selectedCredentials[it.id]
-                val disclosedAttributes = selectedAttributes[it.id]
-                if (credential != null && disclosedAttributes != null){
-                    Pair(it.id, CredentialSubmission(credential, disclosedAttributes))
-                } else {
-                    null
-                }
+                val credential = selectedCredentials[it.id] ?: return@mapNotNull null
+                val disclosedAttributes = selectedAttributes[it.id] ?: return@mapNotNull null
+                Pair(it.id, CredentialSubmission(credential, disclosedAttributes))
             }.toMap()
 
             finalizeAuthorization(submissions)

@@ -1,13 +1,13 @@
-package ui.views
+package ui.views.Authentication
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import ui.viewmodels.AuthenticationAttributesSelectionViewModel
-import ui.viewmodels.AuthenticationConsentViewModel
-import ui.viewmodels.AuthenticationCredentialSelectionViewModel
-import ui.viewmodels.AuthenticationNoCredentialViewModel
-import ui.viewmodels.AuthenticationViewModel
-import ui.viewmodels.AuthenticationViewState
+import ui.viewmodels.Authentication.AuthenticationAttributesSelectionViewModel
+import ui.viewmodels.Authentication.AuthenticationConsentViewModel
+import ui.viewmodels.Authentication.AuthenticationCredentialSelectionViewModel
+import ui.viewmodels.Authentication.AuthenticationNoCredentialViewModel
+import ui.viewmodels.Authentication.AuthenticationViewModel
+import ui.viewmodels.Authentication.AuthenticationViewState
 
 @Composable
 fun AuthenticationView(vm: AuthenticationViewModel) {
@@ -34,15 +34,15 @@ fun AuthenticationView(vm: AuthenticationViewModel) {
             AuthenticationCredentialSelectionView(viewModel)
         }
         AuthenticationViewState.AttributesSelection -> {
-            val vm = AuthenticationAttributesSelectionViewModel(navigateUp = {vm.viewState = AuthenticationViewState.CredentialSelection},
+            val viewModel = AuthenticationAttributesSelectionViewModel(navigateUp = {vm.viewState = AuthenticationViewState.CredentialSelection},
                 requests = vm.requestMap ,
                 selectedCredentials = vm.selectedCredentials,
                 selectAttributes = {attributes -> vm.selectAttributes(selectedAttributes = attributes)})
-            AuthenticationAttributesSelectionView(vm)
+            AuthenticationAttributesSelectionView(viewModel)
         }
         AuthenticationViewState.NoMatchingCredential -> {
-            val vm = AuthenticationNoCredentialViewModel(navigateToHomeScreen = vm.navigateToHomeScreen)
-            AuthenticationNoCredentialView(vm = vm)
+            val viewModel = AuthenticationNoCredentialViewModel(navigateToHomeScreen = vm.navigateToHomeScreen)
+            AuthenticationNoCredentialView(vm = viewModel)
         }
     }
 }

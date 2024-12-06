@@ -1,4 +1,4 @@
-package ui.views
+package ui.views.Authentication
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,7 +26,7 @@ import compose_wallet_app.shared.generated.resources.button_label_continue
 import compose_wallet_app.shared.generated.resources.info_text_no_matching_credential
 import compose_wallet_app.shared.generated.resources.info_text_to_start_screen
 import org.jetbrains.compose.resources.stringResource
-import ui.viewmodels.AuthenticationNoCredentialViewModel
+import ui.viewmodels.Authentication.AuthenticationNoCredentialViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
