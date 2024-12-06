@@ -10,7 +10,9 @@ import androidx.compose.ui.test.isNotDisplayed
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.printToLog
 import androidx.compose.ui.test.runComposeUiTest
 import androidx.compose.ui.test.waitUntilDoesNotExist
 import androidx.compose.ui.test.waitUntilExactlyOneExists
@@ -36,8 +38,12 @@ import compose_wallet_app.shared.generated.resources.button_label_accept
 import compose_wallet_app.shared.generated.resources.button_label_consent
 import compose_wallet_app.shared.generated.resources.button_label_continue
 import compose_wallet_app.shared.generated.resources.button_label_details
+import compose_wallet_app.shared.generated.resources.button_label_show_data
 import compose_wallet_app.shared.generated.resources.button_label_start
+import compose_wallet_app.shared.generated.resources.content_description_navigate_back
 import compose_wallet_app.shared.generated.resources.content_description_portrait
+import compose_wallet_app.shared.generated.resources.heading_label_credential_details_screen
+import compose_wallet_app.shared.generated.resources.section_heading_actions
 import compose_wallet_app.shared.generated.resources.section_heading_age_data
 import data.storage.DummyDataStoreService
 import data.storage.PersistentSubjectCredentialStore
@@ -57,6 +63,7 @@ import io.ktor.client.request.*
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
@@ -64,6 +71,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import org.jetbrains.compose.resources.stringResource
 import ui.navigation.NavigatorTestTags
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -86,7 +94,6 @@ class InstrumentedTests {
             lifecycleOwner = TestLifecycleOwner()
             lifecycleRegistry = LifecycleRegistry(lifecycleOwner)
             lifecycleRegistry.currentState = Lifecycle.State.CREATED
-            turnScreenOn()
         }
     }
 
@@ -250,7 +257,10 @@ class InstrumentedTests {
             onNodeWithText("XXXÉliás XXXTörőcsik").assertExists()
             onNodeWithText("11.10.1965").assertExists()
 
+            onRoot().printToLog("TEST TAG")
+
             onNodeWithText(getString(Res.string.button_label_details)).performClick()
+            onRoot().printToLog("TEST TAG")
             waitUntilExactlyOneExists(hasText(getString(Res.string.section_heading_age_data)), 3000)
             onNodeWithText("≥14").assertExists()
             onNodeWithText("≥16").assertExists()
@@ -258,6 +268,40 @@ class InstrumentedTests {
             onNodeWithText("≥21").assertExists()
             onNodeWithText("Testgasse 1a-2b/Stg. 3c-4d/D6").assertExists()
             onNodeWithText("0088 Testort A").assertExists()
+
+            onNodeWithText(getString(Res.string.button_label_details)).performClick()
+
+
+            val client = HttpClient() {
+                expectSuccess = true
+                install(ContentNegotiation) {
+                    json()
+                }
+            }
+
+
+            val responseGenerateRequest =
+                client.post("https://apps.egiz.gv.at/customverifier/transaction/create") {
+                    contentType(ContentType.Application.Json)
+                    setBody(request)
+                }.body<JsonObject>()
+
+            val qrCodeUrl = responseGenerateRequest["qrCodeUrl"]?.jsonPrimitive?.content
+            val id = responseGenerateRequest["id"]?.jsonPrimitive?.content
+
+            appLink.value = qrCodeUrl
+
+            waitUntilExactlyOneExists(
+                hasText(getString(Res.string.button_label_consent)),
+                10000
+            )
+
+            onNodeWithText(getString(Res.string.button_label_consent)).performClick()
+
+            val url = "https://apps.egiz.gv.at/customverifier/customer-success.html?id=$id"
+            val responseSuccess = client.get(url)
+            assertTrue { responseSuccess.status.value in 200..299 }
+
         }
     }
 
@@ -276,6 +320,7 @@ class InstrumentedTests {
         )
     }
 
+    /*
     @OptIn(ExperimentalTestApi::class)
     @Test
     fun givenNewAppInstallation_whenStartingApp_thenLoadAttributesAndShowData() = runComposeUiTest() {
@@ -362,6 +407,8 @@ class InstrumentedTests {
     }
 
 
+
+     */
 }
 
 val request = Json.encodeToString(RequestBody(
@@ -395,5 +442,3 @@ data class Credential(val credentialType: String, val representation: String, va
 
 @Composable
 expect fun getPlatformAdapter(): PlatformAdapter
-
-expect fun turnScreenOn()

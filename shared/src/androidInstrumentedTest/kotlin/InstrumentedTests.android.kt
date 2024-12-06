@@ -9,11 +9,3 @@ actual fun getPlatformAdapter(): PlatformAdapter {
     return AndroidPlatformAdapter(context)
 }
 
-actual fun turnScreenOn() {
-    try {
-        // Execute the ADB command to turn on the screen
-        Runtime.getRuntime().exec("adb shell input keyevent 26") // KEYCODE_POWER
-    } catch (e: IOException) {
-        e.printStackTrace()
-    }
-}
