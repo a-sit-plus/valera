@@ -35,11 +35,13 @@ import data.storage.DummyDataStoreService
 import data.storage.PersistentSubjectCredentialStore
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -48,7 +50,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.jetbrains.compose.resources.getString
 import ui.navigation.NavigatorTestTags
@@ -271,7 +272,12 @@ class InstrumentedTests {
             onNodeWithText(getString(Res.string.button_label_accept)).performClick()
             waitUntilDoesNotExist(hasText(getString(Res.string.button_label_accept)), 2000)
 
-            val client = HttpClient()
+            val client = HttpClient() {
+                expectSuccess = true
+                install(ContentNegotiation) {
+                    json()
+                }
+            }
             val responseGenerateRequest = client.post("https://apps.egiz.gv.at/customverifier/transaction/create") {
                 contentType(ContentType.Application.Json)
                 setBody(request)
