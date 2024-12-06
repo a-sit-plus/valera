@@ -47,6 +47,7 @@ import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.jetbrains.compose.resources.getString
@@ -271,13 +272,12 @@ class InstrumentedTests {
             waitUntilDoesNotExist(hasText(getString(Res.string.button_label_accept)), 2000)
 
             val client = HttpClient()
-            val response = client.post("https://apps.egiz.gv.at/customverifier/transaction/create") {
+            val responseGenerateRequest = client.post("https://apps.egiz.gv.at/customverifier/transaction/create") {
                 contentType(ContentType.Application.Json)
                 setBody(request)
-            }.body<String>()
-            val jsonObject = Json.parseToJsonElement(response).jsonObject
-            val qrCodeUrl = jsonObject["qrCodeUrl"]?.jsonPrimitive?.content
-            val id = jsonObject["id"]?.jsonPrimitive?.content
+            }.body<JsonObject>()
+            val qrCodeUrl = responseGenerateRequest["qrCodeUrl"]?.jsonPrimitive?.content
+            val id = responseGenerateRequest["id"]?.jsonPrimitive?.content
             appLink.value = qrCodeUrl
 
             waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_consent)), 2000)
