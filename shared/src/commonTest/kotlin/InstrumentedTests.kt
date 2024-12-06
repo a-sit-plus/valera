@@ -1,4 +1,5 @@
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsDisplayed
@@ -13,6 +14,10 @@ import androidx.compose.ui.test.runComposeUiTest
 import androidx.compose.ui.test.waitUntilDoesNotExist
 import androidx.compose.ui.test.waitUntilExactlyOneExists
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LifecycleRegistry
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
@@ -45,6 +50,8 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -55,6 +62,8 @@ import org.jetbrains.compose.resources.getString
 import ui.navigation.NavigatorTestTags
 import ui.navigation.Routes.OnboardingWrapperTestTags
 import ui.views.OnboardingStartScreenTestTag
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.minutes
@@ -62,6 +71,26 @@ import kotlin.time.Duration.Companion.minutes
 // Modified from https://developer.android.com/jetpack/compose/testing
 @OptIn(ExperimentalTestApi::class)
 class InstrumentedTests {
+
+    private lateinit var lifecycleRegistry: LifecycleRegistry
+    private lateinit var lifecycleOwner: TestLifecycleOwner
+
+    @BeforeTest
+    fun setup() = runTest {
+        withContext(Dispatchers.Main) {
+            lifecycleOwner = TestLifecycleOwner()
+            lifecycleRegistry = LifecycleRegistry(lifecycleOwner)
+            lifecycleRegistry.currentState = Lifecycle.State.CREATED
+
+        }
+    }
+
+    @AfterTest
+    fun teardown() = runTest {
+        withContext(Dispatchers.Main) {
+            lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
+        }
+    }
 
     @Test
     fun givenNewAppInstallation_whenStartingApp_thenAppActuallyStarts() = runComposeUiTest() {
@@ -156,32 +185,35 @@ class InstrumentedTests {
     @Test
     fun givenNewAppInstallation_whenStartingApp_thenShowAttributesOnMyCredentialsScreen() = runComposeUiTest() {
         setContent {
-            val dummyDataStoreService = DummyDataStoreService()
-            val ks = KeystoreService(dummyDataStoreService)
-            val walletMain = WalletMain(
-                cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
-                dataStoreService = dummyDataStoreService,
-                platformAdapter = getPlatformAdapter(),
-                scope =  CoroutineScope(Dispatchers.Default),
-                buildContext = BuildContext(
-                    buildType = "debug",
-                    versionCode = 0,
-                    versionName = "0.0.0",
+            CompositionLocalProvider(LocalLifecycleOwner provides lifecycleOwner) {
+                val dummyDataStoreService = DummyDataStoreService()
+                val ks = KeystoreService(dummyDataStoreService)
+                val walletMain = WalletMain(
+                    cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
+                    dataStoreService = dummyDataStoreService,
+                    platformAdapter = getPlatformAdapter(),
+                    scope = CoroutineScope(Dispatchers.Default),
+                    buildContext = BuildContext(
+                        buildType = "debug",
+                        versionCode = 0,
+                        versionName = "0.0.0",
+                    )
                 )
-            )
-            App(walletMain)
+                App(walletMain)
 
-            val issuer = IssuerAgent()
-            runBlocking {
-                walletMain.holderAgent.storeCredential(
-                    issuer.issueCredential(
-                        CredentialToBeIssued.VcSd(getAttributes(),
-                            Clock.System.now().plus(3600.minutes),
-                            IdAustriaScheme,
-                            walletMain.cryptoService.keyMaterial.publicKey
-                        )
-                    ).getOrThrow().toStoreCredentialInput()
-                )
+                val issuer = IssuerAgent()
+                runBlocking {
+                    walletMain.holderAgent.storeCredential(
+                        issuer.issueCredential(
+                            CredentialToBeIssued.VcSd(
+                                getAttributes(),
+                                Clock.System.now().plus(3600.minutes),
+                                IdAustriaScheme,
+                                walletMain.cryptoService.keyMaterial.publicKey
+                            )
+                        ).getOrThrow().toStoreCredentialInput()
+                    )
+                }
             }
         }
         runBlocking {
@@ -230,35 +262,38 @@ class InstrumentedTests {
     @Test
     fun givenNewAppInstallation_whenStartingApp_thenLoadAttributesAndShowData() = runComposeUiTest() {
         setContent {
-            val dummyDataStoreService = DummyDataStoreService()
-            val ks = KeystoreService(dummyDataStoreService)
-            val walletMain = WalletMain(
-                cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
-                dataStoreService = dummyDataStoreService,
-                platformAdapter = getPlatformAdapter(),
-                scope =  CoroutineScope(Dispatchers.Default),
-                subjectCredentialStore = PersistentSubjectCredentialStore(dummyDataStoreService),
-                buildContext = BuildContext(
-                    buildType = "debug",
-                    versionCode = 0,
-                    versionName = "0.0.0",
+            CompositionLocalProvider(LocalLifecycleOwner provides lifecycleOwner) {
+                val dummyDataStoreService = DummyDataStoreService()
+                val ks = KeystoreService(dummyDataStoreService)
+                val walletMain = WalletMain(
+                    cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
+                    dataStoreService = dummyDataStoreService,
+                    platformAdapter = getPlatformAdapter(),
+                    scope = CoroutineScope(Dispatchers.Default),
+                    subjectCredentialStore = PersistentSubjectCredentialStore(dummyDataStoreService),
+                    buildContext = BuildContext(
+                        buildType = "debug",
+                        versionCode = 0,
+                        versionName = "0.0.0",
+                    )
                 )
-            )
-            App(walletMain)
+                App(walletMain)
 
-            val issuer = IssuerAgent()
-            runBlocking {
-                walletMain.holderAgent.storeCredential(
-                    issuer.issueCredential(
-                        CredentialToBeIssued.VcSd(getAttributes(),
-                            Clock.System.now().plus(3600.minutes),
-                            IdAustriaScheme,
-                            walletMain.cryptoService.keyMaterial.publicKey,
-                        )
-                    ).getOrThrow().toStoreCredentialInput()
-                )
+                val issuer = IssuerAgent()
+                runBlocking {
+                    walletMain.holderAgent.storeCredential(
+                        issuer.issueCredential(
+                            CredentialToBeIssued.VcSd(
+                                getAttributes(),
+                                Clock.System.now().plus(3600.minutes),
+                                IdAustriaScheme,
+                                walletMain.cryptoService.keyMaterial.publicKey,
+                            )
+                        ).getOrThrow().toStoreCredentialInput()
+                    )
+                }
+
             }
-
         }
         runBlocking {
             onNodeWithText(getString(Res.string.button_label_start))
@@ -313,6 +348,11 @@ val request = Json.encodeToString(RequestBody(
         )
     ))
 ))
+
+private class TestLifecycleOwner : LifecycleOwner {
+    private val _lifecycle = LifecycleRegistry(this)
+    override val lifecycle: Lifecycle get() = _lifecycle
+}
 
 @Serializable
 data class RequestBody(val urlprefix: String, val credentials: List<Credential>)
