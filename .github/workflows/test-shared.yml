@@ -1,8 +1,11 @@
 name: Test shared implementation
-on: [push]
+on:
+  push:
+  schedule:
+    - cron: '0 */5 * * *'
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -12,8 +15,22 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-      - name: Run tests
-        run: ./gradlew :shared:connectedAndroidTest
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run Instrumented Tests
+        uses: ReactiveCircus/android-emulator-runner@v2
+        env:
+          ANDROID_CERT_PASSWORD: ${{ secrets.ANDROID_CERT_PASSWORD }}
+        with:
+          arch: x86_64
+          api-level: 33
+          target: google_apis
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: ./gradlew connectedAndroidTest
       - name: Run tests
         run: ./gradlew :shared:iosSimulatorArm64Test
       - name: Test Report
@@ -21,5 +38,5 @@ jobs:
         if: success() || failure()
         with:
           name: Shared tests
-          path: shared/build/test-results/**/TEST*.xml
+          path: shared/build/outputs/androidTest-results/connected/**/TEST*.xml
           reporter: java-junit
