@@ -1,4 +1,4 @@
-package ui.views
+package ui.views.Authentication
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -6,7 +6,9 @@ import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.heading_label_authenticate_at_device_subtitle
 import compose_wallet_app.shared.generated.resources.heading_label_authenticate_at_device_title
 import org.jetbrains.compose.resources.stringResource
-import ui.viewmodels.AuthenticationQrCodeScannerViewModel
+import ui.viewmodels.Authentication.AuthenticationQrCodeScannerViewModel
+import ui.views.GenericQrCodeScannerView
+import ui.views.LoadingView
 
 @Composable
 fun AuthenticationQrCodeScannerView(

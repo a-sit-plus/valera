@@ -1,4 +1,4 @@
-package ui.views
+package ui.views.Authentication
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -27,22 +27,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.wallet.app.common.third_parts.at.asitplus.jsonpath.core.plus
+import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.getLocalization
+import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.attribute_friendly_name_data_recipient_location
 import compose_wallet_app.shared.generated.resources.attribute_friendly_name_data_recipient_name
 import compose_wallet_app.shared.generated.resources.heading_label_authenticate_at_device_screen
 import compose_wallet_app.shared.generated.resources.heading_label_navigate_back
-import compose_wallet_app.shared.generated.resources.info_text_submission_preview_disabled
 import compose_wallet_app.shared.generated.resources.prompt_send_above_data
 import compose_wallet_app.shared.generated.resources.section_heading_data_recipient
-import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.ConsentAttributesSection
 import ui.composables.DataDisplaySection
 import ui.composables.buttons.CancelButton
-import ui.composables.buttons.ConsentButton
+import ui.composables.buttons.ContinueButton
 import ui.composables.buttons.NavigateUpButton
-import ui.viewmodels.AuthenticationConsentViewModel
+import ui.viewmodels.Authentication.AuthenticationConsentViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,7 +89,7 @@ fun AuthenticationConsentView(vm: AuthenticationConsentViewModel) {
                     ) {
                         CancelButton(vm.navigateUp)
                         Spacer(modifier = Modifier.width(16.dp))
-                        ConsentButton(vm.consentToDataTransmission)
+                        ContinueButton(vm.consentToDataTransmission)
                     }
                 }
             }
@@ -125,14 +127,19 @@ fun AuthenticationConsentView(vm: AuthenticationConsentViewModel) {
                         ),
                         modifier = paddingModifier,
                     )
-                    if (vm.consentAttributes == null) {
-                        Text(
-                            stringResource(Res.string.info_text_submission_preview_disabled),
-                            modifier = Modifier.weight(1.0f, true)
-                        )
-                    } else {
-                        vm.consentAttributes.forEach {
-                            ConsentAttributesSection(title = "${it.scheme} (${it.format})", list = it.attributes)
+                    vm.requests.mapNotNull { it.value }.forEach { params ->
+                        params.resolved?.first?.let { scheme ->
+                            val schemeName = scheme.uiLabel()
+                            val format = params.resolved?.second?.name
+                            val attributes = params.attributes?.mapNotNull {
+                                scheme.getLocalization(NormalizedJsonPath() + it)
+                            }
+                            if (format != null && attributes != null) {
+                                ConsentAttributesSection(
+                                    title = "$schemeName (${format})",
+                                    list = attributes
+                                )
+                            }
                         }
                     }
                 }
@@ -140,5 +147,3 @@ fun AuthenticationConsentView(vm: AuthenticationConsentViewModel) {
         }
     }
 }
-
-class ConsentAttributes(val scheme: String, val format: String, val attributes: List<StringResource>)

@@ -1,6 +1,7 @@
 package at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data
 
 import androidx.compose.runtime.Composable
+import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.eprescription.EPrescriptionScheme
 import at.asitplus.wallet.eupid.EuPidScheme
@@ -20,6 +21,13 @@ import compose_wallet_app.shared.generated.resources.credential_scheme_label_eu_
 import compose_wallet_app.shared.generated.resources.credential_scheme_label_id_austria
 import compose_wallet_app.shared.generated.resources.credential_scheme_label_mdl
 import compose_wallet_app.shared.generated.resources.credential_scheme_label_power_of_representation
+import data.credentials.CertificateOfResidenceCredentialAttributeTranslator
+import data.credentials.EPrescriptionCredentialAttributeTranslator
+import data.credentials.EuPidCredentialAttributeTranslator
+import data.credentials.IdAustriaCredentialAttributeTranslator
+import data.credentials.MobileDrivingLicenceCredentialAttributeTranslator
+import data.credentials.PowerOfRepresentationCredentialAttributeTranslator
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -42,4 +50,14 @@ fun ConstantIndex.CredentialScheme.iconLabel(): String = when (this) {
     is CertificateOfResidenceScheme -> stringResource(Res.string.credential_scheme_icon_label_certificate_of_residence)
     is EPrescriptionScheme -> stringResource(Res.string.credential_scheme_label_epresciption)
     else -> this.identifier
+}
+
+fun ConstantIndex.CredentialScheme.getLocalization(path: NormalizedJsonPath): StringResource? = when (this) {
+    is MobileDrivingLicenceScheme -> { MobileDrivingLicenceCredentialAttributeTranslator.translate(path) }
+    is CertificateOfResidenceScheme -> { CertificateOfResidenceCredentialAttributeTranslator.translate(path) }
+    is PowerOfRepresentationScheme -> { PowerOfRepresentationCredentialAttributeTranslator.translate(path) }
+    is EPrescriptionScheme -> { EPrescriptionCredentialAttributeTranslator.translate(path) }
+    is EuPidScheme -> { EuPidCredentialAttributeTranslator.translate(path) }
+    is IdAustriaScheme -> { IdAustriaCredentialAttributeTranslator.translate(path) }
+    else -> { IdAustriaCredentialAttributeTranslator.translate(path) }
 }

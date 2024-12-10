@@ -1,4 +1,4 @@
-package ui.viewmodels
+package ui.viewmodels.Authentication
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -10,17 +10,18 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import ui.navigation.Routes.AuthenticationConsentRoute
+import ui.navigation.Routes.AuthenticationViewRoute
 
 class AuthenticationQrCodeScannerViewModel(
     val navigateUp: (() -> Unit)?,
-    val onSuccess: (AuthenticationConsentRoute) -> Unit,
+    val onSuccess: (AuthenticationViewRoute) -> Unit,
     val walletMain: WalletMain
 ) {
     var isLoading by mutableStateOf(false)
-    private val buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase = BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
-        oidcSiopWallet = walletMain.presentationService.oidcSiopWallet,
-    )
+    private val buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase =
+        BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
+            oidcSiopWallet = walletMain.presentationService.oidcSiopWallet,
+        )
 
     fun onScan(link: String) {
         Napier.d("onScan: $link")
@@ -33,13 +34,14 @@ class AuthenticationQrCodeScannerViewModel(
 
         CoroutineScope(Dispatchers.Main).launch(coroutineExceptionHandler) {
             val authenticationConsentPage =
-                buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(link).getOrThrow().let {
-                    AuthenticationConsentRoute(
-                        authenticationRequestParametersFromSerialized = it.authenticationRequestParametersFromSerialized,
-                        authorizationPreparationStateSerialized = it.authorizationPreparationStateSerialized,
-                        recipientLocation = it.recipientLocation,
-                    )
-                }
+                buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(link).getOrThrow()
+                    .let {
+                        AuthenticationViewRoute(
+                            authenticationRequestParametersFromSerialized = it.authenticationRequestParametersFromSerialized,
+                            authorizationPreparationStateSerialized = it.authorizationPreparationStateSerialized,
+                            recipientLocation = it.recipientLocation,
+                        )
+                    }
 
             isLoading = false
             onSuccess(authenticationConsentPage)
