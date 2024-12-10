@@ -89,8 +89,8 @@ fun AuthenticationCredentialSelectionView(vm: AuthenticationCredentialSelectionV
                 vm.requests.forEach { request ->
                     val selection = mutableStateOf(request.value.second.keys.first())
                     vm.selectedCredential[request.key] = selection
-                    val credentials = request.value.second.keys
-                    if (request.value.second.size > 1) {
+                    val matchingCredentials = request.value.second.keys
+                    if (matchingCredentials.size > 1) {
                         Text(
                             text = request.value.first.credentialIdentifier,
                             style = MaterialTheme.typography.labelLarge,
@@ -99,7 +99,7 @@ fun AuthenticationCredentialSelectionView(vm: AuthenticationCredentialSelectionV
                         )
                         CredentialSelectionGroup(
                             selectedCredential = selection,
-                            credentials = credentials,
+                            credentials = matchingCredentials,
                             imageDecoder = { byteArray ->
                                 vm.walletMain.platformAdapter.decodeImage(byteArray)
                             })
