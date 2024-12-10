@@ -15,7 +15,6 @@ import at.asitplus.wallet.lib.iso.IssuerSignedList
 import at.asitplus.wallet.lib.iso.NamespacedIssuerSignedListSerializer
 import at.asitplus.wallet.lib.iso.vckCborSerializer
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
-import data.storage.ExportableCredentialScheme.Companion.toExportableCredentialScheme
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -47,7 +46,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
     ) = SubjectCredentialStore.StoreEntry.Vc(
         vcSerialized,
         vc,
-        scheme,
+        scheme.schemaUri,
     ).also {
         addStoreEntry(it)
     }
@@ -62,7 +61,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         vcSerialized,
         vc,
         disclosures,
-        scheme,
+        scheme.schemaUri,
     ).also {
         addStoreEntry(it)
     }
@@ -70,7 +69,10 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
     override suspend fun storeCredential(
         issuerSigned: IssuerSigned,
         scheme: ConstantIndex.CredentialScheme,
-    ) = SubjectCredentialStore.StoreEntry.Iso(issuerSigned, scheme).also {
+    ) = SubjectCredentialStore.StoreEntry.Iso(
+        issuerSigned,
+        scheme.schemaUri
+    ).also {
         addStoreEntry(it)
     }
 
@@ -90,38 +92,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
     }
 
     private suspend fun exportToDataStore(newContainer: StoreContainer) {
-        val exportableCredentials = newContainer.credentials.map {
-            val storeEntry = it.second
-            it.first to when (storeEntry) {
-                is SubjectCredentialStore.StoreEntry.Iso -> {
-                    ExportableStoreEntry.IsoNew(
-                        issuerSignedSerialized = storeEntry.issuerSigned.serialize(),
-                        exportableCredentialScheme = storeEntry.scheme.toExportableCredentialScheme()
-                    )
-                }
-
-                is SubjectCredentialStore.StoreEntry.SdJwt -> {
-                    ExportableStoreEntry.SdJwt(
-                        vcSerialized = storeEntry.vcSerialized,
-                        sdJwt = storeEntry.sdJwt,
-                        disclosures = storeEntry.disclosures,
-                        exportableCredentialScheme = storeEntry.scheme.toExportableCredentialScheme()
-                    )
-                }
-
-                is SubjectCredentialStore.StoreEntry.Vc -> {
-                    ExportableStoreEntry.Vc(
-                        vcSerialized = storeEntry.vcSerialized,
-                        vc = storeEntry.vc,
-                        exportableCredentialScheme = storeEntry.scheme.toExportableCredentialScheme(),
-                    )
-                }
-            }
-        }
-
-        val exportableContainer = ExportableStoreContainer(exportableCredentials)
-
-        val json = vckJsonSerializer.encodeToString(exportableContainer)
+        val json = vckJsonSerializer.encodeToString(newContainer)
         dataStore.setPreference(key = Configuration.DATASTORE_KEY_VCS, value = json)
     }
 
@@ -143,60 +114,55 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
     private fun dataStoreValueToStoreContainer(input: String?): StoreContainer {
         if (input == null) {
             return StoreContainer(credentials = mutableListOf())
-        } else {
-            val export: ExportableStoreContainer = kotlin.runCatching {
-                vckJsonSerializer.decodeFromString<ExportableStoreContainer>(input)
-            }.getOrElse { ex ->
-                Napier.w("Could not load ExportableStoreContainer", ex)
-                ExportableStoreContainer(
-                    vckJsonSerializer.decodeFromString<OldExportableStoreContainer>(input).credentials
-                        .mapIndexed { index, it -> index.toLong() to it }
+        }
+        return kotlin.runCatching {
+            @Suppress("DEPRECATION")
+            vckJsonSerializer.decodeFromString<ExportableStoreContainer>(input).toStoreContainer()
+        }.getOrElse { ex ->
+            Napier.w("Could not load ExportableStoreContainer", ex)
+            Napier.i("Trying StoreContainer")
+            kotlin.runCatching {
+                vckJsonSerializer.decodeFromString<StoreContainer>(input)
+            }.getOrElse { ex1 ->
+                Napier.w("Could not load StoreContainer", ex1)
+                StoreContainer(listOf())
+            }
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun ExportableStoreContainer.toStoreContainer(): StoreContainer =
+        StoreContainer(credentials.map { (storeEntryId, storeEntry) ->
+            storeEntryId to when (storeEntry) {
+                is ExportableStoreEntry.Iso -> SubjectCredentialStore.StoreEntry.Iso(
+                    IssuerSigned.deserialize(storeEntry.issuerSigned.serialize()).getOrThrow(),
+                    storeEntry.exportableCredentialScheme.toScheme().schemaUri,
+                )
+
+                is ExportableStoreEntry.IsoNew -> SubjectCredentialStore.StoreEntry.Iso(
+                    storeEntry.issuerSigned,
+                    storeEntry.exportableCredentialScheme.toScheme().schemaUri,
+                )
+
+                is ExportableStoreEntry.SdJwt -> SubjectCredentialStore.StoreEntry.SdJwt(
+                    storeEntry.vcSerialized,
+                    storeEntry.sdJwt,
+                    storeEntry.disclosures,
+                    storeEntry.exportableCredentialScheme.toScheme().schemaUri
+                )
+
+                is ExportableStoreEntry.Vc -> SubjectCredentialStore.StoreEntry.Vc(
+                    storeEntry.vcSerialized,
+                    storeEntry.vc,
+                    storeEntry.exportableCredentialScheme.toScheme().schemaUri
                 )
             }
-            val credentials = export.credentials.map {
-                val storeEntryId = it.first
-                val storeEntry = it.second
-                storeEntryId to when (storeEntry) {
-                    is ExportableStoreEntry.Iso -> {
-                        SubjectCredentialStore.StoreEntry.Iso(
-                            IssuerSigned.deserialize(storeEntry.issuerSigned.serialize()).getOrThrow(),
-                            storeEntry.exportableCredentialScheme.toScheme(),
-                        )
-                    }
+        })
 
-                    is ExportableStoreEntry.IsoNew -> SubjectCredentialStore.StoreEntry.Iso(
-                        storeEntry.issuerSigned,
-                        storeEntry.exportableCredentialScheme.toScheme(),
-                    )
-
-                    is ExportableStoreEntry.SdJwt -> {
-                        SubjectCredentialStore.StoreEntry.SdJwt(
-                            vcSerialized = storeEntry.vcSerialized,
-                            sdJwt = storeEntry.sdJwt,
-                            disclosures = storeEntry.disclosures,
-                            scheme = storeEntry.exportableCredentialScheme.toScheme()
-                        )
-                    }
-
-                    is ExportableStoreEntry.Vc -> {
-                        SubjectCredentialStore.StoreEntry.Vc(
-                            vcSerialized = storeEntry.vcSerialized,
-                            vc = storeEntry.vc,
-                            scheme = storeEntry.exportableCredentialScheme.toScheme()
-                        )
-                    }
-
-                }
-            }
-            return StoreContainer(credentials)
-        }
-    }
-
-    fun observeStoreContainer(): Flow<StoreContainer> {
-        return dataStore.getPreference(Configuration.DATASTORE_KEY_VCS).map {
+    fun observeStoreContainer(): Flow<StoreContainer> =
+        dataStore.getPreference(Configuration.DATASTORE_KEY_VCS).map {
             dataStoreValueToStoreContainer(it)
         }
-    }
 }
 
 typealias StoreEntryId = Long
@@ -206,19 +172,18 @@ data class StoreContainer(
     val credentials: List<Pair<StoreEntryId, SubjectCredentialStore.StoreEntry>>,
 )
 
+/**
+ * Used prior to 5.4.0 of the app
+ */
+@Suppress("DEPRECATION")
+@Deprecated(message = "Use StoreContainer", replaceWith = ReplaceWith("StoreContainer"))
 @Serializable
 private data class ExportableStoreContainer(
     val credentials: List<Pair<StoreEntryId, ExportableStoreEntry>>,
 )
 
-/**
- * Used prior to 4.1.0 of the app
- */
-@Serializable
-private data class OldExportableStoreContainer(
-    val credentials: List<ExportableStoreEntry>,
-)
-
+@Suppress("DEPRECATION")
+@Deprecated(message = "Use StoreEntry from vc-k")
 @Serializable
 private sealed interface ExportableStoreEntry {
     val exportableCredentialScheme: ExportableCredentialScheme
@@ -281,7 +246,7 @@ private sealed interface ExportableStoreEntry {
  * Workaround to deserialize stored entries prior to 5.4.0, then serialize it encoded
  */
 @Serializable
-private data class IssuerSignedWallet constructor(
+private data class IssuerSignedWallet(
     @SerialName("nameSpaces")
     @Serializable(with = NamespacedIssuerSignedListSerializer::class)
     val namespaces: Map<String, @Contextual IssuerSignedList>? = null,
@@ -332,6 +297,7 @@ private data class CoseSignedWallet(
 }
 
 
+@Deprecated(message = "Use StoreEntry from vc-k")
 enum class ExportableCredentialScheme {
     AtomicAttribute2023, IdAustriaScheme, MobileDrivingLicence2023, EuPidScheme, PowerOfRepresentationScheme, CertificateOfResidenceScheme, EPrescriptionScheme;
 
@@ -343,18 +309,5 @@ enum class ExportableCredentialScheme {
         PowerOfRepresentationScheme -> at.asitplus.wallet.por.PowerOfRepresentationScheme
         CertificateOfResidenceScheme -> at.asitplus.wallet.cor.CertificateOfResidenceScheme
         EPrescriptionScheme -> at.asitplus.wallet.eprescription.EPrescriptionScheme
-    }
-
-    companion object {
-        fun ConstantIndex.CredentialScheme.toExportableCredentialScheme() = when (this) {
-            ConstantIndex.AtomicAttribute2023 -> AtomicAttribute2023
-            MobileDrivingLicenceScheme -> MobileDrivingLicence2023
-            at.asitplus.wallet.idaustria.IdAustriaScheme -> IdAustriaScheme
-            at.asitplus.wallet.eupid.EuPidScheme -> EuPidScheme
-            at.asitplus.wallet.por.PowerOfRepresentationScheme -> PowerOfRepresentationScheme
-            at.asitplus.wallet.cor.CertificateOfResidenceScheme -> CertificateOfResidenceScheme
-            at.asitplus.wallet.eprescription.EPrescriptionScheme -> EPrescriptionScheme
-            else -> throw Exception("Unknown CredentialScheme")
-        }
     }
 }
