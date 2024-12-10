@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.heading_label_my_data_screen
 import org.jetbrains.compose.resources.stringResource
-import ui.composables.AdvancedFloatingActionButton
+import ui.composables.CustomFloatingActionMenu
 import ui.composables.FloatingActionButtonHeightSpacer
 import ui.composables.credentials.CredentialCard
 import ui.viewmodels.CredentialsViewModel
@@ -43,7 +43,7 @@ fun CredentialsView(
         floatingActionButton = {
             storeContainerState?.let { storeContainer ->
                 if (storeContainer.credentials.isNotEmpty()) {
-                    AdvancedFloatingActionButton(addCredential = vm.navigateToAddCredentialsPage, addCredentialQr = vm.navigateToQrAddCredentialsPage)
+                    CustomFloatingActionMenu(addCredential = vm.navigateToAddCredentialsPage, addCredentialQr = vm.navigateToQrAddCredentialsPage)
                 }
             }
         },
