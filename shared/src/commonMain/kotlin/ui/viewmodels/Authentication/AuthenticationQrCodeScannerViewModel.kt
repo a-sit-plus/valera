@@ -20,7 +20,7 @@ class AuthenticationQrCodeScannerViewModel(
     var isLoading by mutableStateOf(false)
     private val buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase =
         BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
-            oidcSiopWallet = walletMain.presentationService.oidcSiopWallet,
+            presentationService = walletMain.presentationService,
         )
 
     fun onScan(link: String) {

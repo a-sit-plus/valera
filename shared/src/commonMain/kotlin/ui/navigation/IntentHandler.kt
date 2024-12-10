@@ -65,7 +65,7 @@ fun handleIntent(walletMain: WalletMain, navigate: (Route) -> Unit, navigateBack
                     kotlin.run {
                         val consentPageBuilder =
                             BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
-                                oidcSiopWallet = walletMain.presentationService.oidcSiopWallet
+                                presentationService = walletMain.presentationService
                             )
 
                         consentPageBuilder(link).unwrap().onSuccess {
