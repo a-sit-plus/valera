@@ -72,7 +72,12 @@ fun AuthenticationCredentialSelectionView(vm: AuthenticationCredentialSelectionV
                         horizontalArrangement = Arrangement.Center,
                     ) {
                         Button(onClick = {
-                            vm.selectCredential(vm.selectedCredential.entries.associate { (it.key to it.value.value) })
+                            val selection = vm.selectedCredential.entries.associate {
+                                val requestId = it.key
+                                val credentials = it.value.value
+                                requestId to credentials
+                            }
+                            vm.selectCredential(selection)
                         }) {
                             Text(stringResource(Res.string.button_label_continue))
                         }
