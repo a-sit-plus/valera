@@ -1,9 +1,7 @@
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/logo-w.png">
-  <source media="(prefers-color-scheme: light)" srcset="assets/logo-b.png">
-  <img alt="Logo" src="assets/logo-b.png">
+  <img alt="Logo" src="assets/gh.png">
 </picture>
-
+&nbsp;&nbsp;&nbsp;&nbsp;
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/valera-w.png">
   <source media="(prefers-color-scheme: light)" srcset="assets/valera-b.png">
