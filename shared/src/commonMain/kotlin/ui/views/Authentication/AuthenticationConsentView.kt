@@ -126,20 +126,20 @@ fun AuthenticationConsentView(vm: AuthenticationConsentViewModel) {
                         ),
                         modifier = paddingModifier,
                     )
-                    vm.requests.forEach { request ->
-                        val params = request.value
-                        val scheme = params.resolved?.first
-                        val schemeName =
-                            scheme?.let { it.sdJwtType ?: it.isoDocType ?: it.vcType } ?: scheme?.schemaUri
-                        val format = params.resolved?.second?.name
-                        val attributes = request.value.attributes?.mapNotNull {
-                            scheme?.getLocalization(NormalizedJsonPath() + it)
-                        }
-                        if (format != null && attributes != null) {
-                            ConsentAttributesSection(
-                                title = "${schemeName} (${format})",
-                                list = attributes
-                            )
+                    vm.requests.mapNotNull { it.value }.forEach { params ->
+                        params.resolved?.first?.let { scheme ->
+                            val schemeName = scheme.sdJwtType ?: scheme.isoDocType ?: scheme.vcType
+                                    ?: scheme.schemaUri
+                            val format = params.resolved?.second?.name
+                            val attributes = params.attributes?.mapNotNull {
+                                scheme.getLocalization(NormalizedJsonPath() + it)
+                            }
+                            if (format != null && attributes != null) {
+                                ConsentAttributesSection(
+                                    title = "${schemeName} (${format})",
+                                    list = attributes
+                                )
+                            }
                         }
                     }
                 }
