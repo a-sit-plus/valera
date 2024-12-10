@@ -195,7 +195,7 @@ fun MutableList<Cookie>.toExportableCookieList(): MutableList<ExportableCookie> 
             name = it.name,
             value = it.value,
             encoding = it.encoding,
-            maxAge = it.maxAge,
+            maxAge = it.maxAge ?: 0,
             expires = it.expires?.let { Instant.fromEpochMilliseconds(it.timestamp) },
             domain = it.domain,
             path = it.path,
