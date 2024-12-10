@@ -1,3 +1,3 @@
 package ui.viewmodels.Authentication
 
-class AuthenticationSuccessViewModel (val navigateUp: () -> Unit)
+class AuthenticationSuccessViewModel(val navigateUp: () -> Unit)

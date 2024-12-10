@@ -18,9 +18,10 @@ class AuthenticationQrCodeScannerViewModel(
     val walletMain: WalletMain
 ) {
     var isLoading by mutableStateOf(false)
-    private val buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase = BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
-        oidcSiopWallet = walletMain.presentationService.oidcSiopWallet,
-    )
+    private val buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase =
+        BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
+            oidcSiopWallet = walletMain.presentationService.oidcSiopWallet,
+        )
 
     fun onScan(link: String) {
         Napier.d("onScan: $link")
@@ -33,13 +34,14 @@ class AuthenticationQrCodeScannerViewModel(
 
         CoroutineScope(Dispatchers.Main).launch(coroutineExceptionHandler) {
             val authenticationConsentPage =
-                buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(link).getOrThrow().let {
-                    AuthenticationViewRoute(
-                        authenticationRequestParametersFromSerialized = it.authenticationRequestParametersFromSerialized,
-                        authorizationPreparationStateSerialized = it.authorizationPreparationStateSerialized,
-                        recipientLocation = it.recipientLocation,
-                    )
-                }
+                buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(link).getOrThrow()
+                    .let {
+                        AuthenticationViewRoute(
+                            authenticationRequestParametersFromSerialized = it.authenticationRequestParametersFromSerialized,
+                            authorizationPreparationStateSerialized = it.authorizationPreparationStateSerialized,
+                            recipientLocation = it.recipientLocation,
+                        )
+                    }
 
             isLoading = false
             onSuccess(authenticationConsentPage)

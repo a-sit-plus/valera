@@ -58,7 +58,7 @@ fun AuthenticationNoCredentialView(vm: AuthenticationNoCredentialViewModel) {
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center,
                     ) {
-                        Button(onClick = vm.navigateToHomeScreen){
+                        Button(onClick = vm.navigateToHomeScreen) {
                             Text(stringResource(Res.string.button_label_continue))
                         }
                     }
@@ -72,7 +72,10 @@ fun AuthenticationNoCredentialView(vm: AuthenticationNoCredentialViewModel) {
                 verticalArrangement = Arrangement.Center,
                 modifier = Modifier.fillMaxSize(),
             ) {
-                Text(stringResource(Res.string.info_text_no_matching_credential), textAlign = TextAlign.Center)
+                Text(
+                    stringResource(Res.string.info_text_no_matching_credential),
+                    textAlign = TextAlign.Center
+                )
             }
         }
     }

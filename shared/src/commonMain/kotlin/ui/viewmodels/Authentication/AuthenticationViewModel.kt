@@ -32,19 +32,23 @@ class AuthenticationViewModel(
     val walletMain: WalletMain,
 ) {
     var viewState by mutableStateOf(AuthenticationViewState.Consent)
-    var descriptors = authenticationRequest.parameters.presentationDefinition?.inputDescriptors ?: listOf()
+    var descriptors =
+        authenticationRequest.parameters.presentationDefinition?.inputDescriptors ?: listOf()
     var parametersMap = descriptors.mapNotNull {
         val parameter = it.getRequestOptionParameters() ?: return@mapNotNull null
-        Pair(it.id,parameter)
+        Pair(it.id, parameter)
     }.toMap()
 
     lateinit var preparationState: AuthorizationResponsePreparationState
     lateinit var selectedCredentials: Map<String, SubjectCredentialStore.StoreEntry>
-    var requestMap: Map<String, Pair<RequestOptionParameters,Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, NodeList>>>> = mutableMapOf()
+    var requestMap: Map<String, Pair<RequestOptionParameters, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, NodeList>>>> =
+        mutableMapOf()
 
-    fun onConsent(){
-        preparationState = runBlocking { walletMain.presentationService.getPreparationState(request = authenticationRequest) }
-        val matchingCredentials = runBlocking { walletMain.presentationService.getMatchingCredentials(preparationState =  preparationState)}
+    fun onConsent() {
+        preparationState =
+            runBlocking { walletMain.presentationService.getPreparationState(request = authenticationRequest) }
+        val matchingCredentials =
+            runBlocking { walletMain.presentationService.getMatchingCredentials(preparationState = preparationState) }
 
         requestMap = descriptors.mapNotNull {
             val parameter = parametersMap[it.id] ?: return@mapNotNull null
@@ -63,7 +67,8 @@ class AuthenticationViewModel(
         selectedCredentials = credentials
         viewState = AuthenticationViewState.AttributesSelection
     }
-    fun selectAttributes(selectedAttributes:  Map<String, Set<NormalizedJsonPath>>){
+
+    fun selectAttributes(selectedAttributes: Map<String, Set<NormalizedJsonPath>>) {
         walletMain.scope.launch {
             val submissions = descriptors.mapNotNull {
                 val credential = selectedCredentials[it.id] ?: return@mapNotNull null
@@ -81,11 +86,15 @@ class AuthenticationViewModel(
                 getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_title)
             walletMain.cryptoService.promptSubtitle =
                 getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_subtitle)
-            walletMain.presentationService.finalizeAuthorizationResponse(request = authenticationRequest, preparationState = preparationState, inputDescriptorSubmission = submission)
+            walletMain.presentationService.finalizeAuthorizationResponse(
+                request = authenticationRequest,
+                preparationState = preparationState,
+                inputDescriptorSubmission = submission
+            )
             navigateUp()
             navigateToAuthenticationSuccessPage()
         } catch (e: Throwable) {
-         walletMain.errorService.emit(e)
+            walletMain.errorService.emit(e)
         }
     }
 }

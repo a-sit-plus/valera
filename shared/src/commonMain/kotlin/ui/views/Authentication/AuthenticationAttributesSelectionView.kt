@@ -41,7 +41,7 @@ import ui.viewmodels.Authentication.AuthenticationAttributesSelectionViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AuthenticationAttributesSelectionView(vm: AuthenticationAttributesSelectionViewModel){
+fun AuthenticationAttributesSelectionView(vm: AuthenticationAttributesSelectionViewModel) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -77,9 +77,10 @@ fun AuthenticationAttributesSelectionView(vm: AuthenticationAttributesSelectionV
                         horizontalArrangement = Arrangement.Center,
                     ) {
                         Button(onClick = {
-                            val selection = vm.selectedAttributes.entries.associate { it.key to it.value.filter { it.key.value }.values.toSet() }
+                            val selection =
+                                vm.selectedAttributes.entries.associate { it.key to it.value.filter { it.key.value }.values.toSet() }
                             vm.selectAttributes(selection)
-                        }){
+                        }) {
                             Text(stringResource(Res.string.button_label_continue))
                         }
                     }
@@ -89,7 +90,8 @@ fun AuthenticationAttributesSelectionView(vm: AuthenticationAttributesSelectionV
     ) {
         Box(modifier = Modifier.padding(it)) {
             Column(
-                modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState()).padding(16.dp),
+                modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState())
+                    .padding(16.dp),
             ) {
                 vm.requests.forEach { request ->
                     val params = request.value.first
@@ -98,7 +100,8 @@ fun AuthenticationAttributesSelectionView(vm: AuthenticationAttributesSelectionV
                     val disclosedAttributes = constraints?.values?.mapNotNull { constraint ->
                         constraint.firstOrNull()?.normalizedJsonPath
                     }
-                    val selections: MutableMap<MutableState<Boolean>, NormalizedJsonPath> = mutableMapOf()
+                    val selections: MutableMap<MutableState<Boolean>, NormalizedJsonPath> =
+                        mutableMapOf()
                     disclosedAttributes?.forEach { attribute ->
                         selections[mutableStateOf(true)] = attribute
                     }
@@ -111,19 +114,28 @@ fun AuthenticationAttributesSelectionView(vm: AuthenticationAttributesSelectionV
 }
 
 @Composable
-fun AttributeSelectionGroup(params: RequestOptionParameters, selections:  MutableMap<MutableState<Boolean>, NormalizedJsonPath>){
+fun AttributeSelectionGroup(
+    params: RequestOptionParameters,
+    selections: MutableMap<MutableState<Boolean>, NormalizedJsonPath>
+) {
     Column {
-        Text(text = params.credentialIdentifier,
+        Text(
+            text = params.credentialIdentifier,
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.secondary,
-            fontWeight = FontWeight.SemiBold,)
+            fontWeight = FontWeight.SemiBold,
+        )
         params.attributes?.forEach { attribute ->
             val format = params.resolved?.first
             val label = format?.getLocalization(NormalizedJsonPath() + attribute)
-            val selection = selections.filter { it.value.toString().contains(attribute) }.firstNotNullOf { it }
-            if (label != null){
+            val selection =
+                selections.filter { it.value.toString().contains(attribute) }.firstNotNullOf { it }
+            if (label != null) {
                 Row {
-                    LabeledCheckbox(label = stringResource(label), checked = selection.key.value, onCheckedChange = {bool -> selection.key.value = bool})
+                    LabeledCheckbox(
+                        label = stringResource(label),
+                        checked = selection.key.value,
+                        onCheckedChange = { bool -> selection.key.value = bool })
                 }
             }
         }

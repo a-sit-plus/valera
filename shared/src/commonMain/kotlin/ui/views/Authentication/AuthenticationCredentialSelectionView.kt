@@ -73,7 +73,7 @@ fun AuthenticationCredentialSelectionView(vm: AuthenticationCredentialSelectionV
                     ) {
                         Button(onClick = {
                             vm.selectCredential(vm.selectedCredential.entries.associate { (it.key to it.value.value) })
-                        }){
+                        }) {
                             Text(stringResource(Res.string.button_label_continue))
                         }
                     }
@@ -83,18 +83,26 @@ fun AuthenticationCredentialSelectionView(vm: AuthenticationCredentialSelectionV
     ) {
         Box(modifier = Modifier.padding(it)) {
             Column(
-                modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState()).padding(16.dp),
+                modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState())
+                    .padding(16.dp),
             ) {
                 vm.requests.forEach { request ->
                     val selection = mutableStateOf(request.value.second.keys.first())
                     vm.selectedCredential[request.key] = selection
                     val credentials = request.value.second.keys
-                    if(request.value.second.size > 1) {
-                        Text(text = request.value.first.credentialIdentifier,
+                    if (request.value.second.size > 1) {
+                        Text(
+                            text = request.value.first.credentialIdentifier,
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.secondary,
-                            fontWeight = FontWeight.SemiBold,)
-                        CredentialSelectionGroup(selectedCredential = selection, credentials = credentials, imageDecoder = {byteArray -> vm.walletMain.platformAdapter.decodeImage(byteArray)})
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        CredentialSelectionGroup(
+                            selectedCredential = selection,
+                            credentials = credentials,
+                            imageDecoder = { byteArray ->
+                                vm.walletMain.platformAdapter.decodeImage(byteArray)
+                            })
                     }
                 }
             }

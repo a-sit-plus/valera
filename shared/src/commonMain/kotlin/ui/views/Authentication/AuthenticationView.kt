@@ -14,17 +14,20 @@ fun AuthenticationView(vm: AuthenticationViewModel) {
     val vm = remember { vm }
     vm.walletMain.cryptoService.onUnauthenticated = vm.navigateUp
 
-    when(vm.viewState){
+    when (vm.viewState) {
         AuthenticationViewState.Consent -> {
-            val viewModel = AuthenticationConsentViewModel(spName = vm.spName,
+            val viewModel = AuthenticationConsentViewModel(
+                spName = vm.spName,
                 spLocation = vm.spLocation,
                 spImage = vm.spImage,
                 requests = vm.parametersMap,
                 navigateUp = vm.navigateUp,
                 buttonConsent = { vm.onConsent() },
-                walletMain = vm.walletMain)
+                walletMain = vm.walletMain
+            )
             AuthenticationConsentView(viewModel)
         }
+
         AuthenticationViewState.CredentialSelection -> {
             val viewModel = AuthenticationCredentialSelectionViewModel(walletMain = vm.walletMain,
                 requests = vm.requestMap,
@@ -33,15 +36,20 @@ fun AuthenticationView(vm: AuthenticationViewModel) {
                 }, navigateUp = { vm.viewState = AuthenticationViewState.Consent })
             AuthenticationCredentialSelectionView(viewModel)
         }
+
         AuthenticationViewState.AttributesSelection -> {
-            val viewModel = AuthenticationAttributesSelectionViewModel(navigateUp = {vm.viewState = AuthenticationViewState.CredentialSelection},
-                requests = vm.requestMap ,
+            val viewModel = AuthenticationAttributesSelectionViewModel(navigateUp = {
+                vm.viewState = AuthenticationViewState.CredentialSelection
+            },
+                requests = vm.requestMap,
                 selectedCredentials = vm.selectedCredentials,
-                selectAttributes = {attributes -> vm.selectAttributes(selectedAttributes = attributes)})
+                selectAttributes = { attributes -> vm.selectAttributes(selectedAttributes = attributes) })
             AuthenticationAttributesSelectionView(viewModel)
         }
+
         AuthenticationViewState.NoMatchingCredential -> {
-            val viewModel = AuthenticationNoCredentialViewModel(navigateToHomeScreen = vm.navigateToHomeScreen)
+            val viewModel =
+                AuthenticationNoCredentialViewModel(navigateToHomeScreen = vm.navigateToHomeScreen)
             AuthenticationNoCredentialView(vm = viewModel)
         }
     }

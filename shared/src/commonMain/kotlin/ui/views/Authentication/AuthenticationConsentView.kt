@@ -129,11 +129,17 @@ fun AuthenticationConsentView(vm: AuthenticationConsentViewModel) {
                     vm.requests.forEach { request ->
                         val params = request.value
                         val scheme = params.resolved?.first
-                        val schemeName = scheme?.let{ it.sdJwtType ?: it.isoDocType ?: it.vcType } ?: "Unknown"
+                        val schemeName =
+                            scheme?.let { it.sdJwtType ?: it.isoDocType ?: it.vcType } ?: "Unknown"
                         val format = params.resolved?.second?.name
-                        val attributes = request.value.attributes?.mapNotNull { scheme?.getLocalization(NormalizedJsonPath() + it) }
+                        val attributes = request.value.attributes?.mapNotNull {
+                            scheme?.getLocalization(NormalizedJsonPath() + it)
+                        }
                         if (format != null && attributes != null) {
-                            ConsentAttributesSection(title = "${schemeName} (${format})", list = attributes)
+                            ConsentAttributesSection(
+                                title = "${schemeName} (${format})",
+                                list = attributes
+                            )
                         }
                     }
                 }
