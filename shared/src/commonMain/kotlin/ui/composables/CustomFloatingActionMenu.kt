@@ -71,12 +71,12 @@ fun CustomFloatingActionMenu(addCredentialQr: () -> Unit, addCredential: () -> U
                 ) {
                     Column(modifier = Modifier.padding(end = 5.dp)) {
                         SecondaryFloatingActionButton(onClick = {addCredentialQr()},
-                            label = stringResource(Res.string.button_label_provision_credential_browser),
+                            label = stringResource(Res.string.button_label_provision_credential_qr),
                             icon = Icons.Default.QrCode,
                             contentDescription = stringResource(Res.string.content_description_add_credential))
                         Spacer(modifier = Modifier.size(5.dp))
                         SecondaryFloatingActionButton(onClick = {addCredential()},
-                            label = stringResource(Res.string.button_label_provision_credential_qr),
+                            label = stringResource(Res.string.button_label_provision_credential_browser),
                             icon = Icons.Default.Person,
                             contentDescription = stringResource(Res.string.content_description_add_credential))
                     }
