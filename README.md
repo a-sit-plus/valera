@@ -1,3 +1,5 @@
+<div align="center">
+
 <picture>
   <img alt="Logo" src="assets/gh.png">
 </picture>
@@ -7,6 +9,8 @@
   <source media="(prefers-color-scheme: light)" srcset="assets/valera-b.png">
   <img alt="Logo" src="assets/Valera-b.png">
 </picture>
+
+</div>
 
 # Valera – VC-K-powered CMP Identity Wallet App for iOS and Android
 [![GitHub license](https://img.shields.io/badge/license-Apache%20License%202.0-brightgreen.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0)
