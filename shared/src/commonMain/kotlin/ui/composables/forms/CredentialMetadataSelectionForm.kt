@@ -10,8 +10,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import at.asitplus.wallet.app.common.ProvisioningService
+import at.asitplus.wallet.app.common.credentialScheme
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
+import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.issuing_label_host
 import compose_wallet_app.shared.generated.resources.issuing_label_representation
@@ -24,12 +25,12 @@ import ui.composables.inputFields.TransactionCodeInputField
 @Composable
 fun CredentialMetadataSelectionForm(
     host: String,
-    credentialIdentifierInfo: ProvisioningService.CredentialIdentifierInfo,
-    onChangeCredentialIdentifierInfo: (ProvisioningService.CredentialIdentifierInfo) -> Unit,
+    credentialIdentifierInfo: CredentialIdentifierInfo,
+    onChangeCredentialIdentifierInfo: (CredentialIdentifierInfo) -> Unit,
     transactionCode: TextFieldValue,
     onChangeTransactionCode: (TextFieldValue) -> Unit,
     modifier: Modifier = Modifier,
-    availableIdentifiers: Collection<ProvisioningService.CredentialIdentifierInfo>,
+    availableIdentifiers: Collection<CredentialIdentifierInfo>,
     showTransactionCode: Boolean,
 ) {
     Column(
@@ -60,7 +61,7 @@ fun CredentialMetadataSelectionForm(
             )
             Text(": ")
             Text(
-                text = credentialIdentifierInfo.scheme.toScheme().uiLabel(),
+                text = credentialIdentifierInfo.credentialScheme.uiLabel(),
                 style = MaterialTheme.typography.bodyLarge,
             )
         }
@@ -71,7 +72,7 @@ fun CredentialMetadataSelectionForm(
             )
             Text(": ")
             Text(
-                text = credentialIdentifierInfo.representation.uiLabel(),
+                text = credentialIdentifierInfo.credentialScheme.uiLabel(),
                 style = MaterialTheme.typography.bodyLarge,
             )
         }

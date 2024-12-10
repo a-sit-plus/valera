@@ -27,7 +27,7 @@ import ui.state.toggleableState
 
 @Composable
 fun CredentialAttributeSelectionForm(
-    credentialScheme: ConstantIndex.CredentialScheme,
+    credentialScheme: ConstantIndex.CredentialScheme?,
     requestedAttributes: Set<NormalizedJsonPath>,
     onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
     attributeCategoriesExpanded: Map<PersonalDataCategory, Boolean>,

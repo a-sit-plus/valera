@@ -14,7 +14,7 @@ interface CredentialAttributeTranslator {
     fun translate(attributeName: NormalizedJsonPath): StringResource?
 
     companion object {
-        operator fun get(scheme: ConstantIndex.CredentialScheme) = when(scheme) {
+        operator fun get(scheme: ConstantIndex.CredentialScheme?) = when(scheme) {
             is IdAustriaScheme -> IdAustriaCredentialAttributeTranslator
             is EuPidScheme -> EuPidCredentialAttributeTranslator
             is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialAttributeTranslator

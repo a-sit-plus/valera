@@ -29,12 +29,12 @@ fun CategorySelectionRow(
     attributeCategory: Map.Entry<PersonalDataCategory, List<NormalizedJsonPath>>,
     isExpanded: Boolean,
     onToggleExpanded: (Boolean) -> Unit,
-    requestedCredentialScheme: ConstantIndex.CredentialScheme,
+    requestedCredentialScheme: ConstantIndex.CredentialScheme?,
     requestedAttributes: Set<NormalizedJsonPath>,
     onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
     isEditSelectionEnabled: Boolean = true,
 ) {
-    val attributeTranslator = CredentialAttributeTranslator.get(requestedCredentialScheme)
+    val attributeTranslator = CredentialAttributeTranslator[requestedCredentialScheme]
     val categoryAttributes = attributeCategory.value
     categoryAttributes.map { requestedAttributes.contains(it) }.toggleableState.let { state ->
         CategorySelectionRow(

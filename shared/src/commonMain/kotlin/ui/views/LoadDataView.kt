@@ -11,7 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.wallet.app.common.ProvisioningService
+import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import ui.composables.buttons.LoadDataButton
 import ui.composables.forms.StatefulLoadDataForm
 
@@ -19,8 +19,8 @@ import ui.composables.forms.StatefulLoadDataForm
 fun LoadDataView(
     // state
     host: String,
-    credentialIdentifierInfo: ProvisioningService.CredentialIdentifierInfo,
-    onChangeCredentialIdentifierInfo: (ProvisioningService.CredentialIdentifierInfo) -> Unit,
+    credentialIdentifierInfo: CredentialIdentifierInfo,
+    onChangeCredentialIdentifierInfo: (CredentialIdentifierInfo) -> Unit,
     requestedAttributes: Set<NormalizedJsonPath>,
     onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
     transactionCode: TextFieldValue,
@@ -28,7 +28,7 @@ fun LoadDataView(
     // other
     onSubmit: () -> Unit,
     modifier: Modifier = Modifier,
-    availableIdentifiers: Collection<ProvisioningService.CredentialIdentifierInfo>,
+    availableIdentifiers: Collection<CredentialIdentifierInfo>,
     showTransactionCode: Boolean,
 ) {
     Scaffold(
