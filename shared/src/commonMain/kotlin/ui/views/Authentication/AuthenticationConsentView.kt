@@ -130,7 +130,7 @@ fun AuthenticationConsentView(vm: AuthenticationConsentViewModel) {
                         val params = request.value
                         val scheme = params.resolved?.first
                         val schemeName =
-                            scheme?.let { it.sdJwtType ?: it.isoDocType ?: it.vcType } ?: "Unknown"
+                            scheme?.let { it.sdJwtType ?: it.isoDocType ?: it.vcType } ?: scheme?.schemaUri
                         val format = params.resolved?.second?.name
                         val attributes = request.value.attributes?.mapNotNull {
                             scheme?.getLocalization(NormalizedJsonPath() + it)
