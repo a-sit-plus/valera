@@ -56,10 +56,13 @@ class AuthenticationViewModel(
             Pair(it.id, Pair(parameter, credential))
         }.toMap()
 
-        viewState = if (matchingCredentials.values.find { it.isEmpty() } == null) {
-            AuthenticationViewState.CredentialSelection
+        if (matchingCredentials.values.find { it.size != 1 } == null) {
+            selectedCredentials = matchingCredentials.entries.associate { it.key to it.value.keys.first()}.toMap()
+            viewState = AuthenticationViewState.AttributesSelection
+        } else if (matchingCredentials.values.find { it.isEmpty() } == null) {
+            viewState = AuthenticationViewState.CredentialSelection
         } else {
-            AuthenticationViewState.NoMatchingCredential
+            viewState = AuthenticationViewState.NoMatchingCredential
         }
     }
 
