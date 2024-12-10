@@ -46,7 +46,7 @@ fun GenericCredentialSummaryCardContent(
     credential: SubjectCredentialStore.StoreEntry,
     modifier: Modifier = Modifier,
 ) {
-    var showContent by remember{mutableStateOf(false)}
+    var showContent by remember { mutableStateOf(false) }
 
     val density = LocalDensity.current
     AnimatedVisibility(
@@ -58,9 +58,10 @@ fun GenericCredentialSummaryCardContent(
         ) + fadeIn(
             initialAlpha = 0.3f
         ),
-        exit = slideOutVertically{
+        exit = slideOutVertically {
             with(density) { 20.dp.roundToPx() }
-        } + shrinkVertically(shrinkTowards = Alignment.Bottom
+        } + shrinkVertically(
+            shrinkTowards = Alignment.Bottom
         ) + fadeOut(
             targetAlpha = 0f
         )
@@ -83,13 +84,27 @@ fun GenericCredentialSummaryCardContent(
             }
         }
     }
-    Column(modifier = modifier.fillMaxWidth().clickable(onClick = {showContent = !showContent}), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-        Label(label = when(showContent){ true -> stringResource(Res.string.button_label_hide_technical_details) else -> stringResource(
-            Res.string.button_label_show_technical_details)
-        } )
-        Icon(imageVector =  when(showContent){ true -> Icons.Outlined.ArrowUpward else -> Icons.Outlined.ArrowDownward},
+    Column(
+        modifier = modifier.fillMaxWidth().clickable(onClick = { showContent = !showContent }),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Label(
+            label = when (showContent) {
+                true -> stringResource(Res.string.button_label_hide_technical_details)
+                else -> stringResource(
+                    Res.string.button_label_show_technical_details
+                )
+            }
+        )
+        Icon(
+            imageVector = when (showContent) {
+                true -> Icons.Outlined.ArrowUpward
+                else -> Icons.Outlined.ArrowDownward
+            },
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.secondary)
+            tint = MaterialTheme.colorScheme.secondary
+        )
     }
 }
 
@@ -110,7 +125,8 @@ private fun ColumnScope.SingleSdJwtCredentialCardContent(
 ) {
     credential.disclosures.forEach {
         LabeledText(
-            text = it.value?.claimValue?.toString()?.run { slice(0..min(lastIndex, 100)) } ?: "unknown claim value",
+            text = it.value?.claimValue?.toString()?.run { slice(0..min(lastIndex, 100)) }
+                ?: "unknown claim value",
             label = it.value?.claimName ?: "unknown claim name"
         )
     }
@@ -123,7 +139,8 @@ private fun ColumnScope.SingleIsoCredentialCardContent(
     credential.issuerSigned.namespaces?.forEach { namespace ->
         namespace.value.entries.forEach { entry ->
             LabeledText(
-                text = entry.value.elementValue.prettyToString().run { slice(0..min(lastIndex, 100)) },
+                text = entry.value.elementValue.prettyToString()
+                    .run { slice(0..min(lastIndex, 100)) },
                 label = NormalizedJsonPath(
                     NormalizedJsonPathSegment.NameSegment(namespace.key),
                     NormalizedJsonPathSegment.NameSegment(entry.value.elementIdentifier),
