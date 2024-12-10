@@ -87,7 +87,7 @@ class ProvisioningService(
      * Loads credential metadata info from [host]
      */
     @Throws(Throwable::class)
-    suspend fun loadCredentialMetadata(host: String) = openId4VciClient.loadCredentialMetadata(host)
+    suspend fun loadCredentialMetadata(host: String) = openId4VciClient.loadCredentialMetadata(host).getOrThrow()
 
     /**
      * Starts the issuing process at [credentialIssuer]
@@ -104,7 +104,7 @@ class ProvisioningService(
             credentialIssuer,
             credentialIdentifierInfo,
             requestedAttributes
-        )
+        ).getOrThrow()
     }
 
 
@@ -115,7 +115,7 @@ class ProvisioningService(
     suspend fun resumeWithAuthCode(redirectedUrl: String) {
         Napier.d("handleResponse with $redirectedUrl")
         this.redirectUri = null
-        openId4VciClient.resumeWithAuthCode(redirectedUrl)
+        openId4VciClient.resumeWithAuthCode(redirectedUrl).getOrThrow()
     }
 
     /**
@@ -156,7 +156,7 @@ class ProvisioningService(
             credentialIdentifierInfo,
             transactionCode,
             requestedAttributes
-        )
+        ).getOrThrow()
     }
 }
 
