@@ -48,9 +48,13 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun CustomFloatingActionMenu(addCredentialQr: () -> Unit, addCredential: () -> Unit) {
-    val expanded = rememberSaveable{mutableStateOf(false)}
+    val expanded = rememberSaveable { mutableStateOf(false) }
     Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom, horizontalAlignment = Alignment.End) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Bottom,
+            horizontalAlignment = Alignment.End
+        ) {
             Column(horizontalAlignment = Alignment.End) {
                 val density = LocalDensity.current
                 AnimatedVisibility(
@@ -62,23 +66,28 @@ fun CustomFloatingActionMenu(addCredentialQr: () -> Unit, addCredential: () -> U
                     ) + fadeIn(
                         initialAlpha = 0.3f
                     ),
-                    exit = slideOutVertically{
+                    exit = slideOutVertically {
                         with(density) { 20.dp.roundToPx() }
-                    } + shrinkVertically(shrinkTowards = Alignment.Bottom
+                    } + shrinkVertically(
+                        shrinkTowards = Alignment.Bottom
                     ) + fadeOut(
                         targetAlpha = 0f
                     )
                 ) {
                     Column(modifier = Modifier.padding(end = 5.dp)) {
-                        SecondaryFloatingActionButton(onClick = {addCredentialQr()},
+                        SecondaryFloatingActionButton(
+                            onClick = { addCredentialQr() },
                             label = stringResource(Res.string.button_label_provision_credential_qr),
                             icon = Icons.Default.QrCode,
-                            contentDescription = stringResource(Res.string.content_description_add_credential))
+                            contentDescription = stringResource(Res.string.content_description_add_credential)
+                        )
                         Spacer(modifier = Modifier.size(5.dp))
-                        SecondaryFloatingActionButton(onClick = {addCredential()},
+                        SecondaryFloatingActionButton(
+                            onClick = { addCredential() },
                             label = stringResource(Res.string.button_label_provision_credential_browser),
                             icon = Icons.Default.Person,
-                            contentDescription = stringResource(Res.string.content_description_add_credential))
+                            contentDescription = stringResource(Res.string.content_description_add_credential)
+                        )
                     }
                 }
                 Spacer(modifier = Modifier.size(10.dp))
@@ -89,18 +98,22 @@ fun CustomFloatingActionMenu(addCredentialQr: () -> Unit, addCredential: () -> U
 }
 
 @Composable
-fun MainFloatingActionButton(expanded: MutableState<Boolean>){
+fun MainFloatingActionButton(expanded: MutableState<Boolean>) {
     Column(modifier = Modifier.shadow(elevation = 4.dp, shape = RoundedCornerShape(15.dp))) {
         Column(modifier = Modifier.clip(RoundedCornerShape(15.dp))) {
-            Column(modifier = Modifier
-                .background(color = FloatingActionButtonDefaults.containerColor)
-                .clickable(onClick = {expanded.value = !expanded.value })
-                .size(50.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+            Column(
+                modifier = Modifier
+                    .background(color = FloatingActionButtonDefaults.containerColor)
+                    .clickable(onClick = { expanded.value = !expanded.value })
+                    .size(50.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = stringResource(Res.string.content_description_add_credential),
                     modifier = Modifier
-                        .rotate( if (expanded.value) 45f else 0f)
+                        .rotate(if (expanded.value) 45f else 0f)
                         .size(30.dp)
                 )
             }
@@ -109,24 +122,51 @@ fun MainFloatingActionButton(expanded: MutableState<Boolean>){
 }
 
 @Composable
-fun SecondaryFloatingActionButton(onClick: () -> Unit, label: String, icon: ImageVector, contentDescription: String?){
-    Row(horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+fun SecondaryFloatingActionButton(
+    onClick: () -> Unit,
+    label: String,
+    icon: ImageVector,
+    contentDescription: String?
+) {
+    Row(
+        horizontalArrangement = Arrangement.End,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth()
+    ) {
         Row(modifier = Modifier.clickable(onClick = onClick)) {
-            Column(modifier = Modifier.shadow(elevation = 4.dp, shape = RoundedCornerShape(15.dp))) {
+            Column(
+                modifier = Modifier.shadow(
+                    elevation = 4.dp,
+                    shape = RoundedCornerShape(15.dp)
+                )
+            ) {
                 Column(modifier = Modifier.clip(RoundedCornerShape(15.dp))) {
-                    Column(modifier = Modifier
-                        .background(color = FloatingActionButtonDefaults.containerColor)
-                        .clickable(onClick = onClick), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center){
+                    Column(
+                        modifier = Modifier
+                            .background(color = FloatingActionButtonDefaults.containerColor)
+                            .clickable(onClick = onClick),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
                         Text(label, modifier = Modifier.padding(8.dp))
                     }
                 }
             }
             Spacer(Modifier.size(10.dp))
-            Column(modifier = Modifier.shadow(elevation = 4.dp, shape = RoundedCornerShape(15.dp))) {
+            Column(
+                modifier = Modifier.shadow(
+                    elevation = 4.dp,
+                    shape = RoundedCornerShape(15.dp)
+                )
+            ) {
                 Column(modifier = Modifier.clip(RoundedCornerShape(15.dp))) {
-                    Column(modifier = Modifier
-                        .background(color = FloatingActionButtonDefaults.containerColor)
-                        .size(40.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center){
+                    Column(
+                        modifier = Modifier
+                            .background(color = FloatingActionButtonDefaults.containerColor)
+                            .size(40.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
                         Icon(
                             imageVector = icon,
                             contentDescription = contentDescription,
