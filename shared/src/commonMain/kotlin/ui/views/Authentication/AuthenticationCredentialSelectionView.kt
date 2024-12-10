@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.app.common.decodeImage
+import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.button_label_continue
 import compose_wallet_app.shared.generated.resources.heading_label_navigate_back
@@ -97,7 +98,7 @@ fun AuthenticationCredentialSelectionView(vm: AuthenticationCredentialSelectionV
                     val matchingCredentials = request.value.second.keys
                     if (matchingCredentials.size > 1) {
                         Text(
-                            text = request.value.first.credentialIdentifier,
+                            text = matchingCredentials.first().scheme.uiLabel(),
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.secondary,
                             fontWeight = FontWeight.SemiBold,

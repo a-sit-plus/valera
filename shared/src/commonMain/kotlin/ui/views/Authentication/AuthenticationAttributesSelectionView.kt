@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.app.common.third_parts.at.asitplus.jsonpath.core.plus
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.getLocalization
+import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.button_label_continue
 import compose_wallet_app.shared.generated.resources.heading_label_navigate_back
@@ -99,19 +100,21 @@ fun AuthenticationAttributesSelectionView(vm: AuthenticationAttributesSelectionV
                     .padding(16.dp),
             ) {
                 vm.requests.forEach { request ->
-                    val params = request.value.first
                     val credential = vm.selectedCredentials[request.key]
-                    val constraints = request.value.second[credential]
-                    val disclosedAttributes = constraints?.values?.mapNotNull { constraint ->
-                        constraint.firstOrNull()?.normalizedJsonPath
+                    if (credential != null){
+                        val params = request.value.first
+                        val constraints = request.value.second[credential]
+                        val disclosedAttributes = constraints?.values?.mapNotNull { constraint ->
+                            constraint.firstOrNull()?.normalizedJsonPath
+                        }
+                        val selections: MutableMap<MutableState<Boolean>, NormalizedJsonPath> =
+                            mutableMapOf()
+                        disclosedAttributes?.forEach { attribute ->
+                            selections[mutableStateOf(true)] = attribute
+                        }
+                        vm.selectedAttributes[request.key] = selections
+                        AttributeSelectionGroup(params = params, selections = selections, groubLabel = credential.scheme.uiLabel())
                     }
-                    val selections: MutableMap<MutableState<Boolean>, NormalizedJsonPath> =
-                        mutableMapOf()
-                    disclosedAttributes?.forEach { attribute ->
-                        selections[mutableStateOf(true)] = attribute
-                    }
-                    vm.selectedAttributes[request.key] = selections
-                    AttributeSelectionGroup(params = params, selections = selections)
                 }
             }
         }
@@ -121,11 +124,12 @@ fun AuthenticationAttributesSelectionView(vm: AuthenticationAttributesSelectionV
 @Composable
 fun AttributeSelectionGroup(
     params: RequestOptionParameters,
+    groubLabel: String,
     selections: MutableMap<MutableState<Boolean>, NormalizedJsonPath>
 ) {
     Column {
         Text(
-            text = params.credentialIdentifier,
+            text = groubLabel,
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.secondary,
             fontWeight = FontWeight.SemiBold,

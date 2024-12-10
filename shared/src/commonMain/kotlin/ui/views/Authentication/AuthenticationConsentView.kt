@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.app.common.third_parts.at.asitplus.jsonpath.core.plus
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.getLocalization
+import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.attribute_friendly_name_data_recipient_location
 import compose_wallet_app.shared.generated.resources.attribute_friendly_name_data_recipient_name
@@ -128,15 +129,14 @@ fun AuthenticationConsentView(vm: AuthenticationConsentViewModel) {
                     )
                     vm.requests.mapNotNull { it.value }.forEach { params ->
                         params.resolved?.first?.let { scheme ->
-                            val schemeName = scheme.sdJwtType ?: scheme.isoDocType ?: scheme.vcType
-                                    ?: scheme.schemaUri
+                            val schemeName = scheme.uiLabel()
                             val format = params.resolved?.second?.name
                             val attributes = params.attributes?.mapNotNull {
                                 scheme.getLocalization(NormalizedJsonPath() + it)
                             }
                             if (format != null && attributes != null) {
                                 ConsentAttributesSection(
-                                    title = "${schemeName} (${format})",
+                                    title = "$schemeName (${format})",
                                     list = attributes
                                 )
                             }
