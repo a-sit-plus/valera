@@ -39,7 +39,11 @@ fun AuthenticationView(vm: AuthenticationViewModel) {
 
         AuthenticationViewState.AttributesSelection -> {
             val viewModel = AuthenticationAttributesSelectionViewModel(navigateUp = {
-                vm.viewState = AuthenticationViewState.CredentialSelection
+                if (vm.matchingCredentials.values.find { it.size != 1 } == null) {
+                    vm.viewState = AuthenticationViewState.Consent
+                } else {
+                    vm.viewState = AuthenticationViewState.CredentialSelection
+                }
             },
                 requests = vm.requestMap,
                 selectedCredentials = vm.selectedCredentials,

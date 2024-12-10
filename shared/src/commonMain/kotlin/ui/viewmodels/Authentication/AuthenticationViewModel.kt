@@ -40,6 +40,7 @@ class AuthenticationViewModel(
     }.toMap()
 
     lateinit var preparationState: AuthorizationResponsePreparationState
+    lateinit var matchingCredentials: Map<String, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, NodeList /* = List<NodeListEntry> */>>>
     lateinit var selectedCredentials: Map<String, SubjectCredentialStore.StoreEntry>
     var requestMap: Map<String, Pair<RequestOptionParameters, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, NodeList>>>> =
         mutableMapOf()
@@ -47,7 +48,7 @@ class AuthenticationViewModel(
     fun onConsent() {
         preparationState =
             runBlocking { walletMain.presentationService.getPreparationState(request = authenticationRequest) }
-        val matchingCredentials =
+        matchingCredentials =
             runBlocking { walletMain.presentationService.getMatchingCredentials(preparationState = preparationState) }
 
         requestMap = descriptors.mapNotNull {
