@@ -45,7 +45,8 @@
     <string name="button_label_provision_credential_browser">Load via Browser</string>
     <string name="button_label_provision_credential_qr">Load via QR-Code</string>
     <string name="button_label_select">Select</string>
-
+    <string name="button_label_show_technical_details">Show technical details</string>
+    <string name="button_label_hide_technical_details">Hide technical details</string>
 
     <string name="attribute_friendly_name_bpk">BPK</string>
     <string name="attribute_friendly_name_firstname">Given name</string>
