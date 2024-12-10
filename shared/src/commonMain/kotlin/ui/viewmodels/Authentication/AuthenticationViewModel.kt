@@ -70,7 +70,7 @@ class AuthenticationViewModel(
         }
     }
 
-    fun selectCredential(credentials: Map<String, SubjectCredentialStore.StoreEntry>) {
+    fun selectCredentials(credentials: Map<String, SubjectCredentialStore.StoreEntry>) {
         selectedCredentials = credentials
         viewState = AuthenticationViewState.AttributesSelection
     }

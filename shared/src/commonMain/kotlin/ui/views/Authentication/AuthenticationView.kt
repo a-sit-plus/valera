@@ -31,8 +31,8 @@ fun AuthenticationView(vm: AuthenticationViewModel) {
         AuthenticationViewState.CredentialSelection -> {
             val viewModel = AuthenticationCredentialSelectionViewModel(walletMain = vm.walletMain,
                 requests = vm.requestMap,
-                selectCredential = { credential ->
-                    vm.selectCredential(credential)
+                selectCredentials = { credentials ->
+                    vm.selectCredentials(credentials)
                 }, navigateUp = { vm.viewState = AuthenticationViewState.Consent })
             AuthenticationCredentialSelectionView(viewModel)
         }

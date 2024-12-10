@@ -77,7 +77,7 @@ fun AuthenticationCredentialSelectionView(vm: AuthenticationCredentialSelectionV
                                 val credentials = it.value.value
                                 requestId to credentials
                             }
-                            vm.selectCredential(selection)
+                            vm.selectCredentials(selection)
                         }) {
                             Text(stringResource(Res.string.button_label_continue))
                         }

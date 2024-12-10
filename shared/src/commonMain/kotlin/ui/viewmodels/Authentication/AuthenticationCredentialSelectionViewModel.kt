@@ -10,7 +10,7 @@ import data.RequestOptionParameters
 class AuthenticationCredentialSelectionViewModel(
     val walletMain: WalletMain,
     val requests: Map<String, Pair<RequestOptionParameters, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, NodeList>>>>,
-    val selectCredential: (Map<String, SubjectCredentialStore.StoreEntry>) -> Unit,
+    val selectCredentials: (Map<String, SubjectCredentialStore.StoreEntry>) -> Unit,
     val navigateUp: () -> Unit
 ) {
     val selectedCredential: MutableMap<String, MutableState<SubjectCredentialStore.StoreEntry>> =
