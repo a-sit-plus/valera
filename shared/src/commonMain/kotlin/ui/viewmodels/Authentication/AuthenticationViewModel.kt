@@ -57,7 +57,11 @@ class AuthenticationViewModel(
         }.toMap()
 
         if (matchingCredentials.values.find { it.size != 1 } == null) {
-            selectedCredentials = matchingCredentials.entries.associate { it.key to it.value.keys.first()}.toMap()
+            selectedCredentials = matchingCredentials.entries.associate {
+                val requestId = it.key;
+                val credential = it.value.keys.first()
+                requestId to credential
+            }.toMap()
             viewState = AuthenticationViewState.AttributesSelection
         } else if (matchingCredentials.values.find { it.isEmpty() } == null) {
             viewState = AuthenticationViewState.CredentialSelection
