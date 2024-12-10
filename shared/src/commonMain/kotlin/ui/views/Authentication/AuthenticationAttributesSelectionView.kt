@@ -78,7 +78,12 @@ fun AuthenticationAttributesSelectionView(vm: AuthenticationAttributesSelectionV
                     ) {
                         Button(onClick = {
                             val selection =
-                                vm.selectedAttributes.entries.associate { it.key to it.value.filter { it.key.value }.values.toSet() }
+                                vm.selectedAttributes.entries.associate { val requestId = it.key; val attributes = it.value
+                                    requestId to attributes.filter {
+                                        val isSelected = it.key.value
+                                        isSelected == true
+                                    }.values.toSet()
+                                }
                             vm.selectAttributes(selection)
                         }) {
                             Text(stringResource(Res.string.button_label_continue))
