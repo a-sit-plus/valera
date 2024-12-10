@@ -18,7 +18,7 @@ import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -33,10 +33,9 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
     private val container = this.observeStoreContainer()
 
     private suspend fun addStoreEntry(storeEntry: SubjectCredentialStore.StoreEntry) {
-        val newContainer = container.first().let {
-            it.copy(it.credentials + listOf(Random.nextLong() to storeEntry))
-        }
-        exportToDataStore(newContainer)
+        container.first().let {
+            it.copy(credentials = it.credentials + listOf(Random.nextLong() to storeEntry))
+        }.exportToDataStore()
     }
 
     override suspend fun storeCredential(
@@ -78,57 +77,57 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
 
     override suspend fun getCredentials(
         credentialSchemes: Collection<ConstantIndex.CredentialScheme>?,
-    ): KmmResult<List<SubjectCredentialStore.StoreEntry>> {
-        val latestCredentials = container.first().credentials.map { it.second }
-        return credentialSchemes?.let { schemes ->
-            KmmResult.success(latestCredentials.filter {
-                when (it) {
-                    is SubjectCredentialStore.StoreEntry.Iso -> it.scheme in schemes
-                    is SubjectCredentialStore.StoreEntry.SdJwt -> it.scheme in schemes
-                    is SubjectCredentialStore.StoreEntry.Vc -> it.scheme in schemes
-                }
-            }.toList())
-        } ?: KmmResult.success(latestCredentials)
-    }
+    ): KmmResult<List<SubjectCredentialStore.StoreEntry>> =
+        container.first().credentials.map { it.second }.let { latestCredentials ->
+            credentialSchemes?.let { schemes ->
+                KmmResult.success(latestCredentials.filter {
+                    when (it) {
+                        is SubjectCredentialStore.StoreEntry.Iso -> it.scheme in schemes
+                        is SubjectCredentialStore.StoreEntry.SdJwt -> it.scheme in schemes
+                        is SubjectCredentialStore.StoreEntry.Vc -> it.scheme in schemes
+                    }
+                }.toList())
+            } ?: KmmResult.success(latestCredentials)
+        }
 
-    private suspend fun exportToDataStore(newContainer: StoreContainer) {
-        val json = vckJsonSerializer.encodeToString(newContainer)
-        dataStore.setPreference(key = Configuration.DATASTORE_KEY_VCS, value = json)
+    private suspend fun StoreContainer.exportToDataStore() {
+        Napier.i("Storing StoreContainer with ${this.credentials.size} entries")
+        dataStore.setPreference(
+            key = Configuration.DATASTORE_KEY_VCS,
+            value = vckJsonSerializer.encodeToString<StoreContainer>(this)
+        )
     }
 
     suspend fun reset() {
-        exportToDataStore(StoreContainer(credentials = listOf()))
+        StoreContainer(credentials = listOf()).exportToDataStore()
     }
 
     suspend fun removeStoreEntryById(storeEntryId: StoreEntryId) {
-        val newContainer = container.first().let { latestContainer ->
+        container.first().let { latestContainer ->
             latestContainer.copy(
                 credentials = latestContainer.credentials.filter {
                     it.first != storeEntryId
                 },
             )
-        }
-        exportToDataStore(newContainer)
+        }.exportToDataStore()
     }
 
-    private fun dataStoreValueToStoreContainer(input: String?): StoreContainer {
-        if (input == null) {
-            return StoreContainer(credentials = mutableListOf())
-        }
-        return kotlin.runCatching {
-            @Suppress("DEPRECATION")
-            vckJsonSerializer.decodeFromString<ExportableStoreContainer>(input).toStoreContainer()
-        }.getOrElse { ex ->
-            Napier.w("Could not load ExportableStoreContainer", ex)
-            Napier.i("Trying StoreContainer")
+    private fun String.dataStoreValueToStoreContainer(): StoreContainer =
+        kotlin.runCatching {
+            vckJsonSerializer.decodeFromString<StoreContainer>(this)
+                .also { Napier.i("Loaded StoreContainer with ${it.credentials.size} entries") }
+        }.getOrElse { ex1 ->
+            Napier.w("Could not load StoreContainer", ex1)
+            Napier.i("Trying ExportableStoreContainer (old)")
             kotlin.runCatching {
-                vckJsonSerializer.decodeFromString<StoreContainer>(input)
-            }.getOrElse { ex1 ->
-                Napier.w("Could not load StoreContainer", ex1)
+                @Suppress("DEPRECATION")
+                vckJsonSerializer.decodeFromString<ExportableStoreContainer>(this).toStoreContainer()
+                    .also { Napier.i("Loaded ExportableStoreContainer with ${it.credentials.size} entries") }
+            }.getOrElse { ex ->
+                Napier.w("Could not load ExportableStoreContainer", ex)
                 StoreContainer(listOf())
             }
         }
-    }
 
     @Suppress("DEPRECATION")
     private fun ExportableStoreContainer.toStoreContainer(): StoreContainer =
@@ -136,11 +135,6 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
             storeEntryId to when (storeEntry) {
                 is ExportableStoreEntry.Iso -> SubjectCredentialStore.StoreEntry.Iso(
                     IssuerSigned.deserialize(storeEntry.issuerSigned.serialize()).getOrThrow(),
-                    storeEntry.exportableCredentialScheme.toScheme().schemaUri,
-                )
-
-                is ExportableStoreEntry.IsoNew -> SubjectCredentialStore.StoreEntry.Iso(
-                    storeEntry.issuerSigned,
                     storeEntry.exportableCredentialScheme.toScheme().schemaUri,
                 )
 
@@ -160,9 +154,9 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         })
 
     fun observeStoreContainer(): Flow<StoreContainer> =
-        dataStore.getPreference(Configuration.DATASTORE_KEY_VCS).map {
-            dataStoreValueToStoreContainer(it)
-        }
+        dataStore.getPreference(Configuration.DATASTORE_KEY_VCS)
+            .mapNotNull { it }
+            .mapNotNull { it.dataStoreValueToStoreContainer() }
 }
 
 typealias StoreEntryId = Long
@@ -206,40 +200,12 @@ private sealed interface ExportableStoreEntry {
         override val exportableCredentialScheme: ExportableCredentialScheme
     ) : ExportableStoreEntry
 
-    @Deprecated(replaceWith = ReplaceWith("IsoNew"), message = "Use other data class")
     @Serializable
     data class Iso(
         val issuerSigned: IssuerSignedWallet,
         override val exportableCredentialScheme: ExportableCredentialScheme
     ) : ExportableStoreEntry
 
-    @Serializable
-    data class IsoNew(
-        val issuerSignedSerialized: ByteArray,
-        override val exportableCredentialScheme: ExportableCredentialScheme
-    ) : ExportableStoreEntry {
-        val issuerSigned: IssuerSigned by lazy {
-            IssuerSigned.deserialize(issuerSignedSerialized).getOrThrow()
-        }
-
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other == null || this::class != other::class) return false
-
-            other as IsoNew
-
-            if (!issuerSignedSerialized.contentEquals(other.issuerSignedSerialized)) return false
-            if (exportableCredentialScheme != other.exportableCredentialScheme) return false
-
-            return true
-        }
-
-        override fun hashCode(): Int {
-            var result = issuerSignedSerialized.contentHashCode()
-            result = 31 * result + exportableCredentialScheme.hashCode()
-            return result
-        }
-    }
 }
 
 /**

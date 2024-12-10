@@ -19,8 +19,11 @@ interface DataStoreService {
     fun clearLog()
 }
 
-class RealDataStoreService(private var dataStore: DataStore<Preferences>, private var platformAdapter: PlatformAdapter): DataStoreService{
-    override suspend fun setPreference(value: String, key: String){
+class RealDataStoreService(
+    private var dataStore: DataStore<Preferences>,
+    private var platformAdapter: PlatformAdapter
+) : DataStoreService {
+    override suspend fun setPreference(value: String, key: String) {
         try {
             val dataStoreKey = stringPreferencesKey(key)
             dataStore.edit {
@@ -34,16 +37,13 @@ class RealDataStoreService(private var dataStore: DataStore<Preferences>, privat
 
     override fun getPreference(key: String): Flow<String?> {
         try {
-            val dataStoreKey = stringPreferencesKey(key)
-            val preferences = dataStore.data
-            return preferences.map { it[dataStoreKey] }
+            return dataStore.data.map { it[stringPreferencesKey(key)] }
         } catch (e: Throwable) {
             throw Exception("Unable to get data from DataStore")
         }
-
     }
 
-    override suspend fun deletePreference(key: String){
+    override suspend fun deletePreference(key: String) {
         try {
             val dataStoreKey = stringPreferencesKey(key)
             dataStore.edit {
@@ -54,6 +54,7 @@ class RealDataStoreService(private var dataStore: DataStore<Preferences>, privat
         }
 
     }
+
     override fun clearLog() {
         platformAdapter.clearFile(fileName = "log.txt", folderName = "logs")
     }
