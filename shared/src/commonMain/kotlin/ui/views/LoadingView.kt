@@ -13,8 +13,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import compose_wallet_app.shared.generated.resources.Res
-import compose_wallet_app.shared.generated.resources.heading_label_loading_screen
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.heading_label_loading_screen
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)

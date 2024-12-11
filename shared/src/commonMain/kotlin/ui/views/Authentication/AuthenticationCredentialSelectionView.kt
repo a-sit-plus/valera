@@ -26,10 +26,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
-import compose_wallet_app.shared.generated.resources.Res
-import compose_wallet_app.shared.generated.resources.button_label_continue
-import compose_wallet_app.shared.generated.resources.heading_label_navigate_back
-import compose_wallet_app.shared.generated.resources.prompt_select_credential
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.button_label_continue
+import at.asitplus.valera.resources.heading_label_navigate_back
+import at.asitplus.valera.resources.prompt_select_credential
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.CredentialSelectionGroup

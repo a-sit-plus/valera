@@ -4,10 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import appLink
 import at.asitplus.wallet.app.common.WalletMain
-import compose_wallet_app.shared.generated.resources.Res
-import compose_wallet_app.shared.generated.resources.biometric_authentication_prompt_to_bind_credentials_subtitle
-import compose_wallet_app.shared.generated.resources.biometric_authentication_prompt_to_bind_credentials_title
-import compose_wallet_app.shared.generated.resources.snackbar_credential_loaded_successfully
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.biometric_authentication_prompt_to_bind_credentials_subtitle
+import at.asitplus.valera.resources.biometric_authentication_prompt_to_bind_credentials_title
+import at.asitplus.valera.resources.snackbar_credential_loaded_successfully
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier
 import io.ktor.http.parseQueryString

@@ -16,9 +16,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import compose_wallet_app.shared.generated.resources.Res
-import compose_wallet_app.shared.generated.resources.button_label_delete_credential
-import compose_wallet_app.shared.generated.resources.content_description_delete_credential
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.button_label_delete_credential
+import at.asitplus.valera.resources.content_description_delete_credential
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

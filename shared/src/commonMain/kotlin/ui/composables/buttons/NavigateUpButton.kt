@@ -6,8 +6,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import compose_wallet_app.shared.generated.resources.content_description_navigate_back
-import compose_wallet_app.shared.generated.resources.Res
+import at.asitplus.valera.resources.content_description_navigate_back
+import at.asitplus.valera.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 

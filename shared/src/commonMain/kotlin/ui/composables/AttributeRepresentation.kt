@@ -7,9 +7,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.wallet.mdl.DrivingPrivilege
 import at.asitplus.wallet.mdl.IsoSexEnum
-import compose_wallet_app.shared.generated.resources.Res
-import compose_wallet_app.shared.generated.resources.dictionary_no
-import compose_wallet_app.shared.generated.resources.dictionary_yes
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.dictionary_no
+import at.asitplus.valera.resources.dictionary_yes
 import data.Attribute
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate

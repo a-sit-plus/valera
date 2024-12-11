@@ -21,8 +21,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
-import compose_wallet_app.shared.generated.resources.Res
-import compose_wallet_app.shared.generated.resources.content_description_portrait
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.content_description_portrait
 import data.PersonalDataCategory
 import data.credentials.MobileDrivingLicenceCredentialAdapter
 import org.jetbrains.compose.resources.stringResource

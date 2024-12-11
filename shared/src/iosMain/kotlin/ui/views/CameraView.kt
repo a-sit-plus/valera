@@ -12,8 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.viewinterop.UIKitInteropProperties
 import androidx.compose.ui.viewinterop.UIKitView
-import compose_wallet_app.shared.generated.resources.Res
-import compose_wallet_app.shared.generated.resources.camera_access_denied
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.camera_access_denied
 import io.github.aakira.napier.Napier
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.CValue

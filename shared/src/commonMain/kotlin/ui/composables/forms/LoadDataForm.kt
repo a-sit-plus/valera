@@ -17,8 +17,8 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.app.common.credentialScheme
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
-import compose_wallet_app.shared.generated.resources.Res
-import compose_wallet_app.shared.generated.resources.info_text_redirection_to_browser_for_credential_provisioning
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.info_text_redirection_to_browser_for_credential_provisioning
 import data.PersonalDataCategory
 import data.credentials.CredentialAttributeCategorization
 import org.jetbrains.compose.resources.stringResource
