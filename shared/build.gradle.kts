@@ -88,7 +88,7 @@ kotlin {
 }
 
 exportIosFramework(
-    name = "shared", transitiveExports = false,
+    name = "shared", transitiveExports = true,
     libs.vck,
     libs.vck.openid,
     libs.vck.openid.ktor,
