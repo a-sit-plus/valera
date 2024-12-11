@@ -4,7 +4,6 @@ import at.asitplus.gradle.serialization
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.plugin.extraProperties
 import org.jetbrains.kotlin.gradle.plugin.mpp.BitcodeEmbeddingMode
-import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFrameworkConfig
 
 plugins {
     kotlin("multiplatform")
@@ -59,7 +58,6 @@ kotlin {
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
                 api(libs.vck)
-                //iOS
                 api(libs.vck.openid)
                 api(libs.vck.openid.ktor)
                 api(libs.credential.mdl)
@@ -148,8 +146,6 @@ android {
 compose.resources {
     packageOfResClass = "at.asitplus.valera.resources"
 }
-
-
 
 repositories {
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
