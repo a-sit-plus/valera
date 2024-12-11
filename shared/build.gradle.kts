@@ -22,11 +22,45 @@ plugins {
     kotlin("plugin.serialization")
 }
 
+val additionalIosExports = listOf(
+    libs.vck,
+    libs.vck.openid,
+    libs.vck.openid.ktor,
+    libs.indispensable,
+    libs.supreme,
+    libs.kmmresult,
+    libs.credential.ida,
+    libs.credential.mdl,
+    libs.credential.eupid,
+    libs.credential.powerofrepresentation,
+    libs.credential.certificateofresidence,
+    libs.credential.eprescription,
+    napier()
+)
+
 kotlin {
     androidTarget()
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
+    listOf(
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach { target ->
+        XCFrameworkConfig(project, name).also { xcf ->
+
+            target.binaries.framework {
+                baseName = name
+                isStatic = false
+                @OptIn(ExperimentalKotlinGradlePluginApi::class)
+                transitiveExport = false
+                embedBitcode(BitcodeEmbeddingMode.DISABLE)
+                additionalIosExports.forEach { export(it) }
+                binaryOption("bundleId", "at.asitplus.wallet.shared")
+                xcf.add(this)
+            }
+        }
+
+    }
+
 
     sourceSets {
         commonMain {
@@ -95,50 +129,6 @@ kotlin {
     }
 
 
-
-}
-val appleTargets = kotlinExtension.let {
-    if (it is KotlinMultiplatformExtension) {
-        it.targets.filterIsInstance<KotlinNativeTarget>().filter {
-            it.name.startsWith("ios") ||
-                    it.name.startsWith("tvos") ||
-                    it.name.startsWith("macos")
-
-        }
-    } else throw StopExecutionException("No Apple Targets found! Declare them explicitly before calling exportXCFramework!")
-}
-
-
-extensions.getByType<KotlinMultiplatformExtension>().apply {
-
-    val additionalExports= listOf(libs.vck,
-        libs.vck.openid,
-        libs.vck.openid.ktor,
-        libs.indispensable,
-        libs.supreme,
-        libs.kmmresult,
-        libs.credential.ida,
-        libs.credential.mdl,
-        libs.credential.eupid,
-        libs.credential.powerofrepresentation,
-        libs.credential.certificateofresidence,
-        libs.credential.eprescription,
-        napier(),)
-    XCFrameworkConfig(project, name).also { xcf ->
-        appleTargets.forEach {
-            it.binaries.framework {
-                baseName = name
-                isStatic = false
-                @OptIn(ExperimentalKotlinGradlePluginApi::class)
-                transitiveExport = false
-                embedBitcode(BitcodeEmbeddingMode.DISABLE)
-                additionalExports.forEach { export(it) }
-                binaryOption("bundleId", "at.asitplus.wallet.shared")
-                xcf.add(this)
-            }
-        }
-
-    }
 }
 
 android {
@@ -173,6 +163,8 @@ android {
 compose.resources {
     packageOfResClass = "at.asitplus.valera.resources"
 }
+
+
 
 repositories {
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
