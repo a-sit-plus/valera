@@ -30,6 +30,9 @@ kotlin {
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
                 api(libs.vck)
+                //iOS
+                api(libs.indispensable)
+                api(libs.supreme)
                 api(libs.vck.openid)
                 api(libs.vck.openid.ktor)
                 api(libs.credential.mdl)
