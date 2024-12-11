@@ -112,10 +112,6 @@ android {
     }
 }
 
-compose.resources {
-    packageOfResClass = "at.asitplus.valera.resources"
-}
-
 exportXCFramework(
     name = "shared", transitiveExports = false, static = false,
     vckCatalog.vck,
@@ -132,6 +128,10 @@ exportXCFramework(
 ) {
     binaryOption("bundleId", "at.asitplus.wallet.shared")
     linkerOpts("-ld_classic")
+}
+
+compose.resources {
+    packageOfResClass = "at.asitplus.valera.resources"
 }
 
 repositories {
