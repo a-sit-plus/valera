@@ -29,9 +29,9 @@ import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.decodeImage
-import compose_wallet_app.shared.generated.resources.Res
-import compose_wallet_app.shared.generated.resources.snackbar_clear_log_successfully
-import compose_wallet_app.shared.generated.resources.snackbar_reset_app_successfully
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.snackbar_clear_log_successfully
+import at.asitplus.valera.resources.snackbar_reset_app_successfully
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

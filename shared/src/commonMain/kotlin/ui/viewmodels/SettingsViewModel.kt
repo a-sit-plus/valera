@@ -2,8 +2,8 @@ package ui.viewmodels
 
 import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.app.common.WalletMain
-import compose_wallet_app.shared.generated.resources.Res
-import compose_wallet_app.shared.generated.resources.error_feature_not_yet_available
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.error_feature_not_yet_available
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.getString
 

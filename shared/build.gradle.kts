@@ -130,6 +130,10 @@ android {
     }
 }
 
+compose.resources {
+    packageOfResClass = "at.asitplus.valera.resources"
+}
+
 repositories {
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
     maven("https://oss.sonatype.org/content/repositories/snapshots/")

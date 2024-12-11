@@ -13,10 +13,10 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.app.common.credentialScheme
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
-import compose_wallet_app.shared.generated.resources.Res
-import compose_wallet_app.shared.generated.resources.issuing_label_host
-import compose_wallet_app.shared.generated.resources.issuing_label_representation
-import compose_wallet_app.shared.generated.resources.issuing_label_scheme
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.issuing_label_host
+import at.asitplus.valera.resources.issuing_label_representation
+import at.asitplus.valera.resources.issuing_label_scheme
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.inputFields.StatefulCredentialIdentifierInputField
 import ui.composables.inputFields.TransactionCodeInputField

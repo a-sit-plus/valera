@@ -21,10 +21,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import compose_wallet_app.shared.generated.resources.Res
-import compose_wallet_app.shared.generated.resources.button_label_continue
-import compose_wallet_app.shared.generated.resources.info_text_no_matching_credential
-import compose_wallet_app.shared.generated.resources.info_text_to_start_screen
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.button_label_continue
+import at.asitplus.valera.resources.info_text_no_matching_credential
+import at.asitplus.valera.resources.info_text_to_start_screen
 import org.jetbrains.compose.resources.stringResource
 import ui.viewmodels.Authentication.AuthenticationNoCredentialViewModel
 
