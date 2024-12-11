@@ -27,16 +27,14 @@ import ui.state.toggleableState
 
 @Composable
 fun CredentialAttributeSelectionForm(
-    credentialScheme: ConstantIndex.CredentialScheme,
+    credentialScheme: ConstantIndex.CredentialScheme?,
     requestedAttributes: Set<NormalizedJsonPath>,
     onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
     attributeCategoriesExpanded: Map<PersonalDataCategory, Boolean>,
     onSetAttributeCategoriesExpanded: ((Pair<PersonalDataCategory, Boolean>) -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
-    val attributeCategorization =
-        CredentialAttributeCategorization[credentialScheme]?.sourceAttributeCategorization
-            ?: throw IllegalArgumentException("credentialScheme: ${credentialScheme.identifier}")
+    val attributeCategorization = CredentialAttributeCategorization[credentialScheme].sourceAttributeCategorization
 
     Column(
         modifier = modifier,

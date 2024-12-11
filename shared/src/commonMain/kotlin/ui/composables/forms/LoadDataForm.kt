@@ -15,8 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.wallet.app.common.ProvisioningService
-import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.identifier
+import at.asitplus.wallet.app.common.credentialScheme
+import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import compose_wallet_app.shared.generated.resources.Res
 import compose_wallet_app.shared.generated.resources.info_text_redirection_to_browser_for_credential_provisioning
 import data.PersonalDataCategory
@@ -26,20 +26,19 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun StatefulLoadDataForm(
     host: String,
-    credentialIdentifierInfo: ProvisioningService.CredentialIdentifierInfo,
-    onChangeCredentialIdentifierInfo: (ProvisioningService.CredentialIdentifierInfo) -> Unit,
+    credentialIdentifierInfo: CredentialIdentifierInfo,
+    onChangeCredentialIdentifierInfo: (CredentialIdentifierInfo) -> Unit,
     requestedAttributes: Set<NormalizedJsonPath>,
     onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
     transactionCode: TextFieldValue,
     onChangeTransactionCode: (TextFieldValue) -> Unit,
     modifier: Modifier = Modifier,
-    availableIdentifiers: Collection<ProvisioningService.CredentialIdentifierInfo>,
+    availableIdentifiers: Collection<CredentialIdentifierInfo>,
     showTransactionCode: Boolean,
 ) {
     var attributeCategoriesExpanded by rememberSaveable(credentialIdentifierInfo) {
         val attributeCategorization =
-            CredentialAttributeCategorization[credentialIdentifierInfo.scheme.toScheme()]?.availableCategories
-                ?: throw IllegalArgumentException("credentialScheme: ${credentialIdentifierInfo.scheme.toScheme().identifier}")
+            CredentialAttributeCategorization[credentialIdentifierInfo.credentialScheme].availableCategories
 
         mutableStateOf(attributeCategorization.associateWith { false })
     }
@@ -63,8 +62,8 @@ fun StatefulLoadDataForm(
 @Composable
 fun LoadDataForm(
     host: String,
-    credentialIdentifierInfo: ProvisioningService.CredentialIdentifierInfo,
-    onChangeCredentialIdentifierInfo: (ProvisioningService.CredentialIdentifierInfo) -> Unit,
+    credentialIdentifierInfo: CredentialIdentifierInfo,
+    onChangeCredentialIdentifierInfo: (CredentialIdentifierInfo) -> Unit,
     requestedAttributes: Set<NormalizedJsonPath>,
     onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
     transactionCode: TextFieldValue,
@@ -72,7 +71,7 @@ fun LoadDataForm(
     attributeCategoriesExpanded: Map<PersonalDataCategory, Boolean>,
     onSetAttributeCategoriesExpanded: (Pair<PersonalDataCategory, Boolean>) -> Unit,
     modifier: Modifier = Modifier,
-    availableIdentifiers: Collection<ProvisioningService.CredentialIdentifierInfo>,
+    availableIdentifiers: Collection<CredentialIdentifierInfo>,
     showTransactionCode: Boolean,
 ) {
     Box(
@@ -94,7 +93,7 @@ fun LoadDataForm(
                 showTransactionCode = showTransactionCode,
             )
             CredentialAttributeSelectionForm(
-                credentialScheme = credentialIdentifierInfo.scheme.toScheme(),
+                credentialScheme = credentialIdentifierInfo.credentialScheme,
                 requestedAttributes = requestedAttributes,
                 onChangeRequestedAttributes = onChangeRequestedAttributes,
                 attributeCategoriesExpanded = attributeCategoriesExpanded,

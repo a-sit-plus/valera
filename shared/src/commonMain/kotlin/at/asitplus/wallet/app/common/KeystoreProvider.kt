@@ -22,7 +22,7 @@ private const val CERT_STORAGE_KEY = "MB64_CERT_SELF_SIGNED"
 
 class KeystoreService(
     private val dataStoreService: DataStoreService
-) : HolderKeyService {
+) {
     private  val sMut = Mutex()
     suspend fun getSigner(): KeyMaterial {
         var signer: KeyMaterial? = null
@@ -93,10 +93,6 @@ class KeystoreService(
 
     //TMP for iOS
     fun getSignerBlocking() = runBlocking { getSigner() }
-
-    override fun clear() {
-        runBlocking { getProvider().deleteSigningKey(Configuration.KS_ALIAS) } //TODO check result
-    }
 }
 
 expect fun getProvider(): SigningProvider

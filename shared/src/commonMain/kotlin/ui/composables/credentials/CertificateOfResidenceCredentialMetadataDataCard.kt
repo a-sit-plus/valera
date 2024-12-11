@@ -16,7 +16,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
-import at.asitplus.wallet.por.PowerOfRepresentationScheme
+import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import data.PersonalDataCategory
 import data.credentials.CertificateOfResidenceCredentialAdapter
 import ui.composables.AttributeRepresentation
@@ -27,7 +27,7 @@ fun CertificateOfResidenceCredentialMetaDataCard(
     modifier: Modifier = Modifier,
 ) {
     CredentialDetailCard(
-        credentialScheme = PowerOfRepresentationScheme,
+        credentialScheme = CertificateOfResidenceScheme,
         personalDataCategory = PersonalDataCategory.Metadata,
         credentialAdapter = credentialAdapter,
         modifier = modifier,

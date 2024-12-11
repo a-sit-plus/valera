@@ -27,14 +27,13 @@ import compose_wallet_app.shared.generated.resources.heading_label_data_protecti
 import compose_wallet_app.shared.generated.resources.heading_label_navigate_back
 import compose_wallet_app.shared.generated.resources.heading_label_terms_of_use
 import compose_wallet_app.shared.generated.resources.heading_label_terms_of_use_and_data_protection
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.AcceptButton
 import ui.composables.buttons.DetailsButton
 import ui.composables.buttons.NavigateUpButton
 
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OnboardingTermsView(
     onClickNavigateBack: () -> Unit,

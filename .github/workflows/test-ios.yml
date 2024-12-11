@@ -16,7 +16,7 @@ jobs:
         run: |
           xcodebuild \
            -project iosApp/iosApp.xcodeproj \
-           -scheme "Compose WalletUITests" \
+           -scheme "ValeraUITests" \
            -destination "platform=iOS Simulator,name=iPhone 15" \
            test | xcpretty --report junit -o test-ios.xml
       - name: Test Report

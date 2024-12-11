@@ -19,9 +19,6 @@ data class AddCredentialPreAuthnRoute(val credentialOfferSerialized: String) : R
 data class CredentialDetailsRoute(val storeEntryId: StoreEntryId) : Route()
 
 @Serializable
-data class ProvisioningLoadingRoute(val link: String) : Route()
-
-@Serializable
 object SettingsRoute : Route()
 
 @Serializable
@@ -40,10 +37,7 @@ object LoadingRoute : Route()
 object AuthenticationQrCodeScannerRoute : Route()
 
 @Serializable
-object AuthenticationLoadingRoute : Route()
-
-@Serializable
-data class AuthenticationConsentRoute(
+data class AuthenticationViewRoute(
     val authenticationRequestParametersFromSerialized: String, // AuthenticationRequest
     val authorizationPreparationStateSerialized: String, // AuthenticationResultParameters
     val recipientLocation: String

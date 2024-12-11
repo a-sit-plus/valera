@@ -1,5 +1,12 @@
+# Release 5.4.0
+ * Rebrand to Valera
+ * Kotlin 2.1.0
+ * Update to vck 5.2.0
+
 # Release 5.3.0
  * Update to vck 5.1.0
+ * Update to Compose Multiplatform 1.7.0, refactoring views and viewmodels
+ * Split up issuing process to get metadata first, support transaction code
 
 # Release 5.2.0
  * Display requested attributes on Consent screen

@@ -1,5 +1,5 @@
 [versions]
-vck = "5.1.0"
+vck = "5.2.0"
 mdl = "1.1.1"
 ida = "3.9.1"
 eupid = "2.2.1"
@@ -7,7 +7,7 @@ powerofrepresentation = "1.1.0"
 certificateofresidence = "2.1.0"
 eprescription = "1.1.0"
 atomicfu = "0.23.2"
-compose-plugin = "1.6.11"
+compose-plugin = "1.7.1"
 kotlin = "2.0.20"
 indispensable = "3.9.0"
 supreme = "0.4.0"
@@ -16,7 +16,8 @@ kmmresult = "1.7.0"
 
 [libraries]
 vck = { group = "at.asitplus.wallet", name = "vck", version.ref = "vck" }
-vck-openid = { group = "at.asitplus.wallet", name = "vclib-openid", version.ref = "vck" }
+vck-openid = { group = "at.asitplus.wallet", name = "vck-openid", version.ref = "vck" }
+vck-openid-ktor = { group = "at.asitplus.wallet", name = "vck-openid-ktor", version.ref = "vck" }
 atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version.ref = "atomicfu" }
 credential-ida = { module = "at.asitplus.wallet:idacredential", version.ref = "ida" }
 credential-eupid = { module = "at.asitplus.wallet:eupidcredential", version.ref = "eupid" }

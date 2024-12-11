@@ -32,13 +32,12 @@ import compose_wallet_app.shared.generated.resources.onboarding_section_show_dat
 import compose_wallet_app.shared.generated.resources.onboarding_section_show_data_title
 import compose_wallet_app.shared.generated.resources.onboarding_section_terms_and_data_protection_icon_text
 import compose_wallet_app.shared.generated.resources.onboarding_section_terms_and_data_protection_title
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.TextIcon
 import ui.composables.buttons.ContinueButton
 
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OnboardingInformationView(
     onClickContinue: () -> Unit,

@@ -36,7 +36,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
     ) = SubjectCredentialStore.StoreEntry.Vc(
         vcSerialized,
         vc,
-        scheme,
+        scheme.schemaUri,
     ).also {
         addStoreEntry(it)
     }
@@ -51,7 +51,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         vcSerialized,
         vc,
         disclosures,
-        scheme,
+        scheme.schemaUri,
     ).also {
         addStoreEntry(it)
     }
@@ -59,7 +59,10 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
     override suspend fun storeCredential(
         issuerSigned: IssuerSigned,
         scheme: ConstantIndex.CredentialScheme,
-    ) = SubjectCredentialStore.StoreEntry.Iso(issuerSigned, scheme).also {
+    ) = SubjectCredentialStore.StoreEntry.Iso(
+        issuerSigned,
+        scheme.schemaUri
+    ).also {
         addStoreEntry(it)
     }
 
@@ -85,7 +88,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
                 is SubjectCredentialStore.StoreEntry.Iso -> {
                     ExportableStoreEntry.Iso(
                         issuerSigned = storeEntry.issuerSigned,
-                        exportableCredentialScheme = storeEntry.scheme.toExportableCredentialScheme()
+                        exportableCredentialScheme = storeEntry.scheme!!.toExportableCredentialScheme()
                     )
                 }
 
@@ -94,7 +97,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
                         vcSerialized = storeEntry.vcSerialized,
                         sdJwt = storeEntry.sdJwt,
                         disclosures = storeEntry.disclosures,
-                        exportableCredentialScheme = storeEntry.scheme.toExportableCredentialScheme()
+                        exportableCredentialScheme = storeEntry.scheme!!.toExportableCredentialScheme()
                     )
                 }
 
@@ -102,7 +105,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
                     ExportableStoreEntry.Vc(
                         vcSerialized = storeEntry.vcSerialized,
                         vc = storeEntry.vc,
-                        exportableCredentialScheme = storeEntry.scheme.toExportableCredentialScheme(),
+                        exportableCredentialScheme = storeEntry.scheme!!.toExportableCredentialScheme(),
                     )
                 }
             }
@@ -149,24 +152,24 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
                     is ExportableStoreEntry.Iso -> {
                         SubjectCredentialStore.StoreEntry.Iso(
                             storeEntry.issuerSigned,
-                            storeEntry.exportableCredentialScheme.toScheme(),
+                            storeEntry.exportableCredentialScheme.toScheme().schemaUri,
                         )
                     }
 
                     is ExportableStoreEntry.SdJwt -> {
                         SubjectCredentialStore.StoreEntry.SdJwt(
-                            vcSerialized = storeEntry.vcSerialized,
-                            sdJwt = storeEntry.sdJwt,
-                            disclosures = storeEntry.disclosures,
-                            scheme = storeEntry.exportableCredentialScheme.toScheme()
+                            storeEntry.vcSerialized,
+                            storeEntry.sdJwt,
+                            storeEntry.disclosures,
+                            storeEntry.exportableCredentialScheme.toScheme().schemaUri
                         )
                     }
 
                     is ExportableStoreEntry.Vc -> {
                         SubjectCredentialStore.StoreEntry.Vc(
-                            vcSerialized = storeEntry.vcSerialized,
-                            vc = storeEntry.vc,
-                            scheme = storeEntry.exportableCredentialScheme.toScheme()
+                            storeEntry.vcSerialized,
+                            storeEntry.vc,
+                            storeEntry.exportableCredentialScheme.toScheme().schemaUri
                         )
                     }
                 }

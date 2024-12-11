@@ -16,7 +16,7 @@ open class WalletCryptoService(private val defaultCryptoService: DefaultCryptoSe
         input: ByteArray
     ): SignatureResult<CryptoSignature.RawByteEncodable> = defaultCryptoService.run {
          when (val signer = keyMaterial.getUnderLyingSigner()) {
-            is PlatformSigningProviderSigner<*> -> signer.sign(input) {
+            is PlatformSigningProviderSigner<*, *> -> signer.sign(input) {
                 unlockPrompt {
                     promptText?.let { message = it }
                     promptCancelText?.let { cancelText = it }

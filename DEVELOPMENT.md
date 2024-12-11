@@ -14,14 +14,23 @@ We use [fastlane](https://fastlane.tools/) to build the iOS App. The CI pipeline
 
 Setup:
  - Get an Apple Development Account
- - Create an [App Store Connect API Key](https://developer.apple.com/documentation/appstoreconnectapi/creating_api_keys_for_app_store_connect_api) and download it
- - Run `cd iosApp; fastlane createcert` to create a new signing certificate and provisioning profile
+ - Create an [App Store Connect API Key](https://developer.apple.com/documentation/appstoreconnectapi/creating_api_keys_for_app_store_connect_api) (with `App manager` access) and download it
  
-Export the new certificate from your local keychain:
- - Open "Keychain Access"
- - Look for the certificate expiring one year from now under "Certificates"
- - Right click, export to a `p12` file
- - Choose a password that will be stored in the secrets, see below
+Create a new certificate:
+ - On your Mac, go to Keychain Access, in the menu to Certificate Assistant, Request a Certificate from a Certificate Authority
+ - There, enter your mail address, and save the CSR to disk
+ - On the [Apple developer website](https://developer.apple.com/account/resources/certificates/add), create a certificate for `Apple development` and one for `Apple distribution` with the CSR generated before
+ - Import the generated certificates into Keychain Access, to associate them with your key, and then export the two items to a `p12` file again by right clicking on them
+ - Use the content of the `p12` file for `APPLE_CERT_CONTENT`
+ - Use the password of the `p12` file for `APPLE_CERT_PASSWORD`
+
+Create provisioning profiles:
+ - XCode will register the app identifier automatically for this project
+ - Create two provisioning profiles on the [Apple developer website](https://developer.apple.com/account/resources/profiles/add), one for `iOS App Development` (name it `Compose Wallet Development`) and one for `App Store Connect` (name it `Compose Wallet Distribution`)
+ - Be sure to include the necessary entitlements, e.g. associated domains
+ - Download the provisioning profiles in XCode and set them for the project, instead of `automatically manage signing`
+ - Use `Compose Wallet Development` for debug builds
+ - Use `Compose Wallet Distribution` for release builds
 
 Required secrets for GitHub Actions:
 - `APPLE_ID` with your Apple Development mail address

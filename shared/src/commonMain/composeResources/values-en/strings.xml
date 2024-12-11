@@ -9,7 +9,7 @@
 
     <string name="unknown_exception">Unknown exception</string>
 
-    <string name="app_display_name">Wallet Demo App</string>
+    <string name="app_display_name">Valera</string>
     <string name="snackbar_credential_loaded_successfully">Data has been loaded successfully</string>
     <string name="snackbar_reset_app_successfully">App has been reset successfully</string>
     <string name="snackbar_clear_log_successfully">Log has been cleared successfully</string>
@@ -44,6 +44,9 @@
     <string name="button_label_clear_log">Clear Log</string>
     <string name="button_label_provision_credential_browser">Load via Browser</string>
     <string name="button_label_provision_credential_qr">Load via QR-Code</string>
+    <string name="button_label_select">Select</string>
+    <string name="button_label_show_technical_details">Show technical details</string>
+    <string name="button_label_hide_technical_details">Hide technical details</string>
 
     <string name="attribute_friendly_name_bpk">BPK</string>
     <string name="attribute_friendly_name_firstname">Given name</string>
@@ -199,6 +202,8 @@
     <string name="prompt_ask_load_missing_data">Should the missing attributes be loaded?</string>
     <string name="prompt_send_above_data">Should this data be presented?</string>
     <string name="prompt_send_all_data">Should all data be presented?</string>
+    <string name="prompt_select_credential">Which Credential should be used?</string>
+    <string name="prompt_select_attribute">Which attributes should be transmitted?</string>
 
     <string name="error_feature_not_yet_available">Incomplete Implementation</string>
     <string name="error_authentication_at_sp_failed">Authentication failed</string>
@@ -232,6 +237,7 @@
     <string name="info_text_notice_development_provisioning_using_qr_code_credentials">For development purposes, there is also the option to load data via a QR code.</string>
     <string name="info_text_enthusiastic_welcome_end">Load your data and off you go!</string>
     <string name="info_text_submission_preview_disabled">Preview of data to be submitted is currently not available.</string>
+    <string name="info_text_no_matching_credential">Your credentials don't match the request.</string>
 
     <string name="section_heading_authenticate_at_device_title">Authenticate</string>
     <string name="section_heading_authenticate_at_device_subtitle">at relying party</string>

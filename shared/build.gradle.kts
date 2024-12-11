@@ -29,8 +29,9 @@ kotlin {
                 implementation(compose.materialIconsExtended)
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
-                api(libs.vck.openid)
                 api(libs.vck)
+                api(libs.vck.openid)
+                api(libs.vck.openid.ktor)
                 api(libs.credential.mdl)
                 api(libs.credential.ida)
                 api(libs.credential.eupid)
@@ -87,6 +88,7 @@ exportIosFramework(
     name = "shared", transitiveExports = false,
     libs.vck,
     libs.vck.openid,
+    libs.vck.openid.ktor,
     libs.indispensable,
     libs.supreme,
     libs.kmmresult,

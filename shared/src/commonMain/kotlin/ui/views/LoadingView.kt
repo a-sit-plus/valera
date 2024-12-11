@@ -13,12 +13,11 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import compose_wallet_app.shared.generated.resources.heading_label_loading_screen
 import compose_wallet_app.shared.generated.resources.Res
-import org.jetbrains.compose.resources.ExperimentalResourceApi
+import compose_wallet_app.shared.generated.resources.heading_label_loading_screen
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoadingView() {
     Scaffold(

@@ -42,10 +42,6 @@ class SwiftPlatformAdapter: PlatformAdapter {
         }
         
     }
-    
-    func decodeImage(image: KotlinByteArray) -> Ui_graphicsImageBitmap {
-        return IosUtilities.init().decodeImage(image: image)
-    }
 
     func writeToFile(text: String, fileName: String, folderName: String) {
         if let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
