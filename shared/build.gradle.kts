@@ -1,8 +1,16 @@
 import at.asitplus.gradle.exportIosFramework
+import at.asitplus.gradle.exportXCFramework
 import at.asitplus.gradle.ktor
 import at.asitplus.gradle.napier
 import at.asitplus.gradle.serialization
+import jdk.internal.agent.ConnectorAddressLink.export
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
 import org.jetbrains.kotlin.gradle.plugin.extraProperties
+import org.jetbrains.kotlin.gradle.plugin.mpp.BitcodeEmbeddingMode
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFrameworkConfig
 
 plugins {
     kotlin("multiplatform")
@@ -85,24 +93,53 @@ kotlin {
         }
         iosMain { dependencies { implementation(ktor("client-darwin")) } }
     }
+
+
+
+}
+val appleTargets = kotlinExtension.let {
+    if (it is KotlinMultiplatformExtension) {
+        it.targets.filterIsInstance<KotlinNativeTarget>().filter {
+            it.name.startsWith("ios") ||
+                    it.name.startsWith("tvos") ||
+                    it.name.startsWith("macos")
+
+        }
+    } else throw StopExecutionException("No Apple Targets found! Declare them explicitly before calling exportXCFramework!")
 }
 
-exportIosFramework(
-    name = "shared", transitiveExports = true,
-    libs.vck,
-    libs.vck.openid,
-    libs.vck.openid.ktor,
-    libs.indispensable,
-    libs.supreme,
-    libs.kmmresult,
-    libs.credential.ida,
-    libs.credential.mdl,
-    libs.credential.eupid,
-    libs.credential.powerofrepresentation,
-    libs.credential.certificateofresidence,
-    libs.credential.eprescription,
-    napier(),
-)
+
+extensions.getByType<KotlinMultiplatformExtension>().apply {
+
+    val additionalExports= listOf(libs.vck,
+        libs.vck.openid,
+        libs.vck.openid.ktor,
+        libs.indispensable,
+        libs.supreme,
+        libs.kmmresult,
+        libs.credential.ida,
+        libs.credential.mdl,
+        libs.credential.eupid,
+        libs.credential.powerofrepresentation,
+        libs.credential.certificateofresidence,
+        libs.credential.eprescription,
+        napier(),)
+    XCFrameworkConfig(project, name).also { xcf ->
+        appleTargets.forEach {
+            it.binaries.framework {
+                baseName = name
+                isStatic = false
+                @OptIn(ExperimentalKotlinGradlePluginApi::class)
+                transitiveExport = false
+                embedBitcode(BitcodeEmbeddingMode.DISABLE)
+                additionalExports.forEach { export(it) }
+                binaryOption("bundleId", "at.asitplus.wallet.shared")
+                xcf.add(this)
+            }
+        }
+
+    }
+}
 
 android {
     compileSdk = (extraProperties["android.compileSdk"] as String).toInt()
