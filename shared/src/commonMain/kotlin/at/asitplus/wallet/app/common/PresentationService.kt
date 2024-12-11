@@ -42,10 +42,10 @@ class PresentationService(
         preparationState: AuthorizationResponsePreparationState,
         inputDescriptorSubmission: Map<String, CredentialSubmission>
     ) {
-        presentationService.oidcSiopWallet.finalizeAuthorizationResponse(
+        presentationService.finalizeAuthorizationResponse(
             request = request,
             preparationState = preparationState,
-            inputDescriptorSubmissions = inputDescriptorSubmission
+            inputDescriptorSubmission = inputDescriptorSubmission
         ).getOrThrow()
     }
 
