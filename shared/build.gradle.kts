@@ -1,15 +1,9 @@
-import at.asitplus.gradle.exportIosFramework
-import at.asitplus.gradle.exportXCFramework
 import at.asitplus.gradle.ktor
 import at.asitplus.gradle.napier
 import at.asitplus.gradle.serialization
-import jdk.internal.agent.ConnectorAddressLink.export
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
-import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
 import org.jetbrains.kotlin.gradle.plugin.extraProperties
 import org.jetbrains.kotlin.gradle.plugin.mpp.BitcodeEmbeddingMode
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFrameworkConfig
 
 plugins {
@@ -22,43 +16,37 @@ plugins {
     kotlin("plugin.serialization")
 }
 
-val additionalIosExports = listOf(
-    libs.vck,
-    libs.vck.openid,
-    libs.vck.openid.ktor,
-    libs.indispensable,
-    libs.supreme,
-    libs.kmmresult,
-    libs.credential.ida,
-    libs.credential.mdl,
-    libs.credential.eupid,
-    libs.credential.powerofrepresentation,
-    libs.credential.certificateofresidence,
-    libs.credential.eprescription,
-    napier()
-)
-
 kotlin {
     androidTarget()
+    val additionalIosExports = listOf(
+        libs.vck,
+        libs.vck.openid,
+        libs.vck.openid.ktor,
+        libs.indispensable,
+        libs.supreme,
+        libs.kmmresult,
+        libs.credential.ida,
+        libs.credential.mdl,
+        libs.credential.eupid,
+        libs.credential.powerofrepresentation,
+        libs.credential.certificateofresidence,
+        libs.credential.eprescription,
+        napier()
+    )
     listOf(
         iosX64(),
         iosArm64(),
         iosSimulatorArm64()
     ).forEach { target ->
-        XCFrameworkConfig(project, name).also { xcf ->
-
-            target.binaries.framework {
-                baseName = name
-                isStatic = false
-                @OptIn(ExperimentalKotlinGradlePluginApi::class)
-                transitiveExport = false
-                embedBitcode(BitcodeEmbeddingMode.DISABLE)
-                additionalIosExports.forEach { export(it) }
-                binaryOption("bundleId", "at.asitplus.wallet.shared")
-                xcf.add(this)
-            }
+        target.binaries.framework {
+            baseName = name
+            isStatic = false
+            @OptIn(ExperimentalKotlinGradlePluginApi::class)
+            transitiveExport = false
+            embedBitcode(BitcodeEmbeddingMode.DISABLE)
+            additionalIosExports.forEach { export(it) }
+            binaryOption("bundleId", "at.asitplus.wallet.shared")
         }
-
     }
 
 
