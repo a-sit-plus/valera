@@ -46,6 +46,7 @@ kotlin {
             embedBitcode(BitcodeEmbeddingMode.DISABLE)
             additionalIosExports.forEach { export(it) }
             binaryOption("bundleId", "at.asitplus.wallet.shared")
+            linkerOpts("-ld_classic")
         }
     }
 
