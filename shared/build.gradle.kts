@@ -3,10 +3,7 @@ import at.asitplus.gradle.kmmresult
 import at.asitplus.gradle.ktor
 import at.asitplus.gradle.napier
 import at.asitplus.gradle.serialization
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.plugin.extraProperties
-import org.jetbrains.kotlin.gradle.plugin.mpp.BitcodeEmbeddingMode
-import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFrameworkConfig
 
 plugins {
     kotlin("multiplatform")
@@ -115,10 +112,6 @@ android {
     }
 }
 
-compose.resources {
-    packageOfResClass = "at.asitplus.valera.resources"
-}
-
 exportXCFramework(
     name = "shared", transitiveExports = false, static = false,
     vckCatalog.vck,
@@ -135,6 +128,10 @@ exportXCFramework(
 ) {
     binaryOption("bundleId", "at.asitplus.wallet.shared")
     linkerOpts("-ld_classic")
+}
+
+compose.resources {
+    packageOfResClass = "at.asitplus.valera.resources"
 }
 
 repositories {
