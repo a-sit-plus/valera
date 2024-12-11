@@ -33,7 +33,7 @@ dependencyResolutionManagement {
 
     versionCatalogs {
         create("vclibCatalog") {
-            from("at.asitplus.wallet:vck-openid-ktor-versionCatalog:5.2.0-SNAPSHOT")
+            from("at.asitplus.wallet:vck-openid-ktor-versionCatalog:5.2.0")
         }
     }
 
