@@ -22,8 +22,6 @@ kotlin {
         libs.vck,
         libs.vck.openid,
         libs.vck.openid.ktor,
-        libs.indispensable,
-        libs.supreme,
         libs.kmmresult,
         libs.credential.ida,
         libs.credential.mdl,
