@@ -39,7 +39,7 @@ kotlin {
         iosSimulatorArm64()
     ).forEach { target ->
         target.binaries.framework {
-            baseName = name
+            baseName = "shared"
             isStatic = false
             @OptIn(ExperimentalKotlinGradlePluginApi::class)
             transitiveExport = false
