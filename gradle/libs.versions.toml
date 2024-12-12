@@ -6,12 +6,12 @@ eupid = "2.2.1"
 powerofrepresentation = "1.1.0"
 certificateofresidence = "2.1.0"
 eprescription = "1.1.0"
-atomicfu = "0.23.2"
+atomicfu = "0.25.0"
 compose-plugin = "1.7.1"
-kotlin = "2.0.20"
-indispensable = "3.9.0"
-supreme = "0.4.0"
-kmmresult = "1.7.0"
+kotlin = "2.1.0"
+indispensable = "3.11.1"
+supreme = "0.6.1"
+kmmresult = "1.9.0"
 
 
 [libraries]

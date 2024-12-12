@@ -27,8 +27,8 @@ import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
-import compose_wallet_app.shared.generated.resources.Res
-import compose_wallet_app.shared.generated.resources.heading_label_credential_details_screen
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.heading_label_credential_details_screen
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.CertificateOfResidenceCredentialView

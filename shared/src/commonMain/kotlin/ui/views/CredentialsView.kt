@@ -14,8 +14,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import compose_wallet_app.shared.generated.resources.Res
-import compose_wallet_app.shared.generated.resources.heading_label_my_data_screen
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.heading_label_my_data_screen
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.CustomFloatingActionMenu
 import ui.composables.FloatingActionButtonHeightSpacer

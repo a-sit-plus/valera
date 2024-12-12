@@ -9,10 +9,10 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import compose_wallet_app.shared.generated.resources.Res
-import compose_wallet_app.shared.generated.resources.navigation_button_label_my_data
-import compose_wallet_app.shared.generated.resources.navigation_button_label_settings
-import compose_wallet_app.shared.generated.resources.navigation_button_label_show_data
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.navigation_button_label_my_data
+import at.asitplus.valera.resources.navigation_button_label_settings
+import at.asitplus.valera.resources.navigation_button_label_show_data
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import ui.navigation.Routes.AuthenticationQrCodeScannerRoute

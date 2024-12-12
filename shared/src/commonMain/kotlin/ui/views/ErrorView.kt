@@ -30,11 +30,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import compose_wallet_app.shared.generated.resources.Res
-import compose_wallet_app.shared.generated.resources.button_label_ok
-import compose_wallet_app.shared.generated.resources.heading_label_error_screen
-import compose_wallet_app.shared.generated.resources.info_text_error_occurred
-import compose_wallet_app.shared.generated.resources.info_text_to_start_screen
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.button_label_ok
+import at.asitplus.valera.resources.heading_label_error_screen
+import at.asitplus.valera.resources.info_text_error_occurred
+import at.asitplus.valera.resources.info_text_to_start_screen
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.TextIconButton
 

@@ -31,9 +31,9 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import compose_wallet_app.shared.generated.resources.Res
-import compose_wallet_app.shared.generated.resources.button_label_hide_technical_details
-import compose_wallet_app.shared.generated.resources.button_label_show_technical_details
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.button_label_hide_technical_details
+import at.asitplus.valera.resources.button_label_show_technical_details
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Label
 import ui.composables.LabeledText

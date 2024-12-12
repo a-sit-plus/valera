@@ -1,8 +1,10 @@
-import at.asitplus.gradle.exportIosFramework
 import at.asitplus.gradle.ktor
 import at.asitplus.gradle.napier
 import at.asitplus.gradle.serialization
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.plugin.extraProperties
+import org.jetbrains.kotlin.gradle.plugin.mpp.BitcodeEmbeddingMode
+import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFrameworkConfig
 
 plugins {
     kotlin("multiplatform")
@@ -16,9 +18,36 @@ plugins {
 
 kotlin {
     androidTarget()
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
+    val additionalIosExports = listOf(
+        libs.vck,
+        libs.vck.openid,
+        libs.vck.openid.ktor,
+        libs.kmmresult,
+        libs.credential.ida,
+        libs.credential.mdl,
+        libs.credential.eupid,
+        libs.credential.powerofrepresentation,
+        libs.credential.certificateofresidence,
+        libs.credential.eprescription,
+        napier()
+    )
+    listOf(
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach { target ->
+        target.binaries.framework {
+            baseName = "shared"
+            isStatic = false
+            @OptIn(ExperimentalKotlinGradlePluginApi::class)
+            transitiveExport = false
+            embedBitcode(BitcodeEmbeddingMode.DISABLE)
+            additionalIosExports.forEach { export(it) }
+            binaryOption("bundleId", "at.asitplus.wallet.shared")
+            linkerOpts("-ld_classic")
+        }
+    }
+
 
     sourceSets {
         commonMain {
@@ -30,6 +59,7 @@ kotlin {
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
                 api(libs.vck)
+                //iOS
                 api(libs.vck.openid)
                 api(libs.vck.openid.ktor)
                 api(libs.credential.mdl)
@@ -82,24 +112,9 @@ kotlin {
         }
         iosMain { dependencies { implementation(ktor("client-darwin")) } }
     }
-}
 
-exportIosFramework(
-    name = "shared", transitiveExports = false,
-    libs.vck,
-    libs.vck.openid,
-    libs.vck.openid.ktor,
-    libs.indispensable,
-    libs.supreme,
-    libs.kmmresult,
-    libs.credential.ida,
-    libs.credential.mdl,
-    libs.credential.eupid,
-    libs.credential.powerofrepresentation,
-    libs.credential.certificateofresidence,
-    libs.credential.eprescription,
-    napier(),
-)
+
+}
 
 android {
     compileSdk = (extraProperties["android.compileSdk"] as String).toInt()
@@ -129,6 +144,12 @@ android {
         }
     }
 }
+
+compose.resources {
+    packageOfResClass = "at.asitplus.valera.resources"
+}
+
+
 
 repositories {
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")

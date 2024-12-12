@@ -38,10 +38,10 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import compose_wallet_app.shared.generated.resources.Res
-import compose_wallet_app.shared.generated.resources.button_label_provision_credential_browser
-import compose_wallet_app.shared.generated.resources.button_label_provision_credential_qr
-import compose_wallet_app.shared.generated.resources.content_description_add_credential
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.button_label_provision_credential_browser
+import at.asitplus.valera.resources.button_label_provision_credential_qr
+import at.asitplus.valera.resources.content_description_add_credential
 import org.jetbrains.compose.resources.stringResource
 
 // Modified from https://developer.android.com/develop/ui/compose/animation/composables-modifiers

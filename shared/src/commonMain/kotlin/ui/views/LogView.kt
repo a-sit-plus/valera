@@ -22,8 +22,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import compose_wallet_app.shared.generated.resources.Res
-import compose_wallet_app.shared.generated.resources.heading_label_log_screen
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.heading_label_log_screen
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.buttons.ShareButton

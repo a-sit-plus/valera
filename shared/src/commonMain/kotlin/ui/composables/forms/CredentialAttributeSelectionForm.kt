@@ -14,9 +14,9 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.identifier
 import at.asitplus.wallet.lib.data.ConstantIndex
-import compose_wallet_app.shared.generated.resources.Res
-import compose_wallet_app.shared.generated.resources.button_label_all_missing_data
-import compose_wallet_app.shared.generated.resources.section_heading_load_data_selection
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.button_label_all_missing_data
+import at.asitplus.valera.resources.section_heading_load_data_selection
 import data.PersonalDataCategory
 import data.credentials.CredentialAttributeCategorization
 import org.jetbrains.compose.resources.stringResource

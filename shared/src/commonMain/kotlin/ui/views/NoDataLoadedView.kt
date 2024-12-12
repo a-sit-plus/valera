@@ -13,8 +13,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import compose_wallet_app.shared.generated.resources.Res
-import compose_wallet_app.shared.generated.resources.info_text_no_credentials_available
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.info_text_no_credentials_available
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.CancelButton
 import ui.composables.buttons.LoadDataButton

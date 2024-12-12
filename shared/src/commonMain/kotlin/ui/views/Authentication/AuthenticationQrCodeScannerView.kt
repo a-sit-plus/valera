@@ -2,9 +2,9 @@ package ui.views.Authentication
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import compose_wallet_app.shared.generated.resources.Res
-import compose_wallet_app.shared.generated.resources.heading_label_authenticate_at_device_subtitle
-import compose_wallet_app.shared.generated.resources.heading_label_authenticate_at_device_title
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.heading_label_authenticate_at_device_subtitle
+import at.asitplus.valera.resources.heading_label_authenticate_at_device_title
 import org.jetbrains.compose.resources.stringResource
 import ui.viewmodels.Authentication.AuthenticationQrCodeScannerViewModel
 import ui.views.GenericQrCodeScannerView

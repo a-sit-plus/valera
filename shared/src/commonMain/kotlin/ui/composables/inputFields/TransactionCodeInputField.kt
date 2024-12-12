@@ -7,8 +7,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
-import compose_wallet_app.shared.generated.resources.Res
-import compose_wallet_app.shared.generated.resources.issuing_label_transaction_code
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.issuing_label_transaction_code
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
