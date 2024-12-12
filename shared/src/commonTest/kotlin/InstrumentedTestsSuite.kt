@@ -28,14 +28,6 @@ import at.asitplus.wallet.lib.agent.ClaimToBeIssued
 import at.asitplus.wallet.lib.agent.CredentialToBeIssued
 import at.asitplus.wallet.lib.agent.IssuerAgent
 import at.asitplus.wallet.lib.agent.toStoreCredentialInput
-import compose_wallet_app.shared.generated.resources.Res
-import compose_wallet_app.shared.generated.resources.button_label_accept
-import compose_wallet_app.shared.generated.resources.button_label_consent
-import compose_wallet_app.shared.generated.resources.button_label_continue
-import compose_wallet_app.shared.generated.resources.button_label_details
-import compose_wallet_app.shared.generated.resources.button_label_start
-import compose_wallet_app.shared.generated.resources.content_description_portrait
-import compose_wallet_app.shared.generated.resources.section_heading_age_data
 import data.storage.DummyDataStoreService
 import io.kotest.core.spec.style.FunSpec
 import io.ktor.client.HttpClient
@@ -62,6 +54,14 @@ import org.jetbrains.compose.resources.getString
 import ui.navigation.NavigatorTestTags
 import ui.navigation.Routes.OnboardingWrapperTestTags
 import ui.views.OnboardingStartScreenTestTag
+import valera.shared.generated.resources.Res
+import valera.shared.generated.resources.button_label_accept
+import valera.shared.generated.resources.button_label_consent
+import valera.shared.generated.resources.button_label_continue
+import valera.shared.generated.resources.button_label_details
+import valera.shared.generated.resources.button_label_start
+import valera.shared.generated.resources.content_description_portrait
+import valera.shared.generated.resources.section_heading_age_data
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.minutes
 
@@ -77,7 +77,6 @@ class InstrumentedTestsSuite : FunSpec({
                 lifecycleOwner = TestLifecycleOwner()
                 lifecycleRegistry = LifecycleRegistry(lifecycleOwner)
                 lifecycleRegistry.currentState = Lifecycle.State.CREATED
-
             }
         }
     }
