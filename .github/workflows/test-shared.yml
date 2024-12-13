@@ -38,5 +38,5 @@ jobs:
         if: success() || failure()
         with:
           name: Shared tests
-          path: shared/build/test-results/**/TEST*.xml
+          path: shared/build/outputs/androidTest-results/connected/**/TEST*.xml
           reporter: java-junit
