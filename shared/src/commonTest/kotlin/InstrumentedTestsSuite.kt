@@ -18,6 +18,13 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.button_label_accept
+import at.asitplus.valera.resources.button_label_continue
+import at.asitplus.valera.resources.button_label_details
+import at.asitplus.valera.resources.button_label_start
+import at.asitplus.valera.resources.content_description_portrait
+import at.asitplus.valera.resources.section_heading_age_data
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
@@ -54,14 +61,6 @@ import org.jetbrains.compose.resources.getString
 import ui.navigation.NavigatorTestTags
 import ui.navigation.Routes.OnboardingWrapperTestTags
 import ui.views.OnboardingStartScreenTestTag
-import valera.shared.generated.resources.Res
-import valera.shared.generated.resources.button_label_accept
-import valera.shared.generated.resources.button_label_consent
-import valera.shared.generated.resources.button_label_continue
-import valera.shared.generated.resources.button_label_details
-import valera.shared.generated.resources.button_label_start
-import valera.shared.generated.resources.content_description_portrait
-import valera.shared.generated.resources.section_heading_age_data
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.minutes
 
@@ -281,11 +280,11 @@ class InstrumentedTestsSuite : FunSpec({
                     appLink.value = qrCodeUrl
 
                     waitUntilExactlyOneExists(
-                        hasText(getString(Res.string.button_label_consent)),
+                        hasText(getString(Res.string.button_label_continue)),
                         10000
                     )
 
-                    onNodeWithText(getString(Res.string.button_label_consent)).performClick()
+                    onNodeWithText(getString(Res.string.button_label_continue)).performClick()
 
                     val url = "https://apps.egiz.gv.at/customverifier/customer-success.html?id=$id"
                     val responseSuccess = client.get(url)
