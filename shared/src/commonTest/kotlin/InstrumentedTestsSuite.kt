@@ -20,7 +20,6 @@ import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_accept
-import at.asitplus.valera.resources.button_label_consent
 import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.button_label_details
 import at.asitplus.valera.resources.button_label_start
@@ -281,11 +280,11 @@ class InstrumentedTestsSuite : FunSpec({
                     appLink.value = qrCodeUrl
 
                     waitUntilExactlyOneExists(
-                        hasText(getString(Res.string.button_label_consent)),
+                        hasText(getString(Res.string.button_label_continue)),
                         10000
                     )
 
-                    onNodeWithText(getString(Res.string.button_label_consent)).performClick()
+                    onNodeWithText(getString(Res.string.button_label_continue)).performClick()
 
                     val url = "https://apps.egiz.gv.at/customverifier/customer-success.html?id=$id"
                     val responseSuccess = client.get(url)
