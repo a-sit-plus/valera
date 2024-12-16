@@ -13,14 +13,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -28,9 +27,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.wallet.app.common.third_parts.at.asitplus.jsonpath.core.plus
-import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.getLocalization
-import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_location
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_name
@@ -38,6 +34,9 @@ import at.asitplus.valera.resources.heading_label_authenticate_at_device_screen
 import at.asitplus.valera.resources.heading_label_navigate_back
 import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_data_recipient
+import at.asitplus.wallet.app.common.third_parts.at.asitplus.jsonpath.core.plus
+import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.getLocalization
+import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.ConsentAttributesSection
 import ui.composables.DataDisplaySection
@@ -69,9 +68,7 @@ fun AuthenticationConsentView(vm: AuthenticationConsentViewModel) {
         },
         bottomBar = {
             Surface(
-                color = MaterialTheme.colorScheme.surfaceColorAtElevation(
-                    BottomAppBarDefaults.ContainerElevation
-                )
+                color = NavigationBarDefaults.containerColor,
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,

@@ -2,10 +2,9 @@ package ui.views.Authentication
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import ui.viewmodels.Authentication.AuthenticationAttributesSelectionViewModel
 import ui.viewmodels.Authentication.AuthenticationConsentViewModel
-import ui.viewmodels.Authentication.AuthenticationCredentialSelectionViewModel
 import ui.viewmodels.Authentication.AuthenticationNoCredentialViewModel
+import ui.viewmodels.Authentication.AuthenticationSelectionViewModel
 import ui.viewmodels.Authentication.AuthenticationViewModel
 import ui.viewmodels.Authentication.AuthenticationViewState
 
@@ -28,33 +27,19 @@ fun AuthenticationView(vm: AuthenticationViewModel) {
             AuthenticationConsentView(viewModel)
         }
 
-        AuthenticationViewState.CredentialSelection -> {
-            val viewModel = AuthenticationCredentialSelectionViewModel(walletMain = vm.walletMain,
-                requests = vm.requestMap,
-                selectCredentials = { credentials ->
-                    vm.selectCredentials(credentials)
-                }, navigateUp = { vm.viewState = AuthenticationViewState.Consent })
-            AuthenticationCredentialSelectionView(viewModel)
-        }
-
-        AuthenticationViewState.AttributesSelection -> {
-            val viewModel = AuthenticationAttributesSelectionViewModel(navigateUp = {
-                if (vm.matchingCredentials.values.find { it.size != 1 } == null) {
-                    vm.viewState = AuthenticationViewState.Consent
-                } else {
-                    vm.viewState = AuthenticationViewState.CredentialSelection
-                }
-            },
-                requests = vm.requestMap,
-                selectedCredentials = vm.selectedCredentials,
-                selectAttributes = { attributes -> vm.selectAttributes(selectedAttributes = attributes) })
-            AuthenticationAttributesSelectionView(viewModel)
-        }
-
         AuthenticationViewState.NoMatchingCredential -> {
             val viewModel =
                 AuthenticationNoCredentialViewModel(navigateToHomeScreen = vm.navigateToHomeScreen)
             AuthenticationNoCredentialView(vm = viewModel)
+        }
+
+        AuthenticationViewState.Selection -> {
+            val viewModel = AuthenticationSelectionViewModel(walletMain = vm.walletMain,
+                requests = vm.requestMap,
+                confirmSelections = { selections ->
+                    vm.confirmSelection(selections)
+                }, navigateUp = { vm.viewState = AuthenticationViewState.Consent })
+            AuthenticationSelectionView(vm = viewModel)
         }
     }
 }
