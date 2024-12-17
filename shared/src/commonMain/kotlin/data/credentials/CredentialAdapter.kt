@@ -37,5 +37,22 @@ sealed class CredentialAdapter {
                     it.value.elementIdentifier to it.value.elementValue
                 }
             }
+
+        fun getId(
+            storeEntry: SubjectCredentialStore.StoreEntry
+        ): String {
+            return when (storeEntry) {
+                is SubjectCredentialStore.StoreEntry.Vc -> {
+                    storeEntry.vc.jwtId
+                }
+                is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                    storeEntry.sdJwt.jwtId ?: throw IllegalArgumentException("Credential does not have a jwtId")
+                }
+                is SubjectCredentialStore.StoreEntry.Iso -> {
+                    // TODO probably not the best id
+                    storeEntry.issuerSigned.issuerAuth.signature.humanReadableString
+                }
+            }
+        }
     }
 }

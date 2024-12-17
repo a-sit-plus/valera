@@ -32,6 +32,7 @@ import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_clear_log_successfully
 import at.asitplus.valera.resources.snackbar_reset_app_successfully
+import data.dcapi.DCAPIRequest
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -43,6 +44,7 @@ import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.getString
 import ui.composables.BottomBar
 import ui.composables.NavigationData
+import ui.navigation.Routes.APIAuthenticationConsentRoute
 import ui.navigation.Routes.AddCredentialPreAuthnRoute
 import ui.navigation.Routes.AddCredentialRoute
 import ui.navigation.Routes.AuthenticationQrCodeScannerRoute
@@ -63,9 +65,10 @@ import ui.navigation.Routes.Route
 import ui.navigation.Routes.SettingsRoute
 import ui.screens.SelectIssuingServerView
 import ui.viewmodels.AddCredentialViewModel
+import ui.viewmodels.Authentication.DCAPIAuthenticationViewModel
 import ui.viewmodels.Authentication.AuthenticationQrCodeScannerViewModel
 import ui.viewmodels.Authentication.AuthenticationSuccessViewModel
-import ui.viewmodels.Authentication.AuthenticationViewModel
+import ui.viewmodels.Authentication.DefaultAuthenticationViewModel
 import ui.viewmodels.CredentialDetailsViewModel
 import ui.viewmodels.CredentialsViewModel
 import ui.viewmodels.LoadCredentialViewModel
@@ -233,7 +236,7 @@ private fun WalletNavHost(
             val request = odcJsonSerializer
                 .decodeFromString<RequestParametersFrom<AuthenticationRequestParameters>>(route.authenticationRequestParametersFromSerialized)
 
-            val vm = AuthenticationViewModel(
+            val vm = DefaultAuthenticationViewModel(
                 spName = null,
                 spLocation = route.recipientLocation,
                 spImage = null,
@@ -248,6 +251,36 @@ private fun WalletNavHost(
                 walletMain = walletMain,
             )
             AuthenticationView(vm = vm)
+        }
+
+        composable<APIAuthenticationConsentRoute> { backStackEntry ->
+            val route: APIAuthenticationConsentRoute = backStackEntry.toRoute()
+
+            val vm = try {
+                val dcApiRequest = DCAPIRequest.deserialize(route.apiRequestSerialized).getOrThrow()
+
+                DCAPIAuthenticationViewModel(
+                    dcApiRequest = dcApiRequest,
+                    navigateUp = { navigateBack() },
+                    navigateToAuthenticationSuccessPage = {
+                        navigate(AuthenticationSuccessRoute)
+                    },
+                    walletMain = walletMain,
+                    navigateToHomeScreen = {
+                        popBackStack(HomeScreenRoute)
+                    }
+                )
+
+            } catch (e: Throwable) {
+                popBackStack(HomeScreenRoute)
+                walletMain.errorService.emit(e)
+                null
+            }
+
+            if (vm != null) {
+                AuthenticationView(vm = vm)
+            }
+
         }
 
         composable<AuthenticationSuccessRoute> { backStackEntry ->
