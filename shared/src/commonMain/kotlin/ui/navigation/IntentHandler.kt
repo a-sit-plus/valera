@@ -8,6 +8,7 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_to_bind_credentials_subtitle
 import at.asitplus.valera.resources.biometric_authentication_prompt_to_bind_credentials_title
 import at.asitplus.valera.resources.snackbar_credential_loaded_successfully
+import domain.BuildAuthenticationConsentPageFromAuthenticationRequestAPIUseCase
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier
 import io.ktor.http.parseQueryString
@@ -19,7 +20,8 @@ import ui.navigation.Routes.Route
 enum class IntentType {
     ErrorIntent,
     ProvisioningIntent,
-    AuthorizationIntent
+    AuthorizationIntent,
+    WalletAPIAuthorizationIntent,
 }
 
 @Composable
@@ -78,6 +80,21 @@ fun handleIntent(walletMain: WalletMain, navigate: (Route) -> Unit, navigateBack
                         return@LaunchedEffect
                     }
                 }
+
+                IntentType.WalletAPIAuthorizationIntent -> {
+                    val apiRequest = walletMain.platformAdapter.getCurrentWalletAPIData()
+                    val consentPageBuilder = BuildAuthenticationConsentPageFromAuthenticationRequestAPIUseCase()
+
+                    consentPageBuilder(apiRequest).unwrap().onSuccess {
+                        Napier.d("valid authentication request")
+                        navigate(it)
+                    }.onFailure {
+                        Napier.d("invalid authentication request")
+                    }
+
+                    appLink.value = null
+                    return@LaunchedEffect
+                }
             }
         }
     }
@@ -88,6 +105,8 @@ fun parseIntent(walletMain: WalletMain, url: String): IntentType {
         IntentType.ProvisioningIntent
     } else if (url.contains("error")) {
         IntentType.ErrorIntent
+    } else if (url == "androidx.identitycredentials.action.GET_CREDENTIALS") {
+        IntentType.WalletAPIAuthorizationIntent
     } else {
         IntentType.AuthorizationIntent
     }

@@ -51,6 +51,8 @@ kotlin {
                 implementation(ktor("client-logging"))
                 implementation(ktor("client-content-negotiation"))
                 implementation(ktor("serialization-kotlinx-json"))
+
+                implementation("com.android.identity:identity:202411.1")
             }
         }
 
@@ -73,6 +75,11 @@ kotlin {
                 implementation("androidx.camera:camera-view:1.3.0")
                 implementation("com.google.accompanist:accompanist-permissions:0.30.1")
                 implementation("com.google.mlkit:barcode-scanning:17.2.0")
+
+                implementation("com.google.android.gms:play-services-identity-credentials:16.0.0-alpha03")
+                implementation("com.android.identity:identity-android:202411.1")
+                implementation("org.bouncycastle:bcprov-jdk18on:1.78.1")
+                implementation("org.bouncycastle:bcpkix-jdk18on:1.78.1")
             }
         }
 
