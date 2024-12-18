@@ -56,6 +56,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.jetbrains.compose.resources.getString
 import ui.navigation.NavigatorTestTags
@@ -274,7 +276,10 @@ class InstrumentedTestsSuite : FunSpec({
                             setBody(request)
                         }.body<JsonObject>()
 
-                    val qrCodeUrl = responseGenerateRequest["qrCodeUrl"]?.jsonPrimitive?.content
+
+                    val qrCodeUrl = responseGenerateRequest["qrCodes"]?.let { qrCodesElement ->
+                        qrCodesElement.jsonArray.firstOrNull()?.jsonObject?.get("url")?.jsonPrimitive?.content
+                    }
                     val id = responseGenerateRequest["id"]?.jsonPrimitive?.content
 
                     appLink.value = qrCodeUrl
@@ -296,24 +301,23 @@ class InstrumentedTestsSuite : FunSpec({
     })
 
     val request = Json.encodeToString(RequestBody(
-        "https://wallet.a-sit.at/mobile",
         listOf(Credential(
-            "at.gv.id-austria.2023.1",
+            "urn:eu.europa.ec.eudi:pid:1",
             "SD_JWT",
             listOf(
-                "bpk",
-                "firstname",
-                "lastname",
-                "date-of-birth",
-                "portrait",
-                "main-address",
-                "age-over-18",
+                "family_name",
+                "given_name",
+                "birth_date",
+                "age_over_18",
+                "issuance_date",
+                "issuing_authority",
+                "issuing_country",
             )
         ))
     ))
 
     @Serializable
-    data class RequestBody(val urlprefix: String, val credentials: List<Credential>)
+    data class RequestBody(val credentials: List<Credential>)
 
     @Serializable
     data class Credential(val credentialType: String, val representation: String, val attributes: List<String>)
