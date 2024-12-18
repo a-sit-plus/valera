@@ -1,6 +1,7 @@
-# Release NEXT
+# Release 5.4.1
  * Claim more custom URL schemes: `haip`, `eudi-openid4vp`, `mdoc-openid4vp`
  * Claim URL of Remote Wallet: `https://wallet.a-sit.at/remote/`
+ * Update to vck 5.2.1-SNAPSHOT
 
 # Release 5.4.0
  * Rebrand to Valera
