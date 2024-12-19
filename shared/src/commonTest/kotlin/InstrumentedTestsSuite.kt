@@ -94,19 +94,8 @@ class InstrumentedTestsSuite : FunSpec({
         test("App should start correctly") {
             runComposeUiTest {
                 setContent {
-                    val dummyDataStoreService = DummyDataStoreService()
-                    val ks = KeystoreService(dummyDataStoreService)
-                    val walletMain = WalletMain(
-                        cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
-                        dataStoreService = dummyDataStoreService,
-                        platformAdapter = getPlatformAdapter(),
-                        scope = CoroutineScope(Dispatchers.Default),
-                        buildContext = BuildContext(
-                            buildType = "debug",
-                            versionCode = 0,
-                            versionName = "0.0.0",
-                        )
-                    )
+                    val platformAdapter = getPlatformAdapter()
+                    val walletMain = createWalletMain(platformAdapter)
                     App(walletMain)
                 }
 
@@ -128,19 +117,8 @@ class InstrumentedTestsSuite : FunSpec({
         test("Test 2: App should display onboarding screen") {
             runComposeUiTest {
                 setContent {
-                    val dummyDataStoreService = DummyDataStoreService()
-                    val ks = KeystoreService(dummyDataStoreService)
-                    val walletMain = WalletMain(
-                        cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
-                        dataStoreService = dummyDataStoreService,
-                        platformAdapter = getPlatformAdapter(),
-                        scope = CoroutineScope(Dispatchers.Default),
-                        buildContext = BuildContext(
-                            buildType = "debug",
-                            versionCode = 0,
-                            versionName = "0.0.0",
-                        )
-                    )
+                    val platformAdapter = getPlatformAdapter()
+                    val walletMain = createWalletMain(platformAdapter)
                     App(walletMain)
                 }
 
@@ -158,19 +136,8 @@ class InstrumentedTestsSuite : FunSpec({
         test("Test 3: App should show onboarding start button") {
             runComposeUiTest {
                 setContent {
-                    val dummyDataStoreService = DummyDataStoreService()
-                    val ks = KeystoreService(dummyDataStoreService)
-                    val walletMain = WalletMain(
-                        cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
-                        dataStoreService = dummyDataStoreService,
-                        platformAdapter = getPlatformAdapter(),
-                        scope = CoroutineScope(Dispatchers.Default),
-                        buildContext = BuildContext(
-                            buildType = "debug",
-                            versionCode = 0,
-                            versionName = "0.0.0",
-                        )
-                    )
+                    val platformAdapter = getPlatformAdapter()
+                    val walletMain = createWalletMain(platformAdapter)
                     App(walletMain)
                 }
 
@@ -196,20 +163,10 @@ class InstrumentedTestsSuite : FunSpec({
             runComposeUiTest {
                 setContent {
                     CompositionLocalProvider(LocalLifecycleOwner provides lifecycleOwner) {
-                        val dummyDataStoreService = DummyDataStoreService()
-                        val ks = KeystoreService(dummyDataStoreService)
-                        val walletMain = WalletMain(
-                            cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
-                            dataStoreService = dummyDataStoreService,
-                            platformAdapter = getPlatformAdapter(),
-                            scope = CoroutineScope(Dispatchers.Default),
-                            buildContext = BuildContext(
-                                buildType = "debug",
-                                versionCode = 0,
-                                versionName = "0.0.0",
-                            )
-                        )
+                        val platformAdapter = getPlatformAdapter()
+                        val walletMain = createWalletMain(platformAdapter)
                         App(walletMain)
+
 
                         val issuer = IssuerAgent()
                         runBlocking {
@@ -342,6 +299,21 @@ private fun getAttributes() : List<ClaimToBeIssued> {
 }
 
 
+private fun createWalletMain(platformAdapter: PlatformAdapter): WalletMain {
+    val dummyDataStoreService = DummyDataStoreService()
+    val ks = KeystoreService(dummyDataStoreService)
+    return WalletMain(
+        cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
+        dataStoreService = dummyDataStoreService,
+        platformAdapter = platformAdapter,
+        scope = CoroutineScope(Dispatchers.Default),
+        buildContext = BuildContext(
+            buildType = "debug",
+            versionCode = 0,
+            versionName = "0.0.0",
+        )
+    )
+}
 
 
 
