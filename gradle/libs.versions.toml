@@ -1,23 +1,14 @@
 [versions]
-vck = "5.2.0"
 mdl = "1.1.1"
 ida = "3.9.1"
 eupid = "2.2.1"
 powerofrepresentation = "1.1.0"
 certificateofresidence = "2.1.0"
 eprescription = "1.1.0"
-atomicfu = "0.25.0"
+atomicfu = "0.26.1"
 compose-plugin = "1.7.1"
-kotlin = "2.1.0"
-indispensable = "3.11.1"
-supreme = "0.6.1"
-kmmresult = "1.9.0"
-
 
 [libraries]
-vck = { group = "at.asitplus.wallet", name = "vck", version.ref = "vck" }
-vck-openid = { group = "at.asitplus.wallet", name = "vck-openid", version.ref = "vck" }
-vck-openid-ktor = { group = "at.asitplus.wallet", name = "vck-openid-ktor", version.ref = "vck" }
 atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version.ref = "atomicfu" }
 credential-ida = { module = "at.asitplus.wallet:idacredential", version.ref = "ida" }
 credential-eupid = { module = "at.asitplus.wallet:eupidcredential", version.ref = "eupid" }
@@ -25,10 +16,7 @@ credential-powerofrepresentation = { module = "at.asitplus.wallet:powerofreprese
 credential-certificateofresidence = { module = "at.asitplus.wallet:certificateofresidence", version.ref = "certificateofresidence" }
 credential-mdl = { group = "at.asitplus.wallet", name = "mobiledrivinglicence", version.ref = "mdl" }
 credential-eprescription = { module = "at.asitplus.wallet:eprescription", version.ref = "eprescription"}
-indispensable = { module = "at.asitplus.signum:indispensable", version.ref = "indispensable"}
-supreme = { module = "at.asitplus.signum:supreme", version.ref = "supreme"}
-kmmresult = { module = "at.asitplus:kmmrestul", version.ref = "kmmresult"}
 
 [plugins]
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
-compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose" }
