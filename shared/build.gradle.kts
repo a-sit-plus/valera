@@ -1,8 +1,11 @@
-import at.asitplus.gradle.exportIosFramework
+import at.asitplus.gradle.kmmresult
 import at.asitplus.gradle.ktor
 import at.asitplus.gradle.napier
 import at.asitplus.gradle.serialization
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.plugin.extraProperties
+import org.jetbrains.kotlin.gradle.plugin.mpp.BitcodeEmbeddingMode
+import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFrameworkConfig
 
 plugins {
     kotlin("multiplatform")
@@ -16,9 +19,36 @@ plugins {
 
 kotlin {
     androidTarget()
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
+    val additionalIosExports = listOf(
+        vckCatalog.vck,
+        vckOidCatalog.vck.openid,
+        vckOidCatalog.vck.openid.ktor,
+        libs.credential.ida,
+        libs.credential.mdl,
+        libs.credential.eupid,
+        libs.credential.powerofrepresentation,
+        libs.credential.certificateofresidence,
+        libs.credential.eprescription,
+        kmmresult(),
+        napier()
+    )
+    listOf(
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach { target ->
+        target.binaries.framework {
+            baseName = "shared"
+            isStatic = false
+            @OptIn(ExperimentalKotlinGradlePluginApi::class)
+            transitiveExport = false
+            embedBitcode(BitcodeEmbeddingMode.DISABLE)
+            additionalIosExports.forEach { export(it) }
+            binaryOption("bundleId", "at.asitplus.wallet.shared")
+            linkerOpts("-ld_classic")
+        }
+    }
+
 
     sourceSets {
         commonMain {
@@ -29,9 +59,7 @@ kotlin {
                 implementation(compose.materialIconsExtended)
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
-                api(libs.vck)
-                api(libs.vck.openid)
-                api(libs.vck.openid.ktor)
+                api(vckOidCatalog.vck.openid.ktor)
                 api(libs.credential.mdl)
                 api(libs.credential.ida)
                 api(libs.credential.eupid)
@@ -49,6 +77,9 @@ kotlin {
                 implementation(ktor("client-logging"))
                 implementation(ktor("client-content-negotiation"))
                 implementation(ktor("serialization-kotlinx-json"))
+
+                // Add arrow-core dependency because of https://youtrack.jetbrains.com/issue/KT-73858/NullPointerException-when-building-CMP-ios-App
+                implementation("io.arrow-kt:arrow-core:1.2.4")
             }
         }
 
@@ -82,24 +113,9 @@ kotlin {
         }
         iosMain { dependencies { implementation(ktor("client-darwin")) } }
     }
-}
 
-exportIosFramework(
-    name = "shared", transitiveExports = false,
-    libs.vck,
-    libs.vck.openid,
-    libs.vck.openid.ktor,
-    libs.indispensable,
-    libs.supreme,
-    libs.kmmresult,
-    libs.credential.ida,
-    libs.credential.mdl,
-    libs.credential.eupid,
-    libs.credential.powerofrepresentation,
-    libs.credential.certificateofresidence,
-    libs.credential.eprescription,
-    napier(),
-)
+
+}
 
 android {
     compileSdk = (extraProperties["android.compileSdk"] as String).toInt()
