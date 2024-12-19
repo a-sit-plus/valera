@@ -24,7 +24,7 @@
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
 			<key>CFBundleURLName</key>
-			<string>at.asitplus.wallet.compose</string>
+			<string>presentation.eudi</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>eudi-openid4vp</string>
@@ -38,6 +38,26 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>asitplus-wallet</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>presentation.haip</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>haip</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>presentation.mdoc</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>mdoc-openid4vp</string>
 			</array>
 		</dict>
 	</array>
