@@ -6,7 +6,7 @@ plugins {
     id("at.asitplus.gradle.conventions") version "2.1.0+20241204"
 
     alias(libs.plugins.jetbrainsCompose) apply false
-    alias(libs.plugins.compose.compiler) apply false
+    alias(libs.plugins.compose.compiler) version (vckOidCatalog.versions.kotlin) apply false
 }
 
 repositories {
