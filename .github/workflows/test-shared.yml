@@ -1,8 +1,5 @@
 name: Test shared implementation
-on:
-  push:
-  schedule:
-    - cron: '0 */5 * * *'
+on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
