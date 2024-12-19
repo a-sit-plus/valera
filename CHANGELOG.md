@@ -1,10 +1,12 @@
 # Release NEXT
- * tbd
+ * Claim more custom URL schemes: `haip`, `eudi-openid4vp`, `mdoc-openid4vp`
+ * Claim URL of Remote Wallet: `https://wallet.a-sit.at/remote/`
 
 # Release 5.4.0
  * Rebrand to Valera
  * Kotlin 2.1.0
  * Update to vck 5.2.0
+ * Choose which credentials and attributes to actually send during authentication
 
 # Release 5.3.0
  * Update to vck 5.1.0
