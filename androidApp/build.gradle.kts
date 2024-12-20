@@ -12,6 +12,7 @@ kotlin {
         androidMain {
             dependencies {
                 implementation(project(":shared"))
+                implementation("com.google.android.gms:play-services-identity-credentials:16.0.0-alpha03")
             }
         }
     }
