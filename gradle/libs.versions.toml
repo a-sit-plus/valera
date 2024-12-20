@@ -1,10 +1,10 @@
 [versions]
-mdl = "1.1.1"
-ida = "3.9.1"
-eupid = "2.2.1"
-powerofrepresentation = "1.1.0"
-certificateofresidence = "2.1.0"
-eprescription = "1.1.0"
+mdl = "1.1.2"
+ida = "3.9.2"
+eupid = "2.2.2"
+powerofrepresentation = "1.1.1"
+certificateofresidence = "2.1.1"
+eprescription = "1.1.1"
 atomicfu = "0.26.1"
 compose-plugin = "1.7.1"
 
