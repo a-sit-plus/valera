@@ -1,9 +1,12 @@
 package ui.views
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -19,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.eprescription.EPrescriptionScheme
@@ -28,7 +32,10 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.asp
+import at.asitplus.valera.resources.heading_label_authentication_success
 import at.asitplus.valera.resources.heading_label_credential_details_screen
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.CertificateOfResidenceCredentialView
@@ -90,10 +97,19 @@ fun CredentialDetailsScaffold(
                     NavigateUpButton(navigateUp)
                 },
                 title = {
-                    Text(
-                        stringResource(Res.string.heading_label_credential_details_screen),
-                        style = MaterialTheme.typography.headlineLarge
-                    )
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            stringResource(Res.string.heading_label_credential_details_screen),
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.headlineLarge
+                        )
+                        Image(
+                            modifier = Modifier.padding(start = 0.dp, end = 8.dp, top = 8.dp),
+                            painter = painterResource(Res.drawable.asp),
+                            contentDescription = null,
+                            contentScale = ContentScale.Fit,
+                        )
+                    }
                 },
                 actions = {
                     if (isStoreEntryAvailable) {

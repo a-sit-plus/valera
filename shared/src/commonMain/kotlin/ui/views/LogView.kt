@@ -1,5 +1,6 @@
 package ui.views
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -19,11 +20,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.asp
+import at.asitplus.valera.resources.heading_label_add_credential_screen
 import at.asitplus.valera.resources.heading_label_log_screen
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.buttons.ShareButton
@@ -40,10 +45,19 @@ fun LogView(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        stringResource(Res.string.heading_label_log_screen),
-                        style = MaterialTheme.typography.headlineLarge,
-                    )
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            stringResource(Res.string.heading_label_log_screen),
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.headlineLarge,
+                        )
+                        Image(
+                            modifier = Modifier.padding(start = 0.dp, end = 0.dp, top = 8.dp),
+                            painter = painterResource(Res.drawable.asp),
+                            contentDescription = null,
+                            contentScale = ContentScale.Fit,
+                        )
+                    }
                 },
                 navigationIcon = {
                     NavigateUpButton(vm.navigateUp)
