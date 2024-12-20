@@ -258,16 +258,16 @@ class InstrumentedTestsSuite : FunSpec({
 
     val request = Json.encodeToString(RequestBody(
         listOf(Credential(
-            "urn:eu.europa.ec.eudi:pid:1",
+            "at.gv.id-austria.2023.1",
             "SD_JWT",
             listOf(
-                "family_name",
-                "given_name",
-                "birth_date",
-                "age_over_18",
-                "issuance_date",
-                "issuing_authority",
-                "issuing_country",
+                IdAustriaScheme.Attributes.BPK,
+                IdAustriaScheme.Attributes.FIRSTNAME,
+                IdAustriaScheme.Attributes.LASTNAME,
+                IdAustriaScheme.Attributes.DATE_OF_BIRTH,
+                IdAustriaScheme.Attributes.PORTRAIT,
+                IdAustriaScheme.Attributes.MAIN_ADDRESS,
+                IdAustriaScheme.Attributes.AGE_OVER_18,
             )
         ))
     ))
