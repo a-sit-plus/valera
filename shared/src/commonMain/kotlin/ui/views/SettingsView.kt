@@ -1,5 +1,6 @@
 package ui.views
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,9 +30,12 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.asp
 import at.asitplus.valera.resources.button_label_clear_log
 import at.asitplus.valera.resources.button_label_confirm
 import at.asitplus.valera.resources.button_label_data_protection_policy
@@ -47,6 +51,7 @@ import at.asitplus.valera.resources.section_heading_information
 import at.asitplus.valera.resources.text_label_build
 import at.asitplus.valera.resources.text_label_stage
 import at.asitplus.valera.resources.warning
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import ui.viewmodels.SettingsViewModel
 
@@ -74,10 +79,19 @@ fun SettingsView(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        stringResource(Res.string.heading_label_settings_screen),
-                        style = MaterialTheme.typography.headlineLarge
-                    )
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            stringResource(Res.string.heading_label_settings_screen),
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.headlineLarge
+                        )
+                        Image(
+                            modifier = Modifier.padding(start = 0.dp, end = 8.dp, top = 8.dp),
+                            painter = painterResource(Res.drawable.asp),
+                            contentDescription = null,
+                            contentScale = ContentScale.Fit,
+                        )
+                    }
                 },
             )
         },

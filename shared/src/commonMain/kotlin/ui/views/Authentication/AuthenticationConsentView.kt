@@ -32,12 +32,14 @@ import at.asitplus.wallet.app.common.third_parts.at.asitplus.jsonpath.core.plus
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.asp
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_location
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_name
 import at.asitplus.valera.resources.heading_label_authenticate_at_device_screen
 import at.asitplus.valera.resources.heading_label_navigate_back
 import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_data_recipient
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.ConsentAttributesSection
 import ui.composables.DataDisplaySection
@@ -57,10 +59,19 @@ fun AuthenticationConsentView(vm: AuthenticationConsentViewModel) {
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        stringResource(Res.string.heading_label_navigate_back),
-                        style = MaterialTheme.typography.titleLarge,
-                    )
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            stringResource(Res.string.heading_label_navigate_back),
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.titleLarge,
+                        )
+                        Image(
+                            modifier = Modifier.padding(start = 0.dp, end = 0.dp, top = 8.dp),
+                            painter = painterResource(Res.drawable.asp),
+                            contentDescription = null,
+                            contentScale = ContentScale.Fit,
+                        )
+                    }
                 },
                 navigationIcon = {
                     NavigateUpButton(vm.navigateUp)
