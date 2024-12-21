@@ -111,13 +111,13 @@ fun CredentialDetailsScaffold(
                         )
                     }
                 },
-                actions = {
+                /*actions = {
                     if (isStoreEntryAvailable) {
                         CredentialCardActionMenu(
                             onDelete = onDelete
                         )
                     }
-                },
+                },*/
             )
         },
         modifier = modifier,
