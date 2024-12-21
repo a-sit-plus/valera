@@ -35,6 +35,8 @@ fun App(walletMain: WalletMain) {
 
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         Napier.d("Lifecycle.Event.ON_RESUME")
+        // TODO is this the best place to sync the credentials with the system?
+        walletMain.updateDigitalCredentialsAPIIntegration()
     }
 
     WalletTheme {

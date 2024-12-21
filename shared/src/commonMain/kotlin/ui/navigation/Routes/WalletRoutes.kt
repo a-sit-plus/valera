@@ -44,4 +44,9 @@ data class AuthenticationViewRoute(
 ) : Route()
 
 @Serializable
+data class DCAPIAuthenticationConsentRoute(
+    val apiRequestSerialized: String
+) : Route()
+
+@Serializable
 object AuthenticationSuccessRoute : Route()

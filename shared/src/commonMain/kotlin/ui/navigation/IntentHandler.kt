@@ -8,9 +8,11 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_to_bind_credentials_subtitle
 import at.asitplus.valera.resources.biometric_authentication_prompt_to_bind_credentials_title
 import at.asitplus.valera.resources.snackbar_credential_loaded_successfully
+import domain.BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier
 import io.ktor.http.parseQueryString
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.getString
 import ui.navigation.Routes.LoadingRoute
@@ -19,11 +21,12 @@ import ui.navigation.Routes.Route
 enum class IntentType {
     ErrorIntent,
     ProvisioningIntent,
-    AuthorizationIntent
+    AuthorizationIntent,
+    DCAPIAuthorizationIntent,
 }
 
 @Composable
-fun handleIntent(walletMain: WalletMain, navigate: (Route) -> Unit, navigateBack: () -> Unit){
+fun handleIntent(walletMain: WalletMain, navigate: (Route) -> Unit, navigateBack: () -> Unit) {
     LaunchedEffect(appLink.value) {
         Napier.d("app link changed to ${appLink.value}")
         appLink.value?.let { link ->
@@ -78,6 +81,23 @@ fun handleIntent(walletMain: WalletMain, navigate: (Route) -> Unit, navigateBack
                         return@LaunchedEffect
                     }
                 }
+
+                IntentType.DCAPIAuthorizationIntent -> {
+                    delay(500)
+                    val dcApiRequest = walletMain.platformAdapter.getCurrentDCAPIData()
+                    val consentPageBuilder =
+                        BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase()
+
+                    consentPageBuilder(dcApiRequest).unwrap().onSuccess {
+                        Napier.d("valid authentication request")
+                        navigate(it)
+                    }.onFailure {
+                        walletMain.errorService.emit(Exception("Invalid Authentication Request"))
+                    }
+
+                    appLink.value = null
+                    return@LaunchedEffect
+                }
             }
         }
     }
@@ -88,6 +108,8 @@ fun parseIntent(walletMain: WalletMain, url: String): IntentType {
         IntentType.ProvisioningIntent
     } else if (url.contains("error")) {
         IntentType.ErrorIntent
+    } else if (url == "androidx.identitycredentials.action.GET_CREDENTIALS") {
+        IntentType.DCAPIAuthorizationIntent
     } else {
         IntentType.AuthorizationIntent
     }
