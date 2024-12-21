@@ -112,24 +112,6 @@ android {
     }
 }
 
-exportXCFramework(
-    name = "shared", transitiveExports = false, static = false,
-    vckCatalog.vck,
-    vckOidCatalog.vck.openid,
-    vckOidCatalog.vck.openid.ktor,
-    libs.credential.ida,
-    libs.credential.mdl,
-    libs.credential.eupid,
-    libs.credential.powerofrepresentation,
-    libs.credential.certificateofresidence,
-    libs.credential.eprescription,
-    kmmresult(),
-    napier()
-) {
-    binaryOption("bundleId", "at.asitplus.wallet.shared")
-    linkerOpts("-ld_classic")
-}
-
 compose.resources {
     packageOfResClass = "at.asitplus.valera.resources"
 }
