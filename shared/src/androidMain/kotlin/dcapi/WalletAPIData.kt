@@ -1,4 +1,4 @@
-package digitalcredentialsapi
+package dcapi
 
 import android.content.Intent
 

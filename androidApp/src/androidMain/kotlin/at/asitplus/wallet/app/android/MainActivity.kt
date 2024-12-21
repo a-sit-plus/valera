@@ -9,7 +9,7 @@ import appLink
 import at.asitplus.wallet.app.common.BuildContext
 import com.google.android.gms.identitycredentials.GetCredentialResponse
 import com.google.android.gms.identitycredentials.IntentHelper
-import digitalcredentialsapi.WalletAPIData
+import dcapi.WalletAPIData
 
 
 class MainActivity : AppCompatActivity() {

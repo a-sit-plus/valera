@@ -1,4 +1,4 @@
-package digitalcredentialsapi
+package dcapi
 
 import AndroidPlatformAdapter
 import android.content.Context
@@ -15,6 +15,7 @@ import java.nio.ByteOrder
 import kotlin.collections.forEach
 import kotlin.text.toByteArray
 
+// adapted from https://github.com/openwallet-foundation-labs/identity-credential/blob/d7a37a5c672ed6fe1d863cbaeb1a998314d19fc5/appholder/src/main/java/com/android/identity/wallet/credman/IdentityCredentialRegistry.kt
 class IdentityCredentialHelper(
     private val credentialsContainer: CredentialsContainer,
     private val androidPlatformAdapter: AndroidPlatformAdapter,

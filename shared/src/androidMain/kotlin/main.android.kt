@@ -28,8 +28,8 @@ import data.dcapi.CredentialsContainer
 import data.dcapi.ResponseJSON
 import data.storage.RealDataStoreService
 import data.storage.getDataStore
-import digitalcredentialsapi.IdentityCredentialHelper
-import digitalcredentialsapi.WalletAPIData
+import dcapi.IdentityCredentialHelper
+import dcapi.WalletAPIData
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -155,6 +155,7 @@ class AndroidPlatformAdapter(private val context: Context, private val finishAPI
 
     override fun getCurrentDCAPIData(): DCAPIRequest? {
         return walletAPIData?.intent?.let {
+            // Adapted from https://github.com/openwallet-foundation-labs/identity-credential/blob/d7a37a5c672ed6fe1d863cbaeb1a998314d19fc5/wallet/src/main/java/com/android/identity_credential/wallet/credman/CredmanPresentationActivity.kt#L74
             val cmrequest = IntentHelper.extractGetCredentialRequest(it) ?: return null
             val credentialId = it.getLongExtra(IntentHelper.EXTRA_CREDENTIAL_ID, -1).toInt()
 
