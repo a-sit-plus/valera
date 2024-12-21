@@ -13,16 +13,18 @@ pluginManagement {
 
     plugins {
         val agpVersion = extra["agp.version"] as String
-        val composeVersion = extra["compose.version"] as String
+ //       val composeVersion = extra["compose.version"] as String
         id("com.android.application").version(agpVersion)
         id("com.android.library").version(agpVersion)
-        id("org.jetbrains.compose").version(composeVersion)
+   //     id("org.jetbrains.compose").version(composeVersion)
     }
 }
 
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version ("0.4.0")
 }
+
+val vckVersion :String get() = settings.extra["vck.version"].toString()
 
 dependencyResolutionManagement {
     repositories {
@@ -32,8 +34,14 @@ dependencyResolutionManagement {
     }
 
     versionCatalogs {
-        create("vclibCatalog") {
-            from("at.asitplus.wallet:vck-openid-ktor-versionCatalog:5.2.0")
+        create("vckOidCatalog") {
+            from("at.asitplus.wallet:vck-openid-ktor-versionCatalog:$vckVersion")
+        }
+    }
+    //because the other one does not provide the transitive VC-K dependency required for XFC export
+   versionCatalogs {
+        create("vckCatalog") {
+            from("at.asitplus.wallet:vck-versionCatalog:$vckVersion")
         }
     }
 

@@ -24,10 +24,22 @@
 
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
+                <!-- May be used by relying parties to invoke the Wallet for authentication -->
                 <data
                     android:host="wallet.a-sit.at"
                     android:pathPrefix="/mobile"
+                    android:scheme="https" />
+            </intent-filter>
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <!-- May be used by relying parties to invoke the Wallet for authentication -->
+                <data
+                    android:host="wallet.a-sit.at"
+                    android:pathPrefix="/remote/"
                     android:scheme="https" />
             </intent-filter>
             <intent-filter>
@@ -36,7 +48,7 @@
 
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
+                <!-- Used when jumping back from browser after authenticating at the credential issuer in OID4VCI -->
                 <data
                     android:host="wallet.a-sit.at"
                     android:pathPrefix="/app"
@@ -59,11 +71,26 @@
 
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
+                <!-- May be used by relying parties to invoke the Wallet for authentication -->
+                <data android:scheme="eudi-openid4vp" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.VIEW" />
 
-                <data
-                    android:host="verifier-backend.eudiw.dev"
-                    android:pathPrefix="/"
-                    android:scheme="eudi-openid4vp" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <!-- May be used by relying parties to invoke the Wallet for authentication -->
+                <data android:scheme="mdoc-openid4vp" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <!-- May be used by relying parties to invoke the Wallet for authentication -->
+                <data android:scheme="haip" />
             </intent-filter>
         </activity>
         <provider

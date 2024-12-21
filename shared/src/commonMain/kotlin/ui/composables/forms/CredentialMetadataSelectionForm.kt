@@ -17,6 +17,7 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.issuing_label_host
 import at.asitplus.valera.resources.issuing_label_representation
 import at.asitplus.valera.resources.issuing_label_scheme
+import at.asitplus.wallet.lib.oidvci.toRepresentation
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.inputFields.StatefulCredentialIdentifierInputField
 import ui.composables.inputFields.TransactionCodeInputField
@@ -72,7 +73,7 @@ fun CredentialMetadataSelectionForm(
             )
             Text(": ")
             Text(
-                text = credentialIdentifierInfo.credentialScheme.uiLabel(),
+                text = credentialIdentifierInfo.supportedCredentialFormat.format.toRepresentation().uiLabel(),
                 style = MaterialTheme.typography.bodyLarge,
             )
         }

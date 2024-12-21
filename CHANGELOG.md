@@ -1,7 +1,16 @@
+# Release 5.4.1
+ * Claim more custom URL schemes: `haip`, `eudi-openid4vp`, `mdoc-openid4vp`
+ * Claim URL of Remote Wallet: `https://wallet.a-sit.at/remote/`
+ * Update to vck 5.3.0-SNAPSHOT, fixing ISO mDoc presentations
+ * Update all Credentials to base them on VC-K 5.2.1
+ * Remove last build tool bugs workaround
+ * Update to latest conventions, fixing XCF export mess in build script
+
 # Release 5.4.0
  * Rebrand to Valera
  * Kotlin 2.1.0
  * Update to vck 5.2.0
+ * Choose which credentials and attributes to actually send during authentication
 
 # Release 5.3.0
  * Update to vck 5.1.0

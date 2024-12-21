@@ -1,3 +1,5 @@
+import at.asitplus.gradle.exportXCFramework
+import at.asitplus.gradle.kmmresult
 import at.asitplus.gradle.ktor
 import at.asitplus.gradle.napier
 import at.asitplus.gradle.serialization
@@ -18,36 +20,9 @@ plugins {
 
 kotlin {
     androidTarget()
-    val additionalIosExports = listOf(
-        libs.vck,
-        libs.vck.openid,
-        libs.vck.openid.ktor,
-        libs.kmmresult,
-        libs.credential.ida,
-        libs.credential.mdl,
-        libs.credential.eupid,
-        libs.credential.powerofrepresentation,
-        libs.credential.certificateofresidence,
-        libs.credential.eprescription,
-        napier()
-    )
-    listOf(
-        iosX64(),
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { target ->
-        target.binaries.framework {
-            baseName = "shared"
-            isStatic = false
-            @OptIn(ExperimentalKotlinGradlePluginApi::class)
-            transitiveExport = false
-            embedBitcode(BitcodeEmbeddingMode.DISABLE)
-            additionalIosExports.forEach { export(it) }
-            binaryOption("bundleId", "at.asitplus.wallet.shared")
-            linkerOpts("-ld_classic")
-        }
-    }
-
+    iosX64()
+    iosArm64()
+    iosSimulatorArm64()
 
     sourceSets {
         commonMain {
@@ -58,10 +33,7 @@ kotlin {
                 implementation(compose.materialIconsExtended)
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
-                api(libs.vck)
-                //iOS
-                api(libs.vck.openid)
-                api(libs.vck.openid.ktor)
+                api(vckOidCatalog.vck.openid.ktor)
                 api(libs.credential.mdl)
                 api(libs.credential.ida)
                 api(libs.credential.eupid)
@@ -112,8 +84,6 @@ kotlin {
         }
         iosMain { dependencies { implementation(ktor("client-darwin")) } }
     }
-
-
 }
 
 android {
@@ -149,7 +119,23 @@ compose.resources {
     packageOfResClass = "at.asitplus.valera.resources"
 }
 
-
+exportXCFramework(
+    name = "shared", transitiveExports = false, static = false,
+    vckCatalog.vck,
+    vckOidCatalog.vck.openid,
+    vckOidCatalog.vck.openid.ktor,
+    libs.credential.ida,
+    libs.credential.mdl,
+    libs.credential.eupid,
+    libs.credential.powerofrepresentation,
+    libs.credential.certificateofresidence,
+    libs.credential.eprescription,
+    kmmresult(),
+    napier()
+) {
+    binaryOption("bundleId", "at.asitplus.wallet.shared")
+    linkerOpts("-ld_classic")
+}
 
 repositories {
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
