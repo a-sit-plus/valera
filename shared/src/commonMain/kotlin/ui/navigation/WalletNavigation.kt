@@ -233,24 +233,33 @@ private fun WalletNavHost(
         composable<AuthenticationViewRoute> { backStackEntry ->
             val route: AuthenticationViewRoute = backStackEntry.toRoute()
 
-            val request = odcJsonSerializer
-                .decodeFromString<RequestParametersFrom<AuthenticationRequestParameters>>(route.authenticationRequestParametersFromSerialized)
+            val vm = try {
+                val request = odcJsonSerializer
+                    .decodeFromString<RequestParametersFrom<AuthenticationRequestParameters>>(route.authenticationRequestParametersFromSerialized)
 
-            val vm = DefaultAuthenticationViewModel(
-                spName = null,
-                spLocation = route.recipientLocation,
-                spImage = null,
-                authenticationRequest = request,
-                navigateUp = { navigateBack() },
-                navigateToAuthenticationSuccessPage = {
-                    navigate(AuthenticationSuccessRoute)
-                },
-                navigateToHomeScreen = {
-                    popBackStack(HomeScreenRoute)
-                },
-                walletMain = walletMain,
-            )
-            AuthenticationView(vm = vm)
+                DefaultAuthenticationViewModel(
+                    spName = null,
+                    spLocation = route.recipientLocation,
+                    spImage = null,
+                    authenticationRequest = request,
+                    navigateUp = { navigateBack() },
+                    navigateToAuthenticationSuccessPage = {
+                        navigate(AuthenticationSuccessRoute)
+                    },
+                    navigateToHomeScreen = {
+                        popBackStack(HomeScreenRoute)
+                    },
+                    walletMain = walletMain,
+                )
+            } catch (e: Throwable) {
+                popBackStack(HomeScreenRoute)
+                walletMain.errorService.emit(e)
+                null
+            }
+
+            if (vm != null) {
+                AuthenticationView(vm = vm)
+            }
         }
 
         composable<APIAuthenticationConsentRoute> { backStackEntry ->
@@ -270,7 +279,6 @@ private fun WalletNavHost(
                         popBackStack(HomeScreenRoute)
                     }
                 )
-
             } catch (e: Throwable) {
                 popBackStack(HomeScreenRoute)
                 walletMain.errorService.emit(e)

@@ -38,7 +38,7 @@ class DefaultAuthenticationViewModel(
     override val descriptors =
         authenticationRequest.parameters.presentationDefinition?.inputDescriptors ?: listOf()
     override val parametersMap = descriptors.mapNotNull {
-        val parameter = it.getRequestOptionParameters() ?: return@mapNotNull null
+        val parameter = it.getRequestOptionParameters().getOrElse { return@mapNotNull null }
         Pair(it.id, parameter)
     }.toMap()
 

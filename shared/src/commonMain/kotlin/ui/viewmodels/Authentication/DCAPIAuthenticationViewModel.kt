@@ -42,7 +42,7 @@ class DCAPIAuthenticationViewModel(
     }
 
     override val parametersMap = descriptors.mapNotNull {
-        val parameter = it.getRequestOptionParameters() ?: return@mapNotNull null
+        val parameter = it.getRequestOptionParameters().getOrElse { return@mapNotNull null }
         it.id to parameter
     }.toMap()
 

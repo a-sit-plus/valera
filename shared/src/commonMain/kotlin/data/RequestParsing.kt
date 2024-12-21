@@ -1,5 +1,7 @@
 package at.asitplus.misc
 
+import at.asitplus.KmmResult
+import at.asitplus.KmmResult.Companion.wrap
 import at.asitplus.dif.ConstraintField
 import at.asitplus.dif.InputDescriptor
 import at.asitplus.jsonpath.core.NodeList
@@ -38,10 +40,11 @@ val allCredentialCandidates: List<CredentialCandidate> = AttributeIndex.schemeSe
     }
 }
 
-fun InputDescriptor.getRequestOptionParameters(): RequestOptionParameters? {
-    val (candidate, result) = this.evaluateAgainstKnownSchemes { true }
-    return result.toRequestOptionParameters(candidate.scheme, candidate.representation)
-}
+fun InputDescriptor.getRequestOptionParameters(): KmmResult<RequestOptionParameters> =
+    runCatching {
+        val (candidate, result) = this.evaluateAgainstKnownSchemes { true }
+        result.toRequestOptionParameters(candidate.scheme, candidate.representation)!!
+    }.wrap()
 
 private fun InputDescriptor.evaluateAgainstKnownSchemes(
     pathAuthorizationValidator: (NormalizedJsonPath) -> Boolean,
