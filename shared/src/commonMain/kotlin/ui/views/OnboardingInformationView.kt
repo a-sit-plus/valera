@@ -1,5 +1,6 @@
 package ui.views
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,9 +21,12 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.asp
 import at.asitplus.valera.resources.heading_label_information_screen
+import at.asitplus.valera.resources.heading_label_log_screen
 import at.asitplus.valera.resources.info_text_enthusiastic_welcome_end
 import at.asitplus.valera.resources.onboarding_section_load_data_icon_text
 import at.asitplus.valera.resources.onboarding_section_load_data_subtitle
@@ -32,6 +36,7 @@ import at.asitplus.valera.resources.onboarding_section_show_data_subtitle
 import at.asitplus.valera.resources.onboarding_section_show_data_title
 import at.asitplus.valera.resources.onboarding_section_terms_and_data_protection_icon_text
 import at.asitplus.valera.resources.onboarding_section_terms_and_data_protection_title
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.TextIcon
 import ui.composables.buttons.ContinueButton
@@ -46,10 +51,19 @@ fun OnboardingInformationView(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = stringResource(Res.string.heading_label_information_screen),
-                        style = MaterialTheme.typography.headlineLarge,
-                    )
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = stringResource(Res.string.heading_label_information_screen),
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.headlineLarge,
+                        )
+                        Image(
+                            modifier = Modifier.padding(start = 0.dp, end = 8.dp, top = 8.dp),
+                            painter = painterResource(Res.drawable.asp),
+                            contentDescription = null,
+                            contentScale = ContentScale.Fit,
+                        )
+                    }
                 },
             )
         },
