@@ -5,6 +5,7 @@
  * Update all Credentials to base them on VC-K 5.2.1
  * Remove last build tool bugs workaround
  * Update to latest conventions, fixing XCF export mess in build script
+ * Add logo of A-SIT Plus GmbH to headers of all Screens
 
 # Release 5.4.0
  * Rebrand to Valera
