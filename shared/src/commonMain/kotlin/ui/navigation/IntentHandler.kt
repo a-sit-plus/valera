@@ -12,6 +12,7 @@ import domain.BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCas
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier
 import io.ktor.http.parseQueryString
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.getString
 import ui.navigation.Routes.LoadingRoute
@@ -82,6 +83,7 @@ fun handleIntent(walletMain: WalletMain, navigate: (Route) -> Unit, navigateBack
                 }
 
                 IntentType.DCAPIAuthorizationIntent -> {
+                    delay(500)
                     val dcApiRequest = walletMain.platformAdapter.getCurrentDCAPIData()
                     val consentPageBuilder =
                         BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase()
