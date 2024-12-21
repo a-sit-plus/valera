@@ -25,7 +25,6 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.asp
 import at.asitplus.valera.resources.heading_label_authentication_success
-import at.asitplus.valera.resources.heading_label_navigate_back
 import at.asitplus.valera.resources.info_text_authentication_success
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -48,7 +47,7 @@ fun AuthenticationSuccessView(
                         Text(
                             stringResource(Res.string.heading_label_authentication_success),
                             modifier = Modifier.weight(1f),
-                            style = MaterialTheme.typography.headlineLarge,
+                            style = MaterialTheme.typography.titleLarge,
                         )
                         Image(
                             modifier = Modifier.padding(start = 0.dp, end = 0.dp, top = 8.dp),
