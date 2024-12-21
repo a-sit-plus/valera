@@ -104,7 +104,7 @@ fun CredentialDetailsScaffold(
                             style = MaterialTheme.typography.headlineLarge
                         )
                         Image(
-                            modifier = Modifier.padding(start = 0.dp, end = 8.dp, top = 8.dp),
+                            modifier = Modifier.padding(start = 0.dp, end = 0.dp, top = 8.dp),
                             painter = painterResource(Res.drawable.asp),
                             contentDescription = null,
                             contentScale = ContentScale.Fit,
