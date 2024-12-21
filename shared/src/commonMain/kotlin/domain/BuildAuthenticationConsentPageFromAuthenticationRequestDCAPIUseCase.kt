@@ -2,13 +2,13 @@ package domain
 
 import at.asitplus.KmmResult
 import data.dcapi.DCAPIRequest
-import ui.navigation.Routes.APIAuthenticationConsentRoute
+import ui.navigation.Routes.DCAPIAuthenticationConsentRoute
 
 class BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase {
-    operator fun invoke(incomingRequest: DCAPIRequest?): KmmResult<APIAuthenticationConsentRoute> {
+    operator fun invoke(incomingRequest: DCAPIRequest?): KmmResult<DCAPIAuthenticationConsentRoute> {
         return incomingRequest?.let {
             KmmResult.success(
-                APIAuthenticationConsentRoute(
+                DCAPIAuthenticationConsentRoute(
                     it.serialize()
                 )
             )

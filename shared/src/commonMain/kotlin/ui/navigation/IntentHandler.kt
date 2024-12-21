@@ -83,13 +83,14 @@ fun handleIntent(walletMain: WalletMain, navigate: (Route) -> Unit, navigateBack
 
                 IntentType.DCAPIAuthorizationIntent -> {
                     val dcApiRequest = walletMain.platformAdapter.getCurrentDCAPIData()
-                    val consentPageBuilder = BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase()
+                    val consentPageBuilder =
+                        BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase()
 
                     consentPageBuilder(dcApiRequest).unwrap().onSuccess {
                         Napier.d("valid authentication request")
                         navigate(it)
                     }.onFailure {
-                        Napier.d("invalid authentication request")
+                        walletMain.errorService.emit(Exception("Invalid Authentication Request"))
                     }
 
                     appLink.value = null

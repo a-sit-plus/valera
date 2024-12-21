@@ -44,7 +44,7 @@ import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.getString
 import ui.composables.BottomBar
 import ui.composables.NavigationData
-import ui.navigation.Routes.APIAuthenticationConsentRoute
+import ui.navigation.Routes.DCAPIAuthenticationConsentRoute
 import ui.navigation.Routes.AddCredentialPreAuthnRoute
 import ui.navigation.Routes.AddCredentialRoute
 import ui.navigation.Routes.AuthenticationQrCodeScannerRoute
@@ -262,8 +262,8 @@ private fun WalletNavHost(
             }
         }
 
-        composable<APIAuthenticationConsentRoute> { backStackEntry ->
-            val route: APIAuthenticationConsentRoute = backStackEntry.toRoute()
+        composable<DCAPIAuthenticationConsentRoute> { backStackEntry ->
+            val route: DCAPIAuthenticationConsentRoute = backStackEntry.toRoute()
 
             val vm = try {
                 val dcApiRequest = DCAPIRequest.deserialize(route.apiRequestSerialized).getOrThrow()
