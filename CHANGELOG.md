@@ -1,3 +1,6 @@
+# Release 5.4.2
+ * Go back to vck 5.2.1 (still fixing ISO mDoc presentations)
+
 # Release 5.4.1
  * Claim more custom URL schemes: `haip`, `eudi-openid4vp`, `mdoc-openid4vp`
  * Claim URL of Remote Wallet: `https://wallet.a-sit.at/remote/`
