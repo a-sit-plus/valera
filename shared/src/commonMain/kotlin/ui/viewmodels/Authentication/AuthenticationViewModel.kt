@@ -45,22 +45,16 @@ class AuthenticationViewModel(
         mutableMapOf()
 
     fun onConsent() {
-
-
         preparationState =
             runBlocking { walletMain.presentationService.getPreparationState(request = authenticationRequest) }
         matchingCredentials =
             runBlocking { walletMain.presentationService.getMatchingCredentials(preparationState = preparationState) }
 
         requestMap = descriptors.mapNotNull {
-            val parameter = parametersMap[it.id] ?: return@mapNotNull null
             val credential = matchingCredentials[it.id] ?: return@mapNotNull null
             Pair(it.id, credential)
         }.toMap()
-
-        val currentRequest = mutableStateOf(requestMap.iterator())
-        print(currentRequest)
-
+        
         if (matchingCredentials.values.find { it.size != 1 } == null) {
             selectedCredentials = matchingCredentials.entries.associate {
                 val requestId = it.key
@@ -74,6 +68,7 @@ class AuthenticationViewModel(
             viewState = AuthenticationViewState.NoMatchingCredential
         }
     }
+
     fun confirmSelection(submissions: Map<String, CredentialSubmission>) {
         walletMain.scope.launch {
             finalizeAuthorization(submissions)

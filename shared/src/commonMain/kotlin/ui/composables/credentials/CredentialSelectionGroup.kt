@@ -14,9 +14,19 @@ import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 
 @Composable
-fun CredentialSelectionGroup(matchingCredentials: Map<SubjectCredentialStore. StoreEntry, Map<ConstraintField, List<NodeListEntry>>>, attributeSelection: SnapshotStateMap<NormalizedJsonPath, Boolean>, credentialSelection: MutableState<SubjectCredentialStore. StoreEntry>, imageDecoder: (ByteArray) -> ImageBitmap?) {
+fun CredentialSelectionGroup(
+    matchingCredentials: Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, List<NodeListEntry>>>,
+    attributeSelection: SnapshotStateMap<NormalizedJsonPath, Boolean>,
+    credentialSelection: MutableState<SubjectCredentialStore.StoreEntry>,
+    imageDecoder: (ByteArray) -> ImageBitmap?
+) {
     matchingCredentials.forEach { credential ->
-        CredentialSelectionCard(credential, imageDecoder = imageDecoder, attributeSelection = attributeSelection, credentialSelection = credentialSelection)
+        CredentialSelectionCard(
+            credential,
+            imageDecoder = imageDecoder,
+            attributeSelection = attributeSelection,
+            credentialSelection = credentialSelection
+        )
         Spacer(modifier = Modifier.height(16.dp))
     }
 }

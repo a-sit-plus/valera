@@ -13,7 +13,7 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 
 class AuthenticationSelectionViewModel(
     val walletMain: WalletMain,
-    val requests: Map<String, Map<SubjectCredentialStore. StoreEntry, Map<ConstraintField, List<NodeListEntry>>>>,
+    val requests: Map<String, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, List<NodeListEntry>>>>,
     val confirmSelections: (Map<String, CredentialSubmission>) -> Unit,
     val navigateUp: () -> Unit
 ) {

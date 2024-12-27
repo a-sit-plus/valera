@@ -24,14 +24,15 @@ import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 
 @Composable
-fun CredentialSelectionCard(credential: Map.Entry<SubjectCredentialStore.StoreEntry, Map<ConstraintField, NodeList>>, imageDecoder: (ByteArray) -> ImageBitmap?, attributeSelection: SnapshotStateMap<NormalizedJsonPath, Boolean>, credentialSelection: MutableState<SubjectCredentialStore. StoreEntry>) {
-    val selected = remember {mutableStateOf(false)}
+fun CredentialSelectionCard(
+    credential: Map.Entry<SubjectCredentialStore.StoreEntry, Map<ConstraintField, NodeList>>,
+    imageDecoder: (ByteArray) -> ImageBitmap?,
+    attributeSelection: SnapshotStateMap<NormalizedJsonPath, Boolean>,
+    credentialSelection: MutableState<SubjectCredentialStore.StoreEntry>
+) {
+    val selected = remember { mutableStateOf(false) }
 
-    if (credentialSelection.value == credential.key) {
-        selected.value = true
-    } else {
-        selected.value = false
-    }
+    selected.value = credentialSelection.value == credential.key
 
     CredentialSelectionCardLayout(
         onClick = { credentialSelection.value = credential.key },
@@ -46,7 +47,6 @@ fun CredentialSelectionCard(credential: Map.Entry<SubjectCredentialStore.StoreEn
             credential = credential.key,
             decodeToBitmap = imageDecoder,
         )
-        CredentialSelectionCardFooter(modifier = Modifier.fillMaxWidth())
     }
 
     val density = LocalDensity.current

@@ -27,7 +27,8 @@ fun CredentialSelectionCardLayout(
 
     if (isSelected.value == true) {
         color.value = MaterialTheme.colorScheme.primaryContainer
-        borderStroke.value = BorderStroke(width = 2.dp, color = MaterialTheme.colorScheme.inversePrimary)
+        borderStroke.value =
+            BorderStroke(width = 2.dp, color = MaterialTheme.colorScheme.inversePrimary)
     } else {
         color.value = Color.Unspecified
         borderStroke.value = null
