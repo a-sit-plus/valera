@@ -1,14 +1,15 @@
 package ui.composables.credentials
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.unit.dp
 import at.asitplus.dif.ConstraintField
 import at.asitplus.jsonpath.core.NodeList
 import at.asitplus.jsonpath.core.NormalizedJsonPath
@@ -24,20 +25,25 @@ fun AttributeSelectionGroup(
     selection: SnapshotStateMap<NormalizedJsonPath, Boolean>,
     format: ConstantIndex.CredentialScheme?
 ) {
-    Column(modifier = Modifier.clip(CardDefaults.shape)) {
-        Column(modifier = Modifier
-            .background(color = MaterialTheme.colorScheme.secondaryContainer)
-            .fillMaxWidth()) {
+    Card(
+        modifier = Modifier,
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+        elevation = CardDefaults.elevatedCardElevation(),
+    ) {
+        Column(
+            modifier = Modifier.padding(8.dp).fillMaxWidth(),
+        ) {
             val constraints = credential.value
             val disclosedAttributes = constraints.values.mapNotNull { constraint ->
                 constraint.firstOrNull()?.normalizedJsonPath
             }
 
             disclosedAttributes.forEach { path ->
-                if (selection[path] == null){
+                if (selection[path] == null) {
                     selection[path] = true
                 }
-                val stringResource = format?.getLocalization(NormalizedJsonPath(path.segments.last()))
+                val stringResource =
+                    format?.getLocalization(NormalizedJsonPath(path.segments.last()))
                 if (stringResource != null) {
                     LabeledCheckbox(
                         label = stringResource(stringResource),
@@ -47,4 +53,5 @@ fun AttributeSelectionGroup(
             }
         }
     }
+
 }
