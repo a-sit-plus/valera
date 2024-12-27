@@ -3,10 +3,7 @@ import at.asitplus.gradle.kmmresult
 import at.asitplus.gradle.ktor
 import at.asitplus.gradle.napier
 import at.asitplus.gradle.serialization
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.plugin.extraProperties
-import org.jetbrains.kotlin.gradle.plugin.mpp.BitcodeEmbeddingMode
-import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFrameworkConfig
 
 plugins {
     kotlin("multiplatform")
