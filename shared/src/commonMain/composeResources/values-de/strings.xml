@@ -137,7 +137,8 @@
     <string name="credential_scheme_label_power_of_representation">Power of representation</string>
     <string name="credential_scheme_icon_label_certificate_of_residence">COR</string>
     <string name="credential_scheme_label_certificate_of_residence">Certificate of residence</string>
-    <string name="credential_scheme_label_epresciption">e-Prescription</string>
+    <string name="credential_scheme_label_eprescription">e-Prescription</string>
+    <string name="credential_scheme_icon_label_eprescription">eP</string>
 
     <string name="navigation_button_label_show_data">Daten Vorzeigen</string>
     <string name="navigation_button_label_my_data">Meine Daten</string>
