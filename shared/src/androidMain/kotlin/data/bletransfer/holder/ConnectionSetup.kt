@@ -1,14 +1,9 @@
 package data.bletransfer.holder
 
 import android.content.Context
+import com.android.identity.android.mdoc.transport.DataTransportOptions
 import com.android.identity.mdoc.connectionmethod.ConnectionMethod
 import com.android.identity.mdoc.connectionmethod.ConnectionMethodBle
-import com.android.identity.mdoc.connectionmethod.ConnectionMethodNfc
-import com.android.identity.mdoc.connectionmethod.ConnectionMethodWifiAware
-import com.android.identity.android.mdoc.transport.DataTransportOptions
-import io.github.aakira.napier.Napier
-import java.util.ArrayList
-import java.util.OptionalLong
 import java.util.UUID
 
 class ConnectionSetup(

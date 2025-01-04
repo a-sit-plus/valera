@@ -2,10 +2,9 @@ package data.bletransfer.holder
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.util.Log
-import com.android.identity.util.Constants
-import com.android.identity.mdoc.request.DeviceRequestParser
 import com.android.identity.android.mdoc.deviceretrieval.DeviceRetrievalHelper
+import com.android.identity.mdoc.request.DeviceRequestParser
+import com.android.identity.util.Constants
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor

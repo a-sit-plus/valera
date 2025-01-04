@@ -1,17 +1,12 @@
 [versions]
-encoding = "1.2.3"
-vck = "4.1.1"
-mdl = "1.0.2"
-signum = "3.6.0"
-ida = "3.8.3"
-eupid = "2.1.3"
-powerofrepresentation = "1.0.2"
-certificateofresidence = "1.0.2"
-atomicfu = "0.23.2"
-compose-plugin = "1.6.11"
-kotlin = "2.0.0"
-uiDesktop = "1.6.8"
-uiGraphicsAndroid = "1.6.8"
+mdl = "1.1.2"
+ida = "3.9.2"
+eupid = "2.2.2"
+powerofrepresentation = "1.1.1"
+certificateofresidence = "2.1.1"
+eprescription = "1.1.1"
+atomicfu = "0.26.1"
+compose-plugin = "1.7.1"
 
 
 [libraries]

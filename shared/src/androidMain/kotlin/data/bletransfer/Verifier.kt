@@ -1,16 +1,15 @@
 package data.bletransfer
 
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
-import data.bletransfer.verifier.Entry
-import io.github.aakira.napier.Napier
 import data.bletransfer.util.RequestBluetoothPermissions
+import data.bletransfer.verifier.Entry
+import data.bletransfer.verifier.TransferManager
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import data.bletransfer.verifier.TransferManager
 
 actual fun getVerifier(): Verifier {
     return AndroidVerifier()

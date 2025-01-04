@@ -93,6 +93,20 @@
     <string name="attribute_friendly_name_issuing_country">Issuing country</string>
     <string name="attribute_friendly_name_driving_privileges">Driving privileges</string>
     <string name="attribute_friendly_name_distinguishing_sign">Issuing country (code)</string>
+    <string name="attribute_friendly_name_signature_usual_mark">Signature/usual mark</string>
+
+    <string name="attribute_friendly_name_country_code">Country code</string>
+    <string name="attribute_friendly_name_one_time_token">One-time token</string>
+    <string name="attribute_friendly_name_valid_until">Valid until</string>
+
+    <string name="id_austria_credential_attribute_friendly_name_main_address_street">Street</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_house_number">House Number</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_stair">Stair</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_door">Door</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_postal_code">Postal Code</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_location">Location</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_municipality_name">Municipality Name</string>
+    <string name="id_austria_credential_attribute_friendly_name_main_address_municipality_code">Municipality Code</string>
     <string name="attribute_friendly_name_signature">Signature</string>
     <string name="attribute_friendly_name_gender">Gender</string>
     <string name="attribute_friendly_name_administrative_number">Administrative number</string>
@@ -243,6 +257,8 @@
     <string name="info_text_notice_development_provisioning_using_qr_code_credentials">For development purposes, there is also the option to load data via a QR code.</string>
     <string name="info_text_enthusiastic_welcome_end">Load your data and off you go!</string>
     <string name="info_text_submission_preview_disabled">Preview of data to be submitted is currently not available.</string>
+    <string name="info_text_no_matching_credential">Your credentials don't match the request.</string>
+    <string name="info_text_data_is_being_loaded">Loading Data</string>
 
     <string name="section_heading_authenticate_at_device_title">Authenticate</string>
     <string name="section_heading_authenticate_at_device_subtitle">at relying party</string>

@@ -3,7 +3,6 @@ package data.bletransfer.verifier
 import android.annotation.SuppressLint
 import android.content.Context
 import android.preference.PreferenceManager
-import android.util.Log
 import com.android.identity.android.mdoc.deviceretrieval.VerificationHelper
 import com.android.identity.android.mdoc.transport.DataTransportOptions
 import com.android.identity.mdoc.connectionmethod.ConnectionMethod

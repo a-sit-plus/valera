@@ -1,7 +1,9 @@
 package ui.composables
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
@@ -10,15 +12,19 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.navigation_button_label_check
 import at.asitplus.valera.resources.navigation_button_label_my_data
 import at.asitplus.valera.resources.navigation_button_label_settings
 import at.asitplus.valera.resources.navigation_button_label_show_data
+import at.asitplus.valera.resources.navigation_button_label_show_qr_code
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import ui.navigation.Routes.AuthenticationQrCodeScannerRoute
 import ui.navigation.Routes.HomeScreenRoute
 import ui.navigation.Routes.Route
+import ui.navigation.Routes.SelectDataRetrievalPage
 import ui.navigation.Routes.SettingsRoute
+import ui.navigation.Routes.ShowQrCodePage
 
 @Composable
 fun BottomBar(navigate: (Route) -> Unit, selected: NavigationData) {
@@ -27,6 +33,8 @@ fun BottomBar(navigate: (Route) -> Unit, selected: NavigationData) {
             NavigationData.HOME_SCREEN,
             NavigationData.AUTHENTICATION_SCANNING_SCREEN,
             NavigationData.INFORMATION_SCREEN,
+            NavigationData.SHOW_QR_CODE_SCREEN,
+            NavigationData.VERIFIER_SELECTION_SCREEN
         )) {
             NavigationBarItem(
                 icon = route.icon,
@@ -94,6 +102,38 @@ enum class NavigationData(
         isActive = {
             when (it) {
                 is SettingsRoute -> true
+                else -> false
+            }
+        },
+    ),
+    SHOW_QR_CODE_SCREEN(
+        title = Res.string.navigation_button_label_show_qr_code,
+        icon = {
+            Icon(
+                imageVector = Icons.Default.QrCode,
+                contentDescription = null,
+            )
+        },
+        destination = ShowQrCodePage,
+        isActive = {
+            when (it) {
+                is ShowQrCodePage -> true
+                else -> false
+            }
+        },
+    ),
+    VERIFIER_SELECTION_SCREEN(
+        title = Res.string.navigation_button_label_check,
+        icon = {
+            Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = null,
+            )
+        },
+        destination = SelectDataRetrievalPage,
+        isActive = {
+            when (it) {
+                is SelectDataRetrievalPage -> true
                 else -> false
             }
         },

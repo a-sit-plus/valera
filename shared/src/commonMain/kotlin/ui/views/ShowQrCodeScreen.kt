@@ -23,50 +23,38 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.heading_label_show_qr_code_screen
 import at.asitplus.wallet.app.common.WalletMain
-import composewalletapp.shared.generated.resources.Res
+import at.asitplus.wallet.app.common.decodeImage
 import org.jetbrains.compose.resources.stringResource
-import composewalletapp.shared.generated.resources.heading_label_show_qr_code_screen
-import data.bletransfer.Holder
-import data.bletransfer.getHolder
 import qrcode.QRCode
-
-
-@Composable
-fun ShowQrCodeScreen(walletMain: WalletMain, onConnection: (Holder) -> Unit) {
-    ShowQrCodeView(
-        walletMain = walletMain,
-        onConnection = onConnection,
-    )
-}
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShowQrCodeView(walletMain: WalletMain, onConnection: (Holder) -> Unit) {
+fun ShowQrCodeView(walletMain: WalletMain, onConnection: () -> Unit, bottomBar: @Composable () -> Unit) {
 
-    val holder: Holder = remember { getHolder() }
     var permission by remember { mutableStateOf(false) }
     var qrcodeText by remember { mutableStateOf("") }
     var shouldDisconnect by remember { mutableStateOf(true) }
 
     if (!permission) {
-        holder.getRequirements { b -> permission = b }
+        walletMain.holder.getRequirements { b -> permission = b }
     }
 
     LaunchedEffect(Unit) {
         val updateQrCode: (String) -> Unit =  { str -> qrcodeText = str }
 
-        holder.hold(updateQrCode) {
+        walletMain.holder.hold(updateQrCode) {
             shouldDisconnect = false
-            onConnection(holder)
+            onConnection()
         }
     }
 
     DisposableEffect(Unit) {
         onDispose {
             if (shouldDisconnect) {
-                holder.disconnect()
+                walletMain.holder.disconnect()
             }
         }
     }
@@ -82,7 +70,8 @@ fun ShowQrCodeView(walletMain: WalletMain, onConnection: (Holder) -> Unit) {
                     )
                 },
             )
-        }
+        },
+        bottomBar = bottomBar
     ) { scaffoldPadding ->
         Box(modifier = Modifier.padding(scaffoldPadding)) {
             Box(

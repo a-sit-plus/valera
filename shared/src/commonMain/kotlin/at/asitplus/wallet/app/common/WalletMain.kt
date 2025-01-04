@@ -16,6 +16,8 @@ import at.asitplus.wallet.lib.jws.DefaultJwsService
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
+import data.bletransfer.Holder
+import data.bletransfer.getHolder
 import data.storage.AntilogAdapter
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
@@ -42,6 +44,7 @@ class WalletMain(
     lateinit var presentationService: PresentationService
     lateinit var snackbarService: SnackbarService
     lateinit var errorService: ErrorService
+    lateinit var holder: Holder
     private val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
 
 
@@ -96,6 +99,7 @@ class WalletMain(
             httpService
         )
         this.snackbarService = snackbarService
+        this.holder = getHolder()
     }
 
     suspend fun resetApp() {

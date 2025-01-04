@@ -25,13 +25,15 @@ import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.openid.odcJsonSerializer
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.snackbar_clear_log_successfully
+import at.asitplus.valera.resources.snackbar_reset_app_successfully
 import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.decodeImage
-import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.snackbar_clear_log_successfully
-import at.asitplus.valera.resources.snackbar_reset_app_successfully
+import at.asitplus.wallet.lib.data.vckJsonSerializer
+import data.bletransfer.Verifier
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -49,9 +51,12 @@ import ui.navigation.Routes.AuthenticationQrCodeScannerRoute
 import ui.navigation.Routes.AuthenticationSuccessRoute
 import ui.navigation.Routes.AuthenticationViewRoute
 import ui.navigation.Routes.CredentialDetailsRoute
+import ui.navigation.Routes.CustomDataRetrievalPage
 import ui.navigation.Routes.ErrorRoute
+import ui.navigation.Routes.HandleRequestedDataPage
 import ui.navigation.Routes.HomeScreenRoute
 import ui.navigation.Routes.LoadCredentialRoute
+import ui.navigation.Routes.LoadRequestedDataPage
 import ui.navigation.Routes.LoadingRoute
 import ui.navigation.Routes.LogRoute
 import ui.navigation.Routes.OnboardingInformationRoute
@@ -59,9 +64,18 @@ import ui.navigation.Routes.OnboardingStartRoute
 import ui.navigation.Routes.OnboardingTermsRoute
 import ui.navigation.Routes.OnboardingWrapperTestTags
 import ui.navigation.Routes.PreAuthQrCodeScannerRoute
+import ui.navigation.Routes.QrDeviceEngagementPage
 import ui.navigation.Routes.Route
+import ui.navigation.Routes.SelectDataRetrievalPage
 import ui.navigation.Routes.SettingsRoute
+import ui.navigation.Routes.ShowQrCodePage
+import ui.screens.CustomDataRetrievalScreen
+import ui.screens.HandleRequestedDataScreen
+import ui.screens.LoadRequestedDataScreen
+import ui.screens.QrDeviceEngagementScreen
+import ui.screens.SelectDataRetrievalView
 import ui.screens.SelectIssuingServerView
+import ui.screens.ShowQrCodeView
 import ui.viewmodels.AddCredentialViewModel
 import ui.viewmodels.Authentication.AuthenticationQrCodeScannerViewModel
 import ui.viewmodels.Authentication.AuthenticationSuccessViewModel
@@ -125,7 +139,8 @@ fun WalletNavigation(walletMain: WalletMain) {
 
     val startDestination: Route
 
-    val errorService = ErrorService(showError = { message, cause -> navigate(ErrorRoute(message, cause)) })
+    val errorService =
+        ErrorService(showError = { message, cause -> navigate(ErrorRoute(message, cause)) })
     walletMain.errorService = errorService
 
     try {
@@ -148,7 +163,15 @@ fun WalletNavigation(walletMain: WalletMain) {
         },
         modifier = Modifier.testTag(AppTestTags.rootScaffold)
     ) { _ ->
-        WalletNavHost(navController, startDestination, navigate, walletMain, navigateBack, backStackEntry, popBackStack)
+        WalletNavHost(
+            navController,
+            startDestination,
+            navigate,
+            walletMain,
+            navigateBack,
+            backStackEntry,
+            popBackStack
+        )
     }
 }
 
@@ -302,7 +325,8 @@ private fun WalletNavHost(
                             walletMain.provisioningService.loadCredentialWithOffer(
                                 credentialOffer = offer,
                                 credentialIdentifierInfo = credentialIdentifierInfo,
-                                transactionCode = transactionCode?.ifEmpty { null }?.ifBlank { null },
+                                transactionCode = transactionCode?.ifEmpty { null }
+                                    ?.ifBlank { null },
                                 requestedAttributes = requestedAttributes
                             )
                         } catch (e: Throwable) {
@@ -375,7 +399,11 @@ private fun WalletNavHost(
 
         composable<ErrorRoute> { backStackEntry ->
             val route: ErrorRoute = backStackEntry.toRoute()
-            ErrorView(resetStack = { popBackStack(HomeScreenRoute) }, message = route.message, cause = route.cause)
+            ErrorView(
+                resetStack = { popBackStack(HomeScreenRoute) },
+                message = route.message,
+                cause = route.cause
+            )
         }
 
         composable<LoadingRoute> { backStackEntry ->
@@ -392,6 +420,81 @@ private fun WalletNavHost(
                 walletMain = walletMain
             )
             AuthenticationQrCodeScannerView(vm)
+        }
+
+
+
+
+        composable<SelectDataRetrievalPage> { backStackEntry ->
+            SelectDataRetrievalView(
+                onClickCustom = {
+                    navigate(CustomDataRetrievalPage)
+                },
+                onClickPreDefined = { doc ->
+                    val documentSerialized = vckJsonSerializer.encodeToString(doc)
+                    navigate(QrDeviceEngagementPage(documentSerialized))
+                },
+                bottomBar = {
+                    BottomBar(
+                        navigate = navigate,
+                        selected = NavigationData.VERIFIER_SELECTION_SCREEN
+                    )
+                }
+            )
+        }
+
+        composable<CustomDataRetrievalPage> { backStackEntry ->
+            CustomDataRetrievalScreen(
+                navigateUp = navigateBack,
+                navigateToQrDeviceEngagementPage = { document ->
+                    val documentSerialized = vckJsonSerializer.encodeToString(document)
+                    navigateBack()
+                    navigate(QrDeviceEngagementPage(documentSerialized))
+                },
+            )
+        }
+
+        composable<QrDeviceEngagementPage> { backStackEntry ->
+            val route: QrDeviceEngagementPage = backStackEntry.toRoute()
+            QrDeviceEngagementScreen(
+                navigateUp = navigateBack,
+                onFoundPayload = { payload ->
+                    navigateBack()
+                    navigate(LoadRequestedDataPage(route.documentSerialized, payload))
+                }
+            )
+        }
+
+        composable<LoadRequestedDataPage> { backStackEntry ->
+            val route: LoadRequestedDataPage = backStackEntry.toRoute()
+            val document = vckJsonSerializer.decodeFromString<Verifier.Document>(route.documentSerialized)
+            LoadRequestedDataScreen(
+                document = document,
+                payload = route.payload,
+                navigateUp = navigateBack,
+            )
+        }
+
+        composable<ShowQrCodePage> { backStackEntry ->
+            ShowQrCodeView(
+                walletMain = walletMain,
+                onConnection = { navigate(HandleRequestedDataPage) },
+                bottomBar = {
+                    BottomBar(
+                        navigate = navigate,
+                        selected = NavigationData.SHOW_QR_CODE_SCREEN
+                    )
+                }
+            )
+        }
+
+        composable<HandleRequestedDataPage> { backStackEntry ->
+            val route: HandleRequestedDataPage = backStackEntry.toRoute()
+            HandleRequestedDataScreen(
+                walletMain = walletMain,
+                holder = walletMain.holder,
+                navigateUp = navigateBack,
+            )
         }
     }
 }

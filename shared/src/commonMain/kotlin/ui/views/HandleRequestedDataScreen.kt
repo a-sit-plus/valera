@@ -37,25 +37,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.unit.dp
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
-import at.asitplus.wallet.app.common.CryptoServiceAuthorizationContext
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.heading_label_select_requested_data
+import at.asitplus.valera.resources.section_heading_available
+import at.asitplus.valera.resources.section_heading_requested
+import at.asitplus.valera.resources.section_heading_response_sent
+import at.asitplus.valera.resources.section_heading_selected
+import at.asitplus.valera.resources.section_heading_sending_response
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.PresentationException
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.cbor.CoseService
 import at.asitplus.wallet.lib.cbor.DefaultCoseService
 import at.asitplus.wallet.lib.iso.DeviceAuth
+import at.asitplus.wallet.lib.iso.DeviceNameSpaces
 import at.asitplus.wallet.lib.iso.DeviceSigned
 import at.asitplus.wallet.lib.iso.Document
 import at.asitplus.wallet.lib.iso.IssuerSigned
 import at.asitplus.wallet.lib.iso.IssuerSignedItem
-import at.asitplus.wallet.lib.iso.IssuerSignedList
-import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.heading_label_select_requested_data
-import composewalletapp.shared.generated.resources.section_heading_selected
-import composewalletapp.shared.generated.resources.section_heading_available
-import composewalletapp.shared.generated.resources.section_heading_requested
-import composewalletapp.shared.generated.resources.section_heading_response_sent
-import composewalletapp.shared.generated.resources.section_heading_sending_response
 import data.bletransfer.Holder
 import data.bletransfer.holder.RequestedDocument
 import data.bletransfer.verifier.DocumentAttributes
@@ -67,6 +66,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.serializer
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton
 
@@ -173,10 +173,10 @@ fun createDocument(
                 is SubjectCredentialStore.StoreEntry.Iso -> {
                     cCred.issuerSigned.namespaces?.get(nameSpace.nameSpace)?.let { namespace ->
 
-                        val newnamespaces: List<ByteStringWrapper<IssuerSignedItem>> =
+                        val newnamespaces: List<IssuerSignedItem> =
                             namespace.entries.filter { entry ->
                                 nameSpace.trueAttributes.contains(DocumentAttributes.fromValue(entry.value.elementIdentifier))
-                            }
+                            }.map { it.value }
 
 
                         val imageAttributes: List<String> = DocumentAttributes.entries
@@ -185,24 +185,26 @@ fun createDocument(
 
                         if (imageAttributes.isNotEmpty()) {
                             val map = mapOf(
-                                nameSpace.nameSpace to IssuerSignedList(newnamespaces)
-                            )
+                                nameSpace.nameSpace to newnamespaces)
+
                             return runBlocking {
                                 val coseService: CoseService =
                                     DefaultCoseService(walletMain.cryptoService)
                                 val deviceSignature = coseService.createSignedCose(
-                                    addKeyId = false
+                                    payload = byteArrayOf(),
+                                    addKeyId = false,
+                                    serializer = serializer(),
                                 ).getOrElse {
                                     Napier.w("Could not create DeviceAuth for presentation", it)
                                     throw PresentationException(it)
                                 }
 
+                                val issuerSigned = IssuerSigned.fromIssuerSignedItems(map, cCred.issuerSigned.issuerAuth)
 
-                                val issuerSigned = IssuerSigned(map, cCred.issuerSigned.issuerAuth)
                                 Document(
                                     reqDocument.docType, issuerSigned,
                                     DeviceSigned(
-                                        namespaces = byteArrayOf(),
+                                        namespaces = ByteStringWrapper(DeviceNameSpaces(mapOf())),
                                         deviceAuth = DeviceAuth(
                                             deviceSignature = deviceSignature
                                         )
@@ -233,7 +235,6 @@ fun selectRequestedDataView(
 ) {
     val uncheckedAttributes = remember { mutableStateListOf<DocumentAttributes>() }
     val credentials = storeContainerState?.credentials
-    val authorizationContext = presentationAuthorizationContext()
     Scaffold(
         bottomBar = {
             NavigationBar {
@@ -247,15 +248,13 @@ fun selectRequestedDataView(
                     label = {},
                     onClick = {
                         CoroutineScope(Dispatchers.IO).launch {
-                            walletMain.cryptoService.useAuthorizationContext(authorizationContext) {
-                                changeToLoading()
-                                val documentsToSend = getSelectedCredentials(
-                                    walletMain,
-                                    credentials?.map { it.second },
-                                    requestedAttributes
-                                )
-                                holder.send(documentsToSend, changeToSent)
-                            }
+                            changeToLoading()
+                            val documentsToSend = getSelectedCredentials(
+                                walletMain,
+                                credentials?.map { it.second },
+                                requestedAttributes
+                            )
+                            holder.send(documentsToSend, changeToSent)
                         }
                     },
                     selected = false,
