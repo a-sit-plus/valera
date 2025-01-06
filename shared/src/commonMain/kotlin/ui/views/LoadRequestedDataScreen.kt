@@ -30,11 +30,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.error_missing_permissions
-import composewalletapp.shared.generated.resources.heading_label_request_log
-import composewalletapp.shared.generated.resources.heading_label_requested_data
-import composewalletapp.shared.generated.resources.info_text_data_is_being_loaded
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.error_missing_permissions
+import at.asitplus.valera.resources.heading_label_request_log
+import at.asitplus.valera.resources.heading_label_requested_data
+import at.asitplus.valera.resources.info_text_data_is_being_loaded
 import data.verifier.Entry
 import data.verifier.Verifier
 import data.verifier.getVerifier
@@ -42,8 +42,9 @@ import io.github.aakira.napier.Napier
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton
-import ui.navigation.Page
-import ui.navigation.RequestedDataLogOutputPage
+import ui.navigation.Routes.RequestedDataLogOutputPage
+import ui.navigation.Routes.RequestedDataShowPage
+import ui.navigation.Routes.Route
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,7 +52,7 @@ import ui.navigation.RequestedDataLogOutputPage
 fun LoadRequestedDataScreen(document: Verifier.Document, payload: String, navigateUp: () -> Unit) {
     var logsState by remember { mutableStateOf(listOf<String>()) }
     var entryState by remember { mutableStateOf(listOf<Entry>()) }
-    var currentpage by remember { mutableStateOf<Page>(RequestedDataLogOutputPage()) }
+    var currentpage by remember { mutableStateOf<Route>(RequestedDataLogOutputPage) }
 
     val verifier: Verifier = remember { getVerifier() }
     var permission by remember { mutableStateOf(false) }
@@ -128,7 +129,7 @@ fun LoadRequestedDataScreen(document: Verifier.Document, payload: String, naviga
                         )
                     }
 
-                    is ui.navigation.RequestedDataShowPage -> {
+                    is RequestedDataShowPage -> {
                         LoadRequestedDataView(
                             entryState = entryState,
                             navigateUp = navigateUp,
@@ -222,8 +223,8 @@ fun LoadRequestedDataView(entryState: List<Entry>, navigateUp: () -> Unit) {
 private enum class LocalNavigationData(
     val title: StringResource,
     val icon: @Composable () -> Unit,
-    val destination: Page,
-    val isActive: (Page) -> Boolean
+    val destination: Route,
+    val isActive: (Route) -> Boolean
 ) {
     LOG_SCREEN(
         title = Res.string.heading_label_request_log,
@@ -233,7 +234,7 @@ private enum class LocalNavigationData(
                 contentDescription = null,
             )
         },
-        destination = RequestedDataLogOutputPage(),
+        destination = RequestedDataLogOutputPage,
         isActive = {
             when (it) {
                 is RequestedDataLogOutputPage -> true
@@ -249,10 +250,10 @@ private enum class LocalNavigationData(
                 contentDescription = null,
             )
         },
-        destination = ui.navigation.RequestedDataShowPage(),
+        destination = RequestedDataShowPage,
         isActive = {
             when (it) {
-                is ui.navigation.RequestedDataShowPage -> true
+                is RequestedDataShowPage -> true
                 else -> false
             }
         },

@@ -45,3 +45,29 @@ data class AuthenticationViewRoute(
 
 @Serializable
 object AuthenticationSuccessRoute : Route()
+
+@Serializable
+object AuthenticationSuccessPage : Route()
+
+@Serializable
+object SelectDataRetrievalPage : Route()
+
+@Serializable
+object CustomDataRetrievalPage : Route()
+
+@Serializable
+data class QrDeviceEngagementPage (
+    val documentSerialized: String
+) : Route()
+
+@Serializable
+data class LoadRequestedDataPage(
+    val documentSerialized: String,
+    val payload: String
+): Route()
+
+@Serializable
+object RequestedDataLogOutputPage : Route()
+
+@Serializable
+object RequestedDataShowPage: Route()

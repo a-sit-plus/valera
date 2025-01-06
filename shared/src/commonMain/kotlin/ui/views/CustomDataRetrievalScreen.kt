@@ -29,11 +29,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.heading_label_select_custom_data_retrieval_screen
-import composewalletapp.shared.generated.resources.section_heading_select_document_type
-import composewalletapp.shared.generated.resources.section_heading_selected_namespace
-import composewalletapp.shared.generated.resources.section_heading_select_requested_data_entrys
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.heading_label_select_custom_data_retrieval_screen
+import at.asitplus.valera.resources.section_heading_select_document_type
+import at.asitplus.valera.resources.section_heading_selected_namespace
+import at.asitplus.valera.resources.section_heading_select_requested_data_entrys
 import data.verifier.DocumentAttributes
 import data.verifier.Verifier
 import data.verifier.documentTypeToNameSpace

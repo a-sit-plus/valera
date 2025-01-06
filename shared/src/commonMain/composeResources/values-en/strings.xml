@@ -93,11 +93,17 @@
     <string name="attribute_friendly_name_issuing_country">Issuing country</string>
     <string name="attribute_friendly_name_driving_privileges">Driving privileges</string>
     <string name="attribute_friendly_name_distinguishing_sign">Issuing country (code)</string>
+    <string name="attribute_friendly_name_country_code">Country code</string>
     <string name="attribute_friendly_name_signature">Signature</string>
     <string name="attribute_friendly_name_gender">Gender</string>
     <string name="attribute_friendly_name_administrative_number">Administrative number</string>
     <string name="attribute_friendly_age_above">yes</string>
     <string name="attribute_friendly_age_below">no</string>
+
+    <string name="attribute_friendly_name_signature_usual_mark">Signature/usual mark</string>
+
+    <string name="attribute_friendly_name_one_time_token">One-time token</string>
+    <string name="attribute_friendly_name_valid_until">Valid until</string>
 
     <string name="attribute_friendly_name_legal_person_identifier">Legal person identifier</string>
     <string name="attribute_friendly_name_legal_name">Legal name</string>
@@ -240,6 +246,8 @@
     <string name="info_text_notice_development_provisioning_using_qr_code_credentials">For development purposes, there is also the option to load data via a QR code.</string>
     <string name="info_text_enthusiastic_welcome_end">Load your data and off you go!</string>
     <string name="info_text_submission_preview_disabled">Preview of data to be submitted is currently not available.</string>
+    <string name="info_text_no_matching_credential">Your credentials don't match the request.</string>
+    <string name="info_text_data_is_being_loaded">Loading Data</string>
 
     <string name="section_heading_authenticate_at_device_title">Authenticate</string>
     <string name="section_heading_authenticate_at_device_subtitle">at relying party</string>

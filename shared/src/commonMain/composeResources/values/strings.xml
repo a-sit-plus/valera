@@ -112,10 +112,14 @@
     <string name="attribute_friendly_name_issuing_country">UNTRANSLATED:attribute_friendly_name_issuing_country</string>
     <string name="attribute_friendly_name_driving_privileges">UNTRANSLATED:attribute_friendly_name_driving_privileges</string>
     <string name="attribute_friendly_name_distinguishing_sign">UNTRANSLATED:attribute_friendly_name_distinguishing_sign</string>
+    <string name="attribute_friendly_name_country_code">UNTRANSLATED:attribute_friendly_name_country_code</string>
     <string name="attribute_friendly_name_signature">UNTRANSLATED:attribute_friendly_name_signature</string>
     <string name="attribute_friendly_name_gender">UNTRANSLATED:attribute_friendly_name_gender</string>
     <string name="attribute_friendly_age_above">UNTRANSLATED:attribute_friendly_age_above</string>
     <string name="attribute_friendly_age_below">UNTRANSLATED:attribute_friendly_age_below</string>
+    <string name="attribute_friendly_name_signature_usual_mark">UNTRANSLATED:attribute_friendly_name_signature_usual_mark</string>
+    <string name="attribute_friendly_name_one_time_token">UNTRANSLATED:attribute_friendly_name_one_time_token</string>
+    <string name="attribute_friendly_name_valid_until">UNTRANSLATED:attribute_friendly_name_valid_until</string>
 
     <string name="attribute_friendly_name_data_recipient_name">UNTRANSLATED:attribute_friendly_name_data_recipient_name</string>
     <string name="attribute_friendly_name_data_recipient_location">UNTRANSLATED:attribute_friendly_name_data_recipient_location</string>
@@ -244,6 +248,8 @@
     <string name="info_text_notice_development_provisioning_using_qr_code_credentials">UNTRANSLATED:info_text_notice_development_provisioning_using_qr_code_credentials</string>
     <string name="info_text_enthusiastic_welcome_end">UNTRANSLATED:info_text_enthusiastic_welcome_end</string>
     <string name="info_text_submission_preview_disabled">UNTRANSLATED:info_text_submission_preview_disabled</string>
+    <string name="info_text_no_matching_credential">UNTRANSLATED:info_text_no_matching_credential</string>
+    <string name="info_text_data_is_being_loaded">UNTRANSLATED:info_text_data_is_being_loaded</string>
 
     <string name="section_heading_authenticate_at_device_title">UNTRANSLATED:section_heading_authenticate_at_device_title</string>
     <string name="section_heading_authenticate_at_device_subtitle">UNTRANSLATED:section_heading_authenticate_at_device_subtitle</string>
