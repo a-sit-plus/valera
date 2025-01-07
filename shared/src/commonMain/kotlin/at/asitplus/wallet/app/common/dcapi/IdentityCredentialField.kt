@@ -9,6 +9,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonPrimitive
 import org.jetbrains.compose.resources.getString
 
+// Format as defined in the documentation https://digitalcredentials.dev/docs/wallets/android
+// and sample code: https://github.com/openwallet-foundation-labs/identity-credential/tree/main/wallet/src/main/java/com/android/identity_credential/wallet/credman
 @Serializable
 data class IdentityCredentialField(
     @SerialName(NAME)
