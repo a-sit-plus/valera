@@ -6,7 +6,7 @@ import at.asitplus.valera.resources.biometric_authentication_prompt_to_bind_cred
 import at.asitplus.valera.resources.biometric_authentication_prompt_to_bind_credentials_title
 import at.asitplus.valera.resources.snackbar_credential_loaded_successfully
 import at.asitplus.wallet.app.common.WalletMain
-import domain.BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase
+import at.asitplus.wallet.app.common.domain.BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier
 import io.ktor.http.parseQueryString

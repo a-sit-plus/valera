@@ -13,7 +13,7 @@ import at.asitplus.wallet.lib.agent.CredentialSubmission
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.credentials.CredentialAdapter
-import data.dcapi.DCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import kotlinx.coroutines.runBlocking
 
 

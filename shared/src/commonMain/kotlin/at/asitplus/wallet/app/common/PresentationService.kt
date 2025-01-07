@@ -5,8 +5,8 @@ import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.wallet.lib.agent.CredentialSubmission
 import at.asitplus.wallet.lib.agent.Holder
 import at.asitplus.wallet.lib.agent.HolderAgent
-import data.dcapi.DCAPIRequest
-import data.dcapi.PreviewRequest
+import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.PreviewRequest
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.oidc.helpers.AuthorizationResponsePreparationState
 import com.benasher44.uuid.uuid4

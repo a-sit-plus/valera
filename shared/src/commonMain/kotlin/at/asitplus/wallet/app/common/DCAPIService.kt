@@ -13,11 +13,11 @@ import data.credentials.CredentialAdapter.Companion.toNamespaceAttributeMap
 import data.credentials.CredentialAttributeTranslator
 import data.credentials.IdAustriaCredentialAdapter
 import data.credentials.MobileDrivingLicenceCredentialAdapter
-import data.dcapi.CredentialField
-import data.dcapi.CredentialsContainer
-import data.dcapi.DisplayInfoField
-import data.dcapi.IdentityCredentialEntry
-import data.dcapi.IdentityCredentialField
+import at.asitplus.wallet.app.common.dcapi.CredentialField
+import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
+import at.asitplus.wallet.app.common.dcapi.DisplayInfoField
+import at.asitplus.wallet.app.common.dcapi.IdentityCredentialEntry
+import at.asitplus.wallet.app.common.dcapi.IdentityCredentialField
 import data.storage.StoreContainer
 import io.github.aakira.napier.Napier
 import org.jetbrains.compose.resources.getString

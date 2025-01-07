@@ -1,7 +1,7 @@
-package domain
+package at.asitplus.wallet.app.common.domain
 
 import at.asitplus.KmmResult
-import data.dcapi.DCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import ui.navigation.Routes.DCAPIAuthenticationConsentRoute
 
 class BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase {

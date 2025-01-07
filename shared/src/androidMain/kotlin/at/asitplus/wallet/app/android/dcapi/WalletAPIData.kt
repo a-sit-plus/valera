@@ -1,4 +1,4 @@
-package dcapi
+package at.asitplus.wallet.app.android.dcapi
 
 import android.content.Intent
 

@@ -35,7 +35,7 @@ import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.decodeImage
-import data.dcapi.DCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

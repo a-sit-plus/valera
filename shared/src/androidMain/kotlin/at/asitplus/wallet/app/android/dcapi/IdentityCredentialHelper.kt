@@ -1,4 +1,4 @@
-package dcapi
+package at.asitplus.wallet.app.android.dcapi
 
 import AndroidPlatformAdapter
 import android.content.Context
@@ -6,7 +6,7 @@ import android.graphics.Bitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import at.asitplus.wallet.app.common.decodeImage
 import com.google.android.gms.identitycredentials.RegistrationRequest
-import data.dcapi.CredentialsContainer
+import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.ByteArrayOutputStream

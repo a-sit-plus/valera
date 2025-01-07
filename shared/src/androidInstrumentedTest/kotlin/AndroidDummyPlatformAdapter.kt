@@ -1,7 +1,7 @@
 
 import at.asitplus.wallet.app.common.PlatformAdapter
-import data.dcapi.DCAPIRequest
-import data.dcapi.CredentialsContainer
+import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
 
 class AndroidDummyPlatformAdapter : PlatformAdapter {
     override fun openUrl(url: String) {
