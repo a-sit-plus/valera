@@ -1,9 +1,13 @@
 package data.dcapi
 
+import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import data.credentials.CredentialAttributeTranslator
+import io.github.aakira.napier.Napier
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonPrimitive
+import org.jetbrains.compose.resources.getString
 
 @Serializable
 data class IdentityCredentialField(
@@ -23,29 +27,35 @@ data class IdentityCredentialField(
         const val DISPLAY_NAME = "display_name"
         const val DISPLAY_VALUE = "display_value"
 
-        fun fromNamespaceAttributeMap(attributeMap: Map<String, Map<String, Any>>?, attributeTranslator: CredentialAttributeTranslator?): List<IdentityCredentialField> {
-            val entries = mutableListOf<IdentityCredentialField>()
-            attributeMap?.forEach { (namespace, valuePair) ->
-                valuePair.forEach { (name, value) ->
-                    val entryName = "$namespace.$name"
-                    val displayName = name //stringResource(attributeTranslator?.translate("")) ?: name
-
-                    entries.add(IdentityCredentialField(entryName, value.toString(), displayName, value.toString())) //TODO toString() is a hack
-                }
+        suspend fun fromNamespaceAttributeMap(
+            attributeMap: Map<String, Map<String, Any>>,
+            attributeTranslator: CredentialAttributeTranslator
+        ): List<IdentityCredentialField> = attributeMap.flatMap { (namespace, valuePair) ->
+            valuePair.map { (name, value) ->
+                val entryName = "$namespace.$name"
+                val displayName = attributeTranslator.translate(name.toJsonPath())?.let { getString(it) } ?: name
+                val serializedValue = value.toString().safeSubstring(128) //TODO toString() is a hack
+                Napier.i("SERIALIZED VALUE: $serializedValue")
+                IdentityCredentialField(entryName, serializedValue, displayName, serializedValue)
             }
-            return entries
         }
 
-        fun fromAttributeMap(attributeMap: Map<String, JsonPrimitive>, attributeTranslator: CredentialAttributeTranslator?): List<IdentityCredentialField> {
-            // TODO untested
-            val entries = mutableListOf<IdentityCredentialField>()
-            attributeMap.forEach { (name, value) ->
-                    val entryName = "$name"
-                    entries.add(IdentityCredentialField(entryName, value.toString(), name, value.toString())) //TODO toString() is a hack
-                }
-            return entries
+        private fun String.toJsonPath() = NormalizedJsonPath(
+            NormalizedJsonPathSegment.NameSegment(this)
+        )
+
+        // TODO untested
+        suspend fun fromAttributeMap(
+            attributeMap: Map<String, JsonPrimitive>,
+            attributeTranslator: CredentialAttributeTranslator
+        ): List<IdentityCredentialField> = attributeMap.map { (name, value) ->
+            val displayName = attributeTranslator.translate(name.toJsonPath())?.let { getString(it) } ?: name
+            val serializedValue = value.toString().safeSubstring(128) //TODO toString() is a hack
+            IdentityCredentialField(name, serializedValue, displayName, serializedValue)
         }
 
 
     }
 }
+
+private fun String.safeSubstring(len: Int) = if (this.length >= len) this.substring(0, len) + "..." else this

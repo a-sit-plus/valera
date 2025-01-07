@@ -1,18 +1,16 @@
 package at.asitplus.wallet.app.common
 
 import androidx.compose.ui.graphics.ImageBitmap
-import at.asitplus.wallet.cor.CertificateOfResidenceScheme
-import at.asitplus.wallet.eprescription.EPrescriptionScheme
-import at.asitplus.wallet.eupid.EuPidScheme
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.app_display_name
+import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabelNonCompose
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
-import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import data.credentials.CredentialAdapter
 import data.credentials.CredentialAdapter.Companion.toAttributeMap
 import data.credentials.CredentialAdapter.Companion.toNamespaceAttributeMap
 import data.credentials.CredentialAttributeTranslator
-import data.credentials.EuPidCredentialAdapter
 import data.credentials.IdAustriaCredentialAdapter
 import data.credentials.MobileDrivingLicenceCredentialAdapter
 import data.dcapi.CredentialField
@@ -22,56 +20,40 @@ import data.dcapi.IdentityCredentialEntry
 import data.dcapi.IdentityCredentialField
 import data.storage.StoreContainer
 import io.github.aakira.napier.Napier
+import org.jetbrains.compose.resources.getString
 
 class DCAPIService(val platformAdapter: PlatformAdapter) {
 
-    fun registerCredentialWithSystem(container: StoreContainer) {
+    suspend fun registerCredentialWithSystem(container: StoreContainer) {
         Napier.d("Preparing registration of credentials with the system")
 
         val identityCredentialsEntries: List<IdentityCredentialEntry> = container.credentials.map { (_, storeEntry) ->
-            val imageDecoder: (ByteArray) -> ImageBitmap = { byteArray -> platformAdapter.decodeImage(byteArray)}
-            var picture : ByteArray? = null
+            val imageDecoder: (ByteArray) -> ImageBitmap = { byteArray -> platformAdapter.decodeImage(byteArray) }
             val attributeTranslator = CredentialAttributeTranslator[storeEntry.scheme]
-            val friendlyName = when (storeEntry.scheme) {
-                is IdAustriaScheme -> {
-                    val credential = IdAustriaCredentialAdapter.createFromStoreEntry(storeEntry, imageDecoder)
-                    picture = credential.portraitRaw
-                    "ID Austria"
-                }
-                is EuPidScheme -> {
-                    EuPidCredentialAdapter.createFromStoreEntry(storeEntry)
-                    "EU PID"
-                }
-                is MobileDrivingLicenceScheme -> {
-                    val credential = MobileDrivingLicenceCredentialAdapter.createFromStoreEntry(storeEntry, imageDecoder)
-                    picture = credential.portraitRaw
-                    "Führerschein"
-                }
-                is PowerOfRepresentationScheme -> {
-                    "Power of Representation"
-                }
-                is CertificateOfResidenceScheme -> {
-                    "Certifiate of Residence"
-                }
-                is EPrescriptionScheme -> {
-                    "E-Prescription"
-                }
-                else -> {
-                    ""
-                }
+                ?: return
+            val friendlyName = storeEntry.scheme.uiLabelNonCompose()
+            val picture: ByteArray? = when (storeEntry.scheme) {
+                is IdAustriaScheme ->
+                    IdAustriaCredentialAdapter.createFromStoreEntry(storeEntry, imageDecoder).portraitRaw
+
+                is MobileDrivingLicenceScheme ->
+                    MobileDrivingLicenceCredentialAdapter.createFromStoreEntry(storeEntry, imageDecoder).portraitRaw
+
+                else -> null
             }
 
             val entries: List<IdentityCredentialField> = when (storeEntry) {
                 is SubjectCredentialStore.StoreEntry.Vc -> {
                     TODO("Operation not yet supported")
                 }
+
                 is SubjectCredentialStore.StoreEntry.SdJwt -> {
-                    val attributeMap = storeEntry.toAttributeMap()
-                    IdentityCredentialField.fromAttributeMap(attributeMap, attributeTranslator)
+                    IdentityCredentialField.fromAttributeMap(storeEntry.toAttributeMap(), attributeTranslator)
                 }
+
                 is SubjectCredentialStore.StoreEntry.Iso -> {
-                    val namespaceAttributeMap = storeEntry.toNamespaceAttributeMap()
-                    IdentityCredentialField.fromNamespaceAttributeMap(namespaceAttributeMap, attributeTranslator)
+                    storeEntry.toNamespaceAttributeMap()
+                        ?.let { IdentityCredentialField.fromNamespaceAttributeMap(it, attributeTranslator) } ?: listOf()
                 }
             }
 
@@ -81,7 +63,7 @@ class DCAPIService(val platformAdapter: PlatformAdapter) {
                 id,
                 CredentialField(
                     storeEntry.scheme?.isoDocType ?: "",
-                    DisplayInfoField(friendlyName, "Valera", null, null),
+                    DisplayInfoField(friendlyName, getString(Res.string.app_display_name), null, null),
                     entries
                 ),
                 picture
