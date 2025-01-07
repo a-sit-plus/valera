@@ -28,6 +28,6 @@ class AndroidDummyPlatformAdapter : PlatformAdapter {
         return null
     }
 
-    override fun sendAPIResultBack(responseJson: ByteArray, dcApiRequest: DCAPIRequest) {
+    override fun prepareDCAPICredentialResponse(responseJson: ByteArray, dcApiRequest: DCAPIRequest) {
     }
 }

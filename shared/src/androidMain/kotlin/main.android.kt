@@ -58,9 +58,9 @@ actual fun getColorScheme(): ColorScheme {
 }
 
 @Composable
-fun MainView(buildContext: BuildContext, walletData: WalletAPIData, finishAPIRequest: (String) -> Unit) {
+fun MainView(buildContext: BuildContext, walletData: WalletAPIData, sendCredentialResponseToDCAPIInvokerMethod: (String) -> Unit) {
     walletAPIData = walletData
-    val platformAdapter = AndroidPlatformAdapter(LocalContext.current, finishAPIRequest)
+    val platformAdapter = AndroidPlatformAdapter(LocalContext.current, sendCredentialResponseToDCAPIInvokerMethod)
     val scope = CoroutineScope(Dispatchers.Default)
     val dataStoreService = RealDataStoreService(
         getDataStore(LocalContext.current),
@@ -83,7 +83,7 @@ fun MainView(buildContext: BuildContext, walletData: WalletAPIData, finishAPIReq
     )
 }
 
-class AndroidPlatformAdapter(private val context: Context, private val finishAPIRequest: (String) -> Unit) : PlatformAdapter {
+class AndroidPlatformAdapter(private val context: Context, private val sendCredentialResponseToDCAPIInvoker: (String) -> Unit) : PlatformAdapter {
     override fun openUrl(url: String) {
         Napier.d("Open URL: ${url.toUri()}")
         context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
@@ -207,7 +207,7 @@ class AndroidPlatformAdapter(private val context: Context, private val finishAPI
     }
 
     @OptIn(ExperimentalEncodingApi::class)
-    override fun sendAPIResultBack(responseJson: ByteArray, dcApiRequest: DCAPIRequest) {
+    override fun prepareDCAPICredentialResponse(responseJson: ByteArray, dcApiRequest: DCAPIRequest) {
         val readerPublicKey = EcPublicKeyDoubleCoordinate.fromUncompressedPointEncoding(
             EcCurve.P256,
             Base64.decode(dcApiRequest.readerPublicKeyBase64, Base64.NO_WRAP or Base64.URL_SAFE)
@@ -237,7 +237,7 @@ class AndroidPlatformAdapter(private val context: Context, private val finishAPI
             CredmanUtil.generateCredentialDocument(cipherText, encapsulatedPublicKey)
 
         val response = ResponseJSON(kotlin.io.encoding.Base64.UrlSafe.encode(encodedCredentialDocument))
-        finishAPIRequest(response.serialize())
+        sendCredentialResponseToDCAPIInvoker(response.serialize())
     }
 }
 

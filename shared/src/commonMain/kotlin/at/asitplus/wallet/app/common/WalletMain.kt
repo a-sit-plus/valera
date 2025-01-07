@@ -211,9 +211,9 @@ interface PlatformAdapter {
     fun getCurrentDCAPIData(): DCAPIRequest?
 
     /**
-     * Sends back the result of the API request to the calling application
+     * Prepares the credential response and sends it back to the invoking application
      */
-    fun sendAPIResultBack(responseJson: ByteArray, dcApiRequest: DCAPIRequest)
+    fun prepareDCAPICredentialResponse(responseJson: ByteArray, dcApiRequest: DCAPIRequest)
 }
 
 fun PlatformAdapter.decodeImage(image: ByteArray): ImageBitmap {
@@ -244,7 +244,7 @@ class DummyPlatformAdapter : PlatformAdapter {
         return null
     }
 
-    override fun sendAPIResultBack(responseJson: ByteArray, dcApiRequest: DCAPIRequest) {
+    override fun prepareDCAPICredentialResponse(responseJson: ByteArray, dcApiRequest: DCAPIRequest) {
     }
 
 }

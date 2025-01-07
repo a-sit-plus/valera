@@ -29,12 +29,12 @@ class MainActivity : AppCompatActivity() {
                     versionName = BuildConfig.VERSION_NAME,
                 ),
                 walletAPIData,
-                ::finishAPIRequest
+                ::sendCredentialResponseToDCAPIInvoker
             )
         }
     }
 
-    private fun finishAPIRequest(resultJson: String) {
+    private fun sendCredentialResponseToDCAPIInvoker(resultJson: String) {
         val resultData = Intent()
         val bundle = Bundle()
         bundle.putByteArray("identityToken", resultJson.toByteArray())
@@ -50,7 +50,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun populateLink(intent: Intent) {
         walletAPIData.intent = intent
-        appLink.value = if (intent.action == "androidx.identitycredentials.action.GET_CREDENTIALS") intent.action else intent.data?.toString()
+        appLink.value = if (intent.action == IntentHelper.ACTION_GET_CREDENTIAL) intent.action else intent.data?.toString()
     }
 
     override fun onNewIntent(intent: Intent?) {
