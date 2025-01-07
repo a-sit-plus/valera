@@ -42,6 +42,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.ConsentAttributesSection
 import ui.composables.DataDisplaySection
+import ui.composables.Logo
 import ui.composables.buttons.CancelButton
 import ui.composables.buttons.ContinueButton
 import ui.composables.buttons.NavigateUpButton
@@ -64,12 +65,7 @@ fun AuthenticationConsentView(vm: AuthenticationConsentViewModel) {
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.titleLarge,
                         )
-                        Image(
-                            modifier = Modifier.padding(start = 0.dp, end = 0.dp, top = 8.dp),
-                            painter = painterResource(Res.drawable.asp),
-                            contentDescription = null,
-                            contentScale = ContentScale.Fit,
-                        )
+                        Logo()
                     }
                 },
                 navigationIcon = {

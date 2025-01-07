@@ -38,6 +38,7 @@ import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.CredentialSelectionGroup
 import ui.viewmodels.Authentication.AuthenticationSelectionViewModel
@@ -59,12 +60,7 @@ fun AuthenticationSelectionView(vm: AuthenticationSelectionViewModel) {
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.titleLarge,
                         )
-                        Image(
-                            modifier = Modifier.padding(start = 0.dp, end = 0.dp, top = 8.dp),
-                            painter = painterResource(Res.drawable.asp),
-                            contentDescription = null,
-                            contentScale = ContentScale.Fit,
-                        )
+                        Logo()
                     }
                 },
                 navigationIcon = {

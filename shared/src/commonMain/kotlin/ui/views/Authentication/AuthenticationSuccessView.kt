@@ -28,6 +28,7 @@ import at.asitplus.valera.resources.heading_label_authentication_success
 import at.asitplus.valera.resources.info_text_authentication_success
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.Logo
 import ui.composables.buttons.ConcludeButton
 import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.Authentication.AuthenticationSuccessViewModel
@@ -49,12 +50,7 @@ fun AuthenticationSuccessView(
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.titleLarge,
                         )
-                        Image(
-                            modifier = Modifier.padding(start = 0.dp, end = 0.dp, top = 8.dp),
-                            painter = painterResource(Res.drawable.asp),
-                            contentDescription = null,
-                            contentScale = ContentScale.Fit,
-                        )
+                        Logo()
                     }
                 },
                 navigationIcon = {

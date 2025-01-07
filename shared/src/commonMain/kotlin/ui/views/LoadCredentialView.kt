@@ -1,6 +1,5 @@
 package ui.views
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -17,18 +16,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.unit.dp
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.asp
 import at.asitplus.valera.resources.heading_label_add_credential_screen
-import at.asitplus.valera.resources.heading_label_error_screen
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import ui.composables.ScreenHeading
+import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
 import ui.state.savers.CredentialIdentifierInfoSaver
 import ui.state.savers.asMutableStateSaver
@@ -66,12 +60,7 @@ fun LoadCredentialView(
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.titleLarge,
                         )
-                        Image(
-                            modifier = Modifier.padding(start = 0.dp, end = 0.dp, top = 8.dp),
-                            painter = painterResource(Res.drawable.asp),
-                            contentDescription = null,
-                            contentScale = ContentScale.Fit,
-                        )
+                        Logo()
                     }
                 },
                 navigationIcon = {

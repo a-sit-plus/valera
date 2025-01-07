@@ -1,6 +1,5 @@
 package ui.views
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,7 +21,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.eprescription.EPrescriptionScheme
@@ -32,10 +30,8 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.asp
 import at.asitplus.valera.resources.heading_label_authentication_success
 import at.asitplus.valera.resources.heading_label_credential_details_screen
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.CertificateOfResidenceCredentialView
@@ -46,6 +42,7 @@ import ui.composables.credentials.IdAustriaCredentialView
 import ui.composables.credentials.MobileDrivingLicenceCredentialView
 import ui.composables.credentials.PowerOfRepresentationCredentialView
 import ui.composables.CredentialCardActionMenu
+import ui.composables.Logo
 import ui.viewmodels.CredentialDetailsViewModel
 
 @Composable
@@ -103,12 +100,7 @@ fun CredentialDetailsScaffold(
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.headlineLarge
                         )
-                        Image(
-                            modifier = Modifier.padding(start = 0.dp, end = 0.dp, top = 8.dp),
-                            painter = painterResource(Res.drawable.asp),
-                            contentDescription = null,
-                            contentScale = ContentScale.Fit,
-                        )
+                        Logo()
                     }
                 },
                 /*actions = {

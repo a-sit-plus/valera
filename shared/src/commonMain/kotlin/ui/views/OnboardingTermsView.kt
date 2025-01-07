@@ -1,6 +1,5 @@
 package ui.views
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,18 +20,15 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.asp
 import at.asitplus.valera.resources.description_read_terms
 import at.asitplus.valera.resources.heading_label_data_protection
-import at.asitplus.valera.resources.heading_label_information_screen
 import at.asitplus.valera.resources.heading_label_navigate_back
 import at.asitplus.valera.resources.heading_label_terms_of_use
 import at.asitplus.valera.resources.heading_label_terms_of_use_and_data_protection
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.Logo
 import ui.composables.buttons.AcceptButton
 import ui.composables.buttons.DetailsButton
 import ui.composables.buttons.NavigateUpButton
@@ -59,12 +55,7 @@ fun OnboardingTermsView(
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.titleLarge,
                         )
-                        Image(
-                            modifier = Modifier.padding(start = 0.dp, end = 0.dp, top = 8.dp),
-                            painter = painterResource(Res.drawable.asp),
-                            contentDescription = null,
-                            contentScale = ContentScale.Fit,
-                        )
+                        Logo()
                     }
                 },
             )

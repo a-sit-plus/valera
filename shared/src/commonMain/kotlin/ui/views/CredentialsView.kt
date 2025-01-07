@@ -1,11 +1,12 @@
 package ui.views
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -17,15 +18,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_my_data_screen
-import at.asitplus.valera.resources.asp
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.CustomFloatingActionMenu
 import ui.composables.FloatingActionButtonHeightSpacer
+import ui.composables.Logo
 import ui.composables.credentials.CredentialCard
 import ui.viewmodels.CredentialsViewModel
 
@@ -46,12 +45,8 @@ fun CredentialsView(
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.headlineLarge,
                         )
-                        Image(
-                            modifier = Modifier.padding(start = 0.dp, end = 8.dp, top = 8.dp),
-                            painter = painterResource(Res.drawable.asp),
-                            contentDescription = null,
-                            contentScale = ContentScale.Fit,
-                        )
+                        Logo()
+                        Spacer(Modifier.width(8.dp))
                     }
                 },
             )

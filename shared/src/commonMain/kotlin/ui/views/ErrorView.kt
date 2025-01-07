@@ -1,6 +1,5 @@
 package ui.views
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -28,19 +28,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.asp
 import at.asitplus.valera.resources.button_label_ok
-import at.asitplus.valera.resources.heading_label_credential_details_screen
 import at.asitplus.valera.resources.heading_label_error_screen
 import at.asitplus.valera.resources.info_text_error_occurred
 import at.asitplus.valera.resources.info_text_to_start_screen
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.Logo
 import ui.composables.TextIconButton
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,12 +62,8 @@ fun ErrorView(
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.headlineLarge,
                         )
-                        Image(
-                            modifier = Modifier.padding(start = 0.dp, end = 8.dp, top = 8.dp),
-                            painter = painterResource(Res.drawable.asp),
-                            contentDescription = null,
-                            contentScale = ContentScale.Fit,
-                        )
+                        Logo()
+                        Spacer(Modifier.width(8.dp))
                     }
                 },
                 navigationIcon = {}
