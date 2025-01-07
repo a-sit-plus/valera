@@ -17,7 +17,7 @@ class AuthenticationSelectionViewModel(
     val confirmSelections: (Map<String, CredentialSubmission>) -> Unit,
     val navigateUp: () -> Unit
 ) {
-    val count = mutableStateOf(0)
+    val requestIterator = mutableStateOf(0)
     val iterableRequests = requests.toList()
     var attributeSelection: SnapshotStateMap<String, SnapshotStateMap<NormalizedJsonPath, Boolean>> =
         mutableStateMapOf()
@@ -25,16 +25,16 @@ class AuthenticationSelectionViewModel(
         mutableStateMapOf()
 
     val onBack = {
-        if (count.value > 0) {
-            count.value -= 1
+        if (requestIterator.value > 0) {
+            requestIterator.value -= 1
         } else {
             navigateUp()
         }
     }
 
     val onNext = {
-        if (count.value < requests.size - 1) {
-            count.value += 1
+        if (requestIterator.value < requests.size - 1) {
+            requestIterator.value += 1
         } else {
             val submission = requests.mapNotNull {
                 val requestsId = it.key

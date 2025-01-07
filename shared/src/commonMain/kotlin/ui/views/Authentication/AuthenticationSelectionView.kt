@@ -43,7 +43,7 @@ import ui.viewmodels.Authentication.AuthenticationSelectionViewModel
 fun AuthenticationSelectionView(vm: AuthenticationSelectionViewModel) {
     val vm = remember { vm }
 
-    val current = vm.iterableRequests[vm.count.value]
+    val currentRequest = vm.iterableRequests[vm.requestIterator.value]
 
     Scaffold(
         topBar = {
@@ -90,9 +90,9 @@ fun AuthenticationSelectionView(vm: AuthenticationSelectionViewModel) {
                 modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState())
                     .padding(16.dp),
             ) {
-                val requestId = current.first
+                val requestId = currentRequest.first
 
-                val matchingCredentials = current.second
+                val matchingCredentials = currentRequest.second
                 val defaultCredential = matchingCredentials.keys.first()
                 val credentialSelection = mutableStateOf(defaultCredential)
 
