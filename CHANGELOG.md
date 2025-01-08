@@ -4,6 +4,10 @@
   * Add A-SIT Logo to Viewa
   * ePrescription Icon Label
   * Use card for AttributeSelectionGroup
+* Fix crash during provisioning
+* Fix Deselection of attributed beign igonred
+* VC-K 5.2.2
+* mDL 1.1.3
 
 # Release 5.4.2
  * Go back to vck 5.2.1 (still fixing ISO mDoc presentations)
