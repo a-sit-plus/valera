@@ -1,7 +1,9 @@
 [versions]
+identity = "202411.1"
 mdl = "1.1.2"
 ida = "3.9.2"
 eupid = "2.2.2"
+play-services-identity-credentials = "16.0.0-alpha03"
 powerofrepresentation = "1.1.1"
 certificateofresidence = "2.1.1"
 eprescription = "1.1.1"
@@ -16,6 +18,9 @@ credential-powerofrepresentation = { module = "at.asitplus.wallet:powerofreprese
 credential-certificateofresidence = { module = "at.asitplus.wallet:certificateofresidence", version.ref = "certificateofresidence" }
 credential-mdl = { group = "at.asitplus.wallet", name = "mobiledrivinglicence", version.ref = "mdl" }
 credential-eprescription = { module = "at.asitplus.wallet:eprescription", version.ref = "eprescription"}
+identity = { module = "com.android.identity:identity", version.ref = "identity" }
+identity-android = { module = "com.android.identity:identity-android", version.ref = "identity" }
+play-services-identity-credentials = { module = "com.google.android.gms:play-services-identity-credentials", version.ref = "play-services-identity-credentials" }
 
 [plugins]
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }

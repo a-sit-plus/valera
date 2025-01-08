@@ -16,6 +16,8 @@ import at.asitplus.wallet.lib.jws.DefaultJwsService
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
+import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
 import data.storage.AntilogAdapter
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
@@ -42,6 +44,7 @@ class WalletMain(
     lateinit var presentationService: PresentationService
     lateinit var snackbarService: SnackbarService
     lateinit var errorService: ErrorService
+    lateinit var dcApiService: DCAPIService
     private val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
 
 
@@ -96,6 +99,7 @@ class WalletMain(
             httpService
         )
         this.snackbarService = snackbarService
+        this.dcApiService = DCAPIService(platformAdapter)
     }
 
     suspend fun resetApp() {
@@ -134,6 +138,19 @@ class WalletMain(
                 onSuccess()
             } catch (e: Exception) {
                 errorService.emit(e)
+            }
+        }
+    }
+
+    fun updateDigitalCredentialsAPIIntegration() {
+        scope.launch {
+            try {
+                Napier.d("Updating digital credentials integration")
+                subjectCredentialStore.observeStoreContainer().collect { container ->
+                    dcApiService.registerCredentialWithSystem(container)
+                }
+            } catch (e: Exception) {
+                Napier.w("Could not update credentials with system", e)
             }
         }
     }
@@ -181,6 +198,22 @@ interface PlatformAdapter {
      * Opens the platform specific share dialog
      */
     fun shareLog()
+
+    /**
+     * Registers credentials with the digital credentials browser API
+     * @param entries credentials to add
+     */
+    fun registerWithDigitalCredentialsAPI(entries: CredentialsContainer)
+
+    /**
+     * Retrieves request from the digital credentials browser API
+     */
+    fun getCurrentDCAPIData(): DCAPIRequest?
+
+    /**
+     * Prepares the credential response and sends it back to the invoking application
+     */
+    fun prepareDCAPICredentialResponse(responseJson: ByteArray, dcApiRequest: DCAPIRequest)
 }
 
 fun PlatformAdapter.decodeImage(image: ByteArray): ImageBitmap {
@@ -203,4 +236,15 @@ class DummyPlatformAdapter : PlatformAdapter {
 
     override fun shareLog() {
     }
+
+    override fun registerWithDigitalCredentialsAPI(entries: CredentialsContainer) {
+    }
+
+    override fun getCurrentDCAPIData(): DCAPIRequest? {
+        return null
+    }
+
+    override fun prepareDCAPICredentialResponse(responseJson: ByteArray, dcApiRequest: DCAPIRequest) {
+    }
+
 }

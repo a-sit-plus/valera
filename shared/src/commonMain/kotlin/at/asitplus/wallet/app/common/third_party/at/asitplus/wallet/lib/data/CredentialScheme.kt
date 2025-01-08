@@ -29,6 +29,7 @@ import data.credentials.IdAustriaCredentialAttributeTranslator
 import data.credentials.MobileDrivingLicenceCredentialAttributeTranslator
 import data.credentials.PowerOfRepresentationCredentialAttributeTranslator
 import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -39,6 +40,16 @@ fun ConstantIndex.CredentialScheme?.uiLabel(): String = when (this) {
     is PowerOfRepresentationScheme -> stringResource(Res.string.credential_scheme_label_power_of_representation)
     is CertificateOfResidenceScheme -> stringResource(Res.string.credential_scheme_label_certificate_of_residence)
     is EPrescriptionScheme -> stringResource(Res.string.credential_scheme_label_eprescription)
+    else -> this?.identifier ?: "unknown"
+}
+
+suspend fun ConstantIndex.CredentialScheme?.uiLabelNonCompose(): String = when (this) {
+    is IdAustriaScheme -> getString(Res.string.credential_scheme_label_id_austria)
+    is EuPidScheme -> getString(Res.string.credential_scheme_label_eu_pid)
+    is MobileDrivingLicenceScheme -> getString(Res.string.credential_scheme_label_mdl)
+    is PowerOfRepresentationScheme -> getString(Res.string.credential_scheme_label_power_of_representation)
+    is CertificateOfResidenceScheme -> getString(Res.string.credential_scheme_label_certificate_of_residence)
+    is EPrescriptionScheme -> getString(Res.string.credential_scheme_label_eprescription)
     else -> this?.identifier ?: "unknown"
 }
 

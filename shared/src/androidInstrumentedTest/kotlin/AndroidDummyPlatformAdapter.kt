@@ -1,7 +1,9 @@
 
 import at.asitplus.wallet.app.common.PlatformAdapter
+import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
 
-class AndroidDummyPlatformAdapter() : PlatformAdapter {
+class AndroidDummyPlatformAdapter : PlatformAdapter {
     override fun openUrl(url: String) {
 
     }
@@ -17,5 +19,15 @@ class AndroidDummyPlatformAdapter() : PlatformAdapter {
     }
 
     override fun shareLog() {
+    }
+
+    override fun registerWithDigitalCredentialsAPI(entries: CredentialsContainer) {
+    }
+
+    override fun getCurrentDCAPIData(): DCAPIRequest? {
+        return null
+    }
+
+    override fun prepareDCAPICredentialResponse(responseJson: ByteArray, dcApiRequest: DCAPIRequest) {
     }
 }

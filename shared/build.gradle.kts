@@ -48,6 +48,11 @@ kotlin {
                 implementation(ktor("client-logging"))
                 implementation(ktor("client-content-negotiation"))
                 implementation(ktor("serialization-kotlinx-json"))
+
+                // Add arrow-core dependency because of https://youtrack.jetbrains.com/issue/KT-73858/NullPointerException-when-building-CMP-ios-App
+                implementation("io.arrow-kt:arrow-core:1.2.4")
+
+                implementation(libs.identity)
             }
         }
 
@@ -70,6 +75,9 @@ kotlin {
                 implementation("androidx.camera:camera-view:1.3.0")
                 implementation("com.google.accompanist:accompanist-permissions:0.30.1")
                 implementation("com.google.mlkit:barcode-scanning:17.2.0")
+
+                implementation(libs.play.services.identity.credentials)
+                implementation(libs.identity.android)
             }
         }
 
@@ -81,6 +89,8 @@ kotlin {
         }
         iosMain { dependencies { implementation(ktor("client-darwin")) } }
     }
+
+
 }
 
 android {
