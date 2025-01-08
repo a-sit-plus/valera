@@ -123,7 +123,7 @@ class SwiftPlatformAdapter: PlatformAdapter {
     }
 
     func getCurrentDCAPIData() -> DCAPIRequest? {
-        return null
+        return nil
     }
 
     func prepareDCAPICredentialResponse(responseJson: KotlinByteArray, dcApiRequest: DCAPIRequest) {
