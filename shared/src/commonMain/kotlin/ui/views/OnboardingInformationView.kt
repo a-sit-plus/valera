@@ -33,6 +33,7 @@ import at.asitplus.valera.resources.onboarding_section_show_data_title
 import at.asitplus.valera.resources.onboarding_section_terms_and_data_protection_icon_text
 import at.asitplus.valera.resources.onboarding_section_terms_and_data_protection_title
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.Logo
 import ui.composables.TextIcon
 import ui.composables.buttons.ContinueButton
 
@@ -46,10 +47,15 @@ fun OnboardingInformationView(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = stringResource(Res.string.heading_label_information_screen),
-                        style = MaterialTheme.typography.headlineLarge,
-                    )
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = stringResource(Res.string.heading_label_information_screen),
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.headlineLarge,
+                        )
+                        Logo()
+                        Spacer(Modifier.width(8.dp))
+                    }
                 },
             )
         },
