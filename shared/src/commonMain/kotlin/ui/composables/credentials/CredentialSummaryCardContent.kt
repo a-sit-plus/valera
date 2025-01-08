@@ -2,6 +2,7 @@ package ui.composables.credentials
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
+import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.eprescription.EPrescriptionScheme
 import at.asitplus.wallet.eupid.EuPidScheme
@@ -16,33 +17,13 @@ fun CredentialSummaryCardContent(
     decodeToBitmap: (ByteArray) -> ImageBitmap?,
 ) {
     when (credential.scheme) {
-        is IdAustriaScheme -> IdAustriaCredentialSummaryCardContent(
-            credential,
-            decodeImage = decodeToBitmap,
-        )
-
-
+        is IdAustriaScheme -> IdAustriaCredentialSummaryCardContent(credential, decodeToBitmap)
         is EuPidScheme -> EuPidCredentialSummaryCardContent(credential)
-
-        is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialSummaryCardContent(
-            credential,
-            decodeToBitmap = decodeToBitmap,
-        )
-
-        is PowerOfRepresentationScheme -> PowerOfRepresentationCredentialSummaryCardContent(
-            credential,
-        )
-
-        is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialSummaryCardContent(
-            credential,
-        )
-
-        is EPrescriptionScheme -> EPrescriptionSummaryCardContent(
-            credential
-        )
-
-        else -> GenericCredentialSummaryCardContent(
-            credential = credential,
-        )
+        is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialSummaryCardContent(credential, decodeToBitmap)
+        is PowerOfRepresentationScheme -> PowerOfRepresentationCredentialSummaryCardContent(credential)
+        is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialSummaryCardContent(credential)
+        is CompanyRegistrationScheme -> CompanyRegistrationCredentialSummaryCardContent(credential)
+        is EPrescriptionScheme -> EPrescriptionSummaryCardContent(credential)
+        else -> GenericCredentialSummaryCardContent(credential)
     }
 }

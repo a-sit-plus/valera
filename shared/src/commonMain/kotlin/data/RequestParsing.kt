@@ -7,6 +7,8 @@ import at.asitplus.dif.InputDescriptor
 import at.asitplus.jsonpath.core.NodeList
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
+import at.asitplus.wallet.companyregistration.CompanyRegistrationDataElements
+import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
 import at.asitplus.wallet.cor.CertificateOfResidenceDataElements
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.eprescription.EPrescriptionDataElements
@@ -114,6 +116,7 @@ private fun ConstantIndex.CredentialScheme.toJsonElement(
         ConstantIndex.AtomicAttribute2023, IdAustriaScheme, EuPidScheme, MobileDrivingLicenceScheme -> this.claimNames
         PowerOfRepresentationScheme -> PowerOfRepresentationDataElements.ALL_ELEMENTS
         CertificateOfResidenceScheme -> CertificateOfResidenceDataElements.ALL_ELEMENTS
+        CompanyRegistrationScheme -> CompanyRegistrationDataElements.ALL_ELEMENTS
         EPrescriptionScheme -> EPrescriptionDataElements.ALL_ELEMENTS
         else -> TODO("${this::class.simpleName} not implemented in jsonElementBuilder yet")
     }

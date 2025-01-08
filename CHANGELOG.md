@@ -1,3 +1,6 @@
+# Release 5.4.4
+ * Support [Company Registration Credential](https://github.com/a-sit-plus/company-registration-credential/)
+
 # Release 5.4.3
 * Authentication Selection
 * UI Improvements
