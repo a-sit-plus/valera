@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_log_screen
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.buttons.ShareButton
 import ui.viewmodels.LogViewModel
@@ -40,10 +41,14 @@ fun LogView(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        stringResource(Res.string.heading_label_log_screen),
-                        style = MaterialTheme.typography.headlineLarge,
-                    )
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            stringResource(Res.string.heading_label_log_screen),
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.headlineLarge,
+                        )
+                        Logo()
+                    }
                 },
                 navigationIcon = {
                     NavigateUpButton(vm.navigateUp)

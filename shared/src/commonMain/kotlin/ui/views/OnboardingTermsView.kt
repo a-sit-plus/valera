@@ -28,6 +28,7 @@ import at.asitplus.valera.resources.heading_label_navigate_back
 import at.asitplus.valera.resources.heading_label_terms_of_use
 import at.asitplus.valera.resources.heading_label_terms_of_use_and_data_protection
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.Logo
 import ui.composables.buttons.AcceptButton
 import ui.composables.buttons.DetailsButton
 import ui.composables.buttons.NavigateUpButton
@@ -48,10 +49,14 @@ fun OnboardingTermsView(
                     NavigateUpButton(onClick = onClickNavigateBack)
                 },
                 title = {
-                    Text(
-                        text = stringResource(Res.string.heading_label_navigate_back),
-                        style = MaterialTheme.typography.titleLarge,
-                    )
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = stringResource(Res.string.heading_label_navigate_back),
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.titleLarge,
+                        )
+                        Logo()
+                    }
                 },
             )
         },

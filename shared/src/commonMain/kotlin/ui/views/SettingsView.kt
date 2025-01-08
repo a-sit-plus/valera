@@ -29,6 +29,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
@@ -48,6 +49,7 @@ import at.asitplus.valera.resources.text_label_build
 import at.asitplus.valera.resources.text_label_stage
 import at.asitplus.valera.resources.warning
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.Logo
 import ui.viewmodels.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -74,10 +76,15 @@ fun SettingsView(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        stringResource(Res.string.heading_label_settings_screen),
-                        style = MaterialTheme.typography.headlineLarge
-                    )
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            stringResource(Res.string.heading_label_settings_screen),
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.headlineLarge
+                        )
+                        Logo()
+                        Spacer(Modifier.width(8.dp))
+                    }
                 },
             )
         },

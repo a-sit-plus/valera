@@ -13,14 +13,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -32,15 +31,18 @@ import at.asitplus.wallet.app.common.third_parts.at.asitplus.jsonpath.core.plus
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.asp
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_location
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_name
 import at.asitplus.valera.resources.heading_label_authenticate_at_device_screen
 import at.asitplus.valera.resources.heading_label_navigate_back
 import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_data_recipient
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.ConsentAttributesSection
 import ui.composables.DataDisplaySection
+import ui.composables.Logo
 import ui.composables.buttons.CancelButton
 import ui.composables.buttons.ContinueButton
 import ui.composables.buttons.NavigateUpButton
@@ -57,10 +59,14 @@ fun AuthenticationConsentView(vm: AuthenticationConsentViewModel) {
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        stringResource(Res.string.heading_label_navigate_back),
-                        style = MaterialTheme.typography.titleLarge,
-                    )
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            stringResource(Res.string.heading_label_navigate_back),
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.titleLarge,
+                        )
+                        Logo()
+                    }
                 },
                 navigationIcon = {
                     NavigateUpButton(vm.navigateUp)
@@ -69,9 +75,7 @@ fun AuthenticationConsentView(vm: AuthenticationConsentViewModel) {
         },
         bottomBar = {
             Surface(
-                color = MaterialTheme.colorScheme.surfaceColorAtElevation(
-                    BottomAppBarDefaults.ContainerElevation
-                )
+                color = NavigationBarDefaults.containerColor,
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
