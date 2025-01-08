@@ -1,6 +1,10 @@
 package data
 
 import androidx.compose.ui.graphics.ImageBitmap
+import at.asitplus.wallet.companyregistration.Address
+import at.asitplus.wallet.companyregistration.Branch
+import at.asitplus.wallet.companyregistration.CompanyActivity
+import at.asitplus.wallet.companyregistration.ContactData
 import at.asitplus.wallet.eupid.IsoIec5218Gender
 import at.asitplus.wallet.mdl.DrivingPrivilege
 import at.asitplus.wallet.mdl.IsoSexEnum
@@ -21,6 +25,10 @@ sealed interface Attribute {
         fun fromValue(value: Instant?) = value?.let { InstantAttribute(it) }
         fun fromValue(value: ImageBitmap?) = value?.let { ImageAttribute(it) }
         fun fromValue(value: Array<DrivingPrivilege>?) = value?.let { DrivingPrivilegeAttribute(it) }
+        fun fromValue(value: CompanyActivity?) = value?.let { CompanyActivityAttribute(it) }
+        fun fromValue(value: ContactData?) = value?.let { ContactDataAttribute(it) }
+        fun fromValue(value: Address?) = value?.let { AddressAttribute(it) }
+        fun fromValue(value: Branch?) = value?.let { BranchAttribute(it) }
     }
 
     data class StringAttribute(val value: String) : Attribute
@@ -34,4 +42,8 @@ sealed interface Attribute {
     data class InstantAttribute(val value: Instant) : Attribute
     data class ImageAttribute(val value: ImageBitmap) : Attribute
     data class DrivingPrivilegeAttribute(val value: Array<DrivingPrivilege>) : Attribute
+    data class CompanyActivityAttribute(val value: CompanyActivity) : Attribute
+    data class ContactDataAttribute(val value: ContactData) : Attribute
+    data class AddressAttribute(val value: Address) : Attribute
+    data class BranchAttribute(val value: Branch) : Attribute
 }

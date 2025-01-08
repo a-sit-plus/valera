@@ -58,10 +58,10 @@ fun CompanyRegistrationCredentialMetaDataDataCardContent(
             credentialAdapter.companyEndDate?.let { AttributeRepresentation(it) }
             credentialAdapter.companyEuid?.let { AttributeRepresentation(it) }
             credentialAdapter.vatNumber?.let { AttributeRepresentation(it) }
-            // TODO credentialAdapter.contactData?.let { AttributeRepresentation(it) }
-            // TODO credentialAdapter.registeredAddress?.let { AttributeRepresentation(it) }
-            // TODO credentialAdapter.postalAddress?.let { AttributeRepresentation(it) }
-            // TODO credentialAdapter.branch?.let { AttributeRepresentation(it) }
+            credentialAdapter.contactData?.let { AttributeRepresentation(it) }
+            credentialAdapter.registeredAddress?.let { AttributeRepresentation(it) }
+            credentialAdapter.postalAddress?.let { AttributeRepresentation(it) }
+            credentialAdapter.branch?.let { AttributeRepresentation(it) }
         }
     }
 }
