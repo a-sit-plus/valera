@@ -117,5 +117,16 @@ class SwiftPlatformAdapter: PlatformAdapter {
             }
         }
     }
+
+    //TODO: implement
+    func registerWithDigitalCredentialsAPI(entries: CredentialsContainer) {
+    }
+
+    func getCurrentDCAPIData() -> DCAPIRequest? {
+        return nil
+    }
+
+    func prepareDCAPICredentialResponse(responseJson: KotlinByteArray, dcApiRequest: DCAPIRequest) {
+    }
 }
 
