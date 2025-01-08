@@ -11,6 +11,8 @@ import at.asitplus.valera.resources.section_heading_biometric_data
 import at.asitplus.valera.resources.section_heading_biometric_data_icon_text
 import at.asitplus.valera.resources.section_heading_birth_data
 import at.asitplus.valera.resources.section_heading_birth_data_icon_text
+import at.asitplus.valera.resources.section_heading_company_data
+import at.asitplus.valera.resources.section_heading_company_data_icon_text
 import at.asitplus.valera.resources.section_heading_driving_permission_data
 import at.asitplus.valera.resources.section_heading_driving_permission_data_icon_text
 import at.asitplus.valera.resources.section_heading_identity_data
@@ -48,6 +50,10 @@ enum class PersonalDataCategory(
     RepresentationData(
         iconText = Res.string.section_heading_representation_data_icon_text,
         categoryTitle = Res.string.section_heading_representation_data,
+    ),
+    CompanyData(
+        iconText = Res.string.section_heading_company_data_icon_text,
+        categoryTitle = Res.string.section_heading_company_data,
     ),
     AgeData(
         iconText = Res.string.section_heading_age_data_icon_text,

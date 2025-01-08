@@ -1,3 +1,6 @@
+# Release NEXT
+ * Support [Company Registration Credential](https://github.com/a-sit-plus/company-registration-credential/)
+
 # Release 5.4.1
  * Claim more custom URL schemes: `haip`, `eudi-openid4vp`, `mdoc-openid4vp`
  * Claim URL of Remote Wallet: `https://wallet.a-sit.at/remote/`

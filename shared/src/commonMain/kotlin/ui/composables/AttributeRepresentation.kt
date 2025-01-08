@@ -10,6 +10,10 @@ import at.asitplus.wallet.mdl.IsoSexEnum
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.dictionary_no
 import at.asitplus.valera.resources.dictionary_yes
+import at.asitplus.wallet.companyregistration.Address
+import at.asitplus.wallet.companyregistration.Branch
+import at.asitplus.wallet.companyregistration.CompanyActivity
+import at.asitplus.wallet.companyregistration.ContactData
 import data.Attribute
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
@@ -34,6 +38,10 @@ fun AttributeRepresentation(attribute: Attribute) {
         is Attribute.UnsignedIntegerAttribute -> AttributeRepresentation(attribute.value.toString())
         // TODO Nice representation for driving privileges
         is Attribute.DrivingPrivilegeAttribute -> AttributeRepresentation(attribute.value)
+        is Attribute.AddressAttribute -> AttributeRepresentation(attribute.value)
+        is Attribute.BranchAttribute -> AttributeRepresentation(attribute.value)
+        is Attribute.CompanyActivityAttribute -> AttributeRepresentation(attribute.value)
+        is Attribute.ContactDataAttribute -> AttributeRepresentation(attribute.value)
     }
 }
 
@@ -71,6 +79,61 @@ fun AttributeRepresentation(
             modifier = modifier,
         )
     }
+}
+
+@Composable
+fun AttributeRepresentation(
+    value: CompanyActivity,
+    modifier: Modifier = Modifier,
+) {
+    Text(
+        text = "${value.naceCode} (${value.description})",
+        modifier = modifier,
+    )
+}
+
+@Composable
+fun AttributeRepresentation(
+    value: ContactData,
+    modifier: Modifier = Modifier,
+) {
+    Text(
+        text = listOfNotNull(value.email, value.telephone).joinToString(", "),
+        modifier = modifier,
+    )
+}
+
+@Composable
+fun AttributeRepresentation(
+    value: Address,
+    modifier: Modifier = Modifier,
+) {
+    Text(
+        text = listOfNotNull(
+            value.thoroughfare,
+            value.locatorDesignator,
+            value.poBox,
+            value.postCode,
+            value.postName,
+            value.adminUnitLevel2,
+            value.adminUnitLevel1
+        ).joinToString(", "),
+        modifier = modifier,
+    )
+}
+
+@Composable
+fun AttributeRepresentation(
+    value: Branch,
+    modifier: Modifier = Modifier,
+) {
+    Text(
+        text = listOfNotNull(
+            value.name,
+            value.euid,
+        ).joinToString(", "),
+        modifier = modifier,
+    )
 }
 
 @Composable

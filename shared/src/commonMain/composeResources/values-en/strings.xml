@@ -115,6 +115,19 @@
     <string name="attribute_friendly_name_residence_address">Residence address</string>
     <string name="attribute_friendly_name_arrival_date">Arrival date</string>
 
+    <string name="attribute_friendly_name_company_name">Name</string>
+    <string name="attribute_friendly_name_company_type">Type</string>
+    <string name="attribute_friendly_name_company_status">Status</string>
+    <string name="attribute_friendly_name_company_activity">Activity</string>
+    <string name="attribute_friendly_name_registration_date">Registration date</string>
+    <string name="attribute_friendly_name_company_end_date">End date</string>
+    <string name="attribute_friendly_name_company_euid">EUID</string>
+    <string name="attribute_friendly_name_vat_number">VAT number</string>
+    <string name="attribute_friendly_name_contact_data">Contact data</string>
+    <string name="attribute_friendly_name_registered_address">Registered address</string>
+    <string name="attribute_friendly_name_postal_address">Postal address</string>
+    <string name="attribute_friendly_name_branch">Branch</string>
+
     <string name="attribute_friendly_name_data_recipient_name">Name</string>
     <string name="attribute_friendly_name_data_recipient_location">Location</string>
 
@@ -266,6 +279,8 @@
     <string name="section_heading_biometric_data_icon_text">BIO</string>
     <string name="section_heading_representation_data">Representation</string>
     <string name="section_heading_representation_data_icon_text">REP</string>
+    <string name="section_heading_company_data">Company</string>
+    <string name="section_heading_company_data_icon_text">CO</string>
     <string name="section_heading_metadata">Metadata</string>
     <string name="section_heading_metadata_icon_text">M</string>
     <string name="section_heading_residence_data">Residence</string>

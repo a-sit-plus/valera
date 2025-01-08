@@ -115,6 +115,19 @@
     <string name="attribute_friendly_name_residence_address">Wohnadresse</string>
     <string name="attribute_friendly_name_arrival_date">Ankunftsdatum</string>
 
+    <string name="attribute_friendly_name_company_name">Name</string>
+    <string name="attribute_friendly_name_company_type">Typ</string>
+    <string name="attribute_friendly_name_company_status">Status</string>
+    <string name="attribute_friendly_name_company_activity">Wirtschaftstätigkeiten</string>
+    <string name="attribute_friendly_name_registration_date">Registrierungsdatum</string>
+    <string name="attribute_friendly_name_company_end_date">Auflösungsdatum</string>
+    <string name="attribute_friendly_name_company_euid">EUID</string>
+    <string name="attribute_friendly_name_vat_number">UID-Nummer</string>
+    <string name="attribute_friendly_name_contact_data">Kontaktdaten</string>
+    <string name="attribute_friendly_name_registered_address">Hauptsitz</string>
+    <string name="attribute_friendly_name_postal_address">Postadresse</string>
+    <string name="attribute_friendly_name_branch">Zweigstellen</string>
+
     <string name="attribute_friendly_name_data_recipient_name">Name</string>
     <string name="attribute_friendly_name_data_recipient_location">Ort</string>
 
@@ -137,6 +150,8 @@
     <string name="credential_scheme_label_power_of_representation">Power of representation</string>
     <string name="credential_scheme_icon_label_certificate_of_residence">COR</string>
     <string name="credential_scheme_label_certificate_of_residence">Certificate of residence</string>
+    <string name="credential_scheme_icon_label_company_registration">CR</string>
+    <string name="credential_scheme_label_company_registration">Company registration</string>
     <string name="credential_scheme_label_eprescription">e-Prescription</string>
     <string name="credential_scheme_icon_label_eprescription">eP</string>
 
@@ -268,6 +283,8 @@
     <string name="section_heading_metadata_icon_text">M</string>
     <string name="section_heading_representation_data">Vertretung</string>
     <string name="section_heading_representation_data_icon_text">V</string>
+    <string name="section_heading_company_data">Firmendaten</string>
+    <string name="section_heading_company_data_icon_text">F</string>
     <string name="section_heading_residence_data">Meldeadresse</string>
     <string name="section_heading_residence_data_icon_text">MA</string>
     <string name="section_heading_missing_data">Neue Daten laden</string>
