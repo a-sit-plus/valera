@@ -25,7 +25,7 @@ This [Compose Multiplatform](https://www.jetbrains.com/lp/compose-multiplatform/
 
 <div align="center">
 
-![image](https://github.com/user-attachments/assets/751de375-652f-4270-8cfc-00db761c26a9)
+<img alt="screenshot" src="https://github.com/user-attachments/assets/751de375-652f-4270-8cfc-00db761c26a9" width="30%" height="30%">
 
 </div>
 
