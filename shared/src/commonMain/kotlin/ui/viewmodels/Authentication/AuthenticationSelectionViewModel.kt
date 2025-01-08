@@ -39,8 +39,9 @@ class AuthenticationSelectionViewModel(
             val submission = requests.mapNotNull {
                 val requestsId = it.key
                 val credential = credentialSelection[requestsId] ?: return@mapNotNull null
-                val attributes = attributeSelection[requestsId] ?: return@mapNotNull null
-                Pair(requestsId, CredentialSubmission(credential.value, attributes.keys))
+                val attributes = attributeSelection[requestsId]?.filter { it.value == true }?.keys
+                    ?: return@mapNotNull null
+                Pair(requestsId, CredentialSubmission(credential.value, attributes))
             }.toMap()
             confirmSelections(submission)
         }
