@@ -1,3 +1,10 @@
+# Release 5.4.3
+* Authentication Selection
+* UI Improvements
+  * Add A-SIT Logo to Viewa
+  * ePrescription Icon Label
+  * Use card for AttributeSelectionGroup
+
 # Release 5.4.2
  * Go back to vck 5.2.1 (still fixing ISO mDoc presentations)
 
