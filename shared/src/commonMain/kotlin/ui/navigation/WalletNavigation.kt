@@ -34,8 +34,8 @@ import at.asitplus.valera.resources.snackbar_reset_app_successfully
 import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
+import at.asitplus.wallet.app.common.decodeImage
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -310,23 +310,31 @@ private fun WalletNavHost(
 
         composable<LoadCredentialRoute> { backStackEntry ->
             val route: LoadCredentialRoute = backStackEntry.toRoute()
-            val vm = LoadCredentialViewModel(
-                walletMain = walletMain,
-                navigateUp = navigateBack,
-                hostString = route.host,
-                onSubmit = { credentialIdentifierInfo, requestedAttributes, _ ->
-                    popBackStack(HomeScreenRoute)
-                    walletMain.scope.launch {
-                        walletMain.startProvisioning(
-                            host = route.host,
-                            credentialIdentifierInfo = credentialIdentifierInfo,
-                            requestedAttributes = requestedAttributes,
-                        ) {
+            val vm = try {
+                LoadCredentialViewModel(
+                    walletMain = walletMain,
+                    navigateUp = navigateBack,
+                    hostString = route.host,
+                    onSubmit = { credentialIdentifierInfo, requestedAttributes, _ ->
+                        popBackStack(HomeScreenRoute)
+                        walletMain.scope.launch {
+                            walletMain.startProvisioning(
+                                host = route.host,
+                                credentialIdentifierInfo = credentialIdentifierInfo,
+                                requestedAttributes = requestedAttributes,
+                            ) {
+                            }
                         }
-                    }
 
-                })
-            LoadCredentialView(vm)
+                    })
+            } catch (e: Throwable) {
+                popBackStack(HomeScreenRoute)
+                walletMain.errorService.emit(e)
+                null
+            }
+            if (vm != null) {
+                LoadCredentialView(vm)
+            }
         }
 
         composable<AddCredentialPreAuthnRoute> { backStackEntry ->
