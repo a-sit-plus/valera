@@ -20,10 +20,14 @@ import at.asitplus.wallet.companyregistration.CompanyRegistrationDataElements.VA
 import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
 import at.asitplus.wallet.companyregistration.ContactData
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore.StoreEntry
+import at.asitplus.wallet.lib.data.vckJsonSerializer
 import data.Attribute
 import kotlinx.datetime.LocalDate
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.jsonPrimitive
 
 sealed class CompanyRegistrationCredentialAdapter : CredentialAdapter() {
 
@@ -33,15 +37,15 @@ sealed class CompanyRegistrationCredentialAdapter : CredentialAdapter() {
                 COMPANY_NAME -> Attribute.fromValue(companyName)
                 COMPANY_TYPE -> Attribute.fromValue(companyType)
                 COMPANY_STATUS -> Attribute.fromValue(companyStatus)
-                COMPANY_ACTIVITY -> null // TODO Attribute.fromValue(companyActivity)
+                COMPANY_ACTIVITY -> Attribute.fromValue(companyActivity)
                 REGISTRATION_DATE -> Attribute.fromValue(registrationDate)
                 COMPANY_END_DATE -> Attribute.fromValue(companyEndDate)
                 COMPANY_EUID -> Attribute.fromValue(companyEuid)
                 VAT_NUMBER -> Attribute.fromValue(vatNumber)
-                COMPANY_CONTACT_DATA -> null // TODO Attribute.fromValue(contactData)
-                REGISTERED_ADDRESS -> null // TODO Attribute.fromValue(registeredAddress)
-                POSTAL_ADDRESS -> null // TODO Attribute.fromValue(postalAddress)
-                BRANCH -> null // TODO Attribute.fromValue(branch)
+                COMPANY_CONTACT_DATA -> Attribute.fromValue(contactData)
+                REGISTERED_ADDRESS -> Attribute.fromValue(registeredAddress)
+                POSTAL_ADDRESS -> Attribute.fromValue(postalAddress)
+                BRANCH -> Attribute.fromValue(branch)
                 else -> null
             }
 
@@ -67,7 +71,10 @@ sealed class CompanyRegistrationCredentialAdapter : CredentialAdapter() {
             require(storeEntry.scheme is CompanyRegistrationScheme)
             return when (storeEntry) {
                 is StoreEntry.Vc -> TODO("Operation not yet supported")
-                is StoreEntry.SdJwt -> CompanyRegistrationCredentialSdJwtAdapter(storeEntry.toAttributeMap())
+                is StoreEntry.SdJwt -> storeEntry.toComplexJson()
+                    ?.let { CompanyRegistrationCredentialComplexSdJwtAdapter(it) }
+                    ?: CompanyRegistrationCredentialSdJwtAdapter(storeEntry.toAttributeMap())
+
                 is StoreEntry.Iso -> TODO("Operation not yet supported")
             }
         }
@@ -87,8 +94,8 @@ private class CompanyRegistrationCredentialSdJwtAdapter(
     override val companyStatus: String?
         get() = attributes[COMPANY_STATUS]?.contentOrNull
 
-    override val companyActivity: CompanyActivity? = null
-        //TODO get() = attributes[COMPANY_ACTIVITY]?.contentOrNull
+    override val companyActivity: CompanyActivity?
+        get() = attributes[COMPANY_ACTIVITY]?.contentOrNull?.let { vckJsonSerializer.decodeFromString(it) }
 
     override val registrationDate: LocalDate?
         get() = attributes[REGISTRATION_DATE]?.contentOrNull?.toLocalDateOrNull()
@@ -102,15 +109,57 @@ private class CompanyRegistrationCredentialSdJwtAdapter(
     override val vatNumber: String?
         get() = attributes[VAT_NUMBER]?.contentOrNull
 
-    override val contactData: ContactData? = null
-        // TODO get() = attributes[COMPANY_CONTACT_DATA]?.contentOrNull=
+    override val contactData: ContactData?
+        get() = attributes[COMPANY_CONTACT_DATA]?.contentOrNull?.let { vckJsonSerializer.decodeFromString(it) }
 
-    override val registeredAddress: Address? = null
-        // TODO get() = attributes[REGISTERED_ADDRESS]?.contentOrNull
+    override val registeredAddress: Address?
+        get() = attributes[REGISTERED_ADDRESS]?.contentOrNull?.let { vckJsonSerializer.decodeFromString(it) }
 
-    override val postalAddress: Address? = null
-        // TODO get() = attributes[POSTAL_ADDRESS]?.contentOrNull
+    override val postalAddress: Address?
+        get() = attributes[POSTAL_ADDRESS]?.contentOrNull?.let { vckJsonSerializer.decodeFromString(it) }
 
-    override val branch: Branch? = null
-        // TODO get() = attributes[BRANCH]?.contentOrNull
+    override val branch: Branch?
+        get() = attributes[BRANCH]?.contentOrNull?.let { vckJsonSerializer.decodeFromString(it) }
 }
+
+private class CompanyRegistrationCredentialComplexSdJwtAdapter(
+    private val attributes: JsonObject,
+) : CompanyRegistrationCredentialAdapter() {
+
+    override val companyName: String?
+        get() = (attributes[COMPANY_NAME] as? JsonPrimitive?)?.contentOrNull
+
+    override val companyType: String?
+        get() = (attributes[COMPANY_TYPE] as? JsonPrimitive?)?.contentOrNull
+
+    override val companyStatus: String?
+        get() = (attributes[COMPANY_STATUS] as? JsonPrimitive?)?.contentOrNull
+
+    override val companyActivity: CompanyActivity?
+        get() = (attributes[COMPANY_ACTIVITY] as? JsonObject?)?.let { vckJsonSerializer.decodeFromJsonElement(it) }
+
+    override val registrationDate: LocalDate?
+        get() = (attributes[REGISTRATION_DATE] as? JsonPrimitive?)?.contentOrNull?.toLocalDateOrNull()
+
+    override val companyEndDate: LocalDate?
+        get() = (attributes[COMPANY_END_DATE] as? JsonPrimitive?)?.contentOrNull?.toLocalDateOrNull()
+
+    override val companyEuid: String?
+        get() = (attributes[COMPANY_EUID] as? JsonPrimitive?)?.contentOrNull
+
+    override val vatNumber: String?
+        get() = (attributes[VAT_NUMBER] as? JsonPrimitive?)?.contentOrNull
+
+    override val contactData: ContactData?
+        get() = (attributes[COMPANY_CONTACT_DATA] as? JsonObject?)?.let { vckJsonSerializer.decodeFromJsonElement(it) }
+
+    override val registeredAddress: Address?
+        get() = (attributes[REGISTERED_ADDRESS] as? JsonObject?)?.let { vckJsonSerializer.decodeFromJsonElement(it) }
+
+    override val postalAddress: Address?
+        get() = (attributes[POSTAL_ADDRESS] as? JsonObject?)?.let { vckJsonSerializer.decodeFromJsonElement(it) }
+
+    override val branch: Branch?
+        get() = (attributes[BRANCH] as? JsonObject?)?.let { vckJsonSerializer.decodeFromJsonElement(it) }
+}
+

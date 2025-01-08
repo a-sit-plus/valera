@@ -38,17 +38,9 @@ fun CompanyRegistrationCredentialCompanyDataCardContent(
         modifier = modifier,
     ) {
         val spacingModifier = Modifier.padding(bottom = 4.dp)
-        credentialAdapter.companyName?.let {
-            AttributeRepresentation(it, modifier = spacingModifier)
-        }
-        credentialAdapter.companyType?.let {
-            AttributeRepresentation(it, modifier = spacingModifier)
-        }
-        credentialAdapter.companyStatus?.let {
-            AttributeRepresentation(it, modifier = spacingModifier)
-        }
-        credentialAdapter.companyActivity?.let {
-            //TODO AttributeRepresentation(it, modifier = spacingModifier)
-        }
+        credentialAdapter.companyName?.let { AttributeRepresentation(it, spacingModifier) }
+        credentialAdapter.companyType?.let { AttributeRepresentation(it, spacingModifier) }
+        credentialAdapter.companyStatus?.let { AttributeRepresentation(it, spacingModifier) }
+        credentialAdapter.companyActivity?.let { AttributeRepresentation(it, spacingModifier) }
     }
 }

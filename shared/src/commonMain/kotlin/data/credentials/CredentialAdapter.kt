@@ -1,7 +1,9 @@
 package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.wallet.lib.agent.SdJwtValidator
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.jws.SdJwtSigned
 import data.Attribute
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
@@ -21,15 +23,15 @@ sealed class CredentialAdapter {
         (this as? LocalDateTime?) ?: (this as String?)?.let { LocalDateTime.parse(it) }
 
     companion object {
-        // Note: May need to refactor this to
-        // SdJwtValidator(SdJwtSigned.parse(vcSerialized)).reconstructedJsonObject
-        // to support complex SD-JWT structures
         fun SubjectCredentialStore.StoreEntry.SdJwt.toAttributeMap() =
             disclosures.values.filterNotNull()
                 .filter { it.claimName != null }
                 .associate { it.claimName!! to it.claimValue }
                 .filterValues { it is JsonPrimitive }
                 .mapValues { it.value.jsonPrimitive }
+
+        fun SubjectCredentialStore.StoreEntry.SdJwt.toComplexJson() =
+            SdJwtSigned.parse(vcSerialized)?.let { SdJwtValidator(it).reconstructedJsonObject }
 
         fun SubjectCredentialStore.StoreEntry.Iso.toNamespaceAttributeMap() =
             issuerSigned.namespaces?.mapValues { namespace ->
