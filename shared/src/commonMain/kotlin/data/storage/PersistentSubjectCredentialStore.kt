@@ -235,7 +235,7 @@ private sealed interface ExportableStoreEntry {
 }
 
 enum class ExportableCredentialScheme {
-    AtomicAttribute2023, IdAustriaScheme, MobileDrivingLicence2023, EuPidScheme, PowerOfRepresentationScheme, CertificateOfResidenceScheme, EPrescriptionScheme;
+    AtomicAttribute2023, IdAustriaScheme, MobileDrivingLicence2023, EuPidScheme, PowerOfRepresentationScheme, CertificateOfResidenceScheme, CompanyRegistrationScheme, EPrescriptionScheme;
 
     fun toScheme() = when (this) {
         AtomicAttribute2023 -> ConstantIndex.AtomicAttribute2023
@@ -244,6 +244,7 @@ enum class ExportableCredentialScheme {
         EuPidScheme -> at.asitplus.wallet.eupid.EuPidScheme
         PowerOfRepresentationScheme -> at.asitplus.wallet.por.PowerOfRepresentationScheme
         CertificateOfResidenceScheme -> at.asitplus.wallet.cor.CertificateOfResidenceScheme
+        CompanyRegistrationScheme -> at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
         EPrescriptionScheme -> at.asitplus.wallet.eprescription.EPrescriptionScheme
     }
 
@@ -255,6 +256,7 @@ enum class ExportableCredentialScheme {
             at.asitplus.wallet.eupid.EuPidScheme -> EuPidScheme
             at.asitplus.wallet.por.PowerOfRepresentationScheme -> PowerOfRepresentationScheme
             at.asitplus.wallet.cor.CertificateOfResidenceScheme -> CertificateOfResidenceScheme
+            at.asitplus.wallet.companyregistration.CompanyRegistrationScheme -> CompanyRegistrationScheme
             at.asitplus.wallet.eprescription.EPrescriptionScheme -> EPrescriptionScheme
             else -> throw Exception("Unknown CredentialScheme")
         }

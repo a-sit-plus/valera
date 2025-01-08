@@ -6,6 +6,7 @@ eupid = "2.2.2"
 play-services-identity-credentials = "16.0.0-alpha03"
 powerofrepresentation = "1.1.1"
 certificateofresidence = "2.1.1"
+companyregistration = "1.0.1"
 eprescription = "1.1.1"
 atomicfu = "0.26.1"
 compose-plugin = "1.7.1"
@@ -16,6 +17,7 @@ credential-ida = { module = "at.asitplus.wallet:idacredential", version.ref = "i
 credential-eupid = { module = "at.asitplus.wallet:eupidcredential", version.ref = "eupid" }
 credential-powerofrepresentation = { module = "at.asitplus.wallet:powerofrepresentation", version.ref = "powerofrepresentation" }
 credential-certificateofresidence = { module = "at.asitplus.wallet:certificateofresidence", version.ref = "certificateofresidence" }
+credential-companyregistration = { module = "at.asitplus.wallet:company-registration", version.ref = "companyregistration" }
 credential-mdl = { group = "at.asitplus.wallet", name = "mobiledrivinglicence", version.ref = "mdl" }
 credential-eprescription = { module = "at.asitplus.wallet:eprescription", version.ref = "eprescription"}
 identity = { module = "com.android.identity:identity", version.ref = "identity" }

@@ -1,6 +1,7 @@
 package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.eprescription.EPrescriptionScheme
 import at.asitplus.wallet.eupid.EuPidScheme
@@ -25,6 +26,7 @@ interface CredentialAttributeCategorization {
             is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialAttributeCategorization
             is PowerOfRepresentationScheme -> PowerOfRepresentationCredentialAttributeCategorization
             is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialAttributeCategorization
+            is CompanyRegistrationScheme -> CompanyRegistrationCredentialAttributeCategorization
             is EPrescriptionScheme -> EPrescriptionCredentialAttributeCategorization
             else -> EmptyCredentialAttributeCategorization
         }
