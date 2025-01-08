@@ -126,7 +126,7 @@ class SwiftPlatformAdapter: PlatformAdapter {
         return null
     }
 
-    func prepareDCAPICredentialResponse(responseJson: ByteArray, dcApiRequest: DCAPIRequest) {
+    func prepareDCAPICredentialResponse(responseJson: KotlinByteArray, dcApiRequest: DCAPIRequest) {
     }
 }
 
