@@ -1,13 +1,14 @@
 # Release 5.4.3
 * Authentication Selection
 * UI Improvements
-  * Add A-SIT Logo to Viewa
+  * Add A-SIT Logo to Views
   * ePrescription Icon Label
   * Use card for AttributeSelectionGroup
 * Fix crash during provisioning
-* Fix Deselection of attributed beign igonred
+* Fix Deselection of attributes being ignored
 * VC-K 5.2.2
 * mDL 1.1.3
+
 
 # Release 5.4.2
  * Go back to vck 5.2.1 (still fixing ISO mDoc presentations)
