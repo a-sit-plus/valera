@@ -33,7 +33,7 @@ Valera seeks to comply with the emerging eIDAS2 technical specification, the reg
 Still, it is already possible to interop with the EU reference issuing service and EU verifier.
 <br>
 Valera does not aim to be production-ready, but should rather be considered a testbed, allowing you to already experience
-what an EU digital identity wallet (EUDIW) application can look and feel like.
+what an [EU digital identity wallet](https://github.com/eu-digital-identity-wallet) (EUDIW) application can look and feel like.
 
 ## Features
 
@@ -48,8 +48,7 @@ Currently, the following credentials are supported:
 * e-Prescription
 * mDL 
 * PID 
-* IDA Credential 
-* IDA Credential (ISO) 
+* IDA Credential
 * Power of Representation (PoR)
 * Certificate of Residence (CoR)
 
