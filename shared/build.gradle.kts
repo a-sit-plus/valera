@@ -142,6 +142,7 @@ exportXCFramework(
 ) {
     binaryOption("bundleId", "at.asitplus.wallet.shared")
     linkerOpts("-ld_classic")
+    freeCompilerArgs += listOf("-Xoverride-konan-properties=minVersion.ios=15.0;minVersionSinceXcode15.ios=15.0")
 }
 
 repositories {
