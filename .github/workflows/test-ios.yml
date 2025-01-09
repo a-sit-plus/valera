@@ -1,5 +1,5 @@
 name: Test iOS implementation
-on: workflow_dispatch
+on: [push]
 jobs:
   build:
     runs-on: macos-15

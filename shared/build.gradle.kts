@@ -49,9 +49,6 @@ kotlin {
                 implementation(ktor("client-content-negotiation"))
                 implementation(ktor("serialization-kotlinx-json"))
 
-                // Add arrow-core dependency because of https://youtrack.jetbrains.com/issue/KT-73858/NullPointerException-when-building-CMP-ios-App
-                implementation("io.arrow-kt:arrow-core:1.2.4")
-
                 implementation(libs.identity)
             }
         }
