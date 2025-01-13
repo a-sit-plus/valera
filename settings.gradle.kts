@@ -24,6 +24,29 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version ("0.4.0")
 }
 
+//If we have a working composite build, use it!
+if (File("./vck/signum").isDirectory && File("./vck/signum/build.gradle.kts").exists()) {
+    logger.warn("Detected VC-K in ${File("./vck").absolutePath}.Including it as composite build.")
+    logger.warn("Including VC-K and Signum as composite build.")
+    logger.warn("If you do not want this, move the VC-K to another location!")
+    includeBuild("../kmm-vc-library/signum") {
+        dependencySubstitution {
+            substitute(module("at.asitplus.wallet:indispensable")).using(project(":indispensable"))
+            substitute(module("at.asitplus.signum:indispensable-josef")).using(project(":indispensable-josef"))
+            substitute(module("at.asitplus.signum:indispensable-cosef")).using(project(":indispensable-cosef"))
+            substitute(module("at.asitplus.signum:supreme")).using(project(":supreme"))
+        }
+    }
+    includeBuild("./vck") {
+        dependencySubstitution {
+            substitute(module("at.asitplus.wallet:vck")).using(project(":vck"))
+            substitute(module("at.asitplus.wallet:vck-openid")).using(project(":vck-openid"))
+            substitute(module("at.asitplus.wallet:vck-openid-ktor")).using(project(":vck-openid-ktor"))
+            substitute(module("at.asitplus.wallet:openid-data-classes")).using(project(":openid-data-classes"))
+        }
+    }
+}
+
 val vckVersion :String get() = settings.extra["vck.version"].toString()
 
 dependencyResolutionManagement {
