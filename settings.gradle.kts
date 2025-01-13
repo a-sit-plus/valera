@@ -24,6 +24,26 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version ("0.4.0")
 }
 
+
+if (File("../kmm-vc-library/signum").isDirectory) {
+    includeBuild("../kmm-vc-library/signum") {
+        dependencySubstitution {
+            substitute(module("at.asitplus.wallet:indispensable")).using(project(":indispensable"))
+            substitute(module("at.asitplus.signum:indispensable-josef")).using(project(":indispensable-josef"))
+            substitute(module("at.asitplus.signum:indispensable-cosef")).using(project(":indispensable-cosef"))
+            substitute(module("at.asitplus.signum:supreme")).using(project(":supreme"))
+        }
+    }
+    includeBuild("../kmm-vc-library") {
+        dependencySubstitution {
+            substitute(module("at.asitplus.wallet:vck")).using(project(":vck"))
+            substitute(module("at.asitplus.wallet:vck-openid")).using(project(":vck-openid"))
+            substitute(module("at.asitplus.wallet:vck-openid-ktor")).using(project(":vck-openid-ktor"))
+            substitute(module("at.asitplus.wallet:openid-data-classes")).using(project(":openid-data-classes"))
+        }
+    }
+}
+
 val vckVersion :String get() = settings.extra["vck.version"].toString()
 
 dependencyResolutionManagement {

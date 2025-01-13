@@ -142,8 +142,8 @@ exportXCFramework(
     kmmresult(),
     napier()
 ) {
-    binaryOption("bundleId", "at.asitplus.wallet.shared")
-    linkerOpts("-ld_classic")
+    //binaryOption("bundleId", "at.asitplus.wallet.shared")
+    //linkerOpts("-ld_classic")
 }
 
 repositories {
