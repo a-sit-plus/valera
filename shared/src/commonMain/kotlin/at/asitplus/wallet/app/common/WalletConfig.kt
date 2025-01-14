@@ -30,15 +30,21 @@ class WalletConfig(
         it.isConditionsAccepted
     }
 
+    val qtspHost: Flow<String> = config.map {
+        it.qtspHost
+    }
+
     fun set(
         host: String? = null,
         isConditionsAccepted: Boolean? = null,
+        qtspHost: String? = null
     ) {
         try {
             runBlocking {
                 val newConfig = ConfigData(
                     host = host ?: this@WalletConfig.host.first(),
                     isConditionsAccepted = isConditionsAccepted ?: this@WalletConfig.isConditionsAccepted.first(),
+                    qtspHost = qtspHost ?: this@WalletConfig.qtspHost.first()
                 )
 
                 dataStoreService.setPreference(
@@ -62,10 +68,12 @@ class WalletConfig(
 @Serializable
 private data class ConfigData(
     val host: String,
-    val isConditionsAccepted: Boolean = false
+    val isConditionsAccepted: Boolean = false,
+    val qtspHost: String
 )
 
 private val ConfigDataDefaults = ConfigData(
     host = "https://wallet.a-sit.at/m5",
-    isConditionsAccepted = false
+    isConditionsAccepted = false,
+    qtspHost = "https://apps.egiz.gv.at/qtsp"
 )

@@ -35,6 +35,7 @@ kotlin {
                 implementation(compose.foundation)
                 implementation(compose.material3)
                 implementation(compose.materialIconsExtended)
+                implementation("at.asitplus.wallet:vck-rqes:5.3.0-SNAPSHOT")
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
                 api(vckOidCatalog.vck.openid.ktor)

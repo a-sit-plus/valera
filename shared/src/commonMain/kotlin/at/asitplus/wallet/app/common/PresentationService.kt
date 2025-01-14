@@ -89,7 +89,7 @@ class PresentationService(
             is CreatePresentationResult.Signed -> TODO("Credential type not yet supported for API use case")
         }
 
-        platformAdapter.prepareDCAPICredentialResponse(deviceResponse.serialize(), dcApiRequest)
+        platformAdapter.prepareDCAPICredentialResponse(deviceResponse.serialize(), dcApiRequest)*/
     }
 
 }

@@ -49,6 +49,7 @@
     <string name="button_label_select">Auswählen</string>
     <string name="button_label_show_technical_details">Technische Details einblenden</string>
     <string name="button_label_hide_technical_details">Technische Details ausblenden</string>
+    <string name="button_label_sign">Signieren (UC5)</string>
 
     <string name="attribute_friendly_name_bpk">BPK</string>
     <string name="attribute_friendly_name_firstname">Vorname</string>

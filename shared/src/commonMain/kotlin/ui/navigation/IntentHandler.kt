@@ -19,6 +19,8 @@ enum class IntentType {
     ErrorIntent,
     ProvisioningIntent,
     AuthorizationIntent,
+    SigningIntent,
+    SigningFinalizeIntent,
     DCAPIAuthorizationIntent,
 }
 
@@ -88,12 +90,25 @@ suspend fun handleIntent(
 
             appLink.value = null
         }
+
+        IntentType.SigningIntent -> {
+            walletMain.signingService.resumeWithAuthCode(url = link)
+        }
+        IntentType.SigningFinalizeIntent -> {
+            walletMain.signingService.finalizeWithAuthCode(url = link)
+        }
     }
 }
 
 
 fun parseIntent(walletMain: WalletMain, url: String): IntentType {
-    return if (walletMain.provisioningService.redirectUri?.let { url.contains(it) } == true) {
+    return if((walletMain.signingService.redirectUri?.let { url.contains(it) } == true)) {
+        if (url.contains("finalize")){
+            IntentType.SigningFinalizeIntent
+        } else {
+            IntentType.SigningIntent
+        }
+    } else if (walletMain.provisioningService.redirectUri?.let { url.contains(it) } == true) {
         IntentType.ProvisioningIntent
     } else if (url.contains("error")) {
         IntentType.ErrorIntent
