@@ -48,6 +48,7 @@
     <string name="button_label_select">UNTRANSLATED:button_label_select</string>
     <string name="button_label_show_technical_details">UNTRANSLATED:button_label_show_technical_details</string>
     <string name="button_label_hide_technical_details">UNTRANSLATED:button_label_hide_technical_details</string>
+    <string name="button_label_sign">UNTRANSLATED:button_label_sign</string>
 
     <string name="id_austria_credential_attribute_friendly_name_main_address_street">UNTRANSLATED:id_austria_credential_attribute_friendly_name_main_address_street</string>
     <string name="id_austria_credential_attribute_friendly_name_main_address_house_number">UNTRANSLATED:id_austria_credential_attribute_friendly_name_main_address_house_number</string>

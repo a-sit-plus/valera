@@ -38,7 +38,7 @@
                 <!-- May be used by relying parties to invoke the Wallet for authentication -->
                 <data
                     android:host="wallet.a-sit.at"
-                    android:pathPrefix="/remote/"
+                    android:pathPrefix="/remote"
                     android:scheme="https" />
             </intent-filter>
             <intent-filter>
