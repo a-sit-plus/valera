@@ -49,6 +49,7 @@
     <string name="button_label_select">Select</string>
     <string name="button_label_show_technical_details">Show technical details</string>
     <string name="button_label_hide_technical_details">Hide technical details</string>
+    <string name="button_label_sign">Sign (UC5)</string>
 
     <string name="attribute_friendly_name_bpk">BPK</string>
     <string name="attribute_friendly_name_firstname">Given name</string>
