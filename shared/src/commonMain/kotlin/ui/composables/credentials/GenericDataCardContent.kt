@@ -45,9 +45,11 @@ fun getGenericAttributeRepresentations(
     personalDataCategory: PersonalDataCategory,
     credentialAdapter: CredentialAdapter,
 ): List<Pair<NormalizedJsonPath, @Composable () -> Unit>> {
-    val attributeCategorization =
-        CredentialAttributeCategorization[credentialScheme][personalDataCategory]
-            ?: throw IllegalStateException("credentialAttributeCategorization")
+    val attributeCategorization = CredentialAttributeCategorization.load(
+        credentialScheme,
+        credentialAdapter.representation
+    )[personalDataCategory]
+        ?: throw IllegalStateException("credentialAttributeCategorization")
 
     val attributes = attributeCategorization.flatMap { virtualCategory ->
         virtualCategory.second?.map { virtualCategory.first + it } ?: listOf(virtualCategory.first)

@@ -3,6 +3,7 @@ package data.credentials
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import at.asitplus.wallet.por.PowerOfRepresentationDataElements.ADMINISTRATIVE_NUMBER
 import at.asitplus.wallet.por.PowerOfRepresentationDataElements.DOCUMENT_NUMBER
 import at.asitplus.wallet.por.PowerOfRepresentationDataElements.EFFECTIVE_FROM_DATE
@@ -91,6 +92,8 @@ sealed class PowerOfRepresentationCredentialAdapter : CredentialAdapter() {
 private class PowerOfRepresentationCredentialSdJwtAdapter(
     private val attributes: Map<String, JsonPrimitive>,
 ) : PowerOfRepresentationCredentialAdapter() {
+    override val representation: CredentialRepresentation
+        get() = CredentialRepresentation.SD_JWT
 
     override val documentNumber: String?
         get() = attributes[DOCUMENT_NUMBER]?.contentOrNull
@@ -136,6 +139,9 @@ private class PowerOfRepresentationCredentialIsoMdocAdapter(
     namespaces: Map<String, Map<String, Any>>?,
 ) : PowerOfRepresentationCredentialAdapter() {
     private val namespace = namespaces?.get(PowerOfRepresentationScheme.isoNamespace)
+
+    override val representation: CredentialRepresentation
+        get() = CredentialRepresentation.ISO_MDOC
 
     override val documentNumber: String?
         get() = namespace?.get(DOCUMENT_NUMBER) as String?

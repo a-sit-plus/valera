@@ -116,40 +116,7 @@ class AttributeTranslator(val credentialScheme: ConstantIndex.CredentialScheme) 
             }
 
             is EuPidScheme -> attributeName.segments.firstOrNull()?.let { first ->
-                with(EuPidScheme.Attributes) {
-                    when (first) {
-                        is NormalizedJsonPathSegment.NameSegment -> when (first.memberName) {
-                            GIVEN_NAME -> Res.string.attribute_friendly_name_firstname
-                            FAMILY_NAME -> Res.string.attribute_friendly_name_lastname
-                            BIRTH_DATE -> Res.string.attribute_friendly_name_date_of_birth
-                            AGE_OVER_12 -> Res.string.attribute_friendly_name_age_at_least_12
-                            AGE_OVER_14 -> Res.string.attribute_friendly_name_age_at_least_14
-                            AGE_OVER_16 -> Res.string.attribute_friendly_name_age_at_least_16
-                            AGE_OVER_18 -> Res.string.attribute_friendly_name_age_at_least_18
-                            AGE_OVER_21 -> Res.string.attribute_friendly_name_age_at_least_21
-                            RESIDENT_ADDRESS -> Res.string.attribute_friendly_name_main_address
-                            RESIDENT_STREET -> Res.string.attribute_friendly_name_main_residence_street
-                            RESIDENT_CITY -> Res.string.attribute_friendly_name_main_residence_city
-                            RESIDENT_POSTAL_CODE -> Res.string.attribute_friendly_name_main_residence_postal_code
-                            RESIDENT_HOUSE_NUMBER -> Res.string.attribute_friendly_name_main_residence_house_number
-                            RESIDENT_COUNTRY -> Res.string.attribute_friendly_name_main_residence_country
-                            RESIDENT_STATE -> Res.string.attribute_friendly_name_main_residence_state
-                            GENDER -> Res.string.attribute_friendly_name_sex
-                            NATIONALITY -> Res.string.attribute_friendly_name_nationality
-                            AGE_IN_YEARS -> Res.string.attribute_friendly_name_age_in_years
-                            AGE_BIRTH_YEAR -> Res.string.attribute_friendly_name_age_birth_year
-                            FAMILY_NAME_BIRTH -> Res.string.attribute_friendly_name_family_name_birth
-                            GIVEN_NAME_BIRTH -> Res.string.attribute_friendly_name_given_name_birth
-                            BIRTH_PLACE -> Res.string.attribute_friendly_name_birth_place
-                            BIRTH_COUNTRY -> Res.string.attribute_friendly_name_birth_country
-                            BIRTH_STATE -> Res.string.attribute_friendly_name_birth_state
-                            BIRTH_CITY -> Res.string.attribute_friendly_name_birth_city
-                            else -> null
-                        }
-
-                        else -> null
-                    }
-                }
+                euPidIsoNames(first) ?: euPidSdJwtNames(first)
             }
 
             is EPrescriptionScheme -> attributeName.segments.firstOrNull()?.let { first ->
@@ -211,6 +178,74 @@ class AttributeTranslator(val credentialScheme: ConstantIndex.CredentialScheme) 
                         else -> null
                     }
                 }
+            }
+
+            else -> null
+        }
+    }
+
+    private fun euPidIsoNames(first: NormalizedJsonPathSegment) = with(EuPidScheme.Attributes) {
+        when (first) {
+            is NormalizedJsonPathSegment.NameSegment -> when (first.memberName) {
+                GIVEN_NAME -> Res.string.attribute_friendly_name_firstname
+                FAMILY_NAME -> Res.string.attribute_friendly_name_lastname
+                BIRTH_DATE -> Res.string.attribute_friendly_name_date_of_birth
+                AGE_OVER_12 -> Res.string.attribute_friendly_name_age_at_least_12
+                AGE_OVER_14 -> Res.string.attribute_friendly_name_age_at_least_14
+                AGE_OVER_16 -> Res.string.attribute_friendly_name_age_at_least_16
+                AGE_OVER_18 -> Res.string.attribute_friendly_name_age_at_least_18
+                AGE_OVER_21 -> Res.string.attribute_friendly_name_age_at_least_21
+                RESIDENT_ADDRESS -> Res.string.attribute_friendly_name_main_address
+                RESIDENT_STREET -> Res.string.attribute_friendly_name_main_residence_street
+                RESIDENT_CITY -> Res.string.attribute_friendly_name_main_residence_city
+                RESIDENT_POSTAL_CODE -> Res.string.attribute_friendly_name_main_residence_postal_code
+                RESIDENT_HOUSE_NUMBER -> Res.string.attribute_friendly_name_main_residence_house_number
+                RESIDENT_COUNTRY -> Res.string.attribute_friendly_name_main_residence_country
+                RESIDENT_STATE -> Res.string.attribute_friendly_name_main_residence_state
+                GENDER -> Res.string.attribute_friendly_name_sex
+                NATIONALITY -> Res.string.attribute_friendly_name_nationality
+                AGE_IN_YEARS -> Res.string.attribute_friendly_name_age_in_years
+                AGE_BIRTH_YEAR -> Res.string.attribute_friendly_name_age_birth_year
+                FAMILY_NAME_BIRTH -> Res.string.attribute_friendly_name_family_name_birth
+                GIVEN_NAME_BIRTH -> Res.string.attribute_friendly_name_given_name_birth
+                BIRTH_PLACE -> Res.string.attribute_friendly_name_birth_place
+                BIRTH_COUNTRY -> Res.string.attribute_friendly_name_birth_country
+                BIRTH_STATE -> Res.string.attribute_friendly_name_birth_state
+                BIRTH_CITY -> Res.string.attribute_friendly_name_birth_city
+                else -> null
+            }
+
+            else -> null
+        }
+    }
+    private fun euPidSdJwtNames(first: NormalizedJsonPathSegment) = with(EuPidScheme.SdJwtAttributes) {
+        when (first) {
+            is NormalizedJsonPathSegment.NameSegment -> when (first.memberName) {
+                GIVEN_NAME -> Res.string.attribute_friendly_name_firstname
+                FAMILY_NAME -> Res.string.attribute_friendly_name_lastname
+                BIRTH_DATE -> Res.string.attribute_friendly_name_date_of_birth
+                AGE_EQUAL_OR_OVER_12 -> Res.string.attribute_friendly_name_age_at_least_12
+                AGE_EQUAL_OR_OVER_14 -> Res.string.attribute_friendly_name_age_at_least_14
+                AGE_EQUAL_OR_OVER_16 -> Res.string.attribute_friendly_name_age_at_least_16
+                AGE_EQUAL_OR_OVER_18 -> Res.string.attribute_friendly_name_age_at_least_18
+                AGE_EQUAL_OR_OVER_21 -> Res.string.attribute_friendly_name_age_at_least_21
+                ADDRESS_FORMATTED -> Res.string.attribute_friendly_name_main_address
+                ADDRESS_STREET -> Res.string.attribute_friendly_name_main_residence_street
+                ADDRESS_LOCALITY -> Res.string.attribute_friendly_name_main_residence_city
+                ADDRESS_POSTAL_CODE -> Res.string.attribute_friendly_name_main_residence_postal_code
+                ADDRESS_HOUSE_NUMBER -> Res.string.attribute_friendly_name_main_residence_house_number
+                ADDRESS_COUNTRY -> Res.string.attribute_friendly_name_main_residence_country
+                ADDRESS_REGION -> Res.string.attribute_friendly_name_main_residence_state
+                GENDER -> Res.string.attribute_friendly_name_sex
+                NATIONALITIES -> Res.string.attribute_friendly_name_nationality
+                AGE_IN_YEARS -> Res.string.attribute_friendly_name_age_in_years
+                AGE_BIRTH_YEAR -> Res.string.attribute_friendly_name_age_birth_year
+                FAMILY_NAME_BIRTH -> Res.string.attribute_friendly_name_family_name_birth
+                GIVEN_NAME_BIRTH -> Res.string.attribute_friendly_name_given_name_birth
+                PLACE_OF_BIRTH_COUNTRY -> Res.string.attribute_friendly_name_birth_country
+                PLACE_OF_BIRTH_REGION -> Res.string.attribute_friendly_name_birth_state
+                PLACE_OF_BIRTH_LOCALITY -> Res.string.attribute_friendly_name_birth_city
+                else -> null
             }
 
             else -> null

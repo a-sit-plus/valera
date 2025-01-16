@@ -15,7 +15,9 @@ import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_all_missing_data
 import at.asitplus.valera.resources.section_heading_load_data_selection
-import at.asitplus.wallet.lib.data.ConstantIndex
+import at.asitplus.wallet.app.common.credentialScheme
+import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
+import at.asitplus.wallet.lib.oidvci.toRepresentation
 import data.PersonalDataCategory
 import data.credentials.CredentialAttributeCategorization
 import org.jetbrains.compose.resources.stringResource
@@ -26,14 +28,17 @@ import ui.state.toggleableState
 
 @Composable
 fun CredentialAttributeSelectionForm(
-    credentialScheme: ConstantIndex.CredentialScheme?,
+    credentialIdentifierInfo: CredentialIdentifierInfo,
     requestedAttributes: Set<NormalizedJsonPath>,
     onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
     attributeCategoriesExpanded: Map<PersonalDataCategory, Boolean>,
     onSetAttributeCategoriesExpanded: ((Pair<PersonalDataCategory, Boolean>) -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
-    val attributeCategorization = CredentialAttributeCategorization[credentialScheme].sourceAttributeCategorization
+    val attributeCategorization = CredentialAttributeCategorization.load(
+        credentialIdentifierInfo.credentialScheme,
+        credentialIdentifierInfo.supportedCredentialFormat.format.toRepresentation()
+    ).sourceAttributeCategorization
 
     Column(
         modifier = modifier,
@@ -84,7 +89,7 @@ fun CredentialAttributeSelectionForm(
                 isExpanded = attributeCategoriesExpanded[attributeCategory.key] ?: true,
                 onToggleExpanded = { onSetAttributeCategoriesExpanded?.invoke(attributeCategory.key to it) },
                 isEditSelectionEnabled = onSetAttributeCategoriesExpanded != null,
-                requestedCredentialScheme = credentialScheme,
+                requestedCredentialScheme = credentialIdentifierInfo.credentialScheme,
                 requestedAttributes = requestedAttributes,
                 onChangeRequestedAttributes = onChangeRequestedAttributes,
             )

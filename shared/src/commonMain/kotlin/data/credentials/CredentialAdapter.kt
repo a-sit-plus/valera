@@ -3,6 +3,7 @@ package data.credentials
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.lib.agent.SdJwtValidator
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.jws.SdJwtSigned
 import data.Attribute
 import kotlinx.datetime.Instant
@@ -25,6 +26,8 @@ sealed class CredentialAdapter {
     protected fun Any?.toLocalDateTimeOrNull() =
         (this as? LocalDateTime?) ?: (this as String?)?.let { LocalDateTime.parse(it) }
 
+    abstract val representation: ConstantIndex.CredentialRepresentation
+
     companion object {
         fun SubjectCredentialStore.StoreEntry.SdJwt.toAttributeMap() =
             disclosures.values.filterNotNull()
@@ -45,19 +48,12 @@ sealed class CredentialAdapter {
 
         fun getId(
             storeEntry: SubjectCredentialStore.StoreEntry
-        ): String {
-            return when (storeEntry) {
-                is SubjectCredentialStore.StoreEntry.Vc -> {
-                    storeEntry.vc.jwtId
-                }
-                is SubjectCredentialStore.StoreEntry.SdJwt -> {
-                    storeEntry.sdJwt.jwtId ?: throw IllegalArgumentException("Credential does not have a jwtId")
-                }
-                is SubjectCredentialStore.StoreEntry.Iso -> {
-                    // TODO probably not the best id
-                    storeEntry.issuerSigned.issuerAuth.signature.humanReadableString
-                }
-            }
+        ): String = when (storeEntry) {
+            is SubjectCredentialStore.StoreEntry.Vc -> storeEntry.vc.jwtId
+            is SubjectCredentialStore.StoreEntry.SdJwt -> storeEntry.sdJwt.jwtId
+                ?: throw IllegalArgumentException("Credential does not have a jwtId")
+
+            is SubjectCredentialStore.StoreEntry.Iso -> storeEntry.issuerSigned.issuerAuth.signature.humanReadableString // TODO probably not the best id
         }
     }
 }
