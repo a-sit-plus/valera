@@ -27,6 +27,7 @@ import org.jetbrains.compose.resources.stringResource
 fun AttributeRepresentation(attribute: Attribute) {
     when (attribute) {
         is Attribute.StringAttribute -> AttributeRepresentation(attribute.value)
+        is Attribute.StringListAttribute -> AttributeRepresentation(attribute.value)
         is Attribute.BooleanAttribute -> AttributeRepresentation(attribute.value)
         is Attribute.DateAttribute -> AttributeRepresentation(attribute.value)
         is Attribute.DateTimeAttribute -> AttributeRepresentation(attribute.value)
@@ -56,6 +57,18 @@ fun AttributeRepresentation(
         modifier = modifier,
     )
 }
+
+@Composable
+fun AttributeRepresentation(
+    value: Collection<String>,
+    modifier: Modifier = Modifier,
+) {
+    Text(
+        text = value.joinToString(", "),
+        modifier = modifier,
+    )
+}
+
 
 @Composable
 fun AttributeRepresentation(

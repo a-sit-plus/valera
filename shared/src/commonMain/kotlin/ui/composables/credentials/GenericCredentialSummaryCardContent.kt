@@ -40,7 +40,6 @@ import ui.composables.LabeledText
 import kotlin.math.min
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GenericCredentialSummaryCardContent(
     credential: SubjectCredentialStore.StoreEntry,
@@ -70,17 +69,9 @@ fun GenericCredentialSummaryCardContent(
             modifier = modifier
         ) {
             when (credential) {
-                is SubjectCredentialStore.StoreEntry.Vc -> SingleVcCredentialCardContent(
-                    credential = credential,
-                )
-
-                is SubjectCredentialStore.StoreEntry.SdJwt -> SingleSdJwtCredentialCardContent(
-                    credential = credential,
-                )
-
-                is SubjectCredentialStore.StoreEntry.Iso -> SingleIsoCredentialCardContent(
-                    credential = credential,
-                )
+                is SubjectCredentialStore.StoreEntry.Vc -> SingleVcCredentialCardContent(credential = credential)
+                is SubjectCredentialStore.StoreEntry.SdJwt -> SingleSdJwtCredentialCardContent(credential = credential)
+                is SubjectCredentialStore.StoreEntry.Iso -> SingleIsoCredentialCardContent(credential = credential)
             }
         }
     }
@@ -92,9 +83,7 @@ fun GenericCredentialSummaryCardContent(
         Label(
             label = when (showContent) {
                 true -> stringResource(Res.string.button_label_hide_technical_details)
-                else -> stringResource(
-                    Res.string.button_label_show_technical_details
-                )
+                else -> stringResource(Res.string.button_label_show_technical_details)
             }
         )
         Icon(
@@ -123,9 +112,10 @@ private fun ColumnScope.SingleVcCredentialCardContent(
 private fun ColumnScope.SingleSdJwtCredentialCardContent(
     credential: SubjectCredentialStore.StoreEntry.SdJwt,
 ) {
-    credential.disclosures.forEach {
+    credential.disclosures.entries.sortedBy { it.key }.forEach {
         LabeledText(
-            text = it.value?.claimValue?.toString()?.run { slice(0..min(lastIndex, 100)) }
+            text = it.value?.claimValue?.toString()
+                ?.run { slice(0..min(lastIndex, 100)) }
                 ?: "unknown claim value",
             label = it.value?.claimName ?: "unknown claim name"
         )
@@ -137,7 +127,7 @@ private fun ColumnScope.SingleIsoCredentialCardContent(
     credential: SubjectCredentialStore.StoreEntry.Iso,
 ) {
     credential.issuerSigned.namespaces?.forEach { namespace ->
-        namespace.value.entries.forEach { entry ->
+        namespace.value.entries.sortedBy { it.value.elementIdentifier }.forEach { entry ->
             LabeledText(
                 text = entry.value.elementValue.prettyToString()
                     .run { slice(0..min(lastIndex, 100)) },

@@ -73,6 +73,11 @@ fun EuPidCredentialIdentityDataCardContent(
                     value = it,
                     modifier = spacingModifier,
                 )
+            } ?: credentialAdapter.nationalities?.let {
+                AttributeRepresentation(
+                    value = it,
+                    modifier = spacingModifier,
+                )
             }
         }
     }
