@@ -4,6 +4,8 @@ import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.eupid.EuPidCredential
 import at.asitplus.wallet.eupid.EuPidScheme
+import at.asitplus.wallet.eupid.EuPidScheme.Attributes
+import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes
 import at.asitplus.wallet.eupid.IsoIec5218Gender
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import data.Attribute
@@ -15,46 +17,89 @@ import kotlinx.serialization.json.contentOrNull
 
 sealed class EuPidCredentialAdapter : CredentialAdapter() {
     override fun getAttribute(path: NormalizedJsonPath) = path.segments.firstOrNull()?.let { first ->
-        with(EuPidScheme.Attributes) {
-            when (first) {
-                is NormalizedJsonPathSegment.NameSegment -> when (first.memberName) {
-                    GIVEN_NAME -> Attribute.fromValue(givenName)
-                    FAMILY_NAME -> Attribute.fromValue(familyName)
-                    BIRTH_DATE -> Attribute.fromValue(birthDate)
-                    AGE_OVER_12 -> Attribute.fromValue(ageAtLeast12)
-                    AGE_OVER_14 -> Attribute.fromValue(ageAtLeast14)
-                    AGE_OVER_16 -> Attribute.fromValue(ageAtLeast16)
-                    AGE_OVER_18 -> Attribute.fromValue(ageAtLeast18)
-                    AGE_OVER_21 -> Attribute.fromValue(ageAtLeast21)
-                    RESIDENT_ADDRESS -> Attribute.fromValue(residentAddress)
-                    RESIDENT_STREET -> Attribute.fromValue(residentStreet)
-                    RESIDENT_CITY -> Attribute.fromValue(residentCity)
-                    RESIDENT_POSTAL_CODE -> Attribute.fromValue(residentPostalCode)
-                    RESIDENT_HOUSE_NUMBER -> Attribute.fromValue(residentHouseNumber)
-                    RESIDENT_COUNTRY -> Attribute.fromValue(residentCountry)
-                    RESIDENT_STATE -> Attribute.fromValue(residentState)
-                    GENDER -> Attribute.fromValue(gender)
-                    NATIONALITY -> Attribute.fromValue(nationality)
-                    AGE_IN_YEARS -> Attribute.fromValue(ageInYears)
-                    AGE_BIRTH_YEAR -> Attribute.fromValue(ageBirthYear)
-                    FAMILY_NAME_BIRTH -> Attribute.fromValue(familyNameBirth)
-                    GIVEN_NAME_BIRTH -> Attribute.fromValue(givenNameBirth)
-                    BIRTH_PLACE -> Attribute.fromValue(birthPlace)
-                    BIRTH_COUNTRY -> Attribute.fromValue(birthCountry)
-                    BIRTH_STATE -> Attribute.fromValue(birthState)
-                    BIRTH_CITY -> Attribute.fromValue(birthCity)
-                    ISSUANCE_DATE -> Attribute.fromValue(issuanceDate)
-                    EXPIRY_DATE -> Attribute.fromValue(expiryDate)
-                    ISSUING_AUTHORITY -> Attribute.fromValue(issuingAuthority)
-                    DOCUMENT_NUMBER -> Attribute.fromValue(documentNumber)
-                    ADMINISTRATIVE_NUMBER -> Attribute.fromValue(administrativeNumber)
-                    ISSUING_COUNTRY -> Attribute.fromValue(issuingCountry)
-                    ISSUING_JURISDICTION -> Attribute.fromValue(issuingJurisdiction)
-                    else -> null
-                }
+        getWithIsoNames(first) ?: getWithSdJwtNames(first)
+    }
 
+    private fun getWithIsoNames(first: NormalizedJsonPathSegment) = with(Attributes) {
+        when (first) {
+            is NormalizedJsonPathSegment.NameSegment -> when (first.memberName) {
+                GIVEN_NAME -> Attribute.fromValue(givenName)
+                FAMILY_NAME -> Attribute.fromValue(familyName)
+                BIRTH_DATE -> Attribute.fromValue(birthDate)
+                AGE_OVER_12 -> Attribute.fromValue(ageAtLeast12)
+                AGE_OVER_14 -> Attribute.fromValue(ageAtLeast14)
+                AGE_OVER_16 -> Attribute.fromValue(ageAtLeast16)
+                AGE_OVER_18 -> Attribute.fromValue(ageAtLeast18)
+                AGE_OVER_21 -> Attribute.fromValue(ageAtLeast21)
+                RESIDENT_ADDRESS -> Attribute.fromValue(residentAddress)
+                RESIDENT_STREET -> Attribute.fromValue(residentStreet)
+                RESIDENT_CITY -> Attribute.fromValue(residentCity)
+                RESIDENT_POSTAL_CODE -> Attribute.fromValue(residentPostalCode)
+                RESIDENT_HOUSE_NUMBER -> Attribute.fromValue(residentHouseNumber)
+                RESIDENT_COUNTRY -> Attribute.fromValue(residentCountry)
+                RESIDENT_STATE -> Attribute.fromValue(residentState)
+                GENDER -> Attribute.fromValue(gender)
+                NATIONALITY -> Attribute.fromValue(nationality)
+                AGE_IN_YEARS -> Attribute.fromValue(ageInYears)
+                AGE_BIRTH_YEAR -> Attribute.fromValue(ageBirthYear)
+                FAMILY_NAME_BIRTH -> Attribute.fromValue(familyNameBirth)
+                GIVEN_NAME_BIRTH -> Attribute.fromValue(givenNameBirth)
+                BIRTH_PLACE -> Attribute.fromValue(birthPlace)
+                BIRTH_COUNTRY -> Attribute.fromValue(birthCountry)
+                BIRTH_STATE -> Attribute.fromValue(birthState)
+                BIRTH_CITY -> Attribute.fromValue(birthCity)
+                ISSUANCE_DATE -> Attribute.fromValue(issuanceDate)
+                EXPIRY_DATE -> Attribute.fromValue(expiryDate)
+                ISSUING_AUTHORITY -> Attribute.fromValue(issuingAuthority)
+                DOCUMENT_NUMBER -> Attribute.fromValue(documentNumber)
+                ADMINISTRATIVE_NUMBER -> Attribute.fromValue(administrativeNumber)
+                ISSUING_COUNTRY -> Attribute.fromValue(issuingCountry)
+                ISSUING_JURISDICTION -> Attribute.fromValue(issuingJurisdiction)
                 else -> null
             }
+
+            else -> null
+        }
+    }
+
+    private fun getWithSdJwtNames(first: NormalizedJsonPathSegment) = with(SdJwtAttributes) {
+        when (first) {
+            is NormalizedJsonPathSegment.NameSegment -> when (first.memberName) {
+                GIVEN_NAME -> Attribute.fromValue(givenName)
+                FAMILY_NAME -> Attribute.fromValue(familyName)
+                BIRTH_DATE -> Attribute.fromValue(birthDate)
+                AGE_EQUAL_OR_OVER_12 -> Attribute.fromValue(ageAtLeast12)
+                AGE_EQUAL_OR_OVER_14 -> Attribute.fromValue(ageAtLeast14)
+                AGE_EQUAL_OR_OVER_16 -> Attribute.fromValue(ageAtLeast16)
+                AGE_EQUAL_OR_OVER_18 -> Attribute.fromValue(ageAtLeast18)
+                AGE_EQUAL_OR_OVER_21 -> Attribute.fromValue(ageAtLeast21)
+                ADDRESS_FORMATTED -> Attribute.fromValue(residentAddress)
+                ADDRESS_STREET -> Attribute.fromValue(residentStreet)
+                ADDRESS_LOCALITY -> Attribute.fromValue(residentCity)
+                ADDRESS_POSTAL_CODE -> Attribute.fromValue(residentPostalCode)
+                ADDRESS_HOUSE_NUMBER -> Attribute.fromValue(residentHouseNumber)
+                ADDRESS_COUNTRY -> Attribute.fromValue(residentCountry)
+                ADDRESS_REGION -> Attribute.fromValue(residentState)
+                GENDER -> Attribute.fromValue(gender)
+                NATIONALITIES -> Attribute.fromValue(nationalities)
+                AGE_IN_YEARS -> Attribute.fromValue(ageInYears)
+                AGE_BIRTH_YEAR -> Attribute.fromValue(ageBirthYear)
+                FAMILY_NAME_BIRTH -> Attribute.fromValue(familyNameBirth)
+                GIVEN_NAME_BIRTH -> Attribute.fromValue(givenNameBirth)
+                PLACE_OF_BIRTH_COUNTRY -> Attribute.fromValue(birthCountry)
+                PLACE_OF_BIRTH_REGION -> Attribute.fromValue(birthState)
+                PLACE_OF_BIRTH_LOCALITY -> Attribute.fromValue(birthCity)
+                ISSUANCE_DATE -> Attribute.fromValue(issuanceDate)
+                EXPIRY_DATE -> Attribute.fromValue(expiryDate)
+                ISSUING_AUTHORITY -> Attribute.fromValue(issuingAuthority)
+                DOCUMENT_NUMBER -> Attribute.fromValue(documentNumber)
+                ADMINISTRATIVE_NUMBER -> Attribute.fromValue(administrativeNumber)
+                ISSUING_COUNTRY -> Attribute.fromValue(issuingCountry)
+                ISSUING_JURISDICTION -> Attribute.fromValue(issuingJurisdiction)
+                else -> null
+            }
+
+            else -> null
         }
     }
 
@@ -73,8 +118,9 @@ sealed class EuPidCredentialAdapter : CredentialAdapter() {
     abstract val residentHouseNumber: String?
     abstract val residentCountry: String?
     abstract val residentState: String?
-    abstract val gender: IsoIec5218Gender?
+    abstract val gender: String?
     abstract val nationality: String?
+    abstract val nationalities: Collection<String>?
     abstract val ageInYears: UInt?
     abstract val ageBirthYear: UInt?
     abstract val familyNameBirth: String?
@@ -167,11 +213,14 @@ private class EuPidCredentialVcAdapter(
     override val residentState: String?
         get() = credentialSubject.residentState
 
-    override val gender: IsoIec5218Gender?
-        get() = credentialSubject.gender
+    override val gender: String?
+        get() = credentialSubject.gender?.name
 
     override val nationality: String?
         get() = credentialSubject.nationality
+
+    override val nationalities: Collection<String>?
+        get() = listOfNotNull(credentialSubject.nationality).ifEmpty { null }
 
     override val ageInYears: UInt?
         get() = credentialSubject.ageInYears
@@ -219,106 +268,146 @@ private class EuPidCredentialVcAdapter(
         get() = credentialSubject.issuingJurisdiction
 }
 
+/**
+ * Implements getting attributes for new names (from [SdJwtAttributes]),
+ * as well as for old names (from [Attributes.GIVEN_NAME]), to keep data for credentials loaded before migration
+ */
 private class EuPidCredentialSdJwtAdapter(
     private val attributes: Map<String, JsonPrimitive>
 ) : EuPidCredentialAdapter() {
 
     override val givenName: String?
-        get() = attributes[EuPidScheme.Attributes.GIVEN_NAME]?.contentOrNull
+        get() = attributes[SdJwtAttributes.GIVEN_NAME]?.contentOrNull
+            ?: attributes[Attributes.GIVEN_NAME]?.contentOrNull
 
     override val familyName: String?
-        get() = attributes[EuPidScheme.Attributes.FAMILY_NAME]?.contentOrNull
+        get() = attributes[SdJwtAttributes.FAMILY_NAME]?.contentOrNull
+            ?: attributes[Attributes.FAMILY_NAME]?.contentOrNull
 
     override val birthDate: LocalDate?
-        get() = attributes[EuPidScheme.Attributes.BIRTH_DATE]?.contentOrNull?.toLocalDateOrNull()
+        get() = attributes[SdJwtAttributes.BIRTH_DATE]?.contentOrNull?.toLocalDateOrNull()
+            ?: attributes[Attributes.BIRTH_DATE]?.contentOrNull?.toLocalDateOrNull()
 
     override val ageAtLeast12: Boolean?
-        get() = attributes[EuPidScheme.Attributes.AGE_OVER_12]?.booleanOrNull
+        get() = attributes[SdJwtAttributes.AGE_EQUAL_OR_OVER_12]?.booleanOrNull
+            ?: attributes[Attributes.AGE_OVER_12]?.booleanOrNull
 
     override val ageAtLeast14: Boolean?
-        get() = attributes[EuPidScheme.Attributes.AGE_OVER_14]?.booleanOrNull
+        get() = attributes[SdJwtAttributes.AGE_EQUAL_OR_OVER_14]?.booleanOrNull
+            ?: attributes[Attributes.AGE_OVER_14]?.booleanOrNull
 
     override val ageAtLeast16: Boolean?
-        get() = attributes[EuPidScheme.Attributes.AGE_OVER_16]?.booleanOrNull
+        get() = attributes[SdJwtAttributes.AGE_EQUAL_OR_OVER_16]?.booleanOrNull
+            ?: attributes[Attributes.AGE_OVER_16]?.booleanOrNull
 
     override val ageAtLeast18: Boolean?
-        get() = attributes[EuPidScheme.Attributes.AGE_OVER_18]?.booleanOrNull
+        get() = attributes[SdJwtAttributes.AGE_EQUAL_OR_OVER_18]?.booleanOrNull
+            ?: attributes[Attributes.AGE_OVER_18]?.booleanOrNull
 
     override val ageAtLeast21: Boolean?
-        get() = attributes[EuPidScheme.Attributes.AGE_OVER_21]?.booleanOrNull
+        get() = attributes[SdJwtAttributes.AGE_EQUAL_OR_OVER_21]?.booleanOrNull
+            ?: attributes[Attributes.AGE_OVER_21]?.booleanOrNull
 
     override val residentAddress: String?
-        get() = attributes[EuPidScheme.Attributes.RESIDENT_ADDRESS]?.contentOrNull
+        get() = attributes[SdJwtAttributes.ADDRESS_FORMATTED]?.contentOrNull
+            ?: attributes[Attributes.RESIDENT_ADDRESS]?.contentOrNull
 
     override val residentStreet: String?
-        get() = attributes[EuPidScheme.Attributes.RESIDENT_STREET]?.contentOrNull
+        get() = attributes[SdJwtAttributes.ADDRESS_STREET]?.contentOrNull
+            ?: attributes[Attributes.RESIDENT_STREET]?.contentOrNull
 
     override val residentCity: String?
-        get() = attributes[EuPidScheme.Attributes.RESIDENT_CITY]?.contentOrNull
+        get() = attributes[SdJwtAttributes.ADDRESS_LOCALITY]?.contentOrNull
+            ?: attributes[Attributes.RESIDENT_CITY]?.contentOrNull
 
     override val residentPostalCode: String?
-        get() = attributes[EuPidScheme.Attributes.RESIDENT_POSTAL_CODE]?.contentOrNull
+        get() = attributes[SdJwtAttributes.ADDRESS_POSTAL_CODE]?.contentOrNull
+            ?: attributes[Attributes.RESIDENT_POSTAL_CODE]?.contentOrNull
 
     override val residentHouseNumber: String?
-        get() = attributes[EuPidScheme.Attributes.RESIDENT_HOUSE_NUMBER]?.contentOrNull
+        get() = attributes[SdJwtAttributes.ADDRESS_HOUSE_NUMBER]?.contentOrNull
+            ?: attributes[Attributes.RESIDENT_HOUSE_NUMBER]?.contentOrNull
 
     override val residentCountry: String?
-        get() = attributes[EuPidScheme.Attributes.RESIDENT_COUNTRY]?.contentOrNull
+        get() = attributes[SdJwtAttributes.ADDRESS_COUNTRY]?.contentOrNull
+            ?: attributes[Attributes.RESIDENT_COUNTRY]?.contentOrNull
 
     override val residentState: String?
-        get() = attributes[EuPidScheme.Attributes.RESIDENT_STATE]?.contentOrNull
+        get() = attributes[SdJwtAttributes.ADDRESS_REGION]?.contentOrNull
+            ?: attributes[Attributes.RESIDENT_STATE]?.contentOrNull
 
-    override val gender: IsoIec5218Gender?
-        get() = attributes[EuPidScheme.Attributes.GENDER]?.contentOrNull?.toIntOrNull()
-            ?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code } }
+    override val gender: String?
+        get() = attributes[SdJwtAttributes.GENDER]?.contentOrNull
+            ?: attributes[Attributes.GENDER]?.contentOrNull?.toIntOrNull()
+                ?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code }?.name }
+            ?: attributes[Attributes.GENDER]?.contentOrNull
 
     override val nationality: String?
-        get() = attributes[EuPidScheme.Attributes.NATIONALITY]?.contentOrNull
+        get() = attributes[Attributes.NATIONALITY]?.contentOrNull
+
+    override val nationalities: Collection<String>?
+        get() = attributes[SdJwtAttributes.NATIONALITIES]?.toCollectionOrNull()
+            ?: listOfNotNull(nationality).ifEmpty { null }
 
     override val ageInYears: UInt?
-        get() = attributes[EuPidScheme.Attributes.AGE_IN_YEARS]?.contentOrNull?.toUIntOrNull()
+        get() = attributes[SdJwtAttributes.AGE_IN_YEARS]?.contentOrNull?.toUIntOrNull()
+            ?: attributes[Attributes.AGE_IN_YEARS]?.contentOrNull?.toUIntOrNull()
 
     override val ageBirthYear: UInt?
-        get() = attributes[EuPidScheme.Attributes.AGE_BIRTH_YEAR]?.contentOrNull?.toUIntOrNull()
+        get() = attributes[SdJwtAttributes.AGE_BIRTH_YEAR]?.contentOrNull?.toUIntOrNull()
+            ?: attributes[Attributes.AGE_BIRTH_YEAR]?.contentOrNull?.toUIntOrNull()
 
     override val familyNameBirth: String?
-        get() = attributes[EuPidScheme.Attributes.FAMILY_NAME_BIRTH]?.contentOrNull
+        get() = attributes[SdJwtAttributes.FAMILY_NAME_BIRTH]?.contentOrNull
+            ?: attributes[Attributes.FAMILY_NAME_BIRTH]?.contentOrNull
 
     override val givenNameBirth: String?
-        get() = attributes[EuPidScheme.Attributes.GIVEN_NAME_BIRTH]?.contentOrNull
+        get() = attributes[SdJwtAttributes.GIVEN_NAME_BIRTH]?.contentOrNull
+            ?: attributes[Attributes.GIVEN_NAME_BIRTH]?.contentOrNull
 
     override val birthPlace: String?
-        get() = attributes[EuPidScheme.Attributes.BIRTH_PLACE]?.contentOrNull
+        get() = attributes[SdJwtAttributes.PLACE_OF_BIRTH_LOCALITY]?.contentOrNull
+            ?: attributes[Attributes.BIRTH_PLACE]?.contentOrNull
 
     override val birthCountry: String?
-        get() = attributes[EuPidScheme.Attributes.BIRTH_COUNTRY]?.contentOrNull
+        get() = attributes[SdJwtAttributes.PLACE_OF_BIRTH_COUNTRY]?.contentOrNull
+            ?: attributes[Attributes.BIRTH_COUNTRY]?.contentOrNull
 
     override val birthState: String?
-        get() = attributes[EuPidScheme.Attributes.BIRTH_STATE]?.contentOrNull
+        get() = attributes[SdJwtAttributes.PLACE_OF_BIRTH_REGION]?.contentOrNull
+            ?: attributes[Attributes.BIRTH_STATE]?.contentOrNull
 
     override val birthCity: String?
-        get() = attributes[EuPidScheme.Attributes.BIRTH_CITY]?.contentOrNull
+        get() = attributes[SdJwtAttributes.PLACE_OF_BIRTH_LOCALITY]?.contentOrNull
+            ?: attributes[Attributes.BIRTH_CITY]?.contentOrNull
 
     override val issuanceDate: Instant?
-        get() = attributes[EuPidScheme.Attributes.ISSUANCE_DATE]?.contentOrNull?.toInstantOrNull()
+        get() = attributes[SdJwtAttributes.ISSUANCE_DATE]?.contentOrNull?.toInstantOrNull()
+            ?: attributes[Attributes.ISSUANCE_DATE]?.contentOrNull?.toInstantOrNull()
 
     override val expiryDate: Instant?
-        get() = attributes[EuPidScheme.Attributes.EXPIRY_DATE]?.contentOrNull?.toInstantOrNull()
+        get() = attributes[SdJwtAttributes.EXPIRY_DATE]?.contentOrNull?.toInstantOrNull()
+            ?: attributes[Attributes.EXPIRY_DATE]?.contentOrNull?.toInstantOrNull()
 
     override val issuingAuthority: String?
-        get() = attributes[EuPidScheme.Attributes.ISSUING_AUTHORITY]?.contentOrNull
+        get() = attributes[SdJwtAttributes.ISSUING_AUTHORITY]?.contentOrNull
+            ?: attributes[Attributes.ISSUING_AUTHORITY]?.contentOrNull
 
     override val documentNumber: String?
-        get() = attributes[EuPidScheme.Attributes.DOCUMENT_NUMBER]?.contentOrNull
+        get() = attributes[SdJwtAttributes.DOCUMENT_NUMBER]?.contentOrNull
+            ?: attributes[Attributes.DOCUMENT_NUMBER]?.contentOrNull
 
     override val administrativeNumber: String?
-        get() = attributes[EuPidScheme.Attributes.ADMINISTRATIVE_NUMBER]?.contentOrNull
+        get() = attributes[SdJwtAttributes.ADMINISTRATIVE_NUMBER]?.contentOrNull
+            ?: attributes[Attributes.ADMINISTRATIVE_NUMBER]?.contentOrNull
 
     override val issuingCountry: String?
-        get() = attributes[EuPidScheme.Attributes.ISSUING_COUNTRY]?.contentOrNull
+        get() = attributes[SdJwtAttributes.ISSUING_COUNTRY]?.contentOrNull
+            ?: attributes[Attributes.ISSUING_COUNTRY]?.contentOrNull
 
     override val issuingJurisdiction: String?
-        get() = attributes[EuPidScheme.Attributes.ISSUING_JURISDICTION]?.contentOrNull
+        get() = attributes[SdJwtAttributes.ISSUING_JURISDICTION]?.contentOrNull
+            ?: attributes[Attributes.ISSUING_JURISDICTION]?.contentOrNull
 }
 
 private class EuPidCredentialIsoMdocAdapter(
@@ -327,102 +416,104 @@ private class EuPidCredentialIsoMdocAdapter(
     private val euPidNamespace = namespaces?.get(EuPidScheme.isoNamespace)
 
     override val givenName: String?
-        get() = euPidNamespace?.get(EuPidScheme.Attributes.GIVEN_NAME) as String?
+        get() = euPidNamespace?.get(Attributes.GIVEN_NAME) as String?
 
     override val familyName: String?
-        get() = euPidNamespace?.get(EuPidScheme.Attributes.FAMILY_NAME) as String?
+        get() = euPidNamespace?.get(Attributes.FAMILY_NAME) as String?
 
     override val birthDate: LocalDate?
-        get() = euPidNamespace?.get(EuPidScheme.Attributes.BIRTH_DATE) as? LocalDate?
-            ?: euPidNamespace?.get(EuPidScheme.Attributes.BIRTH_DATE)?.toString()?.toLocalDateOrNull()
+        get() = euPidNamespace?.get(Attributes.BIRTH_DATE) as? LocalDate?
+            ?: euPidNamespace?.get(Attributes.BIRTH_DATE)?.toString()?.toLocalDateOrNull()
 
     override val ageAtLeast12: Boolean?
-        get() = euPidNamespace?.get(EuPidScheme.Attributes.AGE_OVER_12) as? Boolean?
+        get() = euPidNamespace?.get(Attributes.AGE_OVER_12) as? Boolean?
 
     override val ageAtLeast14: Boolean?
-        get() = euPidNamespace?.get(EuPidScheme.Attributes.AGE_OVER_14) as? Boolean?
+        get() = euPidNamespace?.get(Attributes.AGE_OVER_14) as? Boolean?
 
     override val ageAtLeast16: Boolean?
-        get() = euPidNamespace?.get(EuPidScheme.Attributes.AGE_OVER_16) as? Boolean?
+        get() = euPidNamespace?.get(Attributes.AGE_OVER_16) as? Boolean?
 
     override val ageAtLeast18: Boolean?
-        get() = euPidNamespace?.get(EuPidScheme.Attributes.AGE_OVER_18) as? Boolean?
+        get() = euPidNamespace?.get(Attributes.AGE_OVER_18) as? Boolean?
 
     override val ageAtLeast21: Boolean?
-        get() = euPidNamespace?.get(EuPidScheme.Attributes.AGE_OVER_21) as? Boolean?
+        get() = euPidNamespace?.get(Attributes.AGE_OVER_21) as? Boolean?
 
     override val residentAddress: String?
-        get() = euPidNamespace?.get(EuPidScheme.Attributes.RESIDENT_ADDRESS) as String?
+        get() = euPidNamespace?.get(Attributes.RESIDENT_ADDRESS) as String?
 
     override val residentStreet: String?
-        get() = euPidNamespace?.get(EuPidScheme.Attributes.RESIDENT_STREET) as String?
+        get() = euPidNamespace?.get(Attributes.RESIDENT_STREET) as String?
 
     override val residentCity: String?
-        get() = euPidNamespace?.get(EuPidScheme.Attributes.RESIDENT_CITY) as String?
+        get() = euPidNamespace?.get(Attributes.RESIDENT_CITY) as String?
 
     override val residentPostalCode: String?
-        get() = euPidNamespace?.get(EuPidScheme.Attributes.RESIDENT_POSTAL_CODE)?.toString()
+        get() = euPidNamespace?.get(Attributes.RESIDENT_POSTAL_CODE)?.toString()
 
     override val residentHouseNumber: String?
-        get() = euPidNamespace?.get(EuPidScheme.Attributes.RESIDENT_HOUSE_NUMBER)?.toString()
+        get() = euPidNamespace?.get(Attributes.RESIDENT_HOUSE_NUMBER)?.toString()
 
     override val residentCountry: String?
-        get() = euPidNamespace?.get(EuPidScheme.Attributes.RESIDENT_COUNTRY) as String?
+        get() = euPidNamespace?.get(Attributes.RESIDENT_COUNTRY) as String?
 
     override val residentState: String?
-        get() = euPidNamespace?.get(EuPidScheme.Attributes.RESIDENT_STATE) as String?
+        get() = euPidNamespace?.get(Attributes.RESIDENT_STATE) as String?
 
-    override val gender: IsoIec5218Gender?
-        get() = euPidNamespace?.get(EuPidScheme.Attributes.GENDER)
-            ?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code } }
+    override val gender: String?
+        get() = euPidNamespace?.get(Attributes.GENDER) as String?
 
     override val nationality: String?
-        get() = euPidNamespace?.get(EuPidScheme.Attributes.NATIONALITY) as String?
+        get() = euPidNamespace?.get(Attributes.NATIONALITY) as String?
+
+    override val nationalities: Collection<String>?
+        get() = listOfNotNull(nationality).ifEmpty { null }
 
     override val ageInYears: UInt?
-        get() = euPidNamespace?.get(EuPidScheme.Attributes.AGE_IN_YEARS) as UInt?
+        get() = euPidNamespace?.get(Attributes.AGE_IN_YEARS) as UInt?
 
     override val ageBirthYear: UInt?
-        get() = euPidNamespace?.get(EuPidScheme.Attributes.AGE_BIRTH_YEAR) as UInt?
+        get() = euPidNamespace?.get(Attributes.AGE_BIRTH_YEAR) as UInt?
 
     override val familyNameBirth: String?
-        get() = euPidNamespace?.get(EuPidScheme.Attributes.FAMILY_NAME_BIRTH) as String?
+        get() = euPidNamespace?.get(Attributes.FAMILY_NAME_BIRTH) as String?
 
     override val givenNameBirth: String?
-        get() = euPidNamespace?.get(EuPidScheme.Attributes.GIVEN_NAME_BIRTH) as String?
+        get() = euPidNamespace?.get(Attributes.GIVEN_NAME_BIRTH) as String?
 
     override val birthPlace: String?
-        get() = euPidNamespace?.get(EuPidScheme.Attributes.BIRTH_PLACE) as String?
+        get() = euPidNamespace?.get(Attributes.BIRTH_PLACE) as String?
 
     override val birthCountry: String?
-        get() = euPidNamespace?.get(EuPidScheme.Attributes.BIRTH_COUNTRY) as String?
+        get() = euPidNamespace?.get(Attributes.BIRTH_COUNTRY) as String?
 
     override val birthState: String?
-        get() = euPidNamespace?.get(EuPidScheme.Attributes.BIRTH_STATE) as String?
+        get() = euPidNamespace?.get(Attributes.BIRTH_STATE) as String?
 
     override val birthCity: String?
-        get() = euPidNamespace?.get(EuPidScheme.Attributes.BIRTH_CITY) as String?
+        get() = euPidNamespace?.get(Attributes.BIRTH_CITY) as String?
 
     override val issuanceDate: Instant?
-        get() = euPidNamespace?.get(EuPidScheme.Attributes.ISSUANCE_DATE) as Instant?
-            ?: euPidNamespace?.get(EuPidScheme.Attributes.ISSUANCE_DATE)?.toString()?.toInstantOrNull()
+        get() = euPidNamespace?.get(Attributes.ISSUANCE_DATE) as Instant?
+            ?: euPidNamespace?.get(Attributes.ISSUANCE_DATE)?.toString()?.toInstantOrNull()
 
     override val expiryDate: Instant?
-        get() = euPidNamespace?.get(EuPidScheme.Attributes.EXPIRY_DATE) as Instant?
-            ?: euPidNamespace?.get(EuPidScheme.Attributes.EXPIRY_DATE)?.toString()?.toInstantOrNull()
+        get() = euPidNamespace?.get(Attributes.EXPIRY_DATE) as Instant?
+            ?: euPidNamespace?.get(Attributes.EXPIRY_DATE)?.toString()?.toInstantOrNull()
 
     override val issuingAuthority: String?
-        get() = euPidNamespace?.get(EuPidScheme.Attributes.ISSUING_AUTHORITY) as String?
+        get() = euPidNamespace?.get(Attributes.ISSUING_AUTHORITY) as String?
 
     override val documentNumber: String?
-        get() = euPidNamespace?.get(EuPidScheme.Attributes.DOCUMENT_NUMBER) as String?
+        get() = euPidNamespace?.get(Attributes.DOCUMENT_NUMBER) as String?
 
     override val administrativeNumber: String?
-        get() = euPidNamespace?.get(EuPidScheme.Attributes.ADMINISTRATIVE_NUMBER) as String?
+        get() = euPidNamespace?.get(Attributes.ADMINISTRATIVE_NUMBER) as String?
 
     override val issuingCountry: String?
-        get() = euPidNamespace?.get(EuPidScheme.Attributes.ISSUING_COUNTRY) as String?
+        get() = euPidNamespace?.get(Attributes.ISSUING_COUNTRY) as String?
 
     override val issuingJurisdiction: String?
-        get() = euPidNamespace?.get(EuPidScheme.Attributes.ISSUING_JURISDICTION) as String?
+        get() = euPidNamespace?.get(Attributes.ISSUING_JURISDICTION) as String?
 }

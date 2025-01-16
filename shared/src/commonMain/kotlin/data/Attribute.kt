@@ -15,6 +15,7 @@ import kotlinx.datetime.LocalDateTime
 sealed interface Attribute {
     companion object {
         fun fromValue(value: String?) = value?.let { StringAttribute(it) }
+        fun fromValue(value: Collection<String>?) = value?.let { StringListAttribute(it) }
         fun fromValue(value: IsoIec5218Gender?) = value?.let { GenderAttribute(it) }
         fun fromValue(value: IsoSexEnum?) = value?.let { SexAttribute(it) }
         fun fromValue(value: Int?) = value?.let { IntegerAttribute(it) }
@@ -32,6 +33,7 @@ sealed interface Attribute {
     }
 
     data class StringAttribute(val value: String) : Attribute
+    data class StringListAttribute(val value: Collection<String>) : Attribute
     data class GenderAttribute(val value: IsoIec5218Gender) : Attribute
     data class SexAttribute(val value: IsoSexEnum) : Attribute
     data class IntegerAttribute(val value: Int) : Attribute

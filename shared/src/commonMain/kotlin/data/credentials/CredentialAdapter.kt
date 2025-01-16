@@ -8,6 +8,7 @@ import data.Attribute
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
 
@@ -18,6 +19,8 @@ sealed class CredentialAdapter {
         (this as? LocalDate?) ?: (this as String?)?.let { LocalDate.parse(it) }
 
     protected fun Any?.toInstantOrNull() = (this as String?)?.let { Instant.parse(it) }
+
+    protected fun JsonPrimitive?.toCollectionOrNull() = (this as JsonArray?)?.let { it.map { it.toString() } }
 
     protected fun Any?.toLocalDateTimeOrNull() =
         (this as? LocalDateTime?) ?: (this as String?)?.let { LocalDateTime.parse(it) }
