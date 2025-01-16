@@ -5,7 +5,11 @@ import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.attribute_friendly_name_administrative_number
+import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_12
+import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_14
+import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_16
 import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_18
+import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_21
 import at.asitplus.valera.resources.attribute_friendly_name_age_birth_year
 import at.asitplus.valera.resources.attribute_friendly_name_age_in_years
 import at.asitplus.valera.resources.attribute_friendly_name_birth_place
@@ -66,7 +70,11 @@ object MobileDrivingLicenceCredentialAttributeTranslator : CredentialAttributeTr
                     PORTRAIT_CAPTURE_DATE -> Res.string.attribute_friendly_name_portrait_capture_date
                     AGE_IN_YEARS -> Res.string.attribute_friendly_name_age_in_years
                     AGE_BIRTH_YEAR -> Res.string.attribute_friendly_name_age_birth_year
+                    AGE_OVER_12 -> Res.string.attribute_friendly_name_age_at_least_12
+                    AGE_OVER_14 -> Res.string.attribute_friendly_name_age_at_least_14
+                    AGE_OVER_16 -> Res.string.attribute_friendly_name_age_at_least_16
                     AGE_OVER_18 -> Res.string.attribute_friendly_name_age_at_least_18
+                    AGE_OVER_21 -> Res.string.attribute_friendly_name_age_at_least_21
                     ISSUING_JURISDICTION -> Res.string.attribute_friendly_name_issuing_jurisdiction
                     NATIONALITY -> Res.string.attribute_friendly_name_nationality
                     RESIDENT_CITY -> Res.string.attribute_friendly_name_main_residence_city
