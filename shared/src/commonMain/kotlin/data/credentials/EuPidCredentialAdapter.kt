@@ -6,6 +6,9 @@ import at.asitplus.wallet.eupid.EuPidCredential
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.eupid.EuPidScheme.Attributes
 import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes
+import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes.Address
+import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes.AgeEqualOrOver
+import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes.PlaceOfBirth
 import at.asitplus.wallet.eupid.IsoIec5218Gender
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
@@ -18,7 +21,7 @@ import kotlinx.serialization.json.contentOrNull
 
 sealed class EuPidCredentialAdapter : CredentialAdapter() {
     override fun getAttribute(path: NormalizedJsonPath) = path.segments.firstOrNull()?.let { first ->
-        getWithIsoNames(first) ?: getWithSdJwtNames(first)
+        getWithIsoNames(first) ?: getWithSdJwtNames(first, path.segments.getOrNull(1))
     }
 
     private fun getWithIsoNames(first: NormalizedJsonPathSegment) = with(Attributes) {
@@ -63,17 +66,48 @@ sealed class EuPidCredentialAdapter : CredentialAdapter() {
         }
     }
 
-    private fun getWithSdJwtNames(first: NormalizedJsonPathSegment) = with(SdJwtAttributes) {
+    private fun getWithSdJwtNames(
+        first: NormalizedJsonPathSegment,
+        second: NormalizedJsonPathSegment?
+    ) = with(SdJwtAttributes) {
         when (first) {
             is NormalizedJsonPathSegment.NameSegment -> when (first.memberName) {
                 GIVEN_NAME -> Attribute.fromValue(givenName)
                 FAMILY_NAME -> Attribute.fromValue(familyName)
                 BIRTH_DATE -> Attribute.fromValue(birthDate)
+                PREFIX_AGE_EQUAL_OR_OVER -> when (second) {
+                    is NormalizedJsonPathSegment.NameSegment -> when (second.memberName) {
+                        AgeEqualOrOver.EQUAL_OR_OVER_12 -> Attribute.fromValue(ageAtLeast12)
+                        AgeEqualOrOver.EQUAL_OR_OVER_14 -> Attribute.fromValue(ageAtLeast14)
+                        AgeEqualOrOver.EQUAL_OR_OVER_16 -> Attribute.fromValue(ageAtLeast16)
+                        AgeEqualOrOver.EQUAL_OR_OVER_18 -> Attribute.fromValue(ageAtLeast18)
+                        AgeEqualOrOver.EQUAL_OR_OVER_21 -> Attribute.fromValue(ageAtLeast21)
+                        else -> null
+                    }
+
+                    else -> null
+                }
+
                 AGE_EQUAL_OR_OVER_12 -> Attribute.fromValue(ageAtLeast12)
                 AGE_EQUAL_OR_OVER_14 -> Attribute.fromValue(ageAtLeast14)
                 AGE_EQUAL_OR_OVER_16 -> Attribute.fromValue(ageAtLeast16)
                 AGE_EQUAL_OR_OVER_18 -> Attribute.fromValue(ageAtLeast18)
                 AGE_EQUAL_OR_OVER_21 -> Attribute.fromValue(ageAtLeast21)
+                PREFIX_ADDRESS -> when (second) {
+                    is NormalizedJsonPathSegment.NameSegment -> when (second.memberName) {
+                        Address.FORMATTED -> Attribute.fromValue(residentAddress)
+                        Address.STREET -> Attribute.fromValue(residentStreet)
+                        Address.LOCALITY -> Attribute.fromValue(residentCity)
+                        Address.POSTAL_CODE -> Attribute.fromValue(residentPostalCode)
+                        Address.HOUSE_NUMBER -> Attribute.fromValue(residentHouseNumber)
+                        Address.COUNTRY -> Attribute.fromValue(residentCountry)
+                        Address.REGION -> Attribute.fromValue(residentState)
+                        else -> null
+                    }
+
+                    else -> null
+                }
+
                 ADDRESS_FORMATTED -> Attribute.fromValue(residentAddress)
                 ADDRESS_STREET -> Attribute.fromValue(residentStreet)
                 ADDRESS_LOCALITY -> Attribute.fromValue(residentCity)
@@ -87,6 +121,17 @@ sealed class EuPidCredentialAdapter : CredentialAdapter() {
                 AGE_BIRTH_YEAR -> Attribute.fromValue(ageBirthYear)
                 FAMILY_NAME_BIRTH -> Attribute.fromValue(familyNameBirth)
                 GIVEN_NAME_BIRTH -> Attribute.fromValue(givenNameBirth)
+                PREFIX_PLACE_OF_BIRTH -> when (second) {
+                    is NormalizedJsonPathSegment.NameSegment -> when (second.memberName) {
+                        PlaceOfBirth.COUNTRY -> Attribute.fromValue(birthCountry)
+                        PlaceOfBirth.REGION -> Attribute.fromValue(birthState)
+                        PlaceOfBirth.LOCALITY -> Attribute.fromValue(birthCity)
+                        else -> null
+                    }
+
+                    else -> null
+                }
+
                 PLACE_OF_BIRTH_COUNTRY -> Attribute.fromValue(birthCountry)
                 PLACE_OF_BIRTH_REGION -> Attribute.fromValue(birthState)
                 PLACE_OF_BIRTH_LOCALITY -> Attribute.fromValue(birthCity)
