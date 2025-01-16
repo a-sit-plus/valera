@@ -20,6 +20,7 @@ import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.RESIDENCE_ADDRE
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.eupid.IsoIec5218Gender
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import data.Attribute
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
@@ -99,6 +100,8 @@ sealed class CertificateOfResidenceCredentialAdapter : CredentialAdapter() {
 private class CertificateOfResidenceCredentialSdJwtAdapter(
     private val attributes: Map<String, JsonPrimitive>,
 ) : CertificateOfResidenceCredentialAdapter() {
+    override val representation: CredentialRepresentation
+        get() = CredentialRepresentation.SD_JWT
 
     override val documentNumber: String?
         get() = attributes[DOCUMENT_NUMBER]?.contentOrNull
@@ -150,6 +153,8 @@ private class CertificateOfResidenceCredentialSdJwtAdapter(
 private class CertificateOfResidenceCredentialIsoMdocAdapter(
     namespaces: Map<String, Map<String, Any>>?,
 ) : CertificateOfResidenceCredentialAdapter() {
+    override val representation: CredentialRepresentation
+        get() = CredentialRepresentation.ISO_MDOC
     private val namespace = namespaces?.get(CertificateOfResidenceScheme.isoNamespace)
 
     override val documentNumber: String?

@@ -7,6 +7,7 @@ import at.asitplus.wallet.eprescription.EPrescriptionDataElements.OTT
 import at.asitplus.wallet.eprescription.EPrescriptionDataElements.VALID_UNTIL
 import at.asitplus.wallet.eprescription.EPrescriptionScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import data.Attribute
 import kotlinx.datetime.Instant
 import kotlinx.serialization.json.JsonPrimitive
@@ -58,6 +59,8 @@ sealed class EPrescriptionCredentialAdapter : CredentialAdapter() {
 private class EPrescriptionCredentialSdJwtAdapter(
     private val attributes: Map<String, JsonPrimitive>,
 ) : EPrescriptionCredentialAdapter() {
+    override val representation: CredentialRepresentation
+        get() = CredentialRepresentation.SD_JWT
 
     override val validUntil: Instant?
         get() = attributes[VALID_UNTIL]?.contentOrNull?.toInstantOrNull()
@@ -73,6 +76,9 @@ private class EPrescriptionCredentialIsoMdocAdapter(
     namespaces: Map<String, Map<String, Any>>?,
 ) : EPrescriptionCredentialAdapter() {
     private val namespace = namespaces?.get(EPrescriptionScheme.isoNamespace)
+
+    override val representation: CredentialRepresentation
+        get() = CredentialRepresentation.ISO_MDOC
 
     override val validUntil: Instant?
         get() = namespace?.get(VALID_UNTIL)?.toInstantOrNull()

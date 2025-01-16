@@ -20,9 +20,12 @@ typealias AttributeUnpackingInformation = Pair<NormalizedJsonPath, List<Normaliz
 
 interface CredentialAttributeCategorization {
     companion object {
-        operator fun get(scheme: ConstantIndex.CredentialScheme?): Template = when (scheme) {
+        fun load(
+            scheme: ConstantIndex.CredentialScheme?,
+            representation: ConstantIndex.CredentialRepresentation
+        ): Template = when (scheme) {
             is IdAustriaScheme -> IdAustriaCredentialAttributeCategorization
-            is EuPidScheme -> EuPidCredentialAttributeCategorization
+            is EuPidScheme -> if (representation == ConstantIndex.CredentialRepresentation.SD_JWT) EuPidCredentialSdJwtAttributeCategorization else EuPidCredentialAttributeCategorization
             is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialAttributeCategorization
             is PowerOfRepresentationScheme -> PowerOfRepresentationCredentialAttributeCategorization
             is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialAttributeCategorization

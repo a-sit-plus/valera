@@ -8,6 +8,7 @@ import at.asitplus.wallet.eupid.EuPidScheme.Attributes
 import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes
 import at.asitplus.wallet.eupid.IsoIec5218Gender
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import data.Attribute
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
@@ -168,6 +169,9 @@ sealed class EuPidCredentialAdapter : CredentialAdapter() {
 private class EuPidCredentialVcAdapter(
     val credentialSubject: EuPidCredential
 ) : EuPidCredentialAdapter() {
+    override val representation: CredentialRepresentation
+        get() = CredentialRepresentation.PLAIN_JWT
+
     override val givenName: String
         get() = credentialSubject.givenName
 
@@ -275,6 +279,8 @@ private class EuPidCredentialVcAdapter(
 private class EuPidCredentialSdJwtAdapter(
     private val attributes: Map<String, JsonPrimitive>
 ) : EuPidCredentialAdapter() {
+    override val representation: CredentialRepresentation
+        get() = CredentialRepresentation.SD_JWT
 
     override val givenName: String?
         get() = attributes[SdJwtAttributes.GIVEN_NAME]?.contentOrNull
@@ -414,6 +420,9 @@ private class EuPidCredentialIsoMdocAdapter(
     namespaces: Map<String, Map<String, Any>>?,
 ) : EuPidCredentialAdapter() {
     private val euPidNamespace = namespaces?.get(EuPidScheme.isoNamespace)
+
+    override val representation: CredentialRepresentation
+        get() = CredentialRepresentation.ISO_MDOC
 
     override val givenName: String?
         get() = euPidNamespace?.get(Attributes.GIVEN_NAME) as String?

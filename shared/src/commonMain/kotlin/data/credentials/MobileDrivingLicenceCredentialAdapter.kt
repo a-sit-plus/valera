@@ -5,6 +5,7 @@ import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.signum.indispensable.io.Base64UrlStrict
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import at.asitplus.wallet.mdl.DrivingPrivilege
 import at.asitplus.wallet.mdl.IsoSexEnum
 import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
@@ -159,6 +160,8 @@ private class MobileDrivingLicenceCredentialSdJwtAdapter(
     private val attributes: Map<String, JsonPrimitive>,
     private val decodePortrait: (ByteArray) -> ImageBitmap?,
 ) : MobileDrivingLicenceCredentialAdapter(decodePortrait) {
+    override val representation: CredentialRepresentation
+        get() = CredentialRepresentation.SD_JWT
 
     override val givenName: String?
         get() = attributes[MobileDrivingLicenceDataElements.GIVEN_NAME]?.contentOrNull
@@ -277,6 +280,9 @@ private class MobileDrivingLicenceCredentialIsoMdocAdapter(
     decodePortrait: (ByteArray) -> ImageBitmap?,
 ) : MobileDrivingLicenceCredentialAdapter(decodePortrait) {
     private val namespace = namespaces?.get(MobileDrivingLicenceScheme.isoNamespace)
+
+    override val representation: CredentialRepresentation
+        get() = CredentialRepresentation.ISO_MDOC
 
     override val givenName: String?
         get() = namespace?.get(MobileDrivingLicenceDataElements.GIVEN_NAME) as String?

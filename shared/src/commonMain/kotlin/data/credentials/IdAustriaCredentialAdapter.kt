@@ -7,6 +7,7 @@ import at.asitplus.signum.indispensable.io.Base64UrlStrict
 import at.asitplus.wallet.idaustria.IdAustriaCredential
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import data.Attribute
 import io.github.aakira.napier.Napier
 import io.ktor.util.decodeBase64Bytes
@@ -123,6 +124,9 @@ private class IdAustriaCredentialVcAdapter(
     val credentialSubject: IdAustriaCredential,
     decodeImage: (ByteArray) -> ImageBitmap?,
 ) : IdAustriaCredentialAdapter(decodeImage) {
+    override val representation: CredentialRepresentation
+        get() = CredentialRepresentation.PLAIN_JWT
+
     override val bpk: String
         get() = credentialSubject.bpk
 
@@ -158,6 +162,8 @@ private class IdAustriaCredentialSdJwtAdapter(
     private val attributes: Map<String, JsonPrimitive>,
     decodeImage: (ByteArray) -> ImageBitmap?,
 ) : IdAustriaCredentialAdapter(decodeImage) {
+    override val representation: CredentialRepresentation
+        get() = CredentialRepresentation.SD_JWT
 
     override val bpk: String?
         get() = attributes[IdAustriaScheme.Attributes.BPK]?.contentOrNull
@@ -195,6 +201,9 @@ private class IdAustriaCredentialIsoMdocAdapter(
     decodeImage: (ByteArray) -> ImageBitmap?,
 ) : IdAustriaCredentialAdapter(decodeImage) {
     private val idAustriaNamespace = namespaces?.get(IdAustriaScheme.isoNamespace)
+
+    override val representation: CredentialRepresentation
+        get() = CredentialRepresentation.ISO_MDOC
 
     override val bpk: String?
         get() = idAustriaNamespace?.get(IdAustriaScheme.Attributes.BPK) as String?
