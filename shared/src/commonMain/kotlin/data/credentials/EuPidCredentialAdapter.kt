@@ -15,47 +15,57 @@ import kotlinx.serialization.json.contentOrNull
 
 sealed class EuPidCredentialAdapter : CredentialAdapter() {
     override fun getAttribute(path: NormalizedJsonPath) = path.segments.firstOrNull()?.let { first ->
-        when (first) {
-            is NormalizedJsonPathSegment.NameSegment -> when (first.memberName) {
-                EuPidScheme.Attributes.GIVEN_NAME -> Attribute.fromValue(givenName)
-                EuPidScheme.Attributes.FAMILY_NAME -> Attribute.fromValue(familyName)
-                EuPidScheme.Attributes.BIRTH_DATE -> Attribute.fromValue(birthDate)
-                EuPidScheme.Attributes.AGE_OVER_18 -> Attribute.fromValue(ageAtLeast18)
-                EuPidScheme.Attributes.RESIDENT_ADDRESS -> Attribute.fromValue(residentAddress)
-                EuPidScheme.Attributes.RESIDENT_STREET -> Attribute.fromValue(residentStreet)
-                EuPidScheme.Attributes.RESIDENT_CITY -> Attribute.fromValue(residentCity)
-                EuPidScheme.Attributes.RESIDENT_POSTAL_CODE -> Attribute.fromValue(residentPostalCode)
-                EuPidScheme.Attributes.RESIDENT_HOUSE_NUMBER -> Attribute.fromValue(residentHouseNumber)
-                EuPidScheme.Attributes.RESIDENT_COUNTRY -> Attribute.fromValue(residentCountry)
-                EuPidScheme.Attributes.RESIDENT_STATE -> Attribute.fromValue(residentState)
-                EuPidScheme.Attributes.GENDER -> Attribute.fromValue(gender)
-                EuPidScheme.Attributes.NATIONALITY -> Attribute.fromValue(nationality)
-                EuPidScheme.Attributes.AGE_IN_YEARS -> Attribute.fromValue(ageInYears)
-                EuPidScheme.Attributes.AGE_BIRTH_YEAR -> Attribute.fromValue(ageBirthYear)
-                EuPidScheme.Attributes.FAMILY_NAME_BIRTH -> Attribute.fromValue(familyNameBirth)
-                EuPidScheme.Attributes.GIVEN_NAME_BIRTH -> Attribute.fromValue(givenNameBirth)
-                EuPidScheme.Attributes.BIRTH_PLACE -> Attribute.fromValue(birthPlace)
-                EuPidScheme.Attributes.BIRTH_COUNTRY -> Attribute.fromValue(birthCountry)
-                EuPidScheme.Attributes.BIRTH_STATE -> Attribute.fromValue(birthState)
-                EuPidScheme.Attributes.BIRTH_CITY -> Attribute.fromValue(birthCity)
-                EuPidScheme.Attributes.ISSUANCE_DATE -> Attribute.fromValue(issuanceDate)
-                EuPidScheme.Attributes.EXPIRY_DATE -> Attribute.fromValue(expiryDate)
-                EuPidScheme.Attributes.ISSUING_AUTHORITY -> Attribute.fromValue(issuingAuthority)
-                EuPidScheme.Attributes.DOCUMENT_NUMBER -> Attribute.fromValue(documentNumber)
-                EuPidScheme.Attributes.ADMINISTRATIVE_NUMBER -> Attribute.fromValue(administrativeNumber)
-                EuPidScheme.Attributes.ISSUING_COUNTRY -> Attribute.fromValue(issuingCountry)
-                EuPidScheme.Attributes.ISSUING_JURISDICTION -> Attribute.fromValue(issuingJurisdiction)
+        with(EuPidScheme.Attributes) {
+            when (first) {
+                is NormalizedJsonPathSegment.NameSegment -> when (first.memberName) {
+                    GIVEN_NAME -> Attribute.fromValue(givenName)
+                    FAMILY_NAME -> Attribute.fromValue(familyName)
+                    BIRTH_DATE -> Attribute.fromValue(birthDate)
+                    AGE_OVER_12 -> Attribute.fromValue(ageAtLeast12)
+                    AGE_OVER_14 -> Attribute.fromValue(ageAtLeast14)
+                    AGE_OVER_16 -> Attribute.fromValue(ageAtLeast16)
+                    AGE_OVER_18 -> Attribute.fromValue(ageAtLeast18)
+                    AGE_OVER_21 -> Attribute.fromValue(ageAtLeast21)
+                    RESIDENT_ADDRESS -> Attribute.fromValue(residentAddress)
+                    RESIDENT_STREET -> Attribute.fromValue(residentStreet)
+                    RESIDENT_CITY -> Attribute.fromValue(residentCity)
+                    RESIDENT_POSTAL_CODE -> Attribute.fromValue(residentPostalCode)
+                    RESIDENT_HOUSE_NUMBER -> Attribute.fromValue(residentHouseNumber)
+                    RESIDENT_COUNTRY -> Attribute.fromValue(residentCountry)
+                    RESIDENT_STATE -> Attribute.fromValue(residentState)
+                    GENDER -> Attribute.fromValue(gender)
+                    NATIONALITY -> Attribute.fromValue(nationality)
+                    AGE_IN_YEARS -> Attribute.fromValue(ageInYears)
+                    AGE_BIRTH_YEAR -> Attribute.fromValue(ageBirthYear)
+                    FAMILY_NAME_BIRTH -> Attribute.fromValue(familyNameBirth)
+                    GIVEN_NAME_BIRTH -> Attribute.fromValue(givenNameBirth)
+                    BIRTH_PLACE -> Attribute.fromValue(birthPlace)
+                    BIRTH_COUNTRY -> Attribute.fromValue(birthCountry)
+                    BIRTH_STATE -> Attribute.fromValue(birthState)
+                    BIRTH_CITY -> Attribute.fromValue(birthCity)
+                    ISSUANCE_DATE -> Attribute.fromValue(issuanceDate)
+                    EXPIRY_DATE -> Attribute.fromValue(expiryDate)
+                    ISSUING_AUTHORITY -> Attribute.fromValue(issuingAuthority)
+                    DOCUMENT_NUMBER -> Attribute.fromValue(documentNumber)
+                    ADMINISTRATIVE_NUMBER -> Attribute.fromValue(administrativeNumber)
+                    ISSUING_COUNTRY -> Attribute.fromValue(issuingCountry)
+                    ISSUING_JURISDICTION -> Attribute.fromValue(issuingJurisdiction)
+                    else -> null
+                }
+
                 else -> null
             }
-
-            else -> null
         }
     }
 
     abstract val givenName: String?
     abstract val familyName: String?
     abstract val birthDate: LocalDate?
+    abstract val ageAtLeast12: Boolean?
+    abstract val ageAtLeast14: Boolean?
+    abstract val ageAtLeast16: Boolean?
     abstract val ageAtLeast18: Boolean?
+    abstract val ageAtLeast21: Boolean?
     abstract val residentAddress: String?
     abstract val residentStreet: String?
     abstract val residentCity: String?
@@ -121,8 +131,20 @@ private class EuPidCredentialVcAdapter(
     override val birthDate: LocalDate
         get() = credentialSubject.birthDate
 
+    override val ageAtLeast12: Boolean?
+        get() = credentialSubject.ageOver12
+
+    override val ageAtLeast14: Boolean?
+        get() = credentialSubject.ageOver14
+
+    override val ageAtLeast16: Boolean?
+        get() = credentialSubject.ageOver16
+
     override val ageAtLeast18: Boolean?
         get() = credentialSubject.ageOver18
+
+    override val ageAtLeast21: Boolean?
+        get() = credentialSubject.ageOver21
 
     override val residentAddress: String?
         get() = credentialSubject.residentAddress
@@ -210,8 +232,20 @@ private class EuPidCredentialSdJwtAdapter(
     override val birthDate: LocalDate?
         get() = attributes[EuPidScheme.Attributes.BIRTH_DATE]?.contentOrNull?.toLocalDateOrNull()
 
+    override val ageAtLeast12: Boolean?
+        get() = attributes[EuPidScheme.Attributes.AGE_OVER_12]?.booleanOrNull
+
+    override val ageAtLeast14: Boolean?
+        get() = attributes[EuPidScheme.Attributes.AGE_OVER_14]?.booleanOrNull
+
+    override val ageAtLeast16: Boolean?
+        get() = attributes[EuPidScheme.Attributes.AGE_OVER_16]?.booleanOrNull
+
     override val ageAtLeast18: Boolean?
         get() = attributes[EuPidScheme.Attributes.AGE_OVER_18]?.booleanOrNull
+
+    override val ageAtLeast21: Boolean?
+        get() = attributes[EuPidScheme.Attributes.AGE_OVER_21]?.booleanOrNull
 
     override val residentAddress: String?
         get() = attributes[EuPidScheme.Attributes.RESIDENT_ADDRESS]?.contentOrNull
@@ -302,8 +336,20 @@ private class EuPidCredentialIsoMdocAdapter(
         get() = euPidNamespace?.get(EuPidScheme.Attributes.BIRTH_DATE) as? LocalDate?
             ?: euPidNamespace?.get(EuPidScheme.Attributes.BIRTH_DATE)?.toString()?.toLocalDateOrNull()
 
+    override val ageAtLeast12: Boolean?
+        get() = euPidNamespace?.get(EuPidScheme.Attributes.AGE_OVER_12) as? Boolean?
+
+    override val ageAtLeast14: Boolean?
+        get() = euPidNamespace?.get(EuPidScheme.Attributes.AGE_OVER_14) as? Boolean?
+
+    override val ageAtLeast16: Boolean?
+        get() = euPidNamespace?.get(EuPidScheme.Attributes.AGE_OVER_16) as? Boolean?
+
     override val ageAtLeast18: Boolean?
         get() = euPidNamespace?.get(EuPidScheme.Attributes.AGE_OVER_18) as? Boolean?
+
+    override val ageAtLeast21: Boolean?
+        get() = euPidNamespace?.get(EuPidScheme.Attributes.AGE_OVER_21) as? Boolean?
 
     override val residentAddress: String?
         get() = euPidNamespace?.get(EuPidScheme.Attributes.RESIDENT_ADDRESS) as String?

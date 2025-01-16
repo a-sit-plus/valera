@@ -1,6 +1,7 @@
 # Release NEXT
  * Support [Company Registration Credential](https://github.com/a-sit-plus/company-registration-credential/)
  * Update to VC-K 5.2.3-SNAPSHOT to increase interoperability with Verifier implementations
+ * Support more `age_over_NN` attributes for EU PID and mDL
 
 # Release 5.4.1
  * Claim more custom URL schemes: `haip`, `eudi-openid4vp`, `mdoc-openid4vp`

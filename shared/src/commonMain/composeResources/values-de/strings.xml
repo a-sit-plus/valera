@@ -53,6 +53,7 @@
     <string name="attribute_friendly_name_lastname">Nachname</string>
     <string name="attribute_friendly_name_date_of_birth">Geburtsdatum</string>
     <string name="attribute_friendly_name_portrait">Porträt</string>
+    <string name="attribute_friendly_name_age_at_least_12">Zumindest 12 Jahre alt</string>
     <string name="attribute_friendly_name_age_at_least_14">Zumindest 14 Jahre alt</string>
     <string name="attribute_friendly_name_age_at_least_16">Zumindest 16 Jahre alt</string>
     <string name="attribute_friendly_name_age_at_least_18">Zumindest 18 Jahre alt</string>

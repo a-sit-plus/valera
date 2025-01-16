@@ -5,7 +5,11 @@ import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.attribute_friendly_name_administrative_number
+import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_12
+import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_14
+import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_16
 import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_18
+import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_21
 import at.asitplus.valera.resources.attribute_friendly_name_age_birth_year
 import at.asitplus.valera.resources.attribute_friendly_name_age_in_years
 import at.asitplus.valera.resources.attribute_friendly_name_birth_city
@@ -43,7 +47,11 @@ object EuPidCredentialAttributeTranslator : CredentialAttributeTranslator {
                     FAMILY_NAME -> Res.string.attribute_friendly_name_lastname
                     GIVEN_NAME -> Res.string.attribute_friendly_name_firstname
                     BIRTH_DATE -> Res.string.attribute_friendly_name_date_of_birth
+                    AGE_OVER_12 -> Res.string.attribute_friendly_name_age_at_least_12
+                    AGE_OVER_14 -> Res.string.attribute_friendly_name_age_at_least_14
+                    AGE_OVER_16 -> Res.string.attribute_friendly_name_age_at_least_16
                     AGE_OVER_18 -> Res.string.attribute_friendly_name_age_at_least_18
+                    AGE_OVER_21 -> Res.string.attribute_friendly_name_age_at_least_21
                     AGE_IN_YEARS -> Res.string.attribute_friendly_name_age_in_years
                     AGE_BIRTH_YEAR -> Res.string.attribute_friendly_name_age_birth_year
                     FAMILY_NAME_BIRTH -> Res.string.attribute_friendly_name_family_name_birth

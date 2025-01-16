@@ -16,7 +16,11 @@ object EuPidCredentialAttributeCategorization : CredentialAttributeCategorizatio
         ).map { NormalizedJsonPath() + it to null },
 
         PersonalDataCategory.AgeData to listOf(
+            EuPidScheme.Attributes.AGE_OVER_12,
+            EuPidScheme.Attributes.AGE_OVER_14,
+            EuPidScheme.Attributes.AGE_OVER_16,
             EuPidScheme.Attributes.AGE_OVER_18,
+            EuPidScheme.Attributes.AGE_OVER_21,
             EuPidScheme.Attributes.AGE_BIRTH_YEAR,
             EuPidScheme.Attributes.AGE_IN_YEARS,
         ).map { NormalizedJsonPath() + it to null },
