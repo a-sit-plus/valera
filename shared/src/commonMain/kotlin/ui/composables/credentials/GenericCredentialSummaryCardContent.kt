@@ -112,7 +112,7 @@ private fun ColumnScope.SingleVcCredentialCardContent(
 private fun ColumnScope.SingleSdJwtCredentialCardContent(
     credential: SubjectCredentialStore.StoreEntry.SdJwt,
 ) {
-    credential.disclosures.entries.sortedBy { it.key }.forEach {
+    credential.disclosures.entries.sortedBy { it.value?.claimName ?: it.key }.forEach {
         LabeledText(
             text = it.value?.claimValue?.toString()
                 ?.run { slice(0..min(lastIndex, 100)) }
