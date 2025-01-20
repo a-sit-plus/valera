@@ -1,11 +1,15 @@
 package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.wallet.lib.agent.SdJwtValidator
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.ConstantIndex
+import at.asitplus.wallet.lib.jws.SdJwtSigned
 import data.Attribute
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
 
@@ -17,19 +21,23 @@ sealed class CredentialAdapter {
 
     protected fun Any?.toInstantOrNull() = (this as String?)?.let { Instant.parse(it) }
 
+    protected fun JsonPrimitive?.toCollectionOrNull() = (this as JsonArray?)?.let { it.map { it.toString() } }
+
     protected fun Any?.toLocalDateTimeOrNull() =
         (this as? LocalDateTime?) ?: (this as String?)?.let { LocalDateTime.parse(it) }
 
+    abstract val representation: ConstantIndex.CredentialRepresentation
+
     companion object {
-        // Note: May need to refactor this to
-        // SdJwtValidator(SdJwtSigned.parse(vcSerialized)).reconstructedJsonObject
-        // to support complex SD-JWT structures
         fun SubjectCredentialStore.StoreEntry.SdJwt.toAttributeMap() =
             disclosures.values.filterNotNull()
                 .filter { it.claimName != null }
                 .associate { it.claimName!! to it.claimValue }
                 .filterValues { it is JsonPrimitive }
                 .mapValues { it.value.jsonPrimitive }
+
+        fun SubjectCredentialStore.StoreEntry.SdJwt.toComplexJson() =
+            SdJwtSigned.parse(vcSerialized)?.let { SdJwtValidator(it).reconstructedJsonObject }
 
         fun SubjectCredentialStore.StoreEntry.Iso.toNamespaceAttributeMap() =
             issuerSigned.namespaces?.mapValues { namespace ->
@@ -40,19 +48,12 @@ sealed class CredentialAdapter {
 
         fun getId(
             storeEntry: SubjectCredentialStore.StoreEntry
-        ): String {
-            return when (storeEntry) {
-                is SubjectCredentialStore.StoreEntry.Vc -> {
-                    storeEntry.vc.jwtId
-                }
-                is SubjectCredentialStore.StoreEntry.SdJwt -> {
-                    storeEntry.sdJwt.jwtId ?: throw IllegalArgumentException("Credential does not have a jwtId")
-                }
-                is SubjectCredentialStore.StoreEntry.Iso -> {
-                    // TODO probably not the best id
-                    storeEntry.issuerSigned.issuerAuth.signature.humanReadableString
-                }
-            }
+        ): String = when (storeEntry) {
+            is SubjectCredentialStore.StoreEntry.Vc -> storeEntry.vc.jwtId
+            is SubjectCredentialStore.StoreEntry.SdJwt -> storeEntry.sdJwt.jwtId
+                ?: throw IllegalArgumentException("Credential does not have a jwtId")
+
+            is SubjectCredentialStore.StoreEntry.Iso -> storeEntry.issuerSigned.issuerAuth.signature.humanReadableString // TODO probably not the best id
         }
     }
 }

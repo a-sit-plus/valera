@@ -5,6 +5,7 @@ import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.signum.indispensable.io.Base64UrlStrict
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import at.asitplus.wallet.mdl.DrivingPrivilege
 import at.asitplus.wallet.mdl.IsoSexEnum
 import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
@@ -60,7 +61,11 @@ sealed class MobileDrivingLicenceCredentialAdapter(
                     PORTRAIT_CAPTURE_DATE -> Attribute.fromValue(portraitCaptureDate)
                     AGE_IN_YEARS -> Attribute.fromValue(ageInYears)
                     AGE_BIRTH_YEAR -> Attribute.fromValue(ageBirthYear)
+                    AGE_OVER_12 -> Attribute.fromValue(ageAtLeast12)
+                    AGE_OVER_14 -> Attribute.fromValue(ageAtLeast14)
+                    AGE_OVER_16 -> Attribute.fromValue(ageAtLeast16)
                     AGE_OVER_18 -> Attribute.fromValue(ageAtLeast18)
+                    AGE_OVER_21 -> Attribute.fromValue(ageAtLeast21)
                     ISSUING_JURISDICTION -> Attribute.fromValue(issuingJurisdiction)
                     NATIONALITY -> Attribute.fromValue(nationality)
                     RESIDENT_CITY -> Attribute.fromValue(residentCity)
@@ -82,7 +87,11 @@ sealed class MobileDrivingLicenceCredentialAdapter(
     abstract val familyName: String?
     abstract val familyNameNational: String?
     abstract val birthDate: LocalDate?
+    abstract val ageAtLeast12: Boolean?
+    abstract val ageAtLeast14: Boolean?
+    abstract val ageAtLeast16: Boolean?
     abstract val ageAtLeast18: Boolean?
+    abstract val ageAtLeast21: Boolean?
     abstract val nationality: String?
     abstract val residentAddress: String?
     abstract val residentCity: String?
@@ -151,6 +160,8 @@ private class MobileDrivingLicenceCredentialSdJwtAdapter(
     private val attributes: Map<String, JsonPrimitive>,
     private val decodePortrait: (ByteArray) -> ImageBitmap?,
 ) : MobileDrivingLicenceCredentialAdapter(decodePortrait) {
+    override val representation: CredentialRepresentation
+        get() = CredentialRepresentation.SD_JWT
 
     override val givenName: String?
         get() = attributes[MobileDrivingLicenceDataElements.GIVEN_NAME]?.contentOrNull
@@ -167,8 +178,20 @@ private class MobileDrivingLicenceCredentialSdJwtAdapter(
     override val birthDate: LocalDate?
         get() = attributes[MobileDrivingLicenceDataElements.BIRTH_DATE]?.contentOrNull?.toLocalDateOrNull()
 
+    override val ageAtLeast12: Boolean?
+        get() = attributes[MobileDrivingLicenceDataElements.AGE_OVER_12]?.booleanOrNull
+
+    override val ageAtLeast14: Boolean?
+        get() = attributes[MobileDrivingLicenceDataElements.AGE_OVER_14]?.booleanOrNull
+
+    override val ageAtLeast16: Boolean?
+        get() = attributes[MobileDrivingLicenceDataElements.AGE_OVER_16]?.booleanOrNull
+
     override val ageAtLeast18: Boolean?
         get() = attributes[MobileDrivingLicenceDataElements.AGE_OVER_18]?.booleanOrNull
+
+    override val ageAtLeast21: Boolean?
+        get() = attributes[MobileDrivingLicenceDataElements.AGE_OVER_21]?.booleanOrNull
 
     override val nationality: String?
         get() = attributes[MobileDrivingLicenceDataElements.NATIONALITY]?.contentOrNull
@@ -258,6 +281,9 @@ private class MobileDrivingLicenceCredentialIsoMdocAdapter(
 ) : MobileDrivingLicenceCredentialAdapter(decodePortrait) {
     private val namespace = namespaces?.get(MobileDrivingLicenceScheme.isoNamespace)
 
+    override val representation: CredentialRepresentation
+        get() = CredentialRepresentation.ISO_MDOC
+
     override val givenName: String?
         get() = namespace?.get(MobileDrivingLicenceDataElements.GIVEN_NAME) as String?
 
@@ -273,8 +299,20 @@ private class MobileDrivingLicenceCredentialIsoMdocAdapter(
     override val birthDate: LocalDate?
         get() = namespace?.get(MobileDrivingLicenceDataElements.BIRTH_DATE)?.toLocalDateOrNull()
 
+    override val ageAtLeast12: Boolean?
+        get() = namespace?.get(MobileDrivingLicenceDataElements.AGE_OVER_12)?.toString()?.toBooleanStrictOrNull()
+
+    override val ageAtLeast14: Boolean?
+        get() = namespace?.get(MobileDrivingLicenceDataElements.AGE_OVER_14)?.toString()?.toBooleanStrictOrNull()
+
+    override val ageAtLeast16: Boolean?
+        get() = namespace?.get(MobileDrivingLicenceDataElements.AGE_OVER_16)?.toString()?.toBooleanStrictOrNull()
+
     override val ageAtLeast18: Boolean?
         get() = namespace?.get(MobileDrivingLicenceDataElements.AGE_OVER_18)?.toString()?.toBooleanStrictOrNull()
+
+    override val ageAtLeast21: Boolean?
+        get() = namespace?.get(MobileDrivingLicenceDataElements.AGE_OVER_21)?.toString()?.toBooleanStrictOrNull()
 
     override val nationality: String?
         get() = namespace?.get(MobileDrivingLicenceDataElements.NATIONALITY) as String?

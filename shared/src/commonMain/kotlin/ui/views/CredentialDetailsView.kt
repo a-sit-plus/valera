@@ -32,8 +32,8 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.heading_label_authentication_success
 import at.asitplus.valera.resources.heading_label_credential_details_screen
+import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.CertificateOfResidenceCredentialView
@@ -45,6 +45,7 @@ import ui.composables.credentials.MobileDrivingLicenceCredentialView
 import ui.composables.credentials.PowerOfRepresentationCredentialView
 import ui.composables.CredentialCardActionMenu
 import ui.composables.Logo
+import ui.composables.credentials.CompanyRegistrationCredentialView
 import ui.viewmodels.CredentialDetailsViewModel
 
 @Composable
@@ -130,32 +131,13 @@ fun CredentialDetailsSummaryView(
 ) {
     Column(modifier = Modifier.padding(horizontal = 8.dp)) {
         when (storeEntry.scheme) {
-            is IdAustriaScheme -> IdAustriaCredentialView(
-                credential = storeEntry,
-                imageDecoder = imageDecoder,
-            )
-
-            is EuPidScheme -> EuPidCredentialView(
-                credential = storeEntry,
-            )
-
-            is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialView(
-                credential = storeEntry,
-                decodeImage = imageDecoder,
-            )
-
-            is PowerOfRepresentationScheme -> PowerOfRepresentationCredentialView(
-                credential = storeEntry,
-            )
-
-            is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialView(
-                credential = storeEntry,
-            )
-
-            is EPrescriptionScheme -> EPrescriptionView(
-                credential = storeEntry
-            )
-
+            is IdAustriaScheme -> IdAustriaCredentialView(storeEntry, imageDecoder)
+            is EuPidScheme -> EuPidCredentialView(storeEntry)
+            is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialView(storeEntry, imageDecoder)
+            is PowerOfRepresentationScheme -> PowerOfRepresentationCredentialView(storeEntry)
+            is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialView(storeEntry)
+            is CompanyRegistrationScheme -> CompanyRegistrationCredentialView(storeEntry)
+            is EPrescriptionScheme -> EPrescriptionView(storeEntry)
             else -> {}
         }
         GenericCredentialSummaryCardContent(

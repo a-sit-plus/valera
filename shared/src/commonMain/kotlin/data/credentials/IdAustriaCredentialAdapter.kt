@@ -7,6 +7,7 @@ import at.asitplus.signum.indispensable.io.Base64UrlStrict
 import at.asitplus.wallet.idaustria.IdAustriaCredential
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import data.Attribute
 import io.github.aakira.napier.Napier
 import io.ktor.util.decodeBase64Bytes
@@ -21,50 +22,35 @@ import kotlinx.serialization.json.contentOrNull
 sealed class IdAustriaCredentialAdapter(
     private val decodePortrait: (ByteArray) -> ImageBitmap?,
 ) : CredentialAdapter() {
-    override fun getAttribute(path: NormalizedJsonPath) =
-        path.segments.firstOrNull()?.let { first ->
+    override fun getAttribute(path: NormalizedJsonPath) = path.segments.firstOrNull()?.let { first ->
+        with(IdAustriaScheme.Attributes) {
             when (first) {
                 is NormalizedJsonPathSegment.NameSegment -> when (first.memberName) {
-                    IdAustriaScheme.Attributes.BPK -> Attribute.fromValue(bpk)
-                    IdAustriaScheme.Attributes.FIRSTNAME -> Attribute.fromValue(givenName)
-                    IdAustriaScheme.Attributes.LASTNAME -> Attribute.fromValue(familyName)
-                    IdAustriaScheme.Attributes.DATE_OF_BIRTH -> Attribute.fromValue(dateOfBirth)
-                    IdAustriaScheme.Attributes.PORTRAIT -> Attribute.fromValue(portraitBitmap)
-                    IdAustriaScheme.Attributes.AGE_OVER_14 -> Attribute.fromValue(ageAtLeast14)
-                    IdAustriaScheme.Attributes.AGE_OVER_16 -> Attribute.fromValue(ageAtLeast16)
-                    IdAustriaScheme.Attributes.AGE_OVER_18 -> Attribute.fromValue(ageAtLeast18)
-                    IdAustriaScheme.Attributes.AGE_OVER_21 -> Attribute.fromValue(ageAtLeast21)
-                    IdAustriaScheme.Attributes.MAIN_ADDRESS -> when (val second =
+                    BPK -> Attribute.fromValue(bpk)
+                    FIRSTNAME -> Attribute.fromValue(givenName)
+                    LASTNAME -> Attribute.fromValue(familyName)
+                    DATE_OF_BIRTH -> Attribute.fromValue(dateOfBirth)
+                    PORTRAIT -> Attribute.fromValue(portraitBitmap)
+                    AGE_OVER_14 -> Attribute.fromValue(ageAtLeast14)
+                    AGE_OVER_16 -> Attribute.fromValue(ageAtLeast16)
+                    AGE_OVER_18 -> Attribute.fromValue(ageAtLeast18)
+                    AGE_OVER_21 -> Attribute.fromValue(ageAtLeast21)
+                    MAIN_ADDRESS -> when (val second =
                         path.segments.getOrNull(1)) {
-                        is NormalizedJsonPathSegment.NameSegment -> when (second.memberName) {
-                            IdAustriaCredentialMainAddress.GEMEINDEKENNZIFFER -> Attribute.fromValue(
-                                mainAddress?.municipalityCode
-                            )
-
-                            IdAustriaCredentialMainAddress.GEMEINDEBEZEICHNUNG -> Attribute.fromValue(
-                                mainAddress?.municipalityName
-                            )
-
-                            IdAustriaCredentialMainAddress.POSTLEITZAHL -> Attribute.fromValue(
-                                mainAddress?.postalCode
-                            )
-
-                            IdAustriaCredentialMainAddress.ORTSCHAFT -> Attribute.fromValue(
-                                mainAddress?.locality
-                            )
-
-                            IdAustriaCredentialMainAddress.STRASSE -> Attribute.fromValue(
-                                mainAddress?.street
-                            )
-
-                            IdAustriaCredentialMainAddress.HAUSNUMMER -> Attribute.fromValue(
-                                mainAddress?.houseNumber
-                            )
-
-                            IdAustriaCredentialMainAddress.STIEGE -> Attribute.fromValue(mainAddress?.stair)
-                            IdAustriaCredentialMainAddress.TUER -> Attribute.fromValue(mainAddress?.door)
-                            else -> null
-                        }
+                        is NormalizedJsonPathSegment.NameSegment ->
+                            with(IdAustriaCredentialMainAddress) {
+                                when (second.memberName) {
+                                    GEMEINDEKENNZIFFER -> Attribute.fromValue(mainAddress?.municipalityCode)
+                                    GEMEINDEBEZEICHNUNG -> Attribute.fromValue(mainAddress?.municipalityName)
+                                    POSTLEITZAHL -> Attribute.fromValue(mainAddress?.postalCode)
+                                    ORTSCHAFT -> Attribute.fromValue(mainAddress?.locality)
+                                    STRASSE -> Attribute.fromValue(mainAddress?.street)
+                                    HAUSNUMMER -> Attribute.fromValue(mainAddress?.houseNumber)
+                                    STIEGE -> Attribute.fromValue(mainAddress?.stair)
+                                    TUER -> Attribute.fromValue(mainAddress?.door)
+                                    else -> null
+                                }
+                            }
 
                         null -> Attribute.fromValue(mainAddressRaw)
 
@@ -77,6 +63,7 @@ sealed class IdAustriaCredentialAdapter(
                 else -> null
             }
         }
+    }
 
     abstract val bpk: String?
     abstract val givenName: String?
@@ -137,6 +124,9 @@ private class IdAustriaCredentialVcAdapter(
     val credentialSubject: IdAustriaCredential,
     decodeImage: (ByteArray) -> ImageBitmap?,
 ) : IdAustriaCredentialAdapter(decodeImage) {
+    override val representation: CredentialRepresentation
+        get() = CredentialRepresentation.PLAIN_JWT
+
     override val bpk: String
         get() = credentialSubject.bpk
 
@@ -172,6 +162,8 @@ private class IdAustriaCredentialSdJwtAdapter(
     private val attributes: Map<String, JsonPrimitive>,
     decodeImage: (ByteArray) -> ImageBitmap?,
 ) : IdAustriaCredentialAdapter(decodeImage) {
+    override val representation: CredentialRepresentation
+        get() = CredentialRepresentation.SD_JWT
 
     override val bpk: String?
         get() = attributes[IdAustriaScheme.Attributes.BPK]?.contentOrNull
@@ -209,6 +201,9 @@ private class IdAustriaCredentialIsoMdocAdapter(
     decodeImage: (ByteArray) -> ImageBitmap?,
 ) : IdAustriaCredentialAdapter(decodeImage) {
     private val idAustriaNamespace = namespaces?.get(IdAustriaScheme.isoNamespace)
+
+    override val representation: CredentialRepresentation
+        get() = CredentialRepresentation.ISO_MDOC
 
     override val bpk: String?
         get() = idAustriaNamespace?.get(IdAustriaScheme.Attributes.BPK) as String?

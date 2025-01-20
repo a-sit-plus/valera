@@ -2,10 +2,6 @@ package at.asitplus.wallet.app.common
 
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.wallet.cor.CertificateOfResidenceScheme
-import at.asitplus.wallet.eprescription.EPrescriptionScheme
-import at.asitplus.wallet.eupid.EuPidScheme
-import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.Initializer.initOpenIdModule
 import at.asitplus.wallet.lib.agent.DefaultVerifierCryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
@@ -14,8 +10,6 @@ import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.cbor.DefaultCoseService
 import at.asitplus.wallet.lib.jws.DefaultJwsService
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
-import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
-import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
 import data.storage.AntilogAdapter
@@ -55,19 +49,11 @@ class WalletMain(
         at.asitplus.wallet.eupid.Initializer.initWithVCK()
         at.asitplus.wallet.cor.Initializer.initWithVCK()
         at.asitplus.wallet.por.Initializer.initWithVCK()
+        at.asitplus.wallet.companyregistration.Initializer.initWithVCK()
         at.asitplus.wallet.eprescription.Initializer.initWithVCK()
         Napier.takeLogarithm()
         Napier.base(AntilogAdapter(platformAdapter, ""))
     }
-
-    val availableSchemes = listOf(
-        MobileDrivingLicenceScheme,
-        IdAustriaScheme,
-        EuPidScheme,
-        CertificateOfResidenceScheme,
-        PowerOfRepresentationScheme,
-        EPrescriptionScheme
-    )
 
     @Throws(Throwable::class)
     fun initialize(snackbarService: SnackbarService) {

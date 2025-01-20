@@ -67,11 +67,25 @@
     <string name="attribute_friendly_name_residence_address">UNTRANSLATED:attribute_friendly_name_residence_address</string>
     <string name="attribute_friendly_name_arrival_date">UNTRANSLATED:attribute_friendly_name_arrival_date</string>
 
+    <string name="attribute_friendly_name_company_name">UNTRANSLATED:attribute_friendly_name_company_name</string>
+    <string name="attribute_friendly_name_company_type">UNTRANSLATED:attribute_friendly_name_company_type</string>
+    <string name="attribute_friendly_name_company_status">UNTRANSLATED:attribute_friendly_name_company_status</string>
+    <string name="attribute_friendly_name_company_activity">UNTRANSLATED:attribute_friendly_name_company_activity</string>
+    <string name="attribute_friendly_name_registration_date">UNTRANSLATED:attribute_friendly_name_registration_date</string>
+    <string name="attribute_friendly_name_company_end_date">UNTRANSLATED:attribute_friendly_name_company_end_date</string>
+    <string name="attribute_friendly_name_company_euid">UNTRANSLATED:attribute_friendly_name_company_euid</string>
+    <string name="attribute_friendly_name_vat_number">UNTRANSLATED:attribute_friendly_name_vat_number</string>
+    <string name="attribute_friendly_name_contact_data">UNTRANSLATED:attribute_friendly_name_contact_data</string>
+    <string name="attribute_friendly_name_registered_address">UNTRANSLATED:attribute_friendly_name_registered_address</string>
+    <string name="attribute_friendly_name_postal_address">UNTRANSLATED:attribute_friendly_name_postal_address</string>
+    <string name="attribute_friendly_name_branch">UNTRANSLATED:attribute_friendly_name_branch</string>
+
     <string name="attribute_friendly_name_bpk">UNTRANSLATED:attribute_friendly_name_bpk</string>
     <string name="attribute_friendly_name_firstname">UNTRANSLATED:attribute_friendly_name_firstname</string>
     <string name="attribute_friendly_name_lastname">UNTRANSLATED:attribute_friendly_name_lastname</string>
     <string name="attribute_friendly_name_date_of_birth">UNTRANSLATED:attribute_friendly_name_date_of_birth</string>
     <string name="attribute_friendly_name_portrait">UNTRANSLATED:attribute_friendly_name_portrait</string>
+    <string name="attribute_friendly_name_age_at_least_12">UNTRANSLATED:attribute_friendly_name_age_at_least_14</string>
     <string name="attribute_friendly_name_age_at_least_14">UNTRANSLATED:attribute_friendly_name_age_at_least_14</string>
     <string name="attribute_friendly_name_age_at_least_16">UNTRANSLATED:attribute_friendly_name_age_at_least_16</string>
     <string name="attribute_friendly_name_age_at_least_18">UNTRANSLATED:attribute_friendly_name_age_at_least_18</string>
@@ -142,6 +156,8 @@
     <string name="credential_scheme_label_power_of_representation">UNTRANSLATED:credential_scheme_label_power_of_representation</string>
     <string name="credential_scheme_icon_label_certificate_of_residence">UNTRANSLATED:credential_scheme_icon_label_certificate_of_residence</string>
     <string name="credential_scheme_label_certificate_of_residence">UNTRANSLATED:credential_scheme_label_certificate_of_residence</string>
+    <string name="credential_scheme_icon_label_company_registration">UNTRANSLATED:credential_scheme_icon_label_company_registration</string>
+    <string name="credential_scheme_label_company_registration">UNTRANSLATED:credential_scheme_label_company_registration</string>
     <string name="credential_scheme_label_eprescription">UNTRANSLATED:credential_scheme_label_eprescription</string>
     <string name="credential_scheme_icon_label_eprescription">UNTRANSLATED:credential_scheme_icon_label_eprescription</string>
 
@@ -258,6 +274,8 @@
     <string name="section_heading_identity_data_icon_text">UNTRANSLATED:section_heading_identity_data_icon_text</string>
     <string name="section_heading_representation_data">UNTRANSLATED:section_heading_representation_data</string>
     <string name="section_heading_representation_data_icon_text">UNTRANSLATED:section_heading_representation_data_icon_text</string>
+    <string name="section_heading_company_data">UNTRANSLATED:section_heading_company_data</string>
+    <string name="section_heading_company_data_icon_text">UNTRANSLATED:section_heading_company_data_icon_text</string>
     <string name="section_heading_residence_data">UNTRANSLATED:section_heading_residence_data</string>
     <string name="section_heading_residence_data_icon_text">UNTRANSLATED:section_heading_residence_data_icon_text</string>
     <string name="section_heading_appearance_data">UNTRANSLATED:section_heading_appearance_data</string>

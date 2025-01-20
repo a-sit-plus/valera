@@ -1,6 +1,7 @@
 package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.eprescription.EPrescriptionScheme
 import at.asitplus.wallet.eupid.EuPidScheme
@@ -19,12 +20,16 @@ typealias AttributeUnpackingInformation = Pair<NormalizedJsonPath, List<Normaliz
 
 interface CredentialAttributeCategorization {
     companion object {
-        operator fun get(scheme: ConstantIndex.CredentialScheme?): Template = when (scheme) {
+        fun load(
+            scheme: ConstantIndex.CredentialScheme?,
+            representation: ConstantIndex.CredentialRepresentation
+        ): Template = when (scheme) {
             is IdAustriaScheme -> IdAustriaCredentialAttributeCategorization
-            is EuPidScheme -> EuPidCredentialAttributeCategorization
+            is EuPidScheme -> if (representation == ConstantIndex.CredentialRepresentation.SD_JWT) EuPidCredentialSdJwtAttributeCategorization else EuPidCredentialAttributeCategorization
             is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialAttributeCategorization
             is PowerOfRepresentationScheme -> PowerOfRepresentationCredentialAttributeCategorization
             is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialAttributeCategorization
+            is CompanyRegistrationScheme -> CompanyRegistrationCredentialAttributeCategorization
             is EPrescriptionScheme -> EPrescriptionCredentialAttributeCategorization
             else -> EmptyCredentialAttributeCategorization
         }
