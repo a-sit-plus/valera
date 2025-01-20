@@ -1,6 +1,6 @@
 # Release 5.4.4
  * Support [Company Registration Credential](https://github.com/a-sit-plus/company-registration-credential/)
- * Update to VC-K 5.2.3-SNAPSHOT to increase interoperability with Verifier implementations
+ * Update to VC-K 5.2.3 to increase interoperability with Verifier implementations
  * Support more `age_over_NN` attributes for EU PID and mDL
 
 # Release 5.4.3
