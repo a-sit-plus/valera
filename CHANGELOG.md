@@ -1,3 +1,6 @@
+# Release 5.4.5
+ * tbd
+
 # Release 5.4.4
  * Support [Company Registration Credential](https://github.com/a-sit-plus/company-registration-credential/)
  * Update to VC-K 5.2.3 to increase interoperability with Verifier implementations
