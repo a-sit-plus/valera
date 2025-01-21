@@ -93,11 +93,19 @@ suspend fun handleIntent(
         }
 
         IntentType.SigningIntent -> {
-            walletMain.signingService.resumeWithAuthCode(url = link)
+            try {
+                walletMain.signingService.resumeWithAuthCode(url = link)
+            } catch(e: Throwable) {
+                walletMain.errorService.emit(e)
+            }
             navigate(HomeScreenRoute)
         }
         IntentType.SigningFinalizeIntent -> {
-            walletMain.signingService.finalizeWithAuthCode(url = link)
+            try {
+                walletMain.signingService.finalizeWithAuthCode(url = link)
+            } catch(e: Throwable) {
+                walletMain.errorService.emit(e)
+            }
             navigate(HomeScreenRoute)
         }
     }
