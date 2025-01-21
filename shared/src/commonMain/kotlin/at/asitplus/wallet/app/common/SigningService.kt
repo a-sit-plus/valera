@@ -55,7 +55,7 @@ class SigningService(
     var document: ByteArray? = null
     var documentWithLabel: DocumentWithLabel? = null
 
-    val qtspHost = runBlocking { config.qtspHost.first() }
+    lateinit var qtspHost: String
 
     var dtbsrAuthenticationDetails: AuthorizationDetails? = null
     var transactionTokens: List<String>? = null
@@ -68,6 +68,8 @@ class SigningService(
 
     @OptIn(ExperimentalEncodingApi::class)
     suspend fun sign(url: String) {
+        qtspHost = runBlocking { config.qtspHost.first() }
+
         val url = URLBuilder(url)
 
         val requestUri = url.parameters["request_uri"]

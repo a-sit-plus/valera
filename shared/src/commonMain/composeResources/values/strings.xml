@@ -201,6 +201,7 @@
     <string name="text_label_build_type">UNTRANSLATED:text_label_build_type</string>
     <string name="text_label_version">UNTRANSLATED:text_label_version</string>
     <string name="text_label_build">UNTRANSLATED:text_label_build</string>
+    <string name="text_label_qtsp">UNTRANSLATED:text_label_qtsp</string>
 
     <string name="heading_label_authenticate_at_device_title">UNTRANSLATED:heading_label_authenticate_at_device_title</string>
     <string name="heading_label_authenticate_at_device_subtitle">UNTRANSLATED:heading_label_authenticate_at_device_subtitle</string>
@@ -222,6 +223,8 @@
     <string name="heading_label_load_data_screen">UNTRANSLATED:heading_label_load_data_screen</string>
     <string name="heading_label_refresh_data_screen">UNTRANSLATED:heading_label_refresh_data_screen</string>
     <string name="heading_label_authenticate_at_device_screen">UNTRANSLATED:heading_label_authenticate_at_device_screen</string>
+    <string name="heading_label_sign_document">UNTRANSLATED:heading_label_sign_document</string>
+
 
     <string name="description_read_terms">UNTRANSLATED:description_read_terms</string>
     <string name="biometric_authentication_prompt_for_data_transmission_consent_title">UNTRANSLATED:biometric_authentication_prompt_for_data_transmission_consent_title</string>
