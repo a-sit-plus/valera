@@ -31,6 +31,9 @@ object LogRoute : Route()
 object SigningRoute: Route()
 
 @Serializable
+object SigningQtspSelectionRoute: Route()
+
+@Serializable
 data class ErrorRoute(val message: String?, val cause: String?) : Route()
 
 @Serializable
