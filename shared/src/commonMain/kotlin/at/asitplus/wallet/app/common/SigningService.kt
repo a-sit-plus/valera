@@ -23,7 +23,6 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.client.request.url
 import io.ktor.client.statement.bodyAsBytes
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType.Application.FormUrlEncoded
@@ -69,20 +68,11 @@ class SigningService(
     suspend fun sign(url: String) {
         val url = URLBuilder(url)
 
-        val metaDataResponse = client.get {
-            url("https://apps.egiz.gv.at/qtsp/oauth2/siop/metadata")
-        }
-
-        print(metaDataResponse)
-
         val requestUri = url.parameters["request_uri"]
         val resp = client.get(requestUri!!)
-        val jwt = resp.bodyAsText().toString()
+        val jwt = resp.bodyAsText()
         val split = jwt.split(".")
-        val header = split[0]
         val payload = split[1]
-        val headerBytes  = Base64.UrlSafe.withPadding(option = Base64.PaddingOption.ABSENT_OPTIONAL).decode(header)
-        val headerString = headerBytes.decodeToString(0, 0 + headerBytes.size)
         val payloadBytes = Base64.UrlSafe.withPadding(option = Base64.PaddingOption.ABSENT_OPTIONAL).decode(payload)
         val payloadString = payloadBytes.decodeToString(0, 0 + payloadBytes.size)
 
@@ -97,30 +87,16 @@ class SigningService(
 
         val authRequest = rqesWalletService.createOAuth2AuthenticationRequest(scope = RqesWalletService.RqesOauthScope.SERVICE)
 
-        print(authRequest)
-
-        print(signatureRequestParameter)
-
-
-        /*client.get {
-            url("${qtspHost}/oauth2/authorize")
-            authRequest.encodeToParameters().forEach {
-                parameter(it.key, it.value)
-            }
-        }*/
-
         val targetUrl = URLBuilder("${qtspHost}/oauth2/authorize").apply {
             authRequest.encodeToParameters().forEach {
                 parameters.append(it.key, it.value)
             }
         }.buildString()
-        print(targetUrl)
         redirectUri = this.redirectUrl
         platformAdapter.openUrl(targetUrl)
     }
 
     suspend fun resumeWithAuthCode(url: String) {
-
         val tokenUrl = "${qtspHost}/oauth2/token"
 
         val url = URLBuilder(url)
@@ -184,8 +160,6 @@ class SigningService(
 
         val credentialInfo = credentialListResponse.credentialInfos?.first()!!
 
-        print(credentialInfo)
-
         rqesWalletService.setSigningCredential(credentialInfo)
 
         /**
@@ -217,7 +191,6 @@ class SigningService(
                 parameters.append(it.key, it.value)
             }
         }.buildString()
-        print(targetUrl)
         redirectUri = this.redirectUrl
         platformAdapter.openUrl(targetUrl)
     }
@@ -274,11 +247,6 @@ class SigningService(
             setBody(vckJsonSerializer.encodeToString(signHashRequest))
         }.body<SignatureResponse>()
 
-        print(signatures)
-
         val signedDocuments = getFinishedDocuments(client, qtspHost, signatures, transactionTokens!!)
-        print(signedDocuments)
-
     }
-
 }
