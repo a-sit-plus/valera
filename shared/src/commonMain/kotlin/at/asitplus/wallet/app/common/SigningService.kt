@@ -72,8 +72,8 @@ class SigningService(
 
         val url = URLBuilder(url)
 
-        val requestUri = url.parameters["request_uri"]
-        val resp = client.get(requestUri!!)
+        val requestUri = url.parameters["request_uri"] ?: throw Throwable("Missing request_uri")
+        val resp = client.get(requestUri)
         val jwt = resp.bodyAsText()
         val split = jwt.split(".")
         val payload = split[1]
@@ -104,8 +104,8 @@ class SigningService(
         val tokenUrl = "${qtspHost}/oauth2/token"
 
         val url = URLBuilder(url)
-        val code = url.parameters["code"]!!
-        val state = url.parameters["state"]!!
+        val code = url.parameters["code"] ?: throw Throwable("Missing code")
+        val state = url.parameters["state"] ?: throw Throwable("Missing state")
 
         Napier.e("Code: $code, State: $state")
 
@@ -162,7 +162,7 @@ class SigningService(
             }
         val credentialListResponse = credentialResponse.body<CscCredentialListResponse>()
 
-        val credentialInfo = credentialListResponse.credentialInfos?.first()!!
+        val credentialInfo = credentialListResponse.credentialInfos?.first() ?: throw Throwable("Missing credentialInfos")
 
         rqesWalletService.setSigningCredential(credentialInfo)
 
@@ -174,7 +174,8 @@ class SigningService(
             signAlgorithm = if (!qtspHost.contains("egiz")) rqesWalletService.signingCredential!!.supportedSigningAlgorithms.first() else X509SignatureAlgorithm.RS512
         )
 
-        val dtbsr = listOf(getDTBSR(client, qtspHost, rqesWalletService, this.documentWithLabel!!))
+        val documentWithLabel = this.documentWithLabel ?: throw Throwable("Missing documentWithLabel")
+        val dtbsr = listOf(getDTBSR(client, qtspHost, rqesWalletService, documentWithLabel))
         val transactionTokens = dtbsr.map { it.first }
         this.transactionTokens = transactionTokens
 
@@ -203,8 +204,8 @@ class SigningService(
         val tokenUrl = "${qtspHost}/oauth2/token"
 
         val url = URLBuilder(url)
-        val code = url.parameters["code"]!!
-        val state = url.parameters["state"]!!
+        val code = url.parameters["code"] ?: throw Throwable("Missing code")
+        val state = url.parameters["state"] ?: throw Throwable("Missing state")
 
         Napier.e("Code: $code, State: $state")
 
@@ -251,18 +252,18 @@ class SigningService(
             setBody(vckJsonSerializer.encodeToString(signHashRequest))
         }.body<SignatureResponse>()
 
-        print(signatures)
-        val signedDocuments = getFinishedDocuments(client, qtspHost, signatures, transactionTokens!!)
+        val transactionTokens = this.transactionTokens ?: throw Throwable("Missing transactionTokens")
+        val signedDocuments = getFinishedDocuments(client, qtspHost, signatures, transactionTokens)
 
 
         val signedDocList = vckJsonSerializer.encodeToJsonElement(
             ListSerializer(ByteArrayBase64Serializer),
             signedDocuments.map { it.document })
 
-        val responseState = this.signatureReguestParameter?.state
-        val responseUrl = this.signatureReguestParameter?.responseUrl
-        val drivingAppResponseUrl = URLBuilder(responseUrl!!).apply {
-            parameters.append("state", responseState!!)
+        val responseState = this.signatureReguestParameter?.state ?: throw Throwable("Missing responseState")
+        val responseUrl = this.signatureReguestParameter?.responseUrl ?: throw Throwable("Missing responseUrl")
+        val drivingAppResponseUrl = URLBuilder(responseUrl).apply {
+            parameters.append("state", responseState)
         }.buildString()
 
         val finalRedirect = client.post(drivingAppResponseUrl) {

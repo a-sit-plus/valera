@@ -468,7 +468,12 @@ private fun WalletNavHost(
                 createSignRequest = { signRequest ->
                     navigate(HomeScreenRoute)
                     CoroutineScope(Dispatchers.Main).launch {
-                        walletMain.signingService.sign(signRequest)
+                        try{
+                            walletMain.signingService.sign(signRequest)
+
+                        } catch (e: Throwable) {
+                            walletMain.errorService.emit(e)
+                        }
                     }
                 },
                 walletMain = walletMain,
