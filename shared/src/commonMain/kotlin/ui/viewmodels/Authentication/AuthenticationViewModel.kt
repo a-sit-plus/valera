@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.dif.ConstraintField
 import at.asitplus.dif.InputDescriptor
 import at.asitplus.jsonpath.core.NodeList
+import at.asitplus.rqes.collection_entries.TransactionData
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_subtitle
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_title
@@ -29,6 +30,7 @@ abstract class AuthenticationViewModel(
     abstract val descriptors: Collection<InputDescriptor>
     var viewState by mutableStateOf(AuthenticationViewState.Consent)
     abstract val parametersMap: Map<String, RequestOptionParameters>
+    abstract val transactionData: TransactionData?
 
     lateinit var matchingCredentials: Map<String, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, NodeList /* = List<NodeListEntry> */>>>
     lateinit var selectedCredentials: Map<String, SubjectCredentialStore.StoreEntry>
