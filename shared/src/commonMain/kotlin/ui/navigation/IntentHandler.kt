@@ -12,6 +12,7 @@ import io.github.aakira.napier.Napier
 import io.ktor.http.parseQueryString
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.getString
+import ui.navigation.Routes.HomeScreenRoute
 import ui.navigation.Routes.LoadingRoute
 import ui.navigation.Routes.Route
 
@@ -93,9 +94,11 @@ suspend fun handleIntent(
 
         IntentType.SigningIntent -> {
             walletMain.signingService.resumeWithAuthCode(url = link)
+            navigate(HomeScreenRoute)
         }
         IntentType.SigningFinalizeIntent -> {
             walletMain.signingService.finalizeWithAuthCode(url = link)
+            navigate(HomeScreenRoute)
         }
     }
 }

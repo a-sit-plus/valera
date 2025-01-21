@@ -9,6 +9,7 @@ import at.asitplus.rqes.SignatureRequestParameters
 import at.asitplus.rqes.SignatureResponse
 import at.asitplus.rqes.enums.CertificateOptions
 import at.asitplus.signum.indispensable.X509SignatureAlgorithm
+import at.asitplus.signum.indispensable.io.ByteArrayBase64Serializer
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.oauth2.OAuth2Client
 import at.asitplus.wallet.lib.oidvci.encodeToParameters
@@ -32,6 +33,7 @@ import io.ktor.http.URLBuilder
 import io.ktor.http.contentType
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -80,10 +82,10 @@ class SigningService(
         this.signatureReguestParameter = signatureRequestParameter
 
         val documentLocation = signatureRequestParameter.documentLocations.first().uri
-
         val document = client.get(documentLocation).bodyAsBytes()
+        val documentLabel = signatureRequestParameter.documentDigests.first().label
         this.document = document
-        this.documentWithLabel = DocumentWithLabel(document, "leer.pdf")
+        this.documentWithLabel = DocumentWithLabel(document, documentLabel)
 
         val authRequest = rqesWalletService.createOAuth2AuthenticationRequest(scope = RqesWalletService.RqesOauthScope.SERVICE)
 
@@ -247,6 +249,25 @@ class SigningService(
             setBody(vckJsonSerializer.encodeToString(signHashRequest))
         }.body<SignatureResponse>()
 
+        print(signatures)
         val signedDocuments = getFinishedDocuments(client, qtspHost, signatures, transactionTokens!!)
+
+
+        val signedDocList = vckJsonSerializer.encodeToJsonElement(
+            ListSerializer(ByteArrayBase64Serializer),
+            signedDocuments.map { it.document })
+
+        val responseState = this.signatureReguestParameter?.state
+        val responseUrl = this.signatureReguestParameter?.responseUrl
+        val drivingAppResponseUrl = URLBuilder(responseUrl!!).apply {
+            parameters.append("state", responseState!!)
+        }.buildString()
+
+        val finalRedirect = client.post(drivingAppResponseUrl) {
+            contentType(FormUrlEncoded)
+            setBody(
+                JsonObject(mapOf("DocumentWithSignature" to signedDocList)).encodeToParameters().formUrlEncode()
+            )
+        }
     }
 }
