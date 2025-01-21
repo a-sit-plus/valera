@@ -25,20 +25,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.wallet.app.common.third_parts.at.asitplus.jsonpath.core.plus
-import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.getLocalization
-import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
+import at.asitplus.rqes.collection_entries.TransactionData
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.asp
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_location
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_name
 import at.asitplus.valera.resources.heading_label_authenticate_at_device_screen
 import at.asitplus.valera.resources.heading_label_navigate_back
 import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_data_recipient
-import org.jetbrains.compose.resources.painterResource
+import at.asitplus.wallet.app.common.third_parts.at.asitplus.jsonpath.core.plus
+import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.getLocalization
+import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.ConsentAttributesSection
 import ui.composables.DataDisplaySection
@@ -143,6 +143,29 @@ fun AuthenticationConsentView(vm: AuthenticationConsentViewModel) {
                                     title = "$schemeName (${format})",
                                     list = attributes
                                 )
+                            }
+                        }
+                    }
+                    if (vm.transactionData != null) {
+                        val transaction = when (vm.transactionData) {
+                            is TransactionData.QesAuthorization -> {
+                                "QesAuthorization"
+                            }
+                            is TransactionData.QCertCreationAcceptance -> {
+                                "QCertCreationAcceptance"
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(32.dp))
+                        Column(modifier = Modifier) {
+                            Text(
+                                text = "Transaction",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.secondary,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Column(modifier = Modifier.padding(start = 32.dp)) {
+                                Text(transaction)
                             }
                         }
                     }

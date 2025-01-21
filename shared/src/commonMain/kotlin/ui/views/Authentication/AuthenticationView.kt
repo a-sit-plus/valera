@@ -22,7 +22,8 @@ fun AuthenticationView(vm: AuthenticationViewModel) {
                 requests = vm.parametersMap,
                 navigateUp = vm.navigateUp,
                 buttonConsent = { vm.onConsent() },
-                walletMain = vm.walletMain
+                walletMain = vm.walletMain,
+                transactionData = vm.transactionData
             )
             AuthenticationConsentView(viewModel)
         }
