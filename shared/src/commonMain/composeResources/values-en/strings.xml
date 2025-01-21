@@ -199,6 +199,7 @@
     <string name="text_label_build_type">Build</string>
     <string name="text_label_version">Version</string>
     <string name="text_label_build">Build</string>
+    <string name="text_label_qtsp">QTSP</string>
 
     <string name="heading_label_authenticate_at_device_title">Authenticate</string>
     <string name="heading_label_authenticate_at_device_subtitle">at relying party</string>
@@ -220,6 +221,7 @@
     <string name="heading_label_add_credential_screen">Load data</string>
     <string name="heading_label_refresh_data_screen">Load data</string>
     <string name="heading_label_authenticate_at_device_screen">Authenticate at\nrelying party</string>
+    <string name="heading_label_sign_document">Sign document</string>
 
     <string name="description_read_terms">Please read and accept the terms of use and the privacy policy.</string>
 
