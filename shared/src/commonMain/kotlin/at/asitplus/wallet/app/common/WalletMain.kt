@@ -134,7 +134,7 @@ class WalletMain(
                     requestedAttributes = requestedAttributes,
                 )
                 onSuccess()
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 errorService.emit(e)
             }
         }
@@ -147,7 +147,7 @@ class WalletMain(
                 subjectCredentialStore.observeStoreContainer().collect { container ->
                     dcApiService.registerCredentialWithSystem(container)
                 }
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 Napier.w("Could not update credentials with system", e)
             }
         }
