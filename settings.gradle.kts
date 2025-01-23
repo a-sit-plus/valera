@@ -56,7 +56,8 @@ dependencyResolutionManagement {
     repositories {
         mavenCentral()
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
-        maven("https://s01.oss.sonatype.org/content/repositories/snapshots") //Version catalog and kotest snapshot
+        maven("https://s01.oss.sonatype.org/content/repositories/snapshots")
+        maven("https://s01.oss.sonatype.org/content/repositories/atasitplus-1279/")
     }
 
     versionCatalogs {
