@@ -7,17 +7,12 @@ import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.dif.ConstraintField
 import at.asitplus.dif.InputDescriptor
 import at.asitplus.jsonpath.core.NodeList
-import at.asitplus.misc.getRequestOptionParameters
-import at.asitplus.openid.AuthenticationRequestParameters
-import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_subtitle
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_title
-import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.CredentialSubmission
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.oidc.helpers.AuthorizationResponsePreparationState
 import data.RequestOptionParameters
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
