@@ -1,5 +1,5 @@
 # Release 5.4.5
- * tbd
+ * Update to VC-K 5.3.0 to support encryption for mDoc responses acc. to ISO 18013-7
 
 # Release 5.4.4
  * Support [Company Registration Credential](https://github.com/a-sit-plus/company-registration-credential/)
