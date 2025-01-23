@@ -12,17 +12,26 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-      - name: Run tests
+      - name: Run UI tests
         run: |
           xcodebuild \
            -project iosApp/iosApp.xcodeproj \
            -scheme "ValeraUITests" \
            -destination "platform=iOS Simulator,name=iPhone 15" \
            test | xcpretty --report junit -o test-ios.xml
-      - name: Test Report
+      - name: UI Test Report
         uses: dorny/test-reporter@v1
         if: success() || failure()
         with:
           name: Wallet Tests on iOS
           path: test-ios.xml
+          reporter: java-junit
+      - name: Run shared tests
+        run: ./gradlew :shared:iosSimulatorArm64Test
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: Shared tests
+          path: shared/build/outputs/**/TEST*.xml
           reporter: java-junit
