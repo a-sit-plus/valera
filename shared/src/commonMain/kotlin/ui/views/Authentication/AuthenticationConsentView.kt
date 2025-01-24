@@ -40,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.rqes.collection_entries.TransactionData
@@ -61,6 +62,7 @@ import org.jetbrains.compose.resources.stringResource
 import ui.composables.ConsentAttributesSection
 import ui.composables.DataDisplaySection
 import ui.composables.Label
+import ui.composables.LabeledText
 import ui.composables.Logo
 import ui.composables.buttons.CancelButton
 import ui.composables.buttons.ContinueButton
@@ -182,6 +184,27 @@ fun TransactionDataView(transactionData: TransactionData) {
 
         val density = LocalDensity.current
 
+        val list: List<Pair<String, String>> = transactionData.encodeToParameters().map {
+            Pair(it.key, it.value)
+        }
+
+        Text(
+            text = stringResource(Res.string.section_heading_transaction_data),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.secondary,
+            fontWeight = FontWeight.SemiBold,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Column(modifier = Modifier.padding(start = 32.dp)) {
+            val paddingModifier = Modifier.padding(bottom = 16.dp)
+            LabeledText(
+                label = list.first().first,
+                text = list.first().second,
+                modifier = paddingModifier,
+            )
+        }
+
+
         androidx.compose.animation.AnimatedVisibility(
             visible = showContent,
             enter = slideInVertically {
@@ -199,14 +222,16 @@ fun TransactionDataView(transactionData: TransactionData) {
                 targetAlpha = 0f
             )
         ) {
-            val list: List<Pair<String, String>> = transactionData.encodeToParameters().map {
-                Pair(it.key, it.value)
+            val paddingModifier = Modifier.padding(bottom = 16.dp)
+            Column(modifier = Modifier.padding(start = 32.dp)) {
+                list.filter { it.first != "type" }.forEach {
+                    LabeledText(
+                        label = it.first,
+                        text = it.second,
+                        modifier = paddingModifier,
+                    )
+                }
             }
-            DataDisplaySection(
-                title = stringResource(Res.string.section_heading_transaction_data),
-                data = list,
-                modifier = Modifier,
-            )
         }
         Column(
             modifier = Modifier.fillMaxWidth().clickable(onClick = { showContent = !showContent }),
