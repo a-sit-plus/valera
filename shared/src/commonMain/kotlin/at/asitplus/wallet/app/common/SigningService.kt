@@ -55,7 +55,9 @@ class SigningService(
     var document: ByteArray? = null
     var documentWithLabel: DocumentWithLabel? = null
 
-    lateinit var qtspHost: String
+    val egizUrl = "https://apps.egiz.gv.at/qtsp"
+
+    lateinit var qtspConfig: QtspConfig
 
     var dtbsrAuthenticationDetails: AuthorizationDetails? = null
     var transactionTokens: List<String>? = null
@@ -64,11 +66,12 @@ class SigningService(
     private val client = httpService.buildHttpClient(cookieStorage)
     private val redirectUrl = "asitplus-wallet://wallet.a-sit.at/app/callback/signing"
 
-    val rqesWalletService = RqesWalletService(redirectUrl = redirectUrl)
+    lateinit var rqesWalletService: RqesWalletService
 
     @OptIn(ExperimentalEncodingApi::class)
     suspend fun sign(url: String) {
-        qtspHost = runBlocking { config.qtspHost.first() }
+        qtspConfig = runBlocking { config.qtspConfig.first() }
+        rqesWalletService = RqesWalletService(redirectUrl = redirectUrl, clientId = qtspConfig.oauth2ClientId)
 
         val url = URLBuilder(url)
 
@@ -91,7 +94,7 @@ class SigningService(
 
         val authRequest = rqesWalletService.createOAuth2AuthenticationRequest(scope = RqesWalletService.RqesOauthScope.SERVICE)
 
-        val targetUrl = URLBuilder("${qtspHost}/oauth2/authorize").apply {
+        val targetUrl = URLBuilder("${qtspConfig.oauth2BaseUrl}/oauth2/authorize").apply {
             authRequest.encodeToParameters().forEach {
                 parameters.append(it.key, it.value)
             }
@@ -101,7 +104,7 @@ class SigningService(
     }
 
     suspend fun resumeWithAuthCode(url: String) {
-        val tokenUrl = "${qtspHost}/oauth2/token"
+        val tokenUrl = "${qtspConfig.oauth2BaseUrl}/oauth2/token"
 
         val url = URLBuilder(url)
         val code = url.parameters["code"] ?: throw Throwable("Missing code")
@@ -151,7 +154,7 @@ class SigningService(
             onlyValid = true,
         )
 
-        val credentialResponse = client.post("${qtspHost}/csc/v2/credentials/list") {
+        val credentialResponse = client.post("${qtspConfig.qtspBaseUrl}/credentials/list") {
                 accept(Json)
                 contentType(Json)
                 header(
@@ -171,11 +174,11 @@ class SigningService(
          * EGIZ qtsp only supports RS512 for now
          */
         rqesWalletService.updateCryptoProperties(
-            signAlgorithm = if (!qtspHost.contains("egiz")) rqesWalletService.signingCredential!!.supportedSigningAlgorithms.first() else X509SignatureAlgorithm.RS512
+            signAlgorithm = if (!qtspConfig.qtspBaseUrl.contains("egiz")) rqesWalletService.signingCredential!!.supportedSigningAlgorithms.first() else X509SignatureAlgorithm.RS512
         )
 
         val documentWithLabel = this.documentWithLabel ?: throw Throwable("Missing documentWithLabel")
-        val dtbsr = listOf(getDTBSR(client, qtspHost, rqesWalletService, documentWithLabel))
+        val dtbsr = listOf(getDTBSR(client, egizUrl, rqesWalletService, documentWithLabel))
         val transactionTokens = dtbsr.map { it.first }
         this.transactionTokens = transactionTokens
 
@@ -191,7 +194,7 @@ class SigningService(
         /**
          * Using browser in case TOS needs to be accepted etc (current default and only way)
          */
-        val targetUrl = URLBuilder("${qtspHost}/oauth2/authorize").apply {
+        val targetUrl = URLBuilder("${qtspConfig.oauth2BaseUrl}/oauth2/authorize").apply {
             authRequest.encodeToParameters().forEach {
                 parameters.append(it.key, it.value)
             }
@@ -201,7 +204,7 @@ class SigningService(
     }
 
     suspend fun finalizeWithAuthCode(url: String) {
-        val tokenUrl = "${qtspHost}/oauth2/token"
+        val tokenUrl = "${qtspConfig.oauth2BaseUrl}/oauth2/token"
 
         val url = URLBuilder(url)
         val code = url.parameters["code"] ?: throw Throwable("Missing code")
@@ -246,14 +249,14 @@ class SigningService(
             sad = tokenResponseParameters.accessToken,
         )
 
-        val signatures = client.post("${qtspHost}/csc/v2/signatures/signHash") {
+        val signatures = client.post("${qtspConfig.qtspBaseUrl}/signatures/signHash") {
             contentType(Json)
             accept(Json)
             setBody(vckJsonSerializer.encodeToString(signHashRequest))
         }.body<SignatureResponse>()
 
         val transactionTokens = this.transactionTokens ?: throw Throwable("Missing transactionTokens")
-        val signedDocuments = getFinishedDocuments(client, qtspHost, signatures, transactionTokens)
+        val signedDocuments = getFinishedDocuments(client, egizUrl, signatures, transactionTokens)
 
 
         val signedDocList = vckJsonSerializer.encodeToJsonElement(
