@@ -320,7 +320,7 @@
     <string name="section_heading_missing_data">Neue Daten laden</string>
     <string name="section_heading_load_data_selection">Verfügbare Daten</string>
     <string name="section_heading_available_data">Bestehende Daten aktualisieren</string>
-
+    <string name="section_heading_transaction_data">Transaktion</string>
 
     <string name="onboarding_section_terms_and_data_protection_icon_text">1</string>
     <string name="onboarding_section_terms_and_data_protection_title">Nutzungsbedingungen und Datenschutz</string>

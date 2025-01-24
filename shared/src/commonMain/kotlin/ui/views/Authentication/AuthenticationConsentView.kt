@@ -1,6 +1,13 @@
 package ui.views.Authentication
 
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,7 +20,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ArrowDownward
+import androidx.compose.material.icons.outlined.ArrowUpward
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.Scaffold
@@ -21,27 +32,35 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.rqes.collection_entries.TransactionData
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_location
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_name
+import at.asitplus.valera.resources.button_label_hide_technical_details
+import at.asitplus.valera.resources.button_label_show_technical_details
 import at.asitplus.valera.resources.heading_label_authenticate_at_device_screen
 import at.asitplus.valera.resources.heading_label_navigate_back
 import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_data_recipient
+import at.asitplus.valera.resources.section_heading_transaction_data
 import at.asitplus.wallet.app.common.third_parts.at.asitplus.jsonpath.core.plus
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
+import at.asitplus.wallet.lib.oidvci.encodeToParameters
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.ConsentAttributesSection
 import ui.composables.DataDisplaySection
+import ui.composables.Label
 import ui.composables.Logo
 import ui.composables.buttons.CancelButton
 import ui.composables.buttons.ContinueButton
@@ -147,30 +166,67 @@ fun AuthenticationConsentView(vm: AuthenticationConsentViewModel) {
                         }
                     }
                     if (vm.transactionData != null) {
-                        val transaction = when (vm.transactionData) {
-                            is TransactionData.QesAuthorization -> {
-                                "QesAuthorization"
-                            }
-                            is TransactionData.QCertCreationAcceptance -> {
-                                "QCertCreationAcceptance"
-                            }
-                        }
                         Spacer(modifier = Modifier.height(32.dp))
-                        Column(modifier = Modifier) {
-                            Text(
-                                text = "Transaction",
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.secondary,
-                                fontWeight = FontWeight.SemiBold,
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Column(modifier = Modifier.padding(start = 32.dp)) {
-                                Text(transaction)
-                            }
-                        }
+                        TransactionDataView(vm.transactionData)
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun TransactionDataView(transactionData: TransactionData) {
+    Column(modifier = Modifier) {
+        var showContent by remember { mutableStateOf(false) }
+
+        val density = LocalDensity.current
+
+        androidx.compose.animation.AnimatedVisibility(
+            visible = showContent,
+            enter = slideInVertically {
+                with(density) { -20.dp.roundToPx() }
+            } + expandVertically(
+                expandFrom = Alignment.Top
+            ) + fadeIn(
+                initialAlpha = 0.3f
+            ),
+            exit = slideOutVertically {
+                with(density) { 20.dp.roundToPx() }
+            } + shrinkVertically(
+                shrinkTowards = Alignment.Bottom
+            ) + fadeOut(
+                targetAlpha = 0f
+            )
+        ) {
+            val list: List<Pair<String, String>> = transactionData.encodeToParameters().map {
+                Pair(it.key, it.value)
+            }
+            DataDisplaySection(
+                title = stringResource(Res.string.section_heading_transaction_data),
+                data = list,
+                modifier = Modifier,
+            )
+        }
+        Column(
+            modifier = Modifier.fillMaxWidth().clickable(onClick = { showContent = !showContent }),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Label(
+                label = when (showContent) {
+                    true -> stringResource(Res.string.button_label_hide_technical_details)
+                    else -> stringResource(Res.string.button_label_show_technical_details)
+                }
+            )
+            Icon(
+                imageVector = when (showContent) {
+                    true -> Icons.Outlined.ArrowUpward
+                    else -> Icons.Outlined.ArrowDownward
+                },
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.secondary
+            )
         }
     }
 }
