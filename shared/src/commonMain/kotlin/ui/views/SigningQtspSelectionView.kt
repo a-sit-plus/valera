@@ -5,11 +5,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -19,18 +21,18 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.heading_label_sign_document
 import at.asitplus.valera.resources.text_label_qtsp
-import kotlinx.coroutines.runBlocking
+import at.asitplus.wallet.app.common.QtspConfig
+import at.asitplus.wallet.app.common.qtspAtrust
+import at.asitplus.wallet.app.common.qtspEgiz
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.TextIconButton
@@ -42,11 +44,7 @@ import ui.viewmodels.SigningQtspSelectionViewModel
 fun SigningQtspSelectionView(
     vm: SigningQtspSelectionViewModel
 ) {
-    var host by rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        runBlocking {
-            mutableStateOf(TextFieldValue(vm.hostString))
-        }
-    }
+    var config = remember { vm.qtspConfig }
 
     Scaffold(
         topBar = {
@@ -84,7 +82,7 @@ fun SigningQtspSelectionView(
                             text = {
                                 Text(stringResource(Res.string.button_label_continue))
                             },
-                            onClick = { vm.onContinue(host.text) },
+                            onClick = { vm.onContinue(config) },
                             modifier = Modifier,
                         )
                     }
@@ -93,17 +91,49 @@ fun SigningQtspSelectionView(
             modifier = Modifier.padding(scaffoldPadding),
         ) { scaffoldPadding ->
             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                OutlinedTextField(
-                    value = host,
-                    onValueChange = { host = it },
-                    label = {
-                        Text(stringResource(Res.string.text_label_qtsp))
-                    },
-                    enabled = true,
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Done
-                    ),
-                    modifier = Modifier.fillMaxWidth(),
+                var expanded by remember { mutableStateOf(false) }
+                val availableConfigs = listOf(qtspEgiz, qtspAtrust)
+                QtspSelectionField(value = config, onValueChange = {config = it; expanded = !expanded}, expanded = expanded, onExpandedChange = {expanded = it}, availableIdentifiers = availableConfigs)
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun QtspSelectionField(
+    value: QtspConfig,
+    onValueChange: (QtspConfig) -> Unit,
+    expanded: Boolean,
+    enabled: Boolean = true,
+    onExpandedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+    availableIdentifiers: Collection<QtspConfig>,
+) {
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = onExpandedChange,
+        modifier = modifier,
+    ) {
+        OutlinedTextField(
+            readOnly = true,
+            value = value.qtspBaseUrl,
+            onValueChange = {},
+            label = { Text(stringResource(Res.string.text_label_qtsp)) },
+            enabled = enabled,
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier = Modifier.menuAnchor().fillMaxWidth(),
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { onExpandedChange(false) },
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            for (identifier in availableIdentifiers) {
+                DropdownMenuItem(
+                    text = { Text(identifier.qtspBaseUrl) },
+                    onClick = { onValueChange(identifier) },
+                    enabled = enabled,
                 )
             }
         }

@@ -1,10 +1,11 @@
 package ui.viewmodels
 
+import at.asitplus.wallet.app.common.QtspConfig
 import at.asitplus.wallet.app.common.WalletMain
 
 class SigningQtspSelectionViewModel(
     val navigateUp: () -> Unit,
-    val onContinue: (String) -> Unit,
+    val onContinue: (QtspConfig) -> Unit,
     val walletMain: WalletMain,
-    val hostString: String
+    val qtspConfig: QtspConfig
 )
