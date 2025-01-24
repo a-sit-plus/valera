@@ -1,4 +1,4 @@
-package ui.screens
+package ui.views
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,12 +10,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.heading_label_check_scan_qr_code
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.heading_label_check_scan_qr_code
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton
-import ui.views.CameraView
 
 @Composable
 fun QrDeviceEngagementScreen(

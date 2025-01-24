@@ -47,8 +47,8 @@ fun ErrorView(
     message: String?,
     cause: String?
 ) {
-    val message = message ?: "Unknown Message"
-    val cause = cause ?: "Unknown Cause"
+    val displayMessage = message ?: "Unknown Message"
+    val displayCause = cause ?: "Unknown Cause"
 
     val tint = Color(255, 210, 0)
 
@@ -127,7 +127,7 @@ fun ErrorView(
                         .background(color = MaterialTheme.colorScheme.tertiaryContainer)
                 ) {
                     Text(
-                        message,
+                        displayMessage,
                         modifier = Modifier.padding(
                             top = 5.dp,
                             bottom = 5.dp,
@@ -146,7 +146,7 @@ fun ErrorView(
                         .background(color = MaterialTheme.colorScheme.tertiaryContainer)
                 ) {
                     Text(
-                        cause,
+                        displayCause,
                         modifier = Modifier.padding(
                             top = 5.dp,
                             bottom = 5.dp,

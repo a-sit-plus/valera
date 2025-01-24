@@ -34,7 +34,6 @@ import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
-import at.asitplus.wallet.app.common.decodeImage
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -66,7 +65,7 @@ import ui.navigation.Routes.OnboardingWrapperTestTags
 import ui.navigation.Routes.PreAuthQrCodeScannerRoute
 import ui.navigation.Routes.Route
 import ui.navigation.Routes.SettingsRoute
-import ui.screens.SelectIssuingServerView
+import ui.views.SelectIssuingServerView
 import ui.viewmodels.AddCredentialViewModel
 import ui.viewmodels.Authentication.AuthenticationQrCodeScannerViewModel
 import ui.viewmodels.Authentication.AuthenticationSuccessViewModel

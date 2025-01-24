@@ -11,13 +11,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.ImageBitmap
-import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.section_heading_date_of_expiry
-import composewalletapp.shared.generated.resources.section_heading_date_of_issue
-import composewalletapp.shared.generated.resources.attribute_friendly_age_above
-import composewalletapp.shared.generated.resources.attribute_friendly_age_below
-import composewalletapp.shared.generated.resources.error_missing_value
-import composewalletapp.shared.generated.resources.section_heading_vehicle_category
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.section_heading_date_of_expiry
+import at.asitplus.valera.resources.section_heading_date_of_issue
+import at.asitplus.valera.resources.attribute_friendly_age_above
+import at.asitplus.valera.resources.attribute_friendly_age_below
+import at.asitplus.valera.resources.error_missing_value
+import at.asitplus.valera.resources.section_heading_vehicle_category
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 

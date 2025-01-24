@@ -1,6 +1,7 @@
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
+import android.os.Build
 import android.util.Base64
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
@@ -165,7 +166,7 @@ class AndroidPlatformAdapter(
 
     override fun imageStringToBytearray(imageString: String): ByteArray {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Base64.getDecoder().decode(imageString)
+            Base64.decode(imageString, Base64.DEFAULT)
         } else {
             TODO("VERSION.SDK_INT < O")
         }

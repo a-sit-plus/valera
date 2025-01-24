@@ -1,4 +1,4 @@
-package ui.screens
+package ui.views
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -24,13 +24,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.app.common.WalletMain
-import composewalletapp.shared.generated.resources.Res
+import at.asitplus.valera.resources.Res
 import org.jetbrains.compose.resources.stringResource
-import composewalletapp.shared.generated.resources.heading_label_show_qr_code_screen
+import at.asitplus.valera.resources.heading_label_show_qr_code_screen
 import data.bletransfer.Holder
 import data.bletransfer.getHolder
 import qrcode.QRCode
-
 
 @Composable
 fun ShowQrCodeScreen(walletMain: WalletMain, onConnection: (Holder) -> Unit) {

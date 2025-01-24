@@ -87,20 +87,19 @@ kotlin {
 
                 implementation(libs.play.services.identity.credentials)
                 implementation(libs.identity.android)
-
-                implementation("com.android.identity:identity-credential:20231002") {
+                implementation(libs.identity.mdoc.get().toString()) {
                     exclude(group = "org.bouncycastle")
                 }
-                implementation("com.fasterxml.jackson.core:jackson-databind:2.16.0")
-                implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.16.0")
-                implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.16.0")
+                implementation(libs.jackson.databind)
+                implementation(libs.jackson.dataformat.cbor)
+                implementation(libs.jackson.module.kotlin)
             }
         }
 
         val androidInstrumentedTest by getting {
             dependencies {
-                implementation("androidx.compose.ui:ui-test-junit4")
-                implementation("androidx.compose.ui:ui-test-manifest")
+                implementation(libs.ui.test.junit4)
+                implementation(libs.ui.test.manifest)
             }
         }
         iosMain { dependencies { implementation(ktor("client-darwin")) } }

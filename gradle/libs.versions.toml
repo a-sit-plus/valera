@@ -11,6 +11,12 @@ companyregistration = "1.0.1"
 eprescription = "1.1.1"
 atomicfu = "0.26.1"
 compose-plugin = "1.7.3"
+jackson-databind = "2.18.0"
+jackson-dataformat-cbor = "2.18.0"
+jackson-module-kotlin = "2.18.0"
+qrcode-kotlin = "4.1.1"
+navigation-compose = "2.8.0-alpha10"
+datastore-preferences-core = "1.1.2"
 
 [libraries]
 atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version.ref = "atomicfu" }
@@ -21,10 +27,20 @@ credential-certificateofresidence = { module = "at.asitplus.wallet:certificateof
 credential-companyregistration = { module = "at.asitplus.wallet:company-registration", version.ref = "companyregistration" }
 credential-mdl = { group = "at.asitplus.wallet", name = "mobiledrivinglicence", version.ref = "mdl" }
 credential-eprescription = { module = "at.asitplus.wallet:eprescription", version.ref = "eprescription"}
+datastore-core-okio = { module = "androidx.datastore:datastore-core-okio", version.ref = "datastore-preferences-core" }
+datastore-preferences-core = { module = "androidx.datastore:datastore-preferences-core", version.ref = "datastore-preferences-core" }
+g0dkar-qrcode-kotlin = { module = "io.github.g0dkar:qrcode-kotlin", version.ref = "qrcode-kotlin" }
 identity = { module = "com.android.identity:identity", version.ref = "identity" }
 identity-android = { module = "com.android.identity:identity-android", version.ref = "identity" }
+identity-mdoc = { module = "com.android.identity:identity-mdoc", version.ref  ="identity" }
+jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson-module-kotlin" }
+jackson-dataformat-cbor = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-cbor", version.ref = "jackson-dataformat-cbor" }
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson-databind" }
+navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigation-compose" }
 play-services-identity-credentials = { module = "com.google.android.gms:play-services-identity-credentials", version.ref = "play-services-identity-credentials" }
 semver = { module = "net.swiftzer.semver:semver", version.ref = "semver" }
+ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
+ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 
 [plugins]
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }

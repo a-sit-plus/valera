@@ -1,11 +1,9 @@
-package ui.screens
+package ui.views
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
@@ -27,18 +25,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.heading_label_select_custom_data_retrieval_screen
-import composewalletapp.shared.generated.resources.section_heading_select_document_type
-import composewalletapp.shared.generated.resources.section_heading_selected_namespace
-import composewalletapp.shared.generated.resources.section_heading_select_requested_data_entrys
-import data.bletransfer.verifier.DocumentAttributes
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.heading_label_select_custom_data_retrieval_screen
+import at.asitplus.valera.resources.section_heading_select_document_type
+import at.asitplus.valera.resources.section_heading_select_requested_data_entrys
+import at.asitplus.valera.resources.section_heading_selected_namespace
 import data.bletransfer.Verifier
+import data.bletransfer.verifier.DocumentAttributes
 import data.bletransfer.verifier.documentTypeToNameSpace
 import data.bletransfer.verifier.itemsToDocument
 import org.jetbrains.compose.resources.StringResource

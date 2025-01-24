@@ -3,6 +3,7 @@ package data.bletransfer.util
 import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.compose.ui.graphics.asImageBitmap
+import com.android.identity.crypto.EcPrivateKey
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.cbor.CBORFactory
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
@@ -75,7 +76,7 @@ class CborDecoder(
 
     fun decodeResponse(encodedDeviceResponse: ByteArray,
                        sessionTranscript: ByteArray?,
-                       ephemeralReaderKey: PrivateKey?
+                       ephemeralReaderKey: EcPrivateKey?
     ) {
         val documents: List<Map<String, Any>>? = cborMapExtractArray(encodedDeviceResponse, "documents")
 

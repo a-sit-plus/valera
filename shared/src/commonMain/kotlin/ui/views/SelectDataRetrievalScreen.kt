@@ -1,4 +1,4 @@
-package ui.screens
+package ui.views
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -26,16 +26,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import composewalletapp.shared.generated.resources.Res
-import composewalletapp.shared.generated.resources.button_label_check_over_age
-import composewalletapp.shared.generated.resources.button_label_check_identity
-import composewalletapp.shared.generated.resources.button_label_check_age
-import composewalletapp.shared.generated.resources.button_label_check_license
-import composewalletapp.shared.generated.resources.heading_label_select_data_retrieval_screen
-import composewalletapp.shared.generated.resources.button_label_check_custom
-import composewalletapp.shared.generated.resources.section_heading_request_eausweiße
-import composewalletapp.shared.generated.resources.section_heading_request_license
-import composewalletapp.shared.generated.resources.section_heading_request_custom
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.button_label_check_over_age
+import at.asitplus.valera.resources.button_label_check_identity
+import at.asitplus.valera.resources.button_label_check_age
+import at.asitplus.valera.resources.button_label_check_license
+import at.asitplus.valera.resources.heading_label_select_data_retrieval_screen
+import at.asitplus.valera.resources.button_label_check_custom
+import at.asitplus.valera.resources.section_heading_request_eausweise
+import at.asitplus.valera.resources.section_heading_request_license
+import at.asitplus.valera.resources.section_heading_request_custom
 import data.bletransfer.Verifier
 import data.bletransfer.verifier.getAgeVerificationDocument
 import data.bletransfer.verifier.getIdentityDocument
@@ -60,7 +60,7 @@ fun SelectDataRetrievalView(
     onClickPreDefined: (Verifier.Document) -> Unit,
     onClickCustom: () -> Unit
 ) {
-    var showDropDown = remember { mutableStateOf(false) }
+    val showDropDown = remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -85,7 +85,7 @@ fun SelectDataRetrievalView(
                 ) {
                     val listSpacingModifier = Modifier.padding(top = 8.dp)
                     Text(
-                        text = stringResource(Res.string.section_heading_request_eausweiße),
+                        text = stringResource(Res.string.section_heading_request_eausweise),
                         style = MaterialTheme.typography.titleMedium,
                     )
                     TextIconButtonListItem(

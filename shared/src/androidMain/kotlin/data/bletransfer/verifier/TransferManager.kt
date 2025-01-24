@@ -3,7 +3,6 @@ package data.bletransfer.verifier
 import android.annotation.SuppressLint
 import android.content.Context
 import android.preference.PreferenceManager
-import android.util.Log
 import com.android.identity.android.mdoc.deviceretrieval.VerificationHelper
 import com.android.identity.android.mdoc.transport.DataTransportOptions
 import com.android.identity.mdoc.connectionmethod.ConnectionMethod
@@ -15,7 +14,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
 import java.security.Signature
 import java.security.cert.X509Certificate
-
 
 class TransferManager private constructor(private val context: Context) {
 
@@ -147,7 +145,7 @@ class TransferManager private constructor(private val context: Context) {
             this@TransferManager.readerEngagement = readerEngagement
         }
 
-        override fun onDeviceEngagementReceived(connectionMethods: MutableList<ConnectionMethod>) {
+        override fun onDeviceEngagementReceived(connectionMethods: List<ConnectionMethod>) {
             updateLogs(TAG, "Ready for device engagement")
             setAvailableTransferMethods(ConnectionMethod.disambiguate(connectionMethods))
 
@@ -175,12 +173,11 @@ class TransferManager private constructor(private val context: Context) {
             responseBytes = deviceResponseBytes
             updateLogs(TAG, "Response received")
             val sessionTranscript = verification?.sessionTranscript
-            val ephemeralReaderKey = verification?.ephemeralReaderKey
+            val ephemeralReaderKey = verification?.eReaderKey
 
-            val cborfact = CborDecoder(updateLogs)
-            cborfact.decodeResponse(deviceResponseBytes, sessionTranscript, ephemeralReaderKey)
-
-            updateData(cborfact.entryList)
+            val cborDecoder = CborDecoder(updateLogs)
+            cborDecoder.decodeResponse(deviceResponseBytes, sessionTranscript, ephemeralReaderKey)
+            updateData(cborDecoder.entryList)
         }
 
         override fun onDeviceDisconnected(transportSpecificTermination: Boolean) {
@@ -207,16 +204,16 @@ class TransferManager private constructor(private val context: Context) {
             var signature: Signature? = null
             var readerKeyCertificateChain: Collection<X509Certificate>? = null
 
-            val generator =
-                DeviceRequestGenerator()
-            generator.setSessionTranscript(it.sessionTranscript)
-            generator.addDocumentRequest(
-                requestedDocumentID!!.docType,
-                requestedDocumentID!!.requestDocument,
-                null,
-                signature,
-                readerKeyCertificateChain
-            )
+            val generator = DeviceRequestGenerator(it.sessionTranscript)
+            // TODO: check this
+//            generator.addDocumentRequest(
+//                docType = requestedDocumentID!!.docType,
+//                itemsToRequest = requestedDocumentID!!.requestDocument,
+//                requestInfo = null,
+//                readerKey = null,
+//                signatureAlgorithm = signature,
+//                readerKeyCertificateChain = readerKeyCertificateChain
+//            )
             verification?.sendRequest(generator.generate())
         }
     }
