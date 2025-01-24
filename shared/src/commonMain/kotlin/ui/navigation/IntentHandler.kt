@@ -38,9 +38,7 @@ suspend fun handleIntent(
                 walletMain.cryptoService.promptSubtitle =
                     getString(Res.string.biometric_authentication_prompt_to_bind_credentials_subtitle)
                 walletMain.provisioningService.resumeWithAuthCode(link)
-                walletMain.snackbarService.showSnackbar(
-                    getString(Res.string.snackbar_credential_loaded_successfully)
-                )
+                walletMain.snackbarService.showSnackbar(getString(Res.string.snackbar_credential_loaded_successfully))
                 navigateBack()
                 appLink.value = null
             } catch (e: Throwable) {
@@ -75,7 +73,7 @@ suspend fun handleIntent(
             }
             appLink.value = null
         }
-            
+
         IntentType.DCAPIAuthorizationIntent -> {
             val dcApiRequest = walletMain.platformAdapter.getCurrentDCAPIData()
             val consentPageBuilder =

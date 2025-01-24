@@ -20,11 +20,11 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         populateLink(intent)
-
         setContent {
             MainView(
                 buildContext = BuildContext(
                     buildType = BuildConfig.BUILD_TYPE,
+                    packageName = BuildConfig.APPLICATION_ID,
                     versionCode = BuildConfig.VERSION_CODE,
                     versionName = BuildConfig.VERSION_NAME,
                 ),

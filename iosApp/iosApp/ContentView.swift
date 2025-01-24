@@ -14,6 +14,7 @@ struct ComposeView: UIViewControllerRepresentable {
             platformAdapter: SwiftPlatformAdapter(),
             buildContext: BuildContext(
                 buildType: buildType,
+                packageName: Bundle.main.bundleIdentifier ?? "at.asitplus.wallet.compose",
                 versionCode: Bundle.main.infoDictionary?["CFBundleVersion"] as? Int32 ?? 1,
                 versionName: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String  ?? "1.0.0"
             )
@@ -34,13 +35,13 @@ struct ContentView: View {
 }
 
 class SwiftPlatformAdapter: PlatformAdapter {
-    func openUrl(url: String){
+
+    func openUrl(url: String) {
         DispatchQueue.main.async {
             if let uri = URL(string: url) {
                 UIApplication.shared.open(uri)
             }
         }
-        
     }
 
     func writeToFile(text: String, fileName: String, folderName: String) {

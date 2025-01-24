@@ -1,4 +1,3 @@
-
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
@@ -58,7 +57,11 @@ actual fun getColorScheme(): ColorScheme {
 }
 
 @Composable
-fun MainView(buildContext: BuildContext, walletData: WalletAPIData, sendCredentialResponseToDCAPIInvokerMethod: (String) -> Unit) {
+fun MainView(
+    buildContext: BuildContext,
+    walletData: WalletAPIData,
+    sendCredentialResponseToDCAPIInvokerMethod: (String) -> Unit
+) {
     walletAPIData = walletData
     val platformAdapter = AndroidPlatformAdapter(LocalContext.current, sendCredentialResponseToDCAPIInvokerMethod)
     val scope = CoroutineScope(Dispatchers.Default)
@@ -83,7 +86,11 @@ fun MainView(buildContext: BuildContext, walletData: WalletAPIData, sendCredenti
     )
 }
 
-class AndroidPlatformAdapter(private val context: Context, private val sendCredentialResponseToDCAPIInvoker: (String) -> Unit) : PlatformAdapter {
+class AndroidPlatformAdapter(
+    private val context: Context,
+    private val sendCredentialResponseToDCAPIInvoker: (String) -> Unit
+) : PlatformAdapter {
+
     override fun openUrl(url: String) {
         Napier.d("Open URL: ${url.toUri()}")
         context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
@@ -161,8 +168,10 @@ class AndroidPlatformAdapter(private val context: Context, private val sendCrede
 
             // This call is currently broken, have to extract this info manually for now
             //val callingAppInfo = extractCallingAppInfo(intent)
-            val callingPackageName = it.getStringExtra("androidx.identitycredentials.extra.CALLING_PACKAGE_NAME") // IntentHelper.EXTRA_CALLING_PACKAGE_NAME produces InterpreterMethodNotFoundError
-            val callingOrigin = it.getStringExtra("androidx.identitycredentials.extra.ORIGIN") // IntentHelper.EXTRA_ORIGIN produces InterpreterMethodNotFoundError
+            val callingPackageName =
+                it.getStringExtra("androidx.identitycredentials.extra.CALLING_PACKAGE_NAME") // IntentHelper.EXTRA_CALLING_PACKAGE_NAME produces InterpreterMethodNotFoundError
+            val callingOrigin =
+                it.getStringExtra("androidx.identitycredentials.extra.ORIGIN") // IntentHelper.EXTRA_ORIGIN produces InterpreterMethodNotFoundError
 
             if (callingPackageName == null && callingOrigin == null) {
                 Napier.w("Neither calling package name nor origin known")
@@ -195,10 +204,19 @@ class AndroidPlatformAdapter(private val context: Context, private val sendCrede
                     val name = field.getString("name")
                     val namespace = field.getString("namespace")
                     val intentToRetain = field.getBoolean("intentToRetain")
-                    requestedData.getOrPut(namespace) { mutableListOf() } .add(Pair(name, intentToRetain))
+                    requestedData.getOrPut(namespace) { mutableListOf() }.add(Pair(name, intentToRetain))
                 }
 
-                DCAPIRequest(request, requestedData, credentialId, callingPackageName, callingOrigin, nonce, readerPublicKeyBase64, docType)
+                DCAPIRequest(
+                    request,
+                    requestedData,
+                    credentialId,
+                    callingPackageName,
+                    callingOrigin,
+                    nonce,
+                    readerPublicKeyBase64,
+                    docType
+                )
             } else {
                 Napier.w("Protocol type not supported")
                 null

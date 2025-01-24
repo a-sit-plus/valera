@@ -105,7 +105,6 @@ fun WalletNavigation(walletMain: WalletMain) {
         CoroutineScope(Dispatchers.Main).launch {
             Napier.d("Navigate back")
             navController.navigateUp()
-
         }
     }
 

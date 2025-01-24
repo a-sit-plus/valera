@@ -17,8 +17,16 @@ import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
 import getImageDecoder
 import io.github.aakira.napier.Napier
+import io.ktor.client.call.body
+import io.ktor.client.request.get
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import net.swiftzer.semver.SemVer
 
 /**
  * Main class to hold all services needed in the Compose App.
@@ -140,6 +148,32 @@ class WalletMain(
             }
         }
     }
+
+    fun updateCheck() {
+        scope.launch(Dispatchers.IO) {
+            runCatching {
+                val httpClient = httpService.buildHttpClient()
+                val host = "https://wallet.a-sit.at/"
+                val url = "${host}check.json"
+                Napier.d("Getting check.json from $url")
+                val json = httpClient.get(url).body<JsonObject>()
+                json["apps"]?.jsonObject?.get(buildContext.packageName)?.let {
+                    (it as? JsonObject)?.get("latestVersion")?.jsonPrimitive?.content?.let {
+                        val latestVersion = SemVer.parse(it)
+                        val currentVersion = SemVer.parse(buildContext.versionName)
+                        Napier.d("Version is $currentVersion, latest is $latestVersion")
+                        if (latestVersion > currentVersion) {
+                            snackbarService.showSnackbar("Your app version is out-of-date, please visit $host to update to $latestVersion", "Open") {
+                                platformAdapter.openUrl(host)
+                            }
+                        }
+                    }
+                }
+            }.onFailure {
+                Napier.w("Update check failed", it)
+            }
+        }
+    }
 }
 
 /**
@@ -200,6 +234,7 @@ interface PlatformAdapter {
      * Prepares the credential response and sends it back to the invoking application
      */
     fun prepareDCAPICredentialResponse(responseJson: ByteArray, dcApiRequest: DCAPIRequest)
+
 }
 
 fun PlatformAdapter.decodeImage(image: ByteArray): ImageBitmap {

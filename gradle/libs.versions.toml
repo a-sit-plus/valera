@@ -1,5 +1,6 @@
 [versions]
 identity = "202411.1"
+semver = "2.0.0"
 mdl = "1.1.4"
 ida = "3.9.2"
 eupid = "2.3.0"
@@ -23,6 +24,7 @@ credential-eprescription = { module = "at.asitplus.wallet:eprescription", versio
 identity = { module = "com.android.identity:identity", version.ref = "identity" }
 identity-android = { module = "com.android.identity:identity-android", version.ref = "identity" }
 play-services-identity-credentials = { module = "com.google.android.gms:play-services-identity-credentials", version.ref = "play-services-identity-credentials" }
+semver = { module = "net.swiftzer.semver:semver", version.ref = "semver" }
 
 [plugins]
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
