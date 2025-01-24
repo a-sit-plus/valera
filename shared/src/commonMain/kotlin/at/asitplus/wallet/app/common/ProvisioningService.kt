@@ -126,9 +126,9 @@ class ProvisioningService(
     ): CredentialOffer {
         val walletService = WalletService(
             cryptoService = cryptoService,
-            remoteResourceRetriever = { url ->
+            remoteResourceRetriever = { data ->
                 withContext(Dispatchers.IO) {
-                    client.get(url).bodyAsText()
+                    client.get(data.url).bodyAsText()
                 }
             })
         return walletService.parseCredentialOffer(qrCodeContent).getOrThrow()
