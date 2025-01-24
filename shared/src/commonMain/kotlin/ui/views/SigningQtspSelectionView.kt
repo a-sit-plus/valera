@@ -90,10 +90,19 @@ fun SigningQtspSelectionView(
             },
             modifier = Modifier.padding(scaffoldPadding),
         ) { scaffoldPadding ->
-            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 var expanded by remember { mutableStateOf(false) }
                 val availableConfigs = listOf(qtspEgiz, qtspAtrust)
-                QtspSelectionField(value = config, onValueChange = {config = it; expanded = !expanded}, expanded = expanded, onExpandedChange = {expanded = it}, availableIdentifiers = availableConfigs)
+                QtspSelectionField(
+                    value = config,
+                    onValueChange = { config = it; expanded = !expanded },
+                    expanded = expanded,
+                    onExpandedChange = { expanded = it },
+                    availableIdentifiers = availableConfigs
+                )
             }
         }
     }

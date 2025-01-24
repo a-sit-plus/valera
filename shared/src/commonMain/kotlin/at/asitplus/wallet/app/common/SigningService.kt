@@ -71,7 +71,8 @@ class SigningService(
     @OptIn(ExperimentalEncodingApi::class)
     suspend fun sign(url: String) {
         qtspConfig = runBlocking { config.qtspConfig.first() }
-        rqesWalletService = RqesWalletService(redirectUrl = redirectUrl, clientId = qtspConfig.oauth2ClientId)
+        rqesWalletService =
+            RqesWalletService(redirectUrl = redirectUrl, clientId = qtspConfig.oauth2ClientId)
 
         val url = URLBuilder(url)
 
@@ -80,10 +81,12 @@ class SigningService(
         val jwt = resp.bodyAsText()
         val split = jwt.split(".")
         val payload = split[1]
-        val payloadBytes = Base64.UrlSafe.withPadding(option = Base64.PaddingOption.ABSENT_OPTIONAL).decode(payload)
+        val payloadBytes = Base64.UrlSafe.withPadding(option = Base64.PaddingOption.ABSENT_OPTIONAL)
+            .decode(payload)
         val payloadString = payloadBytes.decodeToString(0, 0 + payloadBytes.size)
 
-        val signatureRequestParameter = vckJsonSerializer.decodeFromString<SignatureRequestParameters>(payloadString)
+        val signatureRequestParameter =
+            vckJsonSerializer.decodeFromString<SignatureRequestParameters>(payloadString)
         this.signatureReguestParameter = signatureRequestParameter
 
         val documentLocation = signatureRequestParameter.documentLocations.first().uri
@@ -92,7 +95,8 @@ class SigningService(
         this.document = document
         this.documentWithLabel = DocumentWithLabel(document, documentLabel)
 
-        val authRequest = rqesWalletService.createOAuth2AuthenticationRequest(scope = RqesWalletService.RqesOauthScope.SERVICE)
+        val authRequest =
+            rqesWalletService.createOAuth2AuthenticationRequest(scope = RqesWalletService.RqesOauthScope.SERVICE)
 
         val targetUrl = URLBuilder("${qtspConfig.oauth2BaseUrl}/oauth2/authorize").apply {
             authRequest.encodeToParameters().forEach {
@@ -155,17 +159,18 @@ class SigningService(
         )
 
         val credentialResponse = client.post("${qtspConfig.qtspBaseUrl}/credentials/list") {
-                accept(Json)
-                contentType(Json)
-                header(
-                    HttpHeaders.Authorization,
-                    "${tokenResponseParameters.tokenType} ${tokenResponseParameters.accessToken}"
-                )
-                setBody(vckJsonSerializer.encodeToString(credentialListRequest))
-            }
+            accept(Json)
+            contentType(Json)
+            header(
+                HttpHeaders.Authorization,
+                "${tokenResponseParameters.tokenType} ${tokenResponseParameters.accessToken}"
+            )
+            setBody(vckJsonSerializer.encodeToString(credentialListRequest))
+        }
         val credentialListResponse = credentialResponse.body<CscCredentialListResponse>()
 
-        val credentialInfo = credentialListResponse.credentialInfos?.first() ?: throw Throwable("Missing credentialInfos")
+        val credentialInfo = credentialListResponse.credentialInfos?.first()
+            ?: throw Throwable("Missing credentialInfos")
 
         rqesWalletService.setSigningCredential(credentialInfo)
 
@@ -177,12 +182,14 @@ class SigningService(
             signAlgorithm = if (!qtspConfig.qtspBaseUrl.contains("egiz")) rqesWalletService.signingCredential!!.supportedSigningAlgorithms.first() else X509SignatureAlgorithm.RS512
         )
 
-        val documentWithLabel = this.documentWithLabel ?: throw Throwable("Missing documentWithLabel")
+        val documentWithLabel =
+            this.documentWithLabel ?: throw Throwable("Missing documentWithLabel")
         val dtbsr = listOf(getDTBSR(client, egizUrl, rqesWalletService, documentWithLabel))
         val transactionTokens = dtbsr.map { it.first }
         this.transactionTokens = transactionTokens
 
-        val dtbsrAuthenticationDetails = rqesWalletService.getCscAuthenticationDetails(dtbsr.map { it.second })
+        val dtbsrAuthenticationDetails =
+            rqesWalletService.getCscAuthenticationDetails(dtbsr.map { it.second })
         this.dtbsrAuthenticationDetails = dtbsrAuthenticationDetails
 
         val authRequest = rqesWalletService.createOAuth2AuthenticationRequest(
@@ -255,7 +262,8 @@ class SigningService(
             setBody(vckJsonSerializer.encodeToString(signHashRequest))
         }.body<SignatureResponse>()
 
-        val transactionTokens = this.transactionTokens ?: throw Throwable("Missing transactionTokens")
+        val transactionTokens =
+            this.transactionTokens ?: throw Throwable("Missing transactionTokens")
         val signedDocuments = getFinishedDocuments(client, egizUrl, signatures, transactionTokens)
 
 
@@ -263,8 +271,10 @@ class SigningService(
             ListSerializer(ByteArrayBase64Serializer),
             signedDocuments.map { it.document })
 
-        val responseState = this.signatureReguestParameter?.state ?: throw Throwable("Missing responseState")
-        val responseUrl = this.signatureReguestParameter?.responseUrl ?: throw Throwable("Missing responseUrl")
+        val responseState =
+            this.signatureReguestParameter?.state ?: throw Throwable("Missing responseState")
+        val responseUrl =
+            this.signatureReguestParameter?.responseUrl ?: throw Throwable("Missing responseUrl")
         val drivingAppResponseUrl = URLBuilder(responseUrl).apply {
             parameters.append("state", responseState)
         }.buildString()
@@ -272,7 +282,8 @@ class SigningService(
         val finalRedirect = client.post(drivingAppResponseUrl) {
             contentType(FormUrlEncoded)
             setBody(
-                JsonObject(mapOf("DocumentWithSignature" to signedDocList)).encodeToParameters().formUrlEncode()
+                JsonObject(mapOf("DocumentWithSignature" to signedDocList)).encodeToParameters()
+                    .formUrlEncode()
             )
         }
     }
