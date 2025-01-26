@@ -2,6 +2,9 @@ package at.asitplus.wallet.app.common
 
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.snackbar_update_action
+import at.asitplus.valera.resources.snackbar_update_hint
 import at.asitplus.wallet.lib.Initializer.initOpenIdModule
 import at.asitplus.wallet.lib.agent.DefaultVerifierCryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
@@ -27,6 +30,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import net.swiftzer.semver.SemVer
+import org.jetbrains.compose.resources.getString
 
 /**
  * Main class to hold all services needed in the Compose App.
@@ -163,7 +167,7 @@ class WalletMain(
                         val currentVersion = SemVer.parse(buildContext.versionName)
                         Napier.d("Version is $currentVersion, latest is $latestVersion")
                         if (latestVersion > currentVersion) {
-                            snackbarService.showSnackbar("Your app version is out-of-date, please visit $host to update to $latestVersion", "Open") {
+                            snackbarService.showSnackbar(getString(Res.string.snackbar_update_hint, host, latestVersion), getString(Res.string.snackbar_update_action)) {
                                 platformAdapter.openUrl(host)
                             }
                         }
