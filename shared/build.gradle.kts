@@ -56,8 +56,8 @@ kotlin {
                 implementation(ktor("client-logging"))
                 implementation(ktor("client-content-negotiation"))
                 implementation(ktor("serialization-kotlinx-json"))
-
                 implementation(libs.identity)
+                implementation(libs.semver)
             }
         }
 
