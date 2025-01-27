@@ -11,6 +11,7 @@ import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.iso.IssuerSigned
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.storage.ExportableCredentialScheme.Companion.toExportableCredentialScheme
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -138,12 +139,18 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         } else {
             val export: ExportableStoreContainer = kotlin.runCatching {
                 vckJsonSerializer.decodeFromString<ExportableStoreContainer>(input)
-            }.getOrElse { _ ->
-                ExportableStoreContainer(
-                    vckJsonSerializer.decodeFromString<OldExportableStoreContainer>(input).credentials.mapIndexed { index, it ->
-                        index.toLong() to it
-                    }
-                )
+            }.getOrElse {
+                Napier.w("dataStoreValueToContainer failed for new format", it)
+                kotlin.runCatching {
+                    ExportableStoreContainer(
+                        vckJsonSerializer.decodeFromString<OldExportableStoreContainer>(input).credentials.mapIndexed { index, it ->
+                            index.toLong() to it
+                        }
+                    )
+                }.getOrElse {
+                    Napier.w("dataStoreValueToContainer failed for old format", it)
+                    ExportableStoreContainer(listOf())
+                }
             }
             val credentials = export.credentials.map {
                 val storeEntryId = it.first

@@ -470,10 +470,10 @@ private class EuPidCredentialIsoMdocAdapter(
         get() = CredentialRepresentation.ISO_MDOC
 
     override val givenName: String?
-        get() = euPidNamespace?.get(Attributes.GIVEN_NAME) as String?
+        get() = euPidNamespace?.get(Attributes.GIVEN_NAME) as? String?
 
     override val familyName: String?
-        get() = euPidNamespace?.get(Attributes.FAMILY_NAME) as String?
+        get() = euPidNamespace?.get(Attributes.FAMILY_NAME) as? String?
 
     override val birthDate: LocalDate?
         get() = euPidNamespace?.get(Attributes.BIRTH_DATE) as? LocalDate?
@@ -495,13 +495,13 @@ private class EuPidCredentialIsoMdocAdapter(
         get() = euPidNamespace?.get(Attributes.AGE_OVER_21) as? Boolean?
 
     override val residentAddress: String?
-        get() = euPidNamespace?.get(Attributes.RESIDENT_ADDRESS) as String?
+        get() = euPidNamespace?.get(Attributes.RESIDENT_ADDRESS) as? String?
 
     override val residentStreet: String?
-        get() = euPidNamespace?.get(Attributes.RESIDENT_STREET) as String?
+        get() = euPidNamespace?.get(Attributes.RESIDENT_STREET) as? String?
 
     override val residentCity: String?
-        get() = euPidNamespace?.get(Attributes.RESIDENT_CITY) as String?
+        get() = euPidNamespace?.get(Attributes.RESIDENT_CITY) as? String?
 
     override val residentPostalCode: String?
         get() = euPidNamespace?.get(Attributes.RESIDENT_POSTAL_CODE)?.toString()
@@ -510,16 +510,17 @@ private class EuPidCredentialIsoMdocAdapter(
         get() = euPidNamespace?.get(Attributes.RESIDENT_HOUSE_NUMBER)?.toString()
 
     override val residentCountry: String?
-        get() = euPidNamespace?.get(Attributes.RESIDENT_COUNTRY) as String?
+        get() = euPidNamespace?.get(Attributes.RESIDENT_COUNTRY) as? String?
 
     override val residentState: String?
-        get() = euPidNamespace?.get(Attributes.RESIDENT_STATE) as String?
+        get() = euPidNamespace?.get(Attributes.RESIDENT_STATE) as? String?
 
     override val gender: String?
-        get() = euPidNamespace?.get(Attributes.GENDER) as String?
+        get() = (euPidNamespace?.get(Attributes.GENDER) as? IsoIec5218Gender)?.name
+            ?: euPidNamespace?.get(Attributes.GENDER) as? String?
 
     override val nationality: String?
-        get() = euPidNamespace?.get(Attributes.NATIONALITY) as String?
+        get() = euPidNamespace?.get(Attributes.NATIONALITY) as? String?
 
     override val nationalities: Collection<String>?
         get() = listOfNotNull(nationality).ifEmpty { null }
@@ -531,22 +532,22 @@ private class EuPidCredentialIsoMdocAdapter(
         get() = euPidNamespace?.get(Attributes.AGE_BIRTH_YEAR) as UInt?
 
     override val familyNameBirth: String?
-        get() = euPidNamespace?.get(Attributes.FAMILY_NAME_BIRTH) as String?
+        get() = euPidNamespace?.get(Attributes.FAMILY_NAME_BIRTH) as? String?
 
     override val givenNameBirth: String?
-        get() = euPidNamespace?.get(Attributes.GIVEN_NAME_BIRTH) as String?
+        get() = euPidNamespace?.get(Attributes.GIVEN_NAME_BIRTH) as? String?
 
     override val birthPlace: String?
-        get() = euPidNamespace?.get(Attributes.BIRTH_PLACE) as String?
+        get() = euPidNamespace?.get(Attributes.BIRTH_PLACE) as? String?
 
     override val birthCountry: String?
-        get() = euPidNamespace?.get(Attributes.BIRTH_COUNTRY) as String?
+        get() = euPidNamespace?.get(Attributes.BIRTH_COUNTRY) as? String?
 
     override val birthState: String?
-        get() = euPidNamespace?.get(Attributes.BIRTH_STATE) as String?
+        get() = euPidNamespace?.get(Attributes.BIRTH_STATE) as? String?
 
     override val birthCity: String?
-        get() = euPidNamespace?.get(Attributes.BIRTH_CITY) as String?
+        get() = euPidNamespace?.get(Attributes.BIRTH_CITY) as? String?
 
     override val issuanceDate: Instant?
         get() = euPidNamespace?.get(Attributes.ISSUANCE_DATE) as Instant?
@@ -557,17 +558,17 @@ private class EuPidCredentialIsoMdocAdapter(
             ?: euPidNamespace?.get(Attributes.EXPIRY_DATE)?.toString()?.toInstantOrNull()
 
     override val issuingAuthority: String?
-        get() = euPidNamespace?.get(Attributes.ISSUING_AUTHORITY) as String?
+        get() = euPidNamespace?.get(Attributes.ISSUING_AUTHORITY) as? String?
 
     override val documentNumber: String?
-        get() = euPidNamespace?.get(Attributes.DOCUMENT_NUMBER) as String?
+        get() = euPidNamespace?.get(Attributes.DOCUMENT_NUMBER) as? String?
 
     override val administrativeNumber: String?
-        get() = euPidNamespace?.get(Attributes.ADMINISTRATIVE_NUMBER) as String?
+        get() = euPidNamespace?.get(Attributes.ADMINISTRATIVE_NUMBER) as? String?
 
     override val issuingCountry: String?
-        get() = euPidNamespace?.get(Attributes.ISSUING_COUNTRY) as String?
+        get() = euPidNamespace?.get(Attributes.ISSUING_COUNTRY) as? String?
 
     override val issuingJurisdiction: String?
-        get() = euPidNamespace?.get(Attributes.ISSUING_JURISDICTION) as String?
+        get() = euPidNamespace?.get(Attributes.ISSUING_JURISDICTION) as? String?
 }
