@@ -15,12 +15,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-
 actual fun getHolder(): Holder = AndroidHolder()
 
 class AndroidHolder: Holder {
+    private val TAG: String = "AndroidHolder"
 
     private var permission = false
+    private var transferManager: TransferManager? = null
+    private var requestedAttributes: List<RequestedDocument>? = null
 
     @Composable
     override fun getRequirements(check: (Boolean) -> Unit) {
@@ -37,11 +39,6 @@ class AndroidHolder: Holder {
         transferManager = TransferManager.getInstance(LocalContext.current)
     }
 
-    private var transferManager: TransferManager? = null
-    private val TAG: String = "AndroidHolder"
-
-    private var requestedAttributes: List<RequestedDocument>? = null
-
     override fun getAttributes(): List<RequestedDocument> {
         return requestedAttributes ?: listOf()
     }
@@ -50,13 +47,15 @@ class AndroidHolder: Holder {
         CoroutineScope(Dispatchers.IO).launch {
             while (transferManager == null) {
                 delay(500)
-                Napier.d( tag = TAG, message ="waiting for Transfer Manager")
+                Napier.d(tag = TAG, message ="waiting for Transfer Manager")
             }
+
             while (!permission) {
                 delay(500)
-                Napier.d( tag = TAG, message ="waiting for Permissions")
+                Napier.d(tag = TAG, message ="waiting for Permissions")
             }
-            Napier.d( tag = TAG, message ="Transfer Manager is here")
+
+            Napier.d(tag = TAG, message ="Transfer Manager is here")
             transferManager?.startQrEngagement(updateQrCode) {rA ->
                 requestedAttributes = rA
                 onRequestedAttributes()
@@ -65,7 +64,10 @@ class AndroidHolder: Holder {
     }
 
     override fun disconnect() {
-        transferManager?.stopPresentation(true, false)
+        transferManager?.stopPresentation(
+            sendSessionTerminationMessage = true,
+            useTransportSpecificSessionTermination = false
+        )
     }
 
     override fun send(credentials: List<Document>, launchAfterSuccessfulSend: () -> Unit) {
@@ -75,8 +77,8 @@ class AndroidHolder: Holder {
             responseGenerator.addDocument(cred.serialize())
         }
         transferManager?.sendResponse(
-            responseGenerator.generate(),
-            false
+            deviceResponse = responseGenerator.generate(),
+            closeAfterSending = false
         )?: Napier.d(tag = TAG, message = "The transferManager was set to null which should not have happened")
         launchAfterSuccessfulSend()
     }

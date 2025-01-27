@@ -23,5 +23,3 @@ interface Verifier {
         val requestDocument: Map<String, Map<String, Boolean>>
     )
 }
-
-

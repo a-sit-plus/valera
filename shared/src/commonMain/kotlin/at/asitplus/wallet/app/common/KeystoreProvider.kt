@@ -17,7 +17,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-
 private const val CERT_STORAGE_KEY = "MB64_CERT_SELF_SIGNED"
 
 class KeystoreService(
@@ -41,14 +40,11 @@ class KeystoreService(
             }
             return KeyWithPersistentSelfSignedCert(forKey)
         }
-
     }
-
 
     inner class KeyWithPersistentSelfSignedCert(private val signer: Signer) :
         KeyWithSelfSignedCert(listOf()), Signer by signer {
         override fun getUnderLyingSigner() = signer
-
 
         private val crtMut = Mutex()
         private var _certificate: X509Certificate? = null
@@ -79,7 +75,6 @@ class KeystoreService(
                 .firstOrNull()
                 .also { Napier.d { "Loaded certificate" + it?.encodeToTlv()?.prettyPrint() } }
 
-
         private suspend fun X509Certificate.store() {
             Napier.d { "Persistently storing certificate" }
             dataStoreService.setPreference(
@@ -87,9 +82,7 @@ class KeystoreService(
                 CERT_STORAGE_KEY
             )
         }
-
     }
-
 
     //TMP for iOS
     fun getSignerBlocking() = runBlocking { getSigner() }

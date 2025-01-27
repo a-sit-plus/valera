@@ -39,11 +39,9 @@ fun ShowQrCodeScreen(walletMain: WalletMain, onConnection: (Holder) -> Unit) {
     )
 }
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShowQrCodeView(walletMain: WalletMain, onConnection: (Holder) -> Unit) {
-
     val holder: Holder = remember { getHolder() }
     var permission by remember { mutableStateOf(false) }
     var qrcodeText by remember { mutableStateOf("") }
@@ -55,7 +53,6 @@ fun ShowQrCodeView(walletMain: WalletMain, onConnection: (Holder) -> Unit) {
 
     LaunchedEffect(Unit) {
         val updateQrCode: (String) -> Unit =  { str -> qrcodeText = str }
-
         holder.hold(updateQrCode) {
             shouldDisconnect = false
             onConnection(holder)
@@ -70,7 +67,6 @@ fun ShowQrCodeView(walletMain: WalletMain, onConnection: (Holder) -> Unit) {
         }
     }
 
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -79,7 +75,7 @@ fun ShowQrCodeView(walletMain: WalletMain, onConnection: (Holder) -> Unit) {
                         stringResource(Res.string.heading_label_show_qr_code_screen),
                         style = MaterialTheme.typography.headlineLarge
                     )
-                },
+                }
             )
         }
     ) { scaffoldPadding ->
@@ -91,9 +87,7 @@ fun ShowQrCodeView(walletMain: WalletMain, onConnection: (Holder) -> Unit) {
                 if (!permission) {
                     Text("Permission Denied")
                 } else if (qrcodeText.isEmpty()) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         CircularProgressIndicator()
                         Spacer(modifier = Modifier.height(16.dp))
                         Text("Loading Qr Code")
@@ -108,10 +102,8 @@ fun ShowQrCodeView(walletMain: WalletMain, onConnection: (Holder) -> Unit) {
     }
 }
 
-
 fun createQrCode(str: String): ByteArray {
     return QRCode.ofSquares()
         .build(str)
         .renderToBytes()
 }
-

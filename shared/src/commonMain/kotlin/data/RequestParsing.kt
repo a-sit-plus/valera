@@ -1,4 +1,4 @@
-package at.asitplus.misc
+package data
 
 import at.asitplus.KmmResult
 import at.asitplus.KmmResult.Companion.wrap
@@ -22,22 +22,22 @@ import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationDataElements
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
-import data.RequestOptionParameters
 import io.github.aakira.napier.Napier
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 
-
 data class CredentialCandidate(
     val scheme: ConstantIndex.CredentialScheme,
     val representation: ConstantIndex.CredentialRepresentation,
-    val jsonElement: JsonElement,
+    val jsonElement: JsonElement
 )
 
 val allCredentialCandidates: List<CredentialCandidate> = AttributeIndex.schemeSet.flatMap { scheme ->
     scheme.supportedRepresentations.map { representation ->
         CredentialCandidate(
-            scheme = scheme, representation = representation, jsonElement = scheme.toJsonElement(representation)
+            scheme = scheme,
+            representation = representation,
+            jsonElement = scheme.toJsonElement(representation)
         )
     }
 }
@@ -49,7 +49,7 @@ fun InputDescriptor.getRequestOptionParameters(): KmmResult<RequestOptionParamet
     }.wrap()
 
 private fun InputDescriptor.evaluateAgainstKnownSchemes(
-    pathAuthorizationValidator: (NormalizedJsonPath) -> Boolean,
+    pathAuthorizationValidator: (NormalizedJsonPath) -> Boolean
 ): Pair<CredentialCandidate, Map<ConstraintField, NodeList>> {
     val viableCandidates = filterCredentialCandidates(this.id)
 
@@ -59,9 +59,7 @@ private fun InputDescriptor.evaluateAgainstKnownSchemes(
             credential = candidate.jsonElement,
             pathAuthorizationValidator = pathAuthorizationValidator,
         ).getOrNull()?.let { candidate to it }
-    } ?: throw Exception(
-        "No known Scheme fulfills the request for $this."
-    )
+    } ?: throw Exception("No known Scheme fulfills the request for $this.")
 }
 
 private fun filterCredentialCandidates(identifier: String): List<CredentialCandidate> {
@@ -80,7 +78,6 @@ private fun filterCredentialCandidates(identifier: String): List<CredentialCandi
 
     return viableCandidates
 }
-
 
 private fun Map<ConstraintField, NodeList>.toRequestOptionParameters(
     scheme: ConstantIndex.CredentialScheme,
@@ -110,7 +107,7 @@ private fun Map<ConstraintField, NodeList>.toRequestOptionParameters(
 }
 
 private fun ConstantIndex.CredentialScheme.toJsonElement(
-    representation: ConstantIndex.CredentialRepresentation,
+    representation: ConstantIndex.CredentialRepresentation
 ): JsonElement {
     val dataElements = when (this) {
         ConstantIndex.AtomicAttribute2023, IdAustriaScheme, EuPidScheme, MobileDrivingLicenceScheme -> this.claimNames

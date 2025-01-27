@@ -52,6 +52,7 @@ class WalletMain(
     lateinit var snackbarService: SnackbarService
     lateinit var errorService: ErrorService
     lateinit var dcApiService: DCAPIService
+
     private val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
 
     val readyForIntents = MutableStateFlow<Boolean?>(null)
@@ -253,7 +254,6 @@ interface PlatformAdapter {
      * Prepares the credential response and sends it back to the invoking application
      */
     fun prepareDCAPICredentialResponse(responseJson: ByteArray, dcApiRequest: DCAPIRequest)
-
 }
 
 fun PlatformAdapter.decodeImage(image: ByteArray): ImageBitmap {

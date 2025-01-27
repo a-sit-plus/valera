@@ -1,4 +1,4 @@
-package data.verifier.transfer
+package data.bletransfer.verifier
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -28,7 +28,7 @@ fun RequestBluetoothPermissions(BluetoothPermissionRequestLauncher: (Boolean) ->
         }
 
     val permissionsNeeded = remember { mutableStateListOf<String>() }
-    val activity = LocalContext.current as ComponentActivity
+    val activity = LocalContext.current
 
     permissionsNeeded.addAll(appPermissions.filter { permission ->
         ContextCompat.checkSelfPermission(LocalContext.current, permission) != PackageManager.PERMISSION_GRANTED
@@ -39,7 +39,11 @@ fun RequestBluetoothPermissions(BluetoothPermissionRequestLauncher: (Boolean) ->
         if (!allPermissionsGranted) {
             permissions.entries.forEach {
                 if (!it.value) {
-                    Toast.makeText(activity, "The ${it.key} permission is required for BLE", Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        activity,
+                        "The ${it.key} permission is required for BLE",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
         }

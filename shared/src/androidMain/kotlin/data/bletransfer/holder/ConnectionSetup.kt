@@ -6,9 +6,7 @@ import com.android.identity.mdoc.connectionmethod.ConnectionMethod
 import com.android.identity.mdoc.connectionmethod.ConnectionMethodBle
 import com.android.identity.util.UUID
 
-class ConnectionSetup(
-    private val context: Context
-) {
+class ConnectionSetup(private val context: Context) {
 
     fun getConnectionOptions(): DataTransportOptions {
         val builder = DataTransportOptions.Builder()

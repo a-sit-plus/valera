@@ -28,6 +28,7 @@ class TransferManager private constructor(private val context: Context) {
     }
 
     private val TAG: String = "TransferManager"
+
     var readerEngagement: ByteArray? = null
     var updateLogs: (String?, String) -> Unit = { _: String?, _: String -> }
     var requestedDocumentID: Verifier.Document? = null
@@ -35,7 +36,6 @@ class TransferManager private constructor(private val context: Context) {
     var sentRequest: Boolean = false
 
     private var mdocConnectionMethod: ConnectionMethod? = null
-
     private var hasStarted = false
     var responseBytes: ByteArray? = null
         private set
@@ -181,7 +181,10 @@ class TransferManager private constructor(private val context: Context) {
 
         override fun onDeviceDisconnected(transportSpecificTermination: Boolean) {
             updateLogs(TAG, "Device disconnected")
-            stopVerification(false, transportSpecificTermination)
+            stopVerification(
+                sendSessionTerminationMessage = false,
+                useTransportSpecificSessionTermination = transportSpecificTermination
+            )
         }
 
         override fun onError(error: Throwable) {

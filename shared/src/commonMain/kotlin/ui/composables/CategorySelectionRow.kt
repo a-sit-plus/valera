@@ -1,6 +1,5 @@
 package ui.composables
 
-import ExpandButton
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,6 +20,7 @@ import at.asitplus.valera.resources.content_description_show_attributes
 import data.PersonalDataCategory
 import data.credentials.CredentialAttributeTranslator
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.buttons.ExpandButton
 import ui.state.toggleableState
 
 

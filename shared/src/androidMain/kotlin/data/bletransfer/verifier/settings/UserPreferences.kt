@@ -1,4 +1,4 @@
-package ui.data.transfer.settings
+package data.bletransfer.verifier.settings
 
 import android.content.SharedPreferences
 import androidx.core.content.edit

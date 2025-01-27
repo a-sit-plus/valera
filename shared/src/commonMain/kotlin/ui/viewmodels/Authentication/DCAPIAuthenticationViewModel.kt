@@ -7,7 +7,7 @@ import at.asitplus.dif.DifInputDescriptor
 import at.asitplus.jsonpath.core.NodeList
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
-import at.asitplus.misc.getRequestOptionParameters
+import data.getRequestOptionParameters
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.CredentialSubmission
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
@@ -15,7 +15,6 @@ import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.credentials.CredentialAdapter
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import kotlinx.coroutines.runBlocking
-
 
 class DCAPIAuthenticationViewModel(
     spImage: ImageBitmap? = null,
@@ -57,5 +56,4 @@ class DCAPIAuthenticationViewModel(
 
     override suspend fun finalizationMethod(submission: Map<String, CredentialSubmission>) =
         walletMain.presentationService.finalizeDCAPIPreviewPresentation(submission, dcApiRequest)
-
 }

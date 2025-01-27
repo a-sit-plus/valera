@@ -13,8 +13,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -31,21 +31,20 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_request_log
 import at.asitplus.valera.resources.heading_label_requested_data
-import data.bletransfer.verifier.Entry
 import data.bletransfer.Verifier
+import data.bletransfer.verifier.Entry
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton
 import ui.navigation.Page
 import ui.navigation.RequestedDataLogOutputPage
+import ui.navigation.RequestedDataShowPage
 
 @Composable
 fun LoadRequestedDataScreen(document: Verifier.Document, payload: String, navigateUp: () -> Unit) {
     val logsState: MutableState<List<String>> = mutableStateOf(emptyList())
     val entryState: MutableState<List<Entry>> = mutableStateOf(emptyList())
-    // TODO: cleanup
-
-    val currentpage: MutableState<Page> = mutableStateOf(RequestedDataLogOutputPage())
+    val currentPage: MutableState<Page> = mutableStateOf(RequestedDataLogOutputPage())
 
     Scaffold(
         bottomBar = {
@@ -60,28 +59,28 @@ fun LoadRequestedDataScreen(document: Verifier.Document, payload: String, naviga
                             Text(stringResource(route.title))
                         },
                         onClick = {
-                            if (!route.isActive(currentpage.value)) {
-                                currentpage.value = route.destination
+                            if (!route.isActive(currentPage.value)) {
+                                currentPage.value = route.destination
                             }
                         },
-                        selected = route.isActive(currentpage.value),
+                        selected = route.isActive(currentPage.value)
                     )
                 }
             }
         },
-        modifier = Modifier,
+        modifier = Modifier
     ) { scaffoldPadding ->
         Box(modifier = Modifier.padding(scaffoldPadding)) {
-            AnimatedContent(targetState = currentpage) { (page) ->
+            AnimatedContent(targetState = currentPage) { (page) ->
                 when (page) {
                     is RequestedDataLogOutputPage -> {
                         LoadRequestedDataLogOutputView(
                             logsState = logsState,
-                            navigateUp = navigateUp,
+                            navigateUp = navigateUp
                         )
                     }
 
-                    is ui.navigation.RequestedDataShowPage -> {
+                    is RequestedDataShowPage -> {
                         LoadRequestedDataView(
                             entryState = entryState,
                             navigateUp = navigateUp,
@@ -91,9 +90,7 @@ fun LoadRequestedDataScreen(document: Verifier.Document, payload: String, naviga
             }
         }
     }
-
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -111,15 +108,15 @@ fun LoadRequestedDataLogOutputView(logsState: MutableState<List<String>>, naviga
                 },
                 navigationIcon = {
                     NavigateUpButton(navigateUp)
-                },
+                }
             )
-        },
+        }
     ) { scaffoldPadding ->
         Box(modifier = Modifier.padding(scaffoldPadding)) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 items(logsState.value.size) { index ->
                     BasicText(text = logsState.value[index])
-                    Divider(modifier = Modifier.padding(vertical = 4.dp))
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                 }
             }
         }
@@ -142,9 +139,9 @@ fun LoadRequestedDataView(entryState: MutableState<List<Entry>>, navigateUp: () 
                 },
                 navigationIcon = {
                     NavigateUpButton(navigateUp)
-                },
+                }
             )
-        },
+        }
     ) { scaffoldPadding ->
         Box(modifier = Modifier.padding(scaffoldPadding)) {
             if (entryState.value.isEmpty()) {
@@ -152,9 +149,7 @@ fun LoadRequestedDataView(entryState: MutableState<List<Entry>>, navigateUp: () 
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         CircularProgressIndicator()
                         Spacer(modifier = Modifier.height(16.dp))
                         Text("Loading Data")
@@ -171,8 +166,6 @@ fun LoadRequestedDataView(entryState: MutableState<List<Entry>>, navigateUp: () 
     }
 }
 
-
-
 private enum class LocalNavigationData(
     val title: StringResource,
     val icon: @Composable () -> Unit,
@@ -188,12 +181,7 @@ private enum class LocalNavigationData(
             )
         },
         destination = RequestedDataLogOutputPage(),
-        isActive = {
-            when (it) {
-                is RequestedDataLogOutputPage -> true
-                else -> false
-            }
-        },
+        isActive = { it is RequestedDataLogOutputPage }
     ),
     DATA_SCREEN(
         title = Res.string.heading_label_requested_data,
@@ -203,13 +191,7 @@ private enum class LocalNavigationData(
                 contentDescription = null,
             )
         },
-        destination = ui.navigation.RequestedDataShowPage(),
-        isActive = {
-            when (it) {
-                is ui.navigation.RequestedDataShowPage -> true
-                else -> false
-            }
-        },
-    ),
+        destination = RequestedDataShowPage(),
+        isActive = { it is RequestedDataShowPage }
+    )
 }
-

@@ -1,4 +1,4 @@
-package ui.data.transfer
+package data.bletransfer.verifier
 
 enum class TransferStatus {
     READER_ENGAGEMENT_READY,

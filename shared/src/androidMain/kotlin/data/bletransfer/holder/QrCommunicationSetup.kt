@@ -1,9 +1,7 @@
 package data.bletransfer.holder
 
 import android.content.Context
-import android.os.Build
 import android.security.identity.PresentationSession
-import androidx.annotation.RequiresApi
 import com.android.identity.android.mdoc.deviceretrieval.DeviceRetrievalHelper
 import com.android.identity.android.mdoc.engagement.QrEngagementHelper
 import com.android.identity.android.mdoc.transport.DataTransport
@@ -25,7 +23,6 @@ class QrCommunicationSetup(
 ) {
     private val TAG: String = "QrCommunicationSetup"
 
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private val session = SessionSetup(CredentialStore(context)).createSession()
     private val connectionSetup = ConnectionSetup(context)
 
@@ -41,7 +38,6 @@ class QrCommunicationSetup(
             onConnecting()
         }
 
-        @RequiresApi(Build.VERSION_CODES.TIRAMISU)
         override fun onDeviceConnected(transport: DataTransport) {
             if (deviceRetrievalHelper != null) {
                 Napier.d(
@@ -74,7 +70,6 @@ class QrCommunicationSetup(
     }
 
     private val deviceRetrievalHelperListener = object : DeviceRetrievalHelper.Listener {
-        @RequiresApi(Build.VERSION_CODES.TIRAMISU)
         override fun onEReaderKeyReceived(eReaderKey: EcPublicKey) {
             Napier.d(
                 tag = TAG,
@@ -106,7 +101,6 @@ class QrCommunicationSetup(
     val deviceEngagementUriEncoded: String
         get() = qrEngagement.deviceEngagementUriEncoded
 
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     fun configure() {
         qrEngagement = QrEngagementHelper.Builder(
             context,

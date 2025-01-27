@@ -105,9 +105,9 @@ fun HandleRequestedDataView(
                 },
                 navigationIcon = {
                     NavigateUpButton(navigateUp)
-                },
+                }
             )
-        },
+        }
     ) { scaffoldPadding ->
         Box(modifier = Modifier.padding(scaffoldPadding)) {
 
@@ -154,7 +154,6 @@ fun createDocument(
     reqDocument: RequestedDocument,
     credentials: List<SubjectCredentialStore.StoreEntry>?
 ): Document? {
-
     reqDocument.nameSpaces.forEach { nameSpace ->
         val correctCredentials = credentials?.filter { cred ->
             when (cred) {
@@ -167,6 +166,7 @@ fun createDocument(
                 else -> false
             }
         }
+
         // Here could be more than one credentials if the app has 2 credentials with the same nameSpace.
         correctCredentials?.get(0)?.let { cCred ->
             when (cCred) {
@@ -183,9 +183,7 @@ fun createDocument(
                             .map { it.value }
 
                         if (imageAttributes.isNotEmpty()) {
-                            val map = mapOf(
-                                nameSpace.nameSpace to issuerSignedItemList
-                            )
+                            val map = mapOf(nameSpace.nameSpace to issuerSignedItemList)
                             return runBlocking {
                                 val coseService: CoseService =
                                     DefaultCoseService(walletMain.cryptoService)
@@ -210,7 +208,6 @@ fun createDocument(
                         }
                     }
                 }
-
                 else -> {}
             }
         }
@@ -251,10 +248,10 @@ fun selectRequestedDataView(
                             holder.send(documentsToSend, changeToSent)
                         }
                     },
-                    selected = false,
+                    selected = false
                 )
             }
-        },
+        }
     ) {
         Column(
             modifier = Modifier.padding(end = 16.dp, start = 16.dp, bottom = 16.dp)
@@ -264,7 +261,6 @@ fun selectRequestedDataView(
                 Text(text = "docType: ${requestedDocument.docType}")
                 requestedDocument.nameSpaces.forEach { nameSpace: RequestedDocument.NameSpace ->
                     Text(text = "nameSpace: ${nameSpace.nameSpace}")
-
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
@@ -297,20 +293,14 @@ fun selectRequestedDataView(
                                 modifier = Modifier.weight(2f)
                             )
 
-                            val isAvailableChecked = credentialsContainAttribute(
-                                storeContainerState,
-                                item
-                            )
+                            val isAvailableChecked = credentialsContainAttribute(storeContainerState, item)
                             Checkbox(
                                 checked = isAvailableChecked,
                                 onCheckedChange = {},
                                 modifier = Modifier.weight(1f).size(30.dp)
                             )
 
-                            val isSendingChecked =
-                                isAvailableChecked && !uncheckedAttributes.contains(
-                                    item
-                                )
+                            val isSendingChecked = isAvailableChecked && !uncheckedAttributes.contains(item)
                             Checkbox(
                                 checked = isSendingChecked,
                                 modifier = Modifier.weight(1f).size(30.dp),
@@ -334,9 +324,7 @@ fun sendingRequestedDataView() {
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             CircularProgressIndicator()
             Spacer(modifier = Modifier.height(16.dp))
             Text(
@@ -353,9 +341,7 @@ fun sentRequestedDataView() {
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(
                 painter = rememberVectorPainter(Icons.Default.Check),
                 contentDescription = ""

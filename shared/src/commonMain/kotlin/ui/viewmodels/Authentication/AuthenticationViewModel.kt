@@ -67,7 +67,6 @@ abstract class AuthenticationViewModel(
 
     abstract suspend fun finalizationMethod(submission: Map<String, CredentialSubmission>)
 
-
     private suspend fun finalizeAuthorization(submission: Map<String, CredentialSubmission>) {
         try {
             walletMain.cryptoService.promptText =

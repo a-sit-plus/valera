@@ -28,7 +28,7 @@ fun RequestBluetoothPermissions(onPermissionsResult: (Boolean) -> Unit) {
         }
 
     val permissionsNeeded = remember { mutableStateListOf<String>() }
-    val activity = LocalContext.current as ComponentActivity
+    val activity = LocalContext.current
 
     permissionsNeeded.addAll(appPermissions.filter { permission ->
         ContextCompat.checkSelfPermission(LocalContext.current, permission) != PackageManager.PERMISSION_GRANTED
@@ -39,7 +39,11 @@ fun RequestBluetoothPermissions(onPermissionsResult: (Boolean) -> Unit) {
         if (!allPermissionsGranted) {
             permissions.entries.forEach {
                 if (!it.value) {
-                    Toast.makeText(activity, "The ${it.key} permission is required for BLE", Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        activity,
+                        "The ${it.key} permission is required for BLE",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
         }

@@ -91,5 +91,4 @@ class PresentationService(
 
         platformAdapter.prepareDCAPICredentialResponse(deviceResponse.serialize(), dcApiRequest)
     }
-
 }

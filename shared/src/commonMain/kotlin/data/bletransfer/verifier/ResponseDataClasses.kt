@@ -21,7 +21,6 @@ import at.asitplus.valera.resources.section_heading_vehicle_category
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
-
 interface EntryValueItem {
     @Composable
     fun showData()
@@ -49,6 +48,7 @@ interface EntryValue{
     @Composable
     fun showData()
 }
+
 class StringEntry(private val value: String): EntryValue {
     @Composable
     override fun showData() {
@@ -59,11 +59,13 @@ class StringEntry(private val value: String): EntryValue {
 class BooleanEntry(private val value: Boolean?): EntryValue {
     @Composable
     override fun showData() {
-        Text(
-            text = if (value== null) stringResource(Res.string.error_missing_value)
-            else if(value) stringResource(Res.string.attribute_friendly_age_above)
-            else  stringResource(Res.string.attribute_friendly_age_below),
-            fontWeight = FontWeight.Bold)
+        val textRes = when (value) {
+            true -> Res.string.attribute_friendly_age_above
+            false -> Res.string.attribute_friendly_age_below
+            else -> Res.string.error_missing_value
+        }
+
+        Text(text = stringResource(textRes), fontWeight = FontWeight.Bold)
     }
 }
 
@@ -93,7 +95,6 @@ class ImageArray(private val items: List<EntryValueItem>): EntryValue {
                 }
             }
         }
-
     }
 }
 

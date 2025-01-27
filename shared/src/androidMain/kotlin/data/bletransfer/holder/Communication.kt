@@ -7,10 +7,7 @@ import com.android.identity.mdoc.request.DeviceRequestParser
 import com.android.identity.util.Constants.SESSION_DATA_STATUS_SESSION_TERMINATION
 import io.github.aakira.napier.Napier
 
-class Communication private constructor(
-    private val context: Context,
-) {
-
+class Communication private constructor(private val context: Context) {
     private val TAG: String = "Communication"
 
     private var request: DeviceRequest? = null

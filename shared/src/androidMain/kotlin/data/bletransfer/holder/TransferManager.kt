@@ -2,9 +2,7 @@ package data.bletransfer.holder
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.os.Build
 import android.security.identity.PresentationSession
-import androidx.annotation.RequiresApi
 import data.bletransfer.util.CborDecoder
 import io.github.aakira.napier.Napier
 
@@ -29,8 +27,10 @@ class TransferManager private constructor(private val context: Context) {
 
     private lateinit var communication: Communication
 
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    fun startQrEngagement(updateQrCode: (String) -> Unit, updateRequestedAttributes: (List<RequestedDocument>) -> Unit) {
+    fun startQrEngagement(
+        updateQrCode: (String) -> Unit,
+        updateRequestedAttributes: (List<RequestedDocument>) -> Unit
+    ) {
         if (hasStarted) {
             throw IllegalStateException("Transfer has already started.")
         }

@@ -1,10 +1,10 @@
 package ui.composables.credentials
 
-import ExpandButtonUpDown
 import androidx.compose.runtime.Composable
 import data.PersonalDataCategory
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.buttons.ExpandButtonUpDown
 import ui.composables.PersonAttributeDetailCardHeading
 
 @Composable
@@ -45,14 +45,14 @@ fun CredentialDetailCardHeader(
 ) {
     PersonAttributeDetailCardHeading(
         iconText = iconText,
-        title = title,
+        title = title
     ) {
         ExpandButtonUpDown(
             isExpanded = isExpanded,
             onClick = {
                 onChangeIsExpanded(!isExpanded)
             },
-            contentDescription = null,
+            contentDescription = null
         )
     }
 }

@@ -1,23 +1,25 @@
 package data.bletransfer
 
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
-import data.bletransfer.verifier.Entry
-import io.github.aakira.napier.Napier
 import data.bletransfer.util.RequestBluetoothPermissions
+import data.bletransfer.verifier.Entry
+import data.bletransfer.verifier.TransferManager
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import data.bletransfer.verifier.TransferManager
 
 actual fun getVerifier(): Verifier {
     return AndroidVerifier()
 }
 
 class AndroidVerifier: Verifier {
+    private val TAG: String = "AndroidVerifier"
+
     private var permission = false
+    private var transferManager: TransferManager? = null
 
     @Composable
     override fun getRequirements(check: (Boolean) -> Unit) {
@@ -27,8 +29,6 @@ class AndroidVerifier: Verifier {
         }
         transferManager = TransferManager.getInstance(LocalContext.current)
     }
-    private var transferManager: TransferManager? = null
-    private val TAG: String = "AndroidVerifier"
 
     override fun verify(
         qrcode: String,
@@ -42,15 +42,15 @@ class AndroidVerifier: Verifier {
                 delay(500)
                 Napier.d(tag = TAG, message = "waiting for Transfer Manager")
             }
+
             while (!permission) {
                 delay(500)
                 Napier.d(tag = TAG, message = "waiting for Permissions")
             }
+
             updateLogs(TAG, "Requirements are loaded and needed permissions given")
 
-
             updateLogs(TAG, "Starting Device engagement with scanned Qr-code")
-
             transferManager?.let {
                 it.setUpdateAndRequest(updateLogs, requestedDocument) { le: List<Entry> ->
                     updateData(le)
@@ -65,5 +65,4 @@ class AndroidVerifier: Verifier {
     override fun disconnect() {
         transferManager?.closeConnection()
     }
-
 }
