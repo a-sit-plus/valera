@@ -62,6 +62,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import org.jetbrains.compose.resources.getString
 import ui.navigation.NavigatorTestTags
 import ui.navigation.Routes.OnboardingWrapperTestTags
+import ui.navigation.handleIntent
 import ui.views.OnboardingStartScreenTestTag
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.minutes
@@ -161,12 +162,12 @@ class InstrumentedTestsSuite : FunSpec({
     context("End to End Tests") {
         test("End to End Test 1: Should complete the process") {
             runComposeUiTest {
+                lateinit var walletMain: WalletMain
                 setContent {
                     CompositionLocalProvider(LocalLifecycleOwner provides lifecycleOwner) {
                         val platformAdapter = getPlatformAdapter()
-                        val walletMain = createWalletMain(platformAdapter)
+                        walletMain = createWalletMain(platformAdapter)
                         App(walletMain)
-
 
                         val issuer = IssuerAgent()
                         runBlocking {
@@ -232,13 +233,12 @@ class InstrumentedTestsSuite : FunSpec({
                             setBody(request)
                         }.body<JsonObject>()
 
+                    val firstProfile = responseGenerateRequest["profiles"]?.jsonArray?.first()?.jsonObject
+                    val qrCodeUrl = firstProfile?.get("url")?.jsonPrimitive?.content
+                    val id = firstProfile?.get("id")?.jsonPrimitive?.content
 
-                    val qrCodeUrl = responseGenerateRequest["qrCodes"]?.let { qrCodesElement ->
-                        qrCodesElement.jsonArray.firstOrNull()?.jsonObject?.get("url")?.jsonPrimitive?.content
-                    }
-                    val id = responseGenerateRequest["id"]?.jsonPrimitive?.content
-
-                    appLink.value = qrCodeUrl
+                    // TODO navigate methods
+                    handleIntent(walletMain, {}, {}, qrCodeUrl!!)
 
                     waitUntilExactlyOneExists(
                         hasText(getString(Res.string.button_label_continue)),
@@ -254,47 +254,56 @@ class InstrumentedTestsSuite : FunSpec({
             }
         }
     }
-    })
+})
 
-    val request = Json.encodeToString(RequestBody(
-        listOf(Credential(
-            "at.gv.id-austria.2023.1",
-            "SD_JWT",
-            listOf(
-                IdAustriaScheme.Attributes.BPK,
-                IdAustriaScheme.Attributes.FIRSTNAME,
-                IdAustriaScheme.Attributes.LASTNAME,
-                IdAustriaScheme.Attributes.DATE_OF_BIRTH,
-                IdAustriaScheme.Attributes.PORTRAIT,
-                IdAustriaScheme.Attributes.MAIN_ADDRESS,
-                IdAustriaScheme.Attributes.AGE_OVER_18,
+val request = Json.encodeToString(
+    RequestBody(
+        listOf(
+            Credential(
+                "at.gv.id-austria.2023.1",
+                "SD_JWT",
+                listOf(
+                    IdAustriaScheme.Attributes.BPK,
+                    IdAustriaScheme.Attributes.FIRSTNAME,
+                    IdAustriaScheme.Attributes.LASTNAME,
+                    IdAustriaScheme.Attributes.DATE_OF_BIRTH,
+                    IdAustriaScheme.Attributes.PORTRAIT,
+                    IdAustriaScheme.Attributes.MAIN_ADDRESS,
+                    IdAustriaScheme.Attributes.AGE_OVER_18,
+                )
             )
-        ))
-    ))
-
-    @Serializable
-    data class RequestBody(val credentials: List<Credential>)
-
-    @Serializable
-    data class Credential(val credentialType: String, val representation: String, val attributes: List<String>)
-
-    @Composable
-    expect fun getPlatformAdapter(): PlatformAdapter
-
-
-private fun getAttributes() : List<ClaimToBeIssued> = listOf(
-        ClaimToBeIssued(IdAustriaScheme.Attributes.BPK,"XFN+436920f:L9LBxmjNPt0041j5O1+sir0HOG0="),
-        ClaimToBeIssued(IdAustriaScheme.Attributes.FIRSTNAME, "XXXÉliás"),
-        ClaimToBeIssued(IdAustriaScheme.Attributes.LASTNAME, "XXXTörőcsik"),
-        ClaimToBeIssued(IdAustriaScheme.Attributes.DATE_OF_BIRTH,"1965-10-11"),
-        ClaimToBeIssued(IdAustriaScheme.Attributes.PORTRAIT,"iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAIAAACRXR/mAAAAdklEQVR4nOzQMQ2AQBQEUSAowQcy0IADSnqEoQbKu/40TLLFL2YEbF523Y53CnXeV2pqSQ1lk0WSRZJFkkWSRZJFkkWSRZJFkkWSRSrKmv+npba+vqemir4liySLJIskiySLJIskiySLJIskiySLVJQ1AgAA//81XweDWRWyzwAAAABJRU5ErkJggg=="),
-        ClaimToBeIssued(IdAustriaScheme.Attributes.MAIN_ADDRESS, "ewoiR2VtZWluZGVrZW5uemlmZmVyIjoiMDk5ODgiLAoiR2VtZWluZGViZXplaWNobnVuZyI6IlRlc3RnZW1laW5kZSIsCiJQb3N0bGVpdHphaGwiOiIwMDg4IiwKIk9ydHNjaGFmdCI6IlRlc3RvcnQgQSIsCiJTdHJhc3NlIjoiVGVzdGdhc3NlIiwKIkhhdXNudW1tZXIiOiIxYS0yYiIsCiJTdGllZ2UiOiJTdGcuIDNjLTRkIiwKIlR1ZXIiOiJENiIKfQ=="),
-        ClaimToBeIssued(IdAustriaScheme.Attributes.AGE_OVER_14, true),
-        ClaimToBeIssued(IdAustriaScheme.Attributes.AGE_OVER_16, true),
-        ClaimToBeIssued(IdAustriaScheme.Attributes.AGE_OVER_18, true),
-        ClaimToBeIssued(IdAustriaScheme.Attributes.AGE_OVER_21, true),
+        )
+    )
 )
 
+@Serializable
+data class RequestBody(val credentials: List<Credential>)
+
+@Serializable
+data class Credential(val credentialType: String, val representation: String, val attributes: List<String>)
+
+@Composable
+expect fun getPlatformAdapter(): PlatformAdapter
+
+
+private fun getAttributes(): List<ClaimToBeIssued> = listOf(
+    ClaimToBeIssued(IdAustriaScheme.Attributes.BPK, "XFN+436920f:L9LBxmjNPt0041j5O1+sir0HOG0="),
+    ClaimToBeIssued(IdAustriaScheme.Attributes.FIRSTNAME, "XXXÉliás"),
+    ClaimToBeIssued(IdAustriaScheme.Attributes.LASTNAME, "XXXTörőcsik"),
+    ClaimToBeIssued(IdAustriaScheme.Attributes.DATE_OF_BIRTH, "1965-10-11"),
+    ClaimToBeIssued(
+        IdAustriaScheme.Attributes.PORTRAIT,
+        "iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAIAAACRXR/mAAAAdklEQVR4nOzQMQ2AQBQEUSAowQcy0IADSnqEoQbKu/40TLLFL2YEbF523Y53CnXeV2pqSQ1lk0WSRZJFkkWSRZJFkkWSRZJFkkWSRSrKmv+npba+vqemir4liySLJIskiySLJIskiySLJIskiySLVJQ1AgAA//81XweDWRWyzwAAAABJRU5ErkJggg=="
+    ),
+    ClaimToBeIssued(
+        IdAustriaScheme.Attributes.MAIN_ADDRESS,
+        "ewoiR2VtZWluZGVrZW5uemlmZmVyIjoiMDk5ODgiLAoiR2VtZWluZGViZXplaWNobnVuZyI6IlRlc3RnZW1laW5kZSIsCiJQb3N0bGVpdHphaGwiOiIwMDg4IiwKIk9ydHNjaGFmdCI6IlRlc3RvcnQgQSIsCiJTdHJhc3NlIjoiVGVzdGdhc3NlIiwKIkhhdXNudW1tZXIiOiIxYS0yYiIsCiJTdGllZ2UiOiJTdGcuIDNjLTRkIiwKIlR1ZXIiOiJENiIKfQ=="
+    ),
+    ClaimToBeIssued(IdAustriaScheme.Attributes.AGE_OVER_14, true),
+    ClaimToBeIssued(IdAustriaScheme.Attributes.AGE_OVER_16, true),
+    ClaimToBeIssued(IdAustriaScheme.Attributes.AGE_OVER_18, true),
+    ClaimToBeIssued(IdAustriaScheme.Attributes.AGE_OVER_21, true),
+)
 
 
 private fun createWalletMain(platformAdapter: PlatformAdapter): WalletMain {
