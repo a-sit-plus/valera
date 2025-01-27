@@ -307,6 +307,7 @@ private fun createWalletMain(platformAdapter: PlatformAdapter): WalletMain {
         scope = CoroutineScope(Dispatchers.Default),
         buildContext = BuildContext(
             buildType = "debug",
+            packageName = "test",
             versionCode = 0,
             versionName = "0.0.0",
         )
