@@ -2,9 +2,10 @@ package data.bletransfer.verifier
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.preference.PreferenceManager
+import androidx.preference.PreferenceManager
 import com.android.identity.android.mdoc.deviceretrieval.VerificationHelper
 import com.android.identity.android.mdoc.transport.DataTransportOptions
+import com.android.identity.crypto.Algorithm
 import com.android.identity.mdoc.connectionmethod.ConnectionMethod
 import com.android.identity.mdoc.request.DeviceRequestGenerator
 import data.bletransfer.Verifier
@@ -12,8 +13,6 @@ import data.bletransfer.util.CborDecoder
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
-import java.security.Signature
-import java.security.cert.X509Certificate
 
 class TransferManager private constructor(private val context: Context) {
 
@@ -201,19 +200,15 @@ class TransferManager private constructor(private val context: Context) {
         updateLogs(TAG, "sending request for: $requestedDocumentID")
 
         verification?.let {
-            var signature: Signature? = null
-            var readerKeyCertificateChain: Collection<X509Certificate>? = null
-
             val generator = DeviceRequestGenerator(it.sessionTranscript)
-            // TODO: check this
-//            generator.addDocumentRequest(
-//                docType = requestedDocumentID!!.docType,
-//                itemsToRequest = requestedDocumentID!!.requestDocument,
-//                requestInfo = null,
-//                readerKey = null,
-//                signatureAlgorithm = signature,
-//                readerKeyCertificateChain = readerKeyCertificateChain
-//            )
+            generator.addDocumentRequest(
+                docType = requestedDocumentID!!.docType,
+                itemsToRequest = requestedDocumentID!!.requestDocument,
+                requestInfo = null,
+                readerKey = null,
+                signatureAlgorithm = Algorithm.UNSET,
+                readerKeyCertificateChain = null
+            )
             verification?.sendRequest(generator.generate())
         }
     }
