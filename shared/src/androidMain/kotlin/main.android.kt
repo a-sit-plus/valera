@@ -42,7 +42,6 @@ import java.io.File
 import java.security.Security
 import kotlin.io.encoding.ExperimentalEncodingApi
 
-
 actual fun getPlatformName(): String = "Android"
 var walletAPIData: WalletAPIData? = null
 
@@ -155,7 +154,6 @@ class AndroidPlatformAdapter(
             file
         )
 
-
         val intent: Intent = Intent().apply {
             action = Intent.ACTION_SEND
             putExtra(Intent.EXTRA_STREAM, fileUri)
@@ -165,11 +163,7 @@ class AndroidPlatformAdapter(
     }
 
     override fun imageStringToBytearray(imageString: String): ByteArray {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Base64.decode(imageString, Base64.DEFAULT)
-        } else {
-            TODO("VERSION.SDK_INT < O")
-        }
+        return Base64.decode(imageString, Base64.DEFAULT)
     }
 
     override fun registerWithDigitalCredentialsAPI(entries: CredentialsContainer) {
