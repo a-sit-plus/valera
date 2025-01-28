@@ -7,8 +7,13 @@ enum class BuildEnvironment(val abbreviation: String) {
 }
 
 data class BuildContext(
-    val buildType: String,
+    val buildType: BuildType,
     val packageName: String,
     val versionCode: Int,
     val versionName: String,
 )
+
+enum class BuildType(val stringRepresentaiton: String) {
+    DEBUG("debug"),
+    RELEASE("release")
+}
