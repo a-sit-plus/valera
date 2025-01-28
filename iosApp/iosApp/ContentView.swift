@@ -6,9 +6,9 @@ struct ComposeView: UIViewControllerRepresentable {
     
     func makeUIViewController(context: Context) -> UIViewController {
         #if DEBUG
-        let buildType = "debug"
+        let buildType = BuildType.debug
         #else
-        let buildType = "release"
+        let buildType = BuildType.release
         #endif
         return Main_iosKt.MainViewController(
             platformAdapter: SwiftPlatformAdapter(),
