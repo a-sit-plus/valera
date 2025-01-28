@@ -292,8 +292,8 @@
     <string name="info_text_no_matching_credential">Es wurde kein passendes Credential für die Anfrage gefunden.</string>
     <string name="info_text_data_is_being_loaded">Daten werden geladen</string>
 
-    <string name="section_heading_authenticate_at_device_title">Anmelden</string>
-    <string name="section_heading_authenticate_at_device_subtitle">an Schalter oder Maschine</string>
+    <string name="section_heading_authenticate_at_device_title">Anmelden an</string>
+    <string name="section_heading_authenticate_at_device_subtitle">Schalter oder Maschine</string>
     <string name="section_heading_show_data_to_executive_title">Daten vorzeigen an</string>
     <string name="section_heading_show_data_to_executive_subtitle">Exekutive</string>
     <string name="section_heading_show_data_to_other_citizen_title">Daten vorzeigen an</string>

@@ -292,8 +292,8 @@
     <string name="info_text_no_matching_credential">Your credentials don't match the request.</string>
     <string name="info_text_data_is_being_loaded">Loading Data</string>
 
-    <string name="section_heading_authenticate_at_device_title">Authenticate</string>
-    <string name="section_heading_authenticate_at_device_subtitle">at counters or machines</string>
+    <string name="section_heading_authenticate_at_device_title">Authenticate at</string>
+    <string name="section_heading_authenticate_at_device_subtitle">counters or machines</string>
     <string name="section_heading_show_data_to_executive_title">Show data to</string>
     <string name="section_heading_show_data_to_executive_subtitle">Executive</string>
     <string name="section_heading_show_data_to_other_citizen_title">Show data to</string>
