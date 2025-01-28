@@ -23,31 +23,25 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.valera.resources.Res
-import org.jetbrains.compose.resources.stringResource
 import at.asitplus.valera.resources.heading_label_show_qr_code_screen
-import data.bletransfer.Holder
-import data.bletransfer.getHolder
+import org.jetbrains.compose.resources.stringResource
 import qrcode.QRCode
-
-@Composable
-fun ShowQrCodeScreen(walletMain: WalletMain, onConnection: (Holder) -> Unit) {
-    ShowQrCodeView(
-        walletMain = walletMain,
-        onConnection = onConnection,
-    )
-}
+import ui.viewmodels.ShowQrCodeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShowQrCodeView(walletMain: WalletMain, onConnection: (Holder) -> Unit) {
-    val holder: Holder = remember { getHolder() }
-    var permission by remember { mutableStateOf(false) }
-    var qrcodeText by remember { mutableStateOf("") }
-    var shouldDisconnect by remember { mutableStateOf(true) }
+fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
 
-    if (!permission) {
+    val vm = remember { vm }
+
+    val holder by mutableStateOf(vm.holder)
+
+    var permission by mutableStateOf(vm.permission)
+    var qrcodeText by mutableStateOf(vm.qrcodeText)
+    var shouldDisconnect by mutableStateOf(vm.shouldDisconnect)
+
+    if (permission) {
         holder.getRequirements { b -> permission = b }
     }
 
@@ -55,7 +49,7 @@ fun ShowQrCodeView(walletMain: WalletMain, onConnection: (Holder) -> Unit) {
         val updateQrCode: (String) -> Unit =  { str -> qrcodeText = str }
         holder.hold(updateQrCode) {
             shouldDisconnect = false
-            onConnection(holder)
+            vm.onConnection(holder)
         }
     }
 
@@ -94,7 +88,7 @@ fun ShowQrCodeView(walletMain: WalletMain, onConnection: (Holder) -> Unit) {
                     }
                 } else {
                     val qrCode = createQrCode(qrcodeText)
-                    val imageBitmap = walletMain.platformAdapter.decodeImage(qrCode)
+                    val imageBitmap = vm.walletMain.platformAdapter.decodeImage(qrCode)
                     Image(bitmap = imageBitmap, contentDescription = null)
                 }
             }
