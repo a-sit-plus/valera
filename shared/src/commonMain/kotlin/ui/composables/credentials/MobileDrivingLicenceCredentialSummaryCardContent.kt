@@ -14,7 +14,7 @@ fun MobileDrivingLicenceCredentialSummaryCardContent(
     modifier: Modifier = Modifier,
 ) {
     val credentialAdapter = remember {
-        MobileDrivingLicenceCredentialAdapter.createFromStoreEntry(credential, decodePortrait = decodeToBitmap)
+        MobileDrivingLicenceCredentialAdapter.createFromStoreEntry(credential, decodeToBitmap)
     }
 
     MobileDrivingLicenceCredentialIdentityDataCardContent(

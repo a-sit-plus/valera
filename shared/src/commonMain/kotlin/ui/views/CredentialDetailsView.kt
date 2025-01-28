@@ -132,7 +132,7 @@ fun CredentialDetailsSummaryView(
     Column(modifier = Modifier.padding(horizontal = 8.dp)) {
         when (storeEntry.scheme) {
             is IdAustriaScheme -> IdAustriaCredentialView(storeEntry, imageDecoder)
-            is EuPidScheme -> EuPidCredentialView(storeEntry)
+            is EuPidScheme -> EuPidCredentialView(storeEntry, imageDecoder)
             is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialView(storeEntry, imageDecoder)
             is PowerOfRepresentationScheme -> PowerOfRepresentationCredentialView(storeEntry)
             is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialView(storeEntry)

@@ -12,6 +12,7 @@ object EuPidCredentialAttributeCategorization : CredentialAttributeCategorizatio
                 GIVEN_NAME,
                 FAMILY_NAME,
                 BIRTH_DATE,
+                PORTRAIT,
                 NATIONALITY,
                 GENDER,
             ).map { NormalizedJsonPath() + it to null }
@@ -60,6 +61,7 @@ object EuPidCredentialAttributeCategorization : CredentialAttributeCategorizatio
                 ISSUING_AUTHORITY,
                 ISSUING_JURISDICTION,
                 ADMINISTRATIVE_NUMBER,
+                PERSONAL_ADMINISTRATIVE_NUMBER,
             ).map { NormalizedJsonPath() + it to null }
         },
     ),
@@ -76,6 +78,7 @@ object EuPidCredentialSdJwtAttributeCategorization : CredentialAttributeCategori
                 GIVEN_NAME,
                 FAMILY_NAME,
                 BIRTH_DATE,
+                PORTRAIT,
                 NATIONALITIES,
                 GENDER,
             ).map { NormalizedJsonPath() + it to null }
@@ -124,6 +127,7 @@ object EuPidCredentialSdJwtAttributeCategorization : CredentialAttributeCategori
                 ISSUING_AUTHORITY,
                 ISSUING_JURISDICTION,
                 ADMINISTRATIVE_NUMBER,
+                PERSONAL_ADMINISTRATIVE_NUMBER,
             ).map { NormalizedJsonPath() + it to null }
         },
     ),
