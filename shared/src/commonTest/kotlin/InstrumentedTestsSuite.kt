@@ -237,8 +237,7 @@ class InstrumentedTestsSuite : FunSpec({
                     val qrCodeUrl = firstProfile?.get("url")?.jsonPrimitive?.content
                     val id = firstProfile?.get("id")?.jsonPrimitive?.content
 
-                    // TODO navigate methods
-                    handleIntent(walletMain, {}, {}, qrCodeUrl!!)
+                    appLink.value = qrCodeUrl!!
 
                     waitUntilExactlyOneExists(
                         hasText(getString(Res.string.button_label_continue)),
