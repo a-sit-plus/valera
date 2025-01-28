@@ -47,8 +47,6 @@ import at.asitplus.rqes.collection_entries.TransactionData
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_location
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_name
-import at.asitplus.valera.resources.button_label_hide_technical_details
-import at.asitplus.valera.resources.button_label_show_technical_details
 import at.asitplus.valera.resources.heading_label_authenticate_at_device_screen
 import at.asitplus.valera.resources.heading_label_navigate_back
 import at.asitplus.valera.resources.prompt_send_above_data
@@ -61,7 +59,6 @@ import at.asitplus.wallet.lib.oidvci.encodeToParameters
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.ConsentAttributesSection
 import ui.composables.DataDisplaySection
-import ui.composables.Label
 import ui.composables.LabeledText
 import ui.composables.Logo
 import ui.composables.buttons.CancelButton
@@ -196,15 +193,27 @@ fun TransactionDataView(transactionData: TransactionData) {
         )
         Spacer(modifier = Modifier.height(8.dp))
         Column(modifier = Modifier.padding(start = 32.dp)) {
-            val paddingModifier = Modifier.padding(bottom = 16.dp)
-            LabeledText(
-                label = list.first().first,
-                text = list.first().second,
-                modifier = paddingModifier,
-            )
+            Row {
+                val paddingModifier = Modifier.padding(bottom = 16.dp)
+                LabeledText(
+                    label = list.first().first,
+                    text = list.first().second,
+                    modifier = paddingModifier,
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Column(modifier = Modifier.clickable(onClick = { showContent = !showContent })) {
+                    Icon(
+                        imageVector = when (showContent) {
+                            true -> Icons.Outlined.ArrowUpward
+                            else -> Icons.Outlined.ArrowDownward
+                        },
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.secondary
+                    )
+                }
+            }
+
         }
-
-
         androidx.compose.animation.AnimatedVisibility(
             visible = showContent,
             enter = slideInVertically {
@@ -232,26 +241,6 @@ fun TransactionDataView(transactionData: TransactionData) {
                     )
                 }
             }
-        }
-        Column(
-            modifier = Modifier.fillMaxWidth().clickable(onClick = { showContent = !showContent }),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Label(
-                label = when (showContent) {
-                    true -> stringResource(Res.string.button_label_hide_technical_details)
-                    else -> stringResource(Res.string.button_label_show_technical_details)
-                }
-            )
-            Icon(
-                imageVector = when (showContent) {
-                    true -> Icons.Outlined.ArrowUpward
-                    else -> Icons.Outlined.ArrowDownward
-                },
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.secondary
-            )
         }
     }
 }
