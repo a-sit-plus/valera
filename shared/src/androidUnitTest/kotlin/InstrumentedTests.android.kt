@@ -5,5 +5,5 @@ import at.asitplus.wallet.app.common.PlatformAdapter
 @Composable
 actual fun getPlatformAdapter(): PlatformAdapter {
     val context = LocalContext.current
-    return AndroidPlatformAdapter(context)
+    return AndroidPlatformAdapter(context) {}
 }

@@ -37,7 +37,6 @@ data class IdentityCredentialField(
                 val entryName = "$namespace.$name"
                 val displayName = attributeTranslator.translate(name.toJsonPath())?.let { getString(it) } ?: name
                 val serializedValue = value.toString().safeSubstring(128) //TODO toString() is a hack
-                Napier.i("SERIALIZED VALUE: $serializedValue")
                 IdentityCredentialField(entryName, serializedValue, displayName, serializedValue)
             }
         }

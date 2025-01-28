@@ -13,6 +13,8 @@
     <string name="snackbar_credential_loaded_successfully">Data has been loaded successfully</string>
     <string name="snackbar_reset_app_successfully">App has been reset successfully</string>
     <string name="snackbar_clear_log_successfully">Log has been cleared successfully</string>
+    <string name="snackbar_update_hint">Your app version is out-of-date, please visit %1$s to update to %2$s</string>
+    <string name="snackbar_update_action">Open</string>
 
     <string name="button_label_use_device_credential">Passcode</string>
     <string name="button_label_confirm">Confirm</string>
@@ -151,6 +153,8 @@
     <string name="credential_scheme_label_power_of_representation">Power of representation</string>
     <string name="credential_scheme_icon_label_certificate_of_residence">COR</string>
     <string name="credential_scheme_label_certificate_of_residence">Certificate of residence</string>
+    <string name="credential_scheme_icon_label_company_registration">CR</string>
+    <string name="credential_scheme_label_company_registration">Company registration</string>
     <string name="credential_scheme_label_eprescription">e-Prescription</string>
     <string name="credential_scheme_icon_label_eprescription">eP</string>
 

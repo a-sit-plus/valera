@@ -2,6 +2,9 @@ package at.asitplus.wallet.app.common
 
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.snackbar_update_action
+import at.asitplus.valera.resources.snackbar_update_hint
 import at.asitplus.wallet.lib.Initializer.initOpenIdModule
 import at.asitplus.wallet.lib.agent.DefaultVerifierCryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
@@ -17,8 +20,17 @@ import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
 import getImageDecoder
 import io.github.aakira.napier.Napier
+import io.ktor.client.call.body
+import io.ktor.client.request.get
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import net.swiftzer.semver.SemVer
+import org.jetbrains.compose.resources.getString
 
 /**
  * Main class to hold all services needed in the Compose App.
@@ -140,6 +152,32 @@ class WalletMain(
             }
         }
     }
+
+    fun updateCheck() {
+        scope.launch(Dispatchers.IO) {
+            runCatching {
+                val httpClient = httpService.buildHttpClient()
+                val host = "https://wallet.a-sit.at/"
+                val url = "${host}check.json"
+                Napier.d("Getting check.json from $url")
+                val json = httpClient.get(url).body<JsonObject>()
+                json["apps"]?.jsonObject?.get(buildContext.packageName)?.let {
+                    (it as? JsonObject)?.get("latestVersion")?.jsonPrimitive?.content?.let {
+                        val latestVersion = SemVer.parse(it)
+                        val currentVersion = SemVer.parse(buildContext.versionName)
+                        Napier.d("Version is $currentVersion, latest is $latestVersion")
+                        if (latestVersion > currentVersion) {
+                            snackbarService.showSnackbar(getString(Res.string.snackbar_update_hint, host, latestVersion), getString(Res.string.snackbar_update_action)) {
+                                platformAdapter.openUrl(host)
+                            }
+                        }
+                    }
+                }
+            }.onFailure {
+                Napier.w("Update check failed", it)
+            }
+        }
+    }
 }
 
 /**
@@ -200,6 +238,7 @@ interface PlatformAdapter {
      * Prepares the credential response and sends it back to the invoking application
      */
     fun prepareDCAPICredentialResponse(responseJson: ByteArray, dcApiRequest: DCAPIRequest)
+
 }
 
 fun PlatformAdapter.decodeImage(image: ByteArray): ImageBitmap {
