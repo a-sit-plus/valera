@@ -35,10 +35,13 @@ import at.asitplus.valera.resources.attribute_friendly_name_main_residence_posta
 import at.asitplus.valera.resources.attribute_friendly_name_main_residence_state
 import at.asitplus.valera.resources.attribute_friendly_name_main_residence_street
 import at.asitplus.valera.resources.attribute_friendly_name_nationality
+import at.asitplus.valera.resources.attribute_friendly_name_personal_administrative_number
+import at.asitplus.valera.resources.attribute_friendly_name_portrait
 import at.asitplus.valera.resources.attribute_friendly_name_sex
 import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes.Address
 import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes.AgeEqualOrOver
 import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes.PlaceOfBirth
+import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
 import org.jetbrains.compose.resources.StringResource
 
 
@@ -52,6 +55,7 @@ object EuPidCredentialAttributeTranslator : CredentialAttributeTranslator {
                 FAMILY_NAME -> Res.string.attribute_friendly_name_lastname
                 GIVEN_NAME -> Res.string.attribute_friendly_name_firstname
                 BIRTH_DATE -> Res.string.attribute_friendly_name_date_of_birth
+                PORTRAIT -> Res.string.attribute_friendly_name_portrait
                 AGE_OVER_12 -> Res.string.attribute_friendly_name_age_at_least_12
                 AGE_OVER_14 -> Res.string.attribute_friendly_name_age_at_least_14
                 AGE_OVER_16 -> Res.string.attribute_friendly_name_age_at_least_16
@@ -81,6 +85,7 @@ object EuPidCredentialAttributeTranslator : CredentialAttributeTranslator {
                 ADMINISTRATIVE_NUMBER -> Res.string.attribute_friendly_name_administrative_number
                 ISSUING_COUNTRY -> Res.string.attribute_friendly_name_issuing_country
                 ISSUING_JURISDICTION -> Res.string.attribute_friendly_name_issuing_jurisdiction
+                PERSONAL_ADMINISTRATIVE_NUMBER -> Res.string.attribute_friendly_name_personal_administrative_number
                 else -> null
             }
 
@@ -94,6 +99,7 @@ object EuPidCredentialAttributeTranslator : CredentialAttributeTranslator {
                 FAMILY_NAME -> Res.string.attribute_friendly_name_lastname
                 GIVEN_NAME -> Res.string.attribute_friendly_name_firstname
                 BIRTH_DATE -> Res.string.attribute_friendly_name_date_of_birth
+                PORTRAIT -> Res.string.attribute_friendly_name_portrait
                 PREFIX_AGE_EQUAL_OR_OVER -> when (val second = attributeName.segments.getOrNull(1)) {
                     is NormalizedJsonPathSegment.NameSegment -> when (second.memberName) {
                         AgeEqualOrOver.EQUAL_OR_OVER_12 -> Res.string.attribute_friendly_name_age_at_least_12
@@ -156,6 +162,7 @@ object EuPidCredentialAttributeTranslator : CredentialAttributeTranslator {
                 ADMINISTRATIVE_NUMBER -> Res.string.attribute_friendly_name_administrative_number
                 ISSUING_COUNTRY -> Res.string.attribute_friendly_name_issuing_country
                 ISSUING_JURISDICTION -> Res.string.attribute_friendly_name_issuing_jurisdiction
+                PERSONAL_ADMINISTRATIVE_NUMBER -> Res.string.attribute_friendly_name_personal_administrative_number
                 else -> null
             }
 

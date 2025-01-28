@@ -1,7 +1,9 @@
 package data.credentials
 
+import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
+import at.asitplus.signum.indispensable.io.Base64UrlStrict
 import at.asitplus.wallet.eupid.EuPidCredential
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.eupid.EuPidScheme.Attributes
@@ -13,13 +15,17 @@ import at.asitplus.wallet.eupid.IsoIec5218Gender
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import data.Attribute
+import io.ktor.util.decodeBase64Bytes
+import io.matthewnelson.encoding.core.Decoder.Companion.decodeToByteArray
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
 
-sealed class EuPidCredentialAdapter : CredentialAdapter() {
+sealed class EuPidCredentialAdapter(
+    private val decodePortrait: (ByteArray) -> ImageBitmap?,
+) : CredentialAdapter() {
     override fun getAttribute(path: NormalizedJsonPath) = path.segments.firstOrNull()?.let { first ->
         getWithIsoNames(first) ?: getWithSdJwtNames(first, path.segments.getOrNull(1))
     }
@@ -59,6 +65,8 @@ sealed class EuPidCredentialAdapter : CredentialAdapter() {
                 ADMINISTRATIVE_NUMBER -> Attribute.fromValue(administrativeNumber)
                 ISSUING_COUNTRY -> Attribute.fromValue(issuingCountry)
                 ISSUING_JURISDICTION -> Attribute.fromValue(issuingJurisdiction)
+                PERSONAL_ADMINISTRATIVE_NUMBER -> Attribute.fromValue(personalAdministrativeNumber)
+                PORTRAIT -> Attribute.fromValue(portraitBitmap)
                 else -> null
             }
 
@@ -142,6 +150,8 @@ sealed class EuPidCredentialAdapter : CredentialAdapter() {
                 ADMINISTRATIVE_NUMBER -> Attribute.fromValue(administrativeNumber)
                 ISSUING_COUNTRY -> Attribute.fromValue(issuingCountry)
                 ISSUING_JURISDICTION -> Attribute.fromValue(issuingJurisdiction)
+                PERSONAL_ADMINISTRATIVE_NUMBER -> Attribute.fromValue(personalAdministrativeNumber)
+                PORTRAIT -> Attribute.fromValue(portraitBitmap)
                 else -> null
             }
 
@@ -152,6 +162,10 @@ sealed class EuPidCredentialAdapter : CredentialAdapter() {
     abstract val givenName: String?
     abstract val familyName: String?
     abstract val birthDate: LocalDate?
+    abstract val portraitRaw: ByteArray?
+    val portraitBitmap: ImageBitmap? by lazy {
+        portraitRaw?.let(decodePortrait)
+    }
     abstract val ageAtLeast12: Boolean?
     abstract val ageAtLeast14: Boolean?
     abstract val ageAtLeast16: Boolean?
@@ -182,38 +196,36 @@ sealed class EuPidCredentialAdapter : CredentialAdapter() {
     abstract val administrativeNumber: String?
     abstract val issuingCountry: String?
     abstract val issuingJurisdiction: String?
+    abstract val personalAdministrativeNumber: String?
 
     companion object {
-        fun createFromStoreEntry(storeEntry: SubjectCredentialStore.StoreEntry): EuPidCredentialAdapter {
+        fun createFromStoreEntry(
+            storeEntry: SubjectCredentialStore.StoreEntry,
+            decodePortrait: (ByteArray) -> ImageBitmap?,
+        ): EuPidCredentialAdapter {
             if (storeEntry.scheme !is EuPidScheme) {
                 throw IllegalArgumentException("credential")
             }
             return when (storeEntry) {
-                is SubjectCredentialStore.StoreEntry.Vc -> {
-                    (storeEntry.vc.vc.credentialSubject as? EuPidCredential)?.let {
-                        EuPidCredentialVcAdapter(it)
-                    } ?: throw IllegalArgumentException("storeEntry")
-                }
+                is SubjectCredentialStore.StoreEntry.Vc ->
+                    (storeEntry.vc.vc.credentialSubject as? EuPidCredential)
+                        ?.let { EuPidCredentialVcAdapter(it, decodePortrait) }
+                        ?: throw IllegalArgumentException("storeEntry")
 
-                is SubjectCredentialStore.StoreEntry.SdJwt -> {
-                    EuPidCredentialSdJwtAdapter(
-                        storeEntry.toAttributeMap(),
-                    )
-                }
+                is SubjectCredentialStore.StoreEntry.SdJwt ->
+                    EuPidCredentialSdJwtAdapter(storeEntry.toAttributeMap(), decodePortrait)
 
-                is SubjectCredentialStore.StoreEntry.Iso -> {
-                    EuPidCredentialIsoMdocAdapter(
-                        storeEntry.toNamespaceAttributeMap(),
-                    )
-                }
+                is SubjectCredentialStore.StoreEntry.Iso ->
+                    EuPidCredentialIsoMdocAdapter(storeEntry.toNamespaceAttributeMap(), decodePortrait)
             }
         }
     }
 }
 
 private class EuPidCredentialVcAdapter(
-    val credentialSubject: EuPidCredential
-) : EuPidCredentialAdapter() {
+    val credentialSubject: EuPidCredential,
+    decodePortrait: (ByteArray) -> ImageBitmap?,
+) : EuPidCredentialAdapter(decodePortrait) {
     override val representation: CredentialRepresentation
         get() = CredentialRepresentation.PLAIN_JWT
 
@@ -225,6 +237,9 @@ private class EuPidCredentialVcAdapter(
 
     override val birthDate: LocalDate
         get() = credentialSubject.birthDate
+
+    override val portraitRaw: ByteArray?
+        get() = credentialSubject.portrait
 
     override val ageAtLeast12: Boolean?
         get() = credentialSubject.ageOver12
@@ -315,6 +330,9 @@ private class EuPidCredentialVcAdapter(
 
     override val issuingJurisdiction: String?
         get() = credentialSubject.issuingJurisdiction
+
+    override val personalAdministrativeNumber: String?
+        get() = credentialSubject.personalAdministrativeNumber
 }
 
 /**
@@ -322,8 +340,9 @@ private class EuPidCredentialVcAdapter(
  * as well as for old names (from [Attributes.GIVEN_NAME]), to keep data for credentials loaded before migration
  */
 private class EuPidCredentialSdJwtAdapter(
-    private val attributes: Map<String, JsonPrimitive>
-) : EuPidCredentialAdapter() {
+    private val attributes: Map<String, JsonPrimitive>,
+    decodePortrait: (ByteArray) -> ImageBitmap?,
+) : EuPidCredentialAdapter(decodePortrait) {
     override val representation: CredentialRepresentation
         get() = CredentialRepresentation.SD_JWT
 
@@ -338,6 +357,10 @@ private class EuPidCredentialSdJwtAdapter(
     override val birthDate: LocalDate?
         get() = attributes[SdJwtAttributes.BIRTH_DATE]?.contentOrNull?.toLocalDateOrNull()
             ?: attributes[Attributes.BIRTH_DATE]?.contentOrNull?.toLocalDateOrNull()
+
+    override val portraitRaw: ByteArray?
+        get() = attributes[SdJwtAttributes.PORTRAIT]?.contentOrNull?.decodeToByteArray(Base64UrlStrict)
+            ?: attributes[Attributes.PORTRAIT]?.contentOrNull?.decodeToByteArray(Base64UrlStrict)
 
     override val ageAtLeast12: Boolean?
         get() = attributes[SdJwtAttributes.AGE_EQUAL_OR_OVER_12]?.booleanOrNull
@@ -459,11 +482,16 @@ private class EuPidCredentialSdJwtAdapter(
     override val issuingJurisdiction: String?
         get() = attributes[SdJwtAttributes.ISSUING_JURISDICTION]?.contentOrNull
             ?: attributes[Attributes.ISSUING_JURISDICTION]?.contentOrNull
+
+    override val personalAdministrativeNumber: String?
+        get() = attributes[SdJwtAttributes.PERSONAL_ADMINISTRATIVE_NUMBER]?.contentOrNull
+            ?: attributes[Attributes.PERSONAL_ADMINISTRATIVE_NUMBER]?.contentOrNull
 }
 
 private class EuPidCredentialIsoMdocAdapter(
     namespaces: Map<String, Map<String, Any>>?,
-) : EuPidCredentialAdapter() {
+    decodePortrait: (ByteArray) -> ImageBitmap?,
+) : EuPidCredentialAdapter(decodePortrait) {
     private val euPidNamespace = namespaces?.get(EuPidScheme.isoNamespace)
 
     override val representation: CredentialRepresentation
@@ -478,6 +506,15 @@ private class EuPidCredentialIsoMdocAdapter(
     override val birthDate: LocalDate?
         get() = euPidNamespace?.get(Attributes.BIRTH_DATE) as? LocalDate?
             ?: euPidNamespace?.get(Attributes.BIRTH_DATE)?.toString()?.toLocalDateOrNull()
+
+    override val portraitRaw: ByteArray?
+        get() = euPidNamespace?.get(Attributes.PORTRAIT)?.let {
+            when (it) {
+                is ByteArray -> it
+                is String -> it.decodeBase64Bytes()
+                else -> null
+            }
+        }
 
     override val ageAtLeast12: Boolean?
         get() = euPidNamespace?.get(Attributes.AGE_OVER_12) as? Boolean?
@@ -571,4 +608,7 @@ private class EuPidCredentialIsoMdocAdapter(
 
     override val issuingJurisdiction: String?
         get() = euPidNamespace?.get(Attributes.ISSUING_JURISDICTION) as? String?
+
+    override val personalAdministrativeNumber: String?
+        get() = euPidNamespace?.get(Attributes.PERSONAL_ADMINISTRATIVE_NUMBER) as? String?
 }

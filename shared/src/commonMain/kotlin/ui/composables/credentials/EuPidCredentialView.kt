@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import data.credentials.EuPidCredentialAdapter
@@ -12,10 +13,11 @@ import data.credentials.EuPidCredentialAdapter
 @Composable
 fun EuPidCredentialView(
     credential: SubjectCredentialStore.StoreEntry,
+    decodeImage: (ByteArray) -> ImageBitmap,
     modifier: Modifier = Modifier,
 ) {
     val credentialAdapter = remember {
-        EuPidCredentialAdapter.createFromStoreEntry(credential)
+        EuPidCredentialAdapter.createFromStoreEntry(credential, decodeImage)
     }
 
     Column(modifier = modifier) {

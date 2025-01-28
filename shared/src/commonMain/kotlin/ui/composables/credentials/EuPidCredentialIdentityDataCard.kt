@@ -1,10 +1,12 @@
 package ui.composables.credentials
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -13,12 +15,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.content_description_portrait
 import at.asitplus.wallet.eupid.EuPidScheme
 import data.PersonalDataCategory
 import data.credentials.EuPidCredentialAdapter
+import org.jetbrains.compose.resources.stringResource
 import ui.composables.AttributeRepresentation
 
 @Composable
@@ -51,34 +58,28 @@ fun EuPidCredentialIdentityDataCardContent(
             columnSize = layoutCoordinates.size.toSize()
         },
     ) {
+        credentialAdapter.portraitBitmap?.let { portraitBitmap ->
+            // source: https://stackoverflow.com/questions/69455135/does-jetpack-compose-have-maxheight-and-maxwidth-like-xml
+            // weird way to get "at most 1/4th of max width"
+            val maxWidth = LocalDensity.current.run { (0.25f * columnSize.width).toDp() }
+            Image(
+                bitmap = portraitBitmap,
+                contentDescription = stringResource(Res.string.content_description_portrait),
+                modifier = Modifier.widthIn(0.dp, maxWidth).padding(end = 16.dp),
+                contentScale = ContentScale.FillWidth,
+            )
+        }
+        val textGap = 4.dp
         Column(
             horizontalAlignment = Alignment.Start,
         ) {
-            val spacingModifier = Modifier.padding(bottom = 4.dp)
             AttributeRepresentation(
                 value = listOfNotNull(
-                    credentialAdapter.givenName,
-                    credentialAdapter.familyName,
+                    credentialAdapter.givenName, credentialAdapter.familyName
                 ).joinToString(" "),
-                modifier = spacingModifier,
+                modifier = Modifier.padding(bottom = textGap),
             )
-            credentialAdapter.birthDate?.let {
-                AttributeRepresentation(
-                    value = it,
-                    modifier = spacingModifier,
-                )
-            }
-            credentialAdapter.nationality?.let {
-                AttributeRepresentation(
-                    value = it,
-                    modifier = spacingModifier,
-                )
-            } ?: credentialAdapter.nationalities?.let {
-                AttributeRepresentation(
-                    value = it,
-                    modifier = spacingModifier,
-                )
-            }
+            credentialAdapter.birthDate?.let { AttributeRepresentation(it) }
         }
     }
 }

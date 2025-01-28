@@ -113,6 +113,7 @@
     <string name="attribute_friendly_name_effective_from_date">Startdatum</string>
     <string name="attribute_friendly_name_effective_until_date">Enddatum</string>
     <string name="attribute_friendly_name_administrative_number">Administrative Nummer</string>
+    <string name="attribute_friendly_name_personal_administrative_number">Pers. administrative Nummer</string>
     <string name="attribute_friendly_name_issuing_jurisdiction">Ausstellende Jurisdiktion</string>
 
     <string name="attribute_friendly_name_residence_address">Wohnadresse</string>
