@@ -190,7 +190,7 @@ fun SettingsView(
                         modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
                             .fillMaxWidth()
                     ) {
-                        Text("${stringResource(Res.string.text_label_stage)}: ${vm.stage})")
+                        Text("${stringResource(Res.string.text_label_stage)}: ${vm.stage}")
                         Text("${stringResource(Res.string.text_label_build)}: ${vm.version}-${vm.buildType}")
                     }
                 }
