@@ -17,6 +17,15 @@ import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.ISSUING_COUNTRY
 import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.ISSUING_JURISDICTION
 import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.NATIONALITY
 import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.RESIDENCE_ADDRESS
+import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.RESIDENCE_ADDRESS_PO_BOX
+import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.RESIDENCE_ADDRESS_THOROUGHFARE
+import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.RESIDENCE_ADDRESS_LOCATOR_DESIGNATOR
+import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.RESIDENCE_ADDRESS_LOCATOR_NAME
+import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.RESIDENCE_ADDRESS_POST_CODE
+import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.RESIDENCE_ADDRESS_POST_NAME
+import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.RESIDENCE_ADDRESS_ADMIN_UNIT_L_1
+import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.RESIDENCE_ADDRESS_ADMIN_UNIT_L_2
+import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.RESIDENCE_ADDRESS_FULL_ADDRESS
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.eupid.IsoIec5218Gender
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
@@ -38,16 +47,23 @@ sealed class CertificateOfResidenceCredentialAdapter : CredentialAdapter() {
                 DOCUMENT_NUMBER -> Attribute.fromValue(documentNumber)
                 ISSUING_COUNTRY -> Attribute.fromValue(issuingCountry)
                 ISSUING_JURISDICTION -> Attribute.fromValue(issuingJurisdiction)
-
                 FAMILY_NAME -> Attribute.fromValue(familyName)
                 GIVEN_NAME -> Attribute.fromValue(givenName)
                 BIRTH_DATE -> Attribute.fromValue(birthDate)
                 RESIDENCE_ADDRESS -> Attribute.fromValue(residenceAddress)
+                RESIDENCE_ADDRESS_PO_BOX -> Attribute.fromValue(residenceAddressPoBox)
+                RESIDENCE_ADDRESS_THOROUGHFARE -> Attribute.fromValue(residenceAddressThoroughfare)
+                RESIDENCE_ADDRESS_LOCATOR_DESIGNATOR -> Attribute.fromValue(residenceAddressLocatorDesignator)
+                RESIDENCE_ADDRESS_LOCATOR_NAME -> Attribute.fromValue(residenceAddressLocatorName)
+                RESIDENCE_ADDRESS_POST_CODE -> Attribute.fromValue(residenceAddressPostCode)
+                RESIDENCE_ADDRESS_POST_NAME -> Attribute.fromValue(residenceAddressPostName)
+                RESIDENCE_ADDRESS_ADMIN_UNIT_L_1 -> Attribute.fromValue(residenceAddressAdminUnitL1)
+                RESIDENCE_ADDRESS_ADMIN_UNIT_L_2 -> Attribute.fromValue(residenceAddressAdminUnitL2)
+                RESIDENCE_ADDRESS_FULL_ADDRESS -> Attribute.fromValue(residenceAddressFullAddress)
                 GENDER -> Attribute.fromValue(gender)
                 BIRTH_PLACE -> Attribute.fromValue(birthPlace)
                 ARRIVAL_DATE -> Attribute.fromValue(arrivalDate)
                 NATIONALITY -> Attribute.fromValue(nationality)
-
                 else -> null
             }
 
@@ -59,6 +75,15 @@ sealed class CertificateOfResidenceCredentialAdapter : CredentialAdapter() {
     abstract val givenName: String?
     abstract val birthDate: LocalDate?
     abstract val residenceAddress: String?
+    abstract val residenceAddressPoBox: String?
+    abstract val residenceAddressThoroughfare: String?
+    abstract val residenceAddressLocatorDesignator: String?
+    abstract val residenceAddressLocatorName: String?
+    abstract val residenceAddressPostCode: String?
+    abstract val residenceAddressPostName: String?
+    abstract val residenceAddressAdminUnitL1: String?
+    abstract val residenceAddressAdminUnitL2: String?
+    abstract val residenceAddressFullAddress: String?
     abstract val gender: IsoIec5218Gender?
     abstract val birthPlace: String?
     abstract val arrivalDate: LocalDate?
@@ -77,21 +102,10 @@ sealed class CertificateOfResidenceCredentialAdapter : CredentialAdapter() {
                 throw IllegalArgumentException("credential")
             }
             return when (storeEntry) {
-                is SubjectCredentialStore.StoreEntry.Vc -> {
-                    TODO("Operation not yet supported")
-                }
-
-                is SubjectCredentialStore.StoreEntry.SdJwt -> {
-                    CertificateOfResidenceCredentialSdJwtAdapter(
-                        storeEntry.toAttributeMap(),
-                    )
-                }
-
-                is SubjectCredentialStore.StoreEntry.Iso -> {
-                    CertificateOfResidenceCredentialIsoMdocAdapter(
-                        storeEntry.toNamespaceAttributeMap(),
-                    )
-                }
+                is SubjectCredentialStore.StoreEntry.Vc -> TODO("Operation not yet supported")
+                is SubjectCredentialStore.StoreEntry.Iso -> TODO("Operation not yet supported")
+                is SubjectCredentialStore.StoreEntry.SdJwt ->
+                    CertificateOfResidenceCredentialSdJwtAdapter(storeEntry.toAttributeMap())
             }
         }
     }
@@ -120,6 +134,33 @@ private class CertificateOfResidenceCredentialSdJwtAdapter(
 
     override val residenceAddress: String?
         get() = attributes[RESIDENCE_ADDRESS]?.contentOrNull
+
+    override val residenceAddressPoBox: String?
+        get() = attributes[RESIDENCE_ADDRESS_PO_BOX]?.contentOrNull
+
+    override val residenceAddressThoroughfare: String?
+        get() = attributes[RESIDENCE_ADDRESS_THOROUGHFARE]?.contentOrNull
+
+    override val residenceAddressLocatorDesignator: String?
+        get() = attributes[RESIDENCE_ADDRESS_LOCATOR_DESIGNATOR]?.contentOrNull
+
+    override val residenceAddressLocatorName: String?
+        get() = attributes[RESIDENCE_ADDRESS_LOCATOR_NAME]?.contentOrNull
+
+    override val residenceAddressPostCode: String?
+        get() = attributes[RESIDENCE_ADDRESS_POST_CODE]?.contentOrNull
+
+    override val residenceAddressPostName: String?
+        get() = attributes[RESIDENCE_ADDRESS_POST_NAME]?.contentOrNull
+
+    override val residenceAddressAdminUnitL1: String?
+        get() = attributes[RESIDENCE_ADDRESS_ADMIN_UNIT_L_1]?.contentOrNull
+
+    override val residenceAddressAdminUnitL2: String?
+        get() = attributes[RESIDENCE_ADDRESS_ADMIN_UNIT_L_2]?.contentOrNull
+
+    override val residenceAddressFullAddress: String?
+        get() = attributes[RESIDENCE_ADDRESS_FULL_ADDRESS]?.contentOrNull
 
     override val gender: IsoIec5218Gender?
         get() = attributes[GENDER]?.contentOrNull?.toIntOrNull()
@@ -150,56 +191,3 @@ private class CertificateOfResidenceCredentialSdJwtAdapter(
         get() = attributes[ISSUING_JURISDICTION]?.contentOrNull
 }
 
-private class CertificateOfResidenceCredentialIsoMdocAdapter(
-    namespaces: Map<String, Map<String, Any>>?,
-) : CertificateOfResidenceCredentialAdapter() {
-    override val representation: CredentialRepresentation
-        get() = CredentialRepresentation.ISO_MDOC
-    private val namespace = namespaces?.get(CertificateOfResidenceScheme.isoNamespace)
-
-    override val documentNumber: String?
-        get() = namespace?.get(DOCUMENT_NUMBER) as String?
-
-    override val issuingAuthority: String?
-        get() = namespace?.get(ISSUING_AUTHORITY) as String?
-
-    override val familyName: String?
-        get() = namespace?.get(FAMILY_NAME) as String?
-
-    override val givenName: String?
-        get() = namespace?.get(GIVEN_NAME) as String?
-
-    override val birthDate: LocalDate?
-        get() = namespace?.get(BIRTH_DATE)?.toLocalDateOrNull()
-
-    override val residenceAddress: String?
-        get() = namespace?.get(RESIDENCE_ADDRESS) as String?
-
-    override val gender: IsoIec5218Gender?
-        get() = namespace?.get(GENDER)
-            ?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code } }
-
-    override val birthPlace: String?
-        get() = namespace?.get(BIRTH_PLACE) as String?
-
-    override val arrivalDate: LocalDate?
-        get() = namespace?.get(ARRIVAL_DATE)?.toLocalDateOrNull()
-
-    override val nationality: String?
-        get() = namespace?.get(NATIONALITY) as String?
-
-    override val administrativeNumber: String?
-        get() = namespace?.get(ADMINISTRATIVE_NUMBER) as String?
-
-    override val issuanceDate: Instant?
-        get() = namespace?.get(ISSUANCE_DATE)?.toInstantOrNull()
-
-    override val expiryDate: Instant?
-        get() = namespace?.get(EXPIRY_DATE)?.toInstantOrNull()
-
-    override val issuingCountry: String?
-        get() = namespace?.get(ISSUING_COUNTRY) as String?
-
-    override val issuingJurisdiction: String?
-        get() = namespace?.get(ISSUING_JURISDICTION) as String?
-}
