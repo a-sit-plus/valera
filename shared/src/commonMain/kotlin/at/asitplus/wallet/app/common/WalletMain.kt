@@ -69,6 +69,7 @@ class WalletMain(
 
     @Throws(Throwable::class)
     fun initialize(snackbarService: SnackbarService) {
+        val coseService = DefaultCoseService(cryptoService)
         walletConfig =
             WalletConfig(dataStoreService = this.dataStoreService, errorService = errorService)
         subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
@@ -76,7 +77,7 @@ class WalletMain(
             validator = Validator(DefaultVerifierCryptoService(), Parser()),
             subjectCredentialStore = subjectCredentialStore,
             jwsService = DefaultJwsService(cryptoService),
-            coseService = DefaultCoseService(cryptoService),
+            coseService = coseService,
             keyPair = cryptoService.keyMaterial,
         )
 
@@ -94,7 +95,8 @@ class WalletMain(
             platformAdapter,
             cryptoService,
             holderAgent,
-            httpService
+            httpService,
+            coseService
         )
         this.snackbarService = snackbarService
         this.dcApiService = DCAPIService(platformAdapter)
@@ -134,7 +136,7 @@ class WalletMain(
                     requestedAttributes = requestedAttributes,
                 )
                 onSuccess()
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 errorService.emit(e)
             }
         }
@@ -147,7 +149,7 @@ class WalletMain(
                 subjectCredentialStore.observeStoreContainer().collect { container ->
                     dcApiService.registerCredentialWithSystem(container)
                 }
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 Napier.w("Could not update credentials with system", e)
             }
         }

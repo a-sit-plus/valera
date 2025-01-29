@@ -7,18 +7,22 @@ import at.asitplus.wallet.app.common.dcapi.PreviewRequest
 import at.asitplus.wallet.lib.agent.CreatePresentationResult
 import at.asitplus.wallet.lib.agent.CredentialSubmission
 import at.asitplus.wallet.lib.agent.HolderAgent
+import at.asitplus.wallet.lib.agent.PresentationException
 import at.asitplus.wallet.lib.agent.PresentationRequestParameters
+import at.asitplus.wallet.lib.cbor.CoseService
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import com.benasher44.uuid.uuid4
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
+import kotlinx.serialization.builtins.ByteArraySerializer
 
 class PresentationService(
     val platformAdapter: PlatformAdapter,
     cryptoService: WalletCryptoService,
     val holderAgent: HolderAgent,
     httpService: HttpService,
+    private val coseService: CoseService
 ) {
     private val presentationService = OpenId4VpWallet(
         openUrlExternally = { platformAdapter.openUrl(it) },
@@ -63,7 +67,16 @@ class PresentationService(
         val previewRequest = PreviewRequest.deserialize(dcApiRequest.request).getOrThrow()
 
         val presentationResult = holderAgent.createPresentation(
-            request = PresentationRequestParameters(nonce = previewRequest.nonce, audience = dcApiRequest.callingOrigin ?: dcApiRequest.callingPackageName!!),
+            request = PresentationRequestParameters(nonce = previewRequest.nonce, audience = dcApiRequest.callingOrigin ?: dcApiRequest.callingPackageName!!, calcIsoDeviceSignature = {
+                coseService.createSignedCose(
+                    payload = it.encodeToByteArray(),
+                    serializer = ByteArraySerializer(),
+                    addKeyId = false
+                ).getOrElse { e ->
+                    Napier.w("Could not create DeviceAuth for presentation", e)
+                    throw PresentationException(e)
+                } to null
+            }),
             presentationDefinitionId = uuid4().toString(),
             presentationSubmissionSelection = submission
         )
