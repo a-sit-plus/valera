@@ -1,3 +1,4 @@
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.ExperimentalTestApi
@@ -26,6 +27,7 @@ import at.asitplus.valera.resources.button_label_start
 import at.asitplus.valera.resources.content_description_portrait
 import at.asitplus.valera.resources.section_heading_age_data
 import at.asitplus.wallet.app.common.BuildContext
+import at.asitplus.wallet.app.common.BuildType
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.WalletCryptoService
@@ -62,7 +64,6 @@ import kotlinx.serialization.json.jsonPrimitive
 import org.jetbrains.compose.resources.getString
 import ui.navigation.NavigatorTestTags
 import ui.navigation.Routes.OnboardingWrapperTestTags
-import ui.navigation.handleIntent
 import ui.views.OnboardingStartScreenTestTag
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.minutes
@@ -314,7 +315,7 @@ private fun createWalletMain(platformAdapter: PlatformAdapter): WalletMain {
         platformAdapter = platformAdapter,
         scope = CoroutineScope(Dispatchers.Default),
         buildContext = BuildContext(
-            buildType = "debug",
+            buildType = BuildType.DEBUG,
             packageName = "test",
             versionCode = 0,
             versionName = "0.0.0",

@@ -6,10 +6,11 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import appLink
+import at.asitplus.wallet.app.android.dcapi.WalletAPIData
 import at.asitplus.wallet.app.common.BuildContext
+import at.asitplus.wallet.app.common.BuildType
 import com.google.android.gms.identitycredentials.GetCredentialResponse
 import com.google.android.gms.identitycredentials.IntentHelper
-import at.asitplus.wallet.app.android.dcapi.WalletAPIData
 
 
 class MainActivity : AppCompatActivity() {
@@ -23,7 +24,7 @@ class MainActivity : AppCompatActivity() {
         setContent {
             MainView(
                 buildContext = BuildContext(
-                    buildType = BuildConfig.BUILD_TYPE,
+                    buildType = BuildType.valueOf(BuildConfig.BUILD_TYPE.uppercase()),
                     packageName = BuildConfig.APPLICATION_ID,
                     versionCode = BuildConfig.VERSION_CODE,
                     versionName = BuildConfig.VERSION_NAME,
