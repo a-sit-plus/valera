@@ -34,7 +34,7 @@ class AntilogAdapter(val platformAdapter: PlatformAdapter, private val defaultTa
 
         val message = message ?: ""
 
-        var data : String = ""
+        val data: String
 
         when (priority) {
             LogLevel.ERROR -> {
