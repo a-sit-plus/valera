@@ -8,6 +8,7 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.app.common.WalletMain
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.flow.MutableStateFlow
 import ui.navigation.WalletNavigation
 import ui.theme.WalletTheme
 
@@ -15,7 +16,7 @@ import ui.theme.WalletTheme
  * Global variable which especially helps to channel information from swift code
  * to compose whenever the app gets called via an associated domain
  */
-var appLink = mutableStateOf<String?>(null)
+var appLink = MutableStateFlow<String?>(null)
 
 internal object AppTestTags {
     const val rootScaffold = "rootScaffold"
