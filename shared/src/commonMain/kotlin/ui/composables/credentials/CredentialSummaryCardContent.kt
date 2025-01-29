@@ -18,7 +18,7 @@ fun CredentialSummaryCardContent(
 ) {
     when (credential.scheme) {
         is IdAustriaScheme -> IdAustriaCredentialSummaryCardContent(credential, decodeToBitmap)
-        is EuPidScheme -> EuPidCredentialSummaryCardContent(credential)
+        is EuPidScheme -> EuPidCredentialSummaryCardContent(credential, decodeToBitmap)
         is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialSummaryCardContent(credential, decodeToBitmap)
         is PowerOfRepresentationScheme -> PowerOfRepresentationCredentialSummaryCardContent(credential)
         is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialSummaryCardContent(credential)

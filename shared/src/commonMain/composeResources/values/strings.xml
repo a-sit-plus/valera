@@ -65,6 +65,7 @@
     <string name="attribute_friendly_name_effective_from_date">UNTRANSLATED:attribute_friendly_name_effective_from_date</string>
     <string name="attribute_friendly_name_effective_until_date">UNTRANSLATED:attribute_friendly_name_effective_until_date</string>
     <string name="attribute_friendly_name_administrative_number">UNTRANSLATED:attribute_friendly_name_administrative_number</string>
+    <string name="attribute_friendly_name_personal_administrative_number">UNTRANSLATED:attribute_friendly_name_personal_administrative_number</string>
     <string name="attribute_friendly_name_issuing_jurisdiction">UNTRANSLATED:attribute_friendly_name_issuing_jurisdiction</string>
     <string name="attribute_friendly_name_residence_address">UNTRANSLATED:attribute_friendly_name_residence_address</string>
     <string name="attribute_friendly_name_arrival_date">UNTRANSLATED:attribute_friendly_name_arrival_date</string>
