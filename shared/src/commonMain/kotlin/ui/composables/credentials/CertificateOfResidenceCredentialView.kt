@@ -22,13 +22,8 @@ fun CertificateOfResidenceCredentialView(
 
     Column(modifier = modifier) {
         val spacingModifier = Modifier.padding(bottom = 16.dp)
-        CertificateOfResidenceCredentialIdentityDataCard(
-            credentialAdapter = credentialAdapter,
-            modifier = spacingModifier,
-        )
-        CertificateOfResidenceCredentialMetaDataCard(
-            credentialAdapter = credentialAdapter,
-            modifier = spacingModifier,
-        )
+        CertificateOfResidenceCredentialIdentityDataCard(credentialAdapter, spacingModifier,)
+        CertificateOfResidenceResidenceDataCard(credentialAdapter, spacingModifier,)
+        CertificateOfResidenceCredentialMetaDataCard(credentialAdapter, spacingModifier,)
     }
 }

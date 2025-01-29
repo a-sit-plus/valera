@@ -10,6 +10,7 @@ import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import data.PersonalDataCategory
+import data.credentialsdatacard.CompanyRegistrationCredentialAttributeCategorization
 
 /**
  * The type, `List<AttributeUnpackingInformation>`, is there to

@@ -1,4 +1,4 @@
-package data.credentials
+package data.credentialsdatacard
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.app.common.third_parts.at.asitplus.jsonpath.core.plus
@@ -16,6 +16,7 @@ import at.asitplus.wallet.companyregistration.CompanyRegistrationDataElements.RE
 import at.asitplus.wallet.companyregistration.CompanyRegistrationDataElements.VAT_NUMBER
 import at.asitplus.wallet.por.PowerOfRepresentationDataElements
 import data.PersonalDataCategory
+import data.credentials.CredentialAttributeCategorization
 
 object CompanyRegistrationCredentialAttributeCategorization : CredentialAttributeCategorization.Template(
     mapOf(
