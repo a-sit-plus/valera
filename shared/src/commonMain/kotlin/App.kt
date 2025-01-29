@@ -17,11 +17,6 @@ import ui.theme.WalletTheme
  */
 var appLink = mutableStateOf<String?>(null)
 
-/**
- * Global variable to test at least something from the iOS UITest
- */
-var iosTestValue = Configuration.IOS_TEST_VALUE
-
 internal object AppTestTags {
     const val rootScaffold = "rootScaffold"
 }

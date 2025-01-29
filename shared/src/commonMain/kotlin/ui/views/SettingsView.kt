@@ -46,7 +46,6 @@ import at.asitplus.valera.resources.reset_app_alert_text
 import at.asitplus.valera.resources.section_heading_actions
 import at.asitplus.valera.resources.section_heading_information
 import at.asitplus.valera.resources.text_label_build
-import at.asitplus.valera.resources.text_label_stage
 import at.asitplus.valera.resources.warning
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
@@ -186,11 +185,10 @@ fun SettingsView(
                 }
                 Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
                     Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        horizontalArrangement = Arrangement.Center,
                         modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
                             .fillMaxWidth()
                     ) {
-                        Text("${stringResource(Res.string.text_label_stage)}: ${vm.stage}")
                         Text("${stringResource(Res.string.text_label_build)}: ${vm.version}-${vm.buildType}")
                     }
                 }
