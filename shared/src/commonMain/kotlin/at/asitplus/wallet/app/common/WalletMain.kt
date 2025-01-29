@@ -25,6 +25,7 @@ import io.ktor.client.request.get
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
@@ -53,6 +54,7 @@ class WalletMain(
     lateinit var dcApiService: DCAPIService
     private val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
 
+    val readyForIntents = MutableStateFlow<Boolean?>(null)
 
     init {
         initOpenIdModule()
