@@ -18,6 +18,15 @@ import at.asitplus.valera.resources.attribute_friendly_name_issuing_jurisdiction
 import at.asitplus.valera.resources.attribute_friendly_name_lastname
 import at.asitplus.valera.resources.attribute_friendly_name_nationality
 import at.asitplus.valera.resources.attribute_friendly_name_residence_address
+import at.asitplus.valera.resources.attribute_friendly_name_residence_address_po_box
+import at.asitplus.valera.resources.attribute_friendly_name_residence_address_thoroughfare
+import at.asitplus.valera.resources.attribute_friendly_name_residence_address_locator_designator
+import at.asitplus.valera.resources.attribute_friendly_name_residence_address_locator_name
+import at.asitplus.valera.resources.attribute_friendly_name_residence_address_post_code
+import at.asitplus.valera.resources.attribute_friendly_name_residence_address_post_name
+import at.asitplus.valera.resources.attribute_friendly_name_residence_address_admin_unit_L1
+import at.asitplus.valera.resources.attribute_friendly_name_residence_address_admin_unit_L2
+import at.asitplus.valera.resources.attribute_friendly_name_residence_address_full_address
 import at.asitplus.valera.resources.attribute_friendly_name_sex
 import org.jetbrains.compose.resources.StringResource
 
@@ -37,7 +46,15 @@ object CertificateOfResidenceCredentialAttributeTranslator : CredentialAttribute
                     FAMILY_NAME -> Res.string.attribute_friendly_name_firstname
                     GIVEN_NAME -> Res.string.attribute_friendly_name_lastname
                     BIRTH_DATE -> Res.string.attribute_friendly_name_date_of_birth
-                    RESIDENCE_ADDRESS -> Res.string.attribute_friendly_name_residence_address
+                    RESIDENCE_ADDRESS_PO_BOX -> Res.string.attribute_friendly_name_residence_address_po_box
+                    RESIDENCE_ADDRESS_THOROUGHFARE -> Res.string.attribute_friendly_name_residence_address_thoroughfare
+                    RESIDENCE_ADDRESS_LOCATOR_DESIGNATOR -> Res.string.attribute_friendly_name_residence_address_locator_designator
+                    RESIDENCE_ADDRESS_LOCATOR_NAME -> Res.string.attribute_friendly_name_residence_address_locator_name
+                    RESIDENCE_ADDRESS_POST_CODE -> Res.string.attribute_friendly_name_residence_address_post_code
+                    RESIDENCE_ADDRESS_POST_NAME -> Res.string.attribute_friendly_name_residence_address_post_name
+                    RESIDENCE_ADDRESS_ADMIN_UNIT_L_1 -> Res.string.attribute_friendly_name_residence_address_admin_unit_L1
+                    RESIDENCE_ADDRESS_ADMIN_UNIT_L_2 -> Res.string.attribute_friendly_name_residence_address_admin_unit_L2
+                    RESIDENCE_ADDRESS_FULL_ADDRESS -> Res.string.attribute_friendly_name_residence_address_full_address
                     GENDER -> Res.string.attribute_friendly_name_sex
                     BIRTH_PLACE -> Res.string.attribute_friendly_name_birth_place
                     ARRIVAL_DATE -> Res.string.attribute_friendly_name_arrival_date

@@ -68,6 +68,15 @@
     <string name="attribute_friendly_name_personal_administrative_number">UNTRANSLATED:attribute_friendly_name_personal_administrative_number</string>
     <string name="attribute_friendly_name_issuing_jurisdiction">UNTRANSLATED:attribute_friendly_name_issuing_jurisdiction</string>
     <string name="attribute_friendly_name_residence_address">UNTRANSLATED:attribute_friendly_name_residence_address</string>
+    <string name="attribute_friendly_name_residence_address_po_box">UNTRANSLATED:attribute_friendly_name_residence_po_box</string>
+    <string name="attribute_friendly_name_residence_address_thoroughfare">UNTRANSLATED:attribute_friendly_name_residence_thoroughfare</string>
+    <string name="attribute_friendly_name_residence_address_locator_designator">UNTRANSLATED:attribute_friendly_name_residence_locator_designator</string>
+    <string name="attribute_friendly_name_residence_address_locator_name">UNTRANSLATED:attribute_friendly_name_residence_locator_name</string>
+    <string name="attribute_friendly_name_residence_address_post_code">UNTRANSLATED:attribute_friendly_name_residence_post_code</string>
+    <string name="attribute_friendly_name_residence_address_post_name">UNTRANSLATED:attribute_friendly_name_residence_post_name</string>
+    <string name="attribute_friendly_name_residence_address_admin_unit_L1">UNTRANSLATED:attribute_friendly_name_residence_admin_unit_L1</string>
+    <string name="attribute_friendly_name_residence_address_admin_unit_L2">UNTRANSLATED:attribute_friendly_name_residence_admin_unit_L2</string>
+    <string name="attribute_friendly_name_residence_address_full_address">UNTRANSLATED:attribute_friendly_name_residence_full_address</string>
     <string name="attribute_friendly_name_arrival_date">UNTRANSLATED:attribute_friendly_name_arrival_date</string>
 
     <string name="attribute_friendly_name_company_name">UNTRANSLATED:attribute_friendly_name_company_name</string>

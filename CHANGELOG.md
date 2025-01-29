@@ -1,5 +1,6 @@
 # Release 5.4.6
- * tbd
+ * Update to EU PID 2.3.2 to show portrait
+ * Update to CoR 2.1.2 to show more address claims
 
 # Release 5.4.5
  * Update to VC-K 5.3.0 to support encryption for mDoc responses acc. to ISO 18013-7

@@ -115,8 +115,16 @@
     <string name="attribute_friendly_name_administrative_number">Administrative Nummer</string>
     <string name="attribute_friendly_name_personal_administrative_number">Pers. administrative Nummer</string>
     <string name="attribute_friendly_name_issuing_jurisdiction">Ausstellende Jurisdiktion</string>
-
     <string name="attribute_friendly_name_residence_address">Wohnadresse</string>
+    <string name="attribute_friendly_name_residence_address_po_box">Postfach</string>
+    <string name="attribute_friendly_name_residence_address_thoroughfare">Straße</string>
+    <string name="attribute_friendly_name_residence_address_locator_designator">Nr.</string>
+    <string name="attribute_friendly_name_residence_address_locator_name">Gebäude</string>
+    <string name="attribute_friendly_name_residence_address_post_code">PLZ</string>
+    <string name="attribute_friendly_name_residence_address_post_name">Ort</string>
+    <string name="attribute_friendly_name_residence_address_admin_unit_L1">L1</string>
+    <string name="attribute_friendly_name_residence_address_admin_unit_L2">L2</string>
+    <string name="attribute_friendly_name_residence_address_full_address">Volle Adresse</string>
     <string name="attribute_friendly_name_arrival_date">Ankunftsdatum</string>
 
     <string name="attribute_friendly_name_company_name">Name</string>
