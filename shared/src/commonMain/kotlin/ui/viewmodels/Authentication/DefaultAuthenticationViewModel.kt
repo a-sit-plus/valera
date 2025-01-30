@@ -12,7 +12,6 @@ import at.asitplus.wallet.lib.agent.CredentialSubmission
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import at.asitplus.wallet.lib.data.vckJsonSerializer
-import at.asitplus.wallet.lib.oidc.helpers.AuthorizationResponsePreparationState
 import kotlinx.coroutines.runBlocking
 
 

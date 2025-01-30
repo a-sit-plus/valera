@@ -8,13 +8,14 @@ import at.asitplus.rqes.CscCredentialListResponse
 import at.asitplus.rqes.SignatureRequestParameters
 import at.asitplus.rqes.SignatureResponse
 import at.asitplus.rqes.enums.CertificateOptions
+import at.asitplus.signum.indispensable.Digest
 import at.asitplus.signum.indispensable.X509SignatureAlgorithm
 import at.asitplus.signum.indispensable.io.ByteArrayBase64Serializer
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.oauth2.OAuth2Client
 import at.asitplus.wallet.lib.oidvci.encodeToParameters
 import at.asitplus.wallet.lib.oidvci.formUrlEncode
-import at.asitplus.wallet.lib.rqes.RqesWalletService
+import at.asitplus.wallet.lib.rqes.RqesOpenId4VpHolder
 import data.storage.DataStoreService
 import data.storage.PersistentCookieStorage
 import io.github.aakira.napier.Napier
@@ -54,6 +55,7 @@ class SigningService(
     var signatureReguestParameter: SignatureRequestParameters? = null
     var document: ByteArray? = null
     var documentWithLabel: DocumentWithLabel? = null
+    var signatureAlgorithm: X509SignatureAlgorithm? = null
 
     val egizUrl = "https://apps.egiz.gv.at/qtsp"
 
@@ -66,13 +68,13 @@ class SigningService(
     private val client = httpService.buildHttpClient(cookieStorage)
     private val redirectUrl = "asitplus-wallet://wallet.a-sit.at/app/callback/signing"
 
-    lateinit var rqesWalletService: RqesWalletService
+    lateinit var rqesWalletService: RqesOpenId4VpHolder
 
     @OptIn(ExperimentalEncodingApi::class)
     suspend fun sign(url: String) {
         qtspConfig = runBlocking { config.qtspConfig.first() }
         rqesWalletService =
-            RqesWalletService(redirectUrl = redirectUrl, clientId = qtspConfig.oauth2ClientId)
+            RqesOpenId4VpHolder(redirectUrl = redirectUrl, clientId = qtspConfig.oauth2ClientId)
 
         val url = URLBuilder(url)
 
@@ -96,7 +98,7 @@ class SigningService(
         this.documentWithLabel = DocumentWithLabel(document, documentLabel)
 
         val authRequest =
-            rqesWalletService.createOAuth2AuthenticationRequest(scope = RqesWalletService.RqesOauthScope.SERVICE)
+            rqesWalletService.createServiceAuthenticationRequest()
 
         val targetUrl = URLBuilder("${qtspConfig.oauth2BaseUrl}/oauth2/authorize").apply {
             authRequest.encodeToParameters().forEach {
@@ -178,24 +180,26 @@ class SigningService(
          * TODO remove
          * EGIZ qtsp only supports RS512 for now
          */
-        rqesWalletService.updateCryptoProperties(
-            signAlgorithm = if (!qtspConfig.qtspBaseUrl.contains("egiz")) rqesWalletService.signingCredential!!.supportedSigningAlgorithms.first() else X509SignatureAlgorithm.RS512
-        )
+        val signAlgorithm = if (!qtspConfig.qtspBaseUrl.contains("egiz")) rqesWalletService.signingCredential!!.supportedSigningAlgorithms.first() else X509SignatureAlgorithm.RS512
+        this.signatureAlgorithm = signAlgorithm
 
         val documentWithLabel =
             this.documentWithLabel ?: throw Throwable("Missing documentWithLabel")
-        val dtbsr = listOf(getDTBSR(client, egizUrl, rqesWalletService, documentWithLabel))
+        val dtbsr = listOf(getDTBSR(client = client, qtspHost = egizUrl, signatureAlgorithm = signatureAlgorithm!!, signingCredential = rqesWalletService.signingCredential!!, document = documentWithLabel))
         val transactionTokens = dtbsr.map { it.first }
         this.transactionTokens = transactionTokens
 
         val dtbsrAuthenticationDetails =
-            rqesWalletService.getCscAuthenticationDetails(dtbsr.map { it.second })
+            rqesWalletService.getCscAuthenticationDetails(dtbsr.map { it.second }, hashAlgorithm = Digest.SHA512)
         this.dtbsrAuthenticationDetails = dtbsrAuthenticationDetails
 
-        val authRequest = rqesWalletService.createOAuth2AuthenticationRequest(
-            scope = RqesWalletService.RqesOauthScope.CREDENTIAL,
+        val authRequest = rqesWalletService.
+        createCredentialAuthenticationRequest(
+            documentDigests = dtbsr.map { it.second },
             redirectUrl = "${this.redirectUrl}/finalize",
-            authorizationDetails = listOf(dtbsrAuthenticationDetails),
+            hashAlgorithm = Digest.SHA512,
+            numSignatures = 1,
+            hashes = dtbsr.map {it.second.hash}
         )
 
         /**
@@ -254,6 +258,7 @@ class SigningService(
         val signHashRequest = rqesWalletService.createSignHashRequestParameters(
             dtbsr = (this.dtbsrAuthenticationDetails as CscAuthorizationDetails).documentDigests.map { it.hash },
             sad = tokenResponseParameters.accessToken,
+            signatureAlgorithm = signatureAlgorithm!!
         )
 
         val signatures = client.post("${qtspConfig.qtspBaseUrl}/signatures/signHash") {
