@@ -1,17 +1,13 @@
 package at.asitplus.wallet.app.common
 
-import at.asitplus.rqes.SignatureRequestParameters
 import at.asitplus.rqes.SignatureResponse
 import at.asitplus.rqes.collection_entries.OAuthDocumentDigest
-import at.asitplus.signum.indispensable.Digest
+import at.asitplus.signum.indispensable.X509SignatureAlgorithm
 import at.asitplus.signum.indispensable.asn1.ObjectIdentifier
 import at.asitplus.signum.indispensable.io.ByteArrayBase64Serializer
 import at.asitplus.wallet.lib.data.vckJsonSerializer
-import at.asitplus.wallet.lib.iso.sha256
-import at.asitplus.wallet.lib.rqes.RqesWalletService
+import at.asitplus.wallet.lib.rqes.RqesOpenId4VpHolder
 import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -162,34 +158,19 @@ data class DtbsrWrapper(
     }
 }
 
-
-suspend fun getDocumentsFromDA(client: HttpClient, param: SignatureRequestParameters): List<DocumentWithLabel> {
-    //for now only support signing single document and sha256. TODO remove restrictions
-    require(param.documentLocations.size == 1) { "Document locations must be equal to 1 for now" }
-    require(param.hashAlgorithm == Digest.SHA256) { "Only support SHA256 for now" }
-
-    val documentBytes = client.get(param.documentLocations.first().uri).body<ByteArray>()
-
-    require(
-        documentBytes.sha256()
-            .contentEquals(param.documentDigests.first().hash)
-    ) { "Document digest mismatch" }
-
-    return listOf(DocumentWithLabel(documentBytes, param.documentDigests.first().label))
-}
-
 //TODO probably moves into VCK when switching to internal processing
 //For now use QTSP external SCA
 internal suspend fun getDTBSR(
     client: HttpClient,
     qtspHost: String,
-    rqesWalletService: RqesWalletService,
+    signingCredential: RqesOpenId4VpHolder.SigningCredential,
+    signatureAlgorithm: X509SignatureAlgorithm,
     document: DocumentWithLabel,
 ): Pair<String, OAuthDocumentDigest> {
     val dtbs = DataToBeSigned(
         document = document.document,
-        certificate = rqesWalletService.signingCredential!!.certificates.first().encodeToDer(),
-        signingAlgorithmOid = rqesWalletService.cryptoProperties.signAlgorithm.oid
+        certificate = signingCredential.certificates.first().encodeToDer(),
+        signingAlgorithmOid = signatureAlgorithm.oid
     )
 
     val dtbsrResponse = client.post("${qtspHost}/sca/buildDtbs") {

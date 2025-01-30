@@ -1,7 +1,7 @@
 package at.asitplus.wallet.app.common.dcapi
 
 import at.asitplus.catching
-import at.asitplus.wallet.lib.oidc.jsonSerializer
+import at.asitplus.wallet.lib.data.vckJsonSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 
@@ -21,7 +21,7 @@ data class DCAPIRequest(
         require(callingOrigin != null || callingPackageName != null)
     }
 
-    fun serialize(): String = jsonSerializer.encodeToString(this)
+    fun serialize(): String = vckJsonSerializer.encodeToString(this)
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || this::class != other::class) return false
@@ -55,7 +55,7 @@ data class DCAPIRequest(
 
     companion object {
         fun deserialize(input: String) =
-            catching { jsonSerializer.decodeFromString<DCAPIRequest>(input) }
+            catching { vckJsonSerializer.decodeFromString<DCAPIRequest>(input) }
     }
 }
 

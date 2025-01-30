@@ -5,8 +5,6 @@ import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_update_action
 import at.asitplus.valera.resources.snackbar_update_hint
-import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
-import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.eprescription.EPrescriptionScheme
 import at.asitplus.wallet.eupid.EuPidScheme
