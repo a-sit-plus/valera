@@ -8,7 +8,6 @@ import at.asitplus.rqes.CscCredentialListResponse
 import at.asitplus.rqes.SignatureRequestParameters
 import at.asitplus.rqes.SignatureResponse
 import at.asitplus.rqes.enums.CertificateOptions
-import at.asitplus.signum.indispensable.Digest
 import at.asitplus.signum.indispensable.X509SignatureAlgorithm
 import at.asitplus.signum.indispensable.io.ByteArrayBase64Serializer
 import at.asitplus.wallet.lib.data.vckJsonSerializer
@@ -176,11 +175,8 @@ class SigningService(
 
         rqesWalletService.setSigningCredential(credentialInfo)
 
-        /**
-         * TODO remove
-         * EGIZ qtsp only supports RS512 for now
-         */
-        val signAlgorithm = if (!qtspConfig.qtspBaseUrl.contains("egiz")) rqesWalletService.signingCredential!!.supportedSigningAlgorithms.first() else X509SignatureAlgorithm.RS512
+        val signAlgorithm = rqesWalletService.signingCredential?.supportedSigningAlgorithms?.first() ?: X509SignatureAlgorithm.RS512
+
         this.signatureAlgorithm = signAlgorithm
 
         val documentWithLabel =
@@ -190,14 +186,14 @@ class SigningService(
         this.transactionTokens = transactionTokens
 
         val dtbsrAuthenticationDetails =
-            rqesWalletService.getCscAuthenticationDetails(dtbsr.map { it.second }, hashAlgorithm = Digest.SHA512)
+            rqesWalletService.getCscAuthenticationDetails(dtbsr.map { it.second }, hashAlgorithm = signAlgorithm.digest)
         this.dtbsrAuthenticationDetails = dtbsrAuthenticationDetails
 
         val authRequest = rqesWalletService.
         createCredentialAuthenticationRequest(
             documentDigests = dtbsr.map { it.second },
             redirectUrl = "${this.redirectUrl}/finalize",
-            hashAlgorithm = Digest.SHA512,
+            hashAlgorithm = signAlgorithm.digest,
             numSignatures = 1,
             hashes = dtbsr.map {it.second.hash}
         )
