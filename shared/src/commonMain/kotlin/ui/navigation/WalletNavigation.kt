@@ -38,6 +38,7 @@ import at.asitplus.wallet.app.common.decodeImage
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -152,6 +153,17 @@ fun WalletNavigation(walletMain: WalletMain) {
     ) { _ ->
         WalletNavHost(navController, startDestination, navigate, walletMain, navigateBack, backStackEntry, popBackStack)
     }
+
+    LaunchedEffect(null) {
+        appLink.combineTransform(walletMain.readyForIntents) { link,  ready ->
+            if (ready == true && link != null){
+                emit(link)
+            }
+        }.collect { link ->
+            Napier.d("appLink.combineTransform $link")
+            handleIntent(walletMain, navigate, navigateBack, link)
+        }
+    }
 }
 
 @Composable
@@ -164,8 +176,6 @@ private fun WalletNavHost(
     backStackEntry: NavBackStackEntry?,
     popBackStack: (Route) -> Unit
 ) {
-
-
     NavHost(
         navController = navController,
         startDestination = startDestination,
@@ -218,6 +228,7 @@ private fun WalletNavHost(
                     )
                 }
             )
+            walletMain.readyForIntents.value = true
         }
         composable<AuthenticationQrCodeScannerRoute> {
             val vm = AuthenticationQrCodeScannerViewModel(
@@ -440,13 +451,6 @@ private fun WalletNavHost(
                 walletMain = walletMain
             )
             AuthenticationQrCodeScannerView(vm)
-        }
-    }
-    LaunchedEffect(appLink.value) {
-        appLink.value?.let { link ->
-            CoroutineScope(Dispatchers.Main).launch {
-                handleIntent(walletMain, navigate, navigateBack, link)
-            }
         }
     }
 }
