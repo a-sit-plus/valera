@@ -185,7 +185,7 @@ class SigningService(
 
         val documentWithLabel =
             this.documentWithLabel ?: throw Throwable("Missing documentWithLabel")
-        val dtbsr = listOf(getDTBSR(client = client, qtspHost = egizUrl, signatureAlgorithm = signatureAlgorithm!!, signingCredential = rqesWalletService.signingCredential!!, document = documentWithLabel))
+        val dtbsr = listOf(getDTBSR(client = client, qtspHost = egizUrl, signatureAlgorithm = signAlgorithm, signingCredential = rqesWalletService.signingCredential!!, document = documentWithLabel))
         val transactionTokens = dtbsr.map { it.first }
         this.transactionTokens = transactionTokens
 
@@ -258,7 +258,7 @@ class SigningService(
         val signHashRequest = rqesWalletService.createSignHashRequestParameters(
             dtbsr = (this.dtbsrAuthenticationDetails as CscAuthorizationDetails).documentDigests.map { it.hash },
             sad = tokenResponseParameters.accessToken,
-            signatureAlgorithm = signatureAlgorithm!!
+            signatureAlgorithm = this.signatureAlgorithm ?: throw Throwable("Missing signatureAlgorithm")
         )
 
         val signatures = client.post("${qtspConfig.qtspBaseUrl}/signatures/signHash") {
