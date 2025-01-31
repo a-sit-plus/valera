@@ -113,9 +113,18 @@
     <string name="attribute_friendly_name_effective_from_date">Effective from</string>
     <string name="attribute_friendly_name_effective_until_date">Effective until</string>
     <string name="attribute_friendly_name_administrative_number">Administrative number</string>
+    <string name="attribute_friendly_name_personal_administrative_number">Personal administrative number</string>
     <string name="attribute_friendly_name_issuing_jurisdiction">Issuing jurisdiction</string>
-
     <string name="attribute_friendly_name_residence_address">Residence address</string>
+    <string name="attribute_friendly_name_residence_address_po_box">PO box</string>
+    <string name="attribute_friendly_name_residence_address_thoroughfare">Thoroughfare</string>
+    <string name="attribute_friendly_name_residence_address_locator_designator">Locator designator</string>
+    <string name="attribute_friendly_name_residence_address_locator_name">Locator name</string>
+    <string name="attribute_friendly_name_residence_address_post_code">Post code</string>
+    <string name="attribute_friendly_name_residence_address_post_name">Post name</string>
+    <string name="attribute_friendly_name_residence_address_admin_unit_L1">L1</string>
+    <string name="attribute_friendly_name_residence_address_admin_unit_L2">L2</string>
+    <string name="attribute_friendly_name_residence_address_full_address">Full address</string>
     <string name="attribute_friendly_name_arrival_date">Arrival date</string>
 
     <string name="attribute_friendly_name_company_name">Name</string>

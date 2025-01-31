@@ -134,23 +134,13 @@ sealed class MobileDrivingLicenceCredentialAdapter(
                 throw IllegalArgumentException("credential")
             }
             return when (storeEntry) {
-                is SubjectCredentialStore.StoreEntry.Vc -> {
-                    TODO("Operation not yet supported")
-                }
+                is SubjectCredentialStore.StoreEntry.Vc -> TODO("Operation not yet supported")
 
-                is SubjectCredentialStore.StoreEntry.SdJwt -> {
-                    MobileDrivingLicenceCredentialSdJwtAdapter(
-                        storeEntry.toAttributeMap(),
-                        decodePortrait = decodePortrait,
-                    )
-                }
+                is SubjectCredentialStore.StoreEntry.SdJwt ->
+                    MobileDrivingLicenceCredentialSdJwtAdapter(storeEntry.toAttributeMap(), decodePortrait)
 
-                is SubjectCredentialStore.StoreEntry.Iso -> {
-                    MobileDrivingLicenceCredentialIsoMdocAdapter(
-                        storeEntry.toNamespaceAttributeMap(),
-                        decodePortrait = decodePortrait,
-                    )
-                }
+                is SubjectCredentialStore.StoreEntry.Iso ->
+                    MobileDrivingLicenceCredentialIsoMdocAdapter(storeEntry.toNamespaceAttributeMap(), decodePortrait)
             }
         }
     }
@@ -404,7 +394,7 @@ private class MobileDrivingLicenceCredentialIsoMdocAdapter(
     override val drivingPrivileges: Array<DrivingPrivilege>?
         get() = namespace?.get(MobileDrivingLicenceDataElements.DRIVING_PRIVILEGES)
             ?.let { it as Array<DrivingPrivilege> }
-    
+
     override val undistinguishingSign: String?
         get() = namespace?.get(MobileDrivingLicenceDataElements.UN_DISTINGUISHING_SIGN) as String?
 }

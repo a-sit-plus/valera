@@ -25,6 +25,7 @@ import io.ktor.client.request.get
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
@@ -53,6 +54,7 @@ class WalletMain(
     lateinit var dcApiService: DCAPIService
     private val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
 
+    val readyForIntents = MutableStateFlow<Boolean?>(null)
 
     init {
         initOpenIdModule()
@@ -64,11 +66,12 @@ class WalletMain(
         at.asitplus.wallet.companyregistration.Initializer.initWithVCK()
         at.asitplus.wallet.eprescription.Initializer.initWithVCK()
         Napier.takeLogarithm()
-        Napier.base(AntilogAdapter(platformAdapter, ""))
+        Napier.base(AntilogAdapter(platformAdapter, "", buildContext.buildType))
     }
 
     @Throws(Throwable::class)
     fun initialize(snackbarService: SnackbarService) {
+        val coseService = DefaultCoseService(cryptoService)
         walletConfig =
             WalletConfig(dataStoreService = this.dataStoreService, errorService = errorService)
         subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
@@ -76,7 +79,7 @@ class WalletMain(
             validator = Validator(DefaultVerifierCryptoService(), Parser()),
             subjectCredentialStore = subjectCredentialStore,
             jwsService = DefaultJwsService(cryptoService),
-            coseService = DefaultCoseService(cryptoService),
+            coseService = coseService,
             keyPair = cryptoService.keyMaterial,
         )
 
@@ -94,7 +97,8 @@ class WalletMain(
             platformAdapter,
             cryptoService,
             holderAgent,
-            httpService
+            httpService,
+            coseService
         )
         this.snackbarService = snackbarService
         this.dcApiService = DCAPIService(platformAdapter)
@@ -134,7 +138,7 @@ class WalletMain(
                     requestedAttributes = requestedAttributes,
                 )
                 onSuccess()
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 errorService.emit(e)
             }
         }
@@ -147,7 +151,7 @@ class WalletMain(
                 subjectCredentialStore.observeStoreContainer().collect { container ->
                     dcApiService.registerCredentialWithSystem(container)
                 }
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 Napier.w("Could not update credentials with system", e)
             }
         }
