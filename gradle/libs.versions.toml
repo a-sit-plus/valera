@@ -10,7 +10,7 @@ certificateofresidence = "2.1.2"
 companyregistration = "1.0.1"
 eprescription = "1.1.1"
 atomicfu = "0.26.1"
-compose-plugin = "1.7.1"
+compose-plugin = "1.7.3"
 
 [libraries]
 atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version.ref = "atomicfu" }
