@@ -26,7 +26,8 @@ interface CredentialAttributeCategorization {
             representation: ConstantIndex.CredentialRepresentation
         ): Template = when (scheme) {
             is IdAustriaScheme -> IdAustriaCredentialAttributeCategorization
-            is EuPidScheme -> if (representation == ConstantIndex.CredentialRepresentation.SD_JWT) EuPidCredentialSdJwtAttributeCategorization else EuPidCredentialAttributeCategorization
+            is EuPidScheme -> // TODO When mapping is confirmed if (representation == ConstantIndex.CredentialRepresentation.SD_JWT) EuPidCredentialSdJwtAttributeCategorization else EuPidCredentialAttributeCategorization
+                EuPidCredentialAttributeCategorization
             is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialAttributeCategorization
             is PowerOfRepresentationScheme -> PowerOfRepresentationCredentialAttributeCategorization
             is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialAttributeCategorization
