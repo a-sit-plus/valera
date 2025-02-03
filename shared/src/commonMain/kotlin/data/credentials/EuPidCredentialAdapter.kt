@@ -587,11 +587,11 @@ private class EuPidCredentialIsoMdocAdapter(
         get() = euPidNamespace?.get(Attributes.BIRTH_CITY) as? String?
 
     override val issuanceDate: Instant?
-        get() = euPidNamespace?.get(Attributes.ISSUANCE_DATE) as Instant?
+        get() = euPidNamespace?.get(Attributes.ISSUANCE_DATE) as? Instant?
             ?: euPidNamespace?.get(Attributes.ISSUANCE_DATE)?.toString()?.toInstantOrNull()
 
     override val expiryDate: Instant?
-        get() = euPidNamespace?.get(Attributes.EXPIRY_DATE) as Instant?
+        get() = euPidNamespace?.get(Attributes.EXPIRY_DATE) as? Instant?
             ?: euPidNamespace?.get(Attributes.EXPIRY_DATE)?.toString()?.toInstantOrNull()
 
     override val issuingAuthority: String?
