@@ -1,3 +1,6 @@
+# Release 5.4.8
+ * Support more custom URL schemes: `openid4vp` and `openid-credential-offer`
+
 # Release 5.4.7
  * Use ISO names for EU PID again
 
