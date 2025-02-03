@@ -1,3 +1,6 @@
+# Release 5.4.7
+ * Use ISO names for EU PID again
+
 # Release 5.4.6
  * Update to EU PID 2.3.2 to show portrait
  * Update to CoR 2.1.2 to show more address claims
