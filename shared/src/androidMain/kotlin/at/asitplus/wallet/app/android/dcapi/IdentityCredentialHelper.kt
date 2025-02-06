@@ -4,15 +4,13 @@ import AndroidPlatformAdapter
 import android.content.Context
 import android.graphics.Bitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
-import com.google.android.gms.identitycredentials.RegistrationRequest
 import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
+import com.google.android.gms.identitycredentials.RegistrationRequest
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import kotlin.collections.forEach
-import kotlin.text.toByteArray
 
 // adapted from https://github.com/openwallet-foundation-labs/identity-credential/blob/d7a37a5c672ed6fe1d863cbaeb1a998314d19fc5/appholder/src/main/java/com/android/identity/wallet/credman/IdentityCredentialRegistry.kt
 class IdentityCredentialHelper(

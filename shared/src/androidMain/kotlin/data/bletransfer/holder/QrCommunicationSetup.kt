@@ -29,23 +29,12 @@ class QrCommunicationSetup(
 
     init {
         val credentialStore = CredentialStore(context)
-
-        Napier.i(tag = TAG, message = "credentialStore = $credentialStore")
-
         session = SessionSetup(credentialStore).createSession()
-
-        Napier.i(tag = TAG, message = "session = $session")
     }
 
     private val connectionSetup = ConnectionSetup(context)
 
     private val qrEngagementListener = object : QrEngagementHelper.Listener {
-
-        fun onDeviceEngagementReady() {
-            Napier.d( tag = TAG, message = "QR Engagement: Device Engagement Ready")
-            onQrEngagementReady(deviceEngagementUriEncoded)
-        }
-
         override fun onDeviceConnecting() {
             Napier.d(tag = TAG, message = "QR Engagement: Device Connecting")
             onConnecting()
@@ -53,24 +42,24 @@ class QrCommunicationSetup(
 
         override fun onDeviceConnected(transport: DataTransport) {
             if (deviceRetrievalHelper != null) {
-                Napier.d(
-                    tag = TAG,
-                    message = "OnDeviceConnected for QR engagement -> ignoring due to active presentation"
-                )
+                Napier.d(tag = TAG, message = "OnDeviceConnected for QR engagement -> ignoring due to active presentation")
                 return
             }
+
             Napier.d(tag = TAG, message = "OnDeviceConnected via QR: qrEngagement=$qrEngagement")
             val builder = DeviceRetrievalHelper.Builder(
                 context,
                 deviceRetrievalHelperListener,
-                Dispatchers.IO.asExecutor(),//context.mainExecutor(),
+                Dispatchers.IO.asExecutor(),
                 session.ephemeralKeyPair.private.toEcPrivateKey(session.ephemeralKeyPair.public, EcCurve.P256)
             )
+
             builder.useForwardEngagement(
                 transport,
                 qrEngagement.deviceEngagement,
                 qrEngagement.handover
             )
+
             deviceRetrievalHelper = builder.build()
             qrEngagement.close()
             onDeviceRetrievalHelperReady(session, deviceRetrievalHelper!!)
@@ -84,10 +73,7 @@ class QrCommunicationSetup(
 
     private val deviceRetrievalHelperListener = object : DeviceRetrievalHelper.Listener {
         override fun onEReaderKeyReceived(eReaderKey: EcPublicKey) {
-            Napier.d(
-                tag = TAG,
-                message = "DeviceRetrievalHelper Listener (QR): OnEReaderKeyReceived"
-            )
+            Napier.d(tag = TAG, message = "DeviceRetrievalHelper Listener (QR): OnEReaderKeyReceived")
             session.setSessionTranscript(deviceRetrievalHelper!!.sessionTranscript)
             session.setReaderEphemeralPublicKey(eReaderKey.javaPublicKey)
         }
@@ -111,9 +97,6 @@ class QrCommunicationSetup(
     private lateinit var qrEngagement: QrEngagementHelper
     private var deviceRetrievalHelper: DeviceRetrievalHelper? = null
 
-    val deviceEngagementUriEncoded: String
-        get() = qrEngagement.deviceEngagementUriEncoded
-
     fun configure() {
         qrEngagement = QrEngagementHelper.Builder(
             context,
@@ -126,6 +109,7 @@ class QrCommunicationSetup(
             .build()
 
         onQrEngagementReady(qrEngagement.deviceEngagementUriEncoded)
+        Napier.d(tag = TAG, message = "configure: Device Engagement Ready")
     }
 
     fun close() {

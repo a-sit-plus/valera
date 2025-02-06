@@ -12,6 +12,7 @@ import at.asitplus.wallet.app.common.BuildType
 import com.google.android.gms.identitycredentials.GetCredentialResponse
 import com.google.android.gms.identitycredentials.IntentHelper
 
+
 class MainActivity : AppCompatActivity() {
 
     private val walletAPIData = WalletAPIData()
@@ -53,8 +54,10 @@ class MainActivity : AppCompatActivity() {
         appLink.value = if (intent.action == IntentHelper.ACTION_GET_CREDENTIAL) intent.action else intent.data?.toString()
     }
 
-    override fun onNewIntent(intent: Intent) {
+    override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
-        populateLink(intent)
+        if (intent != null) {
+            populateLink(intent)
+        }
     }
 }

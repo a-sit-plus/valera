@@ -2,7 +2,7 @@ package data.bletransfer.verifier
 
 import android.annotation.SuppressLint
 import android.content.Context
-import androidx.preference.PreferenceManager
+import android.preference.PreferenceManager
 import com.android.identity.android.mdoc.deviceretrieval.VerificationHelper
 import com.android.identity.android.mdoc.transport.DataTransportOptions
 import com.android.identity.crypto.Algorithm

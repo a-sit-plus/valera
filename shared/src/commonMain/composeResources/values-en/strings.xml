@@ -114,7 +114,6 @@
 
     <string name="attribute_friendly_name_signature">Signature</string>
     <string name="attribute_friendly_name_gender">Gender</string>
-    <string name="attribute_friendly_name_administrative_number">Administrative number</string>
     <string name="attribute_friendly_age_above">yes</string>
     <string name="attribute_friendly_age_below">no</string>
 

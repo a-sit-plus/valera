@@ -20,7 +20,6 @@
     <string name="button_label_confirm">Bestätigen</string>
     <string name="button_label_dismiss">Abbrechen</string>
     <string name="button_label_ok">Ok</string>
-    <string name="button_label_close_app">Beenden</string>
     <string name="button_label_authenticate">Anmelden</string>
     <string name="button_label_show_data">Vorzeigen</string>
     <string name="button_label_accept">Akzeptieren</string>
@@ -114,7 +113,6 @@
 
     <string name="attribute_friendly_name_signature">Signatur</string>
     <string name="attribute_friendly_name_gender">Geschlecht</string>
-    <string name="attribute_friendly_name_administrative_number">Administrative Nummer</string>
     <string name="attribute_friendly_age_above">Ja</string>
     <string name="attribute_friendly_age_below">Nein</string>
 

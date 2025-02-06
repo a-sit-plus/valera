@@ -67,7 +67,7 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
     ) { scaffoldPadding ->
         Box(modifier = Modifier.padding(scaffoldPadding)) {
             Box(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().padding(16.dp),
                 contentAlignment = Alignment.Center
             ) {
                 if (!vm.permission) {

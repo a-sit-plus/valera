@@ -1,7 +1,6 @@
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
-import android.os.Build
 import android.util.Base64
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
@@ -139,12 +138,6 @@ class AndroidPlatformAdapter(
         }
     }
 
-    override fun exitApp() {
-        Napier.d("Exit App gracefully")
-        val activity = context as Activity
-        activity.finish()
-    }
-
     override fun shareLog() {
         val folder = File(context.filesDir, "logs")
         val file = File(folder, "log.txt")
@@ -153,6 +146,7 @@ class AndroidPlatformAdapter(
             "at.asitplus.wallet.app.android.fileprovider",
             file
         )
+
 
         val intent: Intent = Intent().apply {
             action = Intent.ACTION_SEND

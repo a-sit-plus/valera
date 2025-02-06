@@ -3,14 +3,15 @@ package ui.viewmodels.Authentication
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.dif.ConstraintField
 import at.asitplus.jsonpath.core.NodeList
-import data.getRequestOptionParameters
+import at.asitplus.misc.getRequestOptionParameters
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.CredentialSubmission
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.oidc.helpers.AuthorizationResponsePreparationState
+import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import kotlinx.coroutines.runBlocking
+
 
 class DefaultAuthenticationViewModel(
     spName: String?,
@@ -51,4 +52,5 @@ class DefaultAuthenticationViewModel(
             preparationState = preparationState,
             inputDescriptorSubmission = submission
         )
+
 }
