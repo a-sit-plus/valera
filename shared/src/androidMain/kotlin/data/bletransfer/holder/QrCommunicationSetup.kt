@@ -1,16 +1,18 @@
 package data.bletransfer.holder
 
 import android.content.Context
-import android.security.identity.PresentationSession
+import com.android.identity.android.legacy.PresentationSession
 import com.android.identity.android.mdoc.deviceretrieval.DeviceRetrievalHelper
 import com.android.identity.android.mdoc.engagement.QrEngagementHelper
 import com.android.identity.android.mdoc.transport.DataTransport
-import com.android.identity.crypto.EcPrivateKey
+import com.android.identity.crypto.EcCurve
 import com.android.identity.crypto.EcPublicKey
+import com.android.identity.crypto.javaPublicKey
+import com.android.identity.crypto.toEcPrivateKey
+import com.android.identity.crypto.toEcPublicKey
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
-import java.security.PublicKey
 
 class QrCommunicationSetup(
     private val context: Context,
@@ -23,7 +25,18 @@ class QrCommunicationSetup(
 ) {
     private val TAG: String = "QrCommunicationSetup"
 
-    private val session = SessionSetup(CredentialStore(context)).createSession()
+    private val session: PresentationSession
+
+    init {
+        val credentialStore = CredentialStore(context)
+
+        Napier.i(tag = TAG, message = "credentialStore = $credentialStore")
+
+        session = SessionSetup(credentialStore).createSession()
+
+        Napier.i(tag = TAG, message = "session = $session")
+    }
+
     private val connectionSetup = ConnectionSetup(context)
 
     private val qrEngagementListener = object : QrEngagementHelper.Listener {
@@ -51,7 +64,7 @@ class QrCommunicationSetup(
                 context,
                 deviceRetrievalHelperListener,
                 Dispatchers.IO.asExecutor(),//context.mainExecutor(),
-                session.ephemeralKeyPair.private as EcPrivateKey
+                session.ephemeralKeyPair.private.toEcPrivateKey(session.ephemeralKeyPair.public, EcCurve.P256)
             )
             builder.useForwardEngagement(
                 transport,
@@ -76,7 +89,7 @@ class QrCommunicationSetup(
                 message = "DeviceRetrievalHelper Listener (QR): OnEReaderKeyReceived"
             )
             session.setSessionTranscript(deviceRetrievalHelper!!.sessionTranscript)
-            session.setReaderEphemeralPublicKey(eReaderKey as PublicKey)
+            session.setReaderEphemeralPublicKey(eReaderKey.javaPublicKey)
         }
 
         override fun onDeviceRequest(deviceRequestBytes: ByteArray) {
@@ -104,13 +117,15 @@ class QrCommunicationSetup(
     fun configure() {
         qrEngagement = QrEngagementHelper.Builder(
             context,
-            session.ephemeralKeyPair.public as EcPublicKey,
+            session.ephemeralKeyPair.public.toEcPublicKey(EcCurve.P256),
             connectionSetup.getConnectionOptions(),
             qrEngagementListener,
             Dispatchers.IO.asExecutor()
         )
             .setConnectionMethods(connectionSetup.getConnectionMethods())
             .build()
+
+        onQrEngagementReady(qrEngagement.deviceEngagementUriEncoded)
     }
 
     fun close() {

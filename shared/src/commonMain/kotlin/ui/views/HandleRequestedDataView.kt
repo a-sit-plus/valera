@@ -69,26 +69,14 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.builtins.ByteArraySerializer
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton
-
-@Composable
-fun HandleRequestedDataScreen(holder: Holder, navigateUp: () -> Unit, walletMain: WalletMain) {
-    val requestedAttributes = holder.getAttributes()
-
-    HandleRequestedDataView(walletMain, holder, requestedAttributes) {
-        holder.disconnect()
-        navigateUp()
-    }
-}
+import ui.viewmodels.HandleRequestedDataViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HandleRequestedDataView(
-    walletMain: WalletMain,
-    holder: Holder,
-    requestedAttributes: List<RequestedDocument>,
-    navigateUp: () -> Unit
+    vm: HandleRequestedDataViewModel
 ) {
-    val storeContainer = walletMain.subjectCredentialStore.observeStoreContainer()
+    val storeContainer = vm.walletMain.subjectCredentialStore.observeStoreContainer()
     val storeContainerState by storeContainer.collectAsState(null)
     var view by remember { mutableStateOf(HandleRequestedDataView.SELECTION) }
 
@@ -104,7 +92,7 @@ fun HandleRequestedDataView(
                     }
                 },
                 navigationIcon = {
-                    NavigateUpButton(navigateUp)
+                    NavigateUpButton(vm.navigateUp)
                 }
             )
         }
@@ -114,9 +102,9 @@ fun HandleRequestedDataView(
             when (view) {
                 HandleRequestedDataView.SELECTION -> {
                     selectRequestedDataView(
-                        walletMain = walletMain,
-                        holder = holder,
-                        requestedAttributes = requestedAttributes,
+                        walletMain = vm.walletMain,
+                        holder = vm.holder,
+                        requestedAttributes = vm.requestedAttributes,
                         storeContainerState = storeContainerState,
                         changeToLoading = { view = HandleRequestedDataView.LOADING },
                         changeToSent = { view = HandleRequestedDataView.SENT }

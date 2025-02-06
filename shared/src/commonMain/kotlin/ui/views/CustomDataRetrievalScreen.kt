@@ -45,6 +45,8 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton
 
+// TODO: rename and handle to *View
+
 @Composable
 fun CustomDataRetrievalScreen(
     navigateUp: () -> Unit,

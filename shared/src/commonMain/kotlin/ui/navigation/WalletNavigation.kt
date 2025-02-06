@@ -34,6 +34,7 @@ import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
+import data.bletransfer.getHolder
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -54,6 +55,7 @@ import ui.navigation.Routes.AuthenticationViewRoute
 import ui.navigation.Routes.CredentialDetailsRoute
 import ui.navigation.Routes.DCAPIAuthenticationConsentRoute
 import ui.navigation.Routes.ErrorRoute
+import ui.navigation.Routes.HandleRequestedDataRoute
 import ui.navigation.Routes.HomeScreenRoute
 import ui.navigation.Routes.LoadCredentialRoute
 import ui.navigation.Routes.LoadingRoute
@@ -74,6 +76,7 @@ import ui.viewmodels.Authentication.DCAPIAuthenticationViewModel
 import ui.viewmodels.Authentication.DefaultAuthenticationViewModel
 import ui.viewmodels.CredentialDetailsViewModel
 import ui.viewmodels.CredentialsViewModel
+import ui.viewmodels.HandleRequestedDataViewModel
 import ui.viewmodels.LoadCredentialViewModel
 import ui.viewmodels.LogViewModel
 import ui.viewmodels.PreAuthQrCodeScannerViewModel
@@ -85,6 +88,7 @@ import ui.views.Authentication.AuthenticationView
 import ui.views.CredentialDetailsView
 import ui.views.CredentialsView
 import ui.views.ErrorView
+import ui.views.HandleRequestedDataView
 import ui.views.LoadCredentialView
 import ui.views.LoadingView
 import ui.views.LogView
@@ -273,14 +277,23 @@ private fun WalletNavHost(
         composable<ShowQrCodeRoute> { backStackEntry ->
             val vm = ShowQrCodeViewModel(
                 walletMain = walletMain,
+                holder = getHolder(),
                 navigateUp = { navigateBack() },
                 onConnection = {
                     navigateBack()
-                    // TODO
-//                    navigate(HandleRequestedDataPage)
+                    navigate(HandleRequestedDataRoute)
                 }
             )
             ShowQrCodeView(vm)
+        }
+
+        composable<HandleRequestedDataRoute> { backStackEntry ->
+            val vm = HandleRequestedDataViewModel(
+                walletMain = walletMain,
+                navigateUp = { navigateBack() },
+                holder = getHolder()
+            )
+            HandleRequestedDataView(vm)
         }
 
         composable<AuthenticationViewRoute> { backStackEntry ->

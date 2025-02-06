@@ -4,7 +4,6 @@ import AndroidPlatformAdapter
 import android.content.Context
 import android.graphics.Bitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
-import at.asitplus.wallet.app.common.decodeImage
 import com.google.android.gms.identitycredentials.RegistrationRequest
 import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
 import kotlinx.serialization.encodeToString

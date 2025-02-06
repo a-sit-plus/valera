@@ -16,10 +16,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -34,28 +31,23 @@ import ui.viewmodels.ShowQrCodeViewModel
 fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
 
     val vm = remember { vm }
+    val holder = vm.holder
 
-    val holder by mutableStateOf(vm.holder)
-
-    var permission by mutableStateOf(vm.permission)
-    var qrcodeText by mutableStateOf(vm.qrcodeText)
-    var shouldDisconnect by mutableStateOf(vm.shouldDisconnect)
-
-    if (permission) {
-        holder.getRequirements { b -> permission = b }
+    if (!vm.permission) {
+        holder.getRequirements { b -> vm.permission = b }
     }
 
     LaunchedEffect(Unit) {
-        val updateQrCode: (String) -> Unit =  { str -> qrcodeText = str }
+        val updateQrCode: (String) -> Unit =  { str -> vm.qrcodeText = str }
         holder.hold(updateQrCode) {
-            shouldDisconnect = false
+            vm.shouldDisconnect = false
             vm.onConnection(holder)
         }
     }
 
     DisposableEffect(Unit) {
         onDispose {
-            if (shouldDisconnect) {
+            if (vm.shouldDisconnect) {
                 holder.disconnect()
             }
         }
@@ -78,16 +70,16 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                if (!permission) {
+                if (!vm.permission) {
                     Text("Permission Denied")
-                } else if (qrcodeText.isEmpty()) {
+                } else if (vm.qrcodeText.isEmpty()) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         CircularProgressIndicator()
                         Spacer(modifier = Modifier.height(16.dp))
                         Text("Loading Qr Code")
                     }
                 } else {
-                    val qrCode = createQrCode(qrcodeText)
+                    val qrCode = createQrCode(vm.qrcodeText)
                     val imageBitmap = vm.walletMain.platformAdapter.decodeImage(qrCode)
                     Image(bitmap = imageBitmap, contentDescription = null)
                 }

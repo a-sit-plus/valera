@@ -40,6 +40,9 @@ import ui.navigation.Page
 import ui.navigation.RequestedDataLogOutputPage
 import ui.navigation.RequestedDataShowPage
 
+// TODO: rename and handle to *View
+
+
 @Composable
 fun LoadRequestedDataScreen(document: Verifier.Document, payload: String, navigateUp: () -> Unit) {
     val logsState: MutableState<List<String>> = mutableStateOf(emptyList())

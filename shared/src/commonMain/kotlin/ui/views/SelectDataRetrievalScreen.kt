@@ -42,6 +42,8 @@ import data.bletransfer.verifier.getIdentityDocument
 import data.bletransfer.verifier.getLicenseDocument
 import org.jetbrains.compose.resources.stringResource
 
+// TODO: rename and handle to *View
+
 @Composable
 fun SelectDataRetrievalScreen(
     navigateToCustomSelectionPage: () -> Unit,

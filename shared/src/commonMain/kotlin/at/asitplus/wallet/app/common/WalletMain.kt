@@ -5,6 +5,8 @@ import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_update_action
 import at.asitplus.valera.resources.snackbar_update_hint
+import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
+import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import at.asitplus.wallet.lib.Initializer.initOpenIdModule
 import at.asitplus.wallet.lib.agent.DefaultVerifierCryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
@@ -13,12 +15,9 @@ import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.cbor.DefaultCoseService
 import at.asitplus.wallet.lib.jws.DefaultJwsService
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
-import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
-import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
 import data.storage.AntilogAdapter
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
-import getImageDecoder
 import io.github.aakira.napier.Napier
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -254,10 +253,6 @@ interface PlatformAdapter {
      * Prepares the credential response and sends it back to the invoking application
      */
     fun prepareDCAPICredentialResponse(responseJson: ByteArray, dcApiRequest: DCAPIRequest)
-}
-
-fun PlatformAdapter.decodeImage(image: ByteArray): ImageBitmap {
-    return getImageDecoder((image))
 }
 
 class DummyPlatformAdapter : PlatformAdapter {

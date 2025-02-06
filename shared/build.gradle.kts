@@ -87,9 +87,8 @@ kotlin {
 
                 implementation(libs.play.services.identity.credentials)
                 implementation(libs.identity.android)
-                implementation(libs.identity.mdoc.get().toString()) {
-                    exclude(group = "org.bouncycastle")
-                }
+                implementation(libs.identity.android.legacy)
+                implementation(libs.identity.mdoc)
                 implementation(libs.jackson.databind)
                 implementation(libs.jackson.dataformat.cbor)
                 implementation(libs.jackson.module.kotlin)

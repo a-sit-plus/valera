@@ -56,3 +56,6 @@ object AuthenticationSuccessRoute : Route()
 
 @Serializable
 object ShowQrCodeRoute : Route()
+
+@Serializable
+object HandleRequestedDataRoute : Route()

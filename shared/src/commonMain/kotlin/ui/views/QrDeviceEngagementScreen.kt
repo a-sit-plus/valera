@@ -16,6 +16,8 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton
 
+// TODO: rename and handle to *View
+
 @Composable
 fun QrDeviceEngagementScreen(
     onFoundPayload: (String) -> Unit,

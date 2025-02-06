@@ -2,7 +2,7 @@ package data.bletransfer.holder
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.security.identity.PresentationSession
+import com.android.identity.android.legacy.PresentationSession
 import data.bletransfer.util.CborDecoder
 import io.github.aakira.napier.Napier
 

@@ -5,6 +5,8 @@ import data.bletransfer.Verifier
 
 import data.storage.StoreEntryId
 
+// TODO: cleanup (remove unused pages etc.)
+
 actual class HomePage : Page
 
 actual class LogPage : Page
