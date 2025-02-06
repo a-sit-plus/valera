@@ -1,3 +1,6 @@
+# Release 5.4.9
+ * Update to VC-K 5.3.2 to fix ISO value digests
+
 # Release 5.4.8
  * Support more custom URL schemes: `openid4vp` and `openid-credential-offer`
 
