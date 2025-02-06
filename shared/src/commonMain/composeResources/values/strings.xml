@@ -224,8 +224,8 @@
     <string name="heading_label_show_qr_code_screen">UNTRANSLATED:heading_label_show_qr_code_screen</string>
     <string name="heading_label_select_requested_data">UNTRANSLATED:heading_label_select_requested_data</string>
 
-
     <string name="description_read_terms">UNTRANSLATED:description_read_terms</string>
+
     <string name="biometric_authentication_prompt_for_data_transmission_consent_title">UNTRANSLATED:biometric_authentication_prompt_for_data_transmission_consent_title</string>
     <string name="biometric_authentication_prompt_for_data_transmission_consent_subtitle">UNTRANSLATED:biometric_authentication_prompt_for_data_transmission_consent_subtitle</string>
     <string name="biometric_authentication_prompt_to_load_data_title">UNTRANSLATED:biometric_authentication_prompt_to_load_data_title</string>
@@ -286,6 +286,8 @@
     <string name="info_text_submission_preview_disabled">UNTRANSLATED:info_text_submission_preview_disabled</string>
     <string name="info_text_no_matching_credential">UNTRANSLATED:info_text_no_matching_credential</string>
     <string name="info_text_data_is_being_loaded">UNTRANSLATED:info_text_data_is_being_loaded</string>
+    <string name="info_text_missing_permission">UNTRANSLATED:info_text_missing_permission</string>
+    <string name="info_text_qr_code_loading">UNTRANSLATED:info_text_qr_code_loading</string>
 
     <string name="section_heading_authenticate_at_device_title">UNTRANSLATED:section_heading_authenticate_at_device_title</string>
     <string name="section_heading_authenticate_at_device_subtitle">UNTRANSLATED:section_heading_authenticate_at_device_subtitle</string>
@@ -330,7 +332,7 @@
     <string name="section_heading_request_custom">UNTRANSLATED:section_heading_request_custom</string>
     <string name="section_heading_select_document_type">UNTRANSLATED:section_heading_select_document_type</string>
     <string name="section_heading_selected_namespace">UNTRANSLATED:section_heading_selected_namespace </string>
-    <string name="section_heading_select_requested_data_entrys">UNTRANSLATED:section_heading_select_requested_data_entrys</string>
+    <string name="section_heading_select_requested_data_entries">UNTRANSLATED:section_heading_select_requested_data_entrys</string>
     <string name="section_heading_vehicle_category">UNTRANSLATED:section_heading_vehicle_category</string>
     <string name="section_heading_date_of_issue">UNTRANSLATED:section_heading_date_of_issue</string>
     <string name="section_heading_date_of_expiry">UNTRANSLATED:section_heading_date_of_expiry</string>

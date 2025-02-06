@@ -289,6 +289,8 @@
     <string name="info_text_submission_preview_disabled">Vorschau von Übermittelten Daten ist derzeit nicht verfügbar.</string>
     <string name="info_text_no_matching_credential">Es wurde kein passendes Credential für die Anfrage gefunden.</string>
     <string name="info_text_data_is_being_loaded">Daten werden geladen</string>
+    <string name="info_text_missing_permission">Berechtigung fehlt</string>
+    <string name="info_text_qr_code_loading">QR-Code wird geladen</string>
 
     <string name="section_heading_authenticate_at_device_title">Anmelden an</string>
     <string name="section_heading_authenticate_at_device_subtitle">Schalter oder Maschine</string>
@@ -333,7 +335,7 @@
     <string name="section_heading_request_custom">Individuelle Anfragen</string>
     <string name="section_heading_select_document_type">Wähle ein Dokument Typ:</string>
     <string name="section_heading_selected_namespace">Namespace: </string>
-    <string name="section_heading_select_requested_data_entrys">Wähle anzufordernde Daten</string>
+    <string name="section_heading_select_requested_data_entries">Wähle anzufordernde Daten</string>
     <string name="section_heading_vehicle_category">Fahrzeugkategorie:</string>
     <string name="section_heading_date_of_issue">Datum der Ausstellung:</string>
     <string name="section_heading_date_of_expiry">Ablaufdatum:</string>

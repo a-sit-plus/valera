@@ -97,7 +97,7 @@ class CborDecoder(
                                     addEntry(cborData)
                                 }
                             }
-                        } ?: Napier.d(tag = TAG, message = "entrys is null")
+                        } ?: Napier.d(tag = TAG, message = "entries is null")
                     }
                 } ?: Napier.d(tag = TAG, message = "nameSpaces is null")
             } ?: Napier.d(tag = TAG, message = "issuer signed is null")

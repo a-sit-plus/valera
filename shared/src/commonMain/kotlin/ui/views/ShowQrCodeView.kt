@@ -22,6 +22,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_show_qr_code_screen
+import at.asitplus.valera.resources.info_text_missing_permission
+import at.asitplus.valera.resources.info_text_qr_code_loading
 import org.jetbrains.compose.resources.stringResource
 import qrcode.QRCode
 import ui.viewmodels.ShowQrCodeViewModel
@@ -71,12 +73,12 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
                 contentAlignment = Alignment.Center
             ) {
                 if (!vm.permission) {
-                    Text("Permission Denied")
+                    Text(stringResource(Res.string.info_text_missing_permission))
                 } else if (vm.qrcodeText.isEmpty()) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         CircularProgressIndicator()
                         Spacer(modifier = Modifier.height(16.dp))
-                        Text("Loading Qr Code")
+                        Text(stringResource(Res.string.info_text_qr_code_loading))
                     }
                 } else {
                     val qrCode = createQrCode(vm.qrcodeText)

@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_select_custom_data_retrieval_screen
 import at.asitplus.valera.resources.section_heading_select_document_type
-import at.asitplus.valera.resources.section_heading_select_requested_data_entrys
+import at.asitplus.valera.resources.section_heading_select_requested_data_entries
 import at.asitplus.valera.resources.section_heading_selected_namespace
 import data.bletransfer.Verifier
 import data.bletransfer.verifier.DocumentAttributes
@@ -219,7 +219,7 @@ fun CustomDataRetrievalView(
     navigateUp: () -> Unit,
 ) {
     var selectedDocumentType by remember { mutableStateOf(documentTypeToNameSpace.keys.toList()[0]) }
-    var selectedEntrys by remember { mutableStateOf(setOf<StringResource>()) }
+    var selectedEntries by remember { mutableStateOf(setOf<StringResource>()) }
 
     Scaffold(
         topBar = {
@@ -252,7 +252,7 @@ fun CustomDataRetrievalView(
                             itemsToDocument(
                                 selectedDocumentType,
                                 documentTypeToNameSpace[selectedDocumentType]!!,
-                                selectedEntrys
+                                selectedEntries
                             )
                         )
                     },
@@ -299,19 +299,19 @@ fun CustomDataRetrievalView(
                 ) {
                     val listSpacingModifier = Modifier.padding(top = 8.dp)
                     Text(
-                        text = stringResource(Res.string.section_heading_select_requested_data_entrys),
+                        text = stringResource(Res.string.section_heading_select_requested_data_entries),
                         style = MaterialTheme.typography.titleMedium,
                     )
                     for (item in DocumentAttributes.entries.toList()) {
                         val current = item.displayName
                         multipleChoiceButton(current,
-                            selectedEntrys.contains(current),
-                            selectedEntrys.contains(current),
+                            selectedEntries.contains(current),
+                            selectedEntries.contains(current),
                             listSpacingModifier) {
-                            selectedEntrys = if (selectedEntrys.contains(current)) {
-                                selectedEntrys - current
+                            selectedEntries = if (selectedEntries.contains(current)) {
+                                selectedEntries - current
                             } else {
-                                selectedEntrys + current
+                                selectedEntries + current
                             }
                         }
                     }

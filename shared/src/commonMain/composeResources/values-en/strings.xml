@@ -290,6 +290,8 @@
     <string name="info_text_submission_preview_disabled">Preview of data to be submitted is currently not available.</string>
     <string name="info_text_no_matching_credential">Your credentials don't match the request.</string>
     <string name="info_text_data_is_being_loaded">Loading Data</string>
+    <string name="info_text_missing_permission">Permission missing</string>
+    <string name="info_text_qr_code_loading">Loading WR Code</string>
 
     <string name="section_heading_authenticate_at_device_title">Authenticate at</string>
     <string name="section_heading_authenticate_at_device_subtitle">counters or machines</string>
@@ -334,7 +336,7 @@
     <string name="section_heading_request_custom">Custom request</string>
     <string name="section_heading_select_document_type">Select document type:</string>
     <string name="section_heading_selected_namespace">Namespace: </string>
-    <string name="section_heading_select_requested_data_entrys">Select data entrys:</string>
+    <string name="section_heading_select_requested_data_entries">Select data entries:</string>
     <string name="section_heading_vehicle_category">Vehicle category:</string>
     <string name="section_heading_date_of_issue">Date of issue:</string>
     <string name="section_heading_date_of_expiry">Date of expiry:</string>
