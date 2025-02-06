@@ -411,9 +411,9 @@ private class EuPidCredentialSdJwtAdapter(
             ?: attributes[Attributes.RESIDENT_STATE]?.contentOrNull
 
     override val gender: String?
-        get() = attributes[SdJwtAttributes.GENDER]?.contentOrNull
-            ?: attributes[Attributes.GENDER]?.contentOrNull?.toIntOrNull()
+        get() = attributes[Attributes.GENDER]?.contentOrNull?.toIntOrNull()
                 ?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code }?.name }
+            ?: attributes[SdJwtAttributes.GENDER]?.contentOrNull
             ?: attributes[Attributes.GENDER]?.contentOrNull
 
     override val nationality: String?
@@ -554,6 +554,8 @@ private class EuPidCredentialIsoMdocAdapter(
 
     override val gender: String?
         get() = (euPidNamespace?.get(Attributes.GENDER) as? IsoIec5218Gender)?.name
+            ?: (euPidNamespace?.get(Attributes.GENDER) as? Int)
+                ?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code }?.name }
             ?: euPidNamespace?.get(Attributes.GENDER) as? String?
 
     override val nationality: String?
