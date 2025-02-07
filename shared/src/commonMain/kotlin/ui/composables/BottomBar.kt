@@ -15,30 +15,28 @@ import at.asitplus.valera.resources.navigation_button_label_settings
 import at.asitplus.valera.resources.navigation_button_label_show_data
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
-import ui.navigation.Routes.AuthenticationQrCodeScannerRoute
 import ui.navigation.Routes.HomeScreenRoute
 import ui.navigation.Routes.Route
 import ui.navigation.Routes.SettingsRoute
+import ui.navigation.Routes.ShowDataRoute
 
 @Composable
 fun BottomBar(navigate: (Route) -> Unit, selected: NavigationData) {
     NavigationBar {
         for (route in listOf(
             NavigationData.HOME_SCREEN,
-            NavigationData.AUTHENTICATION_SCANNING_SCREEN,
+            NavigationData.SHOW_DATA_SCREEN,
             NavigationData.INFORMATION_SCREEN,
         )) {
             NavigationBarItem(
                 icon = route.icon,
-                label = {
-                    Text(stringResource(route.title))
-                },
+                label = { Text(stringResource(route.title)) },
                 onClick = {
                     if (selected.destination != route.destination) {
                         navigate(route.destination)
                     }
                 },
-                selected = selected == route,
+                selected = selected == route
             )
         }
     }
@@ -59,14 +57,9 @@ enum class NavigationData(
             )
         },
         destination = HomeScreenRoute,
-        isActive = {
-            when (it) {
-                is HomeScreenRoute -> true
-                else -> false
-            }
-        },
+        isActive = { it is HomeScreenRoute },
     ),
-    AUTHENTICATION_SCANNING_SCREEN(
+    SHOW_DATA_SCREEN(
         title = Res.string.navigation_button_label_show_data,
         icon = {
             Icon(
@@ -74,13 +67,8 @@ enum class NavigationData(
                 contentDescription = null,
             )
         },
-        destination = AuthenticationQrCodeScannerRoute,
-        isActive = {
-            when (it) {
-                is AuthenticationQrCodeScannerRoute -> true
-                else -> false
-            }
-        },
+        destination = ShowDataRoute,
+        isActive = { it is ShowDataRoute }
     ),
     INFORMATION_SCREEN(
         title = Res.string.navigation_button_label_settings,
@@ -91,11 +79,6 @@ enum class NavigationData(
             )
         },
         destination = SettingsRoute,
-        isActive = {
-            when (it) {
-                is SettingsRoute -> true
-                else -> false
-            }
-        },
-    ),
+        isActive = { it is SettingsRoute }
+    )
 }

@@ -47,9 +47,9 @@ kotlin {
                 api(libs.credential.eprescription)
                 implementation(serialization("json"))
                 api(napier())
-                implementation("androidx.datastore:datastore-preferences-core:1.1.1")
-                implementation("androidx.datastore:datastore-core-okio:1.1.1")
-                implementation("org.jetbrains.androidx.navigation:navigation-compose:2.8.0-alpha10")
+                implementation(libs.datastore.preferences.core)
+                implementation(libs.datastore.core.okio)
+                implementation(libs.navigation.compose)
                 api(libs.atomicfu)
                 implementation(ktor("client-core"))
                 implementation(ktor("client-cio"))
@@ -58,6 +58,7 @@ kotlin {
                 implementation(ktor("serialization-kotlinx-json"))
                 implementation(libs.identity)
                 implementation(libs.semver)
+                implementation(libs.g0dkar.qrcode.kotlin)
             }
         }
 
@@ -86,19 +87,22 @@ kotlin {
 
                 implementation(libs.play.services.identity.credentials)
                 implementation(libs.identity.android)
+                implementation(libs.identity.android.legacy)
+                implementation(libs.identity.mdoc)
+                implementation(libs.jackson.databind)
+                implementation(libs.jackson.dataformat.cbor)
+                implementation(libs.jackson.module.kotlin)
             }
         }
 
         val androidInstrumentedTest by getting {
             dependencies {
-                implementation("androidx.compose.ui:ui-test-junit4")
-                implementation("androidx.compose.ui:ui-test-manifest")
+                implementation(libs.ui.test.junit4)
+                implementation(libs.ui.test.manifest)
             }
         }
         iosMain { dependencies { implementation(ktor("client-darwin")) } }
     }
-
-
 }
 
 android {

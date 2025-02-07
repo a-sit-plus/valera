@@ -5,6 +5,8 @@ import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_update_action
 import at.asitplus.valera.resources.snackbar_update_hint
+import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
+import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import at.asitplus.wallet.lib.Initializer.initOpenIdModule
 import at.asitplus.wallet.lib.agent.DefaultVerifierCryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
@@ -13,12 +15,9 @@ import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.cbor.DefaultCoseService
 import at.asitplus.wallet.lib.jws.DefaultJwsService
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
-import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
-import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
 import data.storage.AntilogAdapter
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
-import getImageDecoder
 import io.github.aakira.napier.Napier
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -52,6 +51,7 @@ class WalletMain(
     lateinit var snackbarService: SnackbarService
     lateinit var errorService: ErrorService
     lateinit var dcApiService: DCAPIService
+
     private val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
 
     val readyForIntents = MutableStateFlow<Boolean?>(null)
@@ -198,6 +198,7 @@ interface PlatformAdapter {
      * @param image the image as ByteArray
      * @return returns the image as an ImageBitmap
      */
+    fun decodeImage(image: ByteArray): ImageBitmap
 
     /**
      * Writes an user defined string to a file in a specific folder
@@ -228,6 +229,11 @@ interface PlatformAdapter {
     fun shareLog()
 
     /**
+     * Decodes an image that is encoded as Base64 as string and returns it as Bytearray
+     */
+    fun imageStringToBytearray(imageString: String): ByteArray
+
+    /**
      * Registers credentials with the digital credentials browser API
      * @param entries credentials to add
      */
@@ -242,15 +248,14 @@ interface PlatformAdapter {
      * Prepares the credential response and sends it back to the invoking application
      */
     fun prepareDCAPICredentialResponse(responseJson: ByteArray, dcApiRequest: DCAPIRequest)
-
-}
-
-fun PlatformAdapter.decodeImage(image: ByteArray): ImageBitmap {
-    return getImageDecoder((image))
 }
 
 class DummyPlatformAdapter : PlatformAdapter {
     override fun openUrl(url: String) {
+    }
+
+    override fun decodeImage(image: ByteArray): ImageBitmap {
+        return ImageBitmap(1, 1)
     }
 
     override fun writeToFile(text: String, fileName: String, folderName: String) {
@@ -266,6 +271,10 @@ class DummyPlatformAdapter : PlatformAdapter {
     override fun shareLog() {
     }
 
+    override fun imageStringToBytearray(imageString: String): ByteArray {
+        return byteArrayOf()
+    }
+
     override fun registerWithDigitalCredentialsAPI(entries: CredentialsContainer) {
     }
 
@@ -275,5 +284,4 @@ class DummyPlatformAdapter : PlatformAdapter {
 
     override fun prepareDCAPICredentialResponse(responseJson: ByteArray, dcApiRequest: DCAPIRequest) {
     }
-
 }

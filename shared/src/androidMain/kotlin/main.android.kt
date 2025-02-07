@@ -41,7 +41,6 @@ import java.io.File
 import java.security.Security
 import kotlin.io.encoding.ExperimentalEncodingApi
 
-
 actual fun getPlatformName(): String = "Android"
 var walletAPIData: WalletAPIData? = null
 
@@ -94,6 +93,11 @@ class AndroidPlatformAdapter(
     override fun openUrl(url: String) {
         Napier.d("Open URL: ${url.toUri()}")
         context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
+    }
+
+    override fun decodeImage(image: ByteArray): ImageBitmap {
+        val bitmap = BitmapFactory.decodeByteArray(image, 0, image.size)
+        return bitmap.asImageBitmap()
     }
 
     override fun writeToFile(text: String, fileName: String, folderName: String) {
@@ -150,6 +154,10 @@ class AndroidPlatformAdapter(
             type = "application/text"
         }
         context.startActivity(Intent.createChooser(intent, null))
+    }
+
+    override fun imageStringToBytearray(imageString: String): ByteArray {
+        return Base64.decode(imageString, Base64.DEFAULT)
     }
 
     override fun registerWithDigitalCredentialsAPI(entries: CredentialsContainer) {
