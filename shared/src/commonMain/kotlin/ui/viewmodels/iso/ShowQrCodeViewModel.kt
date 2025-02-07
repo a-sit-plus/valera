@@ -1,4 +1,4 @@
-package ui.viewmodels
+package ui.viewmodels.iso
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf

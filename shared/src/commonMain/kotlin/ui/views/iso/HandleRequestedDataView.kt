@@ -1,4 +1,4 @@
-package ui.views
+package ui.views.iso
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -69,7 +69,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.builtins.ByteArraySerializer
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton
-import ui.viewmodels.HandleRequestedDataViewModel
+import ui.viewmodels.iso.HandleRequestedDataViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -98,7 +98,6 @@ fun HandleRequestedDataView(
         }
     ) { scaffoldPadding ->
         Box(modifier = Modifier.padding(scaffoldPadding)) {
-
             when (view) {
                 HandleRequestedDataView.SELECTION -> {
                     selectRequestedDataView(
@@ -111,13 +110,9 @@ fun HandleRequestedDataView(
                     )
                 }
 
-                HandleRequestedDataView.LOADING -> {
-                    sendingRequestedDataView()
-                }
+                HandleRequestedDataView.LOADING -> { sendingRequestedDataView() }
 
-                HandleRequestedDataView.SENT -> {
-                    sentRequestedDataView()
-                }
+                HandleRequestedDataView.SENT -> { sentRequestedDataView() }
             }
         }
     }
@@ -150,7 +145,6 @@ fun createDocument(
                         nameSpace.nameSpace == namespace.key
                     } ?: false
                 }
-
                 else -> false
             }
         }
@@ -183,12 +177,17 @@ fun createDocument(
                                     throw PresentationException(it)
                                 }
 
-                                val issuerSigned = IssuerSigned.fromIssuerSignedItems(map, cCred.issuerSigned.issuerAuth)
+                                val issuerSigned = IssuerSigned.fromIssuerSignedItems(
+                                    map,
+                                    cCred.issuerSigned.issuerAuth
+                                )
                                 Document(
                                     reqDocument.docType,
                                     issuerSigned,
                                     DeviceSigned(
-                                        namespaces = ByteStringWrapper(DeviceNameSpaces(emptyMap()), byteArrayOf()),
+                                        namespaces = ByteStringWrapper(
+                                            DeviceNameSpaces(emptyMap()), byteArrayOf()
+                                        ),
                                         deviceAuth = DeviceAuth(deviceSignature = deviceSignature)
                                     )
                                 )

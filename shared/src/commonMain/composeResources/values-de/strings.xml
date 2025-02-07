@@ -181,7 +181,6 @@
     <string name="navigation_button_label_my_data">Meine Daten</string>
     <string name="navigation_button_label_settings">Einstellungen</string>
     <string name="navigation_button_label_check">Prüfen</string>
-    <string name="navigation_button_label_show_qr_code">Vorzeigen</string>
 
     <string name="id_format_plain_jwt_label">PLAIN_JWT</string>
     <string name="sid_format_sd_jwt_label">SD-JWT</string>

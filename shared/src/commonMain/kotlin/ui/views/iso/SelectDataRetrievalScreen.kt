@@ -1,4 +1,4 @@
-package ui.views
+package ui.views.iso
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -42,27 +42,14 @@ import data.bletransfer.verifier.getIdentityDocument
 import data.bletransfer.verifier.getLicenseDocument
 import org.jetbrains.compose.resources.stringResource
 
-// TODO: rename and handle to *View
-
-@Composable
-fun SelectDataRetrievalScreen(
-    navigateToCustomSelectionPage: () -> Unit,
-    navigateToQrDeviceEngagementPage: (Verifier.Document) -> Unit,
-    ) {
-    SelectDataRetrievalView(
-        onClickPreDefined=navigateToQrDeviceEngagementPage,
-        onClickCustom=navigateToCustomSelectionPage
-    )
-}
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SelectDataRetrievalView(
+fun VerifyDataView(
     onClickPreDefined: (Verifier.Document) -> Unit,
-    onClickCustom: () -> Unit
+    onClickCustom: () -> Unit,
+    bottomBar: @Composable () -> Unit
 ) {
-    var showDropDown = remember { mutableStateOf(false) }
+    val showDropDown = remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -72,9 +59,10 @@ fun SelectDataRetrievalView(
                         stringResource(Res.string.heading_label_select_data_retrieval_screen),
                         style = MaterialTheme.typography.headlineLarge
                     )
-                },
+                }
             )
-        }
+        },
+        bottomBar = { bottomBar() }
     ) { scaffoldPadding ->
         Box(modifier = Modifier.padding(scaffoldPadding)) {
             Column(
@@ -82,24 +70,22 @@ fun SelectDataRetrievalView(
                     .verticalScroll(rememberScrollState())
             ) {
                 val layoutSpacingModifier = Modifier.padding(top = 24.dp)
-                Column(
-                    modifier = layoutSpacingModifier
-                ) {
+                Column(modifier = layoutSpacingModifier) {
                     val listSpacingModifier = Modifier.padding(top = 8.dp)
                     Text(
                         text = stringResource(Res.string.section_heading_request_eausweise),
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleMedium
                     )
                     TextIconButtonListItem(
                         icon = {
                             Icon(
                                 imageVector = Icons.Outlined.Person,
-                                contentDescription = null,
+                                contentDescription = null
                             )
                         },
                         label = stringResource(Res.string.button_label_check_identity),
-                        onClick = {onClickPreDefined(getIdentityDocument())},
-                        modifier = listSpacingModifier.fillMaxWidth(),
+                        onClick = { onClickPreDefined(getIdentityDocument()) },
+                        modifier = listSpacingModifier.fillMaxWidth()
                     )
                     TextIconButtonListItem(
                         icon = {
@@ -109,8 +95,8 @@ fun SelectDataRetrievalView(
                             )
                         },
                         label = stringResource(Res.string.button_label_check_license),
-                        onClick = {onClickPreDefined(getLicenseDocument())},
-                        modifier = listSpacingModifier.fillMaxWidth(),
+                        onClick = { onClickPreDefined(getLicenseDocument()) },
+                        modifier = listSpacingModifier.fillMaxWidth()
                     )
                     TextIconButtonListItem(
                         icon = {
@@ -131,58 +117,53 @@ fun SelectDataRetrievalView(
                                 TextIconButtonListItem(
                                     icon = {},
                                     label = stringResource(Res.string.button_label_check_over_age) + age,
-                                    onClick = {onClickPreDefined(getAgeVerificationDocument(age))},
-                                    modifier = listSpacingModifier.fillMaxWidth(),
+                                    onClick = { onClickPreDefined(getAgeVerificationDocument(age)) },
+                                    modifier = listSpacingModifier.fillMaxWidth()
                                 )
                             }
                         }
                     }
                 }
-                Column(
-                    modifier = layoutSpacingModifier
-                ) {
+                Column(modifier = layoutSpacingModifier) {
                     val listSpacingModifier = Modifier.padding(top = 8.dp)
                     Text(
                         text = stringResource(Res.string.section_heading_request_license),
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleMedium
                     )
                     TextIconButtonListItem(
                         icon = {
                             Icon(
                                 imageVector = Icons.Outlined.CreditCard,
-                                contentDescription = null,
+                                contentDescription = null
                             )
                         },
                         label = stringResource(Res.string.button_label_check_license),
-                        onClick = {onClickPreDefined(getLicenseDocument())},
-                        modifier = listSpacingModifier.fillMaxWidth(),
+                        onClick = { onClickPreDefined(getLicenseDocument()) },
+                        modifier = listSpacingModifier.fillMaxWidth()
                     )
                 }
-                Column(
-                    modifier = layoutSpacingModifier
-                ) {
+                Column(modifier = layoutSpacingModifier) {
                     val listSpacingModifier = Modifier.padding(top = 8.dp)
                     Text(
                         text = stringResource(Res.string.section_heading_request_custom),
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleMedium
                     )
                     TextIconButtonListItem(
                         icon = {
                             Icon(
                                 imageVector = Icons.Outlined.Build,
-                                contentDescription = null,
+                                contentDescription = null
                             )
                         },
                         label = stringResource(Res.string.button_label_check_custom),
                         onClick = onClickCustom,
-                        modifier = listSpacingModifier.fillMaxWidth(),
+                        modifier = listSpacingModifier.fillMaxWidth()
                     )
                 }
             }
         }
     }
 }
-
 
 @Composable
 private fun TextIconButtonListItem(
@@ -193,17 +174,14 @@ private fun TextIconButtonListItem(
 ) {
     val gap = 16.dp
     Row(
-        modifier = modifier.clickable(
-            onClick = onClick,
-        ).padding(top = 8.dp, end = 24.dp, bottom = 8.dp, start = 16.dp),
+        modifier = modifier.clickable(onClick = onClick)
+            .padding(top = 8.dp, end = 24.dp, bottom = 8.dp, start = 16.dp)
     ) {
         icon()
         Spacer(modifier = Modifier.width(gap))
         Text(
             text = label,
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.bodyLarge
         )
     }
 }
-
-

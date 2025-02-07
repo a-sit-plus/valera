@@ -59,3 +59,12 @@ object ShowQrCodeRoute : Route()
 
 @Serializable
 object HandleRequestedDataRoute : Route()
+
+@Serializable
+object VerifyDataRoute : Route()
+
+@Serializable
+object CustomDataRetrievalRoute : Route()
+
+@Serializable
+object QrDeviceEngagementRoute : Route()

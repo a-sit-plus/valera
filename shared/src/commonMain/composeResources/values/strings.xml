@@ -163,7 +163,6 @@
     <string name="navigation_button_label_my_data">UNTRANSLATED:navigation_button_label_my_data</string>
     <string name="navigation_button_label_settings">UNTRANSLATED:navigation_button_label_settings</string>
     <string name="navigation_button_label_check">UNTRANSLATED:navigation_button_label_check</string>
-    <string name="navigation_button_label_show_qr_code">UNTRANSLATED:navigation_button_label_show_qr_code</string>
 
     <string name="id_format_plain_jwt_label">UNTRANSLATED:id_format_plain_jwt_label</string>
     <string name="id_format_sd_jwt_label">UNTRANSLATED:id_format_sd_jwt_label</string>

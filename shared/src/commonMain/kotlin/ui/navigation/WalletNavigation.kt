@@ -52,7 +52,9 @@ import ui.navigation.Routes.AddCredentialRoute
 import ui.navigation.Routes.AuthenticationQrCodeScannerRoute
 import ui.navigation.Routes.AuthenticationSuccessRoute
 import ui.navigation.Routes.AuthenticationViewRoute
+import ui.navigation.Routes.VerifyDataRoute
 import ui.navigation.Routes.CredentialDetailsRoute
+import ui.navigation.Routes.CustomDataRetrievalRoute
 import ui.navigation.Routes.DCAPIAuthenticationConsentRoute
 import ui.navigation.Routes.ErrorRoute
 import ui.navigation.Routes.HandleRequestedDataRoute
@@ -65,6 +67,7 @@ import ui.navigation.Routes.OnboardingStartRoute
 import ui.navigation.Routes.OnboardingTermsRoute
 import ui.navigation.Routes.OnboardingWrapperTestTags
 import ui.navigation.Routes.PreAuthQrCodeScannerRoute
+import ui.navigation.Routes.QrDeviceEngagementRoute
 import ui.navigation.Routes.Route
 import ui.navigation.Routes.SettingsRoute
 import ui.navigation.Routes.ShowDataRoute
@@ -76,19 +79,18 @@ import ui.viewmodels.Authentication.DCAPIAuthenticationViewModel
 import ui.viewmodels.Authentication.DefaultAuthenticationViewModel
 import ui.viewmodels.CredentialDetailsViewModel
 import ui.viewmodels.CredentialsViewModel
-import ui.viewmodels.HandleRequestedDataViewModel
 import ui.viewmodels.LoadCredentialViewModel
 import ui.viewmodels.LogViewModel
 import ui.viewmodels.PreAuthQrCodeScannerViewModel
 import ui.viewmodels.SettingsViewModel
-import ui.viewmodels.ShowQrCodeViewModel
+import ui.viewmodels.iso.HandleRequestedDataViewModel
+import ui.viewmodels.iso.ShowQrCodeViewModel
 import ui.views.Authentication.AuthenticationQrCodeScannerView
 import ui.views.Authentication.AuthenticationSuccessView
 import ui.views.Authentication.AuthenticationView
 import ui.views.CredentialDetailsView
 import ui.views.CredentialsView
 import ui.views.ErrorView
-import ui.views.HandleRequestedDataView
 import ui.views.LoadCredentialView
 import ui.views.LoadingView
 import ui.views.LogView
@@ -99,7 +101,11 @@ import ui.views.PreAuthQrCodeScannerScreen
 import ui.views.SelectIssuingServerView
 import ui.views.SettingsView
 import ui.views.ShowDataView
-import ui.views.ShowQrCodeView
+import ui.views.iso.CustomDataRetrievalView
+import ui.views.iso.HandleRequestedDataView
+import ui.views.iso.QrDeviceEngagementView
+import ui.views.iso.VerifyDataView
+import ui.views.iso.ShowQrCodeView
 
 internal object NavigatorTestTags {
     const val loadingTestTag = "loadingTestTag"
@@ -173,8 +179,8 @@ fun WalletNavigation(walletMain: WalletMain) {
     }
 
     LaunchedEffect(null) {
-        appLink.combineTransform(walletMain.readyForIntents) { link,  ready ->
-            if (ready == true && link != null){
+        appLink.combineTransform(walletMain.readyForIntents) { link, ready ->
+            if (ready == true && link != null) {
                 emit(link)
             }
         }.collect { link ->
@@ -254,7 +260,9 @@ private fun WalletNavHost(
 
         composable<ShowDataRoute> {
             ShowDataView(
-                onNavigateToAuthenticationQrCodeScannerView = { navigate(AuthenticationQrCodeScannerRoute) },
+                onNavigateToAuthenticationQrCodeScannerView = {
+                    navigate(AuthenticationQrCodeScannerRoute)
+                },
                 onNavigateToShowQrCodeView = { navigate(ShowQrCodeRoute) },
                 bottomBar = {
                     BottomBar(
@@ -274,7 +282,7 @@ private fun WalletNavHost(
             AuthenticationQrCodeScannerView(vm)
         }
 
-        composable<ShowQrCodeRoute> { backStackEntry ->
+        composable<ShowQrCodeRoute> {
             val vm = ShowQrCodeViewModel(
                 walletMain = walletMain,
                 holder = getHolder(),
@@ -287,13 +295,49 @@ private fun WalletNavHost(
             ShowQrCodeView(vm)
         }
 
-        composable<HandleRequestedDataRoute> { backStackEntry ->
+        composable<HandleRequestedDataRoute> {
             val vm = HandleRequestedDataViewModel(
                 walletMain = walletMain,
                 navigateUp = { navigateBack() },
                 holder = getHolder()
             )
             HandleRequestedDataView(vm)
+        }
+
+        composable<VerifyDataRoute> {
+            VerifyDataView(
+                onClickPreDefined = { document ->
+                    Napier.w("Not yet implemented: handle document\ndocument = $document")
+                    navigate(QrDeviceEngagementRoute)
+                },
+                onClickCustom = { navigate(CustomDataRetrievalRoute) },
+                bottomBar = {
+                    BottomBar(
+                        navigate = navigate,
+                        selected = NavigationData.VERIFY_DATA_SCREEN
+                    )
+                }
+            )
+        }
+
+        composable<CustomDataRetrievalRoute> {
+            CustomDataRetrievalView(
+                onClick = { document ->
+                    Napier.w("Not yet implemented: handle document\ndocument = $document")
+                    navigate(QrDeviceEngagementRoute)
+                },
+                navigateUp = { navigateBack() }
+            )
+        }
+
+        composable<QrDeviceEngagementRoute> {
+            // TODO: here we need from both routes (custom & predefined) the document
+            QrDeviceEngagementView(
+                onFoundPayload = { payload ->
+                    Napier.w("Not yet implemented: handle payload\npayload = $payload")
+                },
+                navigateUp = { navigateBack() }
+            )
         }
 
         composable<AuthenticationViewRoute> { backStackEntry ->
@@ -417,7 +461,8 @@ private fun WalletNavHost(
                             walletMain.provisioningService.loadCredentialWithOffer(
                                 credentialOffer = offer,
                                 credentialIdentifierInfo = credentialIdentifierInfo,
-                                transactionCode = transactionCode?.ifEmpty { null }?.ifBlank { null },
+                                transactionCode = transactionCode?.ifEmpty { null }
+                                    ?.ifBlank { null },
                                 requestedAttributes = requestedAttributes
                             )
                         } catch (e: Throwable) {

@@ -1,4 +1,4 @@
-package ui.views
+package ui.views.iso
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -26,7 +26,7 @@ import at.asitplus.valera.resources.info_text_missing_permission
 import at.asitplus.valera.resources.info_text_qr_code_loading
 import org.jetbrains.compose.resources.stringResource
 import qrcode.QRCode
-import ui.viewmodels.ShowQrCodeViewModel
+import ui.viewmodels.iso.ShowQrCodeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,7 +83,10 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
                 } else {
                     val qrCode = createQrCode(vm.qrcodeText)
                     val imageBitmap = vm.walletMain.platformAdapter.decodeImage(qrCode)
-                    Image(bitmap = imageBitmap, contentDescription = null)
+                    Image(
+                        bitmap = imageBitmap,
+                        contentDescription = null
+                    )
                 }
             }
         }

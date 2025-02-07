@@ -1,4 +1,4 @@
-package ui.viewmodels
+package ui.viewmodels.iso
 
 import at.asitplus.wallet.app.common.WalletMain
 import data.bletransfer.Holder
