@@ -20,10 +20,10 @@ enum class IntentType {
     ErrorIntent,
     ProvisioningIntent,
     AuthorizationIntent,
+    SigningServiceIntent,
+    SigningCredentialIntent,
     SigningIntent,
-    SigningFinalizeIntent,
-    DCAPIAuthorizationIntent,
-    CreateSignRequest
+    DCAPIAuthorizationIntent
 }
 
 suspend fun handleIntent(
@@ -93,26 +93,28 @@ suspend fun handleIntent(
             appLink.value = null
         }
 
+        IntentType.SigningServiceIntent -> {
+            runCatching {
+                walletMain.signingService.resumeWithServiceAuthCode(url = link)
+            }.onSuccess {
+                navigate(HomeScreenRoute)
+            }.onFailure { e ->
+                walletMain.errorService.emit(e)
+            }
+        }
+        IntentType.SigningCredentialIntent -> {
+            runCatching {
+                walletMain.signingService.resumeWithCredentialAuthCode(url = link)
+            }.onSuccess {
+                navigate(HomeScreenRoute)
+            }.onFailure { e ->
+                walletMain.errorService.emit(e)
+            }
+        }
         IntentType.SigningIntent -> {
-            try {
-                walletMain.signingService.resumeWithAuthCode(url = link)
-            } catch(e: Throwable) {
-                walletMain.errorService.emit(e)
-            }
-            navigate(HomeScreenRoute)
-        }
-        IntentType.SigningFinalizeIntent -> {
-            try {
-                walletMain.signingService.finalizeWithAuthCode(url = link)
-            } catch(e: Throwable) {
-                walletMain.errorService.emit(e)
-            }
-            navigate(HomeScreenRoute)
-        }
-        IntentType.CreateSignRequest -> {
-            try {
-                walletMain.signingService.sign(link)
-            } catch(e: Throwable) {
+            runCatching {
+                walletMain.signingService.start(link)
+            }.onFailure { e ->
                 walletMain.errorService.emit(e)
             }
         }
@@ -123,9 +125,9 @@ suspend fun handleIntent(
 fun parseIntent(walletMain: WalletMain, url: String): IntentType {
     return if((walletMain.signingService.redirectUri?.let { url.contains(it) } == true)) {
         if (url.contains("finalize")){
-            IntentType.SigningFinalizeIntent
+            IntentType.SigningCredentialIntent
         } else {
-            IntentType.SigningIntent
+            IntentType.SigningServiceIntent
         }
     } else if (walletMain.provisioningService.redirectUri?.let { url.contains(it) } == true) {
         IntentType.ProvisioningIntent
@@ -134,7 +136,7 @@ fun parseIntent(walletMain: WalletMain, url: String): IntentType {
     } else if (url == "androidx.identitycredentials.action.GET_CREDENTIALS") {
         IntentType.DCAPIAuthorizationIntent
     } else if (url.contains("createSignRequest")) {
-        IntentType.CreateSignRequest
+        IntentType.SigningIntent
     } else {
         IntentType.AuthorizationIntent
     }

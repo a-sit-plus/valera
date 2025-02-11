@@ -3,6 +3,7 @@ package at.asitplus.wallet.app.common
 import CscAuthorizationDetails
 import at.asitplus.openid.AuthorizationDetails
 import at.asitplus.openid.TokenResponseParameters
+import at.asitplus.rqes.CredentialInfo
 import at.asitplus.rqes.CscCredentialListRequest
 import at.asitplus.rqes.CscCredentialListResponse
 import at.asitplus.rqes.SignatureRequestParameters
@@ -54,7 +55,6 @@ class SigningService(
     var signatureReguestParameter: SignatureRequestParameters? = null
     var document: ByteArray? = null
     var documentWithLabel: DocumentWithLabel? = null
-    var signatureAlgorithm: X509SignatureAlgorithm? = null
 
     val egizUrl = "https://apps.egiz.gv.at/qtsp"
 
@@ -69,192 +69,42 @@ class SigningService(
 
     lateinit var rqesWalletService: RqesOpenId4VpHolder
 
-    @OptIn(ExperimentalEncodingApi::class)
-    suspend fun sign(url: String) {
+    fun init(){
         qtspConfig = runBlocking { config.qtspConfig.first() }
         rqesWalletService =
             RqesOpenId4VpHolder(redirectUrl = redirectUrl, clientId = qtspConfig.oauth2ClientId)
+    }
 
-        val url = URLBuilder(url)
+    suspend fun start(url: String) {
+        init()
 
-        val requestUri = url.parameters["request_uri"] ?: throw Throwable("Missing request_uri")
-        val resp = client.get(requestUri)
-        val jwt = resp.bodyAsText()
-        val split = jwt.split(".")
-        val payload = split[1]
-        val payloadBytes = Base64.UrlSafe.withPadding(option = Base64.PaddingOption.ABSENT_OPTIONAL)
-            .decode(payload)
-        val payloadString = payloadBytes.decodeToString(0, 0 + payloadBytes.size)
-
-        val signatureRequestParameter =
-            vckJsonSerializer.decodeFromString<SignatureRequestParameters>(payloadString)
-        this.signatureReguestParameter = signatureRequestParameter
-
-        val documentLocation = signatureRequestParameter.documentLocations.first().uri
-        val document = client.get(documentLocation).bodyAsBytes()
-        val documentLabel = signatureRequestParameter.documentDigests.first().label
-        this.document = document
-        this.documentWithLabel = DocumentWithLabel(document, documentLabel)
-
-        val authRequest =
-            rqesWalletService.createServiceAuthenticationRequest()
-
-        val targetUrl = URLBuilder("${qtspConfig.oauth2BaseUrl}/oauth2/authorize").apply {
-            authRequest.encodeToParameters().forEach {
-                parameters.append(it.key, it.value)
-            }
-        }.buildString()
+        extractSignatureRequestParameter(url)
+        val targetUrl = createServiceAuthRequest()
         redirectUri = this.redirectUrl
         platformAdapter.openUrl(targetUrl)
     }
 
-    suspend fun resumeWithAuthCode(url: String) {
-        val tokenUrl = "${qtspConfig.oauth2BaseUrl}/oauth2/token"
-
-        val url = URLBuilder(url)
-        val code = url.parameters["code"] ?: throw Throwable("Missing code")
-        val state = url.parameters["state"] ?: throw Throwable("Missing state")
-
-        Napier.e("Code: $code, State: $state")
-
-        val tokenRequest = rqesWalletService.createOAuth2TokenRequest(
-            state,
-            authorization = OAuth2Client.AuthorizationForToken.Code(code),
-            authorizationDetails = setOf()
-        )
-
-        val tokenResponse = client.post(tokenUrl) {
-            contentType(FormUrlEncoded)
-            accept(Json)
-            setBody(
-                tokenRequest.encodeToParameters().formUrlEncode()
-            )
-        }.body<String>().also {
-            Napier.d { "TokenResponseParameter $it" }
-        }
-
-        /**
-         * Cannot parse to [TokenResponseParameters] bc authorizationDetails are set but empty
-         * also currently missing `expires_in`
-         */
-        val tokenParsed = vckJsonSerializer.decodeFromString<JsonElement>(tokenResponse)
-
-        val tokenParsedMap = (tokenParsed as? JsonObject)?.mapValues {
-            if (it.key != "authorization_details") it.value
-            else JsonPrimitive(null)
-        }?.toMutableMap() ?: mutableMapOf()
-        tokenParsedMap["expires_in"] = JsonPrimitive(3600)
-        val tokenParsed2 = vckJsonSerializer.encodeToJsonElement(tokenParsedMap)
-        val tokenResponseParameters =
-            vckJsonSerializer.decodeFromJsonElement<TokenResponseParameters>(tokenParsed2)
-        Napier.d { "$tokenResponse and $tokenParsed and $tokenResponseParameters" }
-
-
-        //TODO check wieso authInfo in [CredentialListRequest] nullable aber nicht in [CredentialListResponse]
-        val credentialListRequest = CscCredentialListRequest(
-            credentialInfo = true,
-            certificates = CertificateOptions.SINGLE,
-            certInfo = true,
-            authInfo = true,
-            onlyValid = true,
-        )
-
-        val credentialResponse = client.post("${qtspConfig.qtspBaseUrl}/credentials/list") {
-            accept(Json)
-            contentType(Json)
-            header(
-                HttpHeaders.Authorization,
-                "${tokenResponseParameters.tokenType} ${tokenResponseParameters.accessToken}"
-            )
-            setBody(vckJsonSerializer.encodeToString(credentialListRequest))
-        }
-        val credentialListResponse = credentialResponse.body<CscCredentialListResponse>()
-
-        val credentialInfo = credentialListResponse.credentialInfos?.first()
-            ?: throw Throwable("Missing credentialInfos")
+    suspend fun resumeWithServiceAuthCode(url: String) {
+        val token = getTokenFromAuthCode(url)
+        val credentialInfo = getCredentialInfo(token)
 
         rqesWalletService.setSigningCredential(credentialInfo)
 
-        val signAlgorithm = rqesWalletService.signingCredential?.supportedSigningAlgorithms?.first() ?: X509SignatureAlgorithm.RS512
-
-        this.signatureAlgorithm = signAlgorithm
-
-        val documentWithLabel =
-            this.documentWithLabel ?: throw Throwable("Missing documentWithLabel")
-        val dtbsr = listOf(getDTBSR(client = client, qtspHost = egizUrl, signatureAlgorithm = signAlgorithm, signingCredential = rqesWalletService.signingCredential!!, document = documentWithLabel))
-        val transactionTokens = dtbsr.map { it.first }
-        this.transactionTokens = transactionTokens
-
-        val dtbsrAuthenticationDetails =
-            rqesWalletService.getCscAuthenticationDetails(dtbsr.map { it.second }, hashAlgorithm = signAlgorithm.digest)
-        this.dtbsrAuthenticationDetails = dtbsrAuthenticationDetails
-
-        val authRequest = rqesWalletService.
-        createCredentialAuthenticationRequest(
-            documentDigests = dtbsr.map { it.second },
-            redirectUrl = "${this.redirectUrl}/finalize",
-            hashAlgorithm = signAlgorithm.digest,
-            numSignatures = 1,
-            hashes = dtbsr.map {it.second.hash}
-        )
-
-        /**
-         * Using browser in case TOS needs to be accepted etc (current default and only way)
-         */
-        val targetUrl = URLBuilder("${qtspConfig.oauth2BaseUrl}/oauth2/authorize").apply {
-            authRequest.encodeToParameters().forEach {
-                parameters.append(it.key, it.value)
-            }
-        }.buildString()
+        val targetUrl = createCredentialAuthRequest()
         redirectUri = this.redirectUrl
         platformAdapter.openUrl(targetUrl)
     }
 
-    suspend fun finalizeWithAuthCode(url: String) {
-        val tokenUrl = "${qtspConfig.oauth2BaseUrl}/oauth2/token"
 
-        val url = URLBuilder(url)
-        val code = url.parameters["code"] ?: throw Throwable("Missing code")
-        val state = url.parameters["state"] ?: throw Throwable("Missing state")
+    suspend fun resumeWithCredentialAuthCode(url: String) {
+        val token = getTokenFromAuthCode(url)
 
-        Napier.e("Code: $code, State: $state")
-
-        val tokenRequest = rqesWalletService.createOAuth2TokenRequest(
-            state,
-            authorization = OAuth2Client.AuthorizationForToken.Code(code),
-            authorizationDetails = setOf()
-        )
-
-        val tokenResponse = client.post(tokenUrl) {
-            contentType(FormUrlEncoded)
-            accept(Json)
-            setBody(
-                tokenRequest.encodeToParameters().formUrlEncode()
-            )
-        }.body<String>().also {
-            Napier.d { "TokenResponseParameter $it" }
-        }
-
-        /**
-         * Cannot parse to [TokenResponseParameters] bc authorizationDetails are set but empty
-         * also currently missing `expires_in`
-         */
-        val tokenParsed = vckJsonSerializer.decodeFromString<JsonElement>(tokenResponse)
-
-        val tokenParsedMap = (tokenParsed as? JsonObject)?.mapValues {
-            if (it.key != "authorization_details") it.value
-            else JsonPrimitive(null)
-        }?.toMutableMap() ?: mutableMapOf()
-        tokenParsedMap["expires_in"] = JsonPrimitive(3600)
-        val tokenParsed2 = vckJsonSerializer.encodeToJsonElement(tokenParsedMap)
-        val tokenResponseParameters =
-            vckJsonSerializer.decodeFromJsonElement<TokenResponseParameters>(tokenParsed2)
-        Napier.d { "$tokenResponse and $tokenParsed and $tokenResponseParameters" }
+        val signAlgorithm = rqesWalletService.signingCredential?.supportedSigningAlgorithms?.first() ?: X509SignatureAlgorithm.RS512
 
         val signHashRequest = rqesWalletService.createSignHashRequestParameters(
             dtbsr = (this.dtbsrAuthenticationDetails as CscAuthorizationDetails).documentDigests.map { it.hash },
-            sad = tokenResponseParameters.accessToken,
-            signatureAlgorithm = this.signatureAlgorithm ?: throw Throwable("Missing signatureAlgorithm")
+            sad = token.accessToken,
+            signatureAlgorithm = signAlgorithm
         )
 
         val signatures = client.post("${qtspConfig.qtspBaseUrl}/signatures/signHash") {
@@ -287,5 +137,141 @@ class SigningService(
                     .formUrlEncode()
             )
         }
+    }
+
+    suspend fun createServiceAuthRequest(): String{
+        val authRequest =
+            rqesWalletService.createServiceAuthenticationRequest()
+
+        val targetUrl = URLBuilder("${qtspConfig.oauth2BaseUrl}/oauth2/authorize").apply {
+            authRequest.encodeToParameters().forEach {
+                parameters.append(it.key, it.value)
+            }
+        }.buildString()
+        return targetUrl
+    }
+
+    @OptIn(ExperimentalEncodingApi::class)
+    suspend fun extractSignatureRequestParameter(url: String) {
+        val url = URLBuilder(url)
+        val requestUri = url.parameters["request_uri"] ?: throw Throwable("Missing request_uri")
+        val resp = client.get(requestUri)
+        val jwt = resp.bodyAsText()
+        val split = jwt.split(".")
+        val payload = split[1]
+        val payloadBytes = Base64.UrlSafe.withPadding(option = Base64.PaddingOption.ABSENT_OPTIONAL)
+            .decode(payload)
+        val payloadString = payloadBytes.decodeToString(0, 0 + payloadBytes.size)
+
+        val signatureRequestParameter =
+            vckJsonSerializer.decodeFromString<SignatureRequestParameters>(payloadString)
+        this.signatureReguestParameter = signatureRequestParameter
+
+        val documentLocation = signatureRequestParameter.documentLocations.first().uri
+        val document = client.get(documentLocation).bodyAsBytes()
+        val documentLabel = signatureRequestParameter.documentDigests.first().label
+        this.document = document
+        this.documentWithLabel = DocumentWithLabel(document, documentLabel)
+    }
+
+    suspend fun getTokenFromAuthCode(url: String): TokenResponseParameters {
+        val tokenUrl = "${qtspConfig.oauth2BaseUrl}/oauth2/token"
+
+        val url = URLBuilder(url)
+        val code = url.parameters["code"] ?: throw Throwable("Missing code")
+        val state = url.parameters["state"] ?: throw Throwable("Missing state")
+
+        Napier.e("Code: $code, State: $state")
+
+        val tokenRequest = rqesWalletService.createOAuth2TokenRequest(
+            state,
+            authorization = OAuth2Client.AuthorizationForToken.Code(code),
+            authorizationDetails = setOf()
+        )
+
+        val tokenResponse = client.post(tokenUrl) {
+            contentType(FormUrlEncoded)
+            accept(Json)
+            setBody(
+                tokenRequest.encodeToParameters().formUrlEncode()
+            )
+        }.body<String>().also {
+            Napier.d { "TokenResponseParameter $it" }
+        }
+
+        /**
+         * Cannot parse to [TokenResponseParameters] bc authorizationDetails are set but empty
+         * also currently missing `expires_in`
+         */
+        val tokenParsed = vckJsonSerializer.decodeFromString<JsonElement>(tokenResponse)
+
+        val tokenParsedMap = (tokenParsed as? JsonObject)?.mapValues {
+            if (it.key != "authorization_details") it.value
+            else JsonPrimitive(null)
+        }?.toMutableMap() ?: mutableMapOf()
+        tokenParsedMap["expires_in"] = JsonPrimitive(3600)
+        val tokenParsed2 = vckJsonSerializer.encodeToJsonElement(tokenParsedMap)
+        val tokenResponseParameters =
+            vckJsonSerializer.decodeFromJsonElement<TokenResponseParameters>(tokenParsed2)
+        Napier.d { "$tokenResponse and $tokenParsed and $tokenResponseParameters" }
+
+        return tokenResponseParameters
+    }
+
+    suspend fun getCredentialInfo(token: TokenResponseParameters): CredentialInfo {
+        val credentialListRequest = CscCredentialListRequest(
+            credentialInfo = true,
+            certificates = CertificateOptions.SINGLE,
+            certInfo = true,
+            authInfo = true,
+            onlyValid = true,
+        )
+
+        val credentialResponse = client.post("${qtspConfig.qtspBaseUrl}/credentials/list") {
+            accept(Json)
+            contentType(Json)
+            header(
+                HttpHeaders.Authorization,
+                "${token.tokenType} ${token.accessToken}"
+            )
+            setBody(vckJsonSerializer.encodeToString(credentialListRequest))
+        }
+        val credentialListResponse = credentialResponse.body<CscCredentialListResponse>()
+
+        val credentialInfo = credentialListResponse.credentialInfos?.first()
+            ?: throw Throwable("Missing credentialInfos")
+
+        return credentialInfo
+    }
+
+    suspend fun createCredentialAuthRequest(): String{
+        val signAlgorithm = rqesWalletService.signingCredential?.supportedSigningAlgorithms?.first() ?: X509SignatureAlgorithm.RS512
+
+        val documentWithLabel =
+            this.documentWithLabel ?: throw Throwable("Missing documentWithLabel")
+        val dtbsr = listOf(getDTBSR(client = client, qtspHost = egizUrl, signatureAlgorithm = signAlgorithm, signingCredential = rqesWalletService.signingCredential!!, document = documentWithLabel))
+        val transactionTokens = dtbsr.map { it.first }
+        this.transactionTokens = transactionTokens
+
+        val dtbsrAuthenticationDetails =
+            rqesWalletService.getCscAuthenticationDetails(dtbsr.map { it.second }, hashAlgorithm = signAlgorithm.digest)
+        this.dtbsrAuthenticationDetails = dtbsrAuthenticationDetails
+
+        val authRequest = rqesWalletService.
+        createCredentialAuthenticationRequest(
+            documentDigests = dtbsr.map { it.second },
+            redirectUrl = "${this.redirectUrl}/finalize",
+            hashAlgorithm = signAlgorithm.digest,
+            numSignatures = 1,
+            hashes = dtbsr.map {it.second.hash}
+        )
+
+        val targetUrl = URLBuilder("${qtspConfig.oauth2BaseUrl}/oauth2/authorize").apply {
+            authRequest.encodeToParameters().forEach {
+                parameters.append(it.key, it.value)
+            }
+        }.buildString()
+
+        return targetUrl
     }
 }
