@@ -30,7 +30,6 @@ datastore-preferences-core = { module = "androidx.datastore:datastore-preference
 g0dkar-qrcode-kotlin = { module = "io.github.g0dkar:qrcode-kotlin", version.ref = "qrcode-kotlin" }
 identity = { module = "com.android.identity:identity", version.ref = "identity" }
 identity-android = { module = "com.android.identity:identity-android", version.ref = "identity" }
-identity-android-legacy = { module = "com.android.identity:identity-android-legacy", version.ref = "identity" }
 identity-mdoc = { module = "com.android.identity:identity-mdoc", version.ref  ="identity" }
 jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
 jackson-dataformat-cbor = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-cbor", version.ref = "jackson" }
