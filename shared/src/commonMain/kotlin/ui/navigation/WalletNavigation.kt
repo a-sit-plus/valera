@@ -469,7 +469,7 @@ private fun WalletNavHost(
                     navigate(HomeScreenRoute)
                     CoroutineScope(Dispatchers.Main).launch {
                         try{
-                            walletMain.signingService.sign(signRequest)
+                            walletMain.signingService.start(signRequest)
 
                         } catch (e: Throwable) {
                             walletMain.errorService.emit(e)
