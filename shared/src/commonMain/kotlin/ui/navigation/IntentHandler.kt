@@ -23,6 +23,7 @@ enum class IntentType {
     SigningIntent,
     SigningFinalizeIntent,
     DCAPIAuthorizationIntent,
+    CreateSignRequest
 }
 
 suspend fun handleIntent(
@@ -108,6 +109,13 @@ suspend fun handleIntent(
             }
             navigate(HomeScreenRoute)
         }
+        IntentType.CreateSignRequest -> {
+            try {
+                walletMain.signingService.sign(link)
+            } catch(e: Throwable) {
+                walletMain.errorService.emit(e)
+            }
+        }
     }
 }
 
@@ -125,6 +133,8 @@ fun parseIntent(walletMain: WalletMain, url: String): IntentType {
         IntentType.ErrorIntent
     } else if (url == "androidx.identitycredentials.action.GET_CREDENTIALS") {
         IntentType.DCAPIAuthorizationIntent
+    } else if (url.contains("createSignRequest")) {
+        IntentType.CreateSignRequest
     } else {
         IntentType.AuthorizationIntent
     }
