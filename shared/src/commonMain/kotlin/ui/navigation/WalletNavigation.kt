@@ -34,7 +34,9 @@ import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
+import data.bletransfer.Verifier
 import data.bletransfer.getHolder
+import data.bletransfer.getVerifier
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -60,6 +62,7 @@ import ui.navigation.Routes.ErrorRoute
 import ui.navigation.Routes.HandleRequestedDataRoute
 import ui.navigation.Routes.HomeScreenRoute
 import ui.navigation.Routes.LoadCredentialRoute
+import ui.navigation.Routes.LoadRequestedDataRoute
 import ui.navigation.Routes.LoadingRoute
 import ui.navigation.Routes.LogRoute
 import ui.navigation.Routes.OnboardingInformationRoute
@@ -84,6 +87,7 @@ import ui.viewmodels.LogViewModel
 import ui.viewmodels.PreAuthQrCodeScannerViewModel
 import ui.viewmodels.SettingsViewModel
 import ui.viewmodels.iso.HandleRequestedDataViewModel
+import ui.viewmodels.iso.LoadRequestedDataViewModel
 import ui.viewmodels.iso.ShowQrCodeViewModel
 import ui.views.Authentication.AuthenticationQrCodeScannerView
 import ui.views.Authentication.AuthenticationSuccessView
@@ -103,6 +107,7 @@ import ui.views.SettingsView
 import ui.views.ShowDataView
 import ui.views.iso.CustomDataRetrievalView
 import ui.views.iso.HandleRequestedDataView
+import ui.views.iso.LoadRequestedDataView
 import ui.views.iso.QrDeviceEngagementView
 import ui.views.iso.VerifyDataView
 import ui.views.iso.ShowQrCodeView
@@ -307,8 +312,9 @@ private fun WalletNavHost(
         composable<VerifyDataRoute> {
             VerifyDataView(
                 onClickPreDefined = { document ->
-                    Napier.w("Not yet implemented: handle document\ndocument = $document")
-                    navigate(QrDeviceEngagementRoute)
+                    navigate(QrDeviceEngagementRoute(
+                        odcJsonSerializer.encodeToString(Verifier.Document.serializer(), document))
+                    )
                 },
                 onClickCustom = { navigate(CustomDataRetrievalRoute) },
                 bottomBar = {
@@ -323,21 +329,41 @@ private fun WalletNavHost(
         composable<CustomDataRetrievalRoute> {
             CustomDataRetrievalView(
                 onClick = { document ->
-                    Napier.w("Not yet implemented: handle document\ndocument = $document")
-                    navigate(QrDeviceEngagementRoute)
+                    navigate(QrDeviceEngagementRoute(
+                        odcJsonSerializer.encodeToString(Verifier.Document.serializer(), document))
+                    )
                 },
-                navigateUp = { navigateBack() }
+                navigateUp = {
+                    getVerifier().disconnect()
+                    navigateBack()
+                }
             )
         }
 
-        composable<QrDeviceEngagementRoute> {
-            // TODO: here we need from both routes (custom & predefined) the document
+        composable<QrDeviceEngagementRoute> { backStackEntry ->
+            val route: QrDeviceEngagementRoute = backStackEntry.toRoute()
             QrDeviceEngagementView(
                 onFoundPayload = { payload ->
-                    Napier.w("Not yet implemented: handle payload\npayload = $payload")
+                    navigate(LoadRequestedDataRoute(route.document, payload))
                 },
-                navigateUp = { navigateBack() }
+                navigateUp = {
+                    getVerifier().disconnect()
+                    navigateBack()
+                }
             )
+        }
+
+        composable<LoadRequestedDataRoute> { backStackEntry ->
+            val route: LoadRequestedDataRoute = backStackEntry.toRoute()
+            val vm = LoadRequestedDataViewModel(
+                odcJsonSerializer.decodeFromString<Verifier.Document>(route.document),
+                route.payload,
+                navigateUp = {
+                    getVerifier().disconnect()
+                    navigate(VerifyDataRoute)
+                }
+            )
+            LoadRequestedDataView(vm)
         }
 
         composable<AuthenticationViewRoute> { backStackEntry ->

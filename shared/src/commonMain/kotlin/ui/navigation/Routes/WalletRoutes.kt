@@ -67,4 +67,7 @@ object VerifyDataRoute : Route()
 object CustomDataRetrievalRoute : Route()
 
 @Serializable
-object QrDeviceEngagementRoute : Route()
+class QrDeviceEngagementRoute(val document: String) : Route()
+
+@Serializable
+class LoadRequestedDataRoute(val document: String, val payload: String) : Route()

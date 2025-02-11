@@ -51,6 +51,8 @@ class QrCommunicationSetup(
                 context,
                 deviceRetrievalHelperListener,
                 Dispatchers.IO.asExecutor(),
+                // TODO: solve the casting problem
+                //  java.lang.ClassCastException: com.android.org.conscrypt.OpenSSLECPrivateKey cannot be cast to org.bouncycastle.jce.interfaces.ECPrivateKey
                 session.ephemeralKeyPair.private.toEcPrivateKey(session.ephemeralKeyPair.public, EcCurve.P256)
             )
 
