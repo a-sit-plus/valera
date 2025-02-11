@@ -2,7 +2,6 @@ package data.bletransfer.holder
 
 import android.annotation.SuppressLint
 import android.content.Context
-import com.android.identity.android.legacy.PresentationSession
 import data.bletransfer.util.CborDecoder
 import io.github.aakira.napier.Napier
 
@@ -22,7 +21,6 @@ class TransferManager private constructor(private val context: Context) {
     }
 
     private var qrCommunicationSetup: QrCommunicationSetup? = null
-    private var session: PresentationSession? = null
     private var hasStarted = false
 
     private lateinit var communication: Communication
@@ -44,8 +42,7 @@ class TransferManager private constructor(private val context: Context) {
                 Napier.d(tag = TAG, message = "QrCode: $qrText")
                 updateQrCode(qrText)
             },
-            onDeviceRetrievalHelperReady = { session, deviceRetrievalHelper ->
-                this.session = session
+            onDeviceRetrievalHelperReady = { deviceRetrievalHelper ->
                 communication.setupPresentation(deviceRetrievalHelper)
                 Napier.d(tag = TAG, message = "CONNECTED")
             },
@@ -102,7 +99,6 @@ class TransferManager private constructor(private val context: Context) {
 
     private fun destroy() {
         qrCommunicationSetup = null
-        session = null
         hasStarted = false
     }
 }
