@@ -24,23 +24,25 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.button_label_check_over_age
-import at.asitplus.valera.resources.button_label_check_identity
 import at.asitplus.valera.resources.button_label_check_age
-import at.asitplus.valera.resources.button_label_check_license
-import at.asitplus.valera.resources.heading_label_select_data_retrieval_screen
 import at.asitplus.valera.resources.button_label_check_custom
+import at.asitplus.valera.resources.button_label_check_identity
+import at.asitplus.valera.resources.button_label_check_license
+import at.asitplus.valera.resources.button_label_check_over_age
+import at.asitplus.valera.resources.heading_label_select_data_retrieval_screen
+import at.asitplus.valera.resources.section_heading_request_custom
 import at.asitplus.valera.resources.section_heading_request_eausweise
 import at.asitplus.valera.resources.section_heading_request_license
-import at.asitplus.valera.resources.section_heading_request_custom
 import data.bletransfer.Verifier
 import data.bletransfer.verifier.getAgeVerificationDocument
 import data.bletransfer.verifier.getIdentityDocument
 import data.bletransfer.verifier.getLicenseDocument
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.Logo
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,14 +55,20 @@ fun VerifyDataView(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
+            TopAppBar(title = {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
                         stringResource(Res.string.heading_label_select_data_retrieval_screen),
-                        style = MaterialTheme.typography.headlineLarge
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.headlineLarge,
                     )
+                    Logo()
+                    Spacer(Modifier.width(8.dp))
                 }
-            )
+            })
         },
         bottomBar = { bottomBar() }
     ) { scaffoldPadding ->

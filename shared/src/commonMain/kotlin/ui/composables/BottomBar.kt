@@ -10,6 +10,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.text.style.TextAlign
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.navigation_button_label_check
 import at.asitplus.valera.resources.navigation_button_label_my_data
@@ -17,11 +18,11 @@ import at.asitplus.valera.resources.navigation_button_label_settings
 import at.asitplus.valera.resources.navigation_button_label_show_data
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
-import ui.navigation.Routes.VerifyDataRoute
 import ui.navigation.Routes.HomeScreenRoute
 import ui.navigation.Routes.Route
 import ui.navigation.Routes.SettingsRoute
 import ui.navigation.Routes.ShowDataRoute
+import ui.navigation.Routes.VerifyDataRoute
 
 @Composable
 fun BottomBar(navigate: (Route) -> Unit, selected: NavigationData) {
@@ -34,7 +35,12 @@ fun BottomBar(navigate: (Route) -> Unit, selected: NavigationData) {
         )) {
             NavigationBarItem(
                 icon = route.icon,
-                label = { Text(stringResource(route.title)) },
+                label = {
+                    Text(
+                        text = stringResource(route.title),
+                        textAlign = TextAlign.Center,
+                    )
+                },
                 onClick = {
                     if (selected.destination != route.destination) {
                         navigate(route.destination)

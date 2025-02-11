@@ -3,8 +3,10 @@ package ui.views.iso
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
@@ -26,6 +28,8 @@ import at.asitplus.valera.resources.info_text_missing_permission
 import at.asitplus.valera.resources.info_text_qr_code_loading
 import org.jetbrains.compose.resources.stringResource
 import qrcode.QRCode
+import ui.composables.Logo
+import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.iso.ShowQrCodeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,7 +44,7 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
     }
 
     LaunchedEffect(Unit) {
-        val updateQrCode: (String) -> Unit =  { str -> vm.qrcodeText = str }
+        val updateQrCode: (String) -> Unit = { str -> vm.qrcodeText = str }
         holder.hold(updateQrCode) {
             vm.shouldDisconnect = false
             vm.onConnection(holder)
@@ -59,11 +63,16 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        stringResource(Res.string.heading_label_show_qr_code_screen),
-                        style = MaterialTheme.typography.headlineLarge
-                    )
-                }
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            stringResource(Res.string.heading_label_show_qr_code_screen),
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.headlineMedium,
+                        )
+                        Logo()
+                    }
+                },
+                navigationIcon = { NavigateUpButton(vm.navigateUp) }
             )
         }
     ) { scaffoldPadding ->

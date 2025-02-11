@@ -292,10 +292,7 @@ private fun WalletNavHost(
                 walletMain = walletMain,
                 holder = getHolder(),
                 navigateUp = { navigateBack() },
-                onConnection = {
-                    navigateBack()
-                    navigate(HandleRequestedDataRoute)
-                }
+                onConnection = { navigate(HandleRequestedDataRoute) }
             )
             ShowQrCodeView(vm)
         }

@@ -68,6 +68,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.builtins.ByteArraySerializer
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.iso.HandleRequestedDataViewModel
 
@@ -84,16 +85,16 @@ fun HandleRequestedDataView(
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             stringResource(Res.string.heading_label_select_requested_data),
-                            style = MaterialTheme.typography.headlineLarge,
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.headlineMedium,
                         )
+                        Logo()
                     }
                 },
-                navigationIcon = {
-                    NavigateUpButton(vm.navigateUp)
-                }
+                navigationIcon = { NavigateUpButton(vm.navigateUp) }
             )
         }
     ) { scaffoldPadding ->
@@ -280,14 +281,16 @@ fun selectRequestedDataView(
                                 modifier = Modifier.weight(2f)
                             )
 
-                            val isAvailableChecked = credentialsContainAttribute(storeContainerState, item)
+                            val isAvailableChecked =
+                                credentialsContainAttribute(storeContainerState, item)
                             Checkbox(
                                 checked = isAvailableChecked,
                                 onCheckedChange = {},
                                 modifier = Modifier.weight(1f).size(30.dp)
                             )
 
-                            val isSendingChecked = isAvailableChecked && !uncheckedAttributes.contains(item)
+                            val isSendingChecked =
+                                isAvailableChecked && !uncheckedAttributes.contains(item)
                             Checkbox(
                                 checked = isSendingChecked,
                                 modifier = Modifier.weight(1f).size(30.dp),

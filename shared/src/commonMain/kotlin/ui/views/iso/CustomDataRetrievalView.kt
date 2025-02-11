@@ -3,6 +3,7 @@ package ui.views.iso
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
@@ -25,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.semantics.Role
@@ -40,6 +42,7 @@ import data.bletransfer.verifier.documentTypeToNameSpace
 import data.bletransfer.verifier.itemsToDocument
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -55,16 +58,16 @@ fun CustomDataRetrievalView(
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             stringResource(Res.string.heading_label_select_custom_data_retrieval_screen),
-                            style = MaterialTheme.typography.headlineLarge,
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.headlineMedium,
                         )
+                        Logo()
                     }
                 },
-                navigationIcon = {
-                    NavigateUpButton(navigateUp)
-                },
+                navigationIcon = { NavigateUpButton(navigateUp) }
             )
         },
         bottomBar = {

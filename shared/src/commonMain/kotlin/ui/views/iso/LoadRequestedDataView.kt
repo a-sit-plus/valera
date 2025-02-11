@@ -2,8 +2,10 @@ package ui.views.iso
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,6 +23,7 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_requested_data
 import at.asitplus.valera.resources.info_text_data_is_being_loaded
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.iso.LoadRequestedDataViewModel
 
@@ -33,16 +36,16 @@ fun LoadRequestedDataView(vm: LoadRequestedDataViewModel) {
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             stringResource(Res.string.heading_label_requested_data),
-                            style = MaterialTheme.typography.headlineLarge,
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.headlineMedium,
                         )
+                        Logo()
                     }
                 },
-                navigationIcon = {
-                    NavigateUpButton(vm.navigateUp)
-                }
+                navigationIcon = { NavigateUpButton(vm.navigateUp) }
             )
         }
     ) { scaffoldPadding ->
