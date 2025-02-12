@@ -32,6 +32,7 @@ import io.ktor.http.ContentType.Application.Json
 import io.ktor.http.HttpHeaders
 import io.ktor.http.URLBuilder
 import io.ktor.http.contentType
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.builtins.ListSerializer
@@ -67,21 +68,44 @@ class SigningService(
     private val client = httpService.buildHttpClient(cookieStorage)
     private val redirectUrl = "asitplus-wallet://wallet.a-sit.at/app/callback/signing"
 
+    val credentialInfo = MutableStateFlow<CredentialInfo?>(null)
+
     lateinit var rqesWalletService: RqesOpenId4VpHolder
 
-    fun init(){
+    fun init(redirectUrl: String = this.redirectUrl){
         qtspConfig = runBlocking { config.qtspConfig.first() }
         rqesWalletService =
             RqesOpenId4VpHolder(redirectUrl = redirectUrl, clientId = qtspConfig.oauth2ClientId)
     }
 
+    suspend fun preloadCertificate() {
+        init(this.redirectUrl + "/preload")
+
+        val targetUrl = createServiceAuthRequest()
+        redirectUri = this.redirectUrl + "/preload"
+        platformAdapter.openUrl(targetUrl)
+    }
+
+    suspend fun resumePreloadCertificate(url: String) {
+        val token = getTokenFromAuthCode(url)
+        val credentialInfo = getCredentialInfo(token)
+        this.credentialInfo.emit(credentialInfo)
+    }
+
     suspend fun start(url: String) {
         init()
 
-        extractSignatureRequestParameter(url)
-        val targetUrl = createServiceAuthRequest()
-        redirectUri = this.redirectUrl
-        platformAdapter.openUrl(targetUrl)
+        if (credentialInfo.value == null) {
+            val targetUrl = createServiceAuthRequest()
+            redirectUri = this.redirectUrl
+            platformAdapter.openUrl(targetUrl)
+        } else {
+            rqesWalletService.setSigningCredential(this.credentialInfo.value!!)
+            extractSignatureRequestParameter(url)
+            val targetUrl = createCredentialAuthRequest()
+            redirectUri = this.redirectUrl
+            platformAdapter.openUrl(targetUrl)
+        }
     }
 
     suspend fun resumeWithServiceAuthCode(url: String) {
