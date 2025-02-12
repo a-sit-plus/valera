@@ -22,6 +22,7 @@ enum class IntentType {
     AuthorizationIntent,
     SigningServiceIntent,
     SigningCredentialIntent,
+    SiginingPreloadIntent,
     SigningIntent,
     DCAPIAuthorizationIntent
 }
@@ -102,6 +103,13 @@ suspend fun handleIntent(
                 walletMain.errorService.emit(e)
             }
         }
+        IntentType.SiginingPreloadIntent -> {
+            runCatching {
+                walletMain.signingService.resumePreloadCertificate(url = link)
+            }.onFailure { e ->
+                walletMain.errorService.emit(e)
+            }
+        }
         IntentType.SigningCredentialIntent -> {
             runCatching {
                 walletMain.signingService.resumeWithCredentialAuthCode(url = link)
@@ -126,6 +134,8 @@ fun parseIntent(walletMain: WalletMain, url: String): IntentType {
     return if((walletMain.signingService.redirectUri?.let { url.contains(it) } == true)) {
         if (url.contains("finalize")){
             IntentType.SigningCredentialIntent
+        } else if (url.contains("preload")) {
+            IntentType.SiginingPreloadIntent
         } else {
             IntentType.SigningServiceIntent
         }

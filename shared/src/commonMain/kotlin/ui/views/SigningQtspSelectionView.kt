@@ -3,11 +3,14 @@ package ui.views
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -33,7 +36,9 @@ import at.asitplus.valera.resources.text_label_qtsp
 import at.asitplus.wallet.app.common.QtspConfig
 import at.asitplus.wallet.app.common.qtspAtrust
 import at.asitplus.wallet.app.common.qtspEgiz
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.LabeledText
 import ui.composables.Logo
 import ui.composables.TextIconButton
 import ui.composables.buttons.NavigateUpButton
@@ -103,6 +108,33 @@ fun SigningQtspSelectionView(
                     onExpandedChange = { expanded = it },
                     availableIdentifiers = availableConfigs
                 )
+                Spacer(modifier = Modifier.height(10.dp))
+
+                val credentialInfo = vm.walletMain.signingService.credentialInfo.value
+
+
+                Button(onClick = { runBlocking { vm.walletMain.signingService.preloadCertificate() } }, enabled = (credentialInfo == null)) {
+                    Text("Preload Certificate")
+                }
+                if (vm.walletMain.signingService.credentialInfo.value != null) {
+                    Column(modifier = Modifier.padding(start = 32.dp)) {
+                        LabeledText(
+                            label = "credentialID",
+                            text = "${credentialInfo?.credentialID}",
+                            modifier = Modifier,
+                        )
+                        LabeledText(
+                            label = "validFrom",
+                            text = "${credentialInfo?.certParameters?.validFrom}",
+                            modifier = Modifier,
+                        )
+                        LabeledText(
+                            label = "validTo",
+                            text = "${credentialInfo?.certParameters?.validTo}",
+                            modifier = Modifier,
+                        )
+                    }
+                }
             }
         }
     }
