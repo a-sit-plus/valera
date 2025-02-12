@@ -262,8 +262,6 @@ class SigningService(
             documentDigests = dtbsr.map { it.second },
             redirectUrl = "${this.redirectUrl}/finalize",
             hashAlgorithm = signAlgorithm.digest,
-            numSignatures = 1,
-            hashes = dtbsr.map {it.second.hash}
         )
 
         val targetUrl = URLBuilder("${qtspConfig.oauth2BaseUrl}/oauth2/authorize").apply {
