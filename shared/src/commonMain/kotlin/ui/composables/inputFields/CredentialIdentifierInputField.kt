@@ -55,7 +55,11 @@ fun StatefulCredentialIdentifierInputField(
         },
         expanded = showMenu,
         enabled = enabled,
-        onExpandedChange = { if (enabled) { showMenu = it } },
+        onExpandedChange = {
+            if (enabled) {
+                showMenu = it
+            }
+        },
         modifier = modifier,
         availableIdentifiers = availableIdentifiers,
     )
@@ -91,10 +95,10 @@ fun CredentialIdentifierInputField(
             onDismissRequest = { onExpandedChange(false) },
             modifier = Modifier.fillMaxWidth(),
         ) {
-            for (identifier in availableIdentifiers) {
+            availableIdentifiers.associateBy { it.uiLabel() }.map {
                 DropdownMenuItem(
-                    text = { Text(identifier.uiLabel()) },
-                    onClick = { onValueChange(identifier) },
+                    text = { Text(it.key) },
+                    onClick = { onValueChange(it.value) },
                     enabled = enabled,
                 )
             }

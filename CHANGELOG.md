@@ -1,5 +1,5 @@
 # Release 5.4.11
- * tbd
+ * Update to VC-K 5.4.0
 
 # Release 5.4.10
  * Update to VC-K 5.3.3 to fix ISO mdoc presentation acc. to ISO 18013-7
