@@ -485,8 +485,7 @@ private fun WalletNavHost(
                 navigateUp = navigateBack,
                 onContinue = { config ->
                     runBlocking {
-                        walletMain.signingService.config.current = config
-                        walletMain.signingService.exportToDataStore()
+
                     }
                     navigate(SigningRoute)
                 },
