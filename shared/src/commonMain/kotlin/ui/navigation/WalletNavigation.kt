@@ -484,11 +484,13 @@ private fun WalletNavHost(
             val vm = SigningQtspSelectionViewModel(
                 navigateUp = navigateBack,
                 onContinue = { config ->
-                    walletMain.walletConfig.set(qtspConfig = config)
+                    runBlocking {
+                        walletMain.signingService.config.current = config
+                        walletMain.signingService.exportToDataStore()
+                    }
                     navigate(SigningRoute)
                 },
-                walletMain = walletMain,
-                qtspConfig = runBlocking { walletMain.walletConfig.qtspConfig.first() }
+                walletMain = walletMain
             )
             SigningQtspSelectionView(vm = vm)
         }

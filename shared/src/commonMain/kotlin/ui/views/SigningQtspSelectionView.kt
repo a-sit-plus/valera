@@ -33,9 +33,7 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.heading_label_sign_document
 import at.asitplus.valera.resources.text_label_qtsp
-import at.asitplus.wallet.app.common.QtspConfig
-import at.asitplus.wallet.app.common.qtspAtrust
-import at.asitplus.wallet.app.common.qtspEgiz
+import at.asitplus.wallet.app.common.SigningConfig
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.LabeledText
@@ -49,7 +47,10 @@ import ui.viewmodels.SigningQtspSelectionViewModel
 fun SigningQtspSelectionView(
     vm: SigningQtspSelectionViewModel
 ) {
-    var config = remember { vm.qtspConfig }
+    var config = remember { vm.walletMain.signingService.config }
+    var list = config.qtsps
+    var selection = mutableStateOf(config.current)
+
 
     Scaffold(
         topBar = {
@@ -87,7 +88,7 @@ fun SigningQtspSelectionView(
                             text = {
                                 Text(stringResource(Res.string.button_label_continue))
                             },
-                            onClick = { vm.onContinue(config) },
+                            onClick = { vm.onContinue(selection.value) },
                             modifier = Modifier,
                         )
                     }
@@ -100,37 +101,34 @@ fun SigningQtspSelectionView(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 var expanded by remember { mutableStateOf(false) }
-                val availableConfigs = listOf(qtspEgiz, qtspAtrust)
                 QtspSelectionField(
-                    value = config,
-                    onValueChange = { config = it; expanded = !expanded },
+                    value = selection.value,
+                    onValueChange = { selection.value = it; expanded = !expanded },
                     expanded = expanded,
                     onExpandedChange = { expanded = it },
-                    availableIdentifiers = availableConfigs
+                    config = config
                 )
                 Spacer(modifier = Modifier.height(10.dp))
 
-                val credentialInfo = vm.walletMain.signingService.credentialInfo.value
-
-
-                Button(onClick = { runBlocking { vm.walletMain.signingService.preloadCertificate() } }, enabled = (credentialInfo == null)) {
+                Button(onClick = { runBlocking { vm.walletMain.signingService.preloadCertificate() } }, enabled = (vm.walletMain.signingService.config.getQtspByIdentifier(selection.value).credentialInfo == null)) {
                     Text("Preload Certificate")
                 }
-                if (vm.walletMain.signingService.credentialInfo.value != null) {
+
+                if (vm.walletMain.signingService.config.getQtspByIdentifier(selection.value).credentialInfo != null) {
                     Column(modifier = Modifier.padding(start = 32.dp)) {
                         LabeledText(
                             label = "credentialID",
-                            text = "${credentialInfo?.credentialID}",
+                            text = "${vm.walletMain.signingService.config.getQtspByIdentifier(selection.value).credentialInfo!!.credentialID}",
                             modifier = Modifier,
                         )
                         LabeledText(
                             label = "validFrom",
-                            text = "${credentialInfo?.certParameters?.validFrom}",
+                            text = "${vm.walletMain.signingService.config.getQtspByIdentifier(selection.value).credentialInfo!!.certParameters?.validFrom}",
                             modifier = Modifier,
                         )
                         LabeledText(
                             label = "validTo",
-                            text = "${credentialInfo?.certParameters?.validTo}",
+                            text = "${vm.walletMain.signingService.config.getQtspByIdentifier(selection.value).credentialInfo!!.certParameters?.validTo}",
                             modifier = Modifier,
                         )
                     }
@@ -143,13 +141,13 @@ fun SigningQtspSelectionView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QtspSelectionField(
-    value: QtspConfig,
-    onValueChange: (QtspConfig) -> Unit,
+    value: String,
+    onValueChange: (String) -> Unit,
     expanded: Boolean,
     enabled: Boolean = true,
     onExpandedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
-    availableIdentifiers: Collection<QtspConfig>,
+    config: SigningConfig,
 ) {
     ExposedDropdownMenuBox(
         expanded = expanded,
@@ -158,7 +156,7 @@ fun QtspSelectionField(
     ) {
         OutlinedTextField(
             readOnly = true,
-            value = value.qtspBaseUrl,
+            value = config.qtsps.filter { it.identifier == value }.first().qtspBaseUrl,
             onValueChange = {},
             label = { Text(stringResource(Res.string.text_label_qtsp)) },
             enabled = enabled,
@@ -170,10 +168,10 @@ fun QtspSelectionField(
             onDismissRequest = { onExpandedChange(false) },
             modifier = Modifier.fillMaxWidth(),
         ) {
-            for (identifier in availableIdentifiers) {
+            for (qtsp in config.qtsps) {
                 DropdownMenuItem(
-                    text = { Text(identifier.qtspBaseUrl) },
-                    onClick = { onValueChange(identifier) },
+                    text = { Text(qtsp.qtspBaseUrl) },
+                    onClick = { onValueChange(qtsp.identifier) },
                     enabled = enabled,
                 )
             }
