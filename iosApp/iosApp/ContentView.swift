@@ -16,7 +16,8 @@ struct ComposeView: UIViewControllerRepresentable {
                 buildType: buildType,
                 packageName: Bundle.main.bundleIdentifier ?? "at.asitplus.wallet.compose",
                 versionCode: Bundle.main.infoDictionary?["CFBundleVersion"] as? Int32 ?? 1,
-                versionName: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String  ?? "1.0.0"
+                versionName: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String  ?? "1.0.0",
+                operatingSystemString: "iOS " + UIDevice.current.systemVersion
             )
         )
     }
