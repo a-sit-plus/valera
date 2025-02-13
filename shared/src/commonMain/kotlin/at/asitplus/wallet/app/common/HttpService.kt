@@ -48,7 +48,7 @@ class HttpService(private val buildContext: BuildContext) {
                 level = LogLevel.ALL
             }
             install(DefaultRequest) {
-                header(HttpHeaders.UserAgent, "Valera/${buildContext.versionName} (${buildContext.operatingSystemString})")
+                header(HttpHeaders.UserAgent, "Valera/${buildContext.versionName} (${buildContext.osVersion})")
             }
         }
 }

@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity() {
                     packageName = BuildConfig.APPLICATION_ID,
                     versionCode = BuildConfig.VERSION_CODE,
                     versionName = BuildConfig.VERSION_NAME,
-                    operatingSystemString = "Android ${Build.VERSION.RELEASE}"
+                    osVersion = "Android ${Build.VERSION.RELEASE}"
                 ),
                 walletAPIData,
                 ::sendCredentialResponseToDCAPIInvoker
