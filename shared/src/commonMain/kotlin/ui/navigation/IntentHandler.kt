@@ -12,6 +12,7 @@ import io.github.aakira.napier.Napier
 import io.ktor.http.parseQueryString
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.getString
+import ui.navigation.Routes.HomeScreenRoute
 import ui.navigation.Routes.LoadingRoute
 import ui.navigation.Routes.Route
 
@@ -19,7 +20,11 @@ enum class IntentType {
     ErrorIntent,
     ProvisioningIntent,
     AuthorizationIntent,
-    DCAPIAuthorizationIntent,
+    SigningServiceIntent,
+    SigningCredentialIntent,
+    SiginingPreloadIntent,
+    SigningIntent,
+    DCAPIAuthorizationIntent
 }
 
 suspend fun handleIntent(
@@ -88,17 +93,60 @@ suspend fun handleIntent(
 
             appLink.value = null
         }
+
+        IntentType.SigningServiceIntent -> {
+            runCatching {
+                walletMain.signingService.resumeWithServiceAuthCode(url = link)
+            }.onSuccess {
+                navigate(HomeScreenRoute)
+            }.onFailure { e ->
+                walletMain.errorService.emit(e)
+            }
+        }
+        IntentType.SiginingPreloadIntent -> {
+            runCatching {
+                walletMain.signingService.resumePreloadCertificate(url = link)
+            }.onFailure { e ->
+                walletMain.errorService.emit(e)
+            }
+        }
+        IntentType.SigningCredentialIntent -> {
+            runCatching {
+                walletMain.signingService.resumeWithCredentialAuthCode(url = link)
+            }.onSuccess {
+                navigate(HomeScreenRoute)
+            }.onFailure { e ->
+                walletMain.errorService.emit(e)
+            }
+        }
+        IntentType.SigningIntent -> {
+            runCatching {
+                walletMain.signingService.start(link)
+            }.onFailure { e ->
+                walletMain.errorService.emit(e)
+            }
+        }
     }
 }
 
 
 fun parseIntent(walletMain: WalletMain, url: String): IntentType {
-    return if (walletMain.provisioningService.redirectUri?.let { url.contains(it) } == true) {
+    return if((walletMain.signingService.redirectUri?.let { url.contains(it) } == true)) {
+        if (url.contains("finalize")){
+            IntentType.SigningCredentialIntent
+        } else if (url.contains("preload")) {
+            IntentType.SiginingPreloadIntent
+        } else {
+            IntentType.SigningServiceIntent
+        }
+    } else if (walletMain.provisioningService.redirectUri?.let { url.contains(it) } == true) {
         IntentType.ProvisioningIntent
     } else if (url.contains("error")) {
         IntentType.ErrorIntent
     } else if (url == "androidx.identitycredentials.action.GET_CREDENTIALS") {
         IntentType.DCAPIAuthorizationIntent
+    } else if (url.contains("createSignRequest")) {
+        IntentType.SigningIntent
     } else {
         IntentType.AuthorizationIntent
     }

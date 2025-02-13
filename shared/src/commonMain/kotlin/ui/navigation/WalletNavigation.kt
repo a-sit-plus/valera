@@ -66,6 +66,8 @@ import ui.navigation.Routes.OnboardingWrapperTestTags
 import ui.navigation.Routes.PreAuthQrCodeScannerRoute
 import ui.navigation.Routes.Route
 import ui.navigation.Routes.SettingsRoute
+import ui.navigation.Routes.SigningQtspSelectionRoute
+import ui.navigation.Routes.SigningRoute
 import ui.screens.SelectIssuingServerView
 import ui.viewmodels.AddCredentialViewModel
 import ui.viewmodels.Authentication.AuthenticationQrCodeScannerViewModel
@@ -78,6 +80,8 @@ import ui.viewmodels.LoadCredentialViewModel
 import ui.viewmodels.LogViewModel
 import ui.viewmodels.PreAuthQrCodeScannerViewModel
 import ui.viewmodels.SettingsViewModel
+import ui.viewmodels.SigningQtspSelectionViewModel
+import ui.viewmodels.SigningViewModel
 import ui.views.Authentication.AuthenticationQrCodeScannerView
 import ui.views.Authentication.AuthenticationSuccessView
 import ui.views.Authentication.AuthenticationView
@@ -92,6 +96,8 @@ import ui.views.OnboardingStartView
 import ui.views.OnboardingTermsView
 import ui.views.PreAuthQrCodeScannerScreen
 import ui.views.SettingsView
+import ui.views.SigningQtspSelectionView
+import ui.views.SigningView
 
 internal object NavigatorTestTags {
     const val loadingTestTag = "loadingTestTag"
@@ -405,6 +411,9 @@ private fun WalletNavHost(
                     }
                     walletMain.snackbarService.showSnackbar(clearMessage)
                 },
+                onClickSigning = {
+                    navigate(SigningQtspSelectionRoute)
+                },
                 walletMain = walletMain,
             )
             SettingsView(
@@ -452,5 +461,37 @@ private fun WalletNavHost(
             )
             AuthenticationQrCodeScannerView(vm)
         }
+
+        composable<SigningRoute> { backStackEntry ->
+            val vm = SigningViewModel(
+                navigateUp = navigateBack,
+                createSignRequest = { signRequest ->
+                    navigate(HomeScreenRoute)
+                    CoroutineScope(Dispatchers.Main).launch {
+                        try{
+                            walletMain.signingService.start(signRequest)
+
+                        } catch (e: Throwable) {
+                            walletMain.errorService.emit(e)
+                        }
+                    }
+                },
+                walletMain = walletMain,
+            )
+            SigningView(vm)
+        }
+        composable<SigningQtspSelectionRoute> { backStackEntry ->
+            val vm = SigningQtspSelectionViewModel(
+                navigateUp = navigateBack,
+                onContinue = { config ->
+                    walletMain.walletConfig.set(qtspConfig = config)
+                    navigate(SigningRoute)
+                },
+                walletMain = walletMain,
+                qtspConfig = runBlocking { walletMain.walletConfig.qtspConfig.first() }
+            )
+            SigningQtspSelectionView(vm = vm)
+        }
+
     }
 }

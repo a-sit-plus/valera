@@ -9,7 +9,8 @@ import org.jetbrains.compose.resources.getString
 class SettingsViewModel (walletMain: WalletMain,
                          val onClickShareLogFile: () -> Unit,
                          val onClickClearLogFile: () -> Unit,
-                         val onClickResetApp: () -> Unit) {
+                         val onClickResetApp: () -> Unit,
+                         val onClickSigning: () -> Unit) {
     val buildType = walletMain.buildContext.buildType
     val version = walletMain.buildContext.versionName
 
