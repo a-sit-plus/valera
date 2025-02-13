@@ -319,11 +319,11 @@ data class SigningConfig(
     var current: String
 ) {
     fun getCurrent(): QtspConfig{
-        return this.qtsps.filter { it.identifier == this.current }.first()
+        return this.qtsps.first { it.identifier == this.current }
     }
 
     fun getQtspByIdentifier(identifier: String): QtspConfig {
-        return this.qtsps.filter { it.identifier == identifier }.first()
+        return this.qtsps.first { it.identifier == identifier }
     }
 }
 
