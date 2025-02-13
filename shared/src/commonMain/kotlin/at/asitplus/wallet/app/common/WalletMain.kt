@@ -5,10 +5,8 @@ import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_update_action
 import at.asitplus.valera.resources.snackbar_update_hint
-import at.asitplus.wallet.cor.CertificateOfResidenceScheme
-import at.asitplus.wallet.eprescription.EPrescriptionScheme
-import at.asitplus.wallet.eupid.EuPidScheme
-import at.asitplus.wallet.idaustria.IdAustriaScheme
+import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
+import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import at.asitplus.wallet.lib.Initializer.initOpenIdModule
 import at.asitplus.wallet.lib.agent.DefaultVerifierCryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
@@ -17,11 +15,7 @@ import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.cbor.DefaultCoseService
 import at.asitplus.wallet.lib.jws.DefaultJwsService
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
-import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
-import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
 import at.asitplus.wallet.lib.rqes.Initializer.initRqesModule
-import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
-import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import data.storage.AntilogAdapter
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
@@ -110,7 +104,7 @@ class WalletMain(
             httpService,
             coseService
         )
-        signingService = SigningService(platformAdapter, dataStoreService, errorService, httpService, walletConfig)
+        signingService = SigningService(platformAdapter, dataStoreService, errorService, httpService)
         this.snackbarService = snackbarService
         this.dcApiService = DCAPIService(platformAdapter)
     }
