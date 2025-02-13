@@ -319,6 +319,7 @@ private fun createWalletMain(platformAdapter: PlatformAdapter): WalletMain {
             packageName = "test",
             versionCode = 0,
             versionName = "0.0.0",
+            osVersion = "Unit Test"
         )
     )
 }

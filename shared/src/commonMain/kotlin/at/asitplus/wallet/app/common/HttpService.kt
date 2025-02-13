@@ -19,7 +19,7 @@ import io.ktor.serialization.kotlinx.json.json
 /**
  * Central place to build [HttpClient]
  */
-class HttpService {
+class HttpService(private val buildContext: BuildContext) {
     fun buildHttpClient(cookieStorage: CookiesStorage? = null) = HttpClient {
         followRedirects = false
         install(ContentNegotiation) {
@@ -46,6 +46,9 @@ class HttpService {
                     }
                 }
                 level = LogLevel.ALL
+            }
+            install(DefaultRequest) {
+                header(HttpHeaders.UserAgent, "Valera/${buildContext.versionName} (${buildContext.osVersion})")
             }
         }
 }
