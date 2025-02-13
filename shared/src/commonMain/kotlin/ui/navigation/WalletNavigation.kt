@@ -35,7 +35,6 @@ import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import data.bletransfer.Verifier
-import data.bletransfer.getHolder
 import data.bletransfer.getVerifier
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
@@ -54,7 +53,6 @@ import ui.navigation.Routes.AddCredentialRoute
 import ui.navigation.Routes.AuthenticationQrCodeScannerRoute
 import ui.navigation.Routes.AuthenticationSuccessRoute
 import ui.navigation.Routes.AuthenticationViewRoute
-import ui.navigation.Routes.VerifyDataRoute
 import ui.navigation.Routes.CredentialDetailsRoute
 import ui.navigation.Routes.CustomDataRetrievalRoute
 import ui.navigation.Routes.DCAPIAuthenticationConsentRoute
@@ -75,6 +73,7 @@ import ui.navigation.Routes.Route
 import ui.navigation.Routes.SettingsRoute
 import ui.navigation.Routes.ShowDataRoute
 import ui.navigation.Routes.ShowQrCodeRoute
+import ui.navigation.Routes.VerifyDataRoute
 import ui.viewmodels.AddCredentialViewModel
 import ui.viewmodels.Authentication.AuthenticationQrCodeScannerViewModel
 import ui.viewmodels.Authentication.AuthenticationSuccessViewModel
@@ -109,8 +108,8 @@ import ui.views.iso.CustomDataRetrievalView
 import ui.views.iso.HandleRequestedDataView
 import ui.views.iso.LoadRequestedDataView
 import ui.views.iso.QrDeviceEngagementView
-import ui.views.iso.VerifyDataView
 import ui.views.iso.ShowQrCodeView
+import ui.views.iso.VerifyDataView
 
 internal object NavigatorTestTags {
     const val loadingTestTag = "loadingTestTag"
@@ -290,7 +289,6 @@ private fun WalletNavHost(
         composable<ShowQrCodeRoute> {
             val vm = ShowQrCodeViewModel(
                 walletMain = walletMain,
-                holder = getHolder(),
                 navigateUp = { navigateBack() },
                 onConnection = { navigate(HandleRequestedDataRoute) }
             )
@@ -301,12 +299,12 @@ private fun WalletNavHost(
             val vm = HandleRequestedDataViewModel(
                 walletMain = walletMain,
                 navigateUp = { navigateBack() },
-                holder = getHolder()
             )
             HandleRequestedDataView(vm)
         }
 
         composable<VerifyDataRoute> {
+            // TODO: sth like stop all connections which where open before? or at a returning point?
             VerifyDataView(
                 onClickPreDefined = { document ->
                     navigate(QrDeviceEngagementRoute(
@@ -356,8 +354,12 @@ private fun WalletNavHost(
                 odcJsonSerializer.decodeFromString<Verifier.Document>(route.document),
                 route.payload,
                 navigateUp = {
+                    // TODO: thats a random instance - maybe we should make a single instance or host this somewhere ...
                     getVerifier().disconnect()
                     navigate(VerifyDataRoute)
+                },
+                onError = { error ->
+                    navigate(ErrorRoute(message = error, cause = null))
                 }
             )
             LoadRequestedDataView(vm)

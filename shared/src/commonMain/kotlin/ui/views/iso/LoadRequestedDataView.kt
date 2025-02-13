@@ -16,6 +16,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -31,6 +36,17 @@ import ui.viewmodels.iso.LoadRequestedDataViewModel
 @Composable
 fun LoadRequestedDataView(vm: LoadRequestedDataViewModel) {
     val entryState = vm.entryState
+    var checkState by remember { mutableStateOf<Boolean?>(null) }
+
+    vm.verifier.getRequirements { check ->
+        checkState = check
+    }
+
+    LaunchedEffect(checkState) {
+        if (checkState != null) {
+            vm.loadData()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -51,7 +67,6 @@ fun LoadRequestedDataView(vm: LoadRequestedDataViewModel) {
     ) { scaffoldPadding ->
         Box(modifier = Modifier.padding(scaffoldPadding)) {
             if (entryState.value.isEmpty()) {
-                vm.loadData()
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center

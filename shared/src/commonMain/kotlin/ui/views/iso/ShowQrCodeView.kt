@@ -37,7 +37,7 @@ import ui.viewmodels.iso.ShowQrCodeViewModel
 fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
 
     val vm = remember { vm }
-    val holder = vm.holder
+    val holder = vm.walletMain.holder
 
     if (!vm.permission) {
         holder.getRequirements { b -> vm.permission = b }

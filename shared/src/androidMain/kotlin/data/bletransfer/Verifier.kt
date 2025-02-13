@@ -34,7 +34,7 @@ class AndroidVerifier: Verifier {
         qrcode: String,
         requestedDocument: Verifier.Document,
         updateLogs: (String?, String) -> Unit,
-        updateData: (List<Entry>) -> Unit
+        updateData: (List<Entry>) -> Unit,
     ) {
         CoroutineScope(Dispatchers.IO).launch {
             updateLogs(TAG, "Waiting for requirements to load")

@@ -1,6 +1,5 @@
 package ui.viewmodels.iso
 
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import data.bletransfer.Verifier
@@ -11,9 +10,9 @@ import io.github.aakira.napier.Napier
 class LoadRequestedDataViewModel(
     val document: Verifier.Document,
     val payload: String,
-    val navigateUp: () -> Unit
+    val navigateUp: () -> Unit,
+    val onError: (String) -> Unit
 ) {
-
     val entryState: MutableState<List<Entry>> = mutableStateOf(emptyList())
     val verifier = getVerifier()
 
@@ -22,13 +21,13 @@ class LoadRequestedDataViewModel(
     }
 
     val updateData: (List<Entry>) -> Unit = { newEntries ->
+        if(newEntries.isEmpty()) {
+            onError("Response does not contain documents")
+        }
         entryState.value = newEntries
     }
 
-    @Composable
     fun loadData() {
-        verifier.getRequirements { check ->
-            verifier.verify(payload, document, updateLogs, updateData)
-        }
+        verifier.verify(payload, document, updateLogs, updateData)
     }
 }

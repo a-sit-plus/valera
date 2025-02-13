@@ -47,17 +47,25 @@ class TransferManager private constructor(private val context: Context) {
                 Napier.d(tag = TAG, message = "CONNECTED")
             },
             onNewDeviceRequest = { deviceRequest ->
+                Napier.d(tag = TAG, message = "REQUEST received")
                 communication.setDeviceRequest(deviceRequest)
 
-                val cborDecoder = CborDecoder { tag, message -> Napier.d( tag = tag, message = message) }
-                cborDecoder.decodeRequest(deviceRequest)
-                updateRequestedAttributes(cborDecoder.documentRequests)
-                Napier.d(tag = TAG, message = "REQUEST received")
-
-                val documentRequestsList = cborDecoder.documentRequests
-                for (doc in documentRequestsList) {
-                    doc.log()
+                val cborDecoder = CborDecoder { tag, message ->
+                    Napier.d( tag = tag, message = message)
                 }
+
+                cborDecoder.decodeRequest(deviceRequest)
+                val documentRequestsList = cborDecoder.documentRequests
+
+                if (documentRequestsList.isNotEmpty()) {
+                    Napier.d(tag = TAG, message = "document requests:\n" +
+                            documentRequestsList.joinToString("\n") { it.toString() }
+                    )
+                } else {
+                    Napier.w(tag = TAG, message = "No document requests found in the request.")
+                }
+
+                updateRequestedAttributes(documentRequestsList)
             },
             onDisconnected = {
                 Napier.d(tag = TAG, message = "DISCONNECTED")

@@ -37,25 +37,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.unit.dp
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.heading_label_select_requested_data
+import at.asitplus.valera.resources.section_heading_available
+import at.asitplus.valera.resources.section_heading_requested
+import at.asitplus.valera.resources.section_heading_response_sent
+import at.asitplus.valera.resources.section_heading_selected
+import at.asitplus.valera.resources.section_heading_sending_response
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.PresentationException
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.cbor.CoseService
 import at.asitplus.wallet.lib.cbor.DefaultCoseService
 import at.asitplus.wallet.lib.iso.DeviceAuth
+import at.asitplus.wallet.lib.iso.DeviceNameSpaces
 import at.asitplus.wallet.lib.iso.DeviceSigned
 import at.asitplus.wallet.lib.iso.Document
 import at.asitplus.wallet.lib.iso.IssuerSigned
 import at.asitplus.wallet.lib.iso.IssuerSignedItem
-import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.heading_label_select_requested_data
-import at.asitplus.valera.resources.section_heading_selected
-import at.asitplus.valera.resources.section_heading_available
-import at.asitplus.valera.resources.section_heading_requested
-import at.asitplus.valera.resources.section_heading_response_sent
-import at.asitplus.valera.resources.section_heading_sending_response
-import at.asitplus.wallet.lib.iso.DeviceNameSpaces
-import data.bletransfer.Holder
 import data.bletransfer.holder.RequestedDocument
 import data.bletransfer.verifier.DocumentAttributes
 import data.bletransfer.verifier.ValueType
@@ -71,6 +70,8 @@ import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.iso.HandleRequestedDataViewModel
+
+const val TAG = "HandleRequestedDataView"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -99,12 +100,12 @@ fun HandleRequestedDataView(
         }
     ) { scaffoldPadding ->
         Box(modifier = Modifier.padding(scaffoldPadding)) {
+            Napier.d(tag = TAG, message = "view = $view")
+
             when (view) {
                 HandleRequestedDataView.SELECTION -> {
                     selectRequestedDataView(
                         walletMain = vm.walletMain,
-                        holder = vm.holder,
-                        requestedAttributes = vm.requestedAttributes,
                         storeContainerState = storeContainerState,
                         changeToLoading = { view = HandleRequestedDataView.LOADING },
                         changeToSent = { view = HandleRequestedDataView.SENT }
@@ -150,8 +151,13 @@ fun createDocument(
             }
         }
 
-        // Here could be more than one credentials if the app has 2 credentials with the same nameSpace.
-        correctCredentials?.get(0)?.let { cCred ->
+        Napier.d(tag = TAG, message = "correctCredentials = $correctCredentials")
+        if(correctCredentials.isNullOrEmpty()) {
+            return null
+        }
+
+        Napier.i(tag = TAG, message = "At the moment only 1 credential is used: correctCredentials[0] = ${correctCredentials[0]}")
+        correctCredentials[0].let { cCred ->
             when (cCred) {
                 is SubjectCredentialStore.StoreEntry.Iso -> {
                     cCred.issuerSigned.namespaces?.get(nameSpace.nameSpace)?.let { namespace ->
@@ -174,7 +180,7 @@ fun createDocument(
                                     serializer = ByteArraySerializer(),
                                     addKeyId = false
                                 ).getOrElse {
-                                    Napier.w("Could not create DeviceAuth for presentation", it)
+                                    Napier.w(tag = TAG, message = "Could not create DeviceAuth for presentation", throwable = it)
                                     throw PresentationException(it)
                                 }
 
@@ -206,14 +212,15 @@ fun createDocument(
 @Composable
 fun selectRequestedDataView(
     walletMain: WalletMain,
-    holder: Holder,
-    requestedAttributes: List<RequestedDocument>,
     storeContainerState: StoreContainer?,
     changeToLoading: () -> Unit,
     changeToSent: () -> Unit
 ) {
     val uncheckedAttributes = remember { mutableStateListOf<DocumentAttributes>() }
     val credentials = storeContainerState?.credentials
+    val holder = walletMain.holder
+    val requestedAttributes = holder.getAttributes()
+
     Scaffold(
         bottomBar = {
             NavigationBar {

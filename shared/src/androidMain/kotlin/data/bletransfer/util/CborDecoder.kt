@@ -33,11 +33,14 @@ class CborDecoder(
 
     private fun addEntry(cborData: ByteArray) {
         val identifier: String = cborMapExtractString(cborData, "elementIdentifier") ?: return
-        val entryData: ValueType = DocumentAttributes.entries.associate { it.value to it.type }[identifier] ?: return
+        val entryData: ValueType =
+            DocumentAttributes.entries.associate { it.value to it.type }[identifier] ?: return
 
         val eval: EntryValue = when (entryData) {
             ValueType.DATE,
-            ValueType.STRING -> StringEntry(cborMapExtractString(cborData, "elementValue") ?: "NOT FOUND")
+            ValueType.STRING -> StringEntry(
+                cborMapExtractString(cborData, "elementValue") ?: "NOT FOUND"
+            )
             ValueType.INT -> IntEntry(cborMapExtractNumber(cborData, "elementValue") ?: 0)
             ValueType.IMAGE -> {
                 val byteArray = cborMapExtractByteArray(cborData, "elementValue") ?: return
@@ -45,13 +48,16 @@ class CborDecoder(
                 ImageEntry(bitmap.asImageBitmap())
             }
             ValueType.ARRAY -> {
-                val list: List<Map<String, String>> = cborMapExtractArray(cborData, "elementValue") as? List<Map<String, String>> ?: return
+                val list: List<Map<String, String>> =
+                    cborMapExtractArray(cborData, "elementValue") as? List<Map<String, String>>
+                        ?: return
                 val vehicleList: MutableList<VehicleRegistration> = mutableListOf()
 
                 for (item in list) {
                     val issueDate: String = item["issue_date"] ?: "SOMETHING WENT WRONG"
                     val expiryDate: String? = item["expiry_date"]
-                    val vehicleCategory: String = item["vehicle_category_code"] ?: "SOMETHING WENT WRONG"
+                    val vehicleCategory: String =
+                        item["vehicle_category_code"] ?: "SOMETHING WENT WRONG"
                     vehicleList += VehicleRegistration(issueDate, expiryDate, vehicleCategory)
                 }
                 ImageArray(vehicleList)
@@ -62,17 +68,24 @@ class CborDecoder(
                 StringEntry("For $identifier Not implemented yet ${decodedMap["elementValue"]!!::class.java}")
             }
         }
-        entryList += Entry(identifier, DocumentAttributes.entries.associate { it.value to it.displayName }[identifier] ?: return, eval)
+        entryList += Entry(
+            identifier,
+            DocumentAttributes.entries.associate { it.value to it.displayName }[identifier]
+                ?: return,
+            eval
+        )
         entryList = entryList.sortedBy { entry ->
             DocumentAttributes.entries.indexOfFirst { it.value == entry.entryName }
         }
     }
 
-    fun decodeResponse(encodedDeviceResponse: ByteArray,
-                       sessionTranscript: ByteArray?,
-                       ephemeralReaderKey: EcPrivateKey?
+    fun decodeResponse(
+        encodedDeviceResponse: ByteArray,
+        sessionTranscript: ByteArray?,
+        ephemeralReaderKey: EcPrivateKey?
     ) {
-        val documents: List<Map<String, Any>>? = cborMapExtractArray(encodedDeviceResponse, "documents")
+        val documents: List<Map<String, Any>>? =
+            cborMapExtractArray(encodedDeviceResponse, "documents")
 
         if (documents == null) {
             updateLogs(TAG, "No documents found!")
@@ -105,10 +118,10 @@ class CborDecoder(
         Napier.d(tag = TAG, message = "status: " + cborMapExtractNumber(encodedDeviceResponse, "status"))
     }
 
-    fun decodeRequest(encodedDeviceRequest: ByteArray
-    ) {
+    fun decodeRequest(encodedDeviceRequest: ByteArray) {
         updateLogs(TAG, "Decoding received cbor byte array")
-        val docRequests: List<Map<String, Any>>? = cborMapExtractArray(encodedDeviceRequest, "docRequests")
+        val docRequests: List<Map<String, Any>>? =
+            cborMapExtractArray(encodedDeviceRequest, "docRequests")
 
         if (docRequests == null) {
             updateLogs(TAG, "No docRequests found!")
@@ -120,7 +133,7 @@ class CborDecoder(
             (request["itemsRequest"] as? ByteArray)?.let { items ->
                 val item: Map<String, *> = decodeCborData(items)
                 (item["docType"] as? String)?.let { docType ->
-                val document = RequestedDocument(docType)
+                    val document = RequestedDocument(docType)
                     (item["nameSpaces"] as? Map<String, Map<String, *>>)?.let { nameSpaces ->
                         for (namespace in nameSpaces.keys) {
                             val nameSpaceObject = RequestedDocument.NameSpace(namespace)
@@ -129,10 +142,10 @@ class CborDecoder(
                             }
                             document.addNameSpace(nameSpaceObject)
                         }
-                    } ?: Napier.d( tag = TAG, message = "nameSpaces is null")
+                    } ?: Napier.d(tag = TAG, message = "nameSpaces is null")
                     documentRequests += document
-                } ?: Napier.d( tag = TAG, message ="docType is null")
-            } ?: Napier.d( tag = TAG, message ="itemsRequest is null")
+                } ?: Napier.d(tag = TAG, message = "docType is null")
+            } ?: Napier.d(tag = TAG, message = "itemsRequest is null")
         }
     }
 

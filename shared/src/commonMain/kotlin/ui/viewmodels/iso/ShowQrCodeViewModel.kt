@@ -8,7 +8,6 @@ import data.bletransfer.Holder
 
 class ShowQrCodeViewModel(
     val walletMain: WalletMain,
-    val holder: Holder,
     val navigateUp: () -> Unit,
     val onConnection: (Holder) -> Unit
 ) {
