@@ -50,6 +50,7 @@ fun SigningQtspSelectionView(
     var config = remember { vm.walletMain.signingService.config }
     var list = config.qtsps
     var selection = mutableStateOf(config.current)
+    var credentialInfo = mutableStateOf(vm.walletMain.signingService.config.getQtspByIdentifier(selection.value).credentialInfo)
 
 
     Scaffold(
@@ -103,32 +104,46 @@ fun SigningQtspSelectionView(
                 var expanded by remember { mutableStateOf(false) }
                 QtspSelectionField(
                     value = selection.value,
-                    onValueChange = { selection.value = it; expanded = !expanded },
+                    onValueChange = {
+                        selection.value = it
+                        expanded = !expanded
+                        vm.walletMain.signingService.config.current = it
+                        runBlocking { vm.walletMain.signingService.exportToDataStore() }
+                                    },
                     expanded = expanded,
                     onExpandedChange = { expanded = it },
                     config = config
                 )
                 Spacer(modifier = Modifier.height(10.dp))
 
-                Button(onClick = { runBlocking { vm.walletMain.signingService.preloadCertificate() } }, enabled = (vm.walletMain.signingService.config.getQtspByIdentifier(selection.value).credentialInfo == null)) {
-                    Text("Preload Certificate")
+                Row {
+                    Button(onClick = { runBlocking { vm.walletMain.signingService.preloadCertificate() } }, enabled = (credentialInfo.value == null)) {
+                        Text("Preload Certificate")
+                    }
+                    Button(onClick = {
+                        vm.walletMain.signingService.config.getQtspByIdentifier(selection.value).credentialInfo = null
+                        credentialInfo.value = null
+                        runBlocking { vm.walletMain.signingService.exportToDataStore() } }
+                        , enabled = (credentialInfo.value != null)) {
+                        Text("Delete Certificate")
+                    }
                 }
 
-                if (vm.walletMain.signingService.config.getQtspByIdentifier(selection.value).credentialInfo != null) {
+                if (credentialInfo.value != null) {
                     Column(modifier = Modifier.padding(start = 32.dp)) {
                         LabeledText(
                             label = "credentialID",
-                            text = "${vm.walletMain.signingService.config.getQtspByIdentifier(selection.value).credentialInfo!!.credentialID}",
+                            text = "${credentialInfo.value?.credentialID}",
                             modifier = Modifier,
                         )
                         LabeledText(
                             label = "validFrom",
-                            text = "${vm.walletMain.signingService.config.getQtspByIdentifier(selection.value).credentialInfo!!.certParameters?.validFrom}",
+                            text = "${credentialInfo.value?.certParameters?.validFrom}",
                             modifier = Modifier,
                         )
                         LabeledText(
                             label = "validTo",
-                            text = "${vm.walletMain.signingService.config.getQtspByIdentifier(selection.value).credentialInfo!!.certParameters?.validTo}",
+                            text = "${credentialInfo.value?.certParameters?.validTo}",
                             modifier = Modifier,
                         )
                     }
