@@ -83,7 +83,7 @@ class WalletMain(
             keyPair = cryptoService.keyMaterial,
         )
 
-        httpService = HttpService()
+        httpService = HttpService(buildContext)
         provisioningService = ProvisioningService(
             platformAdapter,
             dataStoreService,

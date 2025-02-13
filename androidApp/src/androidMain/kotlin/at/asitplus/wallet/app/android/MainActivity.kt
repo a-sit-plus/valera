@@ -2,6 +2,7 @@ package at.asitplus.wallet.app.android
 
 import MainView
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
@@ -28,6 +29,7 @@ class MainActivity : AppCompatActivity() {
                     packageName = BuildConfig.APPLICATION_ID,
                     versionCode = BuildConfig.VERSION_CODE,
                     versionName = BuildConfig.VERSION_NAME,
+                    operatingSystemString = "Android ${Build.VERSION.RELEASE}"
                 ),
                 walletAPIData,
                 ::sendCredentialResponseToDCAPIInvoker

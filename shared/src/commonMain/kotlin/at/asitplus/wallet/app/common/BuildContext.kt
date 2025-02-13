@@ -5,6 +5,7 @@ data class BuildContext(
     val packageName: String,
     val versionCode: Int,
     val versionName: String,
+    val operatingSystemString: String,
 )
 
 enum class BuildType(val stringRepresentaiton: String) {
