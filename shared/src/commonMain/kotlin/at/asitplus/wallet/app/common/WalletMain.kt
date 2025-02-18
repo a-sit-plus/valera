@@ -7,7 +7,6 @@ import at.asitplus.valera.resources.snackbar_update_action
 import at.asitplus.valera.resources.snackbar_update_hint
 import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
-import at.asitplus.wallet.lib.Initializer.initOpenIdModule
 import at.asitplus.wallet.lib.agent.DefaultVerifierCryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.Parser
@@ -59,7 +58,6 @@ class WalletMain(
     val readyForIntents = MutableStateFlow<Boolean?>(null)
 
     init {
-        initOpenIdModule()
         at.asitplus.wallet.mdl.Initializer.initWithVCK()
         at.asitplus.wallet.idaustria.Initializer.initWithVCK()
         at.asitplus.wallet.eupid.Initializer.initWithVCK()
