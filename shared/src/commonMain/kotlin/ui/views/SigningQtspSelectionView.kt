@@ -47,10 +47,9 @@ import ui.viewmodels.SigningQtspSelectionViewModel
 fun SigningQtspSelectionView(
     vm: SigningQtspSelectionViewModel
 ) {
-    var config = remember { vm.walletMain.signingService.config }
-    var list = config.qtsps
-    var selection = mutableStateOf(config.current)
-    var credentialInfo = mutableStateOf(vm.walletMain.signingService.config.getQtspByIdentifier(selection.value).credentialInfo)
+    val config = vm.walletMain.signingService.config
+    val selection = mutableStateOf(config.current)
+    val credentialInfo = mutableStateOf(config.getQtspByIdentifier(selection.value).credentialInfo)
 
 
     Scaffold(
@@ -107,7 +106,7 @@ fun SigningQtspSelectionView(
                     onValueChange = {
                         selection.value = it
                         expanded = !expanded
-                        vm.walletMain.signingService.config.current = it
+                        config.current = it
                         runBlocking { vm.walletMain.signingService.exportToDataStore() }
                                     },
                     expanded = expanded,
@@ -121,7 +120,7 @@ fun SigningQtspSelectionView(
                         Text("Preload Certificate")
                     }
                     Button(onClick = {
-                        vm.walletMain.signingService.config.getQtspByIdentifier(selection.value).credentialInfo = null
+                        config.getQtspByIdentifier(selection.value).credentialInfo = null
                         credentialInfo.value = null
                         runBlocking { vm.walletMain.signingService.exportToDataStore() } }
                         , enabled = (credentialInfo.value != null)) {
