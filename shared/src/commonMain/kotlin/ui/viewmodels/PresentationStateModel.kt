@@ -5,11 +5,7 @@ import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
 import at.asitplus.wallet.app.common.presentation.PresentmentCanceled
 import at.asitplus.wallet.app.common.presentation.PresentmentMechanism
 import at.asitplus.wallet.lib.iso.DeviceResponse
-import com.android.identity.credential.Credential
-import com.android.identity.document.Document
 import com.android.identity.mdoc.sessionencryption.SessionEncryption
-import com.android.identity.request.Request
-import com.android.identity.trustmanagement.TrustPoint
 import com.android.identity.util.Constants
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CancellableContinuation
@@ -25,10 +21,13 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 import kotlin.time.Duration.Companion.seconds
 
+// Based on the identity-credential sample code
+// https://github.com/openwallet-foundation-labs/identity-credential/tree/main/samples/testapp
+
 /**
  * A model used for credential presentment.
  *
- * This model implements the entire UX/UI flow related to presentment, including
+ * This model implements UX/UI flow related to presentment, including
  *
  * - Allowing the user to cancel at any time, including when the connection is being established.
  * - Querying the user for which document to present, if multiple credentials can satisfy the request.
@@ -63,9 +62,6 @@ class PresentationStateModel {
 
         /**
          * A request has been received and multiple documents can be presented and the user needs to pick one.
-         *
-         * The UI layer should show a document selection dialog with the documents in [availableDocuments]
-         * and call [documentSelected] with the user's choice, if any.
          */
         WAITING_FOR_DOCUMENT_SELECTION,
 
@@ -148,25 +144,11 @@ class PresentationStateModel {
     }
 
     /**
-     * Sets the [PresentmentSource] to use for presentment.
      *
      * This sets the model to [State.PROCESSING].
      *
-     * @param source the [PresentmentSource] to use.
+     * @param presentationViewModel the [PresentationViewModel] to use.
      */
-    /*fun setSource(source: PresentmentSource) {
-        check(_state.value == State.WAITING_FOR_SOURCE)
-        _source = source
-        _state.value = State.PROCESSING
-
-        // OK, now that we got both a mechanism and a source we're off to the races and we can
-        // start the presentment flow! Do this in a separate coroutine.
-        //
-        _presentmentScope!!.launch {
-            startPresentmentFlow(presentationViewModel)
-        }
-    }*/
-
     fun setStepAfterWaitingForSource(presentationViewModel: PresentationViewModel) {
         check(_state.value == State.WAITING_FOR_SOURCE)
         _state.value = State.PROCESSING
@@ -178,19 +160,6 @@ class PresentationStateModel {
             startPresentmentFlow(presentationViewModel)
         }
     }
-
-    /**
-     * Data to include in the consent prompt.
-     *
-     * @property document the document being presented
-     * @property request the request, including who made the request.
-     * @property trustPoint a [TrustPoint] if the requester is trusted, null otherwise
-     */
-    data class ConsentData(
-        val document: Document,
-        val request: Request,
-        val trustPoint: TrustPoint?
-    )
 
     /**
      * Sets the model to [State.COMPLETED]
@@ -231,7 +200,7 @@ class PresentationStateModel {
         DOUBLE_CLICK,
     }
 
-    private var _dismissible = MutableStateFlow<Boolean>(true)
+    private var _dismissible = MutableStateFlow(true)
     /**
      * Returns whether the presentment can be dismissed/canceled.
      *
@@ -240,7 +209,7 @@ class PresentationStateModel {
      */
     val dismissible = _dismissible.asStateFlow()
 
-    private var _numRequestsServed = MutableStateFlow<Int>(0)
+    private var _numRequestsServed = MutableStateFlow(0)
     /**
      * Number of requests served.
      */
@@ -288,16 +257,9 @@ class PresentationStateModel {
             is MdocPresentmentMechanism -> {
                 Napier.i("Presenting an mdoc")
                 MdocPresenter(stateModel = this, presentationViewModel = presentationViewModel, mechanism = mechanism as MdocPresentmentMechanism).present(
-                    //source = source!!,
                     dismissible = _dismissible,
                     numRequestsServed = _numRequestsServed,
                     credentialSelected = ::credentialSelected
-                    /*showCredentialPicker = { credentials ->
-                        showCredentialPicker(credentials)
-                    },
-                    showConsentPrompt = { document, request, trustPoint ->
-                        showConsentPrompt(document, request, trustPoint)
-                    },*/
                 )
             }
             /*is DigitalCredentialsPresentmentMechanism -> {
@@ -306,7 +268,7 @@ class PresentationStateModel {
                     source = source!!,
                     model = this,
                     mechanism = mechanism as DigitalCredentialsPresentmentMechanism,
-                    dismissable = _dismissable,
+                    dismissible = _dismissible,
                     showConsentPrompt = { document, request, trustPoint ->
                         showConsentPrompt(document, request, trustPoint)
                     }
@@ -316,52 +278,7 @@ class PresentationStateModel {
         }
     }
 
-    private var documentPickerContinuation: CancellableContinuation<Document?>? = null
     private var credentialSelectorContinuation: CancellableContinuation<DeviceResponse>? = null
-
-    private suspend fun showCredentialPicker(credentials: List<Credential>): Credential? {
-        check(_state.value == State.PROCESSING)
-        val documents = mutableListOf<Document>()
-        val documentIdToCredential = mutableMapOf<String, Credential>()
-        for (credential in credentials) {
-            documents.add(credential.document)
-            documentIdToCredential[credential.document.identifier] = credential
-        }
-        check(documentIdToCredential.size == credentials.size) { "Credentials must be from distinct documents" }
-        _availableDocuments = documents
-        _state.value = State.WAITING_FOR_DOCUMENT_SELECTION
-        val ret = suspendCancellableCoroutine<Document?> { continuation ->
-            documentPickerContinuation = continuation
-        }
-        _availableDocuments = null
-        _state.value = State.PROCESSING
-        return documentIdToCredential[ret?.identifier]
-    }
-
-    private var _availableDocuments: List<Document>? = null
-    /**
-     * The list of available documents to pick from.
-     *
-     * This can only be read when in state [State.WAITING_FOR_DOCUMENT_SELECTION].
-     */
-    val availableDocuments: List<Document>
-        get() {
-            check(_state.value == State.WAITING_FOR_DOCUMENT_SELECTION)
-            return _availableDocuments!!
-        }
-
-    /**
-     * The UI layer should call this when a user has selected a document.
-     *
-     * This can only be called in state [State.WAITING_FOR_DOCUMENT_SELECTION]
-     *
-     * @param document the selected documented, must be `null` to convey the user did not want to continue
-     *   otherwise must be from the [availableDocuments] list.
-     */
-    fun documentSelected(document: Document?) {
-        check(_state.value == State.WAITING_FOR_DOCUMENT_SELECTION)
-        documentPickerContinuation!!.resume(document)
-    }
 
     suspend fun requestCredentialSelection(): DeviceResponse {
         _state.value = State.WAITING_FOR_DOCUMENT_SELECTION
@@ -370,6 +287,13 @@ class PresentationStateModel {
         }
     }
 
+    /**
+     * The UI layer should call this when a user has selected a document.
+     *
+     * This can only be called in state [State.WAITING_FOR_DOCUMENT_SELECTION]
+     *
+     * @param deviceResponse the device response for the selected credential, must be `null` to convey the user did not want to continue
+     */
     fun credentialSelected(deviceResponse: DeviceResponse) {
         check(_state.value == State.WAITING_FOR_DOCUMENT_SELECTION)
         credentialSelectorContinuation!!.resume(deviceResponse)

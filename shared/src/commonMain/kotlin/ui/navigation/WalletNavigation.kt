@@ -45,7 +45,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.getString
-import org.multipaz.compose.ui.presentment.PresentationView
+import ui.views.PresentationView
 import presentationStateModel
 import ui.composables.BottomBar
 import ui.composables.NavigationData
