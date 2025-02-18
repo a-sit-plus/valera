@@ -59,7 +59,6 @@ class WalletMain(
     val readyForIntents = MutableStateFlow<Boolean?>(null)
 
     init {
-        initOpenIdModule()
         at.asitplus.wallet.mdl.Initializer.initWithVCK()
         at.asitplus.wallet.idaustria.Initializer.initWithVCK()
         at.asitplus.wallet.eupid.Initializer.initWithVCK()
