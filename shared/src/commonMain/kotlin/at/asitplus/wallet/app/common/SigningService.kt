@@ -176,7 +176,7 @@ class SigningService(
         val finalRedirect = client.post(drivingAppResponseUrl) {
             contentType(FormUrlEncoded)
             setBody(
-                JsonObject(mapOf("DocumentWithSignature" to signedDocList)).encodeToParameters()
+                JsonObject(mapOf("documentWithSignature" to signedDocList)).encodeToParameters()
                     .formUrlEncode()
             )
         }
