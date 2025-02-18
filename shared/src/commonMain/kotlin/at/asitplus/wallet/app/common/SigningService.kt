@@ -280,11 +280,9 @@ class SigningService(
             setBody(vckJsonSerializer.encodeToString(credentialListRequest))
         }
         val credentialListResponse = credentialResponse.body<CscCredentialListResponse>()
-
-        val credentialInfo = credentialListResponse.credentialInfos?.first()
+        
+        return credentialListResponse.credentialInfos?.first()
             ?: throw Throwable("Missing credentialInfos")
-
-        return credentialInfo
     }
 
     suspend fun createCredentialAuthRequest(): String{
