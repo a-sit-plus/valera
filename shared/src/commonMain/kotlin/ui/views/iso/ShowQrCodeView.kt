@@ -26,6 +26,9 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_show_qr_code_screen
 import at.asitplus.valera.resources.info_text_missing_permission
 import at.asitplus.valera.resources.info_text_qr_code_loading
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.stringResource
 import qrcode.QRCode
 import ui.composables.Logo
@@ -45,9 +48,11 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
 
     LaunchedEffect(Unit) {
         val updateQrCode: (String) -> Unit = { str -> vm.qrcodeText = str }
-        holder.hold(updateQrCode) {
-            vm.shouldDisconnect = false
-            vm.onConnection(holder)
+        withContext(Dispatchers.IO) {
+            holder.hold(updateQrCode) {
+                vm.shouldDisconnect = false
+                vm.onConnection(holder)
+            }
         }
     }
 

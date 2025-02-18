@@ -75,9 +75,7 @@ const val TAG = "HandleRequestedDataView"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HandleRequestedDataView(
-    vm: HandleRequestedDataViewModel
-) {
+fun HandleRequestedDataView(vm: HandleRequestedDataViewModel) {
     val storeContainer = vm.walletMain.subjectCredentialStore.observeStoreContainer()
     val storeContainerState by storeContainer.collectAsState(null)
     var view by remember { mutableStateOf(HandleRequestedDataView.SELECTION) }

@@ -98,11 +98,12 @@ class QrCommunicationSetup(
             .setConnectionMethods(connectionSetup.getConnectionMethods())
             .build()
 
-        onQrEngagementReady(qrEngagement.deviceEngagementUriEncoded)
         Napier.d(tag = TAG, message = "configure: Device Engagement Ready")
+        onQrEngagementReady(qrEngagement.deviceEngagementUriEncoded)
     }
 
     fun close() {
+        Napier.d(tag = TAG, message = "closing QR engagement ...")
         try {
             qrEngagement.close()
         } catch (exception: RuntimeException) {

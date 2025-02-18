@@ -1,33 +1,36 @@
 package ui.viewmodels.iso
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import data.bletransfer.Verifier
 import data.bletransfer.getVerifier
 import data.bletransfer.verifier.Entry
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class LoadRequestedDataViewModel(
     val document: Verifier.Document,
-    val payload: String,
+    private val payload: String,
     val navigateUp: () -> Unit,
     val onError: (String) -> Unit
 ) {
-    val entryState: MutableState<List<Entry>> = mutableStateOf(emptyList())
+    private val _entryState = MutableStateFlow<List<Entry>>(emptyList())
+    val entryState = _entryState.asStateFlow()
+
     val verifier = getVerifier()
 
-    val updateLogs: (String?, String) -> Unit = { tag, message ->
+    private val updateLogs: (String?, String) -> Unit = { tag, message ->
         Napier.d("[$tag]: $message")
     }
 
-    val updateData: (List<Entry>) -> Unit = { newEntries ->
+    private val updateData: (List<Entry>) -> Unit = { newEntries ->
         if(newEntries.isEmpty()) {
             onError("Response does not contain documents")
         }
-        entryState.value = newEntries
+        _entryState.value = newEntries
     }
 
     fun loadData() {
         verifier.verify(payload, document, updateLogs, updateData)
+        verifier.disconnect()
     }
 }

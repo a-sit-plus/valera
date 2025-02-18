@@ -18,14 +18,12 @@ import at.asitplus.valera.resources.heading_label_check_scan_qr_code
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
+import ui.viewmodels.iso.QrDeviceEngagementViewModel
 import ui.views.CameraView
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun QrDeviceEngagementView(
-    onFoundPayload: (String) -> Unit,
-    navigateUp: () -> Unit,
-) {
+fun QrDeviceEngagementView(vm: QrDeviceEngagementViewModel) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -39,13 +37,13 @@ fun QrDeviceEngagementView(
                         Logo()
                     }
                 },
-                navigationIcon = { NavigateUpButton(navigateUp) }
+                navigationIcon = { NavigateUpButton(vm.navigateUp) }
             )
         }
     ) {
         Column(modifier = Modifier.padding(it).fillMaxSize()) {
             CameraView(
-                onFoundPayload = onFoundPayload,
+                onFoundPayload = vm.onFoundPayload,
                 modifier = Modifier.fillMaxSize()
             )
         }

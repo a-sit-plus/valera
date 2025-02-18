@@ -92,6 +92,7 @@ class TransferManager private constructor(private val context: Context) {
         sendSessionTerminationMessage: Boolean,
         useTransportSpecificSessionTermination: Boolean
     ) {
+        Napier.d(tag = TAG, message = "stopPresentation")
         communication.stopPresentation(
             sendSessionTerminationMessage,
             useTransportSpecificSessionTermination
@@ -100,12 +101,9 @@ class TransferManager private constructor(private val context: Context) {
     }
 
     private fun disconnect() {
+        Napier.d(tag = TAG, message = "disconnect")
         communication.disconnect()
         qrCommunicationSetup?.close()
-        destroy()
-    }
-
-    private fun destroy() {
         qrCommunicationSetup = null
         hasStarted = false
     }

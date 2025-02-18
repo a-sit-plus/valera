@@ -70,8 +70,7 @@ class CborDecoder(
         }
         entryList += Entry(
             identifier,
-            DocumentAttributes.entries.associate { it.value to it.displayName }[identifier]
-                ?: return,
+            DocumentAttributes.entries.associate { it.value to it.displayName }[identifier] ?: return,
             eval
         )
         entryList = entryList.sortedBy { entry ->

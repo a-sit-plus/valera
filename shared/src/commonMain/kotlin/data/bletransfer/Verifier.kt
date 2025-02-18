@@ -8,7 +8,7 @@ expect fun getVerifier(): Verifier
 
 interface Verifier {
     @Composable
-    fun getRequirements(check: (Boolean) -> Unit)
+    fun getRequirements()
 
     fun verify(
         qrcode: String,
@@ -19,6 +19,7 @@ interface Verifier {
 
     fun disconnect()
 
+    // TODO: remove this from here
     @Serializable
     data class Document(
         val docType: String,

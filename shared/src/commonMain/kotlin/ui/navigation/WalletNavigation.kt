@@ -87,6 +87,7 @@ import ui.viewmodels.PreAuthQrCodeScannerViewModel
 import ui.viewmodels.SettingsViewModel
 import ui.viewmodels.iso.HandleRequestedDataViewModel
 import ui.viewmodels.iso.LoadRequestedDataViewModel
+import ui.viewmodels.iso.QrDeviceEngagementViewModel
 import ui.viewmodels.iso.ShowQrCodeViewModel
 import ui.views.Authentication.AuthenticationQrCodeScannerView
 import ui.views.Authentication.AuthenticationSuccessView
@@ -298,13 +299,15 @@ private fun WalletNavHost(
         composable<HandleRequestedDataRoute> {
             val vm = HandleRequestedDataViewModel(
                 walletMain = walletMain,
-                navigateUp = { navigateBack() },
+                navigateUp = {
+                    walletMain.holder.disconnect()
+                    navigateBack()
+                }
             )
             HandleRequestedDataView(vm)
         }
 
         composable<VerifyDataRoute> {
-            // TODO: sth like stop all connections which where open before? or at a returning point?
             VerifyDataView(
                 onClickPreDefined = { document ->
                     navigate(QrDeviceEngagementRoute(
@@ -328,39 +331,28 @@ private fun WalletNavHost(
                         odcJsonSerializer.encodeToString(Verifier.Document.serializer(), document))
                     )
                 },
-                navigateUp = {
-                    getVerifier().disconnect()
-                    navigateBack()
-                }
+                navigateUp = { navigateBack() }
             )
         }
 
         composable<QrDeviceEngagementRoute> { backStackEntry ->
             val route: QrDeviceEngagementRoute = backStackEntry.toRoute()
-            QrDeviceEngagementView(
+            val vm = QrDeviceEngagementViewModel(
                 onFoundPayload = { payload ->
                     navigate(LoadRequestedDataRoute(route.document, payload))
                 },
-                navigateUp = {
-                    getVerifier().disconnect()
-                    navigateBack()
-                }
+                navigateUp = { popBackStack(VerifyDataRoute) }
             )
+            QrDeviceEngagementView(vm)
         }
 
         composable<LoadRequestedDataRoute> { backStackEntry ->
             val route: LoadRequestedDataRoute = backStackEntry.toRoute()
             val vm = LoadRequestedDataViewModel(
-                odcJsonSerializer.decodeFromString<Verifier.Document>(route.document),
-                route.payload,
-                navigateUp = {
-                    // TODO: thats a random instance - maybe we should make a single instance or host this somewhere ...
-                    getVerifier().disconnect()
-                    navigate(VerifyDataRoute)
-                },
-                onError = { error ->
-                    navigate(ErrorRoute(message = error, cause = null))
-                }
+                document = odcJsonSerializer.decodeFromString<Verifier.Document>(route.document),
+                payload = route.payload,
+                navigateUp = { popBackStack(VerifyDataRoute) },
+                onError = { error -> navigate(ErrorRoute(message = error, cause = null)) }
             )
             LoadRequestedDataView(vm)
         }

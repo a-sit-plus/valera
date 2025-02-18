@@ -1,5 +1,6 @@
 package data.bletransfer
 
+import android.annotation.SuppressLint
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import data.bletransfer.util.RequestBluetoothPermissions
@@ -8,26 +9,29 @@ import data.bletransfer.verifier.TransferManager
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 actual fun getVerifier(): Verifier {
     return AndroidVerifier()
 }
 
-class AndroidVerifier: Verifier {
+class AndroidVerifier : Verifier {
     private val TAG: String = "AndroidVerifier"
 
-    private var permission = false
-    private var transferManager: TransferManager? = null
+    private val permissionState = MutableStateFlow(false)
+    private val transferManagerState = MutableStateFlow<TransferManager?>(null)
 
+    @SuppressLint("StateFlowValueCalledInComposition")
     @Composable
-    override fun getRequirements(check: (Boolean) -> Unit) {
-        RequestBluetoothPermissions { b ->
-            permission = b
-            check(b)
+    override fun getRequirements() {
+        RequestBluetoothPermissions { granted -> permissionState.value = granted }
+
+        if (transferManagerState.value == null) {
+            transferManagerState.value = TransferManager.getInstance(LocalContext.current)
         }
-        transferManager = TransferManager.getInstance(LocalContext.current)
     }
 
     override fun verify(
@@ -38,31 +42,30 @@ class AndroidVerifier: Verifier {
     ) {
         CoroutineScope(Dispatchers.IO).launch {
             updateLogs(TAG, "Waiting for requirements to load")
-            while (transferManager == null) {
-                delay(500)
-                Napier.d(tag = TAG, message = "waiting for Transfer Manager")
-            }
+            Napier.d(tag = TAG, message = "Waiting for Permissions")
 
-            while (!permission) {
-                delay(500)
-                Napier.d(tag = TAG, message = "waiting for Permissions")
-            }
+            val transferManager = transferManagerState.filterNotNull().first()
+            val permissionGranted = permissionState.first { it }
 
-            updateLogs(TAG, "Requirements are loaded and needed permissions given")
+            if (permissionGranted) {
+                updateLogs(TAG, "Requirements are loaded, and permissions granted")
+                Napier.d(tag = TAG, message = "Permissions granted and TransferManager is ready")
 
-            updateLogs(TAG, "Starting Device engagement with scanned Qr-code")
-            transferManager?.let {
-                it.setUpdateAndRequest(updateLogs, requestedDocument) { le: List<Entry> ->
-                    updateData(le)
-                    transferManager?.closeConnection()
+                updateLogs(TAG, "Starting Device engagement with scanned Qr-code")
+
+                transferManager.let {
+                    it.setUpdateAndRequest(updateLogs, requestedDocument) { le: List<Entry> ->
+                        updateData(le)
+                        transferManager.closeConnection()
+                    }
+                    it.initVerificationHelper()
+                    it.setQrDeviceEngagement(qrcode)
                 }
-                it.initVerificationHelper()
-                it.setQrDeviceEngagement(qrcode)
-            } ?: Napier.d(tag = TAG, message = "The transferManager was set to null which should not have happened")
+            }
         }
     }
 
     override fun disconnect() {
-        transferManager?.closeConnection()
+        transferManagerState.value?.closeConnection()
     }
 }
