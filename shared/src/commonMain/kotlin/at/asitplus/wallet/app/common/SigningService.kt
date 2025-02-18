@@ -51,55 +51,47 @@ class SigningService(
     val errorService: ErrorService,
     httpService: HttpService,
 ) {
+    val config = runBlocking { importFromDataStore() }
     var redirectUri: String? = null
-    var signatureReguestParameter: SignatureRequestParameters? = null
-    var document: ByteArray? = null
-    var documentWithLabel: DocumentWithLabel? = null
-
-    val pdfSigningService = "https://apps.egiz.gv.at/qtsp"
-
-    var config = runBlocking { importFromDataStore() }
-
-    var dtbsrAuthenticationDetails: AuthorizationDetails? = null
-    var transactionTokens: List<String>? = null
+    var isPreload: Boolean? = null
 
     private val cookieStorage = PersistentCookieStorage(dataStoreService, errorService)
     private val client = httpService.buildHttpClient(cookieStorage)
     private val redirectUrl = "asitplus-wallet://wallet.a-sit.at/app/callback/signing"
+    private val pdfSigningService = "https://apps.egiz.gv.at/qtsp"
+    private val rqesWalletService =
+        RqesOpenId4VpHolder(redirectUrl = redirectUrl, clientId = config.getCurrent().oauth2ClientId)
 
-    lateinit var rqesWalletService: RqesOpenId4VpHolder
+    lateinit var signatureReguestParameter: SignatureRequestParameters
+    lateinit var document: ByteArray
+    lateinit var documentWithLabel: DocumentWithLabel
+    lateinit var dtbsrAuthenticationDetails: AuthorizationDetails
+    lateinit var transactionTokens: List<String>
 
     suspend fun importFromDataStore(): SigningConfig {
-        val serializedCredentialInfo = dataStoreService.getPreference("signingConfig").first()
-        if (serializedCredentialInfo != null) {
+        dataStoreService.getPreference("signingConfig").first()?.let {
             try {
-                return vckJsonSerializer.decodeFromString<SigningConfig>(serializedCredentialInfo)
+                return vckJsonSerializer.decodeFromString<SigningConfig>(it)
             } catch (e: Throwable) {
                 return defaultSigningConfig
             }
-        } else {
-            return defaultSigningConfig
         }
+        return defaultSigningConfig
     }
 
     suspend fun exportToDataStore() {
         dataStoreService.setPreference(key = "signingConfig", value = vckJsonSerializer.encodeToString(this.config))
     }
 
-    fun init(redirectUrl: String = this.redirectUrl){
-        rqesWalletService =
-            RqesOpenId4VpHolder(redirectUrl = redirectUrl, clientId = config.getCurrent().oauth2ClientId)
-    }
-
     suspend fun preloadCertificate() {
-        init(this.redirectUrl + "/preload")
-
         val targetUrl = createServiceAuthRequest()
-        redirectUri = this.redirectUrl + "/preload"
+        redirectUri = this.redirectUrl
+        this.isPreload = true
         platformAdapter.openUrl(targetUrl)
     }
 
     suspend fun resumePreloadCertificate(url: String) {
+        this.isPreload = false
         val token = getTokenFromAuthCode(url)
         val credentialInfo = getCredentialInfo(token)
         config.getCurrent().credentialInfo = credentialInfo
@@ -107,17 +99,15 @@ class SigningService(
     }
 
     suspend fun start(url: String) {
-        init()
-
         extractSignatureRequestParameter(url)
-
-        if (config.getCurrent().credentialInfo == null) {
-            val targetUrl = createServiceAuthRequest()
+        
+        if (config.hasValidCertificate()) {
+            rqesWalletService.setSigningCredential(config.getCurrent().credentialInfo!!)
+            val targetUrl = createCredentialAuthRequest()
             redirectUri = this.redirectUrl
             platformAdapter.openUrl(targetUrl)
         } else {
-            rqesWalletService.setSigningCredential(config.getCurrent().credentialInfo!!)
-            val targetUrl = createCredentialAuthRequest()
+            val targetUrl = createServiceAuthRequest()
             redirectUri = this.redirectUrl
             platformAdapter.openUrl(targetUrl)
         }
@@ -140,7 +130,8 @@ class SigningService(
     suspend fun resumeWithCredentialAuthCode(url: String) {
         val token = getTokenFromAuthCode(url)
 
-        val signAlgorithm = rqesWalletService.signingCredential?.supportedSigningAlgorithms?.first() ?: X509SignatureAlgorithm.RS512
+        val signAlgorithm =
+            rqesWalletService.signingCredential?.supportedSigningAlgorithms?.first() ?: X509SignatureAlgorithm.RS512
 
         val signHashRequest = rqesWalletService.createSignHashRequestParameters(
             dtbsr = (this.dtbsrAuthenticationDetails as CscAuthorizationDetails).documentDigests.map { it.hash },
@@ -163,9 +154,9 @@ class SigningService(
             ListSerializer(ByteArrayBase64Serializer),
             signedDocuments.map { it.document })
 
-        val responseState = this.signatureReguestParameter?.state
+        val responseState = this.signatureReguestParameter.state
         val responseUrl =
-            this.signatureReguestParameter?.responseUrl ?: throw Throwable("Missing responseUrl")
+            this.signatureReguestParameter.responseUrl ?: throw Throwable("Missing responseUrl")
 
         val drivingAppResponseUrl = URLBuilder(responseUrl).apply {
             if (responseState != null) {
@@ -182,7 +173,7 @@ class SigningService(
         }
     }
 
-    suspend fun createServiceAuthRequest(): String{
+    suspend fun createServiceAuthRequest(): String {
         val authRequest =
             rqesWalletService.createServiceAuthenticationRequest()
 
@@ -223,7 +214,7 @@ class SigningService(
         val url = URLBuilder(url)
         val code = url.parameters["code"] ?: throw Throwable("Missing code")
         val state = url.parameters["state"] ?: throw Throwable("Missing state")
-        
+
         val tokenRequest = rqesWalletService.createOAuth2TokenRequest(
             state,
             authorization = OAuth2Client.AuthorizationForToken.Code(code),
@@ -278,17 +269,25 @@ class SigningService(
             setBody(vckJsonSerializer.encodeToString(credentialListRequest))
         }
         val credentialListResponse = credentialResponse.body<CscCredentialListResponse>()
-        
+
         return credentialListResponse.credentialInfos?.first()
             ?: throw Throwable("Missing credentialInfos")
     }
 
-    suspend fun createCredentialAuthRequest(): String{
-        val signAlgorithm = rqesWalletService.signingCredential?.supportedSigningAlgorithms?.first() ?: X509SignatureAlgorithm.RS512
+    suspend fun createCredentialAuthRequest(): String {
+        val signAlgorithm =
+            rqesWalletService.signingCredential?.supportedSigningAlgorithms?.first() ?: X509SignatureAlgorithm.RS512
 
-        val documentWithLabel =
-            this.documentWithLabel ?: throw Throwable("Missing documentWithLabel")
-        val dtbsr = listOf(getDTBSR(client = client, qtspHost = pdfSigningService, signatureAlgorithm = signAlgorithm, signingCredential = rqesWalletService.signingCredential!!, document = documentWithLabel))
+        val signingCredential = rqesWalletService.signingCredential ?: throw Throwable("Missing signingCredential")
+        val dtbsr = listOf(
+            getDTBSR(
+                client = client,
+                qtspHost = pdfSigningService,
+                signatureAlgorithm = signAlgorithm,
+                signingCredential = signingCredential,
+                document = this.documentWithLabel
+            )
+        )
         val transactionTokens = dtbsr.map { it.first }
         this.transactionTokens = transactionTokens
 
@@ -296,8 +295,7 @@ class SigningService(
             rqesWalletService.getCscAuthenticationDetails(dtbsr.map { it.second }, hashAlgorithm = signAlgorithm.digest)
         this.dtbsrAuthenticationDetails = dtbsrAuthenticationDetails
 
-        val authRequest = rqesWalletService.
-        createCredentialAuthenticationRequest(
+        val authRequest = rqesWalletService.createCredentialAuthenticationRequest(
             documentDigests = dtbsr.map { it.second },
             redirectUrl = "${this.redirectUrl}/finalize",
             hashAlgorithm = signAlgorithm.digest,
@@ -318,8 +316,16 @@ data class SigningConfig(
     val qtsps: List<QtspConfig>,
     var current: String
 ) {
-    fun getCurrent(): QtspConfig{
+    fun getCurrent(): QtspConfig {
         return this.qtsps.first { it.identifier == this.current }
+    }
+
+    fun hasValidCertificate(): Boolean {
+        return if (getCurrent().credentialInfo == null) {
+            false
+        } else {
+            true
+        }
     }
 
     fun getQtspByIdentifier(identifier: String): QtspConfig {
@@ -327,10 +333,23 @@ data class SigningConfig(
     }
 }
 
-val defaultSigningConfig = SigningConfig(qtsps = listOf(
-    QtspConfig("EGIZ", "https://apps.egiz.gv.at/qtsp/csc/v2", "https://apps.egiz.gv.at/qtsp", "https://wallet.a-sit.at/app"),
-    QtspConfig("ATRUST", "https://hs-abnahme.a-trust.at/csc/v2", "https://hs-abnahme.a-trust.at/csc/v1", "WALLET_EGIZ")),
-    current = "EGIZ")
+val defaultSigningConfig = SigningConfig(
+    qtsps = listOf(
+        QtspConfig(
+            "EGIZ",
+            "https://apps.egiz.gv.at/qtsp/csc/v2",
+            "https://apps.egiz.gv.at/qtsp",
+            "https://wallet.a-sit.at/app"
+        ),
+        QtspConfig(
+            "ATRUST",
+            "https://hs-abnahme.a-trust.at/csc/v2",
+            "https://hs-abnahme.a-trust.at/csc/v1",
+            "WALLET_EGIZ"
+        )
+    ),
+    current = "EGIZ"
+)
 
 @Serializable
 data class QtspConfig(
