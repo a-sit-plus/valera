@@ -62,11 +62,11 @@ class SigningService(
     private val rqesWalletService =
         RqesOpenId4VpHolder(redirectUrl = redirectUrl, clientId = config.getCurrent().oauth2ClientId)
 
-    lateinit var signatureReguestParameter: SignatureRequestParameters
-    lateinit var document: ByteArray
-    lateinit var documentWithLabel: DocumentWithLabel
-    lateinit var dtbsrAuthenticationDetails: AuthorizationDetails
-    lateinit var transactionTokens: List<String>
+    private lateinit var signatureReguestParameter: SignatureRequestParameters
+    private lateinit var document: ByteArray
+    private lateinit var documentWithLabel: DocumentWithLabel
+    private lateinit var dtbsrAuthenticationDetails: AuthorizationDetails
+    private lateinit var transactionTokens: List<String>
 
     suspend fun importFromDataStore(): SigningConfig {
         dataStoreService.getPreference("signingConfig").first()?.let {
@@ -102,7 +102,8 @@ class SigningService(
         extractSignatureRequestParameter(url)
         
         if (config.hasValidCertificate()) {
-            rqesWalletService.setSigningCredential(config.getCurrent().credentialInfo!!)
+            val credentialInfo = config.getCurrent().credentialInfo ?: throw Throwable("Missing credentialInfo")
+            rqesWalletService.setSigningCredential(credentialInfo)
             val targetUrl = createCredentialAuthRequest()
             redirectUri = this.redirectUrl
             platformAdapter.openUrl(targetUrl)
@@ -145,8 +146,7 @@ class SigningService(
             setBody(vckJsonSerializer.encodeToString(signHashRequest))
         }.body<SignatureResponse>()
 
-        val transactionTokens =
-            this.transactionTokens ?: throw Throwable("Missing transactionTokens")
+        val transactionTokens = this.transactionTokens
         val signedDocuments = getFinishedDocuments(client, pdfSigningService, signatures, transactionTokens)
 
 
