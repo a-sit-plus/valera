@@ -132,10 +132,10 @@ suspend fun handleIntent(
 
 fun parseIntent(walletMain: WalletMain, url: String): IntentType {
     return if((walletMain.signingService.redirectUri?.let { url.contains(it) } == true)) {
-        if (url.contains("finalize")){
-            IntentType.SigningCredentialIntent
-        } else if (url.contains("preload")) {
+        if (walletMain.signingService.isPreload == true) {
             IntentType.SiginingPreloadIntent
+        } else if (url.contains("finalize")){
+            IntentType.SigningCredentialIntent
         } else {
             IntentType.SigningServiceIntent
         }
