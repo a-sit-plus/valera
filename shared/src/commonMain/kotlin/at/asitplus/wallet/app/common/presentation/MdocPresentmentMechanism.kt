@@ -9,6 +9,9 @@ import kotlinx.coroutines.launch
 import kotlinx.io.bytestring.ByteString
 import kotlin.time.Duration
 
+// Based on the identity-credential sample code
+// https://github.com/openwallet-foundation-labs/identity-credential/tree/main/samples/testapp
+
 /**
  * A [PresentmentMechanism] to use with [PresentmentModel] for ISO/IEC 18013-5:2021 proximity presentations.
  *

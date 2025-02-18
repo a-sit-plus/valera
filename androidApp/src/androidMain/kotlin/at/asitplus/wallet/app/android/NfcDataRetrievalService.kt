@@ -5,6 +5,8 @@ import android.os.Bundle
 import com.android.identity.mdoc.transport.NfcTransportMdoc
 import io.github.aakira.napier.Napier
 
+// Based on the identity-credential sample code
+// https://github.com/openwallet-foundation-labs/identity-credential/tree/main/samples/testapp
 class NfcDataRetrievalService: HostApduService() {
 
     override fun processCommandApdu(commandApdu: ByteArray, extras: Bundle?): ByteArray? {
