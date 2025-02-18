@@ -24,7 +24,6 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
@@ -40,9 +39,11 @@ class WalletMain(
     val cryptoService: WalletCryptoService,
     private val dataStoreService: DataStoreService,
     val platformAdapter: PlatformAdapter,
-    var subjectCredentialStore: PersistentSubjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService),
+    var subjectCredentialStore: PersistentSubjectCredentialStore = PersistentSubjectCredentialStore(
+        dataStoreService
+    ),
     val buildContext: BuildContext,
-    val scope: CoroutineScope,
+    val scope: CoroutineScope
 ) {
     lateinit var walletConfig: WalletConfig
     lateinit var holderAgent: HolderAgent
@@ -184,6 +185,10 @@ class WalletMain(
     }
 }
 
+fun PlatformAdapter.decodeImage(image: ByteArray): ImageBitmap {
+    return getImageDecoder((image))
+}
+
 /**
  * Adapter to call back to native code without the need for service objects
  */
@@ -243,10 +248,6 @@ interface PlatformAdapter {
      */
     fun prepareDCAPICredentialResponse(responseJson: ByteArray, dcApiRequest: DCAPIRequest)
 
-}
-
-fun PlatformAdapter.decodeImage(image: ByteArray): ImageBitmap {
-    return getImageDecoder((image))
 }
 
 class DummyPlatformAdapter : PlatformAdapter {
