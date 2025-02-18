@@ -45,6 +45,8 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.getString
+import org.multipaz.compose.ui.presentment.PresentationView
+import presentationStateModel
 import ui.composables.BottomBar
 import ui.composables.NavigationData
 import ui.navigation.Routes.AddCredentialPreAuthnRoute
@@ -58,6 +60,7 @@ import ui.navigation.Routes.ErrorRoute
 import ui.navigation.Routes.HomeScreenRoute
 import ui.navigation.Routes.LoadCredentialRoute
 import ui.navigation.Routes.LoadingRoute
+import ui.navigation.Routes.LocalPresentationAuthenticationConsentRoute
 import ui.navigation.Routes.LogRoute
 import ui.navigation.Routes.OnboardingInformationRoute
 import ui.navigation.Routes.OnboardingStartRoute
@@ -77,6 +80,7 @@ import ui.viewmodels.CredentialsViewModel
 import ui.viewmodels.LoadCredentialViewModel
 import ui.viewmodels.LogViewModel
 import ui.viewmodels.PreAuthQrCodeScannerViewModel
+import ui.viewmodels.PresentationViewModel
 import ui.viewmodels.SettingsViewModel
 import ui.views.Authentication.AuthenticationQrCodeScannerView
 import ui.views.Authentication.AuthenticationSuccessView
@@ -156,7 +160,7 @@ fun WalletNavigation(walletMain: WalletMain) {
 
     LaunchedEffect(null) {
         appLink.combineTransform(walletMain.readyForIntents) { link,  ready ->
-            if (ready == true && link != null){
+            if (ready == true && link != null) {
                 emit(link)
             }
         }.collect { link ->
@@ -298,7 +302,42 @@ private fun WalletNavHost(
             if (vm != null) {
                 AuthenticationView(vm = vm)
             }
+        }
 
+        composable<LocalPresentationAuthenticationConsentRoute> { backStackEntry ->
+            val route: LocalPresentationAuthenticationConsentRoute = backStackEntry.toRoute()
+
+            val vm = try {
+                Napier.d("trying")
+                presentationStateModel.value?.let {
+                    PresentationViewModel(
+                        it,
+                        navigateUp = {  },
+                        onAuthenticationSuccess = {
+
+                        },
+                        navigateToHomeScreen = {
+                            popBackStack(HomeScreenRoute)
+                        },
+                        walletMain = walletMain
+                    )
+                } ?: throw IllegalStateException("No presentation view model set")
+            } catch (e: Throwable) {
+                popBackStack(HomeScreenRoute)
+                walletMain.errorService.emit(e)
+                null
+            }
+
+            if (vm != null) {
+                Napier.d("Showing presentation view")
+                PresentationView(
+                    vm,
+                    onPresentmentComplete = {
+                        popBackStack(HomeScreenRoute)
+                    },
+                    coroutineScope = walletMain.scope,
+                )
+            }
         }
 
         composable<AuthenticationSuccessRoute> { backStackEntry ->

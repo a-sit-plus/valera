@@ -12,6 +12,6 @@ class BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase {
                     it.serialize()
                 )
             )
-        } ?: KmmResult.failure(Error("No API request"))
+        } ?: KmmResult.failure(Error("No DCAPI authentication request received"))
     }
 }

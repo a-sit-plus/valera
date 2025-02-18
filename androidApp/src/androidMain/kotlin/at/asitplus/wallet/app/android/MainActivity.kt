@@ -5,23 +5,22 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.appcompat.app.AppCompatActivity
 import appLink
-import at.asitplus.wallet.app.android.dcapi.WalletAPIData
+import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.BuildType
-import com.google.android.gms.identitycredentials.GetCredentialResponse
+import com.android.identity.util.AndroidContexts
 import com.google.android.gms.identitycredentials.IntentHelper
+import dcapiInvocationData
+import presentationStateModel
+import ui.navigation.PRESENTATION_REQUESTED_INTENT
 
 
-class MainActivity : AppCompatActivity() {
-
-    private val walletAPIData = WalletAPIData()
+class MainActivity : AbstractWalletActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        populateLink(intent)
         setContent {
             MainView(
                 buildContext = BuildContext(
@@ -31,29 +30,35 @@ class MainActivity : AppCompatActivity() {
                     versionName = BuildConfig.VERSION_NAME,
                     osVersion = "Android ${Build.VERSION.RELEASE}"
                 ),
-                walletAPIData,
                 ::sendCredentialResponseToDCAPIInvoker
             )
         }
     }
 
-    private fun sendCredentialResponseToDCAPIInvoker(resultJson: String) {
-        val resultData = Intent()
-        val bundle = Bundle()
-        bundle.putByteArray("identityToken", resultJson.toByteArray())
-        val credentialResponse = com.google.android.gms.identitycredentials.Credential("type", bundle)
-
-        IntentHelper.setGetCredentialResponse(
-            resultData,
-            GetCredentialResponse(credentialResponse)
-        )
-        setResult(RESULT_OK, resultData)
-        finish()
+    override fun onResume() {
+        super.onResume()
+        AndroidContexts.setCurrentActivity(this)
     }
 
-    private fun populateLink(intent: Intent) {
-        walletAPIData.intent = intent
-        appLink.value = if (intent.action == IntentHelper.ACTION_GET_CREDENTIAL) intent.action else intent.data?.toString()
+    override fun onPause() {
+        super.onPause()
+        AndroidContexts.setCurrentActivity(null)
+    }
+
+    override fun populateLink(intent: Intent) {
+        when (intent.action) {
+            IntentHelper.ACTION_GET_CREDENTIAL -> {
+                dcapiInvocationData.value = DCAPIInvocationData(intent)
+                appLink.value = intent.action
+            }
+            PRESENTATION_REQUESTED_INTENT -> {
+                presentationStateModel.value = NdefDeviceEngagementService.presentationStateModel
+                appLink.value = PRESENTATION_REQUESTED_INTENT
+            }
+            else -> {
+                appLink.value = intent.data?.toString()
+            }
+        }
     }
 
     override fun onNewIntent(intent: Intent?) {

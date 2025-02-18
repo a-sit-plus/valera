@@ -28,22 +28,20 @@ import at.asitplus.wallet.app.common.dcapi.ResponseJSON
 import data.storage.RealDataStoreService
 import data.storage.getDataStore
 import at.asitplus.wallet.app.android.dcapi.IdentityCredentialHelper
-import at.asitplus.wallet.app.android.dcapi.WalletAPIData
+import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.json.JSONObject
 import ui.theme.darkScheme
 import ui.theme.lightScheme
 import java.io.File
-import java.security.Security
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 
 actual fun getPlatformName(): String = "Android"
-var walletAPIData: WalletAPIData? = null
+
 
 // Modified from https://developer.android.com/jetpack/compose/designsystems/material3
 @Composable
@@ -59,21 +57,15 @@ actual fun getColorScheme(): ColorScheme {
 @Composable
 fun MainView(
     buildContext: BuildContext,
-    walletData: WalletAPIData,
     sendCredentialResponseToDCAPIInvokerMethod: (String) -> Unit
 ) {
-    walletAPIData = walletData
-    val platformAdapter = AndroidPlatformAdapter(LocalContext.current, sendCredentialResponseToDCAPIInvokerMethod)
     val scope = CoroutineScope(Dispatchers.Default)
+    val platformAdapter = AndroidPlatformAdapter(LocalContext.current, sendCredentialResponseToDCAPIInvokerMethod, scope)
     val dataStoreService = RealDataStoreService(
         getDataStore(LocalContext.current),
         platformAdapter
     )
     val ks = KeystoreService(dataStoreService)
-
-    // required for identity.Crypto classes
-    Security.removeProvider("BC")
-    Security.addProvider(BouncyCastleProvider())
 
     App(
         WalletMain(
@@ -88,7 +80,8 @@ fun MainView(
 
 class AndroidPlatformAdapter(
     private val context: Context,
-    private val sendCredentialResponseToDCAPIInvoker: (String) -> Unit
+    private val sendCredentialResponseToDCAPIInvoker: (String) -> Unit,
+    private val scope: CoroutineScope
 ) : PlatformAdapter {
 
     override fun openUrl(url: String) {
@@ -156,12 +149,12 @@ class AndroidPlatformAdapter(
         val registry = IdentityCredentialHelper(entries, this)
         val client = IdentityCredentialManager.Companion.getClient(context)
         client.registerCredentials(registry.toRegistrationRequest(context))
-            .addOnSuccessListener { Napier.i("CredMan registry succeeded") }
-            .addOnFailureListener { Napier.i("CredMan registry failed $it") }
+            .addOnSuccessListener { Napier.i("DCAPI: Credential Manager registration succeeded") }
+            .addOnFailureListener { Napier.w("DCAPI: Credential Manager registration failed", it) }
     }
 
     override fun getCurrentDCAPIData(): DCAPIRequest? {
-        return walletAPIData?.intent?.let {
+        return (dcapiInvocationData.value as DCAPIInvocationData?)?.intent?.let {
             // Adapted from https://github.com/openwallet-foundation-labs/identity-credential/blob/d7a37a5c672ed6fe1d863cbaeb1a998314d19fc5/wallet/src/main/java/com/android/identity_credential/wallet/credman/CredmanPresentationActivity.kt#L74
             val cmrequest = IntentHelper.extractGetCredentialRequest(it) ?: return null
             val credentialId = it.getLongExtra(IntentHelper.EXTRA_CREDENTIAL_ID, -1).toInt()

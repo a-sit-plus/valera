@@ -10,12 +10,15 @@ import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.PresentationException
 import at.asitplus.wallet.lib.agent.PresentationRequestParameters
 import at.asitplus.wallet.lib.cbor.CoseService
+import at.asitplus.wallet.lib.iso.DeviceResponse
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
+import com.android.identity.mdoc.response.DeviceResponseGenerator
 import com.benasher44.uuid.uuid4
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
 import kotlinx.serialization.builtins.ByteArraySerializer
+import kotlin.reflect.KSuspendFunction1
 
 class PresentationService(
     val platformAdapter: PlatformAdapter,
@@ -90,6 +93,39 @@ class PresentationService(
         }
 
         platformAdapter.prepareDCAPICredentialResponse(deviceResponse.serialize(), dcApiRequest)
+    }
+
+    suspend fun finalizeLocalPresentation(
+        submission: Map<String, CredentialSubmission>,
+        finishFunction: (DeviceResponse) -> Unit
+    ) {
+        Napier.d("Finalizing response")
+
+        //TODO nonce and other parameters
+        val presentationResult = holderAgent.createPresentation(
+            request = PresentationRequestParameters(nonce = "1234", audience = "", calcIsoDeviceSignature = {
+                coseService.createSignedCose(
+                    payload = it.encodeToByteArray(),
+                    serializer = ByteArraySerializer(),
+                    addKeyId = false
+                ).getOrElse { e ->
+                    Napier.w("Could not create DeviceAuth for presentation", e)
+                    throw PresentationException(e)
+                } to null
+            }),
+            presentationDefinitionId = uuid4().toString(),
+            presentationSubmissionSelection = submission
+        )
+
+        val presentation = presentationResult.getOrThrow()
+
+        val deviceResponse = when (val firstResult = presentation.presentationResults[0]) {
+            is CreatePresentationResult.DeviceResponse -> firstResult.deviceResponse
+            is CreatePresentationResult.SdJwt -> TODO("Credential type not yet supported for API use case")
+            is CreatePresentationResult.Signed -> TODO("Credential type not yet supported for API use case")
+        }
+
+        finishFunction(deviceResponse)
     }
 
 }

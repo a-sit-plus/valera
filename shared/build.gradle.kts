@@ -29,7 +29,7 @@ kotlin {
     iosSimulatorArm64()
 
     sourceSets {
-        commonMain {
+        val commonMain by getting {
             dependencies {
                 implementation(compose.runtime)
                 implementation(compose.foundation)
@@ -58,11 +58,13 @@ kotlin {
                 implementation(ktor("client-content-negotiation"))
                 implementation(ktor("serialization-kotlinx-json"))
                 implementation(libs.identity)
+                implementation(libs.identity.mdoc)
                 implementation(libs.semver)
+
             }
         }
 
-        commonTest {
+        val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
                 implementation(kotlin("test-common"))
@@ -71,7 +73,7 @@ kotlin {
             }
         }
 
-        androidMain {
+        val androidMain by getting {
             dependencies {
                 implementation("androidx.biometric:biometric:1.2.0-alpha05")
                 api("androidx.activity:activity-compose:1.8.1")
@@ -84,7 +86,6 @@ kotlin {
                 implementation("androidx.camera:camera-view:1.3.0")
                 implementation("com.google.accompanist:accompanist-permissions:0.30.1")
                 implementation("com.google.mlkit:barcode-scanning:17.2.0")
-
                 implementation(libs.play.services.identity.credentials)
                 implementation(libs.identity.android)
             }
@@ -163,6 +164,7 @@ exportXCFramework(
 }
 
 repositories {
+    mavenLocal()
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
     maven("https://oss.sonatype.org/content/repositories/snapshots/")
 }

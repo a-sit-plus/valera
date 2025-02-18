@@ -9,10 +9,12 @@ plugins {
 kotlin {
     androidTarget()
     sourceSets {
-        androidMain {
+        val androidMain by getting {
             dependencies {
                 implementation(project(":shared"))
                 implementation(libs.play.services.identity.credentials)
+                implementation(libs.identity)
+                implementation(libs.identity.mdoc)
             }
         }
     }
@@ -67,6 +69,7 @@ android {
 }
 
 repositories {
+    mavenLocal()
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
     maven("https://oss.sonatype.org/content/repositories/snapshots/")
 }
