@@ -223,9 +223,7 @@ class SigningService(
         val url = URLBuilder(url)
         val code = url.parameters["code"] ?: throw Throwable("Missing code")
         val state = url.parameters["state"] ?: throw Throwable("Missing state")
-
-        Napier.e("Code: $code, State: $state")
-
+        
         val tokenRequest = rqesWalletService.createOAuth2TokenRequest(
             state,
             authorization = OAuth2Client.AuthorizationForToken.Code(code),
