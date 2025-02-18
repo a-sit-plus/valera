@@ -68,7 +68,7 @@ class SigningService(
     private lateinit var dtbsrAuthenticationDetails: AuthorizationDetails
     private lateinit var transactionTokens: List<String>
 
-    suspend fun importFromDataStore(): SigningConfig {
+    private suspend fun importFromDataStore(): SigningConfig {
         dataStoreService.getPreference("signingConfig").first()?.let {
             try {
                 return vckJsonSerializer.decodeFromString<SigningConfig>(it)
@@ -173,7 +173,7 @@ class SigningService(
         }
     }
 
-    suspend fun createServiceAuthRequest(): String {
+    private suspend fun createServiceAuthRequest(): String {
         val authRequest =
             rqesWalletService.createServiceAuthenticationRequest()
 
@@ -250,7 +250,7 @@ class SigningService(
         return tokenResponseParameters
     }
 
-    suspend fun getCredentialInfo(token: TokenResponseParameters): CredentialInfo {
+    private suspend fun getCredentialInfo(token: TokenResponseParameters): CredentialInfo {
         val credentialListRequest = CscCredentialListRequest(
             credentialInfo = true,
             certificates = CertificateOptions.SINGLE,
@@ -274,7 +274,7 @@ class SigningService(
             ?: throw Throwable("Missing credentialInfos")
     }
 
-    suspend fun createCredentialAuthRequest(): String {
+    private suspend fun createCredentialAuthRequest(): String {
         val signAlgorithm =
             rqesWalletService.signingCredential?.supportedSigningAlgorithms?.first() ?: X509SignatureAlgorithm.RS512
 
