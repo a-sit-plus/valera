@@ -1,24 +1,16 @@
 package at.asitplus.wallet.app.common.presentation
 
 import at.asitplus.wallet.lib.iso.DeviceResponse
-import com.android.identity.request.MdocClaim
 import com.android.identity.cbor.Bstr
 import com.android.identity.cbor.Cbor
 import com.android.identity.cbor.CborArray
 import com.android.identity.cbor.Tagged
-import com.android.identity.document.NameSpacedData
 import com.android.identity.documenttype.DocumentTypeRepository
-import com.android.identity.mdoc.credential.MdocCredential
-import com.android.identity.mdoc.mso.MobileSecurityObjectParser
-import com.android.identity.mdoc.mso.StaticAuthDataParser
 import com.android.identity.mdoc.request.DeviceRequestParser
-import com.android.identity.mdoc.response.DocumentGenerator
 import com.android.identity.mdoc.sessionencryption.SessionEncryption
 import com.android.identity.mdoc.transport.MdocTransport
 import com.android.identity.mdoc.transport.MdocTransportClosedException
-import com.android.identity.mdoc.util.MdocUtil
 import com.android.identity.mdoc.util.toMdocRequest
-import com.android.identity.securearea.KeyUnlockInteractive
 import com.android.identity.util.Constants
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,26 +18,18 @@ import kotlinx.coroutines.flow.first
 import ui.viewmodels.PresentationStateModel
 import ui.viewmodels.PresentationViewModel
 
+
+// Based on the identity-credential sample code
+// https://github.com/openwallet-foundation-labs/identity-credential/tree/main/samples/testapp
 class MdocPresenter(
     private val stateModel: PresentationStateModel,
     private val presentationViewModel: PresentationViewModel,
     private val mechanism: MdocPresentmentMechanism
 ) {
-    private var sessionEncryption: SessionEncryption? = null
-
     internal suspend fun present(
-        //source: PresentmentSource,
         dismissible: MutableStateFlow<Boolean>,
         numRequestsServed: MutableStateFlow<Int>,
         credentialSelected: (DeviceResponse) -> Unit,
-        /*showCredentialPicker: suspend (
-            documents: List<Credential>,
-        ) -> Credential?,
-        showConsentPrompt: suspend (
-            document: Document,
-            request: Request,
-            trustPoint: TrustPoint?
-        ) -> Boolean,*/
     ) {
         val transport = mechanism.transport
         // Wait until state changes to CONNECTED, FAILED, or CLOSED
@@ -158,47 +142,4 @@ class MdocPresenter(
             stateModel.setCompleted(error)
         }
     }
-
-
-}
-
-private suspend fun calcDocument(
-    credential: MdocCredential,
-    claims: List<MdocClaim>,
-    encodedSessionTranscript: ByteArray
-): ByteArray {
-    val nsAndDataElements = mutableMapOf<String, MutableList<String>>()
-    claims.forEach {
-        nsAndDataElements.getOrPut(it.namespaceName, { mutableListOf() }).add(it.dataElementName)
-    }
-
-    val staticAuthData = StaticAuthDataParser(credential.issuerProvidedData).parse()
-
-    val documentData = credential.document.metadata.nameSpacedData
-    val mergedIssuerNamespaces = MdocUtil.mergeIssuerNamesSpaces(
-        nsAndDataElements,
-        documentData,
-        staticAuthData
-    )
-    val issuerAuthCoseSign1 = Cbor.decode(staticAuthData.issuerAuth).asCoseSign1
-    val encodedMsoBytes = Cbor.decode(issuerAuthCoseSign1.payload!!)
-    val encodedMso = Cbor.encode(encodedMsoBytes.asTaggedEncodedCbor)
-    val mso = MobileSecurityObjectParser(encodedMso).parse()
-
-    val documentGenerator = DocumentGenerator(
-        mso.docType,
-        staticAuthData.issuerAuth,
-        encodedSessionTranscript,
-    )
-    documentGenerator.setIssuerNamespaces(mergedIssuerNamespaces)
-
-    val keyInfo = credential.secureArea.getKeyInfo(credential.alias)
-    documentGenerator.setDeviceNamespacesSignature(
-        NameSpacedData.Builder().build(),
-        credential.secureArea,
-        credential.alias,
-        KeyUnlockInteractive(),
-        keyInfo.publicKey.curve.defaultSigningAlgorithm,
-    )
-    return documentGenerator.generate()
 }

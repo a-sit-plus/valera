@@ -53,7 +53,6 @@ class WalletMain(
     lateinit var snackbarService: SnackbarService
     lateinit var errorService: ErrorService
     lateinit var dcApiService: DCAPIService
-    lateinit var pureNfcService: PureNfcService
     private val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
 
     val readyForIntents = MutableStateFlow<Boolean?>(null)
@@ -105,7 +104,6 @@ class WalletMain(
         )
         this.snackbarService = snackbarService
         this.dcApiService = DCAPIService(platformAdapter)
-        this.pureNfcService = PureNfcService(scope, snackbarService, platformAdapter)
     }
 
     suspend fun resetApp() {

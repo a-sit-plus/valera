@@ -37,6 +37,9 @@ import ui.navigation.PRESENTATION_REQUESTED_INTENT
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
+// Based on the identity-credential sample code
+// https://github.com/openwallet-foundation-labs/identity-credential/tree/main/samples/testapp
+
 class NdefDeviceEngagementService: HostApduService() {
     companion object {
         private var engagement: MdocNfcEngagementHelper? = null
@@ -45,9 +48,7 @@ class NdefDeviceEngagementService: HostApduService() {
         val presentationStateModel: PresentationStateModel by lazy { PresentationStateModel() }
     }
 
-
     private lateinit var settings: TransferSettings
-
 
     private fun vibrate(pattern: List<Int>) {
         val vibrator = ContextCompat.getSystemService(
