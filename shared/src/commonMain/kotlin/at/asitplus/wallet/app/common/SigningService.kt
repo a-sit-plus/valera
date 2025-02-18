@@ -126,6 +126,8 @@ class SigningService(
     suspend fun resumeWithServiceAuthCode(url: String) {
         val token = getTokenFromAuthCode(url)
         val credentialInfo = getCredentialInfo(token)
+        config.getCurrent().credentialInfo = credentialInfo
+        exportToDataStore()
 
         rqesWalletService.setSigningCredential(credentialInfo)
 
