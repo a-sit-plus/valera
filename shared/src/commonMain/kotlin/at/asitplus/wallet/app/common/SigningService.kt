@@ -163,12 +163,14 @@ class SigningService(
             ListSerializer(ByteArrayBase64Serializer),
             signedDocuments.map { it.document })
 
-        val responseState =
-            this.signatureReguestParameter?.state ?: throw Throwable("Missing responseState")
+        val responseState = this.signatureReguestParameter?.state
         val responseUrl =
             this.signatureReguestParameter?.responseUrl ?: throw Throwable("Missing responseUrl")
+
         val drivingAppResponseUrl = URLBuilder(responseUrl).apply {
-            parameters.append("state", responseState)
+            if (responseState != null) {
+                parameters.append("state", responseState)
+            }
         }.buildString()
 
         val finalRedirect = client.post(drivingAppResponseUrl) {
