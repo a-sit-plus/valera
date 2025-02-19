@@ -63,7 +63,7 @@ sealed class TaxIdCredentialAdapter : CredentialAdapter() {
     abstract val registeredFamilyName: String?
     abstract val registeredGivenName: String?
     abstract val residentAddress: String?
-    abstract val birthDate: LocalDate?
+    abstract val birthDate: String?
     abstract val churchTaxId: String?
     abstract val iban: String?
     abstract val pidId: String?
@@ -123,8 +123,8 @@ private class TaxIdCredentialSdJwtAdapter(
     override val residentAddress: String?
         get() = attributes[RESIDENT_ADDRESS]?.contentOrNull
 
-    override val birthDate: LocalDate?
-        get() = attributes[BIRTH_DATE]?.contentOrNull.toLocalDateOrNull()
+    override val birthDate: String?
+        get() = attributes[BIRTH_DATE]?.contentOrNull
 
     override val churchTaxId: String?
         get() = attributes[CHURCH_TAX_ID]?.contentOrNull
@@ -183,8 +183,8 @@ private class TaxIdIsoMdocAdapter(
     override val residentAddress: String?
         get() = namespace?.get(RESIDENT_ADDRESS) as String?
 
-    override val birthDate: LocalDate?
-        get() = namespace?.get(BIRTH_DATE).toLocalDateOrNull()
+    override val birthDate: String?
+        get() = namespace?.get(BIRTH_DATE) as String?
 
     override val churchTaxId: String?
         get() = namespace?.get(CHURCH_TAX_ID) as String?
