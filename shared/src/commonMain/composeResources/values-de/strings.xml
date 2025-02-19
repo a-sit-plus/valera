@@ -143,6 +143,16 @@
     <string name="attribute_friendly_name_data_recipient_name">Name</string>
     <string name="attribute_friendly_name_data_recipient_location">Ort</string>
 
+    <string name="attribute_friendly_name_tax_number">UNTRANSLATED:attribute_friendly_name_tax_number</string>
+    <string name="attribute_friendly_name_affiliation_country">UNTRANSLATED:attribute_friendly_name_affiliation_country</string>
+    <string name="attribute_friendly_name_registered_family_name">UNTRANSLATED:attribute_friendly_name_registered_family_name</string>
+    <string name="attribute_friendly_name_registered_given_name">UNTRANSLATED:attribute_friendly_name_registered_given_name</string>
+    <string name="attribute_friendly_name_resident_address">UNTRANSLATED:attribute_friendly_name_resident_address</string>
+    <string name="attribute_friendly_name_church_tax_id">UNTRANSLATED:attribute_friendly_name_church_tax_id</string>
+    <string name="attribute_friendly_name_iban">UNTRANSLATED:attribute_friendly_name_iban</string>
+    <string name="attribute_friendly_name_pid_id">UNTRANSLATED:attribute_friendly_name_pid_id</string>
+    <string name="attribute_friendly_name_verification_status">UNTRANSLATED:attribute_friendly_name_verification_status</string>
+
     <string name="credential_representation_format_label_plain_jwt">Plain JWT</string>
     <string name="credential_representation_format_label_sd_jwt">SD-JWT</string>
     <string name="credential_representation_format_label_mso_mdoc">ISO mDoc</string>
