@@ -22,6 +22,7 @@ import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationDataElements
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
+import at.asitplus.wallet.taxid.TaxIdScheme
 import data.RequestOptionParameters
 import io.github.aakira.napier.Napier
 import kotlinx.serialization.json.JsonElement
@@ -118,6 +119,7 @@ private fun ConstantIndex.CredentialScheme.toJsonElement(
         CertificateOfResidenceScheme -> CertificateOfResidenceDataElements.ALL_ELEMENTS
         CompanyRegistrationScheme -> CompanyRegistrationDataElements.ALL_ELEMENTS
         EPrescriptionScheme -> EPrescriptionDataElements.ALL_ELEMENTS
+        TaxIdScheme -> this.claimNames
         else -> TODO("${this::class.simpleName} not implemented in jsonElementBuilder yet")
     }
 
