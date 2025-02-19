@@ -45,6 +45,7 @@ kotlin {
                 api(libs.credential.certificateofresidence)
                 api(libs.credential.companyregistration)
                 api(libs.credential.eprescription)
+                api(libs.credential.taxid)
                 implementation(serialization("json"))
                 api(napier())
                 implementation("androidx.datastore:datastore-preferences-core:1.1.1")
@@ -151,6 +152,7 @@ exportXCFramework(
         libs.credential.certificateofresidence,
         libs.credential.companyregistration,
         libs.credential.eprescription,
+        libs.credential.taxid,
         kmmresult(),
         napier()
     )
