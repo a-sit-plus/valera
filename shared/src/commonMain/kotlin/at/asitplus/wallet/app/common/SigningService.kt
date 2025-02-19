@@ -348,6 +348,12 @@ val defaultSigningConfig = SigningConfig(
             "https://hs-abnahme.a-trust.at/csc/v2",
             "https://hs-abnahme.a-trust.at/csc/v1",
             "WALLET_EGIZ"
+        ),
+        QtspConfig(
+            "PRIMESIGN",
+            "https://qs.primesign-test.com",
+            "https://id.primesign-test.com/realms/qs-staging",
+            "https://wallet.a-sit.at/app"
         )
     ),
     current = "EGIZ"
