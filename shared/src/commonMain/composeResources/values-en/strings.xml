@@ -143,15 +143,15 @@
     <string name="attribute_friendly_name_data_recipient_name">Name</string>
     <string name="attribute_friendly_name_data_recipient_location">Location</string>
 
-    <string name="attribute_friendly_name_tax_number">UNTRANSLATED:attribute_friendly_name_tax_number</string>
-    <string name="attribute_friendly_name_affiliation_country">UNTRANSLATED:attribute_friendly_name_affiliation_country</string>
-    <string name="attribute_friendly_name_registered_family_name">UNTRANSLATED:attribute_friendly_name_registered_family_name</string>
-    <string name="attribute_friendly_name_registered_given_name">UNTRANSLATED:attribute_friendly_name_registered_given_name</string>
-    <string name="attribute_friendly_name_resident_address">UNTRANSLATED:attribute_friendly_name_resident_address</string>
-    <string name="attribute_friendly_name_church_tax_id">UNTRANSLATED:attribute_friendly_name_church_tax_id</string>
-    <string name="attribute_friendly_name_iban">UNTRANSLATED:attribute_friendly_name_iban</string>
-    <string name="attribute_friendly_name_pid_id">UNTRANSLATED:attribute_friendly_name_pid_id</string>
-    <string name="attribute_friendly_name_verification_status">UNTRANSLATED:attribute_friendly_name_verification_status</string>
+    <string name="attribute_friendly_name_tax_number">tax_number</string>
+    <string name="attribute_friendly_name_affiliation_country">affiliation_country</string>
+    <string name="attribute_friendly_name_registered_family_name">registered_family_name</string>
+    <string name="attribute_friendly_name_registered_given_name">registered_given_name</string>
+    <string name="attribute_friendly_name_resident_address">resident_address</string>
+    <string name="attribute_friendly_name_church_tax_id">church_tax_id</string>
+    <string name="attribute_friendly_name_iban">iban</string>
+    <string name="attribute_friendly_name_pid_id">pid_id</string>
+    <string name="attribute_friendly_name_verification_status">verification_status</string>
 
     <string name="credential_representation_format_label_plain_jwt">Plain JWT</string>
     <string name="credential_representation_format_label_sd_jwt">SD-JWT</string>
@@ -176,6 +176,8 @@
     <string name="credential_scheme_label_company_registration">Company registration</string>
     <string name="credential_scheme_label_eprescription">e-Prescription</string>
     <string name="credential_scheme_icon_label_eprescription">eP</string>
+    <string name="credential_scheme_label_tax_id">Tax ID</string>
+    <string name="credential_scheme_icon_label_tax_id">TAX</string>
 
     <string name="navigation_button_label_show_data">Show Data</string>
     <string name="navigation_button_label_my_data">My Data</string>

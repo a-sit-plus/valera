@@ -183,6 +183,8 @@
     <string name="credential_scheme_label_company_registration">UNTRANSLATED:credential_scheme_label_company_registration</string>
     <string name="credential_scheme_label_eprescription">UNTRANSLATED:credential_scheme_label_eprescription</string>
     <string name="credential_scheme_icon_label_eprescription">UNTRANSLATED:credential_scheme_icon_label_eprescription</string>
+    <string name="credential_scheme_label_tax_id">UNTRANSLATED:credential_scheme_label_tax_id</string>
+    <string name="credential_scheme_icon_label_tax_id">credential_scheme_icon_label_tax_id</string>
 
     <string name="text_label_issuing_service">UNTRANSLATED:text_label_issuing_service</string>
     <string name="text_label_id_identifier">UNTRANSLATED:text_label_id_identifier</string>

@@ -34,6 +34,7 @@ import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_credential_details_screen
 import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
+import at.asitplus.wallet.taxid.TaxIdScheme
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.CertificateOfResidenceCredentialView
@@ -46,6 +47,7 @@ import ui.composables.credentials.PowerOfRepresentationCredentialView
 import ui.composables.CredentialCardActionMenu
 import ui.composables.Logo
 import ui.composables.credentials.CompanyRegistrationCredentialView
+import ui.composables.credentials.TaxIdCredentialView
 import ui.viewmodels.CredentialDetailsViewModel
 
 @Composable
@@ -138,6 +140,7 @@ fun CredentialDetailsSummaryView(
             is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialView(storeEntry)
             is CompanyRegistrationScheme -> CompanyRegistrationCredentialView(storeEntry)
             is EPrescriptionScheme -> EPrescriptionView(storeEntry)
+            is TaxIdScheme -> TaxIdCredentialView(storeEntry)
             else -> {}
         }
         GenericCredentialSummaryCardContent(
