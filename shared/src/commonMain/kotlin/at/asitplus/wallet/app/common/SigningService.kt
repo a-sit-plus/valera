@@ -59,8 +59,7 @@ class SigningService(
     private val client = httpService.buildHttpClient(cookieStorage)
     private val redirectUrl = "asitplus-wallet://wallet.a-sit.at/app/callback/signing"
     private val pdfSigningService = "https://apps.egiz.gv.at/qtsp"
-    private val rqesWalletService =
-        RqesOpenId4VpHolder(redirectUrl = redirectUrl, clientId = config.getCurrent().oauth2ClientId)
+    lateinit var rqesWalletService: RqesOpenId4VpHolder
 
     private lateinit var signatureReguestParameter: SignatureRequestParameters
     private lateinit var document: ByteArray
@@ -84,6 +83,8 @@ class SigningService(
     }
 
     suspend fun preloadCertificate() {
+        rqesWalletService = RqesOpenId4VpHolder(redirectUrl = redirectUrl, clientId = config.getCurrent().oauth2ClientId)
+
         val targetUrl = createServiceAuthRequest()
         redirectUri = this.redirectUrl
         this.isPreload = true
@@ -99,6 +100,7 @@ class SigningService(
     }
 
     suspend fun start(url: String) {
+        rqesWalletService = RqesOpenId4VpHolder(redirectUrl = redirectUrl, clientId = config.getCurrent().oauth2ClientId)
         extractSignatureRequestParameter(url)
         
         if (config.hasValidCertificate()) {
