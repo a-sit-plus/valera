@@ -15,7 +15,7 @@ fun TaxIdCredentialSummaryCardContent(
         TaxIdCredentialAdapter.createFromStoreEntry(credential)
     }
 
-    TaxIdCredentialRepresentationDataCardContent(
+    TaxIdCredentialMetadataDataCardContent(
         credentialAdapter = credentialAdapter,
     )
 }

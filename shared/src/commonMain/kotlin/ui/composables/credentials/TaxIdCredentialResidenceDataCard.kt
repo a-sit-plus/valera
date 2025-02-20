@@ -12,17 +12,17 @@ import data.credentials.TaxIdCredentialAdapter
 import ui.composables.AttributeRepresentation
 
 @Composable
-fun TaxIdCredentialRepresentationDataCard(
+fun TaxIdCredentialResidenceDataCard(
     credentialAdapter: TaxIdCredentialAdapter,
     modifier: Modifier = Modifier,
 ) {
     CredentialDetailCard(
         credentialScheme = TaxIdScheme,
-        personalDataCategory = PersonalDataCategory.Metadata,
+        personalDataCategory = PersonalDataCategory.ResidenceData,
         credentialAdapter = credentialAdapter,
         modifier = modifier,
     ) {
-        TaxIdCredentialRepresentationDataCardContent(
+        TaxIdCredentialResidenceDataCardContent(
             credentialAdapter = credentialAdapter,
             modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
         )
@@ -30,7 +30,7 @@ fun TaxIdCredentialRepresentationDataCard(
 }
 
 @Composable
-fun TaxIdCredentialRepresentationDataCardContent(
+fun TaxIdCredentialResidenceDataCardContent(
     credentialAdapter: TaxIdCredentialAdapter, modifier: Modifier = Modifier
 ) {
     Column(
@@ -38,7 +38,7 @@ fun TaxIdCredentialRepresentationDataCardContent(
         modifier = modifier,
     ) {
         val spacingModifier = Modifier.padding(bottom = 4.dp)
-        credentialAdapter.taxNumber?.let {
+        credentialAdapter.residentAddress?.let {
             AttributeRepresentation(it, modifier = spacingModifier)
         }
     }
