@@ -62,10 +62,10 @@ class WalletConfig(
 @Serializable
 private data class ConfigData(
     val host: String,
-    val isConditionsAccepted: Boolean = false
+    val isConditionsAccepted: Boolean = false,
 )
 
 private val ConfigDataDefaults = ConfigData(
     host = "https://wallet.a-sit.at/m5",
-    isConditionsAccepted = false
+    isConditionsAccepted = false,
 )
