@@ -53,7 +53,7 @@ class SigningService(
 ) {
     val config = runBlocking { importFromDataStore() }
     var redirectUri: String? = null
-    var isPreload: Boolean? = null
+    var state: SigningState? = null
 
     private val cookieStorage = PersistentCookieStorage(dataStoreService, errorService)
     private val client = httpService.buildHttpClient(cookieStorage)
@@ -86,13 +86,12 @@ class SigningService(
         rqesWalletService = RqesOpenId4VpHolder(redirectUrl = redirectUrl, clientId = config.getCurrent().oauth2ClientId)
 
         val targetUrl = createServiceAuthRequest()
-        redirectUri = this.redirectUrl
-        this.isPreload = true
+        this.redirectUri = this.redirectUrl
+        this.state = SigningState.PreloadCredential
         platformAdapter.openUrl(targetUrl)
     }
 
     suspend fun resumePreloadCertificate(url: String) {
-        this.isPreload = false
         val token = getTokenFromAuthCode(url)
         val credentialInfo = getCredentialInfo(token)
         config.getCurrent().credentialInfo = credentialInfo
@@ -108,10 +107,12 @@ class SigningService(
             rqesWalletService.setSigningCredential(credentialInfo)
             val targetUrl = createCredentialAuthRequest()
             redirectUri = this.redirectUrl
+            this.state = SigningState.CredentialRequest
             platformAdapter.openUrl(targetUrl)
         } else {
             val targetUrl = createServiceAuthRequest()
             redirectUri = this.redirectUrl
+            this.state = SigningState.ServiceRequest
             platformAdapter.openUrl(targetUrl)
         }
     }
@@ -126,6 +127,7 @@ class SigningService(
 
         val targetUrl = createCredentialAuthRequest()
         redirectUri = this.redirectUrl
+        this.state = SigningState.CredentialRequest
         platformAdapter.openUrl(targetUrl)
     }
 
@@ -299,8 +301,7 @@ class SigningService(
 
         val authRequest = rqesWalletService.createCredentialAuthenticationRequest(
             documentDigests = dtbsr.map { it.second },
-            redirectUrl = "${this.redirectUrl}/finalize",
-            hashAlgorithm = signAlgorithm.digest,
+            hashAlgorithm = signAlgorithm.digest
         )
 
         val targetUrl = URLBuilder("${config.getCurrent().oauth2BaseUrl}/oauth2/authorize").apply {
@@ -311,6 +312,12 @@ class SigningService(
 
         return targetUrl
     }
+}
+
+enum class SigningState {
+    ServiceRequest,
+    CredentialRequest,
+    PreloadCredential
 }
 
 @Serializable
