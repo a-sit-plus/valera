@@ -9,6 +9,7 @@ import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
+import at.asitplus.wallet.taxid.TaxIdScheme
 import data.PersonalDataCategory
 import data.credentialsdatacard.CompanyRegistrationCredentialAttributeCategorization
 
@@ -33,6 +34,7 @@ interface CredentialAttributeCategorization {
             is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialAttributeCategorization
             is CompanyRegistrationScheme -> CompanyRegistrationCredentialAttributeCategorization
             is EPrescriptionScheme -> EPrescriptionCredentialAttributeCategorization
+            is TaxIdScheme -> TaxIdCredentialAttributeCategorization
             else -> EmptyCredentialAttributeCategorization
         }
     }

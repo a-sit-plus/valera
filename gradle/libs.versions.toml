@@ -9,6 +9,7 @@ powerofrepresentation = "1.1.1"
 certificateofresidence = "2.1.2"
 companyregistration = "1.0.1"
 eprescription = "1.1.1"
+taxid = "1.0.0"
 atomicfu = "0.26.1"
 compose-plugin = "1.7.3"
 
@@ -21,6 +22,7 @@ credential-certificateofresidence = { module = "at.asitplus.wallet:certificateof
 credential-companyregistration = { module = "at.asitplus.wallet:company-registration", version.ref = "companyregistration" }
 credential-mdl = { group = "at.asitplus.wallet", name = "mobiledrivinglicence", version.ref = "mdl" }
 credential-eprescription = { module = "at.asitplus.wallet:eprescription", version.ref = "eprescription"}
+credential-taxid = { group = "at.asitplus.wallet", name = "taxid", version.ref = "taxid" }
 identity = { module = "com.android.identity:identity", version.ref = "identity" }
 identity-android = { module = "com.android.identity:identity-android", version.ref = "identity" }
 play-services-identity-credentials = { module = "com.google.android.gms:play-services-identity-credentials", version.ref = "play-services-identity-credentials" }

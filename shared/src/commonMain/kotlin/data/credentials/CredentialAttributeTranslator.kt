@@ -9,6 +9,7 @@ import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
+import at.asitplus.wallet.taxid.TaxIdScheme
 import org.jetbrains.compose.resources.StringResource
 
 interface CredentialAttributeTranslator {
@@ -23,6 +24,7 @@ interface CredentialAttributeTranslator {
             is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialAttributeTranslator
             is CompanyRegistrationScheme -> CompanyRegistrationCredentialAttributeTranslator
             is EPrescriptionScheme -> EPrescriptionCredentialAttributeTranslator
+            is TaxIdScheme -> TaxIdCredentialAttributeTranslator
             else -> null
         }
     }

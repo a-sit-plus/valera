@@ -143,6 +143,16 @@
     <string name="attribute_friendly_name_data_recipient_name">Name</string>
     <string name="attribute_friendly_name_data_recipient_location">Ort</string>
 
+    <string name="attribute_friendly_name_tax_number">Steuernummer</string>
+    <string name="attribute_friendly_name_affiliation_country">Ansässigkeitsstaat</string>
+    <string name="attribute_friendly_name_registered_family_name">Registrierter Nachname</string>
+    <string name="attribute_friendly_name_registered_given_name">Registrierter Vorname</string>
+    <string name="attribute_friendly_name_resident_address">Wohnadresse</string>
+    <string name="attribute_friendly_name_church_tax_id">Kirchen-Steuernummer</string>
+    <string name="attribute_friendly_name_iban">IBAN</string>
+    <string name="attribute_friendly_name_pid_id">PID ID</string>
+    <string name="attribute_friendly_name_verification_status">Verifizierungsstatus</string>
+
     <string name="credential_representation_format_label_plain_jwt">Plain JWT</string>
     <string name="credential_representation_format_label_sd_jwt">SD-JWT</string>
     <string name="credential_representation_format_label_mso_mdoc">ISO mDoc</string>
@@ -166,6 +176,8 @@
     <string name="credential_scheme_label_company_registration">Company registration</string>
     <string name="credential_scheme_label_eprescription">e-Prescription</string>
     <string name="credential_scheme_icon_label_eprescription">eP</string>
+    <string name="credential_scheme_label_tax_id">Tax ID</string>
+    <string name="credential_scheme_icon_label_tax_id">TAX</string>
 
     <string name="navigation_button_label_show_data">Daten Vorzeigen</string>
     <string name="navigation_button_label_my_data">Meine Daten</string>
