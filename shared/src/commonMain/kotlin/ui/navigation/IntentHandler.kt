@@ -5,6 +5,7 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_to_bind_credentials_subtitle
 import at.asitplus.valera.resources.biometric_authentication_prompt_to_bind_credentials_title
 import at.asitplus.valera.resources.snackbar_credential_loaded_successfully
+import at.asitplus.wallet.app.common.SigningState
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.domain.BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
@@ -132,13 +133,12 @@ suspend fun handleIntent(
 
 fun parseIntent(walletMain: WalletMain, url: String): IntentType {
     return if((walletMain.signingService.redirectUri?.let { url.contains(it) } == true)) {
-        if (walletMain.signingService.isPreload == true) {
-            IntentType.SiginingPreloadIntent
-        } else if (url.contains("finalize")){
-            IntentType.SigningCredentialIntent
-        } else {
-            IntentType.SigningServiceIntent
-        }
+        when (walletMain.signingService.state) {
+            SigningState.ServiceRequest -> IntentType.SigningServiceIntent
+            SigningState.CredentialRequest -> IntentType.SigningCredentialIntent
+            SigningState.PreloadCredential -> IntentType.SiginingPreloadIntent
+            null -> TODO()
+        }.also { walletMain.signingService.state = null }
     } else if (walletMain.provisioningService.redirectUri?.let { url.contains(it) } == true) {
         IntentType.ProvisioningIntent
     } else if (url.contains("error")) {
