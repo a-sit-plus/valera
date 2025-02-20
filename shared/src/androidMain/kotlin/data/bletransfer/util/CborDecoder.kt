@@ -1,8 +1,13 @@
 package data.bletransfer.util
 
 import android.graphics.BitmapFactory
+import android.util.Base64
 import androidx.compose.ui.graphics.asImageBitmap
+import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
+import at.asitplus.wallet.lib.iso.DeviceResponse
+import at.asitplus.wallet.lib.iso.IssuerSignedItem
 import com.android.identity.crypto.EcPrivateKey
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.cbor.CBORFactory
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
@@ -18,112 +23,112 @@ import data.bletransfer.verifier.StringEntry
 import data.bletransfer.verifier.ValueType
 import data.bletransfer.verifier.VehicleRegistration
 import io.github.aakira.napier.Napier
+import kotlinx.datetime.LocalDate
 
 class CborDecoder(
     var updateLogs: (String?, String) -> Unit = { _: String?, _: String -> }
 ) {
     private val TAG: String = "CborDecoder"
-    private val cborFactory: CBORFactory = CBORFactory()
-    private val objectMapper: ObjectMapper = ObjectMapper(cborFactory).apply {
-        registerKotlinModule() // Register Kotlin module for better Kotlin compatibility
+    private val objectMapper: ObjectMapper = ObjectMapper(CBORFactory()).apply {
+        registerKotlinModule()
     }
 
-    var entryList: List<Entry> = listOf()
-    var documentRequests: List<RequestedDocument> = listOf()
-
-    private fun addEntry(cborData: ByteArray) {
-        val identifier: String = cborMapExtractString(cborData, "elementIdentifier") ?: return
-        val entryData: ValueType =
-            DocumentAttributes.entries.associate { it.value to it.type }[identifier] ?: return
-
-        val eval: EntryValue = when (entryData) {
-            ValueType.DATE,
-            ValueType.STRING -> StringEntry(
-                cborMapExtractString(cborData, "elementValue") ?: "NOT FOUND"
-            )
-            ValueType.INT -> IntEntry(cborMapExtractNumber(cborData, "elementValue") ?: 0)
-            ValueType.IMAGE -> {
-                val byteArray = cborMapExtractByteArray(cborData, "elementValue") ?: return
-                val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
-                ImageEntry(bitmap.asImageBitmap())
-            }
-            ValueType.ARRAY -> {
-                val list: List<Map<String, String>> =
-                    cborMapExtractArray(cborData, "elementValue") as? List<Map<String, String>>
-                        ?: return
-                val vehicleList: MutableList<VehicleRegistration> = mutableListOf()
-
-                for (item in list) {
-                    val issueDate: String = item["issue_date"] ?: "SOMETHING WENT WRONG"
-                    val expiryDate: String? = item["expiry_date"]
-                    val vehicleCategory: String =
-                        item["vehicle_category_code"] ?: "SOMETHING WENT WRONG"
-                    vehicleList += VehicleRegistration(issueDate, expiryDate, vehicleCategory)
-                }
-                ImageArray(vehicleList)
-            }
-            ValueType.BOOL -> BooleanEntry(cborMapExtractBoolean(cborData, "elementValue"))
-            else -> {
-                val decodedMap: Map<String, Any> = decodeCborData(cborData)
-                StringEntry("For $identifier Not implemented yet ${decodedMap["elementValue"]!!::class.java}")
-            }
-        }
-        entryList += Entry(
-            identifier,
-            DocumentAttributes.entries.associate { it.value to it.displayName }[identifier] ?: return,
-            eval
-        )
-        entryList = entryList.sortedBy { entry ->
-            DocumentAttributes.entries.indexOfFirst { it.value == entry.entryName }
-        }
-    }
+    var entryList = mutableListOf<Entry>()
+    var documentRequests: List<RequestedDocument> = emptyList()
 
     fun decodeResponse(
         encodedDeviceResponse: ByteArray,
         sessionTranscript: ByteArray?,
         ephemeralReaderKey: EcPrivateKey?
     ) {
-        val documents: List<Map<String, Any>>? =
-            cborMapExtractArray(encodedDeviceResponse, "documents")
+        val deviceResponse: DeviceResponse =
+            DeviceResponse.deserialize(encodedDeviceResponse).getOrElse { exception ->
+                val errorMessage = "decodeResponse: deserialization of DeviceResponse failed"
+                Napier.e(TAG, exception, errorMessage)
+                updateLogs(TAG, errorMessage)
+                return
+            }
 
-        if (documents == null) {
-            updateLogs(TAG, "No documents found!")
+        Napier.i(tag = TAG, message = "deviceResponse: status=${deviceResponse.status}")
+        Napier.i(tag = TAG, message = "deviceResponse: version=${deviceResponse.version}")
+
+        if (deviceResponse.documentErrors?.isNotEmpty() == true) {
+            Napier.e(tag = TAG, message = "Document contains errors: ${deviceResponse.documentErrors}")
             return
         }
 
-        updateLogs(TAG, "Found ${documents.size} documents")
-        for (document in documents) {
-            val docType = document["docType"] as? String
-            Napier.d(tag = TAG, message = "docType: $docType")
-
-            (document["issuerSigned"] as? Map<String, *>)?.let { issuerSigned ->
-                (issuerSigned["nameSpaces"] as? Map<String, *>)?.let { namespaces ->
-                    for (namespace: String in namespaces.keys) {
-                        Napier.d(tag = TAG, message = "namespace: $namespace")
-                        (namespaces[namespace] as? List<*>)?.let { entries ->
-                            for (entry in entries) {
-                                Napier.d(tag = TAG, message = "elementIdentifier: $entry")
-                                if (entry != null) {
-                                    val cborData = entry as ByteArray
-                                    Napier.d(tag = TAG, message = "identifier?: ${cborMapExtractString(cborData, "elementIdentifier")}")
-                                    addEntry(cborData)
-                                }
-                            }
-                        } ?: Napier.d(tag = TAG, message = "entries is null")
-                    }
-                } ?: Napier.d(tag = TAG, message = "nameSpaces is null")
-            } ?: Napier.d(tag = TAG, message = "issuer signed is null")
+        val documents = deviceResponse.documents
+        if (documents.isNullOrEmpty()) {
+            updateLogs(TAG, "No document found!")
+            Napier.e(tag = TAG, message = "No document found in device response")
+            return
         }
-        Napier.d(tag = TAG, message = "status: " + cborMapExtractNumber(encodedDeviceResponse, "status"))
+
+        for (document in documents) {
+            Napier.d(tag = TAG, message = "Processing docType: ${document.docType}")
+            document.issuerSigned.namespaces?.forEach { (namespace, issuerSignedList) ->
+                Napier.d(tag = TAG, message = "Namespace: $namespace")
+                issuerSignedList.entries.forEach { entry ->
+                    parseEntry(entry)?.let {
+                        entryList.add(it)
+                    } ?: Napier.e(tag = TAG, message = "Failed to parse entry: $entry")
+                }
+            }
+        }
+    }
+
+    private fun parseEntry(issuerSignedEntry: ByteStringWrapper<IssuerSignedItem>) : Entry? {
+        val issuerSignedItem = issuerSignedEntry.value
+
+        val elementIdentifier = issuerSignedItem.elementIdentifier
+        val elementValue = issuerSignedItem.elementValue
+
+        val valueType = DocumentAttributes.entries.associate { it.value to it.type }[elementIdentifier] ?: return null
+
+        val entryValue: EntryValue = when (valueType) {
+            ValueType.DATE -> StringEntry((elementValue as? LocalDate)?.toString().orEmpty())
+
+            ValueType.STRING -> StringEntry(elementValue as? String ?: "")
+
+            ValueType.INT -> IntEntry((elementValue as? Number) ?: 0)
+
+            ValueType.IMAGE -> {
+                val base64String = elementValue as? String ?: return null
+                val byteArray = try {
+                    Base64.decode(base64String, Base64.DEFAULT)
+                } catch (e: IllegalArgumentException) {
+                    Napier.e(tag = TAG, message = "Invalid Base64 image data")
+                    return null
+                }
+                val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+                ImageEntry(bitmap?.asImageBitmap() ?: return null)
+            }
+
+            ValueType.ARRAY -> {
+                val list = elementValue as? List<Map<String, String>> ?: return null
+                val vehicleList = list.mapNotNull { item ->
+                    val issueDate = item["issue_date"] ?: return@mapNotNull null
+                    val expiryDate = item["expiry_date"]
+                    val vehicleCategory = item["vehicle_category_code"] ?: return@mapNotNull null
+                    VehicleRegistration(issueDate, expiryDate, vehicleCategory)
+                }
+                ImageArray(vehicleList)
+            }
+
+            ValueType.BOOL -> BooleanEntry(elementValue as? Boolean ?: false)
+        }
+
+        val entryDisplayName = DocumentAttributes.entries.associate { it.value to it.displayName }[elementIdentifier] ?: return null
+        return Entry(elementIdentifier, entryDisplayName, entryValue)
     }
 
     fun decodeRequest(encodedDeviceRequest: ByteArray) {
+        // TODO: have a look at this decoding
         updateLogs(TAG, "Decoding received cbor byte array")
-        val docRequests: List<Map<String, Any>>? =
-            cborMapExtractArray(encodedDeviceRequest, "docRequests")
 
-        if (docRequests == null) {
-            updateLogs(TAG, "No docRequests found!")
+        val docRequests: List<Map<String, Any>>? = cborMapExtractArray(encodedDeviceRequest, "docRequests")
+        if (docRequests.isNullOrEmpty()) {
+            updateLogs(TAG, "No docRequest found!")
             return
         }
 
@@ -148,21 +153,12 @@ class CborDecoder(
         }
     }
 
-    private fun cborMapExtractString(cborData: ByteArray, key: String): String? =
-        decodeCborData(cborData)[key] as? String
-
-    private fun cborMapExtractNumber(cborData: ByteArray, key: String): Number? =
-        decodeCborData(cborData)[key] as? Number
-
-    private fun cborMapExtractArray(cborData: ByteArray, key: String): List<Map<String, Any>>? =
-        decodeCborData(cborData)[key] as? List<Map<String, Any>>
-
-    private fun cborMapExtractByteArray(cborData: ByteArray, key: String): ByteArray? =
-        decodeCborData(cborData)[key] as? ByteArray
-
-    private fun cborMapExtractBoolean(cborData: ByteArray, key: String): Boolean? =
-        decodeCborData(cborData)[key] as? Boolean
+    private fun cborMapExtractArray(cborData: ByteArray, key: String): List<Map<String, Any>>? {
+        val decodedMap = decodeCborData(cborData)
+        val list = decodedMap[key] as? List<*>
+        return list?.filterIsInstance<Map<String, Any>>()?.takeIf { it.size == list.size }
+    }
 
     private fun decodeCborData(cborData: ByteArray): Map<String, Any> =
-        objectMapper.readValue(cborData, Map::class.java) as Map<String, Any>
+        objectMapper.readValue(cborData, object : TypeReference<Map<String, Any>>() {})
 }
