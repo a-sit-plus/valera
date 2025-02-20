@@ -53,7 +53,6 @@ class SigningService(
 ) {
     val config = runBlocking { importFromDataStore() }
     var redirectUri: String? = null
-    var isPreload: Boolean? = null
     var state: SigningState? = null
 
     private val cookieStorage = PersistentCookieStorage(dataStoreService, errorService)
