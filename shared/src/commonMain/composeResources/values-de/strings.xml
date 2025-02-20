@@ -143,15 +143,15 @@
     <string name="attribute_friendly_name_data_recipient_name">Name</string>
     <string name="attribute_friendly_name_data_recipient_location">Ort</string>
 
-    <string name="attribute_friendly_name_tax_number">tax_number</string>
-    <string name="attribute_friendly_name_affiliation_country">affiliation_country</string>
-    <string name="attribute_friendly_name_registered_family_name">registered_family_name</string>
-    <string name="attribute_friendly_name_registered_given_name">registered_given_name</string>
-    <string name="attribute_friendly_name_resident_address">resident_address</string>
-    <string name="attribute_friendly_name_church_tax_id">church_tax_id</string>
-    <string name="attribute_friendly_name_iban">iban</string>
-    <string name="attribute_friendly_name_pid_id">pid_id</string>
-    <string name="attribute_friendly_name_verification_status">verification_status</string>
+    <string name="attribute_friendly_name_tax_number">Steuernummer</string>
+    <string name="attribute_friendly_name_affiliation_country">Ansässigkeitsstaat</string>
+    <string name="attribute_friendly_name_registered_family_name">Registrierter Nachname</string>
+    <string name="attribute_friendly_name_registered_given_name">Registrierter Vorname</string>
+    <string name="attribute_friendly_name_resident_address">Wohnadresse</string>
+    <string name="attribute_friendly_name_church_tax_id">Kirchen-Steuernummer</string>
+    <string name="attribute_friendly_name_iban">IBAN</string>
+    <string name="attribute_friendly_name_pid_id">PID ID</string>
+    <string name="attribute_friendly_name_verification_status">Verifizierungsstatus</string>
 
     <string name="credential_representation_format_label_plain_jwt">Plain JWT</string>
     <string name="credential_representation_format_label_sd_jwt">SD-JWT</string>

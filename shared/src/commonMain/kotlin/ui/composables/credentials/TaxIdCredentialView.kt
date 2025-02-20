@@ -22,7 +22,15 @@ fun TaxIdCredentialView(
 
     Column(modifier = modifier) {
         val spacingModifier = Modifier.padding(bottom = 16.dp)
-        TaxIdCredentialRepresentationDataCard(
+        TaxIdCredentialIdentityDataCard(
+            credentialAdapter = credentialAdapter,
+            modifier = spacingModifier,
+        )
+        TaxIdCredentialResidenceDataCard(
+            credentialAdapter = credentialAdapter,
+            modifier = spacingModifier,
+        )
+        TaxIdCredentialMetadataDataCard(
             credentialAdapter = credentialAdapter,
             modifier = spacingModifier,
         )
