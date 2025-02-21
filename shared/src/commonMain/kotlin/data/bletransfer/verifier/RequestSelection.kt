@@ -146,7 +146,7 @@ enum class DocumentAttributes(
     ADMINISTRATIVE_NUMBER("administrative_number", Res.string.attribute_friendly_name_administrative_number, ValueType.STRING),
     ISSUING_COUNTRY("issuing_country", Res.string.attribute_friendly_name_issuing_country, ValueType.STRING),
     ISSUING_JURISDICTION("issuing_jurisdiction", Res.string.attribute_friendly_name_distinguishing_sign, ValueType.STRING),
-    DRIVING_PRIVILEGES("driving_privileges", Res.string.attribute_friendly_name_driving_privileges, ValueType.ARRAY);
+    DRIVING_PRIVILEGES("driving_privileges", Res.string.attribute_friendly_name_driving_privileges, ValueType.DRIVING_PRIVILEGES);
 
     companion object {
         fun getValuesFromDisplayNames(displayNames: Set<StringResource>): Set<String> {
@@ -175,7 +175,7 @@ enum class ValueType {
     BOOL,
     DATE,
     INT,
-    ARRAY
+    DRIVING_PRIVILEGES
 }
 
 fun DocumentAttributes.isAgeOver(): Boolean {

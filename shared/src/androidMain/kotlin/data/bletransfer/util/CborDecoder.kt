@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.wallet.lib.iso.DeviceResponse
 import at.asitplus.wallet.lib.iso.IssuerSignedItem
+import at.asitplus.wallet.mdl.DrivingPrivilege
 import com.android.identity.crypto.EcPrivateKey
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -16,12 +17,11 @@ import data.bletransfer.verifier.BooleanEntry
 import data.bletransfer.verifier.DocumentAttributes
 import data.bletransfer.verifier.Entry
 import data.bletransfer.verifier.EntryValue
-import data.bletransfer.verifier.ImageArray
+import data.bletransfer.verifier.DrivingPrivilegesEntry
 import data.bletransfer.verifier.ImageEntry
 import data.bletransfer.verifier.IntEntry
 import data.bletransfer.verifier.StringEntry
 import data.bletransfer.verifier.ValueType
-import data.bletransfer.verifier.VehicleRegistration
 import io.github.aakira.napier.Napier
 import kotlinx.datetime.LocalDate
 
@@ -104,26 +104,18 @@ class CborDecoder(
                 ImageEntry(bitmap?.asImageBitmap() ?: return null)
             }
 
-            ValueType.ARRAY -> {
-                val list = elementValue as? List<Map<String, String>> ?: return null
-                val vehicleList = list.mapNotNull { item ->
-                    val issueDate = item["issue_date"] ?: return@mapNotNull null
-                    val expiryDate = item["expiry_date"]
-                    val vehicleCategory = item["vehicle_category_code"] ?: return@mapNotNull null
-                    VehicleRegistration(issueDate, expiryDate, vehicleCategory)
-                }
-                ImageArray(vehicleList)
+            ValueType.DRIVING_PRIVILEGES -> {
+                DrivingPrivilegesEntry(elementValue as? Array<DrivingPrivilege> ?: return null)
             }
 
             ValueType.BOOL -> BooleanEntry(elementValue as? Boolean ?: false)
         }
 
         val entryDisplayName = DocumentAttributes.entries.associate { it.value to it.displayName }[elementIdentifier] ?: return null
-        return Entry(elementIdentifier, entryDisplayName, entryValue)
+        return Entry(entryDisplayName, entryValue)
     }
 
     fun decodeRequest(encodedDeviceRequest: ByteArray) {
-        // TODO: have a look at this decoding
         updateLogs(TAG, "Decoding received cbor byte array")
 
         val docRequests: List<Map<String, Any>>? = cborMapExtractArray(encodedDeviceRequest, "docRequests")
