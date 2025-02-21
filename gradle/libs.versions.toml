@@ -1,5 +1,5 @@
 [versions]
-identity = "202411.1"
+identity = "202411.1-69-g6ae69e36-dirty"
 semver = "2.0.0"
 mdl = "1.1.4"
 ida = "3.9.2"
@@ -24,8 +24,9 @@ credential-mdl = { group = "at.asitplus.wallet", name = "mobiledrivinglicence", 
 credential-eprescription = { module = "at.asitplus.wallet:eprescription", version.ref = "eprescription"}
 credential-taxid = { group = "at.asitplus.wallet", name = "taxid", version.ref = "taxid" }
 identity = { module = "com.android.identity:identity", version.ref = "identity" }
-identity-android = { module = "com.android.identity:identity-android", version.ref = "identity" }
-play-services-identity-credentials = { module = "com.google.android.gms:play-services-identity-credentials", version.ref = "play-services-identity-credentials" }
+identity-android = { module = "com.android.identity:identity-not-kmp-android", version.ref = "identity" }
+identity-mdoc = { module = "com.android.identity:identity-mdoc", version.ref = "identity" }
+play-services-identity-credentials = { module = "com.google.android.gms:play-services-identity-credentials", version.ref = "play-services-identity-credentials"}
 semver = { module = "net.swiftzer.semver:semver", version.ref = "semver" }
 
 [plugins]

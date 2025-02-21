@@ -333,4 +333,11 @@
 
     <string name="warning_requested_data_not_available_heading">UNTRANSLATED:warning_requested_data_not_available_heading</string>
     <string name="warning_requested_data_not_available_content">UNTRANSLATED:warning_requested_data_not_available_content</string>
+
+    <string name="presentation_connecting_to_verifier">UNTRANSLATED:presentation_connecting_to_verifier</string>
+    <string name="presentation_success">UNTRANSLATED:presentation_success</string>
+    <string name="presentation_error">UNTRANSLATED:presentation_error</string>
+    <string name="presentation_canceled">UNTRANSLATED:presentation_canceled</string>
+    <string name="presentation_timeout">UNTRANSLATED:presentation_timeout</string>
+    <string name="presentation_waiting_for_request">UNTRANSLATED:presentation_waiting_for_request</string>
 </resources>

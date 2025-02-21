@@ -7,6 +7,8 @@ import at.asitplus.valera.resources.biometric_authentication_prompt_to_bind_cred
 import at.asitplus.valera.resources.snackbar_credential_loaded_successfully
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.domain.BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase
+import at.asitplus.wallet.app.common.domain.BuildAuthenticationConsentPageFromAuthenticationRequestLocalPresentment
+import at.asitplus.wallet.app.common.presentation.PresentationRequest
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier
 import io.ktor.http.parseQueryString
@@ -20,7 +22,11 @@ enum class IntentType {
     ProvisioningIntent,
     AuthorizationIntent,
     DCAPIAuthorizationIntent,
+    PresentationIntent
 }
+
+const val PRESENTATION_REQUESTED_INTENT = "PRESENTATION_REQUESTED"
+const val GET_CREDENTIALS_INTENT = "androidx.identitycredentials.action.GET_CREDENTIALS"
 
 suspend fun handleIntent(
     walletMain: WalletMain,
@@ -28,7 +34,7 @@ suspend fun handleIntent(
     navigateBack: () -> Unit,
     link: String
 ) {
-    Napier.d("app link changed to ${link}")
+    Napier.d("app link changed to $link")
     when (parseIntent(walletMain, link)) {
         IntentType.ProvisioningIntent -> {
             navigate(LoadingRoute)
@@ -40,11 +46,9 @@ suspend fun handleIntent(
                 walletMain.provisioningService.resumeWithAuthCode(link)
                 walletMain.snackbarService.showSnackbar(getString(Res.string.snackbar_credential_loaded_successfully))
                 navigateBack()
-                appLink.value = null
             } catch (e: Throwable) {
                 navigateBack()
                 walletMain.errorService.emit(e)
-                appLink.value = null
             }
         }
 
@@ -56,7 +60,6 @@ suspend fun handleIntent(
                     Exception(pars["error_description"] ?: "Unknown Exception")
                 )
             }
-            appLink.value = null
         }
 
         IntentType.AuthorizationIntent -> {
@@ -71,7 +74,6 @@ suspend fun handleIntent(
             }.onFailure {
                 Napier.d("invalid authentication request")
             }
-            appLink.value = null
         }
 
         IntentType.DCAPIAuthorizationIntent -> {
@@ -80,15 +82,29 @@ suspend fun handleIntent(
                 BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase()
 
             consentPageBuilder(dcApiRequest).unwrap().onSuccess {
-                Napier.d("valid authentication request")
+                Napier.d("valid DCAPI authentication request")
+                navigate(it)
+            }.onFailure {
+                walletMain.errorService.emit(Exception("Invalid Authentication Request"))
+            }
+        }
+
+        IntentType.PresentationIntent -> {
+            val consentPageBuilder =
+                BuildAuthenticationConsentPageFromAuthenticationRequestLocalPresentment()
+
+            consentPageBuilder(PresentationRequest(PRESENTATION_REQUESTED_INTENT)).unwrap().onSuccess {
+                Napier.d("valid presentation request")
                 navigate(it)
             }.onFailure {
                 walletMain.errorService.emit(Exception("Invalid Authentication Request"))
             }
 
-            appLink.value = null
+
         }
     }
+
+    appLink.value = null
 }
 
 
@@ -97,8 +113,10 @@ fun parseIntent(walletMain: WalletMain, url: String): IntentType {
         IntentType.ProvisioningIntent
     } else if (url.contains("error")) {
         IntentType.ErrorIntent
-    } else if (url == "androidx.identitycredentials.action.GET_CREDENTIALS") {
+    } else if (url == GET_CREDENTIALS_INTENT) {
         IntentType.DCAPIAuthorizationIntent
+    } else if (url == PRESENTATION_REQUESTED_INTENT) {
+        IntentType.PresentationIntent
     } else {
         IntentType.AuthorizationIntent
     }
