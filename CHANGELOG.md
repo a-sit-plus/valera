@@ -1,3 +1,6 @@
+# Release NEXT
+ * Replace ePrescription with HealthID
+
 # Release 5.4.11
  * Update to VC-K 5.4.2
  * Initial Tax ID Credential Support

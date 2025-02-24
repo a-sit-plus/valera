@@ -8,7 +8,7 @@ play-services-identity-credentials = "16.0.0-alpha05"
 powerofrepresentation = "1.1.1"
 certificateofresidence = "2.1.2"
 companyregistration = "1.0.1"
-eprescription = "1.1.1"
+healthid = "2.0.0-SNAPSHOT"
 taxid = "1.0.0"
 atomicfu = "0.26.1"
 compose-plugin = "1.7.3"
@@ -21,7 +21,7 @@ credential-powerofrepresentation = { module = "at.asitplus.wallet:powerofreprese
 credential-certificateofresidence = { module = "at.asitplus.wallet:certificateofresidence", version.ref = "certificateofresidence" }
 credential-companyregistration = { module = "at.asitplus.wallet:company-registration", version.ref = "companyregistration" }
 credential-mdl = { group = "at.asitplus.wallet", name = "mobiledrivinglicence", version.ref = "mdl" }
-credential-eprescription = { module = "at.asitplus.wallet:eprescription", version.ref = "eprescription"}
+credential-healthid = { module = "at.asitplus.wallet:healthid", version.ref = "healthid" }
 credential-taxid = { group = "at.asitplus.wallet", name = "taxid", version.ref = "taxid" }
 identity = { module = "com.android.identity:identity", version.ref = "identity" }
 identity-android = { module = "com.android.identity:identity-android", version.ref = "identity" }

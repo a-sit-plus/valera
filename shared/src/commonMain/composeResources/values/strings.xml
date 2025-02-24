@@ -136,6 +136,9 @@
     <string name="attribute_friendly_name_signature_usual_mark">UNTRANSLATED:attribute_friendly_name_signature_usual_mark</string>
     <string name="attribute_friendly_name_country_code">UNTRANSLATED:attribute_friendly_name_country_code</string>
     <string name="attribute_friendly_name_one_time_token">UNTRANSLATED:attribute_friendly_name_one_time_token</string>
+    <string name="attribute_friendly_name_health_insurance_id">UNTRANSLATED:attribute_friendly_name_health_insurance_id</string>
+    <string name="attribute_friendly_name_patient_id">UNTRANSLATED:attribute_friendly_name_patient_id</string>
+    <string name="attribute_friendly_name_e_prescription_code">UNTRANSLATED:attribute_friendly_name_e_prescription_code</string>
     <string name="attribute_friendly_name_valid_until">UNTRANSLATED:attribute_friendly_name_valid_until</string>
 
     <string name="attribute_friendly_name_data_recipient_name">UNTRANSLATED:attribute_friendly_name_data_recipient_name</string>
@@ -181,8 +184,8 @@
     <string name="credential_scheme_label_certificate_of_residence">UNTRANSLATED:credential_scheme_label_certificate_of_residence</string>
     <string name="credential_scheme_icon_label_company_registration">UNTRANSLATED:credential_scheme_icon_label_company_registration</string>
     <string name="credential_scheme_label_company_registration">UNTRANSLATED:credential_scheme_label_company_registration</string>
-    <string name="credential_scheme_label_eprescription">UNTRANSLATED:credential_scheme_label_eprescription</string>
-    <string name="credential_scheme_icon_label_eprescription">UNTRANSLATED:credential_scheme_icon_label_eprescription</string>
+    <string name="credential_scheme_label_healthid">UNTRANSLATED:credential_scheme_label_healthid</string>
+    <string name="credential_scheme_icon_label_healthid">UNTRANSLATED:credential_scheme_icon_label_healthid</string>
     <string name="credential_scheme_label_tax_id">UNTRANSLATED:credential_scheme_label_tax_id</string>
     <string name="credential_scheme_icon_label_tax_id">credential_scheme_icon_label_tax_id</string>
 

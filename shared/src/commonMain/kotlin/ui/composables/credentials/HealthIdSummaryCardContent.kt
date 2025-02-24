@@ -3,17 +3,17 @@ package ui.composables.credentials
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import data.credentials.EPrescriptionCredentialAdapter
+import data.credentials.HealthIdCredentialAdapter
 
 @Composable
-fun EPrescriptionSummaryCardContent(
+fun HealthIdSummaryCardContent(
     credential: SubjectCredentialStore.StoreEntry,
 ) {
     val credentialAdapter = remember {
-        EPrescriptionCredentialAdapter.createFromStoreEntry(credential)
+        HealthIdCredentialAdapter.createFromStoreEntry(credential)
     }
 
-    EPrescriptionRepresentationDataCardContent(
+    HealthIdRepresentationDataCardContent(
         credentialAdapter = credentialAdapter,
     )
 }

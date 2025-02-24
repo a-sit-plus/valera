@@ -44,7 +44,7 @@ kotlin {
                 api(libs.credential.powerofrepresentation)
                 api(libs.credential.certificateofresidence)
                 api(libs.credential.companyregistration)
-                api(libs.credential.eprescription)
+                api(libs.credential.healthid)
                 api(libs.credential.taxid)
                 implementation(serialization("json"))
                 api(napier())
@@ -151,7 +151,7 @@ exportXCFramework(
         libs.credential.powerofrepresentation,
         libs.credential.certificateofresidence,
         libs.credential.companyregistration,
-        libs.credential.eprescription,
+        libs.credential.healthid,
         libs.credential.taxid,
         kmmresult(),
         napier()
