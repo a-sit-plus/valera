@@ -13,10 +13,8 @@ pluginManagement {
 
     plugins {
         val agpVersion = extra["agp.version"] as String
- //       val composeVersion = extra["compose.version"] as String
         id("com.android.application").version(agpVersion)
         id("com.android.library").version(agpVersion)
-   //     id("org.jetbrains.compose").version(composeVersion)
     }
 }
 
@@ -70,5 +68,4 @@ dependencyResolutionManagement {
             from("at.asitplus.wallet:vck-versionCatalog:$vckVersion")
         }
     }
-
 }

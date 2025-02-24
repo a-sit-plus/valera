@@ -34,8 +34,7 @@ import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
-import data.bletransfer.Verifier
-import data.bletransfer.getVerifier
+import data.bletransfer.util.Document
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -118,26 +117,27 @@ internal object NavigatorTestTags {
 
 @Composable
 fun WalletNavigation(walletMain: WalletMain) {
+    val TAG = "WalletNavigation"
     val navController: NavHostController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
 
     val navigateBack: () -> Unit = {
         CoroutineScope(Dispatchers.Main).launch {
-            Napier.d("Navigate back")
+            Napier.d(tag = TAG, message = "Navigate back")
             navController.navigateUp()
         }
     }
 
     val navigate: (Route) -> Unit = { route ->
         CoroutineScope(Dispatchers.Main).launch {
-            Napier.d("Navigate to: $route")
+            Napier.d(tag = TAG, message = "Navigate to: $route")
             navController.navigate(route)
         }
     }
 
     val popBackStack: (Route) -> Unit = { route ->
         CoroutineScope(Dispatchers.Main).launch {
-            Napier.d("popBackStack: $route")
+            Napier.d(tag = TAG, message = "popBackStack: $route")
             navController.popBackStack(route = route, inclusive = false)
         }
     }
@@ -189,7 +189,7 @@ fun WalletNavigation(walletMain: WalletMain) {
                 emit(link)
             }
         }.collect { link ->
-            Napier.d("appLink.combineTransform $link")
+            Napier.d(tag = TAG, message = "appLink.combineTransform $link")
             handleIntent(walletMain, navigate, navigateBack, link)
         }
     }
@@ -247,7 +247,7 @@ private fun WalletNavHost(
                         walletMain.platformAdapter.decodeImage(it)
                     } catch (throwable: Throwable) {
                         // TODO: should this be emitted to the error service?
-                        Napier.w("Failed Operation: decodeImage")
+                        Napier.w(tag = "WalletNavHost", message = "Failed Operation: decodeImage")
                         null
                     }
                 })
@@ -311,7 +311,7 @@ private fun WalletNavHost(
             VerifyDataView(
                 onClickPreDefined = { document ->
                     navigate(QrDeviceEngagementRoute(
-                        odcJsonSerializer.encodeToString(Verifier.Document.serializer(), document))
+                        odcJsonSerializer.encodeToString(Document.serializer(), document))
                     )
                 },
                 onClickCustom = { navigate(CustomDataRetrievalRoute) },
@@ -328,7 +328,7 @@ private fun WalletNavHost(
             CustomDataRetrievalView(
                 onClick = { document ->
                     navigate(QrDeviceEngagementRoute(
-                        odcJsonSerializer.encodeToString(Verifier.Document.serializer(), document))
+                        odcJsonSerializer.encodeToString(Document.serializer(), document))
                     )
                 },
                 navigateUp = { navigateBack() }
@@ -349,7 +349,7 @@ private fun WalletNavHost(
         composable<LoadRequestedDataRoute> { backStackEntry ->
             val route: LoadRequestedDataRoute = backStackEntry.toRoute()
             val vm = LoadRequestedDataViewModel(
-                document = odcJsonSerializer.decodeFromString<Verifier.Document>(route.document),
+                document = odcJsonSerializer.decodeFromString<Document>(route.document),
                 payload = route.payload,
                 navigateUp = { popBackStack(VerifyDataRoute) },
                 onError = { error -> navigate(ErrorRoute(message = error, cause = null)) }

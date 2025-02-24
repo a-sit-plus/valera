@@ -36,10 +36,10 @@ import at.asitplus.valera.resources.heading_label_select_custom_data_retrieval_s
 import at.asitplus.valera.resources.section_heading_select_document_type
 import at.asitplus.valera.resources.section_heading_select_requested_data_entries
 import at.asitplus.valera.resources.section_heading_selected_namespace
-import data.bletransfer.Verifier
-import data.bletransfer.verifier.DocumentAttributes
-import data.bletransfer.verifier.documentTypeToNameSpace
-import data.bletransfer.verifier.itemsToDocument
+import data.bletransfer.util.Document
+import data.bletransfer.util.DocumentAttributes
+import data.bletransfer.util.documentTypeToNameSpace
+import data.bletransfer.util.itemsToDocument
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
@@ -48,7 +48,7 @@ import ui.composables.buttons.NavigateUpButton
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomDataRetrievalView(
-    onClick: (Verifier.Document) -> Unit,
+    onClick: (Document) -> Unit,
     navigateUp: () -> Unit,
 ) {
     var selectedDocumentType by remember { mutableStateOf(documentTypeToNameSpace.keys.toList()[0]) }

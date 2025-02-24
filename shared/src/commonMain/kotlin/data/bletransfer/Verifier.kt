@@ -1,8 +1,8 @@
 package data.bletransfer
 
 import androidx.compose.runtime.Composable
-import data.bletransfer.verifier.Entry
-import kotlinx.serialization.Serializable
+import data.bletransfer.util.Document
+import data.bletransfer.util.Entry
 
 expect fun getVerifier(): Verifier
 
@@ -13,16 +13,8 @@ interface Verifier {
     fun verify(
         qrcode: String,
         requestedDocument: Document,
-        updateLogs: (String?, String) -> Unit,
         updateData: (List<Entry>) -> Unit
     )
 
     fun disconnect()
-
-    // TODO: remove this from here
-    @Serializable
-    data class Document(
-        val docType: String,
-        val requestDocument: Map<String, Map<String, Boolean>>
-    )
 }

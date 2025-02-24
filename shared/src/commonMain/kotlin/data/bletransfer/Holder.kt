@@ -2,7 +2,7 @@ package data.bletransfer
 
 import androidx.compose.runtime.Composable
 import at.asitplus.wallet.lib.iso.Document
-import data.bletransfer.holder.RequestedDocument
+import data.bletransfer.util.RequestedDocument
 
 expect fun getHolder(): Holder
 

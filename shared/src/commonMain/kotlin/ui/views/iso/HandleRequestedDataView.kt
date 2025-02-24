@@ -55,9 +55,9 @@ import at.asitplus.wallet.lib.iso.DeviceSigned
 import at.asitplus.wallet.lib.iso.Document
 import at.asitplus.wallet.lib.iso.IssuerSigned
 import at.asitplus.wallet.lib.iso.IssuerSignedItem
-import data.bletransfer.holder.RequestedDocument
-import data.bletransfer.verifier.DocumentAttributes
-import data.bletransfer.verifier.ValueType
+import data.bletransfer.util.RequestedDocument
+import data.bletransfer.util.DocumentAttributes
+import data.bletransfer.util.ValueType
 import data.storage.StoreContainer
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
@@ -98,8 +98,6 @@ fun HandleRequestedDataView(vm: HandleRequestedDataViewModel) {
         }
     ) { scaffoldPadding ->
         Box(modifier = Modifier.padding(scaffoldPadding)) {
-            Napier.d(tag = TAG, message = "view = $view")
-
             when (view) {
                 HandleRequestedDataView.SELECTION -> {
                     selectRequestedDataView(
@@ -149,12 +147,12 @@ fun createDocument(
             }
         }
 
-        Napier.d(tag = TAG, message = "correctCredentials = $correctCredentials")
-        if(correctCredentials.isNullOrEmpty()) {
+        if (correctCredentials.isNullOrEmpty()) {
             return null
         }
 
-        Napier.i(tag = TAG, message = "At the moment only 1 credential is used: correctCredentials[0] = ${correctCredentials[0]}")
+        // TODO: allow more credentials
+        Napier.i(tag = TAG, message = "At the moment only 1 credential is used")
         correctCredentials[0].let { cCred ->
             when (cCred) {
                 is SubjectCredentialStore.StoreEntry.Iso -> {

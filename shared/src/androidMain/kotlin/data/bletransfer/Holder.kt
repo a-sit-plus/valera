@@ -7,7 +7,7 @@ import com.android.identity.mdoc.response.DeviceResponseGenerator
 import com.android.identity.util.Constants.DEVICE_RESPONSE_STATUS_OK
 import data.bletransfer.holder.TransferManager
 import data.bletransfer.holder.PreferencesHelper
-import data.bletransfer.holder.RequestedDocument
+import data.bletransfer.util.RequestedDocument
 import data.bletransfer.util.RequestBluetoothPermissions
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope

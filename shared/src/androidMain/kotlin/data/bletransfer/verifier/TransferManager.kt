@@ -8,8 +8,9 @@ import com.android.identity.android.mdoc.transport.DataTransportOptions
 import com.android.identity.crypto.Algorithm
 import com.android.identity.mdoc.connectionmethod.ConnectionMethod
 import com.android.identity.mdoc.request.DeviceRequestGenerator
-import data.bletransfer.Verifier
 import data.bletransfer.util.CborDecoder
+import data.bletransfer.util.Document
+import data.bletransfer.util.Entry
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
@@ -21,19 +22,17 @@ class TransferManager private constructor(private val context: Context) {
         @Volatile
         private var instance: TransferManager? = null
 
-        fun getInstance(context: Context) =
-            instance ?: synchronized(this) {
-                instance ?: TransferManager(context).also { instance = it }
-            }
+        fun getInstance(context: Context) = instance ?: synchronized(this) {
+            instance ?: TransferManager(context).also { instance = it }
+        }
     }
 
     private val TAG: String = "TransferManager"
 
     var readerEngagement: ByteArray? = null
-    var updateLogs: (String?, String) -> Unit = { _: String?, _: String -> }
-    var requestedDocumentID: Verifier.Document? = null
-    var updateData: (List<Entry>) -> Unit = {}
+    var requestedDocumentID: Document? = null
     var sentRequest: Boolean = false
+    var updateData: (List<Entry>) -> Unit = {}
 
     private var mdocConnectionMethod: ConnectionMethod? = null
     private var hasStarted = false
@@ -44,17 +43,15 @@ class TransferManager private constructor(private val context: Context) {
 
     private val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
-    fun setUpdateAndRequest(updateLogs: (String?, String) -> Unit, requestedDocumentID: Verifier.Document, updateData: (List<Entry>) -> Unit) {
-        this.updateLogs = updateLogs
+    fun setUpdateAndRequest(requestedDocumentID: Document, updateData: (List<Entry>) -> Unit) {
         this.requestedDocumentID = requestedDocumentID
         this.updateData = updateData
     }
 
     fun initVerificationHelper() {
-        updateLogs(TAG, "initializing Verification helper for Transfer manager")
+        Napier.d(tag = TAG, message = "Initializing VerificationHelper for TransferManager")
         val builder = VerificationHelper.Builder(
-            context,
-            responseListener,
+            context, responseListener,
             // This is important since with the main executor it would block the UI
             Dispatchers.IO.asExecutor()
         )
@@ -67,7 +64,7 @@ class TransferManager private constructor(private val context: Context) {
     }
 
     fun setQrDeviceEngagement(qrDeviceEngagement: String) {
-        updateLogs(TAG, "Extracting bluetooth connection information from QR code")
+        Napier.d(tag = TAG, message = "Extracting bluetooth connection information from QR code")
         verification?.setDeviceEngagementFromQrCode(qrDeviceEngagement)
     }
 
@@ -79,7 +76,7 @@ class TransferManager private constructor(private val context: Context) {
     }
 
     fun connect() {
-        updateLogs(TAG, "Starting connection to Device")
+        Napier.d(tag = TAG, message = "Starting connection to Device")
         if (hasStarted)
             throw IllegalStateException("Connection has already started. It is necessary to stop verification before starting a new one.")
 
@@ -117,20 +114,20 @@ class TransferManager private constructor(private val context: Context) {
                 verification?.setUseTransportSpecificSessionTermination(true)
             }
         } catch (e: IllegalStateException) {
-            Napier.e(tag = TAG, message =  "Error ignored. $e")
+            Napier.e(tag = TAG, message = "Error ignored. $e")
         }
         disconnect()
     }
 
-    private fun disconnect(){
+    private fun disconnect() {
         try {
             verification?.disconnect()
         } catch (e: RuntimeException) {
-            Napier.e(tag = TAG, message =  "Error ignored. $e")
+            Napier.e(tag = TAG, message = "Error ignored. $e")
         }
         destroy()
         hasStarted = false
-        updateLogs(TAG, "Disconnected")
+        Napier.d(tag = TAG, message = "Disconnected")
     }
 
     private fun destroy() {
@@ -145,9 +142,8 @@ class TransferManager private constructor(private val context: Context) {
         }
 
         override fun onDeviceEngagementReceived(connectionMethods: List<ConnectionMethod>) {
-            updateLogs(TAG, "Ready for device engagement")
+            Napier.d(tag = TAG, message = "Device engagement received")
             setAvailableTransferMethods(ConnectionMethod.disambiguate(connectionMethods))
-
             connect()
         }
 
@@ -158,29 +154,28 @@ class TransferManager private constructor(private val context: Context) {
         override fun onDeviceConnected() {
             if (!sentRequest) {
                 sentRequest = true
-                updateLogs(TAG, "Connected to Device sending Request")
+                Napier.d(tag = TAG, message = "Connected to Device, sending Request")
                 sendRequest()
-                updateLogs(TAG, "Request has been sent and waiting for response")
             } else {
                 // with IOS here multiple connections happen and no data is loaded
                 // this prevents it but still has errors probably in the underlying library's
-                updateLogs(TAG, "Something went wrong. Device Connected again")
+                Napier.w(tag = TAG, message = "Something went wrong. Device Connected again")
             }
         }
 
         override fun onResponseReceived(deviceResponseBytes: ByteArray) {
+            Napier.d(tag = TAG, message = "Response received")
             responseBytes = deviceResponseBytes
-            updateLogs(TAG, "Response received")
             val sessionTranscript = verification?.sessionTranscript
             val ephemeralReaderKey = verification?.eReaderKey
 
-            val cborDecoder = CborDecoder(updateLogs)
-            cborDecoder.decodeResponse(deviceResponseBytes, sessionTranscript, ephemeralReaderKey)
-            updateData(cborDecoder.entryList)
+            updateData(CborDecoder().apply {
+                decodeResponse(deviceResponseBytes, sessionTranscript, ephemeralReaderKey)
+            }.entryList)
         }
 
         override fun onDeviceDisconnected(transportSpecificTermination: Boolean) {
-            updateLogs(TAG, "Device disconnected")
+            Napier.d(tag = TAG, message = "Device disconnected")
             stopVerification(
                 sendSessionTerminationMessage = false,
                 useTransportSpecificSessionTermination = transportSpecificTermination
@@ -188,7 +183,7 @@ class TransferManager private constructor(private val context: Context) {
         }
 
         override fun onError(error: Throwable) {
-            updateLogs(TAG, "Following error has occurred: ${error.message}")
+            Napier.e(tag = TAG, message = "Error: ${error.message}")
             stopVerification(
                 sendSessionTerminationMessage = false,
                 useTransportSpecificSessionTermination = false
@@ -200,8 +195,7 @@ class TransferManager private constructor(private val context: Context) {
         if (verification == null)
             throw IllegalStateException("It is necessary to start a new engagement.")
 
-        updateLogs(TAG, "sending request for: $requestedDocumentID")
-
+        Napier.d(tag = TAG, message = "Send request")
         verification?.let {
             val generator = DeviceRequestGenerator(it.sessionTranscript)
             generator.addDocumentRequest(

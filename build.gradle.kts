@@ -22,4 +22,3 @@ allprojects {
         maven("https://oss.sonatype.org/content/repositories/snapshots/")
     }
 }
-

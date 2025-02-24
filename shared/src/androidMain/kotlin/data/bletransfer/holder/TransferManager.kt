@@ -2,14 +2,13 @@ package data.bletransfer.holder
 
 import android.annotation.SuppressLint
 import android.content.Context
+import data.bletransfer.util.RequestedDocument
 import data.bletransfer.util.CborDecoder
 import io.github.aakira.napier.Napier
 
 class TransferManager private constructor(private val context: Context) {
 
     companion object {
-        private const val TAG = "TransferManager"
-
         @SuppressLint("StaticFieldLeak")
         @Volatile
         private var instance: TransferManager? = null
@@ -19,6 +18,8 @@ class TransferManager private constructor(private val context: Context) {
                 instance ?: TransferManager(context).also { instance = it }
             }
     }
+
+    private val TAG = "TransferManager"
 
     private var qrCommunicationSetup: QrCommunicationSetup? = null
     private var hasStarted = false
@@ -39,7 +40,7 @@ class TransferManager private constructor(private val context: Context) {
                 Napier.d(tag = TAG, message = "CONNECTING")
             },
             onQrEngagementReady = { qrText ->
-                Napier.d(tag = TAG, message = "QrCode: $qrText")
+                Napier.d(tag = TAG, message = "QR Engagement ready")
                 updateQrCode(qrText)
             },
             onDeviceRetrievalHelperReady = { deviceRetrievalHelper ->
@@ -50,20 +51,9 @@ class TransferManager private constructor(private val context: Context) {
                 Napier.d(tag = TAG, message = "REQUEST received")
                 communication.setDeviceRequest(deviceRequest)
 
-                val cborDecoder = CborDecoder { tag, message ->
-                    Napier.d( tag = tag, message = message)
-                }
-
-                cborDecoder.decodeRequest(deviceRequest)
-                val documentRequestsList = cborDecoder.documentRequests
-
-                if (documentRequestsList.isNotEmpty()) {
-                    Napier.d(tag = TAG, message = "document requests:\n" +
-                            documentRequestsList.joinToString("\n") { it.toString() }
-                    )
-                } else {
-                    Napier.w(tag = TAG, message = "No document requests found in the request.")
-                }
+                val documentRequestsList = CborDecoder().apply {
+                    decodeRequest(deviceRequest)
+                }.documentRequests
 
                 updateRequestedAttributes(documentRequestsList)
             },

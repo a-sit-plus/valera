@@ -37,17 +37,17 @@ import at.asitplus.valera.resources.heading_label_select_data_retrieval_screen
 import at.asitplus.valera.resources.section_heading_request_custom
 import at.asitplus.valera.resources.section_heading_request_eausweise
 import at.asitplus.valera.resources.section_heading_request_license
-import data.bletransfer.Verifier
-import data.bletransfer.verifier.getAgeVerificationDocument
-import data.bletransfer.verifier.getIdentityDocument
-import data.bletransfer.verifier.getLicenseDocument
+import data.bletransfer.util.Document
+import data.bletransfer.util.getAgeVerificationDocument
+import data.bletransfer.util.getIdentityDocument
+import data.bletransfer.util.getLicenseDocument
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VerifyDataView(
-    onClickPreDefined: (Verifier.Document) -> Unit,
+    onClickPreDefined: (Document) -> Unit,
     onClickCustom: () -> Unit,
     bottomBar: @Composable () -> Unit
 ) {

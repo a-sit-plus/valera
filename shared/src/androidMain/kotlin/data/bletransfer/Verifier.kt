@@ -3,8 +3,9 @@ package data.bletransfer
 import android.annotation.SuppressLint
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import data.bletransfer.util.Document
 import data.bletransfer.util.RequestBluetoothPermissions
-import data.bletransfer.verifier.Entry
+import data.bletransfer.util.Entry
 import data.bletransfer.verifier.TransferManager
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
@@ -36,25 +37,19 @@ class AndroidVerifier : Verifier {
 
     override fun verify(
         qrcode: String,
-        requestedDocument: Verifier.Document,
-        updateLogs: (String?, String) -> Unit,
+        requestedDocument: Document,
         updateData: (List<Entry>) -> Unit,
     ) {
         CoroutineScope(Dispatchers.IO).launch {
-            updateLogs(TAG, "Waiting for requirements to load")
             Napier.d(tag = TAG, message = "Waiting for Permissions")
 
             val transferManager = transferManagerState.filterNotNull().first()
             val permissionGranted = permissionState.first { it }
 
             if (permissionGranted) {
-                updateLogs(TAG, "Requirements are loaded, and permissions granted")
-                Napier.d(tag = TAG, message = "Permissions granted and TransferManager is ready")
-
-                updateLogs(TAG, "Starting Device engagement with scanned Qr-code")
-
+                Napier.i(tag = TAG, message = "Permissions granted and TransferManager is ready")
                 transferManager.let {
-                    it.setUpdateAndRequest(updateLogs, requestedDocument) { le: List<Entry> ->
+                    it.setUpdateAndRequest(requestedDocument) { le: List<Entry> ->
                         updateData(le)
                         transferManager.closeConnection()
                     }

@@ -1,6 +1,4 @@
-package data.bletransfer.holder
-
-import data.bletransfer.verifier.DocumentAttributes
+package data.bletransfer.util
 
 class RequestedDocument(
     val docType: String,

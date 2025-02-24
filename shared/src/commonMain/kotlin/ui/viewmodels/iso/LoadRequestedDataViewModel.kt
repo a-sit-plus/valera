@@ -1,14 +1,13 @@
 package ui.viewmodels.iso
 
-import data.bletransfer.Verifier
 import data.bletransfer.getVerifier
-import data.bletransfer.verifier.Entry
-import io.github.aakira.napier.Napier
+import data.bletransfer.util.Document
+import data.bletransfer.util.Entry
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class LoadRequestedDataViewModel(
-    val document: Verifier.Document,
+    val document: Document,
     private val payload: String,
     val navigateUp: () -> Unit,
     val onError: (String) -> Unit
@@ -18,19 +17,15 @@ class LoadRequestedDataViewModel(
 
     val verifier = getVerifier()
 
-    private val updateLogs: (String?, String) -> Unit = { tag, message ->
-        Napier.d("[$tag]: $message")
-    }
-
     private val updateData: (List<Entry>) -> Unit = { newEntries ->
         if(newEntries.isEmpty()) {
-            onError("Response does not contain documents")
+            onError("Response does not contain any document")
         }
         _entryState.value = newEntries
     }
 
     fun loadData() {
-        verifier.verify(payload, document, updateLogs, updateData)
+        verifier.verify(payload, document, updateData)
         verifier.disconnect()
     }
 }

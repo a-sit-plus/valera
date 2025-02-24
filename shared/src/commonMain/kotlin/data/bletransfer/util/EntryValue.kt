@@ -1,4 +1,4 @@
-package data.bletransfer.verifier
+package data.bletransfer.util
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column

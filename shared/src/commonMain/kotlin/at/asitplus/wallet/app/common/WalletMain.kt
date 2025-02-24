@@ -15,7 +15,10 @@ import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.cbor.DefaultCoseService
 import at.asitplus.wallet.lib.jws.DefaultJwsService
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
+import com.android.identity.util.Logger
+import data.bletransfer.Holder
 import data.bletransfer.getHolder
+import data.bletransfer.logging.CustomAndroidIdentityLogPrinter
 import data.storage.AntilogAdapter
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
@@ -52,9 +55,7 @@ class WalletMain(
     lateinit var snackbarService: SnackbarService
     lateinit var errorService: ErrorService
     lateinit var dcApiService: DCAPIService
-
-    // TODO: think about where to host the holder
-    val holder = getHolder()
+    lateinit var holder: Holder
 
     private val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
 
@@ -71,6 +72,7 @@ class WalletMain(
         at.asitplus.wallet.eprescription.Initializer.initWithVCK()
         Napier.takeLogarithm()
         Napier.base(AntilogAdapter(platformAdapter, "", buildContext.buildType))
+        Logger.setLogPrinter(CustomAndroidIdentityLogPrinter())
     }
 
     @Throws(Throwable::class)
@@ -106,6 +108,7 @@ class WalletMain(
         )
         this.snackbarService = snackbarService
         this.dcApiService = DCAPIService(platformAdapter)
+        this.holder = getHolder()
     }
 
     suspend fun resetApp() {

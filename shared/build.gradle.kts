@@ -73,24 +73,20 @@ kotlin {
 
         androidMain {
             dependencies {
-                implementation("androidx.biometric:biometric:1.2.0-alpha05")
-                api("androidx.activity:activity-compose:1.8.1")
-                api("androidx.appcompat:appcompat:1.6.1")
-                api("androidx.core:core-ktx:1.12.0")
-                implementation("uk.uuid.slf4j:slf4j-android:1.7.30-0")
+                api(libs.androidx.activity.compose)
+                api(libs.androidx.appcompat)
+                api(libs.androidx.core.ktx)
+                implementation(libs.slf4j.android)
                 implementation(ktor("client-android"))
-                implementation("androidx.camera:camera-camera2:1.3.0")
-                implementation("androidx.camera:camera-lifecycle:1.3.0")
-                implementation("androidx.camera:camera-view:1.3.0")
-                implementation("com.google.accompanist:accompanist-permissions:0.30.1")
-                implementation("com.google.mlkit:barcode-scanning:17.2.0")
-
+                implementation(libs.camera.camera2)
+                implementation(libs.androidx.biometric)
+                implementation(libs.androidx.camera.lifecycle)
+                implementation(libs.androidx.camera.view)
+                implementation(libs.accompanist.permissions)
+                implementation(libs.barcode.scanning)
                 implementation(libs.play.services.identity.credentials)
                 implementation(libs.identity.android)
                 implementation(libs.identity.mdoc)
-                implementation(libs.jackson.databind)
-                implementation(libs.jackson.dataformat.cbor)
-                implementation(libs.jackson.module.kotlin)
             }
         }
 
