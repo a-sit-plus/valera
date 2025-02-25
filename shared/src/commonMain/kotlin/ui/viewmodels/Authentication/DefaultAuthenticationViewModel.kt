@@ -1,6 +1,8 @@
 package ui.viewmodels.Authentication
 
 import androidx.compose.ui.graphics.ImageBitmap
+import at.asitplus.catchingUnwrapped
+import at.asitplus.catchingUnwrappedAs
 import at.asitplus.dif.ConstraintField
 import at.asitplus.jsonpath.core.NodeList
 import at.asitplus.misc.getRequestOptionParameters
@@ -39,11 +41,10 @@ class DefaultAuthenticationViewModel(
         val parameter = it.getRequestOptionParameters().getOrElse { return@mapNotNull null }
         Pair(it.id, parameter)
     }.toMap()
-
-    override val transactionData = try {
+    
+    override val transactionData = catchingUnwrapped {
         vckJsonSerializer.decodeFromString<TransactionData>(authenticationRequest.parameters.transactionData?.first()!!)
-    } catch (e: Throwable)
-    { null }
+    }.getOrNull()
 
     private lateinit var preparationState: AuthorizationResponsePreparationState
 
