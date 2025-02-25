@@ -75,7 +75,13 @@ class SigningService(
     private lateinit var transactionTokens: List<String>
 
     private suspend fun importFromDataStore(): SigningConfig =
-        catchingUnwrapped { vckJsonSerializer.decodeFromString<SigningConfig>(dataStoreService.getPreference(DATASTORE_SIGNING_CONFIG).first()!!) }
+        catchingUnwrapped {
+            vckJsonSerializer.decodeFromString<SigningConfig>(
+                dataStoreService.getPreference(
+                    DATASTORE_SIGNING_CONFIG
+                ).first()!!
+            )
+        }
             .getOrElse { defaultSigningConfig }
 
     suspend fun exportToDataStore() {
@@ -83,7 +89,8 @@ class SigningService(
     }
 
     suspend fun preloadCertificate() {
-        rqesWalletService = RqesOpenId4VpHolder(redirectUrl = redirectUrl, clientId = config.getCurrent().oauth2ClientId)
+        rqesWalletService =
+            RqesOpenId4VpHolder(redirectUrl = redirectUrl, clientId = config.getCurrent().oauth2ClientId)
 
         val targetUrl = createServiceAuthRequest()
         this.redirectUri = this.redirectUrl
@@ -99,9 +106,10 @@ class SigningService(
     }
 
     suspend fun start(url: String) {
-        rqesWalletService = RqesOpenId4VpHolder(redirectUrl = redirectUrl, clientId = config.getCurrent().oauth2ClientId)
+        rqesWalletService =
+            RqesOpenId4VpHolder(redirectUrl = redirectUrl, clientId = config.getCurrent().oauth2ClientId)
         extractSignatureRequestParameter(url)
-        
+
         if (config.hasValidCertificate()) {
             val credentialInfo = config.getCurrent().credentialInfo ?: throw Throwable("Missing credentialInfo")
             rqesWalletService.setSigningCredential(credentialInfo)
@@ -193,11 +201,14 @@ class SigningService(
         val resp = client.get(requestUri)
         val jwt = resp.bodyAsText()
 
-        this.signatureRequestParameter = JwsSigned.deserialize(SignatureRequestParameters.serializer(), jwt, vckJsonSerializer).getOrThrow().payload
+        this.signatureRequestParameter =
+            JwsSigned.deserialize(SignatureRequestParameters.serializer(), jwt, vckJsonSerializer).getOrThrow().payload
 
         this.document = client.get(this.signatureRequestParameter.documentLocations.first().uri).bodyAsBytes()
-        this.documentWithLabel = DocumentWithLabel(document = this.document,
-            label =  this.signatureRequestParameter.documentDigests.first().label)
+        this.documentWithLabel = DocumentWithLabel(
+            document = this.document,
+            label = this.signatureRequestParameter.documentDigests.first().label
+        )
     }
 
     suspend fun getTokenFromAuthCode(url: String): TokenResponseParameters {
