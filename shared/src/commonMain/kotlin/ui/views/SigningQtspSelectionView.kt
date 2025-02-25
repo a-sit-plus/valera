@@ -88,7 +88,7 @@ fun SigningQtspSelectionView(
                             text = {
                                 Text(stringResource(Res.string.button_label_continue))
                             },
-                            onClick = { vm.onContinue(selection.value) },
+                            onClick = { vm.onContinue() },
                             modifier = Modifier,
                         )
                     }

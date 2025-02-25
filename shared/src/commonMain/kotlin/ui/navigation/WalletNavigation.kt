@@ -483,10 +483,7 @@ private fun WalletNavHost(
         composable<SigningQtspSelectionRoute> { backStackEntry ->
             val vm = SigningQtspSelectionViewModel(
                 navigateUp = navigateBack,
-                onContinue = { config ->
-                    runBlocking {
-
-                    }
+                onContinue = {
                     navigate(SigningRoute)
                 },
                 walletMain = walletMain
