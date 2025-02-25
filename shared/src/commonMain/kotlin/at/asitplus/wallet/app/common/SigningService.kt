@@ -327,7 +327,7 @@ data class SigningConfig(
     fun hasValidCertificate(): Boolean {
         getCurrent().credentialInfo?.certParameters?.validTo?.let {
             val now = Clock.System.now().toLocalDateTime(TimeZone.UTC)
-            return LocalDateTime.parse(it, format = qesDateTime).compareTo(now) > 1
+            return LocalDateTime.parse(it, format = qesDateTime).compareTo(now) > 0
         }
         return false
     }
