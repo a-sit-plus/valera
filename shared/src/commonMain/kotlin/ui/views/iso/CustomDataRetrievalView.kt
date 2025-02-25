@@ -54,6 +54,10 @@ fun CustomDataRetrievalView(
     var selectedDocumentType by remember { mutableStateOf(documentTypeToNameSpace.keys.toList()[0]) }
     var selectedEntries by remember { mutableStateOf(setOf<StringResource>()) }
 
+    // TODO:
+    //  - add ViewModel
+    //  - fix possible data selection (default per type un-/select handling)
+
     Scaffold(
         topBar = {
             TopAppBar(

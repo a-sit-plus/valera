@@ -84,7 +84,7 @@ import ui.viewmodels.LoadCredentialViewModel
 import ui.viewmodels.LogViewModel
 import ui.viewmodels.PreAuthQrCodeScannerViewModel
 import ui.viewmodels.SettingsViewModel
-import ui.viewmodels.iso.HandleRequestedDataViewModel
+import ui.viewmodels.iso.datarequest.DataRequestViewModel
 import ui.viewmodels.iso.LoadRequestedDataViewModel
 import ui.viewmodels.iso.QrDeviceEngagementViewModel
 import ui.viewmodels.iso.ShowQrCodeViewModel
@@ -105,7 +105,7 @@ import ui.views.SelectIssuingServerView
 import ui.views.SettingsView
 import ui.views.ShowDataView
 import ui.views.iso.CustomDataRetrievalView
-import ui.views.iso.HandleRequestedDataView
+import ui.views.iso.datarequest.DataRequestView
 import ui.views.iso.LoadRequestedDataView
 import ui.views.iso.QrDeviceEngagementView
 import ui.views.iso.ShowQrCodeView
@@ -297,14 +297,23 @@ private fun WalletNavHost(
         }
 
         composable<HandleRequestedDataRoute> {
-            val vm = HandleRequestedDataViewModel(
-                walletMain = walletMain,
-                navigateUp = {
-                    walletMain.holder.disconnect()
-                    navigateBack()
-                }
-            )
-            HandleRequestedDataView(vm)
+            val vm = try {
+                DataRequestViewModel(
+                    navigateUp = {
+                        walletMain.holder.disconnect()
+                        navigateBack()
+                    },
+                    walletMain = walletMain
+                )
+            } catch (e: Throwable) {
+                popBackStack(HomeScreenRoute)
+                walletMain.errorService.emit(e)
+                null
+            }
+
+            if (vm != null) {
+                DataRequestView(vm = vm)
+            }
         }
 
         composable<VerifyDataRoute> {
