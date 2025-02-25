@@ -296,11 +296,12 @@ class SigningService(
         this.transactionTokens = dtbsr.map { it.first }
 
         this.dtbsrAuthenticationDetails =
-            rqesWalletService.getCscAuthenticationDetails(dtbsr.map { it.second }, hashAlgorithm = signAlgorithm.digest)
+            rqesWalletService.getCscAuthenticationDetails(dtbsr.map { it.second }, hashAlgorithm = signAlgorithm.digest, this.signatureRequestParameter.documentLocations)
 
         val authRequest = rqesWalletService.createCredentialAuthenticationRequest(
             documentDigests = dtbsr.map { it.second },
-            hashAlgorithm = signAlgorithm.digest
+            hashAlgorithm = signAlgorithm.digest,
+            documentLocation =  this.signatureRequestParameter.documentLocations
         )
 
         return URLBuilder("${config.getCurrent().oauth2BaseUrl}/oauth2/authorize").apply {
