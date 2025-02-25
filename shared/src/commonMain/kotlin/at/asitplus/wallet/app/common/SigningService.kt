@@ -85,7 +85,10 @@ class SigningService(
             .getOrElse { defaultSigningConfig }
 
     suspend fun exportToDataStore() {
-        dataStoreService.setPreference(key = DATASTORE_SIGNING_CONFIG, value = vckJsonSerializer.encodeToString(this.config))
+        dataStoreService.setPreference(
+            key = DATASTORE_SIGNING_CONFIG,
+            value = vckJsonSerializer.encodeToString(this.config)
+        )
     }
 
     suspend fun preloadCertificate() {
