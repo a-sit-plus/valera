@@ -202,6 +202,8 @@
     <string name="text_label_version">UNTRANSLATED:text_label_version</string>
     <string name="text_label_build">UNTRANSLATED:text_label_build</string>
     <string name="text_label_qtsp">UNTRANSLATED:text_label_qtsp</string>
+    <string name="text_label_preload_certificate">UNTRANSLATED:text_label_preload_certificate</string>
+    <string name="text_label_delete_certificate">UNTRANSLATED:text_label_delete_certificate</string>
 
     <string name="heading_label_authenticate_at_device_title">UNTRANSLATED:heading_label_authenticate_at_device_title</string>
     <string name="heading_label_authenticate_at_device_subtitle">UNTRANSLATED:heading_label_authenticate_at_device_subtitle</string>

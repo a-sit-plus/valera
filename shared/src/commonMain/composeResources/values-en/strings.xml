@@ -203,6 +203,8 @@
     <string name="text_label_version">Version</string>
     <string name="text_label_build">Build</string>
     <string name="text_label_qtsp">QTSP</string>
+    <string name="text_label_preload_certificate">Preload certificate</string>
+    <string name="text_label_delete_certificate">Delete certificate</string>
 
     <string name="heading_label_authenticate_at_device_title">Authenticate</string>
     <string name="heading_label_authenticate_at_device_subtitle">at relying party</string>

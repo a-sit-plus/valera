@@ -32,6 +32,8 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.heading_label_sign_document
+import at.asitplus.valera.resources.text_label_delete_certificate
+import at.asitplus.valera.resources.text_label_preload_certificate
 import at.asitplus.valera.resources.text_label_qtsp
 import at.asitplus.wallet.app.common.SigningConfig
 import kotlinx.coroutines.runBlocking
@@ -117,14 +119,14 @@ fun SigningQtspSelectionView(
 
                 Row {
                     Button(onClick = { runBlocking { vm.walletMain.signingService.preloadCertificate() } }, enabled = (credentialInfo.value == null)) {
-                        Text("Preload Certificate")
+                        Text(stringResource(Res.string.text_label_preload_certificate))
                     }
                     Button(onClick = {
                         config.getQtspByIdentifier(selection.value).credentialInfo = null
                         credentialInfo.value = null
                         runBlocking { vm.walletMain.signingService.exportToDataStore() } }
                         , enabled = (credentialInfo.value != null)) {
-                        Text("Delete Certificate")
+                        Text(stringResource(Res.string.text_label_delete_certificate))
                     }
                 }
 
