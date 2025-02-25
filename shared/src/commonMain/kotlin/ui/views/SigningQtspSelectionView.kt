@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_continue
+import at.asitplus.valera.resources.button_label_sign
 import at.asitplus.valera.resources.heading_label_sign_document
 import at.asitplus.valera.resources.text_label_credential_id
 import at.asitplus.valera.resources.text_label_delete_certificate
@@ -91,7 +92,7 @@ fun SigningQtspSelectionView(
                                 )
                             },
                             text = {
-                                Text(stringResource(Res.string.button_label_continue))
+                                Text(stringResource(Res.string.button_label_sign))
                             },
                             onClick = { vm.onContinue() },
                             modifier = Modifier,

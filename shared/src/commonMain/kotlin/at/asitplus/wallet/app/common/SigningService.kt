@@ -1,6 +1,8 @@
 package at.asitplus.wallet.app.common
 
 import CscAuthorizationDetails
+import at.asitplus.catchingUnwrapped
+import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.AuthorizationDetails
 import at.asitplus.openid.TokenResponseParameters
 import at.asitplus.rqes.CredentialInfo
@@ -11,6 +13,8 @@ import at.asitplus.rqes.SignatureResponse
 import at.asitplus.rqes.enums.CertificateOptions
 import at.asitplus.signum.indispensable.X509SignatureAlgorithm
 import at.asitplus.signum.indispensable.io.ByteArrayBase64Serializer
+import at.asitplus.signum.indispensable.josef.JwsSigned
+import at.asitplus.wallet.app.common.Configuration.DATASTORE_SIGNING_CONFIG
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.oauth2.OAuth2Client
 import at.asitplus.wallet.lib.oidvci.encodeToParameters
@@ -34,6 +38,12 @@ import io.ktor.http.URLBuilder
 import io.ktor.http.contentType
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.format.char
+import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.encodeToString
@@ -61,22 +71,15 @@ class SigningService(
     private val pdfSigningService = "https://apps.egiz.gv.at/qtsp"
     lateinit var rqesWalletService: RqesOpenId4VpHolder
 
-    private lateinit var signatureReguestParameter: SignatureRequestParameters
+    private lateinit var signatureRequestParameter: SignatureRequestParameters
     private lateinit var document: ByteArray
     private lateinit var documentWithLabel: DocumentWithLabel
     private lateinit var dtbsrAuthenticationDetails: AuthorizationDetails
     private lateinit var transactionTokens: List<String>
 
-    private suspend fun importFromDataStore(): SigningConfig {
-        dataStoreService.getPreference("signingConfig").first()?.let {
-            try {
-                return vckJsonSerializer.decodeFromString<SigningConfig>(it)
-            } catch (e: Throwable) {
-                return defaultSigningConfig
-            }
-        }
-        return defaultSigningConfig
-    }
+    private suspend fun importFromDataStore(): SigningConfig =
+        catchingUnwrapped { vckJsonSerializer.decodeFromString<SigningConfig>(dataStoreService.getPreference(DATASTORE_SIGNING_CONFIG).first()!!) }
+            .getOrElse { defaultSigningConfig }
 
     suspend fun exportToDataStore() {
         dataStoreService.setPreference(key = "signingConfig", value = vckJsonSerializer.encodeToString(this.config))
@@ -158,9 +161,9 @@ class SigningService(
             ListSerializer(ByteArrayBase64Serializer),
             signedDocuments.map { it.document })
 
-        val responseState = this.signatureReguestParameter.state
+        val responseState = this.signatureRequestParameter.state
         val responseUrl =
-            this.signatureReguestParameter.responseUrl ?: throw Throwable("Missing responseUrl")
+            this.signatureRequestParameter.responseUrl ?: throw Throwable("Missing responseUrl")
 
         val drivingAppResponseUrl = URLBuilder(responseUrl).apply {
             if (responseState != null) {
@@ -168,7 +171,7 @@ class SigningService(
             }
         }.buildString()
 
-        val finalRedirect = client.post(drivingAppResponseUrl) {
+        client.post(drivingAppResponseUrl) {
             contentType(FormUrlEncoded)
             setBody(
                 JsonObject(mapOf("documentWithSignature" to signedDocList)).encodeToParameters()
@@ -189,35 +192,23 @@ class SigningService(
         return targetUrl
     }
 
-    @OptIn(ExperimentalEncodingApi::class)
     suspend fun extractSignatureRequestParameter(url: String) {
-        val url = URLBuilder(url)
-        val requestUri = url.parameters["request_uri"] ?: throw Throwable("Missing request_uri")
+        val requestUri = URLBuilder(url).parameters["request_uri"] ?: throw Throwable("Missing request_uri")
         val resp = client.get(requestUri)
         val jwt = resp.bodyAsText()
-        val split = jwt.split(".")
-        val payload = split[1]
-        val payloadBytes = Base64.UrlSafe.withPadding(option = Base64.PaddingOption.ABSENT_OPTIONAL)
-            .decode(payload)
-        val payloadString = payloadBytes.decodeToString(0, 0 + payloadBytes.size)
 
-        val signatureRequestParameter =
-            vckJsonSerializer.decodeFromString<SignatureRequestParameters>(payloadString)
-        this.signatureReguestParameter = signatureRequestParameter
+        this.signatureRequestParameter = JwsSigned.deserialize(SignatureRequestParameters.serializer(), jwt, vckJsonSerializer).getOrThrow().payload
 
-        val documentLocation = signatureRequestParameter.documentLocations.first().uri
-        val document = client.get(documentLocation).bodyAsBytes()
-        val documentLabel = signatureRequestParameter.documentDigests.first().label
-        this.document = document
-        this.documentWithLabel = DocumentWithLabel(document, documentLabel)
+        this.document = client.get(this.signatureRequestParameter.documentLocations.first().uri).bodyAsBytes()
+        this.documentWithLabel = DocumentWithLabel(document = this.document,
+            label =  this.signatureRequestParameter.documentDigests.first().label)
     }
 
     suspend fun getTokenFromAuthCode(url: String): TokenResponseParameters {
         val tokenUrl = "${config.getCurrent().oauth2BaseUrl}/oauth2/token"
 
-        val url = URLBuilder(url)
-        val code = url.parameters["code"] ?: throw Throwable("Missing code")
-        val state = url.parameters["state"] ?: throw Throwable("Missing state")
+        val code = URLBuilder(url).parameters["code"] ?: throw Throwable("Missing code")
+        val state = URLBuilder(url).parameters["state"] ?: throw Throwable("Missing state")
 
         val tokenRequest = rqesWalletService.createOAuth2TokenRequest(
             state,
@@ -292,25 +283,21 @@ class SigningService(
                 document = this.documentWithLabel
             )
         )
-        val transactionTokens = dtbsr.map { it.first }
-        this.transactionTokens = transactionTokens
+        this.transactionTokens = dtbsr.map { it.first }
 
-        val dtbsrAuthenticationDetails =
+        this.dtbsrAuthenticationDetails =
             rqesWalletService.getCscAuthenticationDetails(dtbsr.map { it.second }, hashAlgorithm = signAlgorithm.digest)
-        this.dtbsrAuthenticationDetails = dtbsrAuthenticationDetails
 
         val authRequest = rqesWalletService.createCredentialAuthenticationRequest(
             documentDigests = dtbsr.map { it.second },
             hashAlgorithm = signAlgorithm.digest
         )
 
-        val targetUrl = URLBuilder("${config.getCurrent().oauth2BaseUrl}/oauth2/authorize").apply {
-            authRequest.encodeToParameters().forEach {
+        return URLBuilder("${config.getCurrent().oauth2BaseUrl}/oauth2/authorize").apply {
+            authRequest.encodeToParameters<AuthenticationRequestParameters>().forEach {
                 parameters.append(it.key, it.value)
             }
         }.buildString()
-
-        return targetUrl
     }
 }
 
@@ -325,21 +312,17 @@ data class SigningConfig(
     val qtsps: List<QtspConfig>,
     var current: String
 ) {
-    fun getCurrent(): QtspConfig {
-        return this.qtsps.first { it.identifier == this.current }
-    }
+    fun getCurrent(): QtspConfig = this.qtsps.first { it.identifier == this.current }
 
     fun hasValidCertificate(): Boolean {
-        return if (getCurrent().credentialInfo == null) {
-            false
-        } else {
-            true
+        getCurrent().credentialInfo?.certParameters?.validTo?.let {
+            val now = Clock.System.now().toLocalDateTime(TimeZone.UTC)
+            return LocalDateTime.parse(it, format = qesDateTime).compareTo(now) > 1
         }
+        return false
     }
 
-    fun getQtspByIdentifier(identifier: String): QtspConfig {
-        return this.qtsps.first { it.identifier == identifier }
-    }
+    fun getQtspByIdentifier(identifier: String): QtspConfig = this.qtsps.first { it.identifier == identifier }
 }
 
 val defaultSigningConfig = SigningConfig(
@@ -375,4 +358,13 @@ data class QtspConfig(
     var credentialInfo: CredentialInfo? = null,
 )
 
+val qesDateTime = LocalDateTime.Format {
+    year()
+    monthNumber()
+    dayOfMonth()
+    hour()
+    minute()
+    second()
+    char('Z')
+}
 

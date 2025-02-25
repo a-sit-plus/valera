@@ -23,6 +23,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import appLink
+import at.asitplus.catchingUnwrapped
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.openid.RequestParametersFrom
@@ -167,7 +168,11 @@ fun WalletNavigation(walletMain: WalletMain) {
             }
         }.collect { link ->
             Napier.d("appLink.combineTransform $link")
-            handleIntent(walletMain, navigate, navigateBack, link)
+            catchingUnwrapped {
+                handleIntent(walletMain, navigate, navigateBack, link)
+            }.onFailure {
+                walletMain.errorService.emit(it)
+            }
         }
     }
 }

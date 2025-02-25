@@ -49,7 +49,7 @@
     <string name="button_label_select">Auswählen</string>
     <string name="button_label_show_technical_details">Technische Details einblenden</string>
     <string name="button_label_hide_technical_details">Technische Details ausblenden</string>
-    <string name="button_label_sign">Signieren (UC5)</string>
+    <string name="button_label_sign">Signieren</string>
 
     <string name="attribute_friendly_name_bpk">BPK</string>
     <string name="attribute_friendly_name_firstname">Vorname</string>
@@ -205,9 +205,9 @@
     <string name="text_label_qtsp">QTSP</string>
     <string name="text_label_preload_certificate">Zertifikat laden</string>
     <string name="text_label_delete_certificate">Zertifikat löschen</string>
-    <string name="text_label_credential_id">credentialID</string>
-    <string name="text_label_valid_from">validFrom</string>
-    <string name="text_label_valid_to">validTo</string>
+    <string name="text_label_credential_id">Credential ID</string>
+    <string name="text_label_valid_from">Gültig von</string>
+    <string name="text_label_valid_to">Gültig bis</string>
 
     <string name="heading_label_authenticate_at_device_title">Anmelden</string>
     <string name="heading_label_authenticate_at_device_subtitle">an Service Provider</string>

@@ -137,7 +137,7 @@ fun parseIntent(walletMain: WalletMain, url: String): IntentType {
             SigningState.ServiceRequest -> IntentType.SigningServiceIntent
             SigningState.CredentialRequest -> IntentType.SigningCredentialIntent
             SigningState.PreloadCredential -> IntentType.SiginingPreloadIntent
-            null -> TODO()
+            null -> throw Throwable("Missing state in SigningService")
         }.also { walletMain.signingService.state = null }
     } else if (walletMain.provisioningService.redirectUri?.let { url.contains(it) } == true) {
         IntentType.ProvisioningIntent
