@@ -205,6 +205,9 @@
     <string name="text_label_qtsp">QTSP</string>
     <string name="text_label_preload_certificate">Zertifikat laden</string>
     <string name="text_label_delete_certificate">Zertifikat löschen</string>
+    <string name="text_label_credential_id">credentialID</string>
+    <string name="text_label_valid_from">validFrom</string>
+    <string name="text_label_valid_to">validTo</string>
 
     <string name="heading_label_authenticate_at_device_title">Anmelden</string>
     <string name="heading_label_authenticate_at_device_subtitle">an Service Provider</string>

@@ -32,9 +32,12 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.heading_label_sign_document
+import at.asitplus.valera.resources.text_label_credential_id
 import at.asitplus.valera.resources.text_label_delete_certificate
 import at.asitplus.valera.resources.text_label_preload_certificate
 import at.asitplus.valera.resources.text_label_qtsp
+import at.asitplus.valera.resources.text_label_valid_from
+import at.asitplus.valera.resources.text_label_valid_to
 import at.asitplus.wallet.app.common.SigningConfig
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.stringResource
@@ -133,17 +136,17 @@ fun SigningQtspSelectionView(
                 if (credentialInfo.value != null) {
                     Column(modifier = Modifier.padding(start = 32.dp)) {
                         LabeledText(
-                            label = "credentialID",
+                            label = stringResource(Res.string.text_label_credential_id),
                             text = "${credentialInfo.value?.credentialID}",
                             modifier = Modifier,
                         )
                         LabeledText(
-                            label = "validFrom",
+                            label = stringResource(Res.string.text_label_valid_from),
                             text = "${credentialInfo.value?.certParameters?.validFrom}",
                             modifier = Modifier,
                         )
                         LabeledText(
-                            label = "validTo",
+                            label = stringResource(Res.string.text_label_valid_to),
                             text = "${credentialInfo.value?.certParameters?.validTo}",
                             modifier = Modifier,
                         )
