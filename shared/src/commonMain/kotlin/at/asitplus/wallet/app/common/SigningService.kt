@@ -39,7 +39,6 @@ import io.ktor.http.contentType
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format.char
@@ -52,8 +51,6 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
-import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
 
 class SigningService(
     val platformAdapter: PlatformAdapter,
@@ -184,12 +181,11 @@ class SigningService(
         val authRequest =
             rqesWalletService.createServiceAuthenticationRequest()
 
-        val targetUrl = URLBuilder("${config.getCurrent().oauth2BaseUrl}/oauth2/authorize").apply {
-            authRequest.encodeToParameters().forEach {
+        return URLBuilder("${config.getCurrent().oauth2BaseUrl}/oauth2/authorize").apply {
+            authRequest.encodeToParameters<AuthenticationRequestParameters>().forEach {
                 parameters.append(it.key, it.value)
             }
         }.buildString()
-        return targetUrl
     }
 
     suspend fun extractSignatureRequestParameter(url: String) {
