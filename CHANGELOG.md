@@ -1,5 +1,7 @@
-# Release NEXT
+# Release 5.4.12
  * Replace ePrescription with HealthID
+ * Add Remote Qualified Electronic Signatures (RQES), acc. to UC5 in POTENTIAL
+ * Update to VC-K 5.4.4
 
 # Release 5.4.11
  * Update to VC-K 5.4.2
