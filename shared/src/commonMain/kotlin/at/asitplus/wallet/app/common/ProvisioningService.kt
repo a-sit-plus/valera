@@ -41,7 +41,7 @@ class ProvisioningService(
     private val cookieStorage = PersistentCookieStorage(dataStoreService, errorService)
     private val client = httpService.buildHttpClient(cookieStorage = cookieStorage)
 
-    private val redirectUrl = "asitplus-wallet://wallet.a-sit.at/app/callback"
+    private val redirectUrl = "asitplus-wallet://wallet.a-sit.at/app/callback/provisioning"
     private val clientId = "https://wallet.a-sit.at/app"
     private val clientAttestationJwt = runBlocking {
         DefaultJwsService(cryptoService).buildClientAttestationJwt(
