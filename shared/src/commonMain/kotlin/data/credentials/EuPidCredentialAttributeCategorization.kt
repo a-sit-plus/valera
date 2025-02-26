@@ -14,7 +14,10 @@ object EuPidCredentialAttributeCategorization : CredentialAttributeCategorizatio
                 BIRTH_DATE,
                 PORTRAIT,
                 NATIONALITY,
+                SEX,
                 GENDER,
+                EMAIL_ADDRESS,
+                MOBILE_PHONE_NUMBER,
             ).map { NormalizedJsonPath() + it to null }
         },
 
@@ -62,6 +65,8 @@ object EuPidCredentialAttributeCategorization : CredentialAttributeCategorizatio
                 ISSUING_JURISDICTION,
                 ADMINISTRATIVE_NUMBER,
                 PERSONAL_ADMINISTRATIVE_NUMBER,
+                TRUST_ANCHOR,
+                LOCATION_STATUS
             ).map { NormalizedJsonPath() + it to null }
         },
     ),
@@ -81,6 +86,8 @@ object EuPidCredentialSdJwtAttributeCategorization : CredentialAttributeCategori
                 PORTRAIT,
                 NATIONALITIES,
                 GENDER,
+                EMAIL,
+                PHONE_NUMBER,
             ).map { NormalizedJsonPath() + it to null }
         },
 
@@ -128,6 +135,8 @@ object EuPidCredentialSdJwtAttributeCategorization : CredentialAttributeCategori
                 ISSUING_JURISDICTION,
                 ADMINISTRATIVE_NUMBER,
                 PERSONAL_ADMINISTRATIVE_NUMBER,
+                TRUST_ANCHOR,
+                LOCATION_STATUS,
             ).map { NormalizedJsonPath() + it to null }
         },
     ),
