@@ -74,6 +74,21 @@ class SigningService(
     private lateinit var dtbsrAuthenticationDetails: AuthorizationDetails
     private lateinit var transactionTokens: List<String>
 
+    private val pdfSigningAlgorithms = listOf(
+        "1.2.840.113549.1.1.11", //RSA_SHA256
+        "1.2.840.113549.1.1.12", //RSA_SHA384
+        "1.2.840.113549.1.1.13", //RSA_SHA512
+        "2.16.840.1.101.3.4.3.14", //RSA_SHA3_256
+        "2.16.840.1.101.3.4.3.15", //RSA_SHA3_384
+        "2.16.840.1.101.3.4.3.16", //RSA_SHA3_512
+        "1.2.840.10045.4.3.2", //ECDSA_SHA256
+        "1.2.840.10045.4.3.3", //ECDSA_SHA384
+        "1.2.840.10045.4.3.4", //ECDSA_SHA512
+        "2.16.840.1.101.3.4.3.10", //ECDSA_SHA3_256
+        "2.16.840.1.101.3.4.3.11", //ECDSA_SHA3_384
+        "2.16.840.1.101.3.4.3.12", //ECDSA_SHA3_512
+    )
+
     private suspend fun importFromDataStore(): SigningConfig =
         catchingUnwrapped {
             vckJsonSerializer.decodeFromString<SigningConfig>(
@@ -280,15 +295,19 @@ class SigningService(
     }
 
     private suspend fun createCredentialAuthRequest(): String {
-        val signAlgorithm =
-            rqesWalletService.signingCredential?.supportedSigningAlgorithms?.first() ?: X509SignatureAlgorithm.RS512
-
         val signingCredential = rqesWalletService.signingCredential ?: throw Throwable("Missing signingCredential")
+
+        val credentialSigningAlgorithms = signingCredential.supportedSigningAlgorithms
+        val commonSigningAlgorithm =
+            credentialSigningAlgorithms.filter { this.pdfSigningAlgorithms.contains(it.oid.toString()) }
+        val signatureAlgorithm = catchingUnwrapped { commonSigningAlgorithm.first() }.getOrNull()
+            ?: throw Throwable("Unsupported pdf signing algorithm")
+
         val dtbsr = listOf(
             getDTBSR(
                 client = client,
                 qtspHost = pdfSigningService,
-                signatureAlgorithm = signAlgorithm,
+                signatureAlgorithm = signatureAlgorithm,
                 signingCredential = signingCredential,
                 document = this.documentWithLabel
             )
@@ -296,12 +315,16 @@ class SigningService(
         this.transactionTokens = dtbsr.map { it.first }
 
         this.dtbsrAuthenticationDetails =
-            rqesWalletService.getCscAuthenticationDetails(dtbsr.map { it.second }, hashAlgorithm = signAlgorithm.digest, this.signatureRequestParameter.documentLocations)
+            rqesWalletService.getCscAuthenticationDetails(
+                dtbsr.map { it.second },
+                hashAlgorithm = signatureAlgorithm.digest,
+                this.signatureRequestParameter.documentLocations
+            )
 
         val authRequest = rqesWalletService.createCredentialAuthenticationRequest(
             documentDigests = dtbsr.map { it.second },
-            hashAlgorithm = signAlgorithm.digest,
-            documentLocation =  this.signatureRequestParameter.documentLocations
+            hashAlgorithm = signatureAlgorithm.digest,
+            documentLocation = this.signatureRequestParameter.documentLocations
         )
 
         return URLBuilder("${config.getCurrent().oauth2BaseUrl}/oauth2/authorize").apply {
