@@ -65,6 +65,16 @@ val documentTypeToNameSpace: Map<String, String> = mapOf(
     "eu.europa.ec.eudi.pid.1" to "eu.europa.ec.eudi.pid.1"
 )
 
+// TODO: - Add string resources for ISO UI Labels
+//       - Use variables for repeating strings
+fun documentTypeToUILabel(documentType: String): String = when(documentType) {
+    "org.iso.18013.5.1.mDL" -> "mDL"
+    "org.iso.18013.5.1.identity" -> "Identitätsnachweis"
+    "org.iso.18013.5.1.ageverification" -> "Altersnachweis"
+    "eu.europa.ec.eudi.pid.1" -> "PID"
+    else -> "Unbekannt"
+}
+
 fun itemsToDocument(
     docType: String,
     namespace: String,

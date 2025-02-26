@@ -24,15 +24,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.heading_label_authenticate_at_device_screen
 import at.asitplus.valera.resources.heading_label_navigate_back
+import at.asitplus.valera.resources.heading_label_show_data
 import at.asitplus.valera.resources.prompt_send_above_data
-import at.asitplus.valera.resources.section_heading_available
-import at.asitplus.valera.resources.section_heading_requested
-import at.asitplus.valera.resources.section_heading_selected
-import data.bletransfer.util.DocumentAttributes
-import data.bletransfer.util.RequestedDocument
+import data.bletransfer.util.documentTypeToUILabel
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.ConsentAttributesSection
 import ui.composables.Logo
 import ui.composables.buttons.CancelButton
 import ui.composables.buttons.ContinueButton
@@ -95,50 +92,19 @@ fun DataRequestConsentView(vm: DataRequestConsentViewModel) {
             ) {
                 val paddingModifier = Modifier.padding(bottom = 32.dp)
                 Text(
-                    stringResource(Res.string.heading_label_authenticate_at_device_screen),
+                    stringResource(Res.string.heading_label_show_data),
                     style = MaterialTheme.typography.headlineLarge,
                     modifier = paddingModifier,
                 )
                 Column(
                     modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState()),
                 ) {
-                    vm.requestedAttributes.forEach { requestedDocument: RequestedDocument ->
-                        Text(text = "docType: ${requestedDocument.docType}")
-                        requestedDocument.nameSpaces.forEach { nameSpace: RequestedDocument.NameSpace ->
-                            Text(text = "nameSpace: ${nameSpace.nameSpace}")
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
-                                    text = stringResource(Res.string.section_heading_requested),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    modifier = Modifier.weight(2f)
-                                )
-                                Text(
-                                    text = stringResource(Res.string.section_heading_available),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                Text(
-                                    text = stringResource(Res.string.section_heading_selected),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    modifier = Modifier.weight(1f)
-                                )
-                            }
-
-                            nameSpace.attributes.forEach { item: DocumentAttributes ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = stringResource(item.displayName),
-                                        modifier = Modifier.weight(2f)
-                                    )
-                                }
-                            }
+                    vm.requestedAttributes.forEach { requestedDocument ->
+                        requestedDocument.nameSpaces.forEach { nameSpace ->
+                            ConsentAttributesSection(
+                                title = documentTypeToUILabel(requestedDocument.docType),
+                                list = nameSpace.attributes.map { it.displayName }
+                            )
                         }
                     }
                 }
