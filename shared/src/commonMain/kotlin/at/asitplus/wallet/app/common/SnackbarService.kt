@@ -20,7 +20,7 @@ class SnackbarService(private val scope: CoroutineScope, private val snackbarHos
     fun showSnackbar(text: String, actionLabel: String, callback: () -> Unit) {
         Napier.d("Show Snackbar with text: $text")
         scope.launch {
-            val result = snackbarHostState.showSnackbar(message = text, actionLabel = actionLabel)
+            val result = snackbarHostState.showSnackbar(message = text, actionLabel = actionLabel, withDismissAction = true)
             when (result) {
                 SnackbarResult.Dismissed -> {}
                 SnackbarResult.ActionPerformed -> callback.invoke()

@@ -242,7 +242,7 @@ private sealed interface ExportableStoreEntry {
 }
 
 enum class ExportableCredentialScheme {
-    AtomicAttribute2023, IdAustriaScheme, MobileDrivingLicence2023, EuPidScheme, PowerOfRepresentationScheme, CertificateOfResidenceScheme, CompanyRegistrationScheme, EPrescriptionScheme, TaxIdScheme;
+    AtomicAttribute2023, IdAustriaScheme, MobileDrivingLicence2023, EuPidScheme, PowerOfRepresentationScheme, CertificateOfResidenceScheme, CompanyRegistrationScheme, HealthIdScheme, TaxIdScheme;
 
     fun toScheme() = when (this) {
         AtomicAttribute2023 -> ConstantIndex.AtomicAttribute2023
@@ -252,7 +252,7 @@ enum class ExportableCredentialScheme {
         PowerOfRepresentationScheme -> at.asitplus.wallet.por.PowerOfRepresentationScheme
         CertificateOfResidenceScheme -> at.asitplus.wallet.cor.CertificateOfResidenceScheme
         CompanyRegistrationScheme -> at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
-        EPrescriptionScheme -> at.asitplus.wallet.eprescription.EPrescriptionScheme
+        HealthIdScheme -> at.asitplus.wallet.healthid.HealthIdScheme
         TaxIdScheme -> at.asitplus.wallet.taxid.TaxIdScheme
     }
 
@@ -265,7 +265,7 @@ enum class ExportableCredentialScheme {
             at.asitplus.wallet.por.PowerOfRepresentationScheme -> PowerOfRepresentationScheme
             at.asitplus.wallet.cor.CertificateOfResidenceScheme -> CertificateOfResidenceScheme
             at.asitplus.wallet.companyregistration.CompanyRegistrationScheme -> CompanyRegistrationScheme
-            at.asitplus.wallet.eprescription.EPrescriptionScheme -> EPrescriptionScheme
+            at.asitplus.wallet.healthid.HealthIdScheme -> HealthIdScheme
             at.asitplus.wallet.taxid.TaxIdScheme -> TaxIdScheme
             else -> throw Exception("Unknown CredentialScheme")
         }
