@@ -117,7 +117,6 @@ private fun ConstantIndex.CredentialScheme.toJsonElement(
         PowerOfRepresentationScheme -> PowerOfRepresentationDataElements.ALL_ELEMENTS
         CertificateOfResidenceScheme -> CertificateOfResidenceDataElements.ALL_ELEMENTS
         CompanyRegistrationScheme -> CompanyRegistrationDataElements.ALL_ELEMENTS
-        EPrescriptionScheme -> EPrescriptionDataElements.ALL_ELEMENTS
         TaxIdScheme -> TaxIdScheme.ALL_ELEMENTS
         else -> TODO("${this::class.simpleName} not implemented in jsonElementBuilder yet")
     }
