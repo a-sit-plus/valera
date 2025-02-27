@@ -164,7 +164,9 @@ private class CertificateOfResidenceCredentialSdJwtAdapter(
 
     override val gender: IsoIec5218Gender?
         get() = attributes[GENDER]?.contentOrNull?.toIntOrNull()
-            ?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code } }
+            ?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code.toUInt() } }
+            ?: attributes[GENDER]?.contentOrNull?.toUIntOrNull()
+                ?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code } }
 
     override val birthPlace: String?
         get() = attributes[BIRTH_PLACE]?.contentOrNull

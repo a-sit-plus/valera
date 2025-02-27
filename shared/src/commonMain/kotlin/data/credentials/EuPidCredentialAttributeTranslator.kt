@@ -18,6 +18,7 @@ import at.asitplus.valera.resources.attribute_friendly_name_birth_place
 import at.asitplus.valera.resources.attribute_friendly_name_birth_state
 import at.asitplus.valera.resources.attribute_friendly_name_date_of_birth
 import at.asitplus.valera.resources.attribute_friendly_name_document_number
+import at.asitplus.valera.resources.attribute_friendly_name_email_address
 import at.asitplus.valera.resources.attribute_friendly_name_expiry_date
 import at.asitplus.valera.resources.attribute_friendly_name_family_name_birth
 import at.asitplus.valera.resources.attribute_friendly_name_firstname
@@ -27,6 +28,7 @@ import at.asitplus.valera.resources.attribute_friendly_name_issuing_authority
 import at.asitplus.valera.resources.attribute_friendly_name_issuing_country
 import at.asitplus.valera.resources.attribute_friendly_name_issuing_jurisdiction
 import at.asitplus.valera.resources.attribute_friendly_name_lastname
+import at.asitplus.valera.resources.attribute_friendly_name_location_status
 import at.asitplus.valera.resources.attribute_friendly_name_main_address
 import at.asitplus.valera.resources.attribute_friendly_name_main_residence_city
 import at.asitplus.valera.resources.attribute_friendly_name_main_residence_country
@@ -34,10 +36,15 @@ import at.asitplus.valera.resources.attribute_friendly_name_main_residence_house
 import at.asitplus.valera.resources.attribute_friendly_name_main_residence_postal_code
 import at.asitplus.valera.resources.attribute_friendly_name_main_residence_state
 import at.asitplus.valera.resources.attribute_friendly_name_main_residence_street
+import at.asitplus.valera.resources.attribute_friendly_name_mobile_phone_number
 import at.asitplus.valera.resources.attribute_friendly_name_nationality
 import at.asitplus.valera.resources.attribute_friendly_name_personal_administrative_number
 import at.asitplus.valera.resources.attribute_friendly_name_portrait
 import at.asitplus.valera.resources.attribute_friendly_name_sex
+import at.asitplus.valera.resources.attribute_friendly_name_trust_anchor
+import at.asitplus.wallet.eupid.EuPidScheme.Attributes
+import at.asitplus.wallet.eupid.EuPidScheme.Attributes.EMAIL_ADDRESS
+import at.asitplus.wallet.eupid.EuPidScheme.Attributes.MOBILE_PHONE_NUMBER
 import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes.Address
 import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes.AgeEqualOrOver
 import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes.PlaceOfBirth
@@ -77,6 +84,7 @@ object EuPidCredentialAttributeTranslator : CredentialAttributeTranslator {
                 RESIDENT_STREET -> Res.string.attribute_friendly_name_main_residence_street
                 RESIDENT_HOUSE_NUMBER -> Res.string.attribute_friendly_name_main_residence_house_number
                 GENDER -> Res.string.attribute_friendly_name_sex
+                SEX -> Res.string.attribute_friendly_name_sex
                 NATIONALITY -> Res.string.attribute_friendly_name_nationality
                 ISSUANCE_DATE -> Res.string.attribute_friendly_name_issue_date
                 EXPIRY_DATE -> Res.string.attribute_friendly_name_expiry_date
@@ -86,6 +94,10 @@ object EuPidCredentialAttributeTranslator : CredentialAttributeTranslator {
                 ISSUING_COUNTRY -> Res.string.attribute_friendly_name_issuing_country
                 ISSUING_JURISDICTION -> Res.string.attribute_friendly_name_issuing_jurisdiction
                 PERSONAL_ADMINISTRATIVE_NUMBER -> Res.string.attribute_friendly_name_personal_administrative_number
+                EMAIL_ADDRESS -> Res.string.attribute_friendly_name_email_address
+                MOBILE_PHONE_NUMBER -> Res.string.attribute_friendly_name_mobile_phone_number
+                TRUST_ANCHOR -> Res.string.attribute_friendly_name_trust_anchor
+                LOCATION_STATUS -> Res.string.attribute_friendly_name_location_status
                 else -> null
             }
 
@@ -163,6 +175,10 @@ object EuPidCredentialAttributeTranslator : CredentialAttributeTranslator {
                 ISSUING_COUNTRY -> Res.string.attribute_friendly_name_issuing_country
                 ISSUING_JURISDICTION -> Res.string.attribute_friendly_name_issuing_jurisdiction
                 PERSONAL_ADMINISTRATIVE_NUMBER -> Res.string.attribute_friendly_name_personal_administrative_number
+                EMAIL -> Res.string.attribute_friendly_name_email_address
+                PHONE_NUMBER -> Res.string.attribute_friendly_name_mobile_phone_number
+                TRUST_ANCHOR -> Res.string.attribute_friendly_name_trust_anchor
+                LOCATION_STATUS -> Res.string.attribute_friendly_name_location_status
                 else -> null
             }
 

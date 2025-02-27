@@ -118,6 +118,10 @@
     <string name="attribute_friendly_name_effective_until_date">Effective until</string>
     <string name="attribute_friendly_name_administrative_number">Administrative number</string>
     <string name="attribute_friendly_name_personal_administrative_number">Personal administrative number</string>
+    <string name="attribute_friendly_name_email_address">eMail address</string>
+    <string name="attribute_friendly_name_mobile_phone_number">Mobile phone number</string>
+    <string name="attribute_friendly_name_trust_anchor">Trust anchor</string>
+    <string name="attribute_friendly_name_location_status">Status URL</string>
     <string name="attribute_friendly_name_issuing_jurisdiction">Issuing jurisdiction</string>
     <string name="attribute_friendly_name_residence_address">Residence address</string>
     <string name="attribute_friendly_name_residence_address_po_box">PO box</string>

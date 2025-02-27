@@ -67,6 +67,10 @@
     <string name="attribute_friendly_name_effective_until_date">UNTRANSLATED:attribute_friendly_name_effective_until_date</string>
     <string name="attribute_friendly_name_administrative_number">UNTRANSLATED:attribute_friendly_name_administrative_number</string>
     <string name="attribute_friendly_name_personal_administrative_number">UNTRANSLATED:attribute_friendly_name_personal_administrative_number</string>
+    <string name="attribute_friendly_name_email_address">UNTRANSLATED:attribute_friendly_name_email_address</string>
+    <string name="attribute_friendly_name_mobile_phone_number">UNTRANSLATED:attribute_friendly_name_mobile_phone_number</string>
+    <string name="attribute_friendly_name_trust_anchor">UNTRANSLATED:attribute_friendly_name_trust_anchor</string>
+    <string name="attribute_friendly_name_location_status">UNTRANSLATED:attribute_friendly_name_location_status</string>
     <string name="attribute_friendly_name_issuing_jurisdiction">UNTRANSLATED:attribute_friendly_name_issuing_jurisdiction</string>
     <string name="attribute_friendly_name_residence_address">UNTRANSLATED:attribute_friendly_name_residence_address</string>
     <string name="attribute_friendly_name_residence_address_po_box">UNTRANSLATED:attribute_friendly_name_residence_po_box</string>
