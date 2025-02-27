@@ -43,6 +43,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.rqes.collection_entries.TransactionData
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_location
@@ -56,6 +57,7 @@ import at.asitplus.wallet.app.common.third_parts.at.asitplus.jsonpath.core.plus
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.lib.oidvci.encodeToParameters
+import at.asitplus.wallet.app.common.extractConsentData
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.ConsentAttributesSection
 import ui.composables.DataDisplaySection
@@ -149,20 +151,18 @@ fun AuthenticationConsentView(vm: AuthenticationConsentViewModel) {
                         ),
                         modifier = paddingModifier,
                     )
-                    vm.requests.mapNotNull { it.value }.forEach { params ->
-                        params.resolved?.first?.let { scheme ->
-                            val schemeName = scheme.uiLabel()
-                            val format = params.resolved?.second?.name
-                            val attributes = params.attributes?.mapNotNull {
-                                scheme.getLocalization(NormalizedJsonPath() + it)
-                            }
-                            if (format != null && attributes != null) {
-                                ConsentAttributesSection(
-                                    title = "$schemeName (${format})",
-                                    list = attributes
-                                )
-                            }
-                        }
+                    vm.requests.forEach { inputDescriptor ->
+                        val (representation, scheme, attributes) = inputDescriptor.extractConsentData()
+                        val schemeName = scheme.uiLabel()
+                        val format = representation.name
+                        val list = attributes.mapNotNull {
+                            val resource = scheme.getLocalization(NormalizedJsonPath(it.key.segments.last())) ?: return@mapNotNull null
+                            stringResource(resource) to it.value
+                        }.toMap()
+                        ConsentAttributesSection(
+                            title = "$schemeName (${format})",
+                            attributes = list
+                        )
                     }
                     if (vm.transactionData != null) {
                         Spacer(modifier = Modifier.height(32.dp))
