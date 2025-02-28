@@ -41,8 +41,6 @@
     <string name="button_label_data_protection_policy">UNTRANSLATED:button_label_data_protection_policy</string>
     <string name="button_label_share_log_file">UNTRANSLATED:button_label_share_log_file</string>
     <string name="button_label_reset_app">UNTRANSLATED:button_label_reset_app</string>
-    <string name="button_label_all_missing_data">UNTRANSLATED:button_label_all_missing_data</string>
-    <string name="button_label_all_available_data">UNTRANSLATED:button_label_all_available_data</string>
     <string name="button_label_clear_log">UNTRANSLATED:button_label_clear_log</string>
     <string name="button_label_provision_credential_browser">UNTRANSLATED:button_label_request_credential_browser</string>
     <string name="button_label_provision_credential_qr">UNTRANSLATED:button_label_provision_credential_qr</string>
@@ -169,6 +167,7 @@
     <string name="issuing_label_scheme">UNTRANSLATED:issuing_label_scheme</string>
     <string name="issuing_label_representation">UNTRANSLATED:issuing_label_representation</string>
     <string name="issuing_label_transaction_code">UNTRANSLATED:issuing_label_transaction_code</string>
+    <string name="issuing_label_information">UNTRANSLATED:issuing_label_information</string>
 
     <string name="navigation_button_label_show_data">UNTRANSLATED:navigation_button_label_show_data</string>
     <string name="navigation_button_label_my_data">UNTRANSLATED:navigation_button_label_my_data</string>
@@ -331,7 +330,6 @@
     <string name="section_heading_biometric_data_icon_text">UNTRANSLATED:section_heading_biometric_data_icon_text</string>
     <string name="section_heading_metadata">UNTRANSLATED:section_heading_metadata</string>
     <string name="section_heading_metadata_icon_text">UNTRANSLATED:section_heading_metadata_icon_text</string>
-    <string name="section_heading_load_data_selection">UNTRANSLATED:section_heading_load_data_selection</string>
     <string name="section_heading_missing_data">UNTRANSLATED:section_heading_missing_data</string>
     <string name="section_heading_available_data">UNTRANSLATED:section_heading_available_data</string>
     <string name="section_heading_transaction_data">UNTRANSLATED:section_heading_transaction_data</string>

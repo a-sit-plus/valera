@@ -1,6 +1,5 @@
 package at.asitplus.wallet.app.common
 
-import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
@@ -93,14 +92,12 @@ class ProvisioningService(
     suspend fun startProvisioningWithAuthRequest(
         credentialIssuer: String,
         credentialIdentifierInfo: CredentialIdentifierInfo,
-        requestedAttributes: Set<NormalizedJsonPath>?,
     ) {
         config.set(host = credentialIssuer)
         cookieStorage.reset()
         openId4VciClient.startProvisioningWithAuthRequest(
             credentialIssuer,
             credentialIdentifierInfo,
-            requestedAttributes
         ).getOrThrow()
     }
 
@@ -145,14 +142,12 @@ class ProvisioningService(
     suspend fun loadCredentialWithOffer(
         credentialOffer: CredentialOffer,
         credentialIdentifierInfo: CredentialIdentifierInfo,
-        transactionCode: String? = null,
-        requestedAttributes: Set<NormalizedJsonPath>?
+        transactionCode: String? = null
     ) {
         openId4VciClient.loadCredentialWithOffer(
             credentialOffer,
             credentialIdentifierInfo,
-            transactionCode,
-            requestedAttributes
+            transactionCode
         ).getOrThrow()
     }
 }

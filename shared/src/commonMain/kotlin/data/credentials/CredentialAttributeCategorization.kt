@@ -41,10 +41,6 @@ interface CredentialAttributeCategorization {
 
     operator fun get(personalDataCategory: PersonalDataCategory): List<AttributeUnpackingInformation>?
 
-    val availableCategories: Set<PersonalDataCategory>
-
-    val sourceAttributeCategorization: Map<PersonalDataCategory, List<NormalizedJsonPath>>
-
     abstract class Template(
         categorization: Map<PersonalDataCategory, List<AttributeUnpackingInformation>>,
         allAttributes: Collection<NormalizedJsonPath>,
@@ -55,20 +51,6 @@ interface CredentialAttributeCategorization {
 
         override operator fun get(personalDataCategory: PersonalDataCategory): List<AttributeUnpackingInformation>? {
             return categorization[personalDataCategory]
-        }
-
-        override val availableCategories by lazy {
-            categorization.filter {
-                it.value.isNotEmpty()
-            }.keys
-        }
-
-        override val sourceAttributeCategorization by lazy {
-            categorization.mapValues {
-                it.value.map {
-                    it.first
-                }
-            }
         }
 
         private fun Map<PersonalDataCategory, List<Pair<NormalizedJsonPath, List<NormalizedJsonPath>?>>>.withOthersFrom(

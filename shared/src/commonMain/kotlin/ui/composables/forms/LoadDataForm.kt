@@ -7,21 +7,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_redirection_to_browser_for_credential_provisioning
-import at.asitplus.wallet.app.common.credentialScheme
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
-import at.asitplus.wallet.lib.oidvci.toRepresentation
-import data.PersonalDataCategory
-import data.credentials.CredentialAttributeCategorization
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -29,34 +20,19 @@ fun StatefulLoadDataForm(
     host: String,
     credentialIdentifierInfo: CredentialIdentifierInfo,
     onChangeCredentialIdentifierInfo: (CredentialIdentifierInfo) -> Unit,
-    requestedAttributes: Set<NormalizedJsonPath>,
-    onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
     transactionCode: TextFieldValue,
     onChangeTransactionCode: (TextFieldValue) -> Unit,
     modifier: Modifier = Modifier,
     availableIdentifiers: Collection<CredentialIdentifierInfo>,
     showTransactionCode: Boolean,
 ) {
-    var attributeCategoriesExpanded by rememberSaveable(credentialIdentifierInfo) {
-        val attributeCategorization =
-            CredentialAttributeCategorization.load(
-                credentialIdentifierInfo.credentialScheme,
-                credentialIdentifierInfo.supportedCredentialFormat.format.toRepresentation()
-            ).availableCategories
-
-        mutableStateOf(attributeCategorization.associateWith { false })
-    }
 
     LoadDataForm(
         host = host,
         credentialIdentifierInfo = credentialIdentifierInfo,
         onChangeCredentialIdentifierInfo = onChangeCredentialIdentifierInfo,
-        requestedAttributes = requestedAttributes,
-        onChangeRequestedAttributes = onChangeRequestedAttributes,
         transactionCode = transactionCode,
         onChangeTransactionCode = onChangeTransactionCode,
-        attributeCategoriesExpanded = attributeCategoriesExpanded,
-        onSetAttributeCategoriesExpanded = { attributeCategoriesExpanded += it },
         modifier = modifier,
         availableIdentifiers = availableIdentifiers,
         showTransactionCode = showTransactionCode,
@@ -68,12 +44,8 @@ fun LoadDataForm(
     host: String,
     credentialIdentifierInfo: CredentialIdentifierInfo,
     onChangeCredentialIdentifierInfo: (CredentialIdentifierInfo) -> Unit,
-    requestedAttributes: Set<NormalizedJsonPath>,
-    onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
     transactionCode: TextFieldValue,
     onChangeTransactionCode: (TextFieldValue) -> Unit,
-    attributeCategoriesExpanded: Map<PersonalDataCategory, Boolean>,
-    onSetAttributeCategoriesExpanded: (Pair<PersonalDataCategory, Boolean>) -> Unit,
     modifier: Modifier = Modifier,
     availableIdentifiers: Collection<CredentialIdentifierInfo>,
     showTransactionCode: Boolean,
@@ -95,14 +67,6 @@ fun LoadDataForm(
                 transactionCode = transactionCode,
                 onChangeTransactionCode = onChangeTransactionCode,
                 showTransactionCode = showTransactionCode,
-            )
-            CredentialAttributeSelectionForm(
-                credentialIdentifierInfo = credentialIdentifierInfo,
-                requestedAttributes = requestedAttributes,
-                onChangeRequestedAttributes = onChangeRequestedAttributes,
-                attributeCategoriesExpanded = attributeCategoriesExpanded,
-                onSetAttributeCategoriesExpanded = onSetAttributeCategoriesExpanded,
-                modifier = columnSpacingModifier,
             )
         }
     }

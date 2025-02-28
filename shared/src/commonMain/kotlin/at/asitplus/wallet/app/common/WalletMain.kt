@@ -1,7 +1,6 @@
 package at.asitplus.wallet.app.common
 
 import androidx.compose.ui.graphics.ImageBitmap
-import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_update_action
 import at.asitplus.valera.resources.snackbar_update_hint
@@ -130,7 +129,6 @@ class WalletMain(
     fun startProvisioning(
         host: String,
         credentialIdentifierInfo: CredentialIdentifierInfo,
-        requestedAttributes: Set<NormalizedJsonPath>?,
         onSuccess: () -> Unit,
     ) {
         scope.launch {
@@ -138,7 +136,6 @@ class WalletMain(
                 provisioningService.startProvisioningWithAuthRequest(
                     credentialIssuer = host,
                     credentialIdentifierInfo = credentialIdentifierInfo,
-                    requestedAttributes = requestedAttributes,
                 )
                 onSuccess()
             } catch (e: Throwable) {

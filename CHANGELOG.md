@@ -11,6 +11,7 @@
 
 # Release 5.4.13
  * Update EU PID to ARF 1.5.0
+ * Remove selecting single attributes for issuing (has been removed from OID4VCI)
 
 # Release 5.4.12
  * Replace ePrescription with HealthID
