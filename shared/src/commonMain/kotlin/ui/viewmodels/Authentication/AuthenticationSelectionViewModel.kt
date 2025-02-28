@@ -8,13 +8,13 @@ import at.asitplus.dif.ConstraintField
 import at.asitplus.jsonpath.core.NodeListEntry
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.lib.agent.CredentialSubmission
+import at.asitplus.wallet.lib.agent.PresentationExchangeCredentialDisclosure
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 
 class AuthenticationSelectionViewModel(
     val walletMain: WalletMain,
     val requests: Map<String, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, List<NodeListEntry>>>>,
-    val confirmSelections: (Map<String, CredentialSubmission>) -> Unit,
+    val confirmSelections: (Map<String, PresentationExchangeCredentialDisclosure>) -> Unit,
     val navigateUp: () -> Unit
 ) {
     val requestIterator = mutableStateOf(0)
@@ -59,7 +59,7 @@ class AuthenticationSelectionViewModel(
                         null
                     }
                 }
-                Pair(requestsId, CredentialSubmission(credential, disclosedAttributes))
+                Pair(requestsId, PresentationExchangeCredentialDisclosure(credential, disclosedAttributes))
             }.toMap()
             confirmSelections(submission)
         }

@@ -12,7 +12,7 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_subtitle
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_title
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.lib.agent.CredentialSubmission
+import at.asitplus.wallet.lib.agent.PresentationExchangeCredentialDisclosure
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
@@ -59,16 +59,16 @@ abstract class AuthenticationViewModel(
         }
     }
 
-    fun confirmSelection(submissions: Map<String, CredentialSubmission>) {
+    fun confirmSelection(submissions: Map<String, PresentationExchangeCredentialDisclosure>) {
         walletMain.scope.launch {
             finalizeAuthorization(submissions)
         }
     }
 
-    abstract suspend fun finalizationMethod(submission: Map<String, CredentialSubmission>)
+    abstract suspend fun finalizationMethod(submission: Map<String, PresentationExchangeCredentialDisclosure>)
 
 
-    private suspend fun finalizeAuthorization(submission: Map<String, CredentialSubmission>) {
+    private suspend fun finalizeAuthorization(submission: Map<String, PresentationExchangeCredentialDisclosure>) {
         try {
             walletMain.cryptoService.promptText =
                 getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_title)

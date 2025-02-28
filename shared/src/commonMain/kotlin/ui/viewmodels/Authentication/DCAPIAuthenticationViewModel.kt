@@ -9,7 +9,7 @@ import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
-import at.asitplus.wallet.lib.agent.CredentialSubmission
+import at.asitplus.wallet.lib.agent.PresentationExchangeCredentialDisclosure
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.credentials.CredentialAdapter
@@ -50,7 +50,7 @@ class DCAPIAuthenticationViewModel(
             }.map { (key, value) -> key to value.filter { (cred, _) -> CredentialAdapter.getId(cred).hashCode() == dcApiRequest.credentialId } }.toMap()
     }
 
-    override suspend fun finalizationMethod(submission: Map<String, CredentialSubmission>) =
+    override suspend fun finalizationMethod(submission: Map<String, PresentationExchangeCredentialDisclosure>) =
         walletMain.presentationService.finalizeDCAPIPreviewPresentation(submission, dcApiRequest)
 
 }
