@@ -15,6 +15,7 @@ import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiL
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.issuing_label_host
+import at.asitplus.valera.resources.issuing_label_information
 import at.asitplus.valera.resources.issuing_label_representation
 import at.asitplus.valera.resources.issuing_label_scheme
 import at.asitplus.wallet.lib.oidvci.toRepresentation
@@ -74,6 +75,12 @@ fun CredentialMetadataSelectionForm(
             Text(": ")
             Text(
                 text = credentialIdentifierInfo.supportedCredentialFormat.format.toRepresentation().uiLabel(),
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        }
+        Row(modifier = modifier) {
+            Text(
+                text = stringResource(Res.string.issuing_label_information),
                 style = MaterialTheme.typography.bodyLarge,
             )
         }

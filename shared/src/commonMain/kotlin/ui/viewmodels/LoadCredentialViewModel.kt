@@ -13,7 +13,7 @@ import kotlinx.coroutines.withContext
 /**
  * Selected transaction identifier, requested attributes, transaction code
  */
-typealias CredentialSelection = (CredentialIdentifierInfo, Set<NormalizedJsonPath>?, String?) -> Unit
+typealias CredentialSelection = (CredentialIdentifierInfo, String?) -> Unit
 
 class LoadCredentialViewModel {
     val walletMain: WalletMain
