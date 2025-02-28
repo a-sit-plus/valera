@@ -6,11 +6,13 @@ import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import at.asitplus.wallet.app.common.dcapi.PreviewRequest
 import at.asitplus.wallet.lib.agent.CreatePresentationResult
-import at.asitplus.wallet.lib.agent.CredentialSubmission
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.PresentationException
+import at.asitplus.wallet.lib.agent.PresentationExchangeCredentialDisclosure
 import at.asitplus.wallet.lib.agent.PresentationRequestParameters
+import at.asitplus.wallet.lib.agent.PresentationResponseParameters
 import at.asitplus.wallet.lib.cbor.CoseService
+import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
@@ -67,17 +69,17 @@ class PresentationService(
     suspend fun finalizeAuthorizationResponse(
         request: RequestParametersFrom<AuthenticationRequestParameters>,
         preparationState: AuthorizationResponsePreparationState,
-        inputDescriptorSubmission: Map<String, CredentialSubmission>
+        inputDescriptorSubmission: Map<String, PresentationExchangeCredentialDisclosure>
     ) {
         presentationService.finalizeAuthorizationResponse(
             request = request,
-            preparationState = preparationState,
-            inputDescriptorSubmission = inputDescriptorSubmission
+            credentialPresentation = (preparationState.credentialPresentationRequest as CredentialPresentationRequest.PresentationExchangeRequest).toCredentialPresentation(inputDescriptorSubmission),
+            clientMetadata = preparationState.clientMetadata!!
         ).getOrThrow()
     }
 
     suspend fun finalizeDCAPIPreviewPresentation(
-        submission: Map<String, CredentialSubmission>,
+        submission: Map<String, PresentationExchangeCredentialDisclosure>,
         dcApiRequest: DCAPIRequest
     ) {
         Napier.d("Finalizing DCAPI response")
@@ -94,11 +96,10 @@ class PresentationService(
                     throw PresentationException(e)
                 } to null
             }),
-            presentationDefinitionId = uuid4().toString(),
-            presentationSubmissionSelection = submission
+            credentialPresentation = CredentialPresentation.PresentationExchangePresentation(TODO(), submission),
         )
 
-        val presentation = presentationResult.getOrThrow()
+        val presentation = presentationResult.getOrThrow() as PresentationResponseParameters.PresentationExchangeParameters
 
         val deviceResponse = when (val firstResult = presentation.presentationResults[0]) {
             is CreatePresentationResult.DeviceResponse -> firstResult.deviceResponse
