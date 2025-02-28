@@ -12,6 +12,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.issuing_label_host
+import at.asitplus.valera.resources.issuing_label_information
 import at.asitplus.valera.resources.issuing_label_representation
 import at.asitplus.valera.resources.issuing_label_scheme
 import at.asitplus.wallet.app.common.credentialScheme
@@ -74,6 +75,12 @@ fun CredentialMetadataSelectionForm(
             Text(": ")
             Text(
                 text = credentialIdentifierInfo.supportedCredentialFormat.format.toRepresentation().uiLabel(),
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        }
+        Row(modifier = modifier) {
+            Text(
+                text = stringResource(Res.string.issuing_label_information),
                 style = MaterialTheme.typography.bodyLarge,
             )
         }

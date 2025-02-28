@@ -406,13 +406,12 @@ private fun WalletNavHost(
                     walletMain = walletMain,
                     navigateUp = navigateBack,
                     hostString = route.host,
-                    onSubmit = { credentialIdentifierInfo, requestedAttributes, _ ->
+                    onSubmit = { credentialIdentifierInfo, _ ->
                         popBackStack(HomeScreenRoute)
                         walletMain.scope.launch {
                             walletMain.startProvisioning(
                                 host = route.host,
                                 credentialIdentifierInfo = credentialIdentifierInfo,
-                                requestedAttributes = requestedAttributes,
                             ) {
                             }
                         }
@@ -437,7 +436,7 @@ private fun WalletNavHost(
                 walletMain = walletMain,
                 navigateUp = navigateBack,
                 offer = offer,
-                onSubmit = { credentialIdentifierInfo, requestedAttributes, transactionCode ->
+                onSubmit = { credentialIdentifierInfo, transactionCode ->
                     popBackStack(HomeScreenRoute)
                     navigate(LoadingRoute)
                     walletMain.scope.launch {
@@ -445,8 +444,7 @@ private fun WalletNavHost(
                             walletMain.provisioningService.loadCredentialWithOffer(
                                 credentialOffer = offer,
                                 credentialIdentifierInfo = credentialIdentifierInfo,
-                                transactionCode = transactionCode?.ifEmpty { null }?.ifBlank { null },
-                                requestedAttributes = requestedAttributes
+                                transactionCode = transactionCode?.ifEmpty { null }?.ifBlank { null }
                             )
                             popBackStack(HomeScreenRoute)
                         } catch (e: Throwable) {

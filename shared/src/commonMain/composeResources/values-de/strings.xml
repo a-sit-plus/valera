@@ -42,8 +42,6 @@
     <string name="button_label_data_protection_policy">Datenschutzrichtlinie</string>
     <string name="button_label_share_log_file">Log-Datei teilen</string>
     <string name="button_label_reset_app">App zurücksetzen</string>
-    <string name="button_label_all_missing_data">Alle Daten</string>
-    <string name="button_label_all_available_data">Alle bestehenden Daten</string>
     <string name="button_label_clear_log">Log löschen</string>
     <string name="button_label_provision_credential_browser">Über Browser beziehen</string>
     <string name="button_label_provision_credential_qr">Mit QR-Code beziehen</string>
@@ -170,6 +168,7 @@
     <string name="issuing_label_scheme">Schema</string>
     <string name="issuing_label_representation">Repräsentation</string>
     <string name="issuing_label_transaction_code">Transaktionscode</string>
+    <string name="issuing_label_information">Es werden alle verfügbaren Daten geladen werden</string>
 
     <string name="credential_scheme_icon_label_mdl">mDL</string>
     <string name="credential_scheme_label_mdl">mDL</string>
@@ -334,7 +333,6 @@
     <string name="section_heading_residence_data">Meldeadresse</string>
     <string name="section_heading_residence_data_icon_text">MA</string>
     <string name="section_heading_missing_data">Neue Daten laden</string>
-    <string name="section_heading_load_data_selection">Verfügbare Daten</string>
     <string name="section_heading_available_data">Bestehende Daten aktualisieren</string>
     <string name="section_heading_transaction_data">Transaktion</string>
 
