@@ -1,4 +1,6 @@
+# Release 5.5.0
  * Android: Add NFC device engagement/retrieval and Bluetooth device retrieval mechanisms
+ * Update to VC-K 5.5.0
 
 # Release 5.4.16
  * Recognize DCQL queries for consent preview and show dummy consent screen
