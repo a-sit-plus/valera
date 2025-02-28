@@ -10,7 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import ui.composables.buttons.LoadDataButton
 import ui.composables.forms.StatefulLoadDataForm
@@ -21,8 +20,6 @@ fun LoadDataView(
     host: String,
     credentialIdentifierInfo: CredentialIdentifierInfo,
     onChangeCredentialIdentifierInfo: (CredentialIdentifierInfo) -> Unit,
-    requestedAttributes: Set<NormalizedJsonPath>,
-    onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
     transactionCode: TextFieldValue,
     onChangeTransactionCode: (TextFieldValue) -> Unit,
     // other
@@ -50,8 +47,6 @@ fun LoadDataView(
             host = host,
             credentialIdentifierInfo = credentialIdentifierInfo,
             onChangeCredentialIdentifierInfo = onChangeCredentialIdentifierInfo,
-            requestedAttributes = requestedAttributes,
-            onChangeRequestedAttributes = onChangeRequestedAttributes,
             transactionCode = transactionCode,
             onChangeTransactionCode = onChangeTransactionCode,
             modifier = Modifier.padding(scaffoldPadding),
