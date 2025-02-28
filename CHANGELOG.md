@@ -1,3 +1,6 @@
+# Release 5.5.0
+ * Update to VC-K 5.5.0
+
 # Release 5.4.16
  * Recognize DCQL queries for consent preview and show dummy consent screen
 
