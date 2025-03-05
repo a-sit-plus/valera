@@ -2,6 +2,10 @@ package ui.views.authentication
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.launch
 import ui.viewmodels.authentication.AuthenticationConsentViewModel
 import ui.viewmodels.authentication.AuthenticationNoCredentialViewModel
 import ui.viewmodels.authentication.AuthenticationSelectionViewModel
@@ -20,11 +24,15 @@ fun AuthenticationView(vm: AuthenticationViewModel) {
                 spLocation = vm.spLocation,
                 spImage = vm.spImage,
                 navigateUp = vm.navigateUp,
-                buttonConsent = { vm.onConsent() },
+                buttonConsent = {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        vm.onConsent()
+                    }
+                },
                 walletMain = vm.walletMain,
                 transactionData = vm.transactionData,
                 requests = vm.descriptors.toList(),
-                onClickLogo = vm.onClickLogo
+                presentationRequest = vm.presentationRequest,
             )
             AuthenticationConsentView(viewModel)
         }
@@ -40,8 +48,7 @@ fun AuthenticationView(vm: AuthenticationViewModel) {
                 requests = vm.requestMap,
                 confirmSelections = { selections ->
                     vm.confirmSelection(selections)
-                }, navigateUp = { vm.viewState = AuthenticationViewState.Consent },
-                onClickLogo = vm.onClickLogo)
+                }, navigateUp = { vm.viewState = AuthenticationViewState.Consent })
             AuthenticationSelectionView(vm = viewModel)
         }
     }
