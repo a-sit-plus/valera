@@ -1,3 +1,6 @@
+# Release 5.4.13
+ * Update EU PID to ARF 1.5.0
+
 # Release 5.4.12
  * Replace ePrescription with HealthID
  * Add Remote Qualified Electronic Signatures (RQES), acc. to UC5 in POTENTIAL
