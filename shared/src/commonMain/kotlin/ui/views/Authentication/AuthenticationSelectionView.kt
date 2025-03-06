@@ -104,8 +104,10 @@ fun AuthenticationSelectionView(vm: AuthenticationSelectionViewModel) {
                     color = MaterialTheme.colorScheme.secondary,
                     fontWeight = FontWeight.SemiBold,
                 )
-                val attributeSelection = vm.attributeSelection[requestId] ?: throw Throwable("No selection with requestId")
-                val credentialSelection = vm.credentialSelection[requestId] ?: throw Throwable("No selection with requestId")
+                val attributeSelection =
+                    vm.attributeSelection[requestId] ?: throw Throwable("No selection with requestId")
+                val credentialSelection =
+                    vm.credentialSelection[requestId] ?: throw Throwable("No selection with requestId")
                 CredentialSelectionGroup(
                     matchingCredentials = matchingCredentials,
                     attributeSelection = attributeSelection,
