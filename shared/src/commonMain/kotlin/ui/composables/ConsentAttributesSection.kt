@@ -18,7 +18,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun ConsentAttributesSection(
     title: String,
-    attributes: Map<String, Boolean>,
+    attributes: Map<String, Boolean>, //<key = attribute name, value = optional>
     modifier: Modifier = Modifier,
 ) {
     val optionalText = stringResource(Res.string.text_label_optional)
