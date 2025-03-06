@@ -7,17 +7,21 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.dif.ConstraintField
 import at.asitplus.jsonpath.core.NodeList
 import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.app.common.getAttributes
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.LabeledCheckbox
 import ui.composables.LabeledTextCheckbox
 
 @Composable
@@ -43,6 +47,25 @@ fun AttributeSelectionGroup(
                     .firstOrNull { it.first.segments.last().toString() == path.segments.last().toString() }?.second
                 Pair(path, value) to constraint.key.optional
             }.toMap()
+
+            val allChecked = remember { mutableStateOf(false) }
+
+            LabeledCheckbox(
+                label = "Alle auswählen",
+                checked = allChecked.value,
+                onCheckedChange = { bool ->
+                    disclosedAttributes.forEach { entry ->
+                        val path = entry.key.first
+                        val optional = entry.value
+
+                        if (optional != null && optional == true) {
+                            selection[path] = bool
+                        }
+                        allChecked.value = bool
+                    }
+                },
+                gapWidth = 0.dp
+            )
 
 
             disclosedAttributes.forEach { entry ->
