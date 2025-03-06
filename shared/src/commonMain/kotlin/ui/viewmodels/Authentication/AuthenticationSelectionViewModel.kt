@@ -24,6 +24,15 @@ class AuthenticationSelectionViewModel(
     var credentialSelection: SnapshotStateMap<String, MutableState<SubjectCredentialStore.StoreEntry>> =
         mutableStateMapOf()
 
+    init {
+        requests.forEach {
+            attributeSelection[it.key] = mutableStateMapOf()
+            val matchingCredentials = it.value
+            val defaultCredential = matchingCredentials.keys.first()
+            credentialSelection[it.key] = mutableStateOf(defaultCredential)
+        }
+    }
+
     val onBack = {
         if (requestIterator.value > 0) {
             requestIterator.value -= 1

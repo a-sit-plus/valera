@@ -96,22 +96,16 @@ fun AuthenticationSelectionView(vm: AuthenticationSelectionViewModel) {
                     .padding(16.dp),
             ) {
                 val requestId = currentRequest.first
-
                 val matchingCredentials = currentRequest.second
-                val defaultCredential = matchingCredentials.keys.first()
-                val credentialSelection = mutableStateOf(defaultCredential)
 
-                val attributeSelection: SnapshotStateMap<NormalizedJsonPath, Boolean> =
-                    mutableStateMapOf()
-
-                vm.attributeSelection[requestId] = attributeSelection
-                vm.credentialSelection[requestId] = credentialSelection
                 Text(
                     text = matchingCredentials.keys.first().scheme.uiLabel(),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.secondary,
                     fontWeight = FontWeight.SemiBold,
                 )
+                val attributeSelection = vm.attributeSelection[requestId] ?: throw Throwable("No selection with requestId")
+                val credentialSelection = vm.credentialSelection[requestId] ?: throw Throwable("No selection with requestId")
                 CredentialSelectionGroup(
                     matchingCredentials = matchingCredentials,
                     attributeSelection = attributeSelection,
