@@ -213,6 +213,7 @@
     <string name="text_label_valid_from">Gültig von</string>
     <string name="text_label_valid_to">Gültig bis</string>
     <string name="text_label_optional">Optional</string>
+    <string name="text_label_check_all">Alle auswählen</string>
 
     <string name="heading_label_authenticate_at_device_title">Anmelden</string>
     <string name="heading_label_authenticate_at_device_subtitle">an Service Provider</string>

@@ -213,6 +213,7 @@
     <string name="text_label_valid_from">Valid from</string>
     <string name="text_label_valid_to">Valid to</string>
     <string name="text_label_optional">Optional</string>
+    <string name="text_label_check_all">Check all</string>
 
     <string name="heading_label_authenticate_at_device_title">Authenticate</string>
     <string name="heading_label_authenticate_at_device_subtitle">at relying party</string>

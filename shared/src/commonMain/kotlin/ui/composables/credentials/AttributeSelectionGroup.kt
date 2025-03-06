@@ -20,10 +20,13 @@ import at.asitplus.dif.ConstraintField
 import at.asitplus.jsonpath.core.NodeList
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.text_label_check_all
 import at.asitplus.wallet.app.common.getAttributes
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
+import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.LabeledCheckbox
 import ui.composables.LabeledTextCheckbox
@@ -55,7 +58,7 @@ fun AttributeSelectionGroup(
             val allChecked = remember { mutableStateOf(false) }
 
             LabeledCheckbox(
-                label = "Alle auswählen",
+                label = stringResource(Res.string.text_label_check_all),
                 checked = allChecked.value,
                 onCheckedChange = { bool ->
                     disclosedAttributes.forEach { entry ->
@@ -72,7 +75,7 @@ fun AttributeSelectionGroup(
             )
             HorizontalDivider()
             Spacer(modifier = Modifier.height(4.dp))
-            
+
             disclosedAttributes.forEach { entry ->
                 val path = entry.key.first
                 val value = entry.key.second
