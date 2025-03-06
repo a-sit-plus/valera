@@ -11,6 +11,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.Scaffold
@@ -18,15 +19,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshots.SnapshotStateMap
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.heading_label_navigate_back
@@ -91,6 +91,11 @@ fun AuthenticationSelectionView(vm: AuthenticationSelectionViewModel) {
         }
     ) {
         Box(modifier = Modifier.padding(it)) {
+            LinearProgressIndicator(
+                progress = { ((1.0f / vm.requests.size) * (vm.requestIterator.value + 1)) },
+                modifier = Modifier.fillMaxWidth(),
+                drawStopIndicator = { }
+            )
             Column(
                 modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState())
                     .padding(16.dp),
