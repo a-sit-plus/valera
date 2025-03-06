@@ -195,12 +195,16 @@ class SigningService(
             }
         }.buildString()
 
-        client.post(drivingAppResponseUrl) {
+        val response = client.post(drivingAppResponseUrl) {
             contentType(FormUrlEncoded)
             setBody(
                 JsonObject(mapOf("documentWithSignature" to signedDocList)).encodeToParameters()
                     .formUrlEncode()
             )
+        }
+        val body = catchingUnwrapped { response.body<QtspFinalRedirect>() }.getOrNull()
+        if (body?.redirect_uri != null) {
+            platformAdapter.openUrl(body.redirect_uri)
         }
     }
 
@@ -402,4 +406,9 @@ val qesDateTime = LocalDateTime.Format {
     second()
     char('Z')
 }
+
+@Serializable
+data class QtspFinalRedirect(
+    val redirect_uri: String
+)
 
