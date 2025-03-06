@@ -67,7 +67,6 @@ fun CredentialSelectionCard(
             targetAlpha = 0f
         )
     ) {
-        attributeSelection.clear()
         val format = credential.key.scheme
         AttributeSelectionGroup(credential, format = format, selection = attributeSelection)
     }

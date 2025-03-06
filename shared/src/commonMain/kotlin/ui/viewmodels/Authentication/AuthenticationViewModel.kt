@@ -14,7 +14,6 @@ import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_tra
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.CredentialSubmission
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import data.RequestOptionParameters
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 
@@ -29,7 +28,6 @@ abstract class AuthenticationViewModel(
 ) {
     abstract val descriptors: Collection<InputDescriptor>
     var viewState by mutableStateOf(AuthenticationViewState.Consent)
-    abstract val parametersMap: Map<String, RequestOptionParameters>
     abstract val transactionData: TransactionData?
 
     lateinit var matchingCredentials: Map<String, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, NodeList /* = List<NodeListEntry> */>>>
