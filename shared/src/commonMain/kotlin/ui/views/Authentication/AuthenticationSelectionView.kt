@@ -120,5 +120,3 @@ fun AuthenticationSelectionView(vm: AuthenticationSelectionViewModel) {
         }
     }
 }
-
-
