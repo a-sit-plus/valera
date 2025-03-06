@@ -62,8 +62,8 @@ fun AttributeSelectionGroup(
                     format?.getLocalization(NormalizedJsonPath(path.segments.last()))
                 if (stringResource != null && optional != null && value != null) {
                     LabeledTextCheckbox(
-                        text = stringResource(stringResource),
-                        label = value,
+                        label = stringResource(stringResource),
+                        text = value,
                         checked = selection[path] ?: true,
                         onCheckedChange = { bool -> selection[path] = bool },
                         enabled = optional
