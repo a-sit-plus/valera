@@ -73,6 +73,7 @@ class SigningService(
     private lateinit var documentWithLabel: DocumentWithLabel
     private lateinit var dtbsrAuthenticationDetails: AuthorizationDetails
     private lateinit var transactionTokens: List<String>
+    private lateinit var serviceToken: TokenResponseParameters
 
     private val pdfSigningAlgorithms = listOf(
         "1.2.840.113549.1.1.11", //RSA_SHA256
@@ -144,8 +145,8 @@ class SigningService(
     }
 
     suspend fun resumeWithServiceAuthCode(url: String) {
-        val token = getTokenFromAuthCode(url)
-        val credentialInfo = getCredentialInfo(token)
+        serviceToken = getTokenFromAuthCode(url)
+        val credentialInfo = getCredentialInfo(serviceToken)
         config.getCurrent().credentialInfo = credentialInfo
         exportToDataStore()
 
@@ -159,20 +160,25 @@ class SigningService(
 
 
     suspend fun resumeWithCredentialAuthCode(url: String) {
-        val token = getTokenFromAuthCode(url)
+        val credentialToken = getTokenFromAuthCode(url)
 
         val signAlgorithm =
             rqesWalletService.signingCredential?.supportedSigningAlgorithms?.first() ?: X509SignatureAlgorithm.RS512
 
         val signHashRequest = rqesWalletService.createSignHashRequestParameters(
             dtbsr = (this.dtbsrAuthenticationDetails as CscAuthorizationDetails).documentDigests.map { it.hash },
-            sad = token.accessToken,
+            sad = credentialToken.accessToken,
             signatureAlgorithm = signAlgorithm
         )
+        val token = catchingUnwrapped { serviceToken }.getOrNull() ?: credentialToken
 
         val signatures = client.post("${config.getCurrent().qtspBaseUrl}/signatures/signHash") {
             contentType(Json)
             accept(Json)
+            header(
+                HttpHeaders.Authorization,
+                "${token.tokenType} ${token.accessToken}"
+            )
             setBody(vckJsonSerializer.encodeToString(signHashRequest))
         }.body<SignatureResponse>()
 
