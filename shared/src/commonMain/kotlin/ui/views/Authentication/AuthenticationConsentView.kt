@@ -42,6 +42,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import at.asitplus.catchingUnwrapped
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.rqes.collection_entries.TransactionData
@@ -155,9 +156,11 @@ fun AuthenticationConsentView(vm: AuthenticationConsentViewModel) {
                         val (representation, scheme, attributes) = inputDescriptor.extractConsentData()
                         val schemeName = scheme.uiLabel()
                         val format = representation.name
-                        val list = attributes.mapNotNull {
-                            val resource = scheme.getLocalization(NormalizedJsonPath(it.key.segments.last())) ?: return@mapNotNull null
-                            stringResource(resource) to it.value
+                        val list = attributes.mapNotNull { attribute ->
+                            val resource = scheme.getLocalization(NormalizedJsonPath(attribute.key.segments.last()))
+                            val text =
+                                catchingUnwrapped { stringResource(resource!!) }.getOrElse { attribute.key.toString() }
+                            text to attribute.value
                         }.toMap()
                         ConsentAttributesSection(
                             title = "$schemeName (${format})",
