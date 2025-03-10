@@ -2,8 +2,20 @@ package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.attribute_friendly_name_residence_address_admin_unit_L1
+import at.asitplus.valera.resources.attribute_friendly_name_residence_address_admin_unit_L2
+import at.asitplus.valera.resources.attribute_friendly_name_residence_address_full_address
+import at.asitplus.valera.resources.attribute_friendly_name_residence_address_locator_designator
+import at.asitplus.valera.resources.attribute_friendly_name_residence_address_locator_name
+import at.asitplus.valera.resources.attribute_friendly_name_residence_address_po_box
+import at.asitplus.valera.resources.attribute_friendly_name_residence_address_post_code
+import at.asitplus.valera.resources.attribute_friendly_name_residence_address_post_name
+import at.asitplus.valera.resources.attribute_friendly_name_residence_address_thoroughfare
+import at.asitplus.wallet.cor.CertificateOfResidenceDataElements
 import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.ADMINISTRATIVE_NUMBER
 import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.ARRIVAL_DATE
+import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.Address
 import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.BIRTH_DATE
 import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.BIRTH_PLACE
 import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.DOCUMENT_NUMBER
@@ -28,6 +40,7 @@ import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.RESIDENCE_ADDRE
 import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.RESIDENCE_ADDRESS_FULL_ADDRESS
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.eupid.IsoIec5218Gender
+import at.asitplus.wallet.eupid.PlaceOfBirthSdJwt
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import data.Attribute
@@ -51,7 +64,25 @@ sealed class CertificateOfResidenceCredentialAdapter : CredentialAdapter() {
                 FAMILY_NAME -> Attribute.fromValue(familyName)
                 GIVEN_NAME -> Attribute.fromValue(givenName)
                 BIRTH_DATE -> Attribute.fromValue(birthDate)
-                RESIDENCE_ADDRESS -> Attribute.fromValue(residenceAddress)
+                RESIDENCE_ADDRESS -> with(CertificateOfResidenceDataElements.Address) {
+                    when (val second = path.segments.drop(1).firstOrNull()) {
+                        is NormalizedJsonPathSegment.NameSegment -> when (second.memberName) {
+                            PO_BOX -> Attribute.fromValue(residenceAddressPoBox)
+                            THOROUGHFARE -> Attribute.fromValue(residenceAddressThoroughfare)
+                            LOCATOR_DESIGNATOR -> Attribute.fromValue(residenceAddressLocatorDesignator)
+                            LOCATOR_NAME -> Attribute.fromValue(residenceAddressLocatorName)
+                            POST_CODE -> Attribute.fromValue(residenceAddressPostCode)
+                            POST_NAME -> Attribute.fromValue(residenceAddressPostName)
+                            ADMIN_UNIT_L_1 -> Attribute.fromValue(residenceAddressAdminUnitL1)
+                            ADMIN_UNIT_L_2 -> Attribute.fromValue(residenceAddressAdminUnitL2)
+                            FULL_ADDRESS -> Attribute.fromValue(residenceAddressFullAddress)
+                            else -> null
+                        }
+
+                        else -> null
+                    }
+                }
+
                 RESIDENCE_ADDRESS_PO_BOX -> Attribute.fromValue(residenceAddressPoBox)
                 RESIDENCE_ADDRESS_THOROUGHFARE -> Attribute.fromValue(residenceAddressThoroughfare)
                 RESIDENCE_ADDRESS_LOCATOR_DESIGNATOR -> Attribute.fromValue(residenceAddressLocatorDesignator)
@@ -221,31 +252,49 @@ private class CertificateOfResidenceComplexCredentialSdJwtAdapter(
         get() = (attributes[RESIDENCE_ADDRESS] as? JsonPrimitive?)?.contentOrNull
 
     override val residenceAddressPoBox: String?
-        get() = (attributes[RESIDENCE_ADDRESS_PO_BOX] as? JsonPrimitive?)?.contentOrNull
+        get() = (attributes[RESIDENCE_ADDRESS] as? JsonObject?)?.let {
+            (it[Address.PO_BOX] as? JsonPrimitive?)?.contentOrNull
+        } ?: (attributes[RESIDENCE_ADDRESS_PO_BOX] as? JsonPrimitive?)?.contentOrNull
 
     override val residenceAddressThoroughfare: String?
-        get() = (attributes[RESIDENCE_ADDRESS_THOROUGHFARE] as? JsonPrimitive?)?.contentOrNull
+        get() = (attributes[RESIDENCE_ADDRESS] as? JsonObject?)?.let {
+            (it[Address.THOROUGHFARE] as? JsonPrimitive?)?.contentOrNull
+        } ?: (attributes[RESIDENCE_ADDRESS_THOROUGHFARE] as? JsonPrimitive?)?.contentOrNull
 
     override val residenceAddressLocatorDesignator: String?
-        get() = (attributes[RESIDENCE_ADDRESS_LOCATOR_DESIGNATOR] as? JsonPrimitive?)?.contentOrNull
+        get() = (attributes[RESIDENCE_ADDRESS] as? JsonObject?)?.let {
+            (it[Address.LOCATOR_DESIGNATOR] as? JsonPrimitive?)?.contentOrNull
+        } ?: (attributes[RESIDENCE_ADDRESS_LOCATOR_DESIGNATOR] as? JsonPrimitive?)?.contentOrNull
 
     override val residenceAddressLocatorName: String?
-        get() = (attributes[RESIDENCE_ADDRESS_LOCATOR_NAME] as? JsonPrimitive?)?.contentOrNull
+        get() = (attributes[RESIDENCE_ADDRESS] as? JsonObject?)?.let {
+            (it[Address.LOCATOR_NAME] as? JsonPrimitive?)?.contentOrNull
+        } ?: (attributes[RESIDENCE_ADDRESS_LOCATOR_NAME] as? JsonPrimitive?)?.contentOrNull
 
     override val residenceAddressPostCode: String?
-        get() = (attributes[RESIDENCE_ADDRESS_POST_CODE] as? JsonPrimitive?)?.contentOrNull
+        get() = (attributes[RESIDENCE_ADDRESS] as? JsonObject?)?.let {
+            (it[Address.POST_CODE] as? JsonPrimitive?)?.contentOrNull
+        } ?: (attributes[RESIDENCE_ADDRESS_POST_CODE] as? JsonPrimitive?)?.contentOrNull
 
     override val residenceAddressPostName: String?
-        get() = (attributes[RESIDENCE_ADDRESS_POST_NAME] as? JsonPrimitive?)?.contentOrNull
+        get() = (attributes[RESIDENCE_ADDRESS] as? JsonObject?)?.let {
+            (it[Address.POST_NAME] as? JsonPrimitive?)?.contentOrNull
+        } ?: (attributes[RESIDENCE_ADDRESS_POST_NAME] as? JsonPrimitive?)?.contentOrNull
 
     override val residenceAddressAdminUnitL1: String?
-        get() = (attributes[RESIDENCE_ADDRESS_ADMIN_UNIT_L_1] as? JsonPrimitive?)?.contentOrNull
+        get() = (attributes[RESIDENCE_ADDRESS] as? JsonObject?)?.let {
+            (it[Address.ADMIN_UNIT_L_1] as? JsonPrimitive?)?.contentOrNull
+        } ?: (attributes[RESIDENCE_ADDRESS_ADMIN_UNIT_L_1] as? JsonPrimitive?)?.contentOrNull
 
     override val residenceAddressAdminUnitL2: String?
-        get() = (attributes[RESIDENCE_ADDRESS_ADMIN_UNIT_L_2] as? JsonPrimitive?)?.contentOrNull
+        get() = (attributes[RESIDENCE_ADDRESS] as? JsonObject?)?.let {
+            (it[Address.ADMIN_UNIT_L_2] as? JsonPrimitive?)?.contentOrNull
+        } ?: (attributes[RESIDENCE_ADDRESS_ADMIN_UNIT_L_2] as? JsonPrimitive?)?.contentOrNull
 
     override val residenceAddressFullAddress: String?
-        get() = (attributes[RESIDENCE_ADDRESS_FULL_ADDRESS] as? JsonPrimitive?)?.contentOrNull
+        get() = (attributes[RESIDENCE_ADDRESS] as? JsonObject?)?.let {
+            (it[Address.FULL_ADDRESS] as? JsonPrimitive?)?.contentOrNull
+        } ?: (attributes[RESIDENCE_ADDRESS_FULL_ADDRESS] as? JsonPrimitive?)?.contentOrNull
 
     override val gender: IsoIec5218Gender?
         get() = (attributes[GENDER] as? JsonPrimitive?)?.contentOrNull?.toIntOrNull()
