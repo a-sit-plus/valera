@@ -3,7 +3,7 @@ package at.asitplus.wallet.app.common
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.app_display_name
-import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabelNonCompose
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabelNonCompose
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme

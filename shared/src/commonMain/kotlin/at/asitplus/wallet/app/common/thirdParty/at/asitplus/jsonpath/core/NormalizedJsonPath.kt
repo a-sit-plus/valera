@@ -1,4 +1,4 @@
-package at.asitplus.wallet.app.common.third_party.at.asitplus.jsonpath.core
+package at.asitplus.wallet.app.common.thirdParty.at.asitplus.jsonpath.core
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
