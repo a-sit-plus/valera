@@ -33,6 +33,7 @@ import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import data.Attribute
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 
@@ -102,10 +103,11 @@ sealed class CertificateOfResidenceCredentialAdapter : CredentialAdapter() {
                 throw IllegalArgumentException("credential")
             }
             return when (storeEntry) {
-                is SubjectCredentialStore.StoreEntry.Vc -> TODO("Operation not yet supported")
-                is SubjectCredentialStore.StoreEntry.Iso -> TODO("Operation not yet supported")
-                is SubjectCredentialStore.StoreEntry.SdJwt ->
-                    CertificateOfResidenceCredentialSdJwtAdapter(storeEntry.toAttributeMap())
+                is SubjectCredentialStore.StoreEntry.SdJwt -> storeEntry.toComplexJson()
+                    ?.let { CertificateOfResidenceComplexCredentialSdJwtAdapter(it) }
+                    ?: CertificateOfResidenceCredentialSdJwtAdapter(storeEntry.toAttributeMap())
+
+                else -> TODO("Operation not yet supported")
             }
         }
     }
@@ -193,3 +195,85 @@ private class CertificateOfResidenceCredentialSdJwtAdapter(
         get() = attributes[ISSUING_JURISDICTION]?.contentOrNull
 }
 
+
+private class CertificateOfResidenceComplexCredentialSdJwtAdapter(
+    private val attributes: JsonObject,
+) : CertificateOfResidenceCredentialAdapter() {
+    override val representation: CredentialRepresentation
+        get() = CredentialRepresentation.SD_JWT
+
+    override val documentNumber: String?
+        get() = (attributes[DOCUMENT_NUMBER] as? JsonPrimitive?)?.contentOrNull
+
+    override val issuingAuthority: String?
+        get() = (attributes[ISSUING_AUTHORITY] as? JsonPrimitive?)?.contentOrNull
+
+    override val familyName: String?
+        get() = (attributes[FAMILY_NAME] as? JsonPrimitive?)?.contentOrNull
+
+    override val givenName: String?
+        get() = (attributes[GIVEN_NAME] as? JsonPrimitive?)?.contentOrNull
+
+    override val birthDate: LocalDate?
+        get() = (attributes[BIRTH_DATE] as? JsonPrimitive?)?.contentOrNull?.toLocalDateOrNull()
+
+    override val residenceAddress: String?
+        get() = (attributes[RESIDENCE_ADDRESS] as? JsonPrimitive?)?.contentOrNull
+
+    override val residenceAddressPoBox: String?
+        get() = (attributes[RESIDENCE_ADDRESS_PO_BOX] as? JsonPrimitive?)?.contentOrNull
+
+    override val residenceAddressThoroughfare: String?
+        get() = (attributes[RESIDENCE_ADDRESS_THOROUGHFARE] as? JsonPrimitive?)?.contentOrNull
+
+    override val residenceAddressLocatorDesignator: String?
+        get() = (attributes[RESIDENCE_ADDRESS_LOCATOR_DESIGNATOR] as? JsonPrimitive?)?.contentOrNull
+
+    override val residenceAddressLocatorName: String?
+        get() = (attributes[RESIDENCE_ADDRESS_LOCATOR_NAME] as? JsonPrimitive?)?.contentOrNull
+
+    override val residenceAddressPostCode: String?
+        get() = (attributes[RESIDENCE_ADDRESS_POST_CODE] as? JsonPrimitive?)?.contentOrNull
+
+    override val residenceAddressPostName: String?
+        get() = (attributes[RESIDENCE_ADDRESS_POST_NAME] as? JsonPrimitive?)?.contentOrNull
+
+    override val residenceAddressAdminUnitL1: String?
+        get() = (attributes[RESIDENCE_ADDRESS_ADMIN_UNIT_L_1] as? JsonPrimitive?)?.contentOrNull
+
+    override val residenceAddressAdminUnitL2: String?
+        get() = (attributes[RESIDENCE_ADDRESS_ADMIN_UNIT_L_2] as? JsonPrimitive?)?.contentOrNull
+
+    override val residenceAddressFullAddress: String?
+        get() = (attributes[RESIDENCE_ADDRESS_FULL_ADDRESS] as? JsonPrimitive?)?.contentOrNull
+
+    override val gender: IsoIec5218Gender?
+        get() = (attributes[GENDER] as? JsonPrimitive?)?.contentOrNull?.toIntOrNull()
+            ?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code.toUInt() } }
+            ?: (attributes[GENDER] as? JsonPrimitive?)?.contentOrNull?.toUIntOrNull()
+                ?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code } }
+
+    override val birthPlace: String?
+        get() = (attributes[BIRTH_PLACE] as? JsonPrimitive?)?.contentOrNull
+
+    override val arrivalDate: LocalDate?
+        get() = (attributes[ARRIVAL_DATE] as? JsonPrimitive?)?.contentOrNull?.toLocalDateOrNull()
+
+    override val nationality: String?
+        get() = (attributes[NATIONALITY] as? JsonPrimitive?)?.contentOrNull
+
+    override val administrativeNumber: String?
+        get() = (attributes[ADMINISTRATIVE_NUMBER] as? JsonPrimitive?)?.contentOrNull
+
+    override val issuanceDate: Instant?
+        get() = (attributes[ISSUANCE_DATE] as? JsonPrimitive?)?.contentOrNull?.toInstantOrNull()
+
+    override val expiryDate: Instant?
+        get() = (attributes[EXPIRY_DATE] as? JsonPrimitive?)?.contentOrNull?.toInstantOrNull()
+
+    override val issuingCountry: String?
+        get() = (attributes[ISSUING_COUNTRY] as? JsonPrimitive?)?.contentOrNull
+
+    override val issuingJurisdiction: String?
+        get() = (attributes[ISSUING_JURISDICTION] as? JsonPrimitive?)?.contentOrNull
+}
