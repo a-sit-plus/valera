@@ -1,4 +1,4 @@
-package ui.viewmodels.Authentication
+package ui.viewmodels.authentication
 
 class AuthenticationNoCredentialViewModel(
     val navigateToHomeScreen: () -> Unit
