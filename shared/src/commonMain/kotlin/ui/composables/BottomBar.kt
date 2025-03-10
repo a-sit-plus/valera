@@ -15,10 +15,10 @@ import at.asitplus.valera.resources.navigation_button_label_settings
 import at.asitplus.valera.resources.navigation_button_label_show_data
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
-import ui.navigation.Routes.AuthenticationQrCodeScannerRoute
-import ui.navigation.Routes.HomeScreenRoute
-import ui.navigation.Routes.Route
-import ui.navigation.Routes.SettingsRoute
+import ui.navigation.routes.AuthenticationQrCodeScannerRoute
+import ui.navigation.routes.HomeScreenRoute
+import ui.navigation.routes.Route
+import ui.navigation.routes.SettingsRoute
 
 @Composable
 fun BottomBar(navigate: (Route) -> Unit, selected: NavigationData) {

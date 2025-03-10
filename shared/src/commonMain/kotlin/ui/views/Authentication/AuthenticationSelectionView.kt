@@ -1,4 +1,4 @@
-package ui.views.Authentication
+package ui.views.authentication
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,7 +37,7 @@ import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.CredentialSelectionGroup
-import ui.viewmodels.Authentication.AuthenticationSelectionViewModel
+import ui.viewmodels.authentication.AuthenticationSelectionViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

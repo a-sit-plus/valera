@@ -1,7 +1,7 @@
 package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.wallet.app.common.third_parts.at.asitplus.jsonpath.core.plus
+import at.asitplus.wallet.app.common.third_party.at.asitplus.jsonpath.core.plus
 import at.asitplus.wallet.eupid.EuPidScheme
 import data.PersonalDataCategory
 
@@ -14,10 +14,7 @@ object EuPidCredentialAttributeCategorization : CredentialAttributeCategorizatio
                 BIRTH_DATE,
                 PORTRAIT,
                 NATIONALITY,
-                SEX,
                 GENDER,
-                EMAIL_ADDRESS,
-                MOBILE_PHONE_NUMBER,
             ).map { NormalizedJsonPath() + it to null }
         },
 
@@ -65,8 +62,6 @@ object EuPidCredentialAttributeCategorization : CredentialAttributeCategorizatio
                 ISSUING_JURISDICTION,
                 ADMINISTRATIVE_NUMBER,
                 PERSONAL_ADMINISTRATIVE_NUMBER,
-                TRUST_ANCHOR,
-                LOCATION_STATUS
             ).map { NormalizedJsonPath() + it to null }
         },
     ),
@@ -86,8 +81,6 @@ object EuPidCredentialSdJwtAttributeCategorization : CredentialAttributeCategori
                 PORTRAIT,
                 NATIONALITIES,
                 GENDER,
-                EMAIL,
-                PHONE_NUMBER,
             ).map { NormalizedJsonPath() + it to null }
         },
 
@@ -135,8 +128,6 @@ object EuPidCredentialSdJwtAttributeCategorization : CredentialAttributeCategori
                 ISSUING_JURISDICTION,
                 ADMINISTRATIVE_NUMBER,
                 PERSONAL_ADMINISTRATIVE_NUMBER,
-                TRUST_ANCHOR,
-                LOCATION_STATUS,
             ).map { NormalizedJsonPath() + it to null }
         },
     ),
