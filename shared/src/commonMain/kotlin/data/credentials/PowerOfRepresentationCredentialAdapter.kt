@@ -20,9 +20,11 @@ import at.asitplus.wallet.por.PowerOfRepresentationDataElements.LEGAL_PERSON_IDE
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import data.Attribute
 import kotlinx.datetime.Instant
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonPrimitive
 
 sealed class PowerOfRepresentationCredentialAdapter : CredentialAdapter() {
 
@@ -69,21 +71,11 @@ sealed class PowerOfRepresentationCredentialAdapter : CredentialAdapter() {
                 throw IllegalArgumentException("credential")
             }
             return when (storeEntry) {
-                is SubjectCredentialStore.StoreEntry.Vc -> {
-                    TODO("Operation not yet supported")
-                }
+                is SubjectCredentialStore.StoreEntry.SdJwt -> storeEntry.toComplexJson()
+                    ?.let { PowerOfRepresentationComplexSdJwtAdapter(it) }
+                    ?: PowerOfRepresentationCredentialSdJwtAdapter(storeEntry.toAttributeMap())
 
-                is SubjectCredentialStore.StoreEntry.SdJwt -> {
-                    PowerOfRepresentationCredentialSdJwtAdapter(
-                        storeEntry.toAttributeMap(),
-                    )
-                }
-
-                is SubjectCredentialStore.StoreEntry.Iso -> {
-                    PowerOfRepresentationCredentialIsoMdocAdapter(
-                        storeEntry.toNamespaceAttributeMap(),
-                    )
-                }
+                else -> TODO("Operation not yet supported")
             }
         }
     }
@@ -135,50 +127,50 @@ private class PowerOfRepresentationCredentialSdJwtAdapter(
         get() = attributes[ISSUING_JURISDICTION]?.contentOrNull
 }
 
-private class PowerOfRepresentationCredentialIsoMdocAdapter(
-    namespaces: Map<String, Map<String, Any>>?,
-) : PowerOfRepresentationCredentialAdapter() {
-    private val namespace = namespaces?.get(PowerOfRepresentationScheme.isoNamespace)
 
+private class PowerOfRepresentationComplexSdJwtAdapter(
+    private val attributes: JsonObject,
+) : PowerOfRepresentationCredentialAdapter() {
     override val representation: CredentialRepresentation
-        get() = CredentialRepresentation.ISO_MDOC
+        get() = CredentialRepresentation.SD_JWT
 
     override val documentNumber: String?
-        get() = namespace?.get(DOCUMENT_NUMBER) as String?
+        get() = (attributes[DOCUMENT_NUMBER] as? JsonPrimitive?)?.contentOrNull
 
     override val issuingAuthority: String?
-        get() = namespace?.get(ISSUING_AUTHORITY) as String?
+        get() = (attributes[ISSUING_AUTHORITY] as? JsonPrimitive?)?.contentOrNull
 
     override val legalPersonIdentifier: String?
-        get() = namespace?.get(LEGAL_PERSON_IDENTIFIER) as String?
+        get() = (attributes[LEGAL_PERSON_IDENTIFIER] as? JsonPrimitive?)?.contentOrNull
 
     override val legalName: String?
-        get() = namespace?.get(LEGAL_NAME) as String?
+        get() = (attributes[LEGAL_NAME] as? JsonPrimitive?)?.contentOrNull
 
     override val fullPowers: Boolean?
-        get() = namespace?.get(FULL_POWERS) as Boolean?
+        get() = (attributes[FULL_POWERS] as? JsonPrimitive?)?.booleanOrNull
 
     override val eService: String?
-        get() = namespace?.get(E_SERVICE) as String?
+        get() = (attributes[E_SERVICE] as? JsonPrimitive?)?.contentOrNull
 
     override val effectiveFromDate: Instant?
-        get() = namespace?.get(EFFECTIVE_FROM_DATE)?.toInstantOrNull()
+        get() = (attributes[EFFECTIVE_FROM_DATE] as? JsonPrimitive?)?.contentOrNull?.toInstantOrNull()
 
     override val effectiveUntilDate: Instant?
-        get() = namespace?.get(EFFECTIVE_UNTIL_DATE)?.toInstantOrNull()
+        get() = (attributes[EFFECTIVE_UNTIL_DATE] as? JsonPrimitive?)?.contentOrNull?.toInstantOrNull()
 
     override val administrativeNumber: String?
-        get() = namespace?.get(ADMINISTRATIVE_NUMBER) as String?
+        get() = (attributes[ADMINISTRATIVE_NUMBER] as? JsonPrimitive?)?.contentOrNull
 
     override val issuanceDate: Instant?
-        get() = namespace?.get(ISSUANCE_DATE)?.toInstantOrNull()
+        get() = (attributes[ISSUANCE_DATE] as? JsonPrimitive?)?.contentOrNull?.toInstantOrNull()
 
     override val expiryDate: Instant?
-        get() = namespace?.get(EXPIRY_DATE)?.toInstantOrNull()
+        get() = (attributes[EXPIRY_DATE] as? JsonPrimitive?)?.contentOrNull?.toInstantOrNull()
 
     override val issuingCountry: String?
-        get() = namespace?.get(ISSUING_COUNTRY) as String?
+        get() = (attributes[ISSUING_COUNTRY] as? JsonPrimitive?)?.contentOrNull
 
     override val issuingJurisdiction: String?
-        get() = namespace?.get(ISSUING_JURISDICTION) as String?
+        get() = (attributes[ISSUING_JURISDICTION] as? JsonPrimitive?)?.contentOrNull
 }
+
