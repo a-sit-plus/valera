@@ -1,4 +1,4 @@
-package at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data
+package at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data
 
 import androidx.compose.runtime.Composable
 import at.asitplus.wallet.lib.data.ConstantIndex

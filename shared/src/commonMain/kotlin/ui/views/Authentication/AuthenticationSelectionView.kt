@@ -32,7 +32,7 @@ import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.heading_label_navigate_back
 import at.asitplus.valera.resources.prompt_select_credential
 import at.asitplus.wallet.app.common.decodeImage
-import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
