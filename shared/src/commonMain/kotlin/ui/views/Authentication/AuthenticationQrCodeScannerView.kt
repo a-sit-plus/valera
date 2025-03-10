@@ -1,4 +1,4 @@
-package ui.views.Authentication
+package ui.views.authentication
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -6,7 +6,7 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_authenticate_at_device_subtitle
 import at.asitplus.valera.resources.heading_label_authenticate_at_device_title
 import org.jetbrains.compose.resources.stringResource
-import ui.viewmodels.Authentication.AuthenticationQrCodeScannerViewModel
+import ui.viewmodels.authentication.AuthenticationQrCodeScannerViewModel
 import ui.views.GenericQrCodeScannerView
 import ui.views.LoadingView
 

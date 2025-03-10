@@ -1,4 +1,4 @@
-package ui.navigation.Routes
+package ui.navigation.routes
 
 import data.storage.StoreEntryId
 import kotlinx.serialization.Serializable

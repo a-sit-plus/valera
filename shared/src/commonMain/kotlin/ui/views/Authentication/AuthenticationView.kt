@@ -1,12 +1,12 @@
-package ui.views.Authentication
+package ui.views.authentication
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import ui.viewmodels.Authentication.AuthenticationConsentViewModel
-import ui.viewmodels.Authentication.AuthenticationNoCredentialViewModel
-import ui.viewmodels.Authentication.AuthenticationSelectionViewModel
-import ui.viewmodels.Authentication.AuthenticationViewModel
-import ui.viewmodels.Authentication.AuthenticationViewState
+import ui.viewmodels.authentication.AuthenticationConsentViewModel
+import ui.viewmodels.authentication.AuthenticationNoCredentialViewModel
+import ui.viewmodels.authentication.AuthenticationSelectionViewModel
+import ui.viewmodels.authentication.AuthenticationViewModel
+import ui.viewmodels.authentication.AuthenticationViewState
 
 @Composable
 fun AuthenticationView(vm: AuthenticationViewModel) {

@@ -1,7 +1,7 @@
 package data.credentialsdatacard
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.wallet.app.common.third_parts.at.asitplus.jsonpath.core.plus
+import at.asitplus.wallet.app.common.third_party.at.asitplus.jsonpath.core.plus
 import at.asitplus.wallet.companyregistration.CompanyRegistrationDataElements.BRANCH
 import at.asitplus.wallet.companyregistration.CompanyRegistrationDataElements.COMPANY_ACTIVITY
 import at.asitplus.wallet.companyregistration.CompanyRegistrationDataElements.COMPANY_CONTACT_DATA
