@@ -177,7 +177,8 @@ class SigningService(
         }.body<SignatureResponse>()
 
         val transactionTokens = this.transactionTokens
-        val signedDocuments = getFinishedDocuments(client, pdfSigningService, signatures, transactionTokens)
+        val signedDocuments = getFinishedDocuments(client, pdfSigningService, signatures, transactionTokens, config.getCurrent().identifier)
+
 
 
         val signedDocList = vckJsonSerializer.encodeToJsonElement(
