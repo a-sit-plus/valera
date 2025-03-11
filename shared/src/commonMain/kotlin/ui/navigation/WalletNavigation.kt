@@ -68,8 +68,11 @@ import ui.navigation.routes.OnboardingWrapperTestTags
 import ui.navigation.routes.PreAuthQrCodeScannerRoute
 import ui.navigation.routes.Route
 import ui.navigation.routes.SettingsRoute
+import ui.navigation.routes.ShowDataRoute
+import ui.navigation.routes.ShowQrCodeRoute
 import ui.navigation.routes.SigningQtspSelectionRoute
 import ui.navigation.routes.SigningRoute
+import ui.navigation.routes.VerifyDataRoute
 import ui.screens.SelectIssuingServerView
 import ui.viewmodels.AddCredentialViewModel
 import ui.viewmodels.authentication.AuthenticationQrCodeScannerViewModel
@@ -85,6 +88,8 @@ import ui.viewmodels.authentication.PresentationViewModel
 import ui.viewmodels.SettingsViewModel
 import ui.viewmodels.SigningQtspSelectionViewModel
 import ui.viewmodels.SigningViewModel
+import ui.viewmodels.iso.ShowQrCodeViewModel
+import ui.viewmodels.iso.VerifierViewModel
 import ui.views.authentication.AuthenticationQrCodeScannerView
 import ui.views.authentication.AuthenticationSuccessView
 import ui.views.authentication.AuthenticationView
@@ -98,9 +103,13 @@ import ui.views.OnboardingInformationView
 import ui.views.OnboardingStartView
 import ui.views.OnboardingTermsView
 import ui.views.PreAuthQrCodeScannerScreen
+import ui.views.SelectIssuingServerView
 import ui.views.SettingsView
+import ui.views.ShowDataView
 import ui.views.SigningQtspSelectionView
 import ui.views.SigningView
+import ui.views.iso.ShowQrCodeView
+import ui.views.iso.verifier.VerifierView
 
 internal object NavigatorTestTags {
     const val loadingTestTag = "loadingTestTag"
@@ -108,26 +117,27 @@ internal object NavigatorTestTags {
 
 @Composable
 fun WalletNavigation(walletMain: WalletMain) {
+    val TAG = "WalletNavigation"
     val navController: NavHostController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
 
     val navigateBack: () -> Unit = {
         CoroutineScope(Dispatchers.Main).launch {
-            Napier.d("Navigate back")
+            Napier.d(tag = TAG, message = "Navigate back")
             navController.navigateUp()
         }
     }
 
     val navigate: (Route) -> Unit = { route ->
         CoroutineScope(Dispatchers.Main).launch {
-            Napier.d("Navigate to: $route")
+            Napier.d(tag = TAG, message = "Navigate to: $route")
             navController.navigate(route)
         }
     }
 
     val popBackStack: (Route) -> Unit = { route ->
         CoroutineScope(Dispatchers.Main).launch {
-            Napier.d("popBackStack: $route")
+            Napier.d(tag = TAG, message = "popBackStack: $route")
             navController.popBackStack(route = route, inclusive = false)
         }
     }
@@ -176,7 +186,7 @@ fun WalletNavigation(walletMain: WalletMain) {
                 emit(link)
             }
         }.collect { link ->
-            Napier.d("appLink.combineTransform $link")
+            Napier.d(tag = TAG, message = "appLink.combineTransform $link")
             catchingUnwrapped {
                 handleIntent(walletMain, navigate, navigateBack, link)
             }.onFailure {
@@ -212,9 +222,11 @@ private fun WalletNavHost(
                 modifier = Modifier.testTag(OnboardingWrapperTestTags.onboardingStartScreen)
             )
         }
+
         composable<OnboardingInformationRoute> {
             OnboardingInformationView(onClickContinue = { navigate(OnboardingTermsRoute) }, onClickLogo = onClickLogo)
         }
+
         composable<OnboardingTermsRoute> {
             OnboardingTermsView(
                 onClickAccept = { walletMain.walletConfig.set(isConditionsAccepted = true) },
@@ -224,6 +236,7 @@ private fun WalletNavHost(
                 onClickLogo = onClickLogo
             )
         }
+
         composable<HomeScreenRoute> {
             val vm = CredentialsViewModel(
                 walletMain,
@@ -241,7 +254,7 @@ private fun WalletNavHost(
                         walletMain.platformAdapter.decodeImage(it)
                     } catch (throwable: Throwable) {
                         // TODO: should this be emitted to the error service?
-                        Napier.w("Failed Operation: decodeImage")
+                        Napier.w(tag = "WalletNavHost", message = "Failed Operation: decodeImage")
                         null
                     }
                 },
@@ -258,6 +271,22 @@ private fun WalletNavHost(
             )
             walletMain.readyForIntents.value = true
         }
+
+        composable<ShowDataRoute> {
+            ShowDataView(
+                onNavigateToAuthenticationQrCodeScannerView = {
+                    navigate(AuthenticationQrCodeScannerRoute)
+                },
+                onNavigateToShowQrCodeView = { navigate(ShowQrCodeRoute) },
+                bottomBar = {
+                    BottomBar(
+                        navigate = navigate,
+                        selected = NavigationData.SHOW_DATA_SCREEN
+                    )
+                }
+            )
+        }
+
         composable<AuthenticationQrCodeScannerRoute> {
             val vm = AuthenticationQrCodeScannerViewModel(
                 navigateUp = { navigateBack() },
@@ -268,6 +297,30 @@ private fun WalletNavHost(
                 onClickLogo = onClickLogo
             )
             AuthenticationQrCodeScannerView(vm)
+        }
+
+        composable<ShowQrCodeRoute> {
+            val vm = ShowQrCodeViewModel(
+                walletMain = walletMain,
+                navigateUp = { navigateBack() },
+            )
+            ShowQrCodeView(vm)
+        }
+
+        composable<VerifyDataRoute> {
+            val vm = VerifierViewModel(
+                navigateUp = { navigateBack() },
+
+            )
+            VerifierView(
+                vm = vm,
+                bottomBar = {
+                    BottomBar(
+                        navigate = navigate,
+                        selected = NavigationData.VERIFY_DATA_SCREEN
+                    )
+                }
+            )
         }
         composable<AuthenticationViewRoute> { backStackEntry ->
             val route: AuthenticationViewRoute = backStackEntry.toRoute()

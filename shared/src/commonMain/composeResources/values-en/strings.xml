@@ -51,6 +51,11 @@
     <string name="button_label_show_technical_details">Show technical details</string>
     <string name="button_label_hide_technical_details">Hide technical details</string>
     <string name="button_label_sign">Sign</string>
+    <string name="button_label_check_identity">Check Identity</string>
+    <string name="button_label_check_license">Check License</string>
+    <string name="button_label_check_age">Check Age</string>
+    <string name="button_label_check_custom">Custom Request</string>
+    <string name="button_label_check_over_age">Over </string>
 
     <string name="attribute_friendly_name_bpk">BPK</string>
     <string name="attribute_friendly_name_firstname">Given name</string>
@@ -191,6 +196,7 @@
     <string name="navigation_button_label_show_data">Present Data</string>
     <string name="navigation_button_label_my_data">My Data</string>
     <string name="navigation_button_label_settings">Settings</string>
+    <string name="navigation_button_label_check">Check</string>
 
     <string name="id_format_plain_jwt_label">PLAIN_JWT</string>
     <string name="id_format_sd_jwt_label">SD-JWT</string>
@@ -238,6 +244,10 @@
     <string name="heading_label_refresh_data_screen">Load data</string>
     <string name="heading_label_authenticate_at_device_screen">Authenticate at\nrelying party</string>
     <string name="heading_label_sign_document">Sign document</string>
+    <string name="heading_label_select_data_retrieval_screen">Check</string>
+    <string name="heading_label_select_custom_data_retrieval_screen">Custom Request</string>
+    <string name="heading_label_check_scan_qr_code">Scan QR-Code</string>
+    <string name="heading_label_show_qr_code_screen">Scan me!</string>
 
     <string name="description_read_terms">Please read and accept the terms of use and the privacy policy.</string>
 
@@ -286,6 +296,8 @@
     <string name="error_qr_code_scanning_invalid_metadata_jws_object">Invalid metadataJws</string>
     <string name="error_qr_code_scanning_invalid_metadata_jws_object_signature">Invalid metadataJws signature</string>
     <string name="error_qr_code_scanning_client_id_not_in_redirect_uris">Client id not in client metadata redirect uris</string>
+    <string name="error_missing_permissions">Permission Denied</string>
+    <string name="error_missing_value">Error no value given</string>
 
     <string name="info_text_show_data_situation">In which Situation do you want to present your data?</string>
     <string name="info_text_error_occurred">An error occurred.</string>
@@ -298,6 +310,9 @@
     <string name="info_text_enthusiastic_welcome_end">Load your data and off you go!</string>
     <string name="info_text_submission_preview_disabled">Preview of data to be submitted is currently not available.</string>
     <string name="info_text_no_matching_credential">Your credentials don't match the request.</string>
+    <string name="info_text_data_is_being_loaded">Loading Data</string>
+    <string name="info_text_missing_permission">Permission missing</string>
+    <string name="info_text_qr_code_loading">Loading WR Code</string>
 
     <string name="section_heading_authenticate_at_device_title">Authenticate</string>
     <string name="section_heading_authenticate_at_device_subtitle">at relying party</string>
@@ -337,6 +352,12 @@
     <string name="section_heading_missing_data">Load new data</string>
     <string name="section_heading_available_data">Refresh existing data</string>
     <string name="section_heading_transaction_data">Transaction</string>
+    <string name="section_heading_request_eausweise">eAusweise request</string>
+    <string name="section_heading_request_license">Other request</string>
+    <string name="section_heading_request_custom">Custom request</string>
+    <string name="section_heading_select_document_type">Select document type:</string>
+    <string name="section_heading_selected_namespace">Namespace: </string>
+    <string name="section_heading_select_requested_data_entries">Select data entries:</string>
 
     <string name="onboarding_section_terms_and_data_protection_icon_text">1</string>
     <string name="onboarding_section_terms_and_data_protection_title">Terms of use and privacy policy</string>

@@ -63,7 +63,7 @@ kotlin {
             implementation(libs.multipaz)
             implementation(libs.multipaz.doctypes)
             implementation(libs.semver)
-
+            implementation(libs.g0dkar.qrcode.kotlin)
         }
 
         commonTest.dependencies {
