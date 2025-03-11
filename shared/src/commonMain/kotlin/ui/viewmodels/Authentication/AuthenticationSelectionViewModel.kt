@@ -47,8 +47,8 @@ class AuthenticationSelectionViewModel(
         } else {
             val submission = requests.mapNotNull {
                 val requestsId = it.key
-                val credential = credentialSelection[requestsId] ?: return@mapNotNull null
-                val constraints = it.value[credential.value]?.filter { it.value.isNotEmpty() } ?: return@mapNotNull null
+                val credential = credentialSelection[requestsId]?.value ?: return@mapNotNull null
+                val constraints = it.value[credential]?.filter { it.value.isNotEmpty() } ?: return@mapNotNull null
                 val attributes = attributeSelection[requestsId] ?: return@mapNotNull null
                 val disclosedAttributes = constraints.mapNotNull { constraint ->
                     val path = constraint.value.firstOrNull()?.normalizedJsonPath
@@ -59,7 +59,7 @@ class AuthenticationSelectionViewModel(
                         null
                     }
                 }
-                Pair(requestsId, CredentialSubmission(credential.value, disclosedAttributes))
+                Pair(requestsId, CredentialSubmission(credential, disclosedAttributes))
             }.toMap()
             confirmSelections(submission)
         }
