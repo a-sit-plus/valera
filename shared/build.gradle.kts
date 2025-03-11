@@ -60,7 +60,7 @@ kotlin {
                 implementation(libs.identity)
                 implementation(libs.identity.mdoc)
                 implementation(libs.semver)
-
+                implementation(libs.g0dkar.qrcode.kotlin)
             }
         }
 

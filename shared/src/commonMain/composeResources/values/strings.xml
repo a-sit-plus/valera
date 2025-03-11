@@ -48,6 +48,11 @@
     <string name="button_label_select">UNTRANSLATED:button_label_select</string>
     <string name="button_label_show_technical_details">UNTRANSLATED:button_label_show_technical_details</string>
     <string name="button_label_hide_technical_details">UNTRANSLATED:button_label_hide_technical_details</string>
+    <string name="button_label_check_identity">UNTRANSLATED:button_label_check_identity</string>
+    <string name="button_label_check_license">UNTRANSLATED:button_label_check_license</string>
+    <string name="button_label_check_age">UNTRANSLATED:button_label_check_age</string>
+    <string name="button_label_check_custom">UNTRANSLATED:button_label_check_custom</string>
+    <string name="button_label_check_over_age">UNTRANSLATED:button_label_check_over_age</string>
 
     <string name="id_austria_credential_attribute_friendly_name_main_address_street">UNTRANSLATED:id_austria_credential_attribute_friendly_name_main_address_street</string>
     <string name="id_austria_credential_attribute_friendly_name_main_address_house_number">UNTRANSLATED:id_austria_credential_attribute_friendly_name_main_address_house_number</string>
@@ -151,7 +156,6 @@
     <string name="attribute_friendly_name_pid_id">UNTRANSLATED:attribute_friendly_name_pid_id</string>
     <string name="attribute_friendly_name_verification_status">UNTRANSLATED:attribute_friendly_name_verification_status</string>
 
-
     <string name="credential_representation_format_label_plain_jwt">UNTRANSLATED:credential_representation_format_label_plain_jwt</string>
     <string name="credential_representation_format_label_sd_jwt">UNTRANSLATED:credential_representation_format_label_sd_jwt</string>
     <string name="credential_representation_format_label_mso_mdoc">UNTRANSLATED:credential_representation_format_label_mso_mdoc</string>
@@ -164,6 +168,7 @@
     <string name="navigation_button_label_show_data">UNTRANSLATED:navigation_button_label_show_data</string>
     <string name="navigation_button_label_my_data">UNTRANSLATED:navigation_button_label_my_data</string>
     <string name="navigation_button_label_settings">UNTRANSLATED:navigation_button_label_settings</string>
+    <string name="navigation_button_label_check">UNTRANSLATED:navigation_button_label_check</string>
 
     <string name="id_format_plain_jwt_label">UNTRANSLATED:id_format_plain_jwt_label</string>
     <string name="id_format_sd_jwt_label">UNTRANSLATED:id_format_sd_jwt_label</string>
@@ -218,8 +223,13 @@
     <string name="heading_label_load_data_screen">UNTRANSLATED:heading_label_load_data_screen</string>
     <string name="heading_label_refresh_data_screen">UNTRANSLATED:heading_label_refresh_data_screen</string>
     <string name="heading_label_authenticate_at_device_screen">UNTRANSLATED:heading_label_authenticate_at_device_screen</string>
+    <string name="heading_label_select_data_retrieval_screen">UNTRANSLATED:heading_label_select_data_retrieval_screen</string>
+    <string name="heading_label_select_custom_data_retrieval_screen">UNTRANSLATED:heading_label_select_custom_data_retrieval_screen</string>
+    <string name="heading_label_check_scan_qr_code">UNTRANSLATED:heading_label_check_scan_qr_code</string>
+    <string name="heading_label_show_qr_code_screen">UNTRANSLATED:heading_label_show_qr_code_screen</string>
 
     <string name="description_read_terms">UNTRANSLATED:description_read_terms</string>
+
     <string name="biometric_authentication_prompt_for_data_transmission_consent_title">UNTRANSLATED:biometric_authentication_prompt_for_data_transmission_consent_title</string>
     <string name="biometric_authentication_prompt_for_data_transmission_consent_subtitle">UNTRANSLATED:biometric_authentication_prompt_for_data_transmission_consent_subtitle</string>
     <string name="biometric_authentication_prompt_to_load_data_title">UNTRANSLATED:biometric_authentication_prompt_to_load_data_title</string>
@@ -262,6 +272,8 @@
     <string name="error_qr_code_scanning_invalid_metadata_jws_object">UNTRANSLATED:error_qr_code_scanning_invalid_metadata_jws_object</string>
     <string name="error_qr_code_scanning_invalid_metadata_jws_object_signature">UNTRANSLATED:error_qr_code_scanning_invalid_metadata_jws_object_signature</string>
     <string name="error_qr_code_scanning_client_id_not_in_redirect_uris">UNTRANSLATED:error_qr_code_scanning_client_id_not_in_redirect_uris</string>
+    <string name="error_missing_permissions">UNTRANSLATED:error_missing_permissions</string>
+    <string name="error_missing_value">UNTRANSLATED:error_missing_value</string>
 
     <string name="info_text_show_data_situation">UNTRANSLATED:info_text_show_data_situation</string>
     <string name="info_text_error_occurred">UNTRANSLATED:info_text_error_occurred</string>
@@ -274,6 +286,9 @@
     <string name="info_text_enthusiastic_welcome_end">UNTRANSLATED:info_text_enthusiastic_welcome_end</string>
     <string name="info_text_submission_preview_disabled">UNTRANSLATED:info_text_submission_preview_disabled</string>
     <string name="info_text_no_matching_credential">UNTRANSLATED:info_text_no_matching_credential</string>
+    <string name="info_text_data_is_being_loaded">UNTRANSLATED:info_text_data_is_being_loaded</string>
+    <string name="info_text_missing_permission">UNTRANSLATED:info_text_missing_permission</string>
+    <string name="info_text_qr_code_loading">UNTRANSLATED:info_text_qr_code_loading</string>
 
     <string name="section_heading_authenticate_at_device_title">UNTRANSLATED:section_heading_authenticate_at_device_title</string>
     <string name="section_heading_authenticate_at_device_subtitle">UNTRANSLATED:section_heading_authenticate_at_device_subtitle</string>
@@ -312,6 +327,12 @@
     <string name="section_heading_load_data_selection">UNTRANSLATED:section_heading_load_data_selection</string>
     <string name="section_heading_missing_data">UNTRANSLATED:section_heading_missing_data</string>
     <string name="section_heading_available_data">UNTRANSLATED:section_heading_available_data</string>
+    <string name="section_heading_request_eausweise">UNTRANSLATED:section_heading_request_eausweise</string>
+    <string name="section_heading_request_license">UNTRANSLATED:section_heading_request_license</string>
+    <string name="section_heading_request_custom">UNTRANSLATED:section_heading_request_custom</string>
+    <string name="section_heading_select_document_type">UNTRANSLATED:section_heading_select_document_type</string>
+    <string name="section_heading_selected_namespace">UNTRANSLATED:section_heading_selected_namespace </string>
+    <string name="section_heading_select_requested_data_entries">UNTRANSLATED:section_heading_select_requested_data_entrys</string>
 
     <string name="onboarding_section_terms_and_data_protection_icon_text">UNTRANSLATED:onboarding_section_terms_and_data_protection_icon_text</string>
     <string name="onboarding_section_terms_and_data_protection_title">UNTRANSLATED:onboarding_section_terms_and_data_protection_title</string>
