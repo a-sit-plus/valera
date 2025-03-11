@@ -157,9 +157,9 @@ fun AuthenticationConsentView(vm: AuthenticationConsentViewModel) {
                             val schemeName = scheme.uiLabel()
                             val format = representation.name
                             val list = attributes.mapNotNull { attribute ->
-                                val resource = scheme.getLocalization(NormalizedJsonPath(attribute.key.segments.last()))
+                                val resource = scheme.getLocalization(NormalizedJsonPath(attribute.key.segments.last())) ?: return@mapNotNull null
                                 val text =
-                                    catchingUnwrapped { stringResource(resource!!) }.getOrElse { attribute.key.toString() }
+                                    catchingUnwrapped { stringResource(resource) }.getOrElse { attribute.key.toString() }
                                 text to attribute.value
                             }.toMap()
                             ConsentAttributesSection(

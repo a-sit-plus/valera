@@ -56,7 +56,7 @@ fun InputDescriptor.extractConsentData(): Triple<ConstantIndex.CredentialReprese
         val path = it.value.map { value ->
             value.normalizedJsonPath
         }.firstOrNull() ?: return@mapNotNull null
-        val optional = it.key.optional ?: return@mapNotNull null
+        val optional = it.key.optional ?: false
         path to optional
     }.toMap()
 
