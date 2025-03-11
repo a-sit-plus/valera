@@ -49,6 +49,11 @@
     <string name="button_label_show_technical_details">Technische Details einblenden</string>
     <string name="button_label_hide_technical_details">Technische Details ausblenden</string>
     <string name="button_label_sign">Signieren</string>
+    <string name="button_label_check_identity">Identität Prüfen</string>
+    <string name="button_label_check_license">Führerschein Prüfen</string>
+    <string name="button_label_check_age">Alter Prüfen</string>
+    <string name="button_label_check_custom">Individuelle Anfrage</string>
+    <string name="button_label_check_over_age">Über </string>
 
     <string name="attribute_friendly_name_bpk">BPK</string>
     <string name="attribute_friendly_name_firstname">Vorname</string>
@@ -190,6 +195,7 @@
     <string name="navigation_button_label_show_data">Daten Vorzeigen</string>
     <string name="navigation_button_label_my_data">Meine Daten</string>
     <string name="navigation_button_label_settings">Einstellungen</string>
+    <string name="navigation_button_label_check">Prüfen</string>
 
     <string name="id_format_plain_jwt_label">PLAIN_JWT</string>
     <string name="sid_format_sd_jwt_label">SD-JWT</string>
@@ -237,6 +243,10 @@
     <string name="heading_label_refresh_data_screen">Daten laden</string>
     <string name="heading_label_authenticate_at_device_screen">Anmelden\nan Service Provider</string>
     <string name="heading_label_sign_document">Dokument signieren</string>
+    <string name="heading_label_select_data_retrieval_screen">Prüfen</string>
+    <string name="heading_label_select_custom_data_retrieval_screen">Individuelle Anfrage</string>
+    <string name="heading_label_check_scan_qr_code">QR-Code Scannen</string>
+    <string name="heading_label_show_qr_code_screen">Scan mich!</string>
 
     <string name="description_read_terms">Bitte lesen und akzeptieren Sie die Nutzungsbedingungen und Datenschutzerklärung.</string>
 
@@ -288,6 +298,8 @@
     <string name="error_qr_code_scanning_invalid_metadata_jws_object">Ungültiges Metadaten-Objekt</string>
     <string name="error_qr_code_scanning_invalid_metadata_jws_object_signature">Ungültige Metadaten Signatur</string>
     <string name="error_qr_code_scanning_client_id_not_in_redirect_uris">Client-ID ist nicht in den Metadaten unter `redirect_uris` enthalten.</string>
+    <string name="error_missing_permissions">Fehlende Erlaubnis</string>
+    <string name="error_missing_value">Fehler es sind keine Daten gegeben</string>
 
     <string name="info_text_show_data_situation">In welcher Situation möchten Sie Ihre Daten vorzeigen?</string>
     <string name="info_text_error_occurred">Es ist ein Fehler aufgetreten.</string>
@@ -338,6 +350,12 @@
     <string name="section_heading_missing_data">Neue Daten laden</string>
     <string name="section_heading_available_data">Bestehende Daten aktualisieren</string>
     <string name="section_heading_transaction_data">Transaktion</string>
+    <string name="section_heading_request_eausweise">eAusweise Anfragen</string>
+    <string name="section_heading_request_license">Andere Anfragen</string>
+    <string name="section_heading_request_custom">Individuelle Anfragen</string>
+    <string name="section_heading_select_document_type">Wähle ein Dokument Typ:</string>
+    <string name="section_heading_selected_namespace">Namespace: </string>
+    <string name="section_heading_select_requested_data_entries">Wähle anzufordernde Daten</string>
 
     <string name="onboarding_section_terms_and_data_protection_icon_text">1</string>
     <string name="onboarding_section_terms_and_data_protection_title">Nutzungsbedingungen und Datenschutz</string>

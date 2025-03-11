@@ -70,13 +70,15 @@ import ui.navigation.routes.PresentationIntentRoute
 import ui.navigation.routes.ProvisioningIntentRoute
 import ui.navigation.routes.Route
 import ui.navigation.routes.SettingsRoute
+import ui.navigation.routes.ShowDataRoute
+import ui.navigation.routes.ShowQrCodeRoute
 import ui.navigation.routes.SigningCredentialIntentRoute
 import ui.navigation.routes.SigningIntentRoute
 import ui.navigation.routes.SigningPreloadIntentRoute
 import ui.navigation.routes.SigningQtspSelectionRoute
 import ui.navigation.routes.SigningRoute
+import ui.navigation.routes.VerifyDataRoute
 import ui.navigation.routes.SigningServiceIntentRoute
-import ui.screens.SelectIssuingServerView
 import ui.viewmodels.AddCredentialViewModel
 import ui.viewmodels.CredentialDetailsViewModel
 import ui.viewmodels.CredentialsViewModel
@@ -88,6 +90,8 @@ import ui.viewmodels.authentication.PresentationViewModel
 import ui.viewmodels.SettingsViewModel
 import ui.viewmodels.SigningQtspSelectionViewModel
 import ui.viewmodels.SigningViewModel
+import ui.viewmodels.iso.ShowQrCodeViewModel
+import ui.viewmodels.iso.VerifierViewModel
 import ui.viewmodels.authentication.AuthenticationQrCodeScannerViewModel
 import ui.viewmodels.authentication.AuthenticationSuccessViewModel
 import ui.viewmodels.authentication.DCAPIAuthenticationViewModel
@@ -113,15 +117,19 @@ import ui.views.OnboardingInformationView
 import ui.views.OnboardingStartView
 import ui.views.OnboardingTermsView
 import ui.views.PreAuthQrCodeScannerScreen
+import ui.views.SelectIssuingServerView
 import ui.views.intents.PresentationIntentView
 import ui.views.intents.ProvisioningIntentView
 import ui.views.SettingsView
+import ui.views.ShowDataView
 import ui.views.intents.SigningCredentialIntentView
 import ui.views.intents.SigningIntentView
 import ui.views.intents.SigningPreloadIntentView
 import ui.views.SigningQtspSelectionView
 import ui.views.intents.SigningServiceIntentView
 import ui.views.SigningView
+import ui.views.iso.ShowQrCodeView
+import ui.views.iso.verifier.VerifierView
 import ui.views.authentication.AuthenticationQrCodeScannerView
 import ui.views.authentication.AuthenticationSuccessView
 import ui.views.authentication.AuthenticationView
@@ -249,12 +257,14 @@ private fun WalletNavHost(
                 modifier = Modifier.testTag(OnboardingWrapperTestTags.onboardingStartScreen)
             )
         }
+
         composable<OnboardingInformationRoute> {
             OnboardingInformationView(
                 onClickContinue = { navigate(OnboardingTermsRoute) },
                 onClickLogo = onClickLogo
             )
         }
+
         composable<OnboardingTermsRoute> {
             OnboardingTermsView(
                 onClickAccept = { walletMain.walletConfig.set(isConditionsAccepted = true) },
@@ -264,6 +274,7 @@ private fun WalletNavHost(
                 onClickLogo = onClickLogo
             )
         }
+
         composable<HomeScreenRoute> {
             CredentialsView(
                 vm = remember {
@@ -303,6 +314,22 @@ private fun WalletNavHost(
                 }
             }
         }
+
+        composable<ShowDataRoute> {
+            ShowDataView(
+                onNavigateToAuthenticationQrCodeScannerView = {
+                    navigate(AuthenticationQrCodeScannerRoute)
+                },
+                onNavigateToShowQrCodeView = { navigate(ShowQrCodeRoute) },
+                bottomBar = {
+                    BottomBar(
+                        navigate = navigate,
+                        selected = NavigationData.SHOW_DATA_SCREEN
+                    )
+                }
+            )
+        }
+
         composable<AuthenticationQrCodeScannerRoute> {
             AuthenticationQrCodeScannerView(remember {
                 AuthenticationQrCodeScannerViewModel(
@@ -314,6 +341,30 @@ private fun WalletNavHost(
                     onClickLogo = onClickLogo
                 )
             })
+        }
+
+        composable<ShowQrCodeRoute> {
+            val vm = ShowQrCodeViewModel(
+                walletMain = walletMain,
+                navigateUp = { navigateBack() },
+            )
+            ShowQrCodeView(vm)
+        }
+
+        composable<VerifyDataRoute> {
+            val vm = VerifierViewModel(
+                navigateUp = { navigateBack() },
+
+            )
+            VerifierView(
+                vm = vm,
+                bottomBar = {
+                    BottomBar(
+                        navigate = navigate,
+                        selected = NavigationData.VERIFY_DATA_SCREEN
+                    )
+                }
+            )
         }
         composable<AuthenticationViewRoute> { backStackEntry ->
             val route: AuthenticationViewRoute = backStackEntry.toRoute()

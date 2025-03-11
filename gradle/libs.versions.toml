@@ -12,6 +12,7 @@ healthid = "2.0.0"
 taxid = "1.0.1"
 atomicfu = "0.26.1"
 compose-plugin = "1.7.3"
+qrcode-kotlin = "4.1.1"
 
 [libraries]
 atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version.ref = "atomicfu" }
@@ -23,6 +24,7 @@ credential-companyregistration = { module = "at.asitplus.wallet:company-registra
 credential-mdl = { group = "at.asitplus.wallet", name = "mobiledrivinglicence", version.ref = "mdl" }
 credential-healthid = { module = "at.asitplus.wallet:healthid", version.ref = "healthid" }
 credential-taxid = { group = "at.asitplus.wallet", name = "taxid", version.ref = "taxid" }
+g0dkar-qrcode-kotlin = { module = "io.github.g0dkar:qrcode-kotlin", version.ref = "qrcode-kotlin" }
 multipaz = { module = "org.multipaz:multipaz", version.ref = "multipaz" }
 multipaz-android-legacy = { module = "org.multipaz:multipaz-android-legacy", version.ref = "multipaz" }
 multipaz-doctypes = { module = "org.multipaz:multipaz-doctypes", version.ref = "multipaz" }
