@@ -153,19 +153,20 @@ fun AuthenticationConsentView(vm: AuthenticationConsentViewModel) {
                         modifier = paddingModifier,
                     )
                     vm.requests.forEach { inputDescriptor ->
-                        val (representation, scheme, attributes) = inputDescriptor.extractConsentData()
-                        val schemeName = scheme.uiLabel()
-                        val format = representation.name
-                        val list = attributes.mapNotNull { attribute ->
-                            val resource = scheme.getLocalization(NormalizedJsonPath(attribute.key.segments.last()))
-                            val text =
-                                catchingUnwrapped { stringResource(resource!!) }.getOrElse { attribute.key.toString() }
-                            text to attribute.value
-                        }.toMap()
-                        ConsentAttributesSection(
-                            title = "$schemeName (${format})",
-                            attributes = list
-                        )
+                        catchingUnwrapped { inputDescriptor.extractConsentData() }.onSuccess { (representation, scheme, attributes) ->
+                            val schemeName = scheme.uiLabel()
+                            val format = representation.name
+                            val list = attributes.mapNotNull { attribute ->
+                                val resource = scheme.getLocalization(NormalizedJsonPath(attribute.key.segments.last()))
+                                val text =
+                                    catchingUnwrapped { stringResource(resource!!) }.getOrElse { attribute.key.toString() }
+                                text to attribute.value
+                            }.toMap()
+                            ConsentAttributesSection(
+                                title = "$schemeName (${format})",
+                                attributes = list
+                            )
+                        }
                     }
                     if (vm.transactionData != null) {
                         Spacer(modifier = Modifier.height(32.dp))
