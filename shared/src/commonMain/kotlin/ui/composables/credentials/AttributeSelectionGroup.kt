@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -20,14 +19,11 @@ import at.asitplus.dif.ConstraintField
 import at.asitplus.jsonpath.core.NodeList
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
-import at.asitplus.wallet.app.common.third_parts.at.asitplus.jsonpath.core.plus
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.text_label_check_all
-import at.asitplus.wallet.app.common.getAttributes
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
-import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.LabeledCheckbox
 import ui.composables.LabeledTextCheckbox
@@ -47,13 +43,11 @@ fun AttributeSelectionGroup(
             modifier = Modifier.padding(8.dp).fillMaxWidth(),
         ) {
             val constraints = credential.value
-
-            val allAttributes = credential.key.getAttributes()
             val disclosedAttributes = constraints.mapNotNull { constraint ->
                 val path = constraint.value.firstOrNull()?.normalizedJsonPath ?: return@mapNotNull null
-                val value = allAttributes.toList()
-                    .firstOrNull { it.first.segments.last().toString() == path.segments.last().toString() }?.second
-                Pair(path, value) to constraint.key.optional
+                val optional = constraint.key.optional
+                val value = constraint.value.first().value.toString()
+                Pair(path, value) to optional
             }.toMap()
 
             val allChecked = remember { mutableStateOf(false) }
@@ -65,7 +59,6 @@ fun AttributeSelectionGroup(
                     disclosedAttributes.forEach { entry ->
                         val path = entry.key.first
                         val memberName = (path.segments.last() as NormalizedJsonPathSegment.NameSegment).memberName
-                        val value = entry.key.second
                         val optional = entry.value
 
                         if (optional != null && optional == true) {
@@ -95,7 +88,7 @@ fun AttributeSelectionGroup(
 
                 val stringResource =
                     format?.getLocalization(NormalizedJsonPath(entry.key.first.segments.last()))
-                if (stringResource != null && optional != null && value != null) {
+                if (stringResource != null && optional != null) {
                     LabeledTextCheckbox(
                         label = stringResource(stringResource),
                         text = value,

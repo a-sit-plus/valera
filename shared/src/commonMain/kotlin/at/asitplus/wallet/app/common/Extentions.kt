@@ -88,37 +88,3 @@ fun ConstantIndex.CredentialScheme.toJsonElement(
         }
     }
 }
-
-fun SubjectCredentialStore.StoreEntry.getAttributes(): Map<NormalizedJsonPath, String> = when (val credential = this) {
-    is SubjectCredentialStore.StoreEntry.Vc -> {
-        throw Throwable("Not implemented")
-    }
-
-    is SubjectCredentialStore.StoreEntry.SdJwt -> {
-        credential.disclosures.entries.associate {
-            val claimValue = it.value?.claimValue?.toString() ?: ""
-            val claimName = it.value?.claimName ?: ""
-            NormalizedJsonPath().plus(claimName) to claimValue
-        }
-    }
-
-    is SubjectCredentialStore.StoreEntry.Iso -> {
-        val list: MutableList<Pair<NormalizedJsonPath, String>> = mutableListOf()
-        credential.issuerSigned.namespaces?.forEach { namespace ->
-            namespace.value.entries.sortedBy { it.value.elementIdentifier }.forEach { entry ->
-                val claimValue = entry.value.elementValue.prettyToString()
-                val claimName = NormalizedJsonPath(
-                    NormalizedJsonPathSegment.NameSegment(namespace.key),
-                    NormalizedJsonPathSegment.NameSegment(entry.value.elementIdentifier),
-                )
-                list.add(Pair(claimName, claimValue))
-            }
-        }
-        list.toMap()
-    }
-}
-
-private fun Any.prettyToString() = when (this) {
-    is Array<*> -> contentToString()
-    else -> toString()
-}
