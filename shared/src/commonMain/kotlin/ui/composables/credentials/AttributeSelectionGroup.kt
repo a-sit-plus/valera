@@ -88,13 +88,13 @@ fun AttributeSelectionGroup(
 
                 val stringResource =
                     format?.getLocalization(NormalizedJsonPath(entry.key.first.segments.last()))
-                if (stringResource != null && optional != null) {
+                if (stringResource != null) {
                     LabeledTextCheckbox(
                         label = stringResource(stringResource),
                         text = value,
                         checked = selection[memberName] ?: true,
                         onCheckedChange = { bool -> selection[memberName] = bool },
-                        enabled = optional
+                        enabled = optional ?: false
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                 }
