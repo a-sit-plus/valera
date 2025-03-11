@@ -25,7 +25,7 @@ import kotlinx.serialization.json.encodeToJsonElement
 
 fun InputDescriptor.extractConsentData(): Triple<ConstantIndex.CredentialRepresentation, ConstantIndex.CredentialScheme, Map<NormalizedJsonPath, Boolean>> {
     val inputDescriptor = this
-    val credentialRepresentation = if (inputDescriptor.format?.sdJwt != null) {
+    val credentialRepresentation = if (inputDescriptor.format?.sdJwt != null || inputDescriptor.format?.jwtSd != null) {
         ConstantIndex.CredentialRepresentation.SD_JWT
     } else if (inputDescriptor.format?.msoMdoc != null) {
         ConstantIndex.CredentialRepresentation.ISO_MDOC
