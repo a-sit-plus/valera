@@ -1,6 +1,5 @@
 package ui.views.Authentication
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,6 +11,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.Scaffold
@@ -19,24 +19,20 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshots.SnapshotStateMap
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.asp
 import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.heading_label_navigate_back
 import at.asitplus.valera.resources.prompt_select_credential
 import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
@@ -95,27 +91,28 @@ fun AuthenticationSelectionView(vm: AuthenticationSelectionViewModel) {
         }
     ) {
         Box(modifier = Modifier.padding(it)) {
+            LinearProgressIndicator(
+                progress = { ((1.0f / vm.requests.size) * (vm.requestIterator.value + 1)) },
+                modifier = Modifier.fillMaxWidth(),
+                drawStopIndicator = { }
+            )
             Column(
                 modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState())
                     .padding(16.dp),
             ) {
                 val requestId = currentRequest.first
-
                 val matchingCredentials = currentRequest.second
-                val defaultCredential = matchingCredentials.keys.first()
-                val credentialSelection = mutableStateOf(defaultCredential)
 
-                val attributeSelection: SnapshotStateMap<NormalizedJsonPath, Boolean> =
-                    mutableStateMapOf()
-
-                vm.attributeSelection[requestId] = attributeSelection
-                vm.credentialSelection[requestId] = credentialSelection
                 Text(
                     text = matchingCredentials.keys.first().scheme.uiLabel(),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.secondary,
                     fontWeight = FontWeight.SemiBold,
                 )
+                val attributeSelection =
+                    vm.attributeSelection[requestId] ?: throw Throwable("No selection with requestId")
+                val credentialSelection =
+                    vm.credentialSelection[requestId] ?: throw Throwable("No selection with requestId")
                 CredentialSelectionGroup(
                     matchingCredentials = matchingCredentials,
                     attributeSelection = attributeSelection,
@@ -124,7 +121,6 @@ fun AuthenticationSelectionView(vm: AuthenticationSelectionViewModel) {
                         vm.walletMain.platformAdapter.decodeImage(byteArray)
                     }
                 )
-
             }
         }
     }

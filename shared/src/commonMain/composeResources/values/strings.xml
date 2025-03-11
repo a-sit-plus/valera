@@ -211,6 +211,8 @@
     <string name="text_label_credential_id">UNTRANSLATED:text_label_credential_id</string>
     <string name="text_label_valid_from">UNTRANSLATED:text_label_valid_from</string>
     <string name="text_label_valid_to">UNTRANSLATED:text_label_valid_to</string>
+    <string name="text_label_optional">UNTRANSLATED:text_label_optional</string>
+    <string name="text_label_check_all">UNTRANSLATED:text_label_check_all</string>
 
     <string name="heading_label_authenticate_at_device_title">UNTRANSLATED:heading_label_authenticate_at_device_title</string>
     <string name="heading_label_authenticate_at_device_subtitle">UNTRANSLATED:heading_label_authenticate_at_device_subtitle</string>

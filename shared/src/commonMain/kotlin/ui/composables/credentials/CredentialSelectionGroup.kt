@@ -16,7 +16,7 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 @Composable
 fun CredentialSelectionGroup(
     matchingCredentials: Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, List<NodeListEntry>>>,
-    attributeSelection: SnapshotStateMap<NormalizedJsonPath, Boolean>,
+    attributeSelection: SnapshotStateMap<String, Boolean>,
     credentialSelection: MutableState<SubjectCredentialStore.StoreEntry>,
     imageDecoder: (ByteArray) -> ImageBitmap?
 ) {

@@ -19,11 +19,11 @@ fun AuthenticationView(vm: AuthenticationViewModel) {
                 spName = vm.spName,
                 spLocation = vm.spLocation,
                 spImage = vm.spImage,
-                requests = vm.parametersMap,
                 navigateUp = vm.navigateUp,
                 buttonConsent = { vm.onConsent() },
                 walletMain = vm.walletMain,
-                transactionData = vm.transactionData
+                transactionData = vm.transactionData,
+                requests = vm.descriptors.toList(),
             )
             AuthenticationConsentView(viewModel)
         }
