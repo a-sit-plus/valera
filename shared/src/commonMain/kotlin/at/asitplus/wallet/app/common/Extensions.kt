@@ -30,7 +30,10 @@ fun InputDescriptor.extractConsentData(): Triple<ConstantIndex.CredentialReprese
         ConstantIndex.CredentialRepresentation.PLAIN_JWT
     }
     val pattern = when (credentialRepresentation) {
-        ConstantIndex.CredentialRepresentation.SD_JWT -> inputDescriptor.constraints?.fields?.last()?.filter?.pattern
+        ConstantIndex.CredentialRepresentation.SD_JWT ->
+            inputDescriptor.constraints?.fields?.firstOrNull() { it.path.toString().contains("vct") }?.filter?.let {
+                it.pattern ?: it.const
+            }
         ConstantIndex.CredentialRepresentation.ISO_MDOC -> inputDescriptor.id
         ConstantIndex.CredentialRepresentation.PLAIN_JWT -> throw Throwable("PLAIN_JWT not implemented")
     } ?: throw Throwable("Missing Pattern")
