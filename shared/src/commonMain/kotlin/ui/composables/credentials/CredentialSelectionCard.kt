@@ -27,7 +27,7 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 fun CredentialSelectionCard(
     credential: Map.Entry<SubjectCredentialStore.StoreEntry, Map<ConstraintField, NodeList>>,
     imageDecoder: (ByteArray) -> ImageBitmap?,
-    attributeSelection: SnapshotStateMap<NormalizedJsonPath, Boolean>,
+    attributeSelection: SnapshotStateMap<String, Boolean>,
     credentialSelection: MutableState<SubjectCredentialStore.StoreEntry>
 ) {
     val selected = remember { mutableStateOf(false) }
@@ -35,7 +35,10 @@ fun CredentialSelectionCard(
     selected.value = credentialSelection.value == credential.key
 
     CredentialSelectionCardLayout(
-        onClick = { credentialSelection.value = credential.key },
+        onClick = {
+            attributeSelection.clear()
+            credentialSelection.value = credential.key
+                  },
         modifier = Modifier,
         isSelected = selected
     ) {

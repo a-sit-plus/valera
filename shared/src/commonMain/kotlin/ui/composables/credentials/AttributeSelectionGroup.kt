@@ -20,6 +20,7 @@ import at.asitplus.dif.ConstraintField
 import at.asitplus.jsonpath.core.NodeList
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
+import at.asitplus.wallet.app.common.third_parts.at.asitplus.jsonpath.core.plus
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.text_label_check_all
 import at.asitplus.wallet.app.common.getAttributes
@@ -34,7 +35,7 @@ import ui.composables.LabeledTextCheckbox
 @Composable
 fun AttributeSelectionGroup(
     credential: Map.Entry<SubjectCredentialStore.StoreEntry, Map<ConstraintField, NodeList>>,
-    selection: SnapshotStateMap<NormalizedJsonPath, Boolean>,
+    selection: SnapshotStateMap<String, Boolean>,
     format: ConstantIndex.CredentialScheme?
 ) {
     Card(
@@ -63,10 +64,12 @@ fun AttributeSelectionGroup(
                 onCheckedChange = { bool ->
                     disclosedAttributes.forEach { entry ->
                         val path = entry.key.first
+                        val memberName = (path.segments.last() as NormalizedJsonPathSegment.NameSegment).memberName
+                        val value = entry.key.second
                         val optional = entry.value
 
                         if (optional != null && optional == true) {
-                            selection[path] = bool
+                            selection[memberName] = bool
                         }
                         allChecked.value = bool
                     }
@@ -78,11 +81,12 @@ fun AttributeSelectionGroup(
 
             disclosedAttributes.forEach { entry ->
                 val path = entry.key.first
+                val memberName = (path.segments.last() as NormalizedJsonPathSegment.NameSegment).memberName
                 val value = entry.key.second
                 val optional = entry.value
 
-                if (selection[path] == null) {
-                    selection[path] = if (optional != null) {
+                if (selection[memberName] == null) {
+                    selection[memberName] = if (optional != null) {
                         !optional
                     } else {
                         true
@@ -90,13 +94,13 @@ fun AttributeSelectionGroup(
                 }
 
                 val stringResource =
-                    format?.getLocalization(NormalizedJsonPath(path.segments.last()))
+                    format?.getLocalization(NormalizedJsonPath(entry.key.first.segments.last()))
                 if (stringResource != null && optional != null && value != null) {
                     LabeledTextCheckbox(
                         label = stringResource(stringResource),
                         text = value,
-                        checked = selection[path] ?: true,
-                        onCheckedChange = { bool -> selection[path] = bool },
+                        checked = selection[memberName] ?: true,
+                        onCheckedChange = { bool -> selection[memberName] = bool },
                         enabled = optional
                     )
                     Spacer(modifier = Modifier.height(8.dp))
