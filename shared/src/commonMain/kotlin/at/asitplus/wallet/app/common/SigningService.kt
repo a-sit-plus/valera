@@ -390,7 +390,7 @@ val defaultSigningConfig = SigningConfig(
         ),
         QtspConfig(
             "PRIMESIGN",
-            "https://qs.primesign-test.com",
+            "https://qs.primesign-test.com/csc/v2",
             "https://id.primesign-test.com/realms/qs-staging",
             "https://wallet.a-sit.at/app"
         )
