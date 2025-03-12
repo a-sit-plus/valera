@@ -1,4 +1,4 @@
-package ui.viewmodels.Authentication
+package ui.viewmodels.authentication
 
 import at.asitplus.wallet.app.common.presentation.MdocPresenter
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism

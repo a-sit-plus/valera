@@ -15,9 +15,9 @@ import io.github.aakira.napier.Napier
 import io.ktor.http.parseQueryString
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.getString
-import ui.navigation.Routes.HomeScreenRoute
-import ui.navigation.Routes.LoadingRoute
-import ui.navigation.Routes.Route
+import ui.navigation.routes.HomeScreenRoute
+import ui.navigation.routes.LoadingRoute
+import ui.navigation.routes.Route
 
 enum class IntentType {
     ErrorIntent,

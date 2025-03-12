@@ -63,7 +63,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.jetbrains.compose.resources.getString
 import ui.navigation.NavigatorTestTags
-import ui.navigation.Routes.OnboardingWrapperTestTags
+import ui.navigation.routes.OnboardingWrapperTestTags
 import ui.views.OnboardingStartScreenTestTag
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.minutes

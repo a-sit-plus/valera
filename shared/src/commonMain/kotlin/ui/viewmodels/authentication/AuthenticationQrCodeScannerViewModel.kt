@@ -1,4 +1,4 @@
-package ui.viewmodels.Authentication
+package ui.viewmodels.authentication
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -10,7 +10,7 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import ui.navigation.Routes.AuthenticationViewRoute
+import ui.navigation.routes.AuthenticationViewRoute
 
 class AuthenticationQrCodeScannerViewModel(
     val navigateUp: (() -> Unit)?,

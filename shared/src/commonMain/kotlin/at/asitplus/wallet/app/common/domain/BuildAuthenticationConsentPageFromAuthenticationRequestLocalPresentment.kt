@@ -3,7 +3,7 @@ package at.asitplus.wallet.app.common.domain
 import at.asitplus.KmmResult
 import at.asitplus.wallet.app.common.presentation.PresentationRequest
 import presentationStateModel
-import ui.navigation.Routes.LocalPresentationAuthenticationConsentRoute
+import ui.navigation.routes.LocalPresentationAuthenticationConsentRoute
 
 class BuildAuthenticationConsentPageFromAuthenticationRequestLocalPresentment {
     operator fun invoke(incomingRequest: PresentationRequest?): KmmResult<LocalPresentationAuthenticationConsentRoute> {

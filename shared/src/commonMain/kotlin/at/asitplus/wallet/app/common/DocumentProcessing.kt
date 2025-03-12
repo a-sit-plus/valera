@@ -8,6 +8,7 @@ import at.asitplus.signum.indispensable.io.ByteArrayBase64Serializer
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.rqes.RqesOpenId4VpHolder
 import io.ktor.client.HttpClient
+import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -189,6 +190,7 @@ internal suspend fun getFinishedDocuments(
     qtspHost: String,
     signatureResponse: SignatureResponse,
     transactionTokens: List<String>,
+    qtspIdentifier: String,
 ): List<FinishedDocument> {
     val finishedDocuments = mutableListOf<FinishedDocument>()
 
@@ -201,6 +203,7 @@ internal suspend fun getFinishedDocuments(
             for (wrappedSig in signatures) {
                 val finishedDocResponse = client.post("${qtspHost}/sca/finalize") {
                     contentType(ContentType.Application.Json)
+                    header("Wallet-QTSP-ID", qtspIdentifier) 
                     setBody(
                         vckJsonSerializer.encodeToString(
                             wrappedSig

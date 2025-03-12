@@ -1,4 +1,4 @@
-package ui.views.Authentication
+package ui.views.authentication
 
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -54,9 +54,9 @@ import at.asitplus.valera.resources.heading_label_navigate_back
 import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_data_recipient
 import at.asitplus.valera.resources.section_heading_transaction_data
-import at.asitplus.wallet.app.common.third_parts.at.asitplus.jsonpath.core.plus
-import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.getLocalization
-import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.jsonpath.core.plus
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.lib.oidvci.encodeToParameters
 import at.asitplus.wallet.app.common.extractConsentData
 import org.jetbrains.compose.resources.stringResource
@@ -67,7 +67,7 @@ import ui.composables.Logo
 import ui.composables.buttons.CancelButton
 import ui.composables.buttons.ContinueButton
 import ui.composables.buttons.NavigateUpButton
-import ui.viewmodels.Authentication.AuthenticationConsentViewModel
+import ui.viewmodels.authentication.AuthenticationConsentViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

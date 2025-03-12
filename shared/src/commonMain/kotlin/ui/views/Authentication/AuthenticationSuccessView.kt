@@ -1,4 +1,4 @@
-package ui.views.Authentication
+package ui.views.authentication
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,7 +27,7 @@ import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.buttons.ConcludeButton
 import ui.composables.buttons.NavigateUpButton
-import ui.viewmodels.Authentication.AuthenticationSuccessViewModel
+import ui.viewmodels.authentication.AuthenticationSuccessViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

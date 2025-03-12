@@ -39,7 +39,7 @@ import at.asitplus.valera.resources.presentation_initialised
 import at.asitplus.valera.resources.presentation_missing_permission
 import at.asitplus.valera.resources.presentation_permission_required
 import at.asitplus.wallet.app.common.presentation.PresentmentCanceled
-import ui.viewmodels.Authentication.PresentationStateModel
+import ui.viewmodels.authentication.PresentationStateModel
 import at.asitplus.wallet.app.common.presentation.PresentmentTimeout
 import at.asitplus.wallet.app.permissions.RequestBluetoothPermissions
 import kotlinx.coroutines.CoroutineScope
@@ -47,14 +47,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import ui.viewmodels.Authentication.AuthenticationConsentViewModel
-import ui.viewmodels.Authentication.AuthenticationNoCredentialViewModel
-import ui.viewmodels.Authentication.AuthenticationSelectionViewModel
-import ui.viewmodels.Authentication.AuthenticationViewState
-import ui.viewmodels.Authentication.PresentationViewModel
-import ui.views.Authentication.AuthenticationConsentView
-import ui.views.Authentication.AuthenticationNoCredentialView
-import ui.views.Authentication.AuthenticationSelectionView
+import ui.viewmodels.authentication.AuthenticationConsentViewModel
+import ui.viewmodels.authentication.AuthenticationNoCredentialViewModel
+import ui.viewmodels.authentication.AuthenticationSelectionViewModel
+import ui.viewmodels.authentication.AuthenticationViewState
+import ui.viewmodels.authentication.PresentationViewModel
+import ui.views.authentication.AuthenticationConsentView
+import ui.views.authentication.AuthenticationNoCredentialView
+import ui.views.authentication.AuthenticationSelectionView
 import kotlin.time.Duration.Companion.seconds
 
 // Based on the identity-credential sample code

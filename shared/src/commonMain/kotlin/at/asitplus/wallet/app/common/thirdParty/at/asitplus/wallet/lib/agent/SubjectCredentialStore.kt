@@ -1,4 +1,4 @@
-package at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.agent
+package at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.agent
 
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex

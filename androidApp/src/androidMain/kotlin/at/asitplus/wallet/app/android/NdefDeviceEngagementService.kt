@@ -6,7 +6,7 @@ import android.os.Bundle
 import android.os.Vibrator
 import androidx.core.content.ContextCompat
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
-import ui.viewmodels.Authentication.PresentationStateModel
+import ui.viewmodels.authentication.PresentationStateModel
 import at.asitplus.wallet.app.common.presentation.PresentmentTimeout
 import at.asitplus.wallet.app.common.presentation.TransferSettings
 import com.android.identity.cbor.DataItem
