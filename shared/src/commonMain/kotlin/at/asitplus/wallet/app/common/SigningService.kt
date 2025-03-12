@@ -151,9 +151,10 @@ class SigningService(
     suspend fun resumeWithServiceAuthCode(url: String) {
         serviceToken = getTokenFromAuthCode(url)
         val credentialInfo = getCredentialInfo(serviceToken)
-        config.getCurrent().credentialInfo = credentialInfo
-        exportToDataStore()
-
+        if (config.getCurrent().allowPreload) {
+            config.getCurrent().credentialInfo = credentialInfo
+            exportToDataStore()
+        }
         rqesWalletService.setSigningCredential(credentialInfo)
 
         val targetUrl = createCredentialAuthRequest()
@@ -380,19 +381,22 @@ val defaultSigningConfig = SigningConfig(
             "EGIZ",
             "https://apps.egiz.gv.at/qtsp/csc/v2",
             "https://apps.egiz.gv.at/qtsp",
-            "https://wallet.a-sit.at/app"
+            "https://wallet.a-sit.at/app",
+            allowPreload = true
         ),
         QtspConfig(
             "ATRUST",
             "https://hs-abnahme.a-trust.at/csc/v2",
             "https://hs-abnahme.a-trust.at/csc/v1",
-            "WALLET_EGIZ"
+            "WALLET_EGIZ",
+            allowPreload = true
         ),
         QtspConfig(
             "PRIMESIGN",
             "https://qs.primesign-test.com/csc/v2",
             "https://id.primesign-test.com/realms/qs-staging",
-            "https://wallet.a-sit.at/app"
+            "https://wallet.a-sit.at/app",
+            allowPreload = false
         )
     ),
     current = "EGIZ"
@@ -405,6 +409,7 @@ data class QtspConfig(
     val oauth2BaseUrl: String,
     val oauth2ClientId: String,
     var credentialInfo: CredentialInfo? = null,
+    val allowPreload: Boolean
 )
 
 val qesDateTime = LocalDateTime.Format {
