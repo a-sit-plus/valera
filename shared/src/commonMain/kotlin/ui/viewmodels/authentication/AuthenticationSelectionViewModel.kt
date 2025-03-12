@@ -1,4 +1,4 @@
-package ui.viewmodels.Authentication
+package ui.viewmodels.authentication
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateMapOf

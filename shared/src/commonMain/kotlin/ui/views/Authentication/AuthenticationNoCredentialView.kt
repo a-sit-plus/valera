@@ -1,4 +1,4 @@
-package ui.views.Authentication
+package ui.views.authentication
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,7 +25,7 @@ import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.info_text_no_matching_credential
 import at.asitplus.valera.resources.info_text_to_start_screen
 import org.jetbrains.compose.resources.stringResource
-import ui.viewmodels.Authentication.AuthenticationNoCredentialViewModel
+import ui.viewmodels.authentication.AuthenticationNoCredentialViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

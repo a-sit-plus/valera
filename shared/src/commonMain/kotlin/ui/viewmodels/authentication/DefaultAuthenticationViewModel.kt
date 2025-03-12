@@ -1,8 +1,7 @@
-package ui.viewmodels.Authentication
+package ui.viewmodels.authentication
 
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.catchingUnwrapped
-import at.asitplus.catchingUnwrappedAs
 import at.asitplus.dif.ConstraintField
 import at.asitplus.jsonpath.core.NodeList
 import at.asitplus.openid.AuthenticationRequestParameters

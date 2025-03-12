@@ -1,4 +1,4 @@
-package ui.views.Authentication
+package ui.views.authentication
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,12 +32,12 @@ import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.heading_label_navigate_back
 import at.asitplus.valera.resources.prompt_select_credential
 import at.asitplus.wallet.app.common.decodeImage
-import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.CredentialSelectionGroup
-import ui.viewmodels.Authentication.AuthenticationSelectionViewModel
+import ui.viewmodels.authentication.AuthenticationSelectionViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
