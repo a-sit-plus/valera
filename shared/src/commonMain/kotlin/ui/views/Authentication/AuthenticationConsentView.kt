@@ -44,7 +44,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import at.asitplus.catchingUnwrapped
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.rqes.collection_entries.TransactionData
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_location
@@ -54,11 +53,10 @@ import at.asitplus.valera.resources.heading_label_navigate_back
 import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_data_recipient
 import at.asitplus.valera.resources.section_heading_transaction_data
-import at.asitplus.wallet.app.common.thirdParty.at.asitplus.jsonpath.core.plus
-import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
-import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
-import at.asitplus.wallet.lib.oidvci.encodeToParameters
 import at.asitplus.wallet.app.common.extractConsentData
+import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.getLocalization
+import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
+import at.asitplus.wallet.lib.oidvci.encodeToParameters
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.ConsentAttributesSection
 import ui.composables.DataDisplaySection

@@ -10,7 +10,6 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import at.asitplus.dif.ConstraintField
 import at.asitplus.jsonpath.core.NodeListEntry
-import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 
 @Composable

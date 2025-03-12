@@ -30,7 +30,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.button_label_sign
 import at.asitplus.valera.resources.heading_label_sign_document
 import at.asitplus.valera.resources.text_label_credential_id

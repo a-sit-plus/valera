@@ -3,7 +3,12 @@ package at.asitplus.wallet.app.common
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.app_display_name
-import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabelNonCompose
+import at.asitplus.wallet.app.common.dcapi.CredentialField
+import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
+import at.asitplus.wallet.app.common.dcapi.DisplayInfoField
+import at.asitplus.wallet.app.common.dcapi.IdentityCredentialEntry
+import at.asitplus.wallet.app.common.dcapi.IdentityCredentialField
+import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabelNonCompose
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
@@ -13,11 +18,6 @@ import data.credentials.CredentialAdapter.Companion.toNamespaceAttributeMap
 import data.credentials.CredentialAttributeTranslator
 import data.credentials.IdAustriaCredentialAdapter
 import data.credentials.MobileDrivingLicenceCredentialAdapter
-import at.asitplus.wallet.app.common.dcapi.CredentialField
-import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
-import at.asitplus.wallet.app.common.dcapi.DisplayInfoField
-import at.asitplus.wallet.app.common.dcapi.IdentityCredentialEntry
-import at.asitplus.wallet.app.common.dcapi.IdentityCredentialField
 import data.storage.StoreContainer
 import io.github.aakira.napier.Napier
 import org.jetbrains.compose.resources.getString

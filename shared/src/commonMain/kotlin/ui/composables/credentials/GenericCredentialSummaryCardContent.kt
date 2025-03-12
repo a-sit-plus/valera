@@ -28,10 +28,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
-import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_hide_technical_details
 import at.asitplus.valera.resources.button_label_show_technical_details
+import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import data.credentials.CredentialAdapter.Companion.toComplexJson
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Label
