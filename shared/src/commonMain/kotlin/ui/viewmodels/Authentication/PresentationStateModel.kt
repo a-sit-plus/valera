@@ -1,4 +1,4 @@
-package ui.viewmodels
+package ui.viewmodels.Authentication
 
 import at.asitplus.wallet.app.common.presentation.MdocPresenter
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
@@ -45,6 +45,13 @@ class PresentationStateModel {
          */
         IDLE,
 
+        INITIALISED,
+
+        /**
+         * Check if all permissions are granted.
+         */
+        CHECK_PERMISSIONS,
+
         /**
          * Presentment has been started but the mechanism used to communicate with the reader is not yet available.
          */
@@ -69,6 +76,11 @@ class PresentationStateModel {
          * Presentment is complete. If something went wrong the [error] property is set.
          */
         COMPLETED,
+
+        /**
+         * Missing permissions
+         */
+        NO_PERMISSION
     }
 
     private val _state = MutableStateFlow(State.IDLE)
@@ -121,12 +133,29 @@ class PresentationStateModel {
         _state.value = State.IDLE
     }
 
+    fun init() {
+        check(_state.value == State.IDLE)
+        _presentmentScope = CoroutineScope(Dispatchers.Main)
+        _state.value = State.INITIALISED
+    }
+
+    /**
+     * Sets the model to [State.CHECK_PERMISSIONS] if Bluetooth is required or [State.CONNECTING].
+     */
+    fun start(needBluetooth: Boolean) {
+        check(_state.value == State.INITIALISED)
+        if (needBluetooth) {
+            _state.value = State.CHECK_PERMISSIONS
+        } else {
+            _state.value = State.CONNECTING
+        }
+    }
+
     /**
      * Sets the model to [State.CONNECTING].
      */
-    fun setConnecting() {
-        check(_state.value == State.IDLE)
-        _presentmentScope = CoroutineScope(Dispatchers.Main)
+    private fun setConnecting() {
+        check(_state.value == State.CHECK_PERMISSIONS)
         _state.value = State.CONNECTING
     }
 
@@ -279,6 +308,15 @@ class PresentationStateModel {
     }
 
     private var credentialSelectorContinuation: CancellableContinuation<DeviceResponse>? = null
+
+    fun setPermissionState(granted: Boolean) {
+        check(_state.value == State.CHECK_PERMISSIONS)
+        if (!granted) {
+            _state.value = State.NO_PERMISSION
+        } else {
+            setConnecting()
+        }
+    }
 
     suspend fun requestCredentialSelection(): DeviceResponse {
         _state.value = State.WAITING_FOR_DOCUMENT_SELECTION

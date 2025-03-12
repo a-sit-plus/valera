@@ -10,7 +10,7 @@ import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import ui.navigation.WalletNavigation
 import ui.theme.WalletTheme
-import ui.viewmodels.PresentationStateModel
+import ui.viewmodels.Authentication.PresentationStateModel
 
 /**
  * Global variables which especially helps to channel information from swift code

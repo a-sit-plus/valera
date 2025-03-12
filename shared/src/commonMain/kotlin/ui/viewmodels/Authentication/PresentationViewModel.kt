@@ -1,4 +1,4 @@
-package ui.viewmodels
+package ui.viewmodels.Authentication
 
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.dif.Constraint
@@ -15,7 +15,6 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.iso.DeviceResponse
 import com.android.identity.request.MdocRequest
 import kotlinx.coroutines.runBlocking
-import ui.viewmodels.Authentication.AuthenticationViewModel
 
 class PresentationViewModel(
     val presentationStateModel: PresentationStateModel,

@@ -359,4 +359,7 @@
     <string name="presentation_canceled">UNTRANSLATED:presentation_canceled</string>
     <string name="presentation_timeout">UNTRANSLATED:presentation_timeout</string>
     <string name="presentation_waiting_for_request">UNTRANSLATED:presentation_waiting_for_request</string>
+    <string name="presentation_missing_permission">UNTRANSLATED:presentation_missing_permission</string>
+    <string name="presentation_permission_required">UNTRANSLATED:presentation_permission_required</string>
+    <string name="presentation_initialised">UNTRANSLATED:presentation_initialised</string>
 </resources>

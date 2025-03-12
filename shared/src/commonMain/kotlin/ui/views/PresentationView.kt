@@ -35,9 +35,13 @@ import at.asitplus.valera.resources.presentation_error
 import at.asitplus.valera.resources.presentation_success
 import at.asitplus.valera.resources.presentation_timeout
 import at.asitplus.valera.resources.presentation_waiting_for_request
+import at.asitplus.valera.resources.presentation_initialised
+import at.asitplus.valera.resources.presentation_missing_permission
+import at.asitplus.valera.resources.presentation_permission_required
 import at.asitplus.wallet.app.common.presentation.PresentmentCanceled
-import ui.viewmodels.PresentationStateModel
+import ui.viewmodels.Authentication.PresentationStateModel
 import at.asitplus.wallet.app.common.presentation.PresentmentTimeout
+import at.asitplus.wallet.app.permissions.RequestBluetoothPermissions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -47,7 +51,7 @@ import ui.viewmodels.Authentication.AuthenticationConsentViewModel
 import ui.viewmodels.Authentication.AuthenticationNoCredentialViewModel
 import ui.viewmodels.Authentication.AuthenticationSelectionViewModel
 import ui.viewmodels.Authentication.AuthenticationViewState
-import ui.viewmodels.PresentationViewModel
+import ui.viewmodels.Authentication.PresentationViewModel
 import ui.views.Authentication.AuthenticationConsentView
 import ui.views.Authentication.AuthenticationNoCredentialView
 import ui.views.Authentication.AuthenticationSelectionView
@@ -90,7 +94,11 @@ fun PresentationView(
     val state = presentationStateModel.state.collectAsState().value
     when (state) {
         PresentationStateModel.State.IDLE,
+        PresentationStateModel.State.NO_PERMISSION,
+        PresentationStateModel.State.INITIALISED,
         PresentationStateModel.State.CONNECTING -> {}
+        PresentationStateModel.State.CHECK_PERMISSIONS ->
+            RequestBluetoothPermissions { granted -> presentationStateModel.setPermissionState(granted) }
         PresentationStateModel.State.WAITING_FOR_SOURCE -> {
             presentationStateModel.setStepAfterWaitingForSource(presentationViewModel)
         }
@@ -172,33 +180,47 @@ fun PresentationView(
                     }
 
                     PresentationStateModel.State.COMPLETED -> {
-                        if (presentationStateModel.error == null) {
-                            Triple(
-                                //TODO add proper icons
-                                "", painterResource(Res.drawable.icon_presentation_success),
-                                stringResource(Res.string.presentation_success)
-                            )
-                        } else if (presentationStateModel.error is PresentmentCanceled) {
-                            Triple(
-                                stringResource(Res.string.app_display_name),
-                                painterResource(Res.drawable.icon_presentation),
-                                stringResource(Res.string.presentation_canceled)
-                            )
-                        } else if (presentationStateModel.error is PresentmentTimeout) {
-                            Triple(
-                                "", painterResource(Res.drawable.icon_presentation_error),
-                                stringResource(Res.string.presentation_timeout)
-                            )
-                        } else {
-                            Triple(
-                                "", painterResource(Res.drawable.icon_presentation_error),
-                                stringResource(Res.string.presentation_error)
-                            )
-
+                        when (presentationStateModel.error) {
+                            null -> Triple(
+                                    //TODO add proper icons
+                                    "", painterResource(Res.drawable.icon_presentation_success),
+                                    stringResource(Res.string.presentation_success)
+                                )
+                            is PresentmentCanceled -> Triple(
+                                    stringResource(Res.string.app_display_name),
+                                    painterResource(Res.drawable.icon_presentation),
+                                    stringResource(Res.string.presentation_canceled)
+                                )
+                            is PresentmentTimeout -> Triple(
+                                    "", painterResource(Res.drawable.icon_presentation_error),
+                                    stringResource(Res.string.presentation_timeout)
+                                )
+                            else -> Triple(
+                                    "", painterResource(Res.drawable.icon_presentation_error),
+                                    stringResource(Res.string.presentation_error)
+                                )
                         }
                     }
 
                     PresentationStateModel.State.WAITING_FOR_DOCUMENT_SELECTION -> throw IllegalStateException("should not be reachable")
+                    PresentationStateModel.State.NO_PERMISSION -> Triple(
+                        stringResource(Res.string.app_display_name),
+                        painterResource(Res.drawable.icon_presentation),
+                        stringResource(Res.string.presentation_missing_permission)
+                    )
+                    PresentationStateModel.State.CHECK_PERMISSIONS -> Triple(
+                        stringResource(Res.string.app_display_name),
+                        painterResource(Res.drawable.icon_presentation),
+                        stringResource(Res.string.presentation_permission_required)
+
+                    )
+
+                    PresentationStateModel.State.INITIALISED -> Triple(
+                        stringResource(Res.string.app_display_name),
+                        painterResource(Res.drawable.icon_presentation),
+                        stringResource(Res.string.presentation_initialised)
+
+                    )
                 }
 
 

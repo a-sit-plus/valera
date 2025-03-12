@@ -6,7 +6,7 @@ import android.os.Bundle
 import android.os.Vibrator
 import androidx.core.content.ContextCompat
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
-import ui.viewmodels.PresentationStateModel
+import ui.viewmodels.Authentication.PresentationStateModel
 import at.asitplus.wallet.app.common.presentation.PresentmentTimeout
 import at.asitplus.wallet.app.common.presentation.TransferSettings
 import com.android.identity.cbor.DataItem
@@ -29,6 +29,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
@@ -88,7 +89,7 @@ class NdefDeviceEngagementService: HostApduService() {
         val timeStarted = Clock.System.now()
 
         presentationStateModel.reset()
-        presentationStateModel.setConnecting()
+        presentationStateModel.init()
 
         // The UI consuming [PresentationModel] - for example the [Presentment] composable in this library - may
         // have a cancel button which will trigger COMPLETED state when pressed. Need to listen for that.
@@ -172,6 +173,8 @@ class NdefDeviceEngagementService: HostApduService() {
             eDeviceKey = ephemeralDeviceKey.publicKey,
             onHandoverComplete = { connectionMethods, encodedDeviceEngagement, handover ->
                 vibrateSuccess()
+                presentationStateModel.start(connectionMethods.any { it is ConnectionMethodBle })
+
                 val duration = Clock.System.now() - timeStarted
                 listenOnMethods(
                     connectionMethods = connectionMethods,
@@ -202,6 +205,7 @@ class NdefDeviceEngagementService: HostApduService() {
         engagementDuration: Duration,
     ) {
         presentationStateModel.presentmentScope.launch {
+            presentationStateModel.state.first { it != PresentationStateModel.State.IDLE && it != PresentationStateModel.State.NO_PERMISSION && it != PresentationStateModel.State.CHECK_PERMISSIONS }
             val transport = connectionMethods.advertiseAndWait(
                 role = MdocTransport.Role.MDOC,
                 transportFactory = MdocTransportFactory.Default,

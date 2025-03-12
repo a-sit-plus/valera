@@ -15,8 +15,8 @@ import com.android.identity.util.Constants
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import ui.viewmodels.PresentationStateModel
-import ui.viewmodels.PresentationViewModel
+import ui.viewmodels.Authentication.PresentationStateModel
+import ui.viewmodels.Authentication.PresentationViewModel
 
 
 // Based on the identity-credential sample code

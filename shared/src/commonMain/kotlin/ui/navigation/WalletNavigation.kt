@@ -83,7 +83,7 @@ import ui.viewmodels.CredentialsViewModel
 import ui.viewmodels.LoadCredentialViewModel
 import ui.viewmodels.LogViewModel
 import ui.viewmodels.PreAuthQrCodeScannerViewModel
-import ui.viewmodels.PresentationViewModel
+import ui.viewmodels.Authentication.PresentationViewModel
 import ui.viewmodels.SettingsViewModel
 import ui.viewmodels.SigningQtspSelectionViewModel
 import ui.viewmodels.SigningViewModel

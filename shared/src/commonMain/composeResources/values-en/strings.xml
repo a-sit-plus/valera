@@ -351,5 +351,7 @@
     <string name="presentation_canceled">Presentment was canceled</string>
     <string name="presentation_timeout">Timed out waiting for reader</string>
     <string name="presentation_waiting_for_request">Waiting for request</string>
-
+    <string name="presentation_missing_permission">Presentation cannot be finished without permissions.</string>
+    <string name="presentation_permission_required">Checking if required permissions are set…</string>
+    <string name="presentation_initialised">Presentation initialising…</string>
 </resources>
