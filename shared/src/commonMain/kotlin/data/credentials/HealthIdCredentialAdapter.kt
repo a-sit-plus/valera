@@ -8,6 +8,7 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import data.Attribute
 import kotlinx.datetime.Instant
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 
@@ -56,7 +57,10 @@ sealed class HealthIdCredentialAdapter : CredentialAdapter() {
             }
             return when (storeEntry) {
                 is SubjectCredentialStore.StoreEntry.Vc -> TODO("Operation not yet supported")
-                is SubjectCredentialStore.StoreEntry.SdJwt -> HealthIdCredentialSdJwtAdapter(storeEntry.toAttributeMap())
+                is SubjectCredentialStore.StoreEntry.SdJwt -> storeEntry.toComplexJson()
+                    ?.let { HealthIdComplexCredentialSdJwtAdapter(it) }
+                    ?: HealthIdCredentialSdJwtAdapter(storeEntry.toAttributeMap())
+
                 is SubjectCredentialStore.StoreEntry.Iso -> HealthIdCredentialIsoMdocAdapter(storeEntry.toNamespaceAttributeMap())
             }
         }
@@ -107,6 +111,52 @@ private class HealthIdCredentialSdJwtAdapter(
 
     override val issuingJurisdiction: String?
         get() = attributes[Attributes.ISSUING_JURISDICTION]?.contentOrNull
+}
+
+private class HealthIdComplexCredentialSdJwtAdapter(
+    private val attributes: JsonObject,
+) : HealthIdCredentialAdapter() {
+    override val representation: CredentialRepresentation
+        get() = CredentialRepresentation.SD_JWT
+
+    override val healthInsuranceId: String?
+        get() = (attributes[Attributes.HEALTH_INSURANCE_ID] as? JsonPrimitive?)?.contentOrNull
+
+    override val patientId: String?
+        get() = (attributes[Attributes.PATIENT_ID] as? JsonPrimitive?)?.contentOrNull
+
+    override val taxNumber: String?
+        get() = (attributes[Attributes.TAX_NUMBER] as? JsonPrimitive?)?.contentOrNull
+
+    override val oneTimeToken: String?
+        get() = (attributes[Attributes.ONE_TIME_TOKEN] as? JsonPrimitive?)?.contentOrNull
+
+    override val ePrescriptionCode: String?
+        get() = (attributes[Attributes.E_PRESCRIPTION_CODE] as? JsonPrimitive?)?.contentOrNull
+
+    override val affiliationCountry: String?
+        get() = (attributes[Attributes.AFFILIATION_COUNTRY] as? JsonPrimitive?)?.contentOrNull
+
+    override val issueDate: Instant?
+        get() = (attributes[Attributes.ISSUE_DATE] as? JsonPrimitive?)?.contentOrNull?.toInstantOrNull()
+
+    override val expiryDate: Instant?
+        get() = (attributes[Attributes.EXPIRY_DATE] as? JsonPrimitive?)?.contentOrNull?.toInstantOrNull()
+
+    override val issuingAuthority: String?
+        get() = (attributes[Attributes.ISSUING_AUTHORITY] as? JsonPrimitive?)?.contentOrNull
+
+    override val documentNumber: String?
+        get() = (attributes[Attributes.DOCUMENT_NUMBER] as? JsonPrimitive?)?.contentOrNull
+
+    override val administrativeNumber: String?
+        get() = (attributes[Attributes.ADMINISTRATIVE_NUMBER] as? JsonPrimitive?)?.contentOrNull
+
+    override val issuingCountry: String?
+        get() = (attributes[Attributes.ISSUING_COUNTRY] as? JsonPrimitive?)?.contentOrNull
+
+    override val issuingJurisdiction: String?
+        get() = (attributes[Attributes.ISSUING_JURISDICTION] as? JsonPrimitive?)?.contentOrNull
 }
 
 private class HealthIdCredentialIsoMdocAdapter(

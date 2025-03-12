@@ -46,6 +46,23 @@ object CertificateOfResidenceCredentialAttributeTranslator : CredentialAttribute
                     FAMILY_NAME -> Res.string.attribute_friendly_name_firstname
                     GIVEN_NAME -> Res.string.attribute_friendly_name_lastname
                     BIRTH_DATE -> Res.string.attribute_friendly_name_date_of_birth
+                    RESIDENCE_ADDRESS -> with(CertificateOfResidenceDataElements.Address) {
+                        when (val second = attributeName.segments.drop(1).firstOrNull()) {
+                            is NormalizedJsonPathSegment.NameSegment -> when (second.memberName) {
+                                PO_BOX -> Res.string.attribute_friendly_name_residence_address_po_box
+                                THOROUGHFARE -> Res.string.attribute_friendly_name_residence_address_thoroughfare
+                                LOCATOR_DESIGNATOR -> Res.string.attribute_friendly_name_residence_address_locator_designator
+                                LOCATOR_NAME -> Res.string.attribute_friendly_name_residence_address_locator_name
+                                POST_CODE -> Res.string.attribute_friendly_name_residence_address_post_code
+                                POST_NAME -> Res.string.attribute_friendly_name_residence_address_post_name
+                                ADMIN_UNIT_L_1 -> Res.string.attribute_friendly_name_residence_address_admin_unit_L1
+                                ADMIN_UNIT_L_2 -> Res.string.attribute_friendly_name_residence_address_admin_unit_L2
+                                FULL_ADDRESS -> Res.string.attribute_friendly_name_residence_address_full_address
+                                else -> null
+                            }
+                            else -> null
+                        }
+                    }
                     RESIDENCE_ADDRESS_PO_BOX -> Res.string.attribute_friendly_name_residence_address_po_box
                     RESIDENCE_ADDRESS_THOROUGHFARE -> Res.string.attribute_friendly_name_residence_address_thoroughfare
                     RESIDENCE_ADDRESS_LOCATOR_DESIGNATOR -> Res.string.attribute_friendly_name_residence_address_locator_designator

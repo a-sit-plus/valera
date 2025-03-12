@@ -1,6 +1,7 @@
 package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.app.common.third_parts.at.asitplus.jsonpath.core.plus
 import at.asitplus.wallet.cor.CertificateOfResidenceDataElements
 import data.PersonalDataCategory
@@ -18,18 +19,18 @@ object CertificateOfResidenceCredentialAttributeCategorization : CredentialAttri
             ).map { NormalizedJsonPath() + it to null }
         },
 
-        PersonalDataCategory.ResidenceData to with(CertificateOfResidenceDataElements) {
+        PersonalDataCategory.ResidenceData to with(CertificateOfResidenceDataElements.Address) {
             listOf(
-                RESIDENCE_ADDRESS_PO_BOX,
-                RESIDENCE_ADDRESS_THOROUGHFARE,
-                RESIDENCE_ADDRESS_LOCATOR_DESIGNATOR,
-                RESIDENCE_ADDRESS_LOCATOR_NAME,
-                RESIDENCE_ADDRESS_POST_CODE,
-                RESIDENCE_ADDRESS_POST_NAME,
-                RESIDENCE_ADDRESS_ADMIN_UNIT_L_1,
-                RESIDENCE_ADDRESS_ADMIN_UNIT_L_2,
-                RESIDENCE_ADDRESS_FULL_ADDRESS,
-            ).map { NormalizedJsonPath() + it to null }
+                PO_BOX,
+                THOROUGHFARE,
+                LOCATOR_DESIGNATOR,
+                LOCATOR_NAME,
+                POST_CODE,
+                POST_NAME,
+                ADMIN_UNIT_L_1,
+                ADMIN_UNIT_L_2,
+                FULL_ADDRESS,
+            ).map { NormalizedJsonPath(NormalizedJsonPathSegment.NameSegment(CertificateOfResidenceDataElements.RESIDENCE_ADDRESS)) + it to null }
         },
         PersonalDataCategory.Metadata to with(CertificateOfResidenceDataElements) {
             listOf(
