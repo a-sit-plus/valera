@@ -93,13 +93,13 @@ class MdocPresenter(
                     break
                 }
 
-                //TODO use our libs to parse the device request
                 val deviceRequest = DeviceRequestParser(
                     encodedDeviceRequest!!,
                     encodedSessionTranscript!!,
                 ).parse()
 
 
+                //TODO use our libs to parse the device request
                 val mdocRequests = deviceRequest.docRequests.map {
                     it.toMdocRequest(
                         documentTypeRepository = DocumentTypeRepository(),
@@ -138,7 +138,6 @@ class MdocPresenter(
             stateModel.setCompleted()
         } catch (error: Throwable) {
             Napier.e("Caught exception", error)
-            error.printStackTrace()
             stateModel.setCompleted(error)
         }
     }
