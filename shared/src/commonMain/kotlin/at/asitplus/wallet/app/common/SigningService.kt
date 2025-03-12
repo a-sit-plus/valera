@@ -14,6 +14,8 @@ import at.asitplus.rqes.enums.CertificateOptions
 import at.asitplus.signum.indispensable.X509SignatureAlgorithm
 import at.asitplus.signum.indispensable.io.ByteArrayBase64Serializer
 import at.asitplus.signum.indispensable.josef.JwsSigned
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.snackbar_sign_successful
 import at.asitplus.wallet.app.common.Configuration.DATASTORE_SIGNING_CONFIG
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.oauth2.OAuth2Client
@@ -51,11 +53,13 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
+import org.jetbrains.compose.resources.getString
 
 class SigningService(
     val platformAdapter: PlatformAdapter,
     val dataStoreService: DataStoreService,
     val errorService: ErrorService,
+    val snackbarService: SnackbarService,
     httpService: HttpService,
 ) {
     val config = runBlocking { importFromDataStore() }
@@ -208,10 +212,10 @@ class SigningService(
                     .formUrlEncode()
             )
         }
-        val body = catchingUnwrapped { response.body<QtspFinalRedirect>() }.getOrNull()
-        if (body?.redirect_uri != null) {
-            platformAdapter.openUrl(body.redirect_uri)
+        catchingUnwrapped { response.body<QtspFinalRedirect>() }.getOrNull()?.let {
+            platformAdapter.openUrl(it.redirect_uri)
         }
+        snackbarService.showSnackbar(getString(Res.string.snackbar_sign_successful))
     }
 
     private suspend fun createServiceAuthRequest(): String {
