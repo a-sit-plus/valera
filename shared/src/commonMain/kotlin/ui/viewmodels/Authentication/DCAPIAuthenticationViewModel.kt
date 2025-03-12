@@ -7,15 +7,13 @@ import at.asitplus.dif.DifInputDescriptor
 import at.asitplus.jsonpath.core.NodeList
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
-import at.asitplus.misc.getRequestOptionParameters
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import at.asitplus.wallet.lib.agent.CredentialSubmission
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.credentials.CredentialAdapter
-import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import kotlinx.coroutines.runBlocking
-
 
 class DCAPIAuthenticationViewModel(
     spImage: ImageBitmap? = null,
@@ -41,10 +39,7 @@ class DCAPIAuthenticationViewModel(
             ).toString()), intentToRetain = requestedAttribute.second) }))
     }
 
-    override val parametersMap = descriptors.mapNotNull {
-        val parameter = it.getRequestOptionParameters().getOrElse { return@mapNotNull null }
-        it.id to parameter
-    }.toMap()
+    override val transactionData = null
 
     override fun findMatchingCredentials(): Map<String, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, NodeList>>> {
         return runBlocking {

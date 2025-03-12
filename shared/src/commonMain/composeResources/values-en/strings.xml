@@ -49,6 +49,7 @@
     <string name="button_label_select">Select</string>
     <string name="button_label_show_technical_details">Show technical details</string>
     <string name="button_label_hide_technical_details">Hide technical details</string>
+    <string name="button_label_sign">Sign</string>
 
     <string name="attribute_friendly_name_bpk">BPK</string>
     <string name="attribute_friendly_name_firstname">Given name</string>
@@ -95,6 +96,9 @@
 
     <string name="attribute_friendly_name_country_code">Country code</string>
     <string name="attribute_friendly_name_one_time_token">One-time token</string>
+    <string name="attribute_friendly_name_health_insurance_id">Health insurance ID</string>
+    <string name="attribute_friendly_name_patient_id">Patient ID</string>
+    <string name="attribute_friendly_name_e_prescription_code">ePrescription Code</string>
     <string name="attribute_friendly_name_valid_until">Valid until</string>
 
     <string name="id_austria_credential_attribute_friendly_name_main_address_street">Street</string>
@@ -114,6 +118,10 @@
     <string name="attribute_friendly_name_effective_until_date">Effective until</string>
     <string name="attribute_friendly_name_administrative_number">Administrative number</string>
     <string name="attribute_friendly_name_personal_administrative_number">Personal administrative number</string>
+    <string name="attribute_friendly_name_email_address">eMail address</string>
+    <string name="attribute_friendly_name_mobile_phone_number">Mobile phone number</string>
+    <string name="attribute_friendly_name_trust_anchor">Trust anchor</string>
+    <string name="attribute_friendly_name_location_status">Status URL</string>
     <string name="attribute_friendly_name_issuing_jurisdiction">Issuing jurisdiction</string>
     <string name="attribute_friendly_name_residence_address">Residence address</string>
     <string name="attribute_friendly_name_residence_address_po_box">PO box</string>
@@ -174,8 +182,8 @@
     <string name="credential_scheme_label_certificate_of_residence">Certificate of residence</string>
     <string name="credential_scheme_icon_label_company_registration">CR</string>
     <string name="credential_scheme_label_company_registration">Company registration</string>
-    <string name="credential_scheme_label_eprescription">e-Prescription</string>
-    <string name="credential_scheme_icon_label_eprescription">eP</string>
+    <string name="credential_scheme_label_healthid">HealthID</string>
+    <string name="credential_scheme_icon_label_healthid">HIID</string>
     <string name="credential_scheme_label_tax_id">Tax ID</string>
     <string name="credential_scheme_icon_label_tax_id">TAX</string>
 
@@ -198,6 +206,14 @@
     <string name="text_label_build_type">Build</string>
     <string name="text_label_version">Version</string>
     <string name="text_label_build">Build</string>
+    <string name="text_label_qtsp">QTSP</string>
+    <string name="text_label_preload_certificate">Preload certificate</string>
+    <string name="text_label_delete_certificate">Delete certificate</string>
+    <string name="text_label_credential_id">Credential ID</string>
+    <string name="text_label_valid_from">Valid from</string>
+    <string name="text_label_valid_to">Valid to</string>
+    <string name="text_label_optional">Optional</string>
+    <string name="text_label_check_all">Check all</string>
 
     <string name="heading_label_authenticate_at_device_title">Authenticate</string>
     <string name="heading_label_authenticate_at_device_subtitle">at relying party</string>
@@ -219,6 +235,7 @@
     <string name="heading_label_add_credential_screen">Load data</string>
     <string name="heading_label_refresh_data_screen">Load data</string>
     <string name="heading_label_authenticate_at_device_screen">Authenticate at\nrelying party</string>
+    <string name="heading_label_sign_document">Sign document</string>
 
     <string name="description_read_terms">Please read and accept the terms of use and the privacy policy.</string>
 
@@ -314,6 +331,7 @@
     <string name="section_heading_load_data_selection">Available data</string>
     <string name="section_heading_missing_data">Load new data</string>
     <string name="section_heading_available_data">Refresh existing data</string>
+    <string name="section_heading_transaction_data">Transaction</string>
 
     <string name="onboarding_section_terms_and_data_protection_icon_text">1</string>
     <string name="onboarding_section_terms_and_data_protection_title">Terms of use and privacy policy</string>

@@ -38,7 +38,6 @@ import at.asitplus.valera.resources.presentation_waiting_for_request
 import at.asitplus.wallet.app.common.presentation.PresentmentCanceled
 import ui.viewmodels.PresentationStateModel
 import at.asitplus.wallet.app.common.presentation.PresentmentTimeout
-import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -103,10 +102,11 @@ fun PresentationView(
                         spName = presentationViewModel.spName,
                         spLocation = presentationViewModel.spLocation,
                         spImage = presentationViewModel.spImage,
-                        requests = presentationViewModel.parametersMap,
+                        requests = presentationViewModel.descriptors.toList(),
                         navigateUp = presentationViewModel.navigateUp,
                         buttonConsent = { presentationViewModel.onConsent() },
-                        walletMain = presentationViewModel.walletMain
+                        walletMain = presentationViewModel.walletMain,
+                        transactionData = presentationViewModel.transactionData
                     )
                     AuthenticationConsentView(viewModel)
                 }

@@ -25,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
-import at.asitplus.wallet.eprescription.EPrescriptionScheme
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
@@ -34,11 +33,12 @@ import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_credential_details_screen
 import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
+import at.asitplus.wallet.healthid.HealthIdScheme
 import at.asitplus.wallet.taxid.TaxIdScheme
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.CertificateOfResidenceCredentialView
-import ui.composables.credentials.EPrescriptionView
+import ui.composables.credentials.HealthIdView
 import ui.composables.credentials.EuPidCredentialView
 import ui.composables.credentials.GenericCredentialSummaryCardContent
 import ui.composables.credentials.IdAustriaCredentialView
@@ -139,7 +139,7 @@ fun CredentialDetailsSummaryView(
             is PowerOfRepresentationScheme -> PowerOfRepresentationCredentialView(storeEntry)
             is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialView(storeEntry)
             is CompanyRegistrationScheme -> CompanyRegistrationCredentialView(storeEntry)
-            is EPrescriptionScheme -> EPrescriptionView(storeEntry)
+            is HealthIdScheme -> HealthIdView(storeEntry)
             is TaxIdScheme -> TaxIdCredentialView(storeEntry)
             else -> {}
         }

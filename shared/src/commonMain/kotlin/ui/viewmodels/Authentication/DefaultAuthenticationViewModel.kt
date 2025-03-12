@@ -1,15 +1,18 @@
 package ui.viewmodels.Authentication
 
 import androidx.compose.ui.graphics.ImageBitmap
+import at.asitplus.catchingUnwrapped
+import at.asitplus.catchingUnwrappedAs
 import at.asitplus.dif.ConstraintField
 import at.asitplus.jsonpath.core.NodeList
-import at.asitplus.misc.getRequestOptionParameters
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.RequestParametersFrom
+import at.asitplus.rqes.collection_entries.TransactionData
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.CredentialSubmission
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
+import at.asitplus.wallet.lib.data.vckJsonSerializer
 import kotlinx.coroutines.runBlocking
 
 
@@ -33,10 +36,10 @@ class DefaultAuthenticationViewModel(
 ) {
     override val descriptors =
         authenticationRequest.parameters.presentationDefinition?.inputDescriptors ?: listOf()
-    override val parametersMap = descriptors.mapNotNull {
-        val parameter = it.getRequestOptionParameters().getOrElse { return@mapNotNull null }
-        Pair(it.id, parameter)
-    }.toMap()
+
+    override val transactionData = catchingUnwrapped {
+        vckJsonSerializer.decodeFromString<TransactionData>(authenticationRequest.parameters.transactionData?.first()!!)
+    }.getOrNull()
 
     private lateinit var preparationState: AuthorizationResponsePreparationState
 
@@ -52,5 +55,4 @@ class DefaultAuthenticationViewModel(
             preparationState = preparationState,
             inputDescriptorSubmission = submission
         )
-
 }

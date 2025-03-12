@@ -7,6 +7,8 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
 import org.jetbrains.kotlin.gradle.plugin.extraProperties
 
+val vckVersion = vckCatalog.vck.get().version
+
 plugins {
     kotlin("multiplatform")
     id("com.android.library")
@@ -35,6 +37,7 @@ kotlin {
                 implementation(compose.foundation)
                 implementation(compose.material3)
                 implementation(compose.materialIconsExtended)
+                implementation("at.asitplus.wallet:vck-rqes:$vckVersion")
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
                 api(vckOidCatalog.vck.openid.ktor)
@@ -44,7 +47,7 @@ kotlin {
                 api(libs.credential.powerofrepresentation)
                 api(libs.credential.certificateofresidence)
                 api(libs.credential.companyregistration)
-                api(libs.credential.eprescription)
+                api(libs.credential.healthid)
                 api(libs.credential.taxid)
                 implementation(serialization("json"))
                 api(napier())
@@ -152,7 +155,7 @@ exportXCFramework(
         libs.credential.powerofrepresentation,
         libs.credential.certificateofresidence,
         libs.credential.companyregistration,
-        libs.credential.eprescription,
+        libs.credential.healthid,
         libs.credential.taxid,
         kmmresult(),
         napier()

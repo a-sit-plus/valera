@@ -11,10 +11,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import at.asitplus.wallet.app.android.AndroidCryptoService
+import at.asitplus.wallet.app.android.dcapi.IdentityCredentialHelper
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
+import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.ResponseJSON
 import com.android.identity.android.mdoc.util.CredmanUtil
 import com.android.identity.crypto.Algorithm
 import com.android.identity.crypto.Crypto
@@ -22,12 +26,8 @@ import com.android.identity.crypto.EcCurve
 import com.android.identity.crypto.EcPublicKeyDoubleCoordinate
 import com.google.android.gms.identitycredentials.IdentityCredentialManager
 import com.google.android.gms.identitycredentials.IntentHelper
-import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
-import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
-import at.asitplus.wallet.app.common.dcapi.ResponseJSON
 import data.storage.RealDataStoreService
 import data.storage.getDataStore
-import at.asitplus.wallet.app.android.dcapi.IdentityCredentialHelper
 import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope

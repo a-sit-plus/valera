@@ -8,7 +8,7 @@ import at.asitplus.dif.InputDescriptor
 import at.asitplus.jsonpath.core.NodeList
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
-import at.asitplus.misc.getRequestOptionParameters
+import at.asitplus.rqes.collection_entries.TransactionData
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.CredentialSubmission
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
@@ -58,11 +58,12 @@ class PresentationViewModel(
     private var finishFunction: ((DeviceResponse) -> Unit)? = null
 
     override val descriptors = mutableListOf<InputDescriptor>()
+    override val transactionData: TransactionData? = null
 
-    override val parametersMap = descriptors.mapNotNull {
+    /*override val parametersMap = descriptors.mapNotNull {
         val parameter = it.getRequestOptionParameters().getOrElse { return@mapNotNull null }
         it.id to parameter
-    }.toMap()
+    }.toMap()*/
 
     override fun findMatchingCredentials(): Map<String, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, NodeList>>> {
         return runBlocking {

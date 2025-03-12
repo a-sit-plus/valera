@@ -19,7 +19,8 @@ sealed class CredentialAdapter {
     protected fun Any?.toLocalDateOrNull() =
         (this as? LocalDate?) ?: (this as String?)?.let { LocalDate.parse(it) }
 
-    protected fun Any?.toInstantOrNull() = (this as String?)?.let { runCatching { Instant.parse(it) }.getOrNull() }
+    protected fun Any?.toInstantOrNull() =
+        (this as? Instant?) ?: (this as String?)?.let { runCatching { Instant.parse(it) }.getOrNull() }
 
     protected fun JsonPrimitive?.toCollectionOrNull() = (this as JsonArray?)?.let { it.map { it.toString() } }
 

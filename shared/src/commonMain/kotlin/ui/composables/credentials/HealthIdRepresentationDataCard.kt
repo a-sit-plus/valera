@@ -6,23 +6,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import at.asitplus.wallet.eprescription.EPrescriptionScheme
+import at.asitplus.wallet.healthid.HealthIdScheme
 import data.PersonalDataCategory
-import data.credentials.EPrescriptionCredentialAdapter
+import data.credentials.HealthIdCredentialAdapter
 import ui.composables.AttributeRepresentation
 
 @Composable
-fun EPrescriptionRepresentationDataCard(
-    credentialAdapter: EPrescriptionCredentialAdapter,
+fun HealthIdRepresentationDataCard(
+    credentialAdapter: HealthIdCredentialAdapter,
     modifier: Modifier = Modifier,
 ) {
     CredentialDetailCard(
-        credentialScheme = EPrescriptionScheme,
+        credentialScheme = HealthIdScheme,
         personalDataCategory = PersonalDataCategory.Metadata,
         credentialAdapter = credentialAdapter,
         modifier = modifier,
     ) {
-        EPrescriptionRepresentationDataCardContent(
+        HealthIdRepresentationDataCardContent(
             credentialAdapter = credentialAdapter,
             modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
         )
@@ -30,21 +30,21 @@ fun EPrescriptionRepresentationDataCard(
 }
 
 @Composable
-fun EPrescriptionRepresentationDataCardContent(
-    credentialAdapter: EPrescriptionCredentialAdapter, modifier: Modifier = Modifier
+fun HealthIdRepresentationDataCardContent(
+    credentialAdapter: HealthIdCredentialAdapter, modifier: Modifier = Modifier
 ) {
     Column(
         horizontalAlignment = Alignment.Start,
         modifier = modifier,
     ) {
         val spacingModifier = Modifier.padding(bottom = 4.dp)
-        credentialAdapter.ott?.let {
+        credentialAdapter.oneTimeToken?.let {
             AttributeRepresentation(it, modifier = spacingModifier)
         }
-        credentialAdapter.countryCode?.let {
+        credentialAdapter.affiliationCountry?.let {
             AttributeRepresentation(it, modifier = spacingModifier)
         }
-        credentialAdapter.validUntil?.let{
+        credentialAdapter.expiryDate?.let{
             AttributeRepresentation(it)
         }
     }

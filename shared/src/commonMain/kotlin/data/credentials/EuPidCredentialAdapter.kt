@@ -10,6 +10,8 @@ import at.asitplus.wallet.eupid.EuPidScheme.Attributes
 import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes
 import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes.Address
 import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes.AgeEqualOrOver
+import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes.EMAIL
+import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes.PHONE_NUMBER
 import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes.PlaceOfBirth
 import at.asitplus.wallet.eupid.IsoIec5218Gender
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
@@ -49,6 +51,7 @@ sealed class EuPidCredentialAdapter(
                 RESIDENT_COUNTRY -> Attribute.fromValue(residentCountry)
                 RESIDENT_STATE -> Attribute.fromValue(residentState)
                 GENDER -> Attribute.fromValue(gender)
+                SEX -> Attribute.fromValue(sex)
                 NATIONALITY -> Attribute.fromValue(nationality)
                 AGE_IN_YEARS -> Attribute.fromValue(ageInYears)
                 AGE_BIRTH_YEAR -> Attribute.fromValue(ageBirthYear)
@@ -67,6 +70,10 @@ sealed class EuPidCredentialAdapter(
                 ISSUING_JURISDICTION -> Attribute.fromValue(issuingJurisdiction)
                 PERSONAL_ADMINISTRATIVE_NUMBER -> Attribute.fromValue(personalAdministrativeNumber)
                 PORTRAIT -> Attribute.fromValue(portraitBitmap)
+                EMAIL_ADDRESS -> Attribute.fromValue(emailAddress)
+                MOBILE_PHONE_NUMBER -> Attribute.fromValue(mobilePhoneNumber)
+                TRUST_ANCHOR -> Attribute.fromValue(trustAnchor)
+                LOCATION_STATUS -> Attribute.fromValue(locationStatus)
                 else -> null
             }
 
@@ -152,6 +159,10 @@ sealed class EuPidCredentialAdapter(
                 ISSUING_JURISDICTION -> Attribute.fromValue(issuingJurisdiction)
                 PERSONAL_ADMINISTRATIVE_NUMBER -> Attribute.fromValue(personalAdministrativeNumber)
                 PORTRAIT -> Attribute.fromValue(portraitBitmap)
+                EMAIL -> Attribute.fromValue(emailAddress)
+                PHONE_NUMBER -> Attribute.fromValue(mobilePhoneNumber)
+                TRUST_ANCHOR -> Attribute.fromValue(trustAnchor)
+                LOCATION_STATUS -> Attribute.fromValue(locationStatus)
                 else -> null
             }
 
@@ -179,6 +190,7 @@ sealed class EuPidCredentialAdapter(
     abstract val residentCountry: String?
     abstract val residentState: String?
     abstract val gender: String?
+    abstract val sex: String?
     abstract val nationality: String?
     abstract val nationalities: Collection<String>?
     abstract val ageInYears: UInt?
@@ -197,6 +209,10 @@ sealed class EuPidCredentialAdapter(
     abstract val issuingCountry: String?
     abstract val issuingJurisdiction: String?
     abstract val personalAdministrativeNumber: String?
+    abstract val emailAddress: String?
+    abstract val mobilePhoneNumber: String?
+    abstract val trustAnchor: String?
+    abstract val locationStatus: String?
 
     companion object {
         fun createFromStoreEntry(
@@ -280,11 +296,15 @@ private class EuPidCredentialVcAdapter(
     override val gender: String?
         get() = credentialSubject.gender?.name
 
+    override val sex: String?
+        get() = credentialSubject.sexAsEnum?.name
+
     override val nationality: String?
         get() = credentialSubject.nationality
 
     override val nationalities: Collection<String>?
-        get() = listOfNotNull(credentialSubject.nationality).ifEmpty { null }
+        get() = credentialSubject.nationalities
+            ?: listOfNotNull(credentialSubject.nationality).ifEmpty { null }
 
     override val ageInYears: UInt?
         get() = credentialSubject.ageInYears
@@ -333,6 +353,18 @@ private class EuPidCredentialVcAdapter(
 
     override val personalAdministrativeNumber: String?
         get() = credentialSubject.personalAdministrativeNumber
+
+    override val emailAddress: String?
+        get() = credentialSubject.emailAddress
+
+    override val mobilePhoneNumber: String?
+        get() = credentialSubject.mobilePhoneNumber
+
+    override val trustAnchor: String?
+        get() = credentialSubject.trustAnchor
+
+    override val locationStatus: String?
+        get() = credentialSubject.locationStatus
 }
 
 /**
@@ -412,9 +444,13 @@ private class EuPidCredentialSdJwtAdapter(
 
     override val gender: String?
         get() = attributes[Attributes.GENDER]?.contentOrNull?.toIntOrNull()
-                ?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code }?.name }
+            ?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code.toUInt() }?.name }
             ?: attributes[SdJwtAttributes.GENDER]?.contentOrNull
             ?: attributes[Attributes.GENDER]?.contentOrNull
+
+    override val sex: String?
+        get() = attributes[Attributes.SEX]?.contentOrNull?.toUIntOrNull()
+            ?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code }?.name }
 
     override val nationality: String?
         get() = attributes[Attributes.NATIONALITY]?.contentOrNull
@@ -486,6 +522,22 @@ private class EuPidCredentialSdJwtAdapter(
     override val personalAdministrativeNumber: String?
         get() = attributes[SdJwtAttributes.PERSONAL_ADMINISTRATIVE_NUMBER]?.contentOrNull
             ?: attributes[Attributes.PERSONAL_ADMINISTRATIVE_NUMBER]?.contentOrNull
+
+    override val emailAddress: String?
+        get() = attributes[SdJwtAttributes.EMAIL]?.contentOrNull
+            ?: attributes[Attributes.EMAIL_ADDRESS]?.contentOrNull
+
+    override val mobilePhoneNumber: String?
+        get() = attributes[SdJwtAttributes.PHONE_NUMBER]?.contentOrNull
+            ?: attributes[Attributes.MOBILE_PHONE_NUMBER]?.contentOrNull
+
+    override val trustAnchor: String?
+        get() = attributes[SdJwtAttributes.TRUST_ANCHOR]?.contentOrNull
+            ?: attributes[Attributes.TRUST_ANCHOR]?.contentOrNull
+
+    override val locationStatus: String?
+        get() = attributes[SdJwtAttributes.LOCATION_STATUS]?.contentOrNull
+            ?: attributes[Attributes.LOCATION_STATUS]?.contentOrNull
 }
 
 private class EuPidCredentialIsoMdocAdapter(
@@ -555,14 +607,21 @@ private class EuPidCredentialIsoMdocAdapter(
     override val gender: String?
         get() = (euPidNamespace?.get(Attributes.GENDER) as? IsoIec5218Gender)?.name
             ?: (euPidNamespace?.get(Attributes.GENDER) as? Int)
+                ?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code.toUInt() }?.name }
+            ?: (euPidNamespace?.get(Attributes.GENDER) as? UInt)
                 ?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code }?.name }
             ?: euPidNamespace?.get(Attributes.GENDER) as? String?
+
+    override val sex: String?
+        get() = (euPidNamespace?.get(Attributes.SEX) as? UInt)
+            ?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code }?.name }
 
     override val nationality: String?
         get() = euPidNamespace?.get(Attributes.NATIONALITY) as? String?
 
     override val nationalities: Collection<String>?
-        get() = listOfNotNull(nationality).ifEmpty { null }
+        get() = (euPidNamespace?.get(Attributes.NATIONALITY) as? Collection<*>?)?.map { it.toString() }
+            ?: listOfNotNull(nationality).ifEmpty { null }
 
     override val ageInYears: UInt?
         get() = euPidNamespace?.get(Attributes.AGE_IN_YEARS) as UInt?
@@ -613,4 +672,16 @@ private class EuPidCredentialIsoMdocAdapter(
 
     override val personalAdministrativeNumber: String?
         get() = euPidNamespace?.get(Attributes.PERSONAL_ADMINISTRATIVE_NUMBER) as? String?
+
+    override val emailAddress: String?
+        get() = euPidNamespace?.get(Attributes.EMAIL_ADDRESS) as? String?
+
+    override val mobilePhoneNumber: String?
+        get() = euPidNamespace?.get(Attributes.MOBILE_PHONE_NUMBER) as? String?
+
+    override val trustAnchor: String?
+        get() = euPidNamespace?.get(Attributes.TRUST_ANCHOR) as? String?
+
+    override val locationStatus: String?
+        get() = euPidNamespace?.get(Attributes.LOCATION_STATUS) as? String?
 }
