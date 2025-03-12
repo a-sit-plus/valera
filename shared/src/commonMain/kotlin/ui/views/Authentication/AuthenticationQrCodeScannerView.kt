@@ -22,6 +22,7 @@ fun AuthenticationQrCodeScannerView(
         GenericQrCodeScannerView(title = stringResource(Res.string.heading_label_authenticate_at_device_title),
             subTitle = stringResource(Res.string.heading_label_authenticate_at_device_subtitle),
             navigateUp = vm.navigateUp,
-            onFoundQrCode = { payload -> vm.onScan(payload) })
+            onFoundQrCode = { payload -> vm.onScan(payload) },
+            onClickLogo = vm.onClickLogo)
     }
 }

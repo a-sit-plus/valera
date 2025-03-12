@@ -22,7 +22,8 @@ fun GenericQrCodeScannerView(
     title: String,
     subTitle: String?,
     navigateUp: (() -> Unit)?,
-    onFoundQrCode: (String) -> Unit
+    onFoundQrCode: (String) -> Unit,
+    onClickLogo: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -43,7 +44,7 @@ fun GenericQrCodeScannerView(
                                 )
                             }
                         }
-                       Logo()
+                       Logo(onClick = onClickLogo)
                     }
                 },
                 navigationIcon = {

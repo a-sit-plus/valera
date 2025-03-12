@@ -10,7 +10,8 @@ class SettingsViewModel (walletMain: WalletMain,
                          val onClickShareLogFile: () -> Unit,
                          val onClickClearLogFile: () -> Unit,
                          val onClickResetApp: () -> Unit,
-                         val onClickSigning: () -> Unit) {
+                         val onClickSigning: () -> Unit,
+                         val onClickLogo: () -> Unit) {
     val buildType = walletMain.buildContext.buildType
     val version = walletMain.buildContext.versionName
 

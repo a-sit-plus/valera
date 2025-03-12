@@ -24,6 +24,7 @@ fun AuthenticationView(vm: AuthenticationViewModel) {
                 walletMain = vm.walletMain,
                 transactionData = vm.transactionData,
                 requests = vm.descriptors.toList(),
+                onClickLogo = vm.onClickLogo
             )
             AuthenticationConsentView(viewModel)
         }
@@ -39,7 +40,8 @@ fun AuthenticationView(vm: AuthenticationViewModel) {
                 requests = vm.requestMap,
                 confirmSelections = { selections ->
                     vm.confirmSelection(selections)
-                }, navigateUp = { vm.viewState = AuthenticationViewState.Consent })
+                }, navigateUp = { vm.viewState = AuthenticationViewState.Consent },
+                onClickLogo = vm.onClickLogo)
             AuthenticationSelectionView(vm = viewModel)
         }
     }

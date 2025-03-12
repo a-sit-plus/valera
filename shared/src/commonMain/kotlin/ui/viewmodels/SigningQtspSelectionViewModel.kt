@@ -6,4 +6,5 @@ class SigningQtspSelectionViewModel(
     val navigateUp: () -> Unit,
     val onContinue: () -> Unit,
     val walletMain: WalletMain,
+    val onClickLogo: () -> Unit
 )

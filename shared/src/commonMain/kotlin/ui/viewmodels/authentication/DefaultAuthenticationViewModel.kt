@@ -23,7 +23,8 @@ class DefaultAuthenticationViewModel(
     navigateUp: () -> Unit,
     navigateToAuthenticationSuccessPage: () -> Unit,
     navigateToHomeScreen: () -> Unit,
-    walletMain: WalletMain
+    walletMain: WalletMain,
+    onClickLogo: () -> Unit
 ) : AuthenticationViewModel(
     spName,
     spLocation,
@@ -31,7 +32,8 @@ class DefaultAuthenticationViewModel(
     navigateUp,
     navigateToAuthenticationSuccessPage,
     navigateToHomeScreen,
-    walletMain
+    walletMain,
+    onClickLogo
 ) {
     override val descriptors =
         authenticationRequest.parameters.presentationDefinition?.inputDescriptors ?: listOf()

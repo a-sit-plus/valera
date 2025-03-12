@@ -14,6 +14,7 @@ class AuthenticationConsentViewModel(
     val navigateUp: () -> Unit,
     val buttonConsent: () -> Unit,
     val walletMain: WalletMain,
+    val onClickLogo: () -> Unit,
 ) {
     val consentToDataTransmission: () -> Unit = {
         buttonConsent()

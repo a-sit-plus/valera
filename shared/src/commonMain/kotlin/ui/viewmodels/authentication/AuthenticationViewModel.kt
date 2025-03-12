@@ -25,6 +25,7 @@ abstract class AuthenticationViewModel(
     val navigateToAuthenticationSuccessPage: () -> Unit,
     val navigateToHomeScreen: () -> Unit,
     val walletMain: WalletMain,
+    val onClickLogo: () -> Unit
 ) {
     abstract val descriptors: Collection<InputDescriptor>
     var viewState by mutableStateOf(AuthenticationViewState.Consent)

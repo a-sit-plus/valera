@@ -15,7 +15,8 @@ class AuthenticationSelectionViewModel(
     val walletMain: WalletMain,
     val requests: Map<String, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, List<NodeListEntry>>>>,
     val confirmSelections: (Map<String, CredentialSubmission>) -> Unit,
-    val navigateUp: () -> Unit
+    val navigateUp: () -> Unit,
+    val onClickLogo: () -> Unit
 ) {
     val requestIterator = mutableStateOf(0)
     val iterableRequests = requests.toList()

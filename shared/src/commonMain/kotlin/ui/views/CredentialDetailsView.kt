@@ -63,6 +63,7 @@ fun CredentialDetailsView(
             vm.deleteStoreEntry()
             vm.navigateUp()
         },
+        onClickLogo = vm.onClickLogo
     ) {
         storeEntry?.let {
             CredentialDetailsSummaryView(
@@ -90,6 +91,7 @@ fun CredentialDetailsScaffold(
     navigateUp: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
+    onClickLogo: () -> Unit,
     content: @Composable () -> Unit,
 ) {
     Scaffold(
@@ -112,7 +114,7 @@ fun CredentialDetailsScaffold(
                         CredentialCardActionMenu(
                             onDelete = onDelete
                         )
-                        Logo()
+                        Logo(onClick = onClickLogo)
                         Spacer(Modifier.width(4.dp))
                     }
                 },

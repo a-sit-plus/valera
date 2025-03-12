@@ -22,6 +22,7 @@ fun PreAuthQrCodeScannerScreen(
             onFoundQrCode = { payload ->
                 vm.isLoading = true
                 vm.getCredential(payload)
-            })
+            },
+            onClickLogo = vm.onClickLogo)
     }
 }
