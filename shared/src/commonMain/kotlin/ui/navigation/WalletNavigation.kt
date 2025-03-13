@@ -204,9 +204,7 @@ private fun WalletNavHost(
         composable<OnboardingStartRoute> {
             OnboardingStartView(
                 onClickStart = { navigate(OnboardingInformationRoute) },
-                onClickLogo = {
-                    walletMain.platformAdapter.openUrl("https://www.a-sit.at/")
-                },
+                onClickLogo = onClickLogo,
                 modifier = Modifier.testTag(OnboardingWrapperTestTags.onboardingStartScreen)
             )
         }
