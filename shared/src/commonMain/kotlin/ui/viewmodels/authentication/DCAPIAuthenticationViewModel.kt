@@ -1,4 +1,4 @@
-package ui.viewmodels.Authentication
+package ui.viewmodels.authentication
 
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.dif.Constraint
@@ -7,7 +7,6 @@ import at.asitplus.dif.DifInputDescriptor
 import at.asitplus.jsonpath.core.NodeList
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
-import at.asitplus.misc.getRequestOptionParameters
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import at.asitplus.wallet.lib.agent.CredentialSubmission
@@ -16,14 +15,14 @@ import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.credentials.CredentialAdapter
 import kotlinx.coroutines.runBlocking
 
-
 class DCAPIAuthenticationViewModel(
     spImage: ImageBitmap? = null,
     navigateUp: () -> Unit,
     navigateToAuthenticationSuccessPage: () -> Unit,
     navigateToHomeScreen: () -> Unit,
     walletMain: WalletMain,
-    val dcApiRequest: DCAPIRequest
+    val dcApiRequest: DCAPIRequest,
+    onClickLogo: () -> Unit
 ) : AuthenticationViewModel(
     spName = dcApiRequest.callingPackageName,
     spLocation = dcApiRequest.callingOrigin ?: dcApiRequest.callingPackageName!!,
@@ -31,7 +30,8 @@ class DCAPIAuthenticationViewModel(
     navigateUp,
     navigateToAuthenticationSuccessPage,
     navigateToHomeScreen,
-    walletMain
+    walletMain,
+    onClickLogo
 ) {
     override val descriptors = dcApiRequest.requestedData.mapNotNull {
         DifInputDescriptor(id = MobileDrivingLicenceScheme.isoDocType, constraints = Constraint(fields = it.value.map { requestedAttribute -> ConstraintField(path = listOf(
@@ -40,11 +40,6 @@ class DCAPIAuthenticationViewModel(
                 NormalizedJsonPathSegment.NameSegment(requestedAttribute.first),
             ).toString()), intentToRetain = requestedAttribute.second) }))
     }
-
-    override val parametersMap = descriptors.mapNotNull {
-        val parameter = it.getRequestOptionParameters().getOrElse { return@mapNotNull null }
-        it.id to parameter
-    }.toMap()
 
     override val transactionData = null
 

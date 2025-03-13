@@ -1,11 +1,11 @@
-package at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data
+package at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data
 
 import androidx.compose.runtime.Composable
-import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.credential_representation_format_label_mso_mdoc
 import at.asitplus.valera.resources.credential_representation_format_label_plain_jwt
 import at.asitplus.valera.resources.credential_representation_format_label_sd_jwt
+import at.asitplus.wallet.lib.data.ConstantIndex
 import org.jetbrains.compose.resources.stringResource
 
 val ConstantIndex.CredentialScheme.identifier: String

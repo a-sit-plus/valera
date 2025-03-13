@@ -1,19 +1,17 @@
-package ui.viewmodels.Authentication
+package ui.viewmodels.authentication
 
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.catchingUnwrapped
-import at.asitplus.catchingUnwrappedAs
 import at.asitplus.dif.ConstraintField
 import at.asitplus.jsonpath.core.NodeList
-import at.asitplus.misc.getRequestOptionParameters
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.rqes.collection_entries.TransactionData
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.CredentialSubmission
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import at.asitplus.wallet.lib.data.vckJsonSerializer
+import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import kotlinx.coroutines.runBlocking
 
 
@@ -25,7 +23,8 @@ class DefaultAuthenticationViewModel(
     navigateUp: () -> Unit,
     navigateToAuthenticationSuccessPage: () -> Unit,
     navigateToHomeScreen: () -> Unit,
-    walletMain: WalletMain
+    walletMain: WalletMain,
+    onClickLogo: () -> Unit
 ) : AuthenticationViewModel(
     spName,
     spLocation,
@@ -33,15 +32,12 @@ class DefaultAuthenticationViewModel(
     navigateUp,
     navigateToAuthenticationSuccessPage,
     navigateToHomeScreen,
-    walletMain
+    walletMain,
+    onClickLogo
 ) {
     override val descriptors =
         authenticationRequest.parameters.presentationDefinition?.inputDescriptors ?: listOf()
-    override val parametersMap = descriptors.mapNotNull {
-        val parameter = it.getRequestOptionParameters().getOrElse { return@mapNotNull null }
-        Pair(it.id, parameter)
-    }.toMap()
-    
+
     override val transactionData = catchingUnwrapped {
         vckJsonSerializer.decodeFromString<TransactionData>(authenticationRequest.parameters.transactionData?.first()!!)
     }.getOrNull()
@@ -60,5 +56,4 @@ class DefaultAuthenticationViewModel(
             preparationState = preparationState,
             inputDescriptorSubmission = submission
         )
-
 }

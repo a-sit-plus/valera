@@ -15,6 +15,7 @@
     <string name="snackbar_clear_log_successfully">Log erfolgreich gelöscht</string>
     <string name="snackbar_update_hint">App version ist nicht aktuell. Bitte %1$s öffnen um auf %2$s zu aktualisieren.</string>
     <string name="snackbar_update_action">Öffnen</string>
+    <string name="snackbar_sign_successful">Signatur erfolgreich</string>
 
     <string name="button_label_use_device_credential">Passwort</string>
     <string name="button_label_confirm">Bestätigen</string>
@@ -212,6 +213,9 @@
     <string name="text_label_credential_id">Credential ID</string>
     <string name="text_label_valid_from">Gültig von</string>
     <string name="text_label_valid_to">Gültig bis</string>
+    <string name="text_label_optional">Optional</string>
+    <string name="text_label_check_all">Alle auswählen</string>
+    <string name="text_label_powered_by">POWERED BY</string>
 
     <string name="heading_label_authenticate_at_device_title">Anmelden</string>
     <string name="heading_label_authenticate_at_device_subtitle">an Service Provider</string>

@@ -11,7 +11,8 @@ import kotlinx.coroutines.launch
 class PreAuthQrCodeScannerViewModel(
     val walletMain: WalletMain,
     val navigateUp: () -> Unit,
-    val navigateToAddCredentialsPage: (CredentialOffer) -> Unit
+    val navigateToAddCredentialsPage: (CredentialOffer) -> Unit,
+    val onClickLogo: () -> Unit,
 ) {
     var isLoading by mutableStateOf(false)
 

@@ -2,7 +2,7 @@ package at.asitplus.wallet.app.common.domain
 
 import at.asitplus.KmmResult
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
-import ui.navigation.Routes.DCAPIAuthenticationConsentRoute
+import ui.navigation.routes.DCAPIAuthenticationConsentRoute
 
 class BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase {
     operator fun invoke(incomingRequest: DCAPIRequest?): KmmResult<DCAPIAuthenticationConsentRoute> {

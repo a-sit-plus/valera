@@ -102,7 +102,7 @@ class WalletMain(
             httpService,
             coseService
         )
-        signingService = SigningService(platformAdapter, dataStoreService, errorService, httpService)
+        signingService = SigningService(platformAdapter, dataStoreService, errorService, snackbarService, httpService)
         this.snackbarService = snackbarService
         this.dcApiService = DCAPIService(platformAdapter)
     }

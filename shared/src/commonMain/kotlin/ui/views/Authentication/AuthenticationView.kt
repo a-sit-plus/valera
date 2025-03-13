@@ -1,12 +1,12 @@
-package ui.views.Authentication
+package ui.views.authentication
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import ui.viewmodels.Authentication.AuthenticationConsentViewModel
-import ui.viewmodels.Authentication.AuthenticationNoCredentialViewModel
-import ui.viewmodels.Authentication.AuthenticationSelectionViewModel
-import ui.viewmodels.Authentication.AuthenticationViewModel
-import ui.viewmodels.Authentication.AuthenticationViewState
+import ui.viewmodels.authentication.AuthenticationConsentViewModel
+import ui.viewmodels.authentication.AuthenticationNoCredentialViewModel
+import ui.viewmodels.authentication.AuthenticationSelectionViewModel
+import ui.viewmodels.authentication.AuthenticationViewModel
+import ui.viewmodels.authentication.AuthenticationViewState
 
 @Composable
 fun AuthenticationView(vm: AuthenticationViewModel) {
@@ -19,11 +19,12 @@ fun AuthenticationView(vm: AuthenticationViewModel) {
                 spName = vm.spName,
                 spLocation = vm.spLocation,
                 spImage = vm.spImage,
-                requests = vm.parametersMap,
                 navigateUp = vm.navigateUp,
                 buttonConsent = { vm.onConsent() },
                 walletMain = vm.walletMain,
-                transactionData = vm.transactionData
+                transactionData = vm.transactionData,
+                requests = vm.descriptors.toList(),
+                onClickLogo = vm.onClickLogo
             )
             AuthenticationConsentView(viewModel)
         }
@@ -39,7 +40,8 @@ fun AuthenticationView(vm: AuthenticationViewModel) {
                 requests = vm.requestMap,
                 confirmSelections = { selections ->
                     vm.confirmSelection(selections)
-                }, navigateUp = { vm.viewState = AuthenticationViewState.Consent })
+                }, navigateUp = { vm.viewState = AuthenticationViewState.Consent },
+                onClickLogo = vm.onClickLogo)
             AuthenticationSelectionView(vm = viewModel)
         }
     }

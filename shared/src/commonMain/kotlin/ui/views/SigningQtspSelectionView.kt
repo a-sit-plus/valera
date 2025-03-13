@@ -30,7 +30,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.button_label_sign
 import at.asitplus.valera.resources.heading_label_sign_document
 import at.asitplus.valera.resources.text_label_credential_id
@@ -68,7 +67,7 @@ fun SigningQtspSelectionView(
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.titleLarge,
                         )
-                        Logo()
+                        Logo(onClick = vm.onClickLogo)
                     }
                 },
                 navigationIcon = {
@@ -121,16 +120,18 @@ fun SigningQtspSelectionView(
                 )
                 Spacer(modifier = Modifier.height(10.dp))
 
-                Row {
-                    Button(onClick = { runBlocking { vm.walletMain.signingService.preloadCertificate() } }, enabled = (credentialInfo.value == null)) {
-                        Text(stringResource(Res.string.text_label_preload_certificate))
-                    }
-                    Button(onClick = {
-                        config.getQtspByIdentifier(selection.value).credentialInfo = null
-                        credentialInfo.value = null
-                        runBlocking { vm.walletMain.signingService.exportToDataStore() } }
-                        , enabled = (credentialInfo.value != null)) {
-                        Text(stringResource(Res.string.text_label_delete_certificate))
+                if(config.getCurrent().allowPreload) {
+                    Row {
+                        Button(onClick = { runBlocking { vm.walletMain.signingService.preloadCertificate() } }, enabled = (credentialInfo.value == null)) {
+                            Text(stringResource(Res.string.text_label_preload_certificate))
+                        }
+                        Button(onClick = {
+                            config.getQtspByIdentifier(selection.value).credentialInfo = null
+                            credentialInfo.value = null
+                            runBlocking { vm.walletMain.signingService.exportToDataStore() } }
+                            , enabled = (credentialInfo.value != null)) {
+                            Text(stringResource(Res.string.text_label_delete_certificate))
+                        }
                     }
                 }
 

@@ -24,29 +24,29 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.heading_label_credential_details_screen
+import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.eupid.EuPidScheme
+import at.asitplus.wallet.healthid.HealthIdScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
-import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.heading_label_credential_details_screen
-import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
-import at.asitplus.wallet.healthid.HealthIdScheme
 import at.asitplus.wallet.taxid.TaxIdScheme
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.CredentialCardActionMenu
+import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.CertificateOfResidenceCredentialView
-import ui.composables.credentials.HealthIdView
+import ui.composables.credentials.CompanyRegistrationCredentialView
 import ui.composables.credentials.EuPidCredentialView
 import ui.composables.credentials.GenericCredentialSummaryCardContent
+import ui.composables.credentials.HealthIdView
 import ui.composables.credentials.IdAustriaCredentialView
 import ui.composables.credentials.MobileDrivingLicenceCredentialView
 import ui.composables.credentials.PowerOfRepresentationCredentialView
-import ui.composables.CredentialCardActionMenu
-import ui.composables.Logo
-import ui.composables.credentials.CompanyRegistrationCredentialView
 import ui.composables.credentials.TaxIdCredentialView
 import ui.viewmodels.CredentialDetailsViewModel
 
@@ -63,6 +63,7 @@ fun CredentialDetailsView(
             vm.deleteStoreEntry()
             vm.navigateUp()
         },
+        onClickLogo = vm.onClickLogo
     ) {
         storeEntry?.let {
             CredentialDetailsSummaryView(
@@ -90,6 +91,7 @@ fun CredentialDetailsScaffold(
     navigateUp: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
+    onClickLogo: () -> Unit,
     content: @Composable () -> Unit,
 ) {
     Scaffold(
@@ -112,7 +114,7 @@ fun CredentialDetailsScaffold(
                         CredentialCardActionMenu(
                             onDelete = onDelete
                         )
-                        Logo()
+                        Logo(onClick = onClickLogo)
                         Spacer(Modifier.width(4.dp))
                     }
                 },

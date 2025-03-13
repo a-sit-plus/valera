@@ -1,4 +1,4 @@
-package ui.views.Authentication
+package ui.views.authentication
 
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -42,6 +42,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import at.asitplus.catchingUnwrapped
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.rqes.collection_entries.TransactionData
 import at.asitplus.valera.resources.Res
@@ -52,9 +53,9 @@ import at.asitplus.valera.resources.heading_label_navigate_back
 import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_data_recipient
 import at.asitplus.valera.resources.section_heading_transaction_data
-import at.asitplus.wallet.app.common.third_parts.at.asitplus.jsonpath.core.plus
-import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.getLocalization
-import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
+import at.asitplus.wallet.app.common.extractConsentData
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.lib.oidvci.encodeToParameters
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.ConsentAttributesSection
@@ -64,7 +65,7 @@ import ui.composables.Logo
 import ui.composables.buttons.CancelButton
 import ui.composables.buttons.ContinueButton
 import ui.composables.buttons.NavigateUpButton
-import ui.viewmodels.Authentication.AuthenticationConsentViewModel
+import ui.viewmodels.authentication.AuthenticationConsentViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,7 +84,7 @@ fun AuthenticationConsentView(vm: AuthenticationConsentViewModel) {
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.titleLarge,
                         )
-                        Logo()
+                        Logo(onClick = vm.onClickLogo)
                     }
                 },
                 navigationIcon = {
@@ -149,19 +150,20 @@ fun AuthenticationConsentView(vm: AuthenticationConsentViewModel) {
                         ),
                         modifier = paddingModifier,
                     )
-                    vm.requests.mapNotNull { it.value }.forEach { params ->
-                        params.resolved?.first?.let { scheme ->
+                    vm.requests.forEach { inputDescriptor ->
+                        catchingUnwrapped { inputDescriptor.extractConsentData() }.onSuccess { (representation, scheme, attributes) ->
                             val schemeName = scheme.uiLabel()
-                            val format = params.resolved?.second?.name
-                            val attributes = params.attributes?.mapNotNull {
-                                scheme.getLocalization(NormalizedJsonPath() + it)
-                            }
-                            if (format != null && attributes != null) {
-                                ConsentAttributesSection(
-                                    title = "$schemeName (${format})",
-                                    list = attributes
-                                )
-                            }
+                            val format = representation.name
+                            val list = attributes.mapNotNull { attribute ->
+                                val resource = scheme.getLocalization(NormalizedJsonPath(attribute.key.segments.last())) ?: return@mapNotNull null
+                                val text =
+                                    catchingUnwrapped { stringResource(resource) }.getOrElse { attribute.key.toString() }
+                                text to attribute.value
+                            }.toMap()
+                            ConsentAttributesSection(
+                                title = "$schemeName (${format})",
+                                attributes = list
+                            )
                         }
                     }
                     if (vm.transactionData != null) {

@@ -14,6 +14,7 @@
     <string name="snackbar_clear_log_successfully">UNTRANSLATED:snackbar_clear_log_successfully</string>
     <string name="snackbar_update_hint">UNTRANSLATED:snackbar_update_hint</string>
     <string name="snackbar_update_action">UNTRANSLATED:snackbar_update_action</string>
+    <string name="snackbar_sign_successful">UNTRANSLATED:snackbar_sign_successful</string>
 
     <string name="button_label_use_device_credential">UNTRANSLATED:button_label_use_device_credential</string>
     <string name="button_label_confirm">UNTRANSLATED:button_label_confirm</string>
@@ -211,6 +212,9 @@
     <string name="text_label_credential_id">UNTRANSLATED:text_label_credential_id</string>
     <string name="text_label_valid_from">UNTRANSLATED:text_label_valid_from</string>
     <string name="text_label_valid_to">UNTRANSLATED:text_label_valid_to</string>
+    <string name="text_label_optional">UNTRANSLATED:text_label_optional</string>
+    <string name="text_label_check_all">UNTRANSLATED:text_label_check_all</string>
+    <string name="text_label_powered_by">UNTRANSLATED:text_label_powered_by</string>
 
     <string name="heading_label_authenticate_at_device_title">UNTRANSLATED:heading_label_authenticate_at_device_title</string>
     <string name="heading_label_authenticate_at_device_subtitle">UNTRANSLATED:heading_label_authenticate_at_device_subtitle</string>

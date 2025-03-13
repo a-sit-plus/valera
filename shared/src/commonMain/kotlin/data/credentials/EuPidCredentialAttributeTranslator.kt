@@ -2,7 +2,6 @@ package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
-import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.attribute_friendly_name_administrative_number
 import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_12
@@ -42,13 +41,10 @@ import at.asitplus.valera.resources.attribute_friendly_name_personal_administrat
 import at.asitplus.valera.resources.attribute_friendly_name_portrait
 import at.asitplus.valera.resources.attribute_friendly_name_sex
 import at.asitplus.valera.resources.attribute_friendly_name_trust_anchor
-import at.asitplus.wallet.eupid.EuPidScheme.Attributes
-import at.asitplus.wallet.eupid.EuPidScheme.Attributes.EMAIL_ADDRESS
-import at.asitplus.wallet.eupid.EuPidScheme.Attributes.MOBILE_PHONE_NUMBER
+import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes.Address
 import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes.AgeEqualOrOver
 import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes.PlaceOfBirth
-import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
 import org.jetbrains.compose.resources.StringResource
 
 

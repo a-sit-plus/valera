@@ -45,7 +45,8 @@ import ui.composables.TextIconButton
 fun ErrorView(
     resetStack: () -> Unit,
     message: String?,
-    cause: String?
+    cause: String?,
+    onClickLogo: () -> Unit,
 ) {
     val message = message ?: "Unknown Message"
     val cause = cause ?: "Unknown Cause"
@@ -62,7 +63,7 @@ fun ErrorView(
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.headlineLarge,
                         )
-                        Logo()
+                        Logo(onClick = onClickLogo)
                         Spacer(Modifier.width(8.dp))
                     }
                 },

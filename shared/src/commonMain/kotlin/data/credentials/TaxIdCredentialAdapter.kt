@@ -6,16 +6,16 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import at.asitplus.wallet.taxid.TaxIdScheme
 import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.ADMINISTRATIVE_NUMBER
+import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.AFFILIATION_COUNTRY
+import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.BIRTH_DATE
+import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.CHURCH_TAX_ID
 import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.DOCUMENT_NUMBER
 import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.EXPIRY_DATE
+import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.IBAN
 import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.ISSUANCE_DATE
 import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.ISSUING_AUTHORITY
 import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.ISSUING_COUNTRY
 import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.ISSUING_JURISDICTION
-import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.AFFILIATION_COUNTRY
-import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.BIRTH_DATE
-import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.CHURCH_TAX_ID
-import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.IBAN
 import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.PID_ID
 import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.REGISTERED_FAMILY_NAME
 import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.REGISTERED_GIVEN_NAME
@@ -24,6 +24,8 @@ import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.TAX_NUMBER
 import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.VERIFICATION_STATUS
 import data.Attribute
 import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDate
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 
@@ -62,7 +64,7 @@ sealed class TaxIdCredentialAdapter : CredentialAdapter() {
     abstract val registeredFamilyName: String?
     abstract val registeredGivenName: String?
     abstract val residentAddress: String?
-    abstract val birthDate: String?
+    abstract val birthDate: LocalDate?
     abstract val churchTaxId: String?
     abstract val iban: String?
     abstract val pidId: String?
@@ -81,21 +83,12 @@ sealed class TaxIdCredentialAdapter : CredentialAdapter() {
                 throw IllegalArgumentException("credential")
             }
             return when (storeEntry) {
-                is SubjectCredentialStore.StoreEntry.Vc -> {
-                    TODO("Operation not yet supported")
-                }
+                is SubjectCredentialStore.StoreEntry.Vc -> TODO("Operation not yet supported")
+                is SubjectCredentialStore.StoreEntry.SdJwt -> storeEntry.toComplexJson()
+                    ?.let { TaxIdComplexCredentialSdJwtAdapter(it) }
+                    ?: TaxIdCredentialSdJwtAdapter(storeEntry.toAttributeMap())
 
-                is SubjectCredentialStore.StoreEntry.SdJwt -> {
-                    TaxIdCredentialSdJwtAdapter(
-                        storeEntry.toAttributeMap(),
-                    )
-                }
-
-                is SubjectCredentialStore.StoreEntry.Iso -> {
-                    TaxIdIsoMdocAdapter(
-                        storeEntry.toNamespaceAttributeMap(),
-                    )
-                }
+                is SubjectCredentialStore.StoreEntry.Iso -> TaxIdIsoMdocAdapter(storeEntry.toNamespaceAttributeMap())
             }
         }
     }
@@ -122,8 +115,8 @@ private class TaxIdCredentialSdJwtAdapter(
     override val residentAddress: String?
         get() = attributes[RESIDENT_ADDRESS]?.contentOrNull
 
-    override val birthDate: String?
-        get() = attributes[BIRTH_DATE]?.contentOrNull
+    override val birthDate: LocalDate?
+        get() = attributes[BIRTH_DATE]?.toLocalDateOrNull()
 
     override val churchTaxId: String?
         get() = attributes[CHURCH_TAX_ID]?.contentOrNull
@@ -159,6 +152,64 @@ private class TaxIdCredentialSdJwtAdapter(
         get() = attributes[ISSUING_JURISDICTION]?.contentOrNull
 }
 
+private class TaxIdComplexCredentialSdJwtAdapter(
+    private val attributes: JsonObject,
+) : TaxIdCredentialAdapter() {
+    override val representation: CredentialRepresentation
+        get() = CredentialRepresentation.SD_JWT
+
+    override val taxNumber: String?
+        get() = (attributes[TAX_NUMBER] as? JsonPrimitive?)?.contentOrNull
+
+    override val affiliationCountry: String?
+        get() = (attributes[AFFILIATION_COUNTRY] as? JsonPrimitive?)?.contentOrNull
+
+    override val registeredFamilyName: String?
+        get() = (attributes[REGISTERED_FAMILY_NAME] as? JsonPrimitive?)?.contentOrNull
+
+    override val registeredGivenName: String?
+        get() = (attributes[REGISTERED_GIVEN_NAME] as? JsonPrimitive?)?.contentOrNull
+
+    override val residentAddress: String?
+        get() = (attributes[RESIDENT_ADDRESS] as? JsonPrimitive?)?.contentOrNull
+
+    override val birthDate: LocalDate?
+        get() = (attributes[BIRTH_DATE] as? JsonPrimitive?)?.toLocalDateOrNull()
+
+    override val churchTaxId: String?
+        get() = (attributes[CHURCH_TAX_ID] as? JsonPrimitive?)?.contentOrNull
+
+    override val iban: String?
+        get() = (attributes[IBAN] as? JsonPrimitive?)?.contentOrNull
+
+    override val pidId: String?
+        get() = (attributes[PID_ID] as? JsonPrimitive?)?.contentOrNull
+
+    override val issuanceDate: Instant?
+        get() = (attributes[ISSUANCE_DATE] as? JsonPrimitive?)?.contentOrNull.toInstantOrNull()
+
+    override val verificationStatus: String?
+        get() = (attributes[VERIFICATION_STATUS] as? JsonPrimitive?)?.contentOrNull
+
+    override val expiryDate: Instant?
+        get() = (attributes[EXPIRY_DATE] as? JsonPrimitive?)?.contentOrNull.toInstantOrNull()
+
+    override val issuingAuthority: String?
+        get() = (attributes[ISSUING_AUTHORITY] as? JsonPrimitive?)?.contentOrNull
+
+    override val documentNumber: String?
+        get() = (attributes[DOCUMENT_NUMBER] as? JsonPrimitive?)?.contentOrNull
+
+    override val administrativeNumber: String?
+        get() = (attributes[ADMINISTRATIVE_NUMBER] as? JsonPrimitive?)?.contentOrNull
+
+    override val issuingCountry: String?
+        get() = (attributes[ISSUING_COUNTRY] as? JsonPrimitive?)?.contentOrNull
+
+    override val issuingJurisdiction: String?
+        get() = (attributes[ISSUING_JURISDICTION] as? JsonPrimitive?)?.contentOrNull
+}
+
 private class TaxIdIsoMdocAdapter(
     namespaces: Map<String, Map<String, Any>>?,
 ) : TaxIdCredentialAdapter() {
@@ -182,8 +233,8 @@ private class TaxIdIsoMdocAdapter(
     override val residentAddress: String?
         get() = namespace?.get(RESIDENT_ADDRESS) as String?
 
-    override val birthDate: String?
-        get() = namespace?.get(BIRTH_DATE) as String?
+    override val birthDate: LocalDate?
+        get() = namespace?.get(BIRTH_DATE)?.toLocalDateOrNull()
 
     override val churchTaxId: String?
         get() = namespace?.get(CHURCH_TAX_ID) as String?

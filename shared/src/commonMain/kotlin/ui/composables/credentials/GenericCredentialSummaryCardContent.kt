@@ -10,12 +10,10 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowDownward
 import androidx.compose.material.icons.outlined.ArrowUpward
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -30,10 +28,11 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
-import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_hide_technical_details
 import at.asitplus.valera.resources.button_label_show_technical_details
+import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import data.credentials.CredentialAdapter.Companion.toComplexJson
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Label
 import ui.composables.LabeledText
@@ -98,7 +97,7 @@ fun GenericCredentialSummaryCardContent(
 }
 
 @Composable
-private fun ColumnScope.SingleVcCredentialCardContent(
+private fun SingleVcCredentialCardContent(
     credential: SubjectCredentialStore.StoreEntry.Vc,
 ) {
     Text(
@@ -109,21 +108,28 @@ private fun ColumnScope.SingleVcCredentialCardContent(
 }
 
 @Composable
-private fun ColumnScope.SingleSdJwtCredentialCardContent(
+private fun SingleSdJwtCredentialCardContent(
     credential: SubjectCredentialStore.StoreEntry.SdJwt,
 ) {
-    credential.disclosures.entries.sortedBy { it.value?.claimName ?: it.key }.forEach {
+    credential.allEntries().forEach {
         LabeledText(
-            text = it.value?.claimValue?.toString()
-                ?.run { slice(0..min(lastIndex, 100)) }
-                ?: "unknown claim value",
-            label = it.value?.claimName ?: "unknown claim name"
+            label = it.first,
+            text = it.second.run { slice(0..min(lastIndex, 100)) },
         )
     }
 }
 
+private fun SubjectCredentialStore.StoreEntry.SdJwt.allEntries(): Collection<Pair<String, String>> =
+    (simpleDisclosures() + complexObject()).sortedBy { it.first }.toSet()
+
+private fun SubjectCredentialStore.StoreEntry.SdJwt.complexObject() =
+    (toComplexJson()?.entries?.map { it.key to it.value.prettyToString() } ?: listOf())
+
+private fun SubjectCredentialStore.StoreEntry.SdJwt.simpleDisclosures() =
+    disclosures.entries.filter { it.value?.claimName != null }.map { it.value!!.claimName!! to it.value!!.claimValue.prettyToString() }
+
 @Composable
-private fun ColumnScope.SingleIsoCredentialCardContent(
+private fun SingleIsoCredentialCardContent(
     credential: SubjectCredentialStore.StoreEntry.Iso,
 ) {
     credential.issuerSigned.namespaces?.forEach { namespace ->

@@ -10,15 +10,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import org.jetbrains.compose.resources.StringResource
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.text_label_optional
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ConsentAttributesSection(
     title: String,
-    list: List<StringResource>,
+    attributes: Map<String, Boolean>, //<key = attribute name, value = optional>
     modifier: Modifier = Modifier,
 ) {
+    val optionalText = stringResource(Res.string.text_label_optional)
+
     Column(modifier = modifier) {
         Text(
             text = title,
@@ -28,8 +31,13 @@ fun ConsentAttributesSection(
         )
         Spacer(modifier = Modifier.height(8.dp))
         Column(modifier = Modifier.padding(start = 32.dp)) {
-            list.forEach {
-                Text(stringResource(it))
+            attributes.forEach {
+                Text(
+                    when (it.value) {
+                        true -> "${it.key} ($optionalText)"
+                        false -> it.key
+                    }
+                )
             }
         }
     }

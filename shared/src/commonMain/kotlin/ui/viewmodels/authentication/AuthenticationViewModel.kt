@@ -1,9 +1,10 @@
-package ui.viewmodels.Authentication
+package ui.viewmodels.authentication
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
+import at.asitplus.catchingUnwrapped
 import at.asitplus.dif.ConstraintField
 import at.asitplus.dif.InputDescriptor
 import at.asitplus.jsonpath.core.NodeList
@@ -14,7 +15,6 @@ import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_tra
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.CredentialSubmission
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import data.RequestOptionParameters
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 
@@ -26,10 +26,10 @@ abstract class AuthenticationViewModel(
     val navigateToAuthenticationSuccessPage: () -> Unit,
     val navigateToHomeScreen: () -> Unit,
     val walletMain: WalletMain,
+    val onClickLogo: () -> Unit
 ) {
     abstract val descriptors: Collection<InputDescriptor>
     var viewState by mutableStateOf(AuthenticationViewState.Consent)
-    abstract val parametersMap: Map<String, RequestOptionParameters>
     abstract val transactionData: TransactionData?
 
     lateinit var matchingCredentials: Map<String, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, NodeList /* = List<NodeListEntry> */>>>
@@ -71,16 +71,17 @@ abstract class AuthenticationViewModel(
 
 
     private suspend fun finalizeAuthorization(submission: Map<String, CredentialSubmission>) {
-        try {
+        catchingUnwrapped{
             walletMain.cryptoService.promptText =
                 getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_title)
             walletMain.cryptoService.promptSubtitle =
                 getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_subtitle)
             finalizationMethod(submission)
+        }.onSuccess {
             navigateUp()
             navigateToAuthenticationSuccessPage()
-        } catch (e: Throwable) {
-            walletMain.errorService.emit(e)
+        }.onFailure {
+            walletMain.errorService.emit(it)
         }
     }
 

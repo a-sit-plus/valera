@@ -1,4 +1,4 @@
-package at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data
+package at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data
 
 import androidx.compose.runtime.Composable
 import at.asitplus.jsonpath.core.NormalizedJsonPath
@@ -30,8 +30,8 @@ import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import at.asitplus.wallet.taxid.TaxIdScheme
 import data.credentials.CertificateOfResidenceCredentialAttributeTranslator
 import data.credentials.CompanyRegistrationCredentialAttributeTranslator
-import data.credentials.HealthIdCredentialAttributeTranslator
 import data.credentials.EuPidCredentialAttributeTranslator
+import data.credentials.HealthIdCredentialAttributeTranslator
 import data.credentials.IdAustriaCredentialAttributeTranslator
 import data.credentials.MobileDrivingLicenceCredentialAttributeTranslator
 import data.credentials.PowerOfRepresentationCredentialAttributeTranslator
