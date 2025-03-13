@@ -342,7 +342,8 @@ private fun WalletNavHost(
                         navigateToHomeScreen = {
                             popBackStack(HomeScreenRoute)
                         },
-                        walletMain = walletMain
+                        walletMain = walletMain,
+                        onClickLogo = onClickLogo
                     )
                 } ?: throw IllegalStateException("No presentation view model set")
             } catch (e: Throwable) {

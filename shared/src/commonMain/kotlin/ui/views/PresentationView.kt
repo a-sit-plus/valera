@@ -114,7 +114,8 @@ fun PresentationView(
                         navigateUp = presentationViewModel.navigateUp,
                         buttonConsent = { presentationViewModel.onConsent() },
                         walletMain = presentationViewModel.walletMain,
-                        transactionData = presentationViewModel.transactionData
+                        transactionData = presentationViewModel.transactionData,
+                        onClickLogo = presentationViewModel.onClickLogo
                     )
                     AuthenticationConsentView(viewModel)
                 }
@@ -126,11 +127,18 @@ fun PresentationView(
                 }
 
                 AuthenticationViewState.Selection -> {
-                    val viewModel = AuthenticationSelectionViewModel(walletMain = presentationViewModel.walletMain,
-                        requests = presentationViewModel.requestMap,
-                        confirmSelections = { selections ->
-                            presentationViewModel.confirmSelection(selections)
-                        }, navigateUp = { presentationViewModel.viewState = AuthenticationViewState.Consent })
+                    val viewModel =
+                        AuthenticationSelectionViewModel(
+                            walletMain = presentationViewModel.walletMain,
+                            requests = presentationViewModel.requestMap,
+                            confirmSelections = { selections ->
+                                presentationViewModel.confirmSelection(selections)
+                            },
+                            navigateUp = {
+                                presentationViewModel.viewState = AuthenticationViewState.Consent
+                            },
+                            onClickLogo = presentationViewModel.onClickLogo
+                        )
                     AuthenticationSelectionView(vm = viewModel)
                 }
             }

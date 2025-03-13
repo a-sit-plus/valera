@@ -22,7 +22,8 @@ class PresentationViewModel(
     onAuthenticationSuccess: () -> Unit,
     navigateToHomeScreen: () -> Unit,
     walletMain: WalletMain,
-    spImage: ImageBitmap? = null
+    spImage: ImageBitmap? = null,
+    onClickLogo: () -> Unit,
 ) : AuthenticationViewModel(
     spName = null,
     spLocation = "Local Presentation",
@@ -30,7 +31,8 @@ class PresentationViewModel(
     navigateUp,
     onAuthenticationSuccess,
     navigateToHomeScreen,
-    walletMain
+    walletMain,
+    onClickLogo
 ) {
     fun initWithMdocRequest(
         parsedRequest: List<MdocRequest>,
