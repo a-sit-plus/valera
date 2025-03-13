@@ -490,7 +490,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 5.4.14;
+				MARKETING_VERSION = 5.4.15;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
@@ -533,7 +533,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 5.4.14;
+				MARKETING_VERSION = 5.4.15;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
@@ -542,7 +542,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = at.asitplus.wallet.compose;
 				PRODUCT_NAME = "${APP_NAME}";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Valera Distribution 2025";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Compose Wallet Distribution";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
