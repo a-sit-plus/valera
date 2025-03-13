@@ -131,7 +131,7 @@ fun WalletNavigation(walletMain: WalletMain) {
     }
     
     val onClickLogo = {
-        walletMain.platformAdapter.openUrl("https://www.a-sit.at")
+        walletMain.platformAdapter.openUrl("https://wallet.a-sit.at/")
     }
 
     val snackbarHostState = remember { SnackbarHostState() }
