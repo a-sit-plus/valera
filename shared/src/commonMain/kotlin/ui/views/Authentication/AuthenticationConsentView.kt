@@ -54,8 +54,8 @@ import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_data_recipient
 import at.asitplus.valera.resources.section_heading_transaction_data
 import at.asitplus.wallet.app.common.extractConsentData
-import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.getLocalization
-import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.lib.oidvci.encodeToParameters
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.ConsentAttributesSection

@@ -8,7 +8,7 @@ import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
 import at.asitplus.wallet.app.common.dcapi.DisplayInfoField
 import at.asitplus.wallet.app.common.dcapi.IdentityCredentialEntry
 import at.asitplus.wallet.app.common.dcapi.IdentityCredentialField
-import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabelNonCompose
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabelNonCompose
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme

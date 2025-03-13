@@ -15,7 +15,7 @@ import at.asitplus.valera.resources.issuing_label_host
 import at.asitplus.valera.resources.issuing_label_representation
 import at.asitplus.valera.resources.issuing_label_scheme
 import at.asitplus.wallet.app.common.credentialScheme
-import at.asitplus.wallet.app.common.third_party.at.asitplus.wallet.lib.data.uiLabel
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import at.asitplus.wallet.lib.oidvci.toRepresentation
 import org.jetbrains.compose.resources.stringResource
