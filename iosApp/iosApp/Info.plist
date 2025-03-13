@@ -91,6 +91,8 @@
 	<string>This app uses camera for reading QR codes</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>This app uses FaceID for binding credentials to the device.</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Bluetooth permission is required for local credential presentations</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -114,6 +116,14 @@
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>NFCReaderUsageDescription</key>
+	<string>This app uses NFC to engage local credential presentations</string>
+	<key>com.apple.developer.nfc.readersession.iso7816.select-identifiers</key>
+	<array>
+		<string>D2760000850101</string>
+		<string>A0000002471001</string>
+		<string>A0000002480400</string>
 	</array>
 </dict>
 </plist>
