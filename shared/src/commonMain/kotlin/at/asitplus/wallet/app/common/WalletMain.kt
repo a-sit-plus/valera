@@ -25,6 +25,7 @@ import io.ktor.client.request.get
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
@@ -33,6 +34,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import net.swiftzer.semver.SemVer
 import org.jetbrains.compose.resources.getString
 import ui.navigation.IntentService
+import ui.navigation.routes.Route
 
 /**
  * Main class to hold all services needed in the Compose App.
@@ -50,12 +52,13 @@ class WalletMain(
     lateinit var provisioningService: ProvisioningService
     lateinit var httpService: HttpService
     lateinit var presentationService: PresentationService
-    lateinit var snackbarService: SnackbarService
     lateinit var signingService: SigningService
-    lateinit var errorService: ErrorService
     lateinit var dcApiService: DCAPIService
     lateinit var intentService: IntentService
     private val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
+
+    val errorService = ErrorService()
+    val snackbarService = SnackbarService(this.scope)
 
     init {
         at.asitplus.wallet.mdl.Initializer.initWithVCK()
@@ -71,8 +74,12 @@ class WalletMain(
         Napier.base(AntilogAdapter(platformAdapter, "", buildContext.buildType))
     }
 
+    fun initNavigation(navigate: (Route) -> Unit, navigateBack: () -> Unit) {
+        intentService = IntentService(this, navigate, navigateBack)
+    }
+
     @Throws(Throwable::class)
-    fun initialize(snackbarService: SnackbarService, intentService: IntentService) {
+    fun initialize() {
         val coseService = DefaultCoseService(cryptoService)
         walletConfig =
             WalletConfig(dataStoreService = this.dataStoreService, errorService = errorService)
@@ -103,9 +110,8 @@ class WalletMain(
             coseService
         )
         signingService = SigningService(platformAdapter, dataStoreService, errorService, snackbarService, httpService)
-        this.snackbarService = snackbarService
+
         this.dcApiService = DCAPIService(platformAdapter)
-        this.intentService = intentService
     }
 
     suspend fun resetApp() {
