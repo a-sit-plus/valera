@@ -83,7 +83,7 @@ fun SettingsView(
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.headlineLarge
                         )
-                        Logo()
+                        Logo(onClick = vm.onClickLogo)
                         Spacer(Modifier.width(8.dp))
                     }
                 },

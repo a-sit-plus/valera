@@ -9,6 +9,7 @@ class SigningViewModel(
     val navigateUp: () -> Unit,
     val createSignRequest: (String) -> Unit,
     val walletMain: WalletMain,
+    val onClickLogo: () -> Unit,
 ) {
     var isLoading by mutableStateOf(false)
 }

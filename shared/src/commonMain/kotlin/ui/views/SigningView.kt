@@ -24,6 +24,7 @@ fun SigningView(
             onFoundQrCode = { payload ->
                 vm.isLoading = true
                 vm.createSignRequest(payload)
-            })
+            },
+            onClickLogo = vm.onClickLogo)
     }
 }

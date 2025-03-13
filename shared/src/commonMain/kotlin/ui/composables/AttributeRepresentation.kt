@@ -5,8 +5,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
-import at.asitplus.wallet.mdl.DrivingPrivilege
-import at.asitplus.wallet.mdl.IsoSexEnum
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.dictionary_no
 import at.asitplus.valera.resources.dictionary_yes
@@ -14,6 +12,8 @@ import at.asitplus.wallet.companyregistration.Address
 import at.asitplus.wallet.companyregistration.Branch
 import at.asitplus.wallet.companyregistration.CompanyActivity
 import at.asitplus.wallet.companyregistration.ContactData
+import at.asitplus.wallet.mdl.DrivingPrivilege
+import at.asitplus.wallet.mdl.IsoSexEnum
 import data.Attribute
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate

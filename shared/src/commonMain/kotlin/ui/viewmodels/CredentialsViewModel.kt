@@ -12,7 +12,8 @@ class CredentialsViewModel(
     val navigateToAddCredentialsPage: () -> Unit,
     val navigateToQrAddCredentialsPage: () -> Unit,
     val navigateToCredentialDetailsPage: (Long) -> Unit,
-    val imageDecoder: (ByteArray) -> ImageBitmap?
+    val imageDecoder: (ByteArray) -> ImageBitmap?,
+    val onClickLogo: () -> Unit
 
 ) {
     val storeContainer = walletMain.subjectCredentialStore.observeStoreContainer()

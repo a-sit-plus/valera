@@ -7,7 +7,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
-import at.asitplus.wallet.eupid.EuPidScheme
 import data.PersonalDataCategory
 import data.credentials.CertificateOfResidenceCredentialAdapter
 import ui.composables.AttributeRepresentation

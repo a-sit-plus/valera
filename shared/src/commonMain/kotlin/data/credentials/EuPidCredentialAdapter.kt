@@ -10,8 +10,6 @@ import at.asitplus.wallet.eupid.EuPidScheme.Attributes
 import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes
 import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes.Address
 import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes.AgeEqualOrOver
-import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes.EMAIL
-import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes.PHONE_NUMBER
 import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes.PlaceOfBirth
 import at.asitplus.wallet.eupid.IsoIec5218Gender
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore

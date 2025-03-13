@@ -2,7 +2,6 @@ package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
-import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_14
 import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_16
@@ -22,6 +21,7 @@ import at.asitplus.valera.resources.id_austria_credential_attribute_friendly_nam
 import at.asitplus.valera.resources.id_austria_credential_attribute_friendly_name_main_address_postal_code
 import at.asitplus.valera.resources.id_austria_credential_attribute_friendly_name_main_address_stair
 import at.asitplus.valera.resources.id_austria_credential_attribute_friendly_name_main_address_street
+import at.asitplus.wallet.idaustria.IdAustriaScheme
 
 object IdAustriaCredentialAttributeTranslator : CredentialAttributeTranslator {
     override fun translate(attributeName: NormalizedJsonPath) =
