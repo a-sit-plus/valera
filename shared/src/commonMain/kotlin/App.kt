@@ -13,7 +13,7 @@ import ui.theme.WalletTheme
 import ui.viewmodels.authentication.PresentationStateModel
 
 /**
- * Global variables which especially helps to channel information from swift code
+ * Global variables which especially help to channel information from swift code
  * to compose whenever the app gets called via an associated domain
  */
 var appLink = MutableStateFlow<String?>(null)

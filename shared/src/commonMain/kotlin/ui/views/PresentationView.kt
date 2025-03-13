@@ -95,7 +95,7 @@ fun PresentationView(
     when (state) {
         PresentationStateModel.State.IDLE,
         PresentationStateModel.State.NO_PERMISSION,
-        PresentationStateModel.State.INITIALISED,
+        PresentationStateModel.State.INITIALISING,
         PresentationStateModel.State.CONNECTING -> {}
         PresentationStateModel.State.CHECK_PERMISSIONS ->
             RequestBluetoothPermissions { granted -> presentationStateModel.setPermissionState(granted) }
@@ -223,7 +223,7 @@ fun PresentationView(
 
                     )
 
-                    PresentationStateModel.State.INITIALISED -> Triple(
+                    PresentationStateModel.State.INITIALISING -> Triple(
                         stringResource(Res.string.app_display_name),
                         painterResource(Res.drawable.icon_presentation),
                         stringResource(Res.string.presentation_initialised)

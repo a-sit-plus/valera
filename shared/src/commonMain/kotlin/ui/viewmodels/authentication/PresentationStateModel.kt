@@ -45,7 +45,10 @@ class PresentationStateModel {
          */
         IDLE,
 
-        INITIALISED,
+        /**
+         * Presentment is being initialised.
+         */
+        INITIALISING,
 
         /**
          * Check if all permissions are granted.
@@ -136,14 +139,14 @@ class PresentationStateModel {
     fun init() {
         check(_state.value == State.IDLE)
         _presentmentScope = CoroutineScope(Dispatchers.Main)
-        _state.value = State.INITIALISED
+        _state.value = State.INITIALISING
     }
 
     /**
      * Sets the model to [State.CHECK_PERMISSIONS] if Bluetooth is required or [State.CONNECTING].
      */
     fun start(needBluetooth: Boolean) {
-        check(_state.value == State.INITIALISED)
+        check(_state.value == State.INITIALISING)
         if (needBluetooth) {
             _state.value = State.CHECK_PERMISSIONS
         } else {
@@ -291,18 +294,6 @@ class PresentationStateModel {
                     credentialSelected = ::credentialSelected
                 )
             }
-            /*is DigitalCredentialsPresentmentMechanism -> {
-                digitalCredentialsPresentment(
-                    documentTypeRepository = source!!.documentTypeRepository,
-                    source = source!!,
-                    model = this,
-                    mechanism = mechanism as DigitalCredentialsPresentmentMechanism,
-                    dismissible = _dismissible,
-                    showConsentPrompt = { document, request, trustPoint ->
-                        showConsentPrompt(document, request, trustPoint)
-                    }
-                )
-            }*/
             else -> throw IllegalStateException("Unsupported mechanism $mechanism")
         }
     }

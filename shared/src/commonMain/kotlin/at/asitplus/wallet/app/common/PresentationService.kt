@@ -13,12 +13,10 @@ import at.asitplus.wallet.lib.cbor.CoseService
 import at.asitplus.wallet.lib.iso.DeviceResponse
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
-import com.android.identity.mdoc.response.DeviceResponseGenerator
 import com.benasher44.uuid.uuid4
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
 import kotlinx.serialization.builtins.ByteArraySerializer
-import kotlin.reflect.KSuspendFunction1
 
 class PresentationService(
     val platformAdapter: PlatformAdapter,

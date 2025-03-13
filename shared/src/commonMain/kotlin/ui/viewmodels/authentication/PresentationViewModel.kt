@@ -61,11 +61,6 @@ class PresentationViewModel(
     override val descriptors = mutableListOf<InputDescriptor>()
     override val transactionData: TransactionData? = null
 
-    /*override val parametersMap = descriptors.mapNotNull {
-        val parameter = it.getRequestOptionParameters().getOrElse { return@mapNotNull null }
-        it.id to parameter
-    }.toMap()*/
-
     override fun findMatchingCredentials(): Map<String, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, NodeList>>> {
         return runBlocking {
             walletMain.holderAgent.matchInputDescriptorsAgainstCredentialStore(
