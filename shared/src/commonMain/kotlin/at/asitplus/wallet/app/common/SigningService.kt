@@ -6,6 +6,7 @@ import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.AuthorizationDetails
 import at.asitplus.openid.TokenResponseParameters
 import at.asitplus.rqes.CredentialInfo
+import at.asitplus.rqes.CredentialInfoRequest
 import at.asitplus.rqes.CscCredentialListRequest
 import at.asitplus.rqes.CscCredentialListResponse
 import at.asitplus.rqes.SignatureRequestParameters
@@ -306,8 +307,33 @@ class SigningService(
         }
         val credentialListResponse = credentialResponse.body<CscCredentialListResponse>()
 
-        return credentialListResponse.credentialInfos?.first()
-            ?: throw Throwable("Missing credentialInfos")
+        if (credentialListResponse.credentialInfos.isNullOrEmpty()) {
+            return getSingleCredentialInfo(token, credentialListResponse.credentialIDs.first());
+
+        } else {
+            return credentialListResponse.credentialInfos?.first()
+                ?: throw Throwable("Missing credentialInfos")
+        }
+    }
+
+    private suspend fun getSingleCredentialInfo(token: TokenResponseParameters, credentialId: String): CredentialInfo {
+        val credentialInfoRequest = CredentialInfoRequest(
+            credentialID = credentialId,
+            certificates = CertificateOptions.SINGLE,
+            certInfo = true,
+            authInfo = true,
+        )
+
+        val credentialResponse = client.post("${config.getCurrent().qtspBaseUrl}/credentials/info") {
+            accept(Json)
+            contentType(Json)
+            header(
+                HttpHeaders.Authorization,
+                "${token.tokenType} ${token.accessToken}"
+            )
+            setBody(vckJsonSerializer.encodeToString(credentialInfoRequest))
+        }
+        return credentialResponse.body<CredentialInfo>()
     }
 
     private suspend fun createCredentialAuthRequest(): String {
