@@ -34,6 +34,7 @@ fun AttributeSelectionGroup(
     selection: SnapshotStateMap<String, Boolean>,
     format: ConstantIndex.CredentialScheme?
 ) {
+    val allChecked = mutableStateOf(false) 
     Card(
         modifier = Modifier,
         colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
@@ -49,8 +50,6 @@ fun AttributeSelectionGroup(
                 val value = constraint.value.first().value.toString()
                 Pair(path, value) to optional
             }.toMap()
-
-            val allChecked = remember { mutableStateOf(false) }
 
             LabeledCheckbox(
                 label = stringResource(Res.string.text_label_check_all),

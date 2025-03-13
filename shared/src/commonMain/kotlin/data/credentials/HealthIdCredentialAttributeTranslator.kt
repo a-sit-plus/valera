@@ -5,16 +5,16 @@ import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.attribute_friendly_name_administrative_number
 import at.asitplus.valera.resources.attribute_friendly_name_affiliation_country
-import at.asitplus.valera.resources.attribute_friendly_name_health_insurance_id
-import at.asitplus.valera.resources.attribute_friendly_name_patient_id
-import at.asitplus.valera.resources.attribute_friendly_name_tax_number
 import at.asitplus.valera.resources.attribute_friendly_name_document_number
-import at.asitplus.valera.resources.attribute_friendly_name_one_time_token
 import at.asitplus.valera.resources.attribute_friendly_name_e_prescription_code
-import at.asitplus.valera.resources.attribute_friendly_name_issue_date
 import at.asitplus.valera.resources.attribute_friendly_name_expiry_date
+import at.asitplus.valera.resources.attribute_friendly_name_health_insurance_id
+import at.asitplus.valera.resources.attribute_friendly_name_issue_date
 import at.asitplus.valera.resources.attribute_friendly_name_issuing_country
 import at.asitplus.valera.resources.attribute_friendly_name_issuing_jurisdiction
+import at.asitplus.valera.resources.attribute_friendly_name_one_time_token
+import at.asitplus.valera.resources.attribute_friendly_name_patient_id
+import at.asitplus.valera.resources.attribute_friendly_name_tax_number
 import at.asitplus.wallet.healthid.HealthIdScheme.Attributes
 import org.jetbrains.compose.resources.StringResource
 

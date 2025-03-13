@@ -46,7 +46,7 @@ fun AuthenticationSuccessView(
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.titleLarge,
                         )
-                        Logo()
+                        Logo(onClick = vm.onClickLogo)
                     }
                 },
                 navigationIcon = {

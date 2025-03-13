@@ -1,6 +1,7 @@
 package ui.composables
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
@@ -12,9 +13,12 @@ import at.asitplus.valera.resources.asp
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-internal inline fun Logo() {
+internal inline fun Logo(noinline onClick: () -> Unit) {
     Image(
-        modifier = Modifier.padding(start = 0.dp, end = 8.dp, top = 0.dp).size(65.9.dp, 19.7.dp),
+        modifier = Modifier
+            .padding(start = 0.dp, end = 8.dp, top = 0.dp)
+            .size(65.9.dp, 19.7.dp)
+            .clickable(onClick = onClick),
         painter = painterResource(Res.drawable.asp),
         contentDescription = null,
         contentScale = ContentScale.Inside,

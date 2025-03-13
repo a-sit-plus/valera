@@ -21,7 +21,8 @@ class DCAPIAuthenticationViewModel(
     navigateToAuthenticationSuccessPage: () -> Unit,
     navigateToHomeScreen: () -> Unit,
     walletMain: WalletMain,
-    val dcApiRequest: DCAPIRequest
+    val dcApiRequest: DCAPIRequest,
+    onClickLogo: () -> Unit
 ) : AuthenticationViewModel(
     spName = dcApiRequest.callingPackageName,
     spLocation = dcApiRequest.callingOrigin ?: dcApiRequest.callingPackageName!!,
@@ -29,7 +30,8 @@ class DCAPIAuthenticationViewModel(
     navigateUp,
     navigateToAuthenticationSuccessPage,
     navigateToHomeScreen,
-    walletMain
+    walletMain,
+    onClickLogo
 ) {
     override val descriptors = dcApiRequest.requestedData.mapNotNull {
         DifInputDescriptor(id = MobileDrivingLicenceScheme.isoDocType, constraints = Constraint(fields = it.value.map { requestedAttribute -> ConstraintField(path = listOf(

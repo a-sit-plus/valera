@@ -42,6 +42,7 @@ import ui.composables.buttons.ContinueButton
 @Composable
 fun OnboardingInformationView(
     onClickContinue: () -> Unit,
+    onClickLogo: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -53,7 +54,7 @@ fun OnboardingInformationView(
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.headlineLarge,
                         )
-                        Logo()
+                        Logo(onClick = onClickLogo)
                         Spacer(Modifier.width(8.dp))
                     }
                 },

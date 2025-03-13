@@ -14,10 +14,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.unit.dp
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.content_description_hide_attributes
 import at.asitplus.valera.resources.content_description_show_attributes
+import at.asitplus.wallet.lib.data.ConstantIndex
 import data.PersonalDataCategory
 import data.credentials.CredentialAttributeTranslator
 import org.jetbrains.compose.resources.stringResource

@@ -41,6 +41,7 @@ fun OnboardingTermsView(
     onClickReadGeneralTermsAndConditions: () -> Unit,
     onClickReadDataProtectionPolicy: () -> Unit,
     onClickAccept: () -> Unit,
+    onClickLogo: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -55,7 +56,7 @@ fun OnboardingTermsView(
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.titleLarge,
                         )
-                        Logo()
+                        Logo(onClick = onClickLogo)
                     }
                 },
             )

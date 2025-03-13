@@ -45,7 +45,7 @@ fun CredentialsView(
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.headlineLarge,
                         )
-                        Logo()
+                        Logo(vm.onClickLogo)
                         Spacer(Modifier.width(8.dp))
                     }
                 },

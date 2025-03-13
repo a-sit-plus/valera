@@ -7,10 +7,10 @@ import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.agent.rep
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.iconLabel
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import ui.composables.CredentialCardActionMenu
 import ui.composables.LabeledText
 import ui.composables.PersonAttributeDetailCardHeading
 import ui.composables.PersonAttributeDetailCardHeadingIcon
-import ui.composables.CredentialCardActionMenu
 
 
 @Composable

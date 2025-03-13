@@ -1,12 +1,12 @@
 package ui.composables
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.unit.Dp
 
 @Composable
 fun LabeledTextCheckbox(
@@ -16,9 +16,19 @@ fun LabeledTextCheckbox(
     onCheckedChange: (Boolean) -> Unit,
     enabled: Boolean = true
     ){
-    Row {
+    val checked = mutableStateOf(checked)
+
+    val onCheckedChange = { bool: Boolean ->
+        checked.value = bool
+        onCheckedChange(checked.value)
+    }
+
+    Row(modifier = Modifier.clickable(onClick = {
+        checked.value = !checked.value
+        onCheckedChange(checked.value)
+    }).fillMaxWidth()) {
         Checkbox(
-            checked = checked,
+            checked = checked.value,
             onCheckedChange = onCheckedChange,
             enabled = enabled,
         )

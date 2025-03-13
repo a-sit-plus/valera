@@ -10,8 +10,8 @@ import at.asitplus.rqes.collection_entries.TransactionData
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.CredentialSubmission
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import at.asitplus.wallet.lib.data.vckJsonSerializer
+import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import kotlinx.coroutines.runBlocking
 
 
@@ -23,7 +23,8 @@ class DefaultAuthenticationViewModel(
     navigateUp: () -> Unit,
     navigateToAuthenticationSuccessPage: () -> Unit,
     navigateToHomeScreen: () -> Unit,
-    walletMain: WalletMain
+    walletMain: WalletMain,
+    onClickLogo: () -> Unit
 ) : AuthenticationViewModel(
     spName,
     spLocation,
@@ -31,7 +32,8 @@ class DefaultAuthenticationViewModel(
     navigateUp,
     navigateToAuthenticationSuccessPage,
     navigateToHomeScreen,
-    walletMain
+    walletMain,
+    onClickLogo
 ) {
     override val descriptors =
         authenticationRequest.parameters.presentationDefinition?.inputDescriptors ?: listOf()
