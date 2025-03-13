@@ -22,7 +22,7 @@ internal object AppTestTags {
 
 @Composable
 fun App(walletMain: WalletMain) {
-
+    walletMain.initialize()
     LifecycleEventEffect(Lifecycle.Event.ON_CREATE) {
         Napier.d("Lifecycle.Event.ON_CREATE")
         walletMain.updateCheck()
