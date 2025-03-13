@@ -17,10 +17,13 @@ Setup:
  - Create an [App Store Connect API Key](https://developer.apple.com/documentation/appstoreconnectapi/creating_api_keys_for_app_store_connect_api) (with `App manager` access) and download it
  
 Create a new certificate:
- - On your Mac, go to Keychain Access, in the menu to Certificate Assistant, Request a Certificate from a Certificate Authority
- - There, enter your mail address, and save the CSR to disk
+ - On your Mac, go to Keychain Access
+ - Under Certificates, select the Apple Worldwide Developer Relations Certification Authority
+ - In the menu go to Certificate Assistant, Request a Certificate from a Certificate Authority
+ - There, enter your mail address, and set "Valera" as the Common Name, and save the CSR to disk
  - On the [Apple developer website](https://developer.apple.com/account/resources/certificates/add), create a certificate for `Apple development` and one for `Apple distribution` with the CSR generated before
- - Import the generated certificates into Keychain Access, to associate them with your key, and then export the two items to a `p12` file again by right clicking on them
+ - Import the generated certificates into Keychain Access, to associate them with your key,
+ - Select both entries (private key and certificate) and export the two items to a `p12` file again by right clicking on them
  - Use the content of the `p12` file for `APPLE_CERT_CONTENT`
  - Use the password of the `p12` file for `APPLE_CERT_PASSWORD`
 
