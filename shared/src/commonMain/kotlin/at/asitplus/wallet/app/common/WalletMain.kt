@@ -32,6 +32,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import net.swiftzer.semver.SemVer
 import org.jetbrains.compose.resources.getString
+import ui.navigation.IntentService
 
 /**
  * Main class to hold all services needed in the Compose App.
@@ -53,9 +54,8 @@ class WalletMain(
     lateinit var signingService: SigningService
     lateinit var errorService: ErrorService
     lateinit var dcApiService: DCAPIService
+    lateinit var intentService: IntentService
     private val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
-
-    val readyForIntents = MutableStateFlow<Boolean?>(null)
 
     init {
         at.asitplus.wallet.mdl.Initializer.initWithVCK()
@@ -72,7 +72,7 @@ class WalletMain(
     }
 
     @Throws(Throwable::class)
-    fun initialize(snackbarService: SnackbarService) {
+    fun initialize(snackbarService: SnackbarService, intentService: IntentService) {
         val coseService = DefaultCoseService(cryptoService)
         walletConfig =
             WalletConfig(dataStoreService = this.dataStoreService, errorService = errorService)
@@ -105,6 +105,7 @@ class WalletMain(
         signingService = SigningService(platformAdapter, dataStoreService, errorService, snackbarService, httpService)
         this.snackbarService = snackbarService
         this.dcApiService = DCAPIService(platformAdapter)
+        this.intentService = intentService
     }
 
     suspend fun resetApp() {

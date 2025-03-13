@@ -135,22 +135,21 @@ fun WalletNavigation(walletMain: WalletMain) {
     }
 
     val snackbarHostState = remember { SnackbarHostState() }
-    val snackbarService = SnackbarService(walletMain.scope, snackbarHostState)
-
-    val startDestination: Route
-
-    val errorService = ErrorService(showError = { message, cause -> navigate(ErrorRoute(message, cause)) })
+    val snackbarService = remember { SnackbarService(walletMain.scope, snackbarHostState) }
+    val intentService = remember { IntentService(walletMain, navigate, navigateBack) }
+    val errorService = remember { ErrorService(showError = { message, cause -> navigate(ErrorRoute(message, cause)) }) }
+    
     walletMain.errorService = errorService
 
     try {
-        walletMain.initialize(snackbarService)
+        walletMain.initialize(snackbarService, intentService)
     } catch (e: Throwable) {
         walletMain.errorService.emit(UncorrectableErrorException(e))
     }
 
     val isConditionsAccepted = walletMain.walletConfig.isConditionsAccepted.collectAsState(null)
 
-    startDestination = when (isConditionsAccepted.value) {
+    val startDestination = when (isConditionsAccepted.value) {
         true -> HomeScreenRoute
         false -> OnboardingStartRoute
         null -> LoadingRoute
@@ -167,14 +166,14 @@ fun WalletNavigation(walletMain: WalletMain) {
     }
 
     LaunchedEffect(null) {
-        appLink.combineTransform(walletMain.readyForIntents) { link,  ready ->
+        appLink.combineTransform(walletMain.intentService.readyForIntents) { link,  ready ->
             if (ready == true && link != null){
                 emit(link)
             }
         }.collect { link ->
             Napier.d("appLink.combineTransform $link")
             catchingUnwrapped {
-                handleIntent(walletMain, navigate, navigateBack, link)
+                walletMain.intentService.handleIntent(link)
             }.onFailure {
                 walletMain.errorService.emit(it)
             }
@@ -248,7 +247,7 @@ private fun WalletNavHost(
                     )
                 }
             )
-            walletMain.readyForIntents.value = true
+            walletMain.intentService.readyForIntents.value = true
         }
         composable<AuthenticationQrCodeScannerRoute> {
             val vm = AuthenticationQrCodeScannerViewModel(
