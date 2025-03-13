@@ -5,6 +5,7 @@ import com.android.identity.crypto.EcPrivateKey
 import com.android.identity.mdoc.transport.MdocTransport
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import kotlinx.io.bytestring.ByteString
 import kotlin.time.Duration
