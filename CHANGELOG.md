@@ -1,3 +1,7 @@
+# Release 5.4.14
+ * Improve consent: Mark optional attributes
+ * Rework start screen
+
 # Release 5.4.13
  * Update EU PID to ARF 1.5.0
 
