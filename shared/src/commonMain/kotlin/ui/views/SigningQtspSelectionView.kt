@@ -120,16 +120,18 @@ fun SigningQtspSelectionView(
                 )
                 Spacer(modifier = Modifier.height(10.dp))
 
-                Row {
-                    Button(onClick = { runBlocking { vm.walletMain.signingService.preloadCertificate() } }, enabled = (credentialInfo.value == null)) {
-                        Text(stringResource(Res.string.text_label_preload_certificate))
-                    }
-                    Button(onClick = {
-                        config.getQtspByIdentifier(selection.value).credentialInfo = null
-                        credentialInfo.value = null
-                        runBlocking { vm.walletMain.signingService.exportToDataStore() } }
-                        , enabled = (credentialInfo.value != null)) {
-                        Text(stringResource(Res.string.text_label_delete_certificate))
+                if(config.getCurrent().allowPreload) {
+                    Row {
+                        Button(onClick = { runBlocking { vm.walletMain.signingService.preloadCertificate() } }, enabled = (credentialInfo.value == null)) {
+                            Text(stringResource(Res.string.text_label_preload_certificate))
+                        }
+                        Button(onClick = {
+                            config.getQtspByIdentifier(selection.value).credentialInfo = null
+                            credentialInfo.value = null
+                            runBlocking { vm.walletMain.signingService.exportToDataStore() } }
+                            , enabled = (credentialInfo.value != null)) {
+                            Text(stringResource(Res.string.text_label_delete_certificate))
+                        }
                     }
                 }
 

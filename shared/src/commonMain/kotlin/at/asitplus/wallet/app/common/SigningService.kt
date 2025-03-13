@@ -14,6 +14,8 @@ import at.asitplus.rqes.enums.CertificateOptions
 import at.asitplus.signum.indispensable.X509SignatureAlgorithm
 import at.asitplus.signum.indispensable.io.ByteArrayBase64Serializer
 import at.asitplus.signum.indispensable.josef.JwsSigned
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.snackbar_sign_successful
 import at.asitplus.wallet.app.common.Configuration.DATASTORE_SIGNING_CONFIG
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.oauth2.OAuth2Client
@@ -51,11 +53,13 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
+import org.jetbrains.compose.resources.getString
 
 class SigningService(
     val platformAdapter: PlatformAdapter,
     val dataStoreService: DataStoreService,
     val errorService: ErrorService,
+    val snackbarService: SnackbarService,
     httpService: HttpService,
 ) {
     val config = runBlocking { importFromDataStore() }
@@ -73,6 +77,7 @@ class SigningService(
     private lateinit var documentWithLabel: DocumentWithLabel
     private lateinit var dtbsrAuthenticationDetails: AuthorizationDetails
     private lateinit var transactionTokens: List<String>
+    private lateinit var serviceToken: TokenResponseParameters
 
     private val pdfSigningAlgorithms = listOf(
         "1.2.840.113549.1.1.11", //RSA_SHA256
@@ -144,11 +149,12 @@ class SigningService(
     }
 
     suspend fun resumeWithServiceAuthCode(url: String) {
-        val token = getTokenFromAuthCode(url)
-        val credentialInfo = getCredentialInfo(token)
-        config.getCurrent().credentialInfo = credentialInfo
-        exportToDataStore()
-
+        serviceToken = getTokenFromAuthCode(url)
+        val credentialInfo = getCredentialInfo(serviceToken)
+        if (config.getCurrent().allowPreload) {
+            config.getCurrent().credentialInfo = credentialInfo
+            exportToDataStore()
+        }
         rqesWalletService.setSigningCredential(credentialInfo)
 
         val targetUrl = createCredentialAuthRequest()
@@ -159,20 +165,25 @@ class SigningService(
 
 
     suspend fun resumeWithCredentialAuthCode(url: String) {
-        val token = getTokenFromAuthCode(url)
+        val credentialToken = getTokenFromAuthCode(url)
 
         val signAlgorithm =
             rqesWalletService.signingCredential?.supportedSigningAlgorithms?.first() ?: X509SignatureAlgorithm.RS512
 
         val signHashRequest = rqesWalletService.createSignHashRequestParameters(
             dtbsr = (this.dtbsrAuthenticationDetails as CscAuthorizationDetails).documentDigests.map { it.hash },
-            sad = token.accessToken,
+            sad = credentialToken.accessToken,
             signatureAlgorithm = signAlgorithm
         )
+        val token = catchingUnwrapped { serviceToken }.getOrNull() ?: credentialToken
 
         val signatures = client.post("${config.getCurrent().qtspBaseUrl}/signatures/signHash") {
             contentType(Json)
             accept(Json)
+            header(
+                HttpHeaders.Authorization,
+                "${token.tokenType} ${token.accessToken}"
+            )
             setBody(vckJsonSerializer.encodeToString(signHashRequest))
         }.body<SignatureResponse>()
 
@@ -195,13 +206,17 @@ class SigningService(
             }
         }.buildString()
 
-        client.post(drivingAppResponseUrl) {
+        val response = client.post(drivingAppResponseUrl) {
             contentType(FormUrlEncoded)
             setBody(
                 JsonObject(mapOf("documentWithSignature" to signedDocList)).encodeToParameters()
                     .formUrlEncode()
             )
         }
+        catchingUnwrapped { response.body<QtspFinalRedirect>() }.getOrNull()?.let {
+            platformAdapter.openUrl(it.redirect_uri)
+        }
+        snackbarService.showSnackbar(getString(Res.string.snackbar_sign_successful))
     }
 
     private suspend fun createServiceAuthRequest(): String {
@@ -366,19 +381,22 @@ val defaultSigningConfig = SigningConfig(
             "EGIZ",
             "https://apps.egiz.gv.at/qtsp/csc/v2",
             "https://apps.egiz.gv.at/qtsp",
-            "https://wallet.a-sit.at/app"
+            "https://wallet.a-sit.at/app",
+            allowPreload = true
         ),
         QtspConfig(
             "ATRUST",
             "https://hs-abnahme.a-trust.at/csc/v2",
             "https://hs-abnahme.a-trust.at/csc/v1",
-            "WALLET_EGIZ"
+            "WALLET_EGIZ",
+            allowPreload = true
         ),
         QtspConfig(
             "PRIMESIGN",
-            "https://qs.primesign-test.com",
+            "https://qs.primesign-test.com/csc/v2",
             "https://id.primesign-test.com/realms/qs-staging",
-            "https://wallet.a-sit.at/app"
+            "https://wallet.a-sit.at/app",
+            allowPreload = false
         )
     ),
     current = "EGIZ"
@@ -391,6 +409,7 @@ data class QtspConfig(
     val oauth2BaseUrl: String,
     val oauth2ClientId: String,
     var credentialInfo: CredentialInfo? = null,
+    val allowPreload: Boolean
 )
 
 val qesDateTime = LocalDateTime.Format {
@@ -402,4 +421,9 @@ val qesDateTime = LocalDateTime.Format {
     second()
     char('Z')
 }
+
+@Serializable
+data class QtspFinalRedirect(
+    val redirect_uri: String
+)
 
