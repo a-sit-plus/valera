@@ -12,6 +12,7 @@ import at.asitplus.wallet.app.common.domain.BuildAuthenticationConsentPageFromAu
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier
 import io.ktor.http.parseQueryString
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.getString
@@ -21,8 +22,8 @@ import ui.navigation.routes.Route
 
 class IntentService(
     val walletMain: WalletMain,
-    val navigate: (Route) -> Unit,
-    val navigateBack: () -> Unit) {
+    val navigate: MutableSharedFlow<Route>,
+    val navigateBack: MutableSharedFlow<Route?>) {
 
     val readyForIntents = MutableStateFlow<Boolean?>(null)
 
@@ -30,7 +31,7 @@ class IntentService(
         Napier.d("New intent: $uri")
         when (parseIntent(uri)) {
             IntentType.ProvisioningIntent -> {
-                navigate(LoadingRoute)
+                navigate.emit(LoadingRoute)
 
                 catchingUnwrapped{
                     walletMain.cryptoService.promptText =
@@ -39,10 +40,10 @@ class IntentService(
                         getString(Res.string.biometric_authentication_prompt_to_bind_credentials_subtitle)
                     walletMain.provisioningService.resumeWithAuthCode(uri)
                     walletMain.snackbarService.showSnackbar(getString(Res.string.snackbar_credential_loaded_successfully))
-                    navigateBack()
+                    navigateBack.emit(null)
                     appLink.value = null
                 }.onFailure {
-                    navigateBack()
+                    navigateBack.emit(null)
                     walletMain.errorService.emit(it)
                     appLink.value = null
                 }
@@ -67,7 +68,7 @@ class IntentService(
 
                 consentPageBuilder(uri).unwrap().onSuccess {
                     Napier.d("valid authentication request")
-                    navigate(it)
+                    navigate.emit(it)
                 }.onFailure {
                     Napier.d("invalid authentication request")
                 }
@@ -82,7 +83,7 @@ class IntentService(
 
                 consentPageBuilder(dcApiRequest).unwrap().onSuccess {
                     Napier.d("valid authentication request")
-                    navigate(it)
+                    navigate.emit(it)
                 }.onFailure {
                     walletMain.errorService.emit(Exception("Invalid Authentication Request"))
                 }
@@ -94,7 +95,7 @@ class IntentService(
                 catchingUnwrapped {
                     walletMain.signingService.resumeWithServiceAuthCode(url = uri)
                 }.onSuccess {
-                    navigate(HomeScreenRoute)
+                    navigate.emit(HomeScreenRoute)
                 }.onFailure { e ->
                     walletMain.errorService.emit(e)
                 }
@@ -110,7 +111,7 @@ class IntentService(
                 catchingUnwrapped {
                     walletMain.signingService.resumeWithCredentialAuthCode(url = uri)
                 }.onSuccess {
-                    navigate(HomeScreenRoute)
+                    navigate.emit(HomeScreenRoute)
                 }.onFailure { e ->
                     walletMain.errorService.emit(e)
                 }

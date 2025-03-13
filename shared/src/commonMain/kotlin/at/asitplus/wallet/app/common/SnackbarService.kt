@@ -4,13 +4,18 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
-class SnackbarService(private val scope: CoroutineScope, private val snackbarHostState: SnackbarHostState) {
+class SnackbarService(private val scope: CoroutineScope) {
+    val call = MutableSharedFlow<Pair<() -> Unit,Pair<String, String>>>()
+    val message = MutableSharedFlow<Pair<String, String?>>()
+
     fun showSnackbar(text: String) {
         Napier.d("Show Snackbar with text: $text")
         scope.launch {
-            snackbarHostState.showSnackbar(message = text, withDismissAction = true)
+            message.emit(Pair(text, null))
         }
     }
 
@@ -20,11 +25,7 @@ class SnackbarService(private val scope: CoroutineScope, private val snackbarHos
     fun showSnackbar(text: String, actionLabel: String, callback: () -> Unit) {
         Napier.d("Show Snackbar with text: $text")
         scope.launch {
-            val result = snackbarHostState.showSnackbar(message = text, actionLabel = actionLabel, withDismissAction = true)
-            when (result) {
-                SnackbarResult.Dismissed -> {}
-                SnackbarResult.ActionPerformed -> callback.invoke()
-            }
+            call.emit(Pair(callback, Pair(text, actionLabel)))
         }
     }
 }
