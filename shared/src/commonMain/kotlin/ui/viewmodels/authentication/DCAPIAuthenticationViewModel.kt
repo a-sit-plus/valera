@@ -1,19 +1,23 @@
 package ui.viewmodels.authentication
 
 import androidx.compose.ui.graphics.ImageBitmap
+import at.asitplus.KmmResult
+import at.asitplus.catching
 import at.asitplus.dif.Constraint
 import at.asitplus.dif.ConstraintField
 import at.asitplus.dif.DifInputDescriptor
-import at.asitplus.jsonpath.core.NodeList
+import at.asitplus.dif.PresentationDefinition
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import at.asitplus.wallet.lib.agent.CredentialSubmission
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.credentials.CredentialAdapter
-import kotlinx.coroutines.runBlocking
+import ui.viewmodels.authentication.CredentialMatchingResult
+import ui.viewmodels.authentication.PresentationExchangeMatchingResult
 
 class DCAPIAuthenticationViewModel(
     spImage: ImageBitmap? = null,
@@ -33,24 +37,52 @@ class DCAPIAuthenticationViewModel(
     walletMain,
     onClickLogo
 ) {
-    override val descriptors = dcApiRequest.requestedData.mapNotNull {
-        DifInputDescriptor(id = MobileDrivingLicenceScheme.isoDocType, constraints = Constraint(fields = it.value.map { requestedAttribute -> ConstraintField(path = listOf(
-            NormalizedJsonPath(
-                NormalizedJsonPathSegment.NameSegment(it.key),
-                NormalizedJsonPathSegment.NameSegment(requestedAttribute.first),
-            ).toString()), intentToRetain = requestedAttribute.second) }))
-    }
+    override val presentationRequest: CredentialPresentationRequest.PresentationExchangeRequest
+        get() = CredentialPresentationRequest.PresentationExchangeRequest(
+            presentationDefinition = PresentationDefinition(
+                inputDescriptors = dcApiRequest.requestedData.mapNotNull {
+                    DifInputDescriptor(
+                        id = MobileDrivingLicenceScheme.isoDocType,
+                        constraints = Constraint(
+                            fields = it.value.map { requestedAttribute ->
+                                ConstraintField(
+                                    path = listOf(
+                                        NormalizedJsonPath(
+                                            NormalizedJsonPathSegment.NameSegment(it.key),
+                                            NormalizedJsonPathSegment.NameSegment(requestedAttribute.first),
+                                        ).toString()
+                                    ),
+                                    intentToRetain = requestedAttribute.second,
+                                )
+                            },
+                        )
+                    )
+                }
+            )
+        )
+
+    override val descriptors = presentationRequest.presentationDefinition.inputDescriptors
 
     override val transactionData = null
 
-    override fun findMatchingCredentials(): Map<String, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, NodeList>>> {
-        return runBlocking {
-                walletMain.holderAgent.matchInputDescriptorsAgainstCredentialStore(
+    override suspend fun findMatchingCredentials(): KmmResult<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>> =
+        catching {
+            PresentationExchangeMatchingResult(
+                presentationRequest = CredentialPresentationRequest.PresentationExchangeRequest(
+                    presentationDefinition = PresentationDefinition(
+                        inputDescriptors = descriptors,
+                    )
+                ),
+                matchingInputDescriptorCredentials = walletMain.holderAgent.matchInputDescriptorsAgainstCredentialStore(
                     inputDescriptors = descriptors,
                     fallbackFormatHolder = null,
-                ).getOrThrow()
-            }.map { (key, value) -> key to value.filter { (cred, _) -> CredentialAdapter.getId(cred).hashCode() == dcApiRequest.credentialId } }.toMap()
-    }
+                ).getOrThrow().map { (key, value) ->
+                    key to value.filter { (cred, _) ->
+                        CredentialAdapter.getId(cred).hashCode() == dcApiRequest.credentialId
+                    }
+                }.toMap()
+            )
+        }
 
     override suspend fun finalizationMethod(submission: Map<String, CredentialSubmission>) =
         walletMain.presentationService.finalizeDCAPIPreviewPresentation(submission, dcApiRequest)
