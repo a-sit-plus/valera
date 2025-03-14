@@ -33,6 +33,7 @@ fun AuthenticationView(vm: AuthenticationViewModel) {
                 transactionData = vm.transactionData,
                 requests = vm.descriptors.toList(),
                 presentationRequest = vm.presentationRequest,
+                onClickLogo = vm.onClickLogo
             )
             AuthenticationConsentView(viewModel)
         }
@@ -44,11 +45,15 @@ fun AuthenticationView(vm: AuthenticationViewModel) {
         }
 
         AuthenticationViewState.Selection -> {
-            val viewModel = AuthenticationSelectionViewModel(walletMain = vm.walletMain,
+            val viewModel = AuthenticationSelectionViewModel(
+                walletMain = vm.walletMain,
                 requests = vm.requestMap,
                 confirmSelections = { selections ->
                     vm.confirmSelection(selections)
-                }, navigateUp = { vm.viewState = AuthenticationViewState.Consent })
+                },
+                navigateUp = { vm.viewState = AuthenticationViewState.Consent },
+                onClickLogo = vm.onClickLogo,
+            )
             AuthenticationSelectionView(vm = viewModel)
         }
     }
