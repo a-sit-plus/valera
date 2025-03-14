@@ -7,6 +7,7 @@ import at.asitplus.signum.indispensable.equalsCryptographically
 import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.signum.supreme.os.SigningProvider
 import at.asitplus.signum.supreme.sign.Signer
+import at.asitplus.wallet.lib.agent.EphemeralKeyWithSelfSignedCert
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.agent.KeyWithSelfSignedCert
 import data.storage.DataStoreService
@@ -34,15 +35,7 @@ class KeystoreService(
         return signer!!
     }
 
-    private suspend fun initSigner(): KeyWithSelfSignedCert {
-        getProvider().let { provider ->
-            val forKey = provider.getSignerForKey(Configuration.KS_ALIAS).getOrElse {
-                provider.createSigningKey(alias = Configuration.KS_ALIAS).getOrThrow()
-            }
-            return KeyWithPersistentSelfSignedCert(forKey)
-        }
-
-    }
+    private suspend fun initSigner(): KeyWithSelfSignedCert = EphemeralKeyWithSelfSignedCert()
 
 
     inner class KeyWithPersistentSelfSignedCert(private val signer: Signer) :

@@ -49,6 +49,7 @@ kotlin {
                 api(libs.credential.companyregistration)
                 api(libs.credential.healthid)
                 api(libs.credential.taxid)
+                api(kmmresult())
                 implementation(serialization("json"))
                 api(napier())
                 implementation("androidx.datastore:datastore-preferences-core:1.1.1")
