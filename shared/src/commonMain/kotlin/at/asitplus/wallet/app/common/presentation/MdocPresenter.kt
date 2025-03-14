@@ -99,7 +99,7 @@ class MdocPresenter(
                 ).parse()
 
 
-                //TODO use our libs to parse the device request
+                //TODO use our libs to parse the device request and check the reader authentication
                 val mdocRequests = deviceRequest.docRequests.map {
                     it.toMdocRequest(
                         documentTypeRepository = DocumentTypeRepository(),
