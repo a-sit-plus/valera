@@ -3,6 +3,7 @@ package at.asitplus.wallet.app.android
 import android.content.Intent
 import android.nfc.cardemulation.HostApduService
 import android.os.Bundle
+import android.os.VibrationEffect
 import android.os.Vibrator
 import androidx.core.content.ContextCompat
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
@@ -41,7 +42,7 @@ import kotlin.time.Duration.Companion.seconds
 // Based on the identity-credential sample code
 // https://github.com/openwallet-foundation-labs/identity-credential/tree/main/samples/testapp
 
-class NdefDeviceEngagementService: HostApduService() {
+class NdefDeviceEngagementService : HostApduService() {
     companion object {
         private var engagement: MdocNfcEngagementHelper? = null
         private var disableEngagementJob: Job? = null
@@ -51,28 +52,24 @@ class NdefDeviceEngagementService: HostApduService() {
 
     private lateinit var settings: TransferSettings
 
-    private fun vibrate(pattern: List<Int>) {
+    private fun vibrate(pattern: Int) = kotlin.runCatching {
         val vibrator = ContextCompat.getSystemService(
             AndroidContexts.applicationContext,
             Vibrator::class.java
         )
-        vibrator?.vibrate(pattern.map { it.toLong() }.toLongArray(), -1)
-    }
 
-    private fun vibrateError() {
-        vibrate(listOf(0, 500))
-    }
+        val effect = VibrationEffect.createPredefined(pattern)
+        vibrator?.vibrate(effect)
+    }.onFailure { e -> Napier.w("Vibrating failed", e) }
 
-    private fun vibrateSuccess() {
-        vibrate(listOf(0, 100, 50, 100))
-    }
+    private fun vibrateError() = vibrate(VibrationEffect.EFFECT_DOUBLE_CLICK)
+
+    private fun vibrateSuccess() = vibrate(VibrationEffect.EFFECT_HEAVY_CLICK)
 
     override fun onCreate() {
         super.onCreate()
         settings = TransferSettings()
         AndroidContexts.setApplicationContext(applicationContext)
-        //TODO set device engagement preferences
-
     }
 
     private var started = false
@@ -115,11 +112,11 @@ class NdefDeviceEngagementService: HostApduService() {
         applicationContext.startActivity(intent)
 
         fun negotiatedHandoverPicker(connectionMethods: List<ConnectionMethod>): ConnectionMethod {
-            Napier.i( "NdefDeviceEngagementService: Negotiated Handover available methods: $connectionMethods")
+            Napier.i("NdefDeviceEngagementService: Negotiated Handover available methods: $connectionMethods")
             for (prefix in settings.presentmentNegotiatedHandoverPreferredOrder) {
                 for (connectionMethod in connectionMethods) {
                     if (connectionMethod.toString().startsWith(prefix)) {
-                        Napier.i( "NdefDeviceEngagementService: Using method $connectionMethod")
+                        Napier.i("NdefDeviceEngagementService: Using method $connectionMethod")
                         return connectionMethod
                     }
                 }
@@ -233,7 +230,7 @@ class NdefDeviceEngagementService: HostApduService() {
     }
 
     override fun processCommandApdu(encodedCommandApdu: ByteArray, extras: Bundle?): ByteArray? {
-        Napier.i( "NdefDeviceEngagementService: processCommandApdu")
+        Napier.i("NdefDeviceEngagementService: processCommandApdu")
 
         if (!started) {
             started = true
@@ -254,13 +251,13 @@ class NdefDeviceEngagementService: HostApduService() {
     }
 
     override fun onDeactivated(reason: Int) {
-        Napier.i( "NdefDeviceEngagementService: onDeactivated: reason=$reason")
+        Napier.i("NdefDeviceEngagementService: onDeactivated: reason=$reason")
         started = false
         // If the reader hasn't connected by the time NFC interaction ends, make sure we only
         // wait for a limited amount of time.
         if (presentationStateModel.state.value == PresentationStateModel.State.CONNECTING) {
             val timeout = 15.seconds
-            Napier.i( "NdefDeviceEngagementService: Reader hasn't connected at NFC deactivation time, scheduling $timeout timeout for closing")
+            Napier.i("NdefDeviceEngagementService: Reader hasn't connected at NFC deactivation time, scheduling $timeout timeout for closing")
             disableEngagementJob = CoroutineScope(Dispatchers.IO).launch {
                 delay(timeout)
                 if (presentationStateModel.state.value == PresentationStateModel.State.CONNECTING) {
