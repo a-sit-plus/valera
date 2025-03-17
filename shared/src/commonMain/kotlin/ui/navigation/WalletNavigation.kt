@@ -152,11 +152,19 @@ fun WalletNavigation(walletMain: WalletMain) {
         },
         modifier = Modifier.testTag(AppTestTags.rootScaffold)
     ) { _ ->
-        WalletNavHost(navController, startDestination, navigate, walletMain, navigateBack, backStackEntry, popBackStack,
-            onClickLogo)
+        WalletNavHost(
+            navController,
+            startDestination,
+            navigate,
+            walletMain,
+            navigateBack,
+            backStackEntry,
+            popBackStack,
+            onClickLogo
+        )
     }
 
-    LaunchedEffect(null){
+    LaunchedEffect(null) {
         walletMain.initNavigation(navigate, navigateBack)
         this.launch {
             walletMain.snackbarService.message.collect { (callback, text) ->
@@ -173,8 +181,8 @@ fun WalletNavigation(walletMain: WalletMain) {
             }
         }
         this.launch {
-            appLink.combineTransform(walletMain.intentService.readyForIntents) { link,  ready ->
-                if (ready == true && link != null){
+            appLink.combineTransform(walletMain.intentService.readyForIntents) { link, ready ->
+                if (ready == true && link != null) {
                     emit(link)
                 }
             }.collect { link ->
@@ -216,36 +224,45 @@ private fun WalletNavHost(
             )
         }
         composable<OnboardingInformationRoute> {
-            OnboardingInformationView(onClickContinue = { navigate(OnboardingTermsRoute) }, onClickLogo = onClickLogo)
+            OnboardingInformationView(
+                onClickContinue = { navigate(OnboardingTermsRoute) },
+                onClickLogo = onClickLogo
+            )
         }
         composable<OnboardingTermsRoute> {
-            OnboardingTermsView(onClickAccept = { walletMain.walletConfig.set(isConditionsAccepted = true) },
+            OnboardingTermsView(
+                onClickAccept = { walletMain.walletConfig.set(isConditionsAccepted = true) },
                 onClickNavigateBack = { navigateBack() },
                 onClickReadDataProtectionPolicy = {},
                 onClickReadGeneralTermsAndConditions = {},
-                onClickLogo = onClickLogo)
+                onClickLogo = onClickLogo
+            )
         }
         composable<HomeScreenRoute> {
-            val vm = CredentialsViewModel(walletMain,
-                navigateToAddCredentialsPage = {
-                    navigate(AddCredentialRoute)
-                },
-                navigateToQrAddCredentialsPage = {
-                    navigate(PreAuthQrCodeScannerRoute)
-                },
-                navigateToCredentialDetailsPage = {
-                    navigate(CredentialDetailsRoute(it))
-                },
-                imageDecoder = {
-                    try {
-                        walletMain.platformAdapter.decodeImage(it)
-                    } catch (throwable: Throwable) {
-                        // TODO: should this be emitted to the error service?
-                        Napier.w("Failed Operation: decodeImage")
-                        null
-                    }
-                },
-                onClickLogo = onClickLogo)
+            val vm = remember {
+                CredentialsViewModel(
+                    walletMain,
+                    navigateToAddCredentialsPage = {
+                        navigate(AddCredentialRoute)
+                    },
+                    navigateToQrAddCredentialsPage = {
+                        navigate(PreAuthQrCodeScannerRoute)
+                    },
+                    navigateToCredentialDetailsPage = {
+                        navigate(CredentialDetailsRoute(it))
+                    },
+                    imageDecoder = {
+                        try {
+                            walletMain.platformAdapter.decodeImage(it)
+                        } catch (throwable: Throwable) {
+                            // TODO: should this be emitted to the error service?
+                            Napier.w("Failed Operation: decodeImage")
+                            null
+                        }
+                    },
+                    onClickLogo = onClickLogo
+                )
+            }
             CredentialsView(
                 vm = vm,
                 bottomBar = {
@@ -258,42 +275,48 @@ private fun WalletNavHost(
             walletMain.intentService.readyForIntents.value = true
         }
         composable<AuthenticationQrCodeScannerRoute> {
-            val vm = AuthenticationQrCodeScannerViewModel(
-                navigateUp = { navigateBack() },
-                onSuccess = { route ->
-                    navigate(route)
-                },
-                walletMain = walletMain,
-                onClickLogo = onClickLogo
-            )
+            val vm = remember {
+                AuthenticationQrCodeScannerViewModel(
+                    navigateUp = { navigateBack() },
+                    onSuccess = { route ->
+                        navigate(route)
+                    },
+                    walletMain = walletMain,
+                    onClickLogo = onClickLogo
+                )
+            }
             AuthenticationQrCodeScannerView(vm)
         }
         composable<AuthenticationViewRoute> { backStackEntry ->
             val route: AuthenticationViewRoute = backStackEntry.toRoute()
 
-            val vm = try {
-                val request = odcJsonSerializer
-                    .decodeFromString<RequestParametersFrom<AuthenticationRequestParameters>>(route.authenticationRequestParametersFromSerialized)
+            val vm = remember {
+                try {
+                    val request = odcJsonSerializer
+                        .decodeFromString<RequestParametersFrom<AuthenticationRequestParameters>>(
+                            route.authenticationRequestParametersFromSerialized
+                        )
 
-                DefaultAuthenticationViewModel(
-                    spName = null,
-                    spLocation = route.recipientLocation,
-                    spImage = null,
-                    authenticationRequest = request,
-                    navigateUp = { navigateBack() },
-                    navigateToAuthenticationSuccessPage = {
-                        navigate(AuthenticationSuccessRoute)
-                    },
-                    navigateToHomeScreen = {
-                        popBackStack(HomeScreenRoute)
-                    },
-                    walletMain = walletMain,
-                    onClickLogo = onClickLogo
-                )
-            } catch (e: Throwable) {
-                popBackStack(HomeScreenRoute)
-                walletMain.errorService.emit(e)
-                null
+                    DefaultAuthenticationViewModel(
+                        spName = null,
+                        spLocation = route.recipientLocation,
+                        spImage = null,
+                        authenticationRequest = request,
+                        navigateUp = { navigateBack() },
+                        navigateToAuthenticationSuccessPage = {
+                            navigate(AuthenticationSuccessRoute)
+                        },
+                        navigateToHomeScreen = {
+                            popBackStack(HomeScreenRoute)
+                        },
+                        walletMain = walletMain,
+                        onClickLogo = onClickLogo
+                    )
+                } catch (e: Throwable) {
+                    popBackStack(HomeScreenRoute)
+                    walletMain.errorService.emit(e)
+                    null
+                }
             }
 
             if (vm != null) {
@@ -304,25 +327,28 @@ private fun WalletNavHost(
         composable<DCAPIAuthenticationConsentRoute> { backStackEntry ->
             val route: DCAPIAuthenticationConsentRoute = backStackEntry.toRoute()
 
-            val vm = try {
-                val dcApiRequest = DCAPIRequest.deserialize(route.apiRequestSerialized).getOrThrow()
+            val vm = remember {
+                try {
+                    val dcApiRequest =
+                        DCAPIRequest.deserialize(route.apiRequestSerialized).getOrThrow()
 
-                DCAPIAuthenticationViewModel(
-                    dcApiRequest = dcApiRequest,
-                    navigateUp = { navigateBack() },
-                    navigateToAuthenticationSuccessPage = {
-                        navigate(AuthenticationSuccessRoute)
-                    },
-                    walletMain = walletMain,
-                    navigateToHomeScreen = {
-                        popBackStack(HomeScreenRoute)
-                    },
-                    onClickLogo = onClickLogo
-                )
-            } catch (e: Throwable) {
-                popBackStack(HomeScreenRoute)
-                walletMain.errorService.emit(e)
-                null
+                    DCAPIAuthenticationViewModel(
+                        dcApiRequest = dcApiRequest,
+                        navigateUp = { navigateBack() },
+                        navigateToAuthenticationSuccessPage = {
+                            navigate(AuthenticationSuccessRoute)
+                        },
+                        walletMain = walletMain,
+                        navigateToHomeScreen = {
+                            popBackStack(HomeScreenRoute)
+                        },
+                        onClickLogo = onClickLogo
+                    )
+                } catch (e: Throwable) {
+                    popBackStack(HomeScreenRoute)
+                    walletMain.errorService.emit(e)
+                    null
+                }
             }
 
             if (vm != null) {
@@ -332,46 +358,57 @@ private fun WalletNavHost(
         }
 
         composable<AuthenticationSuccessRoute> { backStackEntry ->
-            val vm = AuthenticationSuccessViewModel(navigateUp = { navigateBack() }, onClickLogo = onClickLogo)
+            val vm = remember {
+                AuthenticationSuccessViewModel(
+                    navigateUp = { navigateBack() },
+                    onClickLogo = onClickLogo
+                )
+            }
             AuthenticationSuccessView(vm = vm)
         }
 
         composable<AddCredentialRoute> { backStackEntry ->
-            val vm = AddCredentialViewModel(
-                walletMain = walletMain,
-                navigateUp = navigateBack,
-                hostString = runBlocking { walletMain.walletConfig.host.first() },
-                onSubmitServer = { host ->
-                    navigate(LoadCredentialRoute(host))
-                },
-                onClickLogo = onClickLogo)
+            val vm = remember {
+                AddCredentialViewModel(
+                    walletMain = walletMain,
+                    navigateUp = navigateBack,
+                    hostString = runBlocking { walletMain.walletConfig.host.first() },
+                    onSubmitServer = { host ->
+                        navigate(LoadCredentialRoute(host))
+                    },
+                    onClickLogo = onClickLogo
+                )
+            }
             SelectIssuingServerView(vm)
         }
 
         composable<LoadCredentialRoute> { backStackEntry ->
             val route: LoadCredentialRoute = backStackEntry.toRoute()
-            val vm = try {
-                LoadCredentialViewModel(
-                    walletMain = walletMain,
-                    navigateUp = navigateBack,
-                    hostString = route.host,
-                    onSubmit = { credentialIdentifierInfo, requestedAttributes, _ ->
-                        popBackStack(HomeScreenRoute)
-                        walletMain.scope.launch {
-                            walletMain.startProvisioning(
-                                host = route.host,
-                                credentialIdentifierInfo = credentialIdentifierInfo,
-                                requestedAttributes = requestedAttributes,
-                            ) {
+            val vm = remember {
+                try {
+                    LoadCredentialViewModel(
+                        walletMain = walletMain,
+                        navigateUp = navigateBack,
+                        hostString = route.host,
+                        onSubmit = { credentialIdentifierInfo, requestedAttributes, _ ->
+                            popBackStack(HomeScreenRoute)
+                            walletMain.scope.launch {
+                                walletMain.startProvisioning(
+                                    host = route.host,
+                                    credentialIdentifierInfo = credentialIdentifierInfo,
+                                    requestedAttributes = requestedAttributes,
+                                ) {
+                                }
                             }
-                        }
 
-                    },
-                    onClickLogo = onClickLogo)
-            } catch (e: Throwable) {
-                popBackStack(HomeScreenRoute)
-                walletMain.errorService.emit(e)
-                null
+                        },
+                        onClickLogo = onClickLogo
+                    )
+                } catch (e: Throwable) {
+                    popBackStack(HomeScreenRoute)
+                    walletMain.errorService.emit(e)
+                    null
+                }
             }
             if (vm != null) {
                 LoadCredentialView(vm)
@@ -381,70 +418,77 @@ private fun WalletNavHost(
         composable<AddCredentialPreAuthnRoute> { backStackEntry ->
             val route: AddCredentialPreAuthnRoute = backStackEntry.toRoute()
             val offer = Json.decodeFromString<CredentialOffer>(route.credentialOfferSerialized)
-            val vm = LoadCredentialViewModel(
-                walletMain = walletMain,
-                navigateUp = navigateBack,
-                offer = offer,
-                onSubmit = { credentialIdentifierInfo, requestedAttributes, transactionCode ->
-                    popBackStack(HomeScreenRoute)
-                    navigate(LoadingRoute)
-                    walletMain.scope.launch {
-                        try {
-                            walletMain.provisioningService.loadCredentialWithOffer(
-                                credentialOffer = offer,
-                                credentialIdentifierInfo = credentialIdentifierInfo,
-                                transactionCode = transactionCode?.ifEmpty { null }?.ifBlank { null },
-                                requestedAttributes = requestedAttributes
-                            )
-                            popBackStack(HomeScreenRoute)
-                        } catch (e: Throwable) {
-                            popBackStack(HomeScreenRoute)
-                            walletMain.errorService.emit(e)
+            val vm = remember {
+                LoadCredentialViewModel(
+                    walletMain = walletMain,
+                    navigateUp = navigateBack,
+                    offer = offer,
+                    onSubmit = { credentialIdentifierInfo, requestedAttributes, transactionCode ->
+                        popBackStack(HomeScreenRoute)
+                        navigate(LoadingRoute)
+                        walletMain.scope.launch {
+                            try {
+                                walletMain.provisioningService.loadCredentialWithOffer(
+                                    credentialOffer = offer,
+                                    credentialIdentifierInfo = credentialIdentifierInfo,
+                                    transactionCode = transactionCode?.ifEmpty { null }
+                                        ?.ifBlank { null },
+                                    requestedAttributes = requestedAttributes
+                                )
+                                popBackStack(HomeScreenRoute)
+                            } catch (e: Throwable) {
+                                popBackStack(HomeScreenRoute)
+                                walletMain.errorService.emit(e)
+                            }
                         }
-                    }
-                },
-                onClickLogo = onClickLogo
-            )
+                    },
+                    onClickLogo = onClickLogo
+                )
+            }
             LoadCredentialView(vm)
         }
 
         composable<CredentialDetailsRoute> { backStackEntry ->
             val route: CredentialDetailsRoute = backStackEntry.toRoute()
-            val vm = CredentialDetailsViewModel(
-                storeEntryId = route.storeEntryId,
-                navigateUp = { navigateBack() },
-                walletMain = walletMain,
-                onClickLogo = onClickLogo
-            )
+            val vm = remember {
+                CredentialDetailsViewModel(
+                    storeEntryId = route.storeEntryId,
+                    navigateUp = { navigateBack() },
+                    walletMain = walletMain,
+                    onClickLogo = onClickLogo
+                )
+            }
             CredentialDetailsView(vm = vm)
         }
 
         composable<SettingsRoute> { backStackEntry ->
-            val vm = SettingsViewModel(
-                onClickShareLogFile = {
-                    navigate(LogRoute)
-                },
-                onClickResetApp = {
-                    val resetMessage = runBlocking {
-                        walletMain.resetApp()
-                        getString(Res.string.snackbar_reset_app_successfully)
-                    }
-                    walletMain.snackbarService.showSnackbar(resetMessage)
-                    navController.popBackStack(route = HomeScreenRoute, inclusive = false)
-                },
-                onClickClearLogFile = {
-                    val clearMessage = runBlocking {
-                        walletMain.clearLog()
-                        getString(Res.string.snackbar_clear_log_successfully)
-                    }
-                    walletMain.snackbarService.showSnackbar(clearMessage)
-                },
-                onClickSigning = {
-                    navigate(SigningQtspSelectionRoute)
-                },
-                walletMain = walletMain,
-                onClickLogo = onClickLogo
-            )
+            val vm = remember {
+                SettingsViewModel(
+                    onClickShareLogFile = {
+                        navigate(LogRoute)
+                    },
+                    onClickResetApp = {
+                        val resetMessage = runBlocking {
+                            walletMain.resetApp()
+                            getString(Res.string.snackbar_reset_app_successfully)
+                        }
+                        walletMain.snackbarService.showSnackbar(resetMessage)
+                        navController.popBackStack(route = HomeScreenRoute, inclusive = false)
+                    },
+                    onClickClearLogFile = {
+                        val clearMessage = runBlocking {
+                            walletMain.clearLog()
+                            getString(Res.string.snackbar_clear_log_successfully)
+                        }
+                        walletMain.snackbarService.showSnackbar(clearMessage)
+                    },
+                    onClickSigning = {
+                        navigate(SigningQtspSelectionRoute)
+                    },
+                    walletMain = walletMain,
+                    onClickLogo = onClickLogo
+                )
+            }
             SettingsView(
                 vm = vm,
                 bottomBar = {
@@ -456,24 +500,38 @@ private fun WalletNavHost(
         }
 
         composable<PreAuthQrCodeScannerRoute> { backStackEntry ->
-            val vm = PreAuthQrCodeScannerViewModel(
-                walletMain = walletMain,
-                navigateUp = { navigateBack() },
-                navigateToAddCredentialsPage = { offer ->
-                    navigate(AddCredentialPreAuthnRoute(Json.encodeToString(offer)))
-                },
-                onClickLogo = onClickLogo)
+            val vm = remember {
+                PreAuthQrCodeScannerViewModel(
+                    walletMain = walletMain,
+                    navigateUp = { navigateBack() },
+                    navigateToAddCredentialsPage = { offer ->
+                        navigate(AddCredentialPreAuthnRoute(Json.encodeToString(offer)))
+                    },
+                    onClickLogo = onClickLogo
+                )
+            }
             PreAuthQrCodeScannerScreen(vm)
         }
 
         composable<LogRoute> { backStackEntry ->
-            val vm = LogViewModel(navigateUp = { navigateBack() }, walletMain = walletMain, onClickLogo = onClickLogo)
+            val vm = remember {
+                LogViewModel(
+                    navigateUp = { navigateBack() },
+                    walletMain = walletMain,
+                    onClickLogo = onClickLogo
+                )
+            }
             LogView(vm = vm)
         }
 
         composable<ErrorRoute> { backStackEntry ->
             val route: ErrorRoute = backStackEntry.toRoute()
-            ErrorView(resetStack = { popBackStack(HomeScreenRoute) }, message = route.message, cause = route.cause, onClickLogo = onClickLogo)
+            ErrorView(
+                resetStack = { popBackStack(HomeScreenRoute) },
+                message = route.message,
+                cause = route.cause,
+                onClickLogo = onClickLogo
+            )
         }
 
         composable<LoadingRoute> { backStackEntry ->
@@ -481,46 +539,52 @@ private fun WalletNavHost(
         }
 
         composable<AuthenticationQrCodeScannerRoute> { backStackEntry ->
-            val vm = AuthenticationQrCodeScannerViewModel(
-                navigateUp = { navigateBack() },
-                onSuccess = { route ->
-                    navigateBack()
-                    navigate(route)
-                },
-                walletMain = walletMain,
-                onClickLogo = onClickLogo
-            )
+            val vm = remember {
+                AuthenticationQrCodeScannerViewModel(
+                    navigateUp = { navigateBack() },
+                    onSuccess = { route ->
+                        navigateBack()
+                        navigate(route)
+                    },
+                    walletMain = walletMain,
+                    onClickLogo = onClickLogo
+                )
+            }
             AuthenticationQrCodeScannerView(vm)
         }
 
         composable<SigningRoute> { backStackEntry ->
-            val vm = SigningViewModel(
-                navigateUp = navigateBack,
-                createSignRequest = { signRequest ->
-                    navigate(HomeScreenRoute)
-                    CoroutineScope(Dispatchers.Main).launch {
-                        try{
-                            walletMain.signingService.start(signRequest)
+            val vm = remember {
+                SigningViewModel(
+                    navigateUp = navigateBack,
+                    createSignRequest = { signRequest ->
+                        navigate(HomeScreenRoute)
+                        CoroutineScope(Dispatchers.Main).launch {
+                            try {
+                                walletMain.signingService.start(signRequest)
 
-                        } catch (e: Throwable) {
-                            walletMain.errorService.emit(e)
+                            } catch (e: Throwable) {
+                                walletMain.errorService.emit(e)
+                            }
                         }
-                    }
-                },
-                walletMain = walletMain,
-                onClickLogo = onClickLogo
-            )
+                    },
+                    walletMain = walletMain,
+                    onClickLogo = onClickLogo
+                )
+            }
             SigningView(vm)
         }
         composable<SigningQtspSelectionRoute> { backStackEntry ->
-            val vm = SigningQtspSelectionViewModel(
-                navigateUp = navigateBack,
-                onContinue = {
-                    navigate(SigningRoute)
-                },
-                walletMain = walletMain,
-                onClickLogo = onClickLogo
-            )
+            val vm = remember {
+                SigningQtspSelectionViewModel(
+                    navigateUp = navigateBack,
+                    onContinue = {
+                        navigate(SigningRoute)
+                    },
+                    walletMain = walletMain,
+                    onClickLogo = onClickLogo
+                )
+            }
             SigningQtspSelectionView(vm = vm)
         }
 
