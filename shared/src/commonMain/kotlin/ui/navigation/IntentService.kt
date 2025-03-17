@@ -7,6 +7,7 @@ import at.asitplus.valera.resources.biometric_authentication_prompt_to_bind_cred
 import at.asitplus.valera.resources.biometric_authentication_prompt_to_bind_credentials_title
 import at.asitplus.valera.resources.snackbar_credential_loaded_successfully
 import at.asitplus.wallet.app.common.ErrorService
+import at.asitplus.wallet.app.common.NavigationService
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.PresentationService
 import at.asitplus.wallet.app.common.ProvisioningService
@@ -36,8 +37,7 @@ class IntentService(
     val errorService: ErrorService,
     val platformAdapter: PlatformAdapter,
     val signingService: SigningService,
-    val navigate: (Route) -> Unit,
-    val navigateBack: () -> Unit) {
+    val navigationService: NavigationService) {
 
     val readyForIntents = MutableStateFlow<Boolean?>(null)
 
@@ -45,7 +45,7 @@ class IntentService(
         Napier.d("New intent: $uri")
         when (parseIntent(uri)) {
             IntentType.ProvisioningIntent -> {
-                navigate(LoadingRoute)
+                navigationService.navigate(LoadingRoute)
 
                 catchingUnwrapped{
                     cryptoService.promptText =
@@ -54,10 +54,10 @@ class IntentService(
                         getString(Res.string.biometric_authentication_prompt_to_bind_credentials_subtitle)
                     provisioningService.resumeWithAuthCode(uri)
                     snackbarService.showSnackbar(getString(Res.string.snackbar_credential_loaded_successfully))
-                    navigateBack()
+                    navigationService.navigateBack()
                     appLink.value = null
                 }.onFailure {
-                    navigateBack()
+                    navigationService.navigateBack()
                     errorService.emit(it)
                     appLink.value = null
                 }
@@ -82,7 +82,7 @@ class IntentService(
 
                 consentPageBuilder(uri).unwrap().onSuccess {
                     Napier.d("valid authentication request")
-                    navigate(it)
+                    navigationService.navigate(it)
                 }.onFailure {
                     Napier.d("invalid authentication request")
                 }
@@ -97,7 +97,7 @@ class IntentService(
 
                 consentPageBuilder(dcApiRequest).unwrap().onSuccess {
                     Napier.d("valid authentication request")
-                    navigate(it)
+                    navigationService.navigate(it)
                 }.onFailure {
                     errorService.emit(Exception("Invalid Authentication Request"))
                 }
@@ -109,7 +109,7 @@ class IntentService(
                 catchingUnwrapped {
                     signingService.resumeWithServiceAuthCode(url = uri)
                 }.onSuccess {
-                    navigate(HomeScreenRoute)
+                    navigationService.navigate(HomeScreenRoute)
                 }.onFailure { e ->
                     errorService.emit(e)
                 }
@@ -125,7 +125,7 @@ class IntentService(
                 catchingUnwrapped {
                     signingService.resumeWithCredentialAuthCode(url = uri)
                 }.onSuccess {
-                    navigate(HomeScreenRoute)
+                    navigationService.navigate(HomeScreenRoute)
                 }.onFailure { e ->
                     errorService.emit(e)
                 }

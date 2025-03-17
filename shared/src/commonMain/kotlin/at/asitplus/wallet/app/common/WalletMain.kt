@@ -57,10 +57,10 @@ class WalletMain(
     lateinit var signingService: SigningService
     lateinit var dcApiService: DCAPIService
     lateinit var intentService: IntentService
+    lateinit var navigationService: NavigationService
+    lateinit var errorService: ErrorService
+    lateinit var snackbarService: SnackbarService
     private val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
-
-    val errorService = ErrorService()
-    val snackbarService = SnackbarService(this.scope)
 
     init {
         at.asitplus.wallet.mdl.Initializer.initWithVCK()
@@ -76,23 +76,10 @@ class WalletMain(
         Napier.base(AntilogAdapter(platformAdapter, "", buildContext.buildType))
     }
 
-    fun initNavigation(navigate: (Route) -> Unit, navigateBack: () -> Unit) {
-        intentService = IntentService(
-            cryptoService,
-            provisioningService,
-            presentationService,
-            snackbarService,
-            errorService,
-            platformAdapter,
-            signingService,
-            navigate,
-            navigateBack
-        )
-    }
-
     @Throws(Throwable::class)
     fun initialize() {
         val coseService = DefaultCoseService(cryptoService)
+        errorService = ErrorService()
         walletConfig =
             WalletConfig(dataStoreService = this.dataStoreService, errorService = errorService)
         subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
@@ -121,6 +108,7 @@ class WalletMain(
             httpService,
             coseService
         )
+        snackbarService = SnackbarService(this.scope)
         signingService = SigningService(
             platformAdapter,
             dataStoreService,
@@ -128,7 +116,17 @@ class WalletMain(
             snackbarService,
             httpService
         )
-
+        navigationService = NavigationService()
+        intentService = IntentService(
+            cryptoService,
+            provisioningService,
+            presentationService,
+            snackbarService,
+            errorService,
+            platformAdapter,
+            signingService,
+            navigationService
+        )
         this.dcApiService = DCAPIService(platformAdapter)
     }
 
