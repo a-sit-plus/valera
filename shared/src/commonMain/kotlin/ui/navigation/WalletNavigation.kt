@@ -1,7 +1,6 @@
 package ui.navigation
 
 import AppTestTags
-import UncorrectableErrorException
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,19 +31,15 @@ import at.asitplus.openid.odcJsonSerializer
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_clear_log_successfully
 import at.asitplus.valera.resources.snackbar_reset_app_successfully
-import at.asitplus.wallet.app.common.ErrorService
-import at.asitplus.wallet.app.common.SnackbarService
+import at.asitplus.wallet.app.common.NavigationService
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import at.asitplus.wallet.app.common.decodeImage
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.zip
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
@@ -75,10 +70,6 @@ import ui.navigation.routes.SigningQtspSelectionRoute
 import ui.navigation.routes.SigningRoute
 import ui.screens.SelectIssuingServerView
 import ui.viewmodels.AddCredentialViewModel
-import ui.viewmodels.authentication.AuthenticationQrCodeScannerViewModel
-import ui.viewmodels.authentication.AuthenticationSuccessViewModel
-import ui.viewmodels.authentication.DCAPIAuthenticationViewModel
-import ui.viewmodels.authentication.DefaultAuthenticationViewModel
 import ui.viewmodels.CredentialDetailsViewModel
 import ui.viewmodels.CredentialsViewModel
 import ui.viewmodels.ErrorViewModel
@@ -88,9 +79,10 @@ import ui.viewmodels.PreAuthQrCodeScannerViewModel
 import ui.viewmodels.SettingsViewModel
 import ui.viewmodels.SigningQtspSelectionViewModel
 import ui.viewmodels.SigningViewModel
-import ui.views.authentication.AuthenticationQrCodeScannerView
-import ui.views.authentication.AuthenticationSuccessView
-import ui.views.authentication.AuthenticationView
+import ui.viewmodels.authentication.AuthenticationQrCodeScannerViewModel
+import ui.viewmodels.authentication.AuthenticationSuccessViewModel
+import ui.viewmodels.authentication.DCAPIAuthenticationViewModel
+import ui.viewmodels.authentication.DefaultAuthenticationViewModel
 import ui.views.CredentialDetailsView
 import ui.views.CredentialsView
 import ui.views.ErrorView
@@ -104,6 +96,9 @@ import ui.views.PreAuthQrCodeScannerScreen
 import ui.views.SettingsView
 import ui.views.SigningQtspSelectionView
 import ui.views.SigningView
+import ui.views.authentication.AuthenticationQrCodeScannerView
+import ui.views.authentication.AuthenticationSuccessView
+import ui.views.authentication.AuthenticationView
 
 internal object NavigatorTestTags {
     const val loadingTestTag = "loadingTestTag"
@@ -115,21 +110,10 @@ fun WalletNavigation(walletMain: WalletMain) {
     val backStackEntry by navController.currentBackStackEntryAsState()
 
     LaunchedEffect(null) {
-        this.launch {
-            walletMain.navigationService.navigate.collect { route ->
-                navController.navigate(route)
-            }
-        }
-        this.launch {
-            walletMain.navigationService.navigateBack.collect { route ->
-                navController.navigateUp()
-            }
-        }
-        this.launch {
-            walletMain.navigationService.popBackStack.collect { route ->
-                navController.popBackStack(route = route, inclusive = false)
-            }
-        }
+        InitializeNavigation(
+            navigationService = walletMain.navigationService,
+            navController = navController
+        )
     }
 
     val onClickLogo = {
@@ -161,34 +145,7 @@ fun WalletNavigation(walletMain: WalletMain) {
     }
 
     LaunchedEffect(null) {
-        this.launch {
-            walletMain.snackbarService.message.collect { (callback, text) ->
-                val result = snackbarHostState.showSnackbar(text.first, text.second, true)
-                when (result) {
-                    SnackbarResult.Dismissed -> {}
-                    SnackbarResult.ActionPerformed -> callback?.invoke()
-                }
-            }
-        }
-        this.launch {
-            walletMain.errorService.show.collect { (message, cause) ->
-                walletMain.navigationService.navigate(ErrorRoute(message, cause))
-            }
-        }
-        this.launch {
-            appLink.combineTransform(walletMain.intentService.readyForIntents) { link, ready ->
-                if (ready == true && link != null) {
-                    emit(link)
-                }
-            }.collect { link ->
-                Napier.d("appLink.combineTransform $link")
-                catchingUnwrapped {
-                    walletMain.intentService.handleIntent(link)
-                }.onFailure {
-                    walletMain.errorService.emit(it)
-                }
-            }
-        }
+        InitializeServiceCollectors(walletMain, snackbarHostState)
     }
 }
 
@@ -509,7 +466,13 @@ private fun WalletNavHost(
                     walletMain = walletMain,
                     navigateUp = { walletMain.navigationService.navigateBack() },
                     navigateToAddCredentialsPage = { offer ->
-                        walletMain.navigationService.navigate(AddCredentialPreAuthnRoute(Json.encodeToString(offer)))
+                        walletMain.navigationService.navigate(
+                            AddCredentialPreAuthnRoute(
+                                Json.encodeToString(
+                                    offer
+                                )
+                            )
+                        )
                     },
                     onClickLogo = onClickLogo
                 )
@@ -593,6 +556,62 @@ private fun WalletNavHost(
                 )
             }
             SigningQtspSelectionView(vm = vm)
+        }
+    }
+}
+
+fun InitializeNavigation(navigationService: NavigationService, navController: NavHostController) {
+    CoroutineScope(Dispatchers.Unconfined).launch {
+        this.launch {
+            navigationService.navigate.collect { route ->
+                navController.navigate(route)
+            }
+        }
+        this.launch {
+            navigationService.navigateBack.collect { route ->
+                navController.navigateUp()
+            }
+        }
+        this.launch {
+            navigationService.popBackStack.collect { route ->
+                navController.popBackStack(route = route, inclusive = false)
+            }
+        }
+    }
+}
+
+fun InitializeServiceCollectors(
+    walletMain: WalletMain,
+    snackbarHostState: SnackbarHostState
+) {
+    CoroutineScope(Dispatchers.Unconfined).launch {
+        this.launch {
+            walletMain.snackbarService.message.collect { (callback, text) ->
+                val result = snackbarHostState.showSnackbar(text.first, text.second, true)
+                when (result) {
+                    SnackbarResult.Dismissed -> {}
+                    SnackbarResult.ActionPerformed -> callback?.invoke()
+                }
+            }
+        }
+        this.launch {
+            walletMain.errorService.show.collect { (message, cause) ->
+                walletMain.navigationService.navigate(ErrorRoute(message, cause))
+            }
+        }
+        this.launch {
+            appLink.combineTransform(walletMain.intentService.readyForIntents) { link, ready ->
+                if (ready == true && link != null) {
+                    emit(link)
+                }
+            }.collect { link ->
+                Napier.d("appLink.combineTransform $link")
+                catchingUnwrapped {
+                    walletMain.intentService.handleIntent(link)
+                }.onFailure {
+                    walletMain.errorService.emit(it)
+                }
+            }
         }
     }
 }
