@@ -10,9 +10,7 @@ import ui.viewmodels.authentication.AuthenticationViewState
 
 @Composable
 fun AuthenticationView(vm: AuthenticationViewModel) {
-    val vm = remember { vm }
     vm.walletMain.cryptoService.onUnauthenticated = vm.navigateUp
-
     when (vm.viewState) {
         AuthenticationViewState.Consent -> {
             val viewModel = AuthenticationConsentViewModel(

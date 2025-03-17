@@ -70,7 +70,6 @@ import ui.viewmodels.authentication.AuthenticationConsentViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthenticationConsentView(vm: AuthenticationConsentViewModel) {
-    val vm = remember { vm }
 
     vm.walletMain.cryptoService.onUnauthenticated = vm.navigateUp
 

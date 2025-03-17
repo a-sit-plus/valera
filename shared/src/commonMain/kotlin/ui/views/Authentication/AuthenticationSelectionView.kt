@@ -39,7 +39,6 @@ import ui.viewmodels.authentication.AuthenticationSelectionViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthenticationSelectionView(vm: AuthenticationSelectionViewModel) {
-    val vm = remember { vm }
 
     val currentRequest = vm.iterableRequests[vm.requestIterator.value]
 

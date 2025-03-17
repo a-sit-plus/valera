@@ -59,8 +59,6 @@ fun SettingsView(
     vm: SettingsViewModel,
     bottomBar: @Composable () -> Unit
 ) {
-    val vm = remember { vm }
-
     val showAlert = remember { mutableStateOf(false) }
     if (showAlert.value) {
         ResetAlert(
