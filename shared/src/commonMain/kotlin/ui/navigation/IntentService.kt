@@ -6,7 +6,14 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_to_bind_credentials_subtitle
 import at.asitplus.valera.resources.biometric_authentication_prompt_to_bind_credentials_title
 import at.asitplus.valera.resources.snackbar_credential_loaded_successfully
+import at.asitplus.wallet.app.common.ErrorService
+import at.asitplus.wallet.app.common.PlatformAdapter
+import at.asitplus.wallet.app.common.PresentationService
+import at.asitplus.wallet.app.common.ProvisioningService
+import at.asitplus.wallet.app.common.SigningService
 import at.asitplus.wallet.app.common.SigningState
+import at.asitplus.wallet.app.common.SnackbarService
+import at.asitplus.wallet.app.common.WalletCryptoService
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.domain.BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
@@ -19,9 +26,16 @@ import org.jetbrains.compose.resources.getString
 import ui.navigation.routes.HomeScreenRoute
 import ui.navigation.routes.LoadingRoute
 import ui.navigation.routes.Route
+import ui.viewmodels.ErrorViewModel
 
 class IntentService(
-    val walletMain: WalletMain,
+    val cryptoService: WalletCryptoService,
+    val provisioningService: ProvisioningService,
+    val presentationService: PresentationService,
+    val snackbarService: SnackbarService,
+    val errorService: ErrorService,
+    val platformAdapter: PlatformAdapter,
+    val signingService: SigningService,
     val navigate: (Route) -> Unit,
     val navigateBack: () -> Unit) {
 
@@ -34,17 +48,17 @@ class IntentService(
                 navigate(LoadingRoute)
 
                 catchingUnwrapped{
-                    walletMain.cryptoService.promptText =
+                    cryptoService.promptText =
                         getString(Res.string.biometric_authentication_prompt_to_bind_credentials_title)
-                    walletMain.cryptoService.promptSubtitle =
+                    cryptoService.promptSubtitle =
                         getString(Res.string.biometric_authentication_prompt_to_bind_credentials_subtitle)
-                    walletMain.provisioningService.resumeWithAuthCode(uri)
-                    walletMain.snackbarService.showSnackbar(getString(Res.string.snackbar_credential_loaded_successfully))
+                    provisioningService.resumeWithAuthCode(uri)
+                    snackbarService.showSnackbar(getString(Res.string.snackbar_credential_loaded_successfully))
                     navigateBack()
                     appLink.value = null
                 }.onFailure {
                     navigateBack()
-                    walletMain.errorService.emit(it)
+                    errorService.emit(it)
                     appLink.value = null
                 }
             }
@@ -53,7 +67,7 @@ class IntentService(
                 val parameterIndex = uri.indexOfFirst { it == '?' }
                 val pars = parseQueryString(uri, startIndex = parameterIndex + 1)
                 runBlocking {
-                    walletMain.errorService.emit(
+                    errorService.emit(
                         Exception(pars["error_description"] ?: "Unknown Exception")
                     )
                 }
@@ -63,7 +77,7 @@ class IntentService(
             IntentType.AuthorizationIntent -> {
                 val consentPageBuilder =
                     BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
-                        presentationService = walletMain.presentationService
+                        presentationService = presentationService
                     )
 
                 consentPageBuilder(uri).unwrap().onSuccess {
@@ -76,7 +90,7 @@ class IntentService(
             }
 
             IntentType.DCAPIAuthorizationIntent -> {
-                val dcApiRequest = walletMain.platformAdapter.getCurrentDCAPIData()
+                val dcApiRequest = platformAdapter.getCurrentDCAPIData()
                 val consentPageBuilder =
                     BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase()
 
@@ -85,7 +99,7 @@ class IntentService(
                     Napier.d("valid authentication request")
                     navigate(it)
                 }.onFailure {
-                    walletMain.errorService.emit(Exception("Invalid Authentication Request"))
+                    errorService.emit(Exception("Invalid Authentication Request"))
                 }
 
                 appLink.value = null
@@ -93,34 +107,34 @@ class IntentService(
 
             IntentType.SigningServiceIntent -> {
                 catchingUnwrapped {
-                    walletMain.signingService.resumeWithServiceAuthCode(url = uri)
+                    signingService.resumeWithServiceAuthCode(url = uri)
                 }.onSuccess {
                     navigate(HomeScreenRoute)
                 }.onFailure { e ->
-                    walletMain.errorService.emit(e)
+                    errorService.emit(e)
                 }
             }
             IntentType.SigningPreloadIntent -> {
                 catchingUnwrapped {
-                    walletMain.signingService.resumePreloadCertificate(url = uri)
+                    signingService.resumePreloadCertificate(url = uri)
                 }.onFailure { e ->
-                    walletMain.errorService.emit(e)
+                    errorService.emit(e)
                 }
             }
             IntentType.SigningCredentialIntent -> {
                 catchingUnwrapped {
-                    walletMain.signingService.resumeWithCredentialAuthCode(url = uri)
+                    signingService.resumeWithCredentialAuthCode(url = uri)
                 }.onSuccess {
                     navigate(HomeScreenRoute)
                 }.onFailure { e ->
-                    walletMain.errorService.emit(e)
+                    errorService.emit(e)
                 }
             }
             IntentType.SigningIntent -> {
                 catchingUnwrapped {
-                    walletMain.signingService.start(uri)
+                    signingService.start(uri)
                 }.onFailure { e ->
-                    walletMain.errorService.emit(e)
+                    errorService.emit(e)
                 }
             }
         }
@@ -129,14 +143,14 @@ class IntentService(
     fun parseIntent(uri: String): IntentType {
         return if (uri.contains("error")) {
             IntentType.ErrorIntent
-        } else if((walletMain.signingService.redirectUri?.let { uri.contains(it) } == true)) {
-            when (walletMain.signingService.state) {
+        } else if((signingService.redirectUri?.let { uri.contains(it) } == true)) {
+            when (signingService.state) {
                 SigningState.ServiceRequest -> IntentType.SigningServiceIntent
                 SigningState.CredentialRequest -> IntentType.SigningCredentialIntent
                 SigningState.PreloadCredential -> IntentType.SigningPreloadIntent
                 null -> throw Throwable("Missing state in SigningService")
-            }.also { walletMain.signingService.state = null }
-        } else if (walletMain.provisioningService.redirectUri?.let { uri.contains(it) } == true) {
+            }.also { signingService.state = null }
+        } else if (provisioningService.redirectUri?.let { uri.contains(it) } == true) {
             IntentType.ProvisioningIntent
         } else if (uri == "androidx.identitycredentials.action.GET_CREDENTIALS") {
             IntentType.DCAPIAuthorizationIntent

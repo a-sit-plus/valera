@@ -43,7 +43,9 @@ class WalletMain(
     val cryptoService: WalletCryptoService,
     private val dataStoreService: DataStoreService,
     val platformAdapter: PlatformAdapter,
-    var subjectCredentialStore: PersistentSubjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService),
+    var subjectCredentialStore: PersistentSubjectCredentialStore = PersistentSubjectCredentialStore(
+        dataStoreService
+    ),
     val buildContext: BuildContext,
     val scope: CoroutineScope,
 ) {
@@ -75,7 +77,17 @@ class WalletMain(
     }
 
     fun initNavigation(navigate: (Route) -> Unit, navigateBack: () -> Unit) {
-        intentService = IntentService(this, navigate, navigateBack)
+        intentService = IntentService(
+            cryptoService,
+            provisioningService,
+            presentationService,
+            snackbarService,
+            errorService,
+            platformAdapter,
+            signingService,
+            navigate,
+            navigateBack
+        )
     }
 
     @Throws(Throwable::class)
@@ -109,7 +121,13 @@ class WalletMain(
             httpService,
             coseService
         )
-        signingService = SigningService(platformAdapter, dataStoreService, errorService, snackbarService, httpService)
+        signingService = SigningService(
+            platformAdapter,
+            dataStoreService,
+            errorService,
+            snackbarService,
+            httpService
+        )
 
         this.dcApiService = DCAPIService(platformAdapter)
     }
@@ -181,7 +199,13 @@ class WalletMain(
                         val currentVersion = SemVer.parse(buildContext.versionName)
                         Napier.d("Version is $currentVersion, latest is $latestVersion")
                         if (latestVersion > currentVersion) {
-                            snackbarService.showSnackbar(getString(Res.string.snackbar_update_hint, host, latestVersion), getString(Res.string.snackbar_update_action)) {
+                            snackbarService.showSnackbar(
+                                getString(
+                                    Res.string.snackbar_update_hint,
+                                    host,
+                                    latestVersion
+                                ), getString(Res.string.snackbar_update_action)
+                            ) {
                                 platformAdapter.openUrl(host)
                             }
                         }
@@ -283,7 +307,10 @@ class DummyPlatformAdapter : PlatformAdapter {
         return null
     }
 
-    override fun prepareDCAPICredentialResponse(responseJson: ByteArray, dcApiRequest: DCAPIRequest) {
+    override fun prepareDCAPICredentialResponse(
+        responseJson: ByteArray,
+        dcApiRequest: DCAPIRequest
+    ) {
     }
 
 }
