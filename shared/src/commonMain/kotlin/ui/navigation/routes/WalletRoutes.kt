@@ -55,4 +55,9 @@ data class DCAPIAuthenticationConsentRoute(
 ) : Route()
 
 @Serializable
+data class LocalPresentationAuthenticationConsentRoute(
+    val presentationRequestSerialized: String
+) : Route()
+
+@Serializable
 object AuthenticationSuccessRoute : Route()

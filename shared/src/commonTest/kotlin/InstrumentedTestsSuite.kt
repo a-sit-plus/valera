@@ -313,14 +313,14 @@ private fun createWalletMain(platformAdapter: PlatformAdapter): WalletMain {
         cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
         dataStoreService = dummyDataStoreService,
         platformAdapter = platformAdapter,
-        scope = CoroutineScope(Dispatchers.Default),
         buildContext = BuildContext(
             buildType = BuildType.DEBUG,
             packageName = "test",
             versionCode = 0,
             versionName = "0.0.0",
             osVersion = "Unit Test"
-        )
+        ),
+        scope = CoroutineScope(Dispatchers.Default),
     )
 }
 

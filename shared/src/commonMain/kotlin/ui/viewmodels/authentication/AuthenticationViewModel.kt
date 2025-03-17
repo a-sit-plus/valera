@@ -23,7 +23,7 @@ abstract class AuthenticationViewModel(
     val spLocation: String,
     val spImage: ImageBitmap?,
     val navigateUp: () -> Unit,
-    val navigateToAuthenticationSuccessPage: () -> Unit,
+    val onAuthenticationSuccess: () -> Unit,
     val navigateToHomeScreen: () -> Unit,
     val walletMain: WalletMain,
     val onClickLogo: () -> Unit
@@ -32,8 +32,8 @@ abstract class AuthenticationViewModel(
     var viewState by mutableStateOf(AuthenticationViewState.Consent)
     abstract val transactionData: TransactionData?
 
-    lateinit var matchingCredentials: Map<String, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, NodeList /* = List<NodeListEntry> */>>>
-    lateinit var selectedCredentials: Map<String, SubjectCredentialStore.StoreEntry>
+    private lateinit var matchingCredentials: Map<String, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, NodeList /* = List<NodeListEntry> */>>>
+    private lateinit var selectedCredentials: Map<String, SubjectCredentialStore.StoreEntry>
     var requestMap: Map<String, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, NodeList>>> =
         mutableMapOf()
 
@@ -79,7 +79,7 @@ abstract class AuthenticationViewModel(
             finalizationMethod(submission)
         }.onSuccess {
             navigateUp()
-            navigateToAuthenticationSuccessPage()
+            onAuthenticationSuccess()
         }.onFailure {
             walletMain.errorService.emit(it)
         }
