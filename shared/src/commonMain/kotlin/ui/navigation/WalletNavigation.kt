@@ -80,6 +80,7 @@ import ui.viewmodels.authentication.DCAPIAuthenticationViewModel
 import ui.viewmodels.authentication.DefaultAuthenticationViewModel
 import ui.viewmodels.CredentialDetailsViewModel
 import ui.viewmodels.CredentialsViewModel
+import ui.viewmodels.ErrorViewModel
 import ui.viewmodels.LoadCredentialViewModel
 import ui.viewmodels.LogViewModel
 import ui.viewmodels.PreAuthQrCodeScannerViewModel
@@ -526,12 +527,15 @@ private fun WalletNavHost(
 
         composable<ErrorRoute> { backStackEntry ->
             val route: ErrorRoute = backStackEntry.toRoute()
-            ErrorView(
-                resetStack = { popBackStack(HomeScreenRoute) },
-                message = route.message,
-                cause = route.cause,
-                onClickLogo = onClickLogo
-            )
+            val vm = remember {
+                ErrorViewModel(
+                    resetStack = { popBackStack(HomeScreenRoute) },
+                    message = route.message,
+                    cause = route.cause,
+                    onClickLogo = onClickLogo
+                )
+            }
+            ErrorView(vm)
         }
 
         composable<LoadingRoute> { backStackEntry ->
