@@ -39,8 +39,6 @@ import ui.viewmodels.authentication.AuthenticationSelectionPresentationExchangeV
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthenticationSelectionPresentationExchangeView(vm: AuthenticationSelectionPresentationExchangeViewModel) {
-    val vm = remember { vm }
-
     val currentRequest = vm.iterableRequests[vm.requestIterator.value]
 
     AuthenticationSelectionViewScaffold(

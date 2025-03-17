@@ -34,8 +34,6 @@ import ui.viewmodels.authentication.AuthenticationSuccessViewModel
 fun AuthenticationSuccessView(
     vm: AuthenticationSuccessViewModel
 ) {
-    val vm = remember { vm }
-
     Scaffold(
         topBar = {
             TopAppBar(
