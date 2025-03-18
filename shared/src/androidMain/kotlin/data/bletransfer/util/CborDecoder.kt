@@ -3,6 +3,7 @@ package data.bletransfer.util
 import android.graphics.BitmapFactory
 import android.util.Base64
 import androidx.compose.ui.graphics.asImageBitmap
+import at.asitplus.signum.indispensable.cosef.CoseSigned
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.wallet.lib.iso.DeviceRequest
 import at.asitplus.wallet.lib.iso.DeviceResponse
@@ -29,6 +30,7 @@ class CborDecoder {
                 Napier.e(TAG, exception, errorMessage)
                 return
             }
+
 
         Napier.i(tag = TAG, message = "DeviceResponse: status=${deviceResponse.status}, version=${deviceResponse.version}")
         if (deviceResponse.documentErrors?.isNotEmpty() == true) {
@@ -99,8 +101,26 @@ class CborDecoder {
             return
         }
 
-        documentRequests += docRequests.map { request ->
-            RequestedDocument(request.itemsRequest.value.docType).apply {
+        for (docReq in docRequests) {
+            Napier.w(tag = "COSE", message = docReq.readerAuth.toString())
+        }
+
+
+
+//        documentRequests += docRequests.map { request ->
+//            RequestedDocument(request.itemsRequest.value.docType).apply {
+//                request.itemsRequest.value.namespaces.forEach { (namespaceKey, namespaceValue) ->
+//                    addNameSpace(RequestedDocument.NameSpace(namespaceKey).apply {
+//                        namespaceValue.entries.forEach { (attributeKey, _) ->
+//                            addAttribute(DocumentAttributes.fromValue(attributeKey))
+//                        }
+//                    })
+//                }
+//            }
+//        }
+
+        val requestsAndAuth: Map<RequestedDocument, CoseSigned<ByteArray>?> = docRequests.associate { request ->
+            val requestedDocument = RequestedDocument(request.itemsRequest.value.docType).apply {
                 request.itemsRequest.value.namespaces.forEach { (namespaceKey, namespaceValue) ->
                     addNameSpace(RequestedDocument.NameSpace(namespaceKey).apply {
                         namespaceValue.entries.forEach { (attributeKey, _) ->
@@ -109,6 +129,10 @@ class CborDecoder {
                     })
                 }
             }
+            requestedDocument to request.readerAuth
         }
+        documentRequests = requestsAndAuth.keys.toList()
+
+
     }
 }

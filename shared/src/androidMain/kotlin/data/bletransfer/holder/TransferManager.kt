@@ -2,6 +2,7 @@ package data.bletransfer.holder
 
 import android.annotation.SuppressLint
 import android.content.Context
+import com.android.identity.cbor.Cbor
 import data.bletransfer.util.RequestedDocument
 import data.bletransfer.util.CborDecoder
 import io.github.aakira.napier.Napier
@@ -54,6 +55,7 @@ class TransferManager private constructor(private val context: Context) {
                 val documentRequestsList = CborDecoder().apply {
                     decodeRequest(deviceRequest)
                 }.documentRequests
+
 
                 updateRequestedAttributes(documentRequestsList)
             },
