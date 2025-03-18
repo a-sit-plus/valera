@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app.common
 
+import at.asitplus.catching
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
@@ -10,12 +11,15 @@ import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.PresentationException
 import at.asitplus.wallet.lib.agent.PresentationRequestParameters
 import at.asitplus.wallet.lib.cbor.CoseService
+import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import com.benasher44.uuid.uuid4
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
 import kotlinx.serialization.builtins.ByteArraySerializer
+import ui.viewmodels.authentication.DCQLMatchingResult
+import ui.viewmodels.authentication.PresentationExchangeMatchingResult
 
 class PresentationService(
     val platformAdapter: PlatformAdapter,
@@ -41,11 +45,24 @@ class PresentationService(
     suspend fun getPreparationState(request: RequestParametersFrom<AuthenticationRequestParameters>) =
         presentationService.startAuthorizationResponsePreparation(request).getOrThrow()
 
-    suspend fun getMatchingCredentials(preparationState: AuthorizationResponsePreparationState) =
-        holderAgent.matchInputDescriptorsAgainstCredentialStore(
-            inputDescriptors = preparationState.presentationDefinition?.inputDescriptors!!,
-            fallbackFormatHolder = preparationState.clientMetadata?.vpFormats,
-        ).getOrThrow()
+    suspend fun getMatchingCredentials(preparationState: AuthorizationResponsePreparationState) = catching {
+        when (val it = preparationState.credentialPresentationRequest) {
+            is CredentialPresentationRequest.DCQLRequest -> DCQLMatchingResult(
+                presentationRequest = it,
+                holderAgent.matchDCQLQueryAgainstCredentialStore(it.dcqlQuery).getOrThrow()
+            )
+
+            is CredentialPresentationRequest.PresentationExchangeRequest -> PresentationExchangeMatchingResult(
+                presentationRequest = it,
+                holderAgent.matchInputDescriptorsAgainstCredentialStore(
+                    inputDescriptors = it.presentationDefinition.inputDescriptors,
+                    fallbackFormatHolder = it.fallbackFormatHolder,
+                ).getOrThrow()
+            )
+
+            null -> TODO()
+        }
+    }
 
     suspend fun finalizeAuthorizationResponse(
         request: RequestParametersFrom<AuthenticationRequestParameters>,
