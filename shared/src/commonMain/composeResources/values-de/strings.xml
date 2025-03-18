@@ -310,6 +310,9 @@
     <string name="info_text_enthusiastic_welcome_end">Daten laden und los geht's!</string>
     <string name="info_text_submission_preview_disabled">Vorschau von Übermittelten Daten ist derzeit nicht verfügbar.</string>
     <string name="info_text_no_matching_credential">Es wurde kein passendes Credential für die Anfrage gefunden.</string>
+    <string name="info_text_data_is_being_loaded">Daten werden geladen</string>
+    <string name="info_text_missing_permission">Berechtigung fehlt</string>
+    <string name="info_text_qr_code_loading">QR-Code wird geladen</string>
 
     <string name="section_heading_authenticate_at_device_title">Anmelden</string>
     <string name="section_heading_authenticate_at_device_subtitle">an Service Provider</string>

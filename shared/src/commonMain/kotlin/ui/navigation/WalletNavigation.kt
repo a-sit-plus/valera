@@ -35,6 +35,8 @@ import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import at.asitplus.wallet.app.common.decodeImage
+import at.asitplus.wallet.app.common.domain.BuildAuthenticationConsentPageFromAuthenticationRequestLocalPresentment
+import at.asitplus.wallet.app.common.presentation.PresentationRequest
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -303,6 +305,18 @@ private fun WalletNavHost(
             val vm = ShowQrCodeViewModel(
                 walletMain = walletMain,
                 navigateUp = { navigateBack() },
+                onNavigateToPresentmentScreen = {
+                    presentationStateModel.value = it
+                    val consentPageBuilder =
+                        BuildAuthenticationConsentPageFromAuthenticationRequestLocalPresentment()
+
+                    consentPageBuilder(PresentationRequest(PRESENTATION_REQUESTED_INTENT)).unwrap().onSuccess {
+                        Napier.d("valid presentation request")
+                        navigate(it)
+                    }.onFailure {
+                        walletMain.errorService.emit(Exception("Invalid Authentication Request"))
+                    }
+                }
             )
             ShowQrCodeView(vm)
         }
@@ -598,8 +612,7 @@ private fun WalletNavHost(
                     navigateBack()
                     navigate(route)
                 },
-                walletMain = walletMain,
-                onClickLogo = onClickLogo
+                walletMain = walletMain
             )
             AuthenticationQrCodeScannerView(vm)
         }

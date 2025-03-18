@@ -16,8 +16,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,45 +28,23 @@ import at.asitplus.valera.resources.heading_label_show_qr_code_screen
 import at.asitplus.valera.resources.info_text_missing_permission
 import at.asitplus.valera.resources.info_text_qr_code_loading
 import at.asitplus.wallet.app.common.decodeImage
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.launch
+import kotlinx.io.bytestring.ByteString
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
+import ui.permissions.RequestBluetoothPermissions
+import ui.viewmodels.PresentationStateModel
 import ui.viewmodels.iso.ShowQrCodeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
 
-    // TODO:
-    //  - PresenterView
-    //    - ShowQrCodeView
-    //    - onConnection -> AuthenticationView (oder so)
-    //  PermissionManager?
-
     val vm = remember { vm }
+    val showQrCode = remember { mutableStateOf<ByteString?>(null) }
 
-    // TODO: check permissions
-
-    LaunchedEffect(Unit) {
-        val updateQrCode: (String) -> Unit = { str -> vm.qrcodeText = str }
-        withContext(Dispatchers.IO) {
-//            holder.hold(updateQrCode) {
-//                vm.shouldDisconnect = false
-//                vm.onConnection(holder)
-//            }
-        }
-    }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            if (vm.shouldDisconnect) {
-//                holder.disconnect()
-            }
-        }
-    }
+    RequestBluetoothPermissions { vm.permission = it }
 
     Scaffold(
         topBar = {
@@ -91,16 +70,23 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
             ) {
                 if (!vm.permission) {
                     Text(stringResource(Res.string.info_text_missing_permission))
-                } else if (vm.qrcodeText.isEmpty()) {
+                } else if (showQrCode.value != null && vm.presentationStateModel.state.collectAsState().value != PresentationStateModel.State.PROCESSING) {
+                    val qrCode = vm.createQrCode(showQrCode.value!!)
+                    val imageBitmap = vm.walletMain.platformAdapter.decodeImage(qrCode)
+                    Image(bitmap = imageBitmap, contentDescription = null)
+                } else {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         CircularProgressIndicator()
+                        LaunchedEffect(showQrCode.value) {
+                            vm.presentationStateModel.reset()
+                            vm.presentationStateModel.setConnecting()
+                            vm.presentationStateModel.presentmentScope.launch {
+                                vm.doHolderFlow(showQrCode)
+                            }
+                        }
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(stringResource(Res.string.info_text_qr_code_loading))
                     }
-                } else {
-                    val qrCode = vm.createQrCode()
-                    val imageBitmap = vm.walletMain.platformAdapter.decodeImage(qrCode)
-                    Image(bitmap = imageBitmap, contentDescription = null)
                 }
             }
         }

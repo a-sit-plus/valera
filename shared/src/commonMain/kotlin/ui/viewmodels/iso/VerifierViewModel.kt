@@ -1,9 +1,15 @@
 package ui.viewmodels.iso
 
+import at.asitplus.wallet.app.common.transfer.TransferManager
+import data.bletransfer.Verifier
 import data.document.getAgeVerificationRequestDocument
 import data.document.getIdentityRequestDocument
 import data.document.getMdlRequestDocument
 import data.document.RequestDocument
+import io.github.aakira.napier.Napier
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -11,8 +17,15 @@ class VerifierViewModel (
     val navigateUp: () -> Unit,
 //    val onSuccess: (RequestDocument, String) -> Unit,
 ) {
+    private val transferManager: TransferManager by lazy { TransferManager(CoroutineScope(Dispatchers.IO)) }
+    val verifier: Verifier by lazy { Verifier(transferManager) }
+
     val onFoundPayload: (String) -> Unit = { payload ->
         requestDocument.value?.let { document ->
+            verifier.doVerifierFlow(payload, document) { deviceResponseBytes ->
+                Napier.d("deviceResponseBytes = $deviceResponseBytes", tag = "VerifierViewModel")
+//                handleResponse(deviceResponseBytes)
+            }
 //            onSuccess(document, payload)
 
 
