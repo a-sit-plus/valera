@@ -1,3 +1,6 @@
+# Release 5.4.16
+ * tbd
+
 # Release 5.4.15
  * Update Power of Representation credential, to fix `sdJwtType`
  * Update Company Registration credential, to fix `sdJwtType`
