@@ -1,4 +1,4 @@
-package at.asitplus.wallet.app.common.presentation
+package at.asitplus.wallet.app.common.transfer
 
 data class TransferSettings(
     val presentmentNegotiatedHandoverPreferredOrder: List<String> = listOf(
@@ -12,4 +12,5 @@ data class TransferSettings(
     val presentmentNfcDataTransferEnabled: Boolean = true,
     val readerBleL2CapEnabled: Boolean = false,
     val presentmentAllowMultipleRequests: Boolean = false,
+    val readerAutomaticallySelectTransport: Boolean = true
 )

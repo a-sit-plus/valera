@@ -8,7 +8,7 @@ import androidx.core.content.ContextCompat
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
 import ui.viewmodels.PresentationStateModel
 import at.asitplus.wallet.app.common.presentation.PresentmentTimeout
-import at.asitplus.wallet.app.common.presentation.TransferSettings
+import at.asitplus.wallet.app.common.transfer.TransferSettings
 import com.android.identity.cbor.DataItem
 import com.android.identity.crypto.Crypto
 import com.android.identity.crypto.EcCurve
