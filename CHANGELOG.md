@@ -1,3 +1,7 @@
+# Release 5.4.15
+ * Update Power of Representation credential, to fix `sdJwtType`
+ * Update Company Registration credential, to fix `sdJwtType`
+
 # Release 5.4.14
  * Improve consent: Mark optional attributes
  * Rework start screen
