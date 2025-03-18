@@ -313,7 +313,7 @@
     <string name="info_text_no_matching_credential">Your credentials don't match the request.</string>
     <string name="info_text_data_is_being_loaded">Loading Data</string>
     <string name="info_text_missing_permission">Permission missing</string>
-    <string name="info_text_qr_code_loading">Loading WR Code</string>
+    <string name="info_text_qr_code_loading">Loading QR Code</string>
 
     <string name="section_heading_authenticate_at_device_title">Authenticate</string>
     <string name="section_heading_authenticate_at_device_subtitle">at relying party</string>

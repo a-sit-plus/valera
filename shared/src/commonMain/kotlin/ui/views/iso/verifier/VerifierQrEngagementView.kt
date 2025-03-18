@@ -20,10 +20,10 @@ import androidx.compose.ui.Modifier
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_check_scan_qr_code
 import at.asitplus.valera.resources.info_text_missing_permission
-import data.bletransfer.requestBluetoothPermissions
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
+import ui.permissions.RequestBluetoothPermissions
 import ui.viewmodels.iso.VerifierViewModel
 import ui.views.CameraView
 
@@ -33,7 +33,9 @@ fun VerifierQrEngagementView(vm: VerifierViewModel) {
 
     var hasPermissions by remember { mutableStateOf(false) }
 
-    requestBluetoothPermissions { granted ->
+    val vm = remember { vm }
+
+    RequestBluetoothPermissions { granted ->
         hasPermissions = granted
     }
 

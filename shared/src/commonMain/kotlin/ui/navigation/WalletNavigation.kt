@@ -1,6 +1,7 @@
 package ui.navigation
 
 import AppTestTags
+import Globals
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,7 +24,6 @@ import at.asitplus.catchingUnwrapped
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.openid.RequestParametersFrom
-import at.asitplus.rqes.rdcJsonSerializer
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_clear_log_successfully
 import at.asitplus.valera.resources.snackbar_reset_app_successfully
@@ -39,10 +39,8 @@ import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.getString
-import ui.views.PresentationView
 import ui.composables.BottomBar
 import ui.composables.NavigationData
 import ui.navigation.routes.AddCredentialPreAuthnRoute
@@ -77,8 +75,8 @@ import ui.navigation.routes.SigningIntentRoute
 import ui.navigation.routes.SigningPreloadIntentRoute
 import ui.navigation.routes.SigningQtspSelectionRoute
 import ui.navigation.routes.SigningRoute
-import ui.navigation.routes.VerifyDataRoute
 import ui.navigation.routes.SigningServiceIntentRoute
+import ui.navigation.routes.VerifyDataRoute
 import ui.viewmodels.AddCredentialViewModel
 import ui.viewmodels.CredentialDetailsViewModel
 import ui.viewmodels.CredentialsViewModel
@@ -86,16 +84,14 @@ import ui.viewmodels.ErrorViewModel
 import ui.viewmodels.LoadCredentialViewModel
 import ui.viewmodels.LogViewModel
 import ui.viewmodels.PreAuthQrCodeScannerViewModel
-import ui.viewmodels.authentication.PresentationViewModel
 import ui.viewmodels.SettingsViewModel
 import ui.viewmodels.SigningQtspSelectionViewModel
 import ui.viewmodels.SigningViewModel
-import ui.viewmodels.iso.ShowQrCodeViewModel
-import ui.viewmodels.iso.VerifierViewModel
 import ui.viewmodels.authentication.AuthenticationQrCodeScannerViewModel
 import ui.viewmodels.authentication.AuthenticationSuccessViewModel
 import ui.viewmodels.authentication.DCAPIAuthenticationViewModel
 import ui.viewmodels.authentication.DefaultAuthenticationViewModel
+import ui.viewmodels.authentication.PresentationViewModel
 import ui.viewmodels.intents.AuthorizationIntentViewModel
 import ui.viewmodels.intents.DCAPIAuthorizationIntentViewModel
 import ui.viewmodels.intents.ErrorIntentViewModel
@@ -105,10 +101,10 @@ import ui.viewmodels.intents.SigningCredentialIntentViewModel
 import ui.viewmodels.intents.SigningIntentViewModel
 import ui.viewmodels.intents.SigningPreloadIntentViewModel
 import ui.viewmodels.intents.SigningServiceIntentViewModel
+import ui.viewmodels.iso.ShowQrCodeViewModel
+import ui.viewmodels.iso.VerifierViewModel
 import ui.views.CredentialDetailsView
 import ui.views.CredentialsView
-import ui.views.intents.DCAPIAuthorizationIntentView
-import ui.views.intents.ErrorIntentView
 import ui.views.ErrorView
 import ui.views.LoadCredentialView
 import ui.views.LoadingView
@@ -117,23 +113,26 @@ import ui.views.OnboardingInformationView
 import ui.views.OnboardingStartView
 import ui.views.OnboardingTermsView
 import ui.views.PreAuthQrCodeScannerScreen
+import ui.views.PresentationView
 import ui.views.SelectIssuingServerView
-import ui.views.intents.PresentationIntentView
-import ui.views.intents.ProvisioningIntentView
 import ui.views.SettingsView
 import ui.views.ShowDataView
-import ui.views.intents.SigningCredentialIntentView
-import ui.views.intents.SigningIntentView
-import ui.views.intents.SigningPreloadIntentView
 import ui.views.SigningQtspSelectionView
-import ui.views.intents.SigningServiceIntentView
 import ui.views.SigningView
-import ui.views.iso.ShowQrCodeView
-import ui.views.iso.verifier.VerifierView
 import ui.views.authentication.AuthenticationQrCodeScannerView
 import ui.views.authentication.AuthenticationSuccessView
 import ui.views.authentication.AuthenticationView
 import ui.views.intents.AuthorizationIntentView
+import ui.views.intents.DCAPIAuthorizationIntentView
+import ui.views.intents.ErrorIntentView
+import ui.views.intents.PresentationIntentView
+import ui.views.intents.ProvisioningIntentView
+import ui.views.intents.SigningCredentialIntentView
+import ui.views.intents.SigningIntentView
+import ui.views.intents.SigningPreloadIntentView
+import ui.views.intents.SigningServiceIntentView
+import ui.views.iso.ShowQrCodeView
+import ui.views.iso.verifier.VerifierView
 
 internal object NavigatorTestTags {
     const val loadingTestTag = "loadingTestTag"
@@ -347,6 +346,18 @@ private fun WalletNavHost(
             val vm = ShowQrCodeViewModel(
                 walletMain = walletMain,
                 navigateUp = { navigateBack() },
+                onNavigateToPresentmentScreen = {
+                    presentationStateModel.value = it
+                    val consentPageBuilder =
+                        BuildAuthenticationConsentPageFromAuthenticationRequestLocalPresentment()
+
+                    consentPageBuilder(PresentationRequest(PRESENTATION_REQUESTED_INTENT)).unwrap().onSuccess {
+                        Napier.d("valid presentation request")
+                        navigate(it)
+                    }.onFailure {
+                        walletMain.errorService.emit(Exception("Invalid Authentication Request"))
+                    }
+                }
             )
             ShowQrCodeView(vm)
         }
