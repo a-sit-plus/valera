@@ -174,7 +174,7 @@ private class TaxIdComplexCredentialSdJwtAdapter(
         get() = (attributes[RESIDENT_ADDRESS] as? JsonPrimitive?)?.contentOrNull
 
     override val birthDate: LocalDate?
-        get() = (attributes[BIRTH_DATE] as? JsonPrimitive?)?.toLocalDateOrNull()
+        get() = (attributes[BIRTH_DATE] as? JsonPrimitive?)?.contentOrNull?.toLocalDateOrNull()
 
     override val churchTaxId: String?
         get() = (attributes[CHURCH_TAX_ID] as? JsonPrimitive?)?.contentOrNull
