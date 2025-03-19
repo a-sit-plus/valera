@@ -97,13 +97,11 @@ class CborDecoder {
         }
 
         val docRequests = deviceRequest.docRequests
+        Napier.w(tag = TAG, message =  docRequests[0].toString())
+
         if (docRequests.isEmpty()) {
             Napier.w(tag = TAG, message =  "No document found in DeviceRequest")
             return
-        }
-
-        for (docReq in docRequests) {
-            Napier.w(tag = "COSE", message = docReq.readerAuth.toString())
         }
 
 
@@ -112,7 +110,7 @@ class CborDecoder {
 //            RequestedDocument(request.itemsRequest.value.docType).apply {
 //                request.itemsRequest.value.namespaces.forEach { (namespaceKey, namespaceValue) ->
 //                    addNameSpace(RequestedDocument.NameSpace(namespaceKey).apply {
-//                        namespaceValue.entries.forEach { (attributeKey, _) ->
+//                        namespaceValue.entries.forEach { (attributeKey, value) ->
 //                            addAttribute(DocumentAttributes.fromValue(attributeKey))
 //                        }
 //                    })
@@ -124,8 +122,8 @@ class CborDecoder {
             val requestedDocument = RequestedDocument(request.itemsRequest.value.docType).apply {
                 request.itemsRequest.value.namespaces.forEach { (namespaceKey, namespaceValue) ->
                     addNameSpace(RequestedDocument.NameSpace(namespaceKey).apply {
-                        namespaceValue.entries.forEach { (attributeKey, _) ->
-                            addAttribute(DocumentAttributes.fromValue(attributeKey))
+                        namespaceValue.entries.forEach { (attributeKey, value) ->
+                            addAttribute(DocumentAttributes.fromValue(attributeKey), value)
                         }
                     })
                 }

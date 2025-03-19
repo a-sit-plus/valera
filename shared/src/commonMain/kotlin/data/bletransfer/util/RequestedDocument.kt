@@ -37,6 +37,12 @@ class RequestedDocument(
             }
         }
 
+        fun addAttribute(attribute: DocumentAttributes?, value: Boolean) {
+            if (attribute != null) {
+                attributesMap[attribute] = value
+            }
+        }
+
         override fun toString(): String {
             return buildString {
                 appendLine("$nameSpace: [")
