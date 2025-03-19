@@ -61,8 +61,6 @@ class DCAPIAuthenticationViewModel(
             )
         )
 
-    override val descriptors = presentationRequest.presentationDefinition.inputDescriptors
-
     override val transactionData = null
 
     override suspend fun findMatchingCredentials(): KmmResult<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>> =
@@ -70,11 +68,11 @@ class DCAPIAuthenticationViewModel(
             PresentationExchangeMatchingResult(
                 presentationRequest = CredentialPresentationRequest.PresentationExchangeRequest(
                     presentationDefinition = PresentationDefinition(
-                        inputDescriptors = descriptors,
+                        inputDescriptors = presentationRequest.presentationDefinition.inputDescriptors,
                     )
                 ),
                 matchingInputDescriptorCredentials = walletMain.holderAgent.matchInputDescriptorsAgainstCredentialStore(
-                    inputDescriptors = descriptors,
+                    inputDescriptors = presentationRequest.presentationDefinition.inputDescriptors,
                     fallbackFormatHolder = null,
                 ).getOrThrow().map { (key, value) ->
                     key to value.filter { (cred, _) ->

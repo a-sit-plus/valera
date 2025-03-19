@@ -71,7 +71,10 @@ import ui.viewmodels.authentication.AuthenticationConsentViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AuthenticationConsentView(vm: AuthenticationConsentViewModel) {
+fun AuthenticationConsentView(
+    vm: AuthenticationConsentViewModel,
+    onError: (Throwable) -> Unit,
+) {
     val vm = remember { vm }
 
     vm.walletMain.cryptoService.onUnauthenticated = vm.navigateUp
@@ -153,7 +156,7 @@ fun AuthenticationConsentView(vm: AuthenticationConsentViewModel) {
                         modifier = paddingModifier,
                     )
 
-                    PresentationRequestPreview(vm.presentationRequest)
+                    PresentationRequestPreview(vm.presentationRequest, onError = onError)
 
                     if (vm.transactionData != null) {
                         Spacer(modifier = Modifier.height(32.dp))

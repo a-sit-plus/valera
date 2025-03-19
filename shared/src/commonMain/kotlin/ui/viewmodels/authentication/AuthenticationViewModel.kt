@@ -6,9 +6,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
 import at.asitplus.catchingUnwrapped
-import at.asitplus.dif.ConstraintField
-import at.asitplus.dif.InputDescriptor
-import at.asitplus.jsonpath.core.NodeList
 import at.asitplus.rqes.collection_entries.TransactionData
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_subtitle
@@ -32,14 +29,11 @@ abstract class AuthenticationViewModel(
 ) {
     abstract val presentationRequest: CredentialPresentationRequest
 
-    abstract val descriptors: Collection<InputDescriptor>
     var viewState by mutableStateOf(AuthenticationViewState.Consent)
     abstract val transactionData: TransactionData?
 
     lateinit var matchingCredentials: CredentialMatchingResult<SubjectCredentialStore.StoreEntry>
     lateinit var selectedCredentials: Map<String, SubjectCredentialStore.StoreEntry>
-    var requestMap: Map<String, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, NodeList>>> =
-        mutableMapOf()
 
     abstract suspend fun findMatchingCredentials(): KmmResult<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>>
 
@@ -50,14 +44,13 @@ abstract class AuthenticationViewModel(
         }
 
         when(val matching = matchingCredentials) {
-            is DCQLMatchingResult -> TODO()
+            is DCQLMatchingResult -> {
+                // TODO: create default selection?
+                // matching fails if query is not satisfiable, so we know that selection is the next step
+                viewState = AuthenticationViewState.Selection
+            }
 
             is PresentationExchangeMatchingResult -> {
-                requestMap = descriptors.mapNotNull {
-                    val credential = matching.matchingInputDescriptorCredentials[it.id] ?: return@mapNotNull null
-                    Pair(it.id, credential)
-                }.toMap()
-
                 if (matching.matchingInputDescriptorCredentials.values.find { it.size != 1 } == null) {
                     selectedCredentials = matching.matchingInputDescriptorCredentials.entries.associate {
                         val requestId = it.key

@@ -45,11 +45,6 @@ class DefaultAuthenticationViewModel(
             CredentialPresentationRequest.DCQLRequest(it)
         } ?: throw IllegalArgumentException("No credential presentation request has been found.")
 
-    override val descriptors = when(val it = presentationRequest) {
-        is CredentialPresentationRequest.DCQLRequest -> TODO()
-        is CredentialPresentationRequest.PresentationExchangeRequest -> it.presentationDefinition.inputDescriptors
-    }
-
     override val transactionData = catchingUnwrapped {
         vckJsonSerializer.decodeFromString<TransactionData>(authenticationRequest.parameters.transactionData?.first()!!)
     }.getOrNull()
