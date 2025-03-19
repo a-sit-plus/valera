@@ -10,6 +10,7 @@ import at.asitplus.wallet.lib.iso.DeviceResponse
 import at.asitplus.wallet.lib.iso.IssuerSignedItem
 import at.asitplus.wallet.mdl.DrivingPrivilege
 import com.android.identity.crypto.EcPrivateKey
+import data.bletransfer.verifier.IdentityVerifier
 import io.github.aakira.napier.Napier
 import kotlinx.datetime.LocalDate
 
@@ -89,7 +90,7 @@ class CborDecoder {
         return Entry(entryDisplayName, entryValue)
     }
 
-    fun decodeRequest(encodedDeviceRequest: ByteArray) {
+    fun decodeRequest(encodedDeviceRequest: ByteArray, sessionTranscript: ByteArray?) {
         val deviceRequest = DeviceRequest.deserialize(encodedDeviceRequest).getOrElse {
             Napier.e(tag = TAG, throwable = it, message = "Deserialization of DeviceRequest failed")
             return
@@ -130,6 +131,11 @@ class CborDecoder {
                 }
             }
             requestedDocument to request.readerAuth
+        }
+        for ((key, value) in requestsAndAuth) {
+            if (value != null) {
+                IdentityVerifier.verifyReaderIdentity(key, value, sessionTranscript)
+            }
         }
         documentRequests = requestsAndAuth.keys.toList()
 

@@ -53,7 +53,7 @@ class TransferManager private constructor(private val context: Context) {
                 communication.setDeviceRequest(deviceRequest)
 
                 val documentRequestsList = CborDecoder().apply {
-                    decodeRequest(deviceRequest)
+                    decodeRequest(deviceRequest, communication.getSessionTranscript())
                 }.documentRequests
 
 
