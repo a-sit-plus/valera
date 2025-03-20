@@ -5,6 +5,7 @@ import android.content.Context
 import com.android.identity.cbor.Cbor
 import data.bletransfer.util.RequestedDocument
 import data.bletransfer.util.CborDecoder
+import data.storage.CertificateStorage
 import io.github.aakira.napier.Napier
 
 class TransferManager private constructor(private val context: Context) {
@@ -51,9 +52,8 @@ class TransferManager private constructor(private val context: Context) {
             onNewDeviceRequest = { deviceRequest ->
                 Napier.d(tag = TAG, message = "REQUEST received")
                 communication.setDeviceRequest(deviceRequest)
-
                 val documentRequestsList = CborDecoder().apply {
-                    decodeRequest(deviceRequest, communication.getSessionTranscript())
+                    decodeRequest(deviceRequest, communication.getSessionTranscript(), context)
                 }.documentRequests
 
 

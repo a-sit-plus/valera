@@ -1,5 +1,6 @@
 package data.bletransfer.verifier
 
+import android.content.Context
 import at.asitplus.signum.indispensable.cosef.CoseSigned
 import com.android.identity.cbor.Bstr
 import com.android.identity.cbor.Cbor.encode
@@ -14,14 +15,17 @@ import com.android.identity.crypto.Crypto
 import com.android.identity.crypto.EcPublicKey
 import com.android.identity.crypto.EcSignature
 import com.android.identity.crypto.X509CertChain
+import com.android.identity.crypto.javaX509Certificate
 import data.bletransfer.util.RequestedDocument
+import data.storage.CertificateStorage
 
 
 object IdentityVerifier {
 
      fun verifyReaderIdentity(requestedDocument: RequestedDocument,
                               coseSigned: CoseSigned<ByteArray>,
-                              sessionTranscript: ByteArray?) {
+                              sessionTranscript: ByteArray?,
+                              context: Context) {
          if (sessionTranscript != null) {
              val readerAuthBytes = buildReaderAuthenticationBytes(requestedDocument, sessionTranscript)
              val data = coseSigned.prepareCoseSignatureInput(detachedPayload = readerAuthBytes)
@@ -31,6 +35,7 @@ object IdentityVerifier {
                      it.toDataItem())
              }
              val appCert = chain?.certificates?.get(0)
+             val seal = CertificateStorage.loadCertificateAndroid(context, "SEAL")
              appCert?.ecPublicKey?.let {
                  println("SRKI:${verifySignature(data, EcSignature.fromCoseEncoded(coseSigned.wireFormat.rawSignature),
                      it, Algorithm.ES256)}")
