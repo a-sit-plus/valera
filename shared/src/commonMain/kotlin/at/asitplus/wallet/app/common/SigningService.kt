@@ -423,6 +423,13 @@ val defaultSigningConfig = SigningConfig(
             "https://id.primesign-test.com/realms/qs-staging",
             "https://wallet.a-sit.at/app",
             allowPreload = false
+        ),
+        QtspConfig(
+            "NAMIRIAL",
+            "https://csc-api.fba.users.bit4id.click/api/csc/v2",
+            "https://csc-api.fba.users.bit4id.click/api/csc/v2",
+            "POTENTIAL-UC5",
+            allowPreload = false
         )
     ),
     current = "EGIZ"
