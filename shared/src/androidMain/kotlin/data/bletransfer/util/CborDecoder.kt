@@ -106,39 +106,36 @@ class CborDecoder {
 
 
 
-        documentRequests += docRequests.map { request ->
-            RequestedDocument(request.itemsRequest.value.docType).apply {
-                request.itemsRequest.value.namespaces.forEach { (namespaceKey, namespaceValue) ->
-                    addNameSpace(RequestedDocument.NameSpace(namespaceKey).apply {
-                        namespaceValue.entries.forEach { (attributeKey, _) ->
-                            addAttribute(DocumentAttributes.fromValue(attributeKey))
-                        }
-                    })
-                }
-            }
-        }
-        for (d in documentRequests) {
-            println("SRKI:${d.nameSpaces[0].attributesMap}")
-        }
-
-//        val requestsAndAuth: Map<RequestedDocument, CoseSigned<ByteArray>?> = docRequests.associate { request ->
-//            val requestedDocument = RequestedDocument(request.itemsRequest.value.docType).apply {
+//        documentRequests += docRequests.map { request ->
+//            RequestedDocument(request.itemsRequest.value.docType).apply {
 //                request.itemsRequest.value.namespaces.forEach { (namespaceKey, namespaceValue) ->
 //                    addNameSpace(RequestedDocument.NameSpace(namespaceKey).apply {
-//                        namespaceValue.entries.forEach { (attributeKey, _) ->
+//                        namespaceValue.entries.forEach { (attributeKey, value) ->
 //                            addAttribute(DocumentAttributes.fromValue(attributeKey))
 //                        }
 //                    })
 //                }
 //            }
-//            requestedDocument to request.readerAuth
 //        }
-//        for ((key, value) in requestsAndAuth) {
-//            if (value != null) {
-//                IdentityVerifier.verifyReaderIdentity(key, value, sessionTranscript)
-//            }
-//        }
-//        documentRequests = requestsAndAuth.keys.toList()
+
+        val requestsAndAuth: Map<RequestedDocument, CoseSigned<ByteArray>?> = docRequests.associate { request ->
+            val requestedDocument = RequestedDocument(request.itemsRequest.value.docType).apply {
+                request.itemsRequest.value.namespaces.forEach { (namespaceKey, namespaceValue) ->
+                    addNameSpace(RequestedDocument.NameSpace(namespaceKey).apply {
+                        namespaceValue.entries.forEach { (attributeKey, value) ->
+                            addAttribute(DocumentAttributes.fromValue(attributeKey), value)
+                        }
+                    })
+                }
+            }
+            requestedDocument to request.readerAuth
+        }
+        for ((key, value) in requestsAndAuth) {
+            if (value != null) {
+                IdentityVerifier.verifyReaderIdentity(key, value, sessionTranscript)
+            }
+        }
+        documentRequests = requestsAndAuth.keys.toList()
 
 
     }
