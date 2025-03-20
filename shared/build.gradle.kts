@@ -87,6 +87,7 @@ kotlin {
                 implementation(libs.play.services.identity.credentials)
                 implementation(libs.identity.android)
                 implementation(libs.identity.mdoc)
+                implementation(libs.okhttp)
             }
         }
 

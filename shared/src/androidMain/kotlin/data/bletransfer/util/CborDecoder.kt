@@ -1,5 +1,6 @@
 package data.bletransfer.util
 
+import android.content.Context
 import android.graphics.BitmapFactory
 import android.util.Base64
 import androidx.compose.ui.graphics.asImageBitmap
@@ -90,7 +91,7 @@ class CborDecoder {
         return Entry(entryDisplayName, entryValue)
     }
 
-    fun decodeRequest(encodedDeviceRequest: ByteArray, sessionTranscript: ByteArray?) {
+    fun decodeRequest(encodedDeviceRequest: ByteArray, sessionTranscript: ByteArray?, context: Context) {
         val deviceRequest = DeviceRequest.deserialize(encodedDeviceRequest).getOrElse {
             Napier.e(tag = TAG, throwable = it, message = "Deserialization of DeviceRequest failed")
             return
@@ -132,7 +133,7 @@ class CborDecoder {
         }
         for ((key, value) in requestsAndAuth) {
             if (value != null) {
-                IdentityVerifier.verifyReaderIdentity(key, value, sessionTranscript)
+                IdentityVerifier.verifyReaderIdentity(key, value, sessionTranscript, context)
             }
         }
         documentRequests = requestsAndAuth.keys.toList()
