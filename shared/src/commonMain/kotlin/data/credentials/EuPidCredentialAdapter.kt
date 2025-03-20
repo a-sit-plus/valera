@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package data.credentials
 
 import androidx.compose.ui.graphics.ImageBitmap
