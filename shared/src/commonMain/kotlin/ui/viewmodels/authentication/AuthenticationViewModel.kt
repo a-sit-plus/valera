@@ -11,8 +11,8 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_subtitle
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_title
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.lib.agent.CredentialSubmission
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
@@ -43,7 +43,7 @@ abstract class AuthenticationViewModel(
             return
         }
 
-        when(val matching = matchingCredentials) {
+        when (val matching = matchingCredentials) {
             is DCQLMatchingResult -> {
                 // TODO: create default selection?
                 // matching fails if query is not satisfiable, so we know that selection is the next step
@@ -67,22 +67,47 @@ abstract class AuthenticationViewModel(
         }
     }
 
-    fun confirmSelection(submissions: Map<String, CredentialSubmission>) {
+    fun confirmSelection(credentialPresentationSubmissions: CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>?) {
         walletMain.scope.launch {
-            finalizeAuthorization(submissions)
+            finalizeAuthorization(
+                when(credentialPresentationSubmissions) {
+                    is DCQLCredentialSubmissions -> CredentialPresentation.DCQLPresentation(
+                        presentationRequest = presentationRequest as CredentialPresentationRequest.DCQLRequest,
+                        credentialQuerySubmissions = credentialPresentationSubmissions.credentialQuerySubmissions
+                    )
+
+                    is PresentationExchangeCredentialSubmissions -> CredentialPresentation.PresentationExchangePresentation(
+                        presentationRequest = presentationRequest as CredentialPresentationRequest.PresentationExchangeRequest,
+                        inputDescriptorSubmissions = credentialPresentationSubmissions.inputDescriptorSubmissions
+                    )
+
+                    null -> when(val it = presentationRequest) {
+                        is CredentialPresentationRequest.DCQLRequest -> CredentialPresentation.DCQLPresentation(
+                            presentationRequest = it,
+                            credentialQuerySubmissions = null
+                        )
+
+                        is CredentialPresentationRequest.PresentationExchangeRequest -> CredentialPresentation.PresentationExchangePresentation(
+                            presentationRequest = it,
+                            inputDescriptorSubmissions = null,
+                        )
+                    }
+                }
+            )
         }
     }
 
-    abstract suspend fun finalizationMethod(submission: Map<String, CredentialSubmission>)
+
+    abstract suspend fun finalizationMethod(credentialPresentation: CredentialPresentation)
 
 
-    private suspend fun finalizeAuthorization(submission: Map<String, CredentialSubmission>) {
-        catchingUnwrapped{
+    private suspend fun finalizeAuthorization(credentialPresentation: CredentialPresentation) {
+        catchingUnwrapped {
             walletMain.cryptoService.promptText =
                 getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_title)
             walletMain.cryptoService.promptSubtitle =
                 getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_subtitle)
-            finalizationMethod(submission)
+            finalizationMethod(credentialPresentation)
         }.onSuccess {
             navigateUp()
             navigateToAuthenticationSuccessPage()
@@ -90,7 +115,6 @@ abstract class AuthenticationViewModel(
             walletMain.errorService.emit(it)
         }
     }
-
 }
 
 enum class AuthenticationViewState {

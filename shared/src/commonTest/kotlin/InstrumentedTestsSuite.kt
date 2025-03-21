@@ -255,6 +255,7 @@ class InstrumentedTestsSuite : FunSpec({
 })
 
 val request = Json.encodeToString(
+    RequestBody.serializer(),
     RequestBody(
         "presentation_definition",
         listOf(

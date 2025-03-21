@@ -1,5 +1,6 @@
 package ui.views.authentication
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -58,9 +59,14 @@ fun AuthenticationView(
                     AuthenticationSelectionViewScaffold(
                         onNavigateUp = vm.navigateUp,
                         onClickLogo = {},
-                        onNext = vm.navigateUp,
+                        onNext = {
+                            vm.confirmSelection(null)
+                        },
                     ) {
-                        Text("Implementation of DCQL Query Credential Selection is in progress ...")
+                        Column {
+                            Text("Implementation of DCQL Query Credential Selection is in progress.")
+                            Text("Click continue to submit the credentials that are selected by default.")
+                        }
                     }
                 }
 

@@ -11,13 +11,11 @@ import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
-import at.asitplus.wallet.lib.agent.CredentialSubmission
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.credentials.CredentialAdapter
-import ui.viewmodels.authentication.CredentialMatchingResult
-import ui.viewmodels.authentication.PresentationExchangeMatchingResult
 
 class DCAPIAuthenticationViewModel(
     spImage: ImageBitmap? = null,
@@ -82,7 +80,12 @@ class DCAPIAuthenticationViewModel(
             )
         }
 
-    override suspend fun finalizationMethod(submission: Map<String, CredentialSubmission>) =
-        walletMain.presentationService.finalizeDCAPIPreviewPresentation(submission, dcApiRequest)
-
+    override suspend fun finalizationMethod(credentialPresentation: CredentialPresentation) =
+        walletMain.presentationService.finalizeDCAPIPreviewPresentation(
+            credentialPresentation = when (credentialPresentation) {
+                is CredentialPresentation.PresentationExchangePresentation -> credentialPresentation
+                else -> throw IllegalArgumentException()
+            },
+            dcApiRequest,
+        )
 }
