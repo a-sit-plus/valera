@@ -15,12 +15,18 @@ import com.android.identity.crypto.Crypto
 import com.android.identity.crypto.EcPublicKey
 import com.android.identity.crypto.EcSignature
 import com.android.identity.crypto.X509CertChain
-import com.android.identity.crypto.javaX509Certificate
 import data.bletransfer.util.RequestedDocument
 import data.storage.CertificateStorage
+import java.security.NoSuchAlgorithmException
+import java.security.SignatureException
+import java.security.cert.CertPathValidatorException
+import java.security.cert.CertificateException
+import java.security.cert.X509Certificate
 
 
 object IdentityVerifier {
+
+    private val ALLOWED_ALGOS = setOf("1.2.840.10045.4.3.2", "1.2.840.10045.4.3.3", "1.2.840.10045.4.3.4")
 
      fun verifyReaderIdentity(requestedDocument: RequestedDocument,
                               coseSigned: CoseSigned<ByteArray>,
@@ -47,6 +53,41 @@ object IdentityVerifier {
 
     }
 
+    private fun verifyCertificateChain(certificateChain: List<X509Certificate>) {
+        certificateChain.forEach {
+            it.checkValidity()
+            if (!ALLOWED_ALGOS.contains(it.sigAlgOID)) {
+                throw NoSuchAlgorithmException("Unsupported signature algorithm.")
+            }
+            if (it.hasUnsupportedCriticalExtension()) {
+                throw CertificateException("Certificate has unsupported critical extensions.")
+            }
+        }
+
+        certificateChain[0].verify(certificateChain[1].publicKey)
+
+        if (!certificateChain[0].subjectX500Principal.equals(certificateChain[1].issuerX500Principal)) {
+            throw CertPathValidatorException("CA subject and issued certificate issuer mismatch!");
+        }
+        val certSignUsage = 5
+        if (certificateChain[0].keyUsage == null || !certificateChain[0].keyUsage[certSignUsage]) {
+            throw SignatureException("Signing certificates key usage extension not present in SEAL!");
+        }
+        if (certificateChain[1].notBefore.before(certificateChain[0].notBefore) ||
+            certificateChain[1].notAfter.after(certificateChain[0].notAfter)) {
+            throw CertificateException("Dritt Cert is not issued during SEAL validity period.");
+        }
+
+    }
+
+    fun verifySignature(
+        data: ByteArray,
+        digitalSignature: EcSignature,
+        publicKey: EcPublicKey,
+        algorithm: Algorithm
+    ): Boolean {
+        return Crypto.checkSignature(publicKey, data, algorithm, digitalSignature)
+    }
     private fun buildReaderAuthenticationBytes(requestedDocument: RequestedDocument,
                                                sessionTranscript: ByteArray) : ByteArray{
 //        TODO add requestInfo in the process
@@ -86,14 +127,6 @@ object IdentityVerifier {
     }
 
 
-    fun verifySignature(
-        data: ByteArray,
-        digitalSignature: EcSignature,
-        publicKey: EcPublicKey,
-        algorithm: Algorithm
-    ): Boolean {
-        return Crypto.checkSignature(publicKey, data, algorithm, digitalSignature)
-    }
 
 
 }
