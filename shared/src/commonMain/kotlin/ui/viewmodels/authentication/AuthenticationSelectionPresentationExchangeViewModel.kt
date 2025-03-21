@@ -11,13 +11,16 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.CredentialSubmission
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 
-class AuthenticationSelectionViewModel(
+class AuthenticationSelectionPresentationExchangeViewModel(
     val walletMain: WalletMain,
-    val requests: Map<String, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, List<NodeListEntry>>>>,
+    val credentialMatchingResult: PresentationExchangeMatchingResult<SubjectCredentialStore.StoreEntry>,
     val confirmSelections: (Map<String, CredentialSubmission>) -> Unit,
     val navigateUp: () -> Unit,
     val onClickLogo: () -> Unit
 ) {
+    val requests: Map<String, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, List<NodeListEntry>>>>
+        = credentialMatchingResult.matchingInputDescriptorCredentials
+
     val requestIterator = mutableStateOf(0)
     val iterableRequests = requests.toList()
     var attributeSelection: SnapshotStateMap<String, SnapshotStateMap<String, Boolean>> =

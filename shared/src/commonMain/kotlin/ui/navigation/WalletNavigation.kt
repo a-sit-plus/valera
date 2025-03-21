@@ -129,7 +129,7 @@ fun WalletNavigation(walletMain: WalletMain) {
             navController.popBackStack(route = route, inclusive = false)
         }
     }
-    
+
     val onClickLogo = {
         walletMain.platformAdapter.openUrl("https://wallet.a-sit.at/")
     }
@@ -162,13 +162,15 @@ fun WalletNavigation(walletMain: WalletMain) {
         },
         modifier = Modifier.testTag(AppTestTags.rootScaffold)
     ) { _ ->
-        WalletNavHost(navController, startDestination, navigate, walletMain, navigateBack, backStackEntry, popBackStack,
-            onClickLogo)
+        WalletNavHost(
+            navController, startDestination, navigate, walletMain, navigateBack, backStackEntry, popBackStack,
+            onClickLogo
+        )
     }
 
     LaunchedEffect(null) {
-        appLink.combineTransform(walletMain.readyForIntents) { link,  ready ->
-            if (ready == true && link != null){
+        appLink.combineTransform(walletMain.readyForIntents) { link, ready ->
+            if (ready == true && link != null) {
                 emit(link)
             }
         }.collect { link ->
@@ -212,14 +214,17 @@ private fun WalletNavHost(
             OnboardingInformationView(onClickContinue = { navigate(OnboardingTermsRoute) }, onClickLogo = onClickLogo)
         }
         composable<OnboardingTermsRoute> {
-            OnboardingTermsView(onClickAccept = { walletMain.walletConfig.set(isConditionsAccepted = true) },
+            OnboardingTermsView(
+                onClickAccept = { walletMain.walletConfig.set(isConditionsAccepted = true) },
                 onClickNavigateBack = { navigateBack() },
                 onClickReadDataProtectionPolicy = {},
                 onClickReadGeneralTermsAndConditions = {},
-                onClickLogo = onClickLogo)
+                onClickLogo = onClickLogo
+            )
         }
         composable<HomeScreenRoute> {
-            val vm = CredentialsViewModel(walletMain,
+            val vm = CredentialsViewModel(
+                walletMain,
                 navigateToAddCredentialsPage = {
                     navigate(AddCredentialRoute)
                 },
@@ -238,7 +243,8 @@ private fun WalletNavHost(
                         null
                     }
                 },
-                onClickLogo = onClickLogo)
+                onClickLogo = onClickLogo
+            )
             CredentialsView(
                 vm = vm,
                 bottomBar = {
@@ -290,7 +296,13 @@ private fun WalletNavHost(
             }
 
             if (vm != null) {
-                AuthenticationView(vm = vm)
+                AuthenticationView(
+                    vm = vm,
+                    onError = { e ->
+                        popBackStack(HomeScreenRoute)
+                        walletMain.errorService.emit(e)
+                    }
+                )
             }
         }
 
@@ -319,7 +331,13 @@ private fun WalletNavHost(
             }
 
             if (vm != null) {
-                AuthenticationView(vm = vm)
+                AuthenticationView(
+                    vm = vm,
+                    onError = { e ->
+                        popBackStack(HomeScreenRoute)
+                        walletMain.errorService.emit(e)
+                    },
+                )
             }
 
         }
@@ -337,7 +355,8 @@ private fun WalletNavHost(
                 onSubmitServer = { host ->
                     navigate(LoadCredentialRoute(host))
                 },
-                onClickLogo = onClickLogo)
+                onClickLogo = onClickLogo
+            )
             SelectIssuingServerView(vm)
         }
 
@@ -360,7 +379,8 @@ private fun WalletNavHost(
                         }
 
                     },
-                    onClickLogo = onClickLogo)
+                    onClickLogo = onClickLogo
+                )
             } catch (e: Throwable) {
                 popBackStack(HomeScreenRoute)
                 walletMain.errorService.emit(e)
@@ -455,7 +475,8 @@ private fun WalletNavHost(
                 navigateToAddCredentialsPage = { offer ->
                     navigate(AddCredentialPreAuthnRoute(Json.encodeToString(offer)))
                 },
-                onClickLogo = onClickLogo)
+                onClickLogo = onClickLogo
+            )
             PreAuthQrCodeScannerScreen(vm)
         }
 
@@ -466,7 +487,12 @@ private fun WalletNavHost(
 
         composable<ErrorRoute> { backStackEntry ->
             val route: ErrorRoute = backStackEntry.toRoute()
-            ErrorView(resetStack = { popBackStack(HomeScreenRoute) }, message = route.message, cause = route.cause, onClickLogo = onClickLogo)
+            ErrorView(
+                resetStack = { popBackStack(HomeScreenRoute) },
+                message = route.message,
+                cause = route.cause,
+                onClickLogo = onClickLogo
+            )
         }
 
         composable<LoadingRoute> { backStackEntry ->
@@ -492,7 +518,7 @@ private fun WalletNavHost(
                 createSignRequest = { signRequest ->
                     navigate(HomeScreenRoute)
                     CoroutineScope(Dispatchers.Main).launch {
-                        try{
+                        try {
                             walletMain.signingService.start(signRequest)
 
                         } catch (e: Throwable) {

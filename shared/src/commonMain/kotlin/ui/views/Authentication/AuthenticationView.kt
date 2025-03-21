@@ -1,5 +1,6 @@
 package ui.views.authentication
 
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import kotlinx.coroutines.CoroutineScope
@@ -8,12 +9,17 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import ui.viewmodels.authentication.AuthenticationConsentViewModel
 import ui.viewmodels.authentication.AuthenticationNoCredentialViewModel
-import ui.viewmodels.authentication.AuthenticationSelectionViewModel
+import ui.viewmodels.authentication.AuthenticationSelectionPresentationExchangeViewModel
 import ui.viewmodels.authentication.AuthenticationViewModel
 import ui.viewmodels.authentication.AuthenticationViewState
+import ui.viewmodels.authentication.DCQLMatchingResult
+import ui.viewmodels.authentication.PresentationExchangeMatchingResult
 
 @Composable
-fun AuthenticationView(vm: AuthenticationViewModel) {
+fun AuthenticationView(
+    vm: AuthenticationViewModel,
+    onError: (Throwable) -> Unit,
+) {
     val vm = remember { vm }
     vm.walletMain.cryptoService.onUnauthenticated = vm.navigateUp
 
@@ -23,6 +29,7 @@ fun AuthenticationView(vm: AuthenticationViewModel) {
                 spName = vm.spName,
                 spLocation = vm.spLocation,
                 spImage = vm.spImage,
+                transactionData = vm.transactionData,
                 navigateUp = vm.navigateUp,
                 buttonConsent = {
                     CoroutineScope(Dispatchers.IO).launch {
@@ -30,12 +37,13 @@ fun AuthenticationView(vm: AuthenticationViewModel) {
                     }
                 },
                 walletMain = vm.walletMain,
-                transactionData = vm.transactionData,
-                requests = vm.descriptors.toList(),
                 presentationRequest = vm.presentationRequest,
                 onClickLogo = vm.onClickLogo
             )
-            AuthenticationConsentView(viewModel)
+            AuthenticationConsentView(
+                viewModel,
+                onError = onError,
+            )
         }
 
         AuthenticationViewState.NoMatchingCredential -> {
@@ -45,16 +53,30 @@ fun AuthenticationView(vm: AuthenticationViewModel) {
         }
 
         AuthenticationViewState.Selection -> {
-            val viewModel = AuthenticationSelectionViewModel(
-                walletMain = vm.walletMain,
-                requests = vm.requestMap,
-                confirmSelections = { selections ->
-                    vm.confirmSelection(selections)
-                },
-                navigateUp = { vm.viewState = AuthenticationViewState.Consent },
-                onClickLogo = vm.onClickLogo,
-            )
-            AuthenticationSelectionView(vm = viewModel)
+            when(val matching = vm.matchingCredentials) {
+                is DCQLMatchingResult -> {
+                    AuthenticationSelectionViewScaffold(
+                        onNavigateUp = vm.navigateUp,
+                        onClickLogo = {},
+                        onNext = vm.navigateUp,
+                    ) {
+                        Text("Implementation of DCQL Query Credential Selection is in progress ...")
+                    }
+                }
+
+                is PresentationExchangeMatchingResult -> {
+                    val viewModel = AuthenticationSelectionPresentationExchangeViewModel(
+                        walletMain = vm.walletMain,
+                        confirmSelections = { selections ->
+                            vm.confirmSelection(selections)
+                        },
+                        navigateUp = { vm.viewState = AuthenticationViewState.Consent },
+                        onClickLogo = vm.onClickLogo,
+                        credentialMatchingResult = matching,
+                    )
+                    AuthenticationSelectionPresentationExchangeView(vm = viewModel)
+                }
+            }
         }
     }
 }

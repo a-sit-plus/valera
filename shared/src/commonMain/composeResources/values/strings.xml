@@ -270,6 +270,8 @@
     <string name="error_biometric_status_unknown">UNTRANSLATED:error_biometric_status_unknown</string>
     <string name="error_biometric_error_none_enrolled">UNTRANSLATED:error_biometric_error_none_enrolled</string>
     <string name="error_biometric_error_unknown">UNTRANSLATED:error_biometric_error_unknown</string>
+    <string name="error_invalid_dcql_query">UNTRANSLATED:error_invalid_dcql_query</string>
+    <string name="error_complex_dcql_query">UNTRANSLATED:error_complex_dcql_query</string>
     <string name="error_qr_code_scanning_missing_request_uri">UNTRANSLATED:error_qr_code_scanning_missing_request_uri</string>
     <string name="error_qr_code_scanning_missing_client_metadata">UNTRANSLATED:error_qr_code_scanning_missing_client_metadata</string>
     <string name="error_request_uri_redirect_missing_location_header">UNTRANSLATED:error_request_uri_redirect_missing_location_header</string>
