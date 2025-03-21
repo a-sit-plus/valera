@@ -86,12 +86,14 @@ object IdentityVerifier {
         publicKey: EcPublicKey,
         algorithm: Algorithm
     ): Boolean {
+        digitalSignature
         return Crypto.checkSignature(publicKey, data, algorithm, digitalSignature)
     }
+
+
     private fun buildReaderAuthenticationBytes(requestedDocument: RequestedDocument,
                                                sessionTranscript: ByteArray) : ByteArray{
 //        TODO add requestInfo in the process
-
         val itemsToRequest: Map<String, Map<String, Boolean>> = requestedDocument.nameSpaces.associate { ns ->
             ns.nameSpace to ns.attributesMap.mapKeys { it.key.value }
         }
