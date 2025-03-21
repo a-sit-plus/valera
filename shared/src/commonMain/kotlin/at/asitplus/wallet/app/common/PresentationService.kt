@@ -2,19 +2,20 @@ package at.asitplus.wallet.app.common
 
 import at.asitplus.catching
 import at.asitplus.openid.AuthenticationRequestParameters
+import at.asitplus.openid.RelyingPartyMetadata
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import at.asitplus.wallet.app.common.dcapi.PreviewRequest
 import at.asitplus.wallet.lib.agent.CreatePresentationResult
-import at.asitplus.wallet.lib.agent.CredentialSubmission
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.PresentationException
 import at.asitplus.wallet.lib.agent.PresentationRequestParameters
+import at.asitplus.wallet.lib.agent.PresentationResponseParameters
 import at.asitplus.wallet.lib.cbor.CoseService
+import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
-import com.benasher44.uuid.uuid4
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
 import kotlinx.serialization.builtins.ByteArraySerializer
@@ -66,39 +67,42 @@ class PresentationService(
 
     suspend fun finalizeAuthorizationResponse(
         request: RequestParametersFrom<AuthenticationRequestParameters>,
-        preparationState: AuthorizationResponsePreparationState,
-        inputDescriptorSubmission: Map<String, CredentialSubmission>
+        clientMetadata: RelyingPartyMetadata?,
+        credentialPresentation: CredentialPresentation,
     ) {
         presentationService.finalizeAuthorizationResponse(
             request = request,
-            preparationState = preparationState,
-            inputDescriptorSubmission = inputDescriptorSubmission
+            clientMetadata = clientMetadata!!, // TODO: remove !! after fix in vck has been deployed
+            credentialPresentation = credentialPresentation
         ).getOrThrow()
     }
 
     suspend fun finalizeDCAPIPreviewPresentation(
-        submission: Map<String, CredentialSubmission>,
+        credentialPresentation: CredentialPresentation.PresentationExchangePresentation,
         dcApiRequest: DCAPIRequest
     ) {
         Napier.d("Finalizing DCAPI response")
         val previewRequest = PreviewRequest.deserialize(dcApiRequest.request).getOrThrow()
 
         val presentationResult = holderAgent.createPresentation(
-            request = PresentationRequestParameters(nonce = previewRequest.nonce, audience = dcApiRequest.callingOrigin ?: dcApiRequest.callingPackageName!!, calcIsoDeviceSignature = {
-                coseService.createSignedCose(
-                    payload = it.encodeToByteArray(),
-                    serializer = ByteArraySerializer(),
-                    addKeyId = false
-                ).getOrElse { e ->
-                    Napier.w("Could not create DeviceAuth for presentation", e)
-                    throw PresentationException(e)
-                } to null
-            }),
-            presentationDefinitionId = uuid4().toString(),
-            presentationSubmissionSelection = submission
+            request =  PresentationRequestParameters(
+                nonce = previewRequest.nonce,
+                audience = dcApiRequest.callingOrigin ?: dcApiRequest.callingPackageName!!,
+                calcIsoDeviceSignature = {
+                    coseService.createSignedCose(
+                        payload = it.encodeToByteArray(),
+                        serializer = ByteArraySerializer(),
+                        addKeyId = false
+                    ).getOrElse { e ->
+                        Napier.w("Could not create DeviceAuth for presentation", e)
+                        throw PresentationException(e)
+                    } to null
+                },
+            ),
+            credentialPresentation = credentialPresentation,
         )
 
-        val presentation = presentationResult.getOrThrow()
+        val presentation = presentationResult.getOrThrow() as PresentationResponseParameters.PresentationExchangeParameters
 
         val deviceResponse = when (val firstResult = presentation.presentationResults[0]) {
             is CreatePresentationResult.DeviceResponse -> firstResult.deviceResponse

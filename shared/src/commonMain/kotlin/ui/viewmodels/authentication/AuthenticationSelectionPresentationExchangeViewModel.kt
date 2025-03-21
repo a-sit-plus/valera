@@ -8,13 +8,13 @@ import at.asitplus.dif.ConstraintField
 import at.asitplus.jsonpath.core.NodeListEntry
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.lib.agent.CredentialSubmission
+import at.asitplus.wallet.lib.agent.PresentationExchangeCredentialDisclosure
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 
 class AuthenticationSelectionPresentationExchangeViewModel(
     val walletMain: WalletMain,
     val credentialMatchingResult: PresentationExchangeMatchingResult<SubjectCredentialStore.StoreEntry>,
-    val confirmSelections: (Map<String, CredentialSubmission>) -> Unit,
+    val confirmSelections: (CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>) -> Unit,
     val navigateUp: () -> Unit,
     val onClickLogo: () -> Unit
 ) {
@@ -63,9 +63,9 @@ class AuthenticationSelectionPresentationExchangeViewModel(
                         null
                     }
                 }
-                Pair(requestsId, CredentialSubmission(credential, disclosedAttributes))
+                Pair(requestsId, PresentationExchangeCredentialDisclosure(credential, disclosedAttributes))
             }.toMap()
-            confirmSelections(submission)
+            confirmSelections(PresentationExchangeCredentialSubmissions(submission))
         }
     }
 }
