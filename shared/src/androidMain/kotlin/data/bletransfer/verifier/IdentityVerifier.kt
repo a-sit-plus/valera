@@ -18,39 +18,76 @@ import com.android.identity.crypto.X509CertChain
 import com.android.identity.crypto.javaX509Certificate
 import data.bletransfer.util.RequestedDocument
 import data.storage.CertificateStorage
+import java.security.NoSuchAlgorithmException
+import java.security.SignatureException
+import java.security.cert.CertPathValidatorException
+import java.security.cert.CertificateException
+import java.security.cert.X509Certificate
 
 
 object IdentityVerifier {
 
+    private val ALLOWED_ALGOS = setOf("1.2.840.10045.4.3.2", "1.2.840.10045.4.3.3", "1.2.840.10045.4.3.4")
+
      fun verifyReaderIdentity(requestedDocument: RequestedDocument,
                               coseSigned: CoseSigned<ByteArray>,
                               sessionTranscript: ByteArray?,
-                              context: Context) {
-         if (sessionTranscript != null) {
-             val readerAuthBytes = buildReaderAuthenticationBytes(requestedDocument, sessionTranscript)
-             val data = coseSigned.prepareCoseSignatureInput(detachedPayload = readerAuthBytes)
+                              context: Context): Boolean {
+         if (sessionTranscript == null) return false
 
-             val chain: X509CertChain? = coseSigned.unprotectedHeader?.certificateChain?.let {
-                 X509CertChain.fromDataItem(
-                     it.toDataItem())
-             }
-             val appCert = chain?.certificates?.get(0)
-             val seal = CertificateStorage.loadCertificateAndroid(context, "SEAL")
-             appCert?.ecPublicKey?.let {
-                 println("SRKI:${verifySignature(data, EcSignature.fromCoseEncoded(coseSigned.wireFormat.rawSignature),
-                     it, Algorithm.ES256)}")
-             }
+         val readerAuthBytes = buildReaderAuthenticationBytes(requestedDocument, sessionTranscript)
+         val data = coseSigned.prepareCoseSignatureInput(detachedPayload = readerAuthBytes)
 
-         }
+         val appCert = coseSigned.unprotectedHeader?.certificateChain?.let {
+             X509CertChain.fromDataItem(it.toDataItem())
+         }?.certificates?.firstOrNull() ?: return false
+         val seal = CertificateStorage.loadCertificateAndroid(context, "SEAL") ?: return false
 
-//        TODO verify certificate, mock seal since currently wallet is receiving only app cert
+         verifyCertificateChain(listOf(appCert.javaX509Certificate, seal.javaX509Certificate))
+
+         if (!Crypto.checkSignature(appCert.ecPublicKey, data, Algorithm.ES256,
+                 EcSignature.fromCoseEncoded(coseSigned.wireFormat.rawSignature))) return false
+
+         return isSealCertTrusted(seal.javaX509Certificate)
+
+     }
+
+    private fun verifyCertificateChain(certificateChain: List<X509Certificate>) {
+        certificateChain.forEach {
+            it.checkValidity()
+            if (!ALLOWED_ALGOS.contains(it.sigAlgOID)) {
+                throw NoSuchAlgorithmException("Unsupported signature algorithm.")
+            }
+            if (it.hasUnsupportedCriticalExtension()) {
+                throw CertificateException("Certificate has unsupported critical extensions.")
+            }
+        }
+
+        certificateChain[0].verify(certificateChain[1].publicKey)
+
+        if (!certificateChain[1].subjectX500Principal.equals(certificateChain[0].issuerX500Principal)) {
+            throw CertPathValidatorException("CA subject and issued certificate issuer mismatch!");
+        }
+        val certSignUsage = 5
+        if (certificateChain[1].keyUsage == null || !certificateChain[1].keyUsage[certSignUsage]) {
+            throw SignatureException("Signing certificates key usage extension not present in SEAL!");
+        }
+        if (certificateChain[0].notBefore.before(certificateChain[1].notBefore) ||
+            certificateChain[0].notAfter.after(certificateChain[1].notAfter)) {
+            throw CertificateException("App Cert is not issued during SEAL validity period.");
+        }
 
     }
+
+    private fun isSealCertTrusted(sealCertificate: X509Certificate): Boolean {
+//        TODO: check is seal in trusted fingerprint list
+        return true
+    }
+
 
     private fun buildReaderAuthenticationBytes(requestedDocument: RequestedDocument,
                                                sessionTranscript: ByteArray) : ByteArray{
 //        TODO add requestInfo in the process
-
         val itemsToRequest: Map<String, Map<String, Boolean>> = requestedDocument.nameSpaces.associate { ns ->
             ns.nameSpace to ns.attributesMap.mapKeys { it.key.value }
         }
@@ -86,14 +123,6 @@ object IdentityVerifier {
     }
 
 
-    fun verifySignature(
-        data: ByteArray,
-        digitalSignature: EcSignature,
-        publicKey: EcPublicKey,
-        algorithm: Algorithm
-    ): Boolean {
-        return Crypto.checkSignature(publicKey, data, algorithm, digitalSignature)
-    }
 
 
 }
