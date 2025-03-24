@@ -133,7 +133,9 @@ class CborDecoder {
         }
         for ((key, value) in requestsAndAuth) {
             if (value != null) {
-                IdentityVerifier.verifyReaderIdentity(key, value, sessionTranscript, context)
+                if (!IdentityVerifier.verifyReaderIdentity(key, value, sessionTranscript, context)) {
+                    return
+                }
             }
         }
         documentRequests = requestsAndAuth.keys.toList()

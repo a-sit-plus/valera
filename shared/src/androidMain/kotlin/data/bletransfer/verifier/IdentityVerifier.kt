@@ -15,6 +15,7 @@ import com.android.identity.crypto.Crypto
 import com.android.identity.crypto.EcPublicKey
 import com.android.identity.crypto.EcSignature
 import com.android.identity.crypto.X509CertChain
+import com.android.identity.crypto.javaX509Certificate
 import data.bletransfer.util.RequestedDocument
 import data.storage.CertificateStorage
 import java.security.NoSuchAlgorithmException
@@ -31,27 +32,25 @@ object IdentityVerifier {
      fun verifyReaderIdentity(requestedDocument: RequestedDocument,
                               coseSigned: CoseSigned<ByteArray>,
                               sessionTranscript: ByteArray?,
-                              context: Context) {
-         if (sessionTranscript != null) {
-             val readerAuthBytes = buildReaderAuthenticationBytes(requestedDocument, sessionTranscript)
-             val data = coseSigned.prepareCoseSignatureInput(detachedPayload = readerAuthBytes)
+                              context: Context): Boolean {
+         if (sessionTranscript == null) return false
 
-             val chain: X509CertChain? = coseSigned.unprotectedHeader?.certificateChain?.let {
-                 X509CertChain.fromDataItem(
-                     it.toDataItem())
-             }
-             val appCert = chain?.certificates?.get(0)
-             val seal = CertificateStorage.loadCertificateAndroid(context, "SEAL")
-             appCert?.ecPublicKey?.let {
-                 println("SRKI:${verifySignature(data, EcSignature.fromCoseEncoded(coseSigned.wireFormat.rawSignature),
-                     it, Algorithm.ES256)}")
-             }
+         val readerAuthBytes = buildReaderAuthenticationBytes(requestedDocument, sessionTranscript)
+         val data = coseSigned.prepareCoseSignatureInput(detachedPayload = readerAuthBytes)
 
-         }
+         val appCert = coseSigned.unprotectedHeader?.certificateChain?.let {
+             X509CertChain.fromDataItem(it.toDataItem())
+         }?.certificates?.firstOrNull() ?: return false
+         val seal = CertificateStorage.loadCertificateAndroid(context, "SEAL") ?: return false
 
-//        TODO verify certificate, mock seal since currently wallet is receiving only app cert
+         verifyCertificateChain(listOf(appCert.javaX509Certificate, seal.javaX509Certificate))
 
-    }
+         if (!Crypto.checkSignature(appCert.ecPublicKey, data, Algorithm.ES256,
+                 EcSignature.fromCoseEncoded(coseSigned.wireFormat.rawSignature))) return false
+
+         return isSealCertTrusted(seal.javaX509Certificate)
+
+     }
 
     private fun verifyCertificateChain(certificateChain: List<X509Certificate>) {
         certificateChain.forEach {
@@ -66,28 +65,23 @@ object IdentityVerifier {
 
         certificateChain[0].verify(certificateChain[1].publicKey)
 
-        if (!certificateChain[0].subjectX500Principal.equals(certificateChain[1].issuerX500Principal)) {
+        if (!certificateChain[1].subjectX500Principal.equals(certificateChain[0].issuerX500Principal)) {
             throw CertPathValidatorException("CA subject and issued certificate issuer mismatch!");
         }
         val certSignUsage = 5
-        if (certificateChain[0].keyUsage == null || !certificateChain[0].keyUsage[certSignUsage]) {
+        if (certificateChain[1].keyUsage == null || !certificateChain[1].keyUsage[certSignUsage]) {
             throw SignatureException("Signing certificates key usage extension not present in SEAL!");
         }
-        if (certificateChain[1].notBefore.before(certificateChain[0].notBefore) ||
-            certificateChain[1].notAfter.after(certificateChain[0].notAfter)) {
-            throw CertificateException("Dritt Cert is not issued during SEAL validity period.");
+        if (certificateChain[0].notBefore.before(certificateChain[1].notBefore) ||
+            certificateChain[0].notAfter.after(certificateChain[1].notAfter)) {
+            throw CertificateException("App Cert is not issued during SEAL validity period.");
         }
 
     }
 
-    fun verifySignature(
-        data: ByteArray,
-        digitalSignature: EcSignature,
-        publicKey: EcPublicKey,
-        algorithm: Algorithm
-    ): Boolean {
-        digitalSignature
-        return Crypto.checkSignature(publicKey, data, algorithm, digitalSignature)
+    private fun isSealCertTrusted(sealCertificate: X509Certificate): Boolean {
+//        TODO: check is seal in trusted fingerprint list
+        return true
     }
 
 
