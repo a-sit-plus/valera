@@ -22,7 +22,7 @@ class CborDecoder {
 
     var entryList = mutableListOf<Entry>()
     var documentRequests: List<RequestedDocument> = emptyList()
-    var requesterIdentity: X509Certificate? = null
+    var requesterIdentity: String? = null
 
     fun decodeResponse(
         encodedDeviceResponse: ByteArray,
@@ -142,7 +142,7 @@ class CborDecoder {
             }
         }
         documentRequests = requestsAndAuth.keys.toList()
-        requesterIdentity = IdentityVerifier.appCertificate?.javaX509Certificate
+        requesterIdentity = IdentityVerifier.requesterIdentity
 
     }
 }

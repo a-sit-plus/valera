@@ -60,7 +60,7 @@ class TransferManager private constructor(private val context: Context) {
 
 
                 updateRequestedAttributes(documentRequestsList,
-                    cbor.requesterIdentity?.subjectX500Principal?.name
+                    cbor.requesterIdentity
                 )
             },
             onDisconnected = {

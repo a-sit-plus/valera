@@ -30,7 +30,7 @@ object IdentityVerifier {
 
     private val ALLOWED_ALGOS = setOf("1.2.840.10045.4.3.2", "1.2.840.10045.4.3.3", "1.2.840.10045.4.3.4")
 
-    var appCertificate: X509Cert? = null
+    var requesterIdentity: String? = null
 
      fun verifyReaderIdentity(requestedDocument: RequestedDocument,
                               coseSigned: CoseSigned<ByteArray>,
@@ -41,15 +41,16 @@ object IdentityVerifier {
          val readerAuthBytes = buildReaderAuthenticationBytes(requestedDocument, sessionTranscript)
          val data = coseSigned.prepareCoseSignatureInput(detachedPayload = readerAuthBytes)
 
-         appCertificate = coseSigned.unprotectedHeader?.certificateChain?.let {
+         val appCertificate = coseSigned.unprotectedHeader?.certificateChain?.let {
              X509CertChain.fromDataItem(it.toDataItem())
          }?.certificates?.firstOrNull() ?: return false
+         requesterIdentity = extractCommonName(appCertificate.javaX509Certificate.subjectX500Principal.name)
          val seal = CertificateStorage.loadCertificateAndroid(context, "SEAL") ?: return false
 
-         verifyCertificateChain(listOf(appCertificate!!.javaX509Certificate, seal.javaX509Certificate))
+         verifyCertificateChain(listOf(appCertificate.javaX509Certificate, seal.javaX509Certificate))
 
          if (!Crypto.checkSignature(
-                 appCertificate!!.ecPublicKey, data, Algorithm.ES256,
+                 appCertificate.ecPublicKey, data, Algorithm.ES256,
                  EcSignature.fromCoseEncoded(coseSigned.wireFormat.rawSignature))) return false
 
          return isSealCertTrusted(seal.javaX509Certificate)
@@ -124,6 +125,11 @@ object IdentityVerifier {
                 .build()
         )
         return encode(Tagged(24, Bstr(encodedReaderAuthentication)))
+    }
+
+    fun extractCommonName(dn: String): String? {
+        val cnRegex = "CN=([^,]+)".toRegex()
+        return cnRegex.find(dn)?.groups?.get(1)?.value
     }
 
 
