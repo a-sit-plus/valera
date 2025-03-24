@@ -14,6 +14,7 @@ import com.android.identity.crypto.Algorithm
 import com.android.identity.crypto.Crypto
 import com.android.identity.crypto.EcPublicKey
 import com.android.identity.crypto.EcSignature
+import com.android.identity.crypto.X509Cert
 import com.android.identity.crypto.X509CertChain
 import com.android.identity.crypto.javaX509Certificate
 import data.bletransfer.util.RequestedDocument
@@ -29,6 +30,8 @@ object IdentityVerifier {
 
     private val ALLOWED_ALGOS = setOf("1.2.840.10045.4.3.2", "1.2.840.10045.4.3.3", "1.2.840.10045.4.3.4")
 
+    var requesterIdentity: String? = null
+
      fun verifyReaderIdentity(requestedDocument: RequestedDocument,
                               coseSigned: CoseSigned<ByteArray>,
                               sessionTranscript: ByteArray?,
@@ -38,14 +41,16 @@ object IdentityVerifier {
          val readerAuthBytes = buildReaderAuthenticationBytes(requestedDocument, sessionTranscript)
          val data = coseSigned.prepareCoseSignatureInput(detachedPayload = readerAuthBytes)
 
-         val appCert = coseSigned.unprotectedHeader?.certificateChain?.let {
+         val appCertificate = coseSigned.unprotectedHeader?.certificateChain?.let {
              X509CertChain.fromDataItem(it.toDataItem())
          }?.certificates?.firstOrNull() ?: return false
+         requesterIdentity = extractCommonName(appCertificate.javaX509Certificate.subjectX500Principal.name)
          val seal = CertificateStorage.loadCertificateAndroid(context, "SEAL") ?: return false
 
-         verifyCertificateChain(listOf(appCert.javaX509Certificate, seal.javaX509Certificate))
+         verifyCertificateChain(listOf(appCertificate.javaX509Certificate, seal.javaX509Certificate))
 
-         if (!Crypto.checkSignature(appCert.ecPublicKey, data, Algorithm.ES256,
+         if (!Crypto.checkSignature(
+                 appCertificate.ecPublicKey, data, Algorithm.ES256,
                  EcSignature.fromCoseEncoded(coseSigned.wireFormat.rawSignature))) return false
 
          return isSealCertTrusted(seal.javaX509Certificate)
@@ -120,6 +125,11 @@ object IdentityVerifier {
                 .build()
         )
         return encode(Tagged(24, Bstr(encodedReaderAuthentication)))
+    }
+
+    fun extractCommonName(dn: String): String? {
+        val cnRegex = "CN=([^,]+)".toRegex()
+        return cnRegex.find(dn)?.groups?.get(1)?.value
     }
 
 

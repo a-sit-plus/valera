@@ -7,6 +7,7 @@ import data.bletransfer.util.RequestedDocument
 import data.bletransfer.util.CborDecoder
 import data.storage.CertificateStorage
 import io.github.aakira.napier.Napier
+import java.security.cert.X509Certificate
 
 class TransferManager private constructor(private val context: Context) {
 
@@ -30,7 +31,7 @@ class TransferManager private constructor(private val context: Context) {
 
     fun startQrEngagement(
         updateQrCode: (String) -> Unit,
-        updateRequestedAttributes: (List<RequestedDocument>) -> Unit
+        updateRequestedAttributes: (List<RequestedDocument>, String?) -> Unit
     ) {
         if (hasStarted) {
             throw IllegalStateException("Transfer has already started.")
@@ -52,12 +53,15 @@ class TransferManager private constructor(private val context: Context) {
             onNewDeviceRequest = { deviceRequest ->
                 Napier.d(tag = TAG, message = "REQUEST received")
                 communication.setDeviceRequest(deviceRequest)
-                val documentRequestsList = CborDecoder().apply {
+                val cbor = CborDecoder()
+                val documentRequestsList = cbor.apply {
                     decodeRequest(deviceRequest, communication.getSessionTranscript(), context)
                 }.documentRequests
 
 
-                updateRequestedAttributes(documentRequestsList)
+                updateRequestedAttributes(documentRequestsList,
+                    cbor.requesterIdentity
+                )
             },
             onDisconnected = {
                 Napier.d(tag = TAG, message = "DISCONNECTED")

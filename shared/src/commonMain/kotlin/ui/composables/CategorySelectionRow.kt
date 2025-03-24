@@ -137,7 +137,7 @@ fun CategorySelectionRow(
 
 class CategorySelectionRowDefaults {
     companion object {
-        val modifier = Modifier.fillMaxWidth().padding(
+        var modifier = Modifier.fillMaxWidth().padding(
             top = 8.dp,
             end = 24.dp,
             bottom = 8.dp,

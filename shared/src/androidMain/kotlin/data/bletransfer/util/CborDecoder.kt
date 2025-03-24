@@ -11,15 +11,18 @@ import at.asitplus.wallet.lib.iso.DeviceResponse
 import at.asitplus.wallet.lib.iso.IssuerSignedItem
 import at.asitplus.wallet.mdl.DrivingPrivilege
 import com.android.identity.crypto.EcPrivateKey
+import com.android.identity.crypto.javaX509Certificate
 import data.bletransfer.verifier.IdentityVerifier
 import io.github.aakira.napier.Napier
 import kotlinx.datetime.LocalDate
+import java.security.cert.X509Certificate
 
 class CborDecoder {
     private val TAG: String = "CborDecoder"
 
     var entryList = mutableListOf<Entry>()
     var documentRequests: List<RequestedDocument> = emptyList()
+    var requesterIdentity: String? = null
 
     fun decodeResponse(
         encodedDeviceResponse: ByteArray,
@@ -139,7 +142,7 @@ class CborDecoder {
             }
         }
         documentRequests = requestsAndAuth.keys.toList()
-
+        requesterIdentity = IdentityVerifier.requesterIdentity
 
     }
 }
