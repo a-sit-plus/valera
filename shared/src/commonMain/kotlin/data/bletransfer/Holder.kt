@@ -17,4 +17,6 @@ interface Holder {
     fun disconnect()
 
     fun send(credentials: List<Document>, launchAfterSuccessfulSend: () -> Unit)
+
+    fun getRequesterIdentity(): String
 }

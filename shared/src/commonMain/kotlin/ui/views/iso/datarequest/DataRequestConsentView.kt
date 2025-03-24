@@ -92,6 +92,11 @@ fun DataRequestConsentView(vm: DataRequestConsentViewModel) {
             ) {
                 val paddingModifier = Modifier.padding(bottom = 32.dp)
                 Text(
+                    vm.walletMain.holder.getRequesterIdentity(),
+                    style = MaterialTheme.typography.headlineLarge,
+                    modifier = paddingModifier,
+                )
+                Text(
                     stringResource(Res.string.heading_label_show_data),
                     style = MaterialTheme.typography.headlineLarge,
                     modifier = paddingModifier,

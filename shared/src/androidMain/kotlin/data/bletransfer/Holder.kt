@@ -3,6 +3,7 @@ package data.bletransfer
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import at.asitplus.wallet.lib.iso.Document
+import com.android.identity.crypto.X509Cert
 import com.android.identity.mdoc.response.DeviceResponseGenerator
 import com.android.identity.util.Constants.DEVICE_RESPONSE_STATUS_OK
 import data.bletransfer.holder.TransferManager
@@ -14,6 +15,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.security.cert.X509Certificate
 
 actual fun getHolder(): Holder = AndroidHolder()
 
@@ -23,6 +25,7 @@ class AndroidHolder: Holder {
     private var permission = false
     private var transferManager: TransferManager? = null
     private var requestedAttributes: List<RequestedDocument>? = null
+    private var requesterIdentity: String? = null
 
     @Composable
     override fun getRequirements(check: (Boolean) -> Unit) {
@@ -43,6 +46,10 @@ class AndroidHolder: Holder {
         return requestedAttributes ?: listOf()
     }
 
+    override fun getRequesterIdentity(): String {
+        return requesterIdentity ?: "Anonymous user"
+    }
+
     override fun hold(updateQrCode: (String) -> Unit, onRequestedAttributes: () -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             while (transferManager == null) {
@@ -56,8 +63,9 @@ class AndroidHolder: Holder {
             }
 
             Napier.d(tag = TAG, message ="Transfer Manager is here")
-            transferManager?.startQrEngagement(updateQrCode) {rA ->
+            transferManager?.startQrEngagement(updateQrCode) {rA, identity ->
                 requestedAttributes = rA
+                requesterIdentity = identity
                 onRequestedAttributes()
             } ?: Napier.d(tag = TAG, message = "The transferManager was set to null which should not have happened")
         }
