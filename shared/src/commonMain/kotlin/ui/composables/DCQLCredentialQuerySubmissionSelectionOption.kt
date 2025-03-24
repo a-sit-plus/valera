@@ -1,4 +1,4 @@
-package ui.composables.credentials
+package ui.composables
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -8,52 +8,49 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import at.asitplus.dif.ConstraintField
-import at.asitplus.jsonpath.core.NodeList
+import at.asitplus.openid.dcql.DCQLCredentialSubmissionOption
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import ui.composables.credentials.CredentialSelectionCardHeader
+import ui.composables.credentials.CredentialSelectionCardLayout
+import ui.composables.credentials.CredentialSummaryCardContent
+
 
 @Composable
-fun CredentialSelectionCard(
-    credential: Map.Entry<SubjectCredentialStore.StoreEntry, Map<ConstraintField, NodeList>>,
-    imageDecoder: (ByteArray) -> ImageBitmap?,
-    attributeSelection: SnapshotStateMap<String, Boolean>,
-    credentialSelection: MutableState<SubjectCredentialStore.StoreEntry>
+fun DCQLCredentialQuerySubmissionSelectionOption(
+    isSelected: Boolean,
+    onToggleSelection: () -> Unit,
+    option: DCQLCredentialSubmissionOption<SubjectCredentialStore.StoreEntry>,
+    decodeToBitmap: (ByteArray) -> ImageBitmap?,
+    modifier: Modifier = Modifier,
 ) {
-    val selected = remember { mutableStateOf(false) }
-
-    selected.value = credentialSelection.value == credential.key
+    val credential = option.credential
+    val matchingResult = option.matchingResult
 
     CredentialSelectionCardLayout(
-        onClick = {
-            attributeSelection.clear()
-            credentialSelection.value = credential.key
-                  },
-        modifier = Modifier,
-        isSelected = selected.value
+        onClick = onToggleSelection,
+        isSelected = isSelected,
+        modifier = modifier,
     ) {
         CredentialSelectionCardHeader(
-            credential = credential.key,
+            credential = credential,
             modifier = Modifier.fillMaxWidth()
         )
         CredentialSummaryCardContent(
-            credential = credential.key,
-            decodeToBitmap = imageDecoder,
+            credential = credential,
+            decodeToBitmap = decodeToBitmap,
         )
     }
 
     val density = LocalDensity.current
     AnimatedVisibility(
-        visible = selected.value,
+        visible = isSelected,
         enter = slideInVertically {
             with(density) { -20.dp.roundToPx() }
         } + expandVertically(
@@ -69,7 +66,6 @@ fun CredentialSelectionCard(
             targetAlpha = 0f
         )
     ) {
-        val format = credential.key.scheme
-        AttributeSelectionGroup(credential, format = format, selection = attributeSelection)
+        Text("Is Selected")
     }
 }
