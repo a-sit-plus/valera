@@ -8,8 +8,8 @@ import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.rqes.collection_entries.TransactionData
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.lib.agent.CredentialSubmission
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
@@ -57,10 +57,10 @@ class DefaultAuthenticationViewModel(
         return walletMain.presentationService.getMatchingCredentials(preparationState = preparationState)
     }
 
-    override suspend fun finalizationMethod(submission: Map<String, CredentialSubmission>) =
+    override suspend fun finalizationMethod(credentialPresentation: CredentialPresentation) =
         walletMain.presentationService.finalizeAuthorizationResponse(
             request = authenticationRequest,
-            preparationState = preparationState,
-            inputDescriptorSubmission = submission
+            clientMetadata = authenticationRequest.parameters.clientMetadata,
+            credentialPresentation = credentialPresentation,
         )
 }
