@@ -44,14 +44,14 @@ class ProvisioningService(
 
     private val redirectUrl = "asitplus-wallet://wallet.a-sit.at/app/callback/provisioning"
     private val clientId = "https://wallet.a-sit.at/app"
-    private val clientAttestationJwt = runBlocking {
+    private val clientAttestationJwt by lazy {   runBlocking {
         DefaultJwsService(cryptoService).buildClientAttestationJwt(
             clientId = clientId,
             issuer = "https://example.com",
             lifetime = 60.minutes,
             clientKey = cryptoService.keyMaterial.jsonWebKey
         ).serialize()
-    }
+    }}
 
     private val openId4VciClient = OpenId4VciClient(
         openUrlExternally = {
