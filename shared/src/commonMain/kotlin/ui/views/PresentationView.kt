@@ -80,7 +80,8 @@ fun PresentationView(
     snackbarService: SnackbarService
 ) {
     val presentationStateModel = presentationViewModel.presentationStateModel
-    presentationViewModel.walletMain.cryptoService.onUnauthenticated = presentationViewModel.navigateUp
+    presentationViewModel.walletMain.cryptoService.onUnauthenticated =
+        presentationViewModel.navigateUp
 
 
     // Make sure we clean up the PresentmentModel when we're done. This is to ensure
@@ -98,12 +99,20 @@ fun PresentationView(
         PresentationStateModel.State.IDLE,
         PresentationStateModel.State.NO_PERMISSION,
         PresentationStateModel.State.INITIALISING,
-        PresentationStateModel.State.CONNECTING -> {}
+        PresentationStateModel.State.CONNECTING -> {
+        }
+
         PresentationStateModel.State.CHECK_PERMISSIONS ->
-            RequestBluetoothPermissions({ granted -> presentationStateModel.setPermissionState(granted) }, snackbarService::showSnackbar)
+            RequestBluetoothPermissions({ granted ->
+                presentationStateModel.setPermissionState(
+                    granted
+                )
+            }, snackbarService::showSnackbar)
+
         PresentationStateModel.State.WAITING_FOR_SOURCE -> {
             presentationStateModel.setStepAfterWaitingForSource(presentationViewModel)
         }
+
         PresentationStateModel.State.PROCESSING -> {}
         PresentationStateModel.State.WAITING_FOR_DOCUMENT_SELECTION -> {
             when (presentationViewModel.viewState) {
@@ -145,6 +154,7 @@ fun PresentationView(
                 }
             }
         }
+
         PresentationStateModel.State.COMPLETED -> {
             // Delay for a short amount of time so the user has a chance to see the success/error indication
             coroutineScope.launch {
@@ -192,32 +202,41 @@ fun PresentationView(
                     PresentationStateModel.State.COMPLETED -> {
                         when (presentationStateModel.error) {
                             null -> Triple(
-                                    //TODO add proper icons
-                                    "", painterResource(Res.drawable.icon_presentation_success),
-                                    stringResource(Res.string.presentation_success)
-                                )
+                                "",
+                                painterResource(Res.drawable.icon_presentation_success),
+                                stringResource(Res.string.presentation_success)
+                            )
+
                             is PresentmentCanceled -> Triple(
-                                    stringResource(Res.string.app_display_name),
-                                    painterResource(Res.drawable.icon_presentation),
-                                    stringResource(Res.string.presentation_canceled)
-                                )
+                                stringResource(Res.string.app_display_name),
+                                painterResource(Res.drawable.icon_presentation),
+                                stringResource(Res.string.presentation_canceled)
+                            )
+
                             is PresentmentTimeout -> Triple(
-                                    "", painterResource(Res.drawable.icon_presentation_error),
-                                    stringResource(Res.string.presentation_timeout)
-                                )
+                                "",
+                                painterResource(Res.drawable.icon_presentation_error),
+                                stringResource(Res.string.presentation_timeout)
+                            )
+
                             else -> Triple(
-                                    "", painterResource(Res.drawable.icon_presentation_error),
-                                    stringResource(Res.string.presentation_error)
-                                )
+                                "",
+                                painterResource(Res.drawable.icon_presentation_error),
+                                stringResource(Res.string.presentation_error)
+                            )
                         }
                     }
 
-                    PresentationStateModel.State.WAITING_FOR_DOCUMENT_SELECTION -> throw IllegalStateException("should not be reachable")
+                    PresentationStateModel.State.WAITING_FOR_DOCUMENT_SELECTION -> throw IllegalStateException(
+                        "should not be reachable"
+                    )
+
                     PresentationStateModel.State.NO_PERMISSION -> Triple(
                         stringResource(Res.string.app_display_name),
                         painterResource(Res.drawable.icon_presentation),
                         stringResource(Res.string.presentation_missing_permission)
                     )
+
                     PresentationStateModel.State.CHECK_PERMISSIONS -> Triple(
                         stringResource(Res.string.app_display_name),
                         painterResource(Res.drawable.icon_presentation),

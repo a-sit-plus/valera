@@ -329,7 +329,6 @@ private fun WalletNavHost(
             val route: LocalPresentationAuthenticationConsentRoute = backStackEntry.toRoute()
 
             val vm = try {
-                Napier.d("trying")
                 GLOBALS.presentationStateModel.value?.let {
                     PresentationViewModel(
                         it,
