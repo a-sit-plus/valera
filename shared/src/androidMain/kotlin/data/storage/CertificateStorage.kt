@@ -44,20 +44,9 @@ object CertificateStorage {
         }
     }
 
-    private fun x509CertificateToPemString(cert: X509Certificate): String {
-        val stringWriter = StringWriter()
-        val pemWriter = JcaPEMWriter (stringWriter)
-
-        pemWriter.writeObject(cert)
-        pemWriter.close()
-
-        return stringWriter.toString()
-    }
-
-    fun storeFromFileToPref(context: Context) {
-        val pemCert = context.assets.open("SEAL.crt").bufferedReader().use { it.readText() }
-        val cert = pemToX509Certificate(pemCert)
-        println("SRKI:$cert")
-        saveCertificate(context, "SEAL", pemCert)
-    }
+//    fun storeFromFileToPref(context: Context) {
+//        val pemCert = context.assets.open("SEAL.crt").bufferedReader().use { it.readText() }
+//        val cert = pemToX509Certificate(pemCert)
+//        saveCertificate(context, "SEAL", pemCert)
+//    }
 }

@@ -59,6 +59,8 @@ kotlin {
                 implementation(libs.identity)
                 implementation(libs.semver)
                 implementation(libs.g0dkar.qrcode.kotlin)
+                implementation(libs.gson)
+
             }
         }
 

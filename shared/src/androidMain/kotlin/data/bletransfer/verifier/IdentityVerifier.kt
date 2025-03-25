@@ -2,6 +2,7 @@ package data.bletransfer.verifier
 
 import android.content.Context
 import at.asitplus.signum.indispensable.cosef.CoseSigned
+import at.asitplus.wallet.app.common.HttpService
 import com.android.identity.cbor.Bstr
 import com.android.identity.cbor.Cbor.encode
 import com.android.identity.cbor.CborArray
@@ -17,8 +18,21 @@ import com.android.identity.crypto.EcSignature
 import com.android.identity.crypto.X509Cert
 import com.android.identity.crypto.X509CertChain
 import com.android.identity.crypto.javaX509Certificate
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import data.bletransfer.util.RequestedDocument
 import data.storage.CertificateStorage
+import io.ktor.client.call.body
+import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.request.get
+import io.ktor.client.request.url
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsBytes
+import io.ktor.client.statement.bodyAsText
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import okhttp3.Response
 import java.security.NoSuchAlgorithmException
 import java.security.SignatureException
 import java.security.cert.CertPathValidatorException
@@ -86,7 +100,19 @@ object IdentityVerifier {
 
     private fun isSealCertTrusted(sealCertificate: X509Certificate): Boolean {
 //        TODO: check is seal in trusted fingerprint list
+        getTrustList()
         return true
+    }
+
+    private fun getTrustList() {
+        CoroutineScope(Dispatchers.IO).launch {
+
+
+            val service = HttpService()
+            val client = service.buildHttpClient()
+            val res = client.get("http://localhost:8080/api/certificate/seal/trustlist")
+            println("SRKI:${parseCertificateChain(res)[0]}")
+        }
     }
 
 
@@ -130,6 +156,17 @@ object IdentityVerifier {
     fun extractCommonName(dn: String): String? {
         val cnRegex = "CN=([^,]+)".toRegex()
         return cnRegex.find(dn)?.groups?.get(1)?.value
+    }
+
+    private suspend fun parseCertificateChain(response: HttpResponse): Array<X509Certificate?> {
+        val gson = Gson()
+        val ret: List<String> = gson.fromJson(
+            response.bodyAsText(),
+            object : TypeToken<List<String>>() {}.type
+        )
+        return Array(ret.size) { i ->
+            CertificateStorage.pemToX509Certificate(ret[i])
+        }
     }
 
 

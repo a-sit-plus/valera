@@ -13,6 +13,7 @@ kotlin {
             dependencies {
                 implementation(project(":shared"))
                 implementation(libs.play.services.identity.credentials)
+                implementation(libs.gson)
             }
         }
     }
