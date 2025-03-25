@@ -8,7 +8,7 @@ import ui.navigation.routes.LocalPresentationAuthenticationConsentRoute
 class BuildAuthenticationConsentPageFromAuthenticationRequestLocalPresentment {
     operator fun invoke(incomingRequest: PresentationRequest?): KmmResult<LocalPresentationAuthenticationConsentRoute> =
         catching {
-            require(GLOBALS.presentationStateModel.value != null) { "No presentationStateModel set" }
+            require(Globals.presentationStateModel.value != null) { "No presentationStateModel set" }
             require(incomingRequest != null) { "No presentation request received" }
             LocalPresentationAuthenticationConsentRoute(
                 incomingRequest.serialize()

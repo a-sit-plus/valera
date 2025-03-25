@@ -17,7 +17,7 @@ import ui.viewmodels.authentication.PresentationStateModel
  * to compose whenever the app gets called from native code, such as via an associated domain,
  * NFC or the DC API
  */
-object GLOBALS {
+object Globals {
     var appLink = MutableStateFlow<String?>(null)
     var dcapiInvocationData = MutableStateFlow<DCAPIInvocationData?>(null)
     var presentationStateModel = MutableStateFlow<PresentationStateModel?>(null)

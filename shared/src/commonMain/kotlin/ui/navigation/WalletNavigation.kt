@@ -171,7 +171,7 @@ fun WalletNavigation(walletMain: WalletMain) {
     }
 
     LaunchedEffect(null) {
-        GLOBALS.appLink.combineTransform(walletMain.readyForIntents) { link, ready ->
+        Globals.appLink.combineTransform(walletMain.readyForIntents) { link, ready ->
             if (ready == true && link != null) {
                 emit(link)
             }
@@ -347,7 +347,7 @@ private fun WalletNavHost(
             val route: LocalPresentationAuthenticationConsentRoute = backStackEntry.toRoute()
 
             val vm = try {
-                GLOBALS.presentationStateModel.value?.let {
+                Globals.presentationStateModel.value?.let {
                     PresentationViewModel(
                         it,
                         navigateUp = {  },

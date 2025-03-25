@@ -45,15 +45,15 @@ class MainActivity : AbstractWalletActivity() {
     override fun populateLink(intent: Intent) {
         when (intent.action) {
             IntentHelper.ACTION_GET_CREDENTIAL -> {
-                GLOBALS.dcapiInvocationData.value = DCAPIInvocationData(intent)
-                GLOBALS.appLink.value = intent.action
+                Globals.dcapiInvocationData.value = DCAPIInvocationData(intent)
+                Globals.appLink.value = intent.action
             }
             PRESENTATION_REQUESTED_INTENT -> {
-                GLOBALS.presentationStateModel.value = NdefDeviceEngagementService.presentationStateModel
-                GLOBALS.appLink.value = PRESENTATION_REQUESTED_INTENT
+                Globals.presentationStateModel.value = NdefDeviceEngagementService.presentationStateModel
+                Globals.appLink.value = PRESENTATION_REQUESTED_INTENT
             }
             else -> {
-                GLOBALS.appLink.value = intent.data?.toString()
+                Globals.appLink.value = intent.data?.toString()
             }
         }
     }

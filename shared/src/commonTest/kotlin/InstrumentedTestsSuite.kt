@@ -236,7 +236,7 @@ class InstrumentedTestsSuite : FunSpec({
                     val qrCodeUrl = firstProfile?.get("url")?.jsonPrimitive?.content
                     val id = firstProfile?.get("id")?.jsonPrimitive?.content
 
-                    GLOBALS.appLink.value = qrCodeUrl!!
+                    Globals.appLink.value = qrCodeUrl!!
 
                     waitUntilExactlyOneExists(
                         hasText(getString(Res.string.button_label_continue)),

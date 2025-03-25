@@ -55,7 +55,7 @@ suspend fun handleIntent(
                 navigateBack()
                 walletMain.errorService.emit(e)
             }
-            GLOBALS.appLink.value = null
+            Globals.appLink.value = null
         }
 
         IntentType.ErrorIntent -> {
@@ -65,7 +65,7 @@ suspend fun handleIntent(
                 walletMain.errorService.emit(
                     Exception(pars["error_description"] ?: "Unknown Exception")
                 )
-                GLOBALS.appLink.value = null
+                Globals.appLink.value = null
             }
         }
 
@@ -81,7 +81,7 @@ suspend fun handleIntent(
             }.onFailure {
                 Napier.d("invalid authentication request")
             }
-            GLOBALS.appLink.value = null
+            Globals.appLink.value = null
         }
 
         IntentType.DCAPIAuthorizationIntent -> {
@@ -95,7 +95,7 @@ suspend fun handleIntent(
             }.onFailure {
                 walletMain.errorService.emit(Exception("Invalid Authentication Request"))
             }
-            GLOBALS.appLink.value = null
+            Globals.appLink.value = null
         }
 
         IntentType.PresentationIntent -> {
@@ -108,7 +108,7 @@ suspend fun handleIntent(
             }.onFailure {
                 walletMain.errorService.emit(Exception("Invalid Authentication Request"))
             }
-            GLOBALS.appLink.value = null
+            Globals.appLink.value = null
         }
 
         IntentType.SigningServiceIntent -> {
