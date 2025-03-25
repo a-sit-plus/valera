@@ -7,7 +7,15 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -15,8 +23,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.openid.dcql.DCQLClaimsQueryResult
+import at.asitplus.openid.dcql.DCQLCredentialQueryMatchingResult
 import at.asitplus.openid.dcql.DCQLCredentialSubmissionOption
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.jsonpath.core.plus
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
+import at.asitplus.wallet.app.common.thirdParty.kotlinx.serialization.json.leafNodeList
+import at.asitplus.wallet.app.common.thirdParty.kotlinx.serialization.json.normalizedJsonPaths
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.CredentialToJsonConverter.toJsonElement
+import data.Attribute
+import org.jetbrains.compose.resources.stringResource
 import ui.composables.credentials.CredentialSelectionCardHeader
 import ui.composables.credentials.CredentialSelectionCardLayout
 import ui.composables.credentials.CredentialSummaryCardContent
@@ -33,6 +51,33 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
     val credential = option.credential
     val matchingResult = option.matchingResult
 
+    val genericAttributeList: List<Pair<NormalizedJsonPath, Any>> = when (matchingResult) {
+        DCQLCredentialQueryMatchingResult.AllClaimsMatchingResult -> credential.toJsonElement().leafNodeList().map {
+            it.normalizedJsonPath to it.value
+        }
+
+        is DCQLCredentialQueryMatchingResult.ClaimsQueryResults -> matchingResult.claimsQueryResults.flatMap {
+            when (it) {
+                is DCQLClaimsQueryResult.IsoMdocResult -> listOf(
+                    NormalizedJsonPath() + it.namespace + it.claimName to it.claimValue,
+                )
+                is DCQLClaimsQueryResult.JsonResult -> it.nodeList.map {
+                    it.normalizedJsonPath to it.value
+                }
+            }
+        }
+    }
+    val labeledAttributes = genericAttributeList.mapNotNull { (key, value) ->
+        Attribute.fromValue(value)?.let {
+            val label = credential.scheme?.getLocalization(key)?.let {
+                stringResource(it)
+            } ?: key.toString()
+            label to it
+        }
+    }.sortedBy {
+        it.first
+    }
+
     CredentialSelectionCardLayout(
         onClick = onToggleSelection,
         isSelected = isSelected,
@@ -46,6 +91,23 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
             credential = credential,
             decodeToBitmap = decodeToBitmap,
         )
+
+        val attributes = when (matchingResult) {
+            DCQLCredentialQueryMatchingResult.AllClaimsMatchingResult -> credential.toJsonElement()
+                .normalizedJsonPaths()
+
+            is DCQLCredentialQueryMatchingResult.ClaimsQueryResults -> matchingResult.claimsQueryResults.flatMap {
+                when (it) {
+                    is DCQLClaimsQueryResult.IsoMdocResult -> listOf(NormalizedJsonPath() + it.namespace + it.claimName)
+                    is DCQLClaimsQueryResult.JsonResult -> it.nodeList.map { it.normalizedJsonPath }
+                }
+            }
+        }.map {
+            credential.toJsonElement().normalizedJsonPaths().map {
+                credential.scheme?.getLocalization(it) ?: it.toString()
+            }
+        }
+        Text(labeledAttributes.joinToString(", ") { it.first })
     }
 
     val density = LocalDensity.current
@@ -66,6 +128,30 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
             targetAlpha = 0f
         )
     ) {
-        Text("Is Selected")
+        AttributeDisclosureDisplayCard(labeledAttributes)
+    }
+}
+
+@Composable
+fun AttributeDisclosureDisplayCard(
+    labeledAttributes: List<Pair<String, Attribute>>,
+) {
+    Card(
+        modifier = Modifier,
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+        elevation = CardDefaults.elevatedCardElevation(),
+    ) {
+        Column(
+            modifier = Modifier.padding(8.dp).fillMaxWidth().align(Alignment.Start),
+            verticalArrangement = Arrangement.spacedBy(8.dp,)
+        ) {
+            labeledAttributes.forEach {
+                LabeledAttribute(
+                    label = it.first,
+                    attribute = it.second,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+        }
     }
 }

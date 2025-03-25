@@ -7,15 +7,15 @@ import data.Attribute
 
 
 @Composable
-fun LabeledContent(
+fun LabeledAttribute(
     label: String,
+    attribute: Attribute,
     modifier: Modifier = Modifier,
-    content: @Composable () -> Unit,
 ) {
     Column(
         modifier = modifier
     ) {
-        content()
+        AttributeRepresentation(attribute)
         Label(label)
     }
 }
