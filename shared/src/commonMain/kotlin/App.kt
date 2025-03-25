@@ -7,6 +7,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.app.common.WalletMain
+import data.trustlist.getTrustListService
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import ui.navigation.WalletNavigation
@@ -24,6 +25,10 @@ internal object AppTestTags {
 
 @Composable
 fun App(walletMain: WalletMain) {
+
+    val trustListService = getTrustListService()
+    trustListService.setContext()
+    trustListService.fetchAndStoreTrustedFingerprints()
 
     LifecycleEventEffect(Lifecycle.Event.ON_CREATE) {
         Napier.d("Lifecycle.Event.ON_CREATE")
