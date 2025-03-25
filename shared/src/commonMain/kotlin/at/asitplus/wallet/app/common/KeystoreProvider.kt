@@ -7,6 +7,7 @@ import at.asitplus.signum.indispensable.equalsCryptographically
 import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.signum.supreme.os.SigningProvider
 import at.asitplus.signum.supreme.sign.Signer
+import at.asitplus.wallet.app.common.Configuration.USER_AUTHENTICATION_TIMEOUT_SECONDS
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.agent.KeyWithSelfSignedCert
 import data.storage.DataStoreService
@@ -16,15 +17,16 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.time.Duration.Companion.seconds
 
 
 private const val CERT_STORAGE_KEY = "MB64_CERT_SELF_SIGNED"
 
-class KeystoreService(
+open class KeystoreService(
     private val dataStoreService: DataStoreService
 ) {
-    private  val sMut = Mutex()
-    suspend fun getSigner(): KeyMaterial {
+    private val sMut = Mutex()
+    open suspend fun getSigner(): KeyMaterial {
         var signer: KeyMaterial? = null
         Napier.d("getSigner")
         sMut.withLock {
