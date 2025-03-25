@@ -22,7 +22,6 @@ val apkSignerPassword =
     (findProperty("android.cert.password") as String?) ?: System.getenv("ANDROID_CERT_PASSWORD")
 
 android {
-    compileSdk = (findProperty("android.compileSdk") as String).toInt()
     namespace = "at.asitplus.wallet.app.android"
 
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
@@ -43,7 +42,6 @@ android {
     }
     defaultConfig {
         applicationId = "at.asitplus.wallet.app.android"
-        minSdk = (findProperty("android.minSdk") as String).toInt()
         targetSdk = (findProperty("android.targetSdk") as String).toInt()
         versionCode = (findProperty("version.code") as String).toInt()
         versionName = findProperty("version.name") as String
