@@ -33,8 +33,9 @@ abstract class AbstractWalletActivity : AppCompatActivity()  {
 
     fun sendCredentialResponseToDCAPIInvoker(resultJson: String) {
         val resultData = Intent()
-        val bundle = Bundle()
-        bundle.putByteArray("identityToken", resultJson.toByteArray())
+        val bundle = Bundle().apply {
+            putByteArray("identityToken", resultJson.toByteArray())
+        }
         val credentialResponse = com.google.android.gms.identitycredentials.Credential("type", bundle)
 
         IntentHelper.setGetCredentialResponse(

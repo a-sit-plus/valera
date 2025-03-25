@@ -159,7 +159,6 @@ exportXCFramework(
 }
 
 repositories {
-    mavenLocal()
     maven("https://raw.githubusercontent.com/gp-iaik/temp_libs/refs/heads/main")
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
     maven("https://oss.sonatype.org/content/repositories/snapshots/")

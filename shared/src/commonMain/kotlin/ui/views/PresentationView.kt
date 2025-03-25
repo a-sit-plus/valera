@@ -38,6 +38,7 @@ import at.asitplus.valera.resources.presentation_waiting_for_request
 import at.asitplus.valera.resources.presentation_initialised
 import at.asitplus.valera.resources.presentation_missing_permission
 import at.asitplus.valera.resources.presentation_permission_required
+import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.presentation.PresentmentCanceled
 import ui.viewmodels.authentication.PresentationStateModel
 import at.asitplus.wallet.app.common.presentation.PresentmentTimeout
@@ -76,6 +77,7 @@ fun PresentationView(
     presentationViewModel: PresentationViewModel,
     onPresentmentComplete: () -> Unit,
     coroutineScope: CoroutineScope,
+    snackbarService: SnackbarService
 ) {
     val presentationStateModel = presentationViewModel.presentationStateModel
     presentationViewModel.walletMain.cryptoService.onUnauthenticated = presentationViewModel.navigateUp
@@ -98,7 +100,7 @@ fun PresentationView(
         PresentationStateModel.State.INITIALISING,
         PresentationStateModel.State.CONNECTING -> {}
         PresentationStateModel.State.CHECK_PERMISSIONS ->
-            RequestBluetoothPermissions { granted -> presentationStateModel.setPermissionState(granted) }
+            RequestBluetoothPermissions({ granted -> presentationStateModel.setPermissionState(granted) }, snackbarService::showSnackbar)
         PresentationStateModel.State.WAITING_FOR_SOURCE -> {
             presentationStateModel.setStepAfterWaitingForSource(presentationViewModel)
         }

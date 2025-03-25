@@ -1,6 +1,5 @@
 package ui.navigation
 
-import appLink
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_to_bind_credentials_subtitle
 import at.asitplus.valera.resources.biometric_authentication_prompt_to_bind_credentials_title
@@ -56,7 +55,7 @@ suspend fun handleIntent(
                 navigateBack()
                 walletMain.errorService.emit(e)
             }
-            appLink.value = null
+            GLOBALS.appLink.value = null
         }
 
         IntentType.ErrorIntent -> {
@@ -66,7 +65,7 @@ suspend fun handleIntent(
                 walletMain.errorService.emit(
                     Exception(pars["error_description"] ?: "Unknown Exception")
                 )
-                appLink.value = null
+                GLOBALS.appLink.value = null
             }
         }
 
@@ -82,7 +81,7 @@ suspend fun handleIntent(
             }.onFailure {
                 Napier.d("invalid authentication request")
             }
-            appLink.value = null
+            GLOBALS.appLink.value = null
         }
 
         IntentType.DCAPIAuthorizationIntent -> {
@@ -96,7 +95,7 @@ suspend fun handleIntent(
             }.onFailure {
                 walletMain.errorService.emit(Exception("Invalid Authentication Request"))
             }
-            appLink.value = null
+            GLOBALS.appLink.value = null
         }
 
         IntentType.PresentationIntent -> {
@@ -109,7 +108,7 @@ suspend fun handleIntent(
             }.onFailure {
                 walletMain.errorService.emit(Exception("Invalid Authentication Request"))
             }
-            appLink.value = null
+            GLOBALS.appLink.value = null
         }
 
         IntentType.SigningServiceIntent -> {

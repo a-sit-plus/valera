@@ -5,14 +5,11 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import appLink
 import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.BuildType
 import com.android.identity.util.AndroidContexts
 import com.google.android.gms.identitycredentials.IntentHelper
-import dcapiInvocationData
-import presentationStateModel
 import ui.navigation.PRESENTATION_REQUESTED_INTENT
 
 
@@ -48,15 +45,15 @@ class MainActivity : AbstractWalletActivity() {
     override fun populateLink(intent: Intent) {
         when (intent.action) {
             IntentHelper.ACTION_GET_CREDENTIAL -> {
-                dcapiInvocationData.value = DCAPIInvocationData(intent)
-                appLink.value = intent.action
+                GLOBALS.dcapiInvocationData.value = DCAPIInvocationData(intent)
+                GLOBALS.appLink.value = intent.action
             }
             PRESENTATION_REQUESTED_INTENT -> {
-                presentationStateModel.value = NdefDeviceEngagementService.presentationStateModel
-                appLink.value = PRESENTATION_REQUESTED_INTENT
+                GLOBALS.presentationStateModel.value = NdefDeviceEngagementService.presentationStateModel
+                GLOBALS.appLink.value = PRESENTATION_REQUESTED_INTENT
             }
             else -> {
-                appLink.value = intent.data?.toString()
+                GLOBALS.appLink.value = intent.data?.toString()
             }
         }
     }

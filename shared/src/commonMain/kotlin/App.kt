@@ -13,13 +13,15 @@ import ui.theme.WalletTheme
 import ui.viewmodels.authentication.PresentationStateModel
 
 /**
- * Global variables which especially help to channel information from swift code
- * to compose whenever the app gets called via an associated domain
+ * Global variables which help to channel information from platform-specific code
+ * to compose whenever the app gets called from native code, such as via an associated domain,
+ * NFC or the DC API
  */
-var appLink = MutableStateFlow<String?>(null)
-var dcapiInvocationData = MutableStateFlow<DCAPIInvocationData?>(null)
-var presentationStateModel = MutableStateFlow<PresentationStateModel?>(null)
-
+object GLOBALS {
+    var appLink = MutableStateFlow<String?>(null)
+    var dcapiInvocationData = MutableStateFlow<DCAPIInvocationData?>(null)
+    var presentationStateModel = MutableStateFlow<PresentationStateModel?>(null)
+}
 internal object AppTestTags {
     const val rootScaffold = "rootScaffold"
 }

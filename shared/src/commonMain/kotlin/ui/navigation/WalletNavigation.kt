@@ -22,7 +22,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import appLink
 import at.asitplus.catchingUnwrapped
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.CredentialOffer
@@ -47,7 +46,6 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.getString
 import ui.views.PresentationView
-import presentationStateModel
 import ui.composables.BottomBar
 import ui.composables.NavigationData
 import ui.navigation.routes.AddCredentialPreAuthnRoute
@@ -171,7 +169,7 @@ fun WalletNavigation(walletMain: WalletMain) {
     }
 
     LaunchedEffect(null) {
-        appLink.combineTransform(walletMain.readyForIntents) { link,  ready ->
+        GLOBALS.appLink.combineTransform(walletMain.readyForIntents) { link,  ready ->
             if (ready == true && link != null) {
                 emit(link)
             }
@@ -332,7 +330,7 @@ private fun WalletNavHost(
 
             val vm = try {
                 Napier.d("trying")
-                presentationStateModel.value?.let {
+                GLOBALS.presentationStateModel.value?.let {
                     PresentationViewModel(
                         it,
                         navigateUp = {  },
@@ -360,6 +358,7 @@ private fun WalletNavHost(
                         popBackStack(HomeScreenRoute)
                     },
                     coroutineScope = walletMain.scope,
+                    walletMain.snackbarService
                 )
             }
         }

@@ -154,7 +154,7 @@ class AndroidPlatformAdapter(
     }
 
     override fun getCurrentDCAPIData(): DCAPIRequest? {
-        return (dcapiInvocationData.value as DCAPIInvocationData?)?.intent?.let {
+        return (GLOBALS.dcapiInvocationData.value as DCAPIInvocationData?)?.intent?.let {
             // Adapted from https://github.com/openwallet-foundation-labs/identity-credential/blob/d7a37a5c672ed6fe1d863cbaeb1a998314d19fc5/wallet/src/main/java/com/android/identity_credential/wallet/credman/CredmanPresentationActivity.kt#L74
             val cmrequest = IntentHelper.extractGetCredentialRequest(it) ?: return null
             val credentialId = it.getLongExtra(IntentHelper.EXTRA_CREDENTIAL_ID, -1).toInt()
