@@ -34,7 +34,9 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.ClaimToBeIssued
 import at.asitplus.wallet.lib.agent.CredentialToBeIssued
+import at.asitplus.wallet.lib.agent.EphemeralKeyWithSelfSignedCert
 import at.asitplus.wallet.lib.agent.IssuerAgent
+import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.agent.toStoreCredentialInput
 import data.storage.DummyDataStoreService
 import io.kotest.core.spec.style.FunSpec
@@ -49,6 +51,7 @@ import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
@@ -74,7 +77,7 @@ class InstrumentedTestsSuite : FunSpec({
 
     beforeTest {
         runTest {
-            withContext(Dispatchers.Main) {
+            withContext(Dispatchers.Unconfined){
                 lifecycleOwner = TestLifecycleOwner()
                 lifecycleRegistry = LifecycleRegistry(lifecycleOwner)
                 lifecycleRegistry.currentState = Lifecycle.State.CREATED
@@ -84,7 +87,7 @@ class InstrumentedTestsSuite : FunSpec({
 
     afterTest {
         runTest {
-            withContext(Dispatchers.Main) {
+            withContext(Dispatchers.IO) {
                 lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
             }
         }
@@ -315,7 +318,9 @@ private fun getAttributes(): List<ClaimToBeIssued> = listOf(
 
 private fun createWalletMain(platformAdapter: PlatformAdapter): WalletMain {
     val dummyDataStoreService = DummyDataStoreService()
-    val ks = KeystoreService(dummyDataStoreService)
+    val ks = object: KeystoreService(dummyDataStoreService) {
+        override suspend fun getSigner(): KeyMaterial = EphemeralKeyWithSelfSignedCert()
+    }
     return WalletMain(
         cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
         dataStoreService = dummyDataStoreService,
