@@ -74,7 +74,7 @@ class PresentationService(
     ) {
         presentationService.finalizeAuthorizationResponse(
             request = request,
-            clientMetadata = clientMetadata!!, // TODO: remove !! after fix in vck has been deployed
+            clientMetadata = clientMetadata,
             credentialPresentation = credentialPresentation
         ).getOrThrow()
     }

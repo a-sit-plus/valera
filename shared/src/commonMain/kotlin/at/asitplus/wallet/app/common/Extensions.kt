@@ -25,8 +25,9 @@ import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.ISO_MDOC
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.PLAIN_JWT
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.SD_JWT
-import at.asitplus.wallet.lib.data.dif.InputEvaluator
+import at.asitplus.wallet.lib.data.dif.PresentationExchangeInputEvaluator
 import at.asitplus.wallet.lib.data.vckJsonSerializer
+import at.asitplus.wallet.lib.oidvci.toFormat
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationDataElements
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
@@ -36,21 +37,21 @@ import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
 
 fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, ConstantIndex.CredentialScheme, Map<NormalizedJsonPath, Boolean>> {
-    val inputDescriptor = this
     @Suppress("DEPRECATION")
     val credentialRepresentation = when {
-        inputDescriptor.format == null -> throw IllegalStateException("Format of input descriptor must be set")
-        inputDescriptor.format?.sdJwt != null || inputDescriptor.format?.jwtSd != null -> SD_JWT
-        inputDescriptor.format?.msoMdoc != null -> ISO_MDOC
+        this.format == null -> throw IllegalStateException("Format of input descriptor must be set")
+        this.format?.sdJwt != null || this.format?.jwtSd != null -> SD_JWT
+        this.format?.msoMdoc != null -> ISO_MDOC
         else -> PLAIN_JWT
     }
-    val pattern = when (credentialRepresentation) {
-        SD_JWT -> inputDescriptor.constraints?.fields?.firstOrNull {
+    val credentialIdentifier: String = when (credentialRepresentation) {
+        SD_JWT -> this.constraints?.fields?.firstOrNull {
             it.path.toString().contains("vct")
         }?.filter?.let {
-            it.pattern ?: it.const
+            it.pattern ?: it.const?.content
         }
-        ISO_MDOC -> inputDescriptor.id
+
+        ISO_MDOC -> this.id
         PLAIN_JWT -> throw Throwable("PLAIN_JWT not implemented")
     } ?: throw Throwable("Missing Pattern")
 
@@ -58,14 +59,17 @@ fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, Const
         when (credentialRepresentation) {
             PLAIN_JWT -> throw Throwable("PLAIN_JWT not implemented")
             // This is not entirely correct, but we'll try to work around incorrect definitions in our credentials
-            SD_JWT -> it.sdJwtType == pattern || it.isoNamespace == pattern
-            ISO_MDOC -> it.isoDocType == pattern
+            SD_JWT -> it.sdJwtType == credentialIdentifier || it.isoNamespace == credentialIdentifier
+            ISO_MDOC -> it.isoDocType == credentialIdentifier
         }
     } ?: throw Throwable("Missing scheme")
 
-    val constraintsMap = InputEvaluator().evaluateConstraintFieldMatches(
+    val constraintsMap = PresentationExchangeInputEvaluator.evaluateInputDescriptorAgainstCredential(
         inputDescriptor = this,
-        credential = scheme.toJsonElement(credentialRepresentation),
+        credentialClaimStructure = scheme.toJsonElement(credentialRepresentation),
+        credentialFormat = credentialRepresentation.toFormat(),
+        credentialScheme = credentialIdentifier,
+        fallbackFormatHolder = this.format,
         pathAuthorizationValidator = { true },
     ).getOrThrow()
 
