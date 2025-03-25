@@ -44,18 +44,23 @@ import ui.viewmodels.authentication.PresentationStateModel
 import at.asitplus.wallet.app.common.presentation.PresentmentTimeout
 import at.asitplus.wallet.app.permissions.RequestBluetoothPermissions
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import ui.viewmodels.authentication.AuthenticationConsentViewModel
 import ui.viewmodels.authentication.AuthenticationNoCredentialViewModel
-import ui.viewmodels.authentication.AuthenticationSelectionViewModel
+import ui.viewmodels.authentication.AuthenticationSelectionPresentationExchangeViewModel
 import ui.viewmodels.authentication.AuthenticationViewState
+import ui.viewmodels.authentication.DCQLMatchingResult
+import ui.viewmodels.authentication.PresentationExchangeMatchingResult
 import ui.viewmodels.authentication.PresentationViewModel
 import ui.views.authentication.AuthenticationConsentView
 import ui.views.authentication.AuthenticationNoCredentialView
-import ui.views.authentication.AuthenticationSelectionView
+import ui.views.authentication.AuthenticationSelectionPresentationExchangeView
+import ui.views.authentication.AuthenticationSelectionViewScaffold
 import kotlin.time.Duration.Companion.seconds
 
 // Based on the identity-credential sample code
@@ -77,7 +82,8 @@ fun PresentationView(
     presentationViewModel: PresentationViewModel,
     onPresentmentComplete: () -> Unit,
     coroutineScope: CoroutineScope,
-    snackbarService: SnackbarService
+    snackbarService: SnackbarService,
+    onError: (Throwable) -> Unit
 ) {
     val presentationStateModel = presentationViewModel.presentationStateModel
     presentationViewModel.walletMain.cryptoService.onUnauthenticated =
@@ -121,14 +127,21 @@ fun PresentationView(
                         spName = presentationViewModel.spName,
                         spLocation = presentationViewModel.spLocation,
                         spImage = presentationViewModel.spImage,
-                        requests = presentationViewModel.descriptors.toList(),
-                        navigateUp = presentationViewModel.navigateUp,
-                        buttonConsent = { presentationViewModel.onConsent() },
-                        walletMain = presentationViewModel.walletMain,
                         transactionData = presentationViewModel.transactionData,
+                        navigateUp = presentationViewModel.navigateUp,
+                        buttonConsent = {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                presentationViewModel.onConsent()
+                            }
+                        },
+                        walletMain = presentationViewModel.walletMain,
+                        presentationRequest = presentationViewModel.presentationRequest,
                         onClickLogo = presentationViewModel.onClickLogo
                     )
-                    AuthenticationConsentView(viewModel)
+                    AuthenticationConsentView(
+                        viewModel,
+                        onError = onError,
+                    )
                 }
 
                 AuthenticationViewState.NoMatchingCredential -> {
@@ -138,19 +151,35 @@ fun PresentationView(
                 }
 
                 AuthenticationViewState.Selection -> {
-                    val viewModel =
-                        AuthenticationSelectionViewModel(
-                            walletMain = presentationViewModel.walletMain,
-                            requests = presentationViewModel.requestMap,
-                            confirmSelections = { selections ->
-                                presentationViewModel.confirmSelection(selections)
-                            },
-                            navigateUp = {
-                                presentationViewModel.viewState = AuthenticationViewState.Consent
-                            },
-                            onClickLogo = presentationViewModel.onClickLogo
-                        )
-                    AuthenticationSelectionView(vm = viewModel)
+                    when(val matching = presentationViewModel.matchingCredentials) {
+                        is DCQLMatchingResult -> {
+                            AuthenticationSelectionViewScaffold(
+                                onNavigateUp = presentationViewModel.navigateUp,
+                                onClickLogo = {},
+                                onNext = {
+                                    presentationViewModel.confirmSelection(null)
+                                },
+                            ) {
+                                Column {
+                                    Text("Implementation of DCQL Query Credential Selection is in progress.")
+                                    Text("Click continue to submit the credentials that are selected by default.")
+                                }
+                            }
+                        }
+
+                        is PresentationExchangeMatchingResult -> {
+                            val viewModel = AuthenticationSelectionPresentationExchangeViewModel(
+                                walletMain = presentationViewModel.walletMain,
+                                confirmSelections = { selections ->
+                                    presentationViewModel.confirmSelection(selections)
+                                },
+                                navigateUp = { presentationViewModel.viewState = AuthenticationViewState.Consent },
+                                onClickLogo = presentationViewModel.onClickLogo,
+                                credentialMatchingResult = matching,
+                            )
+                            AuthenticationSelectionPresentationExchangeView(vm = viewModel)
+                        }
+                    }
                 }
             }
         }

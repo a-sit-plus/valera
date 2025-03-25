@@ -4,17 +4,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
+import at.asitplus.KmmResult
 import at.asitplus.catchingUnwrapped
-import at.asitplus.dif.ConstraintField
-import at.asitplus.dif.InputDescriptor
-import at.asitplus.jsonpath.core.NodeList
 import at.asitplus.rqes.collection_entries.TransactionData
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_subtitle
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_title
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.lib.agent.CredentialSubmission
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.CredentialPresentation
+import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 
@@ -28,55 +27,87 @@ abstract class AuthenticationViewModel(
     val walletMain: WalletMain,
     val onClickLogo: () -> Unit
 ) {
-    abstract val descriptors: Collection<InputDescriptor>
+    abstract val presentationRequest: CredentialPresentationRequest
+
     var viewState by mutableStateOf(AuthenticationViewState.Consent)
     abstract val transactionData: TransactionData?
 
-    private lateinit var matchingCredentials: Map<String, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, NodeList /* = List<NodeListEntry> */>>>
-    private lateinit var selectedCredentials: Map<String, SubjectCredentialStore.StoreEntry>
-    var requestMap: Map<String, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, NodeList>>> =
-        mutableMapOf()
+    lateinit var matchingCredentials: CredentialMatchingResult<SubjectCredentialStore.StoreEntry>
+    lateinit var selectedCredentials: Map<String, SubjectCredentialStore.StoreEntry>
 
-    abstract fun findMatchingCredentials(): Map<String, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, NodeList /* = List<NodeListEntry> */>>>
+    abstract suspend fun findMatchingCredentials(): KmmResult<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>>
 
-    fun onConsent() {
-        matchingCredentials = findMatchingCredentials()
-
-        requestMap = descriptors.mapNotNull {
-            val credential = matchingCredentials[it.id] ?: return@mapNotNull null
-            Pair(it.id, credential)
-        }.toMap()
-
-        if (matchingCredentials.values.find { it.size != 1 } == null) {
-            selectedCredentials = matchingCredentials.entries.associate {
-                val requestId = it.key
-                val credential = it.value.keys.first()
-                requestId to credential
-            }.toMap()
-            viewState = AuthenticationViewState.Selection
-        } else if (matchingCredentials.values.find { it.isEmpty() } == null) {
-            viewState = AuthenticationViewState.Selection
-        } else {
+    suspend fun onConsent() {
+        matchingCredentials = findMatchingCredentials().getOrElse {
             viewState = AuthenticationViewState.NoMatchingCredential
+            return
+        }
+
+        when (val matching = matchingCredentials) {
+            is DCQLMatchingResult -> {
+                // TODO: create default selection?
+                // matching fails if query is not satisfiable, so we know that selection is the next step
+                viewState = AuthenticationViewState.Selection
+            }
+
+            is PresentationExchangeMatchingResult -> {
+                if (matching.matchingInputDescriptorCredentials.values.find { it.size != 1 } == null) {
+                    selectedCredentials = matching.matchingInputDescriptorCredentials.entries.associate {
+                        val requestId = it.key
+                        val credential = it.value.keys.first()
+                        requestId to credential
+                    }.toMap()
+                    viewState = AuthenticationViewState.Selection
+                } else if (matching.matchingInputDescriptorCredentials.values.find { it.isEmpty() } == null) {
+                    viewState = AuthenticationViewState.Selection
+                } else {
+                    viewState = AuthenticationViewState.NoMatchingCredential
+                }
+            }
         }
     }
 
-    fun confirmSelection(submissions: Map<String, CredentialSubmission>) {
+    fun confirmSelection(credentialPresentationSubmissions: CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>?) {
         walletMain.scope.launch {
-            finalizeAuthorization(submissions)
+            finalizeAuthorization(
+                when(credentialPresentationSubmissions) {
+                    is DCQLCredentialSubmissions -> CredentialPresentation.DCQLPresentation(
+                        presentationRequest = presentationRequest as CredentialPresentationRequest.DCQLRequest,
+                        credentialQuerySubmissions = credentialPresentationSubmissions.credentialQuerySubmissions
+                    )
+
+                    is PresentationExchangeCredentialSubmissions -> CredentialPresentation.PresentationExchangePresentation(
+                        presentationRequest = presentationRequest as CredentialPresentationRequest.PresentationExchangeRequest,
+                        inputDescriptorSubmissions = credentialPresentationSubmissions.inputDescriptorSubmissions
+                    )
+
+                    null -> when(val it = presentationRequest) {
+                        is CredentialPresentationRequest.DCQLRequest -> CredentialPresentation.DCQLPresentation(
+                            presentationRequest = it,
+                            credentialQuerySubmissions = null
+                        )
+
+                        is CredentialPresentationRequest.PresentationExchangeRequest -> CredentialPresentation.PresentationExchangePresentation(
+                            presentationRequest = it,
+                            inputDescriptorSubmissions = null,
+                        )
+                    }
+                }
+            )
         }
     }
 
-    abstract suspend fun finalizationMethod(submission: Map<String, CredentialSubmission>)
+
+    abstract suspend fun finalizationMethod(credentialPresentation: CredentialPresentation)
 
 
-    private suspend fun finalizeAuthorization(submission: Map<String, CredentialSubmission>) {
-        catchingUnwrapped{
+    private suspend fun finalizeAuthorization(credentialPresentation: CredentialPresentation) {
+        catchingUnwrapped {
             walletMain.cryptoService.promptText =
                 getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_title)
             walletMain.cryptoService.promptSubtitle =
                 getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_subtitle)
-            finalizationMethod(submission)
+            finalizationMethod(credentialPresentation)
         }.onSuccess {
             navigateUp()
             onAuthenticationSuccess()
@@ -84,7 +115,6 @@ abstract class AuthenticationViewModel(
             walletMain.errorService.emit(it)
         }
     }
-
 }
 
 enum class AuthenticationViewState {

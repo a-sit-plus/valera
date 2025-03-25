@@ -8,16 +8,19 @@ import at.asitplus.dif.ConstraintField
 import at.asitplus.jsonpath.core.NodeListEntry
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.lib.agent.CredentialSubmission
+import at.asitplus.wallet.lib.agent.PresentationExchangeCredentialDisclosure
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 
-class AuthenticationSelectionViewModel(
+class AuthenticationSelectionPresentationExchangeViewModel(
     val walletMain: WalletMain,
-    val requests: Map<String, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, List<NodeListEntry>>>>,
-    val confirmSelections: (Map<String, CredentialSubmission>) -> Unit,
+    val credentialMatchingResult: PresentationExchangeMatchingResult<SubjectCredentialStore.StoreEntry>,
+    val confirmSelections: (CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>) -> Unit,
     val navigateUp: () -> Unit,
     val onClickLogo: () -> Unit
 ) {
+    val requests: Map<String, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, List<NodeListEntry>>>>
+        = credentialMatchingResult.matchingInputDescriptorCredentials
+
     val requestIterator = mutableStateOf(0)
     val iterableRequests = requests.toList()
     var attributeSelection: SnapshotStateMap<String, SnapshotStateMap<String, Boolean>> =
@@ -60,9 +63,9 @@ class AuthenticationSelectionViewModel(
                         null
                     }
                 }
-                Pair(requestsId, CredentialSubmission(credential, disclosedAttributes))
+                Pair(requestsId, PresentationExchangeCredentialDisclosure(credential, disclosedAttributes))
             }.toMap()
-            confirmSelections(submission)
+            confirmSelections(PresentationExchangeCredentialSubmissions(submission))
         }
     }
 }

@@ -1,6 +1,8 @@
 package at.asitplus.wallet.app.common
 
+import at.asitplus.catching
 import at.asitplus.openid.AuthenticationRequestParameters
+import at.asitplus.openid.RelyingPartyMetadata
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import at.asitplus.wallet.app.common.dcapi.PreviewRequest
@@ -9,14 +11,18 @@ import at.asitplus.wallet.lib.agent.CredentialSubmission
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.PresentationException
 import at.asitplus.wallet.lib.agent.PresentationRequestParameters
+import at.asitplus.wallet.lib.agent.PresentationResponseParameters
 import at.asitplus.wallet.lib.cbor.CoseService
 import at.asitplus.wallet.lib.iso.DeviceResponse
+import at.asitplus.wallet.lib.data.CredentialPresentation
+import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
-import com.benasher44.uuid.uuid4
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
 import kotlinx.serialization.builtins.ByteArraySerializer
+import ui.viewmodels.authentication.DCQLMatchingResult
+import ui.viewmodels.authentication.PresentationExchangeMatchingResult
 
 class PresentationService(
     val platformAdapter: PlatformAdapter,
@@ -42,47 +48,63 @@ class PresentationService(
     suspend fun getPreparationState(request: RequestParametersFrom<AuthenticationRequestParameters>) =
         presentationService.startAuthorizationResponsePreparation(request).getOrThrow()
 
-    suspend fun getMatchingCredentials(preparationState: AuthorizationResponsePreparationState) =
-        holderAgent.matchInputDescriptorsAgainstCredentialStore(
-            inputDescriptors = preparationState.presentationDefinition?.inputDescriptors!!,
-            fallbackFormatHolder = preparationState.clientMetadata?.vpFormats,
-        ).getOrThrow()
+    suspend fun getMatchingCredentials(preparationState: AuthorizationResponsePreparationState) = catching {
+        when (val it = preparationState.credentialPresentationRequest) {
+            is CredentialPresentationRequest.DCQLRequest -> DCQLMatchingResult(
+                presentationRequest = it,
+                holderAgent.matchDCQLQueryAgainstCredentialStore(it.dcqlQuery).getOrThrow()
+            )
+
+            is CredentialPresentationRequest.PresentationExchangeRequest -> PresentationExchangeMatchingResult(
+                presentationRequest = it,
+                holderAgent.matchInputDescriptorsAgainstCredentialStore(
+                    inputDescriptors = it.presentationDefinition.inputDescriptors,
+                    fallbackFormatHolder = it.fallbackFormatHolder,
+                ).getOrThrow()
+            )
+
+            null -> TODO()
+        }
+    }
 
     suspend fun finalizeAuthorizationResponse(
         request: RequestParametersFrom<AuthenticationRequestParameters>,
-        preparationState: AuthorizationResponsePreparationState,
-        inputDescriptorSubmission: Map<String, CredentialSubmission>
+        clientMetadata: RelyingPartyMetadata?,
+        credentialPresentation: CredentialPresentation,
     ) {
         presentationService.finalizeAuthorizationResponse(
             request = request,
-            preparationState = preparationState,
-            inputDescriptorSubmission = inputDescriptorSubmission
+            clientMetadata = clientMetadata!!, // TODO: remove !! after fix in vck has been deployed
+            credentialPresentation = credentialPresentation
         ).getOrThrow()
     }
 
     suspend fun finalizeDCAPIPreviewPresentation(
-        submission: Map<String, CredentialSubmission>,
+        credentialPresentation: CredentialPresentation.PresentationExchangePresentation,
         dcApiRequest: DCAPIRequest
     ) {
         Napier.d("Finalizing DCAPI response")
         val previewRequest = PreviewRequest.deserialize(dcApiRequest.request).getOrThrow()
 
         val presentationResult = holderAgent.createPresentation(
-            request = PresentationRequestParameters(nonce = previewRequest.nonce, audience = dcApiRequest.callingOrigin ?: dcApiRequest.callingPackageName!!, calcIsoDeviceSignature = {
-                coseService.createSignedCose(
-                    payload = it.encodeToByteArray(),
-                    serializer = ByteArraySerializer(),
-                    addKeyId = false
-                ).getOrElse { e ->
-                    Napier.w("Could not create DeviceAuth for presentation", e)
-                    throw PresentationException(e)
-                } to null
-            }),
-            presentationDefinitionId = uuid4().toString(),
-            presentationSubmissionSelection = submission
+            request =  PresentationRequestParameters(
+                nonce = previewRequest.nonce,
+                audience = dcApiRequest.callingOrigin ?: dcApiRequest.callingPackageName!!,
+                calcIsoDeviceSignature = {
+                    coseService.createSignedCose(
+                        payload = it.encodeToByteArray(),
+                        serializer = ByteArraySerializer(),
+                        addKeyId = false
+                    ).getOrElse { e ->
+                        Napier.w("Could not create DeviceAuth for presentation", e)
+                        throw PresentationException(e)
+                    } to null
+                },
+            ),
+            credentialPresentation = credentialPresentation,
         )
 
-        val presentation = presentationResult.getOrThrow()
+        val presentation = presentationResult.getOrThrow() as PresentationResponseParameters.PresentationExchangeParameters
 
         val deviceResponse = when (val firstResult = presentation.presentationResults[0]) {
             is CreatePresentationResult.DeviceResponse -> firstResult.deviceResponse
@@ -94,28 +116,31 @@ class PresentationService(
     }
 
     suspend fun finalizeLocalPresentation(
-        submission: Map<String, CredentialSubmission>,
+        credentialPresentation: CredentialPresentation.PresentationExchangePresentation,
         finishFunction: (DeviceResponse) -> Unit
     ) {
-        Napier.d("Finalizing response")
+        Napier.d("Finalizing local response")
 
         //TODO nonce and other parameters
         val presentationResult = holderAgent.createPresentation(
-            request = PresentationRequestParameters(nonce = "1234", audience = "", calcIsoDeviceSignature = {
-                coseService.createSignedCose(
-                    payload = it.encodeToByteArray(),
-                    serializer = ByteArraySerializer(),
-                    addKeyId = false
-                ).getOrElse { e ->
-                    Napier.w("Could not create DeviceAuth for presentation", e)
-                    throw PresentationException(e)
-                } to null
-            }),
-            presentationDefinitionId = uuid4().toString(),
-            presentationSubmissionSelection = submission
+            request =  PresentationRequestParameters(
+                nonce = "previewRequest.nonce",
+                audience = "",
+                calcIsoDeviceSignature = {
+                    coseService.createSignedCose(
+                        payload = it.encodeToByteArray(),
+                        serializer = ByteArraySerializer(),
+                        addKeyId = false
+                    ).getOrElse { e ->
+                        Napier.w("Could not create DeviceAuth for presentation", e)
+                        throw PresentationException(e)
+                    } to null
+                },
+            ),
+            credentialPresentation = credentialPresentation,
         )
 
-        val presentation = presentationResult.getOrThrow()
+        val presentation = presentationResult.getOrThrow() as PresentationResponseParameters.PresentationExchangeParameters
 
         val deviceResponse = when (val firstResult = presentation.presentationResults[0]) {
             is CreatePresentationResult.DeviceResponse -> firstResult.deviceResponse

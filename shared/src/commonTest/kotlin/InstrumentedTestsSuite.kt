@@ -1,4 +1,3 @@
-
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.ExperimentalTestApi
@@ -55,7 +54,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonArray
@@ -220,7 +218,7 @@ class InstrumentedTestsSuite : FunSpec({
                     onNodeWithText(getString(Res.string.button_label_details)).performClick()
 
 
-                    val client = HttpClient() {
+                    val client = HttpClient {
                         expectSuccess = true
                         install(ContentNegotiation) {
                             json()
@@ -257,7 +255,9 @@ class InstrumentedTestsSuite : FunSpec({
 })
 
 val request = Json.encodeToString(
+    RequestBody.serializer(),
     RequestBody(
+        "presentation_definition",
         listOf(
             Credential(
                 "at.gv.id-austria.2023.1",
@@ -277,10 +277,17 @@ val request = Json.encodeToString(
 )
 
 @Serializable
-data class RequestBody(val credentials: List<Credential>)
+data class RequestBody(
+    val presentationMechanismIdentifier: String,
+    val credentials: List<Credential>
+)
 
 @Serializable
-data class Credential(val credentialType: String, val representation: String, val attributes: List<String>)
+data class Credential(
+    val credentialType: String,
+    val representation: String,
+    val attributes: List<String>
+)
 
 @Composable
 expect fun getPlatformAdapter(): PlatformAdapter

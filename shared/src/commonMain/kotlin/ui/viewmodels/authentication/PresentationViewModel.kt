@@ -1,20 +1,21 @@
 package ui.viewmodels.authentication
 
 import androidx.compose.ui.graphics.ImageBitmap
+import at.asitplus.KmmResult
+import at.asitplus.catching
 import at.asitplus.dif.Constraint
 import at.asitplus.dif.ConstraintField
 import at.asitplus.dif.DifInputDescriptor
-import at.asitplus.dif.InputDescriptor
-import at.asitplus.jsonpath.core.NodeList
+import at.asitplus.dif.PresentationDefinition
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.rqes.collection_entries.TransactionData
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.lib.agent.CredentialSubmission
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.CredentialPresentation
+import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.iso.DeviceResponse
 import com.android.identity.request.MdocRequest
-import kotlinx.coroutines.runBlocking
 
 class PresentationViewModel(
     val presentationStateModel: PresentationStateModel,
@@ -34,11 +35,13 @@ class PresentationViewModel(
     walletMain,
     onClickLogo
 ) {
+    private var descriptors: List<DifInputDescriptor> = listOf()
+
     fun initWithMdocRequest(
         parsedRequest: List<MdocRequest>,
         finishFunction: (DeviceResponse) -> Unit
     ) {
-        descriptors.addAll(parsedRequest.map {
+        descriptors = parsedRequest.map {
             DifInputDescriptor(
                 id = it.docType,
                 constraints = Constraint(fields = it.claims.map { requestedAttribute ->
@@ -52,28 +55,44 @@ class PresentationViewModel(
                     )
                 })
             )
-        })
+        }
         this.finishFunction = finishFunction
     }
 
     private var finishFunction: ((DeviceResponse) -> Unit)? = null
 
-    override val descriptors = mutableListOf<InputDescriptor>()
     override val transactionData: TransactionData? = null
 
-    override fun findMatchingCredentials(): Map<String, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, NodeList>>> {
-        return runBlocking {
-            walletMain.holderAgent.matchInputDescriptorsAgainstCredentialStore(
-                inputDescriptors = descriptors,
-                fallbackFormatHolder = null,
-            ).getOrThrow()
+    override val presentationRequest: CredentialPresentationRequest.PresentationExchangeRequest
+        get() = CredentialPresentationRequest.PresentationExchangeRequest(
+            presentationDefinition = PresentationDefinition(
+                inputDescriptors = descriptors
+            )
+        )
+
+    override suspend fun findMatchingCredentials(): KmmResult<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>> =
+        catching {
+            PresentationExchangeMatchingResult(
+                presentationRequest = CredentialPresentationRequest.PresentationExchangeRequest(
+                    presentationDefinition = PresentationDefinition(
+                        inputDescriptors = presentationRequest.presentationDefinition.inputDescriptors,
+                    )
+                ),
+                matchingInputDescriptorCredentials = walletMain.holderAgent.matchInputDescriptorsAgainstCredentialStore(
+                    inputDescriptors = presentationRequest.presentationDefinition.inputDescriptors,
+                    fallbackFormatHolder = null,
+                ).getOrThrow()
+            )
         }
-    }
 
-    override suspend fun finalizationMethod(submission: Map<String, CredentialSubmission>) =
+    override suspend fun finalizationMethod(credentialPresentation: CredentialPresentation) =
         finishFunction?.let {
-            walletMain.presentationService.finalizeLocalPresentation(submission, it)
+            walletMain.presentationService.finalizeLocalPresentation(
+                credentialPresentation = when (credentialPresentation) {
+                    is CredentialPresentation.PresentationExchangePresentation -> credentialPresentation
+                    else -> throw IllegalArgumentException()
+                }, it
+            )
         } ?: throw IllegalStateException("No finish method found")
-
-
+    
 }
