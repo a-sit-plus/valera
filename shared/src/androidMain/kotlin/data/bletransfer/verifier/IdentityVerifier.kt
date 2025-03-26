@@ -13,26 +13,23 @@ import com.android.identity.cbor.Tagged
 import com.android.identity.cbor.toDataItem
 import com.android.identity.crypto.Algorithm
 import com.android.identity.crypto.Crypto
-import com.android.identity.crypto.EcPublicKey
 import com.android.identity.crypto.EcSignature
-import com.android.identity.crypto.X509Cert
 import com.android.identity.crypto.X509CertChain
 import com.android.identity.crypto.javaX509Certificate
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import data.bletransfer.util.RequestedDocument
 import data.storage.CertificateStorage
-import io.ktor.client.call.body
-import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
-import io.ktor.client.request.url
 import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.bodyAsBytes
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import okhttp3.Response
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier
+import org.bouncycastle.asn1.x509.DigestInfo
+import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder
+import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.security.SignatureException
 import java.security.cert.CertPathValidatorException
@@ -45,6 +42,7 @@ object IdentityVerifier {
     private val ALLOWED_ALGOS = setOf("1.2.840.10045.4.3.2", "1.2.840.10045.4.3.3", "1.2.840.10045.4.3.4")
 
     var requesterIdentity: String? = null
+    var fingerprintTrustList: List<String> = emptyList()
 
      fun verifyReaderIdentity(requestedDocument: RequestedDocument,
                               coseSigned: CoseSigned<ByteArray>,
@@ -58,6 +56,8 @@ object IdentityVerifier {
          val appCertificate = coseSigned.unprotectedHeader?.certificateChain?.let {
              X509CertChain.fromDataItem(it.toDataItem())
          }?.certificates?.firstOrNull() ?: return false
+
+
          requesterIdentity = extractCommonName(appCertificate.javaX509Certificate.subjectX500Principal.name)
          val seal = CertificateStorage.loadCertificateAndroid(context, "SEAL") ?: return false
 
@@ -100,17 +100,17 @@ object IdentityVerifier {
 
     private fun isSealCertTrusted(sealCertificate: X509Certificate): Boolean {
 //        TODO: check is seal in trusted fingerprint list
-        getTrustList()
+        getTrustList(sealCertificate)
+        println("SRKI${sealCertificate.toFingerprint()}")
         return true
     }
 
-    private fun getTrustList() {
+    private fun getTrustList(sealCertificate: X509Certificate) {
         CoroutineScope(Dispatchers.IO).launch {
-
-
             val service = HttpService()
             val client = service.buildHttpClient()
             val res = client.get("http://localhost:8080/api/certificate/seal/trustlist")
+            fingerprintTrustList = parseCertificateChain(res)
             println("SRKI:${parseCertificateChain(res)[0]}")
         }
     }
@@ -158,15 +158,23 @@ object IdentityVerifier {
         return cnRegex.find(dn)?.groups?.get(1)?.value
     }
 
-    private suspend fun parseCertificateChain(response: HttpResponse): Array<X509Certificate?> {
+    private suspend fun parseCertificateChain(response: HttpResponse): List<String> {
         val gson = Gson()
-        val ret: List<String> = gson.fromJson(
+        return gson.fromJson(
             response.bodyAsText(),
             object : TypeToken<List<String>>() {}.type
         )
-        return Array(ret.size) { i ->
-            CertificateStorage.pemToX509Certificate(ret[i])
-        }
+    }
+
+    private fun X509Certificate.toFingerprint(): String {
+        val md = MessageDigest.getInstance("SHA-256")
+        val messageHash = md.digest(encoded)
+
+        val hashAlgorithmFinder = DefaultDigestAlgorithmIdentifierFinder()
+        val hashingAlgorithmIdentifier: AlgorithmIdentifier = hashAlgorithmFinder.find("SHA-256")
+        val digestInfo = DigestInfo(hashingAlgorithmIdentifier, messageHash)
+
+        return String(digestInfo.encoded)
     }
 
 
