@@ -6,6 +6,8 @@ import at.asitplus.catching
 import at.asitplus.dif.Constraint
 import at.asitplus.dif.ConstraintField
 import at.asitplus.dif.DifInputDescriptor
+import at.asitplus.dif.FormatContainerJwt
+import at.asitplus.dif.FormatHolder
 import at.asitplus.dif.PresentationDefinition
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
@@ -44,6 +46,7 @@ class PresentationViewModel(
         descriptors = parsedRequest.map {
             DifInputDescriptor(
                 id = it.docType,
+                format = FormatHolder(msoMdoc = FormatContainerJwt()),
                 constraints = Constraint(fields = it.requestedClaims.map { requestedAttribute ->
                     ConstraintField(
                         path = listOf(
