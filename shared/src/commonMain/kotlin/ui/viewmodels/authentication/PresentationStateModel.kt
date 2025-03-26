@@ -5,8 +5,8 @@ import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
 import at.asitplus.wallet.app.common.presentation.PresentmentCanceled
 import at.asitplus.wallet.app.common.presentation.PresentmentMechanism
 import at.asitplus.wallet.lib.iso.DeviceResponse
-import com.android.identity.mdoc.sessionencryption.SessionEncryption
-import com.android.identity.util.Constants
+import org.multipaz.mdoc.sessionencryption.SessionEncryption
+import org.multipaz.util.Constants
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CancellationException
@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import org.multipaz.prompt.PromptModel
 import kotlin.coroutines.resume
 import kotlin.time.Duration.Companion.seconds
 
@@ -112,7 +113,7 @@ class PresentationStateModel {
     /**
      * The mechanism being used to communicate with the credential reader.
      */
-    val mechanism: PresentmentMechanism?
+    private val mechanism: PresentmentMechanism?
         get() = _mechanism
 
     private var _error: Throwable? = null
@@ -153,6 +154,7 @@ class PresentationStateModel {
             _state.value = State.CONNECTING
         }
     }
+
 
     /**
      * Sets the model to [State.CONNECTING].

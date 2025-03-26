@@ -59,8 +59,17 @@ kotlin {
             implementation(ktor("client-logging"))
             implementation(ktor("client-content-negotiation"))
             implementation(ktor("serialization-kotlinx-json"))
-            implementation(libs.identity)
-            implementation(libs.identity.mdoc)
+
+            implementation("org.multipaz:multipaz") {
+                version {
+                    branch = "valera_dependency_multipaz"
+                }
+            }
+            implementation("org.multipaz:multipaz-doctypes") {
+                version {
+                    branch = "valera_dependency_multipaz"
+                }
+            }
             implementation(libs.semver)
 
         }
@@ -85,7 +94,11 @@ kotlin {
             implementation("com.google.accompanist:accompanist-permissions:0.30.1")
             implementation("com.google.mlkit:barcode-scanning:17.2.0")
             implementation(libs.play.services.identity.credentials)
-            implementation(libs.identity.android)
+            implementation("com.android.identity:multipaz-android-legacy") {
+                version {
+                    branch = "valera_dependency_multipaz"
+                }
+            }
         }
 
         androidInstrumentedTest.dependencies {
@@ -159,7 +172,6 @@ exportXCFramework(
 }
 
 repositories {
-    maven("https://raw.githubusercontent.com/gp-iaik/temp_libs/refs/heads/main")
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
     maven("https://oss.sonatype.org/content/repositories/snapshots/")
 }

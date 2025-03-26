@@ -1,20 +1,22 @@
 package at.asitplus.wallet.app.common.presentation
 
+import at.asitplus.wallet.lib.iso.DeviceRequest
 import at.asitplus.wallet.lib.iso.DeviceResponse
-import com.android.identity.cbor.Bstr
-import com.android.identity.cbor.Cbor
-import com.android.identity.cbor.CborArray
-import com.android.identity.cbor.Tagged
-import com.android.identity.documenttype.DocumentTypeRepository
-import com.android.identity.mdoc.request.DeviceRequestParser
-import com.android.identity.mdoc.sessionencryption.SessionEncryption
-import com.android.identity.mdoc.transport.MdocTransport
-import com.android.identity.mdoc.transport.MdocTransportClosedException
-import com.android.identity.mdoc.util.toMdocRequest
-import com.android.identity.util.Constants
+import org.multipaz.cbor.Bstr
+import org.multipaz.cbor.Cbor
+import org.multipaz.cbor.CborArray
+import org.multipaz.cbor.Tagged
+import org.multipaz.documenttype.DocumentTypeRepository
+import org.multipaz.mdoc.request.DeviceRequestParser
+import org.multipaz.mdoc.sessionencryption.SessionEncryption
+import org.multipaz.mdoc.transport.MdocTransport
+import org.multipaz.mdoc.transport.MdocTransportClosedException
+import org.multipaz.mdoc.util.toMdocRequest
+import org.multipaz.util.Constants
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import org.multipaz.mdoc.role.MdocRole
 import ui.viewmodels.authentication.PresentationStateModel
 import ui.viewmodels.authentication.PresentationViewModel
 
@@ -79,7 +81,7 @@ class MdocPresenter(
                                 .build()
                         )
                     sessionEncryption = SessionEncryption(
-                        SessionEncryption.Role.MDOC,
+                        MdocRole.MDOC,
                         mechanism.ephemeralDeviceKey,
                         eReaderKey,
                         encodedSessionTranscript,

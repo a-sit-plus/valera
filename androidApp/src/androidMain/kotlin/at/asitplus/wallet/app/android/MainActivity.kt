@@ -8,7 +8,6 @@ import androidx.activity.compose.setContent
 import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.BuildType
-import com.android.identity.util.AndroidContexts
 import com.google.android.gms.identitycredentials.IntentHelper
 import ui.navigation.PRESENTATION_REQUESTED_INTENT
 
@@ -30,16 +29,6 @@ class MainActivity : AbstractWalletActivity() {
                 ::sendCredentialResponseToDCAPIInvoker
             )
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        AndroidContexts.setCurrentActivity(this)
-    }
-
-    override fun onPause() {
-        super.onPause()
-        AndroidContexts.setCurrentActivity(null)
     }
 
     override fun populateLink(intent: Intent) {

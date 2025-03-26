@@ -12,8 +12,17 @@ kotlin {
         androidMain.dependencies {
             implementation(project(":shared"))
             implementation(libs.play.services.identity.credentials)
-            implementation(libs.identity)
-            implementation(libs.identity.mdoc)
+
+            implementation("org.multipaz:multipaz") {
+                version {
+                    branch = "valera_dependency_multipaz"
+                }
+            }
+            implementation("com.android.identity:multipaz-android-legacy") {
+                version {
+                    branch = "valera_dependency_multipaz"
+                }
+            }
         }
     }
 }
@@ -67,7 +76,6 @@ android {
 }
 
 repositories {
-    maven("https://raw.githubusercontent.com/gp-iaik/temp_libs/refs/heads/main")
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
     maven("https://oss.sonatype.org/content/repositories/snapshots/")
 }

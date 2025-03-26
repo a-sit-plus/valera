@@ -1,3 +1,5 @@
+import java.net.URI
+
 include(":androidApp")
 include(":shared")
 
@@ -22,6 +24,14 @@ pluginManagement {
 
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version ("0.4.0")
+}
+
+sourceControl {
+    gitRepository(URI("https://github.com/gp-iaik/identity-credential.git")) {
+        producesModule("org.multipaz:multipaz")
+        producesModule("org.multipaz:multipaz-doctypes")
+        producesModule("com.android.identity:multipaz-android-legacy")
+    }
 }
 
 //If we have a working composite build, use it!

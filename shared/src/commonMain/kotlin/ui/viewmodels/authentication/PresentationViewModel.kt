@@ -15,7 +15,7 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.iso.DeviceResponse
-import com.android.identity.request.MdocRequest
+import org.multipaz.request.MdocRequest
 
 class PresentationViewModel(
     val presentationStateModel: PresentationStateModel,
@@ -44,7 +44,7 @@ class PresentationViewModel(
         descriptors = parsedRequest.map {
             DifInputDescriptor(
                 id = it.docType,
-                constraints = Constraint(fields = it.claims.map { requestedAttribute ->
+                constraints = Constraint(fields = it.requestedClaims.map { requestedAttribute ->
                     ConstraintField(
                         path = listOf(
                             NormalizedJsonPath(

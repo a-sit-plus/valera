@@ -2,7 +2,7 @@ package at.asitplus.wallet.app.android
 
 import android.nfc.cardemulation.HostApduService
 import android.os.Bundle
-import com.android.identity.mdoc.transport.NfcTransportMdoc
+import org.multipaz.mdoc.transport.NfcTransportMdoc
 import io.github.aakira.napier.Napier
 
 // Based on the identity-credential sample code

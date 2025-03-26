@@ -6,9 +6,10 @@ import android.nfc.NfcAdapter
 import android.nfc.cardemulation.CardEmulation
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.android.identity.util.AndroidContexts
+import org.multipaz.context.initializeApplication
 import com.google.android.gms.identitycredentials.GetCredentialResponse
 import com.google.android.gms.identitycredentials.IntentHelper
+import io.github.aakira.napier.Napier
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.security.Security
 
@@ -27,8 +28,7 @@ abstract class AbstractWalletActivity : AppCompatActivity()  {
         Security.removeProvider("BC")
         Security.addProvider(BouncyCastleProvider())
 
-        AndroidContexts.setApplicationContext(applicationContext)
-        AndroidContexts.setCurrentActivity(this)
+        initializeApplication(this.applicationContext)
     }
 
     fun sendCredentialResponseToDCAPIInvoker(resultJson: String) {
@@ -48,17 +48,24 @@ abstract class AbstractWalletActivity : AppCompatActivity()  {
 
     override fun onResume() {
         super.onResume()
-        AndroidContexts.setCurrentActivity(this)
         NfcAdapter.getDefaultAdapter(this)?.let {
-            CardEmulation.getInstance(it)?.setPreferredService(this, ComponentName(this, NdefDeviceEngagementService::class::class.java))
+            val cardEmulation = CardEmulation.getInstance(it)
+            if (!cardEmulation.setPreferredService(this, ComponentName(this, NdefDeviceEngagementService::class.java))) {
+                Napier.w("CardEmulation.setPreferredService() returned false")
+            }
+            if (!cardEmulation.categoryAllowsForegroundPreference(CardEmulation.CATEGORY_OTHER)) {
+                Napier.w("CardEmulation.categoryAllowsForegroundPreference(CATEGORY_OTHER) returned false")
+            }
         }
     }
 
     override fun onPause() {
         super.onPause()
-        AndroidContexts.setCurrentActivity(null)
         NfcAdapter.getDefaultAdapter(this)?.let {
-            CardEmulation.getInstance(it)?.unsetPreferredService(this)
+            val cardEmulation = CardEmulation.getInstance(it)
+            if (!cardEmulation.unsetPreferredService(this)) {
+                Napier.w("CardEmulation.unsetPreferredService() return false")
+            }
         }
     }
 }

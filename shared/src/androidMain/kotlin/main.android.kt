@@ -20,10 +20,10 @@ import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import at.asitplus.wallet.app.common.dcapi.ResponseJSON
 import com.android.identity.android.mdoc.util.CredmanUtil
-import com.android.identity.crypto.Algorithm
-import com.android.identity.crypto.Crypto
-import com.android.identity.crypto.EcCurve
-import com.android.identity.crypto.EcPublicKeyDoubleCoordinate
+import org.multipaz.crypto.Algorithm
+import org.multipaz.crypto.Crypto
+import org.multipaz.crypto.EcCurve
+import org.multipaz.crypto.EcPublicKeyDoubleCoordinate
 import com.google.android.gms.identitycredentials.IdentityCredentialManager
 import com.google.android.gms.identitycredentials.IntentHelper
 import data.storage.RealDataStoreService

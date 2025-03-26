@@ -1,8 +1,8 @@
 package at.asitplus.wallet.app.common.presentation
 
-import com.android.identity.cbor.DataItem
-import com.android.identity.crypto.EcPrivateKey
-import com.android.identity.mdoc.transport.MdocTransport
+import org.multipaz.cbor.DataItem
+import org.multipaz.crypto.EcPrivateKey
+import org.multipaz.mdoc.transport.MdocTransport
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO

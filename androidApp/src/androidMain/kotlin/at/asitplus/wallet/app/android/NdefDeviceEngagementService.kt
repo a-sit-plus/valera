@@ -10,31 +10,33 @@ import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
 import ui.viewmodels.authentication.PresentationStateModel
 import at.asitplus.wallet.app.common.presentation.PresentmentTimeout
 import at.asitplus.wallet.app.common.presentation.TransferSettings
-import com.android.identity.cbor.DataItem
-import com.android.identity.crypto.Crypto
-import com.android.identity.crypto.EcCurve
-import com.android.identity.crypto.EcPrivateKey
-import com.android.identity.mdoc.connectionmethod.ConnectionMethod
-import com.android.identity.mdoc.connectionmethod.ConnectionMethodBle
-import com.android.identity.mdoc.nfc.MdocNfcEngagementHelper
-import com.android.identity.mdoc.transport.MdocTransport
-import com.android.identity.mdoc.transport.MdocTransportFactory
-import com.android.identity.mdoc.transport.MdocTransportOptions
-import com.android.identity.nfc.CommandApdu
-import com.android.identity.mdoc.transport.advertiseAndWait
-import com.android.identity.mdoc.connectionmethod.ConnectionMethodNfc
-import com.android.identity.util.AndroidContexts
-import com.android.identity.util.UUID
+import org.multipaz.cbor.DataItem
+import org.multipaz.crypto.Crypto
+import org.multipaz.crypto.EcCurve
+import org.multipaz.crypto.EcPrivateKey
+import org.multipaz.prompt.AndroidPromptModel
+import org.multipaz.mdoc.connectionmethod.MdocConnectionMethod
+import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodBle
+import org.multipaz.mdoc.nfc.MdocNfcEngagementHelper
+import org.multipaz.mdoc.transport.MdocTransportFactory
+import org.multipaz.mdoc.transport.MdocTransportOptions
+import org.multipaz.nfc.CommandApdu
+import org.multipaz.mdoc.transport.advertiseAndWait
+import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodNfc
+import org.multipaz.util.UUID
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 import kotlinx.io.bytestring.ByteString
+import org.multipaz.context.initializeApplication
+import org.multipaz.mdoc.role.MdocRole
+import org.multipaz.nfc.ResponseApdu
 import ui.navigation.PRESENTATION_REQUESTED_INTENT
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -47,14 +49,15 @@ class NdefDeviceEngagementService : HostApduService() {
         private var engagement: MdocNfcEngagementHelper? = null
         private var disableEngagementJob: Job? = null
         private var listenForCancellationFromUiJob: Job? = null
-        val presentationStateModel: PresentationStateModel by lazy { PresentationStateModel() }
+        //val promptModel = AndroidPromptModel()
+        val presentationStateModel: PresentationStateModel by lazy {
+            PresentationStateModel()//.apply { setPromptModel(promptModel) }
+        }
     }
-
-    private lateinit var settings: TransferSettings
 
     private fun vibrate(pattern: Int) = kotlin.runCatching {
         val vibrator = ContextCompat.getSystemService(
-            AndroidContexts.applicationContext,
+            applicationContext,
             Vibrator::class.java
         )
 
@@ -66,13 +69,33 @@ class NdefDeviceEngagementService : HostApduService() {
 
     private fun vibrateSuccess() = vibrate(VibrationEffect.EFFECT_HEAVY_CLICK)
 
+    override fun onDestroy() {
+        super.onDestroy()
+        commandApduListenJob?.cancel()
+    }
+
+    private lateinit var settings: TransferSettings
+    private var commandApduListenJob: Job? = null
+    private val commandApduChannel = Channel<CommandApdu>(Channel.UNLIMITED)
+
     override fun onCreate() {
         super.onCreate()
+        initializeApplication(applicationContext)
         settings = TransferSettings()
-        AndroidContexts.setApplicationContext(applicationContext)
+
+        commandApduListenJob = CoroutineScope(Dispatchers.IO).launch {
+            while (true) {
+                val commandApdu = commandApduChannel.receive()
+                val responseApdu = processCommandApdu(commandApdu)
+                if (responseApdu != null) {
+                    sendResponseApdu(responseApdu.encode())
+                }
+            }
+        }
     }
 
     private var started = false
+
 
     private fun startEngagement() {
         Napier.i("NdefDeviceEngagementService: startNdefEngagement")
@@ -111,7 +134,7 @@ class NdefDeviceEngagementService : HostApduService() {
         intent.action = PRESENTATION_REQUESTED_INTENT
         applicationContext.startActivity(intent)
 
-        fun negotiatedHandoverPicker(connectionMethods: List<ConnectionMethod>): ConnectionMethod {
+        fun negotiatedHandoverPicker(connectionMethods: List<MdocConnectionMethod>): MdocConnectionMethod {
             Napier.i("NdefDeviceEngagementService: Negotiated Handover available methods: $connectionMethods")
             for (prefix in settings.presentmentNegotiatedHandoverPreferredOrder) {
                 for (connectionMethod in connectionMethods) {
@@ -125,20 +148,20 @@ class NdefDeviceEngagementService : HostApduService() {
             return connectionMethods.first()
         }
 
-        val negotiatedHandoverPicker: ((connectionMethods: List<ConnectionMethod>) -> ConnectionMethod)? =
+        val negotiatedHandoverPicker: ((connectionMethods: List<MdocConnectionMethod>) -> MdocConnectionMethod)? =
             if (settings.presentmentUseNegotiatedHandover) {
                 { connectionMethods -> negotiatedHandoverPicker(connectionMethods) }
             } else {
                 null
             }
 
-        var staticHandoverConnectionMethods: List<ConnectionMethod>? = null
+        var staticHandoverConnectionMethods: List<MdocConnectionMethod>? = null
         if (!settings.presentmentUseNegotiatedHandover) {
-            staticHandoverConnectionMethods = mutableListOf<ConnectionMethod>()
+            staticHandoverConnectionMethods = mutableListOf()
             val bleUuid = UUID.randomUUID()
             if (settings.presentmentBleCentralClientModeEnabled) {
                 staticHandoverConnectionMethods.add(
-                    ConnectionMethodBle(
+                    MdocConnectionMethodBle(
                         supportsPeripheralServerMode = false,
                         supportsCentralClientMode = true,
                         peripheralServerModeUuid = null,
@@ -148,7 +171,7 @@ class NdefDeviceEngagementService : HostApduService() {
             }
             if (settings.presentmentBlePeripheralServerModeEnabled) {
                 staticHandoverConnectionMethods.add(
-                    ConnectionMethodBle(
+                    MdocConnectionMethodBle(
                         supportsPeripheralServerMode = true,
                         supportsCentralClientMode = false,
                         peripheralServerModeUuid = bleUuid,
@@ -158,7 +181,7 @@ class NdefDeviceEngagementService : HostApduService() {
             }
             if (settings.presentmentNfcDataTransferEnabled) {
                 staticHandoverConnectionMethods.add(
-                    ConnectionMethodNfc(
+                    MdocConnectionMethodNfc(
                         commandDataFieldMaxLength = 0xffff,
                         responseDataFieldMaxLength = 0x10000
                     )
@@ -170,7 +193,7 @@ class NdefDeviceEngagementService : HostApduService() {
             eDeviceKey = ephemeralDeviceKey.publicKey,
             onHandoverComplete = { connectionMethods, encodedDeviceEngagement, handover ->
                 vibrateSuccess()
-                presentationStateModel.start(connectionMethods.any { it is ConnectionMethodBle })
+                presentationStateModel.start(connectionMethods.any { it is MdocConnectionMethodBle })
 
                 val duration = Clock.System.now() - timeStarted
                 listenOnMethods(
@@ -194,7 +217,7 @@ class NdefDeviceEngagementService : HostApduService() {
     }
 
     private fun listenOnMethods(
-        connectionMethods: List<ConnectionMethod>,
+        connectionMethods: List<MdocConnectionMethod>,
         settings: TransferSettings,
         encodedDeviceEngagement: ByteString,
         handover: DataItem,
@@ -204,7 +227,7 @@ class NdefDeviceEngagementService : HostApduService() {
         presentationStateModel.presentmentScope.launch {
             presentationStateModel.state.first { it != PresentationStateModel.State.IDLE && it != PresentationStateModel.State.NO_PERMISSION && it != PresentationStateModel.State.CHECK_PERMISSIONS }
             val transport = connectionMethods.advertiseAndWait(
-                role = MdocTransport.Role.MDOC,
+                role = MdocRole.MDOC,
                 transportFactory = MdocTransportFactory.Default,
                 options = MdocTransportOptions(
                     bleUseL2CAP = settings.readerBleL2CapEnabled
@@ -229,7 +252,7 @@ class NdefDeviceEngagementService : HostApduService() {
         }
     }
 
-    override fun processCommandApdu(encodedCommandApdu: ByteArray, extras: Bundle?): ByteArray? {
+    private suspend fun processCommandApdu(commandApdu: CommandApdu): ResponseApdu? {
         Napier.i("NdefDeviceEngagementService: processCommandApdu")
 
         if (!started) {
@@ -239,14 +262,20 @@ class NdefDeviceEngagementService : HostApduService() {
 
         try {
             engagement?.let {
-                val commandApdu = CommandApdu.decode(encodedCommandApdu)
-                val responseApdu = runBlocking { it.processApdu(commandApdu) }
-                return responseApdu.encode()
+                val responseApdu = it.processApdu(commandApdu)
+                return responseApdu
             }
         } catch (e: Throwable) {
             Napier.e("NdefDeviceEngagementService: processCommandApdu", e)
             e.printStackTrace()
         }
+        return null
+    }
+
+    // Called by OS when an APDU arrives
+    override fun processCommandApdu(encodedCommandApdu: ByteArray, extras: Bundle?): ByteArray? {
+        // Bounce the APDU to processCommandApdu() above via the coroutine in I/O thread set up in onCreate()
+        commandApduChannel.trySend(CommandApdu.decode(encodedCommandApdu))
         return null
     }
 
