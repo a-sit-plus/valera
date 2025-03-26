@@ -1,9 +1,11 @@
 package ui.composables
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.unit.dp
 import at.asitplus.openid.dcql.DCQLCredentialSubmissionOption
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 
@@ -18,6 +20,7 @@ fun DCQLCredentialQuerySubmissionSelection(
 ) {
     Column(
         modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         selectionOptions.forEachIndexed { index, option ->
             val isSelected = index == currentlySelectedOptionIndex

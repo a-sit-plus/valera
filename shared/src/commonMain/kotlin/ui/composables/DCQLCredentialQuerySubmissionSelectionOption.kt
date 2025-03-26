@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -69,8 +70,10 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
     }
     val labeledAttributes = genericAttributeList.mapNotNull { (key, value) ->
         Attribute.fromValue(value)?.let {
-            val label = credential.scheme?.getLocalization(key)?.let {
-                stringResource(it)
+            val label = key.segments.lastOrNull()?.let {
+                credential.scheme?.getLocalization(NormalizedJsonPath(it))?.let {
+                    stringResource(it)
+                }
             } ?: key.toString()
             label to it
         }
@@ -91,45 +94,46 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
             credential = credential,
             decodeToBitmap = decodeToBitmap,
         )
-
-        val attributes = when (matchingResult) {
-            DCQLCredentialQueryMatchingResult.AllClaimsMatchingResult -> credential.toJsonElement()
-                .normalizedJsonPaths()
-
-            is DCQLCredentialQueryMatchingResult.ClaimsQueryResults -> matchingResult.claimsQueryResults.flatMap {
-                when (it) {
-                    is DCQLClaimsQueryResult.IsoMdocResult -> listOf(NormalizedJsonPath() + it.namespace + it.claimName)
-                    is DCQLClaimsQueryResult.JsonResult -> it.nodeList.map { it.normalizedJsonPath }
+        HorizontalDivider(modifier = Modifier.fillMaxWidth())
+        AnimatedVisibility(!isSelected) {
+            Text(labeledAttributes.joinToString(", ") { it.first })
+        }
+        AnimatedVisibility(isSelected) {
+            Column(
+                modifier = Modifier.padding(8.dp).fillMaxWidth().align(Alignment.Start),
+                verticalArrangement = Arrangement.spacedBy(8.dp,)
+            ) {
+                labeledAttributes.forEach {
+                    LabeledAttribute(
+                        label = it.first,
+                        attribute = it.second,
+                    )
                 }
             }
-        }.map {
-            credential.toJsonElement().normalizedJsonPaths().map {
-                credential.scheme?.getLocalization(it) ?: it.toString()
-            }
+//            AttributeDisclosureDisplayCard(labeledAttributes)
         }
-        Text(labeledAttributes.joinToString(", ") { it.first })
     }
 
-    val density = LocalDensity.current
-    AnimatedVisibility(
-        visible = isSelected,
-        enter = slideInVertically {
-            with(density) { -20.dp.roundToPx() }
-        } + expandVertically(
-            expandFrom = Alignment.Top
-        ) + fadeIn(
-            initialAlpha = 0.3f
-        ),
-        exit = slideOutVertically {
-            with(density) { 20.dp.roundToPx() }
-        } + shrinkVertically(
-            shrinkTowards = Alignment.Bottom
-        ) + fadeOut(
-            targetAlpha = 0f
-        )
-    ) {
-        AttributeDisclosureDisplayCard(labeledAttributes)
-    }
+//    val density = LocalDensity.current
+//    AnimatedVisibility(
+//        visible = isSelected,
+//        enter = slideInVertically {
+//            with(density) { -20.dp.roundToPx() }
+//        } + expandVertically(
+//            expandFrom = Alignment.Top
+//        ) + fadeIn(
+//            initialAlpha = 0.3f
+//        ),
+//        exit = slideOutVertically {
+//            with(density) { 20.dp.roundToPx() }
+//        } + shrinkVertically(
+//            shrinkTowards = Alignment.Bottom
+//        ) + fadeOut(
+//            targetAlpha = 0f
+//        )
+//    ) {
+//        AttributeDisclosureDisplayCard(labeledAttributes)
+//    }
 }
 
 @Composable
@@ -150,7 +154,6 @@ fun AttributeDisclosureDisplayCard(
                     label = it.first,
                     attribute = it.second,
                 )
-                Spacer(modifier = Modifier.height(8.dp))
             }
         }
     }
