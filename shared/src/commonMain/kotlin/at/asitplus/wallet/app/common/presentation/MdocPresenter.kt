@@ -16,6 +16,7 @@ import org.multipaz.util.Constants
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import org.multipaz.cbor.buildCborArray
 import org.multipaz.mdoc.role.MdocRole
 import ui.viewmodels.authentication.PresentationStateModel
 import ui.viewmodels.authentication.PresentationViewModel
@@ -61,25 +62,13 @@ class MdocPresenter(
 
                 if (sessionEncryption == null) {
                     val eReaderKey = SessionEncryption.getEReaderKey(sessionData)
-                    encodedSessionTranscript =
-                        Cbor.encode(
-                            CborArray.builder()
-                                .add(
-                                    Tagged(
-                                        24,
-                                        Bstr(mechanism.encodedDeviceEngagement.toByteArray())
-                                    )
-                                )
-                                .add(
-                                    Tagged(
-                                        24,
-                                        Bstr(Cbor.encode(eReaderKey.toCoseKey().toDataItem()))
-                                    )
-                                )
-                                .add(mechanism.handover)
-                                .end()
-                                .build()
-                        )
+                    encodedSessionTranscript = Cbor.encode(
+                        buildCborArray {
+                            add(Tagged(24, Bstr(mechanism.encodedDeviceEngagement.toByteArray())))
+                            add(Tagged(24, Bstr(Cbor.encode(eReaderKey.toCoseKey().toDataItem()))))
+                            add(mechanism.handover)
+                        }
+                    )
                     sessionEncryption = SessionEncryption(
                         MdocRole.MDOC,
                         mechanism.ephemeralDeviceKey,
