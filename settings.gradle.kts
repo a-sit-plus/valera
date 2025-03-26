@@ -26,14 +26,6 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version ("0.4.0")
 }
 
-sourceControl {
-    gitRepository(URI("https://github.com/gp-iaik/identity-credential.git")) {
-        producesModule("org.multipaz:multipaz")
-        producesModule("org.multipaz:multipaz-doctypes")
-        producesModule("com.android.identity:multipaz-android-legacy")
-    }
-}
-
 //If we have a working composite build, use it!
 if (File("./vck/signum").isDirectory && File("./vck/signum/build.gradle.kts").exists()) {
     logger.warn("Detected VC-K in ${File("./vck").absolutePath}.Including it as composite build.")
