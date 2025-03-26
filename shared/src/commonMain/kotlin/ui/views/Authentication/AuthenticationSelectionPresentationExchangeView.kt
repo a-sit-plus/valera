@@ -37,7 +37,6 @@ import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.CredentialSelectionGroup
 import ui.viewmodels.authentication.AuthenticationSelectionPresentationExchangeViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthenticationSelectionPresentationExchangeView(vm: AuthenticationSelectionPresentationExchangeViewModel) {
     val vm = remember { vm }

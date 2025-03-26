@@ -1,5 +1,6 @@
 # Release 5.4.16
  * Recognize DCQL queries for consent preview and show dummy consent screen
+ * Attribute Selection for DCQL queries
 
 # Release 5.4.15
  * Update Power of Representation credential, to fix `sdJwtType`
