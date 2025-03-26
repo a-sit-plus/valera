@@ -1,6 +1,7 @@
 package data.bletransfer.verifier
 
 import android.content.Context
+import androidx.compose.runtime.Composable
 import at.asitplus.signum.indispensable.cosef.CoseSigned
 import at.asitplus.wallet.app.common.HttpService
 import com.android.identity.cbor.Bstr
@@ -20,6 +21,8 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import data.bletransfer.util.RequestedDocument
 import data.storage.CertificateStorage
+import data.trustlist.AndroidTrustListService
+import data.trustlist.TrustListService
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
@@ -67,7 +70,7 @@ object IdentityVerifier {
                  appCertificate.ecPublicKey, data, Algorithm.ES256,
                  EcSignature.fromCoseEncoded(coseSigned.wireFormat.rawSignature))) return false
 
-         return isSealCertTrusted(seal.javaX509Certificate)
+         return isSealCertTrusted(seal.javaX509Certificate, context)
 
      }
 
@@ -98,21 +101,11 @@ object IdentityVerifier {
 
     }
 
-    private fun isSealCertTrusted(sealCertificate: X509Certificate): Boolean {
-//        TODO: check is seal in trusted fingerprint list
-        getTrustList(sealCertificate)
-        println("SRKI${sealCertificate.toFingerprint()}")
-        return true
-    }
-
-    private fun getTrustList(sealCertificate: X509Certificate) {
-        CoroutineScope(Dispatchers.IO).launch {
-            val service = HttpService()
-            val client = service.buildHttpClient()
-            val res = client.get("http://localhost:8080/api/certificate/seal/trustlist")
-            fingerprintTrustList = parseCertificateChain(res)
-            println("SRKI:${parseCertificateChain(res)[0]}")
-        }
+    private fun isSealCertTrusted(sealCertificate: X509Certificate, context: Context): Boolean {
+        val trustListService: TrustListService = AndroidTrustListService()
+        trustListService.setContext(context)
+        fingerprintTrustList = trustListService.getTrustedFingerprints() ?: emptyList()
+        return fingerprintTrustList.contains(sealCertificate.toFingerprint())
     }
 
 
@@ -153,17 +146,9 @@ object IdentityVerifier {
         return encode(Tagged(24, Bstr(encodedReaderAuthentication)))
     }
 
-    fun extractCommonName(dn: String): String? {
+    private fun extractCommonName(dn: String): String? {
         val cnRegex = "CN=([^,]+)".toRegex()
         return cnRegex.find(dn)?.groups?.get(1)?.value
-    }
-
-    private suspend fun parseCertificateChain(response: HttpResponse): List<String> {
-        val gson = Gson()
-        return gson.fromJson(
-            response.bodyAsText(),
-            object : TypeToken<List<String>>() {}.type
-        )
     }
 
     private fun X509Certificate.toFingerprint(): String {
@@ -176,8 +161,4 @@ object IdentityVerifier {
 
         return String(digestInfo.encoded)
     }
-
-
-
-
 }
