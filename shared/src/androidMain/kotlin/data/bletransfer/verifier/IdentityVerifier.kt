@@ -57,7 +57,11 @@ object IdentityVerifier {
 
 
          val seal = CertificateStorage.loadCertificateAndroid(context, "SEAL") ?: return false
-         requesterIdentity = extractFields(seal.javaX509Certificate.subjectX500Principal.name)
+         requesterIdentity = parseDn(seal.javaX509Certificate.subjectX500Principal.name)
+         val location = listOfNotNull(requesterIdentity["L"], requesterIdentity["C"]).joinToString(", ")
+         if (location.isNotEmpty()) {
+             requesterIdentity = requesterIdentity + ("Loc" to location)
+         }
 
          println("SRKIAPP:${appCertificate.javaX509Certificate.issuerX500Principal.getName(X500Principal.CANONICAL)}")
          println("SRKISEAL:${seal.javaX509Certificate.subjectX500Principal.getName(X500Principal.CANONICAL)}")
@@ -88,13 +92,10 @@ object IdentityVerifier {
 
         val subjectFields = parseDn(certificateChain[1].subjectX500Principal.name)
         val issuerFields = parseDn(certificateChain[0].issuerX500Principal.name)
-
         if (subjectFields != issuerFields) {
             throw CertPathValidatorException("CA subject and issued certificate issuer mismatch!");
         }
-//        if (!certificateChain[1].subjectX500Principal.getName(X500Principal.CANONICAL).equals(certificateChain[0].issuerX500Principal.getName(X500Principal.CANONICAL))) {
-//            throw CertPathValidatorException("CA subject and issued certificate issuer mismatch!");
-//        }
+
         val certSignUsage = 5
         if (certificateChain[1].keyUsage == null || !certificateChain[1].keyUsage[certSignUsage]) {
             throw SignatureException("Signing certificates key usage extension not present in SEAL!");
@@ -151,31 +152,14 @@ object IdentityVerifier {
         return encode(Tagged(24, Bstr(encodedReaderAuthentication)))
     }
 
-    private fun extractFields(dn: String): Map<String, String> {
-        val regex = "(CN|O|C|L)=([^,]+)".toRegex()
-        val matches = mutableMapOf<String, String>()
-
-        regex.findAll(dn).forEach { match ->
-            when (match.groups[1]?.value) {
-                "CN" -> matches["CN"] = match.groups[2]?.value ?: ""
-                "O"  -> matches["O"] = match.groups[2]?.value ?: ""
-                "C"  -> matches["C"] = match.groups[2]?.value ?: ""
-                "L"  -> matches["L"] = match.groups[2]?.value ?: ""
-            }
-        }
-        val loc = listOfNotNull(matches["L"], matches["C"]).joinToString(", ").takeIf { it.isNotEmpty() }
-        matches["Loc"] = loc ?: ""
-        return matches
-    }
-
-    fun parseDn(dn: String): Map<String, String> {
+    private fun parseDn(dn: String): Map<String, String> {
         return dn.split(",")
             .map { it.trim() }
             .mapNotNull { parseRdn(it) }
             .toMap()
     }
 
-    fun parseRdn(rdn: String): Pair<String, String>? {
+    private fun parseRdn(rdn: String): Pair<String, String>? {
         val parts = rdn.split("=")
         return if (parts.size == 2) {
             val key = parts[0].trim().uppercase(Locale.getDefault())  // Normalize the key
