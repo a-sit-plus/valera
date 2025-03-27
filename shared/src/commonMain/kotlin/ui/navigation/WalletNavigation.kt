@@ -586,8 +586,8 @@ fun InitializeServiceCollectors(
 ) {
     CoroutineScope(Dispatchers.Unconfined).launch {
         this.launch {
-            walletMain.snackbarService.message.collect { (callback, text) ->
-                val result = snackbarHostState.showSnackbar(text.first, text.second, true)
+            walletMain.snackbarService.message.collect { (text, actionLabel, callback) ->
+                val result = snackbarHostState.showSnackbar(text, actionLabel, true)
                 when (result) {
                     SnackbarResult.Dismissed -> {}
                     SnackbarResult.ActionPerformed -> callback?.invoke()

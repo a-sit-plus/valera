@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 class SnackbarService {
-    val message = MutableSharedFlow<Pair<(() -> Unit)?,Pair<String, String?>>>()
+    val message = MutableSharedFlow<SnackbarFlowData>()
     private val scope = CoroutineScope(Dispatchers.Default)
     /**
      * Shows a snackbar with [text] and action label [actionLabel], calls [callback] when user has executed action
@@ -18,7 +18,9 @@ class SnackbarService {
     fun showSnackbar(text: String, actionLabel: String? = null, callback: (() -> Unit)? = null) {
         Napier.d("Show Snackbar with text: $text")
         scope.launch {
-            message.emit(Pair(callback, Pair(text, actionLabel)))
+            message.emit(SnackbarFlowData(text, actionLabel, callback))
         }
     }
 }
+
+data class SnackbarFlowData (val text: String, val actionLabel: String?, val callback: (() -> Unit)?)
