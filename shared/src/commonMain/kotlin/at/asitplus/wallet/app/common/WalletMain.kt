@@ -107,7 +107,7 @@ class WalletMain(
             httpService,
             coseService
         )
-        snackbarService = SnackbarService(this.scope)
+        snackbarService = SnackbarService()
         signingService = SigningService(
             platformAdapter,
             dataStoreService,

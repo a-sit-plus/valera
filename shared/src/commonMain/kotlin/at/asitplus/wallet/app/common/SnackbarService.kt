@@ -4,13 +4,14 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
-class SnackbarService(private val scope: CoroutineScope) {
+class SnackbarService {
     val message = MutableSharedFlow<Pair<(() -> Unit)?,Pair<String, String?>>>()
-
+    private val scope = CoroutineScope(Dispatchers.Default)
     /**
      * Shows a snackbar with [text] and action label [actionLabel], calls [callback] when user has executed action
      */
@@ -20,6 +21,4 @@ class SnackbarService(private val scope: CoroutineScope) {
             message.emit(Pair(callback, Pair(text, actionLabel)))
         }
     }
-
-
 }

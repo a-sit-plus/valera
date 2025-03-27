@@ -11,20 +11,22 @@ class NavigationService {
     val navigateBack = MutableSharedFlow<Route?>()
     val popBackStack = MutableSharedFlow<Route>()
 
+    private val scope = CoroutineScope(Dispatchers.Main)
+
     fun navigate(route: Route) {
-        CoroutineScope(Dispatchers.Main).launch {
+        scope.launch {
             navigate.emit(route)
         }
     }
 
     fun navigateBack() {
-        CoroutineScope(Dispatchers.Main).launch {
+        scope.launch {
             navigateBack.emit(null)
         }
     }
 
     fun popBackStack(route: Route) {
-        CoroutineScope(Dispatchers.Main).launch {
+        scope.launch {
             popBackStack.emit(route)
         }
     }

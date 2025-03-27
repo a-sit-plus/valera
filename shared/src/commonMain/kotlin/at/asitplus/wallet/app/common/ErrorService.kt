@@ -8,8 +8,10 @@ import kotlinx.coroutines.launch
 
 class ErrorService() {
     val error = MutableSharedFlow<Pair<String?, String?>>()
+    private val scope = CoroutineScope(Dispatchers.Default)
+    
     fun emit (e: Throwable){
-        CoroutineScope(Dispatchers.Main).launch {
+        scope.launch {
             error.emit(Pair(e.message, e.cause?.message))
             Napier.e("Error", e)
         }
