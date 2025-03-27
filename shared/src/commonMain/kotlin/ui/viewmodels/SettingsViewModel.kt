@@ -15,17 +15,17 @@ class SettingsViewModel (walletMain: WalletMain,
     val buildType = walletMain.buildContext.buildType
     val version = walletMain.buildContext.versionName
 
-    val onClickFAQs = {
+    val onClickFAQs: () -> Unit = {
         runBlocking {
             walletMain.snackbarService.showSnackbar(getString(Res.string.error_feature_not_yet_available))
         }
     }
-    val onClickDataProtectionPolicy = {
+    val onClickDataProtectionPolicy: () -> Unit = {
         runBlocking {
             walletMain.snackbarService.showSnackbar(getString(Res.string.error_feature_not_yet_available))
         }
     }
-    val onClickLicenses = {
+    val onClickLicenses: () -> Unit = {
         runBlocking {
             walletMain.snackbarService.showSnackbar(getString(Res.string.error_feature_not_yet_available))
         }
