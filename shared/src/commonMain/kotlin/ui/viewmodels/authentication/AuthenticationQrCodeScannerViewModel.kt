@@ -41,6 +41,7 @@ class AuthenticationQrCodeScannerViewModel(
                             authenticationRequestParametersFromSerialized = it.authenticationRequestParametersFromSerialized,
                             authorizationPreparationStateSerialized = it.authorizationPreparationStateSerialized,
                             recipientLocation = it.recipientLocation,
+                            isCrossDeviceFlow = true
                         )
                     }
 

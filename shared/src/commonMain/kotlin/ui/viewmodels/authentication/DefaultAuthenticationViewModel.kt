@@ -19,7 +19,8 @@ class DefaultAuthenticationViewModel(
     spName: String?,
     spLocation: String,
     spImage: ImageBitmap?,
-    val  authenticationRequest: RequestParametersFrom<AuthenticationRequestParameters>,
+    val authenticationRequest: RequestParametersFrom<AuthenticationRequestParameters>,
+    val isCrossDeviceFlow: Boolean,
     navigateUp: () -> Unit,
     navigateToAuthenticationSuccessPage: () -> Unit,
     navigateToHomeScreen: () -> Unit,
@@ -62,5 +63,6 @@ class DefaultAuthenticationViewModel(
             request = authenticationRequest,
             clientMetadata = authenticationRequest.parameters.clientMetadata,
             credentialPresentation = credentialPresentation,
+            isCrossDeviceFlow = isCrossDeviceFlow,
         )
 }

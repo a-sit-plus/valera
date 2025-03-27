@@ -71,11 +71,13 @@ class PresentationService(
         request: RequestParametersFrom<AuthenticationRequestParameters>,
         clientMetadata: RelyingPartyMetadata?,
         credentialPresentation: CredentialPresentation,
+        isCrossDeviceFlow: Boolean,
     ) {
         presentationService.finalizeAuthorizationResponse(
             request = request,
             clientMetadata = clientMetadata,
-            credentialPresentation = credentialPresentation
+            credentialPresentation = credentialPresentation,
+            isCrossDeviceFlow = isCrossDeviceFlow,
         ).getOrThrow()
     }
 

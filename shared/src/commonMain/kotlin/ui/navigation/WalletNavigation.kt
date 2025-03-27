@@ -42,7 +42,6 @@ import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.getString
 import ui.views.PresentationView
@@ -281,6 +280,7 @@ private fun WalletNavHost(
                     spLocation = route.recipientLocation,
                     spImage = null,
                     authenticationRequest = request,
+                    isCrossDeviceFlow = route.isCrossDeviceFlow,
                     navigateUp = { navigateBack() },
                     navigateToAuthenticationSuccessPage = {
                         navigate(AuthenticationSuccessRoute)
