@@ -67,7 +67,7 @@ fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, Const
         inputDescriptor = this,
         credential = scheme.toJsonElement(credentialRepresentation),
         pathAuthorizationValidator = { true },
-    ).getOrNull() ?: throw Throwable("Unable to evaluate constraints")
+    ).getOrThrow()
 
     val attributes = constraintsMap.mapNotNull {
         val path = it.value.map { it.normalizedJsonPath }.firstOrNull()
