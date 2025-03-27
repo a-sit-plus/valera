@@ -90,8 +90,6 @@ kotlin {
                 implementation(libs.identity.android)
                 implementation(libs.identity.mdoc)
                 implementation(libs.okhttp)
-//                implementation(libs.jakarta.xml.bind.api)
-//                implementation(libs.jaxb.runtime)
             }
         }
 

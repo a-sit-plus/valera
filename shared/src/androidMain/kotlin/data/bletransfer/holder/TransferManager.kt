@@ -31,7 +31,7 @@ class TransferManager private constructor(private val context: Context) {
 
     fun startQrEngagement(
         updateQrCode: (String) -> Unit,
-        updateRequestedAttributes: (List<RequestedDocument>, String?) -> Unit
+        updateRequestedAttributes: (List<RequestedDocument>, Map<String,String>) -> Unit
     ) {
         if (hasStarted) {
             throw IllegalStateException("Transfer has already started.")

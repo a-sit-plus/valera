@@ -44,9 +44,9 @@ object CertificateStorage {
         }
     }
 
-//    fun storeFromFileToPref(context: Context) {
-//        val pemCert = context.assets.open("SEAL.crt").bufferedReader().use { it.readText() }
-//        val cert = pemToX509Certificate(pemCert)
-//        saveCertificate(context, "SEAL", pemCert)
-//    }
+    fun storeFromFileToPref(context: Context) {
+        val pemCert = context.assets.open("SEAL.crt").bufferedReader().use { it.readText() }
+        val cert = pemToX509Certificate(pemCert)
+        saveCertificate(context, "SEAL", pemCert)
+    }
 }
