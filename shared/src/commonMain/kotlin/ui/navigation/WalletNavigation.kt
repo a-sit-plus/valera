@@ -110,7 +110,7 @@ fun WalletNavigation(walletMain: WalletMain) {
     val backStackEntry by navController.currentBackStackEntryAsState()
 
     LaunchedEffect(null) {
-        InitializeNavigation(
+        InitializeNavigationCollectors(
             navigationService = walletMain.navigationService,
             navController = navController
         )
@@ -560,7 +560,7 @@ private fun WalletNavHost(
     }
 }
 
-fun InitializeNavigation(navigationService: NavigationService, navController: NavHostController) {
+fun InitializeNavigationCollectors(navigationService: NavigationService, navController: NavHostController) {
     CoroutineScope(Dispatchers.Unconfined).launch {
         this.launch {
             navigationService.navigate.collect { route ->
@@ -595,7 +595,7 @@ fun InitializeServiceCollectors(
             }
         }
         this.launch {
-            walletMain.errorService.show.collect { (message, cause) ->
+            walletMain.errorService.error.collect { (message, cause) ->
                 walletMain.navigationService.navigate(ErrorRoute(message, cause))
             }
         }
