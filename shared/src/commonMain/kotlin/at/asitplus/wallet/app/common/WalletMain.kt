@@ -57,8 +57,8 @@ class WalletMain(
     lateinit var signingService: SigningService
     lateinit var dcApiService: DCAPIService
     lateinit var intentService: IntentService
-    lateinit var navigationService: NavigationService
-    lateinit var errorService: ErrorService
+    val navigationService = NavigationService()
+    val errorService = ErrorService()
     lateinit var snackbarService: SnackbarService
     private val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
 
@@ -79,7 +79,6 @@ class WalletMain(
     @Throws(Throwable::class)
     fun initialize() {
         val coseService = DefaultCoseService(cryptoService)
-        errorService = ErrorService()
         walletConfig =
             WalletConfig(dataStoreService = this.dataStoreService, errorService = errorService)
         subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
@@ -116,7 +115,6 @@ class WalletMain(
             snackbarService,
             httpService
         )
-        navigationService = NavigationService()
         intentService = IntentService(
             cryptoService,
             provisioningService,

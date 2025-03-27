@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import at.asitplus.catchingUnwrapped
 import at.asitplus.wallet.app.common.WalletMain
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,7 +23,12 @@ internal object AppTestTags {
 
 @Composable
 fun App(walletMain: WalletMain) {
-    walletMain.initialize()
+    catchingUnwrapped {
+        walletMain.initialize()
+    }.onFailure {
+        walletMain.errorService.emit(it)
+    }
+
     LifecycleEventEffect(Lifecycle.Event.ON_CREATE) {
         Napier.d("Lifecycle.Event.ON_CREATE")
         walletMain.updateCheck()
