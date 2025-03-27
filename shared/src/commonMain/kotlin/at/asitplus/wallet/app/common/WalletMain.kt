@@ -79,7 +79,6 @@ class WalletMain(
     @Throws(Throwable::class)
     fun initialize() {
         val coseService = DefaultCoseService(cryptoService)
-        errorService = ErrorService()
         walletConfig =
             WalletConfig(dataStoreService = this.dataStoreService, errorService = errorService)
         subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
