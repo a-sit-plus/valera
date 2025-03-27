@@ -16,7 +16,6 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
-import at.asitplus.wallet.lib.iso.DeviceResponse
 import org.multipaz.request.MdocRequest
 
 class PresentationViewModel(

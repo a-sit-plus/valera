@@ -350,13 +350,10 @@ private fun WalletNavHost(
                 Globals.presentationStateModel.value?.let {
                     PresentationViewModel(
                         it,
-                        navigateUp = {  },
+                        navigateUp = { popBackStack(HomeScreenRoute) },
                         onAuthenticationSuccess = {
-
                         },
-                        navigateToHomeScreen = {
-                            popBackStack(HomeScreenRoute)
-                        },
+                        navigateToHomeScreen = { popBackStack(HomeScreenRoute) },
                         walletMain = walletMain,
                         onClickLogo = onClickLogo
                     )
