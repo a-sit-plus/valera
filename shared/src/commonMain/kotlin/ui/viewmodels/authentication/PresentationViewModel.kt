@@ -41,9 +41,11 @@ class PresentationViewModel(
 
     fun initWithMdocRequest(
         parsedRequest: List<MdocRequest>,
-        finishFunction: (DeviceResponse) -> Unit
+        finishFunction: (ByteArray) -> Unit
     ) {
+        val requester: MutableList<String?> = mutableListOf()
         descriptors = parsedRequest.map {
+            requester.add(it.requester.appId ?: it.requester.websiteOrigin)
             DifInputDescriptor(
                 id = it.docType,
                 format = FormatHolder(msoMdoc = FormatContainerJwt()),
@@ -60,9 +62,11 @@ class PresentationViewModel(
             )
         }
         this.finishFunction = finishFunction
+        check(requester.all { it == requester.firstOrNull() })
+        this.spName = requester.firstOrNull { it != null }
     }
 
-    private var finishFunction: ((DeviceResponse) -> Unit)? = null
+    private var finishFunction: ((ByteArray) -> Unit)? = null
 
     override val transactionData: TransactionData? = null
 
@@ -94,8 +98,10 @@ class PresentationViewModel(
                 credentialPresentation = when (credentialPresentation) {
                     is CredentialPresentation.PresentationExchangePresentation -> credentialPresentation
                     else -> throw IllegalArgumentException()
-                }, it
+                },
+                it,
+                spName
             )
         } ?: throw IllegalStateException("No finish method found")
-    
+
 }

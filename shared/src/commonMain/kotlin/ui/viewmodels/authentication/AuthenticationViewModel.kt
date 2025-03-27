@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 
 abstract class AuthenticationViewModel(
-    val spName: String?,
+    var spName: String?,
     val spLocation: String,
     val spImage: ImageBitmap?,
     val navigateUp: () -> Unit,

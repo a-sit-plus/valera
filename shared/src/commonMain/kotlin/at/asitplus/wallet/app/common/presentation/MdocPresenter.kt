@@ -1,7 +1,6 @@
 package at.asitplus.wallet.app.common.presentation
 
 import at.asitplus.wallet.lib.iso.DeviceRequest
-import at.asitplus.wallet.lib.iso.DeviceResponse
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -31,7 +30,7 @@ class MdocPresenter(
     internal suspend fun present(
         dismissible: MutableStateFlow<Boolean>,
         numRequestsServed: MutableStateFlow<Int>,
-        credentialSelected: (DeviceResponse) -> Unit,
+        credentialSelected: (ByteArray) -> Unit,
     ) {
         val transport = mechanism.transport
         // Wait until state changes to CONNECTED, FAILED, or CLOSED
@@ -99,11 +98,12 @@ class MdocPresenter(
 
                 presentationViewModel.initWithMdocRequest(mdocRequests, credentialSelected)
 
-                val deviceResponse = stateModel.requestCredentialSelection()
+
+                val response = stateModel.requestCredentialSelection()
 
                 mechanism.transport.sendMessage(
                     sessionEncryption.encryptMessage(
-                        deviceResponse.serialize(),
+                        response,
                         if (!mechanism.allowMultipleRequests) {
                             Constants.SESSION_DATA_STATUS_SESSION_TERMINATION
                         } else {

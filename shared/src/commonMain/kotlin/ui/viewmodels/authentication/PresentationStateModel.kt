@@ -22,6 +22,7 @@ import ui.viewmodels.authentication.PresentationStateModel.DismissType.CLICK
 import ui.viewmodels.authentication.PresentationStateModel.DismissType.DOUBLE_CLICK
 import ui.viewmodels.authentication.PresentationStateModel.DismissType.LONG_CLICK
 import kotlin.coroutines.resume
+import kotlin.io.encoding.Base64
 import kotlin.time.Duration.Companion.seconds
 
 // Based on the identity-credential sample code
@@ -315,7 +316,7 @@ class PresentationStateModel {
         }
     }
 
-    private var credentialSelectorContinuation: CancellableContinuation<DeviceResponse>? = null
+    private var credentialSelectorContinuation: CancellableContinuation<ByteArray>? = null
 
     fun setPermissionState(granted: Boolean) {
         check(_state.value == State.CHECK_PERMISSIONS)
@@ -326,7 +327,7 @@ class PresentationStateModel {
         }
     }
 
-    suspend fun requestCredentialSelection(): DeviceResponse {
+    suspend fun requestCredentialSelection(): ByteArray {
         _state.value = State.WAITING_FOR_DOCUMENT_SELECTION
         return suspendCancellableCoroutine { continuation ->
             credentialSelectorContinuation = continuation
@@ -340,7 +341,7 @@ class PresentationStateModel {
      *
      * @param deviceResponse the device response for the selected credential, must be `null` to convey the user did not want to continue
      */
-    fun credentialSelected(deviceResponse: DeviceResponse) {
+    fun credentialSelected(deviceResponse: ByteArray) {
         check(_state.value == State.WAITING_FOR_DOCUMENT_SELECTION)
         credentialSelectorContinuation!!.resume(deviceResponse)
     }

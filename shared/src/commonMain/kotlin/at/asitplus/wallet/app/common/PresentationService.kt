@@ -19,6 +19,7 @@ import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
+import io.ktor.utils.io.core.toByteArray
 import kotlinx.serialization.builtins.ByteArraySerializer
 import ui.viewmodels.authentication.DCQLMatchingResult
 import ui.viewmodels.authentication.PresentationExchangeMatchingResult
@@ -116,15 +117,16 @@ class PresentationService(
 
     suspend fun finalizeLocalPresentation(
         credentialPresentation: CredentialPresentation.PresentationExchangePresentation,
-        finishFunction: (DeviceResponse) -> Unit
+        finishFunction: (ByteArray) -> Unit,
+        spName: String?
     ) {
         Napier.d("Finalizing local response")
 
-        //TODO nonce and other parameters
+        //TODO nonce
         val presentationResult = holderAgent.createPresentation(
             request =  PresentationRequestParameters(
                 nonce = "previewRequest.nonce",
-                audience = "",
+                audience = spName ?: "",
                 calcIsoDeviceSignature = {
                     coseService.createSignedCose(
                         payload = it.encodeToByteArray(),
@@ -142,9 +144,9 @@ class PresentationService(
         val presentation = presentationResult.getOrThrow() as PresentationResponseParameters.PresentationExchangeParameters
 
         val deviceResponse = when (val firstResult = presentation.presentationResults[0]) {
-            is CreatePresentationResult.DeviceResponse -> firstResult.deviceResponse
-            is CreatePresentationResult.SdJwt -> TODO("Credential type not yet supported for API use case")
-            is CreatePresentationResult.Signed -> TODO("Credential type not yet supported for API use case")
+            is CreatePresentationResult.DeviceResponse -> firstResult.deviceResponse.serialize()
+            is CreatePresentationResult.SdJwt -> firstResult.serialized.toByteArray()
+            is CreatePresentationResult.Signed -> firstResult.serialized.toByteArray() // TODO can this work?
         }
 
         finishFunction(deviceResponse)
