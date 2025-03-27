@@ -22,7 +22,7 @@ class CborDecoder {
 
     var entryList = mutableListOf<Entry>()
     var documentRequests: List<RequestedDocument> = emptyList()
-    var requesterIdentity: String? = null
+    var requesterIdentity: Map<String, String> = emptyMap()
 
     fun decodeResponse(
         encodedDeviceResponse: ByteArray,

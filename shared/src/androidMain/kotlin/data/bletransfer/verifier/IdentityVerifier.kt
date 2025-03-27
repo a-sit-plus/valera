@@ -1,9 +1,7 @@
 package data.bletransfer.verifier
 
 import android.content.Context
-import androidx.compose.runtime.Composable
 import at.asitplus.signum.indispensable.cosef.CoseSigned
-import at.asitplus.wallet.app.common.HttpService
 import com.android.identity.cbor.Bstr
 import com.android.identity.cbor.Cbor.encode
 import com.android.identity.cbor.CborArray
@@ -17,18 +15,10 @@ import com.android.identity.crypto.Crypto
 import com.android.identity.crypto.EcSignature
 import com.android.identity.crypto.X509CertChain
 import com.android.identity.crypto.javaX509Certificate
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import data.bletransfer.util.RequestedDocument
 import data.storage.CertificateStorage
 import data.trustlist.AndroidTrustListService
 import data.trustlist.TrustListService
-import io.ktor.client.request.get
-import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.bodyAsText
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier
 import org.bouncycastle.asn1.x509.DigestInfo
 import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder
@@ -38,13 +28,18 @@ import java.security.SignatureException
 import java.security.cert.CertPathValidatorException
 import java.security.cert.CertificateException
 import java.security.cert.X509Certificate
+import java.util.Locale
+import javax.security.auth.x500.X500Principal
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.set
 
 
 object IdentityVerifier {
 
     private val ALLOWED_ALGOS = setOf("1.2.840.10045.4.3.2", "1.2.840.10045.4.3.3", "1.2.840.10045.4.3.4")
 
-    var requesterIdentity: String? = null
+    var requesterIdentity: Map<String, String> = emptyMap()
     var fingerprintTrustList: List<String> = emptyList()
 
      fun verifyReaderIdentity(requestedDocument: RequestedDocument,
@@ -61,8 +56,11 @@ object IdentityVerifier {
          }?.certificates?.firstOrNull() ?: return false
 
 
-         requesterIdentity = extractCommonName(appCertificate.javaX509Certificate.subjectX500Principal.name)
          val seal = CertificateStorage.loadCertificateAndroid(context, "SEAL") ?: return false
+         requesterIdentity = extractFields(seal.javaX509Certificate.subjectX500Principal.name)
+
+         println("SRKIAPP:${appCertificate.javaX509Certificate.issuerX500Principal.getName(X500Principal.CANONICAL)}")
+         println("SRKISEAL:${seal.javaX509Certificate.subjectX500Principal.getName(X500Principal.CANONICAL)}")
 
          verifyCertificateChain(listOf(appCertificate.javaX509Certificate, seal.javaX509Certificate))
 
@@ -87,9 +85,16 @@ object IdentityVerifier {
 
         certificateChain[0].verify(certificateChain[1].publicKey)
 
-        if (!certificateChain[1].subjectX500Principal.equals(certificateChain[0].issuerX500Principal)) {
+
+        val subjectFields = parseDn(certificateChain[1].subjectX500Principal.name)
+        val issuerFields = parseDn(certificateChain[0].issuerX500Principal.name)
+
+        if (subjectFields != issuerFields) {
             throw CertPathValidatorException("CA subject and issued certificate issuer mismatch!");
         }
+//        if (!certificateChain[1].subjectX500Principal.getName(X500Principal.CANONICAL).equals(certificateChain[0].issuerX500Principal.getName(X500Principal.CANONICAL))) {
+//            throw CertPathValidatorException("CA subject and issued certificate issuer mismatch!");
+//        }
         val certSignUsage = 5
         if (certificateChain[1].keyUsage == null || !certificateChain[1].keyUsage[certSignUsage]) {
             throw SignatureException("Signing certificates key usage extension not present in SEAL!");
@@ -146,9 +151,39 @@ object IdentityVerifier {
         return encode(Tagged(24, Bstr(encodedReaderAuthentication)))
     }
 
-    private fun extractCommonName(dn: String): String? {
-        val cnRegex = "CN=([^,]+)".toRegex()
-        return cnRegex.find(dn)?.groups?.get(1)?.value
+    private fun extractFields(dn: String): Map<String, String> {
+        val regex = "(CN|O|C|L)=([^,]+)".toRegex()
+        val matches = mutableMapOf<String, String>()
+
+        regex.findAll(dn).forEach { match ->
+            when (match.groups[1]?.value) {
+                "CN" -> matches["CN"] = match.groups[2]?.value ?: ""
+                "O"  -> matches["O"] = match.groups[2]?.value ?: ""
+                "C"  -> matches["C"] = match.groups[2]?.value ?: ""
+                "L"  -> matches["L"] = match.groups[2]?.value ?: ""
+            }
+        }
+        val loc = listOfNotNull(matches["L"], matches["C"]).joinToString(", ").takeIf { it.isNotEmpty() }
+        matches["Loc"] = loc ?: ""
+        return matches
+    }
+
+    fun parseDn(dn: String): Map<String, String> {
+        return dn.split(",")
+            .map { it.trim() }
+            .mapNotNull { parseRdn(it) }
+            .toMap()
+    }
+
+    fun parseRdn(rdn: String): Pair<String, String>? {
+        val parts = rdn.split("=")
+        return if (parts.size == 2) {
+            val key = parts[0].trim().uppercase(Locale.getDefault())  // Normalize the key
+            val value = parts[1].trim()
+            key to value
+        } else {
+            null
+        }
     }
 
     private fun X509Certificate.toFingerprint(): String {

@@ -9,6 +9,7 @@ core-ktx = "1.12.0"
 dss-service = "6.1"
 identity = "202411.1"
 jakarta-xml-bind-api = "4.0.0"
+javax-naming-api = "1.0.0"
 jaxb-runtime = "4.0.0"
 semver = "2.0.0"
 mdl = "1.1.4"
@@ -56,6 +57,7 @@ identity = { module = "com.android.identity:identity", version.ref = "identity" 
 identity-android = { module = "com.android.identity:identity-android", version.ref = "identity" }
 identity-mdoc = { module = "com.android.identity:identity-mdoc", version.ref  ="identity" }
 jakarta-xml-bind-api = { module = "jakarta.xml.bind:jakarta.xml.bind-api", version.ref = "jakarta-xml-bind-api" }
+javax-naming-api = { module = "javax.naming:javax.naming-api", version.ref = "javax-naming-api" }
 jaxb-runtime = { module = "org.glassfish.jaxb:jaxb-runtime", version.ref = "jaxb-runtime" }
 navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigation-compose" }
 play-services-identity-credentials = { module = "com.google.android.gms:play-services-identity-credentials", version.ref = "play-services-identity-credentials" }
