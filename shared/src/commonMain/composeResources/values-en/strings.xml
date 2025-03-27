@@ -188,7 +188,7 @@
     <string name="credential_scheme_label_tax_id">Tax ID</string>
     <string name="credential_scheme_icon_label_tax_id">TAX</string>
 
-    <string name="navigation_button_label_show_data">Show Data</string>
+    <string name="navigation_button_label_show_data">Present Data</string>
     <string name="navigation_button_label_my_data">My Data</string>
     <string name="navigation_button_label_settings">Settings</string>
 
