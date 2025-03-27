@@ -110,7 +110,7 @@ fun WalletNavigation(walletMain: WalletMain) {
     val navController: NavHostController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
 
-    LaunchedEffect(null) {
+    remember {
         InitializeNavigationCollectors(
             navigationService = walletMain.navigationService,
             navController = navController
@@ -145,7 +145,7 @@ fun WalletNavigation(walletMain: WalletMain) {
         )
     }
 
-    LaunchedEffect(null) {
+    remember {
         InitializeServiceCollectors(walletMain, snackbarHostState)
     }
 }
