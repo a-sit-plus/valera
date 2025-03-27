@@ -23,6 +23,7 @@ class CborDecoder {
     var entryList = mutableListOf<Entry>()
     var documentRequests: List<RequestedDocument> = emptyList()
     var requesterIdentity: Map<String, String> = emptyMap()
+    var verified: Boolean = false
 
     fun decodeResponse(
         encodedDeviceResponse: ByteArray,
@@ -134,10 +135,11 @@ class CborDecoder {
             }
             requestedDocument to request.readerAuth
         }
+        verified = true
         for ((key, value) in requestsAndAuth) {
             if (value != null) {
                 if (!IdentityVerifier.verifyReaderIdentity(key, value, sessionTranscript, context)) {
-                    return
+                    verified = false
                 }
             }
         }

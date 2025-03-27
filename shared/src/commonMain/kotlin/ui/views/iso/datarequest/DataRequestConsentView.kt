@@ -135,7 +135,10 @@ fun DataRequestConsentView(vm: DataRequestConsentViewModel) {
                             Row {
                                 Text(text = requesterFields["O"] ?: "Organisation Unknown")
                                 Icon(
-                                    painter = painterResource(Res.drawable.verified_badge),
+                                    painter = painterResource(
+                                        if (vm.walletMain.holder.getRequesterVerified()) Res.drawable.verified_badge
+                                        else Res.drawable.unknown
+                                    ),
                                     contentDescription = null,
                                     modifier = Modifier
                                         .size(MaterialTheme.typography.headlineSmall.fontSize.value.dp)

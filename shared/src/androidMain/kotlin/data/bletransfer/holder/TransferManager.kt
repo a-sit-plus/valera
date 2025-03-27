@@ -31,7 +31,7 @@ class TransferManager private constructor(private val context: Context) {
 
     fun startQrEngagement(
         updateQrCode: (String) -> Unit,
-        updateRequestedAttributes: (List<RequestedDocument>, Map<String,String>) -> Unit
+        updateRequestedAttributes: (List<RequestedDocument>, Map<String,String>, Boolean) -> Unit
     ) {
         if (hasStarted) {
             throw IllegalStateException("Transfer has already started.")
@@ -60,7 +60,8 @@ class TransferManager private constructor(private val context: Context) {
 
 
                 updateRequestedAttributes(documentRequestsList,
-                    cbor.requesterIdentity
+                    cbor.requesterIdentity,
+                    cbor.verified
                 )
             },
             onDisconnected = {

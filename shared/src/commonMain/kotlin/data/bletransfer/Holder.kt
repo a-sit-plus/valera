@@ -19,4 +19,5 @@ interface Holder {
     fun send(credentials: List<Document>, launchAfterSuccessfulSend: () -> Unit)
 
     fun getRequesterIdentity(): Map<String, String>
+    fun getRequesterVerified(): Boolean
 }

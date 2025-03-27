@@ -24,6 +24,7 @@ class AndroidHolder: Holder {
     private var transferManager: TransferManager? = null
     private var requestedAttributes: List<RequestedDocument>? = null
     private var requesterIdentity: Map<String, String> = emptyMap()
+    private var requesterVerified: Boolean = false
 
     @Composable
     override fun getRequirements(check: (Boolean) -> Unit) {
@@ -48,6 +49,10 @@ class AndroidHolder: Holder {
         return requesterIdentity
     }
 
+    override fun getRequesterVerified(): Boolean {
+        return requesterVerified
+    }
+
     override fun hold(updateQrCode: (String) -> Unit, onRequestedAttributes: () -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             while (transferManager == null) {
@@ -61,9 +66,10 @@ class AndroidHolder: Holder {
             }
 
             Napier.d(tag = TAG, message ="Transfer Manager is here")
-            transferManager?.startQrEngagement(updateQrCode) {rA, identity ->
+            transferManager?.startQrEngagement(updateQrCode) {rA, identity, verified ->
                 requestedAttributes = rA
                 requesterIdentity = identity
+                requesterVerified = verified
                 onRequestedAttributes()
             } ?: Napier.d(tag = TAG, message = "The transferManager was set to null which should not have happened")
         }
