@@ -1,5 +1,3 @@
-import java.net.URI
-
 include(":androidApp")
 include(":shared")
 

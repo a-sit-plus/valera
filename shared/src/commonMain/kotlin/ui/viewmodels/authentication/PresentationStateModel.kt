@@ -5,8 +5,6 @@ import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
 import at.asitplus.wallet.app.common.presentation.PresentmentCanceled
 import at.asitplus.wallet.app.common.presentation.PresentmentMechanism
 import at.asitplus.wallet.lib.iso.DeviceResponse
-import org.multipaz.mdoc.sessionencryption.SessionEncryption
-import org.multipaz.util.Constants
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CancellationException
@@ -18,7 +16,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
-import org.multipaz.prompt.PromptModel
+import org.multipaz.mdoc.sessionencryption.SessionEncryption
+import org.multipaz.util.Constants
+import ui.viewmodels.authentication.PresentationStateModel.DismissType.CLICK
+import ui.viewmodels.authentication.PresentationStateModel.DismissType.DOUBLE_CLICK
+import ui.viewmodels.authentication.PresentationStateModel.DismissType.LONG_CLICK
 import kotlin.coroutines.resume
 import kotlin.time.Duration.Companion.seconds
 
@@ -88,12 +90,14 @@ class PresentationStateModel {
     }
 
     private val _state = MutableStateFlow(State.IDLE)
+
     /**
      * The current state.
      */
     val state = _state.asStateFlow()
 
     private var _presentmentScope: CoroutineScope? = null
+
     /**
      * A [CoroutineScope] for the presentment process.
      *
@@ -110,6 +114,7 @@ class PresentationStateModel {
         }
 
     private var _mechanism: PresentmentMechanism? = null
+
     /**
      * The mechanism being used to communicate with the credential reader.
      */
@@ -117,6 +122,7 @@ class PresentationStateModel {
         get() = _mechanism
 
     private var _error: Throwable? = null
+
     /**
      * If presentment fails, this will be set with a [Throwable] with more information about the failure.
      */
@@ -202,7 +208,7 @@ class PresentationStateModel {
      */
     fun setCompleted(error: Throwable? = null) {
         if (_state.value == State.COMPLETED) {
-            Napier.w( "Already completed, ignoring second call")
+            Napier.w("Already completed, ignoring second call")
             return
         }
         _mechanism?.close()
@@ -235,6 +241,7 @@ class PresentationStateModel {
     }
 
     private var _dismissible = MutableStateFlow(true)
+
     /**
      * Returns whether the presentment can be dismissed/canceled.
      *
@@ -244,6 +251,7 @@ class PresentationStateModel {
     val dismissible = _dismissible.asStateFlow()
 
     private var _numRequestsServed = MutableStateFlow(0)
+
     /**
      * Number of requests served.
      */
@@ -269,16 +277,18 @@ class PresentationStateModel {
                             )
                             mdocMechanism.transport.close()
                         }
+
                         DismissType.LONG_CLICK -> {
                             mdocMechanism.transport.sendMessage(byteArrayOf())
                             mdocMechanism.transport.close()
                         }
+
                         DismissType.DOUBLE_CLICK -> {
                             mdocMechanism.transport.close()
                         }
                     }
                 } catch (error: Throwable) {
-                    Napier.e( "Caught exception closing transport", error)
+                    Napier.e("Caught exception closing transport", error)
                     error.printStackTrace()
                 }
             }
@@ -290,12 +300,17 @@ class PresentationStateModel {
         when (mechanism!!) {
             is MdocPresentmentMechanism -> {
                 Napier.i("Presenting an mdoc")
-                MdocPresenter(stateModel = this, presentationViewModel = presentationViewModel, mechanism = mechanism as MdocPresentmentMechanism).present(
+                MdocPresenter(
+                    stateModel = this,
+                    presentationViewModel = presentationViewModel,
+                    mechanism = mechanism as MdocPresentmentMechanism
+                ).present(
                     dismissible = _dismissible,
                     numRequestsServed = _numRequestsServed,
                     credentialSelected = ::credentialSelected
                 )
             }
+
             else -> throw IllegalStateException("Unsupported mechanism $mechanism")
         }
     }

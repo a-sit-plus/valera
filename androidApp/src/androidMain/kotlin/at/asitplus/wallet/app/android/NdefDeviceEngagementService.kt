@@ -7,23 +7,8 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import androidx.core.content.ContextCompat
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
-import ui.viewmodels.authentication.PresentationStateModel
 import at.asitplus.wallet.app.common.presentation.PresentmentTimeout
 import at.asitplus.wallet.app.common.presentation.TransferSettings
-import org.multipaz.cbor.DataItem
-import org.multipaz.crypto.Crypto
-import org.multipaz.crypto.EcCurve
-import org.multipaz.crypto.EcPrivateKey
-import org.multipaz.prompt.AndroidPromptModel
-import org.multipaz.mdoc.connectionmethod.MdocConnectionMethod
-import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodBle
-import org.multipaz.mdoc.nfc.MdocNfcEngagementHelper
-import org.multipaz.mdoc.transport.MdocTransportFactory
-import org.multipaz.mdoc.transport.MdocTransportOptions
-import org.multipaz.nfc.CommandApdu
-import org.multipaz.mdoc.transport.advertiseAndWait
-import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodNfc
-import org.multipaz.util.UUID
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -34,10 +19,24 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.io.bytestring.ByteString
+import org.multipaz.cbor.DataItem
 import org.multipaz.context.initializeApplication
+import org.multipaz.crypto.Crypto
+import org.multipaz.crypto.EcCurve
+import org.multipaz.crypto.EcPrivateKey
+import org.multipaz.mdoc.connectionmethod.MdocConnectionMethod
+import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodBle
+import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodNfc
+import org.multipaz.mdoc.nfc.MdocNfcEngagementHelper
 import org.multipaz.mdoc.role.MdocRole
+import org.multipaz.mdoc.transport.MdocTransportFactory
+import org.multipaz.mdoc.transport.MdocTransportOptions
+import org.multipaz.mdoc.transport.advertiseAndWait
+import org.multipaz.nfc.CommandApdu
 import org.multipaz.nfc.ResponseApdu
+import org.multipaz.util.UUID
 import ui.navigation.PRESENTATION_REQUESTED_INTENT
+import ui.viewmodels.authentication.PresentationStateModel
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -49,6 +48,7 @@ class NdefDeviceEngagementService : HostApduService() {
         private var engagement: MdocNfcEngagementHelper? = null
         private var disableEngagementJob: Job? = null
         private var listenForCancellationFromUiJob: Job? = null
+
         //val promptModel = AndroidPromptModel()
         val presentationStateModel: PresentationStateModel by lazy {
             PresentationStateModel()//.apply { setPromptModel(promptModel) }

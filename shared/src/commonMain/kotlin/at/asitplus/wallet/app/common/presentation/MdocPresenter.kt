@@ -2,22 +2,21 @@ package at.asitplus.wallet.app.common.presentation
 
 import at.asitplus.wallet.lib.iso.DeviceRequest
 import at.asitplus.wallet.lib.iso.DeviceResponse
+import io.github.aakira.napier.Napier
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import org.multipaz.cbor.Bstr
 import org.multipaz.cbor.Cbor
-import org.multipaz.cbor.CborArray
 import org.multipaz.cbor.Tagged
+import org.multipaz.cbor.buildCborArray
 import org.multipaz.documenttype.DocumentTypeRepository
 import org.multipaz.mdoc.request.DeviceRequestParser
+import org.multipaz.mdoc.role.MdocRole
 import org.multipaz.mdoc.sessionencryption.SessionEncryption
 import org.multipaz.mdoc.transport.MdocTransport
 import org.multipaz.mdoc.transport.MdocTransportClosedException
 import org.multipaz.mdoc.util.toMdocRequest
 import org.multipaz.util.Constants
-import io.github.aakira.napier.Napier
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.first
-import org.multipaz.cbor.buildCborArray
-import org.multipaz.mdoc.role.MdocRole
 import ui.viewmodels.authentication.PresentationStateModel
 import ui.viewmodels.authentication.PresentationViewModel
 

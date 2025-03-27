@@ -6,14 +6,14 @@ import android.nfc.NfcAdapter
 import android.nfc.cardemulation.CardEmulation
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import org.multipaz.context.initializeApplication
 import com.google.android.gms.identitycredentials.GetCredentialResponse
 import com.google.android.gms.identitycredentials.IntentHelper
 import io.github.aakira.napier.Napier
 import org.bouncycastle.jce.provider.BouncyCastleProvider
+import org.multipaz.context.initializeApplication
 import java.security.Security
 
-abstract class AbstractWalletActivity : AppCompatActivity()  {
+abstract class AbstractWalletActivity : AppCompatActivity() {
 
     abstract fun populateLink(intent: Intent)
 

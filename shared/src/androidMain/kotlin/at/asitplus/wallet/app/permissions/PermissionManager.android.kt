@@ -7,8 +7,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
-import at.asitplus.valera.resources.Res
-import org.jetbrains.compose.resources.getString
 
 @Composable
 actual fun RequestBluetoothPermissions(onPermissionsResult: (Boolean) -> Unit, showError: (String) -> Unit) {

@@ -1,13 +1,13 @@
 package at.asitplus.wallet.app.common.presentation
 
-import org.multipaz.cbor.DataItem
-import org.multipaz.crypto.EcPrivateKey
-import org.multipaz.mdoc.transport.MdocTransport
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import kotlinx.io.bytestring.ByteString
+import org.multipaz.cbor.DataItem
+import org.multipaz.crypto.EcPrivateKey
+import org.multipaz.mdoc.transport.MdocTransport
 import kotlin.time.Duration
 
 // Based on the identity-credential sample code
@@ -30,7 +30,7 @@ class MdocPresentmentMechanism(
     val handover: DataItem,
     val engagementDuration: Duration?,
     val allowMultipleRequests: Boolean
-): PresentmentMechanism {
+) : PresentmentMechanism {
 
     override fun close() {
         CoroutineScope(Dispatchers.IO).launch { transport.close() }
