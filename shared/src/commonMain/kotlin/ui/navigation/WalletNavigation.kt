@@ -110,18 +110,16 @@ fun WalletNavigation(walletMain: WalletMain) {
     val navController: NavHostController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
 
+    val snackbarHostState = remember { SnackbarHostState() }
+
     remember {
-        InitializeNavigationCollectors(
-            navigationService = walletMain.navigationService,
-            navController = navController
-        )
+        InitializeCollectors(walletMain, snackbarHostState, navController)
     }
 
     val onClickLogo = {
         walletMain.platformAdapter.openUrl("https://wallet.a-sit.at/")
     }
 
-    val snackbarHostState = remember { SnackbarHostState() }
     val isConditionsAccepted = walletMain.walletConfig.isConditionsAccepted.collectAsState(null)
 
     val startDestination = when (isConditionsAccepted.value) {
@@ -143,10 +141,6 @@ fun WalletNavigation(walletMain: WalletMain) {
             backStackEntry,
             onClickLogo
         )
-    }
-
-    remember {
-        InitializeServiceCollectors(walletMain, snackbarHostState)
     }
 }
 
@@ -222,7 +216,11 @@ private fun WalletNavHost(
                     )
                 }
             )
-            walletMain.intentService.readyForIntents.value = true
+            remember {
+                walletMain.scope.launch {
+                    walletMain.intentService.readyForIntents.emit(true)
+                }
+            }
         }
         composable<AuthenticationQrCodeScannerRoute> {
             val vm = remember {
@@ -585,6 +583,15 @@ fun InitializeNavigationCollectors(
             }
         }
     }
+}
+
+fun InitializeCollectors(
+    walletMain: WalletMain,
+    snackbarHostState: SnackbarHostState,
+    navController: NavHostController
+) {
+    InitializeServiceCollectors(walletMain, snackbarHostState)
+    InitializeNavigationCollectors(walletMain.navigationService, navController)
 }
 
 fun InitializeServiceCollectors(
