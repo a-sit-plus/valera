@@ -10,6 +10,6 @@ data class TransferSettings(
     val presentmentBleCentralClientModeEnabled: Boolean = true,
     val presentmentBlePeripheralServerModeEnabled: Boolean = true,
     val presentmentNfcDataTransferEnabled: Boolean = true,
-    val readerBleL2CapEnabled: Boolean = false,
+    val readerBleL2CapEnabled: Boolean = true,
     val presentmentAllowMultipleRequests: Boolean = false,
 )

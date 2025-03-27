@@ -4,7 +4,6 @@ import at.asitplus.wallet.app.common.presentation.MdocPresenter
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
 import at.asitplus.wallet.app.common.presentation.PresentmentCanceled
 import at.asitplus.wallet.app.common.presentation.PresentmentMechanism
-import at.asitplus.wallet.lib.iso.DeviceResponse
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CancellationException
@@ -22,7 +21,6 @@ import ui.viewmodels.authentication.PresentationStateModel.DismissType.CLICK
 import ui.viewmodels.authentication.PresentationStateModel.DismissType.DOUBLE_CLICK
 import ui.viewmodels.authentication.PresentationStateModel.DismissType.LONG_CLICK
 import kotlin.coroutines.resume
-import kotlin.io.encoding.Base64
 import kotlin.time.Duration.Companion.seconds
 
 // Based on the identity-credential sample code
