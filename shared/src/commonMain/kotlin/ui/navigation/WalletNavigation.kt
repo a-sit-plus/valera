@@ -31,6 +31,7 @@ import at.asitplus.openid.odcJsonSerializer
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_clear_log_successfully
 import at.asitplus.valera.resources.snackbar_reset_app_successfully
+import at.asitplus.wallet.app.common.NavigationEnum
 import at.asitplus.wallet.app.common.NavigationService
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
@@ -560,21 +561,27 @@ private fun WalletNavHost(
     }
 }
 
-fun InitializeNavigationCollectors(navigationService: NavigationService, navController: NavHostController) {
-    CoroutineScope(Dispatchers.Unconfined).launch {
-        this.launch {
-            navigationService.navigate.collect { route ->
-                navController.navigate(route)
-            }
-        }
-        this.launch {
-            navigationService.navigateBack.collect { route ->
-                navController.navigateUp()
-            }
-        }
-        this.launch {
-            navigationService.popBackStack.collect { route ->
-                navController.popBackStack(route = route, inclusive = false)
+fun InitializeNavigationCollectors(
+    navigationService: NavigationService,
+    navController: NavHostController
+) {
+    CoroutineScope(Dispatchers.Main).launch {
+        navigationService.navigate.collect { (route, method) ->
+            when (method) {
+                NavigationEnum.Navigate -> {
+                    route?.let { navController.navigate(route) }
+                }
+                NavigationEnum.NavigateBack -> {
+                    navController.navigateUp()
+                }
+                NavigationEnum.PopBackStack -> {
+                    route?.let {
+                        navController.popBackStack(
+                            route = route,
+                            inclusive = false
+                        )
+                    }
+                }
             }
         }
     }
@@ -584,7 +591,7 @@ fun InitializeServiceCollectors(
     walletMain: WalletMain,
     snackbarHostState: SnackbarHostState
 ) {
-    CoroutineScope(Dispatchers.Unconfined).launch {
+    CoroutineScope(Dispatchers.Default).launch {
         this.launch {
             walletMain.snackbarService.message.collect { (text, actionLabel, callback) ->
                 val result = snackbarHostState.showSnackbar(text, actionLabel, true)

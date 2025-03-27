@@ -7,27 +7,31 @@ import kotlinx.coroutines.launch
 import ui.navigation.routes.Route
 
 class NavigationService {
-    val navigate = MutableSharedFlow<Route>()
-    val navigateBack = MutableSharedFlow<Route?>()
-    val popBackStack = MutableSharedFlow<Route>()
-
+    val navigate = MutableSharedFlow<NavigationFlowData>()
     private val scope = CoroutineScope(Dispatchers.Main)
 
     fun navigate(route: Route) {
         scope.launch {
-            navigate.emit(route)
+            navigate.emit(NavigationFlowData(route, NavigationEnum.Navigate))
         }
     }
 
     fun navigateBack() {
         scope.launch {
-            navigateBack.emit(null)
+            navigate.emit(NavigationFlowData(null, NavigationEnum.NavigateBack))
         }
     }
 
     fun popBackStack(route: Route) {
         scope.launch {
-            popBackStack.emit(route)
+            navigate.emit(NavigationFlowData(route, NavigationEnum.PopBackStack))
         }
     }
+}
+data class NavigationFlowData(val route: Route?, val method: NavigationEnum)
+
+enum class NavigationEnum {
+    Navigate,
+    NavigateBack,
+    PopBackStack
 }
