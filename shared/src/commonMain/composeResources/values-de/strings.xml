@@ -42,7 +42,7 @@
     <string name="button_label_data_protection_policy">Datenschutzrichtlinie</string>
     <string name="button_label_share_log_file">Log-Datei teilen</string>
     <string name="button_label_reset_app">App zurücksetzen</string>
-    <string name="button_label_all_missing_data">Alle neuen Daten</string>
+    <string name="button_label_all_missing_data">Alle Daten</string>
     <string name="button_label_all_available_data">Alle bestehenden Daten</string>
     <string name="button_label_clear_log">Log löschen</string>
     <string name="button_label_provision_credential_browser">Über Browser beziehen</string>
