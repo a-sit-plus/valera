@@ -122,12 +122,12 @@ class PresentationService(
     ) {
         Napier.d("Finalizing local response")
 
-        //TODO nonce
         val presentationResult = holderAgent.createPresentation(
             request =  PresentationRequestParameters(
-                nonce = "previewRequest.nonce",
+                nonce = "",
                 audience = spName ?: "",
                 calcIsoDeviceSignature = {
+                    //TODO sign as required by specification
                     coseService.createSignedCose(
                         payload = it.encodeToByteArray(),
                         serializer = ByteArraySerializer(),
@@ -145,8 +145,7 @@ class PresentationService(
 
         val deviceResponse = when (val firstResult = presentation.presentationResults[0]) {
             is CreatePresentationResult.DeviceResponse -> firstResult.deviceResponse.serialize()
-            is CreatePresentationResult.SdJwt -> firstResult.serialized.toByteArray()
-            is CreatePresentationResult.Signed -> firstResult.serialized.toByteArray() // TODO can this work?
+            else -> throw PresentationException(IllegalStateException("Must be a device response"))
         }
 
         finishFunction(deviceResponse)
