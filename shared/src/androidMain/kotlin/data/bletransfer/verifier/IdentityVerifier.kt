@@ -29,10 +29,8 @@ import java.security.cert.CertPathValidatorException
 import java.security.cert.CertificateException
 import java.security.cert.X509Certificate
 import java.util.Locale
-import javax.security.auth.x500.X500Principal
 import kotlin.collections.component1
 import kotlin.collections.component2
-import kotlin.collections.set
 
 
 object IdentityVerifier {
@@ -46,34 +44,42 @@ object IdentityVerifier {
                               coseSigned: CoseSigned<ByteArray>,
                               sessionTranscript: ByteArray?,
                               context: Context): Boolean {
-         if (sessionTranscript == null) return false
+         try {
+             if (sessionTranscript == null) return false
 
-         val readerAuthBytes = buildReaderAuthenticationBytes(requestedDocument, sessionTranscript)
-         val data = coseSigned.prepareCoseSignatureInput(detachedPayload = readerAuthBytes)
+             val readerAuthBytes =
+                 buildReaderAuthenticationBytes(requestedDocument, sessionTranscript)
+             val data = coseSigned.prepareCoseSignatureInput(detachedPayload = readerAuthBytes)
 
-         val appCertificate = coseSigned.unprotectedHeader?.certificateChain?.let {
-             X509CertChain.fromDataItem(it.toDataItem())
-         }?.certificates?.firstOrNull() ?: return false
+             val appCertificate = coseSigned.unprotectedHeader?.certificateChain?.let {
+                 X509CertChain.fromDataItem(it.toDataItem())
+             }?.certificates?.firstOrNull() ?: return false
 
 
-         val seal = CertificateStorage.loadCertificateAndroid(context, "SEAL") ?: return false
-         requesterIdentity = parseDn(seal.javaX509Certificate.subjectX500Principal.name)
-         val location = listOfNotNull(requesterIdentity["L"], requesterIdentity["C"]).joinToString(", ")
-         if (location.isNotEmpty()) {
-             requesterIdentity = requesterIdentity + ("Loc" to location)
+             val seal = CertificateStorage.loadCertificateAndroid(context, "SEAL") ?: return false
+             requesterIdentity = parseDn(seal.javaX509Certificate.subjectX500Principal.name)
+             val location =
+                 listOfNotNull(requesterIdentity["L"], requesterIdentity["C"]).joinToString(", ")
+             if (location.isNotEmpty()) {
+                 requesterIdentity = requesterIdentity + ("Loc" to location)
+             }
+
+             verifyCertificateChain(
+                 listOf(
+                     appCertificate.javaX509Certificate,
+                     seal.javaX509Certificate
+                 )
+             )
+
+             if (!Crypto.checkSignature(
+                     appCertificate.ecPublicKey, data, Algorithm.ES256,
+                     EcSignature.fromCoseEncoded(coseSigned.wireFormat.rawSignature)
+                 )
+             ) return false
+             return isSealCertTrusted(seal.javaX509Certificate, context)
+         } catch (e: Exception) {
+             return false
          }
-
-         println("SRKIAPP:${appCertificate.javaX509Certificate.issuerX500Principal.getName(X500Principal.CANONICAL)}")
-         println("SRKISEAL:${seal.javaX509Certificate.subjectX500Principal.getName(X500Principal.CANONICAL)}")
-
-         verifyCertificateChain(listOf(appCertificate.javaX509Certificate, seal.javaX509Certificate))
-
-         if (!Crypto.checkSignature(
-                 appCertificate.ecPublicKey, data, Algorithm.ES256,
-                 EcSignature.fromCoseEncoded(coseSigned.wireFormat.rawSignature))) return false
-
-         return isSealCertTrusted(seal.javaX509Certificate, context)
-
      }
 
     private fun verifyCertificateChain(certificateChain: List<X509Certificate>) {
