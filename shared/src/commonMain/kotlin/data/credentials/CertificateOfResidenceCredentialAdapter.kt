@@ -68,7 +68,7 @@ sealed class CertificateOfResidenceCredentialAdapter : CredentialAdapter() {
                             else -> null
                         }
 
-                        else -> null
+                        else -> Attribute.fromValue(residenceAddress)
                     }
                 }
 

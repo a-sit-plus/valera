@@ -24,7 +24,7 @@ import at.asitplus.valera.resources.heading_label_add_credential_screen
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
-import ui.composables.buttons.LoadDataButton
+import ui.composables.buttons.ContinueButton
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.forms.StatefulSelectIssuingServerForm
 import ui.viewmodels.AddCredentialViewModel
@@ -66,7 +66,7 @@ fun SelectIssuingServerView(
                         modifier = Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 16.dp),
                         horizontalArrangement = Arrangement.SpaceEvenly,
                     ) {
-                        LoadDataButton(
+                        ContinueButton(
                             onClick = { vm.onSubmitServer(host.text) }
                         )
                     }

@@ -37,6 +37,7 @@ import kotlinx.serialization.json.jsonObject
 
 fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, ConstantIndex.CredentialScheme, Map<NormalizedJsonPath, Boolean>> {
     val inputDescriptor = this
+    @Suppress("DEPRECATION")
     val credentialRepresentation = when {
         inputDescriptor.format == null -> throw IllegalStateException("Format of input descriptor must be set")
         inputDescriptor.format?.sdJwt != null || inputDescriptor.format?.jwtSd != null -> SD_JWT

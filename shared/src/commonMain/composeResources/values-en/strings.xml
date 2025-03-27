@@ -42,7 +42,7 @@
     <string name="button_label_data_protection_policy">Privacy policy</string>
     <string name="button_label_share_log_file">Share Log-File</string>
     <string name="button_label_reset_app">Reset App</string>
-    <string name="button_label_all_missing_data">All new Data</string>
+    <string name="button_label_all_missing_data">All Data</string>
     <string name="button_label_all_available_data">All existing Data</string>
     <string name="button_label_clear_log">Clear Log</string>
     <string name="button_label_provision_credential_browser">Load via Browser</string>
@@ -188,7 +188,7 @@
     <string name="credential_scheme_label_tax_id">Tax ID</string>
     <string name="credential_scheme_icon_label_tax_id">TAX</string>
 
-    <string name="navigation_button_label_show_data">Show Data</string>
+    <string name="navigation_button_label_show_data">Present Data</string>
     <string name="navigation_button_label_my_data">My Data</string>
     <string name="navigation_button_label_settings">Settings</string>
 
