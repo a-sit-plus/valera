@@ -15,19 +15,15 @@ import at.asitplus.wallet.app.common.SigningService
 import at.asitplus.wallet.app.common.SigningState
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletCryptoService
-import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.domain.BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier
 import io.ktor.http.parseQueryString
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.getString
 import ui.navigation.routes.HomeScreenRoute
 import ui.navigation.routes.LoadingRoute
-import ui.navigation.routes.Route
-import ui.viewmodels.ErrorViewModel
 
 class IntentService(
     val cryptoService: WalletCryptoService,

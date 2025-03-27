@@ -25,8 +25,6 @@ import io.ktor.client.request.get
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
@@ -34,7 +32,6 @@ import kotlinx.serialization.json.jsonPrimitive
 import net.swiftzer.semver.SemVer
 import org.jetbrains.compose.resources.getString
 import ui.navigation.IntentService
-import ui.navigation.routes.Route
 
 /**
  * Main class to hold all services needed in the Compose App.
@@ -59,7 +56,7 @@ class WalletMain(
     lateinit var intentService: IntentService
     val navigationService = NavigationService()
     val errorService = ErrorService()
-    lateinit var snackbarService: SnackbarService
+    val snackbarService = SnackbarService()
     private val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
 
     init {
@@ -107,7 +104,6 @@ class WalletMain(
             httpService,
             coseService
         )
-        snackbarService = SnackbarService()
         signingService = SigningService(
             platformAdapter,
             dataStoreService,

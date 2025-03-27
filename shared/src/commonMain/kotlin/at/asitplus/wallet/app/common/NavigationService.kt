@@ -10,22 +10,16 @@ class NavigationService {
     val navigate = MutableSharedFlow<NavigationFlowData>()
     private val scope = CoroutineScope(Dispatchers.Main)
 
-    fun navigate(route: Route) {
-        scope.launch {
+    fun navigate(route: Route) = scope.launch {
             navigate.emit(NavigationFlowData(route, NavigationEnum.Navigate))
-        }
     }
 
-    fun navigateBack() {
-        scope.launch {
+    fun navigateBack() = scope.launch {
             navigate.emit(NavigationFlowData(null, NavigationEnum.NavigateBack))
-        }
     }
 
-    fun popBackStack(route: Route) {
-        scope.launch {
+    fun popBackStack(route: Route) = scope.launch {
             navigate.emit(NavigationFlowData(route, NavigationEnum.PopBackStack))
-        }
     }
 }
 data class NavigationFlowData(val route: Route?, val method: NavigationEnum)
