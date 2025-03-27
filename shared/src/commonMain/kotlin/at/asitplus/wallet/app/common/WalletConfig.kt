@@ -23,12 +23,11 @@ class WalletConfig(
         }
 
     val host: Flow<String> = config.map {
-        it.host
+        // Rewrite old, incompatible issuing service to new instance
+        if (it.host == "https://wallet.a-sit.at/m5") "https://wallet.a-sit.at/m6" else it.host
     }
 
-    val isConditionsAccepted: Flow<Boolean> = config.map {
-        it.isConditionsAccepted
-    }
+    val isConditionsAccepted: Flow<Boolean> = config.map { it.isConditionsAccepted }
 
     fun set(
         host: String? = null,
@@ -66,6 +65,6 @@ private data class ConfigData(
 )
 
 private val ConfigDataDefaults = ConfigData(
-    host = "https://wallet.a-sit.at/m5",
+    host = "https://wallet.a-sit.at/m6",
     isConditionsAccepted = false,
 )
