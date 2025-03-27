@@ -272,7 +272,7 @@ private fun WalletNavHost(
                 AuthenticationView(
                     vm = vm,
                     onError = { e ->
-                        popBackStack(HomeScreenRoute)
+                        walletMain.navigationService.popBackStack(HomeScreenRoute)
                         walletMain.errorService.emit(e)
                     }
                 )
@@ -310,7 +310,7 @@ private fun WalletNavHost(
                 AuthenticationView(
                     vm = vm,
                     onError = { e ->
-                        popBackStack(HomeScreenRoute)
+                        walletMain.navigationService.popBackStack(HomeScreenRoute)
                         walletMain.errorService.emit(e)
                     },
                 )
