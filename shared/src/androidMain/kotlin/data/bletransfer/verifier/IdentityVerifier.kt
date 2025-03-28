@@ -24,10 +24,10 @@ import org.bouncycastle.asn1.x509.DigestInfo
 import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
-import java.security.SignatureException
 import java.security.cert.CertPathValidatorException
-import java.security.cert.CertificateException
 import java.security.cert.X509Certificate
+import java.security.interfaces.ECPublicKey
+import java.util.Date
 import java.util.Locale
 import kotlin.collections.component1
 import kotlin.collections.component2
@@ -36,6 +36,7 @@ import kotlin.collections.component2
 object IdentityVerifier {
 
     private val ALLOWED_ALGOS = setOf("1.2.840.10045.4.3.2", "1.2.840.10045.4.3.3", "1.2.840.10045.4.3.4")
+    private const val KEY_USAGE_DIGITAL_SIGNATURE: Int = 0
 
     var requesterIdentity: Map<String, String> = emptyMap()
     var fingerprintTrustList: List<String> = emptyList()
@@ -55,7 +56,7 @@ object IdentityVerifier {
                  X509CertChain.fromDataItem(it.toDataItem())
              }?.certificates?.firstOrNull() ?: return false
 
-             val seal = CertificateStorage.loadCertificateAndroid(context, "SEAL") ?: return false
+             val seal = CertificateStorage.loadCertificate(context, "SEAL") ?: return false
              requesterIdentity = parseDn(seal.javaX509Certificate.subjectX500Principal.name)
              val location =
                  listOfNotNull(requesterIdentity["L"], requesterIdentity["C"]).joinToString(", ")
@@ -75,6 +76,7 @@ object IdentityVerifier {
                      EcSignature.fromCoseEncoded(coseSigned.wireFormat.rawSignature)
                  )
              ) return false
+
              return isSealCertTrusted(seal.javaX509Certificate, context)
          } catch (e: Exception) {
              return false
@@ -84,32 +86,61 @@ object IdentityVerifier {
     private fun verifyCertificateChain(certificateChain: List<X509Certificate>) {
         certificateChain.forEach {
             it.checkValidity()
-            if (!ALLOWED_ALGOS.contains(it.sigAlgOID)) {
-                throw NoSuchAlgorithmException("Unsupported signature algorithm.")
-            }
-            if (it.hasUnsupportedCriticalExtension()) {
-                throw CertificateException("Certificate has unsupported critical extensions.")
-            }
+            verifySignatureAlgo(it)
+            verifyCriticalExtensions(it)
+            certHasDigitalSignatureKeyUsage(it)
         }
 
-        certificateChain[0].verify(certificateChain[1].publicKey)
+        val appCert = certificateChain[0]
+        val sealCert = certificateChain[1]
+        wasCertificateIssuedWithinIssuerValidityPeriod(appCert.notBefore, sealCert)
+        appCert.verify(sealCert.publicKey)
+        subjectAndIssuerPrincipalMatch(appCert, sealCert)
+    }
 
-
-        val subjectFields = parseDn(certificateChain[1].subjectX500Principal.name)
-        val issuerFields = parseDn(certificateChain[0].issuerX500Principal.name)
-        if (subjectFields != issuerFields) {
-            throw CertPathValidatorException("CA subject and issued certificate issuer mismatch!");
+    private fun certHasDigitalSignatureKeyUsage(cert: X509Certificate) {
+        val keyUsage = cert.keyUsage
+        if (keyUsage == null || !keyUsage[KEY_USAGE_DIGITAL_SIGNATURE]) {
+            throw CertPathValidatorException("Digital signature key usage is not set.")
         }
+    }
 
-        val certSignUsage = 5
-        if (certificateChain[1].keyUsage == null || !certificateChain[1].keyUsage[certSignUsage]) {
-            throw SignatureException("Signing certificates key usage extension not present in SEAL!");
+    private fun subjectAndIssuerPrincipalMatch(
+        childCert: X509Certificate,
+        issuerCert: X509Certificate
+    ) {
+        val issuerInChildPrincipal: Map<String, String> = parseDn(childCert.issuerX500Principal.name)
+        val subjectInIssuerPrincipal: Map<String, String> = parseDn(issuerCert.subjectX500Principal.name)
+        if (issuerInChildPrincipal != subjectInIssuerPrincipal) {
+            throw CertPathValidatorException("subject of issuer cert and issuer of child certificate mismatch.")
         }
-        if (certificateChain[0].notBefore.before(certificateChain[1].notBefore) ||
-            certificateChain[0].notAfter.after(certificateChain[1].notAfter)) {
-            throw CertificateException("App Cert is not issued during SEAL validity period.");
-        }
+    }
 
+    private fun verifyCriticalExtensions(cert: X509Certificate) {
+        if (cert.hasUnsupportedCriticalExtension()) {
+            throw CertPathValidatorException("Certificate has unsupported critical extensions.")
+        }
+    }
+
+    private fun wasCertificateIssuedWithinIssuerValidityPeriod(
+        dateOfIssuance: Date,
+        issuerCert: X509Certificate
+    ) {
+        val beginValidity = issuerCert.notBefore
+        val endValidity = issuerCert.notAfter
+        if (beginValidity.after(dateOfIssuance) || dateOfIssuance.after(endValidity)) {
+            throw CertPathValidatorException("Certificate issued outside issuer validity period.")
+        }
+    }
+
+    private fun verifySignatureAlgo(certificate: X509Certificate) {
+        if (!ALLOWED_ALGOS.contains(certificate.sigAlgOID)) {
+            throw NoSuchAlgorithmException("Unsupported signature algorithm.")
+        }
+        val publicKey = certificate.publicKey
+        if ((publicKey as ECPublicKey).params.curve.field.fieldSize < 256) {
+            throw RuntimeException("Unsatisfactory EC key size.")
+        }
     }
 
     private fun isSealCertTrusted(sealCertificate: X509Certificate, context: Context): Boolean {

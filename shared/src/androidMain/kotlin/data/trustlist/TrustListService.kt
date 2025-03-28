@@ -10,19 +10,12 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import data.bletransfer.verifier.IdentityVerifier.fingerprintTrustList
 import io.github.aakira.napier.Napier
-import io.ktor.client.plugins.logging.ANDROID
-import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.bouncycastle.asn1.x509.AlgorithmIdentifier
-import org.bouncycastle.asn1.x509.DigestInfo
-import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder
-import java.security.MessageDigest
-import java.security.cert.X509Certificate
 
 actual fun getTrustListService(): TrustListService {
     return AndroidTrustListService()
