@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.modifier.modifierLocalOf
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
@@ -36,7 +37,6 @@ import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.CredentialSelectionGroup
 import ui.viewmodels.authentication.AuthenticationSelectionPresentationExchangeViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthenticationSelectionPresentationExchangeView(vm: AuthenticationSelectionPresentationExchangeViewModel) {
     val vm = remember { vm }
@@ -88,6 +88,7 @@ fun AuthenticationSelectionViewScaffold(
     onClickLogo: () -> Unit,
     onNavigateUp: () -> Unit,
     onNext: () -> Unit,
+    modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
     Scaffold(
@@ -132,7 +133,8 @@ fun AuthenticationSelectionViewScaffold(
                     }
                 }
             }
-        }
+        },
+        modifier = modifier,
     ) {
         Box(modifier = Modifier.padding(it)) {
             content()

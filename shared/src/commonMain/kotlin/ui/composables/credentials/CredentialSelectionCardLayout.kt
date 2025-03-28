@@ -19,13 +19,13 @@ import androidx.compose.ui.unit.dp
 fun CredentialSelectionCardLayout(
     onClick: () -> Unit,
     modifier: Modifier,
-    isSelected: MutableState<Boolean>,
+    isSelected: Boolean,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val color = mutableStateOf(Color.Unspecified)
     val borderStroke: MutableState<BorderStroke?> = mutableStateOf(null)
 
-    if (isSelected.value == true) {
+    if (isSelected) {
         color.value = MaterialTheme.colorScheme.primaryContainer
         borderStroke.value =
             BorderStroke(width = 2.dp, color = MaterialTheme.colorScheme.inversePrimary)

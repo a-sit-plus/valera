@@ -11,25 +11,54 @@ import at.asitplus.wallet.mdl.IsoSexEnum
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.double
+import kotlinx.serialization.json.longOrNull
 
 sealed interface Attribute {
     companion object {
-        fun fromValue(value: String?) = value?.let { StringAttribute(it) }
-        fun fromValue(value: Collection<String>?) = value?.let { StringListAttribute(it) }
-        fun fromValue(value: IsoIec5218Gender?) = value?.let { GenderAttribute(it) }
-        fun fromValue(value: IsoSexEnum?) = value?.let { SexAttribute(it) }
-        fun fromValue(value: Int?) = value?.let { IntegerAttribute(it) }
-        fun fromValue(value: UInt?) = value?.let { UnsignedIntegerAttribute(it) }
-        fun fromValue(value: Boolean?) = value?.let { BooleanAttribute(it) }
-        fun fromValue(value: LocalDate?) = value?.let { DateAttribute(it) }
-        fun fromValue(value: LocalDateTime?) = value?.let { DateTimeAttribute(it) }
-        fun fromValue(value: Instant?) = value?.let { InstantAttribute(it) }
-        fun fromValue(value: ImageBitmap?) = value?.let { ImageAttribute(it) }
-        fun fromValue(value: Array<DrivingPrivilege>?) = value?.let { DrivingPrivilegeAttribute(it) }
-        fun fromValue(value: CompanyActivity?) = value?.let { CompanyActivityAttribute(it) }
-        fun fromValue(value: ContactData?) = value?.let { ContactDataAttribute(it) }
-        fun fromValue(value: Address?) = value?.let { AddressAttribute(it) }
-        fun fromValue(value: Branch?) = value?.let { BranchAttribute(it) }
+        fun fromValue(value: Any?): Attribute? = if(value == null) null else  when (val it = value) {
+            is Array<*> -> fromValueList(it.toList())
+            is Collection<*> -> fromValueList(it.toList())
+
+            JsonNull -> null
+            is JsonPrimitive -> if(it.isString) {
+                fromValue(it.content)
+            } else {
+                it.booleanOrNull?.let { fromValue(it) }
+                    ?: it.longOrNull?.let { fromValue(it) }
+                    ?: it.double.let { fromValue(it) }
+            }
+
+            is String -> StringAttribute(it)
+            is IsoIec5218Gender -> GenderAttribute(it)
+            is IsoSexEnum -> SexAttribute(it)
+            is Int -> IntegerAttribute(it)
+            is UInt -> UnsignedIntegerAttribute(it)
+            is Boolean -> BooleanAttribute(it)
+            is LocalDate -> DateAttribute(it)
+            is LocalDateTime -> DateTimeAttribute(it)
+            is Instant -> InstantAttribute(it)
+            is ImageBitmap -> ImageAttribute(it)
+
+            is CompanyActivity -> CompanyActivityAttribute(it)
+            is ContactData -> ContactDataAttribute(it)
+            is Address -> AddressAttribute(it)
+            is Branch -> BranchAttribute(it)
+            else -> throw IllegalArgumentException("Unexpected attribute value type")
+        }
+
+        private fun fromValueList(valueList: List<Any?>) = runCatching {
+            StringListAttribute(valueList.map {
+                it as String
+            })
+        }.getOrNull() ?:runCatching {
+            DrivingPrivilegeAttribute(valueList.map {
+                it as DrivingPrivilege
+            }.toTypedArray())
+        }.getOrNull() ?: throw IllegalArgumentException("Unexpected attribute array value type")
     }
 
     data class StringAttribute(val value: String) : Attribute

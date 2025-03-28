@@ -273,6 +273,7 @@
     <string name="error_biometric_error_unknown">error_biometric_error_unknown</string>
     <string name="error_invalid_dcql_query">Invalid DCQL Query.</string>
     <string name="error_complex_dcql_query">Complex DCQL Queries are not yet supported.</string>
+    <string name="error_unsatisfiable_dcql_query">DCQL Query cannot be satisfied.</string>
     <string name="error_qr_code_scanning_missing_request_uri">Missing Parameter `request_uri`</string>
     <string name="error_qr_code_scanning_missing_client_metadata">Missing Parameter `metadata_uri`</string>
     <string name="error_request_uri_redirect_missing_location_header">Missing location response header</string>

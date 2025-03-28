@@ -14,6 +14,7 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
+import at.asitplus.wallet.lib.data.third_party.at.asitplus.oidc.dcql.toDefaultSubmission
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 
@@ -33,7 +34,7 @@ abstract class AuthenticationViewModel(
     abstract val transactionData: TransactionData?
 
     lateinit var matchingCredentials: CredentialMatchingResult<SubjectCredentialStore.StoreEntry>
-    lateinit var selectedCredentials: Map<String, SubjectCredentialStore.StoreEntry>
+    lateinit var defaultCredentialSelection: Map<String, SubjectCredentialStore.StoreEntry>
 
     abstract suspend fun findMatchingCredentials(): KmmResult<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>>
 
@@ -45,6 +46,7 @@ abstract class AuthenticationViewModel(
 
         when (val matching = matchingCredentials) {
             is DCQLMatchingResult -> {
+                matching.dcqlQueryResult.toDefaultSubmission()
                 // TODO: create default selection?
                 // matching fails if query is not satisfiable, so we know that selection is the next step
                 viewState = AuthenticationViewState.Selection
@@ -52,7 +54,7 @@ abstract class AuthenticationViewModel(
 
             is PresentationExchangeMatchingResult -> {
                 if (matching.matchingInputDescriptorCredentials.values.find { it.size != 1 } == null) {
-                    selectedCredentials = matching.matchingInputDescriptorCredentials.entries.associate {
+                    defaultCredentialSelection = matching.matchingInputDescriptorCredentials.entries.associate {
                         val requestId = it.key
                         val credential = it.value.keys.first()
                         requestId to credential

@@ -73,16 +73,12 @@ fun DcqlRequestPreview(
     onError: (Throwable) -> Unit,
 ) {
     if(presentationRequest.dcqlQuery.requestedCredentialSetQueries.size != 1) {
-        return onError(
-            UnsupportedOperationException(stringResource(Res.string.error_complex_dcql_query))
-        )
+        return onError(UnsupportedOperationException(stringResource(Res.string.error_complex_dcql_query)))
     }
     val credentialSetQuery = presentationRequest.dcqlQuery.requestedCredentialSetQueries.first()
 
     if(credentialSetQuery.options.size != 1) {
-        return onError(
-            UnsupportedOperationException(stringResource(Res.string.error_complex_dcql_query))
-        )
+        return onError(UnsupportedOperationException(stringResource(Res.string.error_complex_dcql_query)))
     }
     val requestedCredentialCombination = credentialSetQuery.options.first()
 

@@ -1,15 +1,15 @@
 package ui.views.authentication
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import at.asitplus.wallet.app.common.decodeImage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import ui.viewmodels.authentication.AuthenticationConsentViewModel
 import ui.viewmodels.authentication.AuthenticationNoCredentialViewModel
+import ui.viewmodels.authentication.AuthenticationSelectionDCQLView
 import ui.viewmodels.authentication.AuthenticationSelectionPresentationExchangeViewModel
 import ui.viewmodels.authentication.AuthenticationViewModel
 import ui.viewmodels.authentication.AuthenticationViewState
@@ -54,20 +54,20 @@ fun AuthenticationView(
         }
 
         AuthenticationViewState.Selection -> {
-            when(val matching = vm.matchingCredentials) {
+            when (val matching = vm.matchingCredentials) {
                 is DCQLMatchingResult -> {
-                    AuthenticationSelectionViewScaffold(
-                        onNavigateUp = vm.navigateUp,
-                        onClickLogo = {},
-                        onNext = {
-                            vm.confirmSelection(null)
+                    AuthenticationSelectionDCQLView(
+                        navigateUp = vm.navigateUp,
+                        onClickLogo = vm.onClickLogo,
+                        confirmSelection = {
+                            vm.confirmSelection(it)
                         },
-                    ) {
-                        Column {
-                            Text("Implementation of DCQL Query Credential Selection is in progress.")
-                            Text("Click continue to submit the credentials that are selected by default.")
-                        }
-                    }
+                        matchingResult = matching,
+                        decodeToBitmap = { byteArray ->
+                            vm.walletMain.platformAdapter.decodeImage(byteArray)
+                        },
+                        onError = onError,
+                    )
                 }
 
                 is PresentationExchangeMatchingResult -> {
