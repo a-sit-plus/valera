@@ -55,7 +55,6 @@ object IdentityVerifier {
                  X509CertChain.fromDataItem(it.toDataItem())
              }?.certificates?.firstOrNull() ?: return false
 
-
              val seal = CertificateStorage.loadCertificateAndroid(context, "SEAL") ?: return false
              requesterIdentity = parseDn(seal.javaX509Certificate.subjectX500Principal.name)
              val location =
