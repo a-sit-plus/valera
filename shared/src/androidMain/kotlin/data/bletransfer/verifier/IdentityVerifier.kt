@@ -122,7 +122,7 @@ object IdentityVerifier {
 
     private fun buildReaderAuthenticationBytes(requestedDocument: RequestedDocument,
                                                sessionTranscript: ByteArray) : ByteArray{
-//        TODO add requestInfo in the process
+//        TODO consider adding requestInfo in the process, currently assuming that requestInfo is null
         val itemsToRequest: Map<String, Map<String, Boolean>> = requestedDocument.nameSpaces.associate { ns ->
             ns.nameSpace to ns.attributesMap.mapKeys { it.key.value }
         }

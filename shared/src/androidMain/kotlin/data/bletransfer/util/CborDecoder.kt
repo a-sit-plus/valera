@@ -109,20 +109,6 @@ class CborDecoder {
             return
         }
 
-
-
-//        documentRequests += docRequests.map { request ->
-//            RequestedDocument(request.itemsRequest.value.docType).apply {
-//                request.itemsRequest.value.namespaces.forEach { (namespaceKey, namespaceValue) ->
-//                    addNameSpace(RequestedDocument.NameSpace(namespaceKey).apply {
-//                        namespaceValue.entries.forEach { (attributeKey, value) ->
-//                            addAttribute(DocumentAttributes.fromValue(attributeKey))
-//                        }
-//                    })
-//                }
-//            }
-//        }
-
         val requestsAndAuth: Map<RequestedDocument, CoseSigned<ByteArray>?> = docRequests.associate { request ->
             val requestedDocument = RequestedDocument(request.itemsRequest.value.docType).apply {
                 request.itemsRequest.value.namespaces.forEach { (namespaceKey, namespaceValue) ->
@@ -135,6 +121,7 @@ class CborDecoder {
             }
             requestedDocument to request.readerAuth
         }
+
         verified = true
         for ((key, value) in requestsAndAuth) {
             if (value != null) {
