@@ -59,23 +59,6 @@ sealed interface Attribute {
                 it as DrivingPrivilege
             }.toTypedArray())
         }.getOrNull() ?: throw IllegalArgumentException("Unexpected attribute array value type")
-
-//        fun fromValue(value: String?) = value?.let { StringAttribute(it) }
-//        fun fromValue(value: Collection<String>?) = value?.let { StringListAttribute(it) }
-//        fun fromValue(value: IsoIec5218Gender?) = value?.let { GenderAttribute(it) }
-//        fun fromValue(value: IsoSexEnum?) = value?.let { SexAttribute(it) }
-//        fun fromValue(value: Int?) = value?.let { IntegerAttribute(it) }
-//        fun fromValue(value: UInt?) = value?.let { UnsignedIntegerAttribute(it) }
-//        fun fromValue(value: Boolean?) = value?.let { BooleanAttribute(it) }
-//        fun fromValue(value: LocalDate?) = value?.let { DateAttribute(it) }
-//        fun fromValue(value: LocalDateTime?) = value?.let { DateTimeAttribute(it) }
-//        fun fromValue(value: Instant?) = value?.let { InstantAttribute(it) }
-//        fun fromValue(value: ImageBitmap?) = value?.let { ImageAttribute(it) }
-//        fun fromValue(value: Array<DrivingPrivilege>?) = value?.let { DrivingPrivilegeAttribute(it) }
-//        fun fromValue(value: CompanyActivity?) = value?.let { CompanyActivityAttribute(it) }
-//        fun fromValue(value: ContactData?) = value?.let { ContactDataAttribute(it) }
-//        fun fromValue(value: Address?) = value?.let { AddressAttribute(it) }
-//        fun fromValue(value: Branch?) = value?.let { BranchAttribute(it) }
     }
 
     data class StringAttribute(val value: String) : Attribute
