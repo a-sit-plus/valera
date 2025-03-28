@@ -60,7 +60,6 @@ kotlin {
                 implementation(libs.semver)
                 implementation(libs.g0dkar.qrcode.kotlin)
                 implementation(libs.gson)
-
             }
         }
 
@@ -90,6 +89,7 @@ kotlin {
                 implementation(libs.identity.android)
                 implementation(libs.identity.mdoc)
                 implementation(libs.okhttp)
+                implementation(signumCosefCatalog.indispensable.cosef)
             }
         }
 

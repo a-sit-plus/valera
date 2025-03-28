@@ -49,6 +49,7 @@ if (File("./vck/signum").isDirectory && File("./vck/signum/build.gradle.kts").ex
 }
 
 val vckVersion :String get() = settings.extra["vck.version"].toString()
+val signumVersion :String = "3.15.0"
 
 dependencyResolutionManagement {
     repositories {
@@ -66,6 +67,12 @@ dependencyResolutionManagement {
    versionCatalogs {
         create("vckCatalog") {
             from("at.asitplus.wallet:vck-versionCatalog:$vckVersion")
+        }
+    }
+
+    versionCatalogs {
+        create("signumCosefCatalog") {
+            from("at.asitplus.signum:indispensable-cosef-versionCatalog:$signumVersion")
         }
     }
 }

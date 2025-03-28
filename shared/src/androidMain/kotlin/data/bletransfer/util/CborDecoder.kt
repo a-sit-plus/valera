@@ -11,11 +11,9 @@ import at.asitplus.wallet.lib.iso.DeviceResponse
 import at.asitplus.wallet.lib.iso.IssuerSignedItem
 import at.asitplus.wallet.mdl.DrivingPrivilege
 import com.android.identity.crypto.EcPrivateKey
-import com.android.identity.crypto.javaX509Certificate
 import data.bletransfer.verifier.IdentityVerifier
 import io.github.aakira.napier.Napier
 import kotlinx.datetime.LocalDate
-import java.security.cert.X509Certificate
 
 class CborDecoder {
     private val TAG: String = "CborDecoder"
@@ -100,7 +98,6 @@ class CborDecoder {
             Napier.e(tag = TAG, throwable = it, message = "Deserialization of DeviceRequest failed")
             return
         }
-
         val docRequests = deviceRequest.docRequests
         Napier.w(tag = TAG, message =  docRequests[0].toString())
 
@@ -108,20 +105,6 @@ class CborDecoder {
             Napier.w(tag = TAG, message =  "No document found in DeviceRequest")
             return
         }
-
-
-
-//        documentRequests += docRequests.map { request ->
-//            RequestedDocument(request.itemsRequest.value.docType).apply {
-//                request.itemsRequest.value.namespaces.forEach { (namespaceKey, namespaceValue) ->
-//                    addNameSpace(RequestedDocument.NameSpace(namespaceKey).apply {
-//                        namespaceValue.entries.forEach { (attributeKey, value) ->
-//                            addAttribute(DocumentAttributes.fromValue(attributeKey))
-//                        }
-//                    })
-//                }
-//            }
-//        }
 
         val requestsAndAuth: Map<RequestedDocument, CoseSigned<ByteArray>?> = docRequests.associate { request ->
             val requestedDocument = RequestedDocument(request.itemsRequest.value.docType).apply {
@@ -135,7 +118,9 @@ class CborDecoder {
             }
             requestedDocument to request.readerAuth
         }
+
         verified = true
+        IdentityVerifier.requesterIdentity = emptyMap()
         for ((key, value) in requestsAndAuth) {
             if (value != null) {
                 if (!IdentityVerifier.verifyReaderIdentity(key, value, sessionTranscript, context)) {

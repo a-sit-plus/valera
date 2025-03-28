@@ -6,11 +6,7 @@ barcode-scanning = "17.2.0"
 biometric = "1.2.0-alpha05"
 camera-camera2 = "1.3.0"
 core-ktx = "1.12.0"
-dss-service = "6.1"
 identity = "202411.1"
-jakarta-xml-bind-api = "4.0.0"
-javax-naming-api = "1.0.0"
-jaxb-runtime = "4.0.0"
 semver = "2.0.0"
 mdl = "1.1.4"
 ida = "3.9.2"
@@ -51,14 +47,10 @@ credential-mdl = { group = "at.asitplus.wallet", name = "mobiledrivinglicence", 
 credential-eprescription = { module = "at.asitplus.wallet:eprescription", version.ref = "eprescription"}
 datastore-core-okio = { module = "androidx.datastore:datastore-core-okio", version.ref = "datastore-preferences-core" }
 datastore-preferences-core = { module = "androidx.datastore:datastore-preferences-core", version.ref = "datastore-preferences-core" }
-dss-service = { module = "eu.europa.ec.joinup.sd-dss:dss-service", version.ref = "dss-service" }
 g0dkar-qrcode-kotlin = { module = "io.github.g0dkar:qrcode-kotlin", version.ref = "qrcode-kotlin" }
 identity = { module = "com.android.identity:identity", version.ref = "identity" }
 identity-android = { module = "com.android.identity:identity-android", version.ref = "identity" }
 identity-mdoc = { module = "com.android.identity:identity-mdoc", version.ref  ="identity" }
-jakarta-xml-bind-api = { module = "jakarta.xml.bind:jakarta.xml.bind-api", version.ref = "jakarta-xml-bind-api" }
-javax-naming-api = { module = "javax.naming:javax.naming-api", version.ref = "javax-naming-api" }
-jaxb-runtime = { module = "org.glassfish.jaxb:jaxb-runtime", version.ref = "jaxb-runtime" }
 navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigation-compose" }
 play-services-identity-credentials = { module = "com.google.android.gms:play-services-identity-credentials", version.ref = "play-services-identity-credentials" }
 semver = { module = "net.swiftzer.semver:semver", version.ref = "semver" }

@@ -5,7 +5,6 @@ import android.content.Context
 import com.android.identity.cbor.Cbor
 import data.bletransfer.util.RequestedDocument
 import data.bletransfer.util.CborDecoder
-import data.storage.CertificateStorage
 import io.github.aakira.napier.Napier
 import java.security.cert.X509Certificate
 
