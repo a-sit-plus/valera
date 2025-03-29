@@ -22,11 +22,11 @@ import kotlin.time.Duration.Companion.seconds
 
 private const val CERT_STORAGE_KEY = "MB64_CERT_SELF_SIGNED"
 
-class KeystoreService(
+open class KeystoreService(
     private val dataStoreService: DataStoreService
 ) {
     private val sMut = Mutex()
-    suspend fun getSigner(): KeyMaterial {
+    open suspend fun getSigner(): KeyMaterial {
         var signer: KeyMaterial? = null
         Napier.d("getSigner")
         sMut.withLock {
@@ -39,16 +39,7 @@ class KeystoreService(
     private suspend fun initSigner(): KeyWithSelfSignedCert {
         getProvider().let { provider ->
             val forKey = provider.getSignerForKey(Configuration.KS_ALIAS).getOrElse {
-                provider.createSigningKey(alias = Configuration.KS_ALIAS, configure = {
-                    hardware {
-                        protection {
-                            timeout = USER_AUTHENTICATION_TIMEOUT_SECONDS.seconds
-                            factors {
-                                biometry = true
-                            }
-                        }
-                    }
-                }).getOrThrow()
+                provider.createSigningKey(alias = Configuration.KS_ALIAS).getOrThrow()
             }
             return KeyWithPersistentSelfSignedCert(forKey)
         }
