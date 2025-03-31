@@ -358,4 +358,14 @@
 
     <string name="warning_requested_data_not_available_heading">Angefragte Daten nicht verfügbar</string>
     <string name="warning_requested_data_not_available_content">Nicht alle angefragten Daten wurden bereits in die App geladen.\nFehlende Daten können über ID Austria nachgeladen werden.</string>
+
+    <string name="presentation_connecting_to_verifier">Verbindungsaufbau mit dem Überprüfer. Bitte warten.</string>
+    <string name="presentation_success">Die Information wurde freigegeben.</string>
+    <string name="presentation_error">Ein unbekannter Fehler ist aufgetreten.</string>
+    <string name="presentation_canceled">Die Verifizierung wurde abgebrochen.</string>
+    <string name="presentation_timeout">Zeitüberschreitung</string>
+    <string name="presentation_waiting_for_request">Warte auf den Überprüfer</string>
+    <string name="presentation_missing_permission">Ohne Berechtigung kann die Überprüfung nicht abgeschlossen werden.</string>
+    <string name="presentation_permission_required">Überprüfen, ob benötigte Berechtigungen gesetzt wurden…</string>
+    <string name="presentation_initialised">Initialisiere…</string>
 </resources>

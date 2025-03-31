@@ -31,7 +31,7 @@ class IdentityCredentialHelper(
     }
 
     private fun loadMatcher(context: Context): ByteArray {
-        val stream = context.assets.open("identitycredentialmatcher.wasm");
+        val stream = context.assets.open("identitycredentialmatcher.wasm")
         val matcher = ByteArray(stream.available())
         stream.read(matcher)
         stream.close()

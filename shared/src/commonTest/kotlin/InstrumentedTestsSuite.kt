@@ -236,7 +236,7 @@ class InstrumentedTestsSuite : FunSpec({
                     val qrCodeUrl = firstProfile?.get("url")?.jsonPrimitive?.content
                     val id = firstProfile?.get("id")?.jsonPrimitive?.content
 
-                    appLink.value = qrCodeUrl!!
+                    Globals.appLink.value = qrCodeUrl!!
 
                     waitUntilExactlyOneExists(
                         hasText(getString(Res.string.button_label_continue)),
@@ -320,14 +320,14 @@ private fun createWalletMain(platformAdapter: PlatformAdapter): WalletMain {
         cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
         dataStoreService = dummyDataStoreService,
         platformAdapter = platformAdapter,
-        scope = CoroutineScope(Dispatchers.Default),
         buildContext = BuildContext(
             buildType = BuildType.DEBUG,
             packageName = "test",
             versionCode = 0,
             versionName = "0.0.0",
             osVersion = "Unit Test"
-        )
+        ),
+        scope = CoroutineScope(Dispatchers.Default),
     )
 }
 

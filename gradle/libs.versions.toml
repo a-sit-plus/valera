@@ -1,5 +1,5 @@
 [versions]
-identity = "202411.1"
+multipaz = "0.90"
 semver = "2.0.0"
 mdl = "1.1.4"
 ida = "3.9.2"
@@ -23,9 +23,10 @@ credential-companyregistration = { module = "at.asitplus.wallet:company-registra
 credential-mdl = { group = "at.asitplus.wallet", name = "mobiledrivinglicence", version.ref = "mdl" }
 credential-healthid = { module = "at.asitplus.wallet:healthid", version.ref = "healthid" }
 credential-taxid = { group = "at.asitplus.wallet", name = "taxid", version.ref = "taxid" }
-identity = { module = "com.android.identity:identity", version.ref = "identity" }
-identity-android = { module = "com.android.identity:identity-android", version.ref = "identity" }
-play-services-identity-credentials = { module = "com.google.android.gms:play-services-identity-credentials", version.ref = "play-services-identity-credentials" }
+multipaz = { module = "org.multipaz:multipaz", version.ref = "multipaz" }
+multipaz-android-legacy = { module = "org.multipaz:multipaz-android-legacy", version.ref = "multipaz" }
+multipaz-doctypes = { module = "org.multipaz:multipaz-doctypes", version.ref = "multipaz" }
+play-services-identity-credentials = { module = "com.google.android.gms:play-services-identity-credentials", version.ref = "play-services-identity-credentials"}
 semver = { module = "net.swiftzer.semver:semver", version.ref = "semver" }
 
 [plugins]

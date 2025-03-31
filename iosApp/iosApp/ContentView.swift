@@ -30,7 +30,7 @@ struct ContentView: View {
         ComposeView()
                 .ignoresSafeArea(.keyboard) // Compose has own keyboard handler
                 .onOpenURL { url in
-                    AppKt.appLink.setValue(url.absoluteString)
+                    AppKt.Globals.appLink.setValue(url.absoluteString)
                 }
     }
 }

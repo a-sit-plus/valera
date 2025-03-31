@@ -12,12 +12,14 @@ import at.asitplus.wallet.lib.agent.PresentationException
 import at.asitplus.wallet.lib.agent.PresentationRequestParameters
 import at.asitplus.wallet.lib.agent.PresentationResponseParameters
 import at.asitplus.wallet.lib.cbor.CoseService
+import at.asitplus.wallet.lib.iso.DeviceResponse
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
+import io.ktor.utils.io.core.toByteArray
 import kotlinx.serialization.builtins.ByteArraySerializer
 import ui.viewmodels.authentication.DCQLMatchingResult
 import ui.viewmodels.authentication.PresentationExchangeMatchingResult
@@ -111,6 +113,42 @@ class PresentationService(
         }
 
         platformAdapter.prepareDCAPICredentialResponse(deviceResponse.serialize(), dcApiRequest)
+    }
+
+    suspend fun finalizeLocalPresentation(
+        credentialPresentation: CredentialPresentation.PresentationExchangePresentation,
+        finishFunction: (ByteArray) -> Unit,
+        spName: String?
+    ) {
+        Napier.d("Finalizing local response")
+
+        val presentationResult = holderAgent.createPresentation(
+            request =  PresentationRequestParameters(
+                nonce = "",
+                audience = spName ?: "",
+                calcIsoDeviceSignature = {
+                    //TODO sign as required by specification
+                    coseService.createSignedCose(
+                        payload = it.encodeToByteArray(),
+                        serializer = ByteArraySerializer(),
+                        addKeyId = false
+                    ).getOrElse { e ->
+                        Napier.w("Could not create DeviceAuth for presentation", e)
+                        throw PresentationException(e)
+                    } to null
+                },
+            ),
+            credentialPresentation = credentialPresentation,
+        )
+
+        val presentation = presentationResult.getOrThrow() as PresentationResponseParameters.PresentationExchangeParameters
+
+        val deviceResponse = when (val firstResult = presentation.presentationResults[0]) {
+            is CreatePresentationResult.DeviceResponse -> firstResult.deviceResponse.serialize()
+            else -> throw PresentationException(IllegalStateException("Must be a device response"))
+        }
+
+        finishFunction(deviceResponse)
     }
 
 }

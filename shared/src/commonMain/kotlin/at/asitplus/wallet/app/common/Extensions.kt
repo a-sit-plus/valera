@@ -39,6 +39,7 @@ fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, Const
     val inputDescriptor = this
     @Suppress("DEPRECATION")
     val credentialRepresentation = when {
+        inputDescriptor.format == null -> throw IllegalStateException("Format of input descriptor must be set")
         inputDescriptor.format?.sdJwt != null || inputDescriptor.format?.jwtSd != null -> SD_JWT
         inputDescriptor.format?.msoMdoc != null -> ISO_MDOC
         else -> PLAIN_JWT
@@ -66,7 +67,7 @@ fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, Const
         inputDescriptor = this,
         credential = scheme.toJsonElement(credentialRepresentation),
         pathAuthorizationValidator = { true },
-    ).getOrNull() ?: throw Throwable("Unable to evaluate constraints")
+    ).getOrThrow()
 
     val attributes = constraintsMap.mapNotNull {
         val path = it.value.map { it.normalizedJsonPath }.firstOrNull()

@@ -40,9 +40,11 @@ class WalletMain(
     val cryptoService: WalletCryptoService,
     private val dataStoreService: DataStoreService,
     val platformAdapter: PlatformAdapter,
-    var subjectCredentialStore: PersistentSubjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService),
+    var subjectCredentialStore: PersistentSubjectCredentialStore = PersistentSubjectCredentialStore(
+        dataStoreService
+    ),
     val buildContext: BuildContext,
-    val scope: CoroutineScope,
+    val scope: CoroutineScope
 ) {
     lateinit var walletConfig: WalletConfig
     lateinit var holderAgent: HolderAgent
@@ -187,6 +189,10 @@ class WalletMain(
     }
 }
 
+fun PlatformAdapter.decodeImage(image: ByteArray): ImageBitmap {
+    return getImageDecoder((image))
+}
+
 /**
  * Adapter to call back to native code without the need for service objects
  */
@@ -246,10 +252,6 @@ interface PlatformAdapter {
      */
     fun prepareDCAPICredentialResponse(responseJson: ByteArray, dcApiRequest: DCAPIRequest)
 
-}
-
-fun PlatformAdapter.decodeImage(image: ByteArray): ImageBitmap {
-    return getImageDecoder((image))
 }
 
 class DummyPlatformAdapter : PlatformAdapter {

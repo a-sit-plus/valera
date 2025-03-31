@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Defined in ISO 18013-5:2021 - 8.3.3.1.2:
+The Application IDentifier (AID) of the mdoc shall be 'A0 00 00 02 48 04 00'. -->
+<host-apdu-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/app_name"
+    android:requireDeviceUnlock="true"
+    android:requireDeviceScreenOn="true">
+
+    <aid-group android:description="@string/nfc_data_retrieval_service_description" android:category="other">
+        <aid-filter android:name="A0000002480400"/>
+    </aid-group>
+
+</host-apdu-service>

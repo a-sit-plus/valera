@@ -9,11 +9,12 @@ plugins {
 kotlin {
     androidTarget()
     sourceSets {
-        androidMain {
-            dependencies {
-                implementation(project(":shared"))
-                implementation(libs.play.services.identity.credentials)
-            }
+        androidMain.dependencies {
+            implementation(project(":shared"))
+            implementation(libs.play.services.identity.credentials)
+
+            implementation(libs.multipaz)
+            implementation(libs.multipaz.android.legacy)
         }
     }
 }
@@ -62,7 +63,7 @@ android {
     }
 
     packaging {
-        resources.excludes+=("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
+        resources.excludes += ("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
     }
 }
 

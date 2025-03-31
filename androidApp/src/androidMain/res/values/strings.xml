@@ -1,3 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE resources [<!ENTITY appname "Valera">]>
+
+
 <resources>
-    <string name="app_name">Valera</string>
+    <string name="app_name">&appname;</string>
+
+    <string name="nfc_ndef_engagement_service_description">&appname; Device Engagement</string>
+    <string name="nfc_data_retrieval_service_description">&appname; NFC Data Retrieval</string>
 </resources>

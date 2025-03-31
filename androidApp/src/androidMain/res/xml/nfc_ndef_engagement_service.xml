@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<host-apdu-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/app_name"
+    android:requireDeviceScreenOn="false"
+    android:requireDeviceUnlock="false">
+
+    <aid-group
+        android:category="other"
+        android:description="@string/nfc_ndef_engagement_service_description">
+        <aid-filter android:name="D2760000850101" />
+    </aid-group>
+
+</host-apdu-service>

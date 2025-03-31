@@ -4,18 +4,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import at.asitplus.wallet.app.common.DCAPIInvocationData
 import at.asitplus.wallet.app.common.WalletMain
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import ui.navigation.WalletNavigation
 import ui.theme.WalletTheme
+import ui.viewmodels.authentication.PresentationStateModel
 
 /**
- * Global variable which especially helps to channel information from swift code
- * to compose whenever the app gets called via an associated domain
+ * Global variables which help to channel information from platform-specific code
+ * to compose whenever the app gets called from native code, such as via an associated domain,
+ * NFC or the DC API
  */
-var appLink = MutableStateFlow<String?>(null)
-
+object Globals {
+    var appLink = MutableStateFlow<String?>(null)
+    var dcapiInvocationData = MutableStateFlow<DCAPIInvocationData?>(null)
+    var presentationStateModel = MutableStateFlow<PresentationStateModel?>(null)
+}
 internal object AppTestTags {
     const val rootScaffold = "rootScaffold"
 }

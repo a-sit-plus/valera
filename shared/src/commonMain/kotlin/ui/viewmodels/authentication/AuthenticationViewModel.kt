@@ -19,11 +19,11 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 
 abstract class AuthenticationViewModel(
-    val spName: String?,
+    var spName: String?,
     val spLocation: String,
     val spImage: ImageBitmap?,
     val navigateUp: () -> Unit,
-    val navigateToAuthenticationSuccessPage: () -> Unit,
+    val onAuthenticationSuccess: () -> Unit,
     val navigateToHomeScreen: () -> Unit,
     val walletMain: WalletMain,
     val onClickLogo: () -> Unit
@@ -112,7 +112,7 @@ abstract class AuthenticationViewModel(
             finalizationMethod(credentialPresentation)
         }.onSuccess {
             navigateUp()
-            navigateToAuthenticationSuccessPage()
+            onAuthenticationSuccess()
         }.onFailure {
             walletMain.errorService.emit(it)
         }

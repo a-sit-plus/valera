@@ -1,33 +1,17 @@
 package ui.composables
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import at.asitplus.catchingUnwrapped
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.openid.CredentialFormatEnum
-import at.asitplus.openid.dcql.DCQLClaimsQueryResult
-import at.asitplus.openid.dcql.DCQLCredentialClaimStructure
-import at.asitplus.openid.dcql.DCQLCredentialQuery
-import at.asitplus.openid.dcql.DCQLCredentialQueryInstance
-import at.asitplus.openid.dcql.DCQLIsoMdocClaimsQuery
-import at.asitplus.openid.dcql.DCQLIsoMdocCredentialQuery
-import at.asitplus.openid.dcql.DCQLJsonClaimsQuery
-import at.asitplus.openid.dcql.DCQLSdJwtCredentialQuery
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.error_complex_dcql_query
 import at.asitplus.valera.resources.error_invalid_dcql_query
 import at.asitplus.wallet.app.common.extractConsentData
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
-import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import org.jetbrains.compose.resources.stringResource
-import at.asitplus.wallet.app.common.thirdParty.at.asitplus.jsonpath.core.plus
-import at.asitplus.wallet.app.common.toJsonElement
-import io.ktor.http.cio.Request
-import kotlinx.serialization.json.jsonObject
 
 @Composable
 fun PresentationRequestPreview(

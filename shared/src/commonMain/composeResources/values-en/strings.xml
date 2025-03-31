@@ -349,4 +349,14 @@
 
     <string name="warning_requested_data_not_available_heading">Requested Data is not available</string>
     <string name="warning_requested_data_not_available_content">Not all requested data has already been loaded into the app.\nMissing data can be loaded via ID Austria.</string>
+
+    <string name="presentation_connecting_to_verifier">Connecting to verifier. Please wait.</string>
+    <string name="presentation_success">The information was shared</string>
+    <string name="presentation_error">Something went wrong</string>
+    <string name="presentation_canceled">Presentment was canceled</string>
+    <string name="presentation_timeout">Timed out waiting for reader</string>
+    <string name="presentation_waiting_for_request">Waiting for request</string>
+    <string name="presentation_missing_permission">Presentation cannot be finished without permissions.</string>
+    <string name="presentation_permission_required">Checking if required permissions are set…</string>
+    <string name="presentation_initialised">Presentation initialising…</string>
 </resources>
