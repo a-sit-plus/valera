@@ -13,10 +13,10 @@ import com.android.identity.cbor.toDataItem
 import com.android.identity.crypto.Algorithm
 import com.android.identity.crypto.Crypto
 import com.android.identity.crypto.EcSignature
+import com.android.identity.crypto.X509Cert
 import com.android.identity.crypto.X509CertChain
 import com.android.identity.crypto.javaX509Certificate
 import data.bletransfer.util.RequestedDocument
-import data.storage.CertificateStorage
 import data.trustlist.AndroidTrustListService
 import data.trustlist.TrustListService
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier
@@ -48,16 +48,21 @@ object IdentityVerifier {
          try {
              if (sessionTranscript == null) return false
 
+             val certList: List<X509Cert>? = coseSigned.unprotectedHeader?.certificateChain?.mapNotNull { byteArray ->
+                 try {
+                     X509Cert.fromDataItem(byteArray.toDataItem())
+                 } catch (e: Exception) {
+                     return false
+                 }
+             }
+             if (certList?.size != 2) return false
+
              val readerAuthBytes =
                  buildReaderAuthenticationBytes(requestedDocument, sessionTranscript)
              val data = coseSigned.prepareCoseSignatureInput(detachedPayload = readerAuthBytes)
 
-             val appCertificate = coseSigned.unprotectedHeader?.certificateChain?.let {
-                 X509CertChain.fromDataItem(it.toDataItem())
-             }?.certificates?.firstOrNull() ?: return false
 
-             val seal = CertificateStorage.loadCertificate(context, "SEAL") ?: return false
-             requesterIdentity = parseDn(seal.javaX509Certificate.subjectX500Principal.name)
+             requesterIdentity = parseDn(certList[1].javaX509Certificate.subjectX500Principal.name)
              val location =
                  listOfNotNull(requesterIdentity["L"], requesterIdentity["C"]).joinToString(", ")
              if (location.isNotEmpty()) {
@@ -65,19 +70,16 @@ object IdentityVerifier {
              }
 
              verifyCertificateChain(
-                 listOf(
-                     appCertificate.javaX509Certificate,
-                     seal.javaX509Certificate
-                 )
+                 certList.map { it.javaX509Certificate }
              )
 
              if (!Crypto.checkSignature(
-                     appCertificate.ecPublicKey, data, Algorithm.ES256,
+                     certList[0].ecPublicKey, data, Algorithm.ES256,
                      EcSignature.fromCoseEncoded(coseSigned.wireFormat.rawSignature)
                  )
              ) return false
 
-             return isSealCertTrusted(seal.javaX509Certificate, context)
+             return isSealCertTrusted(certList[1].javaX509Certificate, context)
          } catch (e: Exception) {
              return false
          }

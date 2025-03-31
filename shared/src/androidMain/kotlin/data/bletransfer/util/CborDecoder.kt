@@ -98,7 +98,6 @@ class CborDecoder {
             Napier.e(tag = TAG, throwable = it, message = "Deserialization of DeviceRequest failed")
             return
         }
-
         val docRequests = deviceRequest.docRequests
         Napier.w(tag = TAG, message =  docRequests[0].toString())
 
@@ -121,6 +120,7 @@ class CborDecoder {
         }
 
         verified = true
+        IdentityVerifier.requesterIdentity = emptyMap()
         for ((key, value) in requestsAndAuth) {
             if (value != null) {
                 if (!IdentityVerifier.verifyReaderIdentity(key, value, sessionTranscript, context)) {
