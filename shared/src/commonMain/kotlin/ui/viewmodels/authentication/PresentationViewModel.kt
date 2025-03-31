@@ -16,6 +16,7 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
+import at.asitplus.wallet.lib.iso.SessionTranscript
 import org.multipaz.request.MdocRequest
 
 class PresentationViewModel(
@@ -37,10 +38,14 @@ class PresentationViewModel(
     onClickLogo
 ) {
     private var descriptors: List<DifInputDescriptor> = listOf()
+    private var finishFunction: ((ByteArray) -> Unit)? = null
+    private var encodedSessionTranscript: ByteArray = ByteArray(0)
+    private var sessionTranscript: SessionTranscript? = null
 
     fun initWithMdocRequest(
         parsedRequest: List<MdocRequest>,
-        finishFunction: (ByteArray) -> Unit
+        finishFunction: (ByteArray) -> Unit,
+        encodedSessionTranscript: ByteArray,
     ) {
         val requester: MutableList<String?> = mutableListOf()
         descriptors = parsedRequest.map {
@@ -61,11 +66,11 @@ class PresentationViewModel(
             )
         }
         this.finishFunction = finishFunction
+        this.encodedSessionTranscript = encodedSessionTranscript
         check(requester.all { it == requester.firstOrNull() })
         this.spName = requester.firstOrNull { it != null }
     }
 
-    private var finishFunction: ((ByteArray) -> Unit)? = null
 
     override val transactionData: at.asitplus.openid.TransactionData? = null
 
@@ -99,7 +104,8 @@ class PresentationViewModel(
                     else -> throw IllegalArgumentException()
                 },
                 it,
-                spName
+                spName,
+                encodedSessionTranscript,
             )
         } ?: throw IllegalStateException("No finish method found")
 

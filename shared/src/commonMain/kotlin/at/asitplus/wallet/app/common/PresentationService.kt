@@ -12,15 +12,18 @@ import at.asitplus.wallet.lib.agent.PresentationException
 import at.asitplus.wallet.lib.agent.PresentationRequestParameters
 import at.asitplus.wallet.lib.agent.PresentationResponseParameters
 import at.asitplus.wallet.lib.cbor.CoseService
-import at.asitplus.wallet.lib.iso.DeviceResponse
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
+import at.asitplus.wallet.lib.iso.DeviceAuthentication
+import at.asitplus.wallet.lib.iso.SessionTranscript
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
-import io.ktor.utils.io.core.toByteArray
 import kotlinx.serialization.builtins.ByteArraySerializer
+import org.multipaz.cbor.Cbor
+import org.multipaz.cbor.RawCbor
+import org.multipaz.cbor.buildCborArray
 import ui.viewmodels.authentication.DCQLMatchingResult
 import ui.viewmodels.authentication.PresentationExchangeMatchingResult
 
@@ -92,9 +95,10 @@ class PresentationService(
             request =  PresentationRequestParameters(
                 nonce = previewRequest.nonce,
                 audience = dcApiRequest.callingOrigin ?: dcApiRequest.callingPackageName!!,
-                calcIsoDeviceSignature = {
+                calcIsoDeviceSignature = { docType, deviceNameSpaceBytes ->
+                    // TODO sign data
                     coseService.createSignedCose(
-                        payload = it.encodeToByteArray(),
+                        payload = docType.encodeToByteArray(),
                         serializer = ByteArraySerializer(),
                         addKeyId = false
                     ).getOrElse { e ->
@@ -120,7 +124,8 @@ class PresentationService(
     suspend fun finalizeLocalPresentation(
         credentialPresentation: CredentialPresentation.PresentationExchangePresentation,
         finishFunction: (ByteArray) -> Unit,
-        spName: String?
+        spName: String?,
+        encodedSessionTranscript: ByteArray,
     ) {
         Napier.d("Finalizing local response")
 
@@ -128,10 +133,17 @@ class PresentationService(
             request =  PresentationRequestParameters(
                 nonce = "",
                 audience = spName ?: "",
-                calcIsoDeviceSignature = {
+                calcIsoDeviceSignature = { docType, deviceNameSpaceBytes ->
+
                     //TODO sign as required by specification
-                    coseService.createSignedCose(
-                        payload = it.encodeToByteArray(),
+                    coseService.createSignedCoseWithDetachedPayload(
+                        payload = //deviceAuthentication.serialize()
+                        Cbor.encode(buildCborArray {
+                            add("DeviceAuthentication")
+                            add(RawCbor(encodedSessionTranscript))
+                            add(docType)
+                            add(deviceNameSpaceBytes.value.serialize())
+                        }),
                         serializer = ByteArraySerializer(),
                         addKeyId = false
                     ).getOrElse { e ->
