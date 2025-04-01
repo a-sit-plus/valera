@@ -13,8 +13,6 @@ import ui.viewmodels.SigningViewModel
 fun SigningView(
     vm: SigningViewModel
 ) {
-    val vm = remember { vm }
-
     if (vm.isLoading) {
         LoadingView()
     } else {

@@ -33,9 +33,6 @@ import ui.viewmodels.LoadCredentialViewModel
 fun LoadCredentialView(
     vm: LoadCredentialViewModel
 ) {
-
-    val vm = remember { vm }
-
     var credentialIdentifierInfo by rememberSaveable(saver = CredentialIdentifierInfoSaver().asMutableStateSaver()) {
         mutableStateOf(vm.credentialIdentifiers.first())
     }

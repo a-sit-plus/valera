@@ -14,8 +14,6 @@ import ui.views.LoadingView
 fun AuthenticationQrCodeScannerView(
     vm: AuthenticationQrCodeScannerViewModel
 ) {
-    val vm = remember { vm }
-
     if (vm.isLoading) {
         LoadingView()
     } else {

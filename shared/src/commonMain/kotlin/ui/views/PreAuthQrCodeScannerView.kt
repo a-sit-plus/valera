@@ -11,8 +11,6 @@ import ui.viewmodels.PreAuthQrCodeScannerViewModel
 fun PreAuthQrCodeScannerScreen(
     vm: PreAuthQrCodeScannerViewModel
 ) {
-    val vm = remember { vm }
-
     if (vm.isLoading) {
         LoadingView()
     } else {
