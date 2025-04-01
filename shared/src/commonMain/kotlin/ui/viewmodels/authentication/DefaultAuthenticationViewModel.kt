@@ -1,25 +1,26 @@
 package ui.viewmodels.authentication
 
 import androidx.compose.ui.graphics.ImageBitmap
+import at.asitplus.KmmResult
+import at.asitplus.catching
 import at.asitplus.catchingUnwrapped
-import at.asitplus.dif.ConstraintField
-import at.asitplus.jsonpath.core.NodeList
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.rqes.collection_entries.TransactionData
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.lib.agent.CredentialSubmission
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.CredentialPresentation
+import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
-import kotlinx.coroutines.runBlocking
 
 
 class DefaultAuthenticationViewModel(
     spName: String?,
     spLocation: String,
     spImage: ImageBitmap?,
-    val  authenticationRequest: RequestParametersFrom<AuthenticationRequestParameters>,
+    val authenticationRequest: RequestParametersFrom<AuthenticationRequestParameters>,
+    val isCrossDeviceFlow: Boolean,
     navigateUp: () -> Unit,
     navigateToAuthenticationSuccessPage: () -> Unit,
     navigateToHomeScreen: () -> Unit,
@@ -35,8 +36,15 @@ class DefaultAuthenticationViewModel(
     walletMain,
     onClickLogo
 ) {
-    override val descriptors =
-        authenticationRequest.parameters.presentationDefinition?.inputDescriptors ?: listOf()
+    override val presentationRequest: CredentialPresentationRequest
+        get() = authenticationRequest.parameters.presentationDefinition?.let {
+            CredentialPresentationRequest.PresentationExchangeRequest(
+                presentationDefinition = it,
+                fallbackFormatHolder = authenticationRequest.parameters.clientMetadata?.vpFormats,
+            )
+        } ?: authenticationRequest.parameters.dcqlQuery?.let {
+            CredentialPresentationRequest.DCQLRequest(it)
+        } ?: throw IllegalArgumentException("No credential presentation request has been found.")
 
     override val transactionData = catchingUnwrapped {
         vckJsonSerializer.decodeFromString<TransactionData>(authenticationRequest.parameters.transactionData?.first()!!)
@@ -44,16 +52,17 @@ class DefaultAuthenticationViewModel(
 
     private lateinit var preparationState: AuthorizationResponsePreparationState
 
-    override fun findMatchingCredentials(): Map<String, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, NodeList>>> {
-        preparationState =
-            runBlocking { walletMain.presentationService.getPreparationState(request = authenticationRequest) }
-        return runBlocking { walletMain.presentationService.getMatchingCredentials(preparationState = preparationState) }
+    override suspend fun findMatchingCredentials(): KmmResult<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>> = catching {
+        preparationState = walletMain.presentationService.getPreparationState(request = authenticationRequest)
+
+        return walletMain.presentationService.getMatchingCredentials(preparationState = preparationState)
     }
 
-    override suspend fun finalizationMethod(submission: Map<String, CredentialSubmission>) =
+    override suspend fun finalizationMethod(credentialPresentation: CredentialPresentation) =
         walletMain.presentationService.finalizeAuthorizationResponse(
             request = authenticationRequest,
-            preparationState = preparationState,
-            inputDescriptorSubmission = submission
+            clientMetadata = authenticationRequest.parameters.clientMetadata,
+            credentialPresentation = credentialPresentation,
+            isCrossDeviceFlow = isCrossDeviceFlow,
         )
 }

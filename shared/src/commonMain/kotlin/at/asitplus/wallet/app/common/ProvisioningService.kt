@@ -1,8 +1,9 @@
 package at.asitplus.wallet.app.common
 
-import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.wallet.lib.agent.CryptoService
+import at.asitplus.wallet.lib.agent.DefaultCryptoService
+import at.asitplus.wallet.lib.agent.EphemeralKeyWithoutCert
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
@@ -51,7 +52,7 @@ class ProvisioningService(
             clientKey = cryptoService.keyMaterial.jsonWebKey
         ).serialize()
     }
-    
+
     private val openId4VciClient = OpenId4VciClient(
         openUrlExternally = {
             this.redirectUri = redirectUrl
@@ -73,11 +74,13 @@ class ProvisioningService(
                         .also { dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT) }
                 }
         },
-        cryptoService = cryptoService,
-        holderAgent = holderAgent,
-        redirectUrl = redirectUrl,
-        clientId = clientId,
-        loadClientAttestationJwt = { clientAttestationJwt }
+        loadClientAttestationJwt = { clientAttestationJwt },
+        clientAttestationJwsService = DefaultJwsService(cryptoService),
+        oid4vciService = WalletService(clientId, redirectUrl, cryptoService),
+        storeCredential = { cred ->
+            runCatching { holderAgent.storeCredential(cred) }.onFailure { Napier.w("Could not store $cred", it)}
+        },
+        storeRefreshToken = {} // TODO store refresh tokens to refresh credentials later on
     )
 
     /**
@@ -93,14 +96,12 @@ class ProvisioningService(
     suspend fun startProvisioningWithAuthRequest(
         credentialIssuer: String,
         credentialIdentifierInfo: CredentialIdentifierInfo,
-        requestedAttributes: Set<NormalizedJsonPath>?,
     ) {
         config.set(host = credentialIssuer)
         cookieStorage.reset()
         openId4VciClient.startProvisioningWithAuthRequest(
             credentialIssuer,
             credentialIdentifierInfo,
-            requestedAttributes
         ).getOrThrow()
     }
 
@@ -145,14 +146,12 @@ class ProvisioningService(
     suspend fun loadCredentialWithOffer(
         credentialOffer: CredentialOffer,
         credentialIdentifierInfo: CredentialIdentifierInfo,
-        transactionCode: String? = null,
-        requestedAttributes: Set<NormalizedJsonPath>?
+        transactionCode: String? = null
     ) {
         openId4VciClient.loadCredentialWithOffer(
             credentialOffer,
             credentialIdentifierInfo,
-            transactionCode,
-            requestedAttributes
+            transactionCode
         ).getOrThrow()
     }
 }

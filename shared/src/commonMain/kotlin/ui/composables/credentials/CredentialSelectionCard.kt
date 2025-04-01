@@ -39,7 +39,7 @@ fun CredentialSelectionCard(
             credentialSelection.value = credential.key
                   },
         modifier = Modifier,
-        isSelected = selected
+        isSelected = selected.value
     ) {
         CredentialSelectionCardHeader(
             credential = credential.key,

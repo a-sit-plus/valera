@@ -1,7 +1,6 @@
 package at.asitplus.wallet.app.common
 
 import androidx.compose.ui.graphics.ImageBitmap
-import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_update_action
 import at.asitplus.valera.resources.snackbar_update_hint
@@ -40,9 +39,11 @@ class WalletMain(
     val cryptoService: WalletCryptoService,
     private val dataStoreService: DataStoreService,
     val platformAdapter: PlatformAdapter,
-    var subjectCredentialStore: PersistentSubjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService),
+    var subjectCredentialStore: PersistentSubjectCredentialStore = PersistentSubjectCredentialStore(
+        dataStoreService
+    ),
     val buildContext: BuildContext,
-    val scope: CoroutineScope,
+    val scope: CoroutineScope
 ) {
     lateinit var walletConfig: WalletConfig
     lateinit var holderAgent: HolderAgent
@@ -130,7 +131,6 @@ class WalletMain(
     fun startProvisioning(
         host: String,
         credentialIdentifierInfo: CredentialIdentifierInfo,
-        requestedAttributes: Set<NormalizedJsonPath>?,
         onSuccess: () -> Unit,
     ) {
         scope.launch {
@@ -138,7 +138,6 @@ class WalletMain(
                 provisioningService.startProvisioningWithAuthRequest(
                     credentialIssuer = host,
                     credentialIdentifierInfo = credentialIdentifierInfo,
-                    requestedAttributes = requestedAttributes,
                 )
                 onSuccess()
             } catch (e: Throwable) {
@@ -185,6 +184,10 @@ class WalletMain(
             }
         }
     }
+}
+
+fun PlatformAdapter.decodeImage(image: ByteArray): ImageBitmap {
+    return getImageDecoder((image))
 }
 
 /**
@@ -246,10 +249,6 @@ interface PlatformAdapter {
      */
     fun prepareDCAPICredentialResponse(responseJson: ByteArray, dcApiRequest: DCAPIRequest)
 
-}
-
-fun PlatformAdapter.decodeImage(image: ByteArray): ImageBitmap {
-    return getImageDecoder((image))
 }
 
 class DummyPlatformAdapter : PlatformAdapter {

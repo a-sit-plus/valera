@@ -42,8 +42,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import at.asitplus.catchingUnwrapped
-import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.rqes.collection_entries.TransactionData
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_location
@@ -53,15 +51,12 @@ import at.asitplus.valera.resources.heading_label_navigate_back
 import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_data_recipient
 import at.asitplus.valera.resources.section_heading_transaction_data
-import at.asitplus.wallet.app.common.extractConsentData
-import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
-import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.lib.oidvci.encodeToParameters
 import org.jetbrains.compose.resources.stringResource
-import ui.composables.ConsentAttributesSection
 import ui.composables.DataDisplaySection
 import ui.composables.LabeledText
 import ui.composables.Logo
+import ui.composables.PresentationRequestPreview
 import ui.composables.buttons.CancelButton
 import ui.composables.buttons.ContinueButton
 import ui.composables.buttons.NavigateUpButton
@@ -69,7 +64,10 @@ import ui.viewmodels.authentication.AuthenticationConsentViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AuthenticationConsentView(vm: AuthenticationConsentViewModel) {
+fun AuthenticationConsentView(
+    vm: AuthenticationConsentViewModel,
+    onError: (Throwable) -> Unit,
+) {
     val vm = remember { vm }
 
     vm.walletMain.cryptoService.onUnauthenticated = vm.navigateUp
@@ -150,22 +148,9 @@ fun AuthenticationConsentView(vm: AuthenticationConsentViewModel) {
                         ),
                         modifier = paddingModifier,
                     )
-                    vm.requests.forEach { inputDescriptor ->
-                        catchingUnwrapped { inputDescriptor.extractConsentData() }.onSuccess { (representation, scheme, attributes) ->
-                            val schemeName = scheme.uiLabel()
-                            val format = representation.name
-                            val list = attributes.mapNotNull { attribute ->
-                                val resource = scheme.getLocalization(NormalizedJsonPath(attribute.key.segments.last())) ?: return@mapNotNull null
-                                val text =
-                                    catchingUnwrapped { stringResource(resource) }.getOrElse { attribute.key.toString() }
-                                text to attribute.value
-                            }.toMap()
-                            ConsentAttributesSection(
-                                title = "$schemeName (${format})",
-                                attributes = list
-                            )
-                        }
-                    }
+
+                    PresentationRequestPreview(vm.presentationRequest, onError = onError)
+
                     if (vm.transactionData != null) {
                         Spacer(modifier = Modifier.height(32.dp))
                         TransactionDataView(vm.transactionData)

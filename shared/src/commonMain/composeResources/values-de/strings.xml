@@ -42,8 +42,6 @@
     <string name="button_label_data_protection_policy">Datenschutzrichtlinie</string>
     <string name="button_label_share_log_file">Log-Datei teilen</string>
     <string name="button_label_reset_app">App zurücksetzen</string>
-    <string name="button_label_all_missing_data">Alle neuen Daten</string>
-    <string name="button_label_all_available_data">Alle bestehenden Daten</string>
     <string name="button_label_clear_log">Log löschen</string>
     <string name="button_label_provision_credential_browser">Über Browser beziehen</string>
     <string name="button_label_provision_credential_qr">Mit QR-Code beziehen</string>
@@ -170,6 +168,7 @@
     <string name="issuing_label_scheme">Schema</string>
     <string name="issuing_label_representation">Repräsentation</string>
     <string name="issuing_label_transaction_code">Transaktionscode</string>
+    <string name="issuing_label_information">Es werden alle verfügbaren Daten geladen werden</string>
 
     <string name="credential_scheme_icon_label_mdl">mDL</string>
     <string name="credential_scheme_label_mdl">mDL</string>
@@ -271,6 +270,9 @@
     <string name="error_biometric_status_unknown">BIOMETRIC_STATUS_UNKNOWN</string>
     <string name="error_biometric_error_none_enrolled">BIOMETRIC_ERROR_NONE_ENROLLED</string>
     <string name="error_biometric_error_unknown">error_biometric_error_unknown</string>
+    <string name="error_invalid_dcql_query">Invalid DCQL Query.</string>
+    <string name="error_complex_dcql_query">Complex DCQL Queries are not yet supported.</string>
+    <string name="error_unsatisfiable_dcql_query">DCQL Query cannot be satisfied.</string>
     <string name="error_qr_code_scanning_missing_request_uri">Missing Parameter `request_uri`</string>
     <string name="error_qr_code_scanning_missing_client_metadata">Missing Parameter `metadata_uri`</string>
     <string name="error_request_uri_redirect_missing_location_header">Missing location response header</string>
@@ -331,7 +333,6 @@
     <string name="section_heading_residence_data">Meldeadresse</string>
     <string name="section_heading_residence_data_icon_text">MA</string>
     <string name="section_heading_missing_data">Neue Daten laden</string>
-    <string name="section_heading_load_data_selection">Verfügbare Daten</string>
     <string name="section_heading_available_data">Bestehende Daten aktualisieren</string>
     <string name="section_heading_transaction_data">Transaktion</string>
 
@@ -355,4 +356,14 @@
 
     <string name="warning_requested_data_not_available_heading">Angefragte Daten nicht verfügbar</string>
     <string name="warning_requested_data_not_available_content">Nicht alle angefragten Daten wurden bereits in die App geladen.\nFehlende Daten können über ID Austria nachgeladen werden.</string>
+
+    <string name="presentation_connecting_to_verifier">Verbindungsaufbau mit dem Überprüfer. Bitte warten.</string>
+    <string name="presentation_success">Die Information wurde freigegeben.</string>
+    <string name="presentation_error">Ein unbekannter Fehler ist aufgetreten.</string>
+    <string name="presentation_canceled">Die Verifizierung wurde abgebrochen.</string>
+    <string name="presentation_timeout">Zeitüberschreitung</string>
+    <string name="presentation_waiting_for_request">Warte auf den Überprüfer</string>
+    <string name="presentation_missing_permission">Ohne Berechtigung kann die Überprüfung nicht abgeschlossen werden.</string>
+    <string name="presentation_permission_required">Überprüfen, ob benötigte Berechtigungen gesetzt wurden…</string>
+    <string name="presentation_initialised">Initialisiere…</string>
 </resources>

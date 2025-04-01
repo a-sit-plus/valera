@@ -46,12 +46,18 @@ object AuthenticationQrCodeScannerRoute : Route()
 data class AuthenticationViewRoute(
     val authenticationRequestParametersFromSerialized: String, // AuthenticationRequest
     val authorizationPreparationStateSerialized: String, // AuthenticationResultParameters
-    val recipientLocation: String
+    val recipientLocation: String,
+    val isCrossDeviceFlow: Boolean,
 ) : Route()
 
 @Serializable
 data class DCAPIAuthenticationConsentRoute(
     val apiRequestSerialized: String
+) : Route()
+
+@Serializable
+data class LocalPresentationAuthenticationConsentRoute(
+    val presentationRequestSerialized: String
 ) : Route()
 
 @Serializable

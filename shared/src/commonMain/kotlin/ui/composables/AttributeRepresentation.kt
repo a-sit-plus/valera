@@ -5,6 +5,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.text.style.TextOverflow
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.dictionary_no
 import at.asitplus.valera.resources.dictionary_yes
@@ -54,6 +55,8 @@ fun AttributeRepresentation(
 ) {
     Text(
         value,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
         modifier = modifier,
     )
 }
@@ -65,6 +68,8 @@ fun AttributeRepresentation(
 ) {
     Text(
         text = value.joinToString(", "),
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
         modifier = modifier,
     )
 }
@@ -77,6 +82,8 @@ fun AttributeRepresentation(
 ) {
     Text(
         value.name,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
         modifier = modifier,
     )
 }
@@ -89,6 +96,8 @@ fun AttributeRepresentation(
     value.forEach { privilege ->
         Text(
             text = "${privilege.vehicleCategoryCode} (${privilege.issueDate} | ${privilege.expiryDate})",
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
             modifier = modifier,
         )
     }
@@ -101,6 +110,8 @@ fun AttributeRepresentation(
 ) {
     Text(
         text = "${value.naceCode} (${value.description})",
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
         modifier = modifier,
     )
 }
@@ -112,6 +123,8 @@ fun AttributeRepresentation(
 ) {
     Text(
         text = listOfNotNull(value.email, value.telephone).joinToString(", "),
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
         modifier = modifier,
     )
 }
@@ -131,6 +144,8 @@ fun AttributeRepresentation(
             value.adminUnitLevel2,
             value.adminUnitLevel1
         ).joinToString(", "),
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
         modifier = modifier,
     )
 }
@@ -145,6 +160,8 @@ fun AttributeRepresentation(
             value.name,
             value.euid,
         ).joinToString(", "),
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
         modifier = modifier,
     )
 }
@@ -167,6 +184,8 @@ fun AttributeRepresentation(
 ) {
     Text(
         value.run { "$dayOfMonth.$monthNumber.$year" },
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
         modifier = modifier,
     )
 }
@@ -178,6 +197,8 @@ fun AttributeRepresentation(
 ) {
     Text(
         value.run { "$dayOfMonth.$monthNumber.$year" },
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
         modifier = modifier,
     )
 }

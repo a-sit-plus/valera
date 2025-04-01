@@ -1,5 +1,8 @@
 package at.asitplus.wallet.app.common
 
+import at.asitplus.rqes.QtspSignatureResponse
+import at.asitplus.rqes.SignDocResponseParameters
+import at.asitplus.rqes.SignHashResponseParameters
 import at.asitplus.rqes.SignatureResponse
 import at.asitplus.rqes.collection_entries.OAuthDocumentDigest
 import at.asitplus.signum.indispensable.X509SignatureAlgorithm
@@ -188,16 +191,17 @@ internal suspend fun getDTBSR(
 internal suspend fun getFinishedDocuments(
     client: HttpClient,
     qtspHost: String,
-    signatureResponse: SignatureResponse,
+    signatureResponse: QtspSignatureResponse,
     transactionTokens: List<String>,
     qtspIdentifier: String,
 ): List<FinishedDocument> {
     val finishedDocuments = mutableListOf<FinishedDocument>()
 
     when (signatureResponse) {
-        is SignatureResponse.SignHashResponse -> {
-            require(signatureResponse.signatures.size == transactionTokens.size) { "Signature to Transaction token mismatch!" }
-            val signatures = signatureResponse.signatures.zip(transactionTokens)
+        is SignHashResponseParameters -> {
+            require(signatureResponse.signatures != null) { "Signatures are null" }
+            require(signatureResponse.signatures!!.size == transactionTokens.size) { "Signature to Transaction token mismatch!" }
+            val signatures = signatureResponse.signatures!!.zip(transactionTokens)
                 .map { (signatures, token) -> WrappedSignature(signatures, token) }
 
             for (wrappedSig in signatures) {
@@ -215,9 +219,7 @@ internal suspend fun getFinishedDocuments(
             }
         }
 
-        is SignatureResponse.SignDocResponse -> {
-            TODO("Not in potential test scope")
-        }
+        is SignDocResponseParameters -> TODO("Not in potential test scope")
     }
     return finishedDocuments
 }

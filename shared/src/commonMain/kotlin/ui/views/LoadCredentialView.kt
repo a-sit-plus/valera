@@ -40,12 +40,6 @@ fun LoadCredentialView(
         mutableStateOf(vm.credentialIdentifiers.first())
     }
 
-    var requestedAttributes by rememberSaveable(credentialIdentifierInfo) {
-        runBlocking {
-            mutableStateOf(setOf<NormalizedJsonPath>())
-        }
-    }
-
     var transactionCode by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(""))
     }
@@ -73,11 +67,9 @@ fun LoadCredentialView(
             host = vm.hostString,
             credentialIdentifierInfo = credentialIdentifierInfo,
             onChangeCredentialIdentifierInfo = { credentialIdentifierInfo = it },
-            requestedAttributes = requestedAttributes,
-            onChangeRequestedAttributes = { requestedAttributes = it },
             transactionCode = transactionCode,
             onChangeTransactionCode = { transactionCode = it },
-            onSubmit = { vm.onSubmit(credentialIdentifierInfo, requestedAttributes, transactionCode.text) },
+            onSubmit = { vm.onSubmit(credentialIdentifierInfo, transactionCode.text) },
             modifier = Modifier.padding(scaffoldPadding),
             availableIdentifiers = runBlocking { vm.credentialIdentifiers },
             showTransactionCode = vm.transactionCodeRequirements != null,

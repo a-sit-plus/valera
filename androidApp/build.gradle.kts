@@ -9,11 +9,12 @@ plugins {
 kotlin {
     androidTarget()
     sourceSets {
-        androidMain {
-            dependencies {
-                implementation(project(":shared"))
-                implementation(libs.play.services.identity.credentials)
-            }
+        androidMain.dependencies {
+            implementation(project(":shared"))
+            implementation(libs.play.services.identity.credentials)
+
+            implementation(libs.multipaz)
+            implementation(libs.multipaz.android.legacy)
         }
     }
 }
@@ -22,7 +23,6 @@ val apkSignerPassword =
     (findProperty("android.cert.password") as String?) ?: System.getenv("ANDROID_CERT_PASSWORD")
 
 android {
-    compileSdk = (findProperty("android.compileSdk") as String).toInt()
     namespace = "at.asitplus.wallet.app.android"
 
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
@@ -43,7 +43,6 @@ android {
     }
     defaultConfig {
         applicationId = "at.asitplus.wallet.app.android"
-        minSdk = (findProperty("android.minSdk") as String).toInt()
         targetSdk = (findProperty("android.targetSdk") as String).toInt()
         versionCode = (findProperty("version.code") as String).toInt()
         versionName = findProperty("version.name") as String
@@ -62,7 +61,7 @@ android {
     }
 
     packaging {
-        resources.excludes+=("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
+        resources.excludes += ("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
     }
 }
 

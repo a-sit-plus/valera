@@ -1,3 +1,12 @@
+# Release 5.5.0
+ * Android: Add NFC device engagement/retrieval and Bluetooth device retrieval mechanisms
+ * Update to VC-K 5.5.0: Use OID4VCI Draft 15 for loading credentials
+ * Please migrate to issuing service at <https://wallet.a-sit.at/m6>
+
+# Release 5.4.16
+ * Recognize DCQL queries for consent preview and show dummy consent screen
+ * Attribute Selection for DCQL queries
+
 # Release 5.4.15
  * Update Power of Representation credential, to fix `sdJwtType`
  * Update Company Registration credential, to fix `sdJwtType`
@@ -8,6 +17,7 @@
 
 # Release 5.4.13
  * Update EU PID to ARF 1.5.0
+ * Remove selecting single attributes for issuing (has been removed from OID4VCI)
 
 # Release 5.4.12
  * Replace ePrescription with HealthID

@@ -16,6 +16,7 @@ import at.asitplus.valera.resources.attribute_friendly_name_issuing_country
 import at.asitplus.valera.resources.attribute_friendly_name_issuing_jurisdiction
 import at.asitplus.valera.resources.attribute_friendly_name_lastname
 import at.asitplus.valera.resources.attribute_friendly_name_nationality
+import at.asitplus.valera.resources.attribute_friendly_name_residence_address
 import at.asitplus.valera.resources.attribute_friendly_name_residence_address_admin_unit_L1
 import at.asitplus.valera.resources.attribute_friendly_name_residence_address_admin_unit_L2
 import at.asitplus.valera.resources.attribute_friendly_name_residence_address_full_address
@@ -59,7 +60,7 @@ object CertificateOfResidenceCredentialAttributeTranslator : CredentialAttribute
                                 FULL_ADDRESS -> Res.string.attribute_friendly_name_residence_address_full_address
                                 else -> null
                             }
-                            else -> null
+                            else -> Res.string.attribute_friendly_name_residence_address
                         }
                     }
                     RESIDENCE_ADDRESS_PO_BOX -> Res.string.attribute_friendly_name_residence_address_po_box

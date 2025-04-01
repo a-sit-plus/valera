@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.modifier.modifierLocalOf
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
@@ -34,15 +35,62 @@ import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.CredentialSelectionGroup
-import ui.viewmodels.authentication.AuthenticationSelectionViewModel
+import ui.viewmodels.authentication.AuthenticationSelectionPresentationExchangeViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AuthenticationSelectionView(vm: AuthenticationSelectionViewModel) {
+fun AuthenticationSelectionPresentationExchangeView(vm: AuthenticationSelectionPresentationExchangeViewModel) {
     val vm = remember { vm }
 
     val currentRequest = vm.iterableRequests[vm.requestIterator.value]
 
+    AuthenticationSelectionViewScaffold(
+        onClickLogo = vm.onClickLogo,
+        onNavigateUp = vm.onBack,
+        onNext = vm.onNext,
+    ) {
+        LinearProgressIndicator(
+            progress = { ((1.0f / vm.requests.size) * (vm.requestIterator.value + 1)) },
+            modifier = Modifier.fillMaxWidth(),
+            drawStopIndicator = { }
+        )
+        Column(
+            modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState())
+                .padding(16.dp),
+        ) {
+            val requestId = currentRequest.first
+            val matchingCredentials = currentRequest.second
+
+            Text(
+                text = matchingCredentials.keys.first().scheme.uiLabel(),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.secondary,
+                fontWeight = FontWeight.SemiBold,
+            )
+            val attributeSelection =
+                vm.attributeSelection[requestId] ?: throw Throwable("No selection with requestId")
+            val credentialSelection =
+                vm.credentialSelection[requestId] ?: throw Throwable("No selection with requestId")
+            CredentialSelectionGroup(
+                matchingCredentials = matchingCredentials,
+                attributeSelection = attributeSelection,
+                credentialSelection = credentialSelection,
+                imageDecoder = { byteArray ->
+                    vm.walletMain.platformAdapter.decodeImage(byteArray)
+                }
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AuthenticationSelectionViewScaffold(
+    onClickLogo: () -> Unit,
+    onNavigateUp: () -> Unit,
+    onNext: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -53,11 +101,11 @@ fun AuthenticationSelectionView(vm: AuthenticationSelectionViewModel) {
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.titleLarge,
                         )
-                        Logo(onClick = vm.onClickLogo)
+                        Logo(onClick = onClickLogo)
                     }
                 },
                 navigationIcon = {
-                    NavigateUpButton(onClick = vm.onBack)
+                    NavigateUpButton(onClick = onNavigateUp)
                 },
             )
         },
@@ -79,46 +127,17 @@ fun AuthenticationSelectionView(vm: AuthenticationSelectionViewModel) {
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center,
                     ) {
-                        Button(onClick = vm.onNext) {
+                        Button(onClick = onNext) {
                             Text(stringResource(Res.string.button_label_continue))
                         }
                     }
                 }
             }
-        }
+        },
+        modifier = modifier,
     ) {
         Box(modifier = Modifier.padding(it)) {
-            LinearProgressIndicator(
-                progress = { ((1.0f / vm.requests.size) * (vm.requestIterator.value + 1)) },
-                modifier = Modifier.fillMaxWidth(),
-                drawStopIndicator = { }
-            )
-            Column(
-                modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState())
-                    .padding(16.dp),
-            ) {
-                val requestId = currentRequest.first
-                val matchingCredentials = currentRequest.second
-
-                Text(
-                    text = matchingCredentials.keys.first().scheme.uiLabel(),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.secondary,
-                    fontWeight = FontWeight.SemiBold,
-                )
-                val attributeSelection =
-                    vm.attributeSelection[requestId] ?: throw Throwable("No selection with requestId")
-                val credentialSelection =
-                    vm.credentialSelection[requestId] ?: throw Throwable("No selection with requestId")
-                CredentialSelectionGroup(
-                    matchingCredentials = matchingCredentials,
-                    attributeSelection = attributeSelection,
-                    credentialSelection = credentialSelection,
-                    imageDecoder = { byteArray ->
-                        vm.walletMain.platformAdapter.decodeImage(byteArray)
-                    }
-                )
-            }
+            content()
         }
     }
 }
