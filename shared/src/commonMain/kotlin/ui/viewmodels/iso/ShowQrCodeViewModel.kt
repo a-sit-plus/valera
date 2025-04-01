@@ -6,26 +6,27 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
-import com.android.identity.cbor.Simple
-import com.android.identity.crypto.Crypto
-import com.android.identity.crypto.EcCurve
-import com.android.identity.mdoc.connectionmethod.ConnectionMethod
-import com.android.identity.mdoc.connectionmethod.ConnectionMethodBle
-import com.android.identity.mdoc.engagement.EngagementGenerator
-import com.android.identity.mdoc.transport.MdocTransport
-import com.android.identity.mdoc.transport.MdocTransportFactory
-import com.android.identity.mdoc.transport.MdocTransportOptions
-import com.android.identity.mdoc.transport.advertiseAndWait
-import com.android.identity.util.UUID
-import com.android.identity.util.toBase64Url
 import io.github.aakira.napier.Napier
 import kotlinx.io.bytestring.ByteString
+import org.multipaz.cbor.Simple
+import org.multipaz.crypto.Crypto
+import org.multipaz.crypto.EcCurve
+import org.multipaz.mdoc.connectionmethod.MdocConnectionMethod
+import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodBle
+import org.multipaz.mdoc.engagement.EngagementGenerator
+import org.multipaz.mdoc.role.MdocRole
+import org.multipaz.mdoc.transport.MdocTransportFactory
+import org.multipaz.mdoc.transport.MdocTransportOptions
+import org.multipaz.mdoc.transport.advertiseAndWait
+import org.multipaz.util.UUID
+import org.multipaz.util.toBase64Url
 import qrcode.QRCode
-import ui.viewmodels.PresentationStateModel
+import ui.viewmodels.authentication.PresentationStateModel
 
 class ShowQrCodeViewModel(
     val walletMain: WalletMain,
     val navigateUp: () -> Unit,
+    val onClickLogo: () -> Unit,
     val onNavigateToPresentmentScreen: (PresentationStateModel) -> Unit,
 ) {
     var permission by mutableStateOf(false)
@@ -35,10 +36,10 @@ class ShowQrCodeViewModel(
         val ephemeralDeviceKey = Crypto.createEcPrivateKey(EcCurve.P256)
         lateinit var encodedDeviceEngagement: ByteString
 
-        val connectionMethods = mutableListOf<ConnectionMethod>()
+        val connectionMethods = mutableListOf<MdocConnectionMethod>()
         val bleUuid = UUID.randomUUID()
         connectionMethods.add(
-            ConnectionMethodBle(
+            MdocConnectionMethodBle(
                 supportsPeripheralServerMode = true,
                 supportsCentralClientMode = false,
                 peripheralServerModeUuid = bleUuid,
@@ -47,7 +48,7 @@ class ShowQrCodeViewModel(
         )
 
         val transport = connectionMethods.advertiseAndWait(
-            role = MdocTransport.Role.MDOC,
+            role = MdocRole.MDOC,
             transportFactory = MdocTransportFactory.Default,
             options = MdocTransportOptions(true),
             eSenderKey = ephemeralDeviceKey.publicKey,

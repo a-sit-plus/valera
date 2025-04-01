@@ -320,6 +320,7 @@ private fun WalletNavHost(
                     navigate(AuthenticationQrCodeScannerRoute)
                 },
                 onNavigateToShowQrCodeView = { navigate(ShowQrCodeRoute) },
+                onClickLogo = onClickLogo,
                 bottomBar = {
                     BottomBar(
                         navigate = navigate,
@@ -346,6 +347,7 @@ private fun WalletNavHost(
             val vm = ShowQrCodeViewModel(
                 walletMain = walletMain,
                 navigateUp = { navigateBack() },
+                onClickLogo = onClickLogo,
                 onNavigateToPresentmentScreen = {
                     presentationStateModel.value = it
                     val consentPageBuilder =
@@ -365,7 +367,7 @@ private fun WalletNavHost(
         composable<VerifyDataRoute> {
             val vm = VerifierViewModel(
                 navigateUp = { navigateBack() },
-
+                onClickLogo = onClickLogo,
             )
             VerifierView(
                 vm = vm,

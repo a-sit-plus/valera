@@ -2,49 +2,50 @@ package at.asitplus.wallet.app.common.transfer
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import com.android.identity.asn1.ASN1Integer
-import com.android.identity.cbor.Bstr
-import com.android.identity.cbor.Cbor
-import com.android.identity.cbor.CborArray
-import com.android.identity.cbor.DataItem
-import com.android.identity.cbor.Simple
-import com.android.identity.cbor.Tagged
-import com.android.identity.crypto.Crypto
-import com.android.identity.crypto.EcCurve
-import com.android.identity.crypto.EcPrivateKey
-import com.android.identity.crypto.EcPublicKey
-import com.android.identity.crypto.X500Name
-import com.android.identity.crypto.X509Cert
-import com.android.identity.crypto.X509CertChain
-import com.android.identity.mdoc.connectionmethod.ConnectionMethod
-import com.android.identity.mdoc.connectionmethod.ConnectionMethodNfc
-import com.android.identity.mdoc.engagement.EngagementParser
-import com.android.identity.mdoc.nfc.scanNfcMdocReader
-import com.android.identity.mdoc.sessionencryption.SessionEncryption
-import com.android.identity.mdoc.transport.MdocTransport
-import com.android.identity.mdoc.transport.MdocTransportClosedException
-import com.android.identity.mdoc.transport.MdocTransportFactory
-import com.android.identity.mdoc.transport.MdocTransportOptions
-import com.android.identity.mdoc.transport.NfcTransportMdocReader
-import com.android.identity.mdoc.util.MdocUtil
-import com.android.identity.nfc.scanNfcTag
-import com.android.identity.util.Constants
+import data.document.RequestDocument
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CancellableContinuation
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
-import com.android.identity.mdoc.connectionmethod.ConnectionMethodBle
-import com.android.identity.mdoc.request.DeviceRequestGenerator
-import com.android.identity.util.UUID
-import com.android.identity.util.fromBase64Url
-import data.document.RequestDocument
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.io.bytestring.ByteString
+import org.multipaz.asn1.ASN1Integer
+import org.multipaz.cbor.Bstr
+import org.multipaz.cbor.Cbor
+import org.multipaz.cbor.CborArray
+import org.multipaz.cbor.DataItem
+import org.multipaz.cbor.Simple
+import org.multipaz.cbor.Tagged
+import org.multipaz.crypto.Crypto
+import org.multipaz.crypto.EcCurve
+import org.multipaz.crypto.EcPrivateKey
+import org.multipaz.crypto.EcPublicKey
+import org.multipaz.crypto.X500Name
+import org.multipaz.crypto.X509Cert
+import org.multipaz.crypto.X509CertChain
+import org.multipaz.mdoc.connectionmethod.MdocConnectionMethod
+import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodBle
+import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodNfc
+import org.multipaz.mdoc.engagement.EngagementParser
+import org.multipaz.mdoc.nfc.scanNfcMdocReader
+import org.multipaz.mdoc.request.DeviceRequestGenerator
+import org.multipaz.mdoc.role.MdocRole
+import org.multipaz.mdoc.sessionencryption.SessionEncryption
+import org.multipaz.mdoc.transport.MdocTransport
+import org.multipaz.mdoc.transport.MdocTransportClosedException
+import org.multipaz.mdoc.transport.MdocTransportFactory
+import org.multipaz.mdoc.transport.MdocTransportOptions
+import org.multipaz.mdoc.transport.NfcTransportMdocReader
+import org.multipaz.mdoc.util.MdocUtil
+import org.multipaz.nfc.scanNfcTag
+import org.multipaz.util.Constants
+import org.multipaz.util.UUID
+import org.multipaz.util.fromBase64Url
 
 // based on identity-credential[https://github.com/openwallet-foundation-labs/identity-credential] implementation
 class TransferManager(private val scope: CoroutineScope) {
@@ -67,14 +68,14 @@ class TransferManager(private val scope: CoroutineScope) {
 
     data class ConnectionMethodPickerData(
         val showPicker: Boolean,
-        val connectionMethods: List<ConnectionMethod>,
-        val continuation: CancellableContinuation<ConnectionMethod?>,
+        val connectionMethods: List<MdocConnectionMethod>,
+        val continuation: CancellableContinuation<MdocConnectionMethod?>,
     )
 
     private suspend fun selectConnectionMethod(
-        connectionMethods: List<ConnectionMethod>,
+        connectionMethods: List<MdocConnectionMethod>,
         connectionMethodPickerData: MutableState<ConnectionMethodPickerData?>
-    ): ConnectionMethod? {
+    ): MdocConnectionMethod? {
         return suspendCancellableCoroutine { continuation ->
             connectionMethodPickerData.value = ConnectionMethodPickerData(
                 showPicker = true,
@@ -87,6 +88,7 @@ class TransferManager(private val scope: CoroutineScope) {
     private val connectionMethodPickerData = mutableStateOf<ConnectionMethodPickerData?>(null)
     private var readerTransport = mutableStateOf<MdocTransport?>(null)
     private var readerSessionEncryption = mutableStateOf<SessionEncryption?>(null)
+
 
 
     // TODO public keys taken from identity-credential, replace with our own
@@ -184,11 +186,11 @@ class TransferManager(private val scope: CoroutineScope) {
 
         scope.launch {
             try {
-                val negotiatedHandoverConnectionMethods = mutableListOf<ConnectionMethod>()
+                val negotiatedHandoverConnectionMethods = mutableListOf<MdocConnectionMethod>()
                 val bleUuid = UUID.randomUUID()
                 if (transferSettings.presentmentBleCentralClientModeEnabled) {
                     negotiatedHandoverConnectionMethods.add(
-                        ConnectionMethodBle(
+                        MdocConnectionMethodBle(
                             supportsPeripheralServerMode = false,
                             supportsCentralClientMode = true,
                             peripheralServerModeUuid = null,
@@ -198,7 +200,7 @@ class TransferManager(private val scope: CoroutineScope) {
                 }
                 if (transferSettings.presentmentBlePeripheralServerModeEnabled) {
                     negotiatedHandoverConnectionMethods.add(
-                        ConnectionMethodBle(
+                        MdocConnectionMethodBle(
                             supportsPeripheralServerMode = true,
                             supportsCentralClientMode = false,
                             peripheralServerModeUuid = bleUuid,
@@ -208,7 +210,7 @@ class TransferManager(private val scope: CoroutineScope) {
                 }
                 if (transferSettings.presentmentNfcDataTransferEnabled) {
                 negotiatedHandoverConnectionMethods.add(
-                    ConnectionMethodNfc(
+                    MdocConnectionMethodNfc(
                         commandDataFieldMaxLength = 0xffff,
                         responseDataFieldMaxLength = 0x10000
                     )
@@ -310,7 +312,7 @@ class TransferManager(private val scope: CoroutineScope) {
         encodedDeviceEngagement: ByteString,
         existingTransport: MdocTransport?,
         handover: DataItem,
-        selectConnectionMethod: suspend (connectionMethods: List<ConnectionMethod>) -> ConnectionMethod?,
+        selectConnectionMethod: suspend (connectionMethods: List<MdocConnectionMethod>) -> MdocConnectionMethod?,
         requestDocument: RequestDocument,
         setDeviceResponseBytes: (ByteArray) -> Unit
     ) {
@@ -321,7 +323,10 @@ class TransferManager(private val scope: CoroutineScope) {
         val transport = if (existingTransport != null) {
             existingTransport
         } else {
-            val connectionMethods = ConnectionMethod.disambiguate(deviceEngagement.connectionMethods)
+            val connectionMethods = MdocConnectionMethod.disambiguate(
+                deviceEngagement.connectionMethods,
+                MdocRole.MDOC_READER
+            )
             val connectionMethod = if (connectionMethods.size == 1) {
                 connectionMethods[0]
             } else {
@@ -333,7 +338,7 @@ class TransferManager(private val scope: CoroutineScope) {
             }
             val transport = MdocTransportFactory.Default.createTransport(
                 connectionMethod,
-                MdocTransport.Role.MDOC_READER,
+                MdocRole.MDOC_READER,
                 MdocTransportOptions(bleUseL2CAP = transferSettings.readerBleL2CapEnabled)
             )
             if (transport is NfcTransportMdocReader) {
@@ -390,7 +395,7 @@ class TransferManager(private val scope: CoroutineScope) {
             eReaderKey.publicKey
         )
         val sessionEncryption = SessionEncryption(
-            SessionEncryption.Role.MDOC_READER,
+            MdocRole.MDOC_READER,
             eReaderKey,
             eDeviceKey,
             encodedSessionTranscript,
@@ -398,14 +403,15 @@ class TransferManager(private val scope: CoroutineScope) {
         readerSessionEncryption.value = sessionEncryption
         this.readerSessionTranscript = encodedSessionTranscript
 
-        val encodedDeviceRequest = DeviceRequestGenerator(readerSessionTranscript!!).addDocumentRequest(
-            docType = requestDocument.docType,
-            itemsToRequest = requestDocument.itemsToRequest,
-            requestInfo = null,
-            readerKey = readerKey,
-            signatureAlgorithm = readerKey.curve.defaultSigningAlgorithm,
-            readerKeyCertificateChain = X509CertChain(listOf(readerCert, readerRootCert)),
-        ).generate()
+        val encodedDeviceRequest =
+            DeviceRequestGenerator(encodedSessionTranscript).addDocumentRequest(
+                docType = requestDocument.docType,
+                itemsToRequest = requestDocument.itemsToRequest,
+                requestInfo = null,
+                readerKey = readerKey,
+                signatureAlgorithm = readerKey.curve.defaultSigningAlgorithm,
+                readerKeyCertificateChain = X509CertChain(listOf(readerCert, readerRootCert)),
+            ).generate()
 
         try {
             transport.open(eDeviceKey)

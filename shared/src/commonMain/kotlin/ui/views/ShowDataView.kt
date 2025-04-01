@@ -40,6 +40,7 @@ import ui.composables.Logo
 fun ShowDataView(
     onNavigateToAuthenticationQrCodeScannerView: () -> Unit,
     onNavigateToShowQrCodeView: () -> Unit,
+    onClickLogo: () -> Unit,
     bottomBar: @Composable () -> Unit
 ) {
     Scaffold(
@@ -54,7 +55,7 @@ fun ShowDataView(
                         modifier = Modifier.weight(1f),
                         style = MaterialTheme.typography.headlineLarge,
                     )
-                    Logo()
+                    Logo(onClick = onClickLogo)
                     Spacer(Modifier.width(8.dp))
                 }
             })
