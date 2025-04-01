@@ -7,10 +7,14 @@ import at.asitplus.openid.AuthorizationDetails
 import at.asitplus.openid.TokenResponseParameters
 import at.asitplus.rqes.CredentialInfo
 import at.asitplus.rqes.CredentialInfoRequest
+import at.asitplus.rqes.CredentialListRequest
+import at.asitplus.rqes.CredentialListResponse
 import at.asitplus.rqes.CscCredentialListRequest
 import at.asitplus.rqes.CscCredentialListResponse
 import at.asitplus.rqes.SignatureRequestParameters
 import at.asitplus.rqes.SignatureResponse
+import at.asitplus.rqes.collection_entries.CertificateParameters
+import at.asitplus.rqes.collection_entries.CertificateParameters.CertStatus
 import at.asitplus.rqes.enums.CertificateOptions
 import at.asitplus.signum.indispensable.X509SignatureAlgorithm
 import at.asitplus.signum.indispensable.io.ByteArrayBase64Serializer
@@ -288,7 +292,7 @@ class SigningService(
     }
 
     private suspend fun getCredentialInfo(token: TokenResponseParameters): CredentialInfo {
-        val credentialListRequest = CscCredentialListRequest(
+        val credentialListRequest = CredentialListRequest(
             credentialInfo = true,
             certificates = CertificateOptions.SINGLE,
             certInfo = true,
@@ -305,7 +309,7 @@ class SigningService(
             )
             setBody(vckJsonSerializer.encodeToString(credentialListRequest))
         }
-        val credentialListResponse = credentialResponse.body<CscCredentialListResponse>()
+        val credentialListResponse = credentialResponse.body<CredentialListResponse>()
 
         if (credentialListResponse.credentialInfos.isNullOrEmpty()) {
             return getSingleCredentialInfo(token, credentialListResponse.credentialIDs.first());
@@ -333,7 +337,10 @@ class SigningService(
             )
             setBody(vckJsonSerializer.encodeToString(credentialInfoRequest))
         }
-        return credentialResponse.body<CredentialInfo>()
+        val credInfo = credentialResponse.body<CredentialInfo>();
+        return CredentialInfo(credentialId, credInfo.description, credInfo.signatureQualifier, credInfo.keyParameters,
+            credInfo.certParameters, credInfo.authParameters, credInfo.scal, credInfo.multisign)
+
     }
 
     private suspend fun createCredentialAuthRequest(): String {
