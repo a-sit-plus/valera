@@ -21,7 +21,7 @@ class Verifier(private val transferManager: TransferManager) {
         RequestBluetoothPermissions { granted -> permissionState.value = granted }
     }
 
-    fun doVerifierFlow(
+    fun startTransportWithQr(
         qrcode: String,
         requestDocument: RequestDocument,
         setDeviceResponseBytes: (ByteArray) -> Unit

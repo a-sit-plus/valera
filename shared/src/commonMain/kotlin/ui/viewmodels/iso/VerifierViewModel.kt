@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 class VerifierViewModel (
     val navigateUp: () -> Unit,
+    val onClickLogo: () -> Unit,
 //    val onSuccess: (RequestDocument, String) -> Unit,
 ) {
     private val transferManager: TransferManager by lazy { TransferManager(CoroutineScope(Dispatchers.IO)) }
@@ -22,7 +23,7 @@ class VerifierViewModel (
 
     val onFoundPayload: (String) -> Unit = { payload ->
         requestDocument.value?.let { document ->
-            verifier.doVerifierFlow(payload, document) { deviceResponseBytes ->
+            verifier.startTransportWithQr(payload, document) { deviceResponseBytes ->
                 Napier.d("deviceResponseBytes = $deviceResponseBytes", tag = "VerifierViewModel")
 //                handleResponse(deviceResponseBytes)
             }

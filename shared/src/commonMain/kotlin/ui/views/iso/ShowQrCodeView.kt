@@ -25,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_show_qr_code_screen
-import at.asitplus.valera.resources.info_text_missing_permission
 import at.asitplus.valera.resources.info_text_qr_code_loading
 import at.asitplus.wallet.app.common.decodeImage
 import kotlinx.coroutines.launch
@@ -33,8 +32,7 @@ import kotlinx.io.bytestring.ByteString
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
-import ui.permissions.RequestBluetoothPermissions
-import ui.viewmodels.PresentationStateModel
+import ui.viewmodels.authentication.PresentationStateModel
 import ui.viewmodels.iso.ShowQrCodeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,8 +41,6 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
 
     val vm = remember { vm }
     val showQrCode = remember { mutableStateOf<ByteString?>(null) }
-
-    RequestBluetoothPermissions { vm.permission = it }
 
     Scaffold(
         topBar = {
@@ -56,7 +52,7 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.headlineMedium,
                         )
-                        Logo()
+                        Logo(onClick = vm.onClickLogo)
                     }
                 },
                 navigationIcon = { NavigateUpButton(vm.navigateUp) }
@@ -68,9 +64,7 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
                 modifier = Modifier.fillMaxSize().padding(16.dp),
                 contentAlignment = Alignment.Center
             ) {
-                if (!vm.permission) {
-                    Text(stringResource(Res.string.info_text_missing_permission))
-                } else if (showQrCode.value != null && vm.presentationStateModel.state.collectAsState().value != PresentationStateModel.State.PROCESSING) {
+                if (showQrCode.value != null && vm.presentationStateModel.state.collectAsState().value != PresentationStateModel.State.PROCESSING) {
                     val qrCode = vm.createQrCode(showQrCode.value!!)
                     val imageBitmap = vm.walletMain.platformAdapter.decodeImage(qrCode)
                     Image(bitmap = imageBitmap, contentDescription = null)
@@ -79,7 +73,8 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
                         CircularProgressIndicator()
                         LaunchedEffect(showQrCode.value) {
                             vm.presentationStateModel.reset()
-                            vm.presentationStateModel.setConnecting()
+                            vm.presentationStateModel.init()
+                            vm.presentationStateModel.start(needBluetooth = true)
                             vm.presentationStateModel.presentmentScope.launch {
                                 vm.doHolderFlow(showQrCode)
                             }

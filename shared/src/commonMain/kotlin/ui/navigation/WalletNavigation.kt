@@ -1,6 +1,8 @@
 package ui.navigation
 
 import AppTestTags
+import Globals
+import Globals.presentationStateModel
 import UncorrectableErrorException
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -47,7 +49,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.getString
-import ui.views.PresentationView
 import ui.composables.BottomBar
 import ui.composables.NavigationData
 import ui.navigation.routes.AddCredentialPreAuthnRoute
@@ -75,26 +76,22 @@ import ui.navigation.routes.ShowQrCodeRoute
 import ui.navigation.routes.SigningQtspSelectionRoute
 import ui.navigation.routes.SigningRoute
 import ui.navigation.routes.VerifyDataRoute
-import ui.screens.SelectIssuingServerView
 import ui.viewmodels.AddCredentialViewModel
-import ui.viewmodels.authentication.AuthenticationQrCodeScannerViewModel
-import ui.viewmodels.authentication.AuthenticationSuccessViewModel
-import ui.viewmodels.authentication.DCAPIAuthenticationViewModel
-import ui.viewmodels.authentication.DefaultAuthenticationViewModel
 import ui.viewmodels.CredentialDetailsViewModel
 import ui.viewmodels.CredentialsViewModel
 import ui.viewmodels.LoadCredentialViewModel
 import ui.viewmodels.LogViewModel
 import ui.viewmodels.PreAuthQrCodeScannerViewModel
-import ui.viewmodels.authentication.PresentationViewModel
 import ui.viewmodels.SettingsViewModel
 import ui.viewmodels.SigningQtspSelectionViewModel
 import ui.viewmodels.SigningViewModel
+import ui.viewmodels.authentication.AuthenticationQrCodeScannerViewModel
+import ui.viewmodels.authentication.AuthenticationSuccessViewModel
+import ui.viewmodels.authentication.DCAPIAuthenticationViewModel
+import ui.viewmodels.authentication.DefaultAuthenticationViewModel
+import ui.viewmodels.authentication.PresentationViewModel
 import ui.viewmodels.iso.ShowQrCodeViewModel
 import ui.viewmodels.iso.VerifierViewModel
-import ui.views.authentication.AuthenticationQrCodeScannerView
-import ui.views.authentication.AuthenticationSuccessView
-import ui.views.authentication.AuthenticationView
 import ui.views.CredentialDetailsView
 import ui.views.CredentialsView
 import ui.views.ErrorView
@@ -105,11 +102,15 @@ import ui.views.OnboardingInformationView
 import ui.views.OnboardingStartView
 import ui.views.OnboardingTermsView
 import ui.views.PreAuthQrCodeScannerScreen
+import ui.views.PresentationView
 import ui.views.SelectIssuingServerView
 import ui.views.SettingsView
 import ui.views.ShowDataView
 import ui.views.SigningQtspSelectionView
 import ui.views.SigningView
+import ui.views.authentication.AuthenticationQrCodeScannerView
+import ui.views.authentication.AuthenticationSuccessView
+import ui.views.authentication.AuthenticationView
 import ui.views.iso.ShowQrCodeView
 import ui.views.iso.verifier.VerifierView
 
@@ -280,6 +281,7 @@ private fun WalletNavHost(
                     navigate(AuthenticationQrCodeScannerRoute)
                 },
                 onNavigateToShowQrCodeView = { navigate(ShowQrCodeRoute) },
+                onClickLogo = onClickLogo,
                 bottomBar = {
                     BottomBar(
                         navigate = navigate,
@@ -305,6 +307,7 @@ private fun WalletNavHost(
             val vm = ShowQrCodeViewModel(
                 walletMain = walletMain,
                 navigateUp = { navigateBack() },
+                onClickLogo = onClickLogo,
                 onNavigateToPresentmentScreen = {
                     presentationStateModel.value = it
                     val consentPageBuilder =
@@ -324,7 +327,7 @@ private fun WalletNavHost(
         composable<VerifyDataRoute> {
             val vm = VerifierViewModel(
                 navigateUp = { navigateBack() },
-
+                onClickLogo = onClickLogo,
             )
             VerifierView(
                 vm = vm,
@@ -414,7 +417,7 @@ private fun WalletNavHost(
             val route: LocalPresentationAuthenticationConsentRoute = backStackEntry.toRoute()
 
             val vm = try {
-                Globals.presentationStateModel.value?.let {
+                presentationStateModel.value?.let {
                     PresentationViewModel(
                         it,
                         navigateUp = { popBackStack(HomeScreenRoute) },
@@ -612,7 +615,8 @@ private fun WalletNavHost(
                     navigateBack()
                     navigate(route)
                 },
-                walletMain = walletMain
+                walletMain = walletMain,
+                onClickLogo = onClickLogo
             )
             AuthenticationQrCodeScannerView(vm)
         }

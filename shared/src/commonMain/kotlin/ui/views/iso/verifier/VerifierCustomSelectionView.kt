@@ -65,7 +65,7 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.headlineMedium,
                         )
-                        Logo()
+                        Logo(onClick = vm.onClickLogo)
                     }
                 },
                 navigationIcon = { NavigateUpButton({ vm.navigateToVerifyDataView() }) }

@@ -35,9 +35,9 @@ fun VerifierQrEngagementView(vm: VerifierViewModel) {
 
     val vm = remember { vm }
 
-    RequestBluetoothPermissions { granted ->
-        hasPermissions = granted
-    }
+//    RequestBluetoothPermissions { granted ->
+//        hasPermissions = granted
+//    }
 
     if (!hasPermissions) {
         Text(stringResource(Res.string.info_text_missing_permission))
@@ -53,7 +53,7 @@ fun VerifierQrEngagementView(vm: VerifierViewModel) {
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.headlineMedium,
                         )
-                        Logo()
+                        Logo(onClick = vm.onClickLogo)
                     }
                 },
                 navigationIcon = { NavigateUpButton(vm.navigateUp) }

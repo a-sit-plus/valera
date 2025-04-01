@@ -1,6 +1,5 @@
 package at.asitplus.wallet.app.common.presentation
 
-import at.asitplus.wallet.lib.iso.DeviceRequest
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
