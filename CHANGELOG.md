@@ -1,5 +1,5 @@
 # Release 5.5.1
- * tbd
+ * Fix DCQL Query extraction for SD-JWT
 
 # Release 5.5.0
  * Android: Add NFC device engagement/retrieval and Bluetooth device retrieval mechanisms

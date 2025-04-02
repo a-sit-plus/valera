@@ -84,26 +84,18 @@ fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, Const
 }
 
 fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, ConstantIndex.CredentialScheme, List<NormalizedJsonPath>> {
-    val representation = when(format) {
+    val representation = when (format) {
         CredentialFormatEnum.VC_SD_JWT,
         CredentialFormatEnum.DC_SD_JWT -> SD_JWT
 
-        CredentialFormatEnum.MSO_MDOC ->  ISO_MDOC
-
+        CredentialFormatEnum.MSO_MDOC -> ISO_MDOC
         else -> PLAIN_JWT
     }
 
-    val scheme = when(this) {
-        is DCQLIsoMdocCredentialQuery -> meta?.doctypeValue?.let {
-            AttributeIndex.resolveIsoDoctype(it)
-        }
-
+    val scheme = when (this) {
+        is DCQLIsoMdocCredentialQuery -> meta?.doctypeValue?.let { AttributeIndex.resolveIsoDoctype(it) }
         is DCQLSdJwtCredentialQuery -> meta?.vctValues?.let {
-            if (it.size != 1) {
-                null
-            } else {
-                AttributeIndex.resolveSdJwtAttributeType(it.first())
-            }
+            if (it.size == 1) AttributeIndex.resolveSdJwtAttributeType(it.first()) else null
         }
 
         is DCQLCredentialQueryInstance -> null
@@ -113,11 +105,9 @@ fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, C
 
     val match = executeCredentialQueryAgainstCredential(
         credential = scheme,
-        credentialFormatExtractor = {
-            format
-        },
+        credentialFormatExtractor = { format },
         credentialClaimStructureExtractor = {
-            when(representation) {
+            when (representation) {
                 PLAIN_JWT,
                 SD_JWT -> DCQLCredentialClaimStructure.JsonBasedStructure(schemeJsonElement)
 
@@ -134,15 +124,15 @@ fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, C
             scheme.isoDocType ?: throw IllegalArgumentException("Credential is not an MDOC")
         },
         sdJwtCredentialTypeExtractor = {
-            scheme.isoDocType ?: throw IllegalArgumentException("Credential is not an SD-JWT")
+            scheme.sdJwtType ?: throw IllegalArgumentException("Credential is not an SD-JWT")
         },
     ).getOrNull() ?: throw Throwable("Unable to evaluate credential matching result.")
 
-    val normalizedJsonPaths = when(match) {
+    val normalizedJsonPaths = when (match) {
         DCQLCredentialQueryMatchingResult.AllClaimsMatchingResult -> schemeJsonElement.normalizedJsonPaths()
 
         is DCQLCredentialQueryMatchingResult.ClaimsQueryResults -> match.claimsQueryResults.flatMap {
-            when(it) {
+            when (it) {
                 is DCQLClaimsQueryResult.IsoMdocResult -> listOf(NormalizedJsonPath() + it.namespace + it.claimName)
                 is DCQLClaimsQueryResult.JsonResult -> it.nodeList.map {
                     it.normalizedJsonPath
