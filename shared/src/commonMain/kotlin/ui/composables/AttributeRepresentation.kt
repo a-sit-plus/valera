@@ -37,6 +37,7 @@ fun AttributeRepresentation(attribute: Attribute) {
         is Attribute.SexAttribute -> AttributeRepresentation(attribute.value.name)
         is Attribute.ImageAttribute -> AttributeRepresentation(attribute.value)
         is Attribute.IntegerAttribute -> AttributeRepresentation(attribute.value.toString())
+        is Attribute.LongAttribute -> AttributeRepresentation(attribute.value.toString())
         is Attribute.UnsignedIntegerAttribute -> AttributeRepresentation(attribute.value.toString())
         // TODO Nice representation for driving privileges
         is Attribute.DrivingPrivilegeAttribute -> AttributeRepresentation(attribute.value)

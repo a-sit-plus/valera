@@ -17,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import at.asitplus.openid.dcql.DCQLCredentialQueryIdentifier
-import at.asitplus.openid.dcql.DCQLCredentialSetQuery
 import at.asitplus.openid.dcql.DCQLCredentialSubmissionOption
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.error_complex_dcql_query
@@ -55,11 +54,10 @@ fun AuthenticationSelectionDCQLView(
     AuthenticationSelectionDCQLView(
         navigateUp = navigateUp,
         onClickLogo = onClickLogo,
-        onError = onError,
-        confirmSelection = confirmSelection,
-        credentialSetQuery = credentialSetQuery,
-        credentialQueryOptions = submissionOptions,
         decodeToBitmap = decodeToBitmap,
+        confirmSelection = confirmSelection,
+        credentialQueryOptions = submissionOptions,
+        onError = onError,
         modifier = modifier,
     )
 }
@@ -70,7 +68,6 @@ fun AuthenticationSelectionDCQLView(
     onClickLogo: () -> Unit,
     decodeToBitmap: (ByteArray) -> ImageBitmap?,
     confirmSelection: (CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>?) -> Unit,
-    credentialSetQuery: DCQLCredentialSetQuery,
     credentialQueryOptions: Map<DCQLCredentialQueryIdentifier, List<DCQLCredentialSubmissionOption<SubjectCredentialStore.StoreEntry>>>,
     onError: (Throwable) -> Unit,
     modifier: Modifier = Modifier,
@@ -113,7 +110,7 @@ fun AuthenticationSelectionDCQLView(
             val nextUnselected = selectedOptions.indexOfFirst {
                 it == null
             }
-            if(nextUnselected == -1) {
+            if (nextUnselected == -1) {
                 confirmSelection(
                     DCQLCredentialSubmissions(
                         credentialQuerySubmissions = selectedOptions.mapIndexed { index, it ->
@@ -137,9 +134,7 @@ fun AuthenticationSelectionDCQLView(
         )
         DCQLCredentialQuerySubmissionSelection(
             selectionOptions = currentlyAvailableOptions,
-            onChangeSelection = {
-                currentlySelectedOptionIndex = it
-            },
+            onChangeSelection = { currentlySelectedOptionIndex = it },
             decodeToBitmap = decodeToBitmap,
             currentlySelectedOptionIndex = currentlySelectedOptionIndex,
             modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState())
