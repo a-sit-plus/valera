@@ -42,13 +42,15 @@ open class KeystoreService(
             val existingKey: Signer.WithAlias? =
                 provider.getSignerForKey(Configuration.KS_ALIAS).fold(
                     onSuccess = {
+                        Napier.i { "Got a key!" }
                         //TODO: how to let the user know that the key will be invalidated????
+                        //TODO: how to delete all credentials?
                         if (!it.mayRequireUserUnlock) {
                             Napier.w { "Your existing binding key will be invalidated and a new one will be created!" }
                             provider.deleteSigningKey(it.alias)
                                 .onFailure { throw IllegalStateException("Could not delete outdated key!") }
                             null
-                        } else it
+                        } else it.also { Napier.i { "Key is requires biometric auth already" } }
                     },
                     onFailure = { null })
 
