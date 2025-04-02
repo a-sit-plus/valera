@@ -19,12 +19,11 @@ import kotlinx.serialization.json.longOrNull
 
 sealed interface Attribute {
     companion object {
-        fun fromValue(value: Any?): Attribute? = if(value == null) null else  when (val it = value) {
+        fun fromValue(value: Any?): Attribute? = if (value == null) null else when (val it = value) {
             is Array<*> -> fromValueList(it.toList())
             is Collection<*> -> fromValueList(it.toList())
-
-            JsonNull -> null
-            is JsonPrimitive -> if(it.isString) {
+            is JsonNull -> null
+            is JsonPrimitive -> if (it.isString) {
                 fromValue(it.content)
             } else {
                 it.booleanOrNull?.let { fromValue(it) }
@@ -51,14 +50,12 @@ sealed interface Attribute {
         }
 
         private fun fromValueList(valueList: List<Any?>) = runCatching {
-            StringListAttribute(valueList.map {
-                it as String
-            })
-        }.getOrNull() ?:runCatching {
-            DrivingPrivilegeAttribute(valueList.map {
-                it as DrivingPrivilege
-            }.toTypedArray())
-        }.getOrNull() ?: throw IllegalArgumentException("Unexpected attribute array value type")
+            StringListAttribute(valueList.map { it as String })
+        }.getOrNull() ?: runCatching {
+            DrivingPrivilegeAttribute(valueList.map { it as DrivingPrivilege }.toTypedArray())
+        }.getOrNull() ?: runCatching {
+            StringListAttribute(valueList.map { (it as JsonPrimitive).content })
+        }.getOrNull() ?: StringListAttribute(valueList.map { it.toString() })
     }
 
     data class StringAttribute(val value: String) : Attribute
