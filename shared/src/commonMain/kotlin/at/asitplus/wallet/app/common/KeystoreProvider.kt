@@ -3,8 +3,10 @@ package at.asitplus.wallet.app.common
 import at.asitplus.io.MultiBase
 import at.asitplus.io.multibaseDecode
 import at.asitplus.io.multibaseEncode
+import at.asitplus.signum.indispensable.ECCurve
 import at.asitplus.signum.indispensable.equalsCryptographically
 import at.asitplus.signum.indispensable.pki.X509Certificate
+import at.asitplus.signum.supreme.dsl.PREFERRED
 import at.asitplus.signum.supreme.os.SigningProvider
 import at.asitplus.signum.supreme.sign.Signer
 import at.asitplus.wallet.lib.agent.KeyMaterial
@@ -16,6 +18,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.time.Duration.Companion.seconds
 
 
 private const val CERT_STORAGE_KEY = "MB64_CERT_SELF_SIGNED"
@@ -36,9 +39,32 @@ open class KeystoreService(
 
     private suspend fun initSigner(): KeyWithSelfSignedCert {
         getProvider().let { provider ->
-            val forKey = provider.getSignerForKey(Configuration.KS_ALIAS).getOrElse {
-                provider.createSigningKey(alias = Configuration.KS_ALIAS).getOrThrow()
-            }
+            val existingKey: Signer.WithAlias? =
+                provider.getSignerForKey(Configuration.KS_ALIAS).fold(
+                    onSuccess = {
+                        //TODO: how to let the user know that the key will be invalidated????
+                        if (!it.mayRequireUserUnlock) {
+                            Napier.w { "Your existing binding key will be invalidated and a new one will be created!" }
+                            provider.deleteSigningKey(it.alias)
+                                .onFailure { throw IllegalStateException("Could not delete outdated key!") }
+                            null
+                        } else it
+                    },
+                    onFailure = { null })
+
+            val forKey = existingKey ?: provider.createSigningKey(alias = Configuration.KS_ALIAS) {
+                ec { curve = ECCurve.SECP_256_R_1 }
+                hardware {
+                    backing =
+                        PREFERRED //so it also works on the emulator!. In reality we would like REQUIRED!
+                    protection {
+                        factors { biometry = true }
+                        timeout = Configuration.USER_AUTHENTICATION_TIMEOUT_SECONDS.seconds
+                    }
+
+                }
+            }.getOrThrow()
+
             return KeyWithPersistentSelfSignedCert(forKey)
         }
 
