@@ -46,6 +46,7 @@ class PresentationViewModel(
         parsedRequest: List<MdocRequest>,
         finishFunction: (ByteArray) -> Unit,
         encodedSessionTranscript: ByteArray,
+        sessionTranscript: SessionTranscript?
     ) {
         val requester: MutableList<String?> = mutableListOf()
         descriptors = parsedRequest.map {
@@ -65,12 +66,38 @@ class PresentationViewModel(
                 })
             )
         }
+        this.encodedSessionTranscript = encodedSessionTranscript
         this.finishFunction = finishFunction
         this.encodedSessionTranscript = encodedSessionTranscript
         check(requester.all { it == requester.firstOrNull() })
         this.spName = requester.firstOrNull { it != null }
+        this.sessionTranscript = sessionTranscript
     }
 
+    /*fun initWithAsitRequest(
+        parsedRequest: Array<DocRequest>,
+        finishFunction: (DeviceResponse) -> Unit
+    ) {
+        descriptors.addAll(parsedRequest.map {
+            DifInputDescriptor(
+                id = it.itemsRequest.value.docType,
+                constraints = Constraint(fields = it.itemsRequest.value.namespaces.map { (namespace, itemsRequestList) ->
+                    itemsRequestList.entries.map {
+                    ConstraintField(
+                        path = listOf(
+                            NormalizedJsonPath(
+                                NormalizedJsonPathSegment.NameSegment(namespace),
+                                NormalizedJsonPathSegment.NameSegment(itemsRequestList.entries[0].requestedAttribute.dataElementName),
+                            ).toString()
+                        ), intentToRetain = requestedAttribute.intentToRetain
+                    )
+                }
+                })
+
+            )
+        })
+        this.finishFunction = finishFunction
+    }*/
 
     override val transactionData: at.asitplus.openid.TransactionData? = null
 
@@ -106,6 +133,7 @@ class PresentationViewModel(
                 it,
                 spName,
                 encodedSessionTranscript,
+                sessionTranscript!!
             )
         } ?: throw IllegalStateException("No finish method found")
 
