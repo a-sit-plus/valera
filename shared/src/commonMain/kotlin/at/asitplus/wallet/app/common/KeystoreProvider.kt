@@ -1,5 +1,7 @@
 package at.asitplus.wallet.app.common
 
+import at.asitplus.KmmResult
+import at.asitplus.catching
 import at.asitplus.io.MultiBase
 import at.asitplus.io.multibaseDecode
 import at.asitplus.io.multibaseEncode
@@ -8,6 +10,7 @@ import at.asitplus.signum.indispensable.equalsCryptographically
 import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.signum.supreme.dsl.PREFERRED
 import at.asitplus.signum.supreme.os.SigningProvider
+import at.asitplus.signum.supreme.os.SigningProviderI
 import at.asitplus.signum.supreme.sign.Signer
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.agent.KeyWithSelfSignedCert
@@ -29,7 +32,7 @@ open class KeystoreService(
     private val sMut = Mutex()
     open suspend fun getSigner(): KeyMaterial {
         var signer: KeyMaterial? = null
-        Napier.d("getSigner")
+        Napier.i("KSS: getSigner")
         sMut.withLock {
             if (signer == null)
                 signer = initSigner()
@@ -37,40 +40,72 @@ open class KeystoreService(
         return signer!!
     }
 
-    private suspend fun initSigner(): KeyWithSelfSignedCert {
-        getProvider().let { provider ->
-            val existingKey: Signer.WithAlias? =
-                provider.getSignerForKey(Configuration.KS_ALIAS).fold(
-                    onSuccess = {
-                        Napier.i { "Got a key!" }
-                        //TODO: how to let the user know that the key will be invalidated????
-                        //TODO: how to delete all credentials?
-                        if (!it.mayRequireUserUnlock) {
-                            Napier.w { "Your existing binding key will be invalidated and a new one will be created!" }
-                            provider.deleteSigningKey(it.alias)
-                                .onFailure { throw IllegalStateException("Could not delete outdated key!") }
-                            null
-                        } else it.also { Napier.i { "Key is requires biometric auth already" } }
-                    },
-                    onFailure = { null })
-
-            val forKey = existingKey ?: provider.createSigningKey(alias = Configuration.KS_ALIAS) {
-                ec { curve = ECCurve.SECP_256_R_1 }
-                hardware {
-                    backing =
-                        PREFERRED //so it also works on the emulator!. In reality we would like REQUIRED!
-                    protection {
-                        factors { biometry = true }
-                        timeout = Configuration.USER_AUTHENTICATION_TIMEOUT_SECONDS.seconds
-                    }
-
-                }
-            }.getOrThrow()
-
-            return KeyWithPersistentSelfSignedCert(forKey)
-        }
-
+    /**
+     * checks whether an existing key (if any) requires an upgrade (i.e. deletion an creation of a new, random key)
+     */
+    suspend fun requiresKeyUpgrade(): Boolean = getProvider().let { provider ->
+        provider.getSignerForKey(Configuration.KS_ALIAS).fold(
+            onFailure = { false },
+            onSuccess = { !it.mayRequireUserUnlock }
+        )
+    }.also {
+        if (it) Napier.w { "KSS: Key requires upgrade" }
+        else Napier.i("KSS: Key does not require upgrade")
     }
+
+    /**
+     * Deletes the old signing key and creates a new one.
+     *
+     * @return KmmResult.failure if no old key exists or creation fails. success otherwise
+     */
+    suspend fun rotateKey(): KmmResult<Signer> = getProvider().let { provider ->
+        Napier.i { "KSS: Trying to delete key" }
+        deleteKey().onFailure {
+            Napier.e { "KSS: Could not delete key" }
+            return KmmResult.failure(it)
+        }
+        Napier.i { "KSS: Key is gone" }
+        createSigningKey()
+    }
+
+    /**
+     * Deletes the current signing key (if any).
+     * @return KmmResult.failure if deletion fails (e.g. for a non-existent key), success otherwise
+     */
+    suspend fun deleteKey() = getProvider().deleteSigningKey(Configuration.KS_ALIAS)
+
+    /**
+     * indicates whether a singing key exists.
+     */
+    suspend fun hasSigningKey(): Boolean = getProvider().getSignerForKey(Configuration.KS_ALIAS)
+        .fold(onSuccess = { true }, onFailure = { false })
+
+    suspend fun getSigningKey(): Signer? =
+        getProvider().getSignerForKey(Configuration.KS_ALIAS).getOrNull()
+
+    //internal open for testing
+    internal open suspend fun initSigner(): KeyWithSelfSignedCert {
+        val key: KmmResult<Signer> = if (requiresKeyUpgrade()) rotateKey()
+        else getSigningKey()?.let { KmmResult.success(it) } ?: createSigningKey()
+        return KeyWithPersistentSelfSignedCert(key.getOrThrow())
+    }
+
+    /**
+     * Tries to create a fresh signing key
+     */
+    //keep it open for testing
+    open suspend fun createSigningKey(): KmmResult<Signer> =
+        getProvider().createSigningKey(alias = Configuration.KS_ALIAS) {
+            ec { curve = ECCurve.SECP_256_R_1 }
+            hardware {
+                backing =
+                    PREFERRED //so it also works on the emulator!. In reality we would like REQUIRED!
+                protection {
+                    factors { biometry = true }
+                    timeout = Configuration.USER_AUTHENTICATION_TIMEOUT_SECONDS.seconds
+                }
+            }
+        }
 
 
     inner class KeyWithPersistentSelfSignedCert(private val signer: Signer) :
