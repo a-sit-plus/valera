@@ -21,8 +21,10 @@ import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
 import kotlinx.serialization.builtins.ByteArraySerializer
+import org.multipaz.cbor.Bstr
 import org.multipaz.cbor.Cbor
 import org.multipaz.cbor.RawCbor
+import org.multipaz.cbor.Tagged
 import org.multipaz.cbor.buildCborArray
 import ui.viewmodels.authentication.DCQLMatchingResult
 import ui.viewmodels.authentication.PresentationExchangeMatchingResult
@@ -120,12 +122,13 @@ class PresentationService(
 
         platformAdapter.prepareDCAPICredentialResponse(deviceResponse.serialize(), dcApiRequest)
     }
-
+    @OptIn(ExperimentalStdlibApi::class)
     suspend fun finalizeLocalPresentation(
         credentialPresentation: CredentialPresentation.PresentationExchangePresentation,
         finishFunction: (ByteArray) -> Unit,
         spName: String?,
         encodedSessionTranscript: ByteArray,
+        sessionTranscript: SessionTranscript
     ) {
         Napier.d("Finalizing local response")
 
@@ -134,16 +137,23 @@ class PresentationService(
                 nonce = "",
                 audience = spName ?: "",
                 calcIsoDeviceSignature = { docType, deviceNameSpaceBytes ->
-
+                    val deviceAuthentication = DeviceAuthentication(
+                        sessionTranscript = sessionTranscript, docType = docType,
+                        namespaces = deviceNameSpaceBytes
+                    )
+                    println("deviceNameSpaceBytes.value.serialize() = ${deviceNameSpaceBytes.value.serialize().toHexString()}")
+                    println("encodedSessionTranscript = ${encodedSessionTranscript.toHexString()}")
                     //TODO sign as required by specification
                     coseService.createSignedCoseWithDetachedPayload(
                         payload = //deviceAuthentication.serialize()
-                        Cbor.encode(buildCborArray {
-                            add("DeviceAuthentication")
-                            add(RawCbor(encodedSessionTranscript))
-                            add(docType)
-                            add(deviceNameSpaceBytes.value.serialize())
-                        }),
+                            Cbor.encode(
+                                Tagged(24, Bstr(Cbor.encode(buildCborArray {
+                                    add("DeviceAuthentication")
+                                    add(RawCbor(encodedSessionTranscript))
+                                    add(docType)
+                                    add(deviceNameSpaceBytes.value.serialize())
+                                })))
+                            ).also { println("payload = ${it.toHexString()}") },
                         serializer = ByteArraySerializer(),
                         addKeyId = false
                     ).getOrElse { e ->
