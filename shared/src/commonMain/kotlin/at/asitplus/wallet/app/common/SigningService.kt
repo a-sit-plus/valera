@@ -54,16 +54,16 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import org.jetbrains.compose.resources.getString
+import ui.navigation.IntentService
 
 class SigningService(
-    val platformAdapter: PlatformAdapter,
+    val intentService: IntentService,
     val dataStoreService: DataStoreService,
     val errorService: ErrorService,
     val snackbarService: SnackbarService,
     httpService: HttpService,
 ) {
     val config = runBlocking { importFromDataStore() }
-    var redirectUri: String? = null
     var state: SigningState? = null
 
     private val cookieStorage = PersistentCookieStorage(dataStoreService, errorService)
@@ -116,9 +116,12 @@ class SigningService(
             RqesOpenId4VpHolder(redirectUrl = redirectUrl, clientId = config.getCurrent().oauth2ClientId)
 
         val targetUrl = createServiceAuthRequest()
-        this.redirectUri = this.redirectUrl
         this.state = SigningState.PreloadCredential
-        platformAdapter.openUrl(targetUrl)
+        intentService.openIntent(
+            url = targetUrl,
+            redirectUri = this.redirectUrl,
+            intentType = IntentService.IntentType.SigningPreloadIntent
+        )
     }
 
     suspend fun resumePreloadCertificate(url: String) {
@@ -137,14 +140,20 @@ class SigningService(
             val credentialInfo = config.getCurrent().credentialInfo ?: throw Throwable("Missing credentialInfo")
             rqesWalletService.setSigningCredential(credentialInfo)
             val targetUrl = createCredentialAuthRequest()
-            redirectUri = this.redirectUrl
             this.state = SigningState.CredentialRequest
-            platformAdapter.openUrl(targetUrl)
+            intentService.openIntent(
+                url = targetUrl,
+                redirectUri = this.redirectUrl,
+                intentType = IntentService.IntentType.SigningCredentialIntent
+            )
         } else {
             val targetUrl = createServiceAuthRequest()
-            redirectUri = this.redirectUrl
             this.state = SigningState.ServiceRequest
-            platformAdapter.openUrl(targetUrl)
+            intentService.openIntent(
+                url = targetUrl,
+                redirectUri = this.redirectUrl,
+                intentType = IntentService.IntentType.SigningServiceIntent
+            )
         }
     }
 
@@ -158,9 +167,12 @@ class SigningService(
         rqesWalletService.setSigningCredential(credentialInfo)
 
         val targetUrl = createCredentialAuthRequest()
-        redirectUri = this.redirectUrl
-        this.state = SigningState.CredentialRequest
-        platformAdapter.openUrl(targetUrl)
+
+        intentService.openIntent(
+            url = targetUrl,
+            redirectUri = this.redirectUrl,
+            intentType = IntentService.IntentType.SigningCredentialIntent
+        )
     }
 
 
@@ -214,7 +226,7 @@ class SigningService(
             )
         }
         catchingUnwrapped { response.body<QtspFinalRedirect>() }.getOrNull()?.let {
-            platformAdapter.openUrl(it.redirect_uri)
+            intentService.openIntent(it.redirect_uri)
         }
         snackbarService.showSnackbar(getString(Res.string.snackbar_sign_successful))
     }
