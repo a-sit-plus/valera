@@ -162,7 +162,7 @@ fun AuthenticationConsentView(
 }
 
 @Composable
-fun TransactionDataView(transactionData: TransactionData) {
+fun TransactionDataView(transactionData: at.asitplus.openid.TransactionData) {
     Column(modifier = Modifier) {
         var showContent by remember { mutableStateOf(false) }
 

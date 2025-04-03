@@ -6,7 +6,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
 import at.asitplus.catchingUnwrapped
-import at.asitplus.rqes.collection_entries.TransactionData
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_subtitle
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_title
@@ -31,7 +30,7 @@ abstract class AuthenticationViewModel(
     abstract val presentationRequest: CredentialPresentationRequest
 
     var viewState by mutableStateOf(AuthenticationViewState.Consent)
-    abstract val transactionData: TransactionData?
+    abstract val transactionData: at.asitplus.openid.TransactionData?
 
     lateinit var matchingCredentials: CredentialMatchingResult<SubjectCredentialStore.StoreEntry>
     lateinit var defaultCredentialSelection: Map<String, SubjectCredentialStore.StoreEntry>

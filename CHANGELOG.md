@@ -1,5 +1,6 @@
 # Release 5.5.1
  * Fix DCQL Query extraction for SD-JWT
+ * Update to VC-K 5.5.1
 
 # Release 5.5.0
  * Android: Add NFC device engagement/retrieval and Bluetooth device retrieval mechanisms
