@@ -152,6 +152,9 @@ class PresentationStateModel {
      * Sets the model to [State.CHECK_PERMISSIONS] if Bluetooth is required or [State.CONNECTING].
      */
     fun start(needBluetooth: Boolean) {
+        if (_state.value == State.IDLE) {
+            init()
+        }
         check(_state.value == State.INITIALISING)
         if (needBluetooth) {
             _state.value = State.CHECK_PERMISSIONS
@@ -160,6 +163,14 @@ class PresentationStateModel {
         }
     }
 
+    /**
+     * Returns true if the device is not yet connected to the transport method.
+     */
+    fun isNotYetConnected(): Boolean {
+        return state.value == State.IDLE || state.value == State.INITIALISING
+                || state.value == State.CHECK_PERMISSIONS || state.value == State.NO_PERMISSION
+                || state.value == State.CONNECTING
+    }
 
     /**
      * Sets the model to [State.CONNECTING].
