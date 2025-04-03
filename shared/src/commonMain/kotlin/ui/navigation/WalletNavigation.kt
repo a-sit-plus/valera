@@ -282,21 +282,19 @@ private fun WalletNavHost(
             })
         }
         composable<AuthenticationViewRoute> { backStackEntry ->
-            val route: AuthenticationViewRoute = backStackEntry.toRoute()
-
             val vm = remember {
                 try {
                     val request = odcJsonSerializer
                         .decodeFromString<RequestParametersFrom<AuthenticationRequestParameters>>(
-                            route.authenticationRequestParametersFromSerialized
+                            backStackEntry.toRoute<AuthenticationViewRoute>().authenticationRequestParametersFromSerialized
                         )
 
                     DefaultAuthenticationViewModel(
                         spName = null,
-                        spLocation = route.recipientLocation,
+                        spLocation = backStackEntry.toRoute<AuthenticationViewRoute>().recipientLocation,
                         spImage = null,
                         authenticationRequest = request,
-                        isCrossDeviceFlow = route.isCrossDeviceFlow,
+                        isCrossDeviceFlow = backStackEntry.toRoute<AuthenticationViewRoute>().isCrossDeviceFlow,
                         navigateUp = navigateBack,
                         navigateToAuthenticationSuccessPage = {
                             navigate(AuthenticationSuccessRoute)
@@ -326,12 +324,10 @@ private fun WalletNavHost(
         }
 
         composable<DCAPIAuthenticationConsentRoute> { backStackEntry ->
-            val route: DCAPIAuthenticationConsentRoute = backStackEntry.toRoute()
-
             val vm = remember {
                 try {
                     val dcApiRequest =
-                        DCAPIRequest.deserialize(route.apiRequestSerialized).getOrThrow()
+                        DCAPIRequest.deserialize(backStackEntry.toRoute<DCAPIAuthenticationConsentRoute>().apiRequestSerialized).getOrThrow()
 
                     DCAPIAuthenticationViewModel(
                         dcApiRequest = dcApiRequest,
@@ -364,8 +360,6 @@ private fun WalletNavHost(
         }
 
         composable<LocalPresentationAuthenticationConsentRoute> { backStackEntry ->
-            val route: LocalPresentationAuthenticationConsentRoute = backStackEntry.toRoute()
-
             val vm = try {
                 Globals.presentationStateModel.value?.let {
                     PresentationViewModel(
@@ -425,18 +419,17 @@ private fun WalletNavHost(
         }
 
         composable<LoadCredentialRoute> { backStackEntry ->
-            val route: LoadCredentialRoute = backStackEntry.toRoute()
             val vm = remember {
                 try {
                     LoadCredentialViewModel(
                         walletMain = walletMain,
                         navigateUp = navigateBack,
-                        hostString = route.host,
+                        hostString = backStackEntry.toRoute<LoadCredentialRoute>().host,
                         onSubmit = { credentialIdentifierInfo, _ ->
                             popBackStack(HomeScreenRoute)
                             walletMain.scope.launch {
                                 walletMain.startProvisioning(
-                                    host = route.host,
+                                    host = backStackEntry.toRoute<LoadCredentialRoute>().host,
                                     credentialIdentifierInfo = credentialIdentifierInfo,
                                 ) {
                                 }
@@ -457,8 +450,7 @@ private fun WalletNavHost(
         }
 
         composable<AddCredentialPreAuthnRoute> { backStackEntry ->
-            val route: AddCredentialPreAuthnRoute = backStackEntry.toRoute()
-            val offer = Json.decodeFromString<CredentialOffer>(route.credentialOfferSerialized)
+            val offer = Json.decodeFromString<CredentialOffer>(backStackEntry.toRoute<AddCredentialPreAuthnRoute>().credentialOfferSerialized)
             LoadCredentialView(remember {
                 LoadCredentialViewModel(
                     walletMain = walletMain,
@@ -488,16 +480,14 @@ private fun WalletNavHost(
         }
 
         composable<CredentialDetailsRoute> { backStackEntry ->
-            val route: CredentialDetailsRoute = backStackEntry.toRoute()
-            val vm = remember {
+            CredentialDetailsView(vm = remember {
                 CredentialDetailsViewModel(
-                    storeEntryId = route.storeEntryId,
+                    storeEntryId = backStackEntry.toRoute<CredentialDetailsRoute>().storeEntryId,
                     navigateUp = navigateBack,
                     walletMain = walletMain,
                     onClickLogo = onClickLogo
                 )
-            }
-            CredentialDetailsView(vm = vm)
+            })
         }
 
         composable<SettingsRoute> { backStackEntry ->
@@ -567,12 +557,11 @@ private fun WalletNavHost(
         }
 
         composable<ErrorRoute> { backStackEntry ->
-            val route: ErrorRoute = backStackEntry.toRoute()
             ErrorView(remember {
                 ErrorViewModel(
                     resetStack = { popBackStack(HomeScreenRoute) },
-                    message = route.message,
-                    cause = route.cause,
+                    message = backStackEntry.toRoute<ErrorRoute>().message,
+                    cause = backStackEntry.toRoute<ErrorRoute>().cause,
                     onClickLogo = onClickLogo
                 )
             })
@@ -630,12 +619,10 @@ private fun WalletNavHost(
         }
 
         composable<ProvisioningIntentRoute> { backStackEntry ->
-            val route: ProvisioningIntentRoute = backStackEntry.toRoute()
-            
             ProvisioningIntentView(remember {
                 ProvisioningIntentViewModel(
                     walletMain = walletMain,
-                    uri = route.uri,
+                    uri = backStackEntry.toRoute<ProvisioningIntentRoute>().uri,
                     onSuccess = {
                         navigateBack()
                     }, onFailure = { error ->
@@ -645,12 +632,10 @@ private fun WalletNavHost(
         }
 
         composable<AuthorizationIntentRoute> { backStackEntry ->
-            val route: AuthorizationIntentRoute = backStackEntry.toRoute()
-
             AuthorizationIntentView(remember {
                 AuthorizationIntentViewModel(
                     walletMain = walletMain,
-                    uri = route.uri,
+                    uri = backStackEntry.toRoute<AuthorizationIntentRoute>().uri,
                     onSuccess = { route ->
                         navigateBack()
                         navigate(route)
@@ -662,11 +647,10 @@ private fun WalletNavHost(
         }
 
         composable<DCAPIAuthorizationIntentRoute> { backStackEntry ->
-            val route: DCAPIAuthorizationIntentRoute = backStackEntry.toRoute()
             DCAPIAuthorizationIntentView(remember {
                 DCAPIAuthorizationIntentViewModel(
                     walletMain = walletMain,
-                    uri = route.uri,
+                    uri = backStackEntry.toRoute<DCAPIAuthorizationIntentRoute>().uri,
                     onSuccess = { route ->
                         Napier.d("valid authentication request")
                         navigateBack()
@@ -680,12 +664,10 @@ private fun WalletNavHost(
         }
 
         composable<PresentationIntentRoute> { backStackEntry ->
-            val route: PresentationIntentRoute = backStackEntry.toRoute()
-
             PresentationIntentView(remember {
                 PresentationIntentViewModel(
                     walletMain = walletMain,
-                    uri = route.uri,
+                    uri = backStackEntry.toRoute<PresentationIntentRoute>().uri,
                     onSuccess = { route ->
                         Napier.d("valid presentation request")
                         navigateBack()
@@ -698,11 +680,10 @@ private fun WalletNavHost(
         }
 
         composable<SigningServiceIntentRoute> { backStackEntry ->
-            val route: SigningServiceIntentRoute = backStackEntry.toRoute()
             SigningServiceIntentView(remember {
                 SigningServiceIntentViewModel(
                     walletMain = walletMain,
-                    uri = route.uri,
+                    uri = backStackEntry.toRoute<SigningServiceIntentRoute>().uri,
                     onSuccess = {
                         popBackStack(HomeScreenRoute)
                     },
@@ -714,13 +695,11 @@ private fun WalletNavHost(
         }
 
         composable<SigningPreloadIntentRoute> { backStackEntry ->
-            val route: SigningPreloadIntentRoute = backStackEntry.toRoute()
-
             SigningPreloadIntentView(
                 remember {
                     SigningPreloadIntentViewModel(
                         walletMain = walletMain,
-                        uri = route.uri,
+                        uri = backStackEntry.toRoute<SigningPreloadIntentRoute>().uri,
                         onSuccess = {
                             navigateBack()
                         },
@@ -731,11 +710,10 @@ private fun WalletNavHost(
         }
 
         composable<SigningCredentialIntentRoute> { backStackEntry ->
-            val route: SigningCredentialIntentRoute = backStackEntry.toRoute()
             SigningCredentialIntentView(remember {
                 SigningCredentialIntentViewModel(
                     walletMain = walletMain,
-                    uri = route.uri,
+                    uri = backStackEntry.toRoute<SigningCredentialIntentRoute>().uri,
                     onSuccess = {
                         popBackStack(HomeScreenRoute)
                     },
@@ -746,11 +724,10 @@ private fun WalletNavHost(
         }
 
         composable<SigningIntentRoute> { backStackEntry ->
-            val route: SigningIntentRoute = backStackEntry.toRoute()
             SigningIntentView(remember {
                 SigningIntentViewModel(
                     walletMain = walletMain,
-                    uri = route.uri,
+                    uri = backStackEntry.toRoute<SigningIntentRoute>().uri,
                     onSuccess = {
                         navigateBack()
                     },
@@ -761,12 +738,11 @@ private fun WalletNavHost(
         }
 
         composable<ErrorIntentRoute> { backStackEntry ->
-            val route: ErrorIntentRoute = backStackEntry.toRoute()
             ErrorIntentView(
                 remember {
                     ErrorIntentViewModel(
                         walletMain = walletMain,
-                        uri = route.uri,
+                        uri = backStackEntry.toRoute<ErrorIntentRoute>().uri,
                         onFailure = { error ->
                             walletMain.errorService.emit(error)
                         })
