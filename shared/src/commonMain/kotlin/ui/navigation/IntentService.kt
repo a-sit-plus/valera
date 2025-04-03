@@ -26,42 +26,15 @@ class IntentService(
 
     fun handleIntent(uri: String): Route =
         when (parseUrl(uri)) {
-            IntentType.ProvisioningIntent -> {
-                ProvisioningIntentRoute(uri)
-            }
-
-            IntentType.AuthorizationIntent -> {
-                AuthorizationIntentRoute(uri)
-            }
-
-
-            IntentType.DCAPIAuthorizationIntent -> {
-                DCAPIAuthorizationIntentRoute(uri)
-            }
-
-            IntentType.PresentationIntent -> {
-                PresentationIntentRoute(uri)
-            }
-
-            IntentType.SigningServiceIntent -> {
-                SigningServiceIntentRoute(uri)
-            }
-
-            IntentType.SigningPreloadIntent -> {
-                SigningPreloadIntentRoute(uri)
-            }
-
-            IntentType.SigningCredentialIntent -> {
-                SigningCredentialIntentRoute(uri)
-            }
-
-            IntentType.SigningIntent -> {
-                SigningIntentRoute(uri)
-            }
-
-            IntentType.ErrorIntent -> {
-                ErrorIntentRoute(uri)
-            }
+            IntentType.ProvisioningIntent -> ProvisioningIntentRoute(uri)
+            IntentType.AuthorizationIntent -> AuthorizationIntentRoute(uri)
+            IntentType.DCAPIAuthorizationIntent -> DCAPIAuthorizationIntentRoute(uri)
+            IntentType.PresentationIntent -> PresentationIntentRoute(uri)
+            IntentType.SigningServiceIntent -> SigningServiceIntentRoute(uri)
+            IntentType.SigningPreloadIntent -> SigningPreloadIntentRoute(uri)
+            IntentType.SigningCredentialIntent -> SigningCredentialIntentRoute(uri)
+            IntentType.SigningIntent -> SigningIntentRoute(uri)
+            IntentType.ErrorIntent -> ErrorIntentRoute(uri)
         }
 
 
