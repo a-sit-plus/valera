@@ -231,32 +231,31 @@ private fun WalletNavHost(
             )
         }
         composable<HomeScreenRoute> {
-            val vm = remember {
-                CredentialsViewModel(
-                    walletMain,
-                    navigateToAddCredentialsPage = {
-                        navigate(AddCredentialRoute)
-                    },
-                    navigateToQrAddCredentialsPage = {
-                        navigate(PreAuthQrCodeScannerRoute)
-                    },
-                    navigateToCredentialDetailsPage = {
-                        navigate(CredentialDetailsRoute(it))
-                    },
-                    imageDecoder = {
-                        try {
-                            walletMain.platformAdapter.decodeImage(it)
-                        } catch (throwable: Throwable) {
-                            // TODO: should this be emitted to the error service?
-                            Napier.w("Failed Operation: decodeImage")
-                            null
-                        }
-                    },
-                    onClickLogo = onClickLogo
-                )
-            }
             CredentialsView(
-                vm = vm,
+                vm = remember {
+                    CredentialsViewModel(
+                        walletMain,
+                        navigateToAddCredentialsPage = {
+                            navigate(AddCredentialRoute)
+                        },
+                        navigateToQrAddCredentialsPage = {
+                            navigate(PreAuthQrCodeScannerRoute)
+                        },
+                        navigateToCredentialDetailsPage = {
+                            navigate(CredentialDetailsRoute(it))
+                        },
+                        imageDecoder = {
+                            try {
+                                walletMain.platformAdapter.decodeImage(it)
+                            } catch (throwable: Throwable) {
+                                // TODO: should this be emitted to the error service?
+                                Napier.w("Failed Operation: decodeImage")
+                                null
+                            }
+                        },
+                        onClickLogo = onClickLogo
+                    )
+                },
                 bottomBar = {
                     BottomBar(
                         navigate = { route -> navigate(route) },
@@ -271,7 +270,7 @@ private fun WalletNavHost(
             }
         }
         composable<AuthenticationQrCodeScannerRoute> {
-            val vm = remember {
+            AuthenticationQrCodeScannerView(remember {
                 AuthenticationQrCodeScannerViewModel(
                     navigateUp = navigateBack,
                     onSuccess = { route ->
@@ -280,8 +279,7 @@ private fun WalletNavHost(
                     walletMain = walletMain,
                     onClickLogo = onClickLogo
                 )
-            }
-            AuthenticationQrCodeScannerView(vm)
+            })
         }
         composable<AuthenticationViewRoute> { backStackEntry ->
             val route: AuthenticationViewRoute = backStackEntry.toRoute()
@@ -404,17 +402,16 @@ private fun WalletNavHost(
         }
 
         composable<AuthenticationSuccessRoute> { backStackEntry ->
-            val vm = remember {
+            AuthenticationSuccessView(vm = remember {
                 AuthenticationSuccessViewModel(
                     navigateUp = navigateBack,
                     onClickLogo = onClickLogo
                 )
-            }
-            AuthenticationSuccessView(vm = vm)
+            })
         }
 
         composable<AddCredentialRoute> { backStackEntry ->
-            val vm = remember {
+            SelectIssuingServerView(remember {
                 AddCredentialViewModel(
                     walletMain = walletMain,
                     navigateUp = navigateBack,
@@ -424,8 +421,7 @@ private fun WalletNavHost(
                     },
                     onClickLogo = onClickLogo
                 )
-            }
-            SelectIssuingServerView(vm)
+            })
         }
 
         composable<LoadCredentialRoute> { backStackEntry ->
@@ -463,7 +459,7 @@ private fun WalletNavHost(
         composable<AddCredentialPreAuthnRoute> { backStackEntry ->
             val route: AddCredentialPreAuthnRoute = backStackEntry.toRoute()
             val offer = Json.decodeFromString<CredentialOffer>(route.credentialOfferSerialized)
-            val vm = remember {
+            LoadCredentialView(remember {
                 LoadCredentialViewModel(
                     walletMain = walletMain,
                     navigateUp = navigateBack,
@@ -488,8 +484,7 @@ private fun WalletNavHost(
                     },
                     onClickLogo = onClickLogo
                 )
-            }
-            LoadCredentialView(vm)
+            })
         }
 
         composable<CredentialDetailsRoute> { backStackEntry ->
@@ -506,35 +501,34 @@ private fun WalletNavHost(
         }
 
         composable<SettingsRoute> { backStackEntry ->
-            val vm = remember {
-                SettingsViewModel(
-                    onClickShareLogFile = {
-                        navigate(LogRoute)
-                    },
-                    onClickResetApp = {
-                        val resetMessage = runBlocking {
-                            walletMain.resetApp()
-                            getString(Res.string.snackbar_reset_app_successfully)
-                        }
-                        walletMain.snackbarService.showSnackbar(resetMessage)
-                        navController.popBackStack(route = HomeScreenRoute, inclusive = false)
-                    },
-                    onClickClearLogFile = {
-                        val clearMessage = runBlocking {
-                            walletMain.clearLog()
-                            getString(Res.string.snackbar_clear_log_successfully)
-                        }
-                        walletMain.snackbarService.showSnackbar(clearMessage)
-                    },
-                    onClickSigning = {
-                        navigate(SigningQtspSelectionRoute)
-                    },
-                    walletMain = walletMain,
-                    onClickLogo = onClickLogo
-                )
-            }
             SettingsView(
-                vm = vm,
+                vm = remember {
+                    SettingsViewModel(
+                        onClickShareLogFile = {
+                            navigate(LogRoute)
+                        },
+                        onClickResetApp = {
+                            val resetMessage = runBlocking {
+                                walletMain.resetApp()
+                                getString(Res.string.snackbar_reset_app_successfully)
+                            }
+                            walletMain.snackbarService.showSnackbar(resetMessage)
+                            navController.popBackStack(route = HomeScreenRoute, inclusive = false)
+                        },
+                        onClickClearLogFile = {
+                            val clearMessage = runBlocking {
+                                walletMain.clearLog()
+                                getString(Res.string.snackbar_clear_log_successfully)
+                            }
+                            walletMain.snackbarService.showSnackbar(clearMessage)
+                        },
+                        onClickSigning = {
+                            navigate(SigningQtspSelectionRoute)
+                        },
+                        walletMain = walletMain,
+                        onClickLogo = onClickLogo
+                    )
+                },
                 bottomBar = {
                     BottomBar(
                         navigate = { route -> navigate(route) },
@@ -544,7 +538,7 @@ private fun WalletNavHost(
         }
 
         composable<PreAuthQrCodeScannerRoute> { backStackEntry ->
-            val vm = remember {
+            PreAuthQrCodeScannerScreen(remember {
                 PreAuthQrCodeScannerViewModel(
                     walletMain = walletMain,
                     navigateUp = navigateBack,
@@ -559,8 +553,7 @@ private fun WalletNavHost(
                     },
                     onClickLogo = onClickLogo
                 )
-            }
-            PreAuthQrCodeScannerScreen(vm)
+            })
         }
 
         composable<LogRoute> { backStackEntry ->
@@ -575,15 +568,14 @@ private fun WalletNavHost(
 
         composable<ErrorRoute> { backStackEntry ->
             val route: ErrorRoute = backStackEntry.toRoute()
-            val vm = remember {
+            ErrorView(remember {
                 ErrorViewModel(
                     resetStack = { popBackStack(HomeScreenRoute) },
                     message = route.message,
                     cause = route.cause,
                     onClickLogo = onClickLogo
                 )
-            }
-            ErrorView(vm)
+            })
         }
 
         composable<LoadingRoute> { backStackEntry ->
@@ -591,7 +583,7 @@ private fun WalletNavHost(
         }
 
         composable<AuthenticationQrCodeScannerRoute> { backStackEntry ->
-            val vm = remember {
+            AuthenticationQrCodeScannerView(remember {
                 AuthenticationQrCodeScannerViewModel(
                     navigateUp = navigateBack,
                     onSuccess = { route ->
@@ -601,12 +593,11 @@ private fun WalletNavHost(
                     walletMain = walletMain,
                     onClickLogo = onClickLogo
                 )
-            }
-            AuthenticationQrCodeScannerView(vm)
+            })
         }
 
         composable<SigningRoute> { backStackEntry ->
-            val vm = remember {
+            SigningView(remember {
                 SigningViewModel(
                     navigateUp = navigateBack,
                     createSignRequest = { signRequest ->
@@ -623,11 +614,10 @@ private fun WalletNavHost(
                     walletMain = walletMain,
                     onClickLogo = onClickLogo
                 )
-            }
-            SigningView(vm)
+            })
         }
         composable<SigningQtspSelectionRoute> { backStackEntry ->
-            val vm = remember {
+            SigningQtspSelectionView(vm = remember {
                 SigningQtspSelectionViewModel(
                     navigateUp = navigateBack,
                     onContinue = {
@@ -636,13 +626,13 @@ private fun WalletNavHost(
                     walletMain = walletMain,
                     onClickLogo = onClickLogo
                 )
-            }
-            SigningQtspSelectionView(vm = vm)
+            })
         }
 
         composable<ProvisioningIntentRoute> { backStackEntry ->
             val route: ProvisioningIntentRoute = backStackEntry.toRoute()
-            val vm = remember {
+            
+            ProvisioningIntentView(remember {
                 ProvisioningIntentViewModel(
                     walletMain = walletMain,
                     uri = route.uri,
@@ -651,9 +641,7 @@ private fun WalletNavHost(
                     }, onFailure = { error ->
                         walletMain.errorService.emit(error)
                     })
-            }
-
-            ProvisioningIntentView(vm)
+            })
         }
 
         composable<AuthorizationIntentRoute> { backStackEntry ->
