@@ -42,8 +42,6 @@ import ui.viewmodels.LogViewModel
 fun LogView(
     vm: LogViewModel
 ) {
-    val vm = remember { vm }
-
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
