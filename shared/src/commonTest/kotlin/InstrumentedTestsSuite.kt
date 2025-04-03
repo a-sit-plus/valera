@@ -34,9 +34,13 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.ClaimToBeIssued
 import at.asitplus.wallet.lib.agent.CredentialToBeIssued
+import at.asitplus.wallet.lib.agent.EphemeralKeyWithSelfSignedCert
 import at.asitplus.wallet.lib.agent.IssuerAgent
+import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.agent.toStoreCredentialInput
 import data.storage.DummyDataStoreService
+import io.kotest.common.Platform
+import io.kotest.common.platform
 import io.kotest.core.spec.style.FunSpec
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -49,6 +53,7 @@ import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
@@ -73,20 +78,18 @@ private lateinit var lifecycleOwner: TestLifecycleOwner
 class InstrumentedTestsSuite : FunSpec({
 
     beforeTest {
-        runTest {
-            withContext(Dispatchers.Main) {
-                lifecycleOwner = TestLifecycleOwner()
-                lifecycleRegistry = LifecycleRegistry(lifecycleOwner)
-                lifecycleRegistry.currentState = Lifecycle.State.CREATED
-            }
+        lifecycleOwner = TestLifecycleOwner()
+        lifecycleRegistry = LifecycleRegistry(lifecycleOwner)
+        //android needs main, iOS probably too, but it hangs on iOS, so we let it at least fail
+        withContext(if (platform != Platform.Native) Dispatchers.Main else Dispatchers.Unconfined) {
+            lifecycleRegistry.currentState = Lifecycle.State.CREATED
         }
     }
 
     afterTest {
-        runTest {
-            withContext(Dispatchers.Main) {
-                lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
-            }
+        //android needs main, iOS probably too, but it hangs on iOS, so we let it at least fail
+        withContext(if (platform != Platform.Native) Dispatchers.Main else Dispatchers.Unconfined) {
+            lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
         }
     }
 
@@ -232,7 +235,8 @@ class InstrumentedTestsSuite : FunSpec({
                             setBody(request)
                         }.body<JsonObject>()
 
-                    val firstProfile = responseGenerateRequest["profiles"]?.jsonArray?.first()?.jsonObject
+                    val firstProfile =
+                        responseGenerateRequest["profiles"]?.jsonArray?.first()?.jsonObject
                     val qrCodeUrl = firstProfile?.get("url")?.jsonPrimitive?.content
                     val id = firstProfile?.get("id")?.jsonPrimitive?.content
 
@@ -315,7 +319,9 @@ private fun getAttributes(): List<ClaimToBeIssued> = listOf(
 
 private fun createWalletMain(platformAdapter: PlatformAdapter): WalletMain {
     val dummyDataStoreService = DummyDataStoreService()
-    val ks = KeystoreService(dummyDataStoreService)
+    val ks = object : KeystoreService(dummyDataStoreService) {
+        override suspend fun getSigner(): KeyMaterial = EphemeralKeyWithSelfSignedCert()
+    }
     return WalletMain(
         cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
         dataStoreService = dummyDataStoreService,

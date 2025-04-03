@@ -175,6 +175,7 @@
     <string name="issuing_label_scheme">Schema</string>
     <string name="issuing_label_representation">Repräsentation</string>
     <string name="issuing_label_transaction_code">Transaktionscode</string>
+    <string name="issuing_label_information">Es werden alle verfügbaren Daten geladen werden</string>
 
     <string name="credential_scheme_icon_label_mdl">mDL</string>
     <string name="credential_scheme_label_mdl">mDL</string>

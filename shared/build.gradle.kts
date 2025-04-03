@@ -61,9 +61,10 @@ kotlin {
             implementation(ktor("serialization-kotlinx-json"))
 
             implementation(libs.multipaz)
+            implementation(libs.multipaz.compose)
             implementation(libs.multipaz.doctypes)
             implementation(libs.semver)
-            implementation(libs.g0dkar.qrcode.kotlin)
+            implementation(libs.qrose)
         }
 
         commonTest.dependencies {

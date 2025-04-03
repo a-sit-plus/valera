@@ -46,7 +46,6 @@ import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.getString
 import ui.composables.BottomBar
@@ -309,6 +308,7 @@ private fun WalletNavHost(
                 navigateUp = { navigateBack() },
                 onClickLogo = onClickLogo,
                 onNavigateToPresentmentScreen = {
+                    Napier.d("WalletNavigation: onNavigateToPresentmentScreen")
                     presentationStateModel.value = it
                     val consentPageBuilder =
                         BuildAuthenticationConsentPageFromAuthenticationRequestLocalPresentment()
@@ -351,6 +351,7 @@ private fun WalletNavHost(
                     spLocation = route.recipientLocation,
                     spImage = null,
                     authenticationRequest = request,
+                    isCrossDeviceFlow = route.isCrossDeviceFlow,
                     navigateUp = { navigateBack() },
                     navigateToAuthenticationSuccessPage = {
                         navigate(AuthenticationSuccessRoute)
@@ -476,13 +477,12 @@ private fun WalletNavHost(
                     walletMain = walletMain,
                     navigateUp = navigateBack,
                     hostString = route.host,
-                    onSubmit = { credentialIdentifierInfo, requestedAttributes, _ ->
+                    onSubmit = { credentialIdentifierInfo, _ ->
                         popBackStack(HomeScreenRoute)
                         walletMain.scope.launch {
                             walletMain.startProvisioning(
                                 host = route.host,
                                 credentialIdentifierInfo = credentialIdentifierInfo,
-                                requestedAttributes = requestedAttributes,
                             ) {
                             }
                         }
@@ -507,7 +507,7 @@ private fun WalletNavHost(
                 walletMain = walletMain,
                 navigateUp = navigateBack,
                 offer = offer,
-                onSubmit = { credentialIdentifierInfo, requestedAttributes, transactionCode ->
+                onSubmit = { credentialIdentifierInfo, transactionCode ->
                     popBackStack(HomeScreenRoute)
                     navigate(LoadingRoute)
                     walletMain.scope.launch {
@@ -515,8 +515,7 @@ private fun WalletNavHost(
                             walletMain.provisioningService.loadCredentialWithOffer(
                                 credentialOffer = offer,
                                 credentialIdentifierInfo = credentialIdentifierInfo,
-                                transactionCode = transactionCode?.ifEmpty { null }?.ifBlank { null },
-                                requestedAttributes = requestedAttributes
+                                transactionCode = transactionCode?.ifEmpty { null }?.ifBlank { null }
                             )
                             popBackStack(HomeScreenRoute)
                         } catch (e: Throwable) {

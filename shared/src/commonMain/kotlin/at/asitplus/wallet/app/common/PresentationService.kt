@@ -71,11 +71,13 @@ class PresentationService(
         request: RequestParametersFrom<AuthenticationRequestParameters>,
         clientMetadata: RelyingPartyMetadata?,
         credentialPresentation: CredentialPresentation,
+        isCrossDeviceFlow: Boolean,
     ) {
         presentationService.finalizeAuthorizationResponse(
             request = request,
-            clientMetadata = clientMetadata!!, // TODO: remove !! after fix in vck has been deployed
-            credentialPresentation = credentialPresentation
+            clientMetadata = clientMetadata,
+            credentialPresentation = credentialPresentation,
+            isCrossDeviceFlow = isCrossDeviceFlow,
         ).getOrThrow()
     }
 

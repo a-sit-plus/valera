@@ -23,7 +23,6 @@ import at.asitplus.valera.resources.info_text_missing_permission
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
-import ui.permissions.RequestBluetoothPermissions
 import ui.viewmodels.iso.VerifierViewModel
 import ui.views.CameraView
 
@@ -34,10 +33,6 @@ fun VerifierQrEngagementView(vm: VerifierViewModel) {
     var hasPermissions by remember { mutableStateOf(false) }
 
     val vm = remember { vm }
-
-//    RequestBluetoothPermissions { granted ->
-//        hasPermissions = granted
-//    }
 
     if (!hasPermissions) {
         Text(stringResource(Res.string.info_text_missing_permission))

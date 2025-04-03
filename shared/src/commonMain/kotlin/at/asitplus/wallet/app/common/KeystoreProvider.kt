@@ -20,11 +20,11 @@ import kotlinx.coroutines.sync.withLock
 
 private const val CERT_STORAGE_KEY = "MB64_CERT_SELF_SIGNED"
 
-class KeystoreService(
+open class KeystoreService(
     private val dataStoreService: DataStoreService
 ) {
-    private  val sMut = Mutex()
-    suspend fun getSigner(): KeyMaterial {
+    private val sMut = Mutex()
+    open suspend fun getSigner(): KeyMaterial {
         var signer: KeyMaterial? = null
         Napier.d("getSigner")
         sMut.withLock {
