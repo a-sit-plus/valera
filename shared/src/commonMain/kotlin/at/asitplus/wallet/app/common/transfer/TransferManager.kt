@@ -2,6 +2,7 @@ package at.asitplus.wallet.app.common.transfer
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import at.asitplus.wallet.app.common.presentation.TransferSettings
 import data.document.RequestDocument
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CancellableContinuation
@@ -29,10 +30,7 @@ import org.multipaz.crypto.X500Name
 import org.multipaz.crypto.X509Cert
 import org.multipaz.crypto.X509CertChain
 import org.multipaz.mdoc.connectionmethod.MdocConnectionMethod
-import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodBle
-import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodNfc
 import org.multipaz.mdoc.engagement.EngagementParser
-import org.multipaz.mdoc.nfc.scanNfcMdocReader
 import org.multipaz.mdoc.request.DeviceRequestGenerator
 import org.multipaz.mdoc.role.MdocRole
 import org.multipaz.mdoc.sessionencryption.SessionEncryption
@@ -44,13 +42,12 @@ import org.multipaz.mdoc.transport.NfcTransportMdocReader
 import org.multipaz.mdoc.util.MdocUtil
 import org.multipaz.nfc.scanNfcTag
 import org.multipaz.util.Constants
-import org.multipaz.util.UUID
 import org.multipaz.util.fromBase64Url
 
 // based on identity-credential[https://github.com/openwallet-foundation-labs/identity-credential] implementation
 class TransferManager(private val scope: CoroutineScope) {
     private val tag = "TransferManager"
-    
+
     enum class State {
         IDLE,
         RUNNING,
@@ -58,9 +55,10 @@ class TransferManager(private val scope: CoroutineScope) {
     }
 
     private val transferSettings = TransferSettings()
-    var readerMostRecentDeviceResponse =  mutableStateOf<ByteArray?>(null)
+    var readerMostRecentDeviceResponse = mutableStateOf<ByteArray?>(null)
     var readerSessionTranscript: ByteArray? = null
     private val _state = MutableStateFlow(State.IDLE)
+
     /**
      * The current state.
      */
@@ -88,7 +86,6 @@ class TransferManager(private val scope: CoroutineScope) {
     private val connectionMethodPickerData = mutableStateOf<ConnectionMethodPickerData?>(null)
     private var readerTransport = mutableStateOf<MdocTransport?>(null)
     private var readerSessionEncryption = mutableStateOf<SessionEncryption?>(null)
-
 
 
     // TODO public keys taken from identity-credential, replace with our own
@@ -178,87 +175,6 @@ class TransferManager(private val scope: CoroutineScope) {
     )
     private val iacaCert: X509Cert = bundledIacaCert
 
-    fun startNfcEngagement(
-        requestDocument: RequestDocument,
-        setDeviceResponseBytes: (ByteArray) -> Unit
-    ) {
-        readerMostRecentDeviceResponse.value = null
-
-        scope.launch {
-            try {
-                val negotiatedHandoverConnectionMethods = mutableListOf<MdocConnectionMethod>()
-                val bleUuid = UUID.randomUUID()
-                if (transferSettings.presentmentBleCentralClientModeEnabled) {
-                    negotiatedHandoverConnectionMethods.add(
-                        MdocConnectionMethodBle(
-                            supportsPeripheralServerMode = false,
-                            supportsCentralClientMode = true,
-                            peripheralServerModeUuid = null,
-                            centralClientModeUuid = bleUuid,
-                        )
-                    )
-                }
-                if (transferSettings.presentmentBlePeripheralServerModeEnabled) {
-                    negotiatedHandoverConnectionMethods.add(
-                        MdocConnectionMethodBle(
-                            supportsPeripheralServerMode = true,
-                            supportsCentralClientMode = false,
-                            peripheralServerModeUuid = bleUuid,
-                            centralClientModeUuid = null,
-                        )
-                    )
-                }
-                if (transferSettings.presentmentNfcDataTransferEnabled) {
-                negotiatedHandoverConnectionMethods.add(
-                    MdocConnectionMethodNfc(
-                        commandDataFieldMaxLength = 0xffff,
-                        responseDataFieldMaxLength = 0x10000
-                    )
-                )
-                }
-                scanNfcMdocReader(
-                    message = "Hold near credential holder's phone.",
-                    options = MdocTransportOptions(
-                        bleUseL2CAP = transferSettings.readerBleL2CapEnabled
-                    ),
-                    selectConnectionMethod = { connectionMethods ->
-                        if (transferSettings.readerAutomaticallySelectTransport) {
-                            connectionMethods[0]
-                        } else {
-                            selectConnectionMethod(
-                                connectionMethods,
-                                connectionMethodPickerData
-                            )
-                        }
-                    },
-                    negotiatedHandoverConnectionMethods = negotiatedHandoverConnectionMethods,
-                    onHandover = { transport, encodedDeviceEngagement, handover, updateMessage ->
-                        Napier.d("NFC Engagement: onHandover: $updateMessage", tag = tag)
-                        doReaderFlow(
-                            encodedDeviceEngagement = encodedDeviceEngagement,
-                            existingTransport = transport,
-                            handover = handover,
-                            selectConnectionMethod = { connectionMethods ->
-                                if (transferSettings.readerAutomaticallySelectTransport) {
-                                    connectionMethods[0]
-                                } else {
-                                    selectConnectionMethod(
-                                        connectionMethods,
-                                        connectionMethodPickerData
-                                    )
-                                }
-                            },
-                            requestDocument = requestDocument,
-                            setDeviceResponseBytes = setDeviceResponseBytes
-                        )
-                    }
-                )
-            } catch (e: Throwable) {
-                Napier.e("NFC engagement failed", e, tag)
-            }
-        }
-    }
-
     private fun generateEncodedSessionTranscript(
         encodedDeviceEngagement: ByteArray,
         handover: DataItem,
@@ -279,29 +195,31 @@ class TransferManager(private val scope: CoroutineScope) {
         return cborEncoded
     }
 
-    suspend fun doQrFlow(
+    fun doQrFlow(
         qrCode: String,
         requestDocument: RequestDocument,
         setDeviceResponseBytes: (ByteArray) -> Unit,
     ) {
         try {
-            doReaderFlow(
-                encodedDeviceEngagement = ByteString(qrCode.fromBase64Url()),
-                existingTransport = null,
-                handover = Simple.NULL,
-                selectConnectionMethod = { connectionMethods ->
-                    if (transferSettings.readerAutomaticallySelectTransport) {
-                        connectionMethods[0]
-                    } else {
-                        selectConnectionMethod(
-                            connectionMethods,
-                            connectionMethodPickerData
-                        )
-                    }
-                },
-                requestDocument = requestDocument,
-                setDeviceResponseBytes = setDeviceResponseBytes
-            )
+            scope.launch {
+                doReaderFlow(
+                    encodedDeviceEngagement = ByteString(qrCode.fromBase64Url()),
+                    existingTransport = null,
+                    handover = Simple.NULL,
+                    selectConnectionMethod = { connectionMethods ->
+                        if (transferSettings.readerAutomaticallySelectTransport) {
+                            connectionMethods[0]
+                        } else {
+                            selectConnectionMethod(
+                                connectionMethods,
+                                connectionMethodPickerData
+                            )
+                        }
+                    },
+                    requestDocument = requestDocument,
+                    setDeviceResponseBytes = setDeviceResponseBytes
+                )
+            }
         } catch (error: Throwable) {
             Napier.e("Caught exception", error, tag)
             error.printStackTrace()
@@ -436,21 +354,17 @@ class TransferManager(private val scope: CoroutineScope) {
                     _state.value = State.DATA_RECEIVED
                 }
                 if (status == Constants.SESSION_DATA_STATUS_SESSION_TERMINATION) {
-                    Napier.i("Holder indicated they closed the connection. " +
-                            "Closing and ending reader loop", tag = tag)
+                    Napier.i("Holder indicated they closed the connection. Closing and ending reader loop", tag = tag)
                     transport.close()
                     break
                 }
                 if (!transferSettings.presentmentAllowMultipleRequests) {
-                    Napier.i("Holder did not indicate they are closing the connection. " +
-                            "Auto-close is enabled, so sending termination message, closing, and " +
-                            "ending reader loop", tag = tag)
+                    Napier.i("Holder did not indicate they are closing the connection. Auto-close is enabled, so sending termination message, closing, and ending reader loop", tag = tag)
                     transport.sendMessage(SessionEncryption.encodeStatus(Constants.SESSION_DATA_STATUS_SESSION_TERMINATION))
                     transport.close()
                     break
                 }
-                Napier.i("Holder did not indicate they are closing the connection. " +
-                        "Auto-close is not enabled so waiting for message from holder", tag = tag)
+                Napier.i("Holder did not indicate they are closing the connection. Auto-close is not enabled so waiting for message from holder", tag = tag)
                 // "Send additional request" and close buttons will act further on `at.asitplus.wallet.verifier.transport`
             }
         } catch (_: MdocTransportClosedException) {

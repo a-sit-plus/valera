@@ -39,10 +39,10 @@ import at.asitplus.valera.resources.presentation_initialised
 import at.asitplus.valera.resources.presentation_missing_permission
 import at.asitplus.valera.resources.presentation_permission_required
 import at.asitplus.wallet.app.common.SnackbarService
+import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
 import at.asitplus.wallet.app.common.presentation.PresentmentCanceled
 import ui.viewmodels.authentication.PresentationStateModel
 import at.asitplus.wallet.app.common.presentation.PresentmentTimeout
-import at.asitplus.wallet.app.permissions.RequestBluetoothPermissions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -50,6 +50,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import org.multipaz.compose.permissions.rememberBluetoothPermissionState
 import ui.viewmodels.authentication.AuthenticationConsentViewModel
 import ui.viewmodels.authentication.AuthenticationNoCredentialViewModel
 import ui.viewmodels.authentication.AuthenticationSelectionPresentationExchangeViewModel
@@ -70,7 +71,7 @@ import kotlin.time.Duration.Companion.seconds
  * A composable used for credential presentment.
  *
  * Applications should embed this composable wherever credential presentment is required. It communicates with the
- * verifier using [PresentmentMechanism] and [PresentationStateModel] and gets application-specific data sources and
+ * verifier using [MdocPresentmentMechanism] and [PresentationStateModel] and gets application-specific data sources and
  * policy using [PresentmentSource].
  *
  * @param presentationViewModel the [PresentationViewModel] to use.
@@ -89,6 +90,7 @@ fun PresentationView(
     presentationViewModel.walletMain.cryptoService.onUnauthenticated =
         presentationViewModel.navigateUp
 
+    val blePermissionState = rememberBluetoothPermissionState()
 
     // Make sure we clean up the PresentmentModel when we're done. This is to ensure
     // the mechanism is properly shut down, for example for proximity we need to release
@@ -108,12 +110,14 @@ fun PresentationView(
         PresentationStateModel.State.CONNECTING -> {
         }
 
-        PresentationStateModel.State.CHECK_PERMISSIONS ->
-            RequestBluetoothPermissions({ granted ->
-                presentationStateModel.setPermissionState(
-                    granted
-                )
-            }, snackbarService::showSnackbar)
+        PresentationStateModel.State.CHECK_PERMISSIONS -> {
+            // TODO: check this
+            if (!blePermissionState.isGranted) {
+                coroutineScope.launch {
+                    blePermissionState.launchPermissionRequest()
+                }
+            }
+        }
 
         PresentationStateModel.State.WAITING_FOR_SOURCE -> {
             presentationStateModel.setStepAfterWaitingForSource(presentationViewModel)

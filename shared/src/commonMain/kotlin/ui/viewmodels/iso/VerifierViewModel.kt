@@ -1,11 +1,10 @@
 package ui.viewmodels.iso
 
 import at.asitplus.wallet.app.common.transfer.TransferManager
-import data.bletransfer.Verifier
+import data.document.RequestDocument
 import data.document.getAgeVerificationRequestDocument
 import data.document.getIdentityRequestDocument
 import data.document.getMdlRequestDocument
-import data.document.RequestDocument
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -13,26 +12,17 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-class VerifierViewModel (
+class VerifierViewModel(
     val navigateUp: () -> Unit,
     val onClickLogo: () -> Unit,
-//    val onSuccess: (RequestDocument, String) -> Unit,
+//    val onSuccess: (RequestDocument, String) -> Unit
 ) {
-    private val transferManager: TransferManager by lazy { TransferManager(CoroutineScope(Dispatchers.IO)) }
-    val verifier: Verifier by lazy { Verifier(transferManager) }
-
-    val onFoundPayload: (String) -> Unit = { payload ->
-        requestDocument.value?.let { document ->
-            verifier.startTransportWithQr(payload, document) { deviceResponseBytes ->
-                Napier.d("deviceResponseBytes = $deviceResponseBytes", tag = "VerifierViewModel")
-//                handleResponse(deviceResponseBytes)
-            }
-//            onSuccess(document, payload)
-
-
-        }
-
-        // TODO: set up transfer manager and startQrEngagement
+    private val transferManager: TransferManager by lazy {
+        TransferManager(
+            CoroutineScope(
+                Dispatchers.IO
+            )
+        )
     }
 
     private val _verifierState = MutableStateFlow(VerifierState.INIT)
@@ -68,11 +58,27 @@ class VerifierViewModel (
         _requestDocument.value = customSelectionDocument
         _verifierState.value = VerifierState.QR_ENGAGEMENT
     }
+
+    val onFoundPayload: (String) -> Unit = { payload ->
+        if (payload.startsWith("mdoc:")) {
+            _verifierState.value = VerifierState.WAITING_FOR_RESPONSE
+            requestDocument.value?.let { document ->
+                transferManager.doQrFlow(payload.substring(5), document, { deviceResponseBytes ->
+                    Napier.d("deviceResponseBytes = $deviceResponseBytes", tag = "VerifierViewModel")
+                    // TODO: handle onSuccess()
+                })
+            }
+        } else {
+            Napier.w("QR-Code does not start with \"mdoc:\"")
+            // TODO: handle onFailure()
+        }
+    }
 }
 
 enum class VerifierState {
     INIT,
     SELECT_CUSTOM_REQUEST,
     QR_ENGAGEMENT,
+    WAITING_FOR_RESPONSE,
     PRESENTATION
 }

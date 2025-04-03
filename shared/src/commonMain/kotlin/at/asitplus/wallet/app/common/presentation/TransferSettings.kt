@@ -1,4 +1,4 @@
-package at.asitplus.wallet.app.common.transfer
+package at.asitplus.wallet.app.common.presentation
 
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds

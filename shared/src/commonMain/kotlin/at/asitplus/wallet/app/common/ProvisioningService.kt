@@ -23,7 +23,6 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.encodeToString
 import ui.navigation.IntentService
 import kotlin.time.Duration.Companion.minutes
 

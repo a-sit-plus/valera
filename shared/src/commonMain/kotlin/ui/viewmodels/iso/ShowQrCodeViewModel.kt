@@ -1,12 +1,8 @@
 package ui.viewmodels.iso
 
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
-import io.github.aakira.napier.Napier
 import kotlinx.io.bytestring.ByteString
 import org.multipaz.cbor.Simple
 import org.multipaz.crypto.Crypto
@@ -19,8 +15,6 @@ import org.multipaz.mdoc.transport.MdocTransportFactory
 import org.multipaz.mdoc.transport.MdocTransportOptions
 import org.multipaz.mdoc.transport.advertiseAndWait
 import org.multipaz.util.UUID
-import org.multipaz.util.toBase64Url
-import qrcode.QRCode
 import ui.viewmodels.authentication.PresentationStateModel
 
 class ShowQrCodeViewModel(
@@ -29,7 +23,6 @@ class ShowQrCodeViewModel(
     val onClickLogo: () -> Unit,
     val onNavigateToPresentmentScreen: (PresentationStateModel) -> Unit,
 ) {
-    var permission by mutableStateOf(false)
     val presentationStateModel: PresentationStateModel by lazy { PresentationStateModel() }
 
     suspend fun doHolderFlow(showQrCode: MutableState<ByteString?>, ) {
@@ -76,13 +69,5 @@ class ShowQrCodeViewModel(
         )
         showQrCode.value = null
         onNavigateToPresentmentScreen(presentationStateModel)
-    }
-
-    fun createQrCode(showQrCode: ByteString): ByteArray {
-        Napier.d("DeviceEngagement: ${showQrCode.toByteArray()}")
-        val deviceEngagementQrCode = "mdoc:" + showQrCode.toByteArray().toBase64Url()
-        return QRCode.ofSquares()
-            .build(deviceEngagementQrCode)
-            .renderToBytes()
     }
 }

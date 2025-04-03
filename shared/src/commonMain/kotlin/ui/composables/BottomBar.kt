@@ -18,7 +18,6 @@ import at.asitplus.valera.resources.navigation_button_label_settings
 import at.asitplus.valera.resources.navigation_button_label_show_data
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
-import ui.navigation.routes.AuthenticationQrCodeScannerRoute
 import ui.navigation.routes.HomeScreenRoute
 import ui.navigation.routes.Route
 import ui.navigation.routes.SettingsRoute

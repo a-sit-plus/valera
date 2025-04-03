@@ -1,6 +1,7 @@
 package ui.views.iso
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,10 +27,16 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_show_qr_code_screen
 import at.asitplus.valera.resources.info_text_qr_code_loading
-import at.asitplus.wallet.app.common.decodeImage
+import io.github.aakira.napier.Napier
+import io.github.alexzhirkevich.qrose.rememberQrCodePainter
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import kotlinx.io.bytestring.ByteString
 import org.jetbrains.compose.resources.stringResource
+import org.multipaz.compose.permissions.rememberBluetoothPermissionState
+import org.multipaz.util.toBase64Url
 import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.authentication.PresentationStateModel
@@ -40,6 +47,7 @@ import ui.viewmodels.iso.ShowQrCodeViewModel
 fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
 
     val vm = remember { vm }
+    val blePermissionState = rememberBluetoothPermissionState()
     val showQrCode = remember { mutableStateOf<ByteString?>(null) }
 
     Scaffold(
@@ -65,16 +73,31 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
                 contentAlignment = Alignment.Center
             ) {
                 if (showQrCode.value != null && vm.presentationStateModel.state.collectAsState().value != PresentationStateModel.State.PROCESSING) {
-                    val qrCode = vm.createQrCode(showQrCode.value!!)
-                    val imageBitmap = vm.walletMain.platformAdapter.decodeImage(qrCode)
-                    Image(bitmap = imageBitmap, contentDescription = null)
-                } else {
+                    val deviceEngagementQrCode = "mdoc:" + showQrCode.value!!.toByteArray().toBase64Url()
+                    Napier.d("ShowQrCodeView: qrCode = \n$deviceEngagementQrCode")
+                    Image(
+                        painter = rememberQrCodePainter(deviceEngagementQrCode),
+                        contentDescription = null,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                } else if (!blePermissionState.isGranted) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            blePermissionState.launchPermissionRequest()
+                        }
+                    }
+                } else if (blePermissionState.isGranted) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         CircularProgressIndicator()
                         LaunchedEffect(showQrCode.value) {
                             vm.presentationStateModel.reset()
                             vm.presentationStateModel.init()
                             vm.presentationStateModel.start(needBluetooth = true)
+                            vm.presentationStateModel.setPermissionState(true)
                             vm.presentationStateModel.presentmentScope.launch {
                                 vm.doHolderFlow(showQrCode)
                             }
