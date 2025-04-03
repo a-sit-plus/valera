@@ -16,6 +16,7 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
+import at.asitplus.wallet.lib.iso.SessionTranscript
 import org.multipaz.request.MdocRequest
 
 class PresentationViewModel(
@@ -37,10 +38,15 @@ class PresentationViewModel(
     onClickLogo
 ) {
     private var descriptors: List<DifInputDescriptor> = listOf()
+    private var finishFunction: ((ByteArray) -> Unit)? = null
+    private var encodedSessionTranscript: ByteArray = ByteArray(0)
+    private var sessionTranscript: SessionTranscript? = null
 
     fun initWithMdocRequest(
         parsedRequest: List<MdocRequest>,
-        finishFunction: (ByteArray) -> Unit
+        finishFunction: (ByteArray) -> Unit,
+        encodedSessionTranscript: ByteArray,
+        sessionTranscript: SessionTranscript?
     ) {
         val requester: MutableList<String?> = mutableListOf()
         descriptors = parsedRequest.map {
@@ -60,12 +66,38 @@ class PresentationViewModel(
                 })
             )
         }
+        this.encodedSessionTranscript = encodedSessionTranscript
         this.finishFunction = finishFunction
+        this.encodedSessionTranscript = encodedSessionTranscript
         check(requester.all { it == requester.firstOrNull() })
         this.spName = requester.firstOrNull { it != null }
+        this.sessionTranscript = sessionTranscript
     }
 
-    private var finishFunction: ((ByteArray) -> Unit)? = null
+    /*fun initWithAsitRequest(
+        parsedRequest: Array<DocRequest>,
+        finishFunction: (DeviceResponse) -> Unit
+    ) {
+        descriptors.addAll(parsedRequest.map {
+            DifInputDescriptor(
+                id = it.itemsRequest.value.docType,
+                constraints = Constraint(fields = it.itemsRequest.value.namespaces.map { (namespace, itemsRequestList) ->
+                    itemsRequestList.entries.map {
+                    ConstraintField(
+                        path = listOf(
+                            NormalizedJsonPath(
+                                NormalizedJsonPathSegment.NameSegment(namespace),
+                                NormalizedJsonPathSegment.NameSegment(itemsRequestList.entries[0].requestedAttribute.dataElementName),
+                            ).toString()
+                        ), intentToRetain = requestedAttribute.intentToRetain
+                    )
+                }
+                })
+
+            )
+        })
+        this.finishFunction = finishFunction
+    }*/
 
     override val transactionData: TransactionData? = null
 
@@ -99,7 +131,9 @@ class PresentationViewModel(
                     else -> throw IllegalArgumentException()
                 },
                 it,
-                spName
+                spName,
+                encodedSessionTranscript,
+                sessionTranscript!!
             )
         } ?: throw IllegalStateException("No finish method found")
 

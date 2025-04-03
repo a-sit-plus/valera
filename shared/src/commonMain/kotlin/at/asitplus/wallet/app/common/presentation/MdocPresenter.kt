@@ -1,6 +1,8 @@
 package at.asitplus.wallet.app.common.presentation
 
 import at.asitplus.wallet.lib.iso.DeviceRequest
+import at.asitplus.wallet.lib.iso.IsoHandover
+import at.asitplus.wallet.lib.iso.SessionTranscript
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -47,6 +49,7 @@ class MdocPresenter(
         try {
             var sessionEncryption: SessionEncryption? = null
             var encodedSessionTranscript: ByteArray? = null
+            var sessionTranscript: SessionTranscript? = null
             while (true) {
                 Napier.i("Waiting for message from reader...")
                 dismissible.value = true
@@ -67,6 +70,13 @@ class MdocPresenter(
                             add(mechanism.handover)
                         }
                     )
+                    val map = Cbor.decode(sessionData)
+                    val encodedEReaderKey = map["eReaderKey"].asTagged.asBstr
+                    Cbor.decode(encodedEReaderKey)
+
+
+                    //sessionTranscript = SessionTranscript(mechanism.encodedDeviceEngagement.toByteArray(), Cbor.encode(eReaderKey.toCoseKey().toDataItem()), handover = IsoHandover(mechanism.handover))
+                    sessionTranscript = SessionTranscript(mechanism.encodedDeviceEngagement.toByteArray(), Cbor.encode(eReaderKey.toCoseKey().toDataItem()), handover =null)
                     sessionEncryption = SessionEncryption(
                         MdocRole.MDOC,
                         mechanism.ephemeralDeviceKey,
@@ -96,8 +106,15 @@ class MdocPresenter(
                     )
                 }
 
-                presentationViewModel.initWithMdocRequest(mdocRequests, credentialSelected)
+                /*val deviceRequestAsit =
+                    DeviceRequest.deserialize(encodedDeviceRequest).getOrElse { exception ->
+                        val errorMessage = "Deserialization of DeviceRequest failed"
+                        Napier.e(errorMessage, exception)
+                        throw exception
+                    }*/
+                presentationViewModel.initWithMdocRequest(mdocRequests, credentialSelected, encodedSessionTranscript, sessionTranscript)
 
+                //presentationViewModel.initWithAsitRequest(deviceRequestAsit.docRequests, credentialSelected)
 
                 val response = stateModel.requestCredentialSelection()
 
@@ -130,5 +147,6 @@ class MdocPresenter(
             Napier.e("Caught exception", error)
             stateModel.setCompleted(error)
         }
+        transport.close()
     }
 }
