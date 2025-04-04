@@ -26,7 +26,7 @@ import at.asitplus.catchingUnwrapped
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.openid.RequestParametersFrom
-import at.asitplus.openid.odcJsonSerializer
+import at.asitplus.rqes.rdcJsonSerializer
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_clear_log_successfully
 import at.asitplus.valera.resources.snackbar_reset_app_successfully
@@ -272,7 +272,7 @@ private fun WalletNavHost(
             val route: AuthenticationViewRoute = backStackEntry.toRoute()
 
             val vm = try {
-                val request = odcJsonSerializer
+                val request = rdcJsonSerializer
                     .decodeFromString<RequestParametersFrom<AuthenticationRequestParameters>>(route.authenticationRequestParametersFromSerialized)
 
                 DefaultAuthenticationViewModel(

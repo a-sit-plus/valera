@@ -2,8 +2,6 @@ package at.asitplus.wallet.app.common
 
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.wallet.lib.agent.CryptoService
-import at.asitplus.wallet.lib.agent.DefaultCryptoService
-import at.asitplus.wallet.lib.agent.EphemeralKeyWithoutCert
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
@@ -25,7 +23,6 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.encodeToString
 import kotlin.time.Duration.Companion.minutes
 
 class ProvisioningService(

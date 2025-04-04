@@ -17,7 +17,7 @@ sealed class CredentialAdapter {
     abstract fun getAttribute(path: NormalizedJsonPath): Attribute?
 
     protected fun Any?.toLocalDateOrNull() =
-        (this as? LocalDate?) ?: (this as? String?)?.let { LocalDate.parse(it) }
+        (this as? LocalDate?) ?: (this as? String?)?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
 
     protected fun Any?.toInstantOrNull() =
         (this as? Instant?) ?: (this as? String?)?.let { runCatching { Instant.parse(it) }.getOrNull() }
@@ -25,7 +25,7 @@ sealed class CredentialAdapter {
     protected fun JsonPrimitive?.toCollectionOrNull() = (this as JsonArray?)?.let { it.map { it.toString() } }
 
     protected fun Any?.toLocalDateTimeOrNull() =
-        (this as? LocalDateTime?) ?: (this as? String?)?.let { LocalDateTime.parse(it) }
+        (this as? LocalDateTime?) ?: (this as? String?)?.let { runCatching { LocalDateTime.parse(it) }.getOrNull() }
 
     abstract val representation: ConstantIndex.CredentialRepresentation
 

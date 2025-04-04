@@ -9,7 +9,7 @@ class AuthenticationConsentViewModel(
     val spName: String?,
     val spLocation: String,
     val spImage: ImageBitmap?,
-    val transactionData: TransactionData?,
+    val transactionData: at.asitplus.openid.TransactionData?,
     val navigateUp: () -> Unit,
     val buttonConsent: () -> Unit,
     val walletMain: WalletMain,

@@ -59,9 +59,7 @@ fun AuthenticationView(
                     AuthenticationSelectionDCQLView(
                         navigateUp = vm.navigateUp,
                         onClickLogo = vm.onClickLogo,
-                        confirmSelection = {
-                            vm.confirmSelection(it)
-                        },
+                        confirmSelection = { vm.confirmSelection(it) },
                         matchingResult = matching,
                         decodeToBitmap = { byteArray ->
                             vm.walletMain.platformAdapter.decodeImage(byteArray)
@@ -71,16 +69,15 @@ fun AuthenticationView(
                 }
 
                 is PresentationExchangeMatchingResult -> {
-                    val viewModel = AuthenticationSelectionPresentationExchangeViewModel(
-                        walletMain = vm.walletMain,
-                        confirmSelections = { selections ->
-                            vm.confirmSelection(selections)
-                        },
-                        navigateUp = { vm.viewState = AuthenticationViewState.Consent },
-                        onClickLogo = vm.onClickLogo,
-                        credentialMatchingResult = matching,
+                    AuthenticationSelectionPresentationExchangeView(
+                        vm = AuthenticationSelectionPresentationExchangeViewModel(
+                            walletMain = vm.walletMain,
+                            confirmSelections = { selections -> vm.confirmSelection(selections) },
+                            navigateUp = { vm.viewState = AuthenticationViewState.Consent },
+                            onClickLogo = vm.onClickLogo,
+                            credentialMatchingResult = matching,
+                        )
                     )
-                    AuthenticationSelectionPresentationExchangeView(vm = viewModel)
                 }
             }
         }

@@ -42,7 +42,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import at.asitplus.rqes.collection_entries.TransactionData
+import at.asitplus.openid.TransactionData
+import at.asitplus.rqes.rdcJsonSerializer
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_location
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_name
@@ -51,7 +52,8 @@ import at.asitplus.valera.resources.heading_label_navigate_back
 import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_data_recipient
 import at.asitplus.valera.resources.section_heading_transaction_data
-import at.asitplus.wallet.lib.oidvci.encodeToParameters
+import kotlinx.serialization.PolymorphicSerializer
+import kotlinx.serialization.json.JsonObject
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.DataDisplaySection
 import ui.composables.LabeledText
@@ -168,9 +170,10 @@ fun TransactionDataView(transactionData: TransactionData) {
 
         val density = LocalDensity.current
 
-        val list: List<Pair<String, String>> = transactionData.encodeToParameters().map {
-            Pair(it.key, it.value)
-        }
+        val properties = (rdcJsonSerializer.encodeToJsonElement(
+            PolymorphicSerializer(TransactionData::class),
+            transactionData
+        ) as? JsonObject?)?.entries
 
         Text(
             text = stringResource(Res.string.section_heading_transaction_data),
@@ -178,15 +181,18 @@ fun TransactionDataView(transactionData: TransactionData) {
             color = MaterialTheme.colorScheme.secondary,
             fontWeight = FontWeight.SemiBold,
         )
+        val typeProperty = properties?.firstOrNull { it.key == "type" } ?: properties?.firstOrNull()
         Spacer(modifier = Modifier.height(8.dp))
         Column(modifier = Modifier.padding(start = 32.dp)) {
             Row {
                 val paddingModifier = Modifier.padding(bottom = 16.dp)
-                LabeledText(
-                    label = list.first().first,
-                    text = list.first().second,
-                    modifier = paddingModifier,
-                )
+                typeProperty?.let {
+                    LabeledText(
+                        label = it.key,
+                        text = it.value.toString(),
+                        modifier = paddingModifier,
+                    )
+                }
                 Spacer(modifier = Modifier.width(10.dp))
                 Column(modifier = Modifier.clickable(onClick = { showContent = !showContent })) {
                     Icon(
@@ -220,10 +226,10 @@ fun TransactionDataView(transactionData: TransactionData) {
         ) {
             val paddingModifier = Modifier.padding(bottom = 16.dp)
             Column(modifier = Modifier.padding(start = 32.dp)) {
-                list.filter { it.first != "type" }.forEach {
+                properties?.filter { it.key != "type" }?.forEach {
                     LabeledText(
-                        label = it.first,
-                        text = it.second,
+                        label = it.key,
+                        text = it.value.toString(),
                         modifier = paddingModifier,
                     )
                 }

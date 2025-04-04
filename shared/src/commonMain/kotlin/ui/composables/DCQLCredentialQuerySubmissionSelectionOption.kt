@@ -19,9 +19,14 @@ import at.asitplus.openid.dcql.DCQLCredentialSubmissionOption
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.jsonpath.core.plus
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.app.common.thirdParty.kotlinx.serialization.json.leafNodeList
+import at.asitplus.wallet.lib.agent.SdJwtValidator
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialToJsonConverter.toJsonElement
+import at.asitplus.wallet.lib.data.vckJsonSerializer
+import at.asitplus.wallet.lib.jws.SdJwtSigned
 import data.Attribute
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.encodeToJsonElement
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.credentials.CredentialSelectionCardHeader
 import ui.composables.credentials.CredentialSelectionCardLayout
@@ -40,7 +45,7 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
     val matchingResult = option.matchingResult
 
     val genericAttributeList: List<Pair<NormalizedJsonPath, Any>> = when (matchingResult) {
-        DCQLCredentialQueryMatchingResult.AllClaimsMatchingResult -> credential.toJsonElement().leafNodeList().map {
+        DCQLCredentialQueryMatchingResult.AllClaimsMatchingResult -> credential.allClaims().leafNodeList().map {
             it.normalizedJsonPath to it.value
         }
 
@@ -49,6 +54,7 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
                 is DCQLClaimsQueryResult.IsoMdocResult -> listOf(
                     NormalizedJsonPath() + it.namespace + it.claimName to it.claimValue,
                 )
+
                 is DCQLClaimsQueryResult.JsonResult -> it.nodeList.map {
                     it.normalizedJsonPath to it.value
                 }
@@ -56,13 +62,12 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
         }
     }
     val labeledAttributes = genericAttributeList.mapNotNull { (key, value) ->
-        Attribute.fromValue(value)?.let {
-            val label = key.segments.lastOrNull()?.let {
+        Attribute.fromValue(value)?.let { attribute ->
+            key.segments.lastOrNull()?.let {
                 credential.scheme?.getLocalization(NormalizedJsonPath(it))?.let {
                     stringResource(it)
                 }
-            } ?: key.toString()
-            label to it
+            }?.let { it to attribute }
         }
     }.sortedBy {
         it.first
@@ -88,7 +93,7 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
         AnimatedVisibility(isSelected) {
             Column(
                 modifier = Modifier.padding(8.dp).fillMaxWidth().align(Alignment.Start),
-                verticalArrangement = Arrangement.spacedBy(8.dp,)
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 labeledAttributes.forEach {
                     LabeledAttribute(
@@ -99,5 +104,26 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
             }
         }
     }
+}
+
+private fun SubjectCredentialStore.StoreEntry.allClaims() = when (this) {
+    is SubjectCredentialStore.StoreEntry.Iso -> buildJsonObject {
+        issuerSigned.namespaces?.forEach {
+            put(it.key, buildJsonObject {
+                it.value.entries.map { it.value }.forEach {
+                    put(it.elementIdentifier, it.elementValue.toJsonElement())
+                }
+            })
+        }
+    }
+
+    is SubjectCredentialStore.StoreEntry.SdJwt -> SdJwtSigned.parse(vcSerialized)
+        ?.let { SdJwtValidator(it).reconstructedJsonObject } ?: buildJsonObject {
+        disclosures.forEach { disclosure ->
+            disclosure.value?.claimValue?.let { put(disclosure.key, it) }
+        }
+    }
+
+    is SubjectCredentialStore.StoreEntry.Vc -> vckJsonSerializer.encodeToJsonElement(vc)
 }
 

@@ -19,12 +19,11 @@ import kotlinx.serialization.json.longOrNull
 
 sealed interface Attribute {
     companion object {
-        fun fromValue(value: Any?): Attribute? = if(value == null) null else  when (val it = value) {
+        fun fromValue(value: Any?): Attribute? = if (value == null) null else when (val it = value) {
             is Array<*> -> fromValueList(it.toList())
             is Collection<*> -> fromValueList(it.toList())
-
-            JsonNull -> null
-            is JsonPrimitive -> if(it.isString) {
+            is JsonNull -> null
+            is JsonPrimitive -> if (it.isString) {
                 fromValue(it.content)
             } else {
                 it.booleanOrNull?.let { fromValue(it) }
@@ -42,23 +41,21 @@ sealed interface Attribute {
             is LocalDateTime -> DateTimeAttribute(it)
             is Instant -> InstantAttribute(it)
             is ImageBitmap -> ImageAttribute(it)
-
+            is Long -> LongAttribute(it)
             is CompanyActivity -> CompanyActivityAttribute(it)
             is ContactData -> ContactDataAttribute(it)
             is Address -> AddressAttribute(it)
             is Branch -> BranchAttribute(it)
-            else -> throw IllegalArgumentException("Unexpected attribute value type")
+            else -> throw IllegalArgumentException("Unexpected attribute value type: ${value::class}, $value")
         }
 
         private fun fromValueList(valueList: List<Any?>) = runCatching {
-            StringListAttribute(valueList.map {
-                it as String
-            })
-        }.getOrNull() ?:runCatching {
-            DrivingPrivilegeAttribute(valueList.map {
-                it as DrivingPrivilege
-            }.toTypedArray())
-        }.getOrNull() ?: throw IllegalArgumentException("Unexpected attribute array value type")
+            StringListAttribute(valueList.map { it as String })
+        }.getOrNull() ?: runCatching {
+            DrivingPrivilegeAttribute(valueList.map { it as DrivingPrivilege }.toTypedArray())
+        }.getOrNull() ?: runCatching {
+            StringListAttribute(valueList.map { (it as JsonPrimitive).content })
+        }.getOrNull() ?: StringListAttribute(valueList.map { it.toString() })
     }
 
     data class StringAttribute(val value: String) : Attribute
@@ -66,6 +63,7 @@ sealed interface Attribute {
     data class GenderAttribute(val value: IsoIec5218Gender) : Attribute
     data class SexAttribute(val value: IsoSexEnum) : Attribute
     data class IntegerAttribute(val value: Int) : Attribute
+    data class LongAttribute(val value: Long) : Attribute
     data class UnsignedIntegerAttribute(val value: UInt) : Attribute
     data class BooleanAttribute(val value: Boolean) : Attribute
     data class DateAttribute(val value: LocalDate) : Attribute

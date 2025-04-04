@@ -6,6 +6,7 @@ import at.asitplus.catching
 import at.asitplus.catchingUnwrapped
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.RequestParametersFrom
+import at.asitplus.rqes.QesInputDescriptor
 import at.asitplus.rqes.collection_entries.TransactionData
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
@@ -46,17 +47,19 @@ class DefaultAuthenticationViewModel(
             CredentialPresentationRequest.DCQLRequest(it)
         } ?: throw IllegalArgumentException("No credential presentation request has been found.")
 
-    override val transactionData = catchingUnwrapped {
-        vckJsonSerializer.decodeFromString<TransactionData>(authenticationRequest.parameters.transactionData?.first()!!)
-    }.getOrNull()
+    @Suppress("DEPRECATION")
+    override val transactionData = authenticationRequest.parameters.transactionData?.firstOrNull()
+        ?: authenticationRequest.parameters.presentationDefinition
+            ?.inputDescriptors?.filterIsInstance<QesInputDescriptor>()?.firstOrNull()?.transactionData?.firstOrNull()
 
     private lateinit var preparationState: AuthorizationResponsePreparationState
 
-    override suspend fun findMatchingCredentials(): KmmResult<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>> = catching {
-        preparationState = walletMain.presentationService.getPreparationState(request = authenticationRequest)
+    override suspend fun findMatchingCredentials(): KmmResult<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>> =
+        catching {
+            preparationState = walletMain.presentationService.getPreparationState(request = authenticationRequest)
 
-        return walletMain.presentationService.getMatchingCredentials(preparationState = preparationState)
-    }
+            return walletMain.presentationService.getMatchingCredentials(preparationState = preparationState)
+        }
 
     override suspend fun finalizationMethod(credentialPresentation: CredentialPresentation) =
         walletMain.presentationService.finalizeAuthorizationResponse(

@@ -67,7 +67,7 @@ class PresentationViewModel(
 
     private var finishFunction: ((ByteArray) -> Unit)? = null
 
-    override val transactionData: TransactionData? = null
+    override val transactionData: at.asitplus.openid.TransactionData? = null
 
     override val presentationRequest: CredentialPresentationRequest.PresentationExchangeRequest
         get() = CredentialPresentationRequest.PresentationExchangeRequest(

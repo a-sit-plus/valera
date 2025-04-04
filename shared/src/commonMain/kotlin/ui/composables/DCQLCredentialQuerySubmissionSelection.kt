@@ -26,9 +26,7 @@ fun DCQLCredentialQuerySubmissionSelection(
             val isSelected = index == currentlySelectedOptionIndex
             DCQLCredentialQuerySubmissionSelectionOption(
                 isSelected = isSelected,
-                onToggleSelection = {
-                    onChangeSelection(if(isSelected) null else index)
-                },
+                onToggleSelection = { onChangeSelection(if (isSelected) null else index) },
                 decodeToBitmap = decodeToBitmap,
                 option = option,
             )
