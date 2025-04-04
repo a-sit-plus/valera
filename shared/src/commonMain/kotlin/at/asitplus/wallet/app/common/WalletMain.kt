@@ -1,17 +1,20 @@
 package at.asitplus.wallet.app.common
 
 import androidx.compose.ui.graphics.ImageBitmap
+import at.asitplus.catchingUnwrapped
+import at.asitplus.signum.indispensable.josef.JsonWebKey
+import at.asitplus.signum.indispensable.josef.JsonWebKeySet
+import at.asitplus.signum.indispensable.josef.JwsSigned
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_update_action
 import at.asitplus.valera.resources.snackbar_update_hint
 import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
-import at.asitplus.wallet.lib.agent.DefaultVerifierCryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
-import at.asitplus.wallet.lib.agent.Parser
 import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.cbor.DefaultCoseService
 import at.asitplus.wallet.lib.jws.DefaultJwsService
+import at.asitplus.wallet.lib.jws.DefaultVerifierJwsService
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import at.asitplus.wallet.lib.rqes.Initializer.initRqesModule
 import data.storage.AntilogAdapter
@@ -24,9 +27,12 @@ import io.ktor.client.request.get
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import net.swiftzer.semver.SemVer
@@ -79,7 +85,11 @@ class WalletMain(
             WalletConfig(dataStoreService = this.dataStoreService, errorService = errorService)
         subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
         holderAgent = HolderAgent(
-            validator = Validator(DefaultVerifierCryptoService(), Parser()),
+            validator = Validator(
+                verifierJwsService = DefaultVerifierJwsService(
+                    publicKeyLookup = issuerKeyLookup()
+                )
+            ),
             subjectCredentialStore = subjectCredentialStore,
             jwsService = DefaultJwsService(cryptoService),
             coseService = coseService,
@@ -107,6 +117,24 @@ class WalletMain(
         this.snackbarService = snackbarService
         this.dcApiService = DCAPIService(platformAdapter)
     }
+
+    private fun issuerKeyLookup(): (JwsSigned<*>) -> Set<JsonWebKey>? = { jws ->
+        if (jws.payloadIssuer() == "https://dss.aegean.gr/rfc-issuer" && jws.header.keyId != null) {
+            loadJsonWebKeySet("https://dss.aegean.gr/.well-known/")
+                ?.keys?.firstOrNull { it.keyId == jws.header.keyId }?.let { setOf(it) }
+        } else setOf()
+    }
+
+    private fun loadJsonWebKeySet(url: String) = runBlocking {
+        CoroutineScope(Dispatchers.IO).async {
+            catchingUnwrapped {
+                httpService.buildHttpClient().get(url).body<JsonWebKeySet>()
+            }.getOrNull()
+        }.await()
+    }
+
+    private fun JwsSigned<*>.payloadIssuer() =
+        ((payload as? JsonObject?)?.get("iss") as? JsonPrimitive?)?.content
 
     suspend fun resetApp() {
         dataStoreService.clearLog()
@@ -173,7 +201,13 @@ class WalletMain(
                         val currentVersion = SemVer.parse(buildContext.versionName)
                         Napier.d("Version is $currentVersion, latest is $latestVersion")
                         if (latestVersion > currentVersion) {
-                            snackbarService.showSnackbar(getString(Res.string.snackbar_update_hint, host, latestVersion), getString(Res.string.snackbar_update_action)) {
+                            snackbarService.showSnackbar(
+                                getString(
+                                    Res.string.snackbar_update_hint,
+                                    host,
+                                    latestVersion
+                                ), getString(Res.string.snackbar_update_action)
+                            ) {
                                 platformAdapter.openUrl(host)
                             }
                         }
