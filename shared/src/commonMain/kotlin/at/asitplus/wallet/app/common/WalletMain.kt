@@ -89,8 +89,7 @@ class WalletMain(
     @Throws(Throwable::class)
     fun initialize(snackbarService: SnackbarService) {
         val coseService = DefaultCoseService(cryptoService)
-        walletConfig =
-            WalletConfig(dataStoreService = this.dataStoreService, errorService = errorService)
+        walletConfig = WalletConfig(dataStoreService = this.dataStoreService, errorService = errorService)
         subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
 
         httpService = HttpService(buildContext)

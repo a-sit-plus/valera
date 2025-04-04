@@ -34,7 +34,8 @@ fun ColumnScope.CredentialCardHeader(
         title = {
             LabeledText(
                 label = credential.representation.uiLabel(),
-                text = "(${tokenStatus.uiLabel()} ${status?.statusList?.index}) " + credential.scheme.uiLabel(),
+                // TODO: How to show token status?
+                text = "(${tokenStatus.uiLabel()} ${status?.statusList?.index} ${tokenStatus!!.value}) " + credential.scheme.uiLabel(),
             )
         },
     ) {
@@ -47,6 +48,6 @@ fun ColumnScope.CredentialCardHeader(
 private fun TokenStatus?.uiLabel() = when(this?.value) {
     null -> "STATUS UNKNOWN"
     0u.toUByte() -> "VALID"
-    1u.toUByte() -> "INVALID"
+    1u.toUByte() -> "INVALID "
     else -> "STATUS UNKNOWN"
 }
