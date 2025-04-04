@@ -21,6 +21,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_my_data_screen
+import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatus
+import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.CustomFloatingActionMenu
 import ui.composables.FloatingActionButtonHeightSpacer
@@ -34,7 +37,18 @@ fun CredentialsView(
     vm: CredentialsViewModel,
     bottomBar: @Composable () -> Unit
 ) {
-    val storeContainerState by vm.storeContainer.collectAsState(null)
+    val credentials by vm.storeContainer.map { storeContainer ->
+        storeContainer.credentials.map { (id, credential) ->
+            val revocationStatus = when (val it = credential) {
+                is SubjectCredentialStore.StoreEntry.Iso -> vm.walletMain.credentialValidator.checkRevocationStatus(it.issuerSigned)
+                is SubjectCredentialStore.StoreEntry.Vc -> vm.walletMain.credentialValidator.checkRevocationStatus(it.vc)
+                is SubjectCredentialStore.StoreEntry.SdJwt -> vm.walletMain.credentialValidator.checkRevocationStatus(it.sdJwt)
+            }
+            Triple(id, credential, revocationStatus)
+        }.sortedBy {
+            it.third?.value
+        }
+    }.collectAsState(null)
     Scaffold(
         topBar = {
             TopAppBar(
@@ -52,33 +66,38 @@ fun CredentialsView(
             )
         },
         floatingActionButton = {
-            storeContainerState?.let { storeContainer ->
-                if (storeContainer.credentials.isNotEmpty()) {
+            credentials?.let { credentials ->
+                if (credentials.isNotEmpty()) {
                     CustomFloatingActionMenu(addCredential = vm.navigateToAddCredentialsPage, addCredentialQr = vm.navigateToQrAddCredentialsPage)
                 }
             }
         },
         bottomBar = { bottomBar() }
     ) { scaffoldPadding ->
-        Column(modifier = Modifier.padding(scaffoldPadding).fillMaxSize()) {
-            storeContainerState?.let { storeContainer ->
-                if (storeContainer.credentials.isEmpty()) {
+        Column(
+            modifier = Modifier.padding(scaffoldPadding).fillMaxSize(),
+        ) {
+            credentials?.let { credentials ->
+                if (credentials.isEmpty()) {
                     NoDataLoadedView(vm.navigateToAddCredentialsPage, vm.navigateToQrAddCredentialsPage)
                 } else {
                     LazyColumn {
                         items(
-                            storeContainer.credentials.size,
+                            credentials.size,
                             key = {
-                                storeContainer.credentials[it].hashCode()
+                                credentials[it].hashCode()
                             }
                         ) { index ->
-                            val storeEntry = storeContainer.credentials[index]
+                            val storeEntry = credentials[index]
                             val storeEntryIdentifier = storeEntry.first
                             val credential = storeEntry.second
+                            val tokenStatus = storeEntry.third
+
 
                             Column {
                                 CredentialCard(
                                     credential,
+                                    tokenStatus = tokenStatus,
                                     onDelete = {
                                         vm.removeStoreEntryById(storeEntryIdentifier)
                                     },

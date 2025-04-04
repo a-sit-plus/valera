@@ -5,10 +5,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatus
 
 @Composable
 fun CredentialCard(
     credential: SubjectCredentialStore.StoreEntry,
+    tokenStatus: TokenStatus?,
     imageDecoder: (ByteArray) -> ImageBitmap?,
     onDelete: () -> Unit,
     onOpenDetails: (() -> Unit)?,
@@ -19,6 +21,7 @@ fun CredentialCard(
     ) {
         CredentialCardHeader(
             credential = credential,
+            tokenStatus = tokenStatus,
             onDelete = onDelete,
             modifier = Modifier.fillMaxWidth(),
         )
