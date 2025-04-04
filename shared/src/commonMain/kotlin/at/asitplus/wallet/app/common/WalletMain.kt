@@ -2,6 +2,7 @@ package at.asitplus.wallet.app.common
 
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.catchingUnwrapped
+import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.signum.indispensable.josef.JsonWebKey
 import at.asitplus.signum.indispensable.josef.JsonWebKeySet
 import at.asitplus.signum.indispensable.josef.JwsSigned
@@ -11,8 +12,13 @@ import at.asitplus.valera.resources.snackbar_update_hint
 import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import at.asitplus.wallet.lib.agent.HolderAgent
+import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.cbor.DefaultCoseService
+import at.asitplus.wallet.lib.data.StatusListToken
+import at.asitplus.wallet.lib.data.rfc.tokenStatusList.MediaTypes
+import at.asitplus.wallet.lib.data.rfc.tokenStatusList.StatusListTokenPayload
+import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatus
 import at.asitplus.wallet.lib.jws.DefaultJwsService
 import at.asitplus.wallet.lib.jws.DefaultVerifierJwsService
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
@@ -24,18 +30,22 @@ import getImageDecoder
 import io.github.aakira.napier.Napier
 import io.ktor.client.call.body
 import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpHeaders
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.datetime.Clock
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import net.swiftzer.semver.SemVer
 import org.jetbrains.compose.resources.getString
+import kotlin.random.Random
 import ui.navigation.IntentService
 
 /**
@@ -52,6 +62,7 @@ class WalletMain(
     val scope: CoroutineScope
 ) {
     lateinit var walletConfig: WalletConfig
+    lateinit var credentialValidator: Validator
     lateinit var holderAgent: HolderAgent
     lateinit var provisioningService: ProvisioningService
     lateinit var httpService: HttpService
@@ -80,15 +91,29 @@ class WalletMain(
     @Throws(Throwable::class)
     fun initialize() {
         val coseService = DefaultCoseService(cryptoService)
-        walletConfig =
-            WalletConfig(dataStoreService = this.dataStoreService, errorService = errorService)
+        walletConfig = WalletConfig(dataStoreService = this.dataStoreService, errorService = errorService)
         subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
-        holderAgent = HolderAgent(
-            validator = Validator(
-                verifierJwsService = DefaultVerifierJwsService(
-                    publicKeyLookup = issuerKeyLookup()
+
+        httpService = HttpService(buildContext)
+        credentialValidator = Validator(
+            resolveStatusListToken = { it ->
+                val httpResponse = httpService.buildHttpClient().get(it.string) {
+                    headers.set(HttpHeaders.Accept, MediaTypes.Application.STATUSLIST_JWT)
+                }
+
+
+                val jwsSigned = JwsSigned.deserialize(StatusListTokenPayload.serializer(), httpResponse.bodyAsText()).getOrThrow()
+                StatusListToken.StatusListJwt(
+                    jwsSigned,
+                    resolvedAt = Clock.System.now(),
                 )
-            ),
+            },
+            verifierJwsService = DefaultVerifierJwsService(
+                publicKeyLookup = issuerKeyLookup()
+            )
+        )
+        holderAgent = HolderAgent(
+            validator = credentialValidator,
             subjectCredentialStore = subjectCredentialStore,
             jwsService = DefaultJwsService(cryptoService),
             coseService = coseService,
@@ -224,6 +249,12 @@ class WalletMain(
                 Napier.w("Update check failed", it)
             }
         }
+    }
+
+    suspend fun checkRevocationStatus(storeEntry: SubjectCredentialStore.StoreEntry) = when(val it = storeEntry) {
+        is SubjectCredentialStore.StoreEntry.Iso -> credentialValidator.checkRevocationStatus(it.issuerSigned)
+        is SubjectCredentialStore.StoreEntry.SdJwt -> credentialValidator.checkRevocationStatus(it.sdJwt)
+        is SubjectCredentialStore.StoreEntry.Vc -> credentialValidator.checkRevocationStatus(it.vc)
     }
 }
 

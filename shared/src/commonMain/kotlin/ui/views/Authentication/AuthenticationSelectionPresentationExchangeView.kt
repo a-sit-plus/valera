@@ -58,12 +58,6 @@ fun AuthenticationSelectionPresentationExchangeView(vm: AuthenticationSelectionP
             val requestId = currentRequest.first
             val matchingCredentials = currentRequest.second
 
-            Text(
-                text = matchingCredentials.keys.first().scheme.uiLabel(),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.secondary,
-                fontWeight = FontWeight.SemiBold,
-            )
             val attributeSelection =
                 vm.attributeSelection[requestId] ?: throw Throwable("No selection with requestId")
             val credentialSelection =
@@ -74,6 +68,9 @@ fun AuthenticationSelectionPresentationExchangeView(vm: AuthenticationSelectionP
                 credentialSelection = credentialSelection,
                 imageDecoder = { byteArray ->
                     vm.walletMain.platformAdapter.decodeImage(byteArray)
+                },
+                checkRevocationStatus = {
+                    vm.walletMain.checkRevocationStatus(it)
                 }
             )
         }

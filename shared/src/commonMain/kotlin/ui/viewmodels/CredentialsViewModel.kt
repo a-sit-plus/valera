@@ -1,10 +1,13 @@
 package ui.viewmodels
 
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import at.asitplus.wallet.app.common.WalletMain
 import data.storage.StoreEntryId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class CredentialsViewModel(
@@ -14,7 +17,6 @@ class CredentialsViewModel(
     val navigateToCredentialDetailsPage: (Long) -> Unit,
     val imageDecoder: (ByteArray) -> ImageBitmap?,
     val onClickLogo: () -> Unit
-
 ) {
     val storeContainer = walletMain.subjectCredentialStore.observeStoreContainer()
 

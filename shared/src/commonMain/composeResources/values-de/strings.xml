@@ -261,6 +261,7 @@
     <string name="prompt_select_credential">Welches Credential soll verwendet werden?</string>
     <string name="prompt_select_attribute">Welche Attribute sollen übermittelt werden?</string>
 
+    <string name="error_credential_status_invalid">UNGÜLTIG</string>
     <string name="error_feature_not_yet_available">Incomplete Implementation</string>
     <string name="error_authentication_at_sp_failed">Authentication failed</string>
     <string name="error_biometric_error_no_hardware">error_biometric_error_no_hardware</string>
