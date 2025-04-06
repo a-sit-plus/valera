@@ -31,7 +31,6 @@ import io.github.aakira.napier.Napier
 import io.github.alexzhirkevich.qrose.rememberQrCodePainter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import kotlinx.io.bytestring.ByteString
 import org.jetbrains.compose.resources.stringResource
@@ -95,6 +94,10 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         CircularProgressIndicator()
                         LaunchedEffect(showQrCode.value) {
+                            // TODO This block is called twice, which resets the presentationStateModel
+                            if (vm.hasBeenCalledHack) return@LaunchedEffect
+                            vm.hasBeenCalledHack = true
+
                             vm.presentationStateModel.reset()
                             vm.presentationStateModel.init()
                             vm.presentationStateModel.start(needBluetooth = true)
