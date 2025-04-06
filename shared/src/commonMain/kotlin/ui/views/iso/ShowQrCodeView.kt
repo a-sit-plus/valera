@@ -86,9 +86,10 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        CoroutineScope(Dispatchers.IO).launch {
+                        CoroutineScope(Dispatchers.Main).launch {
                             blePermissionState.launchPermissionRequest()
                         }
+                        // TODO handle case when user needs to go to settings application to grant permission
                     }
                 } else if (blePermissionState.isGranted) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {

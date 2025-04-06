@@ -3,8 +3,10 @@ package ui.views.iso.verifier
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
@@ -36,6 +38,7 @@ import at.asitplus.valera.resources.heading_label_select_custom_data_retrieval_s
 import at.asitplus.valera.resources.section_heading_select_document_type
 import at.asitplus.valera.resources.section_heading_select_requested_data_entries
 import at.asitplus.valera.resources.section_heading_selected_namespace
+import at.asitplus.wallet.app.common.iso.transfer.DeviceEngagementMethods
 import data.document.DocumentAttributes
 import data.document.itemsToRequestDocument
 import data.document.DocType.documentTypeToNameSpace
@@ -87,7 +90,8 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                                 selectedDocumentType,
                                 documentTypeToNameSpace[selectedDocumentType]!!,
                                 selectedEntries
-                            )
+                            ),
+                            DeviceEngagementMethods.NFC //TODO use engagement method set by user on previous screen
                         )
                     },
                     selected = false,
@@ -151,10 +155,11 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
 }
 
 @Composable
-private fun singleChoiceButton(
+fun singleChoiceButton(
     current: String,
     selectedOption: String,
     modifier: Modifier = Modifier,
+    icon: (@Composable () -> Unit)? = null,
     onOptionSelected: () -> Unit,
 ) {
     Row(
@@ -164,10 +169,13 @@ private fun singleChoiceButton(
             role = Role.RadioButton
         )
     ) {
+        val gap = 16.dp
         RadioButton(
             selected = (current == selectedOption),
             onClick = null
         )
+        icon?.invoke()
+        Spacer(modifier = Modifier.width(gap))
         Text(text = (current))
     }
 }

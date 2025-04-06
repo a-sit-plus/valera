@@ -8,13 +8,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material.icons.outlined.Cake
 import androidx.compose.material.icons.outlined.CreditCard
 import androidx.compose.material.icons.outlined.Person
+
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -36,11 +37,17 @@ import at.asitplus.valera.resources.button_label_check_over_age
 import at.asitplus.valera.resources.heading_label_select_data_retrieval_screen
 import at.asitplus.valera.resources.section_heading_request_custom
 import at.asitplus.valera.resources.section_heading_request_eausweise
+import at.asitplus.valera.resources.section_heading_request_engagement_method
 import at.asitplus.valera.resources.section_heading_request_license
+import at.asitplus.wallet.app.common.iso.transfer.DeviceEngagementMethods
 import data.document.SelectableAge
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.viewmodels.iso.VerifierViewModel
+import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,6 +56,9 @@ fun VerifierDocumentSelectionView(
     bottomBar: @Composable () -> Unit
 ) {
     val showDropDown = remember { mutableStateOf(false) }
+    val listSpacingModifier = Modifier.padding(top = 8.dp)
+    val engagementMethods = DeviceEngagementMethods.entries
+    var selectedEngagementMethod by remember { mutableStateOf(DeviceEngagementMethods.NFC) }
 
     Scaffold(
         topBar = {
@@ -70,13 +80,42 @@ fun VerifierDocumentSelectionView(
         bottomBar = { bottomBar() }
     ) { scaffoldPadding ->
         Box(modifier = Modifier.padding(scaffoldPadding)) {
+            val layoutSpacingModifier = Modifier.padding(top = 24.dp)
+
             Column(
                 modifier = Modifier.padding(end = 16.dp, start = 16.dp)
-                    .verticalScroll(rememberScrollState())
+                    //.verticalScroll(rememberScrollState())
+                //TODO @lukas: verticalscroll does not seem to work with lazycolumn, can you fix that?
             ) {
-                val layoutSpacingModifier = Modifier.padding(top = 24.dp)
+                LazyColumn(
+                    modifier = Modifier
+                        .wrapContentHeight(),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    item {
+                        Text(
+                            text = stringResource(Res.string.section_heading_request_engagement_method),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                    items(engagementMethods) { engagementMethod ->
+                        singleChoiceButton(
+                            engagementMethod.friendlyName,
+                            selectedEngagementMethod.friendlyName,
+                            modifier = listSpacingModifier.fillMaxWidth(),
+                            icon = {
+                                Icon(
+                                    imageVector = engagementMethod.icon,
+                                    contentDescription = null
+                                )
+                            }
+                        ) {
+                            selectedEngagementMethod = engagementMethod
+                        }
+                    }
+                }
+
                 Column(modifier = layoutSpacingModifier) {
-                    val listSpacingModifier = Modifier.padding(top = 8.dp)
                     Text(
                         text = stringResource(Res.string.section_heading_request_eausweise),
                         style = MaterialTheme.typography.titleMedium
@@ -89,7 +128,7 @@ fun VerifierDocumentSelectionView(
                             )
                         },
                         label = stringResource(Res.string.button_label_check_identity),
-                        onClick = { vm.onClickPredefinedIdentity() },
+                        onClick = { vm.onClickPredefinedIdentity(selectedEngagementMethod) },
                         modifier = listSpacingModifier.fillMaxWidth()
                     )
                     TextIconButtonListItem(
@@ -100,7 +139,7 @@ fun VerifierDocumentSelectionView(
                             )
                         },
                         label = stringResource(Res.string.button_label_check_license),
-                        onClick = { vm.onClickPredefinedMdl() },
+                        onClick = { vm.onClickPredefinedMdl(selectedEngagementMethod) },
                         modifier = listSpacingModifier.fillMaxWidth()
                     )
                     TextIconButtonListItem(
@@ -122,7 +161,7 @@ fun VerifierDocumentSelectionView(
                                 TextIconButtonListItem(
                                     icon = {},
                                     label = stringResource(Res.string.button_label_check_over_age) + age,
-                                    onClick = { vm.onClickPredefinedAge(age) },
+                                    onClick = { vm.onClickPredefinedAge(age, selectedEngagementMethod) },
                                     modifier = listSpacingModifier.fillMaxWidth()
                                 )
                             }
@@ -130,7 +169,6 @@ fun VerifierDocumentSelectionView(
                     }
                 }
                 Column(modifier = layoutSpacingModifier) {
-                    val listSpacingModifier = Modifier.padding(top = 8.dp)
                     Text(
                         text = stringResource(Res.string.section_heading_request_license),
                         style = MaterialTheme.typography.titleMedium
@@ -143,12 +181,11 @@ fun VerifierDocumentSelectionView(
                             )
                         },
                         label = stringResource(Res.string.button_label_check_license),
-                        onClick = { vm.onClickPredefinedMdl() },
+                        onClick = { vm.onClickPredefinedMdl(selectedEngagementMethod) },
                         modifier = listSpacingModifier.fillMaxWidth()
                     )
                 }
                 Column(modifier = layoutSpacingModifier) {
-                    val listSpacingModifier = Modifier.padding(top = 8.dp)
                     Text(
                         text = stringResource(Res.string.section_heading_request_custom),
                         style = MaterialTheme.typography.titleMedium

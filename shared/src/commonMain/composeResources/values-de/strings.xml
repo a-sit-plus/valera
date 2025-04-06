@@ -390,4 +390,10 @@
     <string name="presentation_missing_permission">Ohne Berechtigung kann die Überprüfung nicht abgeschlossen werden.</string>
     <string name="presentation_permission_required">Überprüfen, ob benötigte Berechtigungen gesetzt wurden…</string>
     <string name="presentation_initialised">Initialisiere…</string>
+
+    <!-- DeviceEngagementMethods -->
+    <string name="section_heading_request_engagement_method">Verbindungsaufbau via</string>
+
+    <string name="nfc">NFC</string>
+    <string name="qr">QR-Code</string>
 </resources>

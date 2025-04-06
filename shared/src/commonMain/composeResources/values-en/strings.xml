@@ -380,4 +380,10 @@
     <string name="presentation_missing_permission">Presentation cannot be finished without permissions.</string>
     <string name="presentation_permission_required">Checking if required permissions are set…</string>
     <string name="presentation_initialised">Presentation initialising…</string>
+
+    <!-- DeviceEngagementMethods -->
+    <string name="section_heading_request_engagement_method">Device Engagement Method</string>
+
+    <string name="nfc">NFC</string>
+    <string name="qr">QR-Code</string>
 </resources>

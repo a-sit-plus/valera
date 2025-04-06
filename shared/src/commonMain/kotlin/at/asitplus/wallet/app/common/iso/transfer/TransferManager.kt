@@ -1,24 +1,11 @@
-package at.asitplus.wallet.app.common.transfer
+package at.asitplus.wallet.app.common.iso.transfer
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import at.asitplus.wallet.app.common.presentation.TransferSettings
 import data.document.RequestDocument
-import io.github.aakira.napier.Napier
-import kotlinx.coroutines.CancellableContinuation
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.atStartOfDayIn
-import kotlinx.io.bytestring.ByteString
 import org.multipaz.asn1.ASN1Integer
 import org.multipaz.cbor.Bstr
 import org.multipaz.cbor.Cbor
-import org.multipaz.cbor.CborArray
 import org.multipaz.cbor.DataItem
 import org.multipaz.cbor.Simple
 import org.multipaz.cbor.Tagged
@@ -30,9 +17,9 @@ import org.multipaz.crypto.X500Name
 import org.multipaz.crypto.X509Cert
 import org.multipaz.crypto.X509CertChain
 import org.multipaz.mdoc.connectionmethod.MdocConnectionMethod
+import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodNfc
 import org.multipaz.mdoc.engagement.EngagementParser
-import org.multipaz.mdoc.request.DeviceRequestGenerator
-import org.multipaz.mdoc.role.MdocRole
+import org.multipaz.mdoc.nfc.scanNfcMdocReader
 import org.multipaz.mdoc.sessionencryption.SessionEncryption
 import org.multipaz.mdoc.transport.MdocTransport
 import org.multipaz.mdoc.transport.MdocTransportClosedException
@@ -42,11 +29,29 @@ import org.multipaz.mdoc.transport.NfcTransportMdocReader
 import org.multipaz.mdoc.util.MdocUtil
 import org.multipaz.nfc.scanNfcTag
 import org.multipaz.util.Constants
+import io.github.aakira.napier.Napier
+import kotlinx.coroutines.CancellableContinuation
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
+import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodBle
+import org.multipaz.mdoc.request.DeviceRequestGenerator
+import org.multipaz.util.UUID
 import org.multipaz.util.fromBase64Url
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.io.bytestring.ByteString
+import org.multipaz.cbor.buildCborArray
+import org.multipaz.mdoc.role.MdocRole
 
 // based on identity-credential[https://github.com/openwallet-foundation-labs/identity-credential] implementation
-class TransferManager(private val scope: CoroutineScope) {
-    private val tag = "TransferManager"
+class TransferManager(
+    private val scope: CoroutineScope,
+    private val updateProgress: (String) -> Unit,
+) {
 
     enum class State {
         IDLE,
@@ -88,7 +93,7 @@ class TransferManager(private val scope: CoroutineScope) {
     private var readerSessionEncryption = mutableStateOf<SessionEncryption?>(null)
 
 
-    // TODO public keys taken from identity-credential, replace with our own
+    // TODO keys taken from identity-credential, replace with our own
     private val bundledReaderRootKey: EcPrivateKey by lazy {
         val readerRootKeyPub = EcPublicKey.fromPem(
             """
@@ -175,39 +180,53 @@ class TransferManager(private val scope: CoroutineScope) {
     )
     private val iacaCert: X509Cert = bundledIacaCert
 
-    private fun generateEncodedSessionTranscript(
-        encodedDeviceEngagement: ByteArray,
-        handover: DataItem,
-        eReaderKey: EcPublicKey
-    ): ByteArray {
-        val encodedEReaderKey = Cbor.encode(eReaderKey.toCoseKey().toDataItem())
-        //val s = EncodedSessionTranscript(encodedDeviceEngagement, encodedEReaderKey, handover.asArray.map { item -> item.asBstr })
-        //val encoded = kotlinx.serialization.cbor.Cbor.encodeToByteArray(s)
-
-        val cborEncoded = Cbor.encode(
-            CborArray.builder()
-                .add(Tagged(24, Bstr(encodedDeviceEngagement)))
-                .add(Tagged(24, Bstr(encodedEReaderKey)))
-                .add(handover)
-                .end()
-                .build()
-        )
-        return cborEncoded
-    }
-
-    fun doQrFlow(
-        qrCode: String,
-        requestDocument: RequestDocument,
-        setDeviceResponseBytes: (ByteArray) -> Unit,
+    fun startNfcEngagement(
+        documentRequest: RequestDocument,
+        setDeviceResponseBytes: (ByteArray) -> Unit
     ) {
-        try {
-            scope.launch {
-                doReaderFlow(
-                    encodedDeviceEngagement = ByteString(qrCode.fromBase64Url()),
-                    existingTransport = null,
-                    handover = Simple.NULL,
+        readerMostRecentDeviceResponse.value = null
+
+        scope.launch {
+            try {
+                val negotiatedHandoverConnectionMethods = mutableListOf<MdocConnectionMethod>()
+                val bleUuid = UUID.randomUUID()
+                if (transferSettings.presentmentBleCentralClientModeEnabled) {
+                    negotiatedHandoverConnectionMethods.add(
+                        MdocConnectionMethodBle(
+                            supportsPeripheralServerMode = false,
+                            supportsCentralClientMode = true,
+                            peripheralServerModeUuid = null,
+                            centralClientModeUuid = bleUuid,
+                        )
+                    )
+                }
+                if (transferSettings.presentmentBlePeripheralServerModeEnabled) {
+                    negotiatedHandoverConnectionMethods.add(
+                        MdocConnectionMethodBle(
+                            supportsPeripheralServerMode = true,
+                            supportsCentralClientMode = false,
+                            peripheralServerModeUuid = bleUuid,
+                            centralClientModeUuid = null,
+                        )
+                    )
+                }
+                if (transferSettings.presentmentNfcDataTransferEnabled) {
+                    negotiatedHandoverConnectionMethods.add(
+                        MdocConnectionMethodNfc(
+                            commandDataFieldMaxLength = 0xffff,
+                            responseDataFieldMaxLength = 0x10000
+                        )
+                    )
+                }
+
+                scanNfcMdocReader(
+                    message = "Hold near credential holder's phone.",
+                    options = MdocTransportOptions(
+                        bleUseL2CAP = transferSettings.readerBleL2CapEnabled
+                    ),
                     selectConnectionMethod = { connectionMethods ->
                         if (transferSettings.readerAutomaticallySelectTransport) {
+                            updateProgress("Auto-selected first from $connectionMethods")
                             connectionMethods[0]
                         } else {
                             selectConnectionMethod(
@@ -216,13 +235,81 @@ class TransferManager(private val scope: CoroutineScope) {
                             )
                         }
                     },
-                    requestDocument = requestDocument,
-                    setDeviceResponseBytes = setDeviceResponseBytes
+                    negotiatedHandoverConnectionMethods = negotiatedHandoverConnectionMethods,
+                    onHandover = { transport, encodedDeviceEngagement, handover, updateMessage ->
+                        doReaderFlow(
+                            encodedDeviceEngagement = encodedDeviceEngagement,
+                            existingTransport = transport,
+                            handover = handover,
+                            updateNfcDialogMessage = updateMessage,
+                            selectConnectionMethod = { connectionMethods ->
+                                if (transferSettings.readerAutomaticallySelectTransport) {
+                                    updateProgress("Auto-selected first from $connectionMethods")
+                                    connectionMethods[0]
+                                } else {
+                                    selectConnectionMethod(
+                                        connectionMethods,
+                                        connectionMethodPickerData
+                                    )
+                                }
+                            },
+                            documentRequest = documentRequest,
+                            setDeviceResponseBytes = setDeviceResponseBytes
+                        )
+                    }
                 )
+            } catch (e: Throwable) {
+                Napier.e("NFC engagement failed", e)
+                updateProgress("NFC engagement failed with $e")
             }
+        }
+    }
+
+    private fun generateEncodedSessionTranscript(
+        encodedDeviceEngagement: ByteArray,
+        handover: DataItem,
+        eReaderKey: EcPublicKey
+    ): ByteArray {
+        val encodedEReaderKey = Cbor.encode(eReaderKey.toCoseKey().toDataItem())
+        return Cbor.encode(
+            buildCborArray {
+                add(Tagged(24, Bstr(encodedDeviceEngagement)))
+                add(Tagged(24, Bstr(encodedEReaderKey)))
+                add(handover)
+            }
+        )
+    }
+
+    fun doQrFlow(
+        qrCode: String,
+        documentRequest: RequestDocument,
+        updateProgress: (String) -> Unit,
+        setDeviceResponseBytes: (ByteArray) -> Unit
+    ) = scope.launch {
+        try {
+            doReaderFlow(
+                encodedDeviceEngagement = ByteString(qrCode.fromBase64Url()),
+                existingTransport = null,
+                handover = Simple.NULL,
+                updateNfcDialogMessage = updateProgress,
+                selectConnectionMethod = { connectionMethods ->
+                    if (transferSettings.readerAutomaticallySelectTransport) {
+                        updateProgress("Auto-selected first from $connectionMethods")
+                        connectionMethods[0]
+                    } else {
+                        selectConnectionMethod(
+                            connectionMethods,
+                            connectionMethodPickerData
+                        )
+                    }
+                },
+                documentRequest = documentRequest,
+                setDeviceResponseBytes = setDeviceResponseBytes
+            )
         } catch (error: Throwable) {
-            Napier.e("Caught exception", error, tag)
+            Napier.e("Caught exception", error)
             error.printStackTrace()
+            updateProgress("Error: ${error.message}")
         }
     }
 
@@ -230,13 +317,15 @@ class TransferManager(private val scope: CoroutineScope) {
         encodedDeviceEngagement: ByteString,
         existingTransport: MdocTransport?,
         handover: DataItem,
+        updateNfcDialogMessage: ((message: String) -> Unit)?,
         selectConnectionMethod: suspend (connectionMethods: List<MdocConnectionMethod>) -> MdocConnectionMethod?,
-        requestDocument: RequestDocument,
+        documentRequest: RequestDocument,
         setDeviceResponseBytes: (ByteArray) -> Unit
     ) {
         val deviceEngagement = EngagementParser(encodedDeviceEngagement.toByteArray()).parse()
         val eDeviceKey = deviceEngagement.eSenderKey
-        val eReaderKey = Crypto.createEcPrivateKey(EcCurve.P256)
+        Napier.i("Using curve ${eDeviceKey.curve.name} for session encryption")
+        val eReaderKey = Crypto.createEcPrivateKey(eDeviceKey.curve)
 
         val transport = if (existingTransport != null) {
             existingTransport
@@ -260,39 +349,34 @@ class TransferManager(private val scope: CoroutineScope) {
                 MdocTransportOptions(bleUseL2CAP = transferSettings.readerBleL2CapEnabled)
             )
             if (transport is NfcTransportMdocReader) {
-                if (scanNfcTag(
-                        message = "QR engagement with NFC Data Transfer. Move into NFC field of the mdoc",
-                        tagInteractionFunc = { tag, updateMessage ->
-                            Napier.d("doReaderFlow: tagInteractionFunc: $updateMessage", tag = this.tag)
-                            transport.setTag(tag)
-                            doReaderFlowWithTransport(
-                                transport = transport,
-                                encodedDeviceEngagement = encodedDeviceEngagement,
-                                handover = handover,
-                                eDeviceKey = eDeviceKey,
-                                eReaderKey = eReaderKey,
-                                requestDocument = requestDocument,
-                                setDeviceResponseBytes = setDeviceResponseBytes
-                            )
-                            true
-                        }
-                    ) == true
-                ) {
-                    return
-                } else {
-                    throw IllegalStateException("Reading cancelled")
-                }
-            } else {
-                transport
+                scanNfcTag(
+                    message = "QR engagement with NFC Data Transfer. Move into NFC field of the mdoc",
+                    tagInteractionFunc = { tag, _ ->
+                        transport.setTag(tag)
+                        doReaderFlowWithTransport(
+                            transport = transport,
+                            encodedDeviceEngagement = encodedDeviceEngagement,
+                            handover = handover,
+                            updateNfcDialogMessage = updateNfcDialogMessage,
+                            eDeviceKey = eDeviceKey,
+                            eReaderKey = eReaderKey,
+                            documentRequest = documentRequest,
+                            setDeviceResponseBytes = setDeviceResponseBytes
+                        )
+                    }
+                )
+                return
             }
+            transport
         }
         doReaderFlowWithTransport(
             transport = transport,
             encodedDeviceEngagement = encodedDeviceEngagement,
             handover = handover,
+            updateNfcDialogMessage = updateNfcDialogMessage,
             eDeviceKey = eDeviceKey,
             eReaderKey = eReaderKey,
-            requestDocument = requestDocument,
+            documentRequest = documentRequest,
             setDeviceResponseBytes = setDeviceResponseBytes
         )
     }
@@ -301,11 +385,15 @@ class TransferManager(private val scope: CoroutineScope) {
         transport: MdocTransport,
         encodedDeviceEngagement: ByteString,
         handover: DataItem,
+        updateNfcDialogMessage: ((message: String) -> Unit)?,
         eDeviceKey: EcPublicKey,
         eReaderKey: EcPrivateKey,
-        requestDocument: RequestDocument,
+        documentRequest: RequestDocument,
         setDeviceResponseBytes: (ByteArray) -> Unit
     ) {
+        if (updateNfcDialogMessage != null) {
+            updateNfcDialogMessage("Transferring data, don't move your phone")
+        }
         readerTransport.value = transport
         val encodedSessionTranscript = generateEncodedSessionTranscript(
             encodedDeviceEngagement.toByteArray(),
@@ -323,8 +411,8 @@ class TransferManager(private val scope: CoroutineScope) {
 
         val encodedDeviceRequest =
             DeviceRequestGenerator(encodedSessionTranscript).addDocumentRequest(
-                docType = requestDocument.docType,
-                itemsToRequest = requestDocument.itemsToRequest,
+                docType = documentRequest.docType,
+                itemsToRequest = documentRequest.itemsToRequest,
                 requestInfo = null,
                 readerKey = readerKey,
                 signatureAlgorithm = readerKey.curve.defaultSigningAlgorithm,
@@ -340,40 +428,59 @@ class TransferManager(private val scope: CoroutineScope) {
                 )
             )
             while (true) {
+                Napier.d("Waiting for message")
                 val sessionData = transport.waitForMessage()
+                Napier.d("Got message")
                 if (sessionData.isEmpty()) {
+                    updateProgress("Received transport-specific session termination message from holder")
                     transport.close()
                     break
                 }
 
                 val (message, status) = sessionEncryption.decryptMessage(sessionData)
-                Napier.i("Holder sent ${message?.size} bytes status $status", tag = tag)
+                Napier.i("Holder sent ${message?.size} bytes status $status")
                 if (message != null) {
                     readerMostRecentDeviceResponse.value = message
                     setDeviceResponseBytes(message)
                     _state.value = State.DATA_RECEIVED
                 }
                 if (status == Constants.SESSION_DATA_STATUS_SESSION_TERMINATION) {
-                    Napier.i("Holder indicated they closed the connection. Closing and ending reader loop", tag = tag)
+                    updateProgress("Received session termination message from holder")
+                    Napier.i(
+                        "Holder indicated they closed the connection. Closing and ending reader loop"
+                    )
                     transport.close()
                     break
                 }
                 if (!transferSettings.presentmentAllowMultipleRequests) {
-                    Napier.i("Holder did not indicate they are closing the connection. Auto-close is enabled, so sending termination message, closing, and ending reader loop", tag = tag)
+                    updateProgress("Response received, closing connection")
+                    Napier.i(
+                        "Holder did not indicate they are closing the connection. " +
+                                "Auto-close is enabled, so sending termination message, closing, and " +
+                                "ending reader loop"
+                    )
                     transport.sendMessage(SessionEncryption.encodeStatus(Constants.SESSION_DATA_STATUS_SESSION_TERMINATION))
                     transport.close()
                     break
                 }
-                Napier.i("Holder did not indicate they are closing the connection. Auto-close is not enabled so waiting for message from holder", tag = tag)
-                // "Send additional request" and close buttons will act further on `at.asitplus.wallet.verifier.transport`
+                updateProgress("Response received, keeping connection open")
+                Napier.i(
+                    "Holder did not indicate they are closing the connection. " +
+                            "Auto-close is not enabled so waiting for message from holder"
+                )
+                // "Send additional request" and close buttons will act further on transport
             }
         } catch (_: MdocTransportClosedException) {
             // Nothing to do, this is thrown when at.asitplus.wallet.verifier.transport.close() is called from another coroutine, that
             // is, the onClick handlers for the close buttons.
-            Napier.i("Ending reader flow due to MdocTransportClosedException", tag = tag)
+            Napier.i("Ending reader flow due to MdocTransportClosedException")
         } finally {
+            if (updateNfcDialogMessage != null) {
+                updateNfcDialogMessage("Transfer complete")
+            }
             transport.close()
             readerTransport.value = null
         }
     }
+
 }

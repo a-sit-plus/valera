@@ -5,6 +5,7 @@ import android.util.Base64
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
@@ -30,10 +31,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
+import org.multipaz.compose.prompt.PromptDialogs
 import org.multipaz.crypto.Algorithm
 import org.multipaz.crypto.Crypto
 import org.multipaz.crypto.EcCurve
 import org.multipaz.crypto.EcPublicKeyDoubleCoordinate
+import org.multipaz.prompt.AndroidPromptModel
 import ui.theme.darkScheme
 import ui.theme.lightScheme
 import java.io.File
@@ -59,13 +62,16 @@ fun MainView(
     buildContext: BuildContext,
     sendCredentialResponseToDCAPIInvokerMethod: (String) -> Unit
 ) {
-    val scope = CoroutineScope(Dispatchers.Default)
+    val promptModel = AndroidPromptModel()
+    val scope = rememberCoroutineScope { promptModel }
     val platformAdapter = AndroidPlatformAdapter(LocalContext.current, sendCredentialResponseToDCAPIInvokerMethod, scope)
     val dataStoreService = RealDataStoreService(
         getDataStore(LocalContext.current),
         platformAdapter
     )
     val ks = KeystoreService(dataStoreService)
+
+    PromptDialogs(promptModel)
 
     App(
         WalletMain(
