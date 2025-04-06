@@ -28,9 +28,8 @@ fun VerifierView(
     val verifierState by vm.verifierState.collectAsState()
 
     val blePermissionState = rememberBluetoothPermissionState()
-
     if (!blePermissionState.isGranted) {
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(Dispatchers.Main).launch {
             blePermissionState.launchPermissionRequest()
         }
     }
