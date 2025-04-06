@@ -41,6 +41,7 @@ import ui.viewmodels.authentication.AuthenticationSelectionPresentationExchangeV
 fun AuthenticationSelectionPresentationExchangeView(vm: AuthenticationSelectionPresentationExchangeViewModel) {
     val vm = remember { vm }
 
+    // TODO crashes the app -> should in the worst case show the error view
     val currentRequest = vm.iterableRequests[vm.requestIterator.value]
 
     AuthenticationSelectionViewScaffold(

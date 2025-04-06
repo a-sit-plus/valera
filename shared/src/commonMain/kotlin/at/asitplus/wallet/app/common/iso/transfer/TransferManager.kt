@@ -2,6 +2,7 @@ package at.asitplus.wallet.app.common.iso.transfer
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import at.asitplus.wallet.app.common.presentation.TransferSettings
 import data.document.RequestDocument
 import org.multipaz.asn1.ASN1Integer
 import org.multipaz.cbor.Bstr
