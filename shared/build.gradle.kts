@@ -65,6 +65,8 @@ kotlin {
             implementation(libs.multipaz.doctypes)
             implementation(libs.semver)
             implementation(libs.qrose)
+
+            implementation("androidx.compose.material:material-icons-extended:1.7.8")
         }
 
         commonTest.dependencies {

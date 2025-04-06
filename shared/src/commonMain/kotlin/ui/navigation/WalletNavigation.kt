@@ -328,6 +328,7 @@ private fun WalletNavHost(
             val vm = VerifierViewModel(
                 navigateUp = { navigateBack() },
                 onClickLogo = onClickLogo,
+                walletMain = walletMain
             )
             VerifierView(
                 vm = vm,

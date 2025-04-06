@@ -24,6 +24,7 @@ fun VerifierView(
     bottomBar: @Composable () -> Unit
 ) {
     val vm = remember { vm }
+
     val verifierState by vm.verifierState.collectAsState()
 
     val blePermissionState = rememberBluetoothPermissionState()
@@ -44,6 +45,7 @@ fun VerifierView(
         }
 
         VerifierState.QR_ENGAGEMENT -> {
+            //TODO handle rejected permission state
             VerifierQrEngagementView(vm)
         }
 
