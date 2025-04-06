@@ -116,6 +116,11 @@ fun PresentationView(
                 coroutineScope.launch {
                     blePermissionState.launchPermissionRequest()
                 }
+                //TODO handle rejects by user (not sure how to do this with this api)
+            } else {
+                presentationStateModel.setPermissionState(
+                    true
+                )
             }
         }
 
