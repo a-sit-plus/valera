@@ -58,7 +58,7 @@ fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, Const
     val matchedCredentialIdentifier = when (credentialRepresentation) {
         PLAIN_JWT -> throw Throwable("PLAIN_JWT not implemented")
         SD_JWT -> if (scheme.sdJwtType in credentialIdentifiers) scheme.sdJwtType else scheme.isoNamespace
-        ISO_MDOC -> scheme.isoNamespace
+        ISO_MDOC -> scheme.isoDocType
     }
 
     val constraintsMap = PresentationExchangeInputEvaluator.evaluateInputDescriptorAgainstCredential(

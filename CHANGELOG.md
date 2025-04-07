@@ -1,3 +1,6 @@
+# Release 5.5.2
+ * Fix presentation of ISO credentials
+
 # Release 5.5.1
  * Fix DCQL Query extraction for SD-JWT
  * Support more credential identifiers for presentation exchange
