@@ -166,7 +166,8 @@ class PresentationStateModel {
     /**
      * Returns true if the device is not yet connected to the transport method.
      */
-    fun isNotYetConnected(): Boolean {
+    val isNotYetConnected: Boolean get() {
+        Napier.d("Current state: ${state.value.name}")
         return state.value == State.IDLE || state.value == State.INITIALISING
                 || state.value == State.CHECK_PERMISSIONS || state.value == State.NO_PERMISSION
                 || state.value == State.CONNECTING

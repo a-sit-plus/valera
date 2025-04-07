@@ -284,12 +284,12 @@ class NdefDeviceEngagementService : HostApduService() {
         started = false
         // If the reader hasn't connected by the time NFC interaction ends, make sure we only
         // wait for a limited amount of time.
-        if (presentationStateModel.isNotYetConnected()) {
+        if (presentationStateModel.isNotYetConnected) {
             val timeout = settings.connectionTimeout
             Napier.i("NdefDeviceEngagementService: Reader hasn't connected at NFC deactivation time, scheduling $timeout timeout for closing")
             disableEngagementJob = CoroutineScope(Dispatchers.IO).launch {
                 delay(timeout)
-                if (presentationStateModel.isNotYetConnected()) {
+                if (presentationStateModel.isNotYetConnected) {
                     presentationStateModel.setCompleted(PresentmentTimeout("NdefDeviceEngagementService: Reader didn't connect inside $timeout, closing"))
                 }
                 engagement = null
