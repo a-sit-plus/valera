@@ -15,7 +15,6 @@ import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material.icons.outlined.Cake
 import androidx.compose.material.icons.outlined.CreditCard
 import androidx.compose.material.icons.outlined.Person
-
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -47,7 +46,6 @@ import ui.viewmodels.iso.VerifierViewModel
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -98,6 +96,7 @@ fun VerifierDocumentSelectionView(
                             style = MaterialTheme.typography.titleMedium
                         )
                     }
+                    // TODO: fix engagementMethod selection
                     items(engagementMethods) { engagementMethod ->
                         singleChoiceButton(
                             engagementMethod.friendlyName,
