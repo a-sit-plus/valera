@@ -3,6 +3,7 @@ package ui.viewmodels.iso
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.iso.transfer.DeviceEngagementMethods
 import at.asitplus.wallet.app.common.iso.transfer.TransferManager
+import at.asitplus.wallet.lib.iso.DeviceResponse
 import data.document.RequestDocument
 import data.document.getAgeVerificationRequestDocument
 import data.document.getIdentityRequestDocument
@@ -15,7 +16,6 @@ class VerifierViewModel(
     val navigateUp: () -> Unit,
     val onClickLogo: () -> Unit,
     val walletMain: WalletMain,
-//    val onSuccess: (RequestDocument, String) -> Unit
 ) {
 
     private val transferManager: TransferManager by lazy {
@@ -27,8 +27,23 @@ class VerifierViewModel(
     private val _verifierState = MutableStateFlow(VerifierState.INIT)
     val verifierState: StateFlow<VerifierState> = _verifierState
 
+    fun setVerifierState(newVerifierState: VerifierState) {
+        _verifierState.value = newVerifierState
+    }
+
     private val _requestDocument = MutableStateFlow<RequestDocument?>(null)
     private val requestDocument: StateFlow<RequestDocument?> = _requestDocument
+
+    private val _deviceResponse = MutableStateFlow<DeviceResponse?>(null)
+    val deviceResponse: StateFlow<DeviceResponse?> = _deviceResponse
+
+    private val _errorMessage = MutableStateFlow<String>("")
+    val errorMessage: StateFlow<String> = _errorMessage
+
+    fun handleError(errorMessage: String) {
+        _errorMessage.value = errorMessage
+        setVerifierState(VerifierState.ERROR)
+    }
 
     private fun setStateToEngagement(selectedEngagementMethod: DeviceEngagementMethods) {
         when (selectedEngagementMethod) {
@@ -46,12 +61,9 @@ class VerifierViewModel(
     }
 
     private fun handleResponse(deviceResponseBytes: ByteArray) {
-        Napier.d(
-            "deviceResponseBytes = ${deviceResponseBytes.decodeToString()}",
-            tag = "VerifierViewModel"
-        )
-        //TODO show exceptions in error view
-        TODO("Handle response")
+        Napier.d("deviceResponseBytes = ${deviceResponseBytes.decodeToString()}", tag = "VerifierViewModel")
+        _deviceResponse.value = DeviceResponse.deserialize(deviceResponseBytes).getOrThrow()
+        _verifierState.value = VerifierState.PRESENTATION
     }
 
     fun onClickPredefinedIdentity(selectedEngagementMethod: DeviceEngagementMethods) {
@@ -99,7 +111,8 @@ class VerifierViewModel(
             }
         } else {
             Napier.w("QR-Code does not start with \"mdoc:\"")
-            TODO("handle onFailure()")
+            // TODO: add string resource for error code
+            handleError("Invalid QR-Code:\nQR-Code does not start with \"mdoc:\"")
         }
     }
 }
@@ -109,5 +122,6 @@ enum class VerifierState {
     SELECT_CUSTOM_REQUEST,
     QR_ENGAGEMENT,
     WAITING_FOR_RESPONSE,
-    PRESENTATION
+    PRESENTATION,
+    ERROR
 }

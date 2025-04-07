@@ -27,10 +27,9 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_show_qr_code_screen
 import at.asitplus.valera.resources.info_text_qr_code_loading
+import at.asitplus.wallet.app.common.iso.transfer.BluetoothInfo
 import io.github.aakira.napier.Napier
 import io.github.alexzhirkevich.qrose.rememberQrCodePainter
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.io.bytestring.ByteString
 import org.jetbrains.compose.resources.stringResource
@@ -44,10 +43,13 @@ import ui.viewmodels.iso.ShowQrCodeViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
+    val tag = "ShowQrCodeView"
 
     val vm = remember { vm }
+    val coroutineScope = vm.walletMain.scope
     val blePermissionState = rememberBluetoothPermissionState()
     val showQrCode = remember { mutableStateOf<ByteString?>(null) }
+    val isBluetoothEnabled = BluetoothInfo().isBluetoothEnabled()
 
     Scaffold(
         topBar = {
@@ -71,21 +73,29 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
                 modifier = Modifier.fillMaxSize().padding(16.dp),
                 contentAlignment = Alignment.Center
             ) {
-                if (showQrCode.value != null && vm.presentationStateModel.state.collectAsState().value != PresentationStateModel.State.PROCESSING) {
+                if (!isBluetoothEnabled) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        // TODO: Add string resource for that
+                        Text("Bluetooth is not available, please turn it on.")
+                    }
+                }
+                else if (showQrCode.value != null && vm.presentationStateModel.state.collectAsState().value != PresentationStateModel.State.PROCESSING) {
                     val deviceEngagementQrCode = "mdoc:" + showQrCode.value!!.toByteArray().toBase64Url()
-                    Napier.d("ShowQrCodeView: qrCode = \n$deviceEngagementQrCode")
+                    Napier.d("qrCode = \n$deviceEngagementQrCode", tag = tag)
                     Image(
                         painter = rememberQrCodePainter(deviceEngagementQrCode),
                         contentDescription = null,
                         modifier = Modifier.padding(16.dp)
                     )
                 } else if (!blePermissionState.isGranted) {
+                    Napier.d("ble permission is not granted", tag = tag)
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        CoroutineScope(Dispatchers.Main).launch {
+                        coroutineScope.launch {
+                            Napier.d("blePermissionState.launchPermissionRequest()", tag = tag)
                             blePermissionState.launchPermissionRequest()
                         }
                         // TODO handle case when user needs to go to settings application to grant permission
