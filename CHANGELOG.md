@@ -1,5 +1,5 @@
 # Release 5.5.2
- * tbd
+ * Fix presentation of ISO credentials
 
 # Release 5.5.1
  * Fix DCQL Query extraction for SD-JWT
