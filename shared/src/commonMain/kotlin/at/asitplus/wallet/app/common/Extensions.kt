@@ -53,7 +53,7 @@ fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, Const
 
     val scheme = AttributeIndex.schemeSet.firstOrNull {
         it.matchAgainstIdentifier(credentialRepresentation, credentialIdentifiers)
-    } ?: throw Throwable("Missing scheme")
+    } ?: throw Throwable("Missing scheme for $credentialIdentifiers")
 
     val matchedCredentialIdentifier = when (credentialRepresentation) {
         PLAIN_JWT -> throw Throwable("PLAIN_JWT not implemented")

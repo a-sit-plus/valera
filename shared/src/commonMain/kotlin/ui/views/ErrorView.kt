@@ -48,8 +48,6 @@ fun ErrorView(
     cause: String?,
     onClickLogo: () -> Unit,
 ) {
-    val message = message ?: "Unknown Message"
-    val cause = cause ?: "Unknown Cause"
 
     val tint = Color(255, 210, 0)
 
@@ -128,7 +126,7 @@ fun ErrorView(
                         .background(color = MaterialTheme.colorScheme.tertiaryContainer)
                 ) {
                     Text(
-                        message,
+                        message ?: "Unknown Message",
                         modifier = Modifier.padding(
                             top = 5.dp,
                             bottom = 5.dp,
@@ -141,23 +139,25 @@ fun ErrorView(
                     )
                 }
                 Spacer(modifier = Modifier.size(5.dp))
-                Text("Cause:", fontWeight = FontWeight.Bold)
-                Column(
-                    modifier = Modifier.heightIn(max = 150.dp)
-                        .background(color = MaterialTheme.colorScheme.tertiaryContainer)
-                ) {
-                    Text(
-                        cause,
-                        modifier = Modifier.padding(
-                            top = 5.dp,
-                            bottom = 5.dp,
-                            start = 10.dp,
-                            end = 10.dp
-                        ).fillMaxWidth().verticalScroll(
-                            rememberScrollState()
-                        ),
-                        textAlign = TextAlign.Center
-                    )
+                cause?.let {
+                    Text("Cause:", fontWeight = FontWeight.Bold)
+                    Column(
+                        modifier = Modifier.heightIn(max = 150.dp)
+                            .background(color = MaterialTheme.colorScheme.tertiaryContainer)
+                    ) {
+                        Text(
+                            cause,
+                            modifier = Modifier.padding(
+                                top = 5.dp,
+                                bottom = 5.dp,
+                                start = 10.dp,
+                                end = 10.dp
+                            ).fillMaxWidth().verticalScroll(
+                                rememberScrollState()
+                            ),
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             }
         }
