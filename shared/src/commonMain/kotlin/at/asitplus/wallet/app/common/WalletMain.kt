@@ -138,8 +138,8 @@ class WalletMain(
 
     suspend fun resetApp() {
         dataStoreService.clearLog()
-
         subjectCredentialStore.reset()
+        signingService.reset()
 
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_VCS)
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT)

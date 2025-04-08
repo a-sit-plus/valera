@@ -94,6 +94,10 @@ class SigningService(
         "2.16.840.1.101.3.4.3.12", //ECDSA_SHA3_512
     )
 
+    suspend fun reset(){
+        dataStoreService.deletePreference(Configuration.DATASTORE_SIGNING_CONFIG)
+    }
+
     private suspend fun importFromDataStore(): SigningConfig =
         catchingUnwrapped {
             vckJsonSerializer.decodeFromString<SigningConfig>(
