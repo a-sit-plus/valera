@@ -20,6 +20,7 @@ import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.text_label_check_all
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.jsonpath.core.plus
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
@@ -33,7 +34,58 @@ fun AttributeSelectionGroup(
     selection: SnapshotStateMap<String, Boolean>,
     format: ConstantIndex.CredentialScheme?
 ) {
-    val allChecked = mutableStateOf(false) 
+    val storeEntry = credential.key
+    val attributeSelectionList: List<AttributeSelectionElement> =
+        credential.value.mapNotNull { constraint ->
+            val path = constraint.value.firstOrNull()?.normalizedJsonPath ?: return@mapNotNull null
+            val memberName =
+                (path.segments.last() as NormalizedJsonPathSegment.NameSegment).memberName
+            val optional = constraint.key.optional
+            val value = constraint.value.first().value.toString()
+            val selected: Boolean
+            val enabled = when (storeEntry) {
+                is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                    if (storeEntry.disclosures.values.firstOrNull { it?.claimName == memberName } != null && optional == true) {
+                        selected = false
+                        true
+                    } else {
+                        selected = true
+                        false
+                    }
+                }
+
+                else -> {
+                    if (optional == true) {
+                        selected = false
+                        true
+                    } else {
+                        selected = true
+                        false
+                    }
+                }
+            }
+
+            if (selection[memberName] == null) {
+                selection[memberName] = selected
+            }
+
+            AttributeSelectionElement(memberName, value, enabled)
+        }
+
+    val allChecked = mutableStateOf(!selection.values.contains(false))
+    val allCheckedEnabled =
+        mutableStateOf(attributeSelectionList.firstOrNull { it.enabled } != null)
+
+    val changeSelection: (Boolean, String) -> Unit = { bool, memberName ->
+        if (attributeSelectionList.firstOrNull { it.memberName == memberName }?.enabled == true)
+            selection[memberName] = bool
+        if (selection.values.contains(false)) {
+            allChecked.value = false
+        } else {
+            allChecked.value = true
+        }
+    }
+
     Card(
         modifier = Modifier,
         colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
@@ -42,57 +94,31 @@ fun AttributeSelectionGroup(
         Column(
             modifier = Modifier.padding(8.dp).fillMaxWidth(),
         ) {
-            val constraints = credential.value
-            val disclosedAttributes = constraints.mapNotNull { constraint ->
-                val path = constraint.value.firstOrNull()?.normalizedJsonPath ?: return@mapNotNull null
-                val optional = constraint.key.optional
-                val value = constraint.value.first().value.toString()
-                Pair(path, value) to optional
-            }.toMap()
-
             LabeledCheckbox(
                 label = stringResource(Res.string.text_label_check_all),
                 checked = allChecked.value,
                 onCheckedChange = { bool ->
-                    disclosedAttributes.forEach { entry ->
-                        val path = entry.key.first
-                        val memberName = (path.segments.last() as NormalizedJsonPathSegment.NameSegment).memberName
-                        val optional = entry.value
-
-                        if (optional != null && optional == true) {
-                            selection[memberName] = bool
-                        }
-                        allChecked.value = bool
+                    attributeSelectionList.forEach { entry ->
+                        changeSelection(bool, entry.memberName)
                     }
+                    allChecked.value = bool
                 },
-                gapWidth = 0.dp
+                gapWidth = 0.dp,
+                enabled = allCheckedEnabled.value
             )
             HorizontalDivider()
             Spacer(modifier = Modifier.height(4.dp))
 
-            disclosedAttributes.forEach { entry ->
-                val path = entry.key.first
-                val memberName = (path.segments.last() as NormalizedJsonPathSegment.NameSegment).memberName
-                val value = entry.key.second
-                val optional = entry.value
-
-                if (selection[memberName] == null) {
-                    selection[memberName] = if (optional != null) {
-                        !optional
-                    } else {
-                        true
-                    }
-                }
-
+            attributeSelectionList.forEach { entry ->
                 val stringResource =
-                    format?.getLocalization(NormalizedJsonPath(entry.key.first.segments.last()))
+                    format?.getLocalization(NormalizedJsonPath() + entry.memberName)
                 if (stringResource != null) {
                     LabeledTextCheckbox(
                         label = stringResource(stringResource),
-                        text = value,
-                        checked = selection[memberName] ?: true,
-                        onCheckedChange = { bool -> selection[memberName] = bool },
-                        enabled = optional ?: false
+                        text = entry.value,
+                        checked = selection[entry.memberName] ?: true,
+                        onCheckedChange = { bool -> changeSelection(bool, entry.memberName) },
+                        enabled = entry.enabled
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                 }
@@ -100,3 +126,9 @@ fun AttributeSelectionGroup(
         }
     }
 }
+
+class AttributeSelectionElement(
+    val memberName: String,
+    val value: String,
+    val enabled: Boolean
+)
