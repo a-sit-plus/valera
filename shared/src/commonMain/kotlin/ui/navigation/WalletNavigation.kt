@@ -155,11 +155,6 @@ fun WalletNavigation(walletMain: WalletMain) {
         }
     }
 
-    LaunchedEffect(null) {
-        initializeCollectors(walletMain, snackbarHostState, navigate)
-    }
-
-
     val onClickLogo = {
         walletMain.platformAdapter.openUrl("https://wallet.a-sit.at/")
     }
@@ -187,6 +182,38 @@ fun WalletNavigation(walletMain: WalletMain) {
             popBackStack,
             onClickLogo
         )
+    }
+
+    LaunchedEffect(null){
+        this.launch {
+            Globals.appLink.combineTransform(walletMain.intentService.readyForIntents) { link, ready ->
+                if (ready == true && link != null) {
+                    emit(link)
+                }
+            }.collect { link ->
+                Napier.d("appLink.combineTransform $link")
+                catchingUnwrapped {
+                    val route = walletMain.intentService.handleIntent(link)
+                    navigate(route)
+                }.onFailure {
+                    walletMain.errorService.emit(it)
+                }
+            }
+        }
+        this.launch {
+            walletMain.snackbarService.message.collect { (text, actionLabel, callback) ->
+                val result = snackbarHostState.showSnackbar(text, actionLabel, true)
+                when (result) {
+                    SnackbarResult.Dismissed -> {}
+                    SnackbarResult.ActionPerformed -> callback?.invoke()
+                }
+            }
+        }
+        this.launch {
+            walletMain.errorService.error.collect { (message, cause) ->
+                navigate(ErrorRoute(message, cause))
+            }
+        }
     }
 }
 
@@ -752,58 +779,6 @@ private fun WalletNavHost(
                         })
                 }
             )
-        }
-    }
-}
-
-fun initializeCollectors(
-    walletMain: WalletMain,
-    snackbarHostState: SnackbarHostState,
-    navigate: (Route) -> Unit,
-) {
-    initializeServiceCollectors(walletMain, snackbarHostState, navigate)
-    initializeIntentCollector(walletMain, navigate)
-}
-
-fun initializeServiceCollectors(
-    walletMain: WalletMain,
-    snackbarHostState: SnackbarHostState,
-    navigate: (Route) -> Unit
-) {
-    CoroutineScope(Dispatchers.Default).launch {
-        this.launch {
-            walletMain.snackbarService.message.collect { (text, actionLabel, callback) ->
-                val result = snackbarHostState.showSnackbar(text, actionLabel, true)
-                when (result) {
-                    SnackbarResult.Dismissed -> {}
-                    SnackbarResult.ActionPerformed -> callback?.invoke()
-                }
-            }
-        }
-        this.launch {
-            walletMain.errorService.error.collect { (message, cause) ->
-                navigate(ErrorRoute(message, cause))
-            }
-        }
-    }
-}
-
-fun initializeIntentCollector(walletMain: WalletMain, navigate: (Route) -> Unit) {
-    CoroutineScope(Dispatchers.Default).launch {
-        this.launch {
-            Globals.appLink.combineTransform(walletMain.intentService.readyForIntents) { link, ready ->
-                if (ready == true && link != null) {
-                    emit(link)
-                }
-            }.collect { link ->
-                Napier.d("appLink.combineTransform $link")
-                catchingUnwrapped {
-                    val route = walletMain.intentService.handleIntent(link)
-                    navigate(route)
-                }.onFailure {
-                    walletMain.errorService.emit(it)
-                }
-            }
         }
     }
 }
