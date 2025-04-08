@@ -1,22 +1,18 @@
 package at.asitplus.wallet.app.common.presentation
 
+import at.asitplus.signum.indispensable.cosef.CoseKey
 import at.asitplus.wallet.lib.iso.DeviceRequest
-import at.asitplus.wallet.lib.iso.IsoHandover
+import at.asitplus.wallet.lib.iso.NFCHandover
 import at.asitplus.wallet.lib.iso.SessionTranscript
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import org.multipaz.cbor.Bstr
 import org.multipaz.cbor.Cbor
-import org.multipaz.cbor.Tagged
-import org.multipaz.cbor.buildCborArray
-import org.multipaz.documenttype.DocumentTypeRepository
 import org.multipaz.mdoc.request.DeviceRequestParser
 import org.multipaz.mdoc.role.MdocRole
 import org.multipaz.mdoc.sessionencryption.SessionEncryption
 import org.multipaz.mdoc.transport.MdocTransport
 import org.multipaz.mdoc.transport.MdocTransportClosedException
-import org.multipaz.mdoc.util.toMdocRequest
 import org.multipaz.util.Constants
 import ui.viewmodels.authentication.PresentationStateModel
 import ui.viewmodels.authentication.PresentationViewModel
@@ -63,20 +59,18 @@ class MdocPresenter(
 
                 if (sessionEncryption == null) {
                     val eReaderKey = SessionEncryption.getEReaderKey(sessionData)
-                    encodedSessionTranscript = Cbor.encode(
-                        buildCborArray {
-                            add(Tagged(24, Bstr(mechanism.encodedDeviceEngagement.toByteArray())))
-                            add(Tagged(24, Bstr(Cbor.encode(eReaderKey.toCoseKey().toDataItem()))))
-                            add(mechanism.handover)
-                        }
+                    val eReaderCoseKey =
+                        CoseKey.deserialize(Cbor.encode(eReaderKey.toCoseKey().toDataItem()))
+                    val nfcHandover = NFCHandover.deserialize(Cbor.encode(mechanism.handover))
+
+                    sessionTranscript = SessionTranscript(
+                        deviceEngagementBytes = mechanism.encodedDeviceEngagement.toByteArray(),
+                        eReaderKeyBytes = eReaderCoseKey.getOrThrow().serialize(),
+                        nfcHandover = nfcHandover.getOrThrow()
                     )
-                    val map = Cbor.decode(sessionData)
-                    val encodedEReaderKey = map["eReaderKey"].asTagged.asBstr
-                    Cbor.decode(encodedEReaderKey)
 
+                    encodedSessionTranscript = sessionTranscript.serialize()
 
-                    //sessionTranscript = SessionTranscript(mechanism.encodedDeviceEngagement.toByteArray(), Cbor.encode(eReaderKey.toCoseKey().toDataItem()), handover = IsoHandover(mechanism.handover))
-                    sessionTranscript = SessionTranscript(mechanism.encodedDeviceEngagement.toByteArray(), Cbor.encode(eReaderKey.toCoseKey().toDataItem()), handover =null)
                     sessionEncryption = SessionEncryption(
                         MdocRole.MDOC,
                         mechanism.ephemeralDeviceKey,
@@ -92,29 +86,19 @@ class MdocPresenter(
                     break
                 }
 
-                val deviceRequest = DeviceRequestParser(
+                //TODO use our libs to check the reader authentication
+                DeviceRequestParser(
                     encodedDeviceRequest!!,
                     encodedSessionTranscript!!,
                 ).parse()
 
+                val deviceRequest = DeviceRequest.deserialize(encodedDeviceRequest).getOrThrow()
 
-                //TODO use our libs to parse the device request and check the reader authentication
-                val mdocRequests = deviceRequest.docRequests.map {
-                    it.toMdocRequest(
-                        documentTypeRepository = DocumentTypeRepository(),
-                        mdocCredential = null
-                    )
-                }
-
-                /*val deviceRequestAsit =
-                    DeviceRequest.deserialize(encodedDeviceRequest).getOrElse { exception ->
-                        val errorMessage = "Deserialization of DeviceRequest failed"
-                        Napier.e(errorMessage, exception)
-                        throw exception
-                    }*/
-                presentationViewModel.initWithMdocRequest(mdocRequests, credentialSelected, encodedSessionTranscript, sessionTranscript)
-
-                //presentationViewModel.initWithAsitRequest(deviceRequestAsit.docRequests, credentialSelected)
+                presentationViewModel.initWithDeviceRequest(
+                    deviceRequest,
+                    credentialSelected,
+                    sessionTranscript
+                )
 
                 val response = stateModel.requestCredentialSelection()
 

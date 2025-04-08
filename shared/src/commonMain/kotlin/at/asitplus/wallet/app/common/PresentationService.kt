@@ -4,6 +4,8 @@ import at.asitplus.catching
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.RelyingPartyMetadata
 import at.asitplus.openid.RequestParametersFrom
+import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
+import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import at.asitplus.wallet.app.common.dcapi.PreviewRequest
 import at.asitplus.wallet.lib.agent.CreatePresentationResult
@@ -14,17 +16,15 @@ import at.asitplus.wallet.lib.agent.PresentationResponseParameters
 import at.asitplus.wallet.lib.cbor.CoseService
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
+import at.asitplus.wallet.lib.iso.DeviceAuthentication
 import at.asitplus.wallet.lib.iso.SessionTranscript
+import at.asitplus.wallet.lib.iso.wrapInCborTag
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
 import kotlinx.serialization.builtins.ByteArraySerializer
-import org.multipaz.cbor.Bstr
-import org.multipaz.cbor.Cbor
-import org.multipaz.cbor.RawCbor
-import org.multipaz.cbor.Tagged
-import org.multipaz.cbor.buildCborArray
+import kotlinx.serialization.encodeToByteArray
 import ui.viewmodels.authentication.DCQLMatchingResult
 import ui.viewmodels.authentication.PresentationExchangeMatchingResult
 
@@ -126,7 +126,6 @@ class PresentationService(
         credentialPresentation: CredentialPresentation.PresentationExchangePresentation,
         finishFunction: (ByteArray) -> Unit,
         spName: String?,
-        encodedSessionTranscript: ByteArray,
         sessionTranscript: SessionTranscript
     ) {
         Napier.d("Finalizing local response")
@@ -137,25 +136,18 @@ class PresentationService(
                 audience = spName ?: "",
                 calcIsoDeviceSignature = { docType, deviceNameSpaceBytes ->
                     val deviceAuthentication = DeviceAuthentication(
+                        type = "DeviceAuthentication",
                         sessionTranscript = sessionTranscript, docType = docType,
                         namespaces = deviceNameSpaceBytes
                     )
-                    println("deviceNameSpaceBytes.value.serialize() = ${deviceNameSpaceBytes.value.serialize().toHexString()}")
-                    println("encodedSessionTranscript = ${encodedSessionTranscript.toHexString()}")
-                    val deviceNameSpaceBytesCbor = deviceNameSpaceBytes.value.serialize()
-                    val cborPayload = Cbor.encode(
-                        Tagged(24, Bstr(Cbor.encode(buildCborArray {
-                            add("DeviceAuthentication")
-                            add(RawCbor(encodedSessionTranscript))
-                            add(docType)
-                            add(Tagged(24, RawCbor(deviceNameSpaceBytesCbor)))
-                        })))
-                    )
 
-                    //TODO sign as required by specification
+                    val deviceAuthenticationBytes = coseCompliantSerializer
+                        .encodeToByteArray(ByteStringWrapper(deviceAuthentication))
+                        .wrapInCborTag(24)
+                    Napier.d("Device authentication signature input is ${deviceAuthenticationBytes.toHexString()}")
+
                     coseService.createSignedCoseWithDetachedPayload(
-                        payload = //deviceAuthentication.serialize()
-                            cborPayload,
+                        payload = deviceAuthenticationBytes,
                         serializer = ByteArraySerializer(),
                         addKeyId = false
                     ).getOrElse { e ->
