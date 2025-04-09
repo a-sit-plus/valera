@@ -1,6 +1,7 @@
 package ui.navigation
 
 import AppTestTags
+import Globals
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.fillMaxSize
@@ -258,7 +259,7 @@ private fun WalletNavHost(
         composable<OnboardingInformationRoute> {
             OnboardingInformationView(
                 onClickContinue = { navigate(OnboardingTermsRoute) },
-                onClickLogo = onClickLogo
+                onClickLogo = onClickLogo,
             )
         }
         composable<OnboardingTermsRoute> {
@@ -267,7 +268,7 @@ private fun WalletNavHost(
                 onClickNavigateBack = navigateBack,
                 onClickReadDataProtectionPolicy = {},
                 onClickReadGeneralTermsAndConditions = {},
-                onClickLogo = onClickLogo
+                onClickLogo = onClickLogo,
             )
         }
         composable<HomeScreenRoute> {
@@ -293,7 +294,8 @@ private fun WalletNavHost(
                                 null
                             }
                         },
-                        onClickLogo = onClickLogo
+                        onClickLogo = onClickLogo,
+                        onClickSettings = { navigate(SettingsRoute) }
                     )
                 },
                 bottomBar = {
@@ -317,6 +319,7 @@ private fun WalletNavHost(
                 },
                 onNavigateToShowQrCodeView = { navigate(ShowQrCodeRoute) },
                 onClickLogo = onClickLogo,
+                onClickSettings = {navigate(SettingsRoute)},
                 bottomBar = {
                     BottomBar(
                         navigate = navigate,
@@ -334,7 +337,8 @@ private fun WalletNavHost(
                         navigate(route)
                     },
                     walletMain = walletMain,
-                    onClickLogo = onClickLogo
+                    onClickLogo = onClickLogo,
+                    onClickSettings = { navigate(SettingsRoute) }
                 )
             })
         }
@@ -345,6 +349,7 @@ private fun WalletNavHost(
                     walletMain = walletMain,
                     navigateUp = { navigateBack() },
                     onClickLogo = onClickLogo,
+                    onClickSettings =  {navigate(SettingsRoute)},
                     onNavigateToPresentmentScreen = {
                         Globals.presentationStateModel.value = it
                         navigate(LocalPresentationAuthenticationConsentRoute("QR"))
@@ -360,7 +365,8 @@ private fun WalletNavHost(
                         navigateUp = { navigateBack() },
                         onClickLogo = onClickLogo,
                         walletMain = walletMain,
-                        navigateToHomeScreen = { popBackStack(HomeScreenRoute) }
+                        navigateToHomeScreen = { popBackStack(HomeScreenRoute) },
+                        onClickSettings = {navigate(SettingsRoute)}
                     )
                 },
                 bottomBar = {
@@ -396,7 +402,8 @@ private fun WalletNavHost(
                             popBackStack(HomeScreenRoute)
                         },
                         walletMain = walletMain,
-                        onClickLogo = onClickLogo
+                        onClickLogo = onClickLogo,
+                        onClickSettings = { navigate(SettingsRoute) }
                     )
                 } catch (e: Throwable) {
                     popBackStack(HomeScreenRoute)
@@ -430,7 +437,8 @@ private fun WalletNavHost(
                         navigateToHomeScreen = {
                             popBackStack(HomeScreenRoute)
                         },
-                        onClickLogo = onClickLogo
+                        onClickLogo = onClickLogo,
+                        onClickSettings = { navigate(SettingsRoute) }
                     )
                 } catch (e: Throwable) {
                     onError(e)
@@ -456,7 +464,8 @@ private fun WalletNavHost(
                             onAuthenticationSuccess = { },
                             navigateToHomeScreen = { popBackStack(HomeScreenRoute) },
                             walletMain = walletMain,
-                            onClickLogo = onClickLogo
+                            onClickLogo = onClickLogo,
+                            onClickSettings = { navigate(SettingsRoute)}
                         )
                     } ?: throw IllegalStateException("No presentation view model set")
                 } catch (e: Throwable) {
@@ -492,7 +501,8 @@ private fun WalletNavHost(
                     isCrossDeviceFlow = route.isCrossDeviceFlow,
                     openRedirectUrl = route.redirectUrl?.let {
                         { walletMain.platformAdapter.openUrl(it) }
-                    }
+                    },
+                    onClickSettings = { navigate(SettingsRoute) }
                 )
             })
         }
@@ -506,7 +516,8 @@ private fun WalletNavHost(
                     onSubmitServer = { host ->
                         navigate(LoadCredentialRoute(host))
                     },
-                    onClickLogo = onClickLogo
+                    onClickLogo = onClickLogo,
+                    onClickSettings = { navigate(SettingsRoute) }
                 )
             })
         }
@@ -529,7 +540,8 @@ private fun WalletNavHost(
                             }
 
                         },
-                        onClickLogo = onClickLogo
+                        onClickLogo = onClickLogo,
+                        onClickSettings = { navigate(SettingsRoute) }
                     )
                 } catch (e: Throwable) {
                     popBackStack(HomeScreenRoute)
@@ -568,7 +580,8 @@ private fun WalletNavHost(
                             }
                         }
                     },
-                    onClickLogo = onClickLogo
+                    onClickLogo = onClickLogo,
+                    onClickSettings = { navigate(SettingsRoute) }
                 )
             })
         }
@@ -579,7 +592,8 @@ private fun WalletNavHost(
                     storeEntryId = backStackEntry.toRoute<CredentialDetailsRoute>().storeEntryId,
                     navigateUp = navigateBack,
                     walletMain = walletMain,
-                    onClickLogo = onClickLogo
+                    onClickLogo = onClickLogo,
+                    onClickSettings = { navigate(SettingsRoute) }
                 )
             })
         }
@@ -606,19 +620,13 @@ private fun WalletNavHost(
                             }
                             walletMain.snackbarService.showSnackbar(clearMessage)
                         },
-                        onClickSigning = {
-                            navigate(SigningQtspSelectionRoute)
-                        },
                         walletMain = walletMain,
-                        onClickLogo = onClickLogo
+                        onClickLogo = onClickLogo,
+                        onClickSettings = { popBackStack(HomeScreenRoute) },
+                        onClickBack = navigateBack
                     )
-                },
-                bottomBar = {
-                    BottomBar(
-                        navigate = { route -> navigate(route) },
-                        selected = NavigationData.INFORMATION_SCREEN
-                    )
-                })
+                }
+            )
         }
 
         composable<PreAuthQrCodeScannerRoute> { backStackEntry ->
@@ -635,7 +643,8 @@ private fun WalletNavHost(
                             )
                         )
                     },
-                    onClickLogo = onClickLogo
+                    onClickLogo = onClickLogo,
+                    onClickSettings = { navigate(SettingsRoute) }
                 )
             })
         }
@@ -645,7 +654,8 @@ private fun WalletNavHost(
                 LogViewModel(
                     navigateUp = navigateBack,
                     walletMain = walletMain,
-                    onClickLogo = onClickLogo
+                    onClickLogo = onClickLogo,
+                    onClickSettings = { navigate(SettingsRoute) }
                 )
             })
         }
@@ -656,7 +666,8 @@ private fun WalletNavHost(
                     resetStack = { popBackStack(HomeScreenRoute) },
                     message = backStackEntry.toRoute<ErrorRoute>().message,
                     cause = backStackEntry.toRoute<ErrorRoute>().cause,
-                    onClickLogo = onClickLogo
+                    onClickLogo = onClickLogo,
+                    onClickSettings = { navigate(SettingsRoute) }
                 )
             })
         }
@@ -674,7 +685,8 @@ private fun WalletNavHost(
                         navigate(route)
                     },
                     walletMain = walletMain,
-                    onClickLogo = onClickLogo
+                    onClickLogo = onClickLogo,
+                    onClickSettings = { navigate(SettingsRoute) }
                 )
             })
         }
@@ -683,8 +695,21 @@ private fun WalletNavHost(
             SigningView(remember {
                 SigningViewModel(
                     navigateUp = navigateBack,
-                    createSignRequest = { signRequest ->
+                    onQrScanned = { url ->
                         popBackStack(HomeScreenRoute)
+                        navigate(SigningQtspSelectionRoute(url))
+                    },
+                    walletMain = walletMain,
+                    onClickLogo = onClickLogo,
+                    onClickSettings = { navigate(SettingsRoute) }
+                )
+            })
+        }
+        composable<SigningQtspSelectionRoute> { backStackEntry ->
+            SigningQtspSelectionView(vm = remember {
+                SigningQtspSelectionViewModel(
+                    navigateUp = navigateBack,
+                    onContinue = { signRequest ->
                         CoroutineScope(Dispatchers.Main).launch {
                             try {
                                 walletMain.signingService.start(signRequest)
@@ -695,19 +720,9 @@ private fun WalletNavHost(
                         }
                     },
                     walletMain = walletMain,
-                    onClickLogo = onClickLogo
-                )
-            })
-        }
-        composable<SigningQtspSelectionRoute> { backStackEntry ->
-            SigningQtspSelectionView(vm = remember {
-                SigningQtspSelectionViewModel(
-                    navigateUp = navigateBack,
-                    onContinue = {
-                        navigate(SigningRoute)
-                    },
-                    walletMain = walletMain,
-                    onClickLogo = onClickLogo
+                    onClickLogo = onClickLogo,
+                    onClickSettings = { navigate(SettingsRoute) },
+                    url = backStackEntry.toRoute<SigningQtspSelectionRoute>().url
                 )
             })
         }
@@ -824,6 +839,7 @@ private fun WalletNavHost(
                     uri = backStackEntry.toRoute<SigningIntentRoute>().uri,
                     onSuccess = {
                         navigateBack()
+                        navigate(SigningQtspSelectionRoute(backStackEntry.toRoute<SigningIntentRoute>().uri))
                     },
                     onFailure = { error ->
                         walletMain.errorService.emit(error)

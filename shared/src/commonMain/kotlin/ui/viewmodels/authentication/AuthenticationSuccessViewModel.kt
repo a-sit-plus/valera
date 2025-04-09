@@ -5,4 +5,5 @@ class AuthenticationSuccessViewModel(
     val onClickLogo: () -> Unit,
     val isCrossDeviceFlow: Boolean,
     val openRedirectUrl: (() -> Unit)?,
+    val onClickSettings: () -> Unit
 )

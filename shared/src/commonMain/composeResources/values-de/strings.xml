@@ -200,8 +200,8 @@
     <string name="credential_scheme_label_tax_id">Tax ID</string>
     <string name="credential_scheme_icon_label_tax_id">TAX</string>
 
-    <string name="navigation_button_label_show_data">Daten Vorzeigen</string>
-    <string name="navigation_button_label_my_data">Meine Daten</string>
+    <string name="navigation_button_label_show_data">Vorzeigen</string>
+    <string name="navigation_button_label_my_data">Daten</string>
     <string name="navigation_button_label_settings">Einstellungen</string>
     <string name="navigation_button_label_check">Prüfen</string>
 
@@ -223,12 +223,16 @@
     <string name="text_label_qtsp">QTSP</string>
     <string name="text_label_preload_certificate">Zertifikat laden</string>
     <string name="text_label_delete_certificate">Zertifikat löschen</string>
+    <string name="text_label_selected_certificate">Ausgewähltes Zertifikat</string>
     <string name="text_label_credential_id">Credential ID</string>
     <string name="text_label_valid_from">Gültig von</string>
     <string name="text_label_valid_to">Gültig bis</string>
     <string name="text_label_optional">Optional</string>
     <string name="text_label_check_all">Alle auswählen</string>
     <string name="text_label_powered_by">POWERED BY</string>
+    <string name="text_label_certificate">Zertifikat</string>
+    <string name="text_label_vda">VDA</string>
+    <string name="text_label_no_certificate">Keine Daten verfügbar</string>
 
     <string name="heading_label_authenticate_at_device_title">Anmelden</string>
     <string name="heading_label_authenticate_at_device_subtitle">an Service Provider</string>
@@ -257,6 +261,8 @@
     <string name="heading_label_check_scan_qr_code">QR-Code Scannen</string>
     <string name="heading_label_show_qr_code_screen">Scan mich!</string>
     <string name="heading_label_received_data">Erhaltene Daten</string>
+    <string name="heading_label_select_vda">VDA auswählen</string>
+    <string name="heading_label_sign">Signieren</string>
 
     <string name="description_read_terms">Bitte lesen und akzeptieren Sie die Nutzungsbedingungen und Datenschutzerklärung.</string>
 

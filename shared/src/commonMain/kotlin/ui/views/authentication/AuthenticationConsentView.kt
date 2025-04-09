@@ -23,6 +23,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowDownward
 import androidx.compose.material.icons.outlined.ArrowUpward
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -83,8 +84,17 @@ fun AuthenticationConsentView(
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.titleLarge,
                         )
-                        Logo(onClick = vm.onClickLogo)
                     }
+                },
+                actions = {
+                    Logo(onClick = vm.onClickLogo)
+                    Column(modifier = Modifier.clickable(onClick = vm.onClickSettings)) {
+                        Icon(
+                            imageVector = Icons.Outlined.Settings,
+                            contentDescription = null,
+                        )
+                    }
+                    Spacer(Modifier.width(15.dp))
                 },
                 navigationIcon = {
                     NavigateUpButton(vm.navigateUp)

@@ -200,8 +200,8 @@
     <string name="credential_scheme_label_tax_id">Tax ID</string>
     <string name="credential_scheme_icon_label_tax_id">TAX</string>
 
-    <string name="navigation_button_label_show_data">Present Data</string>
-    <string name="navigation_button_label_my_data">My Data</string>
+    <string name="navigation_button_label_show_data">Present</string>
+    <string name="navigation_button_label_my_data">Data</string>
     <string name="navigation_button_label_settings">Settings</string>
     <string name="navigation_button_label_check">Check</string>
 
@@ -223,12 +223,16 @@
     <string name="text_label_qtsp">QTSP</string>
     <string name="text_label_preload_certificate">Preload certificate</string>
     <string name="text_label_delete_certificate">Delete certificate</string>
+    <string name="text_label_selected_certificate">Selected certificate</string>
     <string name="text_label_credential_id">Credential ID</string>
     <string name="text_label_valid_from">Valid from</string>
     <string name="text_label_valid_to">Valid to</string>
     <string name="text_label_optional">Optional</string>
     <string name="text_label_check_all">Check all</string>
     <string name="text_label_powered_by">POWERED BY</string>
+    <string name="text_label_certificate">Certificate</string>
+    <string name="text_label_vda">VDA</string>
+    <string name="text_label_no_certificate">No data available</string>
 
     <string name="heading_label_authenticate_at_device_title">Authenticate</string>
     <string name="heading_label_authenticate_at_device_subtitle">at relying party</string>
@@ -258,6 +262,8 @@
     <string name="heading_label_show_qr_code_screen">Scan me!</string>
     <string name="heading_label_received_data">Received Data</string>
 
+    <string name="heading_label_select_vda">Select VDA</string>
+    <string name="heading_label_sign">Sign</string>
 
     <string name="description_read_terms">Please read and accept the terms of use and the privacy policy.</string>
 

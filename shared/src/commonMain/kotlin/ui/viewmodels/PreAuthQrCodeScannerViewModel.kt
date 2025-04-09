@@ -13,6 +13,7 @@ class PreAuthQrCodeScannerViewModel(
     val navigateUp: () -> Unit,
     val navigateToAddCredentialsPage: (CredentialOffer) -> Unit,
     val onClickLogo: () -> Unit,
+    val onClickSettings: () -> Unit
 ) {
     var isLoading by mutableStateOf(false)
 

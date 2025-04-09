@@ -1,5 +1,6 @@
 package ui.views
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -26,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_authenticate
 import at.asitplus.valera.resources.button_label_present_data
+import at.asitplus.valera.resources.heading_label_credential_details_screen
 import at.asitplus.valera.resources.heading_label_show_data
 import at.asitplus.valera.resources.info_text_show_data_situation
 import at.asitplus.valera.resources.section_heading_authenticate_at_device_subtitle
@@ -41,24 +44,30 @@ fun PresentDataView(
     onNavigateToAuthenticationQrCodeScannerView: () -> Unit,
     onNavigateToShowQrCodeView: () -> Unit,
     onClickLogo: () -> Unit,
+    onClickSettings: () -> Unit,
     bottomBar: @Composable () -> Unit
 ) {
     Scaffold(
         topBar = {
             TopAppBar(title = {
-                Row(
-                    Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         stringResource(Res.string.heading_label_show_data),
                         modifier = Modifier.weight(1f),
-                        style = MaterialTheme.typography.headlineLarge,
+                        style = MaterialTheme.typography.headlineLarge
                     )
-                    Logo(onClick = onClickLogo)
-                    Spacer(Modifier.width(8.dp))
                 }
-            })
+            },
+                actions = {
+                    Logo(onClick = onClickLogo)
+                    Column(modifier = Modifier.clickable(onClick = onClickSettings)) {
+                        Icon(
+                            imageVector = Icons.Outlined.Settings,
+                            contentDescription = null,
+                        )
+                    }
+                    Spacer(Modifier.width(15.dp))
+                })
         },
         bottomBar = { bottomBar() },
         modifier = Modifier

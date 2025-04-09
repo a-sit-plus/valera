@@ -17,7 +17,8 @@ class AuthenticationSelectionPresentationExchangeViewModel(
     val confirmSelections: (CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>) -> Unit,
     val navigateUp: () -> Unit,
     val onClickLogo: () -> Unit,
-    val navigateToHomeScreen: () -> Unit
+    val navigateToHomeScreen: () -> Unit,
+    val onClickSettings: () -> Unit
 ) {
     val requests: Map<String, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, List<NodeListEntry>>>>
         = credentialMatchingResult.matchingInputDescriptorCredentials

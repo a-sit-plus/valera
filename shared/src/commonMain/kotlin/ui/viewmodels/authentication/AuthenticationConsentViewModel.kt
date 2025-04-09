@@ -15,6 +15,7 @@ class AuthenticationConsentViewModel(
     val walletMain: WalletMain,
     val presentationRequest: CredentialPresentationRequest,
     val onClickLogo: () -> Unit,
+    val onClickSettings: () -> Unit
 ) {
     val consentToDataTransmission: () -> Unit = {
         buttonConsent()

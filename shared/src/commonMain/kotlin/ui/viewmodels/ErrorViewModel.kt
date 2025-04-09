@@ -4,5 +4,6 @@ class ErrorViewModel(
     val resetStack: () -> Unit,
     val message: String?,
     val cause: String?,
-    val onClickLogo: () -> Unit
+    val onClickLogo: () -> Unit,
+    val onClickSettings: () -> Unit
 )

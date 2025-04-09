@@ -16,7 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Key
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.SettingsBackupRestore
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
@@ -44,7 +44,6 @@ import at.asitplus.valera.resources.button_label_faq
 import at.asitplus.valera.resources.button_label_licenses
 import at.asitplus.valera.resources.button_label_reset_app
 import at.asitplus.valera.resources.button_label_share_log_file
-import at.asitplus.valera.resources.button_label_sign
 import at.asitplus.valera.resources.heading_label_settings_screen
 import at.asitplus.valera.resources.reset_app_alert_text
 import at.asitplus.valera.resources.section_heading_actions
@@ -60,13 +59,13 @@ import at.asitplus.valera.resources.warning
 import at.asitplus.wallet.app.common.presentation.TransferSettings.Companion.transferSettings
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
+import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsView(
     vm: SettingsViewModel,
-    bottomBar: @Composable () -> Unit
 ) {
     val showAlert = remember { mutableStateOf(false) }
     if (showAlert.value) {
@@ -90,13 +89,23 @@ fun SettingsView(
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.headlineLarge
                         )
-                        Logo(onClick = vm.onClickLogo)
-                        Spacer(Modifier.width(8.dp))
                     }
                 },
+                actions = {
+                    Logo(onClick = vm.onClickLogo)
+                    Column(modifier = Modifier.clickable(onClick = vm.onClickSettings)) {
+                        Icon(
+                            imageVector = Icons.Outlined.Settings,
+                            contentDescription = null,
+                        )
+                    }
+                    Spacer(Modifier.width(15.dp))
+                },
+                navigationIcon = {
+                    NavigateUpButton(vm.onClickBack)
+                },
             )
-        },
-        bottomBar = { bottomBar() },
+        }
     ) { scaffoldPadding ->
         Box(modifier = Modifier.padding(scaffoldPadding)) {
             Column {
@@ -189,19 +198,6 @@ fun SettingsView(
                             label = stringResource(Res.string.button_label_reset_app),
                             onClick = {
                                 showAlert.value = true
-                            },
-                            modifier = listSpacingModifier.fillMaxWidth(),
-                        )
-                        TextIconButtonListItem(
-                            icon = {
-                                Icon(
-                                    imageVector = Icons.Outlined.Key,
-                                    contentDescription = null,
-                                )
-                            },
-                            label = stringResource(Res.string.button_label_sign),
-                            onClick = {
-                                vm.onClickSigning()
                             },
                             modifier = listSpacingModifier.fillMaxWidth(),
                         )

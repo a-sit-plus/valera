@@ -1,5 +1,6 @@
 package ui.views.iso.verifier
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +14,7 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -36,6 +38,7 @@ import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_select_custom_data_retrieval_screen
+import at.asitplus.valera.resources.heading_label_select_data_retrieval_screen
 import at.asitplus.valera.resources.section_heading_select_document_type
 import at.asitplus.valera.resources.section_heading_select_requested_data_entries
 import at.asitplus.valera.resources.section_heading_selected_namespace
@@ -61,10 +64,19 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                         Text(
                             stringResource(Res.string.heading_label_select_custom_data_retrieval_screen),
                             modifier = Modifier.weight(1f),
-                            style = MaterialTheme.typography.headlineMedium,
+                            style = MaterialTheme.typography.headlineLarge
                         )
-                        Logo(onClick = vm.onClickLogo)
                     }
+                },
+                actions = {
+                    Logo(onClick = vm.onClickLogo)
+                    Column(modifier = Modifier.clickable(onClick = vm.onClickSettings)) {
+                        Icon(
+                            imageVector = Icons.Outlined.Settings,
+                            contentDescription = null,
+                        )
+                    }
+                    Spacer(Modifier.width(15.dp))
                 },
                 navigationIcon = { NavigateUpButton({ vm.navigateToVerifyDataView() }) }
             )

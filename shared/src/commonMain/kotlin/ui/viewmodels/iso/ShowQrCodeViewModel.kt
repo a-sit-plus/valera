@@ -26,6 +26,7 @@ class ShowQrCodeViewModel(
     val walletMain: WalletMain,
     val navigateUp: () -> Unit,
     val onClickLogo: () -> Unit,
+    val onClickSettings: () -> Unit,
     val onNavigateToPresentmentScreen: (PresentationStateModel) -> Unit,
 ) {
     var hasBeenCalledHack: Boolean = false
