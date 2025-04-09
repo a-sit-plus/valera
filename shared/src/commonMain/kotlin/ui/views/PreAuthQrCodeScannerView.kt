@@ -21,6 +21,7 @@ fun PreAuthQrCodeScannerScreen(
                 vm.isLoading = true
                 vm.getCredential(payload)
             },
-            onClickLogo = vm.onClickLogo)
+            onClickLogo = vm.onClickLogo,
+            onClickSettings = vm.onClickSettings)
     }
 }
