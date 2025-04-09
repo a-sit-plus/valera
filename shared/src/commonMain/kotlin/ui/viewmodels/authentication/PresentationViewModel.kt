@@ -16,12 +16,13 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
+import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import org.multipaz.request.MdocRequest
 
 class PresentationViewModel(
     val presentationStateModel: PresentationStateModel,
     navigateUp: () -> Unit,
-    onAuthenticationSuccess: () -> Unit,
+    onAuthenticationSuccess: (redirectUrl: String?) -> Unit,
     navigateToHomeScreen: () -> Unit,
     walletMain: WalletMain,
     spImage: ImageBitmap? = null,
@@ -101,6 +102,7 @@ class PresentationViewModel(
                 it,
                 spName
             )
+            OpenId4VpWallet.AuthenticationSuccess(null)
         } ?: throw IllegalStateException("No finish method found")
 
 }

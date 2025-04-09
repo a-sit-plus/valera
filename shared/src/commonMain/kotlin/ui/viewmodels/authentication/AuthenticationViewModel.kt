@@ -14,6 +14,7 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.data.third_party.at.asitplus.oidc.dcql.toDefaultSubmission
+import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 
@@ -22,7 +23,7 @@ abstract class AuthenticationViewModel(
     val spLocation: String,
     val spImage: ImageBitmap?,
     val navigateUp: () -> Unit,
-    val onAuthenticationSuccess: () -> Unit,
+    val onAuthenticationSuccess: (redirectUrl: String?) -> Unit,
     val navigateToHomeScreen: () -> Unit,
     val walletMain: WalletMain,
     val onClickLogo: () -> Unit
@@ -99,8 +100,7 @@ abstract class AuthenticationViewModel(
     }
 
 
-    abstract suspend fun finalizationMethod(credentialPresentation: CredentialPresentation)
-
+    abstract suspend fun finalizationMethod(credentialPresentation: CredentialPresentation): OpenId4VpWallet.AuthenticationSuccess
 
     private suspend fun finalizeAuthorization(credentialPresentation: CredentialPresentation) {
         catchingUnwrapped {
@@ -111,7 +111,7 @@ abstract class AuthenticationViewModel(
             finalizationMethod(credentialPresentation)
         }.onSuccess {
             navigateUp()
-            onAuthenticationSuccess()
+            onAuthenticationSuccess(it.redirectUri)
         }.onFailure {
             walletMain.errorService.emit(it)
         }

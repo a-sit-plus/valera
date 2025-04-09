@@ -61,4 +61,4 @@ data class LocalPresentationAuthenticationConsentRoute(
 ) : Route()
 
 @Serializable
-object AuthenticationSuccessRoute : Route()
+data class AuthenticationSuccessRoute(val redirectUrl: String?) : Route()
