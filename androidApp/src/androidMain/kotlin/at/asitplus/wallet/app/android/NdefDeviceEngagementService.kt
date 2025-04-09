@@ -207,8 +207,8 @@ class NdefDeviceEngagementService : HostApduService() {
             },
             onError = { error ->
                 Napier.w("NdefDeviceEngagementService: Engagement failed", error)
-                error.printStackTrace()
                 vibrateError()
+                presentationStateModel.setCompleted(error)
                 engagement = null
             },
             staticHandoverMethods = staticHandoverConnectionMethods,
