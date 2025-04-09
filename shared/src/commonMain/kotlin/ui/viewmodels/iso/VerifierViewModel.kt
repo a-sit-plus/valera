@@ -21,7 +21,7 @@ class VerifierViewModel(
     private val transferManager: TransferManager by lazy {
         TransferManager(
             walletMain.scope
-        ) { message -> } //TODO handle update messages
+        ) { message -> } // TODO: handle update messages
     }
 
     private val _verifierState = MutableStateFlow(VerifierState.INIT)
@@ -32,7 +32,6 @@ class VerifierViewModel(
     }
 
     private val _requestDocument = MutableStateFlow<RequestDocument?>(null)
-    private val requestDocument: StateFlow<RequestDocument?> = _requestDocument
 
     private val _deviceResponse = MutableStateFlow<DeviceResponse?>(null)
     val deviceResponse: StateFlow<DeviceResponse?> = _deviceResponse
@@ -45,6 +44,12 @@ class VerifierViewModel(
         setVerifierState(VerifierState.ERROR)
     }
 
+    private val _selectedEngagementMethod = MutableStateFlow<DeviceEngagementMethods>(
+        DeviceEngagementMethods.NFC
+    )
+
+    val selectedEngagementMethod: StateFlow<DeviceEngagementMethods> = _selectedEngagementMethod
+
     private fun setStateToEngagement(selectedEngagementMethod: DeviceEngagementMethods) {
         when (selectedEngagementMethod) {
             DeviceEngagementMethods.NFC -> doNfcEngagement()
@@ -53,7 +58,7 @@ class VerifierViewModel(
     }
 
     private fun doNfcEngagement() {
-        requestDocument.value?.let { document ->
+        _requestDocument.value?.let { document ->
             transferManager.startNfcEngagement(document) { deviceResponseBytes ->
                 handleResponse(deviceResponseBytes)
             }
@@ -61,7 +66,6 @@ class VerifierViewModel(
     }
 
     private fun handleResponse(deviceResponseBytes: ByteArray) {
-        Napier.d("deviceResponseBytes = ${deviceResponseBytes.decodeToString()}", tag = "VerifierViewModel")
         _deviceResponse.value = DeviceResponse.deserialize(deviceResponseBytes).getOrThrow()
         _verifierState.value = VerifierState.PRESENTATION
     }
@@ -81,7 +85,8 @@ class VerifierViewModel(
         setStateToEngagement(selectedEngagementMethod)
     }
 
-    fun navigateToCustomSelectionView() {
+    fun navigateToCustomSelectionView(selectedEngagementMethod: DeviceEngagementMethods) {
+        _selectedEngagementMethod.value = selectedEngagementMethod
         _verifierState.value = VerifierState.SELECT_CUSTOM_REQUEST
     }
 
@@ -100,7 +105,7 @@ class VerifierViewModel(
     val onFoundPayload: (String) -> Unit = { payload ->
         if (payload.startsWith("mdoc:")) {
             _verifierState.value = VerifierState.WAITING_FOR_RESPONSE
-            requestDocument.value?.let { document ->
+            _requestDocument.value?.let { document ->
                 transferManager.doQrFlow(
                     payload.substring(5),
                     document,
