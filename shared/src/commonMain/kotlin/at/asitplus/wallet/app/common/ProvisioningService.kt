@@ -82,10 +82,7 @@ class ProvisioningService(
         oid4vciService = WalletService(clientId, redirectUrl, cryptoService),
         storeCredential = { cred ->
             runCatching { holderAgent.storeCredential(cred) }.onFailure {
-                Napier.w(
-                    "Could not store $cred",
-                    it
-                )
+                Napier.w("Could not store $cred", it)
             }
         },
         storeRefreshToken = {} // TODO store refresh tokens to refresh credentials later on
