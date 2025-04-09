@@ -24,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_continue
-import at.asitplus.valera.resources.error_credential_selection_error_invalid_request_id
 import at.asitplus.valera.resources.heading_label_navigate_back
 import at.asitplus.valera.resources.prompt_select_credential
 import at.asitplus.wallet.app.common.decodeImage
@@ -33,105 +32,117 @@ import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.CredentialSelectionGroup
 import ui.viewmodels.authentication.AuthenticationSelectionPresentationExchangeViewModel
+import ui.views.ErrorView
 
 @Composable
-fun AuthenticationSelectionPresentationExchangeView(
-    vm: AuthenticationSelectionPresentationExchangeViewModel,
-    onError: (Throwable) -> Unit,
-) {
-    val currentRequest = vm.iterableRequests[vm.requestIterator.value]
+fun AuthenticationSelectionPresentationExchangeView(vm: AuthenticationSelectionPresentationExchangeViewModel) {
+    val iterableRequests = vm.iterableRequests
+    if (iterableRequests.isEmpty()) {
+        ErrorView(
+            // TODO: just make a popup
+            message = "No Requests found",
+            cause = null,
+            onClickLogo = vm.onClickLogo
+        )
+    } else {
+        val currentRequest = vm.iterableRequests[vm.requestIterator.value]
 
-    AuthenticationSelectionViewScaffold(
-        onClickLogo = vm.onClickLogo,
-        onNavigateUp = vm.onBack,
-        onNext = vm.onNext,
-    ) {
-        LinearProgressIndicator(
-            progress = { ((1.0f / vm.requests.size) * (vm.requestIterator.value + 1)) },
-            modifier = Modifier.fillMaxWidth(),
-            drawStopIndicator = { })
-        Column(
-            modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState()).padding(16.dp),
+        AuthenticationSelectionViewScaffold(
+            onClickLogo = vm.onClickLogo,
+            onNavigateUp = vm.onBack,
+            onNext = vm.onNext,
         ) {
-            val requestId = currentRequest.first
-            val matchingCredentials = currentRequest.second
-
-            val attributeSelection = vm.attributeSelection[requestId]
-                ?: return@Column onError(Throwable(stringResource(Res.string.error_credential_selection_error_invalid_request_id)))
-            val credentialSelection = vm.credentialSelection[requestId]
-                ?: return@Column onError(Throwable(stringResource(Res.string.error_credential_selection_error_invalid_request_id)))
-
-            CredentialSelectionGroup(
-                matchingCredentials = matchingCredentials,
-                attributeSelection = attributeSelection,
-                credentialSelection = credentialSelection,
-                imageDecoder = { byteArray ->
-                    vm.walletMain.platformAdapter.decodeImage(byteArray)
-                },
-                checkRevocationStatus = {
-                    vm.walletMain.checkRevocationStatus(it)
-                },
+            LinearProgressIndicator(
+                progress = { ((1.0f / vm.requests.size) * (vm.requestIterator.value + 1)) },
+                modifier = Modifier.fillMaxWidth(),
+                drawStopIndicator = { }
             )
+            Column(
+                modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState())
+                    .padding(16.dp),
+            ) {
+                val requestId = currentRequest.first
+                val matchingCredentials = currentRequest.second
+
+                val attributeSelection =
+                    vm.attributeSelection[requestId] ?: throw Throwable("No selection with requestId")
+                val credentialSelection =
+                    vm.credentialSelection[requestId] ?: throw Throwable("No selection with requestId")
+                CredentialSelectionGroup(
+                    matchingCredentials = matchingCredentials,
+                    attributeSelection = attributeSelection,
+                    credentialSelection = credentialSelection,
+                    imageDecoder = { byteArray ->
+                        vm.walletMain.platformAdapter.decodeImage(byteArray)
+                    },
+                    checkRevocationStatus = {
+                        vm.walletMain.checkRevocationStatus(it)
+                    }
+                )
+            }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun AuthenticationSelectionViewScaffold(
-    onClickLogo: () -> Unit,
-    onNavigateUp: () -> Unit,
-    onNext: () -> Unit,
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit,
-) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            stringResource(Res.string.heading_label_navigate_back),
-                            modifier = Modifier.weight(1f),
-                            style = MaterialTheme.typography.titleLarge,
-                        )
-                        Logo(onClick = onClickLogo)
-                    }
-                },
-                navigationIcon = {
-                    NavigateUpButton(onClick = onNavigateUp)
-                },
-            )
-        },
-        bottomBar = {
-            Surface(
-                color = NavigationBarDefaults.containerColor,
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.SpaceEvenly,
-                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun AuthenticationSelectionViewScaffold(
+        onClickLogo: () -> Unit,
+        onNavigateUp: () -> Unit,
+        onNext: () -> Unit,
+        modifier: Modifier = Modifier,
+        content: @Composable () -> Unit,
+    ) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                stringResource(Res.string.heading_label_navigate_back),
+                                modifier = Modifier.weight(1f),
+                                style = MaterialTheme.typography.titleLarge,
+                            )
+                            Logo(onClick = onClickLogo)
+                        }
+                    },
+                    navigationIcon = {
+                        NavigateUpButton(onClick = onNavigateUp)
+                    },
+                )
+            },
+            bottomBar = {
+                Surface(
+                    color = NavigationBarDefaults.containerColor,
                 ) {
-                    Text(
-                        text = stringResource(Res.string.prompt_select_credential),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.SpaceEvenly,
+                        modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                     ) {
-                        Button(onClick = onNext) {
-                            Text(stringResource(Res.string.button_label_continue))
+                        Text(
+                            text = stringResource(Res.string.prompt_select_credential),
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                        ) {
+                            Button(onClick = onNext) {
+                                Text(stringResource(Res.string.button_label_continue))
+                            }
                         }
                     }
                 }
+            },
+            modifier = modifier,
+        ) {
+            Box(modifier = Modifier.padding(it)) {
+                content()
             }
-        },
-        modifier = modifier,
-    ) {
-        Box(modifier = Modifier.padding(it)) {
-            content()
         }
     }
-}
