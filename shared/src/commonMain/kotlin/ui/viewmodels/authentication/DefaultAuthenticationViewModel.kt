@@ -23,7 +23,7 @@ class DefaultAuthenticationViewModel(
     val authenticationRequest: RequestParametersFrom<AuthenticationRequestParameters>,
     val isCrossDeviceFlow: Boolean,
     navigateUp: () -> Unit,
-    navigateToAuthenticationSuccessPage: () -> Unit,
+    navigateToAuthenticationSuccessPage: (redirectUrl: String?) -> Unit,
     navigateToHomeScreen: () -> Unit,
     walletMain: WalletMain,
     onClickLogo: () -> Unit

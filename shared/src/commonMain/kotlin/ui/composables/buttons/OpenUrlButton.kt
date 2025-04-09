@@ -1,33 +1,32 @@
 package ui.composables.buttons
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.button_label_conclude
-import org.jetbrains.compose.resources.ExperimentalResourceApi
+import at.asitplus.valera.resources.button_label_open_url
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.TextIconButton
 
 @Composable
-fun ConcludeButton(
+fun OpenUrlButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     TextIconButton(
         icon = {
             Icon(
-                imageVector = Icons.Default.Done,
+                imageVector = Icons.AutoMirrored.Filled.OpenInNew,
                 contentDescription = null,
             )
         },
         text = {
             Text(
-                stringResource(Res.string.button_label_conclude),
+                stringResource(Res.string.button_label_open_url),
                 textAlign = TextAlign.Center,
             )
         },

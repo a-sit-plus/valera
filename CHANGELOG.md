@@ -1,5 +1,5 @@
 # Release 5.5.3
- - tbd
+ * Add option to open URL from verifier after successful authentication
 
 # Release 5.5.2
  * Fix presentation of ISO credentials

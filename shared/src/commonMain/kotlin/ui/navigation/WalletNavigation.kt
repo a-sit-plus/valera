@@ -283,7 +283,7 @@ private fun WalletNavHost(
                     isCrossDeviceFlow = route.isCrossDeviceFlow,
                     navigateUp = { navigateBack() },
                     navigateToAuthenticationSuccessPage = {
-                        navigate(AuthenticationSuccessRoute)
+                        navigate(AuthenticationSuccessRoute(it))
                     },
                     navigateToHomeScreen = {
                         popBackStack(HomeScreenRoute)
@@ -318,7 +318,7 @@ private fun WalletNavHost(
                     dcApiRequest = dcApiRequest,
                     navigateUp = { navigateBack() },
                     navigateToAuthenticationSuccessPage = {
-                        navigate(AuthenticationSuccessRoute)
+                        navigate(AuthenticationSuccessRoute(it))
                     },
                     walletMain = walletMain,
                     navigateToHomeScreen = {
@@ -382,7 +382,11 @@ private fun WalletNavHost(
         }
 
         composable<AuthenticationSuccessRoute> { backStackEntry ->
-            val vm = AuthenticationSuccessViewModel(navigateUp = { navigateBack() }, onClickLogo = onClickLogo)
+            val vm = AuthenticationSuccessViewModel(
+                navigateUp = { navigateBack() },
+                onClickLogo = onClickLogo,
+                openRedirectUrl = backStackEntry.toRoute<AuthenticationSuccessRoute>().redirectUrl?.let { { walletMain.platformAdapter.openUrl(it) } }
+            )
             AuthenticationSuccessView(vm = vm)
         }
 

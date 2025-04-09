@@ -12,14 +12,12 @@ import at.asitplus.wallet.lib.agent.PresentationException
 import at.asitplus.wallet.lib.agent.PresentationRequestParameters
 import at.asitplus.wallet.lib.agent.PresentationResponseParameters
 import at.asitplus.wallet.lib.cbor.CoseService
-import at.asitplus.wallet.lib.iso.DeviceResponse
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
-import io.ktor.utils.io.core.toByteArray
 import kotlinx.serialization.builtins.ByteArraySerializer
 import ui.viewmodels.authentication.DCQLMatchingResult
 import ui.viewmodels.authentication.PresentationExchangeMatchingResult
@@ -32,11 +30,10 @@ class PresentationService(
     private val coseService: CoseService
 ) {
     private val presentationService = OpenId4VpWallet(
-        openUrlExternally = { platformAdapter.openUrl(it) },
         engine = HttpClient().engine,
         httpClientConfig = httpService.loggingConfig,
         cryptoService = cryptoService,
-        holderAgent = holderAgent,
+        holderAgent = holderAgent
     )
 
     suspend fun parseAuthenticationRequestParameters(requestUri: String) =
@@ -72,19 +69,16 @@ class PresentationService(
         clientMetadata: RelyingPartyMetadata?,
         credentialPresentation: CredentialPresentation,
         isCrossDeviceFlow: Boolean,
-    ) {
-        presentationService.finalizeAuthorizationResponse(
-            request = request,
-            clientMetadata = clientMetadata,
-            credentialPresentation = credentialPresentation,
-            isCrossDeviceFlow = isCrossDeviceFlow,
+    ) = presentationService.finalizeAuthorizationResponse(
+        request = request,
+        clientMetadata = clientMetadata,
+        credentialPresentation = credentialPresentation,
         ).getOrThrow()
-    }
 
     suspend fun finalizeDCAPIPreviewPresentation(
         credentialPresentation: CredentialPresentation.PresentationExchangePresentation,
         dcApiRequest: DCAPIRequest
-    ) {
+    ): OpenId4VpWallet.AuthenticationSuccess {
         Napier.d("Finalizing DCAPI response")
         val previewRequest = PreviewRequest.deserialize(dcApiRequest.request).getOrThrow()
 
@@ -115,6 +109,8 @@ class PresentationService(
         }
 
         platformAdapter.prepareDCAPICredentialResponse(deviceResponse.serialize(), dcApiRequest)
+
+        return OpenId4VpWallet.AuthenticationSuccess()
     }
 
     suspend fun finalizeLocalPresentation(
