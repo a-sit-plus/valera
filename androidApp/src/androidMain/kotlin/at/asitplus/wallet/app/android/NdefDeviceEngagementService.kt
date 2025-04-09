@@ -290,7 +290,7 @@ class NdefDeviceEngagementService : HostApduService() {
                 presentationStateModel.waitForConnectionUsingMainTransport(settings.connectionTimeout)
                 Napier.d("NdefDeviceEngagementService: Main transport connected")
             } catch (timeoutExc: TimeoutCancellationException) {
-                val message = "NdefDeviceEngagementService: Reader didn't connect inside ${settings.connectionTimeout}, closing"
+                val message = "NdefDeviceEngagementService: Reader didn't connect in ${settings.connectionTimeout}, closing"
                 Napier.w(message)
                 presentationStateModel.setCompleted(PresentmentTimeout(message))
             }

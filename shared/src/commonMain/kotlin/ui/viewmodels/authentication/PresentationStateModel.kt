@@ -14,7 +14,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.timeout
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeout
@@ -173,9 +172,10 @@ class PresentationStateModel {
      */
     suspend fun waitForConnectionUsingMainTransport(timeout: Duration) = withTimeout(timeout) {
         state.first {
+            Napier.d("waitForConnectionUsingMainTransport: Current state: ${it.name}")
             it != State.IDLE && it != State.INITIALISING && it != State.CHECK_PERMISSIONS
                     && it != State.NO_PERMISSION && it != State.CONNECTING
-        }.also { Napier.d("Current state: ${it.name}") }
+        }
     }
 
     /**
