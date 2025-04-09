@@ -25,7 +25,8 @@ abstract class AuthenticationViewModel(
     val onAuthenticationSuccess: () -> Unit,
     val navigateToHomeScreen: () -> Unit,
     val walletMain: WalletMain,
-    val onClickLogo: () -> Unit
+    val onClickLogo: () -> Unit,
+    val onClickSettings: () -> Unit
 ) {
     abstract val presentationRequest: CredentialPresentationRequest
 

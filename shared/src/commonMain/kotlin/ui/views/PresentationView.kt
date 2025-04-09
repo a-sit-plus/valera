@@ -136,7 +136,8 @@ fun PresentationView(
                         },
                         walletMain = presentationViewModel.walletMain,
                         presentationRequest = presentationViewModel.presentationRequest,
-                        onClickLogo = presentationViewModel.onClickLogo
+                        onClickLogo = presentationViewModel.onClickLogo,
+                        onClickSettings = presentationViewModel.onClickSettings
                     )
                     AuthenticationConsentView(
                         viewModel,
@@ -155,7 +156,8 @@ fun PresentationView(
                         is DCQLMatchingResult -> {
                             AuthenticationSelectionViewScaffold(
                                 onNavigateUp = presentationViewModel.navigateUp,
-                                onClickLogo = {},
+                                onClickLogo = presentationViewModel.onClickLogo,
+                                onClickSettings = presentationViewModel.onClickSettings,
                                 onNext = {
                                     presentationViewModel.confirmSelection(null)
                                 },
@@ -175,6 +177,7 @@ fun PresentationView(
                                 },
                                 navigateUp = { presentationViewModel.viewState = AuthenticationViewState.Consent },
                                 onClickLogo = presentationViewModel.onClickLogo,
+                                onClickSettings = presentationViewModel.onClickSettings,
                                 credentialMatchingResult = matching,
                             )
                             AuthenticationSelectionPresentationExchangeView(vm = viewModel)
