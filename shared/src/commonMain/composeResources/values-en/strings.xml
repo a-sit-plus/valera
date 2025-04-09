@@ -57,6 +57,12 @@
     <string name="button_label_check_custom">Custom Request</string>
     <string name="button_label_check_over_age">Over </string>
 
+    <string name="switch_label_use_negotiated_handover">Negotiated Handover</string>
+    <string name="switch_label_use_ble_central_client_mode">BLE Central Client Mode</string>
+    <string name="switch_label_use_ble_peripheral_server_mode">BLE Peripheral Server Mode</string>
+    <string name="switch_label_use_nfc_data_transfer">NFC Data Transfer</string>
+    <string name="switch_label_blel2cap_enabled">Enable L2CAP</string>
+
     <string name="attribute_friendly_name_bpk">BPK</string>
     <string name="attribute_friendly_name_firstname">Given name</string>
     <string name="attribute_friendly_name_lastname">Family name</string>
@@ -322,6 +328,7 @@
     <string name="section_heading_show_data_to_other_citizen_title">Show data to</string>
     <string name="section_heading_show_data_to_other_citizen_subtitle">other Citizen</string>
     <string name="section_heading_actions">Actions</string>
+    <string name="section_heading_transfer_options">Transfer Settings</string>
     <string name="section_heading_information">Information</string>
     <string name="section_heading_requested_data">Requested Data</string>
     <string name="section_heading_data_recipient">Recipient</string>

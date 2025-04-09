@@ -2,7 +2,7 @@ package at.asitplus.wallet.app.common.iso.transfer
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import at.asitplus.wallet.app.common.presentation.TransferSettings
+import at.asitplus.wallet.app.common.presentation.TransferSettings.Companion.transferSettings
 import data.document.RequestDocument
 import org.multipaz.asn1.ASN1Integer
 import org.multipaz.cbor.Bstr
@@ -60,7 +60,6 @@ class TransferManager(
         DATA_RECEIVED
     }
 
-    private val transferSettings = TransferSettings()
     var readerMostRecentDeviceResponse = mutableStateOf<ByteArray?>(null)
     var readerSessionTranscript: ByteArray? = null
     private val _state = MutableStateFlow(State.IDLE)
@@ -191,7 +190,7 @@ class TransferManager(
             try {
                 val negotiatedHandoverConnectionMethods = mutableListOf<MdocConnectionMethod>()
                 val bleUuid = UUID.randomUUID()
-                if (transferSettings.presentmentBleCentralClientModeEnabled) {
+                if (transferSettings.presentmentBleCentralClientModeEnabled.value) {
                     negotiatedHandoverConnectionMethods.add(
                         MdocConnectionMethodBle(
                             supportsPeripheralServerMode = false,
@@ -201,7 +200,7 @@ class TransferManager(
                         )
                     )
                 }
-                if (transferSettings.presentmentBlePeripheralServerModeEnabled) {
+                if (transferSettings.presentmentBlePeripheralServerModeEnabled.value) {
                     negotiatedHandoverConnectionMethods.add(
                         MdocConnectionMethodBle(
                             supportsPeripheralServerMode = true,
@@ -211,7 +210,7 @@ class TransferManager(
                         )
                     )
                 }
-                if (transferSettings.presentmentNfcDataTransferEnabled) {
+                if (transferSettings.presentmentNfcDataTransferEnabled.value) {
                     negotiatedHandoverConnectionMethods.add(
                         MdocConnectionMethodNfc(
                             commandDataFieldMaxLength = 0xffff,
@@ -223,7 +222,7 @@ class TransferManager(
                 scanNfcMdocReader(
                     message = "Hold near credential holder's phone.",
                     options = MdocTransportOptions(
-                        bleUseL2CAP = transferSettings.readerBleL2CapEnabled
+                        bleUseL2CAP = transferSettings.readerBleL2CapEnabled.value
                     ),
                     selectConnectionMethod = { connectionMethods ->
                         if (transferSettings.readerAutomaticallySelectTransport) {
@@ -347,7 +346,7 @@ class TransferManager(
             val transport = MdocTransportFactory.Default.createTransport(
                 connectionMethod,
                 MdocRole.MDOC_READER,
-                MdocTransportOptions(bleUseL2CAP = transferSettings.readerBleL2CapEnabled)
+                MdocTransportOptions(bleUseL2CAP = transferSettings.readerBleL2CapEnabled.value)
             )
             if (transport is NfcTransportMdocReader) {
                 scanNfcTag(
