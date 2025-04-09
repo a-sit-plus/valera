@@ -32,6 +32,7 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatus
 import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.CredentialCardActionMenu
 import ui.composables.CustomFloatingActionMenu
 import ui.composables.FloatingActionButtonHeightSpacer
 import ui.composables.Logo
