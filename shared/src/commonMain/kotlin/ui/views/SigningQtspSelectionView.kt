@@ -20,11 +20,13 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import at.asitplus.rqes.CredentialInfo
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.button_label_sign
@@ -45,6 +48,7 @@ import at.asitplus.valera.resources.text_label_valid_to
 import at.asitplus.wallet.app.common.SigningConfig
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.DataDisplaySection
 import ui.composables.LabeledText
 import ui.composables.Logo
 import ui.composables.TextIconButton
@@ -112,53 +116,27 @@ fun SigningQtspSelectionView(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 var expanded by remember { mutableStateOf(false) }
-                QtspSelectionField(
-                    value = selection.value,
-                    onValueChange = {
-                        selection.value = it
-                        expanded = !expanded
-                        config.current = it
-                        runBlocking { vm.walletMain.signingService.exportToDataStore() }
-                                    },
-                    expanded = expanded,
-                    onExpandedChange = { expanded = it },
-                    config = config
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-
-                if(config.getCurrent().allowPreload) {
-                    Row {
-                        Button(onClick = { runBlocking { vm.walletMain.signingService.preloadCertificate() } }, enabled = (credentialInfo.value == null)) {
-                            Text(stringResource(Res.string.text_label_preload_certificate))
-                        }
-                        Button(onClick = {
-                            config.getQtspByIdentifier(selection.value).credentialInfo = null
-                            credentialInfo.value = null
-                            runBlocking { vm.walletMain.signingService.exportToDataStore() } }
-                            , enabled = (credentialInfo.value != null)) {
-                            Text(stringResource(Res.string.text_label_delete_certificate))
-                        }
-                    }
+                DataDisplaySection(title = "VDA") {
+                    QtspSelectionField(
+                        value = selection.value,
+                        onValueChange = {
+                            selection.value = it
+                            expanded = !expanded
+                            config.current = it
+                            runBlocking { vm.walletMain.signingService.exportToDataStore() }
+                        },
+                        expanded = expanded,
+                        onExpandedChange = { expanded = it },
+                        config = config
+                    )
                 }
-
-                if (credentialInfo.value != null) {
-                    Column(modifier = Modifier.padding(start = 32.dp)) {
-                        LabeledText(
-                            label = stringResource(Res.string.text_label_credential_id),
-                            text = "${credentialInfo.value?.credentialID}",
-                            modifier = Modifier,
-                        )
-                        LabeledText(
-                            label = stringResource(Res.string.text_label_valid_from),
-                            text = "${credentialInfo.value?.certParameters?.validFrom}",
-                            modifier = Modifier,
-                        )
-                        LabeledText(
-                            label = stringResource(Res.string.text_label_valid_to),
-                            text = "${credentialInfo.value?.certParameters?.validTo}",
-                            modifier = Modifier,
-                        )
-                    }
+                Spacer(modifier = Modifier.height(10.dp))
+                DataDisplaySection(title = "Zertifikat") {
+                    CertificateInfoField(credentialInfo.value, vm.onClickPreload, onClickDelete = {
+                        config.getQtspByIdentifier(selection.value).credentialInfo = null
+                        credentialInfo.value = null
+                        runBlocking { vm.walletMain.signingService.exportToDataStore() }
+                    })
                 }
             }
         }
@@ -182,10 +160,10 @@ fun QtspSelectionField(
         modifier = modifier,
     ) {
         OutlinedTextField(
+            singleLine = true,
             readOnly = true,
             value = config.qtsps.filter { it.identifier == value }.first().qtspBaseUrl,
             onValueChange = {},
-            label = { Text(stringResource(Res.string.text_label_qtsp)) },
             enabled = enabled,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier.menuAnchor().fillMaxWidth(),
@@ -201,6 +179,37 @@ fun QtspSelectionField(
                     onClick = { onValueChange(qtsp.identifier) },
                     enabled = enabled,
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun CertificateInfoField(credentialInfo: CredentialInfo?, onClickPreload: () -> Unit, onClickDelete: () -> Unit){
+    Column(modifier = Modifier.fillMaxWidth()) {
+        if (credentialInfo != null) {
+            LabeledText(
+                label = stringResource(Res.string.text_label_credential_id),
+                text = "${credentialInfo.credentialID}",
+                modifier = Modifier,
+            )
+            LabeledText(
+                label = stringResource(Res.string.text_label_valid_from),
+                text = "${credentialInfo.certParameters?.validFrom}",
+                modifier = Modifier,
+            )
+            LabeledText(
+                label = stringResource(Res.string.text_label_valid_to),
+                text = "${credentialInfo.certParameters?.validTo}",
+                modifier = Modifier,
+            )
+            OutlinedButton(onClick = onClickDelete) {
+                Text(stringResource(Res.string.text_label_delete_certificate))
+            }
+        } else {
+            Text("Keine Daten vorhanden")
+            OutlinedButton(onClick = onClickPreload) {
+                Text(stringResource(Res.string.text_label_preload_certificate))
             }
         }
     }
