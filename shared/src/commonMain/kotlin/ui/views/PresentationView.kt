@@ -118,9 +118,7 @@ fun PresentationView(
                 }
                 //TODO handle rejects by user (not sure how to do this with this api)
             } else {
-                presentationStateModel.setPermissionState(
-                    true
-                )
+                presentationStateModel.setPermissionState(true)
             }
         }
 
