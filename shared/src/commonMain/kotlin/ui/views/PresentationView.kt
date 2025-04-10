@@ -185,10 +185,15 @@ fun PresentationView(
         }
 
         PresentationStateModel.State.COMPLETED -> {
-            // Delay for a short amount of time so the user has a chance to see the success/error indication
             coroutineScope.launch {
-                delay(1.5.seconds)
-                onPresentmentComplete()
+                when (val error = presentationStateModel.error) {
+                    null -> {
+                        // Delay for a short amount of time so the user has a chance to see the success indication
+                        delay(3.seconds)
+                        onPresentmentComplete()
+                    }
+                    else -> onError(error)
+                }
             }
         }
     }

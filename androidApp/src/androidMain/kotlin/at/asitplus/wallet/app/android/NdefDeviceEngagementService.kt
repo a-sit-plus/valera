@@ -13,6 +13,7 @@ import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -207,8 +208,8 @@ class NdefDeviceEngagementService : HostApduService() {
             },
             onError = { error ->
                 Napier.w("NdefDeviceEngagementService: Engagement failed", error)
-                error.printStackTrace()
                 vibrateError()
+                presentationStateModel.setCompleted(error)
                 engagement = null
             },
             staticHandoverMethods = staticHandoverConnectionMethods,
@@ -284,17 +285,17 @@ class NdefDeviceEngagementService : HostApduService() {
         started = false
         // If the reader hasn't connected by the time NFC interaction ends, make sure we only
         // wait for a limited amount of time.
-        if (presentationStateModel.state.value == PresentationStateModel.State.CONNECTING) {
-            val timeout = settings.connectionTimeout
-            Napier.i("NdefDeviceEngagementService: Reader hasn't connected at NFC deactivation time, scheduling $timeout timeout for closing")
-            disableEngagementJob = CoroutineScope(Dispatchers.IO).launch {
-                delay(timeout)
-                if (presentationStateModel.state.value == PresentationStateModel.State.CONNECTING) {
-                    presentationStateModel.setCompleted(PresentmentTimeout("NdefDeviceEngagementService: Reader didn't connect inside $timeout, closing"))
-                }
-                engagement = null
-                disableEngagementJob = null
+        disableEngagementJob = CoroutineScope(Dispatchers.IO).launch {
+            try {
+                presentationStateModel.waitForConnectionUsingMainTransport(settings.connectionTimeout)
+                Napier.d("NdefDeviceEngagementService: Main transport connected")
+            } catch (timeoutExc: TimeoutCancellationException) {
+                val message = "NdefDeviceEngagementService: Reader didn't connect in ${settings.connectionTimeout}, closing"
+                Napier.w(message)
+                presentationStateModel.setCompleted(PresentmentTimeout(message))
             }
+            engagement = null
+            disableEngagementJob = null
         }
     }
 }

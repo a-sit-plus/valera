@@ -3,7 +3,6 @@ package at.asitplus.wallet.app.common.dcapi
 import at.asitplus.catching
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 
 @Serializable
 data class DCAPIRequest(
