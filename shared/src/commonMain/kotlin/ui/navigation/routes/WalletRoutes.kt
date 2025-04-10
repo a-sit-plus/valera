@@ -62,3 +62,30 @@ data class LocalPresentationAuthenticationConsentRoute(
 
 @Serializable
 object AuthenticationSuccessRoute : Route()
+
+@Serializable
+data class ProvisioningIntentRoute(val uri: String): Route()
+
+@Serializable
+data class AuthorizationIntentRoute(val uri: String): Route()
+
+@Serializable
+data class DCAPIAuthorizationIntentRoute(val uri: String): Route()
+
+@Serializable
+data class PresentationIntentRoute(val uri: String): Route()
+
+@Serializable
+data class SigningServiceIntentRoute(val uri: String): Route()
+
+@Serializable
+data class SigningPreloadIntentRoute(val uri: String): Route()
+
+@Serializable
+data class SigningCredentialIntentRoute(val uri: String): Route()
+
+@Serializable
+data class SigningIntentRoute(val uri: String): Route()
+
+@Serializable
+data class ErrorIntentRoute(val uri: String): Route()

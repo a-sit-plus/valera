@@ -25,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,16 +40,13 @@ import at.asitplus.valera.resources.info_text_to_start_screen
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.TextIconButton
+import ui.viewmodels.ErrorViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ErrorView(
-    resetStack: () -> Unit,
-    message: String?,
-    cause: String?,
-    onClickLogo: () -> Unit,
+    vm: ErrorViewModel
 ) {
-
     val tint = Color(255, 210, 0)
 
     Scaffold(
@@ -61,7 +59,7 @@ fun ErrorView(
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.headlineLarge,
                         )
-                        Logo(onClick = onClickLogo)
+                        Logo(onClick = vm.onClickLogo)
                         Spacer(Modifier.width(8.dp))
                     }
                 },
@@ -98,7 +96,7 @@ fun ErrorView(
                                 Text(stringResource(Res.string.button_label_ok))
                             },
                             onClick = {
-                                resetStack()
+                                vm.resetStack()
                             },
                         )
                     }
@@ -126,7 +124,7 @@ fun ErrorView(
                         .background(color = MaterialTheme.colorScheme.tertiaryContainer)
                 ) {
                     Text(
-                        message ?: "Unknown Message",
+                        vm.message ?: "Unknown Message",
                         modifier = Modifier.padding(
                             top = 5.dp,
                             bottom = 5.dp,
@@ -139,14 +137,14 @@ fun ErrorView(
                     )
                 }
                 Spacer(modifier = Modifier.size(5.dp))
-                cause?.let {
+                vm.cause?.let {
                     Text("Cause:", fontWeight = FontWeight.Bold)
                     Column(
                         modifier = Modifier.heightIn(max = 150.dp)
                             .background(color = MaterialTheme.colorScheme.tertiaryContainer)
                     ) {
                         Text(
-                            cause,
+                            vm.cause,
                             modifier = Modifier.padding(
                                 top = 5.dp,
                                 bottom = 5.dp,

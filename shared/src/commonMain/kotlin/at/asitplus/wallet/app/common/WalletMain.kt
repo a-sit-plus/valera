@@ -28,7 +28,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonObject
@@ -37,6 +36,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import net.swiftzer.semver.SemVer
 import org.jetbrains.compose.resources.getString
+import ui.navigation.IntentService
 
 /**
  * Main class to hold all services needed in the Compose App.
@@ -56,13 +56,12 @@ class WalletMain(
     lateinit var provisioningService: ProvisioningService
     lateinit var httpService: HttpService
     lateinit var presentationService: PresentationService
-    lateinit var snackbarService: SnackbarService
     lateinit var signingService: SigningService
-    lateinit var errorService: ErrorService
     lateinit var dcApiService: DCAPIService
+    lateinit var intentService: IntentService
+    val errorService = ErrorService()
+    val snackbarService = SnackbarService()
     private val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
-
-    val readyForIntents = MutableStateFlow<Boolean?>(null)
 
     init {
         at.asitplus.wallet.mdl.Initializer.initWithVCK()
@@ -79,7 +78,7 @@ class WalletMain(
     }
 
     @Throws(Throwable::class)
-    fun initialize(snackbarService: SnackbarService) {
+    fun initialize() {
         val coseService = DefaultCoseService(cryptoService)
         walletConfig =
             WalletConfig(dataStoreService = this.dataStoreService, errorService = errorService)
@@ -113,8 +112,17 @@ class WalletMain(
             httpService,
             coseService
         )
-        signingService = SigningService(platformAdapter, dataStoreService, errorService, snackbarService, httpService)
-        this.snackbarService = snackbarService
+        signingService = SigningService(
+            platformAdapter,
+            dataStoreService,
+            errorService,
+            snackbarService,
+            httpService
+        )
+        intentService = IntentService(
+            provisioningService,
+            signingService,
+        )
         this.dcApiService = DCAPIService(platformAdapter)
     }
 
@@ -309,7 +317,10 @@ class DummyPlatformAdapter : PlatformAdapter {
         return null
     }
 
-    override fun prepareDCAPICredentialResponse(responseJson: ByteArray, dcApiRequest: DCAPIRequest) {
+    override fun prepareDCAPICredentialResponse(
+        responseJson: ByteArray,
+        dcApiRequest: DCAPIRequest
+    ) {
     }
 
 }
