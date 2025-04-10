@@ -1,5 +1,6 @@
 package ui.navigation
 
+import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.ProvisioningService
 import at.asitplus.wallet.app.common.SigningService
 import at.asitplus.wallet.app.common.SigningState
@@ -16,13 +17,15 @@ import ui.navigation.routes.SigningPreloadIntentRoute
 import ui.navigation.routes.SigningServiceIntentRoute
 
 const val PRESENTATION_REQUESTED_INTENT = "PRESENTATION_REQUESTED"
+const val SIGNING_REQUEST_INTENT = "createSignRequest"
 const val GET_CREDENTIALS_INTENT = "androidx.identitycredentials.action.GET_CREDENTIALS"
 
 class IntentService(
-    val provisioningService: ProvisioningService,
-    val signingService: SigningService
+    val platformAdapter: PlatformAdapter
 ) {
     val readyForIntents = MutableStateFlow<Boolean?>(null)
+    var redirectUri: String? = null
+    var intentType: IntentType? = null
 
     fun handleIntent(uri: String): Route =
         when (parseUrl(uri)) {
@@ -37,28 +40,21 @@ class IntentService(
             IntentType.ErrorIntent -> ErrorIntentRoute(uri)
         }
 
-
-    fun parseUrl(url: String): IntentType {
-        return if (url.contains("error")) {
-            IntentType.ErrorIntent
-        } else if ((signingService.redirectUri?.let { url.contains(it) } == true)) {
-            when (signingService.state) {
-                SigningState.ServiceRequest -> IntentType.SigningServiceIntent
-                SigningState.CredentialRequest -> IntentType.SigningCredentialIntent
-                SigningState.PreloadCredential -> IntentType.SigningPreloadIntent
-                null -> throw Throwable("Missing state in SigningService")
-            }.also { signingService.state = null }
-        } else if (provisioningService.redirectUri?.let { url.contains(it) } == true) {
-            IntentType.ProvisioningIntent
-        } else if (url == GET_CREDENTIALS_INTENT) {
-            IntentType.DCAPIAuthorizationIntent
-        } else if (url.contains("createSignRequest")) {
-            IntentType.SigningIntent
-        } else if (url == PRESENTATION_REQUESTED_INTENT) {
-            IntentType.PresentationIntent
-        } else {
-            IntentType.AuthorizationIntent
+    fun parseUrl(url: String): IntentType = with(url) {
+        when {
+            contains("error") -> IntentType.ErrorIntent
+            contains(SIGNING_REQUEST_INTENT) -> IntentType.SigningIntent
+            equals(GET_CREDENTIALS_INTENT) -> IntentType.DCAPIAuthorizationIntent
+            equals(PRESENTATION_REQUESTED_INTENT) -> IntentType.PresentationIntent
+            (redirectUri != null && contains(redirectUri!!) && intentType != null) -> intentType!!
+            else -> IntentType.AuthorizationIntent
         }
+    }
+
+    fun openIntent(url: String, redirectUri: String? = null, intentType: IntentType? = null) {
+        this.redirectUri = redirectUri
+        this.intentType = intentType
+        platformAdapter.openUrl(url)
     }
 
     enum class IntentType {

@@ -23,10 +23,12 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.encodeToString
+import ui.navigation.IntentService
 import kotlin.time.Duration.Companion.minutes
 
 class ProvisioningService(
-    val platformAdapter: PlatformAdapter,
+    val intentService: IntentService,
     private val dataStoreService: DataStoreService,
     private val cryptoService: CryptoService,
     holderAgent: HolderAgent,
@@ -52,8 +54,11 @@ class ProvisioningService(
 
     private val openId4VciClient = OpenId4VciClient(
         openUrlExternally = {
-            this.redirectUri = redirectUrl
-            platformAdapter.openUrl(it)
+            intentService.openIntent(
+                url = it,
+                redirectUri = redirectUrl,
+                intentType = IntentService.IntentType.ProvisioningIntent
+            )
         },
         engine = HttpClient().engine,
         cookiesStorage = cookieStorage,
@@ -65,7 +70,8 @@ class ProvisioningService(
             )
         },
         loadProvisioningContext = {
-            dataStoreService.getPreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT).firstOrNull()
+            dataStoreService.getPreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT)
+                .firstOrNull()
                 ?.let {
                     vckJsonSerializer.decodeFromString<ProvisioningContext>(it)
                         .also { dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT) }
@@ -75,7 +81,9 @@ class ProvisioningService(
         clientAttestationJwsService = DefaultJwsService(cryptoService),
         oid4vciService = WalletService(clientId, redirectUrl, cryptoService),
         storeCredential = { cred ->
-            runCatching { holderAgent.storeCredential(cred) }.onFailure { Napier.w("Could not store $cred", it)}
+            runCatching { holderAgent.storeCredential(cred) }.onFailure {
+                Napier.w("Could not store $cred", it)
+            }
         },
         storeRefreshToken = {} // TODO store refresh tokens to refresh credentials later on
     )
@@ -84,7 +92,8 @@ class ProvisioningService(
      * Loads credential metadata info from [host]
      */
     @Throws(Throwable::class)
-    suspend fun loadCredentialMetadata(host: String) = openId4VciClient.loadCredentialMetadata(host).getOrThrow()
+    suspend fun loadCredentialMetadata(host: String) =
+        openId4VciClient.loadCredentialMetadata(host).getOrThrow()
 
     /**
      * Starts the issuing process at [credentialIssuer]

@@ -94,10 +94,12 @@ class WalletMain(
             coseService = coseService,
             keyPair = cryptoService.keyMaterial,
         )
-
+        intentService = IntentService(
+            platformAdapter
+        )
         httpService = HttpService(buildContext)
         provisioningService = ProvisioningService(
-            platformAdapter,
+            intentService,
             dataStoreService,
             cryptoService,
             holderAgent,
@@ -113,16 +115,13 @@ class WalletMain(
             coseService
         )
         signingService = SigningService(
-            platformAdapter,
+            intentService,
             dataStoreService,
             errorService,
             snackbarService,
             httpService
         )
-        intentService = IntentService(
-            provisioningService,
-            signingService,
-        )
+
         this.dcApiService = DCAPIService(platformAdapter)
     }
 
