@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material.icons.outlined.Cake
@@ -43,7 +42,8 @@ import data.document.SelectableAge
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.viewmodels.iso.VerifierViewModel
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 
@@ -78,26 +78,22 @@ fun VerifierDocumentSelectionView(
         bottomBar = { bottomBar() }
     ) { scaffoldPadding ->
         Box(modifier = Modifier.padding(scaffoldPadding)) {
-            val layoutSpacingModifier = Modifier.padding(top = 24.dp)
-
             Column(
-                modifier = Modifier.padding(end = 16.dp, start = 16.dp)
-                    //.verticalScroll(rememberScrollState())
-                //TODO @lukas: verticalscroll does not seem to work with lazycolumn, can you fix that?
+                modifier = Modifier.padding(end = 16.dp, start = 16.dp, bottom = 16.dp)
+                    .verticalScroll(rememberScrollState())
             ) {
-                LazyColumn(
-                    modifier = Modifier
-                        .wrapContentHeight(),
+                val layoutSpacingModifier = Modifier.padding(top = 24.dp)
+                Column(
+                    modifier = Modifier.wrapContentHeight(),
                     horizontalAlignment = Alignment.Start
                 ) {
-                    item {
+                    Column(modifier = layoutSpacingModifier) {
                         Text(
                             text = stringResource(Res.string.section_heading_request_engagement_method),
                             style = MaterialTheme.typography.titleMedium
                         )
                     }
-                    // TODO: fix engagementMethod selection
-                    items(engagementMethods) { engagementMethod ->
+                    for (engagementMethod in engagementMethods) {
                         singleChoiceButton(
                             engagementMethod.friendlyName,
                             selectedEngagementMethod.friendlyName,
@@ -113,7 +109,6 @@ fun VerifierDocumentSelectionView(
                         }
                     }
                 }
-
                 Column(modifier = layoutSpacingModifier) {
                     Text(
                         text = stringResource(Res.string.section_heading_request_eausweise),
@@ -134,7 +129,7 @@ fun VerifierDocumentSelectionView(
                         icon = {
                             Icon(
                                 imageVector = Icons.Outlined.CreditCard,
-                                contentDescription = null,
+                                contentDescription = null
                             )
                         },
                         label = stringResource(Res.string.button_label_check_license),
@@ -145,13 +140,11 @@ fun VerifierDocumentSelectionView(
                         icon = {
                             Icon(
                                 imageVector = Icons.Outlined.Cake,
-                                contentDescription = null,
+                                contentDescription = null
                             )
                         },
                         label = stringResource(Res.string.button_label_check_age),
-                        onClick = {
-                            showDropDown.value = !showDropDown.value
-                        },
+                        onClick = { showDropDown.value = !showDropDown.value },
                         modifier = listSpacingModifier.fillMaxWidth(),
                     )
                     if (showDropDown.value) {
@@ -197,7 +190,7 @@ fun VerifierDocumentSelectionView(
                             )
                         },
                         label = stringResource(Res.string.button_label_check_custom),
-                        onClick = { vm.navigateToCustomSelectionView() },
+                        onClick = { vm.navigateToCustomSelectionView(selectedEngagementMethod) },
                         modifier = listSpacingModifier.fillMaxWidth()
                     )
                 }

@@ -22,7 +22,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.modifier.modifierLocalOf
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
@@ -36,49 +35,61 @@ import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.CredentialSelectionGroup
 import ui.viewmodels.authentication.AuthenticationSelectionPresentationExchangeViewModel
+import ui.views.ErrorView
 
 @Composable
 fun AuthenticationSelectionPresentationExchangeView(vm: AuthenticationSelectionPresentationExchangeViewModel) {
     val vm = remember { vm }
 
-    // TODO crashes the app -> should in the worst case show the error view
-    val currentRequest = vm.iterableRequests[vm.requestIterator.value]
-
-    AuthenticationSelectionViewScaffold(
-        onClickLogo = vm.onClickLogo,
-        onNavigateUp = vm.onBack,
-        onNext = vm.onNext,
-    ) {
-        LinearProgressIndicator(
-            progress = { ((1.0f / vm.requests.size) * (vm.requestIterator.value + 1)) },
-            modifier = Modifier.fillMaxWidth(),
-            drawStopIndicator = { }
+    val iterableRequests = vm.iterableRequests
+    if (iterableRequests.isEmpty()) {
+        ErrorView(
+            resetStack = vm.navigateUp,
+            message = "No Requests found",
+            cause = null,
+            onClickLogo = vm.onClickLogo
         )
-        Column(
-            modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState())
-                .padding(16.dp),
-        ) {
-            val requestId = currentRequest.first
-            val matchingCredentials = currentRequest.second
+    } else {
+        val currentRequest = vm.iterableRequests[vm.requestIterator.value]
 
-            Text(
-                text = matchingCredentials.keys.first().scheme.uiLabel(),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.secondary,
-                fontWeight = FontWeight.SemiBold,
+        AuthenticationSelectionViewScaffold(
+            onClickLogo = vm.onClickLogo,
+            onNavigateUp = vm.onBack,
+            onNext = vm.onNext,
+        ) {
+            LinearProgressIndicator(
+                progress = { ((1.0f / vm.requests.size) * (vm.requestIterator.value + 1)) },
+                modifier = Modifier.fillMaxWidth(),
+                drawStopIndicator = { }
             )
-            val attributeSelection =
-                vm.attributeSelection[requestId] ?: throw Throwable("No selection with requestId")
-            val credentialSelection =
-                vm.credentialSelection[requestId] ?: throw Throwable("No selection with requestId")
-            CredentialSelectionGroup(
-                matchingCredentials = matchingCredentials,
-                attributeSelection = attributeSelection,
-                credentialSelection = credentialSelection,
-                imageDecoder = { byteArray ->
-                    vm.walletMain.platformAdapter.decodeImage(byteArray)
-                }
-            )
+            Column(
+                modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState())
+                    .padding(16.dp),
+            ) {
+                val requestId = currentRequest.first
+                val matchingCredentials = currentRequest.second
+
+                Text(
+                    text = matchingCredentials.keys.first().scheme.uiLabel(),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.secondary,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                val attributeSelection =
+                    vm.attributeSelection[requestId]
+                        ?: throw Throwable("No selection with requestId")
+                val credentialSelection =
+                    vm.credentialSelection[requestId]
+                        ?: throw Throwable("No selection with requestId")
+                CredentialSelectionGroup(
+                    matchingCredentials = matchingCredentials,
+                    attributeSelection = attributeSelection,
+                    credentialSelection = credentialSelection,
+                    imageDecoder = { byteArray ->
+                        vm.walletMain.platformAdapter.decodeImage(byteArray)
+                    }
+                )
+            }
         }
     }
 }

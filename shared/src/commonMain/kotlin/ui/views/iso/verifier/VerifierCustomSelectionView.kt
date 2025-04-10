@@ -30,7 +30,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
@@ -38,10 +37,9 @@ import at.asitplus.valera.resources.heading_label_select_custom_data_retrieval_s
 import at.asitplus.valera.resources.section_heading_select_document_type
 import at.asitplus.valera.resources.section_heading_select_requested_data_entries
 import at.asitplus.valera.resources.section_heading_selected_namespace
-import at.asitplus.wallet.app.common.iso.transfer.DeviceEngagementMethods
+import data.document.DocType.documentTypeToNameSpace
 import data.document.DocumentAttributes
 import data.document.itemsToRequestDocument
-import data.document.DocType.documentTypeToNameSpace
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
@@ -79,8 +77,8 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                 NavigationBarItem(
                     icon = {
                         Icon(
-                            painter = rememberVectorPainter(Icons.AutoMirrored.Filled.ArrowForward),
-                            contentDescription = "",
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = null
                         )
                     },
                     label = {},
@@ -91,7 +89,7 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                                 documentTypeToNameSpace[selectedDocumentType]!!,
                                 selectedEntries
                             ),
-                            DeviceEngagementMethods.NFC //TODO use engagement method set by user on previous screen
+                            vm.selectedEngagementMethod.value
                         )
                     },
                     selected = false,

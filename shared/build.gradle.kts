@@ -65,6 +65,8 @@ kotlin {
             implementation(libs.multipaz.doctypes)
             implementation(libs.semver)
             implementation(libs.qrose)
+
+            implementation("io.coil-kt.coil3:coil-compose:3.1.0")
         }
 
         commonTest.dependencies {
