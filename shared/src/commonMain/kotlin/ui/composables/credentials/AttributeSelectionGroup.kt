@@ -52,7 +52,7 @@ fun AttributeSelectionGroup(
             }
             
             if (selection[memberName] == null) {
-                selection[memberName] = enabled
+                selection[memberName] = !enabled
             }
 
             AttributeSelectionElement(memberName, value, enabled)
