@@ -47,9 +47,8 @@ fun AttributeSelectionGroup(
                 is SubjectCredentialStore.StoreEntry.SdJwt -> {
                     storeEntry.disclosures.values.firstOrNull { it?.claimName == memberName } != null && optional == true
                 }
-                else -> {
-                    optional == true
-                }
+
+                else -> optional == true
             }
             val selected = !enabled
 
