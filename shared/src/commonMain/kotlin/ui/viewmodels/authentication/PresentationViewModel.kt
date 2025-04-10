@@ -11,12 +11,12 @@ import at.asitplus.dif.FormatHolder
 import at.asitplus.dif.PresentationDefinition
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
-import at.asitplus.rqes.collection_entries.TransactionData
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
-import org.multipaz.request.MdocRequest
+import at.asitplus.wallet.lib.iso.DeviceRequest
+import at.asitplus.wallet.lib.iso.SessionTranscript
 
 class PresentationViewModel(
     val presentationStateModel: PresentationStateModel,
@@ -37,35 +37,36 @@ class PresentationViewModel(
     onClickLogo
 ) {
     private var descriptors: List<DifInputDescriptor> = listOf()
+    private var finishFunction: ((ByteArray) -> Unit)? = null
+    private var sessionTranscript: SessionTranscript? = null
 
-    fun initWithMdocRequest(
-        parsedRequest: List<MdocRequest>,
-        finishFunction: (ByteArray) -> Unit
+    fun initWithDeviceRequest(
+        parsedRequest: DeviceRequest,
+        finishFunction: (ByteArray) -> Unit,
+        sessionTranscript: SessionTranscript?
     ) {
-        val requester: MutableList<String?> = mutableListOf()
-        descriptors = parsedRequest.map {
-            requester.add(it.requester.appId ?: it.requester.websiteOrigin)
+        descriptors = parsedRequest.docRequests.map {
+            val itemsRequest = it.itemsRequest.value
             DifInputDescriptor(
-                id = it.docType,
+                id = itemsRequest.docType,
                 format = FormatHolder(msoMdoc = FormatContainerJwt()),
-                constraints = Constraint(fields = it.requestedClaims.map { requestedAttribute ->
-                    ConstraintField(
-                        path = listOf(
-                            NormalizedJsonPath(
-                                NormalizedJsonPathSegment.NameSegment(requestedAttribute.namespaceName),
-                                NormalizedJsonPathSegment.NameSegment(requestedAttribute.dataElementName),
-                            ).toString()
-                        ), intentToRetain = requestedAttribute.intentToRetain
-                    )
+                constraints = Constraint(fields = itemsRequest.namespaces.flatMap { requestedNamespace ->
+                    requestedNamespace.value.entries.map { requestedAttrribute ->
+                        ConstraintField(
+                            path = listOf(
+                                NormalizedJsonPath(
+                                    NormalizedJsonPathSegment.NameSegment(requestedNamespace.key),
+                                    NormalizedJsonPathSegment.NameSegment(requestedAttrribute.key),
+                                ).toString()
+                            ), intentToRetain = requestedAttrribute.value
+                        )
+                    }
                 })
             )
         }
         this.finishFunction = finishFunction
-        check(requester.all { it == requester.firstOrNull() })
-        this.spName = requester.firstOrNull { it != null }
+        this.sessionTranscript = sessionTranscript
     }
-
-    private var finishFunction: ((ByteArray) -> Unit)? = null
 
     override val transactionData: at.asitplus.openid.TransactionData? = null
 
@@ -99,7 +100,8 @@ class PresentationViewModel(
                     else -> throw IllegalArgumentException()
                 },
                 it,
-                spName
+                spName,
+                sessionTranscript!!
             )
         } ?: throw IllegalStateException("No finish method found")
 
