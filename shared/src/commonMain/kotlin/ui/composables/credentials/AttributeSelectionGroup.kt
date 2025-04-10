@@ -42,28 +42,16 @@ fun AttributeSelectionGroup(
                 (path.segments.last() as NormalizedJsonPathSegment.NameSegment).memberName
             val optional = constraint.key.optional
             val value = constraint.value.first().value.toString()
-            val selected: Boolean
+
             val enabled = when (storeEntry) {
                 is SubjectCredentialStore.StoreEntry.SdJwt -> {
-                    if (storeEntry.disclosures.values.firstOrNull { it?.claimName == memberName } != null && optional == true) {
-                        selected = false
-                        true
-                    } else {
-                        selected = true
-                        false
-                    }
+                    storeEntry.disclosures.values.firstOrNull { it?.claimName == memberName } != null && optional == true
                 }
-
                 else -> {
-                    if (optional == true) {
-                        selected = false
-                        true
-                    } else {
-                        selected = true
-                        false
-                    }
+                    optional == true
                 }
             }
+            val selected = !enabled
 
             if (selection[memberName] == null) {
                 selection[memberName] = selected
