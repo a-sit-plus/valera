@@ -16,6 +16,7 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
+import io.github.aakira.napier.Napier
 import org.multipaz.request.MdocRequest
 
 class PresentationViewModel(
@@ -37,12 +38,19 @@ class PresentationViewModel(
     onClickLogo
 ) {
     private var descriptors: List<DifInputDescriptor> = listOf()
+        get() { return field.also { Napier.d("hashCode when getting: ${this.hashCode()}") } }
+
+
+    init {
+        Napier.d("hashCode during constructor invocation: ${this.hashCode()}")
+    }
 
     fun initWithMdocRequest(
         parsedRequest: List<MdocRequest>,
         finishFunction: (ByteArray) -> Unit
     ) {
         val requester: MutableList<String?> = mutableListOf()
+        Napier.d("hashCode when setting: ${this.hashCode()}")
         descriptors = parsedRequest.map {
             requester.add(it.requester.appId ?: it.requester.websiteOrigin)
             DifInputDescriptor(
