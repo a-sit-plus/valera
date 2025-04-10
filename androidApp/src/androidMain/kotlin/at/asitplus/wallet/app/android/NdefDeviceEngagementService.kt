@@ -137,7 +137,7 @@ class NdefDeviceEngagementService : HostApduService() {
             Napier.i("NdefDeviceEngagementService: Negotiated Handover available methods: $connectionMethods")
             for (prefix in transferSettings.presentmentNegotiatedHandoverPreferredOrder) {
                 for (connectionMethod in connectionMethods) {
-                    if (connectionMethod.toString().startsWith(prefix)) {
+                    if (connectionMethod.toString().startsWith(prefix) && transferSettings.isConnectionMethodEnabled(prefix)) {
                         Napier.i("NdefDeviceEngagementService: Using method $connectionMethod")
                         return connectionMethod
                     }
