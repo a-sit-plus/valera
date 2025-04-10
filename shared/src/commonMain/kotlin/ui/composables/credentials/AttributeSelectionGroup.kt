@@ -50,10 +50,9 @@ fun AttributeSelectionGroup(
 
                 else -> optional == true
             }
-            val selected = !enabled
-
+            
             if (selection[memberName] == null) {
-                selection[memberName] = selected
+                selection[memberName] = enabled
             }
 
             AttributeSelectionElement(memberName, value, enabled)
