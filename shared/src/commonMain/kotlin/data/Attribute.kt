@@ -20,6 +20,7 @@ import kotlinx.serialization.json.longOrNull
 sealed interface Attribute {
     companion object {
         fun fromValue(value: Any?): Attribute? = if (value == null) null else when (val it = value) {
+//            is ByteArray ->
             is Array<*> -> fromValueList(it.toList())
             is Collection<*> -> fromValueList(it.toList())
             is JsonNull -> null
@@ -46,7 +47,7 @@ sealed interface Attribute {
             is ContactData -> ContactDataAttribute(it)
             is Address -> AddressAttribute(it)
             is Branch -> BranchAttribute(it)
-            else -> throw IllegalArgumentException("Unexpected attribute value type: ${value::class}, $value")
+            else -> throw IllegalArgumentException("Unexpected attribute value type: ${it::class}, $it")
         }
 
         private fun fromValueList(valueList: List<Any?>) = runCatching {
