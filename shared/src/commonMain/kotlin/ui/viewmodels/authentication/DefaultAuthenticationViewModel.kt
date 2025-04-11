@@ -26,7 +26,8 @@ class DefaultAuthenticationViewModel(
     navigateToAuthenticationSuccessPage: () -> Unit,
     navigateToHomeScreen: () -> Unit,
     walletMain: WalletMain,
-    onClickLogo: () -> Unit
+    onClickLogo: () -> Unit,
+    onClickSettings: () -> Unit
 ) : AuthenticationViewModel(
     spName,
     spLocation,
@@ -35,7 +36,8 @@ class DefaultAuthenticationViewModel(
     navigateToAuthenticationSuccessPage,
     navigateToHomeScreen,
     walletMain,
-    onClickLogo
+    onClickLogo,
+    onClickSettings
 ) {
     override val presentationRequest: CredentialPresentationRequest
         get() = authenticationRequest.parameters.presentationDefinition?.let {

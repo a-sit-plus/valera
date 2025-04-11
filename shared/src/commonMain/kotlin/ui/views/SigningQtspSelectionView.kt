@@ -1,5 +1,6 @@
 package ui.views
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -7,8 +8,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Key
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
@@ -30,8 +33,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.button_label_sign
-import at.asitplus.valera.resources.heading_label_sign_document
+import at.asitplus.valera.resources.heading_label_select_vda
 import at.asitplus.valera.resources.text_label_credential_id
 import at.asitplus.valera.resources.text_label_delete_certificate
 import at.asitplus.valera.resources.text_label_preload_certificate
@@ -63,12 +67,21 @@ fun SigningQtspSelectionView(
                 title = {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = stringResource(Res.string.heading_label_sign_document),
+                            text = stringResource(Res.string.heading_label_select_vda),
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.titleLarge,
                         )
-                        Logo(onClick = vm.onClickLogo)
                     }
+                },
+                actions = {
+                    Logo(onClick = vm.onClickLogo)
+                    Column(modifier = Modifier.clickable(onClick = vm.onClickSettings)) {
+                        Icon(
+                            imageVector = Icons.Outlined.Settings,
+                            contentDescription = null,
+                        )
+                    }
+                    Spacer(Modifier.width(15.dp))
                 },
                 navigationIcon = {
                     NavigateUpButton(vm.navigateUp)
@@ -83,17 +96,10 @@ fun SigningQtspSelectionView(
                         modifier = Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 16.dp),
                         horizontalArrangement = Arrangement.SpaceEvenly,
                     ) {
-                        TextIconButton(
-                            icon = {
-                                Icon(
-                                    imageVector = Icons.Default.Key,
-                                    contentDescription = null,
-                                )
+                        Button(content = {
+                                Text(stringResource(Res.string.button_label_continue))
                             },
-                            text = {
-                                Text(stringResource(Res.string.button_label_sign))
-                            },
-                            onClick = { vm.onContinue() },
+                            onClick = { vm.onContinue(vm.url) },
                             modifier = Modifier,
                         )
                     }

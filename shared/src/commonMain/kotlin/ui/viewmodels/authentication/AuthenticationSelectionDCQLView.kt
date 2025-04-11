@@ -32,6 +32,7 @@ import ui.views.authentication.AuthenticationSelectionViewScaffold
 fun AuthenticationSelectionDCQLView(
     navigateUp: () -> Unit,
     onClickLogo: () -> Unit,
+    onClickSettings: () -> Unit,
     confirmSelection: (CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>?) -> Unit,
     matchingResult: DCQLMatchingResult<SubjectCredentialStore.StoreEntry>,
     decodeToBitmap: (ByteArray) -> ImageBitmap?,
@@ -54,6 +55,7 @@ fun AuthenticationSelectionDCQLView(
     AuthenticationSelectionDCQLView(
         navigateUp = navigateUp,
         onClickLogo = onClickLogo,
+        onClickSettings = onClickSettings,
         decodeToBitmap = decodeToBitmap,
         confirmSelection = confirmSelection,
         credentialQueryOptions = submissionOptions,
@@ -66,6 +68,7 @@ fun AuthenticationSelectionDCQLView(
 fun AuthenticationSelectionDCQLView(
     navigateUp: () -> Unit,
     onClickLogo: () -> Unit,
+    onClickSettings: () -> Unit,
     decodeToBitmap: (ByteArray) -> ImageBitmap?,
     confirmSelection: (CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>?) -> Unit,
     credentialQueryOptions: Map<DCQLCredentialQueryIdentifier, List<DCQLCredentialSubmissionOption<SubjectCredentialStore.StoreEntry>>>,
@@ -105,6 +108,7 @@ fun AuthenticationSelectionDCQLView(
     AuthenticationSelectionViewScaffold(
         onNavigateUp = navigateUp,
         onClickLogo = onClickLogo,
+        onClickSettings = onClickSettings,
         onNext = {
             selectedOptions[currentCredentialQueryIdentifierIndex] = currentlySelectedOptionIndex
             val nextUnselected = selectedOptions.indexOfFirst {

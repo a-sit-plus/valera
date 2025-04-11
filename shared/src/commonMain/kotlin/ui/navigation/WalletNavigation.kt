@@ -1,6 +1,7 @@
 package ui.navigation
 
 import AppTestTags
+import Globals
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.fillMaxSize
@@ -37,10 +38,8 @@ import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.getString
-import ui.views.PresentationView
 import ui.composables.BottomBar
 import ui.composables.NavigationData
 import ui.navigation.routes.AddCredentialPreAuthnRoute
@@ -82,7 +81,6 @@ import ui.viewmodels.ErrorViewModel
 import ui.viewmodels.LoadCredentialViewModel
 import ui.viewmodels.LogViewModel
 import ui.viewmodels.PreAuthQrCodeScannerViewModel
-import ui.viewmodels.authentication.PresentationViewModel
 import ui.viewmodels.SettingsViewModel
 import ui.viewmodels.SigningQtspSelectionViewModel
 import ui.viewmodels.SigningViewModel
@@ -90,6 +88,7 @@ import ui.viewmodels.authentication.AuthenticationQrCodeScannerViewModel
 import ui.viewmodels.authentication.AuthenticationSuccessViewModel
 import ui.viewmodels.authentication.DCAPIAuthenticationViewModel
 import ui.viewmodels.authentication.DefaultAuthenticationViewModel
+import ui.viewmodels.authentication.PresentationViewModel
 import ui.viewmodels.intents.AuthorizationIntentViewModel
 import ui.viewmodels.intents.DCAPIAuthorizationIntentViewModel
 import ui.viewmodels.intents.ErrorIntentViewModel
@@ -101,8 +100,6 @@ import ui.viewmodels.intents.SigningPreloadIntentViewModel
 import ui.viewmodels.intents.SigningServiceIntentViewModel
 import ui.views.CredentialDetailsView
 import ui.views.CredentialsView
-import ui.views.intents.DCAPIAuthorizationIntentView
-import ui.views.intents.ErrorIntentView
 import ui.views.ErrorView
 import ui.views.LoadCredentialView
 import ui.views.LoadingView
@@ -111,19 +108,22 @@ import ui.views.OnboardingInformationView
 import ui.views.OnboardingStartView
 import ui.views.OnboardingTermsView
 import ui.views.PreAuthQrCodeScannerScreen
-import ui.views.intents.PresentationIntentView
-import ui.views.intents.ProvisioningIntentView
+import ui.views.PresentationView
 import ui.views.SettingsView
-import ui.views.intents.SigningCredentialIntentView
-import ui.views.intents.SigningIntentView
-import ui.views.intents.SigningPreloadIntentView
 import ui.views.SigningQtspSelectionView
-import ui.views.intents.SigningServiceIntentView
 import ui.views.SigningView
 import ui.views.authentication.AuthenticationQrCodeScannerView
 import ui.views.authentication.AuthenticationSuccessView
 import ui.views.authentication.AuthenticationView
 import ui.views.intents.AuthorizationIntentView
+import ui.views.intents.DCAPIAuthorizationIntentView
+import ui.views.intents.ErrorIntentView
+import ui.views.intents.PresentationIntentView
+import ui.views.intents.ProvisioningIntentView
+import ui.views.intents.SigningCredentialIntentView
+import ui.views.intents.SigningIntentView
+import ui.views.intents.SigningPreloadIntentView
+import ui.views.intents.SigningServiceIntentView
 
 internal object NavigatorTestTags {
     const val loadingTestTag = "loadingTestTag"
@@ -184,7 +184,7 @@ fun WalletNavigation(walletMain: WalletMain) {
         )
     }
 
-    LaunchedEffect(null){
+    LaunchedEffect(null) {
         this.launch {
             Globals.appLink.combineTransform(walletMain.intentService.readyForIntents) { link, ready ->
                 if (ready == true && link != null) {
@@ -245,7 +245,7 @@ private fun WalletNavHost(
         composable<OnboardingInformationRoute> {
             OnboardingInformationView(
                 onClickContinue = { navigate(OnboardingTermsRoute) },
-                onClickLogo = onClickLogo
+                onClickLogo = onClickLogo,
             )
         }
         composable<OnboardingTermsRoute> {
@@ -254,7 +254,7 @@ private fun WalletNavHost(
                 onClickNavigateBack = navigateBack,
                 onClickReadDataProtectionPolicy = {},
                 onClickReadGeneralTermsAndConditions = {},
-                onClickLogo = onClickLogo
+                onClickLogo = onClickLogo,
             )
         }
         composable<HomeScreenRoute> {
@@ -280,7 +280,8 @@ private fun WalletNavHost(
                                 null
                             }
                         },
-                        onClickLogo = onClickLogo
+                        onClickLogo = onClickLogo,
+                        onClickSettings = { navigate(SettingsRoute) }
                     )
                 },
                 bottomBar = {
@@ -304,7 +305,8 @@ private fun WalletNavHost(
                         navigate(route)
                     },
                     walletMain = walletMain,
-                    onClickLogo = onClickLogo
+                    onClickLogo = onClickLogo,
+                    onClickSettings = { navigate(SettingsRoute) }
                 )
             })
         }
@@ -332,7 +334,8 @@ private fun WalletNavHost(
                             popBackStack(HomeScreenRoute)
                         },
                         walletMain = walletMain,
-                        onClickLogo = onClickLogo
+                        onClickLogo = onClickLogo,
+                        onClickSettings = { navigate(SettingsRoute) }
                     )
                 } catch (e: Throwable) {
                     popBackStack(HomeScreenRoute)
@@ -369,7 +372,8 @@ private fun WalletNavHost(
                         navigateToHomeScreen = {
                             popBackStack(HomeScreenRoute)
                         },
-                        onClickLogo = onClickLogo
+                        onClickLogo = onClickLogo,
+                        onClickSettings = { navigate(SettingsRoute) }
                     )
                 } catch (e: Throwable) {
                     popBackStack(HomeScreenRoute)
@@ -399,7 +403,8 @@ private fun WalletNavHost(
                         },
                         navigateToHomeScreen = { popBackStack(HomeScreenRoute) },
                         walletMain = walletMain,
-                        onClickLogo = onClickLogo
+                        onClickLogo = onClickLogo,
+                        onClickSettings = { navigate(SettingsRoute) }
                     )
                 } ?: throw IllegalStateException("No presentation view model set")
             } catch (e: Throwable) {
@@ -429,7 +434,8 @@ private fun WalletNavHost(
             AuthenticationSuccessView(vm = remember {
                 AuthenticationSuccessViewModel(
                     navigateUp = navigateBack,
-                    onClickLogo = onClickLogo
+                    onClickLogo = onClickLogo,
+                    onClickSettings = { navigate(SettingsRoute) }
                 )
             })
         }
@@ -443,7 +449,8 @@ private fun WalletNavHost(
                     onSubmitServer = { host ->
                         navigate(LoadCredentialRoute(host))
                     },
-                    onClickLogo = onClickLogo
+                    onClickLogo = onClickLogo,
+                    onClickSettings = { navigate(SettingsRoute) }
                 )
             })
         }
@@ -466,7 +473,8 @@ private fun WalletNavHost(
                             }
 
                         },
-                        onClickLogo = onClickLogo
+                        onClickLogo = onClickLogo,
+                        onClickSettings = { navigate(SettingsRoute) }
                     )
                 } catch (e: Throwable) {
                     popBackStack(HomeScreenRoute)
@@ -505,7 +513,8 @@ private fun WalletNavHost(
                             }
                         }
                     },
-                    onClickLogo = onClickLogo
+                    onClickLogo = onClickLogo,
+                    onClickSettings = { navigate(SettingsRoute) }
                 )
             })
         }
@@ -516,7 +525,8 @@ private fun WalletNavHost(
                     storeEntryId = backStackEntry.toRoute<CredentialDetailsRoute>().storeEntryId,
                     navigateUp = navigateBack,
                     walletMain = walletMain,
-                    onClickLogo = onClickLogo
+                    onClickLogo = onClickLogo,
+                    onClickSettings = { navigate(SettingsRoute) }
                 )
             })
         }
@@ -543,19 +553,13 @@ private fun WalletNavHost(
                             }
                             walletMain.snackbarService.showSnackbar(clearMessage)
                         },
-                        onClickSigning = {
-                            navigate(SigningQtspSelectionRoute)
-                        },
                         walletMain = walletMain,
-                        onClickLogo = onClickLogo
+                        onClickLogo = onClickLogo,
+                        onClickSettings = { popBackStack(HomeScreenRoute) },
+                        onClickBack = navigateBack
                     )
-                },
-                bottomBar = {
-                    BottomBar(
-                        navigate = { route -> navigate(route) },
-                        selected = NavigationData.INFORMATION_SCREEN
-                    )
-                })
+                }
+            )
         }
 
         composable<PreAuthQrCodeScannerRoute> { backStackEntry ->
@@ -572,7 +576,8 @@ private fun WalletNavHost(
                             )
                         )
                     },
-                    onClickLogo = onClickLogo
+                    onClickLogo = onClickLogo,
+                    onClickSettings = { navigate(SettingsRoute) }
                 )
             })
         }
@@ -582,7 +587,8 @@ private fun WalletNavHost(
                 LogViewModel(
                     navigateUp = navigateBack,
                     walletMain = walletMain,
-                    onClickLogo = onClickLogo
+                    onClickLogo = onClickLogo,
+                    onClickSettings = { navigate(SettingsRoute) }
                 )
             })
         }
@@ -593,7 +599,8 @@ private fun WalletNavHost(
                     resetStack = { popBackStack(HomeScreenRoute) },
                     message = backStackEntry.toRoute<ErrorRoute>().message,
                     cause = backStackEntry.toRoute<ErrorRoute>().cause,
-                    onClickLogo = onClickLogo
+                    onClickLogo = onClickLogo,
+                    onClickSettings = { navigate(SettingsRoute) }
                 )
             })
         }
@@ -611,7 +618,8 @@ private fun WalletNavHost(
                         navigate(route)
                     },
                     walletMain = walletMain,
-                    onClickLogo = onClickLogo
+                    onClickLogo = onClickLogo,
+                    onClickSettings = { navigate(SettingsRoute) }
                 )
             })
         }
@@ -620,8 +628,21 @@ private fun WalletNavHost(
             SigningView(remember {
                 SigningViewModel(
                     navigateUp = navigateBack,
-                    createSignRequest = { signRequest ->
+                    onQrScanned = { url ->
                         popBackStack(HomeScreenRoute)
+                        navigate(SigningQtspSelectionRoute(url))
+                    },
+                    walletMain = walletMain,
+                    onClickLogo = onClickLogo,
+                    onClickSettings = { navigate(SettingsRoute) }
+                )
+            })
+        }
+        composable<SigningQtspSelectionRoute> { backStackEntry ->
+            SigningQtspSelectionView(vm = remember {
+                SigningQtspSelectionViewModel(
+                    navigateUp = navigateBack,
+                    onContinue = { signRequest ->
                         CoroutineScope(Dispatchers.Main).launch {
                             try {
                                 walletMain.signingService.start(signRequest)
@@ -632,19 +653,9 @@ private fun WalletNavHost(
                         }
                     },
                     walletMain = walletMain,
-                    onClickLogo = onClickLogo
-                )
-            })
-        }
-        composable<SigningQtspSelectionRoute> { backStackEntry ->
-            SigningQtspSelectionView(vm = remember {
-                SigningQtspSelectionViewModel(
-                    navigateUp = navigateBack,
-                    onContinue = {
-                        navigate(SigningRoute)
-                    },
-                    walletMain = walletMain,
-                    onClickLogo = onClickLogo
+                    onClickLogo = onClickLogo,
+                    onClickSettings = { navigate(SettingsRoute) },
+                    url = backStackEntry.toRoute<SigningQtspSelectionRoute>().url
                 )
             })
         }
