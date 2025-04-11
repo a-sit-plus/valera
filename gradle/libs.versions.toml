@@ -11,6 +11,7 @@ companyregistration = "1.1.0"
 healthid = "2.0.0"
 taxid = "1.0.1"
 atomicfu = "0.26.1"
+compose = "1.7.8"
 compose-plugin = "1.7.3"
 
 [libraries]
@@ -27,6 +28,7 @@ identity = { module = "com.android.identity:identity", version.ref = "identity" 
 identity-android = { module = "com.android.identity:identity-android", version.ref = "identity" }
 play-services-identity-credentials = { module = "com.google.android.gms:play-services-identity-credentials", version.ref = "play-services-identity-credentials" }
 semver = { module = "net.swiftzer.semver:semver", version.ref = "semver" }
+compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
 
 [plugins]
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }

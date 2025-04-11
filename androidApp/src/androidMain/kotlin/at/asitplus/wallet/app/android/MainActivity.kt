@@ -1,11 +1,22 @@
 package at.asitplus.wallet.app.android
 
+import App
 import MainView
+import android.app.Activity
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.view.WindowCompat
 import appLink
 import at.asitplus.wallet.app.android.dcapi.WalletAPIData
 import at.asitplus.wallet.app.common.BuildContext
@@ -13,7 +24,36 @@ import at.asitplus.wallet.app.common.BuildType
 import com.google.android.gms.identitycredentials.GetCredentialResponse
 import com.google.android.gms.identitycredentials.IntentHelper
 
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            App()
+            StatusBar()
+        }
+    }
+}
 
+@Composable
+fun StatusBar() {
+    val view = LocalView.current
+    val primaryColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f).toArgb()
+    val darkTheme = isSystemInDarkTheme()
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            window.statusBarColor = primaryColor
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
+        }
+    }
+}
+
+@Preview
+@Composable
+fun AppAndroidPreview() {
+    App()
+}
+/*
 class MainActivity : AppCompatActivity() {
 
     private val walletAPIData = WalletAPIData()
@@ -63,3 +103,5 @@ class MainActivity : AppCompatActivity() {
         }
     }
 }
+
+ */

@@ -13,6 +13,8 @@ kotlin {
             dependencies {
                 implementation(project(":shared"))
                 implementation(libs.play.services.identity.credentials)
+                implementation(compose.material3)
+                implementation(libs.compose.ui.tooling.preview)
             }
         }
     }

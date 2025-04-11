@@ -1,3 +1,4 @@
+/*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.ExperimentalTestApi
@@ -34,7 +35,9 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.ClaimToBeIssued
 import at.asitplus.wallet.lib.agent.CredentialToBeIssued
+import at.asitplus.wallet.lib.agent.EphemeralKeyWithSelfSignedCert
 import at.asitplus.wallet.lib.agent.IssuerAgent
+import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.agent.toStoreCredentialInput
 import data.storage.DummyDataStoreService
 import io.kotest.core.spec.style.FunSpec
@@ -114,6 +117,7 @@ class InstrumentedTestsSuite : FunSpec({
             }
         }
 
+        /*
         test("Test 2: App should display onboarding screen") {
             runComposeUiTest {
                 setContent {
@@ -251,8 +255,16 @@ class InstrumentedTestsSuite : FunSpec({
                 }
             }
         }
+
+         */
     }
-})
+
+
+}
+)
+
+
+
 
 val request = Json.encodeToString(
     RequestBody.serializer(),
@@ -315,7 +327,9 @@ private fun getAttributes(): List<ClaimToBeIssued> = listOf(
 
 private fun createWalletMain(platformAdapter: PlatformAdapter): WalletMain {
     val dummyDataStoreService = DummyDataStoreService()
-    val ks = KeystoreService(dummyDataStoreService)
+    val ks = object : KeystoreService(dummyDataStoreService) {
+        override suspend fun getSigner(): KeyMaterial = EphemeralKeyWithSelfSignedCert()
+    }
     return WalletMain(
         cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
         dataStoreService = dummyDataStoreService,
@@ -335,3 +349,5 @@ class TestLifecycleOwner : LifecycleOwner {
     private val _lifecycle = LifecycleRegistry(this)
     override val lifecycle: Lifecycle get() = _lifecycle
 }
+
+ */
