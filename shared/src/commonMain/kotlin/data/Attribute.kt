@@ -20,7 +20,6 @@ import kotlinx.serialization.json.longOrNull
 sealed interface Attribute {
     companion object {
         fun fromValue(value: Any?): Attribute? = if (value == null) null else when (val it = value) {
-//            is ByteArray ->
             is Array<*> -> fromValueList(it.toList())
             is Collection<*> -> fromValueList(it.toList())
             is JsonNull -> null
