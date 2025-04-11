@@ -24,8 +24,10 @@ fun LabeledTextCheckbox(
     }
 
     Row(modifier = Modifier.clickable(onClick = {
-        checked.value = !checked.value
-        onCheckedChange(checked.value)
+        if (enabled) {
+            checked.value = !checked.value
+            onCheckedChange(checked.value)
+        }
     }).fillMaxWidth()) {
         Checkbox(
             checked = checked.value,
