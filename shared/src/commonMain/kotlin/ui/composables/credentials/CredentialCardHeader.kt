@@ -18,13 +18,10 @@ fun ColumnScope.CredentialCardHeader(
     credential: SubjectCredentialStore.StoreEntry,
     showLoadingSpinner: Boolean,
     onDelete: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     PersonAttributeDetailCardHeading(
         icon = {
-            PersonAttributeDetailCardHeadingIcon(
-                credential.scheme.iconLabel()
-            )
+            PersonAttributeDetailCardHeadingIcon(credential.scheme.iconLabel())
         },
         title = {
             LabeledText(

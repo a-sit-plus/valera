@@ -46,7 +46,7 @@ sealed interface Attribute {
             is ContactData -> ContactDataAttribute(it)
             is Address -> AddressAttribute(it)
             is Branch -> BranchAttribute(it)
-            else -> throw IllegalArgumentException("Unexpected attribute value type: ${it::class}, $it")
+            else -> throw IllegalArgumentException("Unexpected attribute value type: ${value::class}, $value")
         }
 
         private fun fromValueList(valueList: List<Any?>) = runCatching {

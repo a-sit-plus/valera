@@ -10,10 +10,7 @@ class DummyDataStoreService: DataStoreService {
     override suspend fun setPreference(value: String, key: String) {
         memory.getOrPut(key) {
             MutableStateFlow(null)
-        }.update {
-            println("updating $key to $value")
-            value
-        }
+        }.update { value }
     }
 
     override fun getPreference(key: String): Flow<String?> {

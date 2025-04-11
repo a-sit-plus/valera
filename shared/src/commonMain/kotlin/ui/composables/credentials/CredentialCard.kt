@@ -33,7 +33,6 @@ fun CredentialCard(
             credential = credential,
             showLoadingSpinner = !isTokenStatusEvaluated,
             onDelete = onDelete,
-            modifier = Modifier.fillMaxWidth(),
         )
         CredentialSummaryCardContent(
             credential = credential,

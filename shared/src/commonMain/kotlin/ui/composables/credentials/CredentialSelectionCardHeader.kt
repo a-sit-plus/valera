@@ -2,11 +2,8 @@ package ui.composables.credentials
 
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.error_credential_status_invalid
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.agent.representation

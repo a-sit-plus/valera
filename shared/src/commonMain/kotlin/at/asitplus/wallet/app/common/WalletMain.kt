@@ -2,7 +2,6 @@ package at.asitplus.wallet.app.common
 
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.catchingUnwrapped
-import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.signum.indispensable.josef.JsonWebKey
 import at.asitplus.signum.indispensable.josef.JsonWebKeySet
 import at.asitplus.signum.indispensable.josef.JwsSigned
@@ -18,7 +17,6 @@ import at.asitplus.wallet.lib.cbor.DefaultCoseService
 import at.asitplus.wallet.lib.data.StatusListToken
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.MediaTypes
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.StatusListTokenPayload
-import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatus
 import at.asitplus.wallet.lib.jws.DefaultJwsService
 import at.asitplus.wallet.lib.jws.DefaultVerifierJwsService
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
@@ -45,7 +43,6 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import net.swiftzer.semver.SemVer
 import org.jetbrains.compose.resources.getString
-import kotlin.random.Random
 import ui.navigation.IntentService
 
 /**
@@ -96,7 +93,7 @@ class WalletMain(
 
         httpService = HttpService(buildContext)
         credentialValidator = Validator(
-            resolveStatusListToken = { it ->
+            resolveStatusListToken = {
                 val httpResponse = httpService.buildHttpClient().get(it.string) {
                     headers.set(HttpHeaders.Accept, MediaTypes.Application.STATUSLIST_JWT)
                 }

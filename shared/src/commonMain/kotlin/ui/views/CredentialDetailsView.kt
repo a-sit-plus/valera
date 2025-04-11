@@ -112,7 +112,7 @@ fun CredentialDetailsScaffold(
                 actions = {
                     if (isStoreEntryAvailable) {
                         CredentialCardActionMenu(
-                            onDelete = onDelete,
+                            onDelete = onDelete
                         )
                         Logo(onClick = onClickLogo)
                         Spacer(Modifier.width(4.dp))
