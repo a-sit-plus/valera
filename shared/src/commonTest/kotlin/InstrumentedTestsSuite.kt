@@ -1,5 +1,7 @@
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsDisplayed
@@ -18,6 +20,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_accept
 import at.asitplus.valera.resources.button_label_continue
@@ -53,9 +56,7 @@ import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
@@ -94,6 +95,30 @@ class InstrumentedTestsSuite : FunSpec({
     }
 
     context("Starting App Tests") {
+        test("Using collectAsStateWithLifecycle properly updates state to assert") {
+            runComposeUiTest {
+                val dummyDataStoreService = DummyDataStoreService()
+                val preferenceKey = "test"
+                val testValue = "loaded"
+
+                setContent {
+                    val data by dummyDataStoreService.getPreference(preferenceKey).collectAsStateWithLifecycle(
+                        "null",
+                        lifecycleOwner = lifecycleOwner,
+                    )
+                    Text(data ?: "collecting state ...")
+                }
+
+                runBlocking {
+                    dummyDataStoreService.setPreference(key = preferenceKey, value = testValue)
+                }
+
+                waitUntil {
+                    onNodeWithText(testValue).isDisplayed()
+                }
+            }
+        }
+
         test("App should start correctly") {
             runComposeUiTest {
                 setContent {

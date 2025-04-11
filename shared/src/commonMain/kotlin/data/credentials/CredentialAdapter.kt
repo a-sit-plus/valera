@@ -13,7 +13,7 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
 
-sealed class CredentialAdapter {
+abstract class CredentialAdapter {
     abstract fun getAttribute(path: NormalizedJsonPath): Attribute?
 
     protected fun Any?.toLocalDateOrNull() =

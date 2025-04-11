@@ -50,7 +50,7 @@ fun AttributeSelectionGroup(
 
                 else -> optional == true
             }
-            
+
             if (selection[memberName] == null) {
                 selection[memberName] = !enabled
             }

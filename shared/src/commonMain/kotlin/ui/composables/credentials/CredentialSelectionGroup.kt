@@ -11,20 +11,25 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.dif.ConstraintField
 import at.asitplus.jsonpath.core.NodeListEntry
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatus
 
 @Composable
 fun CredentialSelectionGroup(
     matchingCredentials: Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, List<NodeListEntry>>>,
     attributeSelection: SnapshotStateMap<String, Boolean>,
     credentialSelection: MutableState<SubjectCredentialStore.StoreEntry>,
-    imageDecoder: (ByteArray) -> ImageBitmap?
+    imageDecoder: (ByteArray) -> ImageBitmap?,
+    checkRevocationStatus: suspend (SubjectCredentialStore.StoreEntry) -> TokenStatus?,
 ) {
     matchingCredentials.forEach { credential ->
         CredentialSelectionCard(
             credential,
             imageDecoder = imageDecoder,
             attributeSelection = attributeSelection,
-            credentialSelection = credentialSelection
+            credentialSelection = credentialSelection,
+            checkRevocationStatus = {
+                checkRevocationStatus(credential.key)
+            },
         )
         Spacer(modifier = Modifier.height(16.dp))
     }

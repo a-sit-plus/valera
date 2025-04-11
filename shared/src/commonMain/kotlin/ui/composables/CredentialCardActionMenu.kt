@@ -1,10 +1,10 @@
 package ui.composables
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -23,6 +23,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun CredentialCardActionMenu(
+    showLoadingSpinner: Boolean = false,
     onDelete: () -> Unit,
 ) {
     var isMenuExpanded by rememberSaveable {
@@ -30,6 +31,7 @@ fun CredentialCardActionMenu(
     }
 
     CredentialCardActionMenu(
+        showLoadingSpinner = showLoadingSpinner,
         isMenuExpanded = isMenuExpanded,
         onChangeIsMenuExpanded = { isMenuExpanded = it },
         onDelete = onDelete,
@@ -38,12 +40,16 @@ fun CredentialCardActionMenu(
 
 @Composable
 fun CredentialCardActionMenu(
+    showLoadingSpinner: Boolean,
     isMenuExpanded: Boolean,
     onChangeIsMenuExpanded: (Boolean) -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier = modifier) {
+    Row(modifier = modifier) {
+        if(showLoadingSpinner) {
+            CircularProgressIndicator()
+        }
         IconButton(
             onClick = { onChangeIsMenuExpanded(!isMenuExpanded) },
         ) {
