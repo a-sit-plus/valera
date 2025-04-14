@@ -1,8 +1,3 @@
-import androidx.compose.runtime.Composable
-import androidx.lifecycle.LifecycleOwner
-import at.asitplus.wallet.app.common.PlatformAdapter
-
-/*
 
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -127,7 +122,7 @@ class InstrumentedTests {
         // Replace with your own declarations to test the code of your project
         setContent {
             CompositionLocalProvider(
-              //  LocalLifecycleOwner provides LocalLifecycleOwnerFake()
+                LocalLifecycleOwner provides LocalLifecycleOwnerFake()
             ) {
                 var text by remember { mutableStateOf("Hello") }
                 Text(
@@ -145,7 +140,7 @@ class InstrumentedTests {
         }
 
         // Tests the declared UI with assertions and actions of the Compose Multiplatform testing API
-        onNodeWithTag("text").assertTextEquals("Hellooo")
+        onNodeWithTag("text").assertTextEquals("Hello")
         onNodeWithTag("button").performClick()
         onNodeWithTag("text").assertTextEquals("Compose")
     }
@@ -190,8 +185,19 @@ class InstrumentedTests {
                         App(walletMain)
 
 
-                    onNodeWithTag(AppTestTags.rootScaffold)
-                        .assertIsDisplayed()
+                    //onNodeWithTag(AppTestTags.rootScaffold)
+                    //    .assertIsDisplayed()
+
+                        waitUntil {
+                            onNodeWithTag(NavigatorTestTags.loadingTestTag).isNotDisplayed()
+                        }
+
+                        waitUntil {
+                            onNodeWithTag(OnboardingWrapperTestTags.onboardingStartScreen).isDisplayed()
+                        }
+
+                        onNodeWithTag(OnboardingStartScreenTestTag.startButton).assertIsDisplayed()
+
                 }
                 }
             }
@@ -456,6 +462,7 @@ val request = Json.encodeToString(RequestBody(
     ))
 ))
 
+
 private class TestLifecycleOwner : LifecycleOwner {
     private val _lifecycle = LifecycleRegistry(this)
     override val lifecycle: Lifecycle get() = _lifecycle
@@ -469,9 +476,6 @@ data class Credential(val credentialType: String, val representation: String, va
 
 @Composable
 expect fun getPlatformAdapter(): PlatformAdapter
-
-@Composable
-expect fun getLifecycleOwner(): LifecycleOwner?
 
 
 
@@ -491,14 +495,4 @@ class DummycryptoService(defaultCryptoService: DefaultCryptoService): WalletCryp
     override val keyMaterial: KeyMaterial
         get() = EphemeralKeyWithSelfSignedCert()
 }
-
-expect class PlatformLifecycleOwner {
-    fun getLifecycleOwner(): LifecycleOwner?
-}
- */
-
-
-@Composable
-expect fun getPlatformAdapter(): PlatformAdapter
-
 

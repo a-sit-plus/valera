@@ -23,7 +23,7 @@ import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.BuildType
 import com.google.android.gms.identitycredentials.GetCredentialResponse
 import com.google.android.gms.identitycredentials.IntentHelper
-
+/*
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,7 +53,8 @@ fun StatusBar() {
 fun AppAndroidPreview() {
     App()
 }
-/*
+*/
+
 class MainActivity : AppCompatActivity() {
 
     private val walletAPIData = WalletAPIData()
@@ -103,5 +104,3 @@ class MainActivity : AppCompatActivity() {
         }
     }
 }
-
- */

@@ -31,7 +31,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
-import at.asitplus.wallet.app.common.MainApplication
 import at.asitplus.wallet.app.common.WalletMain
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,6 +47,7 @@ internal object AppTestTags {
     const val rootScaffold = "rootScaffold"
 }
 
+/*
 @Composable
 fun App() {
     AppTheme {
@@ -98,7 +98,7 @@ val Typography = Typography(
         letterSpacing = 0.5.sp
     )
 )
-/*
+*/
 @Composable
 fun App(walletMain: WalletMain) {
 
@@ -117,7 +117,7 @@ fun App(walletMain: WalletMain) {
         WalletNavigation(walletMain)
     }
 }
-*/
+
 
 
 

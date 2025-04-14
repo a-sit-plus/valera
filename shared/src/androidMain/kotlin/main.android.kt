@@ -77,7 +77,7 @@ fun MainView(
     Security.removeProvider("BC")
     Security.addProvider(BouncyCastleProvider())
 
-    /*
+
     App(
         WalletMain(
             cryptoService = ks.let { runBlocking { AndroidCryptoService(it.getSigner()) } },
@@ -88,7 +88,7 @@ fun MainView(
         )
     )
 
-     */
+
 }
 
 class AndroidPlatformAdapter(

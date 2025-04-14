@@ -3,12 +3,12 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.runComposeUiTest
-import at.asitplus.wallet.app.common.MainApplication
 import kotlin.test.Test
 
 @OptIn(ExperimentalTestApi::class)
 class MainScreenTest {
 
+    /*
     @Test
     fun myFirstTest() = runComposeUiTest {
         setContent {
@@ -24,5 +24,9 @@ class MainScreenTest {
         onNodeWithText("10").assertExists()
 
     }
+
+     */
 }
+
+
 

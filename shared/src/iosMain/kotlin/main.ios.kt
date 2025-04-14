@@ -18,7 +18,7 @@ import platform.UIKit.UIViewController
 import ui.theme.darkScheme
 import ui.theme.lightScheme
 
-fun MainViewController() = ComposeUIViewController { App() }
+//fun MainViewController() = ComposeUIViewController { App() }
 
 
 actual fun getPlatformName(): String = "iOS"
@@ -36,7 +36,7 @@ actual fun getImageDecoder(image: ByteArray): ImageBitmap {
     return Image.makeFromEncoded(image).toComposeImageBitmap()
 }
 
-/*
+
 fun MainViewController(
     platformAdapter: PlatformAdapter,
     buildContext: BuildContext,
@@ -56,4 +56,4 @@ fun MainViewController(
     }
 }
 
- */
+
