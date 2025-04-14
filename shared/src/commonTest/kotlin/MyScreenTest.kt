@@ -21,7 +21,7 @@ class MainScreenTest {
         // 3)
         onNodeWithContentDescription("Increment").performClick()
         // 4)
-        onNodeWithText("10").assertExists()
+        onNodeWithText("1").assertExists()
 
     }
 }
