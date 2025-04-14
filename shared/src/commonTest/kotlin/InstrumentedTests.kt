@@ -113,8 +113,6 @@ class InstrumentedTests {
 
      */
 
-
-    @OptIn(ExperimentalTestApi::class)
     @Test
     fun myTest() = runComposeUiTest {
         // Declares a mock UI to demonstrate API calls
@@ -147,7 +145,6 @@ class InstrumentedTests {
 
 
 
-            @OptIn(ExperimentalTestApi::class)
             @Test
             fun givenNewAppInstallation_whenStartingApp_thenAppActuallyStarts() = runComposeUiTest() {
 
@@ -184,7 +181,7 @@ class InstrumentedTests {
                         )
                         App(walletMain)
 
-
+                }
                     //onNodeWithTag(AppTestTags.rootScaffold)
                     //    .assertIsDisplayed()
 
@@ -199,7 +196,7 @@ class InstrumentedTests {
                         onNodeWithTag(OnboardingStartScreenTestTag.startButton).assertIsDisplayed()
 
                 }
-                }
+
             }
 
 /*
