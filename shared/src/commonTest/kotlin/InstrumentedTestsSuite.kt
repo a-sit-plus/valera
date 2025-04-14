@@ -34,7 +34,11 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.ClaimToBeIssued
 import at.asitplus.wallet.lib.agent.CredentialToBeIssued
+import at.asitplus.wallet.lib.agent.CryptoService
+import at.asitplus.wallet.lib.agent.DefaultCryptoService
+import at.asitplus.wallet.lib.agent.EphemeralKeyWithoutCert
 import at.asitplus.wallet.lib.agent.IssuerAgent
+import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.agent.toStoreCredentialInput
 import data.storage.DummyDataStoreService
 import io.kotest.core.spec.style.FunSpec
@@ -317,7 +321,8 @@ private fun createWalletMain(platformAdapter: PlatformAdapter): WalletMain {
     val dummyDataStoreService = DummyDataStoreService()
     val ks = KeystoreService(dummyDataStoreService)
     return WalletMain(
-        cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
+        //cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
+        cryptoService = DummyCryptoService(EphemeralKeyWithoutCert()),
         dataStoreService = dummyDataStoreService,
         platformAdapter = platformAdapter,
         scope = CoroutineScope(Dispatchers.Default),
@@ -334,4 +339,10 @@ private fun createWalletMain(platformAdapter: PlatformAdapter): WalletMain {
 class TestLifecycleOwner : LifecycleOwner {
     private val _lifecycle = LifecycleRegistry(this)
     override val lifecycle: Lifecycle get() = _lifecycle
+}
+
+class DummyCryptoService(override val keyMaterial: KeyMaterial) : WalletCryptoService(
+    DefaultCryptoService(keyMaterial)
+) {
+
 }
