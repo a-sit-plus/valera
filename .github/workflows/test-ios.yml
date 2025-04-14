@@ -32,9 +32,6 @@ jobs:
           reporter: java-junit
       - name: Run shared tests
         run: ./gradlew :shared:iosSimulatorArm64Test
-      - name: List Output Directory
-        run: | 
-          ls -R shared/build/outputs
       - name: Test Report
         uses: dorny/test-reporter@v1
         if: success() || failure()
