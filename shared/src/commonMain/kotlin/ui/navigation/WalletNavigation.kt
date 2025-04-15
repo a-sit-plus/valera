@@ -772,6 +772,7 @@ private fun WalletNavHost(
                     uri = backStackEntry.toRoute<SigningIntentRoute>().uri,
                     onSuccess = {
                         navigateBack()
+                        navigate(SigningQtspSelectionRoute(backStackEntry.toRoute<SigningIntentRoute>().uri))
                     },
                     onFailure = { error ->
                         walletMain.errorService.emit(error)
