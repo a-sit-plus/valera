@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
@@ -26,7 +25,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,25 +35,19 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.rqes.CredentialInfo
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_continue
-import at.asitplus.valera.resources.button_label_sign
 import at.asitplus.valera.resources.heading_label_select_vda
 import at.asitplus.valera.resources.text_label_certificates
 import at.asitplus.valera.resources.text_label_credential_id
 import at.asitplus.valera.resources.text_label_delete_certificate
 import at.asitplus.valera.resources.text_label_preload_certificate
-import at.asitplus.valera.resources.text_label_qtsp
 import at.asitplus.valera.resources.text_label_valid_from
 import at.asitplus.valera.resources.text_label_valid_to
 import at.asitplus.valera.resources.text_label_vda
 import at.asitplus.wallet.app.common.QtspConfig
-import at.asitplus.wallet.app.common.SigningConfig
-import kotlinx.coroutines.runBlocking
-import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.DataDisplaySection
 import ui.composables.LabeledText
 import ui.composables.Logo
-import ui.composables.TextIconButton
 import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.SigningQtspSelectionViewModel
 

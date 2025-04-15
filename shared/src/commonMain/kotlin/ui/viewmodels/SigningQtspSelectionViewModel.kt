@@ -1,6 +1,5 @@
 package ui.viewmodels
 
-import androidx.compose.foundation.text.selection.DisableSelection
 import androidx.compose.runtime.mutableStateOf
 import at.asitplus.wallet.app.common.WalletMain
 import kotlinx.coroutines.CoroutineScope
