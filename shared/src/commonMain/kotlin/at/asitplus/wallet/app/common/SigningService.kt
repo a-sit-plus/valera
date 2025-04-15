@@ -120,6 +120,11 @@ class SigningService(
         )
     }
 
+    suspend fun setCurrentQtsp(qtsp: String) {
+        config.current = qtsp
+        exportToDataStore()
+    }
+
     suspend fun preloadCertificate() {
         rqesWalletService =
             RqesOpenId4VpHolder(redirectUrl = redirectUrl, clientId = config.getCurrent().oauth2ClientId)
