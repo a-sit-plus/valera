@@ -118,11 +118,13 @@ fun SigningQtspSelectionView(
                     )
                 }
                 Spacer(modifier = Modifier.height(10.dp))
-                CertificateInfoField(
-                    vm.credentialInfo.value,
-                    vm.onClickPreload,
-                    onClickDelete = vm.onClickDelete
-                )
+                if(vm.allowPreload()) {
+                    CertificateInfoField(
+                        vm.credentialInfo.value,
+                        vm.onClickPreload,
+                        onClickDelete = vm.onClickDelete
+                    )
+                }
             }
         }
     }

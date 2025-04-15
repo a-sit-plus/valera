@@ -39,4 +39,6 @@ class SigningQtspSelectionViewModel(
             walletMain.signingService.setCurrentQtsp(qtsp)
         }
     }
+
+    fun allowPreload(): Boolean = walletMain.signingService.config.getQtspByIdentifier(selection.value).allowPreload
 }
