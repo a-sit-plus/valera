@@ -28,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,15 +37,11 @@ import at.asitplus.rqes.CredentialInfo
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.heading_label_select_vda
-import at.asitplus.valera.resources.text_label_certificates
-import at.asitplus.valera.resources.text_label_credential_id
-import at.asitplus.valera.resources.text_label_delete_certificate
 import at.asitplus.valera.resources.text_label_preload_certificate
-import at.asitplus.valera.resources.text_label_valid_from
-import at.asitplus.valera.resources.text_label_valid_to
 import at.asitplus.valera.resources.text_label_vda
 import at.asitplus.wallet.app.common.QtspConfig
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.CertificateCard
 import ui.composables.DataDisplaySection
 import ui.composables.LabeledText
 import ui.composables.Logo
@@ -121,13 +118,11 @@ fun SigningQtspSelectionView(
                     )
                 }
                 Spacer(modifier = Modifier.height(10.dp))
-                DataDisplaySection(title = stringResource(Res.string.text_label_certificates)) {
-                    CertificateInfoField(
-                        vm.credentialInfo.value,
-                        vm.onClickPreload,
-                        onClickDelete = vm.onClickDelete
-                    )
-                }
+                CertificateInfoField(
+                    vm.credentialInfo.value,
+                    vm.onClickPreload,
+                    onClickDelete = vm.onClickDelete
+                )
             }
         }
     }
@@ -182,24 +177,10 @@ fun CertificateInfoField(
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         if (credentialInfo != null) {
-            LabeledText(
-                label = stringResource(Res.string.text_label_credential_id),
-                text = "${credentialInfo.credentialID}",
-                modifier = Modifier,
-            )
-            LabeledText(
-                label = stringResource(Res.string.text_label_valid_from),
-                text = "${credentialInfo.certParameters?.validFrom}",
-                modifier = Modifier,
-            )
-            LabeledText(
-                label = stringResource(Res.string.text_label_valid_to),
-                text = "${credentialInfo.certParameters?.validTo}",
-                modifier = Modifier,
-            )
-            OutlinedButton(onClick = onClickDelete) {
-                Text(stringResource(Res.string.text_label_delete_certificate))
+            var isExpanded by rememberSaveable {
+                mutableStateOf(false)
             }
+            CertificateCard(credentialInfo, isExpanded, { isExpanded = it}, onClickDelete)
         } else {
             Text("Keine Daten vorhanden")
             OutlinedButton(onClick = onClickPreload) {

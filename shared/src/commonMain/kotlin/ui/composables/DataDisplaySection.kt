@@ -53,7 +53,7 @@ fun DataDisplaySection(
             fontWeight = FontWeight.SemiBold,
         )
         Spacer(modifier = Modifier.height(8.dp))
-        Column(modifier = Modifier.padding(start = 32.dp)) {
+        Column(modifier = Modifier.padding(bottom = 16.dp)) {
             content()
         }
     }
