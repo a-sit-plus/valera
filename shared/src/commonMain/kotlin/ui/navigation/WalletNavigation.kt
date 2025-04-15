@@ -37,8 +37,6 @@ import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import at.asitplus.wallet.app.common.decodeImage
-import at.asitplus.wallet.app.common.domain.BuildAuthenticationConsentPageFromAuthenticationRequestLocalPresentment
-import at.asitplus.wallet.app.common.presentation.PresentationRequest
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -226,7 +224,10 @@ private fun WalletNavHost(
         }
 
         composable<OnboardingInformationRoute> {
-            OnboardingInformationView(onClickContinue = { navigate(OnboardingTermsRoute) }, onClickLogo = onClickLogo)
+            OnboardingInformationView(
+                onClickContinue = { navigate(OnboardingTermsRoute) },
+                onClickLogo = onClickLogo
+            )
         }
 
         composable<OnboardingTermsRoute> {
@@ -303,16 +304,17 @@ private fun WalletNavHost(
         }
 
         composable<ShowQrCodeRoute> {
-            val vm = ShowQrCodeViewModel(
-                walletMain = walletMain,
-                navigateUp = { navigateBack() },
-                onClickLogo = onClickLogo,
-                onNavigateToPresentmentScreen = {
-                    Napier.d("WalletNavigation: onNavigateToPresentmentScreen")
-                    presentationStateModel.value = it
-                    navigate(LocalPresentationAuthenticationConsentRoute("QR"))
-                }
-            )
+            val vm = remember {
+                ShowQrCodeViewModel(
+                    walletMain = walletMain,
+                    navigateUp = { navigateBack() },
+                    onClickLogo = onClickLogo,
+                    onNavigateToPresentmentScreen = {
+                        presentationStateModel.value = it
+                        navigate(LocalPresentationAuthenticationConsentRoute("QR"))
+                    }
+                )
+            }
             ShowQrCodeView(vm)
         }
 
@@ -410,31 +412,30 @@ private fun WalletNavHost(
         composable<LocalPresentationAuthenticationConsentRoute> { backStackEntry ->
             val route: LocalPresentationAuthenticationConsentRoute = backStackEntry.toRoute()
 
-            val vm = try {
-                presentationStateModel.value?.let {
-                    PresentationViewModel(
-                        it,
-                        navigateUp = { popBackStack(HomeScreenRoute) },
-                        onAuthenticationSuccess = {
-                        },
-                        navigateToHomeScreen = { popBackStack(HomeScreenRoute) },
-                        walletMain = walletMain,
-                        onClickLogo = onClickLogo
-                    )
-                } ?: throw IllegalStateException("No presentation view model set")
-            } catch (e: Throwable) {
-                popBackStack(HomeScreenRoute)
-                walletMain.errorService.emit(e)
-                null
+            val vm = remember {
+                try {
+                    presentationStateModel.value?.let {
+                        PresentationViewModel(
+                            it,
+                            navigateUp = { popBackStack(HomeScreenRoute) },
+                            onAuthenticationSuccess = {},
+                            navigateToHomeScreen = { popBackStack(HomeScreenRoute) },
+                            walletMain = walletMain,
+                            onClickLogo = onClickLogo
+                        )
+                    } ?: throw IllegalStateException("No presentation view model set")
+                } catch (e: Throwable) {
+                    popBackStack(HomeScreenRoute)
+                    walletMain.errorService.emit(e)
+                    null
+                }
             }
 
             if (vm != null) {
                 Napier.d("Showing presentation view")
                 PresentationView(
                     vm,
-                    onPresentmentComplete = {
-                        popBackStack(HomeScreenRoute)
-                    },
+                    onPresentmentComplete = { popBackStack(HomeScreenRoute) },
                     coroutineScope = walletMain.scope,
                     walletMain.snackbarService,
                     onError = { e ->
@@ -443,10 +444,14 @@ private fun WalletNavHost(
                     }
                 )
             }
+
         }
 
         composable<AuthenticationSuccessRoute> { backStackEntry ->
-            val vm = AuthenticationSuccessViewModel(navigateUp = { navigateBack() }, onClickLogo = onClickLogo)
+            val vm = AuthenticationSuccessViewModel(
+                navigateUp = { navigateBack() },
+                onClickLogo = onClickLogo
+            )
             AuthenticationSuccessView(vm = vm)
         }
 
@@ -582,7 +587,11 @@ private fun WalletNavHost(
         }
 
         composable<LogRoute> { backStackEntry ->
-            val vm = LogViewModel(navigateUp = { navigateBack() }, walletMain = walletMain, onClickLogo = onClickLogo)
+            val vm = LogViewModel(
+                navigateUp = { navigateBack() },
+                walletMain = walletMain,
+                onClickLogo = onClickLogo
+            )
             LogView(vm = vm)
         }
 
