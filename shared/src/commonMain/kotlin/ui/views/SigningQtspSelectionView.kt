@@ -37,6 +37,7 @@ import at.asitplus.rqes.CredentialInfo
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.heading_label_select_vda
+import at.asitplus.valera.resources.text_label_no_certificate
 import at.asitplus.valera.resources.text_label_preload_certificate
 import at.asitplus.valera.resources.text_label_vda
 import at.asitplus.wallet.app.common.QtspConfig
@@ -184,7 +185,7 @@ fun CertificateInfoField(
             }
             CertificateCard(credentialInfo, isExpanded, { isExpanded = it}, onClickDelete)
         } else {
-            Text("Keine Daten vorhanden")
+            Text(stringResource(Res.string.text_label_no_certificate))
             OutlinedButton(onClick = onClickPreload) {
                 Text(stringResource(Res.string.text_label_preload_certificate))
             }

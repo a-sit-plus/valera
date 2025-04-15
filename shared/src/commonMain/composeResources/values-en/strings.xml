@@ -217,6 +217,7 @@
     <string name="text_label_powered_by">POWERED BY</string>
     <string name="text_label_certificate">Certificate</string>
     <string name="text_label_vda">VDA</string>
+    <string name="text_label_no_certificate">No data available</string>
 
     <string name="heading_label_authenticate_at_device_title">Authenticate</string>
     <string name="heading_label_authenticate_at_device_subtitle">at relying party</string>
