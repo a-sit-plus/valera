@@ -350,15 +350,7 @@ private fun WalletNavHost(
                 onClickLogo = onClickLogo,
                 onNavigateToPresentmentScreen = {
                     presentationStateModel.value = it
-                    val consentPageBuilder =
-                        BuildAuthenticationConsentPageFromAuthenticationRequestLocalPresentment()
-
-                    consentPageBuilder(PresentationRequest(PRESENTATION_REQUESTED_INTENT)).unwrap().onSuccess {
-                        Napier.d("valid presentation request")
-                        navigate(it)
-                    }.onFailure {
-                        walletMain.errorService.emit(Exception("Invalid Authentication Request"))
-                    }
+                    navigate(LocalPresentationAuthenticationConsentRoute("QR"))
                 }
             )
             ShowQrCodeView(vm)
