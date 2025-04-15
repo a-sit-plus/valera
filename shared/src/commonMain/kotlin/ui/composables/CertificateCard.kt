@@ -43,7 +43,7 @@ fun CertificateCardHeading(
     Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 15.dp, vertical = 10.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             HeadingTextIcon(
-                text = "Z",
+                text = "${stringResource(Res.string.text_label_certificate)[0]}",
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier,
             )
