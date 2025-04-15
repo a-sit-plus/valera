@@ -4,12 +4,16 @@ import androidx.compose.runtime.MutableState
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
 import at.asitplus.wallet.app.common.presentation.TransferSettings.Companion.transferSettings
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import kotlinx.io.bytestring.ByteString
 import org.multipaz.cbor.Simple
 import org.multipaz.crypto.Crypto
 import org.multipaz.crypto.EcCurve
 import org.multipaz.mdoc.connectionmethod.MdocConnectionMethod
 import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodBle
+import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodNfc
 import org.multipaz.mdoc.engagement.EngagementGenerator
 import org.multipaz.mdoc.role.MdocRole
 import org.multipaz.mdoc.transport.MdocTransportFactory
@@ -27,73 +31,101 @@ class ShowQrCodeViewModel(
     var hasBeenCalledHack: Boolean = false
     val presentationStateModel: PresentationStateModel by lazy { PresentationStateModel() }
 
-    suspend fun doHolderFlow(showQrCode: MutableState<ByteString?>) {
-        val ephemeralDeviceKey = Crypto.createEcPrivateKey(EcCurve.P256)
-        lateinit var encodedDeviceEngagement: ByteString
+    private val _showQrCodeState = MutableStateFlow(ShowQrCodeState.INIT)
+    val showQrCodeState: StateFlow<ShowQrCodeState> = _showQrCodeState
 
-        val connectionMethods = mutableListOf<MdocConnectionMethod>()
-        val bleUuid = UUID.randomUUID()
+    fun setState(newState: ShowQrCodeState) {
+        _showQrCodeState.value = newState
+    }
 
-        //if (!transferSettings.presentmentUseNegotiatedHandover)
-        if (transferSettings.presentmentBleCentralClientModeEnabled.value) {
-            connectionMethods.add(
-                MdocConnectionMethodBle(
-                    supportsPeripheralServerMode = false,
-                    supportsCentralClientMode = true,
-                    peripheralServerModeUuid = null,
-                    centralClientModeUuid = bleUuid,
-                )
-            )
-        }
-        if (transferSettings.presentmentBlePeripheralServerModeEnabled.value) {
-            connectionMethods.add(
-                MdocConnectionMethodBle(
-                    supportsPeripheralServerMode = true,
-                    supportsCentralClientMode = false,
-                    peripheralServerModeUuid = bleUuid,
-                    centralClientModeUuid = null,
-                )
-            )
-        }
-        // TODO add more connection methods
-        /*if (transferSettings.presentmentNfcDataTransferEnabled) {
-            connectionMethods.add(
-                MdocConnectionMethodNfc(
-                    commandDataFieldMaxLength = 0xffff,
-                    responseDataFieldMaxLength = 0x10000
-                )
-            )
-        }*/
+    fun setupPresentmentModel() {
+        presentationStateModel.reset()
+        presentationStateModel.init()
+        presentationStateModel.start(needBluetooth = true)
+        presentationStateModel.setPermissionState(true)
+    }
 
+    fun doHolderFlow(showQrCode: MutableState<ByteString?>) {
+        presentationStateModel.presentmentScope.launch {
+            val connectionMethods = mutableListOf<MdocConnectionMethod>()
+            val bleUuid = UUID.randomUUID()
 
-        val transport = connectionMethods.advertiseAndWait(
-            role = MdocRole.MDOC,
-            transportFactory = MdocTransportFactory.Default,
-            options = MdocTransportOptions(true),
-            eSenderKey = ephemeralDeviceKey.publicKey,
-            onConnectionMethodsReady = { advertisedConnectionMethods ->
-                val engagementGenerator = EngagementGenerator(
-                    eSenderKey = ephemeralDeviceKey.publicKey,
-                    version = "1.0"
+            if (transferSettings.presentmentBleCentralClientModeEnabled.value) {
+                connectionMethods.add(
+                    MdocConnectionMethodBle(
+                        supportsPeripheralServerMode = false,
+                        supportsCentralClientMode = true,
+                        peripheralServerModeUuid = null,
+                        centralClientModeUuid = bleUuid,
+                    )
                 )
-                engagementGenerator.addConnectionMethods(advertisedConnectionMethods)
-                val encodedDeviceEngagementByteArray = engagementGenerator.generate()
-                encodedDeviceEngagement = ByteString(encodedDeviceEngagementByteArray)
-                showQrCode.value = encodedDeviceEngagement
             }
-        )
+            if (transferSettings.presentmentBlePeripheralServerModeEnabled.value) {
+                connectionMethods.add(
+                    MdocConnectionMethodBle(
+                        supportsPeripheralServerMode = true,
+                        supportsCentralClientMode = false,
+                        peripheralServerModeUuid = bleUuid,
+                        centralClientModeUuid = null,
+                    )
+                )
+            }
+            if (transferSettings.presentmentNfcDataTransferEnabled.value) {
+                connectionMethods.add(
+                    MdocConnectionMethodNfc(
+                        commandDataFieldMaxLength = 0xffff,
+                        responseDataFieldMaxLength = 0x10000
+                    )
+                )
+            }
 
-        presentationStateModel.setMechanism(
-            MdocPresentmentMechanism(
-                transport = transport,
-                ephemeralDeviceKey = ephemeralDeviceKey,
-                encodedDeviceEngagement = encodedDeviceEngagement,
-                handover = Simple.NULL,
-                engagementDuration = null,
-                allowMultipleRequests = false
+            val ephemeralDeviceKey = Crypto.createEcPrivateKey(EcCurve.P256)
+            lateinit var encodedDeviceEngagement: ByteString
+
+            val transport = connectionMethods.advertiseAndWait(
+                role = MdocRole.MDOC,
+                transportFactory = MdocTransportFactory.Default,
+                options = MdocTransportOptions(true),
+                eSenderKey = ephemeralDeviceKey.publicKey,
+                onConnectionMethodsReady = { advertisedConnectionMethods ->
+                    val engagementGenerator = EngagementGenerator(
+                        eSenderKey = ephemeralDeviceKey.publicKey,
+                        version = "1.0"
+                    )
+                    engagementGenerator.addConnectionMethods(advertisedConnectionMethods)
+                    val encodedDeviceEngagementByteArray = engagementGenerator.generate()
+                    encodedDeviceEngagement = ByteString(encodedDeviceEngagementByteArray)
+                    showQrCode.value = encodedDeviceEngagement
+                    setState(ShowQrCodeState.SHOW_QR_CODE)
+                }
             )
-        )
-        showQrCode.value = null
+
+            presentationStateModel.setMechanism(
+                MdocPresentmentMechanism(
+                    transport = transport,
+                    ephemeralDeviceKey = ephemeralDeviceKey,
+                    encodedDeviceEngagement = encodedDeviceEngagement,
+                    handover = Simple.NULL,
+                    engagementDuration = null,
+                    allowMultipleRequests = false
+                )
+            )
+            setState(ShowQrCodeState.FINISHED)
+            showQrCode.value = null
+            navigateToPresentmentScreen()
+        }
+    }
+
+    fun navigateToPresentmentScreen() {
         onNavigateToPresentmentScreen(presentationStateModel)
     }
+}
+
+enum class ShowQrCodeState {
+    INIT,
+    BLUETOOTH_DISABLED,
+    MISSING_PERMISSION,
+    CREATE_ENGAGEMENT,
+    SHOW_QR_CODE,
+    FINISHED
 }
