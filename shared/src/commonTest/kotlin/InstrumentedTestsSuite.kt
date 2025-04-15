@@ -95,7 +95,7 @@ class InstrumentedTestsSuite : FunSpec({
     }
 
     context("Starting App Tests") {
-        test("Using collectAsStateWithLifecycle properly updates state to assert") {
+        test("Using collectAsState properly updates state to assert") {
             runComposeUiTest {
                 val dummyDataStoreService = DummyDataStoreService()
                 val preferenceKey = "test"
