@@ -26,7 +26,7 @@ class ShowQrCodeViewModel(
     val walletMain: WalletMain,
     val navigateUp: () -> Unit,
     val onClickLogo: () -> Unit,
-    val onNavigateToPresentmentScreen: () -> Unit,
+    val onNavigateToPresentmentScreen: (PresentationStateModel) -> Unit,
 ) {
     var hasBeenCalledHack: Boolean = false
     val presentationStateModel: PresentationStateModel by lazy {
@@ -121,8 +121,7 @@ class ShowQrCodeViewModel(
     }
 
     fun navigateToPresentmentScreen() {
-        Globals.presentationStateModel.value = presentationStateModel
-        onNavigateToPresentmentScreen()
+        onNavigateToPresentmentScreen(presentationStateModel)
     }
 }
 
