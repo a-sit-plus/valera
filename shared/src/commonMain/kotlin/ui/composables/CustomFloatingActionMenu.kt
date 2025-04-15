@@ -7,23 +7,24 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCode
-import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,7 +42,6 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_provision_credential_browser
 import at.asitplus.valera.resources.button_label_provision_credential_qr
-import at.asitplus.valera.resources.content_description_add_credential
 import org.jetbrains.compose.resources.stringResource
 
 // Modified from https://developer.android.com/develop/ui/compose/animation/composables-modifiers
@@ -79,14 +79,12 @@ fun CustomFloatingActionMenu(addCredentialQr: () -> Unit, addCredential: () -> U
                             onClick = { addCredentialQr() },
                             label = stringResource(Res.string.button_label_provision_credential_qr),
                             icon = Icons.Default.QrCode,
-                            contentDescription = stringResource(Res.string.content_description_add_credential)
                         )
                         Spacer(modifier = Modifier.size(5.dp))
                         SecondaryFloatingActionButton(
                             onClick = { addCredential() },
                             label = stringResource(Res.string.button_label_provision_credential_browser),
                             icon = Icons.Default.Person,
-                            contentDescription = stringResource(Res.string.content_description_add_credential)
                         )
                     }
                 }
@@ -99,25 +97,17 @@ fun CustomFloatingActionMenu(addCredentialQr: () -> Unit, addCredential: () -> U
 
 @Composable
 fun MainFloatingActionButton(expanded: MutableState<Boolean>) {
-    Column(modifier = Modifier.shadow(elevation = 4.dp, shape = RoundedCornerShape(15.dp))) {
-        Column(modifier = Modifier.clip(RoundedCornerShape(15.dp))) {
-            Column(
-                modifier = Modifier
-                    .background(color = FloatingActionButtonDefaults.containerColor)
-                    .clickable(onClick = { expanded.value = !expanded.value })
-                    .size(50.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = stringResource(Res.string.content_description_add_credential),
-                    modifier = Modifier
-                        .rotate(if (expanded.value) 45f else 0f)
-                        .size(30.dp)
-                )
-            }
-        }
+    Button(
+        onClick = { expanded.value = !expanded.value },
+        modifier = Modifier.size(50.dp),
+        shape = CircleShape,
+        contentPadding = PaddingValues(0.dp),
+    ) {
+        Icon(
+            imageVector = Icons.Default.Add,
+            contentDescription = null,
+            modifier = Modifier.rotate(if (expanded.value) 45f else 0f)
+        )
     }
 }
 
@@ -126,12 +116,11 @@ fun SecondaryFloatingActionButton(
     onClick: () -> Unit,
     label: String,
     icon: ImageVector,
-    contentDescription: String?
 ) {
     Row(
         horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp)
     ) {
         Row(modifier = Modifier.clickable(onClick = onClick)) {
             Column(
@@ -141,39 +130,19 @@ fun SecondaryFloatingActionButton(
                 )
             ) {
                 Column(modifier = Modifier.clip(RoundedCornerShape(15.dp))) {
-                    Column(
-                        modifier = Modifier
-                            .background(color = FloatingActionButtonDefaults.containerColor)
-                            .clickable(onClick = onClick),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(label, modifier = Modifier.padding(8.dp))
-                    }
-                }
-            }
-            Spacer(Modifier.size(10.dp))
-            Column(
-                modifier = Modifier.shadow(
-                    elevation = 4.dp,
-                    shape = RoundedCornerShape(15.dp)
-                )
-            ) {
-                Column(modifier = Modifier.clip(RoundedCornerShape(15.dp))) {
-                    Column(
-                        modifier = Modifier
-                            .background(color = FloatingActionButtonDefaults.containerColor)
-                            .size(40.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = contentDescription,
-                            modifier = Modifier
-                                .size(25.dp)
-                        )
-                    }
+                    TextIconButton(
+                        icon = {
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = null,
+                            )
+                        },
+                        text = {
+                            Text(label)
+                        },
+                        onClick = onClick,
+                        modifier = Modifier,
+                    )
                 }
             }
         }
