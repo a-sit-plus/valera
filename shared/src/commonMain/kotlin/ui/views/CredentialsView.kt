@@ -16,12 +16,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_my_data_screen
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
@@ -42,7 +42,7 @@ fun CredentialsView(
 ) {
     val credentialsStatus by vm.storeContainer.map {
         CredentialState.Success(it.credentials)
-    }.collectAsStateWithLifecycle(
+    }.collectAsState(
         CredentialState.Loading
     )
     val credentialStatusesState by produceState(

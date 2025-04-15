@@ -1,6 +1,7 @@
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertHeightIsAtLeast
@@ -20,7 +21,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_accept
 import at.asitplus.valera.resources.button_label_continue
@@ -102,10 +102,7 @@ class InstrumentedTestsSuite : FunSpec({
                 val testValue = "loaded"
 
                 setContent {
-                    val data by dummyDataStoreService.getPreference(preferenceKey).collectAsStateWithLifecycle(
-                        "null",
-                        lifecycleOwner = lifecycleOwner,
-                    )
+                    val data by dummyDataStoreService.getPreference(preferenceKey).collectAsState("null")
                     Text(data ?: "collecting state ...")
                 }
 
