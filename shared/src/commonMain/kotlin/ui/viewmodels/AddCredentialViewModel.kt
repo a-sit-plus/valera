@@ -7,5 +7,6 @@ class AddCredentialViewModel(
     val onSubmitServer: ((String) -> Unit),
     val navigateUp: () -> Unit,
     val hostString: String,
-    val onClickLogo: () -> Unit
+    val onClickLogo: () -> Unit,
+    val onClickSettings: () -> Unit
 )

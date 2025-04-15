@@ -1,6 +1,7 @@
 package ui.composables
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -34,6 +35,26 @@ fun DataDisplaySection(
                     modifier = paddingModifier,
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun DataDisplaySection(
+    title: String,
+    modifier: Modifier = Modifier,
+    content: @Composable() (
+        ColumnScope.() -> Unit)) {
+    Column(modifier = modifier) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.secondary,
+            fontWeight = FontWeight.SemiBold,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Column(modifier = Modifier.padding(bottom = 16.dp)) {
+            content()
         }
     }
 }

@@ -23,13 +23,15 @@ class LoadCredentialViewModel {
     val credentialIdentifiers: Collection<CredentialIdentifierInfo>
     val transactionCodeRequirements: CredentialOfferGrantsPreAuthCodeTransactionCode?
     val onClickLogo: () -> Unit
+    val onClickSettings: () -> Unit
 
     constructor(
         walletMain: WalletMain,
         onSubmit: CredentialSelection,
         navigateUp: () -> Unit,
         hostString: String,
-        onClickLogo: () -> Unit
+        onClickLogo: () -> Unit,
+        onClickSettings: () -> Unit
     ) {
         this.walletMain = walletMain
         this.onSubmit = onSubmit
@@ -37,6 +39,7 @@ class LoadCredentialViewModel {
         this.hostString = hostString
         this.transactionCodeRequirements = null
         this.onClickLogo = onClickLogo
+        this.onClickSettings = onClickSettings
         credentialIdentifiers = runBlocking {
             withContext(Dispatchers.IO) {
                 walletMain.provisioningService.loadCredentialMetadata(hostString)
@@ -49,7 +52,8 @@ class LoadCredentialViewModel {
         offer: CredentialOffer,
         onSubmit: CredentialSelection,
         navigateUp: () -> Unit,
-        onClickLogo: () -> Unit
+        onClickLogo: () -> Unit,
+        onClickSettings: () -> Unit
     ) {
         this.walletMain = walletMain
         this.onSubmit = onSubmit
@@ -57,6 +61,7 @@ class LoadCredentialViewModel {
         this.hostString = offer.credentialIssuer
         this.transactionCodeRequirements = offer.grants?.preAuthorizedCode?.transactionCode
         this.onClickLogo = onClickLogo
+        this.onClickSettings = onClickSettings
         credentialIdentifiers = runBlocking {
             withContext(Dispatchers.IO) {
                 walletMain.provisioningService.loadCredentialMetadata(hostString)

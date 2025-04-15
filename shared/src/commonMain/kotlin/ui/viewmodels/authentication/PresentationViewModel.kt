@@ -26,6 +26,7 @@ class PresentationViewModel(
     walletMain: WalletMain,
     spImage: ImageBitmap? = null,
     onClickLogo: () -> Unit,
+    onClickSettings: () -> Unit
 ) : AuthenticationViewModel(
     spName = null,
     spLocation = "Local Presentation",
@@ -34,7 +35,8 @@ class PresentationViewModel(
     onAuthenticationSuccess,
     navigateToHomeScreen,
     walletMain,
-    onClickLogo
+    onClickLogo,
+    onClickSettings
 ) {
     private var descriptors: List<DifInputDescriptor> = listOf()
 

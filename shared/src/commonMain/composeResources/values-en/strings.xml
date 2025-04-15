@@ -187,8 +187,8 @@
     <string name="credential_scheme_label_tax_id">Tax ID</string>
     <string name="credential_scheme_icon_label_tax_id">TAX</string>
 
-    <string name="navigation_button_label_show_data">Present Data</string>
-    <string name="navigation_button_label_my_data">My Data</string>
+    <string name="navigation_button_label_show_data">Present</string>
+    <string name="navigation_button_label_my_data">Data</string>
     <string name="navigation_button_label_settings">Settings</string>
 
     <string name="id_format_plain_jwt_label">PLAIN_JWT</string>
@@ -215,6 +215,9 @@
     <string name="text_label_optional">Optional</string>
     <string name="text_label_check_all">Check all</string>
     <string name="text_label_powered_by">POWERED BY</string>
+    <string name="text_label_certificate">Certificate</string>
+    <string name="text_label_vda">VDA</string>
+    <string name="text_label_no_certificate">No data available</string>
 
     <string name="heading_label_authenticate_at_device_title">Authenticate</string>
     <string name="heading_label_authenticate_at_device_subtitle">at relying party</string>
@@ -236,7 +239,8 @@
     <string name="heading_label_add_credential_screen">Load data</string>
     <string name="heading_label_refresh_data_screen">Load data</string>
     <string name="heading_label_authenticate_at_device_screen">Authenticate at\nrelying party</string>
-    <string name="heading_label_sign_document">Sign document</string>
+    <string name="heading_label_select_vda">Select VDA</string>
+    <string name="heading_label_sign">Sign</string>
 
     <string name="description_read_terms">Please read and accept the terms of use and the privacy policy.</string>
 
