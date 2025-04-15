@@ -61,7 +61,6 @@ import ui.navigation.routes.LocalPresentationAuthenticationConsentRoute
 import ui.navigation.routes.LogRoute
 import ui.navigation.routes.OnboardingInformationRoute
 import ui.navigation.routes.OnboardingStartRoute
-import ui.navigation.routes.OnboardingTermsRoute
 import ui.navigation.routes.OnboardingWrapperTestTags
 import ui.navigation.routes.PreAuthQrCodeScannerRoute
 import ui.navigation.routes.PresentationIntentRoute
@@ -109,7 +108,6 @@ import ui.views.LoadingView
 import ui.views.LogView
 import ui.views.OnboardingInformationView
 import ui.views.OnboardingStartView
-import ui.views.OnboardingTermsView
 import ui.views.PreAuthQrCodeScannerScreen
 import ui.views.intents.PresentationIntentView
 import ui.views.intents.ProvisioningIntentView
@@ -244,16 +242,7 @@ private fun WalletNavHost(
         }
         composable<OnboardingInformationRoute> {
             OnboardingInformationView(
-                onClickContinue = { navigate(OnboardingTermsRoute) },
-                onClickLogo = onClickLogo
-            )
-        }
-        composable<OnboardingTermsRoute> {
-            OnboardingTermsView(
-                onClickAccept = { walletMain.walletConfig.set(isConditionsAccepted = true) },
-                onClickNavigateBack = navigateBack,
-                onClickReadDataProtectionPolicy = {},
-                onClickReadGeneralTermsAndConditions = {},
+                onClickContinue = { walletMain.walletConfig.set(isConditionsAccepted = true) },
                 onClickLogo = onClickLogo
             )
         }
