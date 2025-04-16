@@ -21,8 +21,8 @@ import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.app.common.dcapi.old.DCAPIRequest
-import at.asitplus.wallet.app.common.dcapi.old.ResponseJSON
+import at.asitplus.wallet.app.common.dcapi.preview.DCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.preview.ResponseJSON
 import com.android.identity.android.mdoc.util.CredmanUtil
 import com.google.android.gms.identitycredentials.IdentityCredentialManager
 import com.google.android.gms.identitycredentials.IntentHelper
@@ -176,7 +176,7 @@ class AndroidPlatformAdapter(
         return (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.intent?.let {
             // Adapted from https://github.com/openwallet-foundation-labs/identity-credential/blob/d7a37a5c672ed6fe1d863cbaeb1a998314d19fc5/wallet/src/main/java/com/android/identity_credential/wallet/credman/CredmanPresentationActivity.kt#L74
             val cmrequest = IntentHelper.extractGetCredentialRequest(it) ?: return null
-            val credentialId = it.getLongExtra(IntentHelper.EXTRA_CREDENTIAL_ID, -1).toInt()
+            val credentialId = it.getStringExtra(IntentHelper.EXTRA_CREDENTIAL_ID)?.toInt() ?: -1
 
             // This call is currently broken, have to extract this info manually for now
             //val callingAppInfo = extractCallingAppInfo(intent)

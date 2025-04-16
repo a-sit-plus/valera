@@ -6,7 +6,7 @@ import android.graphics.Bitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import at.asitplus.wallet.app.common.decodeImage
 import com.google.android.gms.identitycredentials.RegistrationRequest
-import at.asitplus.wallet.app.common.dcapi.old.CredentialsContainer
+import at.asitplus.wallet.app.common.dcapi.preview.CredentialsContainer
 import kotlinx.serialization.json.Json
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer

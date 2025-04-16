@@ -10,7 +10,7 @@ import at.asitplus.valera.resources.snackbar_update_action
 import at.asitplus.valera.resources.snackbar_update_hint
 import at.asitplus.wallet.app.common.dcapi.data.CredentialList
 import at.asitplus.wallet.app.common.dcapi.DCAPIService
-import at.asitplus.wallet.app.common.dcapi.old.DCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.preview.DCAPIRequest
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.agent.Validator
