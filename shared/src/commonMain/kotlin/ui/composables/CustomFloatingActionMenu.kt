@@ -100,7 +100,7 @@ fun MainFloatingActionButton(expanded: MutableState<Boolean>) {
     Button(
         onClick = { expanded.value = !expanded.value },
         modifier = Modifier.size(50.dp),
-        shape = CircleShape,
+        shape = RoundedCornerShape(15.dp),
         contentPadding = PaddingValues(0.dp),
     ) {
         Icon(
