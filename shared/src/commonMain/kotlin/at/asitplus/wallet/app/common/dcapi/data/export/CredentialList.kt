@@ -1,4 +1,4 @@
-package at.asitplus.wallet.app.common.dcapi.data
+package at.asitplus.wallet.app.common.dcapi.data.export
 
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import kotlinx.serialization.encodeToByteArray
