@@ -1,4 +1,4 @@
-package at.asitplus.wallet.app.common.dcapi.preview
+package at.asitplus.wallet.app.common.dcapi.data.preview
 
 import at.asitplus.catching
 import at.asitplus.wallet.lib.data.vckJsonSerializer

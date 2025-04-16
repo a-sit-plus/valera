@@ -13,7 +13,7 @@ import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import at.asitplus.catching
 import at.asitplus.wallet.app.android.AndroidCryptoService
-import at.asitplus.wallet.app.common.dcapi.data.CredentialList
+import at.asitplus.wallet.app.common.dcapi.data.export.CredentialList
 import at.asitplus.wallet.app.android.AndroidKeyMaterial
 import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
 import at.asitplus.wallet.app.android.dcapi.IdentityCredentialHelper
@@ -21,8 +21,8 @@ import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.app.common.dcapi.preview.DCAPIRequest
-import at.asitplus.wallet.app.common.dcapi.preview.ResponseJSON
+import at.asitplus.wallet.app.common.dcapi.data.preview.DCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.data.preview.ResponseJSON
 import com.android.identity.android.mdoc.util.CredmanUtil
 import com.google.android.gms.identitycredentials.IdentityCredentialManager
 import com.google.android.gms.identitycredentials.IntentHelper
