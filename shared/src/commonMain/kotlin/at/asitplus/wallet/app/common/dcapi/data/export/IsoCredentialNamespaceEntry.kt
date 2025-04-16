@@ -1,4 +1,4 @@
-package at.asitplus.wallet.app.common.dcapi.data
+package at.asitplus.wallet.app.common.dcapi.data.export
 
 import at.asitplus.KmmResult
 import at.asitplus.catching
