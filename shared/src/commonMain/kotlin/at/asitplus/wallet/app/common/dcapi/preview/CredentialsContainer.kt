@@ -1,4 +1,4 @@
-package at.asitplus.wallet.app.common.dcapi.old
+package at.asitplus.wallet.app.common.dcapi.preview
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
