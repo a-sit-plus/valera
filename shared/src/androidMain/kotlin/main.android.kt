@@ -18,9 +18,9 @@ import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.WalletDependencyProvider
-import at.asitplus.wallet.app.common.dcapi.data.CredentialList
-import at.asitplus.wallet.app.common.dcapi.preview.DCAPIRequest
-import at.asitplus.wallet.app.common.dcapi.preview.ResponseJSON
+import at.asitplus.wallet.app.common.dcapi.data.export.CredentialList
+import at.asitplus.wallet.app.common.dcapi.data.preview.DCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.data.preview.ResponseJSON
 import com.android.identity.android.mdoc.util.CredmanUtil
 import com.google.android.gms.identitycredentials.IdentityCredentialManager
 import com.google.android.gms.identitycredentials.IntentHelper

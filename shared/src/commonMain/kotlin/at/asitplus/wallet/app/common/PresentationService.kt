@@ -1,13 +1,15 @@
 package at.asitplus.wallet.app.common
 
 import at.asitplus.catching
+import at.asitplus.iso.DeviceAuthentication
+import at.asitplus.iso.SessionTranscript
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.RelyingPartyMetadata
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
-import at.asitplus.wallet.app.common.dcapi.preview.DCAPIRequest
-import at.asitplus.wallet.app.common.dcapi.preview.PreviewRequest
+import at.asitplus.wallet.app.common.dcapi.data.preview.DCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.data.preview.PreviewRequest
 import at.asitplus.wallet.lib.agent.CreatePresentationResult
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.PresentationException
@@ -18,8 +20,6 @@ import at.asitplus.wallet.lib.cbor.SignCose
 import at.asitplus.wallet.lib.cbor.SignCoseDetached
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
-import at.asitplus.iso.DeviceAuthentication
-import at.asitplus.iso.SessionTranscript
 import at.asitplus.wallet.lib.iso.wrapInCborTag
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
