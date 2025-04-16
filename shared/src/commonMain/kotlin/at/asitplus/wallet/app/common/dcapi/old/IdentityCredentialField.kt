@@ -1,4 +1,4 @@
-package at.asitplus.wallet.app.common.dcapi
+package at.asitplus.wallet.app.common.dcapi.old
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment

@@ -6,8 +6,8 @@ import at.asitplus.openid.RelyingPartyMetadata
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
-import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
-import at.asitplus.wallet.app.common.dcapi.PreviewRequest
+import at.asitplus.wallet.app.common.dcapi.old.DCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.old.PreviewRequest
 import at.asitplus.wallet.lib.agent.CreatePresentationResult
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.PresentationException
@@ -37,6 +37,7 @@ class PresentationService(
     httpService: HttpService,
 ) {
     private val presentationService = OpenId4VpWallet(
+        openUrlExternally = { platformAdapter.openUrl(it) },
         engine = HttpClient().engine,
         httpClientConfig = httpService.loggingConfig,
         keyMaterial = keyMaterial,
