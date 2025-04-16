@@ -6,7 +6,6 @@ import at.asitplus.valera.resources.app_display_name
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.dcapi.data.CredentialEntry
 import at.asitplus.wallet.app.common.dcapi.data.CredentialList
-import at.asitplus.wallet.app.common.dcapi.data.IsoCredentialNamespaces
 import at.asitplus.wallet.app.common.dcapi.data.IsoEntry
 import at.asitplus.wallet.app.common.dcapi.data.SdJwtEntry
 import at.asitplus.wallet.app.common.decodeImage
@@ -56,16 +55,15 @@ class DCAPIService(val platformAdapter: PlatformAdapter) {
                     isoEntry = null
                 }
                  is SubjectCredentialStore.StoreEntry.Iso -> {
-                     val isoCredentialNamespaces = storeEntry.toNamespaceAttributeMap() ?.let {
-                         IsoCredentialNamespaces.fromNamespaceAttributeMap(it, attributeTranslator)
-                     }
-                     isoEntry = IsoEntry(id, format, isoCredentialNamespaces!!)
+                     val isoNamespaces = storeEntry.toNamespaceAttributeMap()?.let {
+                         IsoEntry.isoNamespacesFromNamespaceAttributeMap(it, attributeTranslator)
+                     } ?: mapOf()
+                     isoEntry = IsoEntry(id, format, isoNamespaces)
                      sdJwtEntry = null
                  }
                 is SubjectCredentialStore.StoreEntry.Vc -> TODO("Operation not yet supported")
             }
-            val credentialEntry = CredentialEntry(appName, friendlyName, bitmap = picture, isoEntry = isoEntry, sdJwtEntry = sdJwtEntry)
-             credentialEntry
+            CredentialEntry(appName, friendlyName, bitmap = picture, isoEntry = isoEntry, sdJwtEntry = sdJwtEntry)
         }
 
         val credentialList = CredentialList(credentialListEntries)
