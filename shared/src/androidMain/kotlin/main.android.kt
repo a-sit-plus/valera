@@ -10,16 +10,17 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
+import at.asitplus.catching
 import at.asitplus.wallet.app.android.AndroidCryptoService
+import at.asitplus.wallet.app.common.dcapi.data.CredentialList
 import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
 import at.asitplus.wallet.app.android.dcapi.IdentityCredentialHelper
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
-import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
-import at.asitplus.wallet.app.common.dcapi.ResponseJSON
+import at.asitplus.wallet.app.common.dcapi.old.DCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.old.ResponseJSON
 import com.android.identity.android.mdoc.util.CredmanUtil
 import com.google.android.gms.identitycredentials.IdentityCredentialManager
 import com.google.android.gms.identitycredentials.IntentHelper
@@ -28,7 +29,9 @@ import data.storage.getDataStore
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.tasks.await
 import org.json.JSONObject
 import org.multipaz.crypto.Algorithm
 import org.multipaz.crypto.Crypto
@@ -60,7 +63,11 @@ fun MainView(
     sendCredentialResponseToDCAPIInvokerMethod: (String) -> Unit
 ) {
     val scope = CoroutineScope(Dispatchers.Default)
-    val platformAdapter = AndroidPlatformAdapter(LocalContext.current, sendCredentialResponseToDCAPIInvokerMethod, scope)
+    val platformAdapter = AndroidPlatformAdapter(
+        LocalContext.current,
+        sendCredentialResponseToDCAPIInvokerMethod,
+        scope
+    )
     val dataStoreService = RealDataStoreService(
         getDataStore(LocalContext.current),
         platformAdapter
@@ -145,12 +152,17 @@ class AndroidPlatformAdapter(
         context.startActivity(Intent.createChooser(intent, null))
     }
 
-    override fun registerWithDigitalCredentialsAPI(entries: CredentialsContainer) {
-        val registry = IdentityCredentialHelper(entries, this)
-        val client = IdentityCredentialManager.Companion.getClient(context)
-        client.registerCredentials(registry.toRegistrationRequest(context))
-            .addOnSuccessListener { Napier.i("DCAPI: Credential Manager registration succeeded") }
-            .addOnFailureListener { Napier.w("DCAPI: Credential Manager registration failed", it) }
+    override fun registerWithDigitalCredentialsAPI(entries: CredentialList) {
+        scope.launch(Dispatchers.Default) {
+            catching {
+                //val registry = IdentityCredentialHelper(entries, this@AndroidPlatformAdapter)
+                val client = IdentityCredentialManager.Companion.getClient(context)
+                val credentialsListCbor = entries.serialize()
+
+                client.registerCredentials(IdentityCredentialHelper.toRegistrationRequest(context, credentialsListCbor)).await()
+            }.onSuccess { Napier.i("DCAPI: Credential Manager registration succeeded") }
+                .onFailure { Napier.w("DCAPI: Credential Manager registration failed", it) }
+        }
     }
 
     override fun getCurrentDCAPIData(): DCAPIRequest? {
@@ -197,7 +209,8 @@ class AndroidPlatformAdapter(
                     val name = field.getString("name")
                     val namespace = field.getString("namespace")
                     val intentToRetain = field.getBoolean("intentToRetain")
-                    requestedData.getOrPut(namespace) { mutableListOf() }.add(Pair(name, intentToRetain))
+                    requestedData.getOrPut(namespace) { mutableListOf() }
+                        .add(Pair(name, intentToRetain))
                 }
 
                 DCAPIRequest(
@@ -218,7 +231,10 @@ class AndroidPlatformAdapter(
     }
 
     @OptIn(ExperimentalEncodingApi::class)
-    override fun prepareDCAPICredentialResponse(responseJson: ByteArray, dcApiRequest: DCAPIRequest) {
+    override fun prepareDCAPICredentialResponse(
+        responseJson: ByteArray,
+        dcApiRequest: DCAPIRequest
+    ) {
         val readerPublicKey = EcPublicKeyDoubleCoordinate.fromUncompressedPointEncoding(
             EcCurve.P256,
             Base64.decode(dcApiRequest.readerPublicKeyBase64, Base64.NO_WRAP or Base64.URL_SAFE)
@@ -247,7 +263,8 @@ class AndroidPlatformAdapter(
         val encodedCredentialDocument =
             CredmanUtil.generateCredentialDocument(cipherText, encapsulatedPublicKey)
 
-        val response = ResponseJSON(kotlin.io.encoding.Base64.UrlSafe.encode(encodedCredentialDocument))
+        val response =
+            ResponseJSON(kotlin.io.encoding.Base64.UrlSafe.encode(encodedCredentialDocument))
         sendCredentialResponseToDCAPIInvoker(response.serialize())
     }
 }
