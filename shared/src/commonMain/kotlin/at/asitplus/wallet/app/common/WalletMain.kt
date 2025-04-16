@@ -4,9 +4,10 @@ import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_update_action
 import at.asitplus.valera.resources.snackbar_update_hint
-import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
-import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import at.asitplus.wallet.app.common.data.SettingsRepository
+import at.asitplus.wallet.app.common.dcapi.data.CredentialList
+import at.asitplus.wallet.app.common.dcapi.DCAPIService
+import at.asitplus.wallet.app.common.dcapi.old.DCAPIRequest
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.agent.Validator
@@ -92,19 +93,6 @@ class WalletMain(
         }
     }
 
-    fun updateDigitalCredentialsAPIIntegration() {
-        scope.launch {
-            try {
-                Napier.d("Updating digital credentials integration")
-                subjectCredentialStore.observeStoreContainer().collect { container ->
-                    dcApiService.registerCredentialWithSystem(container)
-                }
-            } catch (e: Throwable) {
-                Napier.w("Could not update credentials with system", e)
-            }
-        }
-    }
-
     fun updateCheck() {
         scope.launch(Dispatchers.IO) {
             runCatching {
@@ -158,12 +146,6 @@ interface PlatformAdapter {
     fun openUrl(url: String)
 
     /**
-     * Converts an image from ByteArray to ImageBitmap
-     * @param image the image as ByteArray
-     * @return returns the image as an ImageBitmap
-     */
-
-    /**
      * Writes an user defined string to a file in a specific folder
      * @param text is the content of the new file or the content which gets append to an existing file
      * @param fileName the name of the file
@@ -195,7 +177,7 @@ interface PlatformAdapter {
      * Registers credentials with the digital credentials browser API
      * @param entries credentials to add
      */
-    fun registerWithDigitalCredentialsAPI(entries: CredentialsContainer)
+    fun registerWithDigitalCredentialsAPI(entries: CredentialList, scope: CoroutineScope)
 
     /**
      * Retrieves request from the digital credentials browser API
@@ -226,7 +208,7 @@ class DummyPlatformAdapter : PlatformAdapter {
     override fun shareLog() {
     }
 
-    override fun registerWithDigitalCredentialsAPI(entries: CredentialsContainer) {
+    override fun registerWithDigitalCredentialsAPI(entries: CredentialList, scope: CoroutineScope) {
     }
 
     override fun getCurrentDCAPIData(): DCAPIRequest? {

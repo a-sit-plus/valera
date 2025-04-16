@@ -34,7 +34,7 @@ import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
-import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.old.DCAPIRequest
 import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.domain.platform.UrlOpener
 import at.asitplus.wallet.lib.data.dif.ConstraintFieldsEvaluationException

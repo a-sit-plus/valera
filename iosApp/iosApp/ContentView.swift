@@ -121,7 +121,7 @@ class SwiftPlatformAdapter: PlatformAdapter {
     }
 
     //TODO: implement
-    func registerWithDigitalCredentialsAPI(entries: CredentialsContainer) {
+    func registerWithDigitalCredentialsAPI(entries: CredentialsContainer, scope: CoroutineScope) {
     }
 
     func getCurrentDCAPIData() -> DCAPIRequest? {
