@@ -5,7 +5,7 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_update_action
 import at.asitplus.valera.resources.snackbar_update_hint
 import at.asitplus.wallet.app.common.data.SettingsRepository
-import at.asitplus.wallet.app.common.dcapi.DCAPIService
+import at.asitplus.wallet.app.common.dcapi.DCAPIExportService
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialList
 import at.asitplus.wallet.app.common.dcapi.data.preview.DCAPIRequest
 import at.asitplus.wallet.lib.agent.HolderAgent
@@ -24,6 +24,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -47,7 +49,7 @@ class WalletMain(
     val httpService: HttpService,
     val presentationService: PresentationService,
     val signingService: SigningService,
-    val dcApiService: DCAPIService,
+    val dcApiExportService: DCAPIExportService,
     val errorService: ErrorService,
     val snackbarService: SnackbarService,
     val settingsRepository: SettingsRepository,
@@ -57,7 +59,15 @@ class WalletMain(
         errorService.emit(error)
     }
     val scope =
-        CoroutineScope(Dispatchers.Default + coroutineExceptionHandler + promptModel + CoroutineName("WalletMain"))
+        CoroutineScope(
+            Dispatchers.Default + coroutineExceptionHandler + promptModel + CoroutineName(
+                "WalletMain"
+            )
+        )
+
+    init {
+        startListeningForNewCredentialsDCAPI()
+    }
 
     suspend fun resetApp() {
         dataStoreService.clearLog()
@@ -98,6 +108,19 @@ class WalletMain(
         }
     }
 
+    private fun startListeningForNewCredentialsDCAPI() {
+        try {
+            val scope =
+                CoroutineScope(Dispatchers.IO + coroutineExceptionHandler + CoroutineName("startListeningForNewCredentialsDCAPI"))
+            Napier.d("DC API: Starting to observe credentials")
+            subjectCredentialStore.observeStoreContainer().onEach { storeContainer ->
+                dcApiExportService.registerCredentialWithSystem(storeContainer, scope)
+            }.launchIn(scope)
+        } catch (e: Throwable) {
+            Napier.w("DC API: Could not update credentials with system", e)
+        }
+    }
+
     fun updateCheck() {
         scope.launch(Dispatchers.IO) {
             runCatching {
@@ -130,11 +153,20 @@ class WalletMain(
         }
     }
 
-    suspend fun checkCredentialFreshness(storeEntry: SubjectCredentialStore.StoreEntry) =  when (val it = storeEntry) {
-        is SubjectCredentialStore.StoreEntry.Iso -> credentialValidator.checkCredentialFreshness(it.issuerSigned)
-        is SubjectCredentialStore.StoreEntry.SdJwt -> credentialValidator.checkCredentialFreshness(it.sdJwt)
-        is SubjectCredentialStore.StoreEntry.Vc -> credentialValidator.checkCredentialFreshness(it.vc)
-    }
+    suspend fun checkCredentialFreshness(storeEntry: SubjectCredentialStore.StoreEntry) =
+        when (val it = storeEntry) {
+            is SubjectCredentialStore.StoreEntry.Iso -> credentialValidator.checkCredentialFreshness(
+                it.issuerSigned
+            )
+
+            is SubjectCredentialStore.StoreEntry.SdJwt -> credentialValidator.checkCredentialFreshness(
+                it.sdJwt
+            )
+
+            is SubjectCredentialStore.StoreEntry.Vc -> credentialValidator.checkCredentialFreshness(
+                it.vc
+            )
+        }
 }
 
 fun PlatformAdapter.decodeImage(image: ByteArray): ImageBitmap {

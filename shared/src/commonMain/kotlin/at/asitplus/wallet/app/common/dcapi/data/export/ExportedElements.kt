@@ -3,7 +3,6 @@ package at.asitplus.wallet.app.common.dcapi.data.export
 import at.asitplus.KmmResult
 import at.asitplus.catching
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.cbor.CborArray
 import kotlinx.serialization.decodeFromByteArray
@@ -11,16 +10,14 @@ import kotlinx.serialization.encodeToByteArray
 
 @Serializable
 @CborArray
-data class IsoCredentialNamespaceEntry(
-    @SerialName("elementFriendlyName")
+data class ExportedElements(
     val elementFriendlyName: String,
-    @SerialName("elementValue")
     val elementValue: String
 ) {
     fun serialize(): ByteArray = coseCompliantSerializer.encodeToByteArray(this)
 
     companion object {
-        fun deserialize(it: ByteArray): KmmResult<IsoCredentialNamespaceEntry> = catching {
+        fun deserialize(it: ByteArray): KmmResult<ExportedElements> = catching {
             coseCompliantSerializer.decodeFromByteArray(it)
         }
     }
