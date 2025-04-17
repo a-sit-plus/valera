@@ -137,7 +137,7 @@ compose.resources {
 }
 
 exportXCFramework(
-    name = "shared", transitiveExports = false, static = false,
+    name = "shared", transitiveExports = false, static = true,
     additionalExports = arrayOf(
         vckCatalog.vck,
         vckOidCatalog.vck.openid,
