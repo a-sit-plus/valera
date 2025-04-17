@@ -1,6 +1,9 @@
 package data.credentials
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.error_credential_scheme_not_supported
 import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.eupid.EuPidScheme
@@ -10,7 +13,9 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import at.asitplus.wallet.taxid.TaxIdScheme
+import org.jetbrains.compose.resources.stringResource
 
+@Composable
 fun SubjectCredentialStore.StoreEntry.toCredentialAdapter(
     decodeImage: (ByteArray) -> ImageBitmap?,
 ): CredentialAdapter? = when (scheme) {
@@ -23,5 +28,5 @@ fun SubjectCredentialStore.StoreEntry.toCredentialAdapter(
     is PowerOfRepresentationScheme -> PowerOfRepresentationCredentialAdapter.createFromStoreEntry(this)
     is TaxIdScheme -> TaxIdCredentialAdapter.createFromStoreEntry(this)
     null -> null
-    else -> throw IllegalStateException("Unsupported credential scheme")
+    else -> throw IllegalStateException(stringResource(Res.string.error_credential_scheme_not_supported))
 }
