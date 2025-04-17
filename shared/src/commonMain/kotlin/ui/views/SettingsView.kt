@@ -24,10 +24,12 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -46,9 +48,16 @@ import at.asitplus.valera.resources.button_label_sign
 import at.asitplus.valera.resources.heading_label_settings_screen
 import at.asitplus.valera.resources.reset_app_alert_text
 import at.asitplus.valera.resources.section_heading_actions
+import at.asitplus.valera.resources.section_heading_transfer_options
 import at.asitplus.valera.resources.section_heading_information
+import at.asitplus.valera.resources.switch_label_blel2cap_enabled
+import at.asitplus.valera.resources.switch_label_use_ble_central_client_mode
+import at.asitplus.valera.resources.switch_label_use_ble_peripheral_server_mode
+import at.asitplus.valera.resources.switch_label_use_negotiated_handover
+import at.asitplus.valera.resources.switch_label_use_nfc_data_transfer
 import at.asitplus.valera.resources.text_label_build
 import at.asitplus.valera.resources.warning
+import at.asitplus.wallet.app.common.presentation.TransferSettings.Companion.transferSettings
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.viewmodels.SettingsViewModel
@@ -98,6 +107,7 @@ fun SettingsView(
                         .verticalScroll(rememberScrollState())
                 ) {
                     val layoutSpacingModifier = Modifier.padding(top = 24.dp)
+
                     Column(
                         modifier = layoutSpacingModifier
                     ) {
@@ -140,6 +150,7 @@ fun SettingsView(
                             modifier = listSpacingModifier.fillMaxWidth(),
                         )
                     }
+
                     Column(
                         modifier = layoutSpacingModifier
                     ) {
@@ -197,6 +208,57 @@ fun SettingsView(
                             modifier = listSpacingModifier.fillMaxWidth(),
                         )
                     }
+
+                    Column(
+                        modifier = layoutSpacingModifier
+                    ) {
+                        val listSpacingModifier = Modifier
+                        Text(
+                            text = stringResource(Res.string.section_heading_transfer_options),
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        SettingSwitch(
+                            label = stringResource(Res.string.switch_label_use_negotiated_handover),
+                            modifier = listSpacingModifier.fillMaxWidth(),
+                            isChecked = transferSettings.presentmentUseNegotiatedHandover.collectAsState().value,
+                            onCheckedChange = { checked ->
+                                println("checked = ${checked}")
+                                transferSettings.presentmentUseNegotiatedHandover.value = checked
+                            }
+                        )
+                        SettingSwitch(
+                            label = stringResource(Res.string.switch_label_use_ble_central_client_mode),
+                            modifier = listSpacingModifier.fillMaxWidth(),
+                            isChecked = transferSettings.presentmentBleCentralClientModeEnabled.collectAsState().value,
+                            onCheckedChange = { checked ->
+                                transferSettings.presentmentBleCentralClientModeEnabled.value = checked
+                            }
+                        )
+                        SettingSwitch(
+                            label = stringResource(Res.string.switch_label_use_ble_peripheral_server_mode),
+                            modifier = listSpacingModifier.fillMaxWidth(),
+                            isChecked = transferSettings.presentmentBlePeripheralServerModeEnabled.collectAsState().value,
+                            onCheckedChange = { checked ->
+                                transferSettings.presentmentBlePeripheralServerModeEnabled.value = checked
+                            }
+                        )
+                        SettingSwitch(
+                            label = stringResource(Res.string.switch_label_use_nfc_data_transfer),
+                            modifier = listSpacingModifier.fillMaxWidth(),
+                            isChecked = transferSettings.presentmentNfcDataTransferEnabled.collectAsState().value,
+                            onCheckedChange = { checked ->
+                                transferSettings.presentmentNfcDataTransferEnabled.value = checked
+                            }
+                        )
+                        SettingSwitch(
+                            label = stringResource(Res.string.switch_label_blel2cap_enabled),
+                            modifier = listSpacingModifier.fillMaxWidth(),
+                            isChecked = transferSettings.readerBleL2CapEnabled.collectAsState().value,
+                            onCheckedChange = { checked ->
+                                transferSettings.readerBleL2CapEnabled.value = checked
+                            }
+                        )
+                    }
                 }
                 Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
                     Row(
@@ -209,6 +271,30 @@ fun SettingsView(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun SettingSwitch(
+    label: String,
+    modifier: Modifier = Modifier,
+    isChecked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1.0f)) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        }
+        Switch(
+            checked = isChecked,
+            onCheckedChange = onCheckedChange
+        )
     }
 }
 
