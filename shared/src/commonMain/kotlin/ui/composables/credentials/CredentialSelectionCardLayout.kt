@@ -14,23 +14,48 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import ui.composables.CredentialStatusState
 
 @Composable
 fun CredentialSelectionCardLayout(
+    credentialStatusState: CredentialStatusState,
     onClick: () -> Unit,
     modifier: Modifier,
     isSelected: Boolean,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val color = mutableStateOf(Color.Unspecified)
+    val containerColor = mutableStateOf(Color.Unspecified)
     val borderStroke: MutableState<BorderStroke?> = mutableStateOf(null)
 
     if (isSelected) {
-        color.value = MaterialTheme.colorScheme.primaryContainer
-        borderStroke.value =
-            BorderStroke(width = 2.dp, color = MaterialTheme.colorScheme.inversePrimary)
+        containerColor.value = when (credentialStatusState) {
+            CredentialStatusState.Loading -> MaterialTheme.colorScheme.primaryContainer
+            is CredentialStatusState.Success -> if(credentialStatusState.tokenStatus?.isInvalid == true) {
+                MaterialTheme.colorScheme.errorContainer
+            } else {
+                MaterialTheme.colorScheme.primaryContainer
+            }
+        }
+
+        val width = 2.dp
+        borderStroke.value = when (credentialStatusState) {
+            CredentialStatusState.Loading -> BorderStroke(width = width, color = MaterialTheme.colorScheme.inversePrimary)
+            is CredentialStatusState.Success -> if(credentialStatusState.tokenStatus?.isInvalid == true) {
+                BorderStroke(width = width, color = MaterialTheme.colorScheme.error)
+            } else {
+                BorderStroke(width = width, color = MaterialTheme.colorScheme.inversePrimary)
+            }
+        }
+
     } else {
-        color.value = Color.Unspecified
+        containerColor.value = when (credentialStatusState) {
+            CredentialStatusState.Loading -> Color.Unspecified
+            is CredentialStatusState.Success -> if(credentialStatusState.tokenStatus?.isInvalid == true) {
+                MaterialTheme.colorScheme.errorContainer
+            } else {
+                Color.Unspecified
+            }
+        }
         borderStroke.value = null
     }
 
@@ -38,7 +63,7 @@ fun CredentialSelectionCardLayout(
         onClick = onClick,
         modifier = modifier,
         elevation = CardDefaults.elevatedCardElevation(),
-        colors = CardDefaults.elevatedCardColors(containerColor = color.value),
+        colors = CardDefaults.elevatedCardColors(containerColor = containerColor.value),
         border = borderStroke.value
     ) {
         Column(
