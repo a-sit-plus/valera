@@ -34,7 +34,7 @@ class AuthenticationQrCodeScannerViewModel(
             walletMain.errorService.emit(error)
         }
 
-        CoroutineScope(Dispatchers.Main).launch(coroutineExceptionHandler) {
+        CoroutineScope(Dispatchers.Default).launch(coroutineExceptionHandler) {
             val authenticationConsentPage =
                 buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(link).getOrThrow()
                     .let {
