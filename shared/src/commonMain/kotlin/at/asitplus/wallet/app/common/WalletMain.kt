@@ -9,7 +9,7 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_update_action
 import at.asitplus.valera.resources.snackbar_update_hint
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialList
-import at.asitplus.wallet.app.common.dcapi.DCAPIService
+import at.asitplus.wallet.app.common.dcapi.DCAPIExportService
 import at.asitplus.wallet.app.common.dcapi.data.preview.DCAPIRequest
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
@@ -65,7 +65,7 @@ class WalletMain(
     lateinit var httpService: HttpService
     lateinit var presentationService: PresentationService
     lateinit var signingService: SigningService
-    lateinit var dcApiService: DCAPIService
+    lateinit var dcApiExportService: DCAPIExportService
     lateinit var intentService: IntentService
     val errorService = ErrorService()
     val snackbarService = SnackbarService()
@@ -139,7 +139,7 @@ class WalletMain(
             httpService
         )
 
-        this.dcApiService = DCAPIService(platformAdapter)
+        this.dcApiExportService = DCAPIExportService(platformAdapter)
         startListeningForNewCredentialsDCAPI()
     }
 
@@ -203,7 +203,7 @@ class WalletMain(
         try {
             Napier.d("DC API: Starting to observe credentials")
             subjectCredentialStore.observeStoreContainer().onEach { storeContainer ->
-                dcApiService.registerCredentialWithSystem(storeContainer)
+                dcApiExportService.registerCredentialWithSystem(storeContainer)
             }.launchIn(CoroutineScope(Dispatchers.IO))
         } catch (e: Throwable) {
             Napier.w("DC API: Could not update credentials with system", e)
