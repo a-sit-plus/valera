@@ -20,7 +20,7 @@ data class CredentialEntry(
     val bitmap: ByteArray?,
     @SerialName("mdoc")
     val isoEntry: IsoEntry? = null,
-    @SerialName("sdJwtEntry")
+    @SerialName("sdjwt")
     val sdJwtEntry: SdJwtEntry? = null
 ) {
 

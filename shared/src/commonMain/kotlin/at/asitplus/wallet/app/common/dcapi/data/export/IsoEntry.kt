@@ -21,7 +21,7 @@ data class IsoEntry(
     @SerialName("docType")
     val docType: String,
     @SerialName("namespaces")
-    val isoNamespaces: Map<String, Map<String, IsoCredentialNamespaceEntry>>
+    val isoNamespaces: Map<String, Map<String, ExportedElements>>
 ) {
     fun serialize(): ByteArray = coseCompliantSerializer.encodeToByteArray(this)
 
@@ -33,7 +33,7 @@ data class IsoEntry(
         suspend fun isoNamespacesFromNamespaceAttributeMap(
             attributeMap: Map<String, Map<String, Any>>,
             attributeTranslator: CredentialAttributeTranslator
-        ): Map<String, Map<String, IsoCredentialNamespaceEntry>> {
+        ): Map<String, Map<String, ExportedElements>> {
             return attributeMap.map { (namespace, valuePair) ->
                 namespace to valuePair.map { (name, value) ->
                     val displayName =
@@ -41,22 +41,9 @@ data class IsoEntry(
                             ?.let { getString(it) } ?: name
                     val previewValue =
                         value.toCustomString().safeSubstring(128)
-                    name to IsoCredentialNamespaceEntry(displayName, previewValue)
+                    name to ExportedElements(displayName, previewValue)
                 }.toMap()
             }.toMap()
         }
     }
 }
-
-private fun Any.toCustomString(): String = when (this) {
-    is ByteArray -> this.encodeToString(Base16Strict)
-    is Array<*> -> this.contentDeepToString()
-    else -> this.toString()
-}
-
-private fun String.toJsonPath() = NormalizedJsonPath(
-    NormalizedJsonPathSegment.NameSegment(this)
-)
-
-private fun String.safeSubstring(len: Int) =
-    if (this.length >= len) this.substring(0, len) + "..." else this
