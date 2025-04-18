@@ -77,7 +77,8 @@ fun AuthenticationView(
                             navigateUp = { vm.viewState = AuthenticationViewState.Consent },
                             onClickLogo = vm.onClickLogo,
                             credentialMatchingResult = matching,
-                        )
+                        ),
+                        onError = onError,
                     )
                 }
             }

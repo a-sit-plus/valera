@@ -180,7 +180,11 @@ fun WalletNavigation(walletMain: WalletMain) {
             navigate,
             navigateBack,
             popBackStack,
-            onClickLogo
+            onClickLogo,
+            onError = { e ->
+                popBackStack(HomeScreenRoute)
+                walletMain.errorService.emit(e)
+            },
         )
     }
 
@@ -225,7 +229,8 @@ private fun WalletNavHost(
     navigate: (Route) -> Unit,
     navigateBack: () -> Unit,
     popBackStack: (Route) -> Unit,
-    onClickLogo: () -> Unit
+    onClickLogo: () -> Unit,
+    onError: (Throwable) -> Unit,
 ) {
     NavHost(
         navController = navController,
@@ -344,10 +349,7 @@ private fun WalletNavHost(
             if (vm != null) {
                 AuthenticationView(
                     vm = vm,
-                    onError = { e ->
-                        popBackStack(HomeScreenRoute)
-                        walletMain.errorService.emit(e)
-                    }
+                    onError = onError
                 )
             }
         }
@@ -372,8 +374,7 @@ private fun WalletNavHost(
                         onClickLogo = onClickLogo
                     )
                 } catch (e: Throwable) {
-                    popBackStack(HomeScreenRoute)
-                    walletMain.errorService.emit(e)
+                    onError(e)
                     null
                 }
             }
@@ -381,10 +382,7 @@ private fun WalletNavHost(
             if (vm != null) {
                 AuthenticationView(
                     vm = vm,
-                    onError = { e ->
-                        popBackStack(HomeScreenRoute)
-                        walletMain.errorService.emit(e)
-                    },
+                    onError = onError,
                 )
             }
         }
