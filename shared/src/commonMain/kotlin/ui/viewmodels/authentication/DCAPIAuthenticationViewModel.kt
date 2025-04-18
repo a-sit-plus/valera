@@ -12,7 +12,7 @@ import at.asitplus.dif.PresentationDefinition
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.app.common.dcapi.data.preview.DCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.data.preview.PreviewDCAPIRequest
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
@@ -25,12 +25,12 @@ class DCAPIAuthenticationViewModel(
     navigateToAuthenticationSuccessPage: (redirectUrl: String?) -> Unit,
     navigateToHomeScreen: () -> Unit,
     walletMain: WalletMain,
-    val dcApiRequest: DCAPIRequest,
+    val dcApiRequest: PreviewDCAPIRequest,
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
 ) : AuthenticationViewModel(
-    spName = dcApiRequest.callingPackageName,
-    spLocation = dcApiRequest.callingOrigin ?: dcApiRequest.callingPackageName!!,
+    spName = dcApiRequestPreview.callingPackageName,
+    spLocation = dcApiRequestPreview.callingOrigin ?: dcApiRequestPreview.callingPackageName!!,
     spImage,
     navigateUp,
     navigateToAuthenticationSuccessPage,
@@ -42,7 +42,7 @@ class DCAPIAuthenticationViewModel(
     override val presentationRequest: CredentialPresentationRequest.PresentationExchangeRequest
         get() = CredentialPresentationRequest.PresentationExchangeRequest(
             presentationDefinition = PresentationDefinition(
-                inputDescriptors = dcApiRequest.requestedData.mapNotNull {
+                inputDescriptors = dcApiRequestPreview.requestedData.mapNotNull {
                     DifInputDescriptor(
                         id = MobileDrivingLicenceScheme.isoDocType,
                         format = FormatHolder(msoMdoc = FormatContainerJwt()),
@@ -79,7 +79,7 @@ class DCAPIAuthenticationViewModel(
                     fallbackFormatHolder = null,
                 ).getOrThrow().map { (key, value) ->
                     key to value.filter { (cred, _) ->
-                        CredentialAdapter.getId(cred).hashCode() == dcApiRequest.credentialId
+                        CredentialAdapter.getId(cred).hashCode() == dcApiRequestPreview.credentialId
                     }
                 }.toMap()
             )
@@ -91,6 +91,6 @@ class DCAPIAuthenticationViewModel(
                 is CredentialPresentation.PresentationExchangePresentation -> credentialPresentation
                 else -> throw IllegalArgumentException()
             },
-            dcApiRequest,
+            dcApiRequestPreview,
         )
 }
