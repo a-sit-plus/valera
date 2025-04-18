@@ -24,7 +24,7 @@ import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.compose.resources.getString
 
-class DCAPIExportService(val platformAdapter: PlatformAdapter) {
+class DCAPIExportService(private val platformAdapter: PlatformAdapter) {
     private val imageDecoder: (ByteArray) -> ImageBitmap = { byteArray -> platformAdapter.decodeImage(byteArray) }
 
     suspend fun registerCredentialWithSystem(container: StoreContainer, scope: CoroutineScope) {

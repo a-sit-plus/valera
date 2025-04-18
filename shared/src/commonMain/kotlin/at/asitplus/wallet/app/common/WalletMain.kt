@@ -214,6 +214,7 @@ interface PlatformAdapter {
     /**
      * Registers credentials with the digital credentials browser API
      * @param entries credentials to add
+     * @param scope CoroutineScope for registering credentials
      */
     fun registerWithDigitalCredentialsAPI(entries: CredentialList, scope: CoroutineScope)
 
