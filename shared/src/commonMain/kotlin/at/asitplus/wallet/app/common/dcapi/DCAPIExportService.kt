@@ -31,11 +31,11 @@ class DCAPIExportService(val platformAdapter: PlatformAdapter) {
         val appName = getString(Res.string.app_display_name)
 
         val credentialListEntries = container.credentials.map { (_, storeEntry) ->
-            val attributeTranslator = CredentialAttributeTranslator[storeEntry.scheme] ?: return
+            val attributeTranslator = CredentialAttributeTranslator[storeEntry.scheme]
+                ?: throw IllegalStateException("Attribute translator not implemented")
             val friendlyName = storeEntry.scheme.uiLabelNonCompose()
             //TODO can we get a better ID?
             val id = CredentialAdapter.getId(storeEntry).hashCode().toString()
-            val format = storeEntry.scheme?.isoDocType ?: ""
             val picture: ByteArray? = when (storeEntry.scheme) {
                 is IdAustriaScheme ->
                     IdAustriaCredentialAdapter.createFromStoreEntry(storeEntry, imageDecoder).portraitRaw
@@ -54,14 +54,16 @@ class DCAPIExportService(val platformAdapter: PlatformAdapter) {
                     isoEntry = null
                 }
                  is SubjectCredentialStore.StoreEntry.Iso -> {
+                     val docType = storeEntry.scheme?.isoDocType ?: ""
                      val isoNamespaces = storeEntry.toNamespaceAttributeMap()?.let {
                          IsoEntry.isoNamespacesFromNamespaceAttributeMap(it, attributeTranslator)
                      } ?: mapOf()
-                     isoEntry = IsoEntry(id, format, isoNamespaces)
+                     isoEntry = IsoEntry(id, docType, isoNamespaces)
                      sdJwtEntry = null
                  }
                 is SubjectCredentialStore.StoreEntry.Vc -> TODO("Vc not yet supported")
             }
+
             CredentialEntry(title = friendlyName, subtitle = appName, bitmap = picture, isoEntry = isoEntry, sdJwtEntry = sdJwtEntry)
         }
 
