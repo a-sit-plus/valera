@@ -6,8 +6,8 @@ import at.asitplus.openid.RelyingPartyMetadata
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
-import at.asitplus.wallet.app.common.dcapi.old.DCAPIRequest
-import at.asitplus.wallet.app.common.dcapi.old.PreviewRequest
+import at.asitplus.wallet.app.common.dcapi.data.preview.PreviewDCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.data.preview.PreviewRequest
 import at.asitplus.wallet.lib.agent.CreatePresentationResult
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.PresentationException
@@ -84,15 +84,15 @@ class PresentationService(
 
     suspend fun finalizeDCAPIPreviewPresentation(
         credentialPresentation: CredentialPresentation.PresentationExchangePresentation,
-        dcApiRequest: DCAPIRequest
+        dcApiRequestPreview: PreviewDCAPIRequest
     ): OpenId4VpWallet.AuthenticationSuccess {
         Napier.d("Finalizing DCAPI response")
-        val previewRequest = PreviewRequest.deserialize(dcApiRequest.request).getOrThrow()
+        val previewRequest = PreviewRequest.deserialize(dcApiRequestPreview.request).getOrThrow()
 
         val presentationResult = holderAgent.createPresentation(
             request = PresentationRequestParameters(
                 nonce = previewRequest.nonce,
-                audience = dcApiRequest.callingOrigin ?: dcApiRequest.callingPackageName!!,
+                audience = dcApiRequestPreview.callingOrigin ?: dcApiRequestPreview.callingPackageName!!,
                 calcIsoDeviceSignature = { docType, deviceNameSpaceBytes ->
                     // TODO sign data
                     SignCose.invoke<ByteArray>(keyMaterial, CoseHeaderNone(), CoseHeaderNone())
@@ -115,7 +115,7 @@ class PresentationService(
             is CreatePresentationResult.Signed -> TODO("Credential type not yet supported for API use case")
         }
 
-        platformAdapter.prepareDCAPICredentialResponse(deviceResponse.serialize(), dcApiRequest)
+        platformAdapter.prepareDCAPICredentialResponse(deviceResponse.serialize(), dcApiRequestPreview)
 
         return OpenId4VpWallet.AuthenticationSuccess()
     }
