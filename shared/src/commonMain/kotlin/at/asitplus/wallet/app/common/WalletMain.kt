@@ -10,7 +10,8 @@ import at.asitplus.valera.resources.snackbar_update_action
 import at.asitplus.valera.resources.snackbar_update_hint
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialList
 import at.asitplus.wallet.app.common.dcapi.DCAPIExportService
-import at.asitplus.wallet.app.common.dcapi.data.preview.DCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.data.DCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.data.preview.PreviewDCAPIRequest
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.agent.Validator
@@ -304,7 +305,7 @@ interface PlatformAdapter {
     /**
      * Prepares the credential response and sends it back to the invoking application
      */
-    fun prepareDCAPICredentialResponse(responseJson: ByteArray, dcApiRequest: DCAPIRequest)
+    fun prepareDCAPICredentialResponse(responseJson: ByteArray, dcApiRequestPreview: PreviewDCAPIRequest)
 
 }
 
@@ -334,7 +335,7 @@ class DummyPlatformAdapter : PlatformAdapter {
 
     override fun prepareDCAPICredentialResponse(
         responseJson: ByteArray,
-        dcApiRequest: DCAPIRequest
+        dcApiRequestPreview: PreviewDCAPIRequest
     ) {
     }
 

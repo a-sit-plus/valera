@@ -6,7 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 
-class ErrorService() {
+class ErrorService {
     val error = MutableSharedFlow<ErrorFlowData>()
     private val scope = CoroutineScope(Dispatchers.Default)
 
