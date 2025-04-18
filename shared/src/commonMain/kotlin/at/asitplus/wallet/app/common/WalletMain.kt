@@ -30,6 +30,7 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -57,7 +58,6 @@ class WalletMain(
     var subjectCredentialStore: PersistentSubjectCredentialStore =
         PersistentSubjectCredentialStore(dataStoreService),
     val buildContext: BuildContext,
-    val scope: CoroutineScope
 ) {
     lateinit var walletConfig: WalletConfig
     lateinit var credentialValidator: Validator
@@ -71,6 +71,10 @@ class WalletMain(
     val errorService = ErrorService()
     val snackbarService = SnackbarService()
     private val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
+    private val coroutineExceptionHandler = CoroutineExceptionHandler { _, error ->
+        errorService.emit(error)
+    }
+    val scope = CoroutineScope(Dispatchers.Default + coroutineExceptionHandler)
 
     init {
         at.asitplus.wallet.mdl.Initializer.initWithVCK()
@@ -140,7 +144,7 @@ class WalletMain(
             httpService
         )
 
-        this.dcApiExportService = DCAPIExportService(platformAdapter)
+        this.dcApiExportService = DCAPIExportService(platformAdapter, scope)
         startListeningForNewCredentialsDCAPI()
     }
 
@@ -294,8 +298,9 @@ interface PlatformAdapter {
     /**
      * Registers credentials with the digital credentials browser API
      * @param entries credentials to add
+     * @param scope CoroutineScope for registering credentials
      */
-    fun registerWithDigitalCredentialsAPI(entries: CredentialList)
+    fun registerWithDigitalCredentialsAPI(entries: CredentialList, scope: CoroutineScope)
 
     /**
      * Retrieves request from the digital credentials browser API
@@ -326,7 +331,7 @@ class DummyPlatformAdapter : PlatformAdapter {
     override fun shareLog() {
     }
 
-    override fun registerWithDigitalCredentialsAPI(entries: CredentialList) {
+    override fun registerWithDigitalCredentialsAPI(entries: CredentialList, scope: CoroutineScope) {
     }
 
     override fun getCurrentDCAPIData(): DCAPIRequest? {

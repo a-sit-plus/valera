@@ -72,8 +72,7 @@ fun MainView(
     val scope = rememberCoroutineScope { promptModel }
     val platformAdapter = AndroidPlatformAdapter(
         LocalContext.current,
-        sendCredentialResponseToDCAPIInvokerMethod,
-        scope
+        sendCredentialResponseToDCAPIInvokerMethod
     )
     val dataStoreService = RealDataStoreService(
         getDataStore(LocalContext.current),
@@ -88,8 +87,7 @@ fun MainView(
             keyMaterial = ks.let { runBlocking { AndroidKeyMaterial(it.getSigner()) } },
             dataStoreService = dataStoreService,
             platformAdapter = platformAdapter,
-            buildContext = buildContext,
-            scope = scope
+            buildContext = buildContext
         )
     )
 }
@@ -97,7 +95,6 @@ fun MainView(
 class AndroidPlatformAdapter(
     private val context: Context,
     private val sendCredentialResponseToDCAPIInvoker: (String) -> Unit,
-    private val scope: CoroutineScope
 ) : PlatformAdapter {
 
     override fun openUrl(url: String) {
@@ -161,7 +158,7 @@ class AndroidPlatformAdapter(
         context.startActivity(Intent.createChooser(intent, null))
     }
 
-    override fun registerWithDigitalCredentialsAPI(entries: CredentialList) {
+    override fun registerWithDigitalCredentialsAPI(entries: CredentialList, scope: CoroutineScope) {
         scope.launch(Dispatchers.Default) {
             catching {
                 //val registry = IdentityCredentialHelper(entries, this@AndroidPlatformAdapter)

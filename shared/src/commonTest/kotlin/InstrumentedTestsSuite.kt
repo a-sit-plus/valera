@@ -355,7 +355,6 @@ private fun createWalletMain(platformAdapter: PlatformAdapter): WalletMain {
             versionName = "0.0.0",
             osVersion = "Unit Test"
         ),
-        scope = CoroutineScope(Dispatchers.Default),
     )
 }
 

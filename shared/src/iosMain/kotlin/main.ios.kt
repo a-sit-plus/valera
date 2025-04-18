@@ -46,8 +46,7 @@ fun MainViewController(
                 WalletKeyMaterial(keyMaterial = keystoreService.getSignerBlocking()),
                 dataStoreService,
                 platformAdapter,
-                buildContext =  buildContext,
-                scope = CoroutineScope(Dispatchers.Default)
+                buildContext =  buildContext
             )
         )
     }
