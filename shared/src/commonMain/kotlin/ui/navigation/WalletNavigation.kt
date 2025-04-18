@@ -34,7 +34,9 @@ import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
-import at.asitplus.wallet.app.common.dcapi.data.preview.DCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.data.DCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.data.oid4vp.Oid4vpDCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.data.preview.PreviewDCAPIRequest
 import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.domain.platform.UrlOpener
 import at.asitplus.wallet.lib.data.dif.ConstraintFieldsEvaluationException
@@ -43,6 +45,7 @@ import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -92,6 +95,7 @@ import ui.viewmodels.QrCodeScannerMode
 import ui.viewmodels.QrCodeScannerViewModel
 import ui.viewmodels.SigningQtspSelectionViewModel
 import ui.viewmodels.authentication.AuthenticationSuccessViewModel
+import ui.viewmodels.authentication.AuthenticationViewModel
 import ui.viewmodels.authentication.DCAPIAuthenticationViewModel
 import ui.viewmodels.authentication.DefaultAuthenticationViewModel
 import ui.viewmodels.authentication.PresentationViewModel
@@ -421,29 +425,50 @@ private fun WalletNavHost(
         }
 
         composable<DCAPIAuthenticationConsentRoute> { backStackEntry ->
-            val vm = remember {
+            val vm : AuthenticationViewModel = remember {
                 try {
-                    val dcApiRequest =
-                        DCAPIRequest.deserialize(backStackEntry.toRoute<DCAPIAuthenticationConsentRoute>().apiRequestSerialized)
-                            .getOrThrow()
+                    val apiRequestSerialized = backStackEntry.toRoute<DCAPIAuthenticationConsentRoute>().apiRequestSerialized
+                    val dcApiRequestPreview : DCAPIRequest =
+                        PreviewDCAPIRequest.deserialize(apiRequestSerialized).getOrNull() ?: Oid4vpDCAPIRequest.deserialize(apiRequestSerialized).getOrThrow()
 
-                    DCAPIAuthenticationViewModel(
-                        dcApiRequest = dcApiRequest,
-                        navigateUp = navigateBack,
-                        navigateToAuthenticationSuccessPage = {
-                            navigate(AuthenticationSuccessRoute(it, false))
-                        },
-                        walletMain = walletMain,
-                        navigateToHomeScreen = {
-                            popBackStack(HomeScreenRoute)
-                        },
-                        onClickLogo = onClickLogo,
-                        onClickSettings = { navigate(SettingsRoute) }
-                    )
+                    val t: AuthenticationViewModel = when (dcApiRequestPreview) {
+                        is PreviewDCAPIRequest -> DCAPIAuthenticationViewModel(
+                            dcApiRequestPreview = dcApiRequestPreview,
+                            navigateUp = navigateBack,
+                            navigateToAuthenticationSuccessPage = {
+                                navigate(AuthenticationSuccessRoute(it, false))
+                            },
+                            walletMain = walletMain,
+                            navigateToHomeScreen = {
+                                popBackStack(HomeScreenRoute)
+                            },
+                            onClickLogo = onClickLogo,
+                            onClickSettings = { navigate(SettingsRoute) }
+                        )
+
+                        is Oid4vpDCAPIRequest -> {
+                            walletMain.scope.launch(Dispatchers.IO) {
+                                val sth = walletMain.presentationService.parseAuthenticationRequestParameters(
+                                    dcApiRequestPreview.request
+                                )
+                                    .onFailure { e -> e.printStackTrace() }
+                                println("sth = ${sth}")
+
+                            }
+                            while(true) {
+
+                            }
+                            TODO()
+                        }
+
+                        else -> throw IllegalStateException("impossible")
+                    }
+                    t
+
                 } catch (e: Throwable) {
                     onError(e)
                     null
-                }
+                }!!
             }
 
             if (vm != null) {

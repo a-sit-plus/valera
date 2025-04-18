@@ -1,11 +1,12 @@
 package at.asitplus.wallet.app.common.dcapi.data.preview
 
 import at.asitplus.catching
+import at.asitplus.wallet.app.common.dcapi.data.DCAPIRequest
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class DCAPIRequest(
+data class PreviewDCAPIRequest(
     val request: String,
     // namespace -> name, intentToRetain
     val requestedData: MutableMap<String, MutableList<Pair<String, Boolean>>>,
@@ -15,18 +16,18 @@ data class DCAPIRequest(
     val nonce: ByteArray,
     val readerPublicKeyBase64: String,
     val docType: String
-) {
+) : DCAPIRequest() {
     init {
         require(callingOrigin != null || callingPackageName != null)
     }
 
-    fun serialize(): String = vckJsonSerializer.encodeToString(this)
+    override fun serialize(): String = vckJsonSerializer.encodeToString(this)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || this::class != other::class) return false
 
-        other as DCAPIRequest
+        other as PreviewDCAPIRequest
 
         if (request != other.request) return false
         if (requestedData != other.requestedData) return false
@@ -55,6 +56,6 @@ data class DCAPIRequest(
 
     companion object {
         fun deserialize(input: String) =
-            catching { vckJsonSerializer.decodeFromString<DCAPIRequest>(input) }
+            catching { vckJsonSerializer.decodeFromString<PreviewDCAPIRequest>(input) }
     }
 }

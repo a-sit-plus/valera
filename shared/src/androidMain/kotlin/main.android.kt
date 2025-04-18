@@ -18,8 +18,10 @@ import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.WalletDependencyProvider
+import at.asitplus.wallet.app.common.dcapi.data.DCAPIRequest
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialList
-import at.asitplus.wallet.app.common.dcapi.data.preview.DCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.data.oid4vp.Oid4vpDCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.data.preview.PreviewDCAPIRequest
 import at.asitplus.wallet.app.common.dcapi.data.preview.ResponseJSON
 import com.android.identity.android.mdoc.util.CredmanUtil
 import com.google.android.gms.identitycredentials.IdentityCredentialManager
@@ -158,7 +160,12 @@ public class AndroidPlatformAdapter(
                 val client = IdentityCredentialManager.Companion.getClient(context)
                 val credentialsListCbor = entries.serialize()
 
-                client.registerCredentials(IdentityCredentialHelper.toRegistrationRequest(context, credentialsListCbor)).await()
+                client.registerCredentials(
+                    IdentityCredentialHelper.toRegistrationRequest(
+                        context,
+                        credentialsListCbor
+                    )
+                ).await()
             }.onSuccess { Napier.i("DCAPI: Credential Manager registration succeeded") }
                 .onFailure { Napier.w("DCAPI: Credential Manager registration failed", it) }
         }
@@ -190,41 +197,48 @@ public class AndroidPlatformAdapter(
             val protocol = provider.getString("protocol")
             val request = provider.getString("request")
 
-            if (protocol == "preview") {
-                // Extract params from the preview protocol request
-                val previewRequest = JSONObject(request)
-                val selector = previewRequest.getJSONObject("selector")
-                val nonceBase64 = previewRequest.getString("nonce")
-                val readerPublicKeyBase64 = previewRequest.getString("readerPublicKey")
-                val docType = selector.getString("doctype")
+            when (protocol) {
+                "preview" -> {
+                    // Extract params from the preview protocol request
+                    val previewRequest = JSONObject(request)
+                    val selector = previewRequest.getJSONObject("selector")
+                    val nonceBase64 = previewRequest.getString("nonce")
+                    val readerPublicKeyBase64 = previewRequest.getString("readerPublicKey")
+                    val docType = selector.getString("doctype")
 
-                // Convert nonce and publicKey
-                val nonce = Base64.decode(nonceBase64, Base64.NO_WRAP or Base64.URL_SAFE)
+                    // Convert nonce and publicKey
+                    val nonce = Base64.decode(nonceBase64, Base64.NO_WRAP or Base64.URL_SAFE)
 
-                // Match all the requested fields
-                val fields = selector.getJSONArray("fields")
-                for (n in 0 until fields.length()) {
-                    val field = fields.getJSONObject(n)
-                    val name = field.getString("name")
-                    val namespace = field.getString("namespace")
-                    val intentToRetain = field.getBoolean("intentToRetain")
-                    requestedData.getOrPut(namespace) { mutableListOf() }
-                        .add(Pair(name, intentToRetain))
+                    // Match all the requested fields
+                    val fields = selector.getJSONArray("fields")
+                    for (n in 0 until fields.length()) {
+                        val field = fields.getJSONObject(n)
+                        val name = field.getString("name")
+                        val namespace = field.getString("namespace")
+                        val intentToRetain = field.getBoolean("intentToRetain")
+                        requestedData.getOrPut(namespace) { mutableListOf() }
+                            .add(Pair(name, intentToRetain))
+                    }
+
+                    PreviewDCAPIRequest(
+                        request,
+                        requestedData,
+                        credentialId,
+                        callingPackageName,
+                        callingOrigin,
+                        nonce,
+                        readerPublicKeyBase64,
+                        docType
+                    )
                 }
+                "openid4vp" -> {
 
-                DCAPIRequest(
-                    request,
-                    requestedData,
-                    credentialId,
-                    callingPackageName,
-                    callingOrigin,
-                    nonce,
-                    readerPublicKeyBase64,
-                    docType
-                )
-            } else {
-                Napier.w("Protocol type not supported")
-                null
+                    Oid4vpDCAPIRequest(request)
+                }
+                else -> {
+                    Napier.w("Protocol type not supported")
+                    null
+                }
             }
         }
     }
@@ -232,23 +246,23 @@ public class AndroidPlatformAdapter(
     @OptIn(ExperimentalEncodingApi::class)
     override fun prepareDCAPICredentialResponse(
         responseJson: ByteArray,
-        dcApiRequest: DCAPIRequest
+        dcApiRequestPreview: PreviewDCAPIRequest
     ) {
         val readerPublicKey = EcPublicKeyDoubleCoordinate.fromUncompressedPointEncoding(
             EcCurve.P256,
-            Base64.decode(dcApiRequest.readerPublicKeyBase64, Base64.NO_WRAP or Base64.URL_SAFE)
+            Base64.decode(dcApiRequestPreview.readerPublicKeyBase64, Base64.NO_WRAP or Base64.URL_SAFE)
         )
         // Generate the Session Transcript
-        val encodedSessionTranscript = if (dcApiRequest.callingOrigin == null) {
+        val encodedSessionTranscript = if (dcApiRequestPreview.callingOrigin == null) {
             CredmanUtil.generateAndroidSessionTranscript(
-                dcApiRequest.nonce,
-                dcApiRequest.callingPackageName!!,
+                dcApiRequestPreview.nonce,
+                dcApiRequestPreview.callingPackageName!!,
                 Crypto.digest(Algorithm.SHA256, readerPublicKey.asUncompressedPointEncoding)
             )
         } else {
             CredmanUtil.generateBrowserSessionTranscript(
-                dcApiRequest.nonce,
-                dcApiRequest.callingOrigin,
+                dcApiRequestPreview.nonce,
+                dcApiRequestPreview.callingOrigin,
                 Crypto.digest(Algorithm.SHA256, readerPublicKey.asUncompressedPointEncoding)
             )
         }
