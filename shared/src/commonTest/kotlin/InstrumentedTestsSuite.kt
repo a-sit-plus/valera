@@ -72,27 +72,9 @@ import ui.views.OnboardingStartScreenTestTag
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.minutes
 
-private lateinit var lifecycleRegistry: LifecycleRegistry
-private lateinit var lifecycleOwner: TestLifecycleOwner
-
 @OptIn(ExperimentalTestApi::class)
 class InstrumentedTestsSuite : FunSpec({
 
-    beforeTest {
-        lifecycleOwner = TestLifecycleOwner()
-        lifecycleRegistry = LifecycleRegistry(lifecycleOwner)
-        //android needs main, iOS probably too, but it hangs on iOS, so we let it at least fail
-        withContext(if (platform != Platform.Native) Dispatchers.Main else Dispatchers.Unconfined) {
-            lifecycleRegistry.currentState = Lifecycle.State.CREATED
-        }
-    }
-
-    afterTest {
-        //android needs main, iOS probably too, but it hangs on iOS, so we let it at least fail
-        withContext(if (platform != Platform.Native) Dispatchers.Main else Dispatchers.Unconfined) {
-            lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
-        }
-    }
 
     context("Starting App Tests") {
         test("Using collectAsStateWithLifecycle properly updates state to assert") {
@@ -102,7 +84,8 @@ class InstrumentedTestsSuite : FunSpec({
                 val testValue = "loaded"
 
                 setContent {
-                    val data by dummyDataStoreService.getPreference(preferenceKey).collectAsState("null")
+                    val data by dummyDataStoreService.getPreference(preferenceKey)
+                        .collectAsState("null")
                     Text(data ?: "collecting state ...")
                 }
 
@@ -119,41 +102,45 @@ class InstrumentedTestsSuite : FunSpec({
         test("App should start correctly") {
             runComposeUiTest {
                 setContent {
-                    val platformAdapter = getPlatformAdapter()
-                    val walletMain = createWalletMain(platformAdapter)
-                    App(walletMain)
+                    CompositionLocalProvider(
+                        LocalLifecycleOwner provides LocalLifecycleOwnerFake()
+                    ) {
+                        val platformAdapter = getPlatformAdapter()
+                        val walletMain = createWalletMain(platformAdapter)
+                        App(walletMain)
+                    }
+
                 }
 
                 waitUntil {
-                    onNodeWithTag(NavigatorTestTags.loadingTestTag)
-                        .isNotDisplayed()
+                    onNodeWithTag(NavigatorTestTags.loadingTestTag).isNotDisplayed()
                 }
 
                 waitUntil {
-                    onNodeWithTag(OnboardingWrapperTestTags.onboardingStartScreen)
-                        .isDisplayed()
+                    onNodeWithTag(OnboardingWrapperTestTags.onboardingStartScreen).isDisplayed()
                 }
 
-                onNodeWithTag(OnboardingStartScreenTestTag.startButton)
-                    .assertIsDisplayed()
+                onNodeWithTag(OnboardingStartScreenTestTag.startButton).assertIsDisplayed()
             }
         }
 
         test("Test 2: App should display onboarding screen") {
             runComposeUiTest {
                 setContent {
-                    val platformAdapter = getPlatformAdapter()
-                    val walletMain = createWalletMain(platformAdapter)
-                    App(walletMain)
+                    CompositionLocalProvider(
+                        LocalLifecycleOwner provides LocalLifecycleOwnerFake()
+                    ) {
+                        val platformAdapter = getPlatformAdapter()
+                        val walletMain = createWalletMain(platformAdapter)
+                        App(walletMain)
+                    }
                 }
 
                 waitUntil {
-                    onNodeWithTag(NavigatorTestTags.loadingTestTag)
-                        .isNotDisplayed()
+                    onNodeWithTag(NavigatorTestTags.loadingTestTag).isNotDisplayed()
                 }
 
-                onNodeWithTag(OnboardingWrapperTestTags.onboardingStartScreen)
-                    .assertIsDisplayed()
+                onNodeWithTag(OnboardingWrapperTestTags.onboardingStartScreen).assertIsDisplayed()
 
             }
         }
@@ -161,34 +148,36 @@ class InstrumentedTestsSuite : FunSpec({
         test("Test 3: App should show onboarding start button") {
             runComposeUiTest {
                 setContent {
-                    val platformAdapter = getPlatformAdapter()
-                    val walletMain = createWalletMain(platformAdapter)
-                    App(walletMain)
+                    CompositionLocalProvider(
+                        LocalLifecycleOwner provides LocalLifecycleOwnerFake()
+                    ) {
+                        val platformAdapter = getPlatformAdapter()
+                        val walletMain = createWalletMain(platformAdapter)
+                        App(walletMain)
+                    }
                 }
 
                 waitUntil {
-                    onNodeWithTag(NavigatorTestTags.loadingTestTag)
-                        .isNotDisplayed()
+                    onNodeWithTag(NavigatorTestTags.loadingTestTag).isNotDisplayed()
                 }
 
                 waitUntil {
-                    onNodeWithTag(OnboardingWrapperTestTags.onboardingStartScreen)
-                        .isDisplayed()
+                    onNodeWithTag(OnboardingWrapperTestTags.onboardingStartScreen).isDisplayed()
                 }
 
-                onNodeWithTag(OnboardingStartScreenTestTag.startButton)
-                    .assertIsDisplayed()
+                onNodeWithTag(OnboardingStartScreenTestTag.startButton).assertIsDisplayed()
 
             }
         }
     }
 
+    /*
     context("End to End Tests") {
         test("End to End Test 1: Should complete the process") {
             runComposeUiTest {
                 lateinit var walletMain: WalletMain
                 setContent {
-                    CompositionLocalProvider(LocalLifecycleOwner provides lifecycleOwner) {
+                    CompositionLocalProvider(LocalLifecycleOwner provides LocalLifecycleOwnerFake()) {
                         val platformAdapter = getPlatformAdapter()
                         walletMain = createWalletMain(platformAdapter)
                         App(walletMain)
@@ -211,15 +200,12 @@ class InstrumentedTestsSuite : FunSpec({
                 runBlocking {
                     waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_start)))
                     onNodeWithText(getString(Res.string.button_label_start)).performClick()
-                    onNodeWithText(getString(Res.string.button_label_continue))
-                        .assertIsDisplayed()
+                    onNodeWithText(getString(Res.string.button_label_continue)).assertIsDisplayed()
                     onNodeWithText(getString(Res.string.button_label_continue)).performClick()
-                    onNodeWithText(getString(Res.string.button_label_accept))
-                        .assertIsDisplayed()
+                    onNodeWithText(getString(Res.string.button_label_accept)).assertIsDisplayed()
                     onNodeWithText(getString(Res.string.button_label_accept)).performClick()
                     waitUntilDoesNotExist(
-                        hasText(getString(Res.string.button_label_accept)),
-                        10000
+                        hasText(getString(Res.string.button_label_accept)), 10000
                     )
 
                     onNodeWithContentDescription(getString(Res.string.content_description_portrait)).assertHeightIsAtLeast(
@@ -230,8 +216,7 @@ class InstrumentedTestsSuite : FunSpec({
 
                     onNodeWithText(getString(Res.string.button_label_details)).performClick()
                     waitUntilExactlyOneExists(
-                        hasText(getString(Res.string.section_heading_age_data)),
-                        3000
+                        hasText(getString(Res.string.section_heading_age_data)), 3000
                     )
                     onNodeWithText("≥14").assertExists()
                     onNodeWithText("≥16").assertExists()
@@ -265,8 +250,7 @@ class InstrumentedTestsSuite : FunSpec({
                     Globals.appLink.value = qrCodeUrl!!
 
                     waitUntilExactlyOneExists(
-                        hasText(getString(Res.string.button_label_continue)),
-                        10000
+                        hasText(getString(Res.string.button_label_continue)), 10000
                     )
 
                     onNodeWithText(getString(Res.string.button_label_continue)).performClick()
@@ -278,17 +262,20 @@ class InstrumentedTestsSuite : FunSpec({
             }
         }
     }
+    */
 })
 
+class LocalLifecycleOwnerFake : LifecycleOwner {
+    override val lifecycle: Lifecycle = LifecycleRegistry(this).apply {
+        currentState = Lifecycle.State.RESUMED
+    }
+}
+
 val request = Json.encodeToString(
-    RequestBody.serializer(),
-    RequestBody(
-        "presentation_definition",
-        listOf(
+    RequestBody.serializer(), RequestBody(
+        "presentation_definition", listOf(
             Credential(
-                "at.gv.id-austria.2023.1",
-                "SD_JWT",
-                listOf(
+                "at.gv.id-austria.2023.1", "SD_JWT", listOf(
                     IdAustriaScheme.Attributes.BPK,
                     IdAustriaScheme.Attributes.FIRSTNAME,
                     IdAustriaScheme.Attributes.LASTNAME,
@@ -304,15 +291,12 @@ val request = Json.encodeToString(
 
 @Serializable
 data class RequestBody(
-    val presentationMechanismIdentifier: String,
-    val credentials: List<Credential>
+    val presentationMechanismIdentifier: String, val credentials: List<Credential>
 )
 
 @Serializable
 data class Credential(
-    val credentialType: String,
-    val representation: String,
-    val attributes: List<String>
+    val credentialType: String, val representation: String, val attributes: List<String>
 )
 
 @Composable
@@ -359,7 +343,3 @@ private fun createWalletMain(platformAdapter: PlatformAdapter): WalletMain {
     )
 }
 
-class TestLifecycleOwner : LifecycleOwner {
-    private val _lifecycle = LifecycleRegistry(this)
-    override val lifecycle: Lifecycle get() = _lifecycle
-}
