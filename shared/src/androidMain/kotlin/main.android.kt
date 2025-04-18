@@ -155,7 +155,7 @@ public class AndroidPlatformAdapter(
         context.startActivity(Intent.createChooser(intent, null))
     }
 
-    override fun registerWithDigitalCredentialsAPI(entries: CredentialList) {
+    override fun registerWithDigitalCredentialsAPI(entries: CredentialList, scope: CoroutineScope) {
         scope.launch(Dispatchers.Default) {
             catching {
                 //val registry = IdentityCredentialHelper(entries, this@AndroidPlatformAdapter)
