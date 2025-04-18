@@ -166,7 +166,7 @@ class WalletMain(
             httpService
         )
 
-        this.dcApiExportService = DCAPIExportService(platformAdapter)
+        this.dcApiExportService = DCAPIExportService(platformAdapter, scope)
         startListeningForNewCredentialsDCAPI()
     }
 
@@ -320,8 +320,9 @@ interface PlatformAdapter {
     /**
      * Registers credentials with the digital credentials browser API
      * @param entries credentials to add
+     * @param scope CoroutineScope for registering credentials
      */
-    fun registerWithDigitalCredentialsAPI(entries: CredentialList)
+    fun registerWithDigitalCredentialsAPI(entries: CredentialList, scope: CoroutineScope)
 
     /**
      * Retrieves request from the digital credentials browser API
@@ -352,7 +353,7 @@ class DummyPlatformAdapter : PlatformAdapter {
     override fun shareLog() {
     }
 
-    override fun registerWithDigitalCredentialsAPI(entries: CredentialList) {
+    override fun registerWithDigitalCredentialsAPI(entries: CredentialList, scope: CoroutineScope) {
     }
 
     override fun getCurrentDCAPIData(): DCAPIRequest? {
