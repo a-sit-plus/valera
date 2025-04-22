@@ -31,9 +31,6 @@ import ui.views.CameraView
 fun VerifierQrEngagementView(vm: VerifierViewModel) {
 
     var hasPermissions by remember { mutableStateOf(false) }
-
-    val vm = remember { vm }
-
     if (!hasPermissions) {
         Text(stringResource(Res.string.info_text_missing_permission))
     }

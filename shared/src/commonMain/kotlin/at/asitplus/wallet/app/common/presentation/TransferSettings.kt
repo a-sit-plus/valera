@@ -12,7 +12,7 @@ data class TransferSettings(
     val presentmentUseNegotiatedHandover: Boolean = true,
     val presentmentBleCentralClientModeEnabled: Boolean = true,
     val presentmentBlePeripheralServerModeEnabled: Boolean = false,
-    val presentmentNfcDataTransferEnabled: Boolean = false,
+    val presentmentNfcDataTransferEnabled: Boolean = true,
     val readerBleL2CapEnabled: Boolean = true,
     val presentmentAllowMultipleRequests: Boolean = false,
     val readerAutomaticallySelectTransport: Boolean = true,

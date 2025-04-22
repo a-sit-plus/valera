@@ -49,12 +49,10 @@ import ui.viewmodels.iso.VerifierViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VerifierCustomSelectionView(vm: VerifierViewModel) {
-    val vm = remember { vm }
     var selectedDocumentType by remember { mutableStateOf(documentTypeToNameSpace.keys.toList()[0]) }
     var selectedEntries by remember { mutableStateOf(setOf<StringResource>()) }
 
-    // TODO:
-    //  - fix possible data selection (default per type un-/select handling)
+    // TODO: fix possible data selection (default per type un-/select handling)
 
     Scaffold(
         topBar = {

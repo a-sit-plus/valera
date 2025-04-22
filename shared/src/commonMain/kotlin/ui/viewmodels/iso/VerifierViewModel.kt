@@ -116,9 +116,9 @@ class VerifierViewModel(
                 }
             }
         } else {
-            Napier.w("QR-Code does not start with \"mdoc:\"")
-            // TODO: add string resource for error code
-            handleError("Invalid QR-Code:\nQR-Code does not start with \"mdoc:\"")
+            val errorMessage = "Invalid QR-Code:\nQR-Code does not start with \"mdoc:\""
+            Napier.e(errorMessage)
+            handleError(errorMessage)
         }
     }
 }

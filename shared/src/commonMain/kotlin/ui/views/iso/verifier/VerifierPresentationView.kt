@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -19,8 +20,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.heading_label_received_data
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.decodeToImageBitmap
+import org.jetbrains.compose.resources.stringResource
 import ui.composables.LabeledContent
 import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
@@ -32,14 +36,13 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 )
 @Composable
 fun VerifierPresentationView(vm: VerifierViewModel) {
-
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            "Received Data",
+                            text = stringResource(Res.string.heading_label_received_data),
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.headlineMedium,
                         )
@@ -57,7 +60,11 @@ fun VerifierPresentationView(vm: VerifierViewModel) {
                 horizontalAlignment = Alignment.Start
             ) {
                 vm.deviceResponse.value!!.documents!!.forEach {
-                    Text("DocType: ${it.docType}")
+                    Text(
+                        text = "DocType: ${it.docType}",
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                    Spacer(modifier = Modifier.size(4.dp))
                     it.issuerSigned.namespaces?.forEach { namespace ->
                         namespace.value.entries.sortedBy { it.value.elementIdentifier }
                             .forEach { entry ->
@@ -87,12 +94,14 @@ fun VerifierPresentationView(vm: VerifierViewModel) {
                                             Text(
                                                 text = entry.value.elementValue.prettyToString(),
                                                 overflow = TextOverflow.Clip,
-                                                modifier = Modifier.fillMaxWidth()
+                                                modifier = Modifier.fillMaxWidth(),
+                                                style = MaterialTheme.typography.bodyMedium
                                             )
                                         },
                                         label = elementIdentifier
                                     )
                                 }
+                                Spacer(modifier = Modifier.size(4.dp))
                             }
                     }
                 }

@@ -21,6 +21,7 @@
     <string name="button_label_confirm">Bestätigen</string>
     <string name="button_label_dismiss">Abbrechen</string>
     <string name="button_label_ok">Ok</string>
+    <string name="button_label_retry">Erneut versuchen</string>
     <string name="button_label_authenticate">Anmelden</string>
     <string name="button_label_show_data">Vorzeigen</string>
     <string name="button_label_accept">Akzeptieren</string>
@@ -225,6 +226,7 @@
     <string name="heading_label_authenticate_at_device_title">Anmelden</string>
     <string name="heading_label_authenticate_at_device_subtitle">an Service Provider</string>
     <string name="heading_label_show_data">Daten Vorzeigen</string>
+    <string name="heading_label_show_data_third_party">Daten vorzeigen an dritte Bürger</string>
     <string name="heading_label_authentication_success">Angemeldet</string>
     <string name="heading_label_settings_screen">Einstellungen</string>
     <string name="heading_label_error_screen">Fehler</string>
@@ -247,6 +249,7 @@
     <string name="heading_label_select_custom_data_retrieval_screen">Individuelle Anfrage</string>
     <string name="heading_label_check_scan_qr_code">QR-Code Scannen</string>
     <string name="heading_label_show_qr_code_screen">Scan mich!</string>
+    <string name="heading_label_received_data">Erhaltene Daten</string>
 
     <string name="description_read_terms">Bitte lesen und akzeptieren Sie die Nutzungsbedingungen und Datenschutzerklärung.</string>
 
@@ -300,6 +303,7 @@
     <string name="error_qr_code_scanning_client_id_not_in_redirect_uris">Client-ID ist nicht in den Metadaten unter `redirect_uris` enthalten.</string>
     <string name="error_missing_permissions">Fehlende Erlaubnis</string>
     <string name="error_missing_value">Fehler es sind keine Daten gegeben</string>
+    <string name="error_bluetooth_unavailable">Bluetooth ist nicht verfügbar</string>
 
     <string name="info_text_show_data_situation">In welcher Situation möchten Sie Ihre Daten vorzeigen?</string>
     <string name="info_text_error_occurred">Es ist ein Fehler aufgetreten.</string>
@@ -315,6 +319,7 @@
     <string name="info_text_data_is_being_loaded">Daten werden geladen</string>
     <string name="info_text_missing_permission">Berechtigung fehlt</string>
     <string name="info_text_qr_code_loading">QR-Code wird geladen</string>
+    <string name="info_text_finished">Fertig</string>
 
     <string name="section_heading_authenticate_at_device_title">Anmelden</string>
     <string name="section_heading_authenticate_at_device_subtitle">an Service Provider</string>
@@ -393,7 +398,6 @@
 
     <!-- DeviceEngagementMethods -->
     <string name="section_heading_request_engagement_method">Verbindungsaufbau via</string>
-
     <string name="nfc">NFC</string>
     <string name="qr">QR-Code</string>
 </resources>

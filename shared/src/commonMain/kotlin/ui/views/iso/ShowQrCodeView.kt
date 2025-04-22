@@ -19,7 +19,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -29,10 +28,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.button_label_retry
+import at.asitplus.valera.resources.error_bluetooth_unavailable
+import at.asitplus.valera.resources.error_missing_permissions
 import at.asitplus.valera.resources.heading_label_show_qr_code_screen
+import at.asitplus.valera.resources.info_text_finished
 import at.asitplus.valera.resources.info_text_qr_code_loading
 import at.asitplus.wallet.app.common.iso.transfer.BluetoothInfo
-import io.github.aakira.napier.Napier
 import io.github.alexzhirkevich.qrose.rememberQrCodePainter
 import kotlinx.coroutines.launch
 import kotlinx.io.bytestring.ByteString
@@ -49,21 +51,11 @@ import ui.viewmodels.iso.ShowQrCodeViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
-    val tag = "ShowQrCodeView"
-
-    val vm = remember { vm }
-    val coroutineScope = vm.walletMain.scope
     val blePermissionState = rememberBluetoothPermissionState()
     val showQrCode = remember { mutableStateOf<ByteString?>(null) }
     val isBluetoothEnabled = BluetoothInfo().isBluetoothEnabled()
     val presentationStateModel = remember { vm.presentationStateModel }
     val showQrCodeState by vm.showQrCodeState.collectAsState()
-
-    DisposableEffect(Unit) {
-        onDispose {
-            Napier.d("Disposing ShowQrCodeView")
-        }
-    }
 
     Scaffold(
         topBar = {
@@ -102,11 +94,10 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
 
                     ShowQrCodeState.BLUETOOTH_DISABLED -> {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            // TODO: Add string resource for that
-                            Text("Bluetooth is not available, please turn it on.")
+                            Text(stringResource(Res.string.error_bluetooth_unavailable))
                             TextIconButton(
                                 icon = { Icons.Default.Repeat },
-                                text = { Text("Retry") },
+                                text = { Text(stringResource(Res.string.button_label_retry)) },
                                 onClick = { vm.setState(ShowQrCodeState.INIT) }
                             )
                         }
@@ -118,14 +109,13 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
                             verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text("Missing Permission.")
-                            coroutineScope.launch {
-                                Napier.d("blePermissionState.launchPermissionRequest()", tag = tag)
+                            Text(stringResource(Res.string.error_missing_permissions))
+                            vm.walletMain.scope.launch {
                                 blePermissionState.launchPermissionRequest()
                             }
                             TextIconButton(
                                 icon = { Icons.Default.Repeat },
-                                text = { Text("Retry") },
+                                text = { Text(stringResource(Res.string.button_label_retry)) },
                                 onClick = { vm.setState(ShowQrCodeState.INIT) }
                             )
                             // TODO handle case when user needs to go to settings application to grant permission
@@ -138,8 +128,6 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
                             LaunchedEffect(showQrCode.value) {
                                 if (vm.hasBeenCalledHack) return@LaunchedEffect
                                 vm.hasBeenCalledHack = true
-
-                                Napier.d("ShowQrCodeView: Starting QR Flow")
                                 vm.setupPresentmentModel()
                                 vm.doHolderFlow(showQrCode)
                             }
@@ -149,9 +137,7 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
                     }
 
                     ShowQrCodeState.SHOW_QR_CODE -> {
-                        val deviceEngagementQrCode =
-                            "mdoc:" + showQrCode.value!!.toByteArray().toBase64Url()
-                        Napier.d("qrCode = \n$deviceEngagementQrCode", tag = tag)
+                        val deviceEngagementQrCode = "mdoc:" + showQrCode.value!!.toByteArray().toBase64Url()
                         Image(
                             painter = rememberQrCodePainter(deviceEngagementQrCode),
                             contentDescription = null,
@@ -160,7 +146,7 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
                     }
 
                     ShowQrCodeState.FINISHED -> {
-                        Text("FINISHED")
+                        Text(stringResource(Res.string.info_text_finished))
                     }
                 }
             }
