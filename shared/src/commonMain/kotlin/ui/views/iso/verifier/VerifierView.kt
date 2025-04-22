@@ -16,6 +16,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.multipaz.compose.permissions.rememberBluetoothPermissionState
+import ui.viewmodels.ErrorViewModel
 import ui.viewmodels.iso.VerifierState
 import ui.viewmodels.iso.VerifierViewModel
 import ui.views.ErrorView
@@ -76,13 +77,13 @@ fun VerifierView(
 
         VerifierState.ERROR -> {
             ErrorView(
-                message = vm.errorMessage.value,
-                resetStack = vm.navigateUp,
-                cause = null,
-                onClickLogo = vm.onClickLogo
+                ErrorViewModel(
+                    resetStack = vm.navigateToHomeScreen,
+                    message = vm.errorMessage.value,
+                    cause = null,
+                    onClickLogo = vm.onClickLogo
+                )
             )
-            // TODO: decide if ErrorView should be used for that
-            //  - see ShowQrCodeView for comparison
         }
     }
 }

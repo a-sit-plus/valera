@@ -344,26 +344,29 @@ private fun WalletNavHost(
         }
 
         composable<ShowQrCodeRoute> {
-            val vm = ShowQrCodeViewModel(
-                walletMain = walletMain,
-                navigateUp = { navigateBack() },
-                onClickLogo = onClickLogo,
-                onNavigateToPresentmentScreen = {
-                    presentationStateModel.value = it
-                    navigate(LocalPresentationAuthenticationConsentRoute("QR"))
-                }
-            )
-            ShowQrCodeView(vm)
+            ShowQrCodeView(remember {
+                ShowQrCodeViewModel(
+                    walletMain = walletMain,
+                    navigateUp = { navigateBack() },
+                    onClickLogo = onClickLogo,
+                    onNavigateToPresentmentScreen = {
+                        Globals.presentationStateModel.value = it
+                        navigate(LocalPresentationAuthenticationConsentRoute("QR"))
+                    }
+                )
+            })
         }
 
         composable<VerifyDataRoute> {
-            val vm = VerifierViewModel(
-                navigateUp = { navigateBack() },
-                onClickLogo = onClickLogo,
-                walletMain = walletMain
-            )
             VerifierView(
-                vm = vm,
+                vm = remember {
+                    VerifierViewModel(
+                        navigateUp = { navigateBack() },
+                        onClickLogo = onClickLogo,
+                        walletMain = walletMain,
+                        navigateToHomeScreen = { popBackStack(HomeScreenRoute) }
+                    )
+                },
                 bottomBar = {
                     BottomBar(
                         navigate = navigate,
@@ -372,6 +375,7 @@ private fun WalletNavHost(
                 }
             )
         }
+
         composable<AuthenticationViewRoute> { backStackEntry ->
             val route: AuthenticationViewRoute = backStackEntry.toRoute()
 
@@ -448,22 +452,23 @@ private fun WalletNavHost(
         }
 
         composable<LocalPresentationAuthenticationConsentRoute> { backStackEntry ->
-            val vm = try {
-                Globals.presentationStateModel.value?.let {
-                    PresentationViewModel(
-                        it,
-                        navigateUp = { popBackStack(HomeScreenRoute) },
-                        onAuthenticationSuccess = {
-                        },
-                        navigateToHomeScreen = { popBackStack(HomeScreenRoute) },
-                        walletMain = walletMain,
-                        onClickLogo = onClickLogo
-                    )
-                } ?: throw IllegalStateException("No presentation view model set")
-            } catch (e: Throwable) {
-                popBackStack(HomeScreenRoute)
-                walletMain.errorService.emit(e)
-                null
+            val vm = remember {
+                try {
+                    Globals.presentationStateModel.value?.let {
+                        PresentationViewModel(
+                            it,
+                            navigateUp = { popBackStack(HomeScreenRoute) },
+                            onAuthenticationSuccess = { },
+                            navigateToHomeScreen = { popBackStack(HomeScreenRoute) },
+                            walletMain = walletMain,
+                            onClickLogo = onClickLogo
+                        )
+                    } ?: throw IllegalStateException("No presentation view model set")
+                } catch (e: Throwable) {
+                    popBackStack(HomeScreenRoute)
+                    walletMain.errorService.emit(e)
+                    null
+                }
             }
 
             if (vm != null) {

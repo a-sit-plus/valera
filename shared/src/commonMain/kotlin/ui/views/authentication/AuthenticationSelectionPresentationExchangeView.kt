@@ -31,6 +31,7 @@ import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.CredentialSelectionGroup
+import ui.viewmodels.ErrorViewModel
 import ui.viewmodels.authentication.AuthenticationSelectionPresentationExchangeViewModel
 import ui.views.ErrorView
 
@@ -39,10 +40,12 @@ fun AuthenticationSelectionPresentationExchangeView(vm: AuthenticationSelectionP
     val iterableRequests = vm.iterableRequests
     if (iterableRequests.isEmpty()) {
         ErrorView(
-            // TODO: just make a popup
-            message = "No Requests found",
-            cause = null,
-            onClickLogo = vm.onClickLogo
+            ErrorViewModel(
+                resetStack = vm.navigateToHomeScreen,
+                message = "No Requests found",
+                cause = null,
+                onClickLogo = vm.onClickLogo,
+            )
         )
     } else {
         val currentRequest = vm.iterableRequests[vm.requestIterator.value]
@@ -65,9 +68,11 @@ fun AuthenticationSelectionPresentationExchangeView(vm: AuthenticationSelectionP
                 val matchingCredentials = currentRequest.second
 
                 val attributeSelection =
-                    vm.attributeSelection[requestId] ?: throw Throwable("No selection with requestId")
+                    vm.attributeSelection[requestId]
+                        ?: throw Throwable("No selection with requestId")
                 val credentialSelection =
-                    vm.credentialSelection[requestId] ?: throw Throwable("No selection with requestId")
+                    vm.credentialSelection[requestId]
+                        ?: throw Throwable("No selection with requestId")
                 CredentialSelectionGroup(
                     matchingCredentials = matchingCredentials,
                     attributeSelection = attributeSelection,
@@ -84,65 +89,65 @@ fun AuthenticationSelectionPresentationExchangeView(vm: AuthenticationSelectionP
     }
 }
 
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Composable
-    fun AuthenticationSelectionViewScaffold(
-        onClickLogo: () -> Unit,
-        onNavigateUp: () -> Unit,
-        onNext: () -> Unit,
-        modifier: Modifier = Modifier,
-        content: @Composable () -> Unit,
-    ) {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = {
-                        Row(
-                            Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                stringResource(Res.string.heading_label_navigate_back),
-                                modifier = Modifier.weight(1f),
-                                style = MaterialTheme.typography.titleLarge,
-                            )
-                            Logo(onClick = onClickLogo)
-                        }
-                    },
-                    navigationIcon = {
-                        NavigateUpButton(onClick = onNavigateUp)
-                    },
-                )
-            },
-            bottomBar = {
-                Surface(
-                    color = NavigationBarDefaults.containerColor,
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.SpaceEvenly,
-                        modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AuthenticationSelectionViewScaffold(
+    onClickLogo: () -> Unit,
+    onNavigateUp: () -> Unit,
+    onNext: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = stringResource(Res.string.prompt_select_credential),
-                            style = MaterialTheme.typography.bodyMedium,
+                            stringResource(Res.string.heading_label_navigate_back),
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.titleLarge,
                         )
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center,
-                        ) {
-                            Button(onClick = onNext) {
-                                Text(stringResource(Res.string.button_label_continue))
-                            }
+                        Logo(onClick = onClickLogo)
+                    }
+                },
+                navigationIcon = {
+                    NavigateUpButton(onClick = onNavigateUp)
+                },
+            )
+        },
+        bottomBar = {
+            Surface(
+                color = NavigationBarDefaults.containerColor,
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.SpaceEvenly,
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                ) {
+                    Text(
+                        text = stringResource(Res.string.prompt_select_credential),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                    ) {
+                        Button(onClick = onNext) {
+                            Text(stringResource(Res.string.button_label_continue))
                         }
                     }
                 }
-            },
-            modifier = modifier,
-        ) {
-            Box(modifier = Modifier.padding(it)) {
-                content()
             }
+        },
+        modifier = modifier,
+    ) {
+        Box(modifier = Modifier.padding(it)) {
+            content()
         }
     }
+}

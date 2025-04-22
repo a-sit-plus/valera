@@ -16,6 +16,7 @@ class VerifierViewModel(
     val navigateUp: () -> Unit,
     val onClickLogo: () -> Unit,
     val walletMain: WalletMain,
+    val navigateToHomeScreen: () -> Unit
 ) {
 
     private val transferManager: TransferManager by lazy {

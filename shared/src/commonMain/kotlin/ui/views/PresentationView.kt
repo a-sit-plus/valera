@@ -185,6 +185,7 @@ fun PresentationView(
                                 navigateUp = { presentationViewModel.viewState = AuthenticationViewState.Consent },
                                 onClickLogo = presentationViewModel.onClickLogo,
                                 credentialMatchingResult = matching,
+                                navigateToHomeScreen = presentationViewModel.navigateToHomeScreen
                             )
                             AuthenticationSelectionPresentationExchangeView(
                                 vm = viewModel,
