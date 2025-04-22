@@ -32,14 +32,15 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
+            implementation(compose.components.resources)
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material3)
             implementation(compose.materialIconsExtended)
             implementation("at.asitplus.wallet:vck-rqes:$vckVersion")
-            @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
-            implementation(compose.components.resources)
             api(vckOidCatalog.vck.openid.ktor)
+            api(libs.atomicfu)
             api(libs.credential.mdl)
             api(libs.credential.ida)
             api(libs.credential.eupid)
@@ -48,26 +49,19 @@ kotlin {
             api(libs.credential.companyregistration)
             api(libs.credential.healthid)
             api(libs.credential.taxid)
-            implementation(serialization("json"))
             api(napier())
-            implementation("androidx.datastore:datastore-preferences-core:1.1.1")
-            implementation("androidx.datastore:datastore-core-okio:1.1.1")
-            implementation("org.jetbrains.androidx.navigation:navigation-compose:2.8.0-alpha10")
-            api(libs.atomicfu)
+            implementation(serialization("json"))
             implementation(ktor("client-core"))
             implementation(ktor("client-cio"))
             implementation(ktor("client-logging"))
             implementation(ktor("client-content-negotiation"))
             implementation(ktor("serialization-kotlinx-json"))
-
             implementation(libs.multipaz)
             implementation(libs.multipaz.compose)
             implementation(libs.multipaz.doctypes)
+            implementation(libs.navigation.compose)
             implementation(libs.semver)
             implementation(libs.qrose)
-
-            implementation("io.coil-kt.coil3:coil-compose:3.1.0")
-            implementation("androidx.compose.material:material-icons-extended:1.7.8")
         }
 
         commonTest.dependencies {
@@ -84,11 +78,13 @@ kotlin {
             api("androidx.core:core-ktx:1.12.0")
             implementation("uk.uuid.slf4j:slf4j-android:1.7.30-0")
             implementation(ktor("client-android"))
-            implementation("androidx.camera:camera-camera2:1.3.0")
-            implementation("androidx.camera:camera-lifecycle:1.3.0")
-            implementation("androidx.camera:camera-view:1.3.0")
+            implementation(libs.androidx.camera.camera2)
+            implementation(libs.androidx.camera.lifecycle)
+            implementation(libs.androidx.camera.view)
             implementation("com.google.accompanist:accompanist-permissions:0.30.1")
             implementation("com.google.mlkit:barcode-scanning:17.2.0")
+            implementation(libs.datastore.preferences.core)
+            implementation(libs.datastore.core.okio)
             implementation(libs.play.services.identity.credentials)
             implementation(libs.multipaz.android.legacy)
         }
