@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -82,19 +83,19 @@ fun CustomFloatingActionMenu(addCredentialQr: () -> Unit, addCredential: () -> U
                 ) {
                     Column(modifier = Modifier.padding(end = 5.dp)) {
                         SecondaryFloatingActionButton(
-                            onClick = { addCredentialQr() },
-                            label = stringResource(Res.string.button_label_provision_credential_qr),
-                            icon = Icons.Default.QrCode,
-                        )
-                        Spacer(modifier = Modifier.size(5.dp))
-                        SecondaryFloatingActionButton(
                             onClick = { addCredential() },
                             label = stringResource(Res.string.button_label_provision_credential_browser),
                             icon = Icons.Default.Person,
                         )
+                        Spacer(modifier = Modifier.height(5.dp))
+                        SecondaryFloatingActionButton(
+                            onClick = { addCredentialQr() },
+                            label = stringResource(Res.string.button_label_provision_credential_qr),
+                            icon = Icons.Default.QrCode,
+                        )
                     }
                 }
-                Spacer(modifier = Modifier.size(10.dp))
+                Spacer(modifier = Modifier.height(10.dp))
                 MainFloatingActionButton(expanded = expanded, onChangeExpanded = onChangeExpanded)
             }
         }
