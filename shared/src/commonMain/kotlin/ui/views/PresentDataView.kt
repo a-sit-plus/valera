@@ -25,19 +25,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_authenticate
-import at.asitplus.valera.resources.button_label_show_data
+import at.asitplus.valera.resources.button_label_present_data
 import at.asitplus.valera.resources.heading_label_show_data
 import at.asitplus.valera.resources.info_text_show_data_situation
 import at.asitplus.valera.resources.section_heading_authenticate_at_device_subtitle
 import at.asitplus.valera.resources.section_heading_authenticate_at_device_title
-import at.asitplus.valera.resources.section_heading_show_data_to_other_citizen_subtitle
-import at.asitplus.valera.resources.section_heading_show_data_to_other_citizen_title
+import at.asitplus.valera.resources.section_heading_present_data_title
+import at.asitplus.valera.resources.section_heading_present_data_to_other_citizen_subtitle
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShowDataView(
+fun PresentDataView(
     onNavigateToAuthenticationQrCodeScannerView: () -> Unit,
     onNavigateToShowQrCodeView: () -> Unit,
     onClickLogo: () -> Unit,
@@ -71,19 +71,18 @@ fun ShowDataView(
             )
             LazyColumn {
                 item {
-                    ShowDataSelectionCardView(
+                    PresentDataSelectionCardView(
                         stringResource(Res.string.section_heading_authenticate_at_device_title),
                         stringResource(Res.string.section_heading_authenticate_at_device_subtitle),
                         stringResource(Res.string.button_label_authenticate),
                         onNavigateToAuthenticationQrCodeScannerView
                     )
                 }
-
                 item {
-                    ShowDataSelectionCardView(
-                        stringResource(Res.string.section_heading_show_data_to_other_citizen_title),
-                        stringResource(Res.string.section_heading_show_data_to_other_citizen_subtitle),
-                        stringResource(Res.string.button_label_show_data),
+                    PresentDataSelectionCardView(
+                        stringResource(Res.string.section_heading_present_data_title),
+                        stringResource(Res.string.section_heading_present_data_to_other_citizen_subtitle),
+                        stringResource(Res.string.button_label_present_data),
                         onNavigateToShowQrCodeView
                     )
                 }
@@ -93,7 +92,7 @@ fun ShowDataView(
 }
 
 @Composable
-fun ShowDataSelectionCardView(
+fun PresentDataSelectionCardView(
     sectionHeadingTitle: String,
     sectionHeadingSubtitle: String,
     buttonLabel: String,

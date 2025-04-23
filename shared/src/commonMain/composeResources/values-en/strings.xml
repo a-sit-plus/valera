@@ -23,7 +23,7 @@
     <string name="button_label_ok">Ok</string>
     <string name="button_label_retry">Retry</string>
     <string name="button_label_authenticate">Authenticate</string>
-    <string name="button_label_show_data">Present Data</string>
+    <string name="button_label_present_data">Present Data</string>
     <string name="button_label_accept">Accept</string>
     <string name="button_label_cancel">Cancel</string>
     <string name="button_label_consent">Consent</string>
@@ -323,10 +323,9 @@
 
     <string name="section_heading_authenticate_at_device_title">Authenticate</string>
     <string name="section_heading_authenticate_at_device_subtitle">at relying party</string>
-    <string name="section_heading_show_data_to_executive_title">Show data to</string>
-    <string name="section_heading_show_data_to_executive_subtitle">Executive</string>
-    <string name="section_heading_show_data_to_other_citizen_title">Show data to</string>
-    <string name="section_heading_show_data_to_other_citizen_subtitle">other Citizen</string>
+    <string name="section_heading_present_data_title">Present data to</string>
+    <string name="section_heading_present_data_to_executive_subtitle">Executive</string>
+    <string name="section_heading_present_data_to_other_citizen_subtitle">other Citizen</string>
     <string name="section_heading_actions">Actions</string>
     <string name="section_heading_information">Information</string>
     <string name="section_heading_requested_data">Requested Data</string>

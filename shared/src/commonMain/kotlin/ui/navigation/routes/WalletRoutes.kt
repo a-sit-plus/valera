@@ -40,7 +40,7 @@ data class ErrorRoute(val message: String?, val cause: String?) : Route()
 object LoadingRoute : Route()
 
 @Serializable
-object ShowDataRoute : Route()
+object PresentDataRoute : Route()
 
 @Serializable
 object AuthenticationQrCodeScannerRoute : Route()

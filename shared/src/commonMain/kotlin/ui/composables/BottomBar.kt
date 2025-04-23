@@ -21,7 +21,7 @@ import org.jetbrains.compose.resources.stringResource
 import ui.navigation.routes.HomeScreenRoute
 import ui.navigation.routes.Route
 import ui.navigation.routes.SettingsRoute
-import ui.navigation.routes.ShowDataRoute
+import ui.navigation.routes.PresentDataRoute
 import ui.navigation.routes.VerifyDataRoute
 
 @Composable
@@ -29,7 +29,7 @@ fun BottomBar(navigate: (Route) -> Unit, selected: NavigationData) {
     NavigationBar {
         for (route in listOf(
             NavigationData.HOME_SCREEN,
-            NavigationData.SHOW_DATA_SCREEN,
+            NavigationData.PRESENT_DATA_SCREEN,
             NavigationData.VERIFY_DATA_SCREEN,
             NavigationData.INFORMATION_SCREEN,
         )) {
@@ -69,7 +69,7 @@ enum class NavigationData(
         destination = HomeScreenRoute,
         isActive = { it is HomeScreenRoute },
     ),
-    SHOW_DATA_SCREEN(
+    PRESENT_DATA_SCREEN(
         title = Res.string.navigation_button_label_show_data,
         icon = {
             Icon(
@@ -77,8 +77,8 @@ enum class NavigationData(
                 contentDescription = null,
             )
         },
-        destination = ShowDataRoute,
-        isActive = { it is ShowDataRoute }
+        destination = PresentDataRoute,
+        isActive = { it is PresentDataRoute }
     ),
     VERIFY_DATA_SCREEN(
         title = Res.string.navigation_button_label_check,

@@ -68,7 +68,7 @@ import ui.navigation.routes.PresentationIntentRoute
 import ui.navigation.routes.ProvisioningIntentRoute
 import ui.navigation.routes.Route
 import ui.navigation.routes.SettingsRoute
-import ui.navigation.routes.ShowDataRoute
+import ui.navigation.routes.PresentDataRoute
 import ui.navigation.routes.ShowQrCodeRoute
 import ui.navigation.routes.SigningCredentialIntentRoute
 import ui.navigation.routes.SigningIntentRoute
@@ -314,8 +314,8 @@ private fun WalletNavHost(
             }
         }
 
-        composable<ShowDataRoute> {
-            ShowDataView(
+        composable<PresentDataRoute> {
+            PresentDataView(
                 onNavigateToAuthenticationQrCodeScannerView = {
                     navigate(AuthenticationQrCodeScannerRoute)
                 },
@@ -324,7 +324,7 @@ private fun WalletNavHost(
                 bottomBar = {
                     BottomBar(
                         navigate = navigate,
-                        selected = NavigationData.SHOW_DATA_SCREEN
+                        selected = NavigationData.PRESENT_DATA_SCREEN
                     )
                 }
             )

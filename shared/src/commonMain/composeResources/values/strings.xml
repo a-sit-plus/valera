@@ -21,7 +21,7 @@
     <string name="button_label_ok">UNTRANSLATED:button_label_ok</string>
     <string name="button_label_retry">UNTRANSLATED:button_label_retry</string>
     <string name="button_label_authenticate">UNTRANSLATED:button_label_authenticate</string>
-    <string name="button_label_show_data">UNTRANSLATED:button_label_show_data</string>
+    <string name="button_label_present_data">UNTRANSLATED:button_label_present_data</string>
     <string name="button_label_accept">UNTRANSLATED:button_label_accept</string>
     <string name="button_label_cancel">UNTRANSLATED:button_label_cancel</string>
     <string name="button_label_consent">UNTRANSLATED:button_label_consent</string>
@@ -287,10 +287,9 @@
 
     <string name="section_heading_authenticate_at_device_title">UNTRANSLATED:section_heading_authenticate_at_device_title</string>
     <string name="section_heading_authenticate_at_device_subtitle">UNTRANSLATED:section_heading_authenticate_at_device_subtitle</string>
-    <string name="section_heading_show_data_to_executive_title">UNTRANSLATED:section_heading_show_data_to_executive_title</string>
-    <string name="section_heading_show_data_to_executive_subtitle">UNTRANSLATED:section_heading_show_data_to_executive_subtitle</string>
-    <string name="section_heading_show_data_to_other_citizen_title">UNTRANSLATED:section_heading_show_data_to_other_citizen_title</string>
-    <string name="section_heading_show_data_to_other_citizen_subtitle">UNTRANSLATED:section_heading_show_data_to_other_citizen_subtitle</string>
+    <string name="section_heading_present_data_title">UNTRANSLATED:section_heading_present_data_title</string>
+    <string name="section_heading_present_data_to_executive_subtitle">UNTRANSLATED:section_heading_present_data_to_executive_subtitle</string>
+    <string name="section_heading_present_data_to_other_citizen_subtitle">UNTRANSLATED:section_heading_present_data_to_other_citizen_subtitle</string>
     <string name="section_heading_actions">UNTRANSLATED:section_heading_actions</string>
     <string name="section_heading_information">UNTRANSLATED:section_heading_information</string>
     <string name="section_heading_requested_data">UNTRANSLATED:section_heading_requested_data</string>

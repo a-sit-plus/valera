@@ -23,7 +23,7 @@
     <string name="button_label_ok">Ok</string>
     <string name="button_label_retry">Erneut versuchen</string>
     <string name="button_label_authenticate">Anmelden</string>
-    <string name="button_label_show_data">Vorzeigen</string>
+    <string name="button_label_present_data">Vorzeigen</string>
     <string name="button_label_accept">Akzeptieren</string>
     <string name="button_label_cancel">Abbrechen</string>
     <string name="button_label_consent">Zustimmen</string>
@@ -323,10 +323,9 @@
 
     <string name="section_heading_authenticate_at_device_title">Anmelden</string>
     <string name="section_heading_authenticate_at_device_subtitle">an Service Provider</string>
-    <string name="section_heading_show_data_to_executive_title">Daten vorzeigen an</string>
-    <string name="section_heading_show_data_to_executive_subtitle">Exekutive</string>
-    <string name="section_heading_show_data_to_other_citizen_title">Daten vorzeigen an</string>
-    <string name="section_heading_show_data_to_other_citizen_subtitle">dritte Bürger</string>
+    <string name="section_heading_present_data_title">Daten vorzeigen an</string>
+    <string name="section_heading_present_data_to_executive_subtitle">Exekutive</string>
+    <string name="section_heading_present_data_to_other_citizen_subtitle">dritte Bürger</string>
     <string name="section_heading_actions">Aktionen</string>
     <string name="section_heading_information">Information</string>
     <string name="section_heading_requested_data">Angefragte Daten</string>
