@@ -54,7 +54,7 @@
     <string name="button_label_check_license">Führerschein Prüfen</string>
     <string name="button_label_check_age">Alter Prüfen</string>
     <string name="button_label_check_custom">Individuelle Anfrage</string>
-    <string name="button_label_check_over_age">Über </string>
+    <string name="button_label_check_over_age">Über %1$s</string>
 
     <string name="attribute_friendly_name_bpk">BPK</string>
     <string name="attribute_friendly_name_firstname">Vorname</string>

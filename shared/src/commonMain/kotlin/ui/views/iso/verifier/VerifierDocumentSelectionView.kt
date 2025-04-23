@@ -139,7 +139,7 @@ fun VerifierDocumentSelectionView(
                             for (age in SelectableAge.values) {
                                 TextIconButtonListItem(
                                     icon = {},
-                                    label = stringResource(Res.string.button_label_check_over_age) + age,
+                                    label = stringResource(Res.string.button_label_check_over_age, age),
                                     onClick = { vm.onClickPredefinedAge(age, selectedEngagementMethod) },
                                     modifier = listSpacingModifier.fillMaxWidth()
                                 )
