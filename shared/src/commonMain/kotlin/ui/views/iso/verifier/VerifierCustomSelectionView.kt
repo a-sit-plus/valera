@@ -32,12 +32,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_select_custom_data_retrieval_screen
 import at.asitplus.valera.resources.section_heading_select_document_type
 import at.asitplus.valera.resources.section_heading_select_requested_data_entries
 import at.asitplus.valera.resources.section_heading_selected_namespace
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
+import data.credentials.MobileDrivingLicenceCredentialAttributeTranslator
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
@@ -121,7 +124,9 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                     )
                     for (element in MobileDrivingLicenceScheme.claimNames) {
                         multipleChoiceButton(
-                            element,
+                            MobileDrivingLicenceCredentialAttributeTranslator.translate(
+                                NormalizedJsonPath(NormalizedJsonPathSegment.NameSegment(element))
+                            )?.let { stringResource(it) } ?: element,
                             selectedEntries.contains(element),
                             selectedEntries.contains(element),
                             listSpacingModifier

@@ -20,8 +20,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_received_data
+import data.credentials.MobileDrivingLicenceCredentialAttributeTranslator
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.decodeToImageBitmap
 import org.jetbrains.compose.resources.stringResource
@@ -70,6 +73,10 @@ fun VerifierPresentationView(vm: VerifierViewModel) {
                         namespace.value.entries.sortedBy { it.value.elementIdentifier }
                             .forEach { entry ->
                                 val elementIdentifier = entry.value.elementIdentifier
+                                val label = MobileDrivingLicenceCredentialAttributeTranslator
+                                    .translate(NormalizedJsonPath(
+                                        NormalizedJsonPathSegment.NameSegment(elementIdentifier)
+                                    ))?.let { stringResource(it) } ?: elementIdentifier
                                 if (elementIdentifier == "portrait" ||
                                     elementIdentifier == "signature_usual_mark"
                                 ) {
@@ -92,7 +99,7 @@ fun VerifierPresentationView(vm: VerifierViewModel) {
                                                     modifier = Modifier.size(size)
                                                 )
                                             },
-                                            label = elementIdentifier
+                                            label = label
                                         )
                                     }
                                 } else {
@@ -105,7 +112,7 @@ fun VerifierPresentationView(vm: VerifierViewModel) {
                                                 style = MaterialTheme.typography.bodyMedium
                                             )
                                         },
-                                        label = elementIdentifier
+                                        label = label
                                     )
                                 }
                                 Spacer(modifier = Modifier.size(4.dp))
