@@ -22,12 +22,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,16 +32,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.button_label_provision_credential_browser
-import at.asitplus.valera.resources.button_label_provision_credential_qr
-import org.jetbrains.compose.resources.stringResource
+import ui.composables.buttons.LoadDataIdaButton
+import ui.composables.buttons.LoadDataQrButton
 
 // Modified from https://developer.android.com/develop/ui/compose/animation/composables-modifiers
 
@@ -84,14 +77,12 @@ fun CustomFloatingActionMenu(addCredentialQr: () -> Unit, addCredential: () -> U
                     Column(modifier = Modifier.padding(end = 5.dp)) {
                         SecondaryFloatingActionButton(
                             onClick = { addCredential() },
-                            label = stringResource(Res.string.button_label_provision_credential_browser),
-                            icon = Icons.Default.Person,
+                            content = { LoadDataIdaButton(onClick = { addCredential() }) },
                         )
                         Spacer(modifier = Modifier.height(5.dp))
                         SecondaryFloatingActionButton(
-                            onClick = { addCredentialQr() },
-                            label = stringResource(Res.string.button_label_provision_credential_qr),
-                            icon = Icons.Default.QrCode,
+                            onClick = { addCredential() },
+                            content = { LoadDataQrButton(onClick = { addCredentialQr() }) },
                         )
                     }
                 }
@@ -131,8 +122,7 @@ fun MainFloatingActionButton(expanded: Boolean, onChangeExpanded: (Boolean) -> U
 @Composable
 fun SecondaryFloatingActionButton(
     onClick: () -> Unit,
-    label: String,
-    icon: ImageVector,
+    content: @Composable () -> Unit
 ) {
     Row(
         horizontalArrangement = Arrangement.End,
@@ -146,21 +136,7 @@ fun SecondaryFloatingActionButton(
                     shape = RoundedCornerShape(15.dp)
                 )
             ) {
-                Column(modifier = Modifier.clip(RoundedCornerShape(15.dp))) {
-                    TextIconButton(
-                        icon = {
-                            Icon(
-                                imageVector = icon,
-                                contentDescription = null,
-                            )
-                        },
-                        text = {
-                            Text(label)
-                        },
-                        onClick = onClick,
-                        modifier = Modifier,
-                    )
-                }
+                content()
             }
         }
     }
