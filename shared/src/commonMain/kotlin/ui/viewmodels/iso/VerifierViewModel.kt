@@ -3,6 +3,7 @@ package ui.viewmodels.iso
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.iso.transfer.DeviceEngagementMethods
 import at.asitplus.wallet.app.common.iso.transfer.TransferManager
+import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.lib.iso.DeviceResponse
 import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
@@ -22,9 +23,7 @@ class VerifierViewModel(
     val navigateToHomeScreen: () -> Unit
 ) {
     private val transferManager: TransferManager by lazy {
-        TransferManager(
-            walletMain.scope
-        ) { message -> } // TODO: handle update messages
+        TransferManager(walletMain.scope) { message -> } // TODO: handle update messages
     }
 
     private val _verifierState = MutableStateFlow(VerifierState.INIT)
@@ -75,6 +74,11 @@ class VerifierViewModel(
 
     fun onClickPredefinedMdl(selectedEngagementMethod: DeviceEngagementMethods) {
         _requestDocument.value = getMdlRequestDocument()
+        setStateToEngagement(selectedEngagementMethod)
+    }
+
+    fun onClickPredefinedPid(selectedEngagementMethod: DeviceEngagementMethods) {
+        _requestDocument.value = getPidRequestDocument()
         setStateToEngagement(selectedEngagementMethod)
     }
 
@@ -132,6 +136,20 @@ fun getMdlRequestDocument(): RequestDocument {
 
 fun getMdlPreselection(): Set<String> {
     return MobileDrivingLicenceDataElements.MANDATORY_ELEMENTS.toSet()
+}
+
+fun getPidRequestDocument(): RequestDocument {
+    return RequestDocument(
+        docType = EuPidScheme.isoDocType,
+        itemsToRequest = mapOf(
+            EuPidScheme.isoNamespace to EuPidScheme.requiredClaimNames
+                .associateWith { false }
+        )
+    )
+}
+
+fun getPidPreselection(): Set<String> {
+    return EuPidScheme.requiredClaimNames.toSet()
 }
 
 fun getAgeVerificationRequestDocument(age: Int): RequestDocument {

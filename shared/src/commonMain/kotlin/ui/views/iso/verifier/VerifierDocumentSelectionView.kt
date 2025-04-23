@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material.icons.outlined.Cake
 import androidx.compose.material.icons.outlined.CreditCard
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -34,6 +35,7 @@ import at.asitplus.valera.resources.button_label_check_age
 import at.asitplus.valera.resources.button_label_check_custom
 import at.asitplus.valera.resources.button_label_check_license
 import at.asitplus.valera.resources.button_label_check_over_age
+import at.asitplus.valera.resources.credential_scheme_icon_label_eu_pid
 import at.asitplus.valera.resources.heading_label_select_data_retrieval_screen
 import at.asitplus.valera.resources.section_heading_request_custom
 import at.asitplus.valera.resources.section_heading_request_eausweise
@@ -155,12 +157,12 @@ fun VerifierDocumentSelectionView(
                     TextIconButtonListItem(
                         icon = {
                             Icon(
-                                imageVector = Icons.Outlined.CreditCard,
+                                imageVector = Icons.Outlined.Person,
                                 contentDescription = null
                             )
                         },
-                        label = stringResource(Res.string.button_label_check_license),
-                        onClick = { vm.onClickPredefinedMdl(selectedEngagementMethod) },
+                        label = stringResource(Res.string.credential_scheme_icon_label_eu_pid),
+                        onClick = { vm.onClickPredefinedPid(selectedEngagementMethod) },
                         modifier = listSpacingModifier.fillMaxWidth()
                     )
                 }
