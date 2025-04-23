@@ -9,12 +9,8 @@ import at.asitplus.rqes.CredentialInfo
 import at.asitplus.rqes.CredentialInfoRequest
 import at.asitplus.rqes.CredentialListRequest
 import at.asitplus.rqes.CredentialListResponse
-import at.asitplus.rqes.CscCredentialListRequest
-import at.asitplus.rqes.CscCredentialListResponse
 import at.asitplus.rqes.SignatureRequestParameters
 import at.asitplus.rqes.SignatureResponse
-import at.asitplus.rqes.collection_entries.CertificateParameters
-import at.asitplus.rqes.collection_entries.CertificateParameters.CertStatus
 import at.asitplus.rqes.enums.CertificateOptions
 import at.asitplus.signum.indispensable.X509SignatureAlgorithm
 import at.asitplus.signum.indispensable.io.ByteArrayBase64Serializer
@@ -52,7 +48,6 @@ import kotlinx.datetime.format.char
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive

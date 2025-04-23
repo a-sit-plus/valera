@@ -151,7 +151,7 @@ fun PresentationView(
                 }
 
                 AuthenticationViewState.Selection -> {
-                    when(val matching = presentationViewModel.matchingCredentials) {
+                    when (val matching = presentationViewModel.matchingCredentials) {
                         is DCQLMatchingResult -> {
                             AuthenticationSelectionViewScaffold(
                                 onNavigateUp = presentationViewModel.navigateUp,
@@ -177,7 +177,10 @@ fun PresentationView(
                                 onClickLogo = presentationViewModel.onClickLogo,
                                 credentialMatchingResult = matching,
                             )
-                            AuthenticationSelectionPresentationExchangeView(vm = viewModel)
+                            AuthenticationSelectionPresentationExchangeView(
+                                vm = viewModel,
+                                onError = onError,
+                            )
                         }
                     }
                 }
@@ -192,6 +195,7 @@ fun PresentationView(
                         delay(3.seconds)
                         onPresentmentComplete()
                     }
+
                     else -> onError(error)
                 }
             }
