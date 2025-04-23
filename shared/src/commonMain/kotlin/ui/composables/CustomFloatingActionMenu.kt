@@ -136,7 +136,7 @@ fun SecondaryFloatingActionButton(
     Row(
         horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp)
+        modifier = Modifier.fillMaxWidth()
     ) {
         Row(modifier = Modifier.clickable(onClick = onClick)) {
             Column(
