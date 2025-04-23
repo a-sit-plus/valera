@@ -37,22 +37,18 @@ import at.asitplus.valera.resources.heading_label_select_custom_data_retrieval_s
 import at.asitplus.valera.resources.section_heading_select_document_type
 import at.asitplus.valera.resources.section_heading_select_requested_data_entries
 import at.asitplus.valera.resources.section_heading_selected_namespace
-import data.document.DocType.documentTypeToNameSpace
-import data.document.DocumentAttributes
-import data.document.itemsToRequestDocument
-import org.jetbrains.compose.resources.StringResource
+import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.iso.VerifierViewModel
+import ui.viewmodels.iso.getMdlPreselection
+import ui.viewmodels.iso.itemsToRequestDocument
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VerifierCustomSelectionView(vm: VerifierViewModel) {
-    var selectedDocumentType by remember { mutableStateOf(documentTypeToNameSpace.keys.toList()[0]) }
-    var selectedEntries by remember { mutableStateOf(setOf<StringResource>()) }
-
-    // TODO: fix possible data selection (default per type un-/select handling)
+    var selectedEntries by remember { mutableStateOf(getMdlPreselection()) }
 
     Scaffold(
         topBar = {
@@ -83,9 +79,9 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                     onClick = {
                         vm.onReceiveCustomSelection(
                             itemsToRequestDocument(
-                                selectedDocumentType,
-                                documentTypeToNameSpace[selectedDocumentType]!!,
-                                selectedEntries
+                                docType = MobileDrivingLicenceScheme.isoDocType,
+                                namespace = MobileDrivingLicenceScheme.isoNamespace,
+                                entries = selectedEntries
                             ),
                             vm.selectedEngagementMethod.value
                         )
@@ -102,24 +98,18 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
             ) {
                 val layoutSpacingModifier = Modifier.padding(top = 24.dp)
                 Column(modifier = layoutSpacingModifier) {
-                    val listSpacingModifier = Modifier.padding(top = 8.dp)
                     Text(
                         text = stringResource(Res.string.section_heading_select_document_type),
                         style = MaterialTheme.typography.titleMedium,
                     )
-                    for (item in documentTypeToNameSpace.keys.toList()) {
-                        singleChoiceButton(
-                            item,
-                            selectedDocumentType,
-                            listSpacingModifier
-                        ) {
-                            selectedDocumentType = item
-                        }
-                    }
+                    Text(
+                        text = MobileDrivingLicenceScheme.isoDocType,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
                 Column(modifier = layoutSpacingModifier) {
                     Text(
-                        text = stringResource(Res.string.section_heading_selected_namespace) + documentTypeToNameSpace[selectedDocumentType],
+                        text = stringResource(Res.string.section_heading_selected_namespace) + MobileDrivingLicenceScheme.isoNamespace,
                         style = MaterialTheme.typography.titleMedium,
                     )
                 }
@@ -129,18 +119,17 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                         text = stringResource(Res.string.section_heading_select_requested_data_entries),
                         style = MaterialTheme.typography.titleMedium,
                     )
-                    for (item in DocumentAttributes.entries.toList()) {
-                        val current = item.displayName
+                    for (element in MobileDrivingLicenceScheme.claimNames) {
                         multipleChoiceButton(
-                            current,
-                            selectedEntries.contains(current),
-                            selectedEntries.contains(current),
+                            element,
+                            selectedEntries.contains(element),
+                            selectedEntries.contains(element),
                             listSpacingModifier
                         ) {
-                            selectedEntries = if (selectedEntries.contains(current)) {
-                                selectedEntries - current
+                            selectedEntries = if (selectedEntries.contains(element)) {
+                                selectedEntries - element
                             } else {
-                                selectedEntries + current
+                                selectedEntries + element
                             }
                         }
                     }
@@ -178,7 +167,7 @@ fun singleChoiceButton(
 
 @Composable
 private fun multipleChoiceButton(
-    current: StringResource,
+    current: String,
     value: Boolean,
     contains: Boolean,
     modifier: Modifier = Modifier,
@@ -195,6 +184,6 @@ private fun multipleChoiceButton(
             checked = contains,
             onCheckedChange = null
         )
-        Text(text = stringResource(current))
+        Text(text = current)
     }
 }

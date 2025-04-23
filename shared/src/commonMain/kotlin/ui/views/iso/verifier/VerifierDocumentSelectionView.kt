@@ -9,11 +9,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material.icons.outlined.Cake
 import androidx.compose.material.icons.outlined.CreditCard
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -21,15 +22,16 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_check_age
 import at.asitplus.valera.resources.button_label_check_custom
-import at.asitplus.valera.resources.button_label_check_identity
 import at.asitplus.valera.resources.button_label_check_license
 import at.asitplus.valera.resources.button_label_check_over_age
 import at.asitplus.valera.resources.heading_label_select_data_retrieval_screen
@@ -38,14 +40,10 @@ import at.asitplus.valera.resources.section_heading_request_eausweise
 import at.asitplus.valera.resources.section_heading_request_engagement_method
 import at.asitplus.valera.resources.section_heading_request_license
 import at.asitplus.wallet.app.common.iso.transfer.DeviceEngagementMethods
-import data.document.SelectableAge
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
+import ui.viewmodels.iso.SelectableAge
 import ui.viewmodels.iso.VerifierViewModel
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -113,17 +111,6 @@ fun VerifierDocumentSelectionView(
                     Text(
                         text = stringResource(Res.string.section_heading_request_eausweise),
                         style = MaterialTheme.typography.titleMedium
-                    )
-                    TextIconButtonListItem(
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Outlined.Person,
-                                contentDescription = null
-                            )
-                        },
-                        label = stringResource(Res.string.button_label_check_identity),
-                        onClick = { vm.onClickPredefinedIdentity(selectedEngagementMethod) },
-                        modifier = listSpacingModifier.fillMaxWidth()
                     )
                     TextIconButtonListItem(
                         icon = {

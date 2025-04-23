@@ -29,6 +29,7 @@ import ui.composables.LabeledContent
 import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.iso.VerifierViewModel
+import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 @OptIn(
@@ -72,22 +73,28 @@ fun VerifierPresentationView(vm: VerifierViewModel) {
                                 if (elementIdentifier == "portrait" ||
                                     elementIdentifier == "signature_usual_mark"
                                 ) {
-                                    val byteArray = entry.value.elementValue as ByteArray
                                     val size = when (elementIdentifier) {
                                         "portrait" -> 200.dp
                                         "signature_usual_mark" -> 40.dp
                                         else -> 0.dp
                                     }
-                                    LabeledContent(
-                                        content = {
-                                            Image(
-                                                bitmap = byteArray.decodeToImageBitmap(),
-                                                contentDescription = null,
-                                                modifier = Modifier.size(size)
-                                            )
-                                        },
-                                        label = elementIdentifier
-                                    )
+                                    val byteArray = when (val value = entry.value.elementValue) {
+                                        is ByteArray -> value
+                                        is String -> Base64.decode(value)
+                                        else -> null
+                                    }
+                                    byteArray?.let {
+                                        LabeledContent(
+                                            content = {
+                                                Image(
+                                                    bitmap = it.decodeToImageBitmap(),
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(size)
+                                                )
+                                            },
+                                            label = elementIdentifier
+                                        )
+                                    }
                                 } else {
                                     LabeledContent(
                                         content = {

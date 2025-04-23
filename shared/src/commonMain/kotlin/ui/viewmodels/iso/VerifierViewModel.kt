@@ -4,13 +4,16 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.iso.transfer.DeviceEngagementMethods
 import at.asitplus.wallet.app.common.iso.transfer.TransferManager
 import at.asitplus.wallet.lib.iso.DeviceResponse
+import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
+import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.document.RequestDocument
-import data.document.getAgeVerificationRequestDocument
-import data.document.getIdentityRequestDocument
-import data.document.getMdlRequestDocument
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import ui.viewmodels.iso.SelectableAge.OVER_14
+import ui.viewmodels.iso.SelectableAge.OVER_16
+import ui.viewmodels.iso.SelectableAge.OVER_18
+import ui.viewmodels.iso.SelectableAge.OVER_21
 
 class VerifierViewModel(
     val navigateUp: () -> Unit,
@@ -18,7 +21,6 @@ class VerifierViewModel(
     val walletMain: WalletMain,
     val navigateToHomeScreen: () -> Unit
 ) {
-
     private val transferManager: TransferManager by lazy {
         TransferManager(
             walletMain.scope
@@ -71,11 +73,6 @@ class VerifierViewModel(
         _verifierState.value = VerifierState.PRESENTATION
     }
 
-    fun onClickPredefinedIdentity(selectedEngagementMethod: DeviceEngagementMethods) {
-        _requestDocument.value = getIdentityRequestDocument()
-        setStateToEngagement(selectedEngagementMethod)
-    }
-
     fun onClickPredefinedMdl(selectedEngagementMethod: DeviceEngagementMethods) {
         _requestDocument.value = getMdlRequestDocument()
         setStateToEngagement(selectedEngagementMethod)
@@ -121,6 +118,58 @@ class VerifierViewModel(
             handleError(errorMessage)
         }
     }
+}
+
+fun getMdlRequestDocument(): RequestDocument {
+    return RequestDocument(
+        docType = MobileDrivingLicenceScheme.isoDocType,
+        itemsToRequest = mapOf(
+            MobileDrivingLicenceScheme.isoNamespace to MobileDrivingLicenceDataElements.MANDATORY_ELEMENTS
+                .associateWith { false }
+        )
+    )
+}
+
+fun getMdlPreselection(): Set<String> {
+    return MobileDrivingLicenceDataElements.MANDATORY_ELEMENTS.toSet()
+}
+
+fun getAgeVerificationRequestDocument(age: Int): RequestDocument {
+    val elementName = when(age) {
+        OVER_14 -> MobileDrivingLicenceDataElements.AGE_OVER_14
+        OVER_16 -> MobileDrivingLicenceDataElements.AGE_OVER_16
+        OVER_18 -> MobileDrivingLicenceDataElements.AGE_OVER_18
+        OVER_21 -> MobileDrivingLicenceDataElements.AGE_OVER_21
+        else -> MobileDrivingLicenceDataElements.AGE_OVER_18
+    }
+    return RequestDocument(
+        docType = MobileDrivingLicenceScheme.isoDocType,
+        itemsToRequest = mapOf(
+            MobileDrivingLicenceScheme.isoNamespace to mapOf(elementName to false)
+        )
+    )
+}
+
+fun itemsToRequestDocument(
+    docType: String,
+    namespace: String,
+    entries: Set<String>
+): RequestDocument {
+    return RequestDocument(
+        docType = docType,
+        itemsToRequest = mapOf(
+            namespace to entries.associateWith { false }
+        )
+    )
+}
+
+object SelectableAge {
+    const val OVER_14 = 14
+    const val OVER_16 = 16
+    const val OVER_18 = 18
+    const val OVER_21 = 21
+
+    val values = listOf(OVER_14, OVER_16, OVER_18, OVER_21)
 }
 
 enum class VerifierState {
