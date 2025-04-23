@@ -15,12 +15,4 @@ object DocType {
         AGE_VERIFICATION to MDL_NAMESPACE,
         EU_PID_DOCTYPE to EU_PID_NAMESPACE
     )
-
-    // TODO: add string resources for labels
-    val documentTypeToUILabel: Map<String, String> = mapOf(
-        MDL_DOCTYPE to "mDL",
-        IDENTITY to "identity",
-        AGE_VERIFICATION to "ageverification",
-        EU_PID_DOCTYPE to "pid"
-    )
 }
