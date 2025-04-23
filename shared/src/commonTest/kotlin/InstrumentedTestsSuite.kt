@@ -277,10 +277,10 @@ fun endToEndTest() = runComposeUiTest() {
                     val client = httpClient
 
 
+
+                    val id = performRequest(httpClient, request, appLink)
+
                     /*
-                    performRequest(httpClient, request, appLink)
-
-
                     val responseGenerateRequest =
                         client.post("https://apps.egiz.gv.at/customverifier/transaction/create") {
                             contentType(ContentType.Application.Json)
@@ -294,6 +294,8 @@ fun endToEndTest() = runComposeUiTest() {
 
                     appLink.value = qrCodeUrl!!
 
+                    */
+
                     waitUntilExactlyOneExists(
                         hasText(getString(Res.string.button_label_continue)),
                         10000
@@ -305,7 +307,7 @@ fun endToEndTest() = runComposeUiTest() {
                     val responseSuccess = client.get(url)
                     assertTrue { responseSuccess.status.value in 200..299 }
 
-                     */
+
                 }
             }
 
