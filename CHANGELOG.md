@@ -1,5 +1,9 @@
 # Release 5.5.3
  * Display credential validity for invalid credentials
+ * Update to VC-K 5.5.2 (fix presentation of multiple ISO credentials)
+ * Update german localizations
+ * Display validity of loaded credentials
+ * Improve some error messages
 
 # Release 5.5.2
  * Fix presentation of ISO credentials
