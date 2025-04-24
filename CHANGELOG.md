@@ -1,9 +1,11 @@
 # Release 5.5.3
  * Display credential validity for invalid credentials
- * Update to VC-K 5.5.2 (fix presentation of multiple ISO credentials)
+ * Update to VC-K 5.5.3 (fix presentation of multiple ISO credentials)
  * Update german localizations
  * Display validity of loaded credentials
  * Improve some error messages
+ * Add proximity presentation and verification of ISO credenitals over Bluetooth
+ * Add option to open URL from verifier after successful authentication
 
 # Release 5.5.2
  * Fix presentation of ISO credentials

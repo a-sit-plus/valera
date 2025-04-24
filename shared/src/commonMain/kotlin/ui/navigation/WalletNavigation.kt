@@ -196,7 +196,7 @@ fun WalletNavigation(walletMain: WalletMain) {
         )
     }
 
-    LaunchedEffect(null){
+    LaunchedEffect(null) {
         this.launch {
             Globals.appLink.combineTransform(walletMain.intentService.readyForIntents) { link, ready ->
                 if (ready == true && link != null) {
@@ -215,8 +215,7 @@ fun WalletNavigation(walletMain: WalletMain) {
         }
         this.launch {
             walletMain.snackbarService.message.collect { (text, actionLabel, callback) ->
-                val result = snackbarHostState.showSnackbar(text, actionLabel, true)
-                when (result) {
+                when (snackbarHostState.showSnackbar(text, actionLabel, true)) {
                     SnackbarResult.Dismissed -> {}
                     SnackbarResult.ActionPerformed -> callback?.invoke()
                 }
@@ -389,10 +388,9 @@ private fun WalletNavHost(
                         spImage = null,
                         authenticationRequest = request,
                         preparationState = preparationState,
-                        isCrossDeviceFlow = route.isCrossDeviceFlow,
                         navigateUp = navigateBack,
                         navigateToAuthenticationSuccessPage = {
-                            navigate(AuthenticationSuccessRoute)
+                            navigate(AuthenticationSuccessRoute(it, route.isCrossDeviceFlow))
                         },
                         navigateToHomeScreen = {
                             popBackStack(HomeScreenRoute)
@@ -426,7 +424,7 @@ private fun WalletNavHost(
                         dcApiRequest = dcApiRequest,
                         navigateUp = navigateBack,
                         navigateToAuthenticationSuccessPage = {
-                            navigate(AuthenticationSuccessRoute)
+                            navigate(AuthenticationSuccessRoute(it, false))
                         },
                         walletMain = walletMain,
                         navigateToHomeScreen = {
@@ -486,10 +484,15 @@ private fun WalletNavHost(
         }
 
         composable<AuthenticationSuccessRoute> { backStackEntry ->
+            val route = backStackEntry.toRoute<AuthenticationSuccessRoute>()
             AuthenticationSuccessView(vm = remember {
                 AuthenticationSuccessViewModel(
                     navigateUp = navigateBack,
-                    onClickLogo = onClickLogo
+                    onClickLogo = onClickLogo,
+                    isCrossDeviceFlow = route.isCrossDeviceFlow,
+                    openRedirectUrl = route.redirectUrl?.let {
+                        { walletMain.platformAdapter.openUrl(it) }
+                    }
                 )
             })
         }

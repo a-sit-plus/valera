@@ -22,7 +22,7 @@ import data.credentials.CredentialAdapter
 class DCAPIAuthenticationViewModel(
     spImage: ImageBitmap? = null,
     navigateUp: () -> Unit,
-    navigateToAuthenticationSuccessPage: () -> Unit,
+    navigateToAuthenticationSuccessPage: (redirectUrl: String?) -> Unit,
     navigateToHomeScreen: () -> Unit,
     walletMain: WalletMain,
     val dcApiRequest: DCAPIRequest,

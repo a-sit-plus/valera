@@ -27,6 +27,7 @@ import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.buttons.ConcludeButton
 import ui.composables.buttons.NavigateUpButton
+import ui.composables.buttons.OpenUrlButton
 import ui.viewmodels.authentication.AuthenticationSuccessViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,9 +61,15 @@ fun AuthenticationSuccessView(
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
-                    horizontalArrangement = Arrangement.Center,
+                    horizontalArrangement = Arrangement.SpaceEvenly,
                 ) {
-                    ConcludeButton(vm.navigateUp)
+                    val openRedirectUrl = vm.openRedirectUrl
+                    if (vm.isCrossDeviceFlow || openRedirectUrl == null) {
+                        ConcludeButton(vm.navigateUp)
+                    }
+                    if (openRedirectUrl != null) {
+                        OpenUrlButton(openRedirectUrl)
+                    }
                 }
             }
         }

@@ -28,10 +28,10 @@ object PreAuthQrCodeScannerRoute : Route()
 object LogRoute : Route()
 
 @Serializable
-object SigningRoute: Route()
+object SigningRoute : Route()
 
 @Serializable
-object SigningQtspSelectionRoute: Route()
+object SigningQtspSelectionRoute : Route()
 
 @Serializable
 data class ErrorRoute(val message: String?, val cause: String?) : Route()
@@ -64,7 +64,10 @@ data class LocalPresentationAuthenticationConsentRoute(
 ) : Route()
 
 @Serializable
-object AuthenticationSuccessRoute : Route()
+data class AuthenticationSuccessRoute(
+    val redirectUrl: String?,
+    val isCrossDeviceFlow: Boolean
+) : Route()
 
 @Serializable
 object ShowQrCodeRoute : Route()
@@ -73,28 +76,28 @@ object ShowQrCodeRoute : Route()
 object VerifyDataRoute : Route()
 
 @Serializable
-data class ProvisioningIntentRoute(val uri: String): Route()
+data class ProvisioningIntentRoute(val uri: String) : Route()
 
 @Serializable
-data class AuthorizationIntentRoute(val uri: String): Route()
+data class AuthorizationIntentRoute(val uri: String) : Route()
 
 @Serializable
-data class DCAPIAuthorizationIntentRoute(val uri: String): Route()
+data class DCAPIAuthorizationIntentRoute(val uri: String) : Route()
 
 @Serializable
-data class PresentationIntentRoute(val uri: String): Route()
+data class PresentationIntentRoute(val uri: String) : Route()
 
 @Serializable
-data class SigningServiceIntentRoute(val uri: String): Route()
+data class SigningServiceIntentRoute(val uri: String) : Route()
 
 @Serializable
-data class SigningPreloadIntentRoute(val uri: String): Route()
+data class SigningPreloadIntentRoute(val uri: String) : Route()
 
 @Serializable
-data class SigningCredentialIntentRoute(val uri: String): Route()
+data class SigningCredentialIntentRoute(val uri: String) : Route()
 
 @Serializable
-data class SigningIntentRoute(val uri: String): Route()
+data class SigningIntentRoute(val uri: String) : Route()
 
 @Serializable
-data class ErrorIntentRoute(val uri: String): Route()
+data class ErrorIntentRoute(val uri: String) : Route()

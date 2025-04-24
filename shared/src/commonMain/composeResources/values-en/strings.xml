@@ -37,6 +37,7 @@
     <string name="button_label_start">Start</string>
     <string name="button_label_save">Save</string>
     <string name="button_label_conclude">Conclude</string>
+    <string name="button_label_open_url">Open URL</string>
     <string name="button_label_scan_qr_code">Scan QR-Code</string>
     <string name="button_label_faq">FAQ</string>
     <string name="button_label_licenses">Licenses</string>

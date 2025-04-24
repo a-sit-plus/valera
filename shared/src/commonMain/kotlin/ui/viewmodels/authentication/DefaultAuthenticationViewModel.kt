@@ -19,9 +19,8 @@ class DefaultAuthenticationViewModel(
     spImage: ImageBitmap?,
     val authenticationRequest: RequestParametersFrom<AuthenticationRequestParameters>,
     val preparationState: AuthorizationResponsePreparationState,
-    val isCrossDeviceFlow: Boolean,
     navigateUp: () -> Unit,
-    navigateToAuthenticationSuccessPage: () -> Unit,
+    navigateToAuthenticationSuccessPage: (redirectUrl: String?) -> Unit,
     navigateToHomeScreen: () -> Unit,
     walletMain: WalletMain,
     onClickLogo: () -> Unit
@@ -54,6 +53,5 @@ class DefaultAuthenticationViewModel(
             request = authenticationRequest,
             clientMetadata = authenticationRequest.parameters.clientMetadata,
             credentialPresentation = credentialPresentation,
-            isCrossDeviceFlow = isCrossDeviceFlow,
         )
 }

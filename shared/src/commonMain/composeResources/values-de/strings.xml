@@ -37,6 +37,7 @@
     <string name="button_label_start">Starten</string>
     <string name="button_label_save">Speichern</string>
     <string name="button_label_conclude">Abschließen</string>
+    <string name="button_label_open_url">URL öffnen</string>
     <string name="button_label_scan_qr_code">QR-Code scannen</string>
     <string name="button_label_faq">FAQ</string>
     <string name="button_label_licenses">Lizenzen</string>

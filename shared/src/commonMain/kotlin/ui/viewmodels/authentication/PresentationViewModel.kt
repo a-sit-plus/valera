@@ -17,11 +17,12 @@ import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.iso.DeviceRequest
 import at.asitplus.wallet.lib.iso.SessionTranscript
+import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 
 class PresentationViewModel(
     val presentationStateModel: PresentationStateModel,
     navigateUp: () -> Unit,
-    onAuthenticationSuccess: () -> Unit,
+    onAuthenticationSuccess: (redirectUrl: String?) -> Unit,
     navigateToHomeScreen: () -> Unit,
     walletMain: WalletMain,
     spImage: ImageBitmap? = null,
@@ -51,14 +52,14 @@ class PresentationViewModel(
                 id = itemsRequest.docType,
                 format = FormatHolder(msoMdoc = FormatContainerJwt()),
                 constraints = Constraint(fields = itemsRequest.namespaces.flatMap { requestedNamespace ->
-                    requestedNamespace.value.entries.map { requestedAttrribute ->
+                    requestedNamespace.value.entries.map { requestedAttribute ->
                         ConstraintField(
                             path = listOf(
                                 NormalizedJsonPath(
                                     NormalizedJsonPathSegment.NameSegment(requestedNamespace.key),
-                                    NormalizedJsonPathSegment.NameSegment(requestedAttrribute.key),
+                                    NormalizedJsonPathSegment.NameSegment(requestedAttribute.key),
                                 ).toString()
-                            ), intentToRetain = requestedAttrribute.value
+                            ), intentToRetain = requestedAttribute.value
                         )
                     }
                 })
@@ -103,6 +104,7 @@ class PresentationViewModel(
                 spName,
                 sessionTranscript!!
             )
+            OpenId4VpWallet.AuthenticationSuccess(null)
         } ?: throw IllegalStateException("No finish method found")
 
 }

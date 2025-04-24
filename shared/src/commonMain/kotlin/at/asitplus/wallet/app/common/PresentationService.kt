@@ -36,11 +36,10 @@ class PresentationService(
     private val coseService: CoseService
 ) {
     private val presentationService = OpenId4VpWallet(
-        openUrlExternally = { platformAdapter.openUrl(it) },
         engine = HttpClient().engine,
         httpClientConfig = httpService.loggingConfig,
         cryptoService = cryptoService,
-        holderAgent = holderAgent,
+        holderAgent = holderAgent
     )
 
     suspend fun parseAuthenticationRequestParameters(requestUri: String) =
@@ -75,25 +74,21 @@ class PresentationService(
         request: RequestParametersFrom<AuthenticationRequestParameters>,
         clientMetadata: RelyingPartyMetadata?,
         credentialPresentation: CredentialPresentation,
-        isCrossDeviceFlow: Boolean,
-    ) {
-        presentationService.finalizeAuthorizationResponse(
-            request = request,
-            clientMetadata = clientMetadata,
-            credentialPresentation = credentialPresentation,
-            isCrossDeviceFlow = isCrossDeviceFlow,
-        ).getOrThrow()
-    }
+    ) = presentationService.finalizeAuthorizationResponseReturningUrl(
+        request = request,
+        clientMetadata = clientMetadata,
+        credentialPresentation = credentialPresentation,
+    ).getOrThrow()
 
     suspend fun finalizeDCAPIPreviewPresentation(
         credentialPresentation: CredentialPresentation.PresentationExchangePresentation,
         dcApiRequest: DCAPIRequest
-    ) {
+    ): OpenId4VpWallet.AuthenticationSuccess {
         Napier.d("Finalizing DCAPI response")
         val previewRequest = PreviewRequest.deserialize(dcApiRequest.request).getOrThrow()
 
         val presentationResult = holderAgent.createPresentation(
-            request =  PresentationRequestParameters(
+            request = PresentationRequestParameters(
                 nonce = previewRequest.nonce,
                 audience = dcApiRequest.callingOrigin ?: dcApiRequest.callingPackageName!!,
                 calcIsoDeviceSignature = { docType, deviceNameSpaceBytes ->
@@ -111,7 +106,8 @@ class PresentationService(
             credentialPresentation = credentialPresentation,
         )
 
-        val presentation = presentationResult.getOrThrow() as PresentationResponseParameters.PresentationExchangeParameters
+        val presentation =
+            presentationResult.getOrThrow() as PresentationResponseParameters.PresentationExchangeParameters
 
         val deviceResponse = when (val firstResult = presentation.presentationResults[0]) {
             is CreatePresentationResult.DeviceResponse -> firstResult.deviceResponse
@@ -120,6 +116,8 @@ class PresentationService(
         }
 
         platformAdapter.prepareDCAPICredentialResponse(deviceResponse.serialize(), dcApiRequest)
+
+        return OpenId4VpWallet.AuthenticationSuccess()
     }
     @OptIn(ExperimentalStdlibApi::class)
     suspend fun finalizeLocalPresentation(
@@ -131,7 +129,7 @@ class PresentationService(
         Napier.d("Finalizing local response")
 
         val presentationResult = holderAgent.createPresentation(
-            request =  PresentationRequestParameters(
+            request = PresentationRequestParameters(
                 nonce = "",
                 audience = spName ?: "",
                 calcIsoDeviceSignature = { docType, deviceNameSpaceBytes ->
@@ -159,7 +157,8 @@ class PresentationService(
             credentialPresentation = credentialPresentation,
         )
 
-        val presentation = presentationResult.getOrThrow() as PresentationResponseParameters.PresentationExchangeParameters
+        val presentation =
+            presentationResult.getOrThrow() as PresentationResponseParameters.PresentationExchangeParameters
 
         val deviceResponse = when (val firstResult = presentation.presentationResults[0]) {
             is CreatePresentationResult.DeviceResponse -> firstResult.deviceResponse.serialize()
