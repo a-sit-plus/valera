@@ -30,6 +30,8 @@ import at.asitplus.valera.resources.snackbar_reset_app_successfully
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import at.asitplus.wallet.app.common.decodeImage
+import at.asitplus.wallet.lib.data.vckJsonSerializer
+import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -318,16 +320,17 @@ private fun WalletNavHost(
 
             val vm = remember {
                 try {
-                    val request = rdcJsonSerializer
-                        .decodeFromString<RequestParametersFrom<AuthenticationRequestParameters>>(
-                            route.authenticationRequestParametersFromSerialized
-                        )
+                    val request: RequestParametersFrom<AuthenticationRequestParameters> =
+                        vckJsonSerializer.decodeFromString(route.authenticationRequestParametersFromSerialized)
+                    val preparationState: AuthorizationResponsePreparationState =
+                        vckJsonSerializer.decodeFromString(route.authorizationPreparationStateSerialized)
 
                     DefaultAuthenticationViewModel(
                         spName = null,
                         spLocation = route.recipientLocation,
                         spImage = null,
                         authenticationRequest = request,
+                        preparationState = preparationState,
                         isCrossDeviceFlow = route.isCrossDeviceFlow,
                         navigateUp = navigateBack,
                         navigateToAuthenticationSuccessPage = {
