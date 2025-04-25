@@ -320,6 +320,7 @@
     <string name="info_text_missing_permission">Berechtigung fehlt</string>
     <string name="info_text_qr_code_loading">QR-Code wird geladen</string>
     <string name="info_text_finished">Fertig</string>
+    <string name="info_text_nfc_mdoc_reader">In die Nähe des Gerätes des Ausweishalters halten.</string>
 
     <string name="section_heading_authenticate_at_device_title">Anmelden</string>
     <string name="section_heading_authenticate_at_device_subtitle">an Service Provider</string>

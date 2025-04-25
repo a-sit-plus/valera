@@ -320,6 +320,7 @@
     <string name="info_text_missing_permission">Permission missing</string>
     <string name="info_text_qr_code_loading">Loading QR Code</string>
     <string name="info_text_finished">Finished</string>
+    <string name="info_text_nfc_mdoc_reader">Hold near credential holder's phone.</string>
 
     <string name="section_heading_authenticate_at_device_title">Authenticate</string>
     <string name="section_heading_authenticate_at_device_subtitle">at relying party</string>

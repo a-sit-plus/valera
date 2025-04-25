@@ -2,14 +2,29 @@ package at.asitplus.wallet.app.common.iso.transfer
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.info_text_nfc_mdoc_reader
 import at.asitplus.wallet.app.common.presentation.TransferSettings
 import data.document.RequestDocument
+import io.github.aakira.napier.Napier
+import kotlinx.coroutines.CancellableContinuation
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
+import kotlinx.io.bytestring.ByteString
+import org.jetbrains.compose.resources.getString
 import org.multipaz.asn1.ASN1Integer
 import org.multipaz.cbor.Bstr
 import org.multipaz.cbor.Cbor
 import org.multipaz.cbor.DataItem
 import org.multipaz.cbor.Simple
 import org.multipaz.cbor.Tagged
+import org.multipaz.cbor.buildCborArray
 import org.multipaz.crypto.Crypto
 import org.multipaz.crypto.EcCurve
 import org.multipaz.crypto.EcPrivateKey
@@ -18,9 +33,12 @@ import org.multipaz.crypto.X500Name
 import org.multipaz.crypto.X509Cert
 import org.multipaz.crypto.X509CertChain
 import org.multipaz.mdoc.connectionmethod.MdocConnectionMethod
+import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodBle
 import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodNfc
 import org.multipaz.mdoc.engagement.EngagementParser
 import org.multipaz.mdoc.nfc.scanNfcMdocReader
+import org.multipaz.mdoc.request.DeviceRequestGenerator
+import org.multipaz.mdoc.role.MdocRole
 import org.multipaz.mdoc.sessionencryption.SessionEncryption
 import org.multipaz.mdoc.transport.MdocTransport
 import org.multipaz.mdoc.transport.MdocTransportClosedException
@@ -30,23 +48,8 @@ import org.multipaz.mdoc.transport.NfcTransportMdocReader
 import org.multipaz.mdoc.util.MdocUtil
 import org.multipaz.nfc.scanNfcTag
 import org.multipaz.util.Constants
-import io.github.aakira.napier.Napier
-import kotlinx.coroutines.CancellableContinuation
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.atStartOfDayIn
-import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodBle
-import org.multipaz.mdoc.request.DeviceRequestGenerator
 import org.multipaz.util.UUID
 import org.multipaz.util.fromBase64Url
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.io.bytestring.ByteString
-import org.multipaz.cbor.buildCborArray
-import org.multipaz.mdoc.role.MdocRole
 
 // based on identity-credential[https://github.com/openwallet-foundation-labs/identity-credential] implementation
 class TransferManager(
@@ -221,7 +224,7 @@ class TransferManager(
                 }
 
                 scanNfcMdocReader(
-                    message = "Hold near credential holder's phone.",
+                    message = getString(Res.string.info_text_nfc_mdoc_reader),
                     options = MdocTransportOptions(
                         bleUseL2CAP = transferSettings.readerBleL2CapEnabled
                     ),
