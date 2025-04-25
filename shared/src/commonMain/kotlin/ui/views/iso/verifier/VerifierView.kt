@@ -37,26 +37,11 @@ fun VerifierView(
     }
 
     when (verifierState) {
-        VerifierState.INIT -> {
-            VerifierDocumentSelectionView(vm, bottomBar)
-        }
-
-        VerifierState.SELECT_CUSTOM_REQUEST -> {
-            VerifierCustomSelectionView(vm)
-        }
-
-        VerifierState.QR_ENGAGEMENT -> {
-            VerifierQrEngagementView(vm)
-        }
-
-        VerifierState.WAITING_FOR_RESPONSE -> {
-            LoadingView()
-        }
-
-        VerifierState.PRESENTATION -> {
-            VerifierPresentationView(vm)
-        }
-
+        VerifierState.INIT -> { VerifierDocumentSelectionView(vm, bottomBar) }
+        VerifierState.SELECT_CUSTOM_REQUEST -> { VerifierCustomSelectionView(vm) }
+        VerifierState.QR_ENGAGEMENT -> { VerifierQrEngagementView(vm) }
+        VerifierState.WAITING_FOR_RESPONSE -> { LoadingView() }
+        VerifierState.PRESENTATION -> { VerifierPresentationView(vm) }
         VerifierState.ERROR -> {
             ErrorView(
                 ErrorViewModel(
