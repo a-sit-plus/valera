@@ -304,6 +304,7 @@
     <string name="error_missing_permissions">Fehlende Erlaubnis</string>
     <string name="error_missing_value">Fehler es sind keine Daten gegeben</string>
     <string name="error_bluetooth_unavailable">Bluetooth ist nicht verfügbar</string>
+    <string name="error_no_requests">Es sind keine Anfragen vorhanden</string>
 
     <string name="info_text_show_data_situation">In welcher Situation möchten Sie Ihre Daten vorzeigen?</string>
     <string name="info_text_error_occurred">Es ist ein Fehler aufgetreten.</string>

@@ -77,7 +77,8 @@ fun AuthenticationView(
                             onClickLogo = vm.onClickLogo,
                             credentialMatchingResult = matching,
                             navigateToHomeScreen = vm.navigateToHomeScreen
-                        )
+                        ),
+                        onError = onError,
                     )
                 }
             }

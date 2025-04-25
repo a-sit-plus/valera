@@ -268,6 +268,7 @@
     <string name="error_missing_permissions">UNTRANSLATED:error_missing_permissions</string>
     <string name="error_missing_value">UNTRANSLATED:error_missing_value</string>
     <string name="error_bluetooth_unavailable">UNTRANSLATED:error_bluetooth_unavailable</string>
+    <string name="error_no_requests">UNTRANSLATED:error_no_requests</string>
 
     <string name="info_text_show_data_situation">UNTRANSLATED:info_text_show_data_situation</string>
     <string name="info_text_error_occurred">UNTRANSLATED:info_text_error_occurred</string>

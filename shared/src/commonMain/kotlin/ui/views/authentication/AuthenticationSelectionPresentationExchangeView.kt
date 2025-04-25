@@ -24,6 +24,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_continue
+import at.asitplus.valera.resources.error_credential_selection_error_invalid_request_id
+import at.asitplus.valera.resources.error_no_requests
 import at.asitplus.valera.resources.heading_label_navigate_back
 import at.asitplus.valera.resources.prompt_select_credential
 import at.asitplus.wallet.app.common.decodeImage
@@ -31,22 +33,16 @@ import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.CredentialSelectionGroup
-import ui.viewmodels.ErrorViewModel
 import ui.viewmodels.authentication.AuthenticationSelectionPresentationExchangeViewModel
-import ui.views.ErrorView
 
 @Composable
-fun AuthenticationSelectionPresentationExchangeView(vm: AuthenticationSelectionPresentationExchangeViewModel) {
+fun AuthenticationSelectionPresentationExchangeView(
+    vm: AuthenticationSelectionPresentationExchangeViewModel,
+    onError: (Throwable) -> Unit,
+) {
     val iterableRequests = vm.iterableRequests
     if (iterableRequests.isEmpty()) {
-        ErrorView(
-            ErrorViewModel(
-                resetStack = vm.navigateToHomeScreen,
-                message = "No Requests found",
-                cause = null,
-                onClickLogo = vm.onClickLogo,
-            )
-        )
+        onError(Throwable(stringResource(Res.string.error_no_requests)))
     } else {
         val currentRequest = vm.iterableRequests[vm.requestIterator.value]
 
@@ -58,21 +54,18 @@ fun AuthenticationSelectionPresentationExchangeView(vm: AuthenticationSelectionP
             LinearProgressIndicator(
                 progress = { ((1.0f / vm.requests.size) * (vm.requestIterator.value + 1)) },
                 modifier = Modifier.fillMaxWidth(),
-                drawStopIndicator = { }
-            )
+                drawStopIndicator = { })
             Column(
-                modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState())
-                    .padding(16.dp),
+                modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState()).padding(16.dp),
             ) {
                 val requestId = currentRequest.first
                 val matchingCredentials = currentRequest.second
 
-                val attributeSelection =
-                    vm.attributeSelection[requestId]
-                        ?: throw Throwable("No selection with requestId")
-                val credentialSelection =
-                    vm.credentialSelection[requestId]
-                        ?: throw Throwable("No selection with requestId")
+                val attributeSelection = vm.attributeSelection[requestId]
+                    ?: return@Column onError(Throwable(stringResource(Res.string.error_credential_selection_error_invalid_request_id)))
+                val credentialSelection = vm.credentialSelection[requestId]
+                    ?: return@Column onError(Throwable(stringResource(Res.string.error_credential_selection_error_invalid_request_id)))
+
                 CredentialSelectionGroup(
                     matchingCredentials = matchingCredentials,
                     attributeSelection = attributeSelection,
@@ -82,7 +75,7 @@ fun AuthenticationSelectionPresentationExchangeView(vm: AuthenticationSelectionP
                     },
                     checkRevocationStatus = {
                         vm.walletMain.checkRevocationStatus(it)
-                    }
+                    },
                 )
             }
         }
@@ -102,10 +95,7 @@ fun AuthenticationSelectionViewScaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Row(
-                        Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             stringResource(Res.string.heading_label_navigate_back),
                             modifier = Modifier.weight(1f),
