@@ -2,7 +2,6 @@ package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
-import at.asitplus.wallet.cor.CertificateOfResidenceDataElements
 import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.ADMINISTRATIVE_NUMBER
 import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.ARRIVAL_DATE
 import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.Address
@@ -31,6 +30,7 @@ import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.RESIDENCE_ADDRE
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.eupid.IsoIec5218Gender
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import data.Attribute
 import kotlinx.datetime.Instant
@@ -53,7 +53,7 @@ sealed class CertificateOfResidenceCredentialAdapter : CredentialAdapter() {
                 FAMILY_NAME -> Attribute.fromValue(familyName)
                 GIVEN_NAME -> Attribute.fromValue(givenName)
                 BIRTH_DATE -> Attribute.fromValue(birthDate)
-                RESIDENCE_ADDRESS -> with(CertificateOfResidenceDataElements.Address) {
+                RESIDENCE_ADDRESS -> with(Address) {
                     when (val second = path.segments.drop(1).firstOrNull()) {
                         is NormalizedJsonPathSegment.NameSegment -> when (second.memberName) {
                             PO_BOX -> Attribute.fromValue(residenceAddressPoBox)
@@ -136,6 +136,9 @@ sealed class CertificateOfResidenceCredentialAdapter : CredentialAdapter() {
 private class CertificateOfResidenceCredentialSdJwtAdapter(
     private val attributes: Map<String, JsonPrimitive>,
 ) : CertificateOfResidenceCredentialAdapter() {
+    override val scheme: ConstantIndex.CredentialScheme
+        get() = CertificateOfResidenceScheme
+
     override val representation: CredentialRepresentation
         get() = CredentialRepresentation.SD_JWT
 
@@ -219,6 +222,9 @@ private class CertificateOfResidenceCredentialSdJwtAdapter(
 private class CertificateOfResidenceComplexCredentialSdJwtAdapter(
     private val attributes: JsonObject,
 ) : CertificateOfResidenceCredentialAdapter() {
+    override val scheme: ConstantIndex.CredentialScheme
+        get() = CertificateOfResidenceScheme
+
     override val representation: CredentialRepresentation
         get() = CredentialRepresentation.SD_JWT
 

@@ -91,6 +91,7 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
         }
 
         override val representation = credential.representation
+        override val scheme = credential.scheme!!
     }
     val labeledAttributes = genericAttributeList.mapNotNull { (key, value) ->
         credentialAdapter.getAttribute(key)?.let { attribute ->

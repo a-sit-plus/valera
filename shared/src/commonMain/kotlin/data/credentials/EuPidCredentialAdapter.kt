@@ -9,12 +9,14 @@ import at.asitplus.signum.indispensable.io.Base64UrlStrict
 import at.asitplus.wallet.eupid.EuPidCredential
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.eupid.EuPidScheme.Attributes
-import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes
-import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes.Address
-import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes.AgeEqualOrOver
-import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes.PlaceOfBirth
 import at.asitplus.wallet.eupid.IsoIec5218Gender
+import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
+import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme.SdJwtAttributes
+import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme.SdJwtAttributes.Address
+import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme.SdJwtAttributes.AgeEqualOrOver
+import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme.SdJwtAttributes.PlaceOfBirth
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import data.Attribute
 import io.ktor.util.decodeBase64Bytes
@@ -32,6 +34,7 @@ sealed class EuPidCredentialAdapter(
         getWithIsoNames(first) ?: getWithSdJwtNames(first, path.segments.getOrNull(1))
     }
 
+    /** Claim names defined for ISO in ARF */
     private fun getWithIsoNames(first: NormalizedJsonPathSegment) = with(Attributes) {
         when (first) {
             is NormalizedJsonPathSegment.NameSegment -> when (first.memberName) {
@@ -81,6 +84,7 @@ sealed class EuPidCredentialAdapter(
         }
     }
 
+    /** Claim names defined for SD-JWT since ARF 1.8.0 */
     private fun getWithSdJwtNames(
         first: NormalizedJsonPathSegment,
         second: NormalizedJsonPathSegment?
@@ -130,7 +134,7 @@ sealed class EuPidCredentialAdapter(
                 ADDRESS_HOUSE_NUMBER -> Attribute.fromValue(residentHouseNumber)
                 ADDRESS_COUNTRY -> Attribute.fromValue(residentCountry)
                 ADDRESS_REGION -> Attribute.fromValue(residentState)
-                GENDER -> Attribute.fromValue(gender)
+                SEX -> Attribute.fromValue(sex)
                 NATIONALITIES -> Attribute.fromValue(nationalities)
                 AGE_IN_YEARS -> Attribute.fromValue(ageInYears)
                 AGE_BIRTH_YEAR -> Attribute.fromValue(ageBirthYear)
@@ -154,7 +158,6 @@ sealed class EuPidCredentialAdapter(
                 EXPIRY_DATE -> Attribute.fromValue(expiryDate)
                 ISSUING_AUTHORITY -> Attribute.fromValue(issuingAuthority)
                 DOCUMENT_NUMBER -> Attribute.fromValue(documentNumber)
-                ADMINISTRATIVE_NUMBER -> Attribute.fromValue(administrativeNumber)
                 ISSUING_COUNTRY -> Attribute.fromValue(issuingCountry)
                 ISSUING_JURISDICTION -> Attribute.fromValue(issuingJurisdiction)
                 PERSONAL_ADMINISTRATIVE_NUMBER -> Attribute.fromValue(personalAdministrativeNumber)
@@ -162,7 +165,6 @@ sealed class EuPidCredentialAdapter(
                 EMAIL -> Attribute.fromValue(emailAddress)
                 PHONE_NUMBER -> Attribute.fromValue(mobilePhoneNumber)
                 TRUST_ANCHOR -> Attribute.fromValue(trustAnchor)
-                LOCATION_STATUS -> Attribute.fromValue(locationStatus)
                 else -> null
             }
 
@@ -219,20 +221,24 @@ sealed class EuPidCredentialAdapter(
             storeEntry: SubjectCredentialStore.StoreEntry,
             decodePortrait: (ByteArray) -> ImageBitmap?,
         ): EuPidCredentialAdapter {
-            if (storeEntry.scheme !is EuPidScheme) {
-                throw IllegalArgumentException("credential")
+            if (storeEntry.scheme !is EuPidScheme && storeEntry.scheme !is EuPidSdJwtScheme) {
+                throw IllegalArgumentException("credential: ${storeEntry.scheme}")
             }
             return when (storeEntry) {
                 is SubjectCredentialStore.StoreEntry.Vc ->
                     (storeEntry.vc.vc.credentialSubject as? EuPidCredential)
-                        ?.let { EuPidCredentialVcAdapter(it, decodePortrait) }
+                        ?.let { EuPidCredentialVcAdapter(it, decodePortrait, storeEntry.scheme!!) }
                         ?: throw IllegalArgumentException("storeEntry")
 
                 is SubjectCredentialStore.StoreEntry.SdJwt ->
-                    EuPidCredentialSdJwtAdapter(storeEntry.toAttributeMap(), decodePortrait)
+                    EuPidCredentialSdJwtAdapter(storeEntry.toAttributeMap(), decodePortrait, storeEntry.scheme!!)
 
                 is SubjectCredentialStore.StoreEntry.Iso ->
-                    EuPidCredentialIsoMdocAdapter(storeEntry.toNamespaceAttributeMap(), decodePortrait)
+                    EuPidCredentialIsoMdocAdapter(
+                        storeEntry.toNamespaceAttributeMap(),
+                        decodePortrait,
+                        storeEntry.scheme!!
+                    )
             }
         }
     }
@@ -241,6 +247,7 @@ sealed class EuPidCredentialAdapter(
 private class EuPidCredentialVcAdapter(
     val credentialSubject: EuPidCredential,
     decodePortrait: (ByteArray) -> ImageBitmap?,
+    override val scheme: ConstantIndex.CredentialScheme
 ) : EuPidCredentialAdapter(decodePortrait) {
     override val representation: CredentialRepresentation
         get() = CredentialRepresentation.PLAIN_JWT
@@ -374,6 +381,7 @@ private class EuPidCredentialVcAdapter(
 private class EuPidCredentialSdJwtAdapter(
     private val attributes: Map<String, JsonPrimitive>,
     decodePortrait: (ByteArray) -> ImageBitmap?,
+    override val scheme: ConstantIndex.CredentialScheme
 ) : EuPidCredentialAdapter(decodePortrait) {
     override val representation: CredentialRepresentation
         get() = CredentialRepresentation.SD_JWT
@@ -445,12 +453,14 @@ private class EuPidCredentialSdJwtAdapter(
     override val gender: String?
         get() = attributes[Attributes.GENDER]?.contentOrNull?.toIntOrNull()
             ?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code.toUInt() }?.name }
-            ?: attributes[SdJwtAttributes.GENDER]?.contentOrNull
+
             ?: attributes[Attributes.GENDER]?.contentOrNull
 
     override val sex: String?
-        get() = attributes[Attributes.SEX]?.contentOrNull?.toUIntOrNull()
-            ?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code }?.name }
+        get() = attributes[SdJwtAttributes.SEX]?.contentOrNull?.toIntOrNull()
+            ?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code.toUInt() }?.name }
+            ?: attributes[Attributes.SEX]?.contentOrNull?.toUIntOrNull()
+                ?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code }?.name }
 
     override val nationality: String?
         get() = attributes[Attributes.NATIONALITY]?.contentOrNull
@@ -508,8 +518,7 @@ private class EuPidCredentialSdJwtAdapter(
             ?: attributes[Attributes.DOCUMENT_NUMBER]?.contentOrNull
 
     override val administrativeNumber: String?
-        get() = attributes[SdJwtAttributes.ADMINISTRATIVE_NUMBER]?.contentOrNull
-            ?: attributes[Attributes.ADMINISTRATIVE_NUMBER]?.contentOrNull
+        get() = attributes[Attributes.ADMINISTRATIVE_NUMBER]?.contentOrNull
 
     override val issuingCountry: String?
         get() = attributes[SdJwtAttributes.ISSUING_COUNTRY]?.contentOrNull
@@ -536,13 +545,13 @@ private class EuPidCredentialSdJwtAdapter(
             ?: attributes[Attributes.TRUST_ANCHOR]?.contentOrNull
 
     override val locationStatus: String?
-        get() = attributes[SdJwtAttributes.LOCATION_STATUS]?.contentOrNull
-            ?: attributes[Attributes.LOCATION_STATUS]?.contentOrNull
+        get() = attributes[Attributes.LOCATION_STATUS]?.contentOrNull
 }
 
 private class EuPidCredentialIsoMdocAdapter(
     namespaces: Map<String, Map<String, Any>>?,
     decodePortrait: (ByteArray) -> ImageBitmap?,
+    override val scheme: ConstantIndex.CredentialScheme
 ) : EuPidCredentialAdapter(decodePortrait) {
     private val euPidNamespace = namespaces?.get(EuPidScheme.isoNamespace)
 

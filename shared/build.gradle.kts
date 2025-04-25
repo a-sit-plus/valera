@@ -44,6 +44,7 @@ kotlin {
             api(libs.credential.mdl)
             api(libs.credential.ida)
             api(libs.credential.eupid)
+            api(libs.credential.eupid.sdjwt)
             api(libs.credential.powerofrepresentation)
             api(libs.credential.certificateofresidence)
             api(libs.credential.companyregistration)
@@ -145,6 +146,7 @@ exportXCFramework(
         libs.credential.ida,
         libs.credential.mdl,
         libs.credential.eupid,
+        libs.credential.eupid.sdjwt,
         libs.credential.powerofrepresentation,
         libs.credential.certificateofresidence,
         libs.credential.companyregistration,

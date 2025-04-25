@@ -7,6 +7,7 @@ semver = "2.0.0"
 mdl = "1.1.4"
 ida = "3.9.2"
 eupid = "3.0.0"
+eupid-sdjwt = "1.0.0"
 play-services-identity-credentials = "16.0.0-alpha06"
 powerofrepresentation = "1.2.0"
 certificateofresidence = "2.1.2"
@@ -24,6 +25,7 @@ androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.r
 atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version.ref = "atomicfu" }
 credential-ida = { module = "at.asitplus.wallet:idacredential", version.ref = "ida" }
 credential-eupid = { module = "at.asitplus.wallet:eupidcredential", version.ref = "eupid" }
+credential-eupid-sdjwt = { module = "at.asitplus.wallet:eupidcredential-sdjwt", version.ref = "eupid-sdjwt" }
 credential-powerofrepresentation = { module = "at.asitplus.wallet:powerofrepresentation", version.ref = "powerofrepresentation" }
 credential-certificateofresidence = { module = "at.asitplus.wallet:certificateofresidence", version.ref = "certificateofresidence" }
 credential-companyregistration = { module = "at.asitplus.wallet:company-registration", version.ref = "companyregistration" }

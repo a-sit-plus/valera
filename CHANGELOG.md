@@ -6,6 +6,7 @@
  * Improve some error messages
  * Add proximity presentation and verification of ISO credenitals over Bluetooth
  * Add option to open URL from verifier after successful authentication
+ * Add support for EU PID with SD-JWT names from ARF 1.8.0 onwards
 
 # Release 5.5.2
  * Fix presentation of ISO credentials

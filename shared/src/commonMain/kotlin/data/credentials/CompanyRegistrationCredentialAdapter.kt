@@ -20,6 +20,7 @@ import at.asitplus.wallet.companyregistration.CompanyRegistrationDataElements.VA
 import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
 import at.asitplus.wallet.companyregistration.ContactData
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore.StoreEntry
+import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import data.Attribute
@@ -84,6 +85,9 @@ sealed class CompanyRegistrationCredentialAdapter : CredentialAdapter() {
 private class CompanyRegistrationCredentialSdJwtAdapter(
     private val attributes: Map<String, JsonPrimitive>,
 ) : CompanyRegistrationCredentialAdapter() {
+    override val scheme: ConstantIndex.CredentialScheme
+        get() = CompanyRegistrationScheme
+
     override val representation: CredentialRepresentation
         get() = CredentialRepresentation.SD_JWT
 
@@ -127,6 +131,9 @@ private class CompanyRegistrationCredentialSdJwtAdapter(
 private class CompanyRegistrationCredentialComplexSdJwtAdapter(
     private val attributes: JsonObject,
 ) : CompanyRegistrationCredentialAdapter() {
+    override val scheme: ConstantIndex.CredentialScheme
+        get() = CompanyRegistrationScheme
+
     override val representation: CredentialRepresentation
         get() = CredentialRepresentation.SD_JWT
 

@@ -7,6 +7,7 @@ import at.asitplus.valera.resources.error_credential_scheme_not_supported
 import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.eupid.EuPidScheme
+import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
 import at.asitplus.wallet.healthid.HealthIdScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
@@ -22,6 +23,7 @@ fun SubjectCredentialStore.StoreEntry.toCredentialAdapter(
     is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialAdapter.createFromStoreEntry(this)
     is CompanyRegistrationScheme -> CompanyRegistrationCredentialAdapter.createFromStoreEntry(this)
     is EuPidScheme -> EuPidCredentialAdapter.createFromStoreEntry(this, decodePortrait = decodeImage)
+    is EuPidSdJwtScheme -> EuPidCredentialAdapter.createFromStoreEntry(this, decodePortrait = decodeImage)
     is HealthIdScheme -> HealthIdCredentialAdapter.createFromStoreEntry(this)
     is IdAustriaScheme -> IdAustriaCredentialAdapter.createFromStoreEntry(this, decodeImage = decodeImage)
     is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialAdapter.createFromStoreEntry(this, decodePortrait = decodeImage)

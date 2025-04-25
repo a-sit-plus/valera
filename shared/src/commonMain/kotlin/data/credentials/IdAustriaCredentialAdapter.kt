@@ -7,6 +7,7 @@ import at.asitplus.signum.indispensable.io.Base64UrlStrict
 import at.asitplus.wallet.idaustria.IdAustriaCredential
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import data.Attribute
 import io.github.aakira.napier.Napier
@@ -124,6 +125,9 @@ private class IdAustriaCredentialVcAdapter(
     val credentialSubject: IdAustriaCredential,
     decodeImage: (ByteArray) -> ImageBitmap?,
 ) : IdAustriaCredentialAdapter(decodeImage) {
+    override val scheme: ConstantIndex.CredentialScheme
+        get() = IdAustriaScheme
+
     override val representation: CredentialRepresentation
         get() = CredentialRepresentation.PLAIN_JWT
 
@@ -162,6 +166,9 @@ private class IdAustriaCredentialSdJwtAdapter(
     private val attributes: Map<String, JsonPrimitive>,
     decodeImage: (ByteArray) -> ImageBitmap?,
 ) : IdAustriaCredentialAdapter(decodeImage) {
+    override val scheme: ConstantIndex.CredentialScheme
+        get() = IdAustriaScheme
+
     override val representation: CredentialRepresentation
         get() = CredentialRepresentation.SD_JWT
 
@@ -200,6 +207,9 @@ private class IdAustriaCredentialIsoMdocAdapter(
     namespaces: Map<String, Map<String, Any>>?,
     decodeImage: (ByteArray) -> ImageBitmap?,
 ) : IdAustriaCredentialAdapter(decodeImage) {
+    override val scheme: ConstantIndex.CredentialScheme
+        get() = IdAustriaScheme
+
     private val idAustriaNamespace = namespaces?.get(IdAustriaScheme.isoNamespace)
 
     override val representation: CredentialRepresentation
