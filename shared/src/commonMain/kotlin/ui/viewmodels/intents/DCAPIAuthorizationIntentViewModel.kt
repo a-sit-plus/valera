@@ -26,7 +26,7 @@ class DCAPIAuthorizationIntentViewModel(
         onFailure(error)
     }
 
-    fun process() {
+    fun process() = walletMain.scope.launch(Dispatchers.Default + coroutineExceptionHandler) {
         val dcApiRequest = walletMain.platformAdapter.getCurrentDCAPIData()
         val consentPageBuilder =
             BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase()
@@ -34,30 +34,26 @@ class DCAPIAuthorizationIntentViewModel(
 
         when (dcApiRequest) {
             is PreviewDCAPIRequest -> {
-                walletMain.scope.launch(Dispatchers.Default + coroutineExceptionHandler) {
-                    consentPageBuilder(dcApiRequest).unwrap().onSuccess {
-                        onSuccess(it)
-                    }.onFailure {
-                        onFailure(it)
-                    }
+                consentPageBuilder(dcApiRequest).unwrap().onSuccess {
+                    onSuccess(it)
+                }.onFailure {
+                    onFailure(it)
                 }
             }
 
             is Oid4vpDCAPIRequest -> {
-                walletMain.scope.launch(Dispatchers.Default + coroutineExceptionHandler) {
-                    buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(dcApiRequest.request).unwrap()
-                        .onSuccess {
-                            AuthenticationViewRoute(
-                                authenticationRequestParametersFromSerialized = it.authenticationRequestParametersFromSerialized,
-                                authorizationPreparationStateSerialized = it.authorizationPreparationStateSerialized,
-                                recipientLocation = it.recipientLocation,
-                                isCrossDeviceFlow = true
-                            )
-                            onSuccess(it)
-                        }.onFailure {
-                            onFailure(it)
-                        }
-                }
+                buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(dcApiRequest.request).unwrap()
+                    .onSuccess {
+                        AuthenticationViewRoute(
+                            authenticationRequestParametersFromSerialized = it.authenticationRequestParametersFromSerialized,
+                            authorizationPreparationStateSerialized = it.authorizationPreparationStateSerialized,
+                            recipientLocation = it.recipientLocation,
+                            isCrossDeviceFlow = true
+                        )
+                        onSuccess(it)
+                    }.onFailure {
+                        onFailure(it)
+                    }
             }
         }
 
