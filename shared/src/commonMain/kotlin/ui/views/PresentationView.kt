@@ -187,10 +187,7 @@ fun PresentationView(
                                 credentialMatchingResult = matching,
                                 navigateToHomeScreen = presentationViewModel.navigateToHomeScreen
                             )
-                            AuthenticationSelectionPresentationExchangeView(
-                                vm = viewModel,
-                                onError = onError,
-                            )
+                            AuthenticationSelectionPresentationExchangeView(vm = viewModel)
                         }
                     }
                 }
