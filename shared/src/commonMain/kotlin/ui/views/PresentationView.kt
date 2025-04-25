@@ -32,16 +32,15 @@ import at.asitplus.valera.resources.icon_presentation_success
 import at.asitplus.valera.resources.presentation_canceled
 import at.asitplus.valera.resources.presentation_connecting_to_verifier
 import at.asitplus.valera.resources.presentation_error
-import at.asitplus.valera.resources.presentation_success
-import at.asitplus.valera.resources.presentation_timeout
-import at.asitplus.valera.resources.presentation_waiting_for_request
 import at.asitplus.valera.resources.presentation_initialised
 import at.asitplus.valera.resources.presentation_missing_permission
 import at.asitplus.valera.resources.presentation_permission_required
+import at.asitplus.valera.resources.presentation_success
+import at.asitplus.valera.resources.presentation_timeout
+import at.asitplus.valera.resources.presentation_waiting_for_request
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
 import at.asitplus.wallet.app.common.presentation.PresentmentCanceled
-import ui.viewmodels.authentication.PresentationStateModel
 import at.asitplus.wallet.app.common.presentation.PresentmentTimeout
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -57,6 +56,7 @@ import ui.viewmodels.authentication.AuthenticationSelectionPresentationExchangeV
 import ui.viewmodels.authentication.AuthenticationViewState
 import ui.viewmodels.authentication.DCQLMatchingResult
 import ui.viewmodels.authentication.PresentationExchangeMatchingResult
+import ui.viewmodels.authentication.PresentationStateModel
 import ui.viewmodels.authentication.PresentationViewModel
 import ui.views.authentication.AuthenticationConsentView
 import ui.views.authentication.AuthenticationNoCredentialView
@@ -111,16 +111,12 @@ fun PresentationView(
         }
 
         PresentationStateModel.State.CHECK_PERMISSIONS -> {
-            // TODO: check this
-            if (!blePermissionState.isGranted) {
+            if (blePermissionState.isGranted) {
+                presentationStateModel.setPermissionState(true)
+            } else {
                 coroutineScope.launch {
                     blePermissionState.launchPermissionRequest()
                 }
-                //TODO handle rejects by user (not sure how to do this with this api)
-            } else {
-                presentationStateModel.setPermissionState(
-                    true
-                )
             }
         }
 
@@ -187,7 +183,10 @@ fun PresentationView(
                                 credentialMatchingResult = matching,
                                 navigateToHomeScreen = presentationViewModel.navigateToHomeScreen
                             )
-                            AuthenticationSelectionPresentationExchangeView(vm = viewModel)
+                            AuthenticationSelectionPresentationExchangeView(
+                                vm = viewModel,
+                                onError = onError,
+                            )
                         }
                     }
                 }

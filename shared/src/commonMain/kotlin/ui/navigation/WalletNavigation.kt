@@ -330,7 +330,9 @@ private fun WalletNavHost(
             AuthenticationQrCodeScannerView(remember {
                 AuthenticationQrCodeScannerViewModel(
                     navigateUp = navigateBack,
-                    onSuccess = { route -> navigate(route) },
+                    onSuccess = { route ->
+                        navigate(route)
+                    },
                     walletMain = walletMain,
                     onClickLogo = onClickLogo
                 )
@@ -466,9 +468,12 @@ private fun WalletNavHost(
             }
 
             if (vm != null) {
+                Napier.d("Showing presentation view")
                 PresentationView(
-                    presentationViewModel = vm,
-                    onPresentmentComplete = { popBackStack(HomeScreenRoute) },
+                    vm,
+                    onPresentmentComplete = {
+                        popBackStack(HomeScreenRoute)
+                    },
                     coroutineScope = walletMain.scope,
                     walletMain.snackbarService,
                     onError = { e ->

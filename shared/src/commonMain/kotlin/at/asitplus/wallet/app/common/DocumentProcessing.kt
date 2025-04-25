@@ -3,6 +3,7 @@ package at.asitplus.wallet.app.common
 import at.asitplus.rqes.QtspSignatureResponse
 import at.asitplus.rqes.SignDocResponseParameters
 import at.asitplus.rqes.SignHashResponseParameters
+import at.asitplus.rqes.SignatureResponse
 import at.asitplus.rqes.collection_entries.OAuthDocumentDigest
 import at.asitplus.signum.indispensable.X509SignatureAlgorithm
 import at.asitplus.signum.indispensable.asn1.ObjectIdentifier
@@ -18,6 +19,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
 
 @Serializable
 data class DocumentWithLabel(
