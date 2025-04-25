@@ -11,6 +11,7 @@ import at.asitplus.dif.FormatHolder
 import at.asitplus.dif.PresentationDefinition
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
+import at.asitplus.rqes.collection_entries.TransactionData
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
@@ -101,4 +102,5 @@ class PresentationViewModel(
                 spName
             )
         } ?: throw IllegalStateException("No finish method found")
+
 }
