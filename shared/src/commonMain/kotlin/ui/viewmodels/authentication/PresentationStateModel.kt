@@ -13,17 +13,14 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.withTimeout
 import org.multipaz.mdoc.sessionencryption.SessionEncryption
 import org.multipaz.util.Constants
 import ui.viewmodels.authentication.PresentationStateModel.DismissType.CLICK
 import ui.viewmodels.authentication.PresentationStateModel.DismissType.DOUBLE_CLICK
 import ui.viewmodels.authentication.PresentationStateModel.DismissType.LONG_CLICK
 import kotlin.coroutines.resume
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 // Based on the identity-credential sample code
@@ -167,15 +164,12 @@ class PresentationStateModel {
     }
 
     /**
-     * Waits until the connection using the main transport method has been established or until
-     * timeout has been reached.
+     * Returns true if the device is not yet connected to the transport method.
      */
-    suspend fun waitForConnectionUsingMainTransport(timeout: Duration) = withTimeout(timeout) {
-        state.first {
-            Napier.d("waitForConnectionUsingMainTransport: Current state: ${it.name}")
-            it != State.IDLE && it != State.INITIALISING && it != State.CHECK_PERMISSIONS
-                    && it != State.NO_PERMISSION && it != State.CONNECTING
-        }
+    fun isNotYetConnected(): Boolean {
+        return state.value == State.IDLE || state.value == State.INITIALISING
+                || state.value == State.CHECK_PERMISSIONS || state.value == State.NO_PERMISSION
+                || state.value == State.CONNECTING
     }
 
     /**
