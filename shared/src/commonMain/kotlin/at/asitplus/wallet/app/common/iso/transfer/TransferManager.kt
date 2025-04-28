@@ -4,7 +4,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_nfc_mdoc_reader
-import at.asitplus.wallet.app.common.presentation.TransferSettings
+import at.asitplus.wallet.app.common.presentation.TransferSettings.Companion.transferSettings
 import data.document.RequestDocument
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CancellableContinuation
@@ -63,7 +63,6 @@ class TransferManager(
         DATA_RECEIVED
     }
 
-    private val transferSettings = TransferSettings()
     var readerMostRecentDeviceResponse = mutableStateOf<ByteArray?>(null)
     var readerSessionTranscript: ByteArray? = null
     private val _state = MutableStateFlow(State.IDLE)
@@ -194,7 +193,7 @@ class TransferManager(
             try {
                 val negotiatedHandoverConnectionMethods = mutableListOf<MdocConnectionMethod>()
                 val bleUuid = UUID.randomUUID()
-                if (transferSettings.presentmentBleCentralClientModeEnabled) {
+                if (transferSettings.presentmentBleCentralClientModeEnabled.value) {
                     negotiatedHandoverConnectionMethods.add(
                         MdocConnectionMethodBle(
                             supportsPeripheralServerMode = false,
@@ -204,7 +203,7 @@ class TransferManager(
                         )
                     )
                 }
-                if (transferSettings.presentmentBlePeripheralServerModeEnabled) {
+                if (transferSettings.presentmentBlePeripheralServerModeEnabled.value) {
                     negotiatedHandoverConnectionMethods.add(
                         MdocConnectionMethodBle(
                             supportsPeripheralServerMode = true,
@@ -214,7 +213,7 @@ class TransferManager(
                         )
                     )
                 }
-                if (transferSettings.presentmentNfcDataTransferEnabled) {
+                if (transferSettings.presentmentNfcDataTransferEnabled.value) {
                     negotiatedHandoverConnectionMethods.add(
                         MdocConnectionMethodNfc(
                             commandDataFieldMaxLength = 0xffff,
@@ -226,7 +225,7 @@ class TransferManager(
                 scanNfcMdocReader(
                     message = getString(Res.string.info_text_nfc_mdoc_reader),
                     options = MdocTransportOptions(
-                        bleUseL2CAP = transferSettings.readerBleL2CapEnabled
+                        bleUseL2CAP = transferSettings.readerBleL2CapEnabled.value
                     ),
                     selectConnectionMethod = { connectionMethods ->
                         if (transferSettings.readerAutomaticallySelectTransport) {
@@ -350,7 +349,7 @@ class TransferManager(
             val transport = MdocTransportFactory.Default.createTransport(
                 connectionMethod,
                 MdocRole.MDOC_READER,
-                MdocTransportOptions(bleUseL2CAP = transferSettings.readerBleL2CapEnabled)
+                MdocTransportOptions(bleUseL2CAP = transferSettings.readerBleL2CapEnabled.value)
             )
             if (transport is NfcTransportMdocReader) {
                 scanNfcTag(

@@ -26,7 +26,8 @@ fun VerifierView(
 
     val isBluetoothEnabled = BluetoothInfo().isBluetoothEnabled()
     if (!isBluetoothEnabled) {
-        vm.handleError(stringResource(Res.string.error_bluetooth_unavailable))
+        // TODO if bluetooth is not available, NFC data transfer should still work
+        //vm.handleError(stringResource(Res.string.error_bluetooth_unavailable))
     }
 
     val blePermissionState = rememberBluetoothPermissionState()

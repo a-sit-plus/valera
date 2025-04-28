@@ -3,7 +3,7 @@ package ui.viewmodels.iso
 import androidx.compose.runtime.MutableState
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
-import at.asitplus.wallet.app.common.presentation.TransferSettings
+import at.asitplus.wallet.app.common.presentation.TransferSettings.Companion.transferSettings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -29,9 +29,8 @@ class ShowQrCodeViewModel(
     val onNavigateToPresentmentScreen: (PresentationStateModel) -> Unit,
 ) {
     var hasBeenCalledHack: Boolean = false
-    val presentationStateModel: PresentationStateModel by lazy {
-        PresentationStateModel()
-    }
+    val presentationStateModel: PresentationStateModel by lazy { PresentationStateModel() }
+
 
     private val _showQrCodeState = MutableStateFlow(ShowQrCodeState.INIT)
     val showQrCodeState: StateFlow<ShowQrCodeState> = _showQrCodeState
@@ -39,8 +38,6 @@ class ShowQrCodeViewModel(
     fun setState(newState: ShowQrCodeState) {
         _showQrCodeState.value = newState
     }
-
-    private val settings = TransferSettings()
 
     fun setupPresentmentModel() {
         presentationStateModel.reset()
@@ -54,7 +51,7 @@ class ShowQrCodeViewModel(
             val connectionMethods = mutableListOf<MdocConnectionMethod>()
             val bleUuid = UUID.randomUUID()
 
-            if (settings.presentmentBleCentralClientModeEnabled) {
+            if (transferSettings.presentmentBleCentralClientModeEnabled.value) {
                 connectionMethods.add(
                     MdocConnectionMethodBle(
                         supportsPeripheralServerMode = false,
@@ -64,7 +61,7 @@ class ShowQrCodeViewModel(
                     )
                 )
             }
-            if (settings.presentmentBlePeripheralServerModeEnabled) {
+            if (transferSettings.presentmentBlePeripheralServerModeEnabled.value) {
                 connectionMethods.add(
                     MdocConnectionMethodBle(
                         supportsPeripheralServerMode = true,
@@ -74,7 +71,7 @@ class ShowQrCodeViewModel(
                     )
                 )
             }
-            if (settings.presentmentNfcDataTransferEnabled) {
+            if (transferSettings.presentmentNfcDataTransferEnabled.value) {
                 connectionMethods.add(
                     MdocConnectionMethodNfc(
                         commandDataFieldMaxLength = 0xffff,

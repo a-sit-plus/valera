@@ -1,9 +1,6 @@
 package ui.navigation
 
 import at.asitplus.wallet.app.common.PlatformAdapter
-import at.asitplus.wallet.app.common.ProvisioningService
-import at.asitplus.wallet.app.common.SigningService
-import at.asitplus.wallet.app.common.SigningState
 import kotlinx.coroutines.flow.MutableStateFlow
 import ui.navigation.routes.AuthorizationIntentRoute
 import ui.navigation.routes.DCAPIAuthorizationIntentRoute
