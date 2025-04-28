@@ -1,19 +1,19 @@
 package at.asitplus.wallet.app.common.presentation
 
+import at.asitplus.signum.indispensable.cosef.CoseKey
+import at.asitplus.wallet.lib.iso.DeviceRequest
+import at.asitplus.wallet.lib.iso.NFCHandover
+import at.asitplus.wallet.lib.iso.SessionTranscript
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import org.multipaz.cbor.Bstr
 import org.multipaz.cbor.Cbor
-import org.multipaz.cbor.Tagged
-import org.multipaz.cbor.buildCborArray
-import org.multipaz.documenttype.DocumentTypeRepository
+import org.multipaz.cbor.Simple
 import org.multipaz.mdoc.request.DeviceRequestParser
 import org.multipaz.mdoc.role.MdocRole
 import org.multipaz.mdoc.sessionencryption.SessionEncryption
 import org.multipaz.mdoc.transport.MdocTransport
 import org.multipaz.mdoc.transport.MdocTransportClosedException
-import org.multipaz.mdoc.util.toMdocRequest
 import org.multipaz.util.Constants
 import ui.viewmodels.authentication.PresentationStateModel
 import ui.viewmodels.authentication.PresentationViewModel
@@ -46,6 +46,7 @@ class MdocPresenter(
         try {
             var sessionEncryption: SessionEncryption? = null
             var encodedSessionTranscript: ByteArray? = null
+            var sessionTranscript: SessionTranscript? = null
             while (true) {
                 Napier.i("Waiting for message from reader...")
                 dismissible.value = true
@@ -59,13 +60,25 @@ class MdocPresenter(
 
                 if (sessionEncryption == null) {
                     val eReaderKey = SessionEncryption.getEReaderKey(sessionData)
-                    encodedSessionTranscript = Cbor.encode(
-                        buildCborArray {
-                            add(Tagged(24, Bstr(mechanism.encodedDeviceEngagement.toByteArray())))
-                            add(Tagged(24, Bstr(Cbor.encode(eReaderKey.toCoseKey().toDataItem()))))
-                            add(mechanism.handover)
-                        }
-                    )
+                    val eReaderCoseKey =
+                        CoseKey.deserialize(Cbor.encode(eReaderKey.toCoseKey().toDataItem()))
+
+                    sessionTranscript = if (mechanism.handover == Simple.NULL) {
+                        SessionTranscript.forQr(
+                            deviceEngagementBytes = mechanism.encodedDeviceEngagement.toByteArray(),
+                            eReaderKeyBytes = eReaderCoseKey.getOrThrow().serialize()
+                        )
+                    } else {
+                        val nfcHandover = NFCHandover.deserialize(Cbor.encode(mechanism.handover))
+                        SessionTranscript.forNfc(
+                            deviceEngagementBytes = mechanism.encodedDeviceEngagement.toByteArray(),
+                            eReaderKeyBytes = eReaderCoseKey.getOrThrow().serialize(),
+                            nfcHandover = nfcHandover.getOrThrow()
+                        )
+                    }
+
+                    encodedSessionTranscript = sessionTranscript.serialize()
+
                     sessionEncryption = SessionEncryption(
                         MdocRole.MDOC,
                         mechanism.ephemeralDeviceKey,
@@ -81,22 +94,19 @@ class MdocPresenter(
                     break
                 }
 
-                val deviceRequest = DeviceRequestParser(
+                //TODO use our libs to check the reader authentication
+                DeviceRequestParser(
                     encodedDeviceRequest!!,
                     encodedSessionTranscript!!,
                 ).parse()
 
+                val deviceRequest = DeviceRequest.deserialize(encodedDeviceRequest).getOrThrow()
 
-                //TODO use our libs to parse the device request and check the reader authentication
-                val mdocRequests = deviceRequest.docRequests.map {
-                    it.toMdocRequest(
-                        documentTypeRepository = DocumentTypeRepository(),
-                        mdocCredential = null
-                    )
-                }
-
-                presentationViewModel.initWithMdocRequest(mdocRequests, credentialSelected)
-
+                presentationViewModel.initWithDeviceRequest(
+                    deviceRequest,
+                    credentialSelected,
+                    sessionTranscript
+                )
 
                 val response = stateModel.requestCredentialSelection()
 
@@ -129,5 +139,6 @@ class MdocPresenter(
             Napier.e("Caught exception", error)
             stateModel.setCompleted(error)
         }
+        transport.close()
     }
 }
