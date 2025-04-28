@@ -335,7 +335,7 @@
     <string name="section_heading_present_data_to_executive_subtitle">Exekutive</string>
     <string name="section_heading_present_data_to_other_citizen_subtitle">dritte Bürger</string>
     <string name="section_heading_actions">Aktionen</string>
-    <string name="section_heading_transfer_options">Übertragungseinstellungen</string>
+    <string name="section_heading_transfer_options">Übertragungseinstellungen (temporär)</string>
     <string name="section_heading_information">Information</string>
     <string name="section_heading_requested_data">Angefragte Daten</string>
     <string name="section_heading_data_recipient">Empfänger</string>
