@@ -40,6 +40,9 @@ data class ErrorRoute(val message: String?, val cause: String?) : Route()
 object LoadingRoute : Route()
 
 @Serializable
+object PresentDataRoute : Route()
+
+@Serializable
 object AuthenticationQrCodeScannerRoute : Route()
 
 @Serializable
@@ -62,6 +65,12 @@ data class LocalPresentationAuthenticationConsentRoute(
 
 @Serializable
 object AuthenticationSuccessRoute : Route()
+
+@Serializable
+object ShowQrCodeRoute : Route()
+
+@Serializable
+object VerifyDataRoute : Route()
 
 @Serializable
 data class ProvisioningIntentRoute(val uri: String): Route()

@@ -49,6 +49,7 @@ import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_locat
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_name
 import at.asitplus.valera.resources.heading_label_authenticate_at_device_screen
 import at.asitplus.valera.resources.heading_label_navigate_back
+import at.asitplus.valera.resources.heading_label_show_data_third_party
 import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_data_recipient
 import at.asitplus.valera.resources.section_heading_transaction_data
@@ -121,8 +122,13 @@ fun AuthenticationConsentView(
                 modifier = Modifier.padding(horizontal = 16.dp)
             ) {
                 val paddingModifier = Modifier.padding(bottom = 32.dp)
+                val title = if (vm.spLocation == "Local Presentation") {
+                    stringResource(Res.string.heading_label_show_data_third_party)
+                } else {
+                    stringResource(Res.string.heading_label_authenticate_at_device_screen)
+                }
                 Text(
-                    stringResource(Res.string.heading_label_authenticate_at_device_screen),
+                    title,
                     style = MaterialTheme.typography.headlineLarge,
                     modifier = paddingModifier,
                 )

@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.error_credential_selection_error_invalid_request_id
+import at.asitplus.valera.resources.error_no_requests
 import at.asitplus.valera.resources.heading_label_navigate_back
 import at.asitplus.valera.resources.prompt_select_credential
 import at.asitplus.wallet.app.common.decodeImage
@@ -39,39 +40,44 @@ fun AuthenticationSelectionPresentationExchangeView(
     vm: AuthenticationSelectionPresentationExchangeViewModel,
     onError: (Throwable) -> Unit,
 ) {
-    val currentRequest = vm.iterableRequests[vm.requestIterator.value]
+    val iterableRequests = vm.iterableRequests
+    if (iterableRequests.isEmpty()) {
+        onError(Throwable(stringResource(Res.string.error_no_requests)))
+    } else {
+        val currentRequest = vm.iterableRequests[vm.requestIterator.value]
 
-    AuthenticationSelectionViewScaffold(
-        onClickLogo = vm.onClickLogo,
-        onNavigateUp = vm.onBack,
-        onNext = vm.onNext,
-    ) {
-        LinearProgressIndicator(
-            progress = { ((1.0f / vm.requests.size) * (vm.requestIterator.value + 1)) },
-            modifier = Modifier.fillMaxWidth(),
-            drawStopIndicator = { })
-        Column(
-            modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState()).padding(16.dp),
+        AuthenticationSelectionViewScaffold(
+            onClickLogo = vm.onClickLogo,
+            onNavigateUp = vm.onBack,
+            onNext = vm.onNext,
         ) {
-            val requestId = currentRequest.first
-            val matchingCredentials = currentRequest.second
+            LinearProgressIndicator(
+                progress = { ((1.0f / vm.requests.size) * (vm.requestIterator.value + 1)) },
+                modifier = Modifier.fillMaxWidth(),
+                drawStopIndicator = { })
+            Column(
+                modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState()).padding(16.dp),
+            ) {
+                val requestId = currentRequest.first
+                val matchingCredentials = currentRequest.second
 
-            val attributeSelection = vm.attributeSelection[requestId]
-                ?: return@Column onError(Throwable(stringResource(Res.string.error_credential_selection_error_invalid_request_id)))
-            val credentialSelection = vm.credentialSelection[requestId]
-                ?: return@Column onError(Throwable(stringResource(Res.string.error_credential_selection_error_invalid_request_id)))
+                val attributeSelection = vm.attributeSelection[requestId]
+                    ?: return@Column onError(Throwable(stringResource(Res.string.error_credential_selection_error_invalid_request_id)))
+                val credentialSelection = vm.credentialSelection[requestId]
+                    ?: return@Column onError(Throwable(stringResource(Res.string.error_credential_selection_error_invalid_request_id)))
 
-            CredentialSelectionGroup(
-                matchingCredentials = matchingCredentials,
-                attributeSelection = attributeSelection,
-                credentialSelection = credentialSelection,
-                imageDecoder = { byteArray ->
-                    vm.walletMain.platformAdapter.decodeImage(byteArray)
-                },
-                checkRevocationStatus = {
-                    vm.walletMain.checkRevocationStatus(it)
-                },
-            )
+                CredentialSelectionGroup(
+                    matchingCredentials = matchingCredentials,
+                    attributeSelection = attributeSelection,
+                    credentialSelection = credentialSelection,
+                    imageDecoder = { byteArray ->
+                        vm.walletMain.platformAdapter.decodeImage(byteArray)
+                    },
+                    checkRevocationStatus = {
+                        vm.walletMain.checkRevocationStatus(it)
+                    },
+                )
+            }
         }
     }
 }

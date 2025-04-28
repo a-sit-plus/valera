@@ -15,5 +15,6 @@ data class TransferSettings(
     val presentmentNfcDataTransferEnabled: Boolean = true,
     val readerBleL2CapEnabled: Boolean = true,
     val presentmentAllowMultipleRequests: Boolean = false,
+    val readerAutomaticallySelectTransport: Boolean = true,
     val connectionTimeout: Duration = 15.seconds
 )

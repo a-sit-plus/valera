@@ -1,7 +1,6 @@
 package ui.views.authentication
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import at.asitplus.wallet.app.common.decodeImage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -77,6 +76,7 @@ fun AuthenticationView(
                             navigateUp = { vm.viewState = AuthenticationViewState.Consent },
                             onClickLogo = vm.onClickLogo,
                             credentialMatchingResult = matching,
+                            navigateToHomeScreen = vm.navigateToHomeScreen
                         ),
                         onError = onError,
                     )

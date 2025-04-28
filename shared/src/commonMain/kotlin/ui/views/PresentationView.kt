@@ -32,17 +32,16 @@ import at.asitplus.valera.resources.icon_presentation_success
 import at.asitplus.valera.resources.presentation_canceled
 import at.asitplus.valera.resources.presentation_connecting_to_verifier
 import at.asitplus.valera.resources.presentation_error
-import at.asitplus.valera.resources.presentation_success
-import at.asitplus.valera.resources.presentation_timeout
-import at.asitplus.valera.resources.presentation_waiting_for_request
 import at.asitplus.valera.resources.presentation_initialised
 import at.asitplus.valera.resources.presentation_missing_permission
 import at.asitplus.valera.resources.presentation_permission_required
+import at.asitplus.valera.resources.presentation_success
+import at.asitplus.valera.resources.presentation_timeout
+import at.asitplus.valera.resources.presentation_waiting_for_request
 import at.asitplus.wallet.app.common.SnackbarService
+import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
 import at.asitplus.wallet.app.common.presentation.PresentmentCanceled
-import ui.viewmodels.authentication.PresentationStateModel
 import at.asitplus.wallet.app.common.presentation.PresentmentTimeout
-import at.asitplus.wallet.app.permissions.RequestBluetoothPermissions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -50,12 +49,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import org.multipaz.compose.permissions.rememberBluetoothPermissionState
 import ui.viewmodels.authentication.AuthenticationConsentViewModel
 import ui.viewmodels.authentication.AuthenticationNoCredentialViewModel
 import ui.viewmodels.authentication.AuthenticationSelectionPresentationExchangeViewModel
 import ui.viewmodels.authentication.AuthenticationViewState
 import ui.viewmodels.authentication.DCQLMatchingResult
 import ui.viewmodels.authentication.PresentationExchangeMatchingResult
+import ui.viewmodels.authentication.PresentationStateModel
 import ui.viewmodels.authentication.PresentationViewModel
 import ui.views.authentication.AuthenticationConsentView
 import ui.views.authentication.AuthenticationNoCredentialView
@@ -70,7 +71,7 @@ import kotlin.time.Duration.Companion.seconds
  * A composable used for credential presentment.
  *
  * Applications should embed this composable wherever credential presentment is required. It communicates with the
- * verifier using [PresentmentMechanism] and [PresentationStateModel] and gets application-specific data sources and
+ * verifier using [MdocPresentmentMechanism] and [PresentationStateModel] and gets application-specific data sources and
  * policy using [PresentmentSource].
  *
  * @param presentationViewModel the [PresentationViewModel] to use.
@@ -89,6 +90,7 @@ fun PresentationView(
     presentationViewModel.walletMain.cryptoService.onUnauthenticated =
         presentationViewModel.navigateUp
 
+    val blePermissionState = rememberBluetoothPermissionState()
 
     // Make sure we clean up the PresentmentModel when we're done. This is to ensure
     // the mechanism is properly shut down, for example for proximity we need to release
@@ -108,12 +110,15 @@ fun PresentationView(
         PresentationStateModel.State.CONNECTING -> {
         }
 
-        PresentationStateModel.State.CHECK_PERMISSIONS ->
-            RequestBluetoothPermissions({ granted ->
-                presentationStateModel.setPermissionState(
-                    granted
-                )
-            }, snackbarService::showSnackbar)
+        PresentationStateModel.State.CHECK_PERMISSIONS -> {
+            if (blePermissionState.isGranted) {
+                presentationStateModel.setPermissionState(true)
+            } else {
+                coroutineScope.launch {
+                    blePermissionState.launchPermissionRequest()
+                }
+            }
+        }
 
         PresentationStateModel.State.WAITING_FOR_SOURCE -> {
             presentationStateModel.setStepAfterWaitingForSource(presentationViewModel)
@@ -176,6 +181,7 @@ fun PresentationView(
                                 navigateUp = { presentationViewModel.viewState = AuthenticationViewState.Consent },
                                 onClickLogo = presentationViewModel.onClickLogo,
                                 credentialMatchingResult = matching,
+                                navigateToHomeScreen = presentationViewModel.navigateToHomeScreen
                             )
                             AuthenticationSelectionPresentationExchangeView(
                                 vm = viewModel,
