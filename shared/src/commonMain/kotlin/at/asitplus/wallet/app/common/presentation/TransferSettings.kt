@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
+@ConsistentCopyVisibility
 data class TransferSettings private constructor(
     val presentmentNegotiatedHandoverPreferredOrder: List<String> = listOf(
         BLE_CENTRAL_CLIENT_MODE,
