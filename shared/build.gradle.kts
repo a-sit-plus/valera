@@ -56,6 +56,8 @@ kotlin {
             implementation(ktor("client-logging"))
             implementation(ktor("client-content-negotiation"))
             implementation(ktor("serialization-kotlinx-json"))
+            implementation(libs.datastore.preferences.core)
+            implementation(libs.datastore.core.okio)
             implementation(libs.multipaz)
             implementation(libs.multipaz.compose)
             implementation(libs.multipaz.doctypes)
@@ -83,8 +85,6 @@ kotlin {
             implementation(libs.androidx.camera.view)
             implementation("com.google.accompanist:accompanist-permissions:0.30.1")
             implementation("com.google.mlkit:barcode-scanning:17.2.0")
-            implementation(libs.datastore.preferences.core)
-            implementation(libs.datastore.core.okio)
             implementation(libs.play.services.identity.credentials)
             implementation(libs.multipaz.android.legacy)
         }
