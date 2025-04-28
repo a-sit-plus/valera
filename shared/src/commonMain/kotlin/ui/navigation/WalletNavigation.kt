@@ -210,6 +210,7 @@ fun WalletNavigation(walletMain: WalletMain) {
                 }.onFailure {
                     walletMain.errorService.emit(it)
                 }
+                Globals.appLink.value = null
             }
         }
         this.launch {

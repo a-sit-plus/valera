@@ -15,7 +15,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
@@ -110,8 +109,8 @@ class NdefDeviceEngagementService : HostApduService() {
         presentationStateModel.reset()
         presentationStateModel.init()
 
-        // The UI consuming [PresentationModel] - for example the [Presentment] composable in this library - may
-        // have a cancel button which will trigger COMPLETED state when pressed. Need to listen for that.
+        // The UI consuming [PresentationModel] may
+        // have a cancel button which will trigger COMPLETED state when pressed.
         //
         listenForCancellationFromUiJob = presentationStateModel.presentmentScope.launch {
             presentationStateModel.state
@@ -250,7 +249,7 @@ class NdefDeviceEngagementService : HostApduService() {
     }
 
     private suspend fun processCommandApdu(commandApdu: CommandApdu): ResponseApdu? {
-        Napier.i("NdefDeviceEngagementService: processCommandApdu")
+        Napier.d("NdefDeviceEngagementService: processCommandApdu, started = $started")
 
         if (!started) {
             started = true

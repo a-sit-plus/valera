@@ -146,7 +146,7 @@ class PresentationStateModel {
     }
 
     fun init() {
-        check(_state.value == State.IDLE)
+        check(State.IDLE)
         _presentmentScope = CoroutineScope(Dispatchers.Main)
         _state.value = State.INITIALISING
     }
@@ -158,7 +158,7 @@ class PresentationStateModel {
         if (_state.value == State.IDLE) {
             init()
         }
-        check(_state.value == State.INITIALISING)
+        check(State.INITIALISING)
         if (needBluetooth) {
             _state.value = State.CHECK_PERMISSIONS
         } else {
@@ -182,7 +182,7 @@ class PresentationStateModel {
      * Sets the model to [State.CONNECTING].
      */
     private fun setConnecting() {
-        check(_state.value == State.CHECK_PERMISSIONS)
+        check(State.CHECK_PERMISSIONS)
         _state.value = State.CONNECTING
     }
 
@@ -194,9 +194,14 @@ class PresentationStateModel {
      * @param mechanism the [PresentmentMechanism] to use.
      */
     fun setMechanism(mechanism: PresentmentMechanism) {
-        check(_state.value == State.CONNECTING)
+        check(State.CONNECTING)
         _mechanism = mechanism
         _state.value = State.WAITING_FOR_SOURCE
+    }
+
+    private fun check(expectedState: State) {
+        Napier.d("State is ${_state.value}, expected: $expectedState")
+        check(_state.value == expectedState)
     }
 
     /**
@@ -206,7 +211,7 @@ class PresentationStateModel {
      * @param presentationViewModel the [PresentationViewModel] to use.
      */
     fun setStepAfterWaitingForSource(presentationViewModel: PresentationViewModel) {
-        check(_state.value == State.WAITING_FOR_SOURCE)
+        check(State.WAITING_FOR_SOURCE)
         _state.value = State.PROCESSING
 
         // OK, now that we got both a mechanism and a source we're off to the races and we can
@@ -334,7 +339,7 @@ class PresentationStateModel {
     private var credentialSelectorContinuation: CancellableContinuation<ByteArray>? = null
 
     fun setPermissionState(granted: Boolean) {
-        check(_state.value == State.CHECK_PERMISSIONS)
+        check(State.CHECK_PERMISSIONS)
         if (!granted) {
             _state.value = State.NO_PERMISSION
         } else {
@@ -357,7 +362,7 @@ class PresentationStateModel {
      * @param deviceResponse the device response for the selected credential, must be `null` to convey the user did not want to continue
      */
     fun credentialSelected(deviceResponse: ByteArray) {
-        check(_state.value == State.WAITING_FOR_DOCUMENT_SELECTION)
+        check(State.WAITING_FOR_DOCUMENT_SELECTION)
         credentialSelectorContinuation!!.resume(deviceResponse)
     }
 }
