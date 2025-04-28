@@ -8,6 +8,7 @@ import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import org.multipaz.cbor.Cbor
+import org.multipaz.cbor.Simple
 import org.multipaz.mdoc.request.DeviceRequestParser
 import org.multipaz.mdoc.role.MdocRole
 import org.multipaz.mdoc.sessionencryption.SessionEncryption
@@ -61,13 +62,20 @@ class MdocPresenter(
                     val eReaderKey = SessionEncryption.getEReaderKey(sessionData)
                     val eReaderCoseKey =
                         CoseKey.deserialize(Cbor.encode(eReaderKey.toCoseKey().toDataItem()))
-                    val nfcHandover = NFCHandover.deserialize(Cbor.encode(mechanism.handover))
 
-                    sessionTranscript = SessionTranscript(
-                        deviceEngagementBytes = mechanism.encodedDeviceEngagement.toByteArray(),
-                        eReaderKeyBytes = eReaderCoseKey.getOrThrow().serialize(),
-                        nfcHandover = nfcHandover.getOrThrow()
-                    )
+                    sessionTranscript = if (mechanism.handover == Simple.NULL) {
+                        SessionTranscript.forQr(
+                            deviceEngagementBytes = mechanism.encodedDeviceEngagement.toByteArray(),
+                            eReaderKeyBytes = eReaderCoseKey.getOrThrow().serialize()
+                        )
+                    } else {
+                        val nfcHandover = NFCHandover.deserialize(Cbor.encode(mechanism.handover))
+                        SessionTranscript.forNfc(
+                            deviceEngagementBytes = mechanism.encodedDeviceEngagement.toByteArray(),
+                            eReaderKeyBytes = eReaderCoseKey.getOrThrow().serialize(),
+                            nfcHandover = nfcHandover.getOrThrow()
+                        )
+                    }
 
                     encodedSessionTranscript = sessionTranscript.serialize()
 
