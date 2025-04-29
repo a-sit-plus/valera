@@ -34,7 +34,6 @@ import at.asitplus.valera.resources.button_label_retry
 import at.asitplus.valera.resources.error_bluetooth_unavailable
 import at.asitplus.valera.resources.error_missing_permissions
 import at.asitplus.valera.resources.heading_label_show_qr_code_screen
-import at.asitplus.valera.resources.info_text_finished
 import at.asitplus.valera.resources.info_text_qr_code_loading
 import at.asitplus.wallet.app.common.iso.transfer.BluetoothInfo
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants.MDOC_PREFIX
@@ -158,9 +157,7 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
                         )
                     }
 
-                    ShowQrCodeState.FINISHED -> {
-                        Text(stringResource(Res.string.info_text_finished))
-                    }
+                    ShowQrCodeState.FINISHED -> { LoadingViewBody(scaffoldPadding) }
                 }
             }
         }
