@@ -6,9 +6,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -21,12 +19,11 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.app_display_name
-import at.asitplus.valera.resources.icon_presentation
 import at.asitplus.valera.resources.icon_presentation_error
 import at.asitplus.valera.resources.icon_presentation_success
 import at.asitplus.valera.resources.presentation_canceled
@@ -216,110 +213,47 @@ fun PresentationView(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center
         ) {
-            Spacer(modifier = Modifier.weight(0.15f))
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                val (appNameText, iconPainter, iconCaptionText) = when (state) {
-                    PresentationStateModel.State.IDLE,
-                    PresentationStateModel.State.CONNECTING -> {
-                        Triple(
-                            stringResource(Res.string.app_display_name),
-                            painterResource(Res.drawable.icon_presentation),
-                            stringResource(Res.string.presentation_connecting_to_verifier)
-                        )
+            when (state) {
+                PresentationStateModel.State.IDLE,
+                PresentationStateModel.State.CONNECTING ->
+                    LoadingView(stringResource(Res.string.presentation_connecting_to_verifier))
+
+                PresentationStateModel.State.WAITING_FOR_SOURCE,
+                PresentationStateModel.State.PROCESSING -> LoadingView(
+                    if (presentationStateModel.numRequestsServed.collectAsState().value == 0) {
+                        ""
+                    } else {
+                        stringResource(Res.string.presentation_waiting_for_request)
                     }
+                )
 
-                    PresentationStateModel.State.WAITING_FOR_SOURCE,
-                    PresentationStateModel.State.PROCESSING
-                        -> {
-                        Triple(
-                            stringResource(Res.string.app_display_name),
-                            painterResource(Res.drawable.icon_presentation),
-                            if (presentationStateModel.numRequestsServed.collectAsState().value == 0) {
-                                ""
-                            } else {
-                                stringResource(Res.string.presentation_waiting_for_request)
-                            }
-                        )
+                PresentationStateModel.State.COMPLETED -> {
+                    when (presentationStateModel.error) {
+                        null -> showPresentationSuccess()
+
+                        is PresentmentCanceled ->
+                            showPresentationFailure(stringResource(Res.string.presentation_canceled))
+
+                        is PresentmentTimeout ->
+                            showPresentationFailure(stringResource(Res.string.presentation_timeout))
+
+                        else ->
+                            showPresentationFailure(stringResource(Res.string.presentation_error))
                     }
-
-                    PresentationStateModel.State.COMPLETED -> {
-                        when (presentationStateModel.error) {
-                            null -> Triple(
-                                "",
-                                painterResource(Res.drawable.icon_presentation_success),
-                                stringResource(Res.string.presentation_success)
-                            )
-
-                            is PresentmentCanceled -> Triple(
-                                stringResource(Res.string.app_display_name),
-                                painterResource(Res.drawable.icon_presentation),
-                                stringResource(Res.string.presentation_canceled)
-                            )
-
-                            is PresentmentTimeout -> Triple(
-                                "",
-                                painterResource(Res.drawable.icon_presentation_error),
-                                stringResource(Res.string.presentation_timeout)
-                            )
-
-                            else -> Triple(
-                                "",
-                                painterResource(Res.drawable.icon_presentation_error),
-                                stringResource(Res.string.presentation_error)
-                            )
-                        }
-                    }
-
-                    PresentationStateModel.State.WAITING_FOR_DOCUMENT_SELECTION -> throw IllegalStateException(
-                        "should not be reachable"
-                    )
-
-                    PresentationStateModel.State.NO_PERMISSION -> Triple(
-                        stringResource(Res.string.app_display_name),
-                        painterResource(Res.drawable.icon_presentation),
-                        stringResource(Res.string.presentation_missing_permission)
-                    )
-
-                    PresentationStateModel.State.CHECK_PERMISSIONS -> Triple(
-                        stringResource(Res.string.app_display_name),
-                        painterResource(Res.drawable.icon_presentation),
-                        stringResource(Res.string.presentation_permission_required)
-
-                    )
-
-                    PresentationStateModel.State.INITIALISING -> Triple(
-                        stringResource(Res.string.app_display_name),
-                        painterResource(Res.drawable.icon_presentation),
-                        stringResource(Res.string.presentation_initialised)
-
-                    )
                 }
 
+                PresentationStateModel.State.WAITING_FOR_DOCUMENT_SELECTION ->
+                    throw IllegalStateException("should not be reachable")
 
-                Text(
-                    text = appNameText,
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold
-                )
-                Image(
-                    modifier = Modifier.size(200.dp).fillMaxSize().padding(10.dp),
-                    painter = iconPainter,
-                    contentDescription = null,
-                    contentScale = ContentScale.Fit,
-                )
-                Text(
-                    text = iconCaptionText,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Normal
-                )
+                PresentationStateModel.State.NO_PERMISSION ->
+                    LoadingView(stringResource(Res.string.presentation_missing_permission))
 
+                PresentationStateModel.State.CHECK_PERMISSIONS ->
+                    LoadingView(stringResource(Res.string.presentation_permission_required))
 
+                PresentationStateModel.State.INITIALISING ->
+                    LoadingView(stringResource(Res.string.presentation_initialised))
             }
-            Spacer(modifier = Modifier.weight(1.0f))
         }
     }
 
@@ -356,4 +290,44 @@ fun PresentationView(
             )
         }
     }
+}
+
+@Composable
+fun showPresentationSuccess() {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        showImageAndText(
+            painterResource(Res.drawable.icon_presentation_success),
+            stringResource(Res.string.presentation_success)
+        )
+    }
+}
+
+@Composable
+fun showPresentationFailure(text: String) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        showImageAndText(painterResource(Res.drawable.icon_presentation_error), text)
+    }
+}
+
+@Composable
+fun showImageAndText(painter: Painter, text: String) {
+    Image(
+        modifier = Modifier.size(200.dp).fillMaxSize().padding(10.dp),
+        painter = painter,
+        contentDescription = null,
+        contentScale = ContentScale.Fit,
+    )
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodyLarge,
+        fontWeight = FontWeight.Normal
+    )
 }
