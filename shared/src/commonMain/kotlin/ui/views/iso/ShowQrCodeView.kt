@@ -9,13 +9,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -35,11 +33,11 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_retry
 import at.asitplus.valera.resources.error_bluetooth_unavailable
 import at.asitplus.valera.resources.error_missing_permissions
-import at.asitplus.valera.resources.heading_label_select_data_retrieval_screen
 import at.asitplus.valera.resources.heading_label_show_qr_code_screen
 import at.asitplus.valera.resources.info_text_finished
 import at.asitplus.valera.resources.info_text_qr_code_loading
 import at.asitplus.wallet.app.common.iso.transfer.BluetoothInfo
+import at.asitplus.wallet.app.common.iso.transfer.MdocConstants.MDOC_PREFIX
 import data.proximity.MdocConstants.MDOC_PREFIX
 import io.github.alexzhirkevich.qrose.rememberQrCodePainter
 import kotlinx.coroutines.launch
@@ -53,6 +51,7 @@ import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.authentication.PresentationStateModel
 import ui.viewmodels.iso.ShowQrCodeState
 import ui.viewmodels.iso.ShowQrCodeViewModel
+import ui.views.LoadingViewBody
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -138,16 +137,15 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
                     }
 
                     ShowQrCodeState.CREATE_ENGAGEMENT -> {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            CircularProgressIndicator()
-                            LaunchedEffect(showQrCode.value) {
-                                if (vm.hasBeenCalledHack) return@LaunchedEffect
-                                vm.hasBeenCalledHack = true
-                                vm.setupPresentmentModel()
-                                vm.doHolderFlow(showQrCode)
-                            }
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(stringResource(Res.string.info_text_qr_code_loading))
+                        LoadingViewBody(
+                            scaffoldPadding,
+                            stringResource(Res.string.info_text_qr_code_loading)
+                        )
+                        LaunchedEffect(showQrCode.value) {
+                            if (vm.hasBeenCalledHack) return@LaunchedEffect
+                            vm.hasBeenCalledHack = true
+                            vm.setupPresentmentModel()
+                            vm.doHolderFlow(showQrCode)
                         }
                     }
 
