@@ -16,10 +16,14 @@ import androidx.compose.ui.Modifier
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_loading_screen
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.buttons.NavigateUpButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoadingView() {
+fun LoadingView(
+    customLabel: String = "",
+    navigateUp: (() -> Unit)? = null
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -29,6 +33,9 @@ fun LoadingView() {
                         style = MaterialTheme.typography.headlineLarge,
                     )
                 },
+                navigationIcon = {
+                    navigateUp?.let { NavigateUpButton(onClick = navigateUp) }
+                }
             )
         }
     ) { scaffoldPadding ->
@@ -40,7 +47,11 @@ fun LoadingView() {
             CircularProgressIndicator(
                 color = MaterialTheme.colorScheme.secondary,
                 trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                modifier = Modifier.fillMaxSize(0.5f),
+                modifier = Modifier.fillMaxSize(0.5f)
+            )
+            Text(
+                text = customLabel,
+                style = MaterialTheme.typography.labelLarge
             )
         }
     }
