@@ -4,6 +4,7 @@ import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.eupid.EuPidScheme
+import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
 import at.asitplus.wallet.healthid.HealthIdScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.ConstantIndex
@@ -27,8 +28,8 @@ interface CredentialAttributeCategorization {
             representation: ConstantIndex.CredentialRepresentation
         ): Template = when (scheme) {
             is IdAustriaScheme -> IdAustriaCredentialAttributeCategorization
-            is EuPidScheme -> // TODO When mapping is confirmed if (representation == ConstantIndex.CredentialRepresentation.SD_JWT) EuPidCredentialSdJwtAttributeCategorization else EuPidCredentialAttributeCategorization
-                EuPidCredentialAttributeCategorization
+            is EuPidScheme -> EuPidCredentialAttributeCategorization
+            is EuPidSdJwtScheme -> EuPidSdJwtCredentialAttributeCategorization
             is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialAttributeCategorization
             is PowerOfRepresentationScheme -> PowerOfRepresentationCredentialAttributeCategorization
             is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialAttributeCategorization

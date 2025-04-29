@@ -29,6 +29,7 @@ import at.asitplus.valera.resources.heading_label_credential_details_screen
 import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.eupid.EuPidScheme
+import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
 import at.asitplus.wallet.healthid.HealthIdScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
@@ -137,6 +138,7 @@ fun CredentialDetailsSummaryView(
         when (storeEntry.scheme) {
             is IdAustriaScheme -> IdAustriaCredentialView(storeEntry, imageDecoder)
             is EuPidScheme -> EuPidCredentialView(storeEntry, imageDecoder)
+            is EuPidSdJwtScheme -> EuPidCredentialView(storeEntry, imageDecoder)
             is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialView(storeEntry, imageDecoder)
             is PowerOfRepresentationScheme -> PowerOfRepresentationCredentialView(storeEntry)
             is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialView(storeEntry)

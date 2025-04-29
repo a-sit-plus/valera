@@ -5,6 +5,7 @@ package data.credentials
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.jsonpath.core.plus
 import at.asitplus.wallet.eupid.EuPidScheme
+import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
 import data.PersonalDataCategory
 
 object EuPidCredentialAttributeCategorization : CredentialAttributeCategorization.Template(
@@ -73,20 +74,20 @@ object EuPidCredentialAttributeCategorization : CredentialAttributeCategorizatio
     },
 )
 
-object EuPidCredentialSdJwtAttributeCategorization : CredentialAttributeCategorization.Template(
+object EuPidSdJwtCredentialAttributeCategorization : CredentialAttributeCategorization.Template(
     mapOf(
-        PersonalDataCategory.IdentityData to with(EuPidScheme.SdJwtAttributes) {
+        PersonalDataCategory.IdentityData to with(EuPidSdJwtScheme.SdJwtAttributes) {
             listOf(
                 GIVEN_NAME,
                 FAMILY_NAME,
                 BIRTH_DATE,
                 PORTRAIT,
                 NATIONALITIES,
-                GENDER,
+                SEX,
             ).map { NormalizedJsonPath() + it to null }
         },
 
-        PersonalDataCategory.AgeData to with(EuPidScheme.SdJwtAttributes) {
+        PersonalDataCategory.AgeData to with(EuPidSdJwtScheme.SdJwtAttributes) {
             listOf(
                 AGE_EQUAL_OR_OVER_12,
                 AGE_EQUAL_OR_OVER_14,
@@ -98,7 +99,7 @@ object EuPidCredentialSdJwtAttributeCategorization : CredentialAttributeCategori
             ).map { NormalizedJsonPath() + it to null }
         },
 
-        PersonalDataCategory.BirthData to with(EuPidScheme.SdJwtAttributes) {
+        PersonalDataCategory.BirthData to with(EuPidSdJwtScheme.SdJwtAttributes) {
             listOf(
                 GIVEN_NAME_BIRTH,
                 FAMILY_NAME_BIRTH,
@@ -108,7 +109,7 @@ object EuPidCredentialSdJwtAttributeCategorization : CredentialAttributeCategori
             ).map { NormalizedJsonPath() + it to null }
         },
 
-        PersonalDataCategory.ResidenceData to with(EuPidScheme.SdJwtAttributes) {
+        PersonalDataCategory.ResidenceData to with(EuPidSdJwtScheme.SdJwtAttributes) {
             listOf(
                 ADDRESS_STREET,
                 ADDRESS_HOUSE_NUMBER,
@@ -120,7 +121,7 @@ object EuPidCredentialSdJwtAttributeCategorization : CredentialAttributeCategori
             ).map { NormalizedJsonPath() + it to null }
         },
 
-        PersonalDataCategory.Metadata to with(EuPidScheme.SdJwtAttributes) {
+        PersonalDataCategory.Metadata to with(EuPidSdJwtScheme.SdJwtAttributes) {
             listOf(
                 DOCUMENT_NUMBER,
                 ISSUANCE_DATE,
@@ -128,12 +129,11 @@ object EuPidCredentialSdJwtAttributeCategorization : CredentialAttributeCategori
                 ISSUING_COUNTRY,
                 ISSUING_AUTHORITY,
                 ISSUING_JURISDICTION,
-                ADMINISTRATIVE_NUMBER,
                 PERSONAL_ADMINISTRATIVE_NUMBER,
             ).map { NormalizedJsonPath() + it to null }
         },
     ),
-    allAttributes = EuPidScheme.mapIsoToSdJwtAttributes.map {
-        NormalizedJsonPath() + it.value
+    allAttributes = EuPidSdJwtScheme.claimNames.map {
+        NormalizedJsonPath() + it
     },
 )

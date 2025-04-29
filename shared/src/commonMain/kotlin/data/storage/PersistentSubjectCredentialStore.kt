@@ -242,13 +242,14 @@ private sealed interface ExportableStoreEntry {
 }
 
 enum class ExportableCredentialScheme {
-    AtomicAttribute2023, IdAustriaScheme, MobileDrivingLicence2023, EuPidScheme, PowerOfRepresentationScheme, CertificateOfResidenceScheme, CompanyRegistrationScheme, HealthIdScheme, TaxIdScheme;
+    AtomicAttribute2023, IdAustriaScheme, MobileDrivingLicence2023, EuPidScheme, EuPidSdJwtScheme, PowerOfRepresentationScheme, CertificateOfResidenceScheme, CompanyRegistrationScheme, HealthIdScheme, TaxIdScheme;
 
     fun toScheme() = when (this) {
         AtomicAttribute2023 -> ConstantIndex.AtomicAttribute2023
         MobileDrivingLicence2023 -> MobileDrivingLicenceScheme
         IdAustriaScheme -> at.asitplus.wallet.idaustria.IdAustriaScheme
         EuPidScheme -> at.asitplus.wallet.eupid.EuPidScheme
+        EuPidSdJwtScheme -> at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
         PowerOfRepresentationScheme -> at.asitplus.wallet.por.PowerOfRepresentationScheme
         CertificateOfResidenceScheme -> at.asitplus.wallet.cor.CertificateOfResidenceScheme
         CompanyRegistrationScheme -> at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
@@ -262,6 +263,7 @@ enum class ExportableCredentialScheme {
             MobileDrivingLicenceScheme -> MobileDrivingLicence2023
             at.asitplus.wallet.idaustria.IdAustriaScheme -> IdAustriaScheme
             at.asitplus.wallet.eupid.EuPidScheme -> EuPidScheme
+            at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme -> EuPidSdJwtScheme
             at.asitplus.wallet.por.PowerOfRepresentationScheme -> PowerOfRepresentationScheme
             at.asitplus.wallet.cor.CertificateOfResidenceScheme -> CertificateOfResidenceScheme
             at.asitplus.wallet.companyregistration.CompanyRegistrationScheme -> CompanyRegistrationScheme

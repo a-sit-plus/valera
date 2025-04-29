@@ -29,6 +29,8 @@ abstract class CredentialAdapter {
 
     abstract val representation: ConstantIndex.CredentialRepresentation
 
+    abstract val scheme: ConstantIndex.CredentialScheme
+
     companion object {
         fun SubjectCredentialStore.StoreEntry.SdJwt.toAttributeMap() =
             disclosures.values.filterNotNull()

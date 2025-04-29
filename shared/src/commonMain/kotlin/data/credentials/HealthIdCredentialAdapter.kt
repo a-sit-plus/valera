@@ -5,6 +5,7 @@ import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.healthid.HealthIdScheme
 import at.asitplus.wallet.healthid.HealthIdScheme.Attributes
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import data.Attribute
 import kotlinx.datetime.Instant
@@ -70,6 +71,9 @@ sealed class HealthIdCredentialAdapter : CredentialAdapter() {
 private class HealthIdCredentialSdJwtAdapter(
     private val attributes: Map<String, JsonPrimitive>,
 ) : HealthIdCredentialAdapter() {
+    override val scheme: ConstantIndex.CredentialScheme
+        get() = HealthIdScheme
+
     override val representation: CredentialRepresentation
         get() = CredentialRepresentation.SD_JWT
 
@@ -116,6 +120,9 @@ private class HealthIdCredentialSdJwtAdapter(
 private class HealthIdComplexCredentialSdJwtAdapter(
     private val attributes: JsonObject,
 ) : HealthIdCredentialAdapter() {
+    override val scheme: ConstantIndex.CredentialScheme
+        get() = HealthIdScheme
+
     override val representation: CredentialRepresentation
         get() = CredentialRepresentation.SD_JWT
 
@@ -162,6 +169,9 @@ private class HealthIdComplexCredentialSdJwtAdapter(
 private class HealthIdCredentialIsoMdocAdapter(
     namespaces: Map<String, Map<String, Any>>?,
 ) : HealthIdCredentialAdapter() {
+    override val scheme: ConstantIndex.CredentialScheme
+        get() = HealthIdScheme
+
     private val namespace = namespaces?.get(HealthIdScheme.isoNamespace)
 
     override val representation: CredentialRepresentation

@@ -22,7 +22,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.content_description_portrait
-import at.asitplus.wallet.eupid.EuPidScheme
 import data.PersonalDataCategory
 import data.credentials.EuPidCredentialAdapter
 import org.jetbrains.compose.resources.stringResource
@@ -34,7 +33,7 @@ fun EuPidCredentialIdentityDataCard(
     modifier: Modifier = Modifier,
 ) {
     CredentialDetailCard(
-        credentialScheme = EuPidScheme,
+        credentialScheme = credentialAdapter.scheme,
         personalDataCategory = PersonalDataCategory.IdentityData,
         credentialAdapter = credentialAdapter,
         modifier = modifier,

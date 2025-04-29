@@ -44,9 +44,10 @@ import at.asitplus.valera.resources.attribute_friendly_name_portrait
 import at.asitplus.valera.resources.attribute_friendly_name_sex
 import at.asitplus.valera.resources.attribute_friendly_name_trust_anchor
 import at.asitplus.wallet.eupid.EuPidScheme
-import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes.Address
-import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes.AgeEqualOrOver
-import at.asitplus.wallet.eupid.EuPidScheme.SdJwtAttributes.PlaceOfBirth
+import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
+import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme.SdJwtAttributes.Address
+import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme.SdJwtAttributes.AgeEqualOrOver
+import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme.SdJwtAttributes.PlaceOfBirth
 import org.jetbrains.compose.resources.StringResource
 
 
@@ -103,7 +104,7 @@ object EuPidCredentialAttributeTranslator : CredentialAttributeTranslator {
         }
     }
 
-    private fun withSdJwtNames(attributeName: NormalizedJsonPath) = with(EuPidScheme.SdJwtAttributes) {
+    private fun withSdJwtNames(attributeName: NormalizedJsonPath) = with(EuPidSdJwtScheme.SdJwtAttributes) {
         when (val first = attributeName.segments.firstOrNull()) {
             is NormalizedJsonPathSegment.NameSegment -> when (first.memberName) {
                 FAMILY_NAME -> Res.string.attribute_friendly_name_lastname
@@ -163,20 +164,18 @@ object EuPidCredentialAttributeTranslator : CredentialAttributeTranslator {
                 ADDRESS_POSTAL_CODE -> Res.string.attribute_friendly_name_main_residence_postal_code
                 ADDRESS_STREET -> Res.string.attribute_friendly_name_main_residence_street
                 ADDRESS_HOUSE_NUMBER -> Res.string.attribute_friendly_name_main_residence_house_number
-                GENDER -> Res.string.attribute_friendly_name_sex
+                SEX -> Res.string.attribute_friendly_name_sex
                 NATIONALITIES -> Res.string.attribute_friendly_name_nationality
                 ISSUANCE_DATE -> Res.string.attribute_friendly_name_issue_date
                 EXPIRY_DATE -> Res.string.attribute_friendly_name_expiry_date
                 ISSUING_AUTHORITY -> Res.string.attribute_friendly_name_issuing_authority
                 DOCUMENT_NUMBER -> Res.string.attribute_friendly_name_document_number
-                ADMINISTRATIVE_NUMBER -> Res.string.attribute_friendly_name_administrative_number
                 ISSUING_COUNTRY -> Res.string.attribute_friendly_name_issuing_country
                 ISSUING_JURISDICTION -> Res.string.attribute_friendly_name_issuing_jurisdiction
                 PERSONAL_ADMINISTRATIVE_NUMBER -> Res.string.attribute_friendly_name_personal_administrative_number
                 EMAIL -> Res.string.attribute_friendly_name_email_address
                 PHONE_NUMBER -> Res.string.attribute_friendly_name_mobile_phone_number
                 TRUST_ANCHOR -> Res.string.attribute_friendly_name_trust_anchor
-                LOCATION_STATUS -> Res.string.attribute_friendly_name_location_status
                 else -> null
             }
 
