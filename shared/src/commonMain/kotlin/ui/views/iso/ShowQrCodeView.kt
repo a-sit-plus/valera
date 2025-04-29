@@ -40,6 +40,7 @@ import at.asitplus.valera.resources.heading_label_show_qr_code_screen
 import at.asitplus.valera.resources.info_text_finished
 import at.asitplus.valera.resources.info_text_qr_code_loading
 import at.asitplus.wallet.app.common.iso.transfer.BluetoothInfo
+import data.proximity.MdocConstants.MDOC_PREFIX
 import io.github.alexzhirkevich.qrose.rememberQrCodePainter
 import kotlinx.coroutines.launch
 import kotlinx.io.bytestring.ByteString
@@ -151,7 +152,7 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
                     }
 
                     ShowQrCodeState.SHOW_QR_CODE -> {
-                        val deviceEngagementQrCode = "mdoc:" + showQrCode.value!!.toByteArray().toBase64Url()
+                        val deviceEngagementQrCode = MDOC_PREFIX + showQrCode.value!!.toByteArray().toBase64Url()
                         Image(
                             painter = rememberQrCodePainter(deviceEngagementQrCode),
                             contentDescription = null,

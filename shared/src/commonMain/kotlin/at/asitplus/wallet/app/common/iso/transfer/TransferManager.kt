@@ -5,7 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_nfc_mdoc_reader
 import at.asitplus.wallet.app.common.presentation.TransferSettings.Companion.transferSettings
-import data.document.RequestDocument
+import data.proximity.RequestDocument
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CoroutineScope
@@ -57,6 +57,7 @@ class TransferManager(
     private val updateProgress: (String) -> Unit,
 ) {
 
+    // TODO: Add and update states to communicate with the verifier (connected, disconnected, error?)
     enum class State {
         IDLE,
         RUNNING,
@@ -262,6 +263,7 @@ class TransferManager(
                     }
                 )
             } catch (e: Throwable) {
+                // TODO: Add populate error to verifier
                 Napier.e("NFC engagement failed", e)
                 updateProgress("NFC engagement failed with $e")
             }

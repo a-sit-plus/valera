@@ -4,6 +4,7 @@ import androidx.compose.runtime.MutableState
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
 import at.asitplus.wallet.app.common.presentation.TransferSettings.Companion.transferSettings
+import data.proximity.MdocConstants
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -92,7 +93,7 @@ class ShowQrCodeViewModel(
                 onConnectionMethodsReady = { advertisedConnectionMethods ->
                     val engagementGenerator = EngagementGenerator(
                         eSenderKey = ephemeralDeviceKey.publicKey,
-                        version = "1.0"
+                        version = MdocConstants.VERSION
                     )
                     engagementGenerator.addConnectionMethods(advertisedConnectionMethods)
                     val encodedDeviceEngagementByteArray = engagementGenerator.generate()
