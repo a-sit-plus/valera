@@ -1,4 +1,4 @@
-package data.proximity
+package data.document
 
 import kotlinx.serialization.Serializable
 

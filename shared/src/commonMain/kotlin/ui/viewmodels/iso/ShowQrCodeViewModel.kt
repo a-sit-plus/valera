@@ -4,7 +4,7 @@ import androidx.compose.runtime.MutableState
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
 import at.asitplus.wallet.app.common.presentation.TransferSettings.Companion.transferSettings
-import data.proximity.MdocConstants
+import at.asitplus.wallet.app.common.iso.transfer.MdocConstants
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch

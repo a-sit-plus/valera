@@ -37,7 +37,6 @@ import at.asitplus.valera.resources.heading_label_show_qr_code_screen
 import at.asitplus.valera.resources.info_text_qr_code_loading
 import at.asitplus.wallet.app.common.iso.transfer.BluetoothInfo
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants.MDOC_PREFIX
-import data.proximity.MdocConstants.MDOC_PREFIX
 import io.github.alexzhirkevich.qrose.rememberQrCodePainter
 import kotlinx.coroutines.launch
 import kotlinx.io.bytestring.ByteString

@@ -5,7 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_nfc_mdoc_reader
 import at.asitplus.wallet.app.common.presentation.TransferSettings.Companion.transferSettings
-import data.proximity.RequestDocument
+import data.document.RequestDocument
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CoroutineScope

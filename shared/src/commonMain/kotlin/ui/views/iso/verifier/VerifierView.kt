@@ -41,10 +41,7 @@ fun VerifierView(
         VerifierState.SELECT_CUSTOM_REQUEST -> { VerifierCustomSelectionView(vm) }
         VerifierState.QR_ENGAGEMENT -> { VerifierQrEngagementView(vm) }
         VerifierState.WAITING_FOR_RESPONSE -> {
-            LoadingView(
-                stringResource(Res.string.info_text_waiting_for_response),
-                vm.navigateUpWhileWaiting
-            )
+            LoadingView(stringResource(Res.string.info_text_waiting_for_response), vm.navigateUp)
         }
         VerifierState.PRESENTATION -> { VerifierPresentationView(vm) }
         VerifierState.ERROR -> { onError(Throwable(vm.errorMessage.value)) }

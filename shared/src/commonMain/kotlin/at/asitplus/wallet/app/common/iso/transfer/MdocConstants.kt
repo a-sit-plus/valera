@@ -1,4 +1,4 @@
-package data.proximity
+package at.asitplus.wallet.app.common.iso.transfer
 
 object MdocConstants {
     const val MDOC_PREFIX = "mdoc:"
