@@ -96,7 +96,6 @@ class TransferManager(
     private var readerTransport = mutableStateOf<MdocTransport?>(null)
     private var readerSessionEncryption = mutableStateOf<SessionEncryption?>(null)
 
-
     // TODO keys taken from identity-credential, replace with our own
     private val bundledReaderRootKey: EcPrivateKey by lazy {
         val readerRootKeyPub = EcPublicKey.fromPem(
@@ -124,52 +123,16 @@ class TransferManager(
 
     private val bundledReaderRootCert: X509Cert by lazy {
         MdocUtil.generateReaderRootCertificate(
-            readerRootKey = iacaKey,
+            readerRootKey = readerRootKey,
             subject = X500Name.fromName("CN=OWF IC TestApp Reader Root"),
             serial = ASN1Integer(1L),
             validFrom = certsValidFrom,
             validUntil = certsValidUntil,
         )
     }
-    private val bundledIacaKey: EcPrivateKey by lazy {
-        val iacaKeyPub = EcPublicKey.fromPem(
-            """
-                    -----BEGIN PUBLIC KEY-----
-                    MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAE+QDye70m2O0llPXMjVjxVZz3m5k6agT+
-                    wih+L79b7jyqUl99sbeUnpxaLD+cmB3HK3twkA7fmVJSobBc+9CDhkh3mx6n+YoH
-                    5RulaSWThWBfMyRjsfVODkosHLCDnbPV
-                    -----END PUBLIC KEY-----
-                """.trimIndent().trim(),
-            EcCurve.P384
-        )
-        EcPrivateKey.fromPem(
-            """
-                    -----BEGIN PRIVATE KEY-----
-                    MIG2AgEAMBAGByqGSM49AgEGBSuBBAAiBIGeMIGbAgEBBDCcRuzXW3pW2h9W8pu5
-                    /CSR6JSnfnZVATq+408WPoNC3LzXqJEQSMzPsI9U1q+wZ2yhZANiAAT5APJ7vSbY
-                    7SWU9cyNWPFVnPebmTpqBP7CKH4vv1vuPKpSX32xt5SenFosP5yYHccre3CQDt+Z
-                    UlKhsFz70IOGSHebHqf5igflG6VpJZOFYF8zJGOx9U4OSiwcsIOds9U=
-                    -----END PRIVATE KEY-----
-                """.trimIndent().trim(),
-            iacaKeyPub
-        )
-    }
-
-    val bundledIacaCert: X509Cert by lazy {
-        MdocUtil.generateIacaCertificate(
-            iacaKey = iacaKey,
-            subject = X500Name.fromName("C=ZZ,CN=OWF Identity Credential TEST IACA"),
-            serial = ASN1Integer(1L),
-            validFrom = certsValidFrom,
-            validUntil = certsValidUntil,
-            issuerAltNameUrl = "https://github.com/openwallet-foundation-labs/identity-credential",
-            crlUrl = "https://github.com/openwallet-foundation-labs/identity-credential"
-        )
-    }
 
     private val certsValidFrom = LocalDate.parse("2024-12-01").atStartOfDayIn(TimeZone.UTC)
     private val certsValidUntil = LocalDate.parse("2034-12-01").atStartOfDayIn(TimeZone.UTC)
-    private val iacaKey: EcPrivateKey = bundledIacaKey
     private val readerRootKey: EcPrivateKey = bundledReaderRootKey
     private val readerRootCert: X509Cert = bundledReaderRootCert
     private val readerKey: EcPrivateKey = Crypto.createEcPrivateKey(EcCurve.P256)
@@ -182,7 +145,6 @@ class TransferManager(
         validFrom = certsValidFrom,
         validUntil = certsValidUntil,
     )
-    private val iacaCert: X509Cert = bundledIacaCert
 
     fun startNfcEngagement(
         documentRequest: RequestDocument,
@@ -487,5 +449,4 @@ class TransferManager(
             readerTransport.value = null
         }
     }
-
 }
