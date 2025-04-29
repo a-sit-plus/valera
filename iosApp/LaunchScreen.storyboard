@@ -16,10 +16,10 @@
                         <rect key="frame" x="0.0" y="0.0" width="440" height="956"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="TechDemo" translatesAutoresizingMaskIntoConstraints="NO" id="9rt-PF-u4M">
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="techdemo" translatesAutoresizingMaskIntoConstraints="NO" id="9rt-PF-u4M">
                                 <rect key="frame" x="120" y="840" width="200" height="28"/>
                             </imageView>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="Icon" translatesAutoresizingMaskIntoConstraints="NO" id="XdF-nr-l70">
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="icon" translatesAutoresizingMaskIntoConstraints="NO" id="XdF-nr-l70">
                                 <rect key="frame" x="120" y="378" width="200" height="200"/>
                                 <rect key="contentStretch" x="1" y="1" width="1" height="1"/>
                                 <constraints>
@@ -44,7 +44,7 @@
         </scene>
     </scenes>
     <resources>
-        <image name="Icon" width="1194" height="1194"/>
-        <image name="TechDemo" width="200" height="28"/>
+        <image name="icon" width="1194" height="1194"/>
+        <image name="techdemo" width="200" height="28"/>
     </resources>
 </document>
