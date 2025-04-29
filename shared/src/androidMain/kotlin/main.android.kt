@@ -5,7 +5,6 @@ import android.util.Base64
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
@@ -76,6 +75,7 @@ fun MainView(
     )
     val ks = KeystoreService(dataStoreService)
 
+    val promptModel = AndroidPromptModel()
     PromptDialogs(promptModel)
 
     App(
