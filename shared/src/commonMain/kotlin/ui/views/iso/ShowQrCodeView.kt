@@ -153,7 +153,7 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
                         Image(
                             painter = rememberQrCodePainter(deviceEngagementQrCode),
                             contentDescription = null,
-                            modifier = Modifier.padding(16.dp)
+                            modifier = Modifier.fillMaxSize(0.8f)
                         )
                     }
 
