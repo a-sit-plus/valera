@@ -74,13 +74,23 @@ class VerifierViewModel(
         _verifierState.value = VerifierState.PRESENTATION
     }
 
-    fun onClickPredefinedMdl(selectedEngagementMethod: DeviceEngagementMethods) {
-        _requestDocument.value = getMdlRequestDocument()
+    fun onClickPredefinedMdlMandatoryAttributes(selectedEngagementMethod: DeviceEngagementMethods) {
+        _requestDocument.value = getMdlMandatoryAttributesRequestDocument()
         setStateToEngagement(selectedEngagementMethod)
     }
 
-    fun onClickPredefinedPid(selectedEngagementMethod: DeviceEngagementMethods) {
-        _requestDocument.value = getPidRequestDocument()
+    fun onClickPredefinedMdlFullAttributes(selectedEngagementMethod: DeviceEngagementMethods) {
+        _requestDocument.value = getMdlFullAttributesRequestDocument()
+        setStateToEngagement(selectedEngagementMethod)
+    }
+
+    fun onClickPredefinedPidRequiredAttributes(selectedEngagementMethod: DeviceEngagementMethods) {
+        _requestDocument.value = getPidRequiredAttributesRequestDocument()
+        setStateToEngagement(selectedEngagementMethod)
+    }
+
+    fun onClickPredefinedPidFullAttributes(selectedEngagementMethod: DeviceEngagementMethods) {
+        _requestDocument.value = getPidFullAttributesRequestDocument()
         setStateToEngagement(selectedEngagementMethod)
     }
 
@@ -126,7 +136,7 @@ class VerifierViewModel(
     }
 }
 
-fun getMdlRequestDocument(): RequestDocument {
+fun getMdlMandatoryAttributesRequestDocument(): RequestDocument {
     return RequestDocument(
         docType = MobileDrivingLicenceScheme.isoDocType,
         itemsToRequest = mapOf(
@@ -136,15 +146,35 @@ fun getMdlRequestDocument(): RequestDocument {
     )
 }
 
+fun getMdlFullAttributesRequestDocument(): RequestDocument {
+    return RequestDocument(
+        docType = MobileDrivingLicenceScheme.isoDocType,
+        itemsToRequest = mapOf(
+            MobileDrivingLicenceScheme.isoNamespace to MobileDrivingLicenceScheme.claimNames
+                .associateWith { false }
+        )
+    )
+}
+
 fun getMdlPreselection(): Set<String> {
     return MobileDrivingLicenceDataElements.MANDATORY_ELEMENTS.toSet()
 }
 
-fun getPidRequestDocument(): RequestDocument {
+fun getPidRequiredAttributesRequestDocument(): RequestDocument {
     return RequestDocument(
         docType = EuPidScheme.isoDocType,
         itemsToRequest = mapOf(
             EuPidScheme.isoNamespace to EuPidScheme.requiredClaimNames
+                .associateWith { false }
+        )
+    )
+}
+
+fun getPidFullAttributesRequestDocument(): RequestDocument {
+    return RequestDocument(
+        docType = EuPidScheme.isoDocType,
+        itemsToRequest = mapOf(
+            EuPidScheme.isoNamespace to EuPidScheme.claimNames
                 .associateWith { false }
         )
     )
