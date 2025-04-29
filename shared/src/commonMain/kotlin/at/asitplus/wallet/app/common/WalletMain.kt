@@ -44,6 +44,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import net.swiftzer.semver.SemVer
 import org.jetbrains.compose.resources.getString
+import org.multipaz.prompt.PromptModel
 import ui.navigation.IntentService
 
 /**
@@ -57,7 +58,7 @@ class WalletMain(
         dataStoreService
     ),
     val buildContext: BuildContext,
-    val scope: CoroutineScope
+    promptModel: PromptModel
 ) {
     lateinit var walletConfig: WalletConfig
     lateinit var credentialValidator: Validator
@@ -71,6 +72,10 @@ class WalletMain(
     val errorService = ErrorService()
     val snackbarService = SnackbarService()
     private val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
+    private val coroutineExceptionHandler = CoroutineExceptionHandler { _, error ->
+        errorService.emit(error)
+    }
+    val scope = CoroutineScope(Dispatchers.Default + coroutineExceptionHandler + promptModel)
 
     init {
         at.asitplus.wallet.mdl.Initializer.initWithVCK()

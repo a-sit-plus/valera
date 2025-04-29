@@ -78,7 +78,7 @@ fun MainView(
             dataStoreService = dataStoreService,
             platformAdapter = platformAdapter,
             buildContext = buildContext,
-            scope = scope
+            promptModel = promptModel
         )
     )
 }

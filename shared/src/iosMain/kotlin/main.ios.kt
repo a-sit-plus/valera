@@ -11,9 +11,9 @@ import at.asitplus.wallet.app.common.WalletCryptoService
 import at.asitplus.wallet.app.common.WalletMain
 import data.storage.RealDataStoreService
 import data.storage.createDataStore
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import org.jetbrains.skia.Image
+import org.multipaz.compose.prompt.PromptDialogs
+import org.multipaz.prompt.IosPromptModel
 import platform.UIKit.UIViewController
 import ui.theme.darkScheme
 import ui.theme.lightScheme
@@ -40,14 +40,17 @@ fun MainViewController(
 ): UIViewController {
     val dataStoreService = RealDataStoreService(createDataStore(), platformAdapter)
     val keystoreService = KeystoreService(dataStoreService)
+    val promptModel = IosPromptModel()
+
     return ComposeUIViewController {
+        PromptDialogs(promptModel)
         App(
             WalletMain(
                 WalletCryptoService(keyMaterial = keystoreService.getSignerBlocking()),
                 dataStoreService,
                 platformAdapter,
                 buildContext =  buildContext,
-                scope = CoroutineScope(Dispatchers.Default)
+                promptModel = promptModel
             )
         )
     }

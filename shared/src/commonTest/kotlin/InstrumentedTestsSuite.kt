@@ -61,6 +61,8 @@ import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
@@ -71,6 +73,9 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.jetbrains.compose.resources.getString
+import org.multipaz.prompt.PassphraseRequest
+import org.multipaz.prompt.PromptModel
+import org.multipaz.prompt.SinglePromptModel
 import ui.navigation.NavigatorTestTags
 import ui.navigation.routes.OnboardingWrapperTestTags
 import ui.views.OnboardingStartScreenTestTag
@@ -367,11 +372,23 @@ private fun createWalletMain(platformAdapter: PlatformAdapter): WalletMain {
             versionName = "0.0.0",
             osVersion = "Unit Test"
         ),
-        scope = CoroutineScope(Dispatchers.Default),
+        promptModel = TestPromptModel(),
     )
 }
 
 class TestLifecycleOwner : LifecycleOwner {
     private val _lifecycle = LifecycleRegistry(this)
     override val lifecycle: Lifecycle get() = _lifecycle
+}
+
+// Based on the identity-credential sample code
+// https://github.com/openwallet-foundation-labs/identity-credential/tree/main/samples/testapp
+class TestPromptModel: PromptModel {
+    override val passphrasePromptModel = SinglePromptModel<PassphraseRequest, String?>()
+    override val promptModelScope =
+        CoroutineScope(Dispatchers.Default + SupervisorJob() + this)
+
+    fun onClose() {
+        promptModelScope.cancel()
+    }
 }
