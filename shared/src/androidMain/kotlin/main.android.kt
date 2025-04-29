@@ -5,7 +5,6 @@ import android.util.Base64
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
@@ -68,8 +67,6 @@ fun MainView(
     buildContext: BuildContext,
     sendCredentialResponseToDCAPIInvokerMethod: (String) -> Unit
 ) {
-    val promptModel = AndroidPromptModel()
-    val scope = rememberCoroutineScope { promptModel }
     val platformAdapter = AndroidPlatformAdapter(
         LocalContext.current,
         sendCredentialResponseToDCAPIInvokerMethod
@@ -80,6 +77,7 @@ fun MainView(
     )
     val ks = KeystoreService(dataStoreService)
 
+    val promptModel = AndroidPromptModel()
     PromptDialogs(promptModel)
 
     App(
@@ -87,7 +85,8 @@ fun MainView(
             keyMaterial = ks.let { runBlocking { AndroidKeyMaterial(it.getSigner()) } },
             dataStoreService = dataStoreService,
             platformAdapter = platformAdapter,
-            buildContext = buildContext
+            buildContext = buildContext,
+            promptModel = promptModel
         )
     )
 }

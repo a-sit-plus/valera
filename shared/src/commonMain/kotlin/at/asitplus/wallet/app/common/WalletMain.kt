@@ -46,6 +46,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import net.swiftzer.semver.SemVer
 import org.jetbrains.compose.resources.getString
+import org.multipaz.prompt.PromptModel
 import ui.navigation.IntentService
 
 /**
@@ -58,6 +59,7 @@ class WalletMain(
     var subjectCredentialStore: PersistentSubjectCredentialStore =
         PersistentSubjectCredentialStore(dataStoreService),
     val buildContext: BuildContext,
+    promptModel: PromptModel
 ) {
     lateinit var walletConfig: WalletConfig
     lateinit var credentialValidator: Validator
@@ -74,7 +76,7 @@ class WalletMain(
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, error ->
         errorService.emit(error)
     }
-    val scope = CoroutineScope(Dispatchers.Default + coroutineExceptionHandler)
+    val scope = CoroutineScope(Dispatchers.Default + coroutineExceptionHandler + promptModel)
 
     init {
         at.asitplus.wallet.mdl.Initializer.initWithVCK()
