@@ -45,7 +45,6 @@ import at.asitplus.wallet.app.common.QtspConfig
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.CertificateCard
 import ui.composables.DataDisplaySection
-import ui.composables.LabeledText
 import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.SigningQtspSelectionViewModel

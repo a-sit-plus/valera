@@ -88,7 +88,7 @@ kotlin {
             implementation("com.google.mlkit:barcode-scanning:17.2.0")
             implementation(libs.play.services.identity.credentials)
             implementation(libs.multipaz.android.legacy)
-        }
+            implementation(libs.core.splashscreen)        }
 
         androidInstrumentedTest.dependencies {
             implementation("androidx.compose.ui:ui-test-junit4")

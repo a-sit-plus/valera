@@ -17,6 +17,7 @@ taxid = "1.1.1"
 atomicfu = "0.27.0"
 compose-plugin = "1.7.3"
 qrose = "1.0.1"
+core-splashscreen = "1.0.1"
 
 [libraries]
 androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camera-camera2" }
@@ -42,6 +43,7 @@ multipaz-compose = { module = "org.multipaz:multipaz-compose", version.ref = "mu
 multipaz-doctypes = { module = "org.multipaz:multipaz-doctypes", version.ref = "multipaz" }
 play-services-identity-credentials = { module = "com.google.android.gms:play-services-identity-credentials", version.ref = "play-services-identity-credentials"}
 semver = { module = "net.swiftzer.semver:semver", version.ref = "semver" }
+core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "core-splashscreen" }
 
 [plugins]
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }

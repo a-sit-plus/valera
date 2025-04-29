@@ -38,7 +38,6 @@ import at.asitplus.valera.resources.button_label_check_license
 import at.asitplus.valera.resources.button_label_check_over_age
 import at.asitplus.valera.resources.credential_scheme_icon_label_eu_pid
 import at.asitplus.valera.resources.heading_label_select_data_retrieval_screen
-import at.asitplus.valera.resources.heading_label_show_data
 import at.asitplus.valera.resources.section_heading_request_custom
 import at.asitplus.valera.resources.section_heading_request_eausweise
 import at.asitplus.valera.resources.section_heading_request_engagement_method

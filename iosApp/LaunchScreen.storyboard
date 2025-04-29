@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="23727" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="01J-lp-oVM">
+    <device id="retina6_9" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23721"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--View Controller-->
+        <scene sceneID="EHf-IW-A2E">
+            <objects>
+                <viewController id="01J-lp-oVM" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="Ze5-6b-2t3">
+                        <rect key="frame" x="0.0" y="0.0" width="440" height="956"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="TechDemo" translatesAutoresizingMaskIntoConstraints="NO" id="9rt-PF-u4M">
+                                <rect key="frame" x="120" y="840" width="200" height="28"/>
+                            </imageView>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="Icon" translatesAutoresizingMaskIntoConstraints="NO" id="XdF-nr-l70">
+                                <rect key="frame" x="120" y="378" width="200" height="200"/>
+                                <rect key="contentStretch" x="1" y="1" width="1" height="1"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="200" id="MM0-gp-h0K"/>
+                                    <constraint firstAttribute="width" constant="200" id="bu5-tq-I0J"/>
+                                </constraints>
+                            </imageView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="Bcu-3y-fUS"/>
+                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="XdF-nr-l70" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="EmS-ol-tBc"/>
+                            <constraint firstItem="9rt-PF-u4M" firstAttribute="bottom" secondItem="Bcu-3y-fUS" secondAttribute="bottom" constant="-20" id="fUe-Kt-dPW"/>
+                            <constraint firstItem="XdF-nr-l70" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="jdf-W9-CBg"/>
+                            <constraint firstItem="9rt-PF-u4M" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="ldc-Qf-NSq"/>
+                        </constraints>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="iYj-Kq-Ea1" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="51.145038167938928" y="373.23943661971833"/>
+        </scene>
+    </scenes>
+    <resources>
+        <image name="Icon" width="1194" height="1194"/>
+        <image name="TechDemo" width="200" height="28"/>
+    </resources>
+</document>
