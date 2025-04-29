@@ -105,10 +105,7 @@ fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, C
 
     val scheme = when (this) {
         is DCQLIsoMdocCredentialQuery -> meta?.doctypeValue?.let { AttributeIndex.resolveIsoDoctype(it) }
-        is DCQLSdJwtCredentialQuery -> meta?.vctValues?.let {
-            if (it.size == 1) AttributeIndex.resolveSdJwtAttributeType(it.first()) else null
-        }
-
+        is DCQLSdJwtCredentialQuery -> meta?.vctValues?.firstNotNullOf { AttributeIndex.resolveSdJwtAttributeType(it) }
         is DCQLCredentialQueryInstance -> null
     } ?: throw Throwable("Missing scheme")
 
