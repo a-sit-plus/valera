@@ -12,6 +12,7 @@ import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.agent.TokenStatusEvaluationException
 import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.cbor.DefaultCoseService
 import at.asitplus.wallet.lib.data.StatusListToken
@@ -249,10 +250,14 @@ class WalletMain(
         }
     }
 
-    suspend fun checkRevocationStatus(storeEntry: SubjectCredentialStore.StoreEntry) = when(val it = storeEntry) {
-        is SubjectCredentialStore.StoreEntry.Iso -> credentialValidator.checkRevocationStatus(it.issuerSigned)
-        is SubjectCredentialStore.StoreEntry.SdJwt -> credentialValidator.checkRevocationStatus(it.sdJwt)
-        is SubjectCredentialStore.StoreEntry.Vc -> credentialValidator.checkRevocationStatus(it.vc)
+    suspend fun checkRevocationStatus(storeEntry: SubjectCredentialStore.StoreEntry) = try {
+        when(val it = storeEntry) {
+            is SubjectCredentialStore.StoreEntry.Iso -> credentialValidator.checkRevocationStatus(it.issuerSigned)
+            is SubjectCredentialStore.StoreEntry.SdJwt -> credentialValidator.checkRevocationStatus(it.sdJwt)
+            is SubjectCredentialStore.StoreEntry.Vc -> credentialValidator.checkRevocationStatus(it.vc)
+        }?.getOrNull()
+    } catch (it: TokenStatusEvaluationException) {
+        null
     }
 }
 
