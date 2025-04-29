@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
@@ -129,7 +130,24 @@ fun VerifierDocumentSelectionView(
                             )
                         },
                         label = stringResource(Res.string.button_label_check_license),
-                        onClick = { vm.onClickPredefinedMdl(selectedEngagementMethod) },
+                        subLabel = "Mandatory Attributes",
+                        onClick = {
+                            vm.onClickPredefinedMdlMandatoryAttributes(
+                                selectedEngagementMethod
+                            )
+                        },
+                        modifier = listSpacingModifier.fillMaxWidth()
+                    )
+                    TextIconButtonListItem(
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Outlined.CreditCard,
+                                contentDescription = null
+                            )
+                        },
+                        label = stringResource(Res.string.button_label_check_license),
+                        subLabel = "Full Attributes",
+                        onClick = { vm.onClickPredefinedMdlFullAttributes(selectedEngagementMethod) },
                         modifier = listSpacingModifier.fillMaxWidth()
                     )
                     TextIconButtonListItem(
@@ -169,7 +187,24 @@ fun VerifierDocumentSelectionView(
                             )
                         },
                         label = stringResource(Res.string.credential_scheme_icon_label_eu_pid),
-                        onClick = { vm.onClickPredefinedPid(selectedEngagementMethod) },
+                        subLabel = "Required Attributes",
+                        onClick = {
+                            vm.onClickPredefinedPidRequiredAttributes(
+                                selectedEngagementMethod
+                            )
+                        },
+                        modifier = listSpacingModifier.fillMaxWidth()
+                    )
+                    TextIconButtonListItem(
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Person,
+                                contentDescription = null
+                            )
+                        },
+                        label = stringResource(Res.string.credential_scheme_icon_label_eu_pid),
+                        subLabel = "Full Attributes",
+                        onClick = { vm.onClickPredefinedPidFullAttributes(selectedEngagementMethod) },
                         modifier = listSpacingModifier.fillMaxWidth()
                     )
                 }
@@ -199,19 +234,32 @@ fun VerifierDocumentSelectionView(
 fun TextIconButtonListItem(
     icon: @Composable () -> Unit,
     label: String,
+    subLabel: String? = null,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val gap = 16.dp
-    Row(
-        modifier = modifier.clickable(onClick = onClick)
+    Column(
+        modifier = modifier
+            .clickable(onClick = onClick)
             .padding(top = 8.dp, end = 24.dp, bottom = 8.dp, start = 16.dp)
     ) {
-        icon()
-        Spacer(modifier = Modifier.width(gap))
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyLarge
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            icon()
+            Spacer(modifier = Modifier.width(gap))
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyLarge
+            )
+        }
+        subLabel?.let {
+            Spacer(modifier = Modifier.size(4.dp))
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
     }
 }
