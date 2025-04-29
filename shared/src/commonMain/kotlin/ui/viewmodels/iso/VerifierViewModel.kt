@@ -25,7 +25,7 @@ class VerifierViewModel(
     val onClickSettings: () -> Unit
 ) {
     private val transferManager: TransferManager by lazy {
-        TransferManager(walletMain.scope) { message -> } // TODO: handle update messages
+        TransferManager(walletMain.scope) { message -> } // TODO: handle update messages - or change this to debugging infos & error handling?
     }
 
     private val _verifierState = MutableStateFlow(VerifierState.INIT)
@@ -62,6 +62,7 @@ class VerifierViewModel(
     }
 
     private fun doNfcEngagement() {
+        // TODO: add VerifierState.NFC_ENGAGEMENT and error handling for that
         _requestDocument.value?.let { document ->
             transferManager.startNfcEngagement(document) { deviceResponseBytes ->
                 handleResponse(deviceResponseBytes)
@@ -113,12 +114,13 @@ class VerifierViewModel(
                 transferManager.doQrFlow(
                     payload.removePrefix(MDOC_PREFIX),
                     document,
-                    { message -> } // TODO: handle update messages
+                    { message -> } // TODO: handle update messages - or change this to debugging infos & error handling?
                 ) { deviceResponseBytes ->
                     handleResponse(deviceResponseBytes)
                 }
             }
         } else {
+            // TODO: add string resource & do logging in handleError()?
             val errorMessage = "Invalid QR-Code:\nQR-Code does not start with \"$MDOC_PREFIX\""
             Napier.e(errorMessage)
             handleError(errorMessage)
