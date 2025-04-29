@@ -74,6 +74,7 @@ fun MainView(
     )
     val ks = KeystoreService(dataStoreService)
 
+    val promptModel = AndroidPromptModel()
     PromptDialogs(promptModel)
 
     App(
