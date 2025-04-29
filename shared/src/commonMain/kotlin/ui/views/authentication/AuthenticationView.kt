@@ -36,7 +36,8 @@ fun AuthenticationView(
                 },
                 walletMain = vm.walletMain,
                 presentationRequest = vm.presentationRequest,
-                onClickLogo = vm.onClickLogo
+                onClickLogo = vm.onClickLogo,
+                onClickSettings = vm.onClickSettings
             )
             AuthenticationConsentView(
                 viewModel,
@@ -56,6 +57,7 @@ fun AuthenticationView(
                     AuthenticationSelectionDCQLView(
                         navigateUp = vm.navigateUp,
                         onClickLogo = vm.onClickLogo,
+                        onClickSettings = vm.onClickSettings,
                         confirmSelection = { vm.confirmSelection(it) },
                         matchingResult = matching,
                         checkRevocationStatus = {
@@ -75,6 +77,7 @@ fun AuthenticationView(
                             confirmSelections = { selections -> vm.confirmSelection(selections) },
                             navigateUp = { vm.viewState = AuthenticationViewState.Consent },
                             onClickLogo = vm.onClickLogo,
+                            onClickSettings = vm.onClickSettings,
                             credentialMatchingResult = matching,
                             navigateToHomeScreen = vm.navigateToHomeScreen
                         ),

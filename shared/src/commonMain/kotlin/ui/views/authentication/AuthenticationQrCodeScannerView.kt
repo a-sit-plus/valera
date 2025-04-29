@@ -21,6 +21,7 @@ fun AuthenticationQrCodeScannerView(
             subTitle = stringResource(Res.string.heading_label_authenticate_at_device_subtitle),
             navigateUp = vm.navigateUp,
             onFoundQrCode = { payload -> vm.onScan(payload) },
-            onClickLogo = vm.onClickLogo)
+            onClickLogo = vm.onClickLogo,
+            onClickSettings = vm.onClickSettings)
     }
 }

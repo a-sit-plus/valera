@@ -1,6 +1,7 @@
 package ui.views.iso
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,10 +11,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -31,6 +35,7 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_retry
 import at.asitplus.valera.resources.error_bluetooth_unavailable
 import at.asitplus.valera.resources.error_missing_permissions
+import at.asitplus.valera.resources.heading_label_select_data_retrieval_screen
 import at.asitplus.valera.resources.heading_label_show_qr_code_screen
 import at.asitplus.valera.resources.info_text_finished
 import at.asitplus.valera.resources.info_text_qr_code_loading
@@ -65,12 +70,21 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
                         Text(
                             stringResource(Res.string.heading_label_show_qr_code_screen),
                             modifier = Modifier.weight(1f),
-                            style = MaterialTheme.typography.headlineMedium,
+                            style = MaterialTheme.typography.headlineLarge
                         )
-                        Logo(onClick = vm.onClickLogo)
                     }
                 },
-                navigationIcon = { NavigateUpButton(vm.navigateUp) }
+                navigationIcon = { NavigateUpButton(vm.navigateUp) },
+                actions = {
+                    Logo(onClick = vm.onClickLogo)
+                    Column(modifier = Modifier.clickable(onClick = vm.onClickSettings)) {
+                        Icon(
+                            imageVector = Icons.Outlined.Settings,
+                            contentDescription = null,
+                        )
+                    }
+                    Spacer(Modifier.width(15.dp))
+                }
             )
         }
     ) { scaffoldPadding ->

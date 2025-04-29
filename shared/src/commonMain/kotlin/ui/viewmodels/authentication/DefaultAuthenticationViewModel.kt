@@ -23,7 +23,8 @@ class DefaultAuthenticationViewModel(
     navigateToAuthenticationSuccessPage: (redirectUrl: String?) -> Unit,
     navigateToHomeScreen: () -> Unit,
     walletMain: WalletMain,
-    onClickLogo: () -> Unit
+    onClickLogo: () -> Unit,
+    onClickSettings: () -> Unit
 ) : AuthenticationViewModel(
     spName,
     spLocation,
@@ -32,7 +33,8 @@ class DefaultAuthenticationViewModel(
     navigateToAuthenticationSuccessPage,
     navigateToHomeScreen,
     walletMain,
-    onClickLogo
+    onClickLogo,
+    onClickSettings
 ) {
     override val presentationRequest: CredentialPresentationRequest
         get() = preparationState.credentialPresentationRequest

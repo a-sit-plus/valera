@@ -49,7 +49,8 @@ fun VerifierView(
                     resetStack = vm.navigateToHomeScreen,
                     message = vm.errorMessage.value,
                     cause = null,
-                    onClickLogo = vm.onClickLogo
+                    onClickLogo = vm.onClickLogo,
+                    onClickSettings = vm.onClickSettings
                 )
             )
         }

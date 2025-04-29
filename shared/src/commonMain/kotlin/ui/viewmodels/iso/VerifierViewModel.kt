@@ -20,7 +20,8 @@ class VerifierViewModel(
     val navigateUp: () -> Unit,
     val onClickLogo: () -> Unit,
     val walletMain: WalletMain,
-    val navigateToHomeScreen: () -> Unit
+    val navigateToHomeScreen: () -> Unit,
+    val onClickSettings: () -> Unit
 ) {
     private val transferManager: TransferManager by lazy {
         TransferManager(walletMain.scope) { message -> } // TODO: handle update messages

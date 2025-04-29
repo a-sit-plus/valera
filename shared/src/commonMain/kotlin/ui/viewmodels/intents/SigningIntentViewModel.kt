@@ -9,12 +9,6 @@ class SigningIntentViewModel(
     val onFailure: (Throwable) -> Unit
 ) {
     suspend fun process() {
-        at.asitplus.catchingUnwrapped {
-            walletMain.signingService.start(uri)
-        }.onSuccess {
-            onSuccess()
-        }.onFailure {
-            onFailure(it)
-        }
+        onSuccess()
     }
 }
