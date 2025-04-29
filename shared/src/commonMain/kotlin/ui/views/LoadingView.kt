@@ -2,6 +2,7 @@ package ui.views
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
@@ -39,20 +40,28 @@ fun LoadingView(
             )
         }
     ) { scaffoldPadding ->
-        Column(
-            modifier = Modifier.padding(scaffoldPadding).fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            CircularProgressIndicator(
-                color = MaterialTheme.colorScheme.secondary,
-                trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                modifier = Modifier.fillMaxSize(0.5f)
-            )
-            Text(
-                text = customLabel,
-                style = MaterialTheme.typography.labelLarge
-            )
-        }
+        LoadingViewBody(scaffoldPadding, customLabel)
+    }
+}
+
+@Composable
+fun LoadingViewBody(
+    scaffoldPadding: PaddingValues,
+    customLabel: String = ""
+) {
+    Column(
+        modifier = Modifier.padding(scaffoldPadding).fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        CircularProgressIndicator(
+            color = MaterialTheme.colorScheme.secondary,
+            trackColor = MaterialTheme.colorScheme.surfaceVariant,
+            modifier = Modifier.fillMaxSize(0.5f)
+        )
+        Text(
+            text = customLabel,
+            style = MaterialTheme.typography.labelLarge
+        )
     }
 }
