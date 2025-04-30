@@ -37,7 +37,6 @@ class PresentationService(
     httpService: HttpService,
 ) {
     private val presentationService = OpenId4VpWallet(
-        openUrlExternally = { platformAdapter.openUrl(it) },
         engine = HttpClient().engine,
         httpClientConfig = httpService.loggingConfig,
         keyMaterial = keyMaterial,

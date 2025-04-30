@@ -25,7 +25,7 @@ class DCAPIAuthenticationViewModel(
     navigateToAuthenticationSuccessPage: (redirectUrl: String?) -> Unit,
     navigateToHomeScreen: () -> Unit,
     walletMain: WalletMain,
-    val dcApiRequest: PreviewDCAPIRequest,
+    val dcApiRequestPreview: PreviewDCAPIRequest,
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
 ) : AuthenticationViewModel(
