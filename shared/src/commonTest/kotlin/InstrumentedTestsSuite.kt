@@ -37,10 +37,15 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.ClaimToBeIssued
 import at.asitplus.wallet.lib.agent.CredentialToBeIssued
+import at.asitplus.wallet.lib.agent.DefaultCryptoService
 import at.asitplus.wallet.lib.agent.EphemeralKeyWithSelfSignedCert
+import at.asitplus.wallet.lib.agent.EphemeralKeyWithoutCert
 import at.asitplus.wallet.lib.agent.IssuerAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
+import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.agent.toStoreCredentialInput
+import at.asitplus.wallet.lib.cbor.DefaultCoseService
+import at.asitplus.wallet.lib.jws.DefaultJwsService
 import data.storage.DummyDataStoreService
 import io.kotest.common.Platform
 import io.kotest.common.platform
@@ -56,7 +61,6 @@ import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
@@ -72,6 +76,7 @@ import ui.navigation.routes.OnboardingWrapperTestTags
 import ui.views.OnboardingStartScreenTestTag
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.minutes
+
 
 private lateinit var lifecycleRegistry: LifecycleRegistry
 private lateinit var lifecycleOwner: TestLifecycleOwner
@@ -194,7 +199,14 @@ class InstrumentedTestsSuite : FunSpec({
                         walletMain = createWalletMain(platformAdapter)
                         App(walletMain)
 
-                        val issuer = IssuerAgent()
+                        val keyMaterial = EphemeralKeyWithoutCert()
+                        val issuer = IssuerAgent(
+                            validator = Validator(),
+                            keyMaterial = keyMaterial,
+                            statusListBaseUrl = "https://wallet.a-sit.at/m6/credentials/status",
+                            jwsService = DefaultJwsService(DefaultCryptoService(keyMaterial)),
+                            coseService = DefaultCoseService(DefaultCryptoService(keyMaterial)),
+                        )
                         runBlocking {
                             walletMain.holderAgent.storeCredential(
                                 issuer.issueCredential(
@@ -223,9 +235,8 @@ class InstrumentedTestsSuite : FunSpec({
                         10000
                     )
 
-                    onNodeWithContentDescription(getString(Res.string.content_description_portrait)).assertHeightIsAtLeast(
-                        1.dp
-                    )
+                    onNodeWithContentDescription(getString(Res.string.content_description_portrait))
+                        .assertHeightIsAtLeast(1.dp)
                     onNodeWithText("XXXÉliás XXXTörőcsik").assertExists()
                     onNodeWithText("11.10.1965").assertExists()
 
