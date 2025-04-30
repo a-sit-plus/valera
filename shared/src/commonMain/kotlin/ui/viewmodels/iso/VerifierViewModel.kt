@@ -111,7 +111,7 @@ class VerifierViewModel(
             _verifierState.value = VerifierState.WAITING_FOR_RESPONSE
             _requestDocument.value?.let { document ->
                 transferManager.doQrFlow(
-                    payload.substring(5),
+                    payload.removePrefix(MDOC_PREFIX),
                     document,
                     { message -> } // TODO: handle update messages
                 ) { deviceResponseBytes ->
