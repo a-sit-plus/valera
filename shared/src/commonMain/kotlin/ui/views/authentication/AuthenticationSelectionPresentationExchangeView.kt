@@ -82,7 +82,7 @@ fun AuthenticationSelectionPresentationExchangeView(
                             vm.walletMain.platformAdapter.decodeImage(byteArray)
                         },
                         checkRevocationStatus = {
-                            vm.walletMain.checkRevocationStatus(it)
+                            vm.walletMain.checkRevocationStatus(it)?.getOrNull()
                         },
                     )
             }

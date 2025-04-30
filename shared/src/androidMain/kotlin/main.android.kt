@@ -11,7 +11,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
-import at.asitplus.wallet.app.android.AndroidCryptoService
+import at.asitplus.wallet.app.android.AndroidKeyMaterial
 import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
 import at.asitplus.wallet.app.android.dcapi.IdentityCredentialHelper
 import at.asitplus.wallet.app.common.BuildContext
@@ -74,7 +74,7 @@ fun MainView(
 
     App(
         WalletMain(
-            cryptoService = ks.let { runBlocking { AndroidCryptoService(it.getSigner()) } },
+            keyMaterial = ks.let { runBlocking { AndroidKeyMaterial(it.getSigner()) } },
             dataStoreService = dataStoreService,
             platformAdapter = platformAdapter,
             buildContext = buildContext,

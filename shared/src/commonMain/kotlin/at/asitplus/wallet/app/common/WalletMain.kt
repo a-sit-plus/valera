@@ -13,12 +13,10 @@ import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.agent.Validator
-import at.asitplus.wallet.lib.cbor.DefaultCoseService
 import at.asitplus.wallet.lib.data.StatusListToken
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.MediaTypes
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.StatusListTokenPayload
-import at.asitplus.wallet.lib.jws.DefaultJwsService
-import at.asitplus.wallet.lib.jws.DefaultVerifierJwsService
+import at.asitplus.wallet.lib.jws.VerifyJwsObject
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import at.asitplus.wallet.lib.rqes.Initializer.initRqesModule
 import data.storage.AntilogAdapter
@@ -49,12 +47,11 @@ import ui.navigation.IntentService
  * Main class to hold all services needed in the Compose App.
  */
 class WalletMain(
-    val cryptoService: WalletCryptoService,
+    val keyMaterial: WalletKeyMaterial,
     private val dataStoreService: DataStoreService,
     val platformAdapter: PlatformAdapter,
-    var subjectCredentialStore: PersistentSubjectCredentialStore = PersistentSubjectCredentialStore(
-        dataStoreService
-    ),
+    var subjectCredentialStore: PersistentSubjectCredentialStore =
+        PersistentSubjectCredentialStore(dataStoreService),
     val buildContext: BuildContext,
     val scope: CoroutineScope
 ) {
@@ -88,7 +85,6 @@ class WalletMain(
 
     @Throws(Throwable::class)
     fun initialize() {
-        val coseService = DefaultCoseService(cryptoService)
         walletConfig = WalletConfig(dataStoreService = this.dataStoreService, errorService = errorService)
         subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
 
@@ -98,24 +94,20 @@ class WalletMain(
                 val httpResponse = httpService.buildHttpClient().get(it.string) {
                     headers.set(HttpHeaders.Accept, MediaTypes.Application.STATUSLIST_JWT)
                 }
-
-
-                val jwsSigned = JwsSigned.deserialize(StatusListTokenPayload.serializer(), httpResponse.bodyAsText()).getOrThrow()
                 StatusListToken.StatusListJwt(
-                    jwsSigned,
+                    JwsSigned.deserialize<StatusListTokenPayload>(
+                        StatusListTokenPayload.serializer(),
+                        httpResponse.bodyAsText()
+                    ).getOrThrow(),
                     resolvedAt = Clock.System.now(),
                 )
             },
-            verifierJwsService = DefaultVerifierJwsService(
-                publicKeyLookup = issuerKeyLookup()
-            )
+            verifyJwsObject = VerifyJwsObject(publicKeyLookup = issuerKeyLookup())
         )
         holderAgent = HolderAgent(
+            keyMaterial = keyMaterial,
             validator = credentialValidator,
             subjectCredentialStore = subjectCredentialStore,
-            jwsService = DefaultJwsService(cryptoService),
-            coseService = coseService,
-            keyPair = cryptoService.keyMaterial,
         )
         intentService = IntentService(
             platformAdapter
@@ -124,7 +116,7 @@ class WalletMain(
         provisioningService = ProvisioningService(
             intentService,
             dataStoreService,
-            cryptoService,
+            keyMaterial,
             holderAgent,
             walletConfig,
             errorService,
@@ -132,10 +124,9 @@ class WalletMain(
         )
         presentationService = PresentationService(
             platformAdapter,
-            cryptoService,
+            keyMaterial,
             holderAgent,
             httpService,
-            coseService
         )
         signingService = SigningService(
             intentService,
@@ -249,7 +240,7 @@ class WalletMain(
         }
     }
 
-    suspend fun checkRevocationStatus(storeEntry: SubjectCredentialStore.StoreEntry) = when(val it = storeEntry) {
+    suspend fun checkRevocationStatus(storeEntry: SubjectCredentialStore.StoreEntry) = when (val it = storeEntry) {
         is SubjectCredentialStore.StoreEntry.Iso -> credentialValidator.checkRevocationStatus(it.issuerSigned)
         is SubjectCredentialStore.StoreEntry.SdJwt -> credentialValidator.checkRevocationStatus(it.sdJwt)
         is SubjectCredentialStore.StoreEntry.Vc -> credentialValidator.checkRevocationStatus(it.vc)

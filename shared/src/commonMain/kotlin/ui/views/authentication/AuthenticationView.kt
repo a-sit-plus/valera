@@ -20,7 +20,7 @@ fun AuthenticationView(
     vm: AuthenticationViewModel,
     onError: (Throwable) -> Unit,
 ) {
-    vm.walletMain.cryptoService.onUnauthenticated = vm.navigateUp
+    vm.walletMain.keyMaterial.onUnauthenticated = vm.navigateUp
     when (vm.viewState) {
         AuthenticationViewState.Consent -> {
             val viewModel = AuthenticationConsentViewModel(
@@ -61,7 +61,7 @@ fun AuthenticationView(
                         confirmSelection = { vm.confirmSelection(it) },
                         matchingResult = matching,
                         checkRevocationStatus = {
-                            vm.walletMain.checkRevocationStatus(it)
+                            vm.walletMain.checkRevocationStatus(it)?.getOrNull()
                         },
                         decodeToBitmap = { byteArray ->
                             vm.walletMain.platformAdapter.decodeImage(byteArray)

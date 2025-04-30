@@ -13,7 +13,9 @@ import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.PresentationException
 import at.asitplus.wallet.lib.agent.PresentationRequestParameters
 import at.asitplus.wallet.lib.agent.PresentationResponseParameters
-import at.asitplus.wallet.lib.cbor.CoseService
+import at.asitplus.wallet.lib.cbor.CoseHeaderNone
+import at.asitplus.wallet.lib.cbor.SignCose
+import at.asitplus.wallet.lib.cbor.SignCoseDetached
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.iso.DeviceAuthentication
@@ -30,15 +32,14 @@ import ui.viewmodels.authentication.PresentationExchangeMatchingResult
 
 class PresentationService(
     val platformAdapter: PlatformAdapter,
-    cryptoService: WalletCryptoService,
+    val keyMaterial: WalletKeyMaterial,
     val holderAgent: HolderAgent,
     httpService: HttpService,
-    private val coseService: CoseService
 ) {
     private val presentationService = OpenId4VpWallet(
         engine = HttpClient().engine,
         httpClientConfig = httpService.loggingConfig,
-        cryptoService = cryptoService,
+        keyMaterial = keyMaterial,
         holderAgent = holderAgent
     )
 
@@ -93,14 +94,12 @@ class PresentationService(
                 audience = dcApiRequest.callingOrigin ?: dcApiRequest.callingPackageName!!,
                 calcIsoDeviceSignature = { docType, deviceNameSpaceBytes ->
                     // TODO sign data
-                    coseService.createSignedCose(
-                        payload = docType.encodeToByteArray(),
-                        serializer = ByteArraySerializer(),
-                        addKeyId = false
-                    ).getOrElse { e ->
-                        Napier.w("Could not create DeviceAuth for presentation", e)
-                        throw PresentationException(e)
-                    } to null
+                    SignCose.invoke<ByteArray>(keyMaterial, CoseHeaderNone(), CoseHeaderNone())
+                        .invoke(null, null, docType.encodeToByteArray(), ByteArraySerializer())
+                        .getOrElse { e ->
+                            Napier.w("Could not create DeviceAuth for presentation", e)
+                            throw PresentationException(e)
+                        } to null
                 },
             ),
             credentialPresentation = credentialPresentation,
@@ -119,6 +118,7 @@ class PresentationService(
 
         return OpenId4VpWallet.AuthenticationSuccess()
     }
+
     @OptIn(ExperimentalStdlibApi::class)
     suspend fun finalizeLocalPresentation(
         credentialPresentation: CredentialPresentation.PresentationExchangePresentation,
@@ -144,14 +144,12 @@ class PresentationService(
                         .wrapInCborTag(24)
                     Napier.d("Device authentication signature input is ${deviceAuthenticationBytes.toHexString()}")
 
-                    coseService.createSignedCoseWithDetachedPayload(
-                        payload = deviceAuthenticationBytes,
-                        serializer = ByteArraySerializer(),
-                        addKeyId = false
-                    ).getOrElse { e ->
-                        Napier.w("Could not create DeviceAuth for presentation", e)
-                        throw PresentationException(e)
-                    } to null
+                    SignCoseDetached.invoke<ByteArray>(keyMaterial, CoseHeaderNone(), CoseHeaderNone())
+                        .invoke(null, null, deviceAuthenticationBytes, ByteArraySerializer())
+                        .getOrElse { e ->
+                            Napier.w("Could not create DeviceAuth for presentation", e)
+                            throw PresentationException(e)
+                        } to null
                 },
             ),
             credentialPresentation = credentialPresentation,

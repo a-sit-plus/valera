@@ -60,7 +60,7 @@ fun CredentialsView(
                 val credentialsWithStatus = mutableMapOf<Long, TokenStatus?>()
                 delegate.credentials.forEach { (id, credential) ->
                     val revocationStatus = vm.walletMain.checkRevocationStatus(credential)
-                    credentialsWithStatus.put(id, revocationStatus)
+                    credentialsWithStatus.put(id, revocationStatus?.getOrNull())
                     value = CredentialStatusesState.Loading(credentialsWithStatus)
                 }
                 value = CredentialStatusesState.Success(credentialsWithStatus)

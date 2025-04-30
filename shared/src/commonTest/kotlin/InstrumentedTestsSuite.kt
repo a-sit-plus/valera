@@ -32,7 +32,7 @@ import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.BuildType
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
-import at.asitplus.wallet.app.common.WalletCryptoService
+import at.asitplus.wallet.app.common.WalletKeyMaterial
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.ClaimToBeIssued
@@ -56,7 +56,6 @@ import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
@@ -202,7 +201,7 @@ class InstrumentedTestsSuite : FunSpec({
                                         getAttributes(),
                                         Clock.System.now().plus(3600.minutes),
                                         IdAustriaScheme,
-                                        walletMain.cryptoService.keyMaterial.publicKey
+                                        walletMain.keyMaterial.keyMaterial.publicKey
                                     )
                                 ).getOrThrow().toStoreCredentialInput()
                             )
@@ -346,7 +345,7 @@ private fun createWalletMain(platformAdapter: PlatformAdapter): WalletMain {
         override suspend fun getSigner(): KeyMaterial = EphemeralKeyWithSelfSignedCert()
     }
     return WalletMain(
-        cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
+        keyMaterial = ks.let { runBlocking { WalletKeyMaterial(it.getSigner()) } },
         dataStoreService = dummyDataStoreService,
         platformAdapter = platformAdapter,
         buildContext = BuildContext(
