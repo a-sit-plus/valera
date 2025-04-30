@@ -11,7 +11,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import at.asitplus.catching
-import at.asitplus.wallet.app.android.AndroidCryptoService
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialList
 import at.asitplus.wallet.app.android.AndroidKeyMaterial
 import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
