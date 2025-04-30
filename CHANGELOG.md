@@ -1,4 +1,5 @@
-# Release 5.5.3
+# Release 5.6.0
+ * Upgrade to VC-K 5.6.0
  * Display credential validity for invalid credentials
  * Update to VC-K 5.5.3 (fix presentation of multiple ISO credentials)
  * Update german localizations

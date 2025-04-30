@@ -84,7 +84,7 @@ fun PresentationView(
     onError: (Throwable) -> Unit
 ) {
     val presentationStateModel = presentationViewModel.presentationStateModel
-    presentationViewModel.walletMain.cryptoService.onUnauthenticated =
+    presentationViewModel.walletMain.keyMaterial.onUnauthenticated =
         presentationViewModel.navigateUp
 
     val blePermissionState = rememberBluetoothPermissionState()

@@ -44,6 +44,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import at.asitplus.openid.TransactionData
+import at.asitplus.openid.TransactionDataBase64Url
 import at.asitplus.rqes.rdcJsonSerializer
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_location
@@ -54,6 +55,7 @@ import at.asitplus.valera.resources.heading_label_show_data_third_party
 import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_data_recipient
 import at.asitplus.valera.resources.section_heading_transaction_data
+import at.asitplus.wallet.lib.data.toTransactionData
 import kotlinx.serialization.PolymorphicSerializer
 import kotlinx.serialization.json.JsonObject
 import org.jetbrains.compose.resources.stringResource
@@ -72,7 +74,7 @@ fun AuthenticationConsentView(
     vm: AuthenticationConsentViewModel,
     onError: (Throwable) -> Unit,
 ) {
-    vm.walletMain.cryptoService.onUnauthenticated = vm.navigateUp
+    vm.walletMain.keyMaterial.onUnauthenticated = vm.navigateUp
 
     Scaffold(
         topBar = {
@@ -178,15 +180,14 @@ fun AuthenticationConsentView(
 }
 
 @Composable
-fun TransactionDataView(transactionData: TransactionData) {
+fun TransactionDataView(transactionData: TransactionDataBase64Url) {
     Column(modifier = Modifier) {
         var showContent by remember { mutableStateOf(false) }
 
         val density = LocalDensity.current
-
         val properties = (rdcJsonSerializer.encodeToJsonElement(
             PolymorphicSerializer(TransactionData::class),
-            transactionData
+            transactionData.toTransactionData()
         ) as? JsonObject?)?.entries
 
         Text(

@@ -11,6 +11,7 @@ import at.asitplus.dif.FormatHolder
 import at.asitplus.dif.PresentationDefinition
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
+import at.asitplus.openid.TransactionDataBase64Url
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
@@ -71,7 +72,7 @@ class PresentationViewModel(
         this.sessionTranscript = sessionTranscript
     }
 
-    override val transactionData: at.asitplus.openid.TransactionData? = null
+    override val transactionData = null
 
     override val presentationRequest: CredentialPresentationRequest.PresentationExchangeRequest
         get() = CredentialPresentationRequest.PresentationExchangeRequest(
