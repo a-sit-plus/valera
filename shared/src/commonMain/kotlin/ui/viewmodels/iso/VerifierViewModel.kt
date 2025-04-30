@@ -7,6 +7,7 @@ import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.lib.iso.DeviceResponse
 import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
+import at.asitplus.wallet.app.common.iso.transfer.MdocConstants.MDOC_PREFIX
 import data.document.RequestDocument
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -106,19 +107,19 @@ class VerifierViewModel(
     }
 
     val onFoundPayload: (String) -> Unit = { payload ->
-        if (payload.startsWith("mdoc:")) {
+        if (payload.startsWith(MDOC_PREFIX)) {
             _verifierState.value = VerifierState.WAITING_FOR_RESPONSE
             _requestDocument.value?.let { document ->
                 transferManager.doQrFlow(
-                    payload.substring(5),
+                    payload.removePrefix(MDOC_PREFIX),
                     document,
-                    { message -> } //TODO handle update messages
+                    { message -> } // TODO: handle update messages
                 ) { deviceResponseBytes ->
                     handleResponse(deviceResponseBytes)
                 }
             }
         } else {
-            val errorMessage = "Invalid QR-Code:\nQR-Code does not start with \"mdoc:\""
+            val errorMessage = "Invalid QR-Code:\nQR-Code does not start with \"$MDOC_PREFIX\""
             Napier.e(errorMessage)
             handleError(errorMessage)
         }

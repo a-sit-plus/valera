@@ -369,6 +369,7 @@ private fun WalletNavHost(
                         onClickSettings = {navigate(SettingsRoute)}
                     )
                 },
+                onError = onError,
                 bottomBar = {
                     BottomBar(
                         navigate = navigate,

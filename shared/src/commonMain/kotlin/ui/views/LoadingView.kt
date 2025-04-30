@@ -2,6 +2,7 @@ package ui.views
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
@@ -16,10 +17,14 @@ import androidx.compose.ui.Modifier
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_loading_screen
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.buttons.NavigateUpButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoadingView() {
+fun LoadingView(
+    customLabel: String = "",
+    navigateUp: (() -> Unit)? = null
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -29,19 +34,34 @@ fun LoadingView() {
                         style = MaterialTheme.typography.headlineLarge,
                     )
                 },
+                navigationIcon = {
+                    navigateUp?.let { NavigateUpButton(onClick = navigateUp) }
+                }
             )
         }
     ) { scaffoldPadding ->
-        Column(
-            modifier = Modifier.padding(scaffoldPadding).fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            CircularProgressIndicator(
-                color = MaterialTheme.colorScheme.secondary,
-                trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                modifier = Modifier.fillMaxSize(0.5f),
-            )
-        }
+        LoadingViewBody(scaffoldPadding, customLabel)
+    }
+}
+
+@Composable
+fun LoadingViewBody(
+    scaffoldPadding: PaddingValues,
+    customLabel: String = ""
+) {
+    Column(
+        modifier = Modifier.padding(scaffoldPadding).fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        CircularProgressIndicator(
+            color = MaterialTheme.colorScheme.secondary,
+            trackColor = MaterialTheme.colorScheme.surfaceVariant,
+            modifier = Modifier.fillMaxSize(0.5f)
+        )
+        Text(
+            text = customLabel,
+            style = MaterialTheme.typography.labelLarge
+        )
     }
 }

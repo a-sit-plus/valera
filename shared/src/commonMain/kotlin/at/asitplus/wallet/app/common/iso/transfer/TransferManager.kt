@@ -57,6 +57,7 @@ class TransferManager(
     private val updateProgress: (String) -> Unit,
 ) {
 
+    // TODO: Add and update states to communicate with the verifier (connected, disconnected, error?)
     enum class State {
         IDLE,
         RUNNING,
@@ -262,6 +263,7 @@ class TransferManager(
                     }
                 )
             } catch (e: Throwable) {
+                // TODO: Add populate error to verifier
                 Napier.e("NFC engagement failed", e)
                 updateProgress("NFC engagement failed with $e")
             }
