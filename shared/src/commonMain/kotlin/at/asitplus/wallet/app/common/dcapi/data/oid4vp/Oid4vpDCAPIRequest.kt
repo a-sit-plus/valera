@@ -6,7 +6,7 @@ import at.asitplus.wallet.lib.data.vckJsonSerializer
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Oid4vpDCAPIRequest(val request: String) : DCAPIRequest() {
+data class Oid4vpDCAPIRequest(val protocol: String, val request: String) : DCAPIRequest() {
     override fun serialize(): String = vckJsonSerializer.encodeToString(this)
 
     companion object {
