@@ -16,6 +16,7 @@ object EuPidCredentialAttributeCategorization : CredentialAttributeCategorizatio
                 FAMILY_NAME,
                 BIRTH_DATE,
                 PORTRAIT,
+                PORTRAIT_CAPTURE_DATE,
                 NATIONALITY,
                 GENDER,
             ).map { NormalizedJsonPath() + it to null }
@@ -24,10 +25,16 @@ object EuPidCredentialAttributeCategorization : CredentialAttributeCategorizatio
         PersonalDataCategory.AgeData to with(EuPidScheme.Attributes) {
             listOf(
                 AGE_OVER_12,
+                AGE_OVER_13,
                 AGE_OVER_14,
                 AGE_OVER_16,
                 AGE_OVER_18,
                 AGE_OVER_21,
+                AGE_OVER_25,
+                AGE_OVER_60,
+                AGE_OVER_62,
+                AGE_OVER_65,
+                AGE_OVER_68,
                 AGE_BIRTH_YEAR,
                 AGE_IN_YEARS,
             ).map { NormalizedJsonPath() + it to null }
@@ -90,10 +97,16 @@ object EuPidSdJwtCredentialAttributeCategorization : CredentialAttributeCategori
         PersonalDataCategory.AgeData to with(EuPidSdJwtScheme.SdJwtAttributes) {
             listOf(
                 AGE_EQUAL_OR_OVER_12,
+                AGE_EQUAL_OR_OVER_13,
                 AGE_EQUAL_OR_OVER_14,
                 AGE_EQUAL_OR_OVER_16,
                 AGE_EQUAL_OR_OVER_18,
                 AGE_EQUAL_OR_OVER_21,
+                AGE_EQUAL_OR_OVER_25,
+                AGE_EQUAL_OR_OVER_60,
+                AGE_EQUAL_OR_OVER_62,
+                AGE_EQUAL_OR_OVER_65,
+                AGE_EQUAL_OR_OVER_68,
                 AGE_BIRTH_YEAR,
                 AGE_IN_YEARS,
             ).map { NormalizedJsonPath() + it to null }

@@ -42,6 +42,7 @@ fun EuPidCredentialAgeDataCardContent(
 ) {
     val agesAtLeastN = listOf(
         18 to credentialAdapter.ageAtLeast18,
+        65 to credentialAdapter.ageAtLeast65,
     )
 
     Column(modifier = modifier) {

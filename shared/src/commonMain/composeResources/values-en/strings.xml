@@ -69,10 +69,16 @@
     <string name="attribute_friendly_name_date_of_birth">Birth date</string>
     <string name="attribute_friendly_name_portrait">Portrait</string>
     <string name="attribute_friendly_name_age_at_least_12">At least 12 years old</string>
+    <string name="attribute_friendly_name_age_at_least_13">At least 13 years old</string>
     <string name="attribute_friendly_name_age_at_least_14">At least 14 years old</string>
     <string name="attribute_friendly_name_age_at_least_16">At least 16 years old</string>
     <string name="attribute_friendly_name_age_at_least_18">At least 18 years old</string>
     <string name="attribute_friendly_name_age_at_least_21">At least 21 years old</string>
+    <string name="attribute_friendly_name_age_at_least_25">At least 25 years old</string>
+    <string name="attribute_friendly_name_age_at_least_60">At least 60 years old</string>
+    <string name="attribute_friendly_name_age_at_least_62">At least 62 years old</string>
+    <string name="attribute_friendly_name_age_at_least_65">At least 65 years old</string>
+    <string name="attribute_friendly_name_age_at_least_68">At least 68 years old</string>
     <string name="attribute_friendly_name_main_address">Main residence</string>
     <string name="attribute_friendly_name_main_residence_country">Country</string>
     <string name="attribute_friendly_name_main_residence_state">State</string>
@@ -105,6 +111,10 @@
     <string name="attribute_friendly_name_driving_privileges">Driving privileges</string>
     <string name="attribute_friendly_name_distinguishing_sign">Issuing country (code)</string>
     <string name="attribute_friendly_name_signature_usual_mark">Signature/usual mark</string>
+    <string name="attribute_friendly_name_biometric_template_face">Biometric Template: Face</string>
+    <string name="attribute_friendly_name_biometric_template_finger">Biometric Template: Fingerprint</string>
+    <string name="attribute_friendly_name_biometric_template_iris">Biometric Template: Iris</string>
+    <string name="attribute_friendly_name_biometric_template_signature_sign">Biometric Template: Signature/Sign</string>
 
     <string name="attribute_friendly_name_country_code">Country code</string>
     <string name="attribute_friendly_name_one_time_token">One-time token</string>
