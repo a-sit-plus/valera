@@ -198,8 +198,8 @@ public class AndroidPlatformAdapter(
             val protocol = provider.getString("protocol")
             val request = provider.getString("request")
 
-            when (protocol) {
-                "preview" -> {
+            when {
+                protocol == "preview" -> {
                     // Extract params from the preview protocol request
                     val previewRequest = JSONObject(request)
                     val selector = previewRequest.getJSONObject("selector")
@@ -232,9 +232,9 @@ public class AndroidPlatformAdapter(
                         docType
                     )
                 }
-                "openid4vp" -> {
+                protocol.startsWith("openid4vp") -> {
 
-                    Oid4vpDCAPIRequest(request)
+                    Oid4vpDCAPIRequest(protocol, request)
                 }
                 else -> {
                     Napier.w("Protocol type not supported")
