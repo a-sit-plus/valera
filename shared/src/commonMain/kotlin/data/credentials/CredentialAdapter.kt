@@ -49,14 +49,15 @@ abstract class CredentialAdapter {
                 }
             }
 
-        fun getId(
-            storeEntry: SubjectCredentialStore.StoreEntry
-        ): String = when (storeEntry) {
-            is SubjectCredentialStore.StoreEntry.Vc -> storeEntry.vc.jwtId
-            is SubjectCredentialStore.StoreEntry.SdJwt -> storeEntry.sdJwt.jwtId
+        @Throws(IllegalArgumentException::class)
+        fun SubjectCredentialStore.StoreEntry.getDcApiId(): String = when (this) {
+            is SubjectCredentialStore.StoreEntry.Vc -> vc.jwtId
+            is SubjectCredentialStore.StoreEntry.SdJwt -> sdJwt.jwtId
+                ?: sdJwt.subject
+                ?: sdJwt.credentialStatus?.statusList?.let { it.uri.string + it.index.toString() }
                 ?: throw IllegalArgumentException("Credential does not have a jwtId")
-
-            is SubjectCredentialStore.StoreEntry.Iso -> storeEntry.issuerSigned.issuerAuth.signature.humanReadableString // TODO probably not the best id
+            // TODO probably not the best id
+            is SubjectCredentialStore.StoreEntry.Iso -> issuerSigned.issuerAuth.signature.humanReadableString
         }
     }
 }
