@@ -1,6 +1,7 @@
 package at.asitplus.wallet.app.common.dcapi
 
 import androidx.compose.ui.graphics.ImageBitmap
+import at.asitplus.catching
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.app_display_name
 import at.asitplus.wallet.app.common.PlatformAdapter
@@ -10,13 +11,14 @@ import at.asitplus.wallet.app.common.dcapi.data.export.IsoEntry
 import at.asitplus.wallet.app.common.dcapi.data.export.SdJwtEntry
 import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabelNonCompose
+import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
-import data.credentials.CredentialAdapter
 import data.credentials.CredentialAdapter.Companion.toAttributeMap
 import data.credentials.CredentialAdapter.Companion.toNamespaceAttributeMap
 import data.credentials.CredentialAttributeTranslator
+import data.credentials.EuPidCredentialAdapter
 import data.credentials.IdAustriaCredentialAdapter
 import data.credentials.MobileDrivingLicenceCredentialAdapter
 import data.storage.StoreContainer
@@ -29,47 +31,60 @@ class DCAPIExportService(private val platformAdapter: PlatformAdapter) {
 
     suspend fun registerCredentialWithSystem(container: StoreContainer, scope: CoroutineScope) {
         Napier.d("DC API: Preparing registration of updated credentials with the system")
-        val appName = getString(Res.string.app_display_name)
 
-        val credentialListEntries = container.credentials.map { (_, storeEntry) ->
-            val attributeTranslator = CredentialAttributeTranslator[storeEntry.scheme]
-                ?: throw IllegalStateException("Attribute translator not implemented")
-            val friendlyName = storeEntry.scheme.uiLabelNonCompose()
-            //TODO can we get a better ID?
-            val id = CredentialAdapter.getId(storeEntry).hashCode().toString()
-            val picture: ByteArray? = when (storeEntry.scheme) {
-                is IdAustriaScheme ->
-                    IdAustriaCredentialAdapter.createFromStoreEntry(storeEntry, imageDecoder).portraitRaw
-                is MobileDrivingLicenceScheme ->
-                    MobileDrivingLicenceCredentialAdapter.createFromStoreEntry(storeEntry, imageDecoder).portraitRaw
-                else -> null
-            }
-
-            val sdJwtEntry: SdJwtEntry?
-            val isoEntry: IsoEntry?
-             when (storeEntry) {
-                is SubjectCredentialStore.StoreEntry.SdJwt -> {
-                    val claims =
-                        SdJwtEntry.fromAttributeMap(storeEntry.toAttributeMap(), attributeTranslator)
-                    sdJwtEntry = SdJwtEntry(id, storeEntry.sdJwt.verifiableCredentialType, claims)
-                    isoEntry = null
-                }
-                 is SubjectCredentialStore.StoreEntry.Iso -> {
-                     val docType = storeEntry.scheme?.isoDocType ?: ""
-                     val isoNamespaces = storeEntry.toNamespaceAttributeMap()?.let {
-                         IsoEntry.isoNamespacesFromNamespaceAttributeMap(it, attributeTranslator)
-                     } ?: mapOf()
-                     isoEntry = IsoEntry(id, docType, isoNamespaces)
-                     sdJwtEntry = null
-                 }
-                is SubjectCredentialStore.StoreEntry.Vc -> TODO("Vc not yet supported")
-            }
-
-            CredentialEntry(title = friendlyName, subtitle = appName, bitmap = picture, isoEntry = isoEntry, sdJwtEntry = sdJwtEntry)
+        val credentialListEntries = container.credentials.mapNotNull { (_, storeEntry) ->
+            catching { storeEntry.toCredentialEntry() }.getOrNull()
         }
 
         val credentialList = CredentialList(credentialListEntries)
         platformAdapter.registerWithDigitalCredentialsAPI(credentialList, scope)
         Napier.d("DC API: Registered ${credentialList.entries.size} credentials with the system")
+    }
+
+    private suspend fun SubjectCredentialStore.StoreEntry.toCredentialEntry() = when (this) {
+        is SubjectCredentialStore.StoreEntry.SdJwt -> CredentialEntry(
+            title = scheme.uiLabelNonCompose(),
+            subtitle = getString(Res.string.app_display_name),
+            bitmap = extractPicture(),
+            sdJwtEntry = toSdJwtEntry()
+        )
+
+        is SubjectCredentialStore.StoreEntry.Iso -> CredentialEntry(
+            title = scheme.uiLabelNonCompose(),
+            subtitle = getString(Res.string.app_display_name),
+            bitmap = extractPicture(),
+            isoEntry = toIsoEntry()
+        )
+
+        is SubjectCredentialStore.StoreEntry.Vc -> null
+    }
+
+    private suspend fun SubjectCredentialStore.StoreEntry.Iso.toIsoEntry() = IsoEntry(
+        id = getDcApiId().hashCode().toString(),
+        docType = scheme?.isoDocType ?: "",
+        isoNamespaces = toNamespaceAttributeMap()?.let {
+            IsoEntry.isoNamespacesFromNamespaceAttributeMap(it, getTranslator())
+        } ?: mapOf())
+
+    private suspend fun SubjectCredentialStore.StoreEntry.SdJwt.toSdJwtEntry() = SdJwtEntry(
+        jwtId = getDcApiId().hashCode().toString(),
+        verifiableCredentialType = sdJwt.verifiableCredentialType,
+        claims = SdJwtEntry.fromAttributeMap(toAttributeMap(), getTranslator())
+    )
+
+    private fun SubjectCredentialStore.StoreEntry.getTranslator() = CredentialAttributeTranslator[scheme]
+        ?: throw IllegalStateException("Attribute translator not implemented")
+
+    private fun SubjectCredentialStore.StoreEntry.extractPicture() = when (scheme) {
+        is IdAustriaScheme ->
+            IdAustriaCredentialAdapter.createFromStoreEntry(this, imageDecoder).portraitRaw
+
+        is MobileDrivingLicenceScheme ->
+            MobileDrivingLicenceCredentialAdapter.createFromStoreEntry(this, imageDecoder).portraitRaw
+
+        is EuPidScheme ->
+            EuPidCredentialAdapter.createFromStoreEntry(this, imageDecoder).portraitRaw
+
+        else -> null
     }
 }

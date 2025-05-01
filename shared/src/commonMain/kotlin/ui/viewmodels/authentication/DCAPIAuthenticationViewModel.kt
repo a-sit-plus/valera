@@ -17,7 +17,6 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
-import data.credentials.CredentialAdapter
 
 class DCAPIAuthenticationViewModel(
     spImage: ImageBitmap? = null,
@@ -79,7 +78,7 @@ class DCAPIAuthenticationViewModel(
                     fallbackFormatHolder = null,
                 ).getOrThrow().map { (key, value) ->
                     key to value.filter { (cred, _) ->
-                        CredentialAdapter.getId(cred).hashCode() == dcApiRequestPreview.credentialId
+                        catching { cred.getDcApiId().hashCode() == dcApiRequestPreview.credentialId }.getOrElse { false }
                     }
                 }.toMap()
             )

@@ -61,14 +61,5 @@ abstract class CredentialAdapter {
                 }
             }
 
-        fun getId(
-            storeEntry: SubjectCredentialStore.StoreEntry
-        ): String = when (storeEntry) {
-            is SubjectCredentialStore.StoreEntry.Vc -> storeEntry.vc.jwtId
-            is SubjectCredentialStore.StoreEntry.SdJwt -> storeEntry.sdJwt.jwtId
-                ?: storeEntry.sdJwt.serialize()
-
-            is SubjectCredentialStore.StoreEntry.Iso -> storeEntry.issuerSigned.issuerAuth.signature.humanReadableString // TODO probably not the best id
-        }
     }
 }
