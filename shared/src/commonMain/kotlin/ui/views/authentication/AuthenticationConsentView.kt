@@ -43,6 +43,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import at.asitplus.catching
 import at.asitplus.openid.TransactionData
 import at.asitplus.openid.TransactionDataBase64Url
 import at.asitplus.rqes.rdcJsonSerializer
@@ -56,6 +57,8 @@ import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_data_recipient
 import at.asitplus.valera.resources.section_heading_transaction_data
 import at.asitplus.wallet.lib.data.toTransactionData
+import io.matthewnelson.encoding.base64.Base64
+import io.matthewnelson.encoding.core.Decoder.Companion.decodeToByteArray
 import kotlinx.serialization.PolymorphicSerializer
 import kotlinx.serialization.json.JsonObject
 import org.jetbrains.compose.resources.stringResource
@@ -185,10 +188,9 @@ fun TransactionDataView(transactionData: TransactionDataBase64Url) {
         var showContent by remember { mutableStateOf(false) }
 
         val density = LocalDensity.current
-        val properties = (rdcJsonSerializer.encodeToJsonElement(
-            PolymorphicSerializer(TransactionData::class),
-            transactionData.toTransactionData()
-        ) as? JsonObject?)?.entries
+        val properties = catching {
+            rdcJsonSerializer.decodeFromString<JsonObject>(transactionData.content.decodeToByteArray(Base64()).decodeToString())
+        }.getOrNull()?.entries
 
         Text(
             text = stringResource(Res.string.section_heading_transaction_data),
