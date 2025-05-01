@@ -11,7 +11,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import at.asitplus.catching
-import at.asitplus.openid.OpenIdConstants.DC_API_PROTOCOL_IDENTIFIER
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialList
 import at.asitplus.wallet.app.android.AndroidKeyMaterial
 import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
@@ -75,7 +74,6 @@ fun MainView(
     )
     val ks = KeystoreService(dataStoreService)
 
-    val promptModel = AndroidPromptModel()
     PromptDialogs(promptModel)
 
     App(
@@ -232,7 +230,7 @@ public class AndroidPlatformAdapter(
                         docType
                     )
                 }
-                protocol.startsWith(DC_API_PROTOCOL_IDENTIFIER) -> {
+                protocol.startsWith("openid4vp") -> {
                     Oid4vpDCAPIRequest(
                         protocol, request, credentialId, callingPackageName, callingOrigin
                     )
