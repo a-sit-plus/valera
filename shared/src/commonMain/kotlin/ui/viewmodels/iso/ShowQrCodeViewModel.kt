@@ -31,7 +31,7 @@ class ShowQrCodeViewModel(
     val onNavigateToPresentmentScreen: (PresentationStateModel) -> Unit,
 ) {
     var hasBeenCalledHack: Boolean = false
-    val presentationStateModel: PresentationStateModel by lazy { PresentationStateModel() }
+    val presentationStateModel: PresentationStateModel by lazy { PresentationStateModel(walletMain.scope) }
 
 
     private val _showQrCodeState = MutableStateFlow(ShowQrCodeState.INIT)

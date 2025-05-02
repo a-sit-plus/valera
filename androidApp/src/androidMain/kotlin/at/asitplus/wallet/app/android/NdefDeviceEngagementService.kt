@@ -10,11 +10,14 @@ import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
 import at.asitplus.wallet.app.common.presentation.PresentmentTimeout
 import at.asitplus.wallet.app.common.presentation.TransferSettings.Companion.transferSettings
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
@@ -49,9 +52,16 @@ class NdefDeviceEngagementService : HostApduService() {
         private var disableEngagementJob: Job? = null
         private var listenForCancellationFromUiJob: Job? = null
 
-        //val promptModel = AndroidPromptModel()
+
+        // TODO use error service to show error to user, but how to get it from here?
+        private val coroutineExceptionHandler = CoroutineExceptionHandler { _, error ->
+            Napier.e("FAILURE IN COROUTINE", error)
+        }
+
+        private val coroutineScope = CoroutineScope(Dispatchers.Default + CoroutineName("NdefDeviceEngagementService") + coroutineExceptionHandler)
+
         val presentationStateModel: PresentationStateModel by lazy {
-            PresentationStateModel()//.apply { setPromptModel(promptModel) }
+            PresentationStateModel(coroutineScope)
         }
     }
 

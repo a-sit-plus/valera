@@ -10,6 +10,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
@@ -40,7 +41,7 @@ import kotlin.time.Duration.Companion.seconds
  * - Generating the response and sending it to the verifier, via the selected mechanism.
  * - Support for multiple requests if both sides keep the connection open
  */
-class PresentationStateModel {
+class PresentationStateModel(private var _presentmentScope: CoroutineScope) {
     /**
      * Possible states that the model can be in.
      */
@@ -98,7 +99,7 @@ class PresentationStateModel {
      */
     val state = _state.asStateFlow()
 
-    private var _presentmentScope: CoroutineScope? = null
+
 
     /**
      * A [CoroutineScope] for the presentment process.
@@ -140,14 +141,12 @@ class PresentationStateModel {
         _error = null
         _dismissible.value = true
         _numRequestsServed.value = 0
-        _presentmentScope?.cancel(CancellationException("PresentationModel reset"))
-        _presentmentScope = null
+        _presentmentScope?.coroutineContext?.cancelChildren(CancellationException("PresentationModel reset"))
         _state.value = State.IDLE
     }
 
     fun init() {
         check(State.IDLE)
-        _presentmentScope = CoroutineScope(Dispatchers.Main)
         _state.value = State.INITIALISING
     }
 
@@ -239,8 +238,7 @@ class PresentationStateModel {
         // TODO: Hack to ensure that [state] collectors (using [presentationScope]) gets called for State.COMPLETED
         _presentmentScope?.launch {
             delay(1.seconds)
-            _presentmentScope?.cancel(CancellationException("PresentationModel completed"))
-            _presentmentScope = null
+            _presentmentScope?.coroutineContext?.cancelChildren(CancellationException("PresentationModel completed"))
         }
     }
 
