@@ -25,11 +25,11 @@ plugins {
 }
 
 //If we have a working composite build, use it!
-if (File("vck/signum").isDirectory && File("vck/signum/build.gradle.kts").exists()) {
-    logger.warn("Detected VC-K in ${File("vck").absolutePath}.")
+if (File("../vck/signum").isDirectory && File("../vck/signum/build.gradle.kts").exists()) {
+    logger.warn("Detected VC-K in ${File("../vck").absolutePath}.")
     logger.warn("Including VC-K and Signum as composite build.")
     logger.warn("If you do not want this, move the VC-K to another location!")
-    includeBuild("vck/signum") {
+    includeBuild("../vck/signum") {
         dependencySubstitution {
             substitute(module("at.asitplus.wallet:indispensable")).using(project(":indispensable"))
             substitute(module("at.asitplus.signum:indispensable-josef")).using(project(":indispensable-josef"))
