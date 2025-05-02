@@ -90,7 +90,8 @@ class WalletMain(
     @Throws(Throwable::class)
     fun initialize() {
         val coseService = DefaultCoseService(cryptoService)
-        walletConfig = WalletConfig(dataStoreService = this.dataStoreService, errorService = errorService)
+        walletConfig =
+            WalletConfig(dataStoreService = this.dataStoreService, errorService = errorService)
         subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
 
         httpService = HttpService(buildContext)
@@ -101,7 +102,10 @@ class WalletMain(
                 }
 
 
-                val jwsSigned = JwsSigned.deserialize(StatusListTokenPayload.serializer(), httpResponse.bodyAsText()).getOrThrow()
+                val jwsSigned = JwsSigned.deserialize(
+                    StatusListTokenPayload.serializer(),
+                    httpResponse.bodyAsText()
+                ).getOrThrow()
                 StatusListToken.StatusListJwt(
                     jwsSigned,
                     resolvedAt = Clock.System.now(),
@@ -250,15 +254,11 @@ class WalletMain(
         }
     }
 
-    suspend fun checkRevocationStatus(storeEntry: SubjectCredentialStore.StoreEntry) = try {
-        when(val it = storeEntry) {
-            is SubjectCredentialStore.StoreEntry.Iso -> credentialValidator.checkRevocationStatus(it.issuerSigned)
-            is SubjectCredentialStore.StoreEntry.SdJwt -> credentialValidator.checkRevocationStatus(it.sdJwt)
-            is SubjectCredentialStore.StoreEntry.Vc -> credentialValidator.checkRevocationStatus(it.vc)
-        }?.getOrNull()
-    } catch (it: TokenStatusEvaluationException) {
-        null
-    }
+    suspend fun checkRevocationStatus(storeEntry: SubjectCredentialStore.StoreEntry) = when (val it = storeEntry) {
+        is SubjectCredentialStore.StoreEntry.Iso -> credentialValidator.checkRevocationStatus(it.issuerSigned)
+        is SubjectCredentialStore.StoreEntry.SdJwt -> credentialValidator.checkRevocationStatus(it.sdJwt)
+        is SubjectCredentialStore.StoreEntry.Vc -> credentialValidator.checkRevocationStatus(it.vc)
+    }?.getOrNull()
 }
 
 fun PlatformAdapter.decodeImage(image: ByteArray): ImageBitmap {
