@@ -32,6 +32,7 @@ import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -76,7 +77,7 @@ class WalletMain(
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, error ->
         errorService.emit(error)
     }
-    val scope = CoroutineScope(Dispatchers.Default + coroutineExceptionHandler + promptModel)
+    val scope = CoroutineScope(Dispatchers.Default + coroutineExceptionHandler + promptModel + CoroutineName("WalletMain"))
 
     init {
         at.asitplus.wallet.mdl.Initializer.initWithVCK()
