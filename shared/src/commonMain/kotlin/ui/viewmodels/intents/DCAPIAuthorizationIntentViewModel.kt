@@ -1,12 +1,11 @@
 package ui.viewmodels.intents
 
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.app.common.dcapi.data.oid4vp.Oid4vpDCAPIRequest
-import at.asitplus.wallet.app.common.dcapi.data.preview.PreviewDCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.data.request.Oid4vpDCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.data.request.PreviewDCAPIRequest
 import at.asitplus.wallet.app.common.domain.BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import ui.navigation.routes.AuthenticationViewRoute
@@ -44,17 +43,13 @@ class DCAPIAuthorizationIntentViewModel(
             is Oid4vpDCAPIRequest -> {
                 buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(dcApiRequest.request).unwrap()
                     .onSuccess {
-                        AuthenticationViewRoute(
-                            authenticationRequestParametersFromSerialized = it.authenticationRequestParametersFromSerialized,
-                            authorizationPreparationStateSerialized = it.authorizationPreparationStateSerialized,
-                            recipientLocation = it.recipientLocation,
-                            isCrossDeviceFlow = true
-                        )
                         onSuccess(it)
                     }.onFailure {
                         onFailure(it)
                     }
             }
+
+            null -> throw IllegalStateException("DC API request is null")
         }
 
     }
