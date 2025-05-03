@@ -1,7 +1,6 @@
-package at.asitplus.wallet.app.common.dcapi.data.preview
+package at.asitplus.wallet.app.common.dcapi.data.request
 
 import at.asitplus.catching
-import at.asitplus.wallet.app.common.dcapi.data.DCAPIRequest
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import kotlinx.serialization.Serializable
 
