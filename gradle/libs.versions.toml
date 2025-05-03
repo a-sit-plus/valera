@@ -8,7 +8,6 @@ mdl = "1.1.4"
 ida = "3.9.2"
 eupid = "3.0.0"
 eupid-sdjwt = "1.0.0"
-play-services-identity-credentials = "16.0.0-alpha06"
 powerofrepresentation = "1.2.0"
 certificateofresidence = "2.1.2"
 companyregistration = "1.1.0"
@@ -17,6 +16,8 @@ taxid = "1.0.1"
 atomicfu = "0.27.0"
 compose-plugin = "1.7.3"
 qrose = "1.0.1"
+# Test if DC API is still working after upgrading the following library
+play-services-identity-credentials = "16.0.0-alpha06"
 
 [libraries]
 androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camera-camera2" }

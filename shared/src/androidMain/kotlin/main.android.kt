@@ -11,6 +11,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import at.asitplus.catching
+import at.asitplus.openid.OpenIdConstants.DC_API_PROTOCOL_IDENTIFIER
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialList
 import at.asitplus.wallet.app.android.AndroidKeyMaterial
 import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
@@ -19,9 +20,9 @@ import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.app.common.dcapi.data.DCAPIRequest
-import at.asitplus.wallet.app.common.dcapi.data.oid4vp.Oid4vpDCAPIRequest
-import at.asitplus.wallet.app.common.dcapi.data.preview.PreviewDCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.data.request.DCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.data.request.Oid4vpDCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.data.request.PreviewDCAPIRequest
 import at.asitplus.wallet.app.common.dcapi.data.preview.ResponseJSON
 import com.android.identity.android.mdoc.util.CredmanUtil
 import com.google.android.gms.identitycredentials.IdentityCredentialManager
@@ -192,8 +193,6 @@ class AndroidPlatformAdapter(
                 return null
             }
 
-            val requestedData = mutableMapOf<String, MutableList<Pair<String, Boolean>>>()
-
             val json = JSONObject(cmrequest.credentialOptions[0].requestMatcher)
             val provider = json.getJSONArray("providers").getJSONObject(0)
 
@@ -203,6 +202,7 @@ class AndroidPlatformAdapter(
             when {
                 protocol == "preview" -> {
                     // Extract params from the preview protocol request
+                    val requestedData = mutableMapOf<String, MutableList<Pair<String, Boolean>>>()
                     val previewRequest = JSONObject(request)
                     val selector = previewRequest.getJSONObject("selector")
                     val nonceBase64 = previewRequest.getString("nonce")
@@ -234,10 +234,12 @@ class AndroidPlatformAdapter(
                         docType
                     )
                 }
-                protocol.startsWith("openid4vp") -> {
-
-                    Oid4vpDCAPIRequest(protocol, request)
+                protocol.startsWith(DC_API_PROTOCOL_IDENTIFIER) -> {
+                    Oid4vpDCAPIRequest(
+                        protocol, request, credentialId, callingPackageName, callingOrigin
+                    )
                 }
+
                 else -> {
                     Napier.w("Protocol type not supported")
                     null

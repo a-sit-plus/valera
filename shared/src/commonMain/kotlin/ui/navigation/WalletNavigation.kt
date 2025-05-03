@@ -28,9 +28,8 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_clear_log_successfully
 import at.asitplus.valera.resources.snackbar_reset_app_successfully
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.app.common.dcapi.data.DCAPIRequest
-import at.asitplus.wallet.app.common.dcapi.data.oid4vp.Oid4vpDCAPIRequest
-import at.asitplus.wallet.app.common.dcapi.data.preview.PreviewDCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.data.request.Oid4vpDCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.data.request.PreviewDCAPIRequest
 import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
@@ -427,13 +426,15 @@ private fun WalletNavHost(
         composable<DCAPIAuthenticationConsentRoute> { backStackEntry ->
             val vm : AuthenticationViewModel = remember {
                 try {
-                    val apiRequestSerialized = backStackEntry.toRoute<DCAPIAuthenticationConsentRoute>().apiRequestSerialized
-                    val dcApiRequestPreview : DCAPIRequest =
-                        PreviewDCAPIRequest.deserialize(apiRequestSerialized).getOrNull() ?: Oid4vpDCAPIRequest.deserialize(apiRequestSerialized).getOrThrow()
+                    val apiRequestSerialized =
+                        backStackEntry.toRoute<DCAPIAuthenticationConsentRoute>().apiRequestSerialized
+                    val dcApiRequest =
+                        PreviewDCAPIRequest.deserialize(apiRequestSerialized).getOrNull()
+                            ?: Oid4vpDCAPIRequest.deserialize(apiRequestSerialized).getOrThrow()
 
-                    val t: AuthenticationViewModel = when (dcApiRequestPreview) {
+                    when (dcApiRequest) {
                         is PreviewDCAPIRequest -> DCAPIAuthenticationViewModel(
-                            dcApiRequestPreview = dcApiRequestPreview,
+                            dcApiRequestPreview = dcApiRequest,
                             navigateUp = navigateBack,
                             navigateToAuthenticationSuccessPage = {
                                 navigate(AuthenticationSuccessRoute(it, false))
@@ -449,7 +450,7 @@ private fun WalletNavHost(
                         is Oid4vpDCAPIRequest -> {
                             walletMain.scope.launch(Dispatchers.IO) {
                                 val sth = walletMain.presentationService.parseAuthenticationRequestParameters(
-                                    dcApiRequestPreview.request
+                                    dcApiRequest.request
                                 )
                                     .onFailure { e -> e.printStackTrace() }
                                 println("sth = ${sth}")
@@ -460,10 +461,8 @@ private fun WalletNavHost(
                             }
                             TODO()
                         }
-
-                        else -> throw IllegalStateException("impossible")
                     }
-                    t
+
 
                 } catch (e: Throwable) {
                     onError(e)
