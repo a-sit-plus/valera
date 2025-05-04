@@ -62,8 +62,7 @@ fun MainView(
     sendCredentialResponseToDCAPIInvokerMethod: (String) -> Unit
 ) {
     val promptModel = AndroidPromptModel()
-    val scope = rememberCoroutineScope { promptModel }
-    val platformAdapter = AndroidPlatformAdapter(LocalContext.current, sendCredentialResponseToDCAPIInvokerMethod, scope)
+    val platformAdapter = AndroidPlatformAdapter(LocalContext.current, sendCredentialResponseToDCAPIInvokerMethod)
     val dataStoreService = RealDataStoreService(
         getDataStore(LocalContext.current),
         platformAdapter
@@ -78,7 +77,7 @@ fun MainView(
             dataStoreService = dataStoreService,
             platformAdapter = platformAdapter,
             buildContext = buildContext,
-            scope = scope
+            promptModel = promptModel
         )
     )
 }
@@ -86,7 +85,6 @@ fun MainView(
 class AndroidPlatformAdapter(
     private val context: Context,
     private val sendCredentialResponseToDCAPIInvoker: (String) -> Unit,
-    private val scope: CoroutineScope
 ) : PlatformAdapter {
 
     override fun openUrl(url: String) {
