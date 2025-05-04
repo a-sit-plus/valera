@@ -11,6 +11,7 @@ import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
+import at.asitplus.wallet.taxid.TaxId2025Scheme
 import at.asitplus.wallet.taxid.TaxIdScheme
 
 @Composable
@@ -28,6 +29,7 @@ fun CredentialSummaryCardContent(
         is CompanyRegistrationScheme -> CompanyRegistrationCredentialSummaryCardContent(credential)
         is HealthIdScheme -> HealthIdSummaryCardContent(credential)
         is TaxIdScheme -> TaxIdCredentialSummaryCardContent(credential)
+        is TaxId2025Scheme -> TaxIdCredentialSummaryCardContent(credential)
         else -> GenericCredentialSummaryCardContent(credential)
     }
 }

@@ -34,6 +34,7 @@ import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationDataElements
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import at.asitplus.wallet.taxid.TaxIdScheme
+import at.asitplus.wallet.taxid.TaxId2025Scheme
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
@@ -155,12 +156,11 @@ fun ConstantIndex.CredentialScheme.toJsonElement(
     representation: CredentialRepresentation,
 ): JsonElement {
     val dataElements = when (this) {
-        ConstantIndex.AtomicAttribute2023, IdAustriaScheme, EuPidScheme, EuPidSdJwtScheme, MobileDrivingLicenceScheme, HealthIdScheme -> this.claimNames
+        ConstantIndex.AtomicAttribute2023, IdAustriaScheme, EuPidScheme, EuPidSdJwtScheme, MobileDrivingLicenceScheme, HealthIdScheme, TaxIdScheme, TaxId2025Scheme -> this.claimNames
         // TODO Use: this.claim names for all schemes
         PowerOfRepresentationScheme -> PowerOfRepresentationDataElements.ALL_ELEMENTS
         CertificateOfResidenceScheme -> CertificateOfResidenceDataElements.ALL_ELEMENTS
         CompanyRegistrationScheme -> CompanyRegistrationDataElements.ALL_ELEMENTS
-        TaxIdScheme -> TaxIdScheme.ALL_ELEMENTS
         else -> TODO("${this::class.simpleName} not implemented in jsonElementBuilder yet")
     }
 

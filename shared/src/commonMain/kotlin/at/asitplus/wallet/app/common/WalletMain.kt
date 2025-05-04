@@ -82,6 +82,7 @@ class WalletMain(
         at.asitplus.wallet.companyregistration.Initializer.initWithVCK()
         at.asitplus.wallet.healthid.Initializer.initWithVCK()
         at.asitplus.wallet.taxid.Initializer.initWithVCK()
+        at.asitplus.wallet.taxid.Initializer2025.initWithVCK()
         initRqesModule()
         Napier.takeLogarithm()
         Napier.base(AntilogAdapter(platformAdapter, "", buildContext.buildType))

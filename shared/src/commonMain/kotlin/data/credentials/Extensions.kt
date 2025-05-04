@@ -13,6 +13,7 @@ import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
+import at.asitplus.wallet.taxid.TaxId2025Scheme
 import at.asitplus.wallet.taxid.TaxIdScheme
 import org.jetbrains.compose.resources.stringResource
 
@@ -29,6 +30,7 @@ fun SubjectCredentialStore.StoreEntry.toCredentialAdapter(
     is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialAdapter.createFromStoreEntry(this, decodePortrait = decodeImage)
     is PowerOfRepresentationScheme -> PowerOfRepresentationCredentialAdapter.createFromStoreEntry(this)
     is TaxIdScheme -> TaxIdCredentialAdapter.createFromStoreEntry(this)
+    is TaxId2025Scheme -> TaxIdCredentialAdapter.createFromStoreEntry(this)
     null -> null
     else -> throw IllegalStateException(stringResource(Res.string.error_credential_scheme_not_supported))
 }

@@ -193,6 +193,7 @@
     <string name="credential_scheme_label_mdl">mDL</string>
     <string name="credential_scheme_icon_label_eu_pid">PID</string>
     <string name="credential_scheme_label_eu_pid">PID</string>
+    <string name="credential_scheme_label_eu_pid_sdjwt">PID (ARF 1.8.0)</string>
     <string name="credential_scheme_icon_label_id_austria">IDA</string>
     <string name="credential_scheme_label_id_austria">IDA Credential</string>
     <string name="credential_scheme_icon_label_power_of_representation">POR</string>
@@ -204,6 +205,7 @@
     <string name="credential_scheme_label_healthid">HealthID</string>
     <string name="credential_scheme_icon_label_healthid">HIID</string>
     <string name="credential_scheme_label_tax_id">Tax ID</string>
+    <string name="credential_scheme_label_tax_id_2025">Tax ID (2025)</string>
     <string name="credential_scheme_icon_label_tax_id">TAX</string>
 
     <string name="navigation_button_label_show_data">Vorzeigen</string>
