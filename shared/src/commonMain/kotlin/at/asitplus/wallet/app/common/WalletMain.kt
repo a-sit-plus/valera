@@ -1,6 +1,7 @@
 package at.asitplus.wallet.app.common
 
 import androidx.compose.ui.graphics.ImageBitmap
+import at.asitplus.KmmResult
 import at.asitplus.catchingUnwrapped
 import at.asitplus.signum.indispensable.josef.JsonWebKey
 import at.asitplus.signum.indispensable.josef.JsonWebKeySet
@@ -332,7 +333,7 @@ interface PlatformAdapter {
     /**
      * Retrieves request from the digital credentials browser API
      */
-    fun getCurrentDCAPIData(): DCAPIRequest?
+    fun getCurrentDCAPIData(): KmmResult<DCAPIRequest>
 
     /**
      * Prepares the credential response and sends it back to the invoking application
@@ -361,8 +362,8 @@ class DummyPlatformAdapter : PlatformAdapter {
     override fun registerWithDigitalCredentialsAPI(entries: CredentialList, scope: CoroutineScope) {
     }
 
-    override fun getCurrentDCAPIData(): DCAPIRequest? {
-        return null
+    override fun getCurrentDCAPIData(): KmmResult<DCAPIRequest> {
+        return KmmResult.failure(IllegalStateException("Using dummy platform adapter"))
     }
 
     override fun prepareDCAPICredentialResponse(
