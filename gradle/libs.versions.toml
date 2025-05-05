@@ -1,6 +1,7 @@
 [versions]
 camera-camera2 = "1.4.2"
 datastore-preferences-core = "1.1.4"
+kotlinx-coroutines-play-services = "1.10.2"
 multipaz = "0.90"
 navigation-compose = "2.8.0-alpha10"
 semver = "2.0.0"
@@ -18,8 +19,10 @@ atomicfu = "0.27.0"
 compose-plugin = "1.7.3"
 qrose = "1.0.1"
 core-splashscreen = "1.0.1"
-# Test if DC API is still working after upgrading the following library
+# Test if DC API is still working after upgrading the following libraries
 play-services-identity-credentials = "16.0.0-alpha06"
+androidx-credentials = "1.5.0"
+androidx-credentials-registry-provider = "1.0.0-alpha01"
 
 [libraries]
 androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camera-camera2" }
@@ -38,6 +41,7 @@ credential-taxid = { group = "at.asitplus.wallet", name = "taxid", version.ref =
 credential-ehic = { group = "at.asitplus.wallet", name = "ehic", version.ref = "ehic"}
 datastore-core-okio = { module = "androidx.datastore:datastore-core-okio", version.ref = "datastore-preferences-core" }
 datastore-preferences-core = { module = "androidx.datastore:datastore-preferences-core", version.ref = "datastore-preferences-core" }
+kotlinx-coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "kotlinx-coroutines-play-services" }
 navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigation-compose" }
 qrose = { group = "io.github.alexzhirkevich", name = "qrose", version.ref="qrose"}
 multipaz = { module = "org.multipaz:multipaz", version.ref = "multipaz" }
@@ -47,6 +51,8 @@ multipaz-doctypes = { module = "org.multipaz:multipaz-doctypes", version.ref = "
 play-services-identity-credentials = { module = "com.google.android.gms:play-services-identity-credentials", version.ref = "play-services-identity-credentials"}
 semver = { module = "net.swiftzer.semver:semver", version.ref = "semver" }
 core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "core-splashscreen" }
+androidx-credentials = { module = "androidx.credentials:credentials", version.ref="androidx-credentials" }
+androidx-credentials-registry-provider = { module = "androidx.credentials.registry:registry-provider", version.ref = "androidx-credentials-registry-provider" }
 
 [plugins]
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
