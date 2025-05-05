@@ -32,7 +32,6 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatus
 import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.stringResource
-import ui.composables.CredentialCardActionMenu
 import ui.composables.CustomFloatingActionMenu
 import ui.composables.FloatingActionButtonHeightSpacer
 import ui.composables.Logo
@@ -59,8 +58,7 @@ fun CredentialsView(
             is CredentialState.Success -> {
                 val credentialsWithStatus = mutableMapOf<Long, TokenStatus?>()
                 delegate.credentials.forEach { (id, credential) ->
-                    val revocationStatus = vm.walletMain.checkRevocationStatus(credential)
-                    credentialsWithStatus.put(id, revocationStatus)
+                    credentialsWithStatus[id] = vm.walletMain.checkRevocationStatus(credential)
                     value = CredentialStatusesState.Loading(credentialsWithStatus)
                 }
                 value = CredentialStatusesState.Success(credentialsWithStatus)

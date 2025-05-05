@@ -9,8 +9,8 @@ import at.asitplus.rqes.CredentialInfo
 import at.asitplus.rqes.CredentialInfoRequest
 import at.asitplus.rqes.CredentialListRequest
 import at.asitplus.rqes.CredentialListResponse
+import at.asitplus.rqes.QtspSignatureResponse
 import at.asitplus.rqes.SignatureRequestParameters
-import at.asitplus.rqes.SignatureResponse
 import at.asitplus.rqes.enums.CertificateOptions
 import at.asitplus.signum.indispensable.X509SignatureAlgorithm
 import at.asitplus.signum.indispensable.io.ByteArrayBase64Serializer
@@ -95,7 +95,7 @@ class SigningService(
     )
 
     suspend fun reset(){
-        dataStoreService.deletePreference(Configuration.DATASTORE_SIGNING_CONFIG)
+        dataStoreService.deletePreference(DATASTORE_SIGNING_CONFIG)
     }
 
     private suspend fun importFromDataStore(): SigningConfig =
@@ -206,7 +206,7 @@ class SigningService(
                 "${token.tokenType} ${token.accessToken}"
             )
             setBody(vckJsonSerializer.encodeToString(signHashRequest))
-        }.body<SignatureResponse>()
+        }.body<QtspSignatureResponse>()
 
         val transactionTokens = this.transactionTokens
         val signedDocuments = getFinishedDocuments(client, pdfSigningService, signatures, transactionTokens, config.getCurrent().identifier)
@@ -328,7 +328,7 @@ class SigningService(
         val credentialListResponse = credentialResponse.body<CredentialListResponse>()
 
         if (credentialListResponse.credentialInfos.isNullOrEmpty()) {
-            return getSingleCredentialInfo(token, credentialListResponse.credentialIDs.first());
+            return getSingleCredentialInfo(token, credentialListResponse.credentialIDs.first())
 
         } else {
             return credentialListResponse.credentialInfos?.first()
@@ -353,7 +353,7 @@ class SigningService(
             )
             setBody(vckJsonSerializer.encodeToString(credentialInfoRequest))
         }
-        val credInfo = credentialResponse.body<CredentialInfo>();
+        val credInfo = credentialResponse.body<CredentialInfo>()
         return CredentialInfo(credentialId, credInfo.description, credInfo.signatureQualifier, credInfo.keyParameters,
             credInfo.certParameters, credInfo.authParameters, credInfo.scal, credInfo.multisign)
 

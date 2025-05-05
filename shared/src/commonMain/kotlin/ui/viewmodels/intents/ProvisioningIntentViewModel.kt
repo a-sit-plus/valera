@@ -16,9 +16,9 @@ class ProvisioningIntentViewModel(
 ) {
     suspend fun process() {
         catchingUnwrapped {
-            walletMain.cryptoService.promptText =
+            walletMain.keyMaterial.promptText =
                 getString(Res.string.biometric_authentication_prompt_to_bind_credentials_title)
-            walletMain.cryptoService.promptSubtitle =
+            walletMain.keyMaterial.promptSubtitle =
                 getString(Res.string.biometric_authentication_prompt_to_bind_credentials_subtitle)
             walletMain.provisioningService.resumeWithAuthCode(uri)
             walletMain.snackbarService.showSnackbar(getString(Res.string.snackbar_credential_loaded_successfully))

@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
 import at.asitplus.catchingUnwrapped
+import at.asitplus.openid.TransactionDataBase64Url
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_subtitle
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_title
@@ -32,7 +33,7 @@ abstract class AuthenticationViewModel(
     abstract val presentationRequest: CredentialPresentationRequest
 
     var viewState by mutableStateOf(AuthenticationViewState.Consent)
-    abstract val transactionData: at.asitplus.openid.TransactionData?
+    abstract val transactionData: TransactionDataBase64Url?
 
     lateinit var matchingCredentials: CredentialMatchingResult<SubjectCredentialStore.StoreEntry>
     lateinit var defaultCredentialSelection: Map<String, SubjectCredentialStore.StoreEntry>
@@ -105,9 +106,9 @@ abstract class AuthenticationViewModel(
 
     private suspend fun finalizeAuthorization(credentialPresentation: CredentialPresentation) {
         catchingUnwrapped {
-            walletMain.cryptoService.promptText =
+            walletMain.keyMaterial.promptText =
                 getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_title)
-            walletMain.cryptoService.promptSubtitle =
+            walletMain.keyMaterial.promptSubtitle =
                 getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_subtitle)
             finalizationMethod(credentialPresentation)
         }.onSuccess {

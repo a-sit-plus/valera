@@ -20,7 +20,7 @@ fun AuthenticationView(
     vm: AuthenticationViewModel,
     onError: (Throwable) -> Unit,
 ) {
-    vm.walletMain.cryptoService.onUnauthenticated = vm.navigateUp
+    vm.walletMain.keyMaterial.onUnauthenticated = vm.navigateUp
     when (vm.viewState) {
         AuthenticationViewState.Consent -> {
             val viewModel = AuthenticationConsentViewModel(

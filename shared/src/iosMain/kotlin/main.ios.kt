@@ -7,7 +7,7 @@ import androidx.compose.ui.window.ComposeUIViewController
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
-import at.asitplus.wallet.app.common.WalletCryptoService
+import at.asitplus.wallet.app.common.WalletKeyMaterial
 import at.asitplus.wallet.app.common.WalletMain
 import data.storage.RealDataStoreService
 import data.storage.createDataStore
@@ -46,7 +46,7 @@ fun MainViewController(
         PromptDialogs(promptModel)
         App(
             WalletMain(
-                WalletCryptoService(keyMaterial = keystoreService.getSignerBlocking()),
+                WalletKeyMaterial(keyMaterial = keystoreService.getSignerBlocking()),
                 dataStoreService,
                 platformAdapter,
                 buildContext =  buildContext,
