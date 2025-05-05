@@ -20,10 +20,10 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         populateLink(intent)
-        initIdentityLibraries()
+        initMultipaz()
     }
 
-    private fun initIdentityLibraries() {
+    private fun initMultipaz() {
         // required for identity.Crypto classes
         Security.removeProvider("BC")
         Security.addProvider(BouncyCastleProvider())

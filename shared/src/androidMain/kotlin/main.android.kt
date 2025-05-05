@@ -10,6 +10,11 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
+import androidx.credentials.ExperimentalDigitalCredentialApi
+import androidx.credentials.GetDigitalCredentialOption
+import androidx.credentials.provider.PendingIntentHandler
+import androidx.credentials.registry.provider.selectedEntryId
+import at.asitplus.KmmResult
 import at.asitplus.catching
 import at.asitplus.wallet.app.android.AndroidKeyMaterial
 import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
@@ -25,7 +30,6 @@ import at.asitplus.wallet.app.common.dcapi.data.request.Oid4vpDCAPIRequest
 import at.asitplus.wallet.app.common.dcapi.data.request.PreviewDCAPIRequest
 import com.android.identity.android.mdoc.util.CredmanUtil
 import com.google.android.gms.identitycredentials.IdentityCredentialManager
-import com.google.android.gms.identitycredentials.IntentHelper
 import data.storage.RealDataStoreService
 import data.storage.getDataStore
 import io.github.aakira.napier.Napier
@@ -64,10 +68,9 @@ actual fun getColorScheme(): ColorScheme {
 @Composable
 fun MainView(
     buildContext: BuildContext,
-    sendCredentialResponseToDCAPIInvokerMethod: (String) -> Unit
 ) {
     val promptModel = AndroidPromptModel()
-    val platformAdapter = AndroidPlatformAdapter(LocalContext.current, sendCredentialResponseToDCAPIInvokerMethod)
+    val platformAdapter = AndroidPlatformAdapter(LocalContext.current)
     val dataStoreService = RealDataStoreService(
         getDataStore(LocalContext.current),
         platformAdapter
@@ -88,8 +91,7 @@ fun MainView(
 }
 
 public class AndroidPlatformAdapter(
-    private val context: Context,
-    private val sendCredentialResponseToDCAPIInvoker: (String) -> Unit,
+    private val context: Context
 ) : PlatformAdapter {
 
     override fun openUrl(url: String) {
@@ -171,35 +173,46 @@ public class AndroidPlatformAdapter(
         }
     }
 
-    override fun getCurrentDCAPIData(): DCAPIRequest? {
-        return (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.intent?.let {
+    @OptIn(ExperimentalDigitalCredentialApi::class)
+    override fun getCurrentDCAPIData(): KmmResult<DCAPIRequest> = catching {
+        (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.let { (intent, sendCredentialResponseToInvoker) ->
             // Adapted from https://github.com/openwallet-foundation-labs/identity-credential/blob/d7a37a5c672ed6fe1d863cbaeb1a998314d19fc5/wallet/src/main/java/com/android/identity_credential/wallet/credman/CredmanPresentationActivity.kt#L74
-            val cmrequest = IntentHelper.extractGetCredentialRequest(it) ?: return null
-            val credentialId = it.getStringExtra(IntentHelper.EXTRA_CREDENTIAL_ID)?.toInt() ?: -1
+            val request = PendingIntentHandler.retrieveProviderGetCredentialRequest(intent)
+            val credentialId = request!!.selectedEntryId!!.toInt()
+
+            val privilegedUserAgents =
+                context.assets.open("privileged_apps.json").use { stream ->
+                    val data = ByteArray(stream.available()).apply { stream.read(this) }
+                    data.decodeToString()
+                }
+
+            val callingAppInfo = request.callingAppInfo
+            val callingPackageName = callingAppInfo.packageName
+            val callingOrigin = callingAppInfo.getOrigin(privilegedUserAgents)
+            val option = request.credentialOptions[0] as GetDigitalCredentialOption
+            val json = JSONObject(option.requestJson)
+            val provider = json.getJSONArray("providers").getJSONObject(0)
+
+
+            //val cmrequest = IntentHelper.extractGetCredentialRequest(it) ?: return null
+            //val credentialId = it.getStringExtra(IntentHelper.EXTRA_CREDENTIAL_ID)?.toInt() ?: -1
 
             // This call is currently broken, have to extract this info manually for now
             //val callingAppInfo = extractCallingAppInfo(intent)
-            val callingPackageName =
-                it.getStringExtra("androidx.identitycredentials.extra.CALLING_PACKAGE_NAME") // IntentHelper.EXTRA_CALLING_PACKAGE_NAME produces InterpreterMethodNotFoundError
-            val callingOrigin =
-                it.getStringExtra("androidx.identitycredentials.extra.ORIGIN") // IntentHelper.EXTRA_ORIGIN produces InterpreterMethodNotFoundError
+            //val callingPackageName = it.getStringExtra("androidx.identitycredentials.extra.CALLING_PACKAGE_NAME") // IntentHelper.EXTRA_CALLING_PACKAGE_NAME produces InterpreterMethodNotFoundError
+            //val callingOrigin = it.getStringExtra("androidx.identitycredentials.extra.ORIGIN") // IntentHelper.EXTRA_ORIGIN produces InterpreterMethodNotFoundError
 
-            if (callingPackageName == null && callingOrigin == null) {
-                Napier.w("Neither calling package name nor origin known")
-                return null
-            }
-
-            val json = JSONObject(cmrequest.credentialOptions[0].requestMatcher)
-            val provider = json.getJSONArray("providers").getJSONObject(0)
+            //val json = JSONObject(cmrequest.credentialOptions[0].requestMatcher)
+            //val provider = json.getJSONArray("providers").getJSONObject(0)
 
             val protocol = provider.getString("protocol")
-            val request = provider.getString("request")
+            val parsedRequest = provider.getString("request")
 
             when {
                 protocol == "preview" -> {
                     // Extract params from the preview protocol request
                     val requestedData = mutableMapOf<String, MutableList<Pair<String, Boolean>>>()
-                    val previewRequest = JSONObject(request)
+                    val previewRequest = JSONObject(parsedRequest)
                     val selector = previewRequest.getJSONObject("selector")
                     val nonceBase64 = previewRequest.getString("nonce")
                     val readerPublicKeyBase64 = previewRequest.getString("readerPublicKey")
@@ -220,28 +233,29 @@ public class AndroidPlatformAdapter(
                     }
 
                     PreviewDCAPIRequest(
-                        request,
+                        parsedRequest,
                         requestedData,
                         credentialId,
                         callingPackageName,
                         callingOrigin,
                         nonce,
                         readerPublicKeyBase64,
-                        docType
+                        docType,
+                        sendCredentialResponseToInvoker
                     )
                 }
                 protocol.startsWith("openid4vp") -> {
+                    Napier.d("Using protocol $protocol, got request $request for credential ID $credentialId")
                     Oid4vpDCAPIRequest(
-                        protocol, request, credentialId, callingPackageName, callingOrigin
+                        protocol, parsedRequest, credentialId, callingPackageName, callingOrigin, sendCredentialResponseToInvoker
                     )
                 }
-
                 else -> {
-                    Napier.w("Protocol type not supported")
-                    null
+                    Napier.e("Protocol type $protocol not supported")
+                    throw IllegalArgumentException("Protocol type $protocol not supported")
                 }
             }
-        }
+        } ?: throw IllegalStateException("DCAPIInvocationData not set")
     }
 
     @OptIn(ExperimentalEncodingApi::class)
@@ -279,7 +293,7 @@ public class AndroidPlatformAdapter(
 
         val response =
             ResponseJSON(kotlin.io.encoding.Base64.UrlSafe.encode(encodedCredentialDocument))
-        sendCredentialResponseToDCAPIInvoker(response.serialize())
+        dcApiRequestPreview.sendCredentialResponseToInvoker(response.serialize())
     }
 }
 

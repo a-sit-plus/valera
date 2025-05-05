@@ -10,7 +10,8 @@ data class Oid4vpDCAPIRequest(
     val request: String,
     val credentialId: Int,
     val callingPackageName: String?,
-    val callingOrigin: String?
+    val callingOrigin: String?,
+    val sendCredentialResponseToInvoker: (String) -> Unit
 ) : DCAPIRequest() {
     init {
         require(callingOrigin != null || callingPackageName != null)

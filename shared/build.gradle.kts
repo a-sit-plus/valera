@@ -99,10 +99,13 @@ kotlin {
             implementation("com.google.accompanist:accompanist-permissions:0.30.1")
             implementation("com.google.mlkit:barcode-scanning:17.2.0")
 
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2")
+            implementation(libs.kotlinx.coroutines.play.services)
             implementation(libs.play.services.identity.credentials)
             implementation(libs.multipaz.android.legacy)
             implementation(libs.core.splashscreen)
+
+            implementation(libs.androidx.credentials)
+            implementation(libs.androidx.credentials.registry.provider)
         }
 
         androidInstrumentedTest.dependencies {

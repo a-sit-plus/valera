@@ -64,13 +64,12 @@ class IdentityCredentialHelper(
             )
         }
 
-        private fun loadMatcher(context: Context): ByteArray {
-            val stream = context.assets.open("dcapimatcher.wasm")
-            val matcher = ByteArray(stream.available())
-            stream.read(matcher)
-            stream.close()
-            return matcher
-        }
+        private fun loadMatcher(context: Context): ByteArray =
+            context.assets.open("dcapimatcher.wasm").use { stream ->
+                ByteArray(stream.available()).apply {
+                    stream.read(this)
+                }
+            }
 
         private fun getIconBytes(image: ByteArray?, androidPlatformAdapter: AndroidPlatformAdapter): ByteArrayOutputStream {
             val icon = image?.let { androidPlatformAdapter.decodeImage(it).asAndroidBitmap() }

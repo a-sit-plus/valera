@@ -767,8 +767,8 @@ private fun WalletNavHost(
                         navigateBack()
                         navigate(route)
                     },
-                    onFailure = {
-                        walletMain.errorService.emit(Exception("Invalid Authentication Request"))
+                    onFailure = { e ->
+                        walletMain.errorService.emit(e)
                     })
             })
 

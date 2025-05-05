@@ -10,6 +10,7 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
+import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 
 
@@ -50,10 +51,30 @@ class DefaultAuthenticationViewModel(
             return walletMain.presentationService.getMatchingCredentials(preparationState = preparationState)
         }
 
-    override suspend fun finalizationMethod(credentialPresentation: CredentialPresentation) =
-        walletMain.presentationService.finalizeAuthorizationResponse(
+    override suspend fun finalizationMethod(credentialPresentation: CredentialPresentation) : OpenId4VpWallet.AuthenticationSuccess {
+        val authenticationResult = walletMain.presentationService.finalizeAuthorizationResponse(
             request = authenticationRequest,
             clientMetadata = authenticationRequest.parameters.clientMetadata,
             credentialPresentation = credentialPresentation,
         )
+        when (authenticationResult) {
+            is OpenId4VpWallet.AuthenticationForward -> finalizeDcApi(authenticationResult, credentialPresentation)
+            is OpenId4VpWallet.AuthenticationSuccess -> return authenticationResult
+        }
+        return OpenId4VpWallet.AuthenticationSuccess()
+    }
+
+    private suspend fun finalizeDcApi(
+        authenticationResult: OpenId4VpWallet.AuthenticationForward,
+        credentialPresentation: CredentialPresentation
+    ) {
+        println("aut = ${authenticationResult}")
+        walletMain.presentationService.finalizeDCAPIPreviewPresentation(
+            credentialPresentation = when (credentialPresentation) {
+                is CredentialPresentation.PresentationExchangePresentation -> credentialPresentation
+                is CredentialPresentation.DCQLPresentation -> TODO()
+            },
+            TODO(),
+        )
+    }
 }
