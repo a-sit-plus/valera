@@ -34,12 +34,9 @@ fun MobileDrivingLicenceCredentialBiometricDataDataCardContent(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
-        listOfNotNull(
-            credentialAdapter.undistinguishingSign).let {
+        credentialAdapter.signatureBitmap?.let {
             AttributeRepresentation(
-                value = listOfNotNull(
-                    credentialAdapter.undistinguishingSign
-                ).joinToString(" | "),
+                value = it,
             )
         }
     }

@@ -11,6 +11,7 @@ import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import at.asitplus.wallet.taxid.TaxIdScheme
+import at.asitplus.wallet.taxid.TaxId2025Scheme
 import data.PersonalDataCategory
 import data.credentialsdatacard.CompanyRegistrationCredentialAttributeCategorization
 
@@ -36,6 +37,7 @@ interface CredentialAttributeCategorization {
             is CompanyRegistrationScheme -> CompanyRegistrationCredentialAttributeCategorization
             is HealthIdScheme -> HealthIdCredentialAttributeCategorization
             is TaxIdScheme -> TaxIdCredentialAttributeCategorization
+            is TaxId2025Scheme -> TaxIdCredentialAttributeCategorization
             else -> EmptyCredentialAttributeCategorization
         }
     }

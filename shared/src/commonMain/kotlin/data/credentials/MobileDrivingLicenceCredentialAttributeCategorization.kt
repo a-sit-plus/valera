@@ -20,10 +20,16 @@ object MobileDrivingLicenceCredentialAttributeCategorization : CredentialAttribu
 
         PersonalDataCategory.AgeData to listOf(
             MobileDrivingLicenceDataElements.AGE_OVER_12,
+            MobileDrivingLicenceDataElements.AGE_OVER_13,
             MobileDrivingLicenceDataElements.AGE_OVER_14,
             MobileDrivingLicenceDataElements.AGE_OVER_16,
             MobileDrivingLicenceDataElements.AGE_OVER_18,
             MobileDrivingLicenceDataElements.AGE_OVER_21,
+            MobileDrivingLicenceDataElements.AGE_OVER_25,
+            MobileDrivingLicenceDataElements.AGE_OVER_60,
+            MobileDrivingLicenceDataElements.AGE_OVER_62,
+            MobileDrivingLicenceDataElements.AGE_OVER_65,
+            MobileDrivingLicenceDataElements.AGE_OVER_68,
             MobileDrivingLicenceDataElements.AGE_BIRTH_YEAR,
             MobileDrivingLicenceDataElements.AGE_IN_YEARS,
         ).map { NormalizedJsonPath() + it to null },
@@ -53,7 +59,11 @@ object MobileDrivingLicenceCredentialAttributeCategorization : CredentialAttribu
         ).map { NormalizedJsonPath() + it to null },
 
         PersonalDataCategory.BiometricData to listOf(
-            MobileDrivingLicenceDataElements.SIGNATURE_USUAL_MARK, // TODO: extract data
+            MobileDrivingLicenceDataElements.SIGNATURE_USUAL_MARK,
+            MobileDrivingLicenceDataElements.BIOMETRIC_TEMPLATE_FINGER,
+            MobileDrivingLicenceDataElements.BIOMETRIC_TEMPLATE_FACE,
+            MobileDrivingLicenceDataElements.BIOMETRIC_TEMPLATE_IRIS,
+            MobileDrivingLicenceDataElements.BIOMETRIC_TEMPLATE_SIGNATURE_SIGN,
         ).map { NormalizedJsonPath() + it to null },
 
         PersonalDataCategory.Metadata to listOf(

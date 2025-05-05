@@ -11,6 +11,7 @@ import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import at.asitplus.wallet.taxid.TaxIdScheme
+import at.asitplus.wallet.taxid.TaxId2025Scheme
 import org.jetbrains.compose.resources.StringResource
 
 interface CredentialAttributeTranslator {
@@ -27,6 +28,7 @@ interface CredentialAttributeTranslator {
             is CompanyRegistrationScheme -> CompanyRegistrationCredentialAttributeTranslator
             is HealthIdScheme -> HealthIdCredentialAttributeTranslator
             is TaxIdScheme -> TaxIdCredentialAttributeTranslator
+            is TaxId2025Scheme -> TaxIdCredentialAttributeTranslator
             else -> null
         }
     }

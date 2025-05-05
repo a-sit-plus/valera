@@ -7,10 +7,16 @@ import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.attribute_friendly_name_administrative_number
 import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_12
+import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_13
 import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_14
 import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_16
 import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_18
 import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_21
+import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_25
+import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_60
+import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_62
+import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_65
+import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_68
 import at.asitplus.valera.resources.attribute_friendly_name_age_birth_year
 import at.asitplus.valera.resources.attribute_friendly_name_age_in_years
 import at.asitplus.valera.resources.attribute_friendly_name_birth_city
@@ -41,6 +47,7 @@ import at.asitplus.valera.resources.attribute_friendly_name_mobile_phone_number
 import at.asitplus.valera.resources.attribute_friendly_name_nationality
 import at.asitplus.valera.resources.attribute_friendly_name_personal_administrative_number
 import at.asitplus.valera.resources.attribute_friendly_name_portrait
+import at.asitplus.valera.resources.attribute_friendly_name_portrait_capture_date
 import at.asitplus.valera.resources.attribute_friendly_name_sex
 import at.asitplus.valera.resources.attribute_friendly_name_trust_anchor
 import at.asitplus.wallet.eupid.EuPidScheme
@@ -63,10 +70,16 @@ object EuPidCredentialAttributeTranslator : CredentialAttributeTranslator {
                 BIRTH_DATE -> Res.string.attribute_friendly_name_date_of_birth
                 PORTRAIT -> Res.string.attribute_friendly_name_portrait
                 AGE_OVER_12 -> Res.string.attribute_friendly_name_age_at_least_12
+                AGE_OVER_13 -> Res.string.attribute_friendly_name_age_at_least_13
                 AGE_OVER_14 -> Res.string.attribute_friendly_name_age_at_least_14
                 AGE_OVER_16 -> Res.string.attribute_friendly_name_age_at_least_16
                 AGE_OVER_18 -> Res.string.attribute_friendly_name_age_at_least_18
                 AGE_OVER_21 -> Res.string.attribute_friendly_name_age_at_least_21
+                AGE_OVER_25 -> Res.string.attribute_friendly_name_age_at_least_25
+                AGE_OVER_60 -> Res.string.attribute_friendly_name_age_at_least_60
+                AGE_OVER_62 -> Res.string.attribute_friendly_name_age_at_least_62
+                AGE_OVER_65 -> Res.string.attribute_friendly_name_age_at_least_65
+                AGE_OVER_68 -> Res.string.attribute_friendly_name_age_at_least_68
                 AGE_IN_YEARS -> Res.string.attribute_friendly_name_age_in_years
                 AGE_BIRTH_YEAR -> Res.string.attribute_friendly_name_age_birth_year
                 FAMILY_NAME_BIRTH -> Res.string.attribute_friendly_name_family_name_birth
@@ -97,6 +110,7 @@ object EuPidCredentialAttributeTranslator : CredentialAttributeTranslator {
                 MOBILE_PHONE_NUMBER -> Res.string.attribute_friendly_name_mobile_phone_number
                 TRUST_ANCHOR -> Res.string.attribute_friendly_name_trust_anchor
                 LOCATION_STATUS -> Res.string.attribute_friendly_name_location_status
+                PORTRAIT_CAPTURE_DATE -> Res.string.attribute_friendly_name_portrait_capture_date
                 else -> null
             }
 
@@ -114,19 +128,31 @@ object EuPidCredentialAttributeTranslator : CredentialAttributeTranslator {
                 PREFIX_AGE_EQUAL_OR_OVER -> when (val second = attributeName.segments.getOrNull(1)) {
                     is NormalizedJsonPathSegment.NameSegment -> when (second.memberName) {
                         AgeEqualOrOver.EQUAL_OR_OVER_12 -> Res.string.attribute_friendly_name_age_at_least_12
+                        AgeEqualOrOver.EQUAL_OR_OVER_13 -> Res.string.attribute_friendly_name_age_at_least_13
                         AgeEqualOrOver.EQUAL_OR_OVER_14 -> Res.string.attribute_friendly_name_age_at_least_14
                         AgeEqualOrOver.EQUAL_OR_OVER_16 -> Res.string.attribute_friendly_name_age_at_least_16
                         AgeEqualOrOver.EQUAL_OR_OVER_18 -> Res.string.attribute_friendly_name_age_at_least_18
                         AgeEqualOrOver.EQUAL_OR_OVER_21 -> Res.string.attribute_friendly_name_age_at_least_21
+                        AgeEqualOrOver.EQUAL_OR_OVER_25 -> Res.string.attribute_friendly_name_age_at_least_25
+                        AgeEqualOrOver.EQUAL_OR_OVER_60 -> Res.string.attribute_friendly_name_age_at_least_60
+                        AgeEqualOrOver.EQUAL_OR_OVER_62 -> Res.string.attribute_friendly_name_age_at_least_62
+                        AgeEqualOrOver.EQUAL_OR_OVER_65 -> Res.string.attribute_friendly_name_age_at_least_65
+                        AgeEqualOrOver.EQUAL_OR_OVER_68 -> Res.string.attribute_friendly_name_age_at_least_68
                         else -> null
                     }
                     else -> null
                 }
                 AGE_EQUAL_OR_OVER_12 -> Res.string.attribute_friendly_name_age_at_least_12
+                AGE_EQUAL_OR_OVER_13 -> Res.string.attribute_friendly_name_age_at_least_13
                 AGE_EQUAL_OR_OVER_14 -> Res.string.attribute_friendly_name_age_at_least_14
                 AGE_EQUAL_OR_OVER_16 -> Res.string.attribute_friendly_name_age_at_least_16
                 AGE_EQUAL_OR_OVER_18 -> Res.string.attribute_friendly_name_age_at_least_18
                 AGE_EQUAL_OR_OVER_21 -> Res.string.attribute_friendly_name_age_at_least_21
+                AGE_EQUAL_OR_OVER_25 -> Res.string.attribute_friendly_name_age_at_least_25
+                AGE_EQUAL_OR_OVER_60 -> Res.string.attribute_friendly_name_age_at_least_60
+                AGE_EQUAL_OR_OVER_62 -> Res.string.attribute_friendly_name_age_at_least_62
+                AGE_EQUAL_OR_OVER_65 -> Res.string.attribute_friendly_name_age_at_least_65
+                AGE_EQUAL_OR_OVER_68 -> Res.string.attribute_friendly_name_age_at_least_68
                 AGE_IN_YEARS -> Res.string.attribute_friendly_name_age_in_years
                 AGE_BIRTH_YEAR -> Res.string.attribute_friendly_name_age_birth_year
                 FAMILY_NAME_BIRTH -> Res.string.attribute_friendly_name_family_name_birth

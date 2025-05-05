@@ -42,10 +42,16 @@ sealed class EuPidCredentialAdapter(
                 FAMILY_NAME -> Attribute.fromValue(familyName)
                 BIRTH_DATE -> Attribute.fromValue(birthDate)
                 AGE_OVER_12 -> Attribute.fromValue(ageAtLeast12)
+                AGE_OVER_13 -> Attribute.fromValue(ageAtLeast13)
                 AGE_OVER_14 -> Attribute.fromValue(ageAtLeast14)
                 AGE_OVER_16 -> Attribute.fromValue(ageAtLeast16)
                 AGE_OVER_18 -> Attribute.fromValue(ageAtLeast18)
                 AGE_OVER_21 -> Attribute.fromValue(ageAtLeast21)
+                AGE_OVER_25 -> Attribute.fromValue(ageAtLeast25)
+                AGE_OVER_60 -> Attribute.fromValue(ageAtLeast60)
+                AGE_OVER_62 -> Attribute.fromValue(ageAtLeast62)
+                AGE_OVER_65 -> Attribute.fromValue(ageAtLeast65)
+                AGE_OVER_68 -> Attribute.fromValue(ageAtLeast68)
                 RESIDENT_ADDRESS -> Attribute.fromValue(residentAddress)
                 RESIDENT_STREET -> Attribute.fromValue(residentStreet)
                 RESIDENT_CITY -> Attribute.fromValue(residentCity)
@@ -77,6 +83,7 @@ sealed class EuPidCredentialAdapter(
                 MOBILE_PHONE_NUMBER -> Attribute.fromValue(mobilePhoneNumber)
                 TRUST_ANCHOR -> Attribute.fromValue(trustAnchor)
                 LOCATION_STATUS -> Attribute.fromValue(locationStatus)
+                PORTRAIT_CAPTURE_DATE -> Attribute.fromValue(portraitCaptureDate)
                 else -> null
             }
 
@@ -97,10 +104,16 @@ sealed class EuPidCredentialAdapter(
                 PREFIX_AGE_EQUAL_OR_OVER -> when (second) {
                     is NormalizedJsonPathSegment.NameSegment -> when (second.memberName) {
                         AgeEqualOrOver.EQUAL_OR_OVER_12 -> Attribute.fromValue(ageAtLeast12)
+                        AgeEqualOrOver.EQUAL_OR_OVER_13 -> Attribute.fromValue(ageAtLeast13)
                         AgeEqualOrOver.EQUAL_OR_OVER_14 -> Attribute.fromValue(ageAtLeast14)
                         AgeEqualOrOver.EQUAL_OR_OVER_16 -> Attribute.fromValue(ageAtLeast16)
                         AgeEqualOrOver.EQUAL_OR_OVER_18 -> Attribute.fromValue(ageAtLeast18)
                         AgeEqualOrOver.EQUAL_OR_OVER_21 -> Attribute.fromValue(ageAtLeast21)
+                        AgeEqualOrOver.EQUAL_OR_OVER_25 -> Attribute.fromValue(ageAtLeast25)
+                        AgeEqualOrOver.EQUAL_OR_OVER_60 -> Attribute.fromValue(ageAtLeast60)
+                        AgeEqualOrOver.EQUAL_OR_OVER_62 -> Attribute.fromValue(ageAtLeast62)
+                        AgeEqualOrOver.EQUAL_OR_OVER_65 -> Attribute.fromValue(ageAtLeast65)
+                        AgeEqualOrOver.EQUAL_OR_OVER_68 -> Attribute.fromValue(ageAtLeast68)
                         else -> null
                     }
 
@@ -108,10 +121,16 @@ sealed class EuPidCredentialAdapter(
                 }
 
                 AGE_EQUAL_OR_OVER_12 -> Attribute.fromValue(ageAtLeast12)
+                AGE_EQUAL_OR_OVER_13 -> Attribute.fromValue(ageAtLeast13)
                 AGE_EQUAL_OR_OVER_14 -> Attribute.fromValue(ageAtLeast14)
                 AGE_EQUAL_OR_OVER_16 -> Attribute.fromValue(ageAtLeast16)
                 AGE_EQUAL_OR_OVER_18 -> Attribute.fromValue(ageAtLeast18)
                 AGE_EQUAL_OR_OVER_21 -> Attribute.fromValue(ageAtLeast21)
+                AGE_EQUAL_OR_OVER_25 -> Attribute.fromValue(ageAtLeast25)
+                AGE_EQUAL_OR_OVER_60 -> Attribute.fromValue(ageAtLeast60)
+                AGE_EQUAL_OR_OVER_62 -> Attribute.fromValue(ageAtLeast62)
+                AGE_EQUAL_OR_OVER_65 -> Attribute.fromValue(ageAtLeast65)
+                AGE_EQUAL_OR_OVER_68 -> Attribute.fromValue(ageAtLeast68)
                 PREFIX_ADDRESS -> when (second) {
                     is NormalizedJsonPathSegment.NameSegment -> when (second.memberName) {
                         Address.FORMATTED -> Attribute.fromValue(residentAddress)
@@ -180,10 +199,16 @@ sealed class EuPidCredentialAdapter(
         portraitRaw?.let(decodePortrait)
     }
     abstract val ageAtLeast12: Boolean?
+    abstract val ageAtLeast13: Boolean?
     abstract val ageAtLeast14: Boolean?
     abstract val ageAtLeast16: Boolean?
     abstract val ageAtLeast18: Boolean?
     abstract val ageAtLeast21: Boolean?
+    abstract val ageAtLeast25: Boolean?
+    abstract val ageAtLeast60: Boolean?
+    abstract val ageAtLeast62: Boolean?
+    abstract val ageAtLeast65: Boolean?
+    abstract val ageAtLeast68: Boolean?
     abstract val residentAddress: String?
     abstract val residentStreet: String?
     abstract val residentCity: String?
@@ -215,6 +240,7 @@ sealed class EuPidCredentialAdapter(
     abstract val mobilePhoneNumber: String?
     abstract val trustAnchor: String?
     abstract val locationStatus: String?
+    abstract val portraitCaptureDate: LocalDate?
 
     companion object {
         fun createFromStoreEntry(
@@ -267,6 +293,9 @@ private class EuPidCredentialVcAdapter(
     override val ageAtLeast12: Boolean?
         get() = credentialSubject.ageOver12
 
+    override val ageAtLeast13: Boolean?
+        get() = credentialSubject.ageOver13
+
     override val ageAtLeast14: Boolean?
         get() = credentialSubject.ageOver14
 
@@ -278,6 +307,21 @@ private class EuPidCredentialVcAdapter(
 
     override val ageAtLeast21: Boolean?
         get() = credentialSubject.ageOver21
+
+    override val ageAtLeast25: Boolean?
+        get() = credentialSubject.ageOver25
+
+    override val ageAtLeast60: Boolean?
+        get() = credentialSubject.ageOver60
+
+    override val ageAtLeast62: Boolean?
+        get() = credentialSubject.ageOver62
+
+    override val ageAtLeast65: Boolean?
+        get() = credentialSubject.ageOver65
+
+    override val ageAtLeast68: Boolean?
+        get() = credentialSubject.ageOver68
 
     override val residentAddress: String?
         get() = credentialSubject.residentAddress
@@ -372,6 +416,9 @@ private class EuPidCredentialVcAdapter(
 
     override val locationStatus: String?
         get() = credentialSubject.locationStatus
+
+    override val portraitCaptureDate: LocalDate?
+        get() = null
 }
 
 /**
@@ -406,6 +453,10 @@ private class EuPidCredentialSdJwtAdapter(
         get() = attributes[SdJwtAttributes.AGE_EQUAL_OR_OVER_12]?.booleanOrNull
             ?: attributes[Attributes.AGE_OVER_12]?.booleanOrNull
 
+    override val ageAtLeast13: Boolean?
+        get() = attributes[SdJwtAttributes.AGE_EQUAL_OR_OVER_13]?.booleanOrNull
+            ?: attributes[Attributes.AGE_OVER_13]?.booleanOrNull
+
     override val ageAtLeast14: Boolean?
         get() = attributes[SdJwtAttributes.AGE_EQUAL_OR_OVER_14]?.booleanOrNull
             ?: attributes[Attributes.AGE_OVER_14]?.booleanOrNull
@@ -421,6 +472,26 @@ private class EuPidCredentialSdJwtAdapter(
     override val ageAtLeast21: Boolean?
         get() = attributes[SdJwtAttributes.AGE_EQUAL_OR_OVER_21]?.booleanOrNull
             ?: attributes[Attributes.AGE_OVER_21]?.booleanOrNull
+
+    override val ageAtLeast25: Boolean?
+        get() = attributes[SdJwtAttributes.AGE_EQUAL_OR_OVER_25]?.booleanOrNull
+            ?: attributes[Attributes.AGE_OVER_25]?.booleanOrNull
+
+    override val ageAtLeast60: Boolean?
+        get() = attributes[SdJwtAttributes.AGE_EQUAL_OR_OVER_60]?.booleanOrNull
+            ?: attributes[Attributes.AGE_OVER_60]?.booleanOrNull
+
+    override val ageAtLeast62: Boolean?
+        get() = attributes[SdJwtAttributes.AGE_EQUAL_OR_OVER_62]?.booleanOrNull
+            ?: attributes[Attributes.AGE_OVER_62]?.booleanOrNull
+
+    override val ageAtLeast65: Boolean?
+        get() = attributes[SdJwtAttributes.AGE_EQUAL_OR_OVER_65]?.booleanOrNull
+            ?: attributes[Attributes.AGE_OVER_65]?.booleanOrNull
+
+    override val ageAtLeast68: Boolean?
+        get() = attributes[SdJwtAttributes.AGE_EQUAL_OR_OVER_68]?.booleanOrNull
+            ?: attributes[Attributes.AGE_OVER_68]?.booleanOrNull
 
     override val residentAddress: String?
         get() = attributes[SdJwtAttributes.ADDRESS_FORMATTED]?.contentOrNull
@@ -546,6 +617,9 @@ private class EuPidCredentialSdJwtAdapter(
 
     override val locationStatus: String?
         get() = attributes[Attributes.LOCATION_STATUS]?.contentOrNull
+
+    override val portraitCaptureDate: LocalDate?
+        get() = attributes[Attributes.PORTRAIT_CAPTURE_DATE]?.contentOrNull?.toLocalDateOrNull()
 }
 
 private class EuPidCredentialIsoMdocAdapter(
@@ -580,6 +654,9 @@ private class EuPidCredentialIsoMdocAdapter(
     override val ageAtLeast12: Boolean?
         get() = euPidNamespace?.get(Attributes.AGE_OVER_12) as? Boolean?
 
+    override val ageAtLeast13: Boolean?
+        get() = euPidNamespace?.get(Attributes.AGE_OVER_13) as? Boolean?
+
     override val ageAtLeast14: Boolean?
         get() = euPidNamespace?.get(Attributes.AGE_OVER_14) as? Boolean?
 
@@ -591,6 +668,21 @@ private class EuPidCredentialIsoMdocAdapter(
 
     override val ageAtLeast21: Boolean?
         get() = euPidNamespace?.get(Attributes.AGE_OVER_21) as? Boolean?
+
+    override val ageAtLeast25: Boolean?
+        get() = euPidNamespace?.get(Attributes.AGE_OVER_25) as? Boolean?
+
+    override val ageAtLeast60: Boolean?
+        get() = euPidNamespace?.get(Attributes.AGE_OVER_60) as? Boolean?
+
+    override val ageAtLeast62: Boolean?
+        get() = euPidNamespace?.get(Attributes.AGE_OVER_62) as? Boolean?
+
+    override val ageAtLeast65: Boolean?
+        get() = euPidNamespace?.get(Attributes.AGE_OVER_65) as? Boolean?
+
+    override val ageAtLeast68: Boolean?
+        get() = euPidNamespace?.get(Attributes.AGE_OVER_68) as? Boolean?
 
     override val residentAddress: String?
         get() = euPidNamespace?.get(Attributes.RESIDENT_ADDRESS) as? String?
@@ -693,4 +785,7 @@ private class EuPidCredentialIsoMdocAdapter(
 
     override val locationStatus: String?
         get() = euPidNamespace?.get(Attributes.LOCATION_STATUS) as? String?
+
+    override val portraitCaptureDate: LocalDate?
+        get() = euPidNamespace?.get(Attributes.LOCATION_STATUS)?.toLocalDateOrNull()
 }

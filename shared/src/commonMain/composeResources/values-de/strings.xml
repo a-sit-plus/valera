@@ -69,10 +69,16 @@
     <string name="attribute_friendly_name_date_of_birth">Geburtsdatum</string>
     <string name="attribute_friendly_name_portrait">Porträt</string>
     <string name="attribute_friendly_name_age_at_least_12">Zumindest 12 Jahre alt</string>
+    <string name="attribute_friendly_name_age_at_least_13">Zumindest 13 Jahre alt</string>
     <string name="attribute_friendly_name_age_at_least_14">Zumindest 14 Jahre alt</string>
     <string name="attribute_friendly_name_age_at_least_16">Zumindest 16 Jahre alt</string>
     <string name="attribute_friendly_name_age_at_least_18">Zumindest 18 Jahre alt</string>
     <string name="attribute_friendly_name_age_at_least_21">Zumindest 21 Jahre alt</string>
+    <string name="attribute_friendly_name_age_at_least_25">Zumindest 25 Jahre alt</string>
+    <string name="attribute_friendly_name_age_at_least_60">Zumindest 60 Jahre alt</string>
+    <string name="attribute_friendly_name_age_at_least_62">Zumindest 62 Jahre alt</string>
+    <string name="attribute_friendly_name_age_at_least_65">Zumindest 65 Jahre alt</string>
+    <string name="attribute_friendly_name_age_at_least_68">Zumindest 68 Jahre alt</string>
     <string name="attribute_friendly_name_main_address">Hauptwohnsitz</string>
     <string name="attribute_friendly_name_main_residence_country">Land</string>
     <string name="attribute_friendly_name_main_residence_state">Staat</string>
@@ -187,6 +193,7 @@
     <string name="credential_scheme_label_mdl">mDL</string>
     <string name="credential_scheme_icon_label_eu_pid">PID</string>
     <string name="credential_scheme_label_eu_pid">PID</string>
+    <string name="credential_scheme_label_eu_pid_sdjwt">PID (ARF 1.8.0)</string>
     <string name="credential_scheme_icon_label_id_austria">IDA</string>
     <string name="credential_scheme_label_id_austria">IDA Credential</string>
     <string name="credential_scheme_icon_label_power_of_representation">POR</string>
@@ -198,6 +205,7 @@
     <string name="credential_scheme_label_healthid">HealthID</string>
     <string name="credential_scheme_icon_label_healthid">HIID</string>
     <string name="credential_scheme_label_tax_id">Tax ID</string>
+    <string name="credential_scheme_label_tax_id_2025">Tax ID (2025)</string>
     <string name="credential_scheme_icon_label_tax_id">TAX</string>
 
     <string name="navigation_button_label_show_data">Vorzeigen</string>
