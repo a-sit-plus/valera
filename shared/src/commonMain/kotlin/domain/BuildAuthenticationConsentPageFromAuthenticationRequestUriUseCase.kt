@@ -16,6 +16,7 @@ class BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
         }
 
         val preparationState = presentationService.startAuthorizationResponsePreparation(request).getOrElse {
+            Napier.e("Failure", it)
             return KmmResult.failure(it)
         }
 
