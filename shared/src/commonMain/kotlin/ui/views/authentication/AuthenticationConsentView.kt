@@ -44,9 +44,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import at.asitplus.catching
-import at.asitplus.openid.TransactionData
 import at.asitplus.openid.TransactionDataBase64Url
-import at.asitplus.rqes.rdcJsonSerializer
+import at.asitplus.rqes.collection_entries.QCertCreationAcceptance
+import at.asitplus.rqes.collection_entries.QesAuthorization
+import at.asitplus.signum.indispensable.io.Base64UrlStrict
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_location
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_name
@@ -57,10 +58,9 @@ import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_data_recipient
 import at.asitplus.valera.resources.section_heading_transaction_data
 import at.asitplus.wallet.lib.data.toTransactionData
-import io.matthewnelson.encoding.base64.Base64
-import io.matthewnelson.encoding.core.Decoder.Companion.decodeToByteArray
-import kotlinx.serialization.PolymorphicSerializer
-import kotlinx.serialization.json.JsonObject
+import at.asitplus.wallet.lib.oidvci.encodeToParameters
+import io.github.aakira.napier.Napier
+import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.DataDisplaySection
 import ui.composables.LabeledText
@@ -188,25 +188,28 @@ fun TransactionDataView(transactionData: TransactionDataBase64Url) {
         var showContent by remember { mutableStateOf(false) }
 
         val density = LocalDensity.current
-        val properties = catching {
-            rdcJsonSerializer.decodeFromString<JsonObject>(transactionData.content.decodeToByteArray(Base64()).decodeToString())
-        }.getOrNull()?.entries
-
+        val parsedTransactionData = catching { transactionData.toTransactionData() }
+            .onFailure { Napier.e("transactionData: error", it) }
+            .getOrNull()
         Text(
             text = stringResource(Res.string.section_heading_transaction_data),
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.secondary,
             fontWeight = FontWeight.SemiBold,
         )
-        val typeProperty = properties?.firstOrNull { it.key == "type" } ?: properties?.firstOrNull()
+        val typeProperty = when (parsedTransactionData) {
+            is QCertCreationAcceptance -> "qcert_creation_acceptance"
+            is QesAuthorization -> "qes_authorization"
+            else -> null
+        }
         Spacer(modifier = Modifier.height(8.dp))
         Column(modifier = Modifier.padding(start = 32.dp)) {
             Row {
                 val paddingModifier = Modifier.padding(bottom = 16.dp)
                 typeProperty?.let {
                     LabeledText(
-                        label = it.key,
-                        text = it.value.toString(),
+                        label = "type",
+                        text = it,
                         modifier = paddingModifier,
                     )
                 }
@@ -243,10 +246,59 @@ fun TransactionDataView(transactionData: TransactionDataBase64Url) {
         ) {
             val paddingModifier = Modifier.padding(bottom = 16.dp)
             Column(modifier = Modifier.padding(start = 32.dp)) {
-                properties?.filter { it.key != "type" }?.forEach {
+                when (parsedTransactionData) {
+                    is QCertCreationAcceptance -> {
+                        LabeledText(
+                            label = "QC_terms_conditions_uri",
+                            text = parsedTransactionData.qcTermsConditionsUri,
+                            modifier = paddingModifier,
+                        )
+                        LabeledText(
+                            label = "QC_hash",
+                            text = parsedTransactionData.qcHash.encodeToString(Base64UrlStrict),
+                            modifier = paddingModifier,
+                        )
+                        LabeledText(
+                            label = "QC_hashAlgorithmOID",
+                            text = parsedTransactionData.qcHashAlgorithmOid.toString(),
+                            modifier = paddingModifier,
+                        )
+                    }
+                    is QesAuthorization -> {
+                        parsedTransactionData.processID?.let {
+                            LabeledText(
+                                label = "processID",
+                                text = it,
+                                modifier = paddingModifier,
+                            )
+                        }
+                        parsedTransactionData.credentialID?.let {
+                            LabeledText(
+                                label = "credentialID",
+                                text = it,
+                                modifier = paddingModifier,
+                            )
+                        }
+                        parsedTransactionData.signatureQualifier?.let {
+                            LabeledText(
+                                label = "signatureQualifier",
+                                text = it.toString(),
+                                modifier = paddingModifier,
+                            )
+                        }
+                    }
+                }
+                parsedTransactionData?.transactionDataHashAlgorithms?.let {
                     LabeledText(
-                        label = it.key,
-                        text = it.value.toString(),
+                        label = "transaction_data_hashes_alg",
+                        text = it.toString(),
+                        modifier = paddingModifier,
+                    )
+                }
+                parsedTransactionData?.credentialIds?.let {
+                    LabeledText(
+                        label = "credential_ids",
+                        text = it.toString(),
                         modifier = paddingModifier,
                     )
                 }

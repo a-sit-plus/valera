@@ -12,7 +12,6 @@ import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.agent.TokenStatusEvaluationException
 import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.data.StatusListToken
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.MediaTypes
@@ -114,7 +113,7 @@ class WalletMain(
             verifyJwsObject = VerifyJwsObject(publicKeyLookup = issuerKeyLookup())
         )
         holderAgent = HolderAgent(
-            keyMaterial = keyMaterial,
+            keyPair = keyMaterial,
             validator = credentialValidator,
             subjectCredentialStore = subjectCredentialStore,
         )
