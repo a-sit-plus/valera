@@ -113,9 +113,9 @@ class WalletMain(
             verifyJwsObject = VerifyJwsObject(publicKeyLookup = issuerKeyLookup())
         )
         holderAgent = HolderAgent(
-            keyPair = keyMaterial,
-            validator = credentialValidator,
+            keyMaterial = keyMaterial,
             subjectCredentialStore = subjectCredentialStore,
+            validator = credentialValidator,
         )
         intentService = IntentService(
             platformAdapter
