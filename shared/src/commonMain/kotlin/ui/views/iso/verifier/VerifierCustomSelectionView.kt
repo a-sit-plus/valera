@@ -123,7 +123,8 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                 }
                 Column(modifier = layoutSpacingModifier) {
                     Text(
-                        text = stringResource(Res.string.section_heading_selected_namespace) + MobileDrivingLicenceScheme.isoNamespace,
+                        text = stringResource(Res.string.section_heading_selected_namespace,
+                            MobileDrivingLicenceScheme.isoNamespace),
                         style = MaterialTheme.typography.titleMedium,
                     )
                 }
