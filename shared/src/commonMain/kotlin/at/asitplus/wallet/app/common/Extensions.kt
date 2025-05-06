@@ -156,7 +156,8 @@ fun ConstantIndex.CredentialScheme.toJsonElement(
     representation: CredentialRepresentation,
 ): JsonElement {
     val dataElements = when (this) {
-        ConstantIndex.AtomicAttribute2023, IdAustriaScheme, EuPidScheme, EuPidSdJwtScheme, MobileDrivingLicenceScheme, HealthIdScheme, TaxIdScheme, TaxId2025Scheme -> this.claimNames
+        EuPidScheme -> this.claimNames + EuPidScheme.Attributes.PORTRAIT_CAPTURE_DATE
+        ConstantIndex.AtomicAttribute2023, IdAustriaScheme, EuPidSdJwtScheme, MobileDrivingLicenceScheme, HealthIdScheme, TaxIdScheme, TaxId2025Scheme -> this.claimNames
         // TODO Use: this.claim names for all schemes
         PowerOfRepresentationScheme -> PowerOfRepresentationDataElements.ALL_ELEMENTS
         CertificateOfResidenceScheme -> CertificateOfResidenceDataElements.ALL_ELEMENTS
