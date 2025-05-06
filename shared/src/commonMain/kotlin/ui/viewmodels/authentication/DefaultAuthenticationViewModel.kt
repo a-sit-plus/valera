@@ -58,7 +58,7 @@ class DefaultAuthenticationViewModel(
             credentialPresentation = credentialPresentation,
         )
         when (authenticationResult) {
-            is OpenId4VpWallet.AuthenticationForward -> finalizeDcApi(authenticationResult, credentialPresentation)
+            is OpenId4VpWallet.AuthenticationForward -> finalizeDcApi(authenticationResult)
             is OpenId4VpWallet.AuthenticationSuccess -> return authenticationResult
         }
         return OpenId4VpWallet.AuthenticationSuccess()
@@ -66,15 +66,9 @@ class DefaultAuthenticationViewModel(
 
     private suspend fun finalizeDcApi(
         authenticationResult: OpenId4VpWallet.AuthenticationForward,
-        credentialPresentation: CredentialPresentation
     ) {
-        println("aut = ${authenticationResult}")
-        walletMain.presentationService.finalizeDCAPIPreviewPresentation(
-            credentialPresentation = when (credentialPresentation) {
-                is CredentialPresentation.PresentationExchangePresentation -> credentialPresentation
-                is CredentialPresentation.DCQLPresentation -> TODO()
-            },
-            TODO(),
-        )
+        authenticationResult.authenticationResponseResult.params.response?.let {
+            walletMain.presentationService.finalizeDCAPIPresentation(it)
+        } ?: throw IllegalArgumentException("Not response has been generated")
     }
 }
