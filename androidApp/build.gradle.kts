@@ -12,6 +12,8 @@ kotlin {
         androidMain.dependencies {
             implementation(project(":shared"))
             implementation(libs.play.services.identity.credentials)
+            implementation(libs.androidx.credentials)
+            implementation(libs.androidx.credentials.registry.provider)
 
             implementation(libs.multipaz)
             implementation(libs.multipaz.android.legacy)
