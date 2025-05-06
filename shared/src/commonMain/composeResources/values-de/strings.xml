@@ -111,6 +111,10 @@
     <string name="attribute_friendly_name_driving_privileges">Lenkberechtigungen</string>
     <string name="attribute_friendly_name_distinguishing_sign">Ausstellungsland (Code)</string>
     <string name="attribute_friendly_name_signature_usual_mark">Unterschrift</string>
+    <string name="attribute_friendly_name_biometric_template_face">Biometrie: Gesicht</string>
+    <string name="attribute_friendly_name_biometric_template_finger">Biometrie: Fingerabdruck</string>
+    <string name="attribute_friendly_name_biometric_template_iris">Biometrie: Iris</string>
+    <string name="attribute_friendly_name_biometric_template_signature_sign">Biometrie: Unterschrift</string>
 
     <string name="attribute_friendly_name_country_code">Ländercode</string>
     <string name="attribute_friendly_name_one_time_token">One Time Token</string>
