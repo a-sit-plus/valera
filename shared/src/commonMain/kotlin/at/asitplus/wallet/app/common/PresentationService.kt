@@ -119,6 +119,10 @@ class PresentationService(
         return OpenId4VpWallet.AuthenticationSuccess()
     }
 
+    suspend fun finalizeDCAPIPresentation(response: String) {
+        platformAdapter.prepareDCAPICredentialResponse(response)
+    }
+
     @OptIn(ExperimentalStdlibApi::class)
     suspend fun finalizeLocalPresentation(
         credentialPresentation: CredentialPresentation.PresentationExchangePresentation,
