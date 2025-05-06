@@ -1,5 +1,6 @@
 # Release 5.6.1
  * Upgrade to VC—K 5.6.1
+ * Improve error messages
 
 # Release 5.6.0
  * Upgrade to VC-K 5.6.0

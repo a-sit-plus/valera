@@ -20,8 +20,8 @@ class AuthenticationSelectionPresentationExchangeViewModel(
     val navigateToHomeScreen: () -> Unit,
     val onClickSettings: () -> Unit
 ) {
-    val requests: Map<String, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, List<NodeListEntry>>>>
-        = credentialMatchingResult.matchingInputDescriptorCredentials
+    val requests: Map<String, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, List<NodeListEntry>>>> =
+        credentialMatchingResult.matchingInputDescriptorCredentials
 
     val requestIterator = mutableStateOf(0)
     val iterableRequests = requests.toList()
