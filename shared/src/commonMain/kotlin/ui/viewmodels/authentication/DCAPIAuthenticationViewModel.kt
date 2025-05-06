@@ -12,12 +12,11 @@ import at.asitplus.dif.PresentationDefinition
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.app.common.dcapi.data.request.PreviewDCAPIRequest
+import at.asitplus.wallet.lib.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
-import data.credentials.CredentialAdapter.Companion.getDcApiId
 
 class DCAPIAuthenticationViewModel(
     spImage: ImageBitmap? = null,

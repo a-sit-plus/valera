@@ -28,8 +28,8 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_clear_log_successfully
 import at.asitplus.valera.resources.snackbar_reset_app_successfully
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.app.common.dcapi.data.request.Oid4vpDCAPIRequest
-import at.asitplus.wallet.app.common.dcapi.data.request.PreviewDCAPIRequest
+import at.asitplus.wallet.lib.dcapi.request.Oid4vpDCAPIRequest
+import at.asitplus.wallet.lib.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.lib.data.dif.ConstraintFieldsEvaluationException
 import at.asitplus.wallet.lib.data.vckJsonSerializer
@@ -392,6 +392,10 @@ private fun WalletNavHost(
                     val preparationState: AuthorizationResponsePreparationState =
                         vckJsonSerializer.decodeFromString(route.authorizationPreparationStateSerialized)
 
+                    val apiRequestSerialized = route.oid4vpDCAPIRequestSerialized
+                    val dcApiRequest =
+                        apiRequestSerialized?.let { Oid4vpDCAPIRequest.deserialize(it).getOrNull() }
+
                     DefaultAuthenticationViewModel(
                         spName = null,
                         spLocation = route.recipientLocation,
@@ -407,7 +411,8 @@ private fun WalletNavHost(
                         },
                         walletMain = walletMain,
                         onClickLogo = onClickLogo,
-                        onClickSettings = { navigate(SettingsRoute) }
+                        onClickSettings = { navigate(SettingsRoute) },
+                        dcapiRequest = dcApiRequest
                     )
                 } catch (e: Throwable) {
                     popBackStack(HomeScreenRoute)
