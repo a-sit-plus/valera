@@ -59,8 +59,7 @@ fun AttributeSelectionGroup(
         }
 
     val allChecked = mutableStateOf(!selection.values.contains(false))
-    val allCheckedEnabled =
-        mutableStateOf(attributeSelectionList.firstOrNull { it.enabled } != null)
+    val allCheckedEnabled = mutableStateOf(attributeSelectionList.firstOrNull { it.enabled } != null)
 
     val changeSelection: (Boolean, String) -> Unit = { bool, memberName ->
         if (attributeSelectionList.firstOrNull { it.memberName == memberName }?.enabled == true)

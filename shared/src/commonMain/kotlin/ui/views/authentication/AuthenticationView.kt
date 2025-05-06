@@ -72,12 +72,12 @@ fun AuthenticationView(
 
                 is PresentationExchangeMatchingResult -> {
                     AuthenticationSelectionPresentationExchangeView(
+                        onClickLogo = vm.onClickLogo,
+                        onClickSettings = vm.onClickSettings,
                         vm = AuthenticationSelectionPresentationExchangeViewModel(
                             walletMain = vm.walletMain,
                             confirmSelections = { selections -> vm.confirmSelection(selections) },
                             navigateUp = { vm.viewState = AuthenticationViewState.Consent },
-                            onClickLogo = vm.onClickLogo,
-                            onClickSettings = vm.onClickSettings,
                             credentialMatchingResult = matching,
                             navigateToHomeScreen = vm.navigateToHomeScreen
                         ),

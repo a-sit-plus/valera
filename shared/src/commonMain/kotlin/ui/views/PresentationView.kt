@@ -178,14 +178,14 @@ fun PresentationView(
                                     presentationViewModel.confirmSelection(selections)
                                 },
                                 navigateUp = { presentationViewModel.viewState = AuthenticationViewState.Consent },
-                                onClickLogo = presentationViewModel.onClickLogo,
-                                onClickSettings = presentationViewModel.onClickSettings,
                                 credentialMatchingResult = matching,
                                 navigateToHomeScreen = presentationViewModel.navigateToHomeScreen
                             )
                             AuthenticationSelectionPresentationExchangeView(
                                 vm = viewModel,
                                 onError = onError,
+                                onClickLogo = presentationViewModel.onClickLogo,
+                                onClickSettings = presentationViewModel.onClickSettings,
                             )
                         }
                     }

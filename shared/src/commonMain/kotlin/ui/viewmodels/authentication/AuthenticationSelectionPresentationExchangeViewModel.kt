@@ -6,27 +6,33 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import at.asitplus.dif.ConstraintField
 import at.asitplus.jsonpath.core.NodeListEntry
+import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
+import at.asitplus.openid.third_party.at.asitplus.jsonpath.core.plus
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.agent.representation
+import at.asitplus.wallet.healthid.HealthIdScheme
 import at.asitplus.wallet.lib.agent.PresentationExchangeCredentialDisclosure
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.ConstantIndex
+import at.asitplus.wallet.lib.data.CredentialToJsonConverter
+import io.github.aakira.napier.Napier
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.jsonObject
 
 class AuthenticationSelectionPresentationExchangeViewModel(
     val walletMain: WalletMain,
     val credentialMatchingResult: PresentationExchangeMatchingResult<SubjectCredentialStore.StoreEntry>,
     val confirmSelections: (CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>) -> Unit,
     val navigateUp: () -> Unit,
-    val onClickLogo: () -> Unit,
     val navigateToHomeScreen: () -> Unit,
-    val onClickSettings: () -> Unit
 ) {
-    val requests: Map<String, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, List<NodeListEntry>>>>
-        = credentialMatchingResult.matchingInputDescriptorCredentials
+    val requests: Map<String, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, List<NodeListEntry>>>> =
+        credentialMatchingResult.matchingInputDescriptorCredentials
 
     val requestIterator = mutableStateOf(0)
     val iterableRequests = requests.toList()
-    var attributeSelection: SnapshotStateMap<String, SnapshotStateMap<String, Boolean>> =
-        mutableStateMapOf()
+    var attributeSelection: SnapshotStateMap<String, SnapshotStateMap<String, Boolean>> = mutableStateMapOf()
     var credentialSelection: SnapshotStateMap<String, MutableState<SubjectCredentialStore.StoreEntry>> =
         mutableStateMapOf()
 
@@ -51,10 +57,9 @@ class AuthenticationSelectionPresentationExchangeViewModel(
         if (requestIterator.value < requests.size - 1) {
             requestIterator.value += 1
         } else {
-            val submission = requests.mapNotNull {
-                val requestsId = it.key
+            val submission = requests.mapNotNull { (requestsId, matches) ->
                 val credential = credentialSelection[requestsId]?.value ?: return@mapNotNull null
-                val constraints = it.value[credential]?.filter { it.value.isNotEmpty() } ?: return@mapNotNull null
+                val constraints = matches[credential]?.filter { it.value.isNotEmpty() } ?: return@mapNotNull null
                 val attributes = attributeSelection[requestsId] ?: return@mapNotNull null
                 val disclosedAttributes = constraints.mapNotNull { constraint ->
                     val path = constraint.value.firstOrNull()?.normalizedJsonPath
@@ -65,8 +70,29 @@ class AuthenticationSelectionPresentationExchangeViewModel(
                         null
                     }
                 }
-                Pair(requestsId, PresentationExchangeCredentialDisclosure(credential, disclosedAttributes))
+                requestsId to PresentationExchangeCredentialDisclosure(
+                    credential,
+                    // Manually assigns all available attributes in ISO HealthId credential
+                    if (credential.representation == ConstantIndex.CredentialRepresentation.ISO_MDOC && credential.scheme == HealthIdScheme) {
+                        val claimStructure = CredentialToJsonConverter.toJsonElement(credential)
+                        Napier.d("Claim Structure: $claimStructure")
+                        val allAttributes = HealthIdScheme.claimNames.map {
+                            NormalizedJsonPath() + credential.scheme!!.isoNamespace!! + it
+                        }
+                        val availableAttributes = allAttributes.filter { attribute ->
+                            val (namespace, attributeName) = attribute.segments.map {
+                                (it as NormalizedJsonPathSegment.NameSegment).memberName
+                            }
+                            runCatching {
+                                claimStructure.jsonObject[namespace]!!.jsonObject[attributeName].also {
+                                    Napier.d("$it is available: $it")
+                                } != null
+                            }.getOrNull() ?: false
+                        }
+                        availableAttributes
+                    } else disclosedAttributes)
             }.toMap()
+            Napier.d("Presenting Selection: $submission")
             confirmSelections(PresentationExchangeCredentialSubmissions(submission))
         }
     }
