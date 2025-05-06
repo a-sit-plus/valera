@@ -15,7 +15,6 @@ data class PreviewDCAPIRequest(
     val nonce: ByteArray,
     val readerPublicKeyBase64: String,
     val docType: String,
-    val sendCredentialResponseToInvoker: (String) -> Unit
 ) : DCAPIRequest() {
     init {
         require(callingOrigin != null || callingPackageName != null)
