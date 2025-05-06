@@ -48,16 +48,5 @@ abstract class CredentialAdapter {
                     it.value.elementIdentifier to it.value.elementValue
                 }
             }
-
-        @Throws(IllegalArgumentException::class)
-        fun SubjectCredentialStore.StoreEntry.getDcApiId(): String = when (this) {
-            is SubjectCredentialStore.StoreEntry.Vc -> vc.jwtId
-            is SubjectCredentialStore.StoreEntry.SdJwt -> sdJwt.jwtId
-                ?: sdJwt.subject
-                ?: sdJwt.credentialStatus?.statusList?.let { it.uri.string + it.index.toString() }
-                ?: throw IllegalArgumentException("Credential does not have a jwtId")
-            // TODO probably not the best id
-            is SubjectCredentialStore.StoreEntry.Iso -> issuerSigned.issuerAuth.signature.humanReadableString
-        }
     }
 }

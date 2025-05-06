@@ -1,5 +1,6 @@
 package ui.navigation.routes
 
+import at.asitplus.wallet.lib.dcapi.request.Oid4vpDCAPIRequest
 import data.storage.StoreEntryId
 import kotlinx.serialization.Serializable
 
@@ -51,6 +52,7 @@ data class AuthenticationViewRoute(
     val authorizationPreparationStateSerialized: String, // AuthenticationResultParameters
     val recipientLocation: String,
     val isCrossDeviceFlow: Boolean,
+    val oid4vpDCAPIRequestSerialized: String? = null // Oid4vpDCAPIRequest
 ) : Route()
 
 @Serializable

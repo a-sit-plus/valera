@@ -53,7 +53,7 @@ extern "C" int main() {
                 // The OG "preview" protocol.
                 //
                 request = std::move(Request::parsePreview(protocolRequestJson));
-            } else if (protocolValue == "openid4vp") {
+            } else if (protocolValue.rfind("openid4vp", 0) == 0) {
                 // 18013-7 Annex D
                 //
                 request = std::move(Request::parseOpenID4VP(protocolRequestJson));

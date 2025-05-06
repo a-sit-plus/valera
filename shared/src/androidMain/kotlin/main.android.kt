@@ -24,9 +24,9 @@ import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.app.common.dcapi.data.request.DCAPIRequest
-import at.asitplus.wallet.app.common.dcapi.data.request.Oid4vpDCAPIRequest
-import at.asitplus.wallet.app.common.dcapi.data.request.PreviewDCAPIRequest
+import at.asitplus.wallet.lib.dcapi.request.DCAPIRequest
+import at.asitplus.wallet.lib.dcapi.request.Oid4vpDCAPIRequest
+import at.asitplus.wallet.lib.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.wallet.app.common.dcapi.data.preview.ResponseJSON
 import com.android.identity.android.mdoc.util.CredmanUtil
 import com.google.android.gms.identitycredentials.IdentityCredentialManager
@@ -189,6 +189,7 @@ public class AndroidPlatformAdapter(
             val callingAppInfo = request.callingAppInfo
             val callingPackageName = callingAppInfo.packageName
             val callingOrigin = callingAppInfo.getOrigin(privilegedUserAgents)
+                ?: throw IllegalArgumentException("Origin unknown")
             val option = request.credentialOptions[0] as GetDigitalCredentialOption
             val json = JSONObject(option.requestJson)
             val provider = json.getJSONArray("providers").getJSONObject(0)
@@ -276,7 +277,7 @@ public class AndroidPlatformAdapter(
         } else {
             CredmanUtil.generateBrowserSessionTranscript(
                 dcApiRequestPreview.nonce,
-                dcApiRequestPreview.callingOrigin,
+                dcApiRequestPreview.callingOrigin!!,
                 Crypto.digest(Algorithm.SHA256, readerPublicKey.asUncompressedPointEncoding)
             )
         }
