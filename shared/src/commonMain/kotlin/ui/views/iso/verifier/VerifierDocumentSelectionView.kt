@@ -35,14 +35,16 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_check_age
 import at.asitplus.valera.resources.button_label_check_custom
+import at.asitplus.valera.resources.button_label_check_identity
 import at.asitplus.valera.resources.button_label_check_license
 import at.asitplus.valera.resources.button_label_check_over_age
-import at.asitplus.valera.resources.credential_scheme_icon_label_eu_pid
 import at.asitplus.valera.resources.heading_label_select_data_retrieval_screen
 import at.asitplus.valera.resources.section_heading_request_custom
-import at.asitplus.valera.resources.section_heading_request_eausweise
 import at.asitplus.valera.resources.section_heading_request_engagement_method
-import at.asitplus.valera.resources.section_heading_request_license
+import at.asitplus.valera.resources.section_heading_request_mdl
+import at.asitplus.valera.resources.section_heading_request_pid
+import at.asitplus.valera.resources.text_label_all_attributes
+import at.asitplus.valera.resources.text_label_mandatory_attributes
 import at.asitplus.wallet.app.common.iso.transfer.DeviceEngagementMethods
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
@@ -119,7 +121,7 @@ fun VerifierDocumentSelectionView(
                 }
                 Column(modifier = layoutSpacingModifier) {
                     Text(
-                        text = stringResource(Res.string.section_heading_request_eausweise),
+                        text = stringResource(Res.string.section_heading_request_mdl),
                         style = MaterialTheme.typography.titleMedium
                     )
                     TextIconButtonListItem(
@@ -130,7 +132,7 @@ fun VerifierDocumentSelectionView(
                             )
                         },
                         label = stringResource(Res.string.button_label_check_license),
-                        subLabel = "Mandatory Attributes",
+                        subLabel = stringResource(Res.string.text_label_mandatory_attributes),
                         onClick = {
                             vm.onClickPredefinedMdlMandatoryAttributes(
                                 selectedEngagementMethod
@@ -146,7 +148,7 @@ fun VerifierDocumentSelectionView(
                             )
                         },
                         label = stringResource(Res.string.button_label_check_license),
-                        subLabel = "Full Attributes",
+                        subLabel = stringResource(Res.string.text_label_all_attributes),
                         onClick = { vm.onClickPredefinedMdlFullAttributes(selectedEngagementMethod) },
                         modifier = listSpacingModifier.fillMaxWidth()
                     )
@@ -176,7 +178,7 @@ fun VerifierDocumentSelectionView(
                 }
                 Column(modifier = layoutSpacingModifier) {
                     Text(
-                        text = stringResource(Res.string.section_heading_request_license),
+                        text = stringResource(Res.string.section_heading_request_pid),
                         style = MaterialTheme.typography.titleMedium
                     )
                     TextIconButtonListItem(
@@ -186,8 +188,8 @@ fun VerifierDocumentSelectionView(
                                 contentDescription = null
                             )
                         },
-                        label = stringResource(Res.string.credential_scheme_icon_label_eu_pid),
-                        subLabel = "Required Attributes",
+                        label = stringResource(Res.string.button_label_check_identity),
+                        subLabel = stringResource(Res.string.text_label_mandatory_attributes),
                         onClick = {
                             vm.onClickPredefinedPidRequiredAttributes(
                                 selectedEngagementMethod
@@ -202,8 +204,8 @@ fun VerifierDocumentSelectionView(
                                 contentDescription = null
                             )
                         },
-                        label = stringResource(Res.string.credential_scheme_icon_label_eu_pid),
-                        subLabel = "Full Attributes",
+                        label = stringResource(Res.string.button_label_check_identity),
+                        subLabel = stringResource(Res.string.text_label_all_attributes),
                         onClick = { vm.onClickPredefinedPidFullAttributes(selectedEngagementMethod) },
                         modifier = listSpacingModifier.fillMaxWidth()
                     )
@@ -238,28 +240,26 @@ fun TextIconButtonListItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val gap = 16.dp
-    Column(
+    Row(
         modifier = modifier
             .clickable(onClick = onClick)
-            .padding(top = 8.dp, end = 24.dp, bottom = 8.dp, start = 16.dp)
+            .padding(top = 4.dp, end = 16.dp, bottom = 4.dp, start = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            icon()
-            Spacer(modifier = Modifier.width(gap))
+        icon()
+        Spacer(modifier = Modifier.width(16.dp))
+        Column {
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodyLarge
             )
-        }
-        subLabel?.let {
-            Spacer(modifier = Modifier.size(4.dp))
-            Text(
-                text = it,
-                style = MaterialTheme.typography.bodySmall
-            )
+            subLabel?.let {
+                Spacer(modifier = Modifier.size(4.dp))
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
         }
     }
 }
