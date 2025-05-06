@@ -1,5 +1,5 @@
 # Release 5.6.1
- * tbd
+ * Upgrade to VC—K 5.6.1
 
 # Release 5.6.0
  * Upgrade to VC-K 5.6.0
