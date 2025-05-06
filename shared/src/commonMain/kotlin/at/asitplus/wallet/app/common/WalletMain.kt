@@ -228,6 +228,7 @@ interface PlatformAdapter {
      * Prepares the credential response and sends it back to the invoking application
      */
     fun prepareDCAPICredentialResponse(responseJson: ByteArray, dcApiRequestPreview: PreviewDCAPIRequest)
+    fun prepareDCAPICredentialResponse(responseJson: String)
 
 }
 
@@ -259,6 +260,9 @@ class DummyPlatformAdapter : PlatformAdapter {
         responseJson: ByteArray,
         dcApiRequestPreview: PreviewDCAPIRequest
     ) {
+    }
+
+    override fun prepareDCAPICredentialResponse(responseJson: String) {
     }
 
 }
