@@ -1,6 +1,8 @@
 package at.asitplus.wallet.app.common
 
 import at.asitplus.catching
+import at.asitplus.dcapi.request.Oid4vpDCAPIRequest
+import at.asitplus.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.iso.DeviceAuthentication
 import at.asitplus.iso.SessionTranscript
 import at.asitplus.openid.AuthenticationRequestParameters
@@ -8,7 +10,6 @@ import at.asitplus.openid.RelyingPartyMetadata
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
-import at.asitplus.wallet.app.common.dcapi.data.request.PreviewDCAPIRequest
 import at.asitplus.wallet.app.common.dcapi.data.preview.PreviewRequest
 import at.asitplus.wallet.lib.agent.CreatePresentationResult
 import at.asitplus.wallet.lib.agent.HolderAgent
@@ -52,18 +53,23 @@ class PresentationService(
     suspend fun getPreparationState(request: RequestParametersFrom<AuthenticationRequestParameters>) =
         presentationService.startAuthorizationResponsePreparation(request).getOrThrow()
 
-    suspend fun getMatchingCredentials(preparationState: AuthorizationResponsePreparationState) = catching {
+    suspend fun getMatchingCredentials(preparationState: AuthorizationResponsePreparationState, oid4vpDCAPIRequest: Oid4vpDCAPIRequest?) = catching {
         when (val it = preparationState.credentialPresentationRequest) {
-            is CredentialPresentationRequest.DCQLRequest -> DCQLMatchingResult(
-                presentationRequest = it,
-                holderAgent.matchDCQLQueryAgainstCredentialStore(it.dcqlQuery).getOrThrow()
-            )
+            is CredentialPresentationRequest.DCQLRequest -> {
+                val dcqlQueryResult =
+                    holderAgent.matchDCQLQueryAgainstCredentialStore(it.dcqlQuery, oid4vpDCAPIRequest?.credentialId).getOrThrow()
+                DCQLMatchingResult(
+                    presentationRequest = it,
+                    dcqlQueryResult
+                )
+            }
 
             is CredentialPresentationRequest.PresentationExchangeRequest -> PresentationExchangeMatchingResult(
                 presentationRequest = it,
-                holderAgent.matchInputDescriptorsAgainstCredentialStore(
+                matchingInputDescriptorCredentials = holderAgent.matchInputDescriptorsAgainstCredentialStore(
                     inputDescriptors = it.presentationDefinition.inputDescriptors,
                     fallbackFormatHolder = it.fallbackFormatHolder,
+                    filterById = oid4vpDCAPIRequest?.credentialId
                 ).getOrThrow()
             )
 
@@ -75,10 +81,12 @@ class PresentationService(
         request: RequestParametersFrom<AuthenticationRequestParameters>,
         clientMetadata: RelyingPartyMetadata?,
         credentialPresentation: CredentialPresentation,
+        dcApiRequest: Oid4vpDCAPIRequest?,
     ) = presentationService.finalizeAuthorizationResponse(
         request = request,
         clientMetadata = clientMetadata,
         credentialPresentation = credentialPresentation,
+        // TODO dcApiRequest = dcApiRequest
     ).getOrThrow()
 
     suspend fun finalizeDCAPIPreviewPresentation(

@@ -60,6 +60,5 @@ abstract class CredentialAdapter {
                     it.value.elementIdentifier to it.value.elementValue
                 }
             }
-
     }
 }

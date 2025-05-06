@@ -44,6 +44,7 @@ data class AuthenticationViewRoute(
     val authorizationPreparationStateSerialized: String, // AuthenticationResultParameters
     val recipientLocation: String,
     val isCrossDeviceFlow: Boolean,
+    val oid4vpDCAPIRequestSerialized: String? = null // Oid4vpDCAPIRequest
 ) : Route()
 
 @Serializable

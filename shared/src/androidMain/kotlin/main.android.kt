@@ -16,6 +16,9 @@ import androidx.credentials.provider.PendingIntentHandler
 import androidx.credentials.registry.provider.selectedEntryId
 import at.asitplus.KmmResult
 import at.asitplus.catching
+import at.asitplus.dcapi.request.DCAPIRequest
+import at.asitplus.dcapi.request.Oid4vpDCAPIRequest
+import at.asitplus.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.wallet.app.android.AndroidKeyMaterial
 import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
 import at.asitplus.wallet.app.android.dcapi.IdentityCredentialHelper
@@ -25,9 +28,6 @@ import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.WalletDependencyProvider
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialList
 import at.asitplus.wallet.app.common.dcapi.data.preview.ResponseJSON
-import at.asitplus.wallet.app.common.dcapi.data.request.DCAPIRequest
-import at.asitplus.wallet.app.common.dcapi.data.request.Oid4vpDCAPIRequest
-import at.asitplus.wallet.app.common.dcapi.data.request.PreviewDCAPIRequest
 import com.android.identity.android.mdoc.util.CredmanUtil
 import com.google.android.gms.identitycredentials.IdentityCredentialManager
 import data.storage.RealDataStoreService
@@ -178,7 +178,7 @@ public class AndroidPlatformAdapter(
         (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.let { (intent, _) ->
             // Adapted from https://github.com/openwallet-foundation-labs/identity-credential/blob/d7a37a5c672ed6fe1d863cbaeb1a998314d19fc5/wallet/src/main/java/com/android/identity_credential/wallet/credman/CredmanPresentationActivity.kt#L74
             val request = PendingIntentHandler.retrieveProviderGetCredentialRequest(intent)
-            val credentialId = request!!.selectedEntryId!!.toInt()
+            val credentialId = request!!.selectedEntryId!!
 
             val privilegedUserAgents =
                 context.assets.open("privileged_apps.json").use { stream ->
@@ -189,6 +189,7 @@ public class AndroidPlatformAdapter(
             val callingAppInfo = request.callingAppInfo
             val callingPackageName = callingAppInfo.packageName
             val callingOrigin = callingAppInfo.getOrigin(privilegedUserAgents)
+                ?: throw IllegalArgumentException("Origin unknown")
             val option = request.credentialOptions[0] as GetDigitalCredentialOption
             val json = JSONObject(option.requestJson)
             val provider = json.getJSONArray("providers").getJSONObject(0)
@@ -276,7 +277,7 @@ public class AndroidPlatformAdapter(
         } else {
             CredmanUtil.generateBrowserSessionTranscript(
                 dcApiRequestPreview.nonce,
-                dcApiRequestPreview.callingOrigin,
+                dcApiRequestPreview.callingOrigin!!,
                 Crypto.digest(Algorithm.SHA256, readerPublicKey.asUncompressedPointEncoding)
             )
         }

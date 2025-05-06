@@ -1,14 +1,14 @@
 package ui.viewmodels.intents
 
+import at.asitplus.dcapi.request.IsoMdocRequest
+import at.asitplus.dcapi.request.Oid4vpDCAPIRequest
+import at.asitplus.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.app.common.dcapi.data.request.Oid4vpDCAPIRequest
-import at.asitplus.wallet.app.common.dcapi.data.request.PreviewDCAPIRequest
 import at.asitplus.wallet.app.common.domain.BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import ui.navigation.routes.AuthenticationViewRoute
 import ui.navigation.routes.Route
 
 class DCAPIAuthorizationIntentViewModel(
@@ -39,9 +39,8 @@ class DCAPIAuthorizationIntentViewModel(
                     onFailure(it)
                 }
             }
-
             is Oid4vpDCAPIRequest -> {
-                buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(dcApiRequest.request).unwrap()
+                buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(dcApiRequest.request, dcApiRequest).unwrap()
                     .onSuccess {
                         onSuccess(it)
                     }.onFailure {
@@ -49,7 +48,7 @@ class DCAPIAuthorizationIntentViewModel(
                     }
             }
 
-            null -> throw IllegalStateException("DC API request is null")
+            is IsoMdocRequest -> TODO()
         }
 
     }

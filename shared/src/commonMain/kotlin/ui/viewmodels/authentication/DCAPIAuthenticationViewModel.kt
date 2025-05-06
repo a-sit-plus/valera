@@ -3,6 +3,7 @@ package ui.viewmodels.authentication
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
 import at.asitplus.catching
+import at.asitplus.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.dif.Constraint
 import at.asitplus.dif.ConstraintField
 import at.asitplus.dif.DifInputDescriptor
@@ -12,7 +13,6 @@ import at.asitplus.dif.PresentationDefinition
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.app.common.dcapi.data.request.PreviewDCAPIRequest
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
@@ -78,7 +78,7 @@ class DCAPIAuthenticationViewModel(
                     fallbackFormatHolder = null,
                 ).getOrThrow().map { (key, value) ->
                     key to value.filter { (cred, _) ->
-                        catching { cred.getDcApiId().hashCode() == dcApiRequestPreview.credentialId }.getOrElse { false }
+                        catching { cred.getDcApiId() == dcApiRequestPreview.credentialId }.getOrElse { false }
                     }
                 }.toMap()
             )
