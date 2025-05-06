@@ -3,7 +3,9 @@ package data.credentials
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
+import at.asitplus.wallet.taxid.TaxId2025Scheme
 import at.asitplus.wallet.taxid.TaxIdScheme
 import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.ADMINISTRATIVE_NUMBER
 import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.AFFILIATION_COUNTRY
@@ -79,16 +81,20 @@ sealed class TaxIdCredentialAdapter : CredentialAdapter() {
 
     companion object {
         fun createFromStoreEntry(storeEntry: SubjectCredentialStore.StoreEntry): TaxIdCredentialAdapter {
-            if (storeEntry.scheme !is TaxIdScheme) {
-                throw IllegalArgumentException("credential")
+            val scheme = storeEntry.scheme
+                ?: throw IllegalArgumentException("credential scheme null: $storeEntry")
+            if (scheme !is TaxIdScheme && scheme !is TaxId2025Scheme) {
+                throw IllegalArgumentException("credential scheme unknown: $scheme")
             }
             return when (storeEntry) {
                 is SubjectCredentialStore.StoreEntry.Vc -> TODO("Operation not yet supported")
                 is SubjectCredentialStore.StoreEntry.SdJwt -> storeEntry.toComplexJson()
-                    ?.let { TaxIdComplexCredentialSdJwtAdapter(it) }
-                    ?: TaxIdCredentialSdJwtAdapter(storeEntry.toAttributeMap())
+                    ?.let { TaxIdComplexCredentialSdJwtAdapter(it, scheme) }
+                    ?: TaxIdCredentialSdJwtAdapter(storeEntry.toAttributeMap(), scheme)
 
-                is SubjectCredentialStore.StoreEntry.Iso -> TaxIdIsoMdocAdapter(storeEntry.toNamespaceAttributeMap())
+                is SubjectCredentialStore.StoreEntry.Iso -> TaxIdIsoMdocAdapter(storeEntry.toNamespaceAttributeMap(),
+                    scheme
+                )
             }
         }
     }
@@ -96,6 +102,7 @@ sealed class TaxIdCredentialAdapter : CredentialAdapter() {
 
 private class TaxIdCredentialSdJwtAdapter(
     private val attributes: Map<String, JsonPrimitive>,
+    override val scheme: ConstantIndex.CredentialScheme
 ) : TaxIdCredentialAdapter() {
     override val representation: CredentialRepresentation
         get() = CredentialRepresentation.SD_JWT
@@ -154,6 +161,7 @@ private class TaxIdCredentialSdJwtAdapter(
 
 private class TaxIdComplexCredentialSdJwtAdapter(
     private val attributes: JsonObject,
+    override val scheme: ConstantIndex.CredentialScheme
 ) : TaxIdCredentialAdapter() {
     override val representation: CredentialRepresentation
         get() = CredentialRepresentation.SD_JWT
@@ -212,8 +220,9 @@ private class TaxIdComplexCredentialSdJwtAdapter(
 
 private class TaxIdIsoMdocAdapter(
     namespaces: Map<String, Map<String, Any>>?,
+    override val scheme: ConstantIndex.CredentialScheme
 ) : TaxIdCredentialAdapter() {
-    private val namespace = namespaces?.get(TaxIdScheme.isoNamespace)
+    private val namespace = namespaces?.get(scheme.isoNamespace)
 
     override val representation: CredentialRepresentation
         get() = CredentialRepresentation.ISO_MDOC

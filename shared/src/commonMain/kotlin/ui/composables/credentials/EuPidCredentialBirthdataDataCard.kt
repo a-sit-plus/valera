@@ -16,7 +16,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
-import at.asitplus.wallet.eupid.EuPidScheme
 import data.PersonalDataCategory
 import data.credentials.EuPidCredentialAdapter
 import ui.composables.AttributeRepresentation
@@ -27,7 +26,7 @@ fun EuPidCredentialBirthdataDataCard(
     modifier: Modifier = Modifier,
 ) {
     CredentialDetailCard(
-        credentialScheme = EuPidScheme,
+        credentialScheme = credentialAdapter.scheme,
         personalDataCategory = PersonalDataCategory.BirthData,
         credentialAdapter = credentialAdapter,
         modifier = modifier,

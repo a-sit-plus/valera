@@ -1,33 +1,49 @@
 [versions]
+camera-camera2 = "1.4.2"
+datastore-preferences-core = "1.1.4"
 multipaz = "0.90"
+navigation-compose = "2.8.0-alpha10"
 semver = "2.0.0"
-mdl = "1.1.4"
+mdl = "1.1.5"
 ida = "3.9.2"
-eupid = "3.0.0"
-play-services-identity-credentials = "16.0.0-alpha05"
+eupid = "3.0.1"
+eupid-sdjwt = "1.0.1"
+play-services-identity-credentials = "16.0.0-alpha06"
 powerofrepresentation = "1.2.0"
 certificateofresidence = "2.1.2"
 companyregistration = "1.1.0"
 healthid = "2.0.0"
-taxid = "1.0.1"
-atomicfu = "0.26.1"
+taxid = "1.1.1"
+atomicfu = "0.27.0"
 compose-plugin = "1.7.3"
+qrose = "1.0.1"
+core-splashscreen = "1.0.1"
 
 [libraries]
+androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camera-camera2" }
+androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "camera-camera2" }
+androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camera-camera2" }
 atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version.ref = "atomicfu" }
 credential-ida = { module = "at.asitplus.wallet:idacredential", version.ref = "ida" }
 credential-eupid = { module = "at.asitplus.wallet:eupidcredential", version.ref = "eupid" }
+credential-eupid-sdjwt = { module = "at.asitplus.wallet:eupidcredential-sdjwt", version.ref = "eupid-sdjwt" }
 credential-powerofrepresentation = { module = "at.asitplus.wallet:powerofrepresentation", version.ref = "powerofrepresentation" }
 credential-certificateofresidence = { module = "at.asitplus.wallet:certificateofresidence", version.ref = "certificateofresidence" }
 credential-companyregistration = { module = "at.asitplus.wallet:company-registration", version.ref = "companyregistration" }
 credential-mdl = { group = "at.asitplus.wallet", name = "mobiledrivinglicence", version.ref = "mdl" }
 credential-healthid = { module = "at.asitplus.wallet:healthid", version.ref = "healthid" }
 credential-taxid = { group = "at.asitplus.wallet", name = "taxid", version.ref = "taxid" }
+datastore-core-okio = { module = "androidx.datastore:datastore-core-okio", version.ref = "datastore-preferences-core" }
+datastore-preferences-core = { module = "androidx.datastore:datastore-preferences-core", version.ref = "datastore-preferences-core" }
+navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigation-compose" }
+qrose = { group = "io.github.alexzhirkevich", name = "qrose", version.ref="qrose"}
 multipaz = { module = "org.multipaz:multipaz", version.ref = "multipaz" }
 multipaz-android-legacy = { module = "org.multipaz:multipaz-android-legacy", version.ref = "multipaz" }
+multipaz-compose = { module = "org.multipaz:multipaz-compose", version.ref = "multipaz" }
 multipaz-doctypes = { module = "org.multipaz:multipaz-doctypes", version.ref = "multipaz" }
 play-services-identity-credentials = { module = "com.google.android.gms:play-services-identity-credentials", version.ref = "play-services-identity-credentials"}
 semver = { module = "net.swiftzer.semver:semver", version.ref = "semver" }
+core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "core-splashscreen" }
 
 [plugins]
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }

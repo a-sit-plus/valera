@@ -7,48 +7,48 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.QrCode
-import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.button_label_provision_credential_browser
-import at.asitplus.valera.resources.button_label_provision_credential_qr
-import at.asitplus.valera.resources.content_description_add_credential
-import org.jetbrains.compose.resources.stringResource
+import ui.composables.buttons.LoadDataIdaButton
+import ui.composables.buttons.LoadDataQrButton
 
 // Modified from https://developer.android.com/develop/ui/compose/animation/composables-modifiers
 
 @Composable
 fun CustomFloatingActionMenu(addCredentialQr: () -> Unit, addCredential: () -> Unit) {
-    val expanded = remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(false) }
+
+    val onChangeExpanded: (Boolean) -> Unit = { bool ->
+        expanded = bool
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -58,7 +58,7 @@ fun CustomFloatingActionMenu(addCredentialQr: () -> Unit, addCredential: () -> U
             Column(horizontalAlignment = Alignment.End) {
                 val density = LocalDensity.current
                 AnimatedVisibility(
-                    visible = expanded.value,
+                    visible = expanded,
                     enter = slideInVertically {
                         with(density) { -20.dp.roundToPx() }
                     } + expandVertically(
@@ -76,57 +76,53 @@ fun CustomFloatingActionMenu(addCredentialQr: () -> Unit, addCredential: () -> U
                 ) {
                     Column(modifier = Modifier.padding(end = 5.dp)) {
                         SecondaryFloatingActionButton(
-                            onClick = { addCredentialQr() },
-                            label = stringResource(Res.string.button_label_provision_credential_qr),
-                            icon = Icons.Default.QrCode,
-                            contentDescription = stringResource(Res.string.content_description_add_credential)
+                            onClick = { addCredential() },
+                            content = { LoadDataIdaButton(onClick = { addCredential() }) },
                         )
-                        Spacer(modifier = Modifier.size(5.dp))
+                        Spacer(modifier = Modifier.height(5.dp))
                         SecondaryFloatingActionButton(
                             onClick = { addCredential() },
-                            label = stringResource(Res.string.button_label_provision_credential_browser),
-                            icon = Icons.Default.Person,
-                            contentDescription = stringResource(Res.string.content_description_add_credential)
+                            content = { LoadDataQrButton(onClick = { addCredentialQr() }) },
                         )
                     }
                 }
-                Spacer(modifier = Modifier.size(10.dp))
-                MainFloatingActionButton(expanded = expanded)
+                Spacer(modifier = Modifier.height(10.dp))
+                MainFloatingActionButton(expanded = expanded, onChangeExpanded = onChangeExpanded)
             }
         }
     }
 }
 
 @Composable
-fun MainFloatingActionButton(expanded: MutableState<Boolean>) {
-    Column(modifier = Modifier.shadow(elevation = 4.dp, shape = RoundedCornerShape(15.dp))) {
-        Column(modifier = Modifier.clip(RoundedCornerShape(15.dp))) {
-            Column(
-                modifier = Modifier
-                    .background(color = FloatingActionButtonDefaults.containerColor)
-                    .clickable(onClick = { expanded.value = !expanded.value })
-                    .size(50.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = stringResource(Res.string.content_description_add_credential),
-                    modifier = Modifier
-                        .rotate(if (expanded.value) 45f else 0f)
-                        .size(30.dp)
-                )
-            }
-        }
+fun MainFloatingActionButton(expanded: Boolean, onChangeExpanded: (Boolean) -> Unit) {
+    val colors = when (expanded) {
+        true -> ButtonDefaults.outlinedButtonColors()
+        false -> ButtonDefaults.buttonColors()
+    }
+    val border = when (expanded) {
+        true -> ButtonDefaults.outlinedButtonBorder()
+        false -> null
+    }
+    Button(
+        onClick = { onChangeExpanded(!expanded) },
+        modifier = Modifier.size(50.dp),
+        colors = colors,
+        border = border,
+        shape = RoundedCornerShape(15.dp),
+        contentPadding = PaddingValues(0.dp),
+    ) {
+        Icon(
+            imageVector = Icons.Default.Add,
+            contentDescription = null,
+            modifier = Modifier.rotate(if (expanded) 45f else 0f)
+        )
     }
 }
 
 @Composable
 fun SecondaryFloatingActionButton(
     onClick: () -> Unit,
-    label: String,
-    icon: ImageVector,
-    contentDescription: String?
+    content: @Composable () -> Unit
 ) {
     Row(
         horizontalArrangement = Arrangement.End,
@@ -140,41 +136,7 @@ fun SecondaryFloatingActionButton(
                     shape = RoundedCornerShape(15.dp)
                 )
             ) {
-                Column(modifier = Modifier.clip(RoundedCornerShape(15.dp))) {
-                    Column(
-                        modifier = Modifier
-                            .background(color = FloatingActionButtonDefaults.containerColor)
-                            .clickable(onClick = onClick),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(label, modifier = Modifier.padding(8.dp))
-                    }
-                }
-            }
-            Spacer(Modifier.size(10.dp))
-            Column(
-                modifier = Modifier.shadow(
-                    elevation = 4.dp,
-                    shape = RoundedCornerShape(15.dp)
-                )
-            ) {
-                Column(modifier = Modifier.clip(RoundedCornerShape(15.dp))) {
-                    Column(
-                        modifier = Modifier
-                            .background(color = FloatingActionButtonDefaults.containerColor)
-                            .size(40.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = contentDescription,
-                            modifier = Modifier
-                                .size(25.dp)
-                        )
-                    }
-                }
+                content()
             }
         }
     }

@@ -6,10 +6,11 @@ import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.AuthorizationDetails
 import at.asitplus.openid.TokenResponseParameters
 import at.asitplus.rqes.CredentialInfo
-import at.asitplus.rqes.CscCredentialListRequest
-import at.asitplus.rqes.CscCredentialListResponse
+import at.asitplus.rqes.CredentialInfoRequest
+import at.asitplus.rqes.CredentialListRequest
+import at.asitplus.rqes.CredentialListResponse
+import at.asitplus.rqes.QtspSignatureResponse
 import at.asitplus.rqes.SignatureRequestParameters
-import at.asitplus.rqes.SignatureResponse
 import at.asitplus.rqes.enums.CertificateOptions
 import at.asitplus.signum.indispensable.X509SignatureAlgorithm
 import at.asitplus.signum.indispensable.io.ByteArrayBase64Serializer
@@ -47,23 +48,22 @@ import kotlinx.datetime.format.char
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import org.jetbrains.compose.resources.getString
+import ui.navigation.IntentService
 
 class SigningService(
-    val platformAdapter: PlatformAdapter,
+    val intentService: IntentService,
     val dataStoreService: DataStoreService,
     val errorService: ErrorService,
     val snackbarService: SnackbarService,
     httpService: HttpService,
 ) {
     val config = runBlocking { importFromDataStore() }
-    var redirectUri: String? = null
     var state: SigningState? = null
 
     private val cookieStorage = PersistentCookieStorage(dataStoreService, errorService)
@@ -94,6 +94,10 @@ class SigningService(
         "2.16.840.1.101.3.4.3.12", //ECDSA_SHA3_512
     )
 
+    suspend fun reset(){
+        dataStoreService.deletePreference(DATASTORE_SIGNING_CONFIG)
+    }
+
     private suspend fun importFromDataStore(): SigningConfig =
         catchingUnwrapped {
             vckJsonSerializer.decodeFromString<SigningConfig>(
@@ -111,14 +115,22 @@ class SigningService(
         )
     }
 
+    suspend fun setCurrentQtsp(qtsp: String) {
+        config.current = qtsp
+        exportToDataStore()
+    }
+
     suspend fun preloadCertificate() {
         rqesWalletService =
             RqesOpenId4VpHolder(redirectUrl = redirectUrl, clientId = config.getCurrent().oauth2ClientId)
 
         val targetUrl = createServiceAuthRequest()
-        this.redirectUri = this.redirectUrl
         this.state = SigningState.PreloadCredential
-        platformAdapter.openUrl(targetUrl)
+        intentService.openIntent(
+            url = targetUrl,
+            redirectUri = this.redirectUrl,
+            intentType = IntentService.IntentType.SigningPreloadIntent
+        )
     }
 
     suspend fun resumePreloadCertificate(url: String) {
@@ -137,14 +149,20 @@ class SigningService(
             val credentialInfo = config.getCurrent().credentialInfo ?: throw Throwable("Missing credentialInfo")
             rqesWalletService.setSigningCredential(credentialInfo)
             val targetUrl = createCredentialAuthRequest()
-            redirectUri = this.redirectUrl
             this.state = SigningState.CredentialRequest
-            platformAdapter.openUrl(targetUrl)
+            intentService.openIntent(
+                url = targetUrl,
+                redirectUri = this.redirectUrl,
+                intentType = IntentService.IntentType.SigningCredentialIntent
+            )
         } else {
             val targetUrl = createServiceAuthRequest()
-            redirectUri = this.redirectUrl
             this.state = SigningState.ServiceRequest
-            platformAdapter.openUrl(targetUrl)
+            intentService.openIntent(
+                url = targetUrl,
+                redirectUri = this.redirectUrl,
+                intentType = IntentService.IntentType.SigningServiceIntent
+            )
         }
     }
 
@@ -158,9 +176,12 @@ class SigningService(
         rqesWalletService.setSigningCredential(credentialInfo)
 
         val targetUrl = createCredentialAuthRequest()
-        redirectUri = this.redirectUrl
-        this.state = SigningState.CredentialRequest
-        platformAdapter.openUrl(targetUrl)
+
+        intentService.openIntent(
+            url = targetUrl,
+            redirectUri = this.redirectUrl,
+            intentType = IntentService.IntentType.SigningCredentialIntent
+        )
     }
 
 
@@ -185,7 +206,7 @@ class SigningService(
                 "${token.tokenType} ${token.accessToken}"
             )
             setBody(vckJsonSerializer.encodeToString(signHashRequest))
-        }.body<SignatureResponse>()
+        }.body<QtspSignatureResponse>()
 
         val transactionTokens = this.transactionTokens
         val signedDocuments = getFinishedDocuments(client, pdfSigningService, signatures, transactionTokens, config.getCurrent().identifier)
@@ -214,7 +235,7 @@ class SigningService(
             )
         }
         catchingUnwrapped { response.body<QtspFinalRedirect>() }.getOrNull()?.let {
-            platformAdapter.openUrl(it.redirect_uri)
+            intentService.openIntent(it.redirect_uri)
         }
         snackbarService.showSnackbar(getString(Res.string.snackbar_sign_successful))
     }
@@ -287,7 +308,7 @@ class SigningService(
     }
 
     private suspend fun getCredentialInfo(token: TokenResponseParameters): CredentialInfo {
-        val credentialListRequest = CscCredentialListRequest(
+        val credentialListRequest = CredentialListRequest(
             credentialInfo = true,
             certificates = CertificateOptions.SINGLE,
             certInfo = true,
@@ -304,10 +325,38 @@ class SigningService(
             )
             setBody(vckJsonSerializer.encodeToString(credentialListRequest))
         }
-        val credentialListResponse = credentialResponse.body<CscCredentialListResponse>()
+        val credentialListResponse = credentialResponse.body<CredentialListResponse>()
 
-        return credentialListResponse.credentialInfos?.first()
-            ?: throw Throwable("Missing credentialInfos")
+        if (credentialListResponse.credentialInfos.isNullOrEmpty()) {
+            return getSingleCredentialInfo(token, credentialListResponse.credentialIDs.first())
+
+        } else {
+            return credentialListResponse.credentialInfos?.first()
+                ?: throw Throwable("Missing credentialInfos")
+        }
+    }
+
+    private suspend fun getSingleCredentialInfo(token: TokenResponseParameters, credentialId: String): CredentialInfo {
+        val credentialInfoRequest = CredentialInfoRequest(
+            credentialID = credentialId,
+            certificates = CertificateOptions.SINGLE,
+            certInfo = true,
+            authInfo = true,
+        )
+
+        val credentialResponse = client.post("${config.getCurrent().qtspBaseUrl}/credentials/info") {
+            accept(Json)
+            contentType(Json)
+            header(
+                HttpHeaders.Authorization,
+                "${token.tokenType} ${token.accessToken}"
+            )
+            setBody(vckJsonSerializer.encodeToString(credentialInfoRequest))
+        }
+        val credInfo = credentialResponse.body<CredentialInfo>()
+        return CredentialInfo(credentialId, credInfo.description, credInfo.signatureQualifier, credInfo.keyParameters,
+            credInfo.certParameters, credInfo.authParameters, credInfo.scal, credInfo.multisign)
+
     }
 
     private suspend fun createCredentialAuthRequest(): String {
@@ -396,6 +445,13 @@ val defaultSigningConfig = SigningConfig(
             "https://qs.primesign-test.com/csc/v2",
             "https://id.primesign-test.com/realms/qs-staging",
             "https://wallet.a-sit.at/app",
+            allowPreload = false
+        ),
+        QtspConfig(
+            "NAMIRIAL",
+            "https://csc-api.fba.users.bit4id.click/api/csc/v2",
+            "https://csc-api.fba.users.bit4id.click/api/csc/v2",
+            "POTENTIAL-UC5",
             allowPreload = false
         )
     ),

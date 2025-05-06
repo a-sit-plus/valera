@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
 import at.asitplus.catchingUnwrapped
+import at.asitplus.openid.TransactionDataBase64Url
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_subtitle
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_title
@@ -14,23 +15,25 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.data.third_party.at.asitplus.oidc.dcql.toDefaultSubmission
+import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 
 abstract class AuthenticationViewModel(
-    var spName: String?,
+    val spName: String?,
     val spLocation: String,
     val spImage: ImageBitmap?,
     val navigateUp: () -> Unit,
-    val onAuthenticationSuccess: () -> Unit,
+    val onAuthenticationSuccess: (redirectUrl: String?) -> Unit,
     val navigateToHomeScreen: () -> Unit,
     val walletMain: WalletMain,
-    val onClickLogo: () -> Unit
+    val onClickLogo: () -> Unit,
+    val onClickSettings: () -> Unit
 ) {
     abstract val presentationRequest: CredentialPresentationRequest
 
     var viewState by mutableStateOf(AuthenticationViewState.Consent)
-    abstract val transactionData: at.asitplus.openid.TransactionData?
+    abstract val transactionData: TransactionDataBase64Url?
 
     lateinit var matchingCredentials: CredentialMatchingResult<SubjectCredentialStore.StoreEntry>
     lateinit var defaultCredentialSelection: Map<String, SubjectCredentialStore.StoreEntry>
@@ -99,19 +102,18 @@ abstract class AuthenticationViewModel(
     }
 
 
-    abstract suspend fun finalizationMethod(credentialPresentation: CredentialPresentation)
-
+    abstract suspend fun finalizationMethod(credentialPresentation: CredentialPresentation): OpenId4VpWallet.AuthenticationSuccess
 
     private suspend fun finalizeAuthorization(credentialPresentation: CredentialPresentation) {
         catchingUnwrapped {
-            walletMain.cryptoService.promptText =
+            walletMain.keyMaterial.promptText =
                 getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_title)
-            walletMain.cryptoService.promptSubtitle =
+            walletMain.keyMaterial.promptSubtitle =
                 getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_subtitle)
             finalizationMethod(credentialPresentation)
         }.onSuccess {
             navigateUp()
-            onAuthenticationSuccess()
+            onAuthenticationSuccess(it.redirectUri)
         }.onFailure {
             walletMain.errorService.emit(it)
         }

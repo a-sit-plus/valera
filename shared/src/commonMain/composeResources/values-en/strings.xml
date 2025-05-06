@@ -21,8 +21,9 @@
     <string name="button_label_confirm">Confirm</string>
     <string name="button_label_dismiss">Dismiss</string>
     <string name="button_label_ok">Ok</string>
+    <string name="button_label_retry">Retry</string>
     <string name="button_label_authenticate">Authenticate</string>
-    <string name="button_label_show_data">Show</string>
+    <string name="button_label_present_data">Present Data</string>
     <string name="button_label_accept">Accept</string>
     <string name="button_label_cancel">Cancel</string>
     <string name="button_label_consent">Consent</string>
@@ -36,6 +37,7 @@
     <string name="button_label_start">Start</string>
     <string name="button_label_save">Save</string>
     <string name="button_label_conclude">Conclude</string>
+    <string name="button_label_open_url">Open URL</string>
     <string name="button_label_scan_qr_code">Scan QR-Code</string>
     <string name="button_label_faq">FAQ</string>
     <string name="button_label_licenses">Licenses</string>
@@ -49,6 +51,17 @@
     <string name="button_label_show_technical_details">Show technical details</string>
     <string name="button_label_hide_technical_details">Hide technical details</string>
     <string name="button_label_sign">Sign</string>
+    <string name="button_label_check_identity">Check Identity</string>
+    <string name="button_label_check_license">Check License</string>
+    <string name="button_label_check_age">Check Age</string>
+    <string name="button_label_check_custom">Custom Request</string>
+    <string name="button_label_check_over_age">Over %1$s</string>
+
+    <string name="switch_label_use_negotiated_handover">Negotiated Handover</string>
+    <string name="switch_label_use_ble_central_client_mode">BLE Central Client Mode</string>
+    <string name="switch_label_use_ble_peripheral_server_mode">BLE Peripheral Server Mode</string>
+    <string name="switch_label_use_nfc_data_transfer">NFC Data Transfer</string>
+    <string name="switch_label_blel2cap_enabled">Enable L2CAP</string>
 
     <string name="attribute_friendly_name_bpk">BPK</string>
     <string name="attribute_friendly_name_firstname">Given name</string>
@@ -56,10 +69,16 @@
     <string name="attribute_friendly_name_date_of_birth">Birth date</string>
     <string name="attribute_friendly_name_portrait">Portrait</string>
     <string name="attribute_friendly_name_age_at_least_12">At least 12 years old</string>
+    <string name="attribute_friendly_name_age_at_least_13">At least 13 years old</string>
     <string name="attribute_friendly_name_age_at_least_14">At least 14 years old</string>
     <string name="attribute_friendly_name_age_at_least_16">At least 16 years old</string>
     <string name="attribute_friendly_name_age_at_least_18">At least 18 years old</string>
     <string name="attribute_friendly_name_age_at_least_21">At least 21 years old</string>
+    <string name="attribute_friendly_name_age_at_least_25">At least 25 years old</string>
+    <string name="attribute_friendly_name_age_at_least_60">At least 60 years old</string>
+    <string name="attribute_friendly_name_age_at_least_62">At least 62 years old</string>
+    <string name="attribute_friendly_name_age_at_least_65">At least 65 years old</string>
+    <string name="attribute_friendly_name_age_at_least_68">At least 68 years old</string>
     <string name="attribute_friendly_name_main_address">Main residence</string>
     <string name="attribute_friendly_name_main_residence_country">Country</string>
     <string name="attribute_friendly_name_main_residence_state">State</string>
@@ -92,6 +111,10 @@
     <string name="attribute_friendly_name_driving_privileges">Driving privileges</string>
     <string name="attribute_friendly_name_distinguishing_sign">Issuing country (code)</string>
     <string name="attribute_friendly_name_signature_usual_mark">Signature/usual mark</string>
+    <string name="attribute_friendly_name_biometric_template_face">Biometric Template: Face</string>
+    <string name="attribute_friendly_name_biometric_template_finger">Biometric Template: Fingerprint</string>
+    <string name="attribute_friendly_name_biometric_template_iris">Biometric Template: Iris</string>
+    <string name="attribute_friendly_name_biometric_template_signature_sign">Biometric Template: Signature/Sign</string>
 
     <string name="attribute_friendly_name_country_code">Country code</string>
     <string name="attribute_friendly_name_one_time_token">One-time token</string>
@@ -174,6 +197,7 @@
     <string name="credential_scheme_label_mdl">mDL</string>
     <string name="credential_scheme_icon_label_eu_pid">PID</string>
     <string name="credential_scheme_label_eu_pid">PID</string>
+    <string name="credential_scheme_label_eu_pid_sdjwt">PID (ARF 1.8.0)</string>
     <string name="credential_scheme_icon_label_id_austria">IDA</string>
     <string name="credential_scheme_label_id_austria">IDA Credential</string>
     <string name="credential_scheme_icon_label_power_of_representation">POR</string>
@@ -185,11 +209,13 @@
     <string name="credential_scheme_label_healthid">HealthID</string>
     <string name="credential_scheme_icon_label_healthid">HIID</string>
     <string name="credential_scheme_label_tax_id">Tax ID</string>
+    <string name="credential_scheme_label_tax_id_2025">Tax ID (2025)</string>
     <string name="credential_scheme_icon_label_tax_id">TAX</string>
 
-    <string name="navigation_button_label_show_data">Present Data</string>
-    <string name="navigation_button_label_my_data">My Data</string>
+    <string name="navigation_button_label_show_data">Present</string>
+    <string name="navigation_button_label_my_data">Data</string>
     <string name="navigation_button_label_settings">Settings</string>
+    <string name="navigation_button_label_check">Check</string>
 
     <string name="id_format_plain_jwt_label">PLAIN_JWT</string>
     <string name="id_format_sd_jwt_label">SD-JWT</string>
@@ -209,16 +235,21 @@
     <string name="text_label_qtsp">QTSP</string>
     <string name="text_label_preload_certificate">Preload certificate</string>
     <string name="text_label_delete_certificate">Delete certificate</string>
+    <string name="text_label_selected_certificate">Selected certificate</string>
     <string name="text_label_credential_id">Credential ID</string>
     <string name="text_label_valid_from">Valid from</string>
     <string name="text_label_valid_to">Valid to</string>
     <string name="text_label_optional">Optional</string>
     <string name="text_label_check_all">Check all</string>
     <string name="text_label_powered_by">POWERED BY</string>
+    <string name="text_label_certificate">Certificate</string>
+    <string name="text_label_vda">VDA</string>
+    <string name="text_label_no_certificate">No data available</string>
 
     <string name="heading_label_authenticate_at_device_title">Authenticate</string>
     <string name="heading_label_authenticate_at_device_subtitle">at relying party</string>
     <string name="heading_label_show_data">Show Data</string>
+    <string name="heading_label_show_data_third_party">Present data to third-party citizens</string>
     <string name="heading_label_authentication_success">Authenticated</string>
     <string name="heading_label_settings_screen">Settings</string>
     <string name="heading_label_error_screen">Error</string>
@@ -229,16 +260,20 @@
     <string name="heading_label_my_data_screen">My Data</string>
     <string name="heading_label_credential_details_screen">Details</string>
     <string name="heading_label_navigate_back">Back</string>
-    <string name="heading_label_terms_of_use">Terms of use</string>
-    <string name="heading_label_data_protection">Privacy policy</string>
-    <string name="heading_label_terms_of_use_and_data_protection">Terms of use &amp; Privacy policy</string>
     <string name="heading_label_load_data_screen">Load data</string>
     <string name="heading_label_add_credential_screen">Load data</string>
     <string name="heading_label_refresh_data_screen">Load data</string>
     <string name="heading_label_authenticate_at_device_screen">Authenticate at\nrelying party</string>
     <string name="heading_label_sign_document">Sign document</string>
+    <string name="heading_label_select_data_retrieval_screen">Check</string>
+    <string name="heading_label_select_custom_data_retrieval_screen">Custom Request</string>
+    <string name="heading_label_check_scan_qr_code">Scan QR-Code</string>
+    <string name="heading_label_show_qr_code_screen">Scan me!</string>
+    <string name="heading_label_received_data">Received Data</string>
 
-    <string name="description_read_terms">Please read and accept the terms of use and the privacy policy.</string>
+    <string name="heading_label_select_vda">Select VDA</string>
+    <string name="heading_label_sign">Sign</string>
+    <string name="heading_label_tech_demo">Tech Demo</string>
 
     <string name="biometric_authentication_prompt_for_data_transmission_consent_title">Biometric Authentication</string>
     <string name="biometric_authentication_prompt_for_data_transmission_consent_subtitle">Disclose data</string>
@@ -261,6 +296,8 @@
     <string name="prompt_select_credential">Which Credential should be used?</string>
     <string name="prompt_select_attribute">Which attributes should be transmitted?</string>
 
+    <string name="error_credential_status_invalid">INVALID</string>
+    <string name="error_credential_scheme_not_supported">Unsupported credential scheme</string>
     <string name="error_feature_not_yet_available">Incomplete Implementation</string>
     <string name="error_authentication_at_sp_failed">Authentication failed</string>
     <string name="error_biometric_error_no_hardware">error_biometric_error_no_hardware</string>
@@ -285,6 +322,10 @@
     <string name="error_qr_code_scanning_invalid_metadata_jws_object">Invalid metadataJws</string>
     <string name="error_qr_code_scanning_invalid_metadata_jws_object_signature">Invalid metadataJws signature</string>
     <string name="error_qr_code_scanning_client_id_not_in_redirect_uris">Client id not in client metadata redirect uris</string>
+    <string name="error_missing_permissions">Permission Denied</string>
+    <string name="error_missing_value">Error no value given</string>
+    <string name="error_bluetooth_unavailable">Bluetooth is not available</string>
+    <string name="error_no_requests">No requests found</string>
 
     <string name="info_text_show_data_situation">In which Situation do you want to present your data?</string>
     <string name="info_text_error_occurred">An error occurred.</string>
@@ -294,17 +335,25 @@
     <string name="info_text_no_credentials_available">No data is available yet.</string>
     <string name="info_text_redirection_to_browser_for_credential_provisioning">To load your data you will be redirected into your browser.</string>
     <string name="info_text_notice_development_provisioning_using_qr_code_credentials">For development purposes, there is also the option to load data via a QR code.</string>
-    <string name="info_text_enthusiastic_welcome_end">Load your data and off you go!</string>
     <string name="info_text_submission_preview_disabled">Preview of data to be submitted is currently not available.</string>
     <string name="info_text_no_matching_credential">Your credentials don't match the request.</string>
+    <string name="info_text_data_is_being_loaded">Loading Data</string>
+    <string name="info_text_missing_permission">Permission missing</string>
+    <string name="info_text_qr_code_loading">Loading QR Code</string>
+    <string name="info_text_nfc_mdoc_reader">Hold near credential holder's phone.</string>
+    <string name="info_text_waiting_for_response">Waiting for response of holder device</string>
+    <string name="info_text_demonstrator">This is a demonstrator for wallet technologies which has been produced by A-SIT/A-SIT Plus in the context of the large scale pilot POTENTIAL.</string>
+    <string name="info_text_non_productive">This app is not intended for production use!</string>
+    <string name="info_text_co_founded_by_eu">Co‑Funded by the \nEuropean Union</string>
+    <string name="info_text_received_funding_from_eu">This project has received funding from the European Union’s Digital Europe Programme (DIGITAL), Project 101102655 — POTENTIAL.</string>
 
     <string name="section_heading_authenticate_at_device_title">Authenticate</string>
     <string name="section_heading_authenticate_at_device_subtitle">at relying party</string>
-    <string name="section_heading_show_data_to_executive_title">Show data to</string>
-    <string name="section_heading_show_data_to_executive_subtitle">Executive</string>
-    <string name="section_heading_show_data_to_other_citizen_title">Show data to</string>
-    <string name="section_heading_show_data_to_other_citizen_subtitle">other Citizen</string>
+    <string name="section_heading_present_data_title">Present data to</string>
+    <string name="section_heading_present_data_to_executive_subtitle">Executive</string>
+    <string name="section_heading_present_data_to_other_citizen_subtitle">other Citizen</string>
     <string name="section_heading_actions">Actions</string>
+    <string name="section_heading_transfer_options">Transfer Settings (temporary)</string>
     <string name="section_heading_information">Information</string>
     <string name="section_heading_requested_data">Requested Data</string>
     <string name="section_heading_data_recipient">Recipient</string>
@@ -335,9 +384,13 @@
     <string name="section_heading_missing_data">Load new data</string>
     <string name="section_heading_available_data">Refresh existing data</string>
     <string name="section_heading_transaction_data">Transaction</string>
+    <string name="section_heading_request_eausweise">eAusweise request</string>
+    <string name="section_heading_request_license">Other request</string>
+    <string name="section_heading_request_custom">Custom request</string>
+    <string name="section_heading_select_document_type">Select document type:</string>
+    <string name="section_heading_selected_namespace">Namespace: </string>
+    <string name="section_heading_select_requested_data_entries">Select data entries:</string>
 
-    <string name="onboarding_section_terms_and_data_protection_icon_text">1</string>
-    <string name="onboarding_section_terms_and_data_protection_title">Terms of use and privacy policy</string>
     <string name="onboarding_section_load_data_icon_text">2</string>
     <string name="onboarding_section_load_data_title">Load data into the app</string>
     <string name="onboarding_section_load_data_subtitle">with a one-time contact to ID Austria</string>
@@ -357,4 +410,9 @@
     <string name="presentation_missing_permission">Presentation cannot be finished without permissions.</string>
     <string name="presentation_permission_required">Checking if required permissions are set…</string>
     <string name="presentation_initialised">Presentation initialising…</string>
+
+    <!-- DeviceEngagementMethods -->
+    <string name="section_heading_request_engagement_method">Device Engagement Method</string>
+    <string name="nfc">NFC</string>
+    <string name="qr">QR-Code</string>
 </resources>

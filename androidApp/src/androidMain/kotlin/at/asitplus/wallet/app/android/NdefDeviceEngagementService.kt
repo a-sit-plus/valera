@@ -8,13 +8,16 @@ import android.os.Vibrator
 import androidx.core.content.ContextCompat
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
 import at.asitplus.wallet.app.common.presentation.PresentmentTimeout
-import at.asitplus.wallet.app.common.presentation.TransferSettings
+import at.asitplus.wallet.app.common.presentation.TransferSettings.Companion.transferSettings
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
@@ -38,7 +41,7 @@ import org.multipaz.util.UUID
 import ui.navigation.PRESENTATION_REQUESTED_INTENT
 import ui.viewmodels.authentication.PresentationStateModel
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
+
 
 // Based on the identity-credential sample code
 // https://github.com/openwallet-foundation-labs/identity-credential/tree/main/samples/testapp
@@ -49,9 +52,16 @@ class NdefDeviceEngagementService : HostApduService() {
         private var disableEngagementJob: Job? = null
         private var listenForCancellationFromUiJob: Job? = null
 
-        //val promptModel = AndroidPromptModel()
+
+        // TODO use error service to show error to user, but how to get it from here?
+        private val coroutineExceptionHandler = CoroutineExceptionHandler { _, error ->
+            Napier.e("FAILURE IN COROUTINE", error)
+        }
+
+        private val coroutineScope = CoroutineScope(Dispatchers.Default + CoroutineName("NdefDeviceEngagementService") + coroutineExceptionHandler)
+
         val presentationStateModel: PresentationStateModel by lazy {
-            PresentationStateModel()//.apply { setPromptModel(promptModel) }
+            PresentationStateModel(coroutineScope)
         }
     }
 
@@ -74,14 +84,12 @@ class NdefDeviceEngagementService : HostApduService() {
         commandApduListenJob?.cancel()
     }
 
-    private lateinit var settings: TransferSettings
     private var commandApduListenJob: Job? = null
     private val commandApduChannel = Channel<CommandApdu>(Channel.UNLIMITED)
 
     override fun onCreate() {
         super.onCreate()
         initializeApplication(applicationContext)
-        settings = TransferSettings()
 
         commandApduListenJob = CoroutineScope(Dispatchers.IO).launch {
             while (true) {
@@ -111,8 +119,8 @@ class NdefDeviceEngagementService : HostApduService() {
         presentationStateModel.reset()
         presentationStateModel.init()
 
-        // The UI consuming [PresentationModel] - for example the [Presentment] composable in this library - may
-        // have a cancel button which will trigger COMPLETED state when pressed. Need to listen for that.
+        // The UI consuming [PresentationModel] may
+        // have a cancel button which will trigger COMPLETED state when pressed.
         //
         listenForCancellationFromUiJob = presentationStateModel.presentmentScope.launch {
             presentationStateModel.state
@@ -136,9 +144,9 @@ class NdefDeviceEngagementService : HostApduService() {
 
         fun negotiatedHandoverPicker(connectionMethods: List<MdocConnectionMethod>): MdocConnectionMethod {
             Napier.i("NdefDeviceEngagementService: Negotiated Handover available methods: $connectionMethods")
-            for (prefix in settings.presentmentNegotiatedHandoverPreferredOrder) {
+            for (prefix in transferSettings.presentmentNegotiatedHandoverPreferredOrder) {
                 for (connectionMethod in connectionMethods) {
-                    if (connectionMethod.toString().startsWith(prefix)) {
+                    if (connectionMethod.toString().startsWith(prefix) && transferSettings.isConnectionMethodEnabled(prefix)) {
                         Napier.i("NdefDeviceEngagementService: Using method $connectionMethod")
                         return connectionMethod
                     }
@@ -149,17 +157,17 @@ class NdefDeviceEngagementService : HostApduService() {
         }
 
         val negotiatedHandoverPicker: ((connectionMethods: List<MdocConnectionMethod>) -> MdocConnectionMethod)? =
-            if (settings.presentmentUseNegotiatedHandover) {
+            if (transferSettings.presentmentUseNegotiatedHandover.value) {
                 { connectionMethods -> negotiatedHandoverPicker(connectionMethods) }
             } else {
                 null
             }
 
         var staticHandoverConnectionMethods: List<MdocConnectionMethod>? = null
-        if (!settings.presentmentUseNegotiatedHandover) {
+        if (!transferSettings.presentmentUseNegotiatedHandover.value) {
             staticHandoverConnectionMethods = mutableListOf()
             val bleUuid = UUID.randomUUID()
-            if (settings.presentmentBleCentralClientModeEnabled) {
+            if (transferSettings.presentmentBleCentralClientModeEnabled.value) {
                 staticHandoverConnectionMethods.add(
                     MdocConnectionMethodBle(
                         supportsPeripheralServerMode = false,
@@ -169,7 +177,7 @@ class NdefDeviceEngagementService : HostApduService() {
                     )
                 )
             }
-            if (settings.presentmentBlePeripheralServerModeEnabled) {
+            if (transferSettings.presentmentBlePeripheralServerModeEnabled.value) {
                 staticHandoverConnectionMethods.add(
                     MdocConnectionMethodBle(
                         supportsPeripheralServerMode = true,
@@ -179,7 +187,7 @@ class NdefDeviceEngagementService : HostApduService() {
                     )
                 )
             }
-            if (settings.presentmentNfcDataTransferEnabled) {
+            if (transferSettings.presentmentNfcDataTransferEnabled.value) {
                 staticHandoverConnectionMethods.add(
                     MdocConnectionMethodNfc(
                         commandDataFieldMaxLength = 0xffff,
@@ -198,7 +206,6 @@ class NdefDeviceEngagementService : HostApduService() {
                 val duration = Clock.System.now() - timeStarted
                 listenOnMethods(
                     connectionMethods = connectionMethods,
-                    settings = settings,
                     encodedDeviceEngagement = encodedDeviceEngagement,
                     handover = handover,
                     eDeviceKey = ephemeralDeviceKey,
@@ -207,8 +214,8 @@ class NdefDeviceEngagementService : HostApduService() {
             },
             onError = { error ->
                 Napier.w("NdefDeviceEngagementService: Engagement failed", error)
-                error.printStackTrace()
                 vibrateError()
+                presentationStateModel.setCompleted(error)
                 engagement = null
             },
             staticHandoverMethods = staticHandoverConnectionMethods,
@@ -218,7 +225,6 @@ class NdefDeviceEngagementService : HostApduService() {
 
     private fun listenOnMethods(
         connectionMethods: List<MdocConnectionMethod>,
-        settings: TransferSettings,
         encodedDeviceEngagement: ByteString,
         handover: DataItem,
         eDeviceKey: EcPrivateKey,
@@ -230,7 +236,7 @@ class NdefDeviceEngagementService : HostApduService() {
                 role = MdocRole.MDOC,
                 transportFactory = MdocTransportFactory.Default,
                 options = MdocTransportOptions(
-                    bleUseL2CAP = settings.readerBleL2CapEnabled
+                    bleUseL2CAP = transferSettings.readerBleL2CapEnabled.value
                 ),
                 eSenderKey = eDeviceKey.publicKey,
                 onConnectionMethodsReady = {}
@@ -242,7 +248,7 @@ class NdefDeviceEngagementService : HostApduService() {
                     encodedDeviceEngagement = encodedDeviceEngagement,
                     handover = handover,
                     engagementDuration = engagementDuration,
-                    allowMultipleRequests = settings.presentmentAllowMultipleRequests
+                    allowMultipleRequests = transferSettings.presentmentAllowMultipleRequests
                 )
             )
             disableEngagementJob?.cancel()
@@ -253,7 +259,7 @@ class NdefDeviceEngagementService : HostApduService() {
     }
 
     private suspend fun processCommandApdu(commandApdu: CommandApdu): ResponseApdu? {
-        Napier.i("NdefDeviceEngagementService: processCommandApdu")
+        Napier.d("NdefDeviceEngagementService: processCommandApdu, started = $started")
 
         if (!started) {
             started = true
@@ -284,17 +290,17 @@ class NdefDeviceEngagementService : HostApduService() {
         started = false
         // If the reader hasn't connected by the time NFC interaction ends, make sure we only
         // wait for a limited amount of time.
-        if (presentationStateModel.state.value == PresentationStateModel.State.CONNECTING) {
-            val timeout = settings.connectionTimeout
-            Napier.i("NdefDeviceEngagementService: Reader hasn't connected at NFC deactivation time, scheduling $timeout timeout for closing")
-            disableEngagementJob = CoroutineScope(Dispatchers.IO).launch {
-                delay(timeout)
-                if (presentationStateModel.state.value == PresentationStateModel.State.CONNECTING) {
-                    presentationStateModel.setCompleted(PresentmentTimeout("NdefDeviceEngagementService: Reader didn't connect inside $timeout, closing"))
-                }
-                engagement = null
-                disableEngagementJob = null
+        disableEngagementJob = CoroutineScope(Dispatchers.IO).launch {
+            try {
+                presentationStateModel.waitForConnectionUsingMainTransport(transferSettings.connectionTimeout)
+                Napier.d("NdefDeviceEngagementService: Main transport connected")
+            } catch (timeoutExc: TimeoutCancellationException) {
+                val message = "NdefDeviceEngagementService: Reader didn't connect in ${transferSettings.connectionTimeout}, closing"
+                Napier.w(message)
+                presentationStateModel.setCompleted(PresentmentTimeout(message))
             }
+            engagement = null
+            disableEngagementJob = null
         }
     }
 }

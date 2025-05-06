@@ -22,11 +22,12 @@ import data.credentials.CredentialAdapter
 class DCAPIAuthenticationViewModel(
     spImage: ImageBitmap? = null,
     navigateUp: () -> Unit,
-    navigateToAuthenticationSuccessPage: () -> Unit,
+    navigateToAuthenticationSuccessPage: (redirectUrl: String?) -> Unit,
     navigateToHomeScreen: () -> Unit,
     walletMain: WalletMain,
     val dcApiRequest: DCAPIRequest,
-    onClickLogo: () -> Unit
+    onClickLogo: () -> Unit,
+    onClickSettings: () -> Unit,
 ) : AuthenticationViewModel(
     spName = dcApiRequest.callingPackageName,
     spLocation = dcApiRequest.callingOrigin ?: dcApiRequest.callingPackageName!!,
@@ -35,7 +36,8 @@ class DCAPIAuthenticationViewModel(
     navigateToAuthenticationSuccessPage,
     navigateToHomeScreen,
     walletMain,
-    onClickLogo
+    onClickLogo,
+    onClickSettings
 ) {
     override val presentationRequest: CredentialPresentationRequest.PresentationExchangeRequest
         get() = CredentialPresentationRequest.PresentationExchangeRequest(

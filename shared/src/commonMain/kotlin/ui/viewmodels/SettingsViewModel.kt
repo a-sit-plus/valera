@@ -10,22 +10,23 @@ class SettingsViewModel (walletMain: WalletMain,
                          val onClickShareLogFile: () -> Unit,
                          val onClickClearLogFile: () -> Unit,
                          val onClickResetApp: () -> Unit,
-                         val onClickSigning: () -> Unit,
-                         val onClickLogo: () -> Unit) {
+                         val onClickLogo: () -> Unit,
+                         val onClickBack: () -> Unit,
+                         val onClickSettings: () -> Unit) {
     val buildType = walletMain.buildContext.buildType
     val version = walletMain.buildContext.versionName
 
-    val onClickFAQs = {
+    val onClickFAQs: () -> Unit = {
         runBlocking {
             walletMain.snackbarService.showSnackbar(getString(Res.string.error_feature_not_yet_available))
         }
     }
-    val onClickDataProtectionPolicy = {
+    val onClickDataProtectionPolicy: () -> Unit = {
         runBlocking {
             walletMain.snackbarService.showSnackbar(getString(Res.string.error_feature_not_yet_available))
         }
     }
-    val onClickLicenses = {
+    val onClickLicenses: () -> Unit = {
         runBlocking {
             walletMain.snackbarService.showSnackbar(getString(Res.string.error_feature_not_yet_available))
         }

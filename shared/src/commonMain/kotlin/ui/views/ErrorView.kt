@@ -1,6 +1,7 @@
 package ui.views
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,6 +16,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -39,18 +41,13 @@ import at.asitplus.valera.resources.info_text_to_start_screen
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.TextIconButton
+import ui.viewmodels.ErrorViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ErrorView(
-    resetStack: () -> Unit,
-    message: String?,
-    cause: String?,
-    onClickLogo: () -> Unit,
+    vm: ErrorViewModel
 ) {
-    val message = message ?: "Unknown Message"
-    val cause = cause ?: "Unknown Cause"
-
     val tint = Color(255, 210, 0)
 
     Scaffold(
@@ -63,9 +60,17 @@ fun ErrorView(
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.headlineLarge,
                         )
-                        Logo(onClick = onClickLogo)
-                        Spacer(Modifier.width(8.dp))
                     }
+                },
+                actions = {
+                    Logo(onClick = vm.onClickLogo)
+                    Column(modifier = Modifier.clickable(onClick = vm.onClickSettings)) {
+                        Icon(
+                            imageVector = Icons.Outlined.Settings,
+                            contentDescription = null,
+                        )
+                    }
+                    Spacer(Modifier.width(15.dp))
                 },
                 navigationIcon = {}
             )
@@ -100,7 +105,7 @@ fun ErrorView(
                                 Text(stringResource(Res.string.button_label_ok))
                             },
                             onClick = {
-                                resetStack()
+                                vm.resetStack()
                             },
                         )
                     }
@@ -128,7 +133,7 @@ fun ErrorView(
                         .background(color = MaterialTheme.colorScheme.tertiaryContainer)
                 ) {
                     Text(
-                        message,
+                        vm.message ?: "Unknown Message",
                         modifier = Modifier.padding(
                             top = 5.dp,
                             bottom = 5.dp,
@@ -141,23 +146,25 @@ fun ErrorView(
                     )
                 }
                 Spacer(modifier = Modifier.size(5.dp))
-                Text("Cause:", fontWeight = FontWeight.Bold)
-                Column(
-                    modifier = Modifier.heightIn(max = 150.dp)
-                        .background(color = MaterialTheme.colorScheme.tertiaryContainer)
-                ) {
-                    Text(
-                        cause,
-                        modifier = Modifier.padding(
-                            top = 5.dp,
-                            bottom = 5.dp,
-                            start = 10.dp,
-                            end = 10.dp
-                        ).fillMaxWidth().verticalScroll(
-                            rememberScrollState()
-                        ),
-                        textAlign = TextAlign.Center
-                    )
+                vm.cause?.let {
+                    Text("Cause:", fontWeight = FontWeight.Bold)
+                    Column(
+                        modifier = Modifier.heightIn(max = 150.dp)
+                            .background(color = MaterialTheme.colorScheme.tertiaryContainer)
+                    ) {
+                        Text(
+                            vm.cause,
+                            modifier = Modifier.padding(
+                                top = 5.dp,
+                                bottom = 5.dp,
+                                start = 10.dp,
+                                end = 10.dp
+                            ).fillMaxWidth().verticalScroll(
+                                rememberScrollState()
+                            ),
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             }
         }

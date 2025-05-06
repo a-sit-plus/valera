@@ -17,7 +17,7 @@
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
-	<string>5.5.2</string>
+	<string>5.6.0</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -87,19 +87,21 @@
 	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NFCReaderUsageDescription</key>
+	<string>This app uses NFC to engage local credential presentations</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Bluetooth permission is required for local credential presentations</string>
 	<key>NSCameraUsageDescription</key>
 	<string>This app uses camera for reading QR codes</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>This app uses FaceID for binding credentials to the device.</string>
-	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>Bluetooth permission is required for local credential presentations</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
 		<false/>
 	</dict>
-	<key>UILaunchScreen</key>
-	<dict/>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen.storyboard</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>armv7</string>
@@ -117,8 +119,6 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>NFCReaderUsageDescription</key>
-	<string>This app uses NFC to engage local credential presentations</string>
 	<key>com.apple.developer.nfc.readersession.iso7816.select-identifiers</key>
 	<array>
 		<string>D2760000850101</string>

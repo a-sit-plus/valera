@@ -5,6 +5,7 @@ import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.signum.indispensable.io.Base64UrlStrict
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import at.asitplus.wallet.mdl.DrivingPrivilege
 import at.asitplus.wallet.mdl.IsoSexEnum
@@ -62,10 +63,16 @@ sealed class MobileDrivingLicenceCredentialAdapter(
                     AGE_IN_YEARS -> Attribute.fromValue(ageInYears)
                     AGE_BIRTH_YEAR -> Attribute.fromValue(ageBirthYear)
                     AGE_OVER_12 -> Attribute.fromValue(ageAtLeast12)
+                    AGE_OVER_13 -> Attribute.fromValue(ageAtLeast13)
                     AGE_OVER_14 -> Attribute.fromValue(ageAtLeast14)
                     AGE_OVER_16 -> Attribute.fromValue(ageAtLeast16)
                     AGE_OVER_18 -> Attribute.fromValue(ageAtLeast18)
                     AGE_OVER_21 -> Attribute.fromValue(ageAtLeast21)
+                    AGE_OVER_25 -> Attribute.fromValue(ageAtLeast25)
+                    AGE_OVER_60 -> Attribute.fromValue(ageAtLeast60)
+                    AGE_OVER_62 -> Attribute.fromValue(ageAtLeast62)
+                    AGE_OVER_65 -> Attribute.fromValue(ageAtLeast65)
+                    AGE_OVER_68 -> Attribute.fromValue(ageAtLeast68)
                     ISSUING_JURISDICTION -> Attribute.fromValue(issuingJurisdiction)
                     NATIONALITY -> Attribute.fromValue(nationality)
                     RESIDENT_CITY -> Attribute.fromValue(residentCity)
@@ -75,6 +82,10 @@ sealed class MobileDrivingLicenceCredentialAdapter(
                     FAMILY_NAME_NATIONAL_CHARACTER -> Attribute.fromValue(familyNameNational)
                     GIVEN_NAME_NATIONAL_CHARACTER -> Attribute.fromValue(givenNameNational)
                     SIGNATURE_USUAL_MARK -> Attribute.fromValue(signatureBitmap)
+                    BIOMETRIC_TEMPLATE_FINGER -> Attribute.fromValue(biometricTemplateFinger)
+                    BIOMETRIC_TEMPLATE_FACE -> Attribute.fromValue(biometricTemplateFace)
+                    BIOMETRIC_TEMPLATE_IRIS -> Attribute.fromValue(biometricTemplateIris)
+                    BIOMETRIC_TEMPLATE_SIGNATURE_SIGN -> Attribute.fromValue(biometricTemplateSignatureSign)
                     else -> null
                 }
 
@@ -88,10 +99,16 @@ sealed class MobileDrivingLicenceCredentialAdapter(
     abstract val familyNameNational: String?
     abstract val birthDate: LocalDate?
     abstract val ageAtLeast12: Boolean?
+    abstract val ageAtLeast13: Boolean?
     abstract val ageAtLeast14: Boolean?
     abstract val ageAtLeast16: Boolean?
     abstract val ageAtLeast18: Boolean?
     abstract val ageAtLeast21: Boolean?
+    abstract val ageAtLeast25: Boolean?
+    abstract val ageAtLeast60: Boolean?
+    abstract val ageAtLeast62: Boolean?
+    abstract val ageAtLeast65: Boolean?
+    abstract val ageAtLeast68: Boolean?
     abstract val nationality: String?
     abstract val residentAddress: String?
     abstract val residentCity: String?
@@ -102,13 +119,17 @@ sealed class MobileDrivingLicenceCredentialAdapter(
     abstract val ageBirthYear: UInt?
     abstract val birthPlace: String?
     abstract val portraitRaw: ByteArray?
-    val portraitBitmap: ImageBitmap? by lazy {
-        portraitRaw?.let(decodePortrait)
-    }
+    val portraitBitmap: ImageBitmap? by lazy { portraitRaw?.let(decodePortrait) }
     abstract val signatureRaw: ByteArray?
-    val signatureBitmap: ImageBitmap? by lazy {
-        signatureRaw?.let(decodePortrait)
-    }
+    val signatureBitmap: ImageBitmap? by lazy { signatureRaw?.let(decodePortrait) }
+    abstract val biometricTemplateFaceRaw: ByteArray?
+    val biometricTemplateFace: ImageBitmap? by lazy { biometricTemplateFaceRaw?.let(decodePortrait) }
+    abstract val biometricTemplateFingerRaw: ByteArray?
+    val biometricTemplateFinger: ImageBitmap? by lazy { biometricTemplateFingerRaw?.let(decodePortrait) }
+    abstract val biometricTemplateIrisRaw: ByteArray?
+    val biometricTemplateIris: ImageBitmap? by lazy { biometricTemplateIrisRaw?.let(decodePortrait) }
+    abstract val biometricTemplateSignatureSignRaw: ByteArray?
+    val biometricTemplateSignatureSign: ImageBitmap? by lazy { biometricTemplateSignatureSignRaw?.let(decodePortrait) }
     abstract val documentNumber: String?
     abstract val administrativeNumber: String?
     abstract val sex: IsoSexEnum?
@@ -148,8 +169,11 @@ sealed class MobileDrivingLicenceCredentialAdapter(
 
 private class MobileDrivingLicenceCredentialSdJwtAdapter(
     private val attributes: Map<String, JsonPrimitive>,
-    private val decodePortrait: (ByteArray) -> ImageBitmap?,
+    decodePortrait: (ByteArray) -> ImageBitmap?,
 ) : MobileDrivingLicenceCredentialAdapter(decodePortrait) {
+    override val scheme: ConstantIndex.CredentialScheme
+        get() = MobileDrivingLicenceScheme
+
     override val representation: CredentialRepresentation
         get() = CredentialRepresentation.SD_JWT
 
@@ -171,6 +195,9 @@ private class MobileDrivingLicenceCredentialSdJwtAdapter(
     override val ageAtLeast12: Boolean?
         get() = attributes[MobileDrivingLicenceDataElements.AGE_OVER_12]?.booleanOrNull
 
+    override val ageAtLeast13: Boolean?
+        get() = attributes[MobileDrivingLicenceDataElements.AGE_OVER_13]?.booleanOrNull
+
     override val ageAtLeast14: Boolean?
         get() = attributes[MobileDrivingLicenceDataElements.AGE_OVER_14]?.booleanOrNull
 
@@ -182,6 +209,21 @@ private class MobileDrivingLicenceCredentialSdJwtAdapter(
 
     override val ageAtLeast21: Boolean?
         get() = attributes[MobileDrivingLicenceDataElements.AGE_OVER_21]?.booleanOrNull
+
+    override val ageAtLeast25: Boolean?
+        get() = attributes[MobileDrivingLicenceDataElements.AGE_OVER_25]?.booleanOrNull
+
+    override val ageAtLeast60: Boolean?
+        get() = attributes[MobileDrivingLicenceDataElements.AGE_OVER_60]?.booleanOrNull
+
+    override val ageAtLeast62: Boolean?
+        get() = attributes[MobileDrivingLicenceDataElements.AGE_OVER_62]?.booleanOrNull
+
+    override val ageAtLeast65: Boolean?
+        get() = attributes[MobileDrivingLicenceDataElements.AGE_OVER_65]?.booleanOrNull
+
+    override val ageAtLeast68: Boolean?
+        get() = attributes[MobileDrivingLicenceDataElements.AGE_OVER_68]?.booleanOrNull
 
     override val nationality: String?
         get() = attributes[MobileDrivingLicenceDataElements.NATIONALITY]?.contentOrNull
@@ -211,10 +253,27 @@ private class MobileDrivingLicenceCredentialSdJwtAdapter(
         get() = attributes[MobileDrivingLicenceDataElements.BIRTH_PLACE]?.contentOrNull
 
     override val portraitRaw: ByteArray?
-        get() = attributes[MobileDrivingLicenceDataElements.PORTRAIT]?.contentOrNull?.decodeToByteArray(Base64UrlStrict)
+        get() = attributes[MobileDrivingLicenceDataElements.PORTRAIT]?.contentOrNull
+            ?.decodeToByteArray(Base64UrlStrict)
 
     override val signatureRaw: ByteArray?
         get() = attributes[MobileDrivingLicenceDataElements.SIGNATURE_USUAL_MARK]?.contentOrNull
+            ?.decodeToByteArray(Base64UrlStrict)
+
+    override val biometricTemplateFaceRaw: ByteArray?
+        get() = attributes[MobileDrivingLicenceDataElements.BIOMETRIC_TEMPLATE_FACE]?.contentOrNull
+            ?.decodeToByteArray(Base64UrlStrict)
+
+    override val biometricTemplateFingerRaw: ByteArray?
+        get() = attributes[MobileDrivingLicenceDataElements.BIOMETRIC_TEMPLATE_FINGER]?.contentOrNull
+            ?.decodeToByteArray(Base64UrlStrict)
+
+    override val biometricTemplateIrisRaw: ByteArray?
+        get() = attributes[MobileDrivingLicenceDataElements.BIOMETRIC_TEMPLATE_IRIS]?.contentOrNull
+            ?.decodeToByteArray(Base64UrlStrict)
+
+    override val biometricTemplateSignatureSignRaw: ByteArray?
+        get() = attributes[MobileDrivingLicenceDataElements.BIOMETRIC_TEMPLATE_SIGNATURE_SIGN]?.contentOrNull
             ?.decodeToByteArray(Base64UrlStrict)
 
     override val documentNumber: String?
@@ -258,7 +317,7 @@ private class MobileDrivingLicenceCredentialSdJwtAdapter(
         get() = attributes[MobileDrivingLicenceDataElements.ISSUING_COUNTRY]?.contentOrNull
 
     // TODO How to decode this?
-    override val drivingPrivileges: Array<DrivingPrivilege>?
+    override val drivingPrivileges: Array<DrivingPrivilege>
         get() = arrayOf()
 
     override val undistinguishingSign: String?
@@ -269,6 +328,9 @@ private class MobileDrivingLicenceCredentialIsoMdocAdapter(
     namespaces: Map<String, Map<String, Any>>?,
     decodePortrait: (ByteArray) -> ImageBitmap?,
 ) : MobileDrivingLicenceCredentialAdapter(decodePortrait) {
+    override val scheme: ConstantIndex.CredentialScheme
+        get() = MobileDrivingLicenceScheme
+
     private val namespace = namespaces?.get(MobileDrivingLicenceScheme.isoNamespace)
 
     override val representation: CredentialRepresentation
@@ -292,6 +354,9 @@ private class MobileDrivingLicenceCredentialIsoMdocAdapter(
     override val ageAtLeast12: Boolean?
         get() = namespace?.get(MobileDrivingLicenceDataElements.AGE_OVER_12)?.toString()?.toBooleanStrictOrNull()
 
+    override val ageAtLeast13: Boolean?
+        get() = namespace?.get(MobileDrivingLicenceDataElements.AGE_OVER_13)?.toString()?.toBooleanStrictOrNull()
+
     override val ageAtLeast14: Boolean?
         get() = namespace?.get(MobileDrivingLicenceDataElements.AGE_OVER_14)?.toString()?.toBooleanStrictOrNull()
 
@@ -303,6 +368,21 @@ private class MobileDrivingLicenceCredentialIsoMdocAdapter(
 
     override val ageAtLeast21: Boolean?
         get() = namespace?.get(MobileDrivingLicenceDataElements.AGE_OVER_21)?.toString()?.toBooleanStrictOrNull()
+
+    override val ageAtLeast25: Boolean?
+        get() = namespace?.get(MobileDrivingLicenceDataElements.AGE_OVER_25)?.toString()?.toBooleanStrictOrNull()
+
+    override val ageAtLeast60: Boolean?
+        get() = namespace?.get(MobileDrivingLicenceDataElements.AGE_OVER_60)?.toString()?.toBooleanStrictOrNull()
+
+    override val ageAtLeast62: Boolean?
+        get() = namespace?.get(MobileDrivingLicenceDataElements.AGE_OVER_62)?.toString()?.toBooleanStrictOrNull()
+
+    override val ageAtLeast65: Boolean?
+        get() = namespace?.get(MobileDrivingLicenceDataElements.AGE_OVER_65)?.toString()?.toBooleanStrictOrNull()
+
+    override val ageAtLeast68: Boolean?
+        get() = namespace?.get(MobileDrivingLicenceDataElements.AGE_OVER_68)?.toString()?.toBooleanStrictOrNull()
 
     override val nationality: String?
         get() = namespace?.get(MobileDrivingLicenceDataElements.NATIONALITY) as String?
@@ -332,22 +412,29 @@ private class MobileDrivingLicenceCredentialIsoMdocAdapter(
         get() = namespace?.get(MobileDrivingLicenceDataElements.BIRTH_PLACE) as String?
 
     override val portraitRaw: ByteArray?
-        get() = namespace?.get(MobileDrivingLicenceDataElements.PORTRAIT)?.let {
-            when (it) {
-                is ByteArray -> it
-                is String -> it.decodeBase64Bytes()
-                else -> null
-            }
-        }
+        get() = namespace?.get(MobileDrivingLicenceDataElements.PORTRAIT)?.toByteArrayDecoding()
 
     override val signatureRaw: ByteArray?
-        get() = namespace?.get(MobileDrivingLicenceDataElements.SIGNATURE_USUAL_MARK)?.let {
-            when (it) {
-                is ByteArray -> it
-                is String -> it.decodeBase64Bytes()
-                else -> null
-            }
-        }
+        get() = namespace?.get(MobileDrivingLicenceDataElements.SIGNATURE_USUAL_MARK)?.toByteArrayDecoding()
+
+    override val biometricTemplateFaceRaw: ByteArray?
+        get() = namespace?.get(MobileDrivingLicenceDataElements.BIOMETRIC_TEMPLATE_FACE)?.toByteArrayDecoding()
+
+    override val biometricTemplateFingerRaw: ByteArray?
+        get() = namespace?.get(MobileDrivingLicenceDataElements.BIOMETRIC_TEMPLATE_FINGER)?.toByteArrayDecoding()
+
+    override val biometricTemplateIrisRaw: ByteArray?
+        get() = namespace?.get(MobileDrivingLicenceDataElements.BIOMETRIC_TEMPLATE_IRIS)?.toByteArrayDecoding()
+
+    override val biometricTemplateSignatureSignRaw: ByteArray?
+        get() = namespace?.get(MobileDrivingLicenceDataElements.BIOMETRIC_TEMPLATE_SIGNATURE_SIGN)
+            ?.toByteArrayDecoding()
+
+    private fun Any.toByteArrayDecoding(): ByteArray? = when (this) {
+        is ByteArray -> this
+        is String -> this.decodeBase64Bytes()
+        else -> null
+    }
 
     override val documentNumber: String?
         get() = namespace?.get(MobileDrivingLicenceDataElements.DOCUMENT_NUMBER) as String?

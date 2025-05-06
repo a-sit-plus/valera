@@ -1,5 +1,8 @@
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsDisplayed
@@ -29,15 +32,20 @@ import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.BuildType
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
-import at.asitplus.wallet.app.common.WalletCryptoService
+import at.asitplus.wallet.app.common.WalletKeyMaterial
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.ClaimToBeIssued
 import at.asitplus.wallet.lib.agent.CredentialToBeIssued
+import at.asitplus.wallet.lib.agent.DefaultCryptoService
 import at.asitplus.wallet.lib.agent.EphemeralKeyWithSelfSignedCert
+import at.asitplus.wallet.lib.agent.EphemeralKeyWithoutCert
 import at.asitplus.wallet.lib.agent.IssuerAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
+import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.agent.toStoreCredentialInput
+import at.asitplus.wallet.lib.cbor.DefaultCoseService
+import at.asitplus.wallet.lib.jws.DefaultJwsService
 import data.storage.DummyDataStoreService
 import io.kotest.common.Platform
 import io.kotest.common.platform
@@ -53,9 +61,9 @@ import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
@@ -65,11 +73,15 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.jetbrains.compose.resources.getString
+import org.multipaz.prompt.PassphraseRequest
+import org.multipaz.prompt.PromptModel
+import org.multipaz.prompt.SinglePromptModel
 import ui.navigation.NavigatorTestTags
 import ui.navigation.routes.OnboardingWrapperTestTags
 import ui.views.OnboardingStartScreenTestTag
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.minutes
+
 
 private lateinit var lifecycleRegistry: LifecycleRegistry
 private lateinit var lifecycleOwner: TestLifecycleOwner
@@ -94,6 +106,27 @@ class InstrumentedTestsSuite : FunSpec({
     }
 
     context("Starting App Tests") {
+        test("Using collectAsStateWithLifecycle properly updates state to assert") {
+            runComposeUiTest {
+                val dummyDataStoreService = DummyDataStoreService()
+                val preferenceKey = "test"
+                val testValue = "loaded"
+
+                setContent {
+                    val data by dummyDataStoreService.getPreference(preferenceKey).collectAsState("null")
+                    Text(data ?: "collecting state ...")
+                }
+
+                runBlocking {
+                    dummyDataStoreService.setPreference(key = preferenceKey, value = testValue)
+                }
+
+                waitUntil {
+                    onNodeWithText(testValue).isDisplayed()
+                }
+            }
+        }
+
         test("App should start correctly") {
             runComposeUiTest {
                 setContent {
@@ -171,7 +204,14 @@ class InstrumentedTestsSuite : FunSpec({
                         walletMain = createWalletMain(platformAdapter)
                         App(walletMain)
 
-                        val issuer = IssuerAgent()
+                        val keyMaterial = EphemeralKeyWithoutCert()
+                        val issuer = IssuerAgent(
+                            validator = Validator(),
+                            keyMaterial = keyMaterial,
+                            statusListBaseUrl = "https://wallet.a-sit.at/m6/credentials/status",
+                            jwsService = DefaultJwsService(DefaultCryptoService(keyMaterial)),
+                            coseService = DefaultCoseService(DefaultCryptoService(keyMaterial)),
+                        )
                         runBlocking {
                             walletMain.holderAgent.storeCredential(
                                 issuer.issueCredential(
@@ -179,7 +219,7 @@ class InstrumentedTestsSuite : FunSpec({
                                         getAttributes(),
                                         Clock.System.now().plus(3600.minutes),
                                         IdAustriaScheme,
-                                        walletMain.cryptoService.keyMaterial.publicKey
+                                        walletMain.keyMaterial.keyMaterial.publicKey
                                     )
                                 ).getOrThrow().toStoreCredentialInput()
                             )
@@ -189,20 +229,14 @@ class InstrumentedTestsSuite : FunSpec({
                 runBlocking {
                     waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_start)))
                     onNodeWithText(getString(Res.string.button_label_start)).performClick()
-                    onNodeWithText(getString(Res.string.button_label_continue))
-                        .assertIsDisplayed()
                     onNodeWithText(getString(Res.string.button_label_continue)).performClick()
-                    onNodeWithText(getString(Res.string.button_label_accept))
-                        .assertIsDisplayed()
-                    onNodeWithText(getString(Res.string.button_label_accept)).performClick()
                     waitUntilDoesNotExist(
-                        hasText(getString(Res.string.button_label_accept)),
+                        hasText(getString(Res.string.button_label_continue)),
                         10000
                     )
 
-                    onNodeWithContentDescription(getString(Res.string.content_description_portrait)).assertHeightIsAtLeast(
-                        1.dp
-                    )
+                    onNodeWithContentDescription(getString(Res.string.content_description_portrait))
+                        .assertHeightIsAtLeast(1.dp)
                     onNodeWithText("XXXÉliás XXXTörőcsik").assertExists()
                     onNodeWithText("11.10.1965").assertExists()
 
@@ -323,7 +357,7 @@ private fun createWalletMain(platformAdapter: PlatformAdapter): WalletMain {
         override suspend fun getSigner(): KeyMaterial = EphemeralKeyWithSelfSignedCert()
     }
     return WalletMain(
-        cryptoService = ks.let { runBlocking { WalletCryptoService(it.getSigner()) } },
+        keyMaterial = ks.let { runBlocking { WalletKeyMaterial(it.getSigner()) } },
         dataStoreService = dummyDataStoreService,
         platformAdapter = platformAdapter,
         buildContext = BuildContext(
@@ -333,11 +367,23 @@ private fun createWalletMain(platformAdapter: PlatformAdapter): WalletMain {
             versionName = "0.0.0",
             osVersion = "Unit Test"
         ),
-        scope = CoroutineScope(Dispatchers.Default),
+        promptModel = TestPromptModel(),
     )
 }
 
 class TestLifecycleOwner : LifecycleOwner {
     private val _lifecycle = LifecycleRegistry(this)
     override val lifecycle: Lifecycle get() = _lifecycle
+}
+
+// Based on the identity-credential sample code
+// https://github.com/openwallet-foundation-labs/identity-credential/tree/main/samples/testapp
+class TestPromptModel: PromptModel {
+    override val passphrasePromptModel = SinglePromptModel<PassphraseRequest, String?>()
+    override val promptModelScope =
+        CoroutineScope(Dispatchers.Default + SupervisorJob() + this)
+
+    fun onClose() {
+        promptModelScope.cancel()
+    }
 }

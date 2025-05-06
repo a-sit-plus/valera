@@ -6,7 +6,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import at.asitplus.wallet.taxid.TaxIdScheme
 import data.PersonalDataCategory
 import data.credentials.TaxIdCredentialAdapter
 import ui.composables.AttributeRepresentation
@@ -17,7 +16,7 @@ fun TaxIdCredentialMetadataDataCard(
     modifier: Modifier = Modifier,
 ) {
     CredentialDetailCard(
-        credentialScheme = TaxIdScheme,
+        credentialScheme = credentialAdapter.scheme,
         personalDataCategory = PersonalDataCategory.Metadata,
         credentialAdapter = credentialAdapter,
         modifier = modifier,

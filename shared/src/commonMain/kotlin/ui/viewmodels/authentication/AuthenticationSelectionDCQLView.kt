@@ -22,6 +22,7 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.error_complex_dcql_query
 import at.asitplus.valera.resources.error_unsatisfiable_dcql_query
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatus
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.DCQLCredentialQuerySubmissionSelection
 import ui.state.savers.rememberMutableStateListOf
@@ -32,8 +33,10 @@ import ui.views.authentication.AuthenticationSelectionViewScaffold
 fun AuthenticationSelectionDCQLView(
     navigateUp: () -> Unit,
     onClickLogo: () -> Unit,
+    onClickSettings: () -> Unit,
     confirmSelection: (CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>?) -> Unit,
     matchingResult: DCQLMatchingResult<SubjectCredentialStore.StoreEntry>,
+    checkRevocationStatus: suspend (SubjectCredentialStore.StoreEntry) -> TokenStatus?,
     decodeToBitmap: (ByteArray) -> ImageBitmap?,
     onError: (Throwable) -> Unit,
     modifier: Modifier = Modifier,
@@ -54,9 +57,11 @@ fun AuthenticationSelectionDCQLView(
     AuthenticationSelectionDCQLView(
         navigateUp = navigateUp,
         onClickLogo = onClickLogo,
+        onClickSettings = onClickSettings,
         decodeToBitmap = decodeToBitmap,
         confirmSelection = confirmSelection,
         credentialQueryOptions = submissionOptions,
+        checkRevocationStatus = checkRevocationStatus,
         onError = onError,
         modifier = modifier,
     )
@@ -66,9 +71,11 @@ fun AuthenticationSelectionDCQLView(
 fun AuthenticationSelectionDCQLView(
     navigateUp: () -> Unit,
     onClickLogo: () -> Unit,
+    onClickSettings: () -> Unit,
     decodeToBitmap: (ByteArray) -> ImageBitmap?,
     confirmSelection: (CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>?) -> Unit,
     credentialQueryOptions: Map<DCQLCredentialQueryIdentifier, List<DCQLCredentialSubmissionOption<SubjectCredentialStore.StoreEntry>>>,
+    checkRevocationStatus: suspend (SubjectCredentialStore.StoreEntry) -> TokenStatus?,
     onError: (Throwable) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -105,6 +112,7 @@ fun AuthenticationSelectionDCQLView(
     AuthenticationSelectionViewScaffold(
         onNavigateUp = navigateUp,
         onClickLogo = onClickLogo,
+        onClickSettings = onClickSettings,
         onNext = {
             selectedOptions[currentCredentialQueryIdentifierIndex] = currentlySelectedOptionIndex
             val nextUnselected = selectedOptions.indexOfFirst {
@@ -137,6 +145,7 @@ fun AuthenticationSelectionDCQLView(
             onChangeSelection = { currentlySelectedOptionIndex = it },
             decodeToBitmap = decodeToBitmap,
             currentlySelectedOptionIndex = currentlySelectedOptionIndex,
+            checkRevocationStatus = checkRevocationStatus,
             modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState())
                 .padding(16.dp),
         )

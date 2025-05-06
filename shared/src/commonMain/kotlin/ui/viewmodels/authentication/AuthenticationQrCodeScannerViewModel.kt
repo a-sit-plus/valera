@@ -16,7 +16,8 @@ class AuthenticationQrCodeScannerViewModel(
     val navigateUp: (() -> Unit)?,
     val onSuccess: (AuthenticationViewRoute) -> Unit,
     val walletMain: WalletMain,
-    val onClickLogo: () -> Unit
+    val onClickLogo: () -> Unit,
+    val onClickSettings: () -> Unit
 ) {
     var isLoading by mutableStateOf(false)
     private val buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase =

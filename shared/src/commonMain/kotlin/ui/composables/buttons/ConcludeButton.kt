@@ -9,11 +9,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_conclude
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.TextIconButton
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun ConcludeButton(
     onClick: () -> Unit,

@@ -3,6 +3,7 @@ package data.credentials
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import at.asitplus.wallet.por.PowerOfRepresentationDataElements.ADMINISTRATIVE_NUMBER
 import at.asitplus.wallet.por.PowerOfRepresentationDataElements.DOCUMENT_NUMBER
@@ -83,6 +84,9 @@ sealed class PowerOfRepresentationCredentialAdapter : CredentialAdapter() {
 private class PowerOfRepresentationCredentialSdJwtAdapter(
     private val attributes: Map<String, JsonPrimitive>,
 ) : PowerOfRepresentationCredentialAdapter() {
+    override val scheme: ConstantIndex.CredentialScheme
+        get() = PowerOfRepresentationScheme
+
     override val representation: CredentialRepresentation
         get() = CredentialRepresentation.SD_JWT
 
@@ -130,6 +134,9 @@ private class PowerOfRepresentationCredentialSdJwtAdapter(
 private class PowerOfRepresentationComplexSdJwtAdapter(
     private val attributes: JsonObject,
 ) : PowerOfRepresentationCredentialAdapter() {
+    override val scheme: ConstantIndex.CredentialScheme
+        get() = PowerOfRepresentationScheme
+
     override val representation: CredentialRepresentation
         get() = CredentialRepresentation.SD_JWT
 

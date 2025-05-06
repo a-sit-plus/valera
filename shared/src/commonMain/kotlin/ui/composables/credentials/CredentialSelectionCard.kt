@@ -10,7 +10,9 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
@@ -21,27 +23,41 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.dif.ConstraintField
 import at.asitplus.jsonpath.core.NodeList
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatus
+import ui.composables.CredentialStatusState
 
 @Composable
 fun CredentialSelectionCard(
     credential: Map.Entry<SubjectCredentialStore.StoreEntry, Map<ConstraintField, NodeList>>,
+    checkRevocationStatus: suspend () -> TokenStatus?,
     imageDecoder: (ByteArray) -> ImageBitmap?,
     attributeSelection: SnapshotStateMap<String, Boolean>,
     credentialSelection: MutableState<SubjectCredentialStore.StoreEntry>
 ) {
     val selected = remember { mutableStateOf(false) }
-
     selected.value = credentialSelection.value == credential.key
+
+    val credentialStatusState by produceState(
+        CredentialStatusState.Loading as CredentialStatusState,
+        credential.key,
+    ) {
+        value = CredentialStatusState.Loading
+        value = CredentialStatusState.Success(
+            checkRevocationStatus()
+        )
+    }
 
     CredentialSelectionCardLayout(
         onClick = {
             attributeSelection.clear()
             credentialSelection.value = credential.key
-                  },
+        },
         modifier = Modifier,
-        isSelected = selected.value
+        isSelected = selected.value,
+        credentialStatusState = credentialStatusState
     ) {
         CredentialSelectionCardHeader(
+            credentialStatusState = credentialStatusState,
             credential = credential.key,
             modifier = Modifier.fillMaxWidth()
         )
@@ -49,27 +65,27 @@ fun CredentialSelectionCard(
             credential = credential.key,
             decodeToBitmap = imageDecoder,
         )
-    }
 
-    val density = LocalDensity.current
-    AnimatedVisibility(
-        visible = selected.value,
-        enter = slideInVertically {
-            with(density) { -20.dp.roundToPx() }
-        } + expandVertically(
-            expandFrom = Alignment.Top
-        ) + fadeIn(
-            initialAlpha = 0.3f
-        ),
-        exit = slideOutVertically {
-            with(density) { 20.dp.roundToPx() }
-        } + shrinkVertically(
-            shrinkTowards = Alignment.Bottom
-        ) + fadeOut(
-            targetAlpha = 0f
-        )
-    ) {
-        val format = credential.key.scheme
-        AttributeSelectionGroup(credential, format = format, selection = attributeSelection)
+        val density = LocalDensity.current
+        AnimatedVisibility(
+            visible = selected.value,
+            enter = slideInVertically {
+                with(density) { -20.dp.roundToPx() }
+            } + expandVertically(
+                expandFrom = Alignment.Top
+            ) + fadeIn(
+                initialAlpha = 0.3f
+            ),
+            exit = slideOutVertically {
+                with(density) { 20.dp.roundToPx() }
+            } + shrinkVertically(
+                shrinkTowards = Alignment.Bottom
+            ) + fadeOut(
+                targetAlpha = 0f
+            )
+        ) {
+            val format = credential.key.scheme
+            AttributeSelectionGroup(credential, format = format, selection = attributeSelection)
+        }
     }
 }

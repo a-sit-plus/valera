@@ -1,3 +1,17 @@
+# Release 5.6.0
+ * Upgrade to VC-K 5.6.0
+ * Display credential validity for invalid credentials
+ * Update to VC-K 5.5.3 (fix presentation of multiple ISO credentials)
+ * Update german localizations
+ * Display validity of loaded credentials
+ * Improve some error messages
+ * Add proximity presentation and verification of ISO credenitals over Bluetooth
+ * Add option to open URL from verifier after successful authentication
+ * Add support for EU PID with SD-JWT names from ARF 1.8.0 onwards
+ * Gracefully handle the case where the token status cannot be evaluated
+ * Add support for more age over claims in EU PID and mDL
+ * Update Tax ID credential, to fix `sdJwtType`
+
 # Release 5.5.2
  * Fix presentation of ISO credentials
 

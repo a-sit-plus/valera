@@ -242,18 +242,20 @@ private sealed interface ExportableStoreEntry {
 }
 
 enum class ExportableCredentialScheme {
-    AtomicAttribute2023, IdAustriaScheme, MobileDrivingLicence2023, EuPidScheme, PowerOfRepresentationScheme, CertificateOfResidenceScheme, CompanyRegistrationScheme, HealthIdScheme, TaxIdScheme;
+    AtomicAttribute2023, IdAustriaScheme, MobileDrivingLicence2023, EuPidScheme, EuPidSdJwtScheme, PowerOfRepresentationScheme, CertificateOfResidenceScheme, CompanyRegistrationScheme, HealthIdScheme, TaxIdScheme, TaxId2025Scheme;
 
     fun toScheme() = when (this) {
         AtomicAttribute2023 -> ConstantIndex.AtomicAttribute2023
         MobileDrivingLicence2023 -> MobileDrivingLicenceScheme
         IdAustriaScheme -> at.asitplus.wallet.idaustria.IdAustriaScheme
         EuPidScheme -> at.asitplus.wallet.eupid.EuPidScheme
+        EuPidSdJwtScheme -> at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
         PowerOfRepresentationScheme -> at.asitplus.wallet.por.PowerOfRepresentationScheme
         CertificateOfResidenceScheme -> at.asitplus.wallet.cor.CertificateOfResidenceScheme
         CompanyRegistrationScheme -> at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
         HealthIdScheme -> at.asitplus.wallet.healthid.HealthIdScheme
         TaxIdScheme -> at.asitplus.wallet.taxid.TaxIdScheme
+        TaxId2025Scheme -> at.asitplus.wallet.taxid.TaxId2025Scheme
     }
 
     companion object {
@@ -262,11 +264,13 @@ enum class ExportableCredentialScheme {
             MobileDrivingLicenceScheme -> MobileDrivingLicence2023
             at.asitplus.wallet.idaustria.IdAustriaScheme -> IdAustriaScheme
             at.asitplus.wallet.eupid.EuPidScheme -> EuPidScheme
+            at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme -> EuPidSdJwtScheme
             at.asitplus.wallet.por.PowerOfRepresentationScheme -> PowerOfRepresentationScheme
             at.asitplus.wallet.cor.CertificateOfResidenceScheme -> CertificateOfResidenceScheme
             at.asitplus.wallet.companyregistration.CompanyRegistrationScheme -> CompanyRegistrationScheme
             at.asitplus.wallet.healthid.HealthIdScheme -> HealthIdScheme
             at.asitplus.wallet.taxid.TaxIdScheme -> TaxIdScheme
+            at.asitplus.wallet.taxid.TaxId2025Scheme -> TaxId2025Scheme
             else -> throw Exception("Unknown CredentialScheme")
         }
     }

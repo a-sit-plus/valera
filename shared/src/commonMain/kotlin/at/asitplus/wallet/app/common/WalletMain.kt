@@ -11,10 +11,12 @@ import at.asitplus.valera.resources.snackbar_update_hint
 import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import at.asitplus.wallet.lib.agent.HolderAgent
+import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.agent.Validator
-import at.asitplus.wallet.lib.cbor.DefaultCoseService
-import at.asitplus.wallet.lib.jws.DefaultJwsService
-import at.asitplus.wallet.lib.jws.DefaultVerifierJwsService
+import at.asitplus.wallet.lib.data.StatusListToken
+import at.asitplus.wallet.lib.data.rfc.tokenStatusList.MediaTypes
+import at.asitplus.wallet.lib.data.rfc.tokenStatusList.StatusListTokenPayload
+import at.asitplus.wallet.lib.jws.VerifyJwsObject
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import at.asitplus.wallet.lib.rqes.Initializer.initRqesModule
 import data.storage.AntilogAdapter
@@ -24,83 +26,105 @@ import getImageDecoder
 import io.github.aakira.napier.Napier
 import io.ktor.client.call.body
 import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpHeaders
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.datetime.Clock
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import net.swiftzer.semver.SemVer
 import org.jetbrains.compose.resources.getString
+import org.multipaz.prompt.PromptModel
+import ui.navigation.IntentService
 
 /**
  * Main class to hold all services needed in the Compose App.
  */
 class WalletMain(
-    val cryptoService: WalletCryptoService,
+    val keyMaterial: WalletKeyMaterial,
     private val dataStoreService: DataStoreService,
     val platformAdapter: PlatformAdapter,
-    var subjectCredentialStore: PersistentSubjectCredentialStore = PersistentSubjectCredentialStore(
-        dataStoreService
-    ),
+    var subjectCredentialStore: PersistentSubjectCredentialStore =
+        PersistentSubjectCredentialStore(dataStoreService),
     val buildContext: BuildContext,
-    val scope: CoroutineScope
+    promptModel: PromptModel
 ) {
     lateinit var walletConfig: WalletConfig
+    lateinit var credentialValidator: Validator
     lateinit var holderAgent: HolderAgent
     lateinit var provisioningService: ProvisioningService
     lateinit var httpService: HttpService
     lateinit var presentationService: PresentationService
-    lateinit var snackbarService: SnackbarService
     lateinit var signingService: SigningService
-    lateinit var errorService: ErrorService
     lateinit var dcApiService: DCAPIService
+    lateinit var intentService: IntentService
+    val errorService = ErrorService()
+    val snackbarService = SnackbarService()
     private val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
-
-    val readyForIntents = MutableStateFlow<Boolean?>(null)
+    private val coroutineExceptionHandler = CoroutineExceptionHandler { _, error ->
+        errorService.emit(error)
+    }
+    val scope = CoroutineScope(Dispatchers.Default + coroutineExceptionHandler + promptModel + CoroutineName("WalletMain"))
 
     init {
         at.asitplus.wallet.mdl.Initializer.initWithVCK()
         at.asitplus.wallet.idaustria.Initializer.initWithVCK()
         at.asitplus.wallet.eupid.Initializer.initWithVCK()
+        at.asitplus.wallet.eupidsdjwt.Initializer.initWithVCK()
         at.asitplus.wallet.cor.Initializer.initWithVCK()
         at.asitplus.wallet.por.Initializer.initWithVCK()
         at.asitplus.wallet.companyregistration.Initializer.initWithVCK()
         at.asitplus.wallet.healthid.Initializer.initWithVCK()
         at.asitplus.wallet.taxid.Initializer.initWithVCK()
+        at.asitplus.wallet.taxid.Initializer2025.initWithVCK()
         initRqesModule()
         Napier.takeLogarithm()
         Napier.base(AntilogAdapter(platformAdapter, "", buildContext.buildType))
     }
 
     @Throws(Throwable::class)
-    fun initialize(snackbarService: SnackbarService) {
-        val coseService = DefaultCoseService(cryptoService)
-        walletConfig =
-            WalletConfig(dataStoreService = this.dataStoreService, errorService = errorService)
+    fun initialize() {
+        walletConfig = WalletConfig(dataStoreService = this.dataStoreService, errorService = errorService)
         subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
-        holderAgent = HolderAgent(
-            validator = Validator(
-                verifierJwsService = DefaultVerifierJwsService(
-                    publicKeyLookup = issuerKeyLookup()
-                )
-            ),
-            subjectCredentialStore = subjectCredentialStore,
-            jwsService = DefaultJwsService(cryptoService),
-            coseService = coseService,
-            keyPair = cryptoService.keyMaterial,
-        )
 
         httpService = HttpService(buildContext)
+        credentialValidator = Validator(
+            resolveStatusListToken = {
+                val httpResponse = httpService.buildHttpClient().get(it.string) {
+                    headers.set(HttpHeaders.Accept, MediaTypes.Application.STATUSLIST_JWT)
+                }
+                StatusListToken.StatusListJwt(
+                    JwsSigned.deserialize<StatusListTokenPayload>(
+                        StatusListTokenPayload.serializer(),
+                        httpResponse.bodyAsText()
+                    ).getOrThrow(),
+                    resolvedAt = Clock.System.now(),
+                )
+            },
+            verifyJwsObject = VerifyJwsObject(publicKeyLookup = issuerKeyLookup())
+        )
+        holderAgent = HolderAgent(
+            keyMaterial = keyMaterial,
+            subjectCredentialStore = subjectCredentialStore,
+            validator = credentialValidator,
+        )
+        intentService = IntentService(
+            platformAdapter
+        )
+        httpService = HttpService(buildContext)
         provisioningService = ProvisioningService(
-            platformAdapter,
+            intentService,
             dataStoreService,
-            cryptoService,
+            keyMaterial,
             holderAgent,
             walletConfig,
             errorService,
@@ -108,13 +132,18 @@ class WalletMain(
         )
         presentationService = PresentationService(
             platformAdapter,
-            cryptoService,
+            keyMaterial,
             holderAgent,
             httpService,
-            coseService
         )
-        signingService = SigningService(platformAdapter, dataStoreService, errorService, snackbarService, httpService)
-        this.snackbarService = snackbarService
+        signingService = SigningService(
+            intentService,
+            dataStoreService,
+            errorService,
+            snackbarService,
+            httpService
+        )
+
         this.dcApiService = DCAPIService(platformAdapter)
     }
 
@@ -138,8 +167,8 @@ class WalletMain(
 
     suspend fun resetApp() {
         dataStoreService.clearLog()
-
         subjectCredentialStore.reset()
+        signingService.reset()
 
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_VCS)
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT)
@@ -218,6 +247,12 @@ class WalletMain(
             }
         }
     }
+
+    suspend fun checkRevocationStatus(storeEntry: SubjectCredentialStore.StoreEntry) = when (val it = storeEntry) {
+        is SubjectCredentialStore.StoreEntry.Iso -> credentialValidator.checkRevocationStatus(it.issuerSigned)
+        is SubjectCredentialStore.StoreEntry.SdJwt -> credentialValidator.checkRevocationStatus(it.sdJwt)
+        is SubjectCredentialStore.StoreEntry.Vc -> credentialValidator.checkRevocationStatus(it.vc)
+    }?.getOrNull()
 }
 
 fun PlatformAdapter.decodeImage(image: ByteArray): ImageBitmap {
@@ -309,7 +344,10 @@ class DummyPlatformAdapter : PlatformAdapter {
         return null
     }
 
-    override fun prepareDCAPICredentialResponse(responseJson: ByteArray, dcApiRequest: DCAPIRequest) {
+    override fun prepareDCAPICredentialResponse(
+        responseJson: ByteArray,
+        dcApiRequest: DCAPIRequest
+    ) {
     }
 
 }

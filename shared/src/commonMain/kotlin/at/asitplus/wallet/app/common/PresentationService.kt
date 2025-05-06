@@ -4,6 +4,8 @@ import at.asitplus.catching
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.RelyingPartyMetadata
 import at.asitplus.openid.RequestParametersFrom
+import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
+import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import at.asitplus.wallet.app.common.dcapi.PreviewRequest
 import at.asitplus.wallet.lib.agent.CreatePresentationResult
@@ -11,32 +13,34 @@ import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.PresentationException
 import at.asitplus.wallet.lib.agent.PresentationRequestParameters
 import at.asitplus.wallet.lib.agent.PresentationResponseParameters
-import at.asitplus.wallet.lib.cbor.CoseService
-import at.asitplus.wallet.lib.iso.DeviceResponse
+import at.asitplus.wallet.lib.cbor.CoseHeaderNone
+import at.asitplus.wallet.lib.cbor.SignCose
+import at.asitplus.wallet.lib.cbor.SignCoseDetached
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
+import at.asitplus.wallet.lib.iso.DeviceAuthentication
+import at.asitplus.wallet.lib.iso.SessionTranscript
+import at.asitplus.wallet.lib.iso.wrapInCborTag
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
-import io.ktor.utils.io.core.toByteArray
 import kotlinx.serialization.builtins.ByteArraySerializer
+import kotlinx.serialization.encodeToByteArray
 import ui.viewmodels.authentication.DCQLMatchingResult
 import ui.viewmodels.authentication.PresentationExchangeMatchingResult
 
 class PresentationService(
     val platformAdapter: PlatformAdapter,
-    cryptoService: WalletCryptoService,
+    val keyMaterial: WalletKeyMaterial,
     val holderAgent: HolderAgent,
     httpService: HttpService,
-    private val coseService: CoseService
 ) {
     private val presentationService = OpenId4VpWallet(
-        openUrlExternally = { platformAdapter.openUrl(it) },
         engine = HttpClient().engine,
         httpClientConfig = httpService.loggingConfig,
-        cryptoService = cryptoService,
-        holderAgent = holderAgent,
+        keyMaterial = keyMaterial,
+        holderAgent = holderAgent
     )
 
     suspend fun parseAuthenticationRequestParameters(requestUri: String) =
@@ -71,42 +75,38 @@ class PresentationService(
         request: RequestParametersFrom<AuthenticationRequestParameters>,
         clientMetadata: RelyingPartyMetadata?,
         credentialPresentation: CredentialPresentation,
-        isCrossDeviceFlow: Boolean,
-    ) {
-        presentationService.finalizeAuthorizationResponse(
-            request = request,
-            clientMetadata = clientMetadata,
-            credentialPresentation = credentialPresentation,
-            isCrossDeviceFlow = isCrossDeviceFlow,
-        ).getOrThrow()
-    }
+    ) = presentationService.finalizeAuthorizationResponseReturningUrl(
+        request = request,
+        clientMetadata = clientMetadata,
+        credentialPresentation = credentialPresentation,
+    ).getOrThrow()
 
     suspend fun finalizeDCAPIPreviewPresentation(
         credentialPresentation: CredentialPresentation.PresentationExchangePresentation,
         dcApiRequest: DCAPIRequest
-    ) {
+    ): OpenId4VpWallet.AuthenticationSuccess {
         Napier.d("Finalizing DCAPI response")
         val previewRequest = PreviewRequest.deserialize(dcApiRequest.request).getOrThrow()
 
         val presentationResult = holderAgent.createPresentation(
-            request =  PresentationRequestParameters(
+            request = PresentationRequestParameters(
                 nonce = previewRequest.nonce,
                 audience = dcApiRequest.callingOrigin ?: dcApiRequest.callingPackageName!!,
-                calcIsoDeviceSignature = {
-                    coseService.createSignedCose(
-                        payload = it.encodeToByteArray(),
-                        serializer = ByteArraySerializer(),
-                        addKeyId = false
-                    ).getOrElse { e ->
-                        Napier.w("Could not create DeviceAuth for presentation", e)
-                        throw PresentationException(e)
-                    } to null
+                calcIsoDeviceSignature = { docType, deviceNameSpaceBytes ->
+                    // TODO sign data
+                    SignCose.invoke<ByteArray>(keyMaterial, CoseHeaderNone(), CoseHeaderNone())
+                        .invoke(null, null, docType.encodeToByteArray(), ByteArraySerializer())
+                        .getOrElse { e ->
+                            Napier.w("Could not create DeviceAuth for presentation", e)
+                            throw PresentationException(e)
+                        } to null
                 },
             ),
             credentialPresentation = credentialPresentation,
         )
 
-        val presentation = presentationResult.getOrThrow() as PresentationResponseParameters.PresentationExchangeParameters
+        val presentation =
+            presentationResult.getOrThrow() as PresentationResponseParameters.PresentationExchangeParameters
 
         val deviceResponse = when (val firstResult = presentation.presentationResults[0]) {
             is CreatePresentationResult.DeviceResponse -> firstResult.deviceResponse
@@ -115,35 +115,48 @@ class PresentationService(
         }
 
         platformAdapter.prepareDCAPICredentialResponse(deviceResponse.serialize(), dcApiRequest)
+
+        return OpenId4VpWallet.AuthenticationSuccess()
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
     suspend fun finalizeLocalPresentation(
         credentialPresentation: CredentialPresentation.PresentationExchangePresentation,
         finishFunction: (ByteArray) -> Unit,
-        spName: String?
+        spName: String?,
+        sessionTranscript: SessionTranscript
     ) {
         Napier.d("Finalizing local response")
 
         val presentationResult = holderAgent.createPresentation(
-            request =  PresentationRequestParameters(
+            request = PresentationRequestParameters(
                 nonce = "",
                 audience = spName ?: "",
-                calcIsoDeviceSignature = {
-                    //TODO sign as required by specification
-                    coseService.createSignedCose(
-                        payload = it.encodeToByteArray(),
-                        serializer = ByteArraySerializer(),
-                        addKeyId = false
-                    ).getOrElse { e ->
-                        Napier.w("Could not create DeviceAuth for presentation", e)
-                        throw PresentationException(e)
-                    } to null
+                calcIsoDeviceSignature = { docType, deviceNameSpaceBytes ->
+                    val deviceAuthentication = DeviceAuthentication(
+                        type = "DeviceAuthentication",
+                        sessionTranscript = sessionTranscript, docType = docType,
+                        namespaces = deviceNameSpaceBytes
+                    )
+
+                    val deviceAuthenticationBytes = coseCompliantSerializer
+                        .encodeToByteArray(ByteStringWrapper(deviceAuthentication))
+                        .wrapInCborTag(24)
+                    Napier.d("Device authentication signature input is ${deviceAuthenticationBytes.toHexString()}")
+
+                    SignCoseDetached.invoke<ByteArray>(keyMaterial, CoseHeaderNone(), CoseHeaderNone())
+                        .invoke(null, null, deviceAuthenticationBytes, ByteArraySerializer())
+                        .getOrElse { e ->
+                            Napier.w("Could not create DeviceAuth for presentation", e)
+                            throw PresentationException(e)
+                        } to null
                 },
             ),
             credentialPresentation = credentialPresentation,
         )
 
-        val presentation = presentationResult.getOrThrow() as PresentationResponseParameters.PresentationExchangeParameters
+        val presentation =
+            presentationResult.getOrThrow() as PresentationResponseParameters.PresentationExchangeParameters
 
         val deviceResponse = when (val firstResult = presentation.presentationResults[0]) {
             is CreatePresentationResult.DeviceResponse -> firstResult.deviceResponse.serialize()

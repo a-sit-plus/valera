@@ -1,17 +1,19 @@
 package at.asitplus.wallet.app.common
 
 import at.asitplus.openid.CredentialOffer
-import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.agent.HolderAgent
+import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.vckJsonSerializer
-import at.asitplus.wallet.lib.jws.DefaultJwsService
+import at.asitplus.wallet.lib.jws.JwsHeaderCertOrJwk
+import at.asitplus.wallet.lib.jws.JwsHeaderNone
+import at.asitplus.wallet.lib.jws.SignJwt
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VciClient
 import at.asitplus.wallet.lib.ktor.openid.ProvisioningContext
+import at.asitplus.wallet.lib.oidvci.BuildClientAttestationJwt
 import at.asitplus.wallet.lib.oidvci.WalletService
-import at.asitplus.wallet.lib.oidvci.buildClientAttestationJwt
 import data.storage.DataStoreService
 import data.storage.PersistentCookieStorage
 import io.github.aakira.napier.Napier
@@ -23,12 +25,13 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import ui.navigation.IntentService
 import kotlin.time.Duration.Companion.minutes
 
 class ProvisioningService(
-    val platformAdapter: PlatformAdapter,
+    val intentService: IntentService,
     private val dataStoreService: DataStoreService,
-    private val cryptoService: CryptoService,
+    private val keyMaterial: KeyMaterial,
     holderAgent: HolderAgent,
     private val config: WalletConfig,
     errorService: ErrorService,
@@ -42,18 +45,22 @@ class ProvisioningService(
     private val redirectUrl = "asitplus-wallet://wallet.a-sit.at/app/callback/provisioning"
     private val clientId = "https://wallet.a-sit.at/app"
     private val clientAttestationJwt = runBlocking {
-        DefaultJwsService(cryptoService).buildClientAttestationJwt(
+        BuildClientAttestationJwt(
+            SignJwt(keyMaterial, JwsHeaderCertOrJwk()),
             clientId = clientId,
             issuer = "https://example.com",
             lifetime = 60.minutes,
-            clientKey = cryptoService.keyMaterial.jsonWebKey
+            clientKey = keyMaterial.jsonWebKey
         ).serialize()
     }
 
     private val openId4VciClient = OpenId4VciClient(
         openUrlExternally = {
-            this.redirectUri = redirectUrl
-            platformAdapter.openUrl(it)
+            intentService.openIntent(
+                url = it,
+                redirectUri = redirectUrl,
+                intentType = IntentService.IntentType.ProvisioningIntent
+            )
         },
         engine = HttpClient().engine,
         cookiesStorage = cookieStorage,
@@ -65,17 +72,20 @@ class ProvisioningService(
             )
         },
         loadProvisioningContext = {
-            dataStoreService.getPreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT).firstOrNull()
+            dataStoreService.getPreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT)
+                .firstOrNull()
                 ?.let {
                     vckJsonSerializer.decodeFromString<ProvisioningContext>(it)
                         .also { dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT) }
                 }
         },
         loadClientAttestationJwt = { clientAttestationJwt },
-        clientAttestationJwsService = DefaultJwsService(cryptoService),
-        oid4vciService = WalletService(clientId, redirectUrl, cryptoService),
+        signClientAttestationPop = SignJwt(keyMaterial, JwsHeaderNone()),
+        oid4vciService = WalletService(clientId, redirectUrl, keyMaterial),
         storeCredential = { cred ->
-            runCatching { holderAgent.storeCredential(cred) }.onFailure { Napier.w("Could not store $cred", it)}
+            runCatching { holderAgent.storeCredential(cred) }.onFailure {
+                Napier.w("Could not store $cred", it)
+            }
         },
         storeRefreshToken = {} // TODO store refresh tokens to refresh credentials later on
     )
@@ -84,7 +94,8 @@ class ProvisioningService(
      * Loads credential metadata info from [host]
      */
     @Throws(Throwable::class)
-    suspend fun loadCredentialMetadata(host: String) = openId4VciClient.loadCredentialMetadata(host).getOrThrow()
+    suspend fun loadCredentialMetadata(host: String) =
+        openId4VciClient.loadCredentialMetadata(host).getOrThrow()
 
     /**
      * Starts the issuing process at [credentialIssuer]
@@ -123,7 +134,7 @@ class ProvisioningService(
         qrCodeContent: String
     ): CredentialOffer {
         val walletService = WalletService(
-            cryptoService = cryptoService,
+            keyMaterial = keyMaterial,
             remoteResourceRetriever = { data ->
                 withContext(Dispatchers.IO) {
                     client.get(data.url).bodyAsText()

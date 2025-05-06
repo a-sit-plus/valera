@@ -18,6 +18,7 @@ import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
 import at.asitplus.wallet.cor.CertificateOfResidenceDataElements
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.eupid.EuPidScheme
+import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
 import at.asitplus.wallet.healthid.HealthIdScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.AttributeIndex
@@ -33,6 +34,7 @@ import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationDataElements
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import at.asitplus.wallet.taxid.TaxIdScheme
+import at.asitplus.wallet.taxid.TaxId2025Scheme
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
@@ -53,7 +55,7 @@ fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, Const
 
     val scheme = AttributeIndex.schemeSet.firstOrNull {
         it.matchAgainstIdentifier(credentialRepresentation, credentialIdentifiers)
-    } ?: throw Throwable("Missing scheme")
+    } ?: throw Throwable("Missing scheme for $credentialIdentifiers")
 
     val matchedCredentialIdentifier = when (credentialRepresentation) {
         PLAIN_JWT -> throw Throwable("PLAIN_JWT not implemented")
@@ -104,10 +106,7 @@ fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, C
 
     val scheme = when (this) {
         is DCQLIsoMdocCredentialQuery -> meta?.doctypeValue?.let { AttributeIndex.resolveIsoDoctype(it) }
-        is DCQLSdJwtCredentialQuery -> meta?.vctValues?.let {
-            if (it.size == 1) AttributeIndex.resolveSdJwtAttributeType(it.first()) else null
-        }
-
+        is DCQLSdJwtCredentialQuery -> meta?.vctValues?.firstNotNullOf { AttributeIndex.resolveSdJwtAttributeType(it) }
         is DCQLCredentialQueryInstance -> null
     } ?: throw Throwable("Missing scheme")
 
@@ -157,12 +156,11 @@ fun ConstantIndex.CredentialScheme.toJsonElement(
     representation: CredentialRepresentation,
 ): JsonElement {
     val dataElements = when (this) {
-        ConstantIndex.AtomicAttribute2023, IdAustriaScheme, EuPidScheme, MobileDrivingLicenceScheme, HealthIdScheme -> this.claimNames
+        ConstantIndex.AtomicAttribute2023, IdAustriaScheme, EuPidScheme, EuPidSdJwtScheme, MobileDrivingLicenceScheme, HealthIdScheme, TaxIdScheme, TaxId2025Scheme -> this.claimNames
         // TODO Use: this.claim names for all schemes
         PowerOfRepresentationScheme -> PowerOfRepresentationDataElements.ALL_ELEMENTS
         CertificateOfResidenceScheme -> CertificateOfResidenceDataElements.ALL_ELEMENTS
         CompanyRegistrationScheme -> CompanyRegistrationDataElements.ALL_ELEMENTS
-        TaxIdScheme -> TaxIdScheme.ALL_ELEMENTS
         else -> TODO("${this::class.simpleName} not implemented in jsonElementBuilder yet")
     }
 

@@ -5,12 +5,13 @@ import android.util.Base64
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
-import at.asitplus.wallet.app.android.AndroidCryptoService
+import at.asitplus.wallet.app.android.AndroidKeyMaterial
 import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
 import at.asitplus.wallet.app.android.dcapi.IdentityCredentialHelper
 import at.asitplus.wallet.app.common.BuildContext
@@ -27,13 +28,14 @@ import data.storage.RealDataStoreService
 import data.storage.getDataStore
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
+import org.multipaz.compose.prompt.PromptDialogs
 import org.multipaz.crypto.Algorithm
 import org.multipaz.crypto.Crypto
 import org.multipaz.crypto.EcCurve
 import org.multipaz.crypto.EcPublicKeyDoubleCoordinate
+import org.multipaz.prompt.AndroidPromptModel
 import ui.theme.darkScheme
 import ui.theme.lightScheme
 import java.io.File
@@ -59,21 +61,23 @@ fun MainView(
     buildContext: BuildContext,
     sendCredentialResponseToDCAPIInvokerMethod: (String) -> Unit
 ) {
-    val scope = CoroutineScope(Dispatchers.Default)
-    val platformAdapter = AndroidPlatformAdapter(LocalContext.current, sendCredentialResponseToDCAPIInvokerMethod, scope)
+    val promptModel = AndroidPromptModel()
+    val platformAdapter = AndroidPlatformAdapter(LocalContext.current, sendCredentialResponseToDCAPIInvokerMethod)
     val dataStoreService = RealDataStoreService(
         getDataStore(LocalContext.current),
         platformAdapter
     )
     val ks = KeystoreService(dataStoreService)
 
+    PromptDialogs(promptModel)
+
     App(
         WalletMain(
-            cryptoService = ks.let { runBlocking { AndroidCryptoService(it.getSigner()) } },
+            keyMaterial = ks.let { runBlocking { AndroidKeyMaterial(it.getSigner()) } },
             dataStoreService = dataStoreService,
             platformAdapter = platformAdapter,
             buildContext = buildContext,
-            scope = scope
+            promptModel = promptModel
         )
     )
 }
@@ -81,7 +85,6 @@ fun MainView(
 class AndroidPlatformAdapter(
     private val context: Context,
     private val sendCredentialResponseToDCAPIInvoker: (String) -> Unit,
-    private val scope: CoroutineScope
 ) : PlatformAdapter {
 
     override fun openUrl(url: String) {

@@ -6,9 +6,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -21,28 +19,26 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.app_display_name
-import at.asitplus.valera.resources.icon_presentation
 import at.asitplus.valera.resources.icon_presentation_error
 import at.asitplus.valera.resources.icon_presentation_success
 import at.asitplus.valera.resources.presentation_canceled
 import at.asitplus.valera.resources.presentation_connecting_to_verifier
 import at.asitplus.valera.resources.presentation_error
-import at.asitplus.valera.resources.presentation_success
-import at.asitplus.valera.resources.presentation_timeout
-import at.asitplus.valera.resources.presentation_waiting_for_request
 import at.asitplus.valera.resources.presentation_initialised
 import at.asitplus.valera.resources.presentation_missing_permission
 import at.asitplus.valera.resources.presentation_permission_required
+import at.asitplus.valera.resources.presentation_success
+import at.asitplus.valera.resources.presentation_timeout
+import at.asitplus.valera.resources.presentation_waiting_for_request
 import at.asitplus.wallet.app.common.SnackbarService
+import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
 import at.asitplus.wallet.app.common.presentation.PresentmentCanceled
-import ui.viewmodels.authentication.PresentationStateModel
 import at.asitplus.wallet.app.common.presentation.PresentmentTimeout
-import at.asitplus.wallet.app.permissions.RequestBluetoothPermissions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -50,12 +46,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import org.multipaz.compose.permissions.rememberBluetoothPermissionState
 import ui.viewmodels.authentication.AuthenticationConsentViewModel
 import ui.viewmodels.authentication.AuthenticationNoCredentialViewModel
 import ui.viewmodels.authentication.AuthenticationSelectionPresentationExchangeViewModel
 import ui.viewmodels.authentication.AuthenticationViewState
 import ui.viewmodels.authentication.DCQLMatchingResult
 import ui.viewmodels.authentication.PresentationExchangeMatchingResult
+import ui.viewmodels.authentication.PresentationStateModel
 import ui.viewmodels.authentication.PresentationViewModel
 import ui.views.authentication.AuthenticationConsentView
 import ui.views.authentication.AuthenticationNoCredentialView
@@ -70,7 +68,7 @@ import kotlin.time.Duration.Companion.seconds
  * A composable used for credential presentment.
  *
  * Applications should embed this composable wherever credential presentment is required. It communicates with the
- * verifier using [PresentmentMechanism] and [PresentationStateModel] and gets application-specific data sources and
+ * verifier using [MdocPresentmentMechanism] and [PresentationStateModel] and gets application-specific data sources and
  * policy using [PresentmentSource].
  *
  * @param presentationViewModel the [PresentationViewModel] to use.
@@ -86,9 +84,10 @@ fun PresentationView(
     onError: (Throwable) -> Unit
 ) {
     val presentationStateModel = presentationViewModel.presentationStateModel
-    presentationViewModel.walletMain.cryptoService.onUnauthenticated =
+    presentationViewModel.walletMain.keyMaterial.onUnauthenticated =
         presentationViewModel.navigateUp
 
+    val blePermissionState = rememberBluetoothPermissionState()
 
     // Make sure we clean up the PresentmentModel when we're done. This is to ensure
     // the mechanism is properly shut down, for example for proximity we need to release
@@ -108,12 +107,15 @@ fun PresentationView(
         PresentationStateModel.State.CONNECTING -> {
         }
 
-        PresentationStateModel.State.CHECK_PERMISSIONS ->
-            RequestBluetoothPermissions({ granted ->
-                presentationStateModel.setPermissionState(
-                    granted
-                )
-            }, snackbarService::showSnackbar)
+        PresentationStateModel.State.CHECK_PERMISSIONS -> {
+            if (blePermissionState.isGranted) {
+                presentationStateModel.setPermissionState(true)
+            } else {
+                coroutineScope.launch {
+                    blePermissionState.launchPermissionRequest()
+                }
+            }
+        }
 
         PresentationStateModel.State.WAITING_FOR_SOURCE -> {
             presentationStateModel.setStepAfterWaitingForSource(presentationViewModel)
@@ -136,7 +138,8 @@ fun PresentationView(
                         },
                         walletMain = presentationViewModel.walletMain,
                         presentationRequest = presentationViewModel.presentationRequest,
-                        onClickLogo = presentationViewModel.onClickLogo
+                        onClickLogo = presentationViewModel.onClickLogo,
+                        onClickSettings = presentationViewModel.onClickSettings
                     )
                     AuthenticationConsentView(
                         viewModel,
@@ -151,11 +154,12 @@ fun PresentationView(
                 }
 
                 AuthenticationViewState.Selection -> {
-                    when(val matching = presentationViewModel.matchingCredentials) {
+                    when (val matching = presentationViewModel.matchingCredentials) {
                         is DCQLMatchingResult -> {
                             AuthenticationSelectionViewScaffold(
                                 onNavigateUp = presentationViewModel.navigateUp,
-                                onClickLogo = {},
+                                onClickLogo = presentationViewModel.onClickLogo,
+                                onClickSettings = presentationViewModel.onClickSettings,
                                 onNext = {
                                     presentationViewModel.confirmSelection(null)
                                 },
@@ -175,9 +179,14 @@ fun PresentationView(
                                 },
                                 navigateUp = { presentationViewModel.viewState = AuthenticationViewState.Consent },
                                 onClickLogo = presentationViewModel.onClickLogo,
+                                onClickSettings = presentationViewModel.onClickSettings,
                                 credentialMatchingResult = matching,
+                                navigateToHomeScreen = presentationViewModel.navigateToHomeScreen
                             )
-                            AuthenticationSelectionPresentationExchangeView(vm = viewModel)
+                            AuthenticationSelectionPresentationExchangeView(
+                                vm = viewModel,
+                                onError = onError,
+                            )
                         }
                     }
                 }
@@ -185,10 +194,16 @@ fun PresentationView(
         }
 
         PresentationStateModel.State.COMPLETED -> {
-            // Delay for a short amount of time so the user has a chance to see the success/error indication
             coroutineScope.launch {
-                delay(1.5.seconds)
-                onPresentmentComplete()
+                when (val error = presentationStateModel.error) {
+                    null -> {
+                        // Delay for a short amount of time so the user has a chance to see the success indication
+                        delay(3.seconds)
+                        onPresentmentComplete()
+                    }
+
+                    else -> onError(error)
+                }
             }
         }
     }
@@ -198,110 +213,47 @@ fun PresentationView(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center
         ) {
-            Spacer(modifier = Modifier.weight(0.15f))
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                val (appNameText, iconPainter, iconCaptionText) = when (state) {
-                    PresentationStateModel.State.IDLE,
-                    PresentationStateModel.State.CONNECTING -> {
-                        Triple(
-                            stringResource(Res.string.app_display_name),
-                            painterResource(Res.drawable.icon_presentation),
-                            stringResource(Res.string.presentation_connecting_to_verifier)
-                        )
+            when (state) {
+                PresentationStateModel.State.IDLE,
+                PresentationStateModel.State.CONNECTING ->
+                    LoadingView(stringResource(Res.string.presentation_connecting_to_verifier))
+
+                PresentationStateModel.State.WAITING_FOR_SOURCE,
+                PresentationStateModel.State.PROCESSING -> LoadingView(
+                    if (presentationStateModel.numRequestsServed.collectAsState().value == 0) {
+                        ""
+                    } else {
+                        stringResource(Res.string.presentation_waiting_for_request)
                     }
+                )
 
-                    PresentationStateModel.State.WAITING_FOR_SOURCE,
-                    PresentationStateModel.State.PROCESSING
-                        -> {
-                        Triple(
-                            stringResource(Res.string.app_display_name),
-                            painterResource(Res.drawable.icon_presentation),
-                            if (presentationStateModel.numRequestsServed.collectAsState().value == 0) {
-                                ""
-                            } else {
-                                stringResource(Res.string.presentation_waiting_for_request)
-                            }
-                        )
+                PresentationStateModel.State.COMPLETED -> {
+                    when (presentationStateModel.error) {
+                        null -> showPresentationSuccess()
+
+                        is PresentmentCanceled ->
+                            showPresentationFailure(stringResource(Res.string.presentation_canceled))
+
+                        is PresentmentTimeout ->
+                            showPresentationFailure(stringResource(Res.string.presentation_timeout))
+
+                        else ->
+                            showPresentationFailure(stringResource(Res.string.presentation_error))
                     }
-
-                    PresentationStateModel.State.COMPLETED -> {
-                        when (presentationStateModel.error) {
-                            null -> Triple(
-                                "",
-                                painterResource(Res.drawable.icon_presentation_success),
-                                stringResource(Res.string.presentation_success)
-                            )
-
-                            is PresentmentCanceled -> Triple(
-                                stringResource(Res.string.app_display_name),
-                                painterResource(Res.drawable.icon_presentation),
-                                stringResource(Res.string.presentation_canceled)
-                            )
-
-                            is PresentmentTimeout -> Triple(
-                                "",
-                                painterResource(Res.drawable.icon_presentation_error),
-                                stringResource(Res.string.presentation_timeout)
-                            )
-
-                            else -> Triple(
-                                "",
-                                painterResource(Res.drawable.icon_presentation_error),
-                                stringResource(Res.string.presentation_error)
-                            )
-                        }
-                    }
-
-                    PresentationStateModel.State.WAITING_FOR_DOCUMENT_SELECTION -> throw IllegalStateException(
-                        "should not be reachable"
-                    )
-
-                    PresentationStateModel.State.NO_PERMISSION -> Triple(
-                        stringResource(Res.string.app_display_name),
-                        painterResource(Res.drawable.icon_presentation),
-                        stringResource(Res.string.presentation_missing_permission)
-                    )
-
-                    PresentationStateModel.State.CHECK_PERMISSIONS -> Triple(
-                        stringResource(Res.string.app_display_name),
-                        painterResource(Res.drawable.icon_presentation),
-                        stringResource(Res.string.presentation_permission_required)
-
-                    )
-
-                    PresentationStateModel.State.INITIALISING -> Triple(
-                        stringResource(Res.string.app_display_name),
-                        painterResource(Res.drawable.icon_presentation),
-                        stringResource(Res.string.presentation_initialised)
-
-                    )
                 }
 
+                PresentationStateModel.State.WAITING_FOR_DOCUMENT_SELECTION ->
+                    throw IllegalStateException("should not be reachable")
 
-                Text(
-                    text = appNameText,
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold
-                )
-                Image(
-                    modifier = Modifier.size(200.dp).fillMaxSize().padding(10.dp),
-                    painter = iconPainter,
-                    contentDescription = null,
-                    contentScale = ContentScale.Fit,
-                )
-                Text(
-                    text = iconCaptionText,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Normal
-                )
+                PresentationStateModel.State.NO_PERMISSION ->
+                    LoadingView(stringResource(Res.string.presentation_missing_permission))
 
+                PresentationStateModel.State.CHECK_PERMISSIONS ->
+                    LoadingView(stringResource(Res.string.presentation_permission_required))
 
+                PresentationStateModel.State.INITIALISING ->
+                    LoadingView(stringResource(Res.string.presentation_initialised))
             }
-            Spacer(modifier = Modifier.weight(1.0f))
         }
     }
 
@@ -338,4 +290,44 @@ fun PresentationView(
             )
         }
     }
+}
+
+@Composable
+fun showPresentationSuccess() {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        showImageAndText(
+            painterResource(Res.drawable.icon_presentation_success),
+            stringResource(Res.string.presentation_success)
+        )
+    }
+}
+
+@Composable
+fun showPresentationFailure(text: String) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        showImageAndText(painterResource(Res.drawable.icon_presentation_error), text)
+    }
+}
+
+@Composable
+fun showImageAndText(painter: Painter, text: String) {
+    Image(
+        modifier = Modifier.size(200.dp).fillMaxSize().padding(10.dp),
+        painter = painter,
+        contentDescription = null,
+        contentScale = ContentScale.Fit,
+    )
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodyLarge,
+        fontWeight = FontWeight.Normal
+    )
 }

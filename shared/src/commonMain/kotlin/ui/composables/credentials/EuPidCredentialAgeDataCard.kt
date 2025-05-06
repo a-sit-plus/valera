@@ -12,7 +12,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import at.asitplus.wallet.eupid.EuPidScheme
 import data.PersonalDataCategory
 import data.credentials.EuPidCredentialAdapter
 import ui.composables.AttributeRepresentation
@@ -23,7 +22,7 @@ fun EuPidCredentialAgeDataCard(
     modifier: Modifier = Modifier,
 ) {
     CredentialDetailCard(
-        credentialScheme = EuPidScheme,
+        credentialScheme = credentialAdapter.scheme,
         personalDataCategory = PersonalDataCategory.AgeData,
         credentialAdapter = credentialAdapter,
         modifier = modifier,
@@ -43,6 +42,7 @@ fun EuPidCredentialAgeDataCardContent(
 ) {
     val agesAtLeastN = listOf(
         18 to credentialAdapter.ageAtLeast18,
+        65 to credentialAdapter.ageAtLeast65,
     )
 
     Column(modifier = modifier) {
