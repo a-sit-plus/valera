@@ -296,6 +296,12 @@ public class AndroidPlatformAdapter(
             sendCredentialResponseToInvoker(response.serialize())
         } ?: throw IllegalStateException("Callback for response not found")
     }
+
+    override fun prepareDCAPICredentialResponse(responseJson: String) {
+        (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
+            sendCredentialResponseToInvoker(responseJson)
+        } ?: throw IllegalStateException("Callback for response not found")
+    }
 }
 
 actual fun getImageDecoder(image: ByteArray): ImageBitmap {
