@@ -229,14 +229,9 @@ class InstrumentedTestsSuite : FunSpec({
                 runBlocking {
                     waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_start)))
                     onNodeWithText(getString(Res.string.button_label_start)).performClick()
-                    onNodeWithText(getString(Res.string.button_label_continue))
-                        .assertIsDisplayed()
                     onNodeWithText(getString(Res.string.button_label_continue)).performClick()
-                    onNodeWithText(getString(Res.string.button_label_accept))
-                        .assertIsDisplayed()
-                    onNodeWithText(getString(Res.string.button_label_accept)).performClick()
                     waitUntilDoesNotExist(
-                        hasText(getString(Res.string.button_label_accept)),
+                        hasText(getString(Res.string.button_label_continue)),
                         10000
                     )
 

@@ -61,14 +61,13 @@ import ui.navigation.routes.LocalPresentationAuthenticationConsentRoute
 import ui.navigation.routes.LogRoute
 import ui.navigation.routes.OnboardingInformationRoute
 import ui.navigation.routes.OnboardingStartRoute
-import ui.navigation.routes.OnboardingTermsRoute
 import ui.navigation.routes.OnboardingWrapperTestTags
 import ui.navigation.routes.PreAuthQrCodeScannerRoute
+import ui.navigation.routes.PresentDataRoute
 import ui.navigation.routes.PresentationIntentRoute
 import ui.navigation.routes.ProvisioningIntentRoute
 import ui.navigation.routes.Route
 import ui.navigation.routes.SettingsRoute
-import ui.navigation.routes.PresentDataRoute
 import ui.navigation.routes.ShowQrCodeRoute
 import ui.navigation.routes.SigningCredentialIntentRoute
 import ui.navigation.routes.SigningIntentRoute
@@ -111,12 +110,11 @@ import ui.views.LoadingView
 import ui.views.LogView
 import ui.views.OnboardingInformationView
 import ui.views.OnboardingStartView
-import ui.views.OnboardingTermsView
 import ui.views.PreAuthQrCodeScannerScreen
+import ui.views.PresentDataView
 import ui.views.PresentationView
 import ui.views.SelectIssuingServerView
 import ui.views.SettingsView
-import ui.views.PresentDataView
 import ui.views.SigningQtspSelectionView
 import ui.views.SigningView
 import ui.views.authentication.AuthenticationQrCodeScannerView
@@ -258,17 +256,8 @@ private fun WalletNavHost(
         }
         composable<OnboardingInformationRoute> {
             OnboardingInformationView(
-                onClickContinue = { navigate(OnboardingTermsRoute) },
-                onClickLogo = onClickLogo,
-            )
-        }
-        composable<OnboardingTermsRoute> {
-            OnboardingTermsView(
-                onClickAccept = { walletMain.walletConfig.set(isConditionsAccepted = true) },
-                onClickNavigateBack = navigateBack,
-                onClickReadDataProtectionPolicy = {},
-                onClickReadGeneralTermsAndConditions = {},
-                onClickLogo = onClickLogo,
+                onClickContinue = { walletMain.walletConfig.set(isConditionsAccepted = true) },
+                onClickLogo = onClickLogo
             )
         }
         composable<HomeScreenRoute> {

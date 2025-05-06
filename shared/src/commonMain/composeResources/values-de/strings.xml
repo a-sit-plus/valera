@@ -256,9 +256,6 @@
     <string name="heading_label_my_data_screen">Meine Daten</string>
     <string name="heading_label_credential_details_screen">Details</string>
     <string name="heading_label_navigate_back">Zurück</string>
-    <string name="heading_label_terms_of_use">Nutzungsbedingungen</string>
-    <string name="heading_label_data_protection">Datenschutz</string>
-    <string name="heading_label_terms_of_use_and_data_protection">Nutzungsbedingungen &amp; Datenschutz</string>
     <string name="heading_label_load_data_screen">Daten laden</string>
     <string name="heading_label_add_credential_screen">Daten laden</string>
     <string name="heading_label_refresh_data_screen">Daten laden</string>
@@ -271,8 +268,7 @@
     <string name="heading_label_received_data">Erhaltene Daten</string>
     <string name="heading_label_select_vda">VDA auswählen</string>
     <string name="heading_label_sign">Signieren</string>
-
-    <string name="description_read_terms">Bitte lesen und akzeptieren Sie die Nutzungsbedingungen und Datenschutzerklärung.</string>
+    <string name="heading_label_tech_demo">Tech Demo</string>
 
     <string name="biometric_authentication_prompt_for_data_transmission_consent_title">Biometrische Authentifizierung</string>
     <string name="biometric_authentication_prompt_for_data_transmission_consent_subtitle">Daten vorzeigen</string>
@@ -335,7 +331,6 @@
     <string name="info_text_no_credentials_available">Es sind noch keine Daten verfügbar.</string>
     <string name="info_text_redirection_to_browser_for_credential_provisioning">Zur Abfrage Ihrer Daten werden Sie in den Browser weitergeleitet.</string>
     <string name="info_text_notice_development_provisioning_using_qr_code_credentials">Zu Entwicklungszwecken gibt es auch die Möglichkeit, Daten über einen QR-Code zu laden.</string>
-    <string name="info_text_enthusiastic_welcome_end">Daten laden und los geht's!</string>
     <string name="info_text_submission_preview_disabled">Vorschau von Übermittelten Daten ist derzeit nicht verfügbar.</string>
     <string name="info_text_no_matching_credential">Es wurde kein passendes Credential für die Anfrage gefunden.</string>
     <string name="info_text_data_is_being_loaded">Daten werden geladen</string>
@@ -343,6 +338,10 @@
     <string name="info_text_qr_code_loading">QR-Code wird geladen</string>
     <string name="info_text_nfc_mdoc_reader">In die Nähe des Gerätes des Ausweishalters halten.</string>
     <string name="info_text_waiting_for_response">Warte auf Antwort vom Gerät des Ausweishalters</string>
+    <string name="info_text_demonstrator">Dies ist ein Demonstrator für Wallet-Technologien, der von A-SIT/A-SIT Plus entwickelt wurde, unter anderem im Zuge des large-scale Piloten POTENTIAL.</string>
+    <string name="info_text_non_productive">Diese App ist nicht für den Produktiv-Einsatz bestimmt!</string>
+    <string name="info_text_co_founded_by_eu">Kofinanziert von der\nEuropäischen Union</string>
+    <string name="info_text_received_funding_from_eu">Dieses Projekt wurde kofinanziert vom Programm „Digitales Europa“ (DIGITAL), Project 101102655 — POTENTIAL.</string>
 
     <string name="section_heading_authenticate_at_device_title">Anmelden</string>
     <string name="section_heading_authenticate_at_device_subtitle">an Service Provider</string>
@@ -388,8 +387,6 @@
     <string name="section_heading_selected_namespace">Namespace: </string>
     <string name="section_heading_select_requested_data_entries">Wähle anzufordernde Daten</string>
 
-    <string name="onboarding_section_terms_and_data_protection_icon_text">1</string>
-    <string name="onboarding_section_terms_and_data_protection_title">Nutzungsbedingungen und Datenschutz</string>
     <string name="onboarding_section_load_data_icon_text">2</string>
     <string name="onboarding_section_load_data_title">Daten in die App laden</string>
     <string name="onboarding_section_load_data_subtitle">mit einmaligem Kontakt zum zentralen ID Austria</string>

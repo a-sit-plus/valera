@@ -12,6 +12,3 @@ object OnboardingStartRoute : Route()
 
 @Serializable
 object OnboardingInformationRoute : Route()
-
-@Serializable
-object OnboardingTermsRoute : Route()

@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.BuildType
@@ -15,6 +16,7 @@ import ui.navigation.PRESENTATION_REQUESTED_INTENT
 class MainActivity : AbstractWalletActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
 
         setContent {

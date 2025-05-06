@@ -2,9 +2,7 @@ package ui.views
 
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.heading_label_authenticate_at_device_title
 import at.asitplus.valera.resources.heading_label_sign
 import org.jetbrains.compose.resources.stringResource
 import ui.viewmodels.SigningViewModel

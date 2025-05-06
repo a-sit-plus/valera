@@ -64,6 +64,9 @@ android {
         resources.excludes += ("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
     }
 }
+dependencies {
+    implementation(libs.core.splashscreen)
+}
 
 repositories {
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")

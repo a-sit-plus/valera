@@ -1,6 +1,5 @@
 package ui.viewmodels
 
-import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.openid.CredentialOfferGrantsPreAuthCodeTransactionCode
 import at.asitplus.wallet.app.common.WalletMain

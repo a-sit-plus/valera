@@ -9,10 +9,10 @@ import at.asitplus.wallet.app.common.iso.transfer.BluetoothInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.stringResource
 import org.multipaz.compose.permissions.rememberBluetoothPermissionState
 import ui.viewmodels.iso.VerifierState
 import ui.viewmodels.iso.VerifierViewModel
+import org.jetbrains.compose.resources.stringResource
 import ui.views.LoadingView
 
 @Composable
@@ -37,13 +37,13 @@ fun VerifierView(
     }
 
     when (verifierState) {
-        VerifierState.INIT -> { VerifierDocumentSelectionView(vm, bottomBar) }
-        VerifierState.SELECT_CUSTOM_REQUEST -> { VerifierCustomSelectionView(vm) }
-        VerifierState.QR_ENGAGEMENT -> { VerifierQrEngagementView(vm) }
-        VerifierState.WAITING_FOR_RESPONSE -> {
+        VerifierState.INIT -> VerifierDocumentSelectionView(vm, bottomBar)
+        VerifierState.SELECT_CUSTOM_REQUEST -> VerifierCustomSelectionView(vm)
+        VerifierState.QR_ENGAGEMENT -> VerifierQrEngagementView(vm)
+        VerifierState.WAITING_FOR_RESPONSE ->
             LoadingView(stringResource(Res.string.info_text_waiting_for_response), vm.navigateUp)
-        }
-        VerifierState.PRESENTATION -> { VerifierPresentationView(vm) }
-        VerifierState.ERROR -> { onError(Throwable(vm.errorMessage.value)) }
+
+        VerifierState.PRESENTATION -> VerifierPresentationView(vm)
+        VerifierState.ERROR -> onError(Throwable(vm.errorMessage.value))
     }
 }

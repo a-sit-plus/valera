@@ -12,18 +12,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.style.TextAlign
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.navigation_button_label_check
 import at.asitplus.valera.resources.button_label_sign
+import at.asitplus.valera.resources.navigation_button_label_check
 import at.asitplus.valera.resources.navigation_button_label_my_data
 import at.asitplus.valera.resources.navigation_button_label_show_data
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import ui.navigation.routes.HomeScreenRoute
-import ui.navigation.routes.Route
-import ui.navigation.routes.SettingsRoute
 import ui.navigation.routes.PresentDataRoute
-import ui.navigation.routes.VerifyDataRoute
+import ui.navigation.routes.Route
 import ui.navigation.routes.SigningRoute
+import ui.navigation.routes.VerifyDataRoute
 
 @Composable
 fun BottomBar(navigate: (Route) -> Unit, selected: NavigationData) {

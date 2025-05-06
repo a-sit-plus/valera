@@ -38,7 +38,6 @@ import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_select_custom_data_retrieval_screen
-import at.asitplus.valera.resources.heading_label_select_data_retrieval_screen
 import at.asitplus.valera.resources.section_heading_select_document_type
 import at.asitplus.valera.resources.section_heading_select_requested_data_entries
 import at.asitplus.valera.resources.section_heading_selected_namespace

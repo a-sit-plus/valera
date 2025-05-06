@@ -28,7 +28,6 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_authenticate
 import at.asitplus.valera.resources.button_label_present_data
-import at.asitplus.valera.resources.heading_label_credential_details_screen
 import at.asitplus.valera.resources.heading_label_show_data
 import at.asitplus.valera.resources.info_text_show_data_situation
 import at.asitplus.valera.resources.section_heading_authenticate_at_device_subtitle

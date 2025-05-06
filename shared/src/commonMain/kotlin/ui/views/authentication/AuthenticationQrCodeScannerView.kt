@@ -1,7 +1,6 @@
 package ui.views.authentication
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_authenticate_at_device_subtitle
 import at.asitplus.valera.resources.heading_label_authenticate_at_device_title
