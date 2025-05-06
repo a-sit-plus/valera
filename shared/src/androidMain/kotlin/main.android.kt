@@ -175,7 +175,7 @@ public class AndroidPlatformAdapter(
 
     @OptIn(ExperimentalDigitalCredentialApi::class)
     override fun getCurrentDCAPIData(): KmmResult<DCAPIRequest> = catching {
-        (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.let { (intent, sendCredentialResponseToInvoker) ->
+        (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.let { (intent, _) ->
             // Adapted from https://github.com/openwallet-foundation-labs/identity-credential/blob/d7a37a5c672ed6fe1d863cbaeb1a998314d19fc5/wallet/src/main/java/com/android/identity_credential/wallet/credman/CredmanPresentationActivity.kt#L74
             val request = PendingIntentHandler.retrieveProviderGetCredentialRequest(intent)
             val credentialId = request!!.selectedEntryId!!.toInt()
@@ -241,13 +241,12 @@ public class AndroidPlatformAdapter(
                         nonce,
                         readerPublicKeyBase64,
                         docType,
-                        sendCredentialResponseToInvoker
                     )
                 }
                 protocol.startsWith("openid4vp") -> {
                     Napier.d("Using protocol $protocol, got request $request for credential ID $credentialId")
                     Oid4vpDCAPIRequest(
-                        protocol, parsedRequest, credentialId, callingPackageName, callingOrigin, sendCredentialResponseToInvoker
+                        protocol, parsedRequest, credentialId, callingPackageName, callingOrigin
                     )
                 }
                 else -> {
@@ -293,7 +292,9 @@ public class AndroidPlatformAdapter(
 
         val response =
             ResponseJSON(kotlin.io.encoding.Base64.UrlSafe.encode(encodedCredentialDocument))
-        dcApiRequestPreview.sendCredentialResponseToInvoker(response.serialize())
+        (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
+            sendCredentialResponseToInvoker(response.serialize())
+        } ?: throw IllegalStateException("Callback for response not found")
     }
 }
 
