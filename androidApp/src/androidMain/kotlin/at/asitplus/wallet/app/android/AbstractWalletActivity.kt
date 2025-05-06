@@ -6,8 +6,10 @@ import android.nfc.NfcAdapter
 import android.nfc.cardemulation.CardEmulation
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.gms.identitycredentials.GetCredentialResponse
-import com.google.android.gms.identitycredentials.IntentHelper
+import androidx.credentials.DigitalCredential
+import androidx.credentials.ExperimentalDigitalCredentialApi
+import androidx.credentials.GetCredentialResponse
+import androidx.credentials.provider.PendingIntentHandler
 import io.github.aakira.napier.Napier
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.multipaz.context.initializeApplication
@@ -31,16 +33,26 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
         initializeApplication(this.applicationContext)
     }
 
+    @OptIn(ExperimentalDigitalCredentialApi::class)
     fun sendCredentialResponseToDCAPIInvoker(resultJson: String) {
         val resultData = Intent()
-        val bundle = Bundle().apply {
+        /*val bundle = Bundle().apply {
             putByteArray("identityToken", resultJson.toByteArray())
         }
+
         val credentialResponse = com.google.android.gms.identitycredentials.Credential("type", bundle)
 
         IntentHelper.setGetCredentialResponse(
             resultData,
             GetCredentialResponse(credentialResponse)
+        )
+        */
+
+        PendingIntentHandler.setGetCredentialResponse(
+            resultData,
+            GetCredentialResponse(
+                DigitalCredential(resultJson)
+            )
         )
         setResult(RESULT_OK, resultData)
         finish()
@@ -64,7 +76,7 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
         NfcAdapter.getDefaultAdapter(this)?.let {
             val cardEmulation = CardEmulation.getInstance(it)
             if (!cardEmulation.unsetPreferredService(this)) {
-                Napier.w("CardEmulation.unsetPreferredService() return false")
+                Napier.w("CardEmulation.unsetPreferredService() returned false")
             }
         }
     }
