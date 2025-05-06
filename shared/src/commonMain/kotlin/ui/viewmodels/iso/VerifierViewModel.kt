@@ -2,16 +2,17 @@ package ui.viewmodels.iso
 
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.iso.transfer.DeviceEngagementMethods
+import at.asitplus.wallet.app.common.iso.transfer.MdocConstants.MDOC_PREFIX
 import at.asitplus.wallet.app.common.iso.transfer.TransferManager
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.lib.iso.DeviceResponse
 import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
-import at.asitplus.wallet.app.common.iso.transfer.MdocConstants.MDOC_PREFIX
 import data.document.RequestDocument
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import ui.viewmodels.iso.SelectableAge.OVER_12
 import ui.viewmodels.iso.SelectableAge.OVER_14
 import ui.viewmodels.iso.SelectableAge.OVER_16
 import ui.viewmodels.iso.SelectableAge.OVER_18
@@ -150,7 +151,7 @@ fun getMdlFullAttributesRequestDocument(): RequestDocument {
     return RequestDocument(
         docType = MobileDrivingLicenceScheme.isoDocType,
         itemsToRequest = mapOf(
-            MobileDrivingLicenceScheme.isoNamespace to MobileDrivingLicenceScheme.claimNames
+            MobileDrivingLicenceScheme.isoNamespace to MobileDrivingLicenceDataElements.ALL_ELEMENTS
                 .associateWith { false }
         )
     )
@@ -186,6 +187,7 @@ fun getPidPreselection(): Set<String> {
 
 fun getAgeVerificationRequestDocument(age: Int): RequestDocument {
     val elementName = when(age) {
+        OVER_12 -> MobileDrivingLicenceDataElements.AGE_OVER_12
         OVER_14 -> MobileDrivingLicenceDataElements.AGE_OVER_14
         OVER_16 -> MobileDrivingLicenceDataElements.AGE_OVER_16
         OVER_18 -> MobileDrivingLicenceDataElements.AGE_OVER_18
@@ -214,6 +216,7 @@ fun itemsToRequestDocument(
 }
 
 object SelectableAge {
+    const val OVER_12 = 12
     const val OVER_14 = 14
     const val OVER_16 = 16
     const val OVER_18 = 18
