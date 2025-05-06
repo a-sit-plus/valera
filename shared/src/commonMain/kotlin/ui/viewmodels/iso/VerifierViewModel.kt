@@ -38,6 +38,8 @@ class VerifierViewModel(
 
     private val _requestDocument = MutableStateFlow<RequestDocument?>(null)
 
+    val selectableDocTypes = listOf<String>(SelectableDocType.MDL, SelectableDocType.PID)
+
     private val _deviceResponse = MutableStateFlow<DeviceResponse?>(null)
     val deviceResponse: StateFlow<DeviceResponse?> = _deviceResponse
 
@@ -213,6 +215,11 @@ fun itemsToRequestDocument(
             namespace to entries.associateWith { false }
         )
     )
+}
+
+object SelectableDocType {
+    val MDL = MobileDrivingLicenceScheme.isoDocType
+    val PID = EuPidScheme.isoDocType
 }
 
 object SelectableAge {
