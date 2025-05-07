@@ -261,7 +261,7 @@
     <string name="heading_label_authenticate_at_device_screen">Authenticate at\nrelying party</string>
     <string name="heading_label_sign_document">Sign document</string>
     <string name="heading_label_select_data_retrieval_screen">Check</string>
-    <string name="heading_label_select_custom_data_retrieval_screen">Custom Request</string>
+    <string name="heading_label_select_custom_data_retrieval_screen">Custom</string>
     <string name="heading_label_check_scan_qr_code">Scan QR-Code</string>
     <string name="heading_label_show_qr_code_screen">Scan me!</string>
     <string name="heading_label_received_data">Received Data</string>
