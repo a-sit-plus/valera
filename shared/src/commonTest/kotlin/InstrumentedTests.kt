@@ -5,16 +5,12 @@ import io.kotest.engine.listener.CollectingTestEngineListener
 import kotlin.test.Test
 import kotlin.test.assertFalse
 
-/*
-
-
 class InstrumentedTests {
 
     @OptIn(KotestInternal::class)
     @Test
     fun runInstrumentedTests() {
 
-        println("======0")
         val listener = CollectingTestEngineListener()
         TestEngineLauncher(listener).withClasses(InstrumentedTestsSuite::class).launch()
         listener.tests.map { entry ->
@@ -58,7 +54,3 @@ class InstrumentedTests {
         }
     }
 }
-
-
-
-*/

@@ -37,10 +37,15 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.ClaimToBeIssued
 import at.asitplus.wallet.lib.agent.CredentialToBeIssued
+import at.asitplus.wallet.lib.agent.DefaultCryptoService
 import at.asitplus.wallet.lib.agent.EphemeralKeyWithSelfSignedCert
+import at.asitplus.wallet.lib.agent.EphemeralKeyWithoutCert
 import at.asitplus.wallet.lib.agent.IssuerAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
+import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.agent.toStoreCredentialInput
+import at.asitplus.wallet.lib.cbor.DefaultCoseService
+import at.asitplus.wallet.lib.jws.DefaultJwsService
 import data.storage.DummyDataStoreService
 import io.kotest.common.Platform
 import io.kotest.common.platform
@@ -56,7 +61,8 @@ import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
@@ -70,19 +76,35 @@ import org.jetbrains.compose.resources.getString
 import ui.navigation.NavigatorTestTags
 import ui.navigation.routes.OnboardingWrapperTestTags
 import ui.views.OnboardingStartScreenTestTag
-import kotlin.test.Test
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.minutes
 
-private lateinit var lifecycleRegistry: LifecycleRegistry
 
+private lateinit var lifecycleRegistry: LifecycleRegistry
+private lateinit var lifecycleOwner: TestLifecycleOwner
 
 @OptIn(ExperimentalTestApi::class)
-class InstrumentedTestsSuite {
+class InstrumentedTestsSuite : FunSpec({
 
-    @Test
-    fun usingCollectAsStateWithLifecycle() = runComposeUiTest() {
+    beforeTest {
+        withContext(Dispatchers.Unconfined) {
+        lifecycleOwner = TestLifecycleOwner()
+        lifecycleRegistry = LifecycleRegistry(lifecycleOwner).apply {
+            currentState = Lifecycle.State.CREATED
+        }
+            }
+    }
 
+    afterTest {
+        //android needs main, iOS probably too, but it hangs on iOS, so we let it at least fail
+        withContext(if (platform != Platform.Native) Dispatchers.Main else Dispatchers.Unconfined) {
+            lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
+        }
+    }
+
+    context("Starting App Tests") {
+        test("Using collectAsStateWithLifecycle properly updates state to assert") {
+            runComposeUiTest {
                 val dummyDataStoreService = DummyDataStoreService()
                 val preferenceKey = "test"
                 val testValue = "loaded"
@@ -100,29 +122,27 @@ class InstrumentedTestsSuite {
                     onNodeWithText(testValue).isDisplayed()
                 }
             }
+        }
 
-    @Test
-    fun appShouldStartCorrectly() = runComposeUiTest() {
-        //test("App should start correctly") {
-            //runComposeUiTest {
+        test("App should start correctly") {
+            runComposeUiTest {
                 setContent {
                     CompositionLocalProvider(
                         LocalLifecycleOwner provides LocalLifecycleOwnerFake()
 
                     ) {
-                        val platformAdapter = getPlatformAdapter()
-                        val walletMain = createWalletMain(platformAdapter)
-                        App(walletMain)
-                    }
-                }
+                    val platformAdapter = getPlatformAdapter()
+                    val walletMain = createWalletMain(platformAdapter)
+                    App(walletMain)
+                }}
 
-        /*
+                /*
                 waitUntil {
                     onNodeWithTag(NavigatorTestTags.loadingTestTag)
                         .isNotDisplayed()
                 }
 
-         */
+                 */
 
                 waitUntil {
                     onNodeWithTag(OnboardingWrapperTestTags.onboardingStartScreen)
@@ -132,11 +152,10 @@ class InstrumentedTestsSuite {
                 onNodeWithTag(OnboardingStartScreenTestTag.startButton)
                     .assertIsDisplayed()
             }
+        }
 
-    @Test
-    fun appShouldDisplayOnboardingScreen() = runComposeUiTest() {
-        //test("Test 2: App should display onboarding screen") {
-            //runComposeUiTest {
+        test("Test 2: App should display onboarding screen") {
+            runComposeUiTest {
                 setContent {
                     CompositionLocalProvider(
                         LocalLifecycleOwner provides LocalLifecycleOwnerFake()
@@ -148,43 +167,39 @@ class InstrumentedTestsSuite {
                     }
                 }
 
-        /*
+                /*
                 waitUntil {
                     onNodeWithTag(NavigatorTestTags.loadingTestTag)
                         .isNotDisplayed()
                 }
 
-         */
+                 */
 
                 onNodeWithTag(OnboardingWrapperTestTags.onboardingStartScreen)
                     .assertIsDisplayed()
 
             }
+        }
 
-
-@Test
-fun appShouldShowOnboardingStartButton() = runComposeUiTest() {
-
-        //test("Test 3: App should show onboarding start button") {
-            //runComposeUiTest {
+        test("Test 3: App should show onboarding start button") {
+            runComposeUiTest {
                 setContent {
                     CompositionLocalProvider(
                         LocalLifecycleOwner provides LocalLifecycleOwnerFake()
 
                     ) {
-                        val platformAdapter = getPlatformAdapter()
-                        val walletMain = createWalletMain(platformAdapter)
-                        App(walletMain)
-                    }
-                }
+                    val platformAdapter = getPlatformAdapter()
+                    val walletMain = createWalletMain(platformAdapter)
+                    App(walletMain)
+                }}
 
-    /*
+                /*
                 waitUntil {
                     onNodeWithTag(NavigatorTestTags.loadingTestTag)
                         .isNotDisplayed()
                 }
 
-     */
+                 */
 
                 waitUntil {
                     onNodeWithTag(OnboardingWrapperTestTags.onboardingStartScreen)
@@ -195,14 +210,12 @@ fun appShouldShowOnboardingStartButton() = runComposeUiTest() {
                     .assertIsDisplayed()
 
             }
+        }
+    }
 
-
-@Test
-fun endToEndTest() = runComposeUiTest() {
-
-   // context("End to End Tests") {
-    //    test("End to End Test 1: Should complete the process") {
-            //runComposeUiTest {
+    context("End to End Tests") {
+        test("End to End Test 1: Should complete the process") {
+            runComposeUiTest {
                 lateinit var walletMain: WalletMain
                 setContent {
                     CompositionLocalProvider(
@@ -212,8 +225,8 @@ fun endToEndTest() = runComposeUiTest() {
                         val platformAdapter = getPlatformAdapter()
                         walletMain = createWalletMain(platformAdapter)
                         App(walletMain)
-                    }
 
+                    }
                         val issuer = IssuerAgent()
                         runBlocking {
                             walletMain.holderAgent.storeCredential(
@@ -243,9 +256,8 @@ fun endToEndTest() = runComposeUiTest() {
                         10000
                     )
 
-                    onNodeWithContentDescription(getString(Res.string.content_description_portrait)).assertHeightIsAtLeast(
-                        1.dp
-                    )
+                    onNodeWithContentDescription(getString(Res.string.content_description_portrait))
+                        .assertHeightIsAtLeast(1.dp)
                     onNodeWithText("XXXÉliás XXXTörőcsik").assertExists()
                     onNodeWithText("11.10.1965").assertExists()
 
@@ -263,24 +275,18 @@ fun endToEndTest() = runComposeUiTest() {
 
                     onNodeWithText(getString(Res.string.button_label_details)).performClick()
 
-
-                    /*
+/*
                     val client = HttpClient {
                         expectSuccess = true
                         install(ContentNegotiation) {
                             json()
                         }
                     }
-
-                     */
+ */
 
                     val client = httpClient
 
 
-
-                    val id = performRequest(httpClient, request, appLink)
-
-                    /*
                     val responseGenerateRequest =
                         client.post("https://apps.egiz.gv.at/customverifier/transaction/create") {
                             contentType(ContentType.Application.Json)
@@ -294,8 +300,7 @@ fun endToEndTest() = runComposeUiTest() {
 
                     appLink.value = qrCodeUrl!!
 
-                    */
-
+                    /*
                     waitUntilExactlyOneExists(
                         hasText(getString(Res.string.button_label_continue)),
                         10000
@@ -303,15 +308,16 @@ fun endToEndTest() = runComposeUiTest() {
 
                     onNodeWithText(getString(Res.string.button_label_continue)).performClick()
 
+                     */
+
                     val url = "https://apps.egiz.gv.at/customverifier/customer-success.html?id=$id"
                     val responseSuccess = client.get(url)
                     assertTrue { responseSuccess.status.value in 200..299 }
-
-
                 }
             }
-
-}
+        }
+    }
+})
 
 val request = Json.encodeToString(
     RequestBody.serializer(),
@@ -392,20 +398,9 @@ private fun createWalletMain(platformAdapter: PlatformAdapter): WalletMain {
     )
 }
 
-suspend fun performRequest(client: HttpClient, request: Any, appLink: MutableStateFlow<String?>) : String? {
-    val responseGenerateRequest = client.post("https://apps.egiz.gv.at/customverifier/transaction/create") {
-        contentType(ContentType.Application.Json)
-        setBody(request)
-    }.body<JsonObject>()
-
-    val firstProfile = responseGenerateRequest["profiles"]?.jsonArray?.first()?.jsonObject
-    val qrCodeUrl = firstProfile?.get("url")?.jsonPrimitive?.content
-    val id = firstProfile?.get("id")?.jsonPrimitive?.content
-
-    appLink.value = qrCodeUrl ?: throw IllegalStateException("QR Code URL not found")
-
-
-    return id
+class TestLifecycleOwner : LifecycleOwner {
+    private val _lifecycle = LifecycleRegistry(this)
+    override val lifecycle: Lifecycle get() = _lifecycle
 }
 
 class LocalLifecycleOwnerFake : LifecycleOwner {
@@ -414,11 +409,3 @@ class LocalLifecycleOwnerFake : LifecycleOwner {
     }
 
 }
-
-/*
-class TestLifecycleOwner : LifecycleOwner {
-    private val _lifecycle = LifecycleRegistry(this)
-    override val lifecycle: Lifecycle get() = _lifecycle
-}
-
- */
