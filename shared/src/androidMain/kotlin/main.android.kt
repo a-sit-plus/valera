@@ -298,9 +298,10 @@ public class AndroidPlatformAdapter(
         } ?: throw IllegalStateException("Callback for response not found")
     }
 
-    override fun prepareDCAPICredentialResponse(responseJson: String) {
+    override fun prepareDCAPICredentialResponse(response: String) {
         (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
-            sendCredentialResponseToInvoker(responseJson)
+            Napier.d("Returning response $response to digital credentials API invoker")
+            sendCredentialResponseToInvoker(response)
         } ?: throw IllegalStateException("Callback for response not found")
     }
 }

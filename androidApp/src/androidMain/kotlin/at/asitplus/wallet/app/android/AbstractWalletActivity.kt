@@ -6,6 +6,7 @@ import android.nfc.NfcAdapter
 import android.nfc.cardemulation.CardEmulation
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.credentials.CustomCredential
 import androidx.credentials.DigitalCredential
 import androidx.credentials.ExperimentalDigitalCredentialApi
 import androidx.credentials.GetCredentialResponse
@@ -48,10 +49,19 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
         )
         */
 
+        val credential = try {
+            DigitalCredential(resultJson)
+        } catch (e: IllegalArgumentException) {
+            val bundle = Bundle().apply {
+                putByteArray("identityToken", resultJson.toByteArray())
+            }
+            CustomCredential("type", bundle)
+        }
+
         PendingIntentHandler.setGetCredentialResponse(
             resultData,
             GetCredentialResponse(
-                DigitalCredential(resultJson)
+                credential
             )
         )
         setResult(RESULT_OK, resultData)
