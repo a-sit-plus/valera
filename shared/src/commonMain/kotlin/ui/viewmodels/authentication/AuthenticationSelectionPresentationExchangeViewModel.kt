@@ -16,6 +16,9 @@ import at.asitplus.wallet.lib.agent.PresentationExchangeCredentialDisclosure
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.CredentialToJsonConverter
+import at.asitplus.wallet.por.PowerOfRepresentationScheme
+import at.asitplus.wallet.taxid.TaxId2025Scheme
+import at.asitplus.wallet.taxid.TaxIdScheme
 import io.github.aakira.napier.Napier
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.jsonObject
@@ -73,24 +76,31 @@ class AuthenticationSelectionPresentationExchangeViewModel(
                 requestsId to PresentationExchangeCredentialDisclosure(
                     credential,
                     // Manually assigns all available attributes in ISO HealthId credential
-                    if (credential.representation == ConstantIndex.CredentialRepresentation.ISO_MDOC && credential.scheme == HealthIdScheme) {
-                        val claimStructure = CredentialToJsonConverter.toJsonElement(credential)
-                        Napier.d("Claim Structure: $claimStructure")
-                        val allAttributes = HealthIdScheme.claimNames.map {
-                            NormalizedJsonPath() + credential.scheme!!.isoNamespace!! + it
-                        }
-                        val availableAttributes = allAttributes.filter { attribute ->
-                            val (namespace, attributeName) = attribute.segments.map {
-                                (it as NormalizedJsonPathSegment.NameSegment).memberName
+                    if (credential.representation == ConstantIndex.CredentialRepresentation.ISO_MDOC) {
+
+                        when (credential.scheme) {
+                            is HealthIdScheme,
+                            is PowerOfRepresentationScheme,
+                            is TaxId2025Scheme,
+                            is TaxIdScheme -> credential.scheme!!.claimNames.map {
+                                NormalizedJsonPath() + credential.scheme!!.isoNamespace!! + it
                             }
-                            runCatching {
-                                claimStructure.jsonObject[namespace]!!.jsonObject[attributeName].also {
-                                    Napier.d("$it is available: $it")
-                                } != null
-                            }.getOrNull() ?: false
-                        }
-                        availableAttributes
-                    } else disclosedAttributes)
+
+                            else -> null
+                        }?.let { allAttributes ->
+                            val claimStructure = CredentialToJsonConverter.toJsonElement(credential)
+                            Napier.d("Claim Structure: $claimStructure")
+                            allAttributes.filter { attribute ->
+                                val (namespace, attributeName) = attribute.segments.map {
+                                    (it as NormalizedJsonPathSegment.NameSegment).memberName
+                                }
+                                runCatching {
+                                    claimStructure.jsonObject[namespace]!!.jsonObject[attributeName] != null
+                                }.getOrNull() ?: false
+                            }
+                        } ?: disclosedAttributes
+                    } else disclosedAttributes
+                )
             }.toMap()
             Napier.d("Presenting Selection: $submission")
             confirmSelections(PresentationExchangeCredentialSubmissions(submission))
