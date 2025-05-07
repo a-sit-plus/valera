@@ -46,10 +46,10 @@ import at.asitplus.valera.resources.section_heading_request_pid
 import at.asitplus.valera.resources.text_label_all_attributes
 import at.asitplus.valera.resources.text_label_mandatory_attributes
 import at.asitplus.wallet.app.common.iso.transfer.DeviceEngagementMethods
+import data.document.SelectableAges
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.ScreenHeading
-import ui.viewmodels.iso.SelectableAge
 import ui.viewmodels.iso.VerifierViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -165,7 +165,7 @@ fun VerifierDocumentSelectionView(
                     )
                     if (showDropDown.value) {
                         Column {
-                            for (age in SelectableAge.values) {
+                            for (age in SelectableAges.values) {
                                 TextIconButtonListItem(
                                     icon = {},
                                     label = stringResource(Res.string.button_label_check_over_age, age),
