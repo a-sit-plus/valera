@@ -54,6 +54,8 @@ import ui.viewmodels.iso.VerifierViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VerifierCustomSelectionView(vm: VerifierViewModel) {
+    val listSpacingModifier = Modifier.padding(top = 8.dp)
+    val sectionSpacingModifier = Modifier.padding(top = 16.dp)
 
     var selectedDocumentType by remember { mutableStateOf(SelectableDocTypes.MDL) }
     var selectedEntries by remember { mutableStateOf(getPreselection(SelectableDocTypes.MDL)) }
@@ -74,7 +76,7 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                     Column(modifier = Modifier.clickable(onClick = vm.onClickSettings)) {
                         Icon(
                             imageVector = Icons.Outlined.Settings,
-                            contentDescription = null,
+                            contentDescription = null
                         )
                     }
                     Spacer(Modifier.width(15.dp))
@@ -91,7 +93,6 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                             contentDescription = null
                         )
                     },
-                    label = {},
                     onClick = {
                         docTypeConfigs[selectedDocumentType]?.let { config ->
                             val items = itemsToRequestDocument(
@@ -102,51 +103,44 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                             vm.onReceiveCustomSelection(items, vm.selectedEngagementMethod.value)
                         }
                     },
-                    selected = false,
+                    selected = false
                 )
             }
-        },
+        }
     ) { scaffoldPadding ->
         Box(modifier = Modifier.padding(scaffoldPadding)) {
             Column(
                 modifier = Modifier.padding(end = 16.dp, start = 16.dp, bottom = 16.dp)
                     .verticalScroll(rememberScrollState())
             ) {
-                val layoutSpacingModifier = Modifier.padding(top = 24.dp)
-
-                Column(modifier = layoutSpacingModifier) {
-                    val listSpacingModifier = Modifier.padding(top = 8.dp)
+                // Document selection
+                Column(modifier = sectionSpacingModifier) {
                     Text(
                         text = stringResource(Res.string.section_heading_select_document_type),
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleMedium
                     )
                     for (docType in vm.selectableDocTypes) {
-                        singleChoiceButton(
-                            docType,
-                            selectedDocumentType,
-                            listSpacingModifier
-                        ) {
+                        singleChoiceButton(docType, selectedDocumentType, listSpacingModifier) {
                             selectedDocumentType = docType
-                            selectedEntries =
-                                docTypeConfigs[docType]?.preselection?.invoke() ?: emptySet()
+                            selectedEntries = docTypeConfigs[docType]?.preselection?.invoke() ?: emptySet()
                         }
                     }
                 }
-
-                Column(modifier = layoutSpacingModifier) {
+                // Namespace info
+                Column(modifier = sectionSpacingModifier) {
                     Text(
                         text = stringResource(
                             Res.string.section_heading_selected_namespace,
                             docTypeConfigs[selectedDocumentType]?.namespace ?: ""
                         ),
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleMedium
                     )
                 }
-                Column(modifier = layoutSpacingModifier) {
-                    val listSpacingModifier = Modifier.padding(top = 8.dp)
+                // Attribute selection
+                Column(modifier = sectionSpacingModifier) {
                     Text(
                         text = stringResource(Res.string.section_heading_select_requested_data_entries),
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleMedium
                     )
                     docTypeConfigs[selectedDocumentType]?.let { config ->
                         for (element in config.claimNames) {
@@ -203,7 +197,7 @@ private fun multipleChoiceButton(
     value: Boolean,
     contains: Boolean,
     modifier: Modifier = Modifier,
-    onValueChange: (Boolean) -> Unit,
+    onValueChange: (Boolean) -> Unit
 ) {
     Row(
         modifier = modifier.toggleable(

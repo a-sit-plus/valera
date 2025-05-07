@@ -83,7 +83,8 @@ fun VerifierDocumentSelectionView(
                         )
                     }
                     Spacer(Modifier.width(15.dp))
-                })
+                }
+            )
         },
         bottomBar = { bottomBar() }
     ) { scaffoldPadding ->
@@ -133,11 +134,7 @@ fun VerifierDocumentSelectionView(
                         },
                         label = stringResource(Res.string.button_label_check_license),
                         subLabel = stringResource(Res.string.text_label_mandatory_attributes),
-                        onClick = {
-                            vm.onClickPredefinedMdlMandatoryAttributes(
-                                selectedEngagementMethod
-                            )
-                        },
+                        onClick = { vm.onClickPredefinedMdlMandatoryAttributes(selectedEngagementMethod) },
                         modifier = listSpacingModifier.fillMaxWidth()
                     )
                     TextIconButtonListItem(
@@ -190,11 +187,7 @@ fun VerifierDocumentSelectionView(
                         },
                         label = stringResource(Res.string.button_label_check_identity),
                         subLabel = stringResource(Res.string.text_label_mandatory_attributes),
-                        onClick = {
-                            vm.onClickPredefinedPidRequiredAttributes(
-                                selectedEngagementMethod
-                            )
-                        },
+                        onClick = { vm.onClickPredefinedPidRequiredAttributes(selectedEngagementMethod) },
                         modifier = listSpacingModifier.fillMaxWidth()
                     )
                     TextIconButtonListItem(
@@ -241,8 +234,7 @@ fun TextIconButtonListItem(
     modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = modifier
-            .clickable(onClick = onClick)
+        modifier = modifier.clickable(onClick = onClick)
             .padding(top = 4.dp, end = 16.dp, bottom = 4.dp, start = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
