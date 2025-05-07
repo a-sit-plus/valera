@@ -41,10 +41,6 @@ import at.asitplus.valera.resources.heading_label_select_custom_data_retrieval_s
 import at.asitplus.valera.resources.section_heading_select_document_type
 import at.asitplus.valera.resources.section_heading_select_requested_data_entries
 import at.asitplus.valera.resources.section_heading_selected_namespace
-import at.asitplus.wallet.eupid.EuPidScheme
-import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
-import data.credentials.EuPidCredentialAttributeTranslator
-import data.credentials.MobileDrivingLicenceCredentialAttributeTranslator
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.ScreenHeading
@@ -52,13 +48,13 @@ import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.iso.SelectableDocType
 import ui.viewmodels.iso.VerifierViewModel
 import ui.viewmodels.iso.getMdlPreselection
-import ui.viewmodels.iso.getPidPreselection
 import ui.viewmodels.iso.itemsToRequestDocument
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VerifierCustomSelectionView(vm: VerifierViewModel) {
 
+    val docTypeConfigs = remember { vm.docTypeConfigs }
     var selectedDocumentType by remember { mutableStateOf(SelectableDocType.MDL) }
     var selectedEntries by remember { mutableStateOf(getMdlPreselection()) }
 
@@ -97,24 +93,13 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                     },
                     label = {},
                     onClick = {
-                        when (selectedDocumentType) {
-                            SelectableDocType.MDL -> {
-                                itemsToRequestDocument(
-                                    docType = MobileDrivingLicenceScheme.isoDocType,
-                                    namespace = MobileDrivingLicenceScheme.isoNamespace,
-                                    entries = selectedEntries
-                                )
-                            }
-                            SelectableDocType.PID -> {
-                                itemsToRequestDocument(
-                                    docType = EuPidScheme.isoDocType,
-                                    namespace = EuPidScheme.isoNamespace,
-                                    entries = selectedEntries
-                                )
-                            }
-                            else -> null
-                        }?.let {
-                            vm.onReceiveCustomSelection(it, vm.selectedEngagementMethod.value)
+                        docTypeConfigs[selectedDocumentType]?.let { config ->
+                            val items = itemsToRequestDocument(
+                                docType = config.docType,
+                                namespace = config.namespace,
+                                entries = selectedEntries
+                            )
+                            vm.onReceiveCustomSelection(items, vm.selectedEngagementMethod.value)
                         }
                     },
                     selected = false,
@@ -128,6 +113,7 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                     .verticalScroll(rememberScrollState())
             ) {
                 val layoutSpacingModifier = Modifier.padding(top = 24.dp)
+
                 Column(modifier = layoutSpacingModifier) {
                     val listSpacingModifier = Modifier.padding(top = 8.dp)
                     Text(
@@ -141,23 +127,17 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                             listSpacingModifier
                         ) {
                             selectedDocumentType = docType
-                            selectedEntries = when (docType) {
-                                SelectableDocType.MDL -> getMdlPreselection()
-                                SelectableDocType.PID -> getPidPreselection()
-                                else -> selectedEntries
-                            }
+                            selectedEntries =
+                                docTypeConfigs[docType]?.preselection?.invoke() ?: emptySet()
                         }
                     }
                 }
+
                 Column(modifier = layoutSpacingModifier) {
                     Text(
                         text = stringResource(
                             Res.string.section_heading_selected_namespace,
-                            when (selectedDocumentType) {
-                                SelectableDocType.MDL -> MobileDrivingLicenceScheme.isoNamespace
-                                SelectableDocType.PID -> EuPidScheme.isoDocType
-                                else -> ""
-                            }
+                            docTypeConfigs[selectedDocumentType]?.namespace ?: ""
                         ),
                         style = MaterialTheme.typography.titleMedium,
                     )
@@ -168,44 +148,23 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                         text = stringResource(Res.string.section_heading_select_requested_data_entries),
                         style = MaterialTheme.typography.titleMedium,
                     )
-                    when (selectedDocumentType) {
-                        SelectableDocType.MDL -> {
-                            for (element in MobileDrivingLicenceScheme.claimNames) {
-                                multipleChoiceButton(
-                                    MobileDrivingLicenceCredentialAttributeTranslator.translate(
-                                        NormalizedJsonPath(NormalizedJsonPathSegment.NameSegment(element))
-                                    )?.let { stringResource(it) } ?: element,
-                                    selectedEntries.contains(element),
-                                    selectedEntries.contains(element),
-                                    listSpacingModifier
-                                ) {
-                                    selectedEntries = if (selectedEntries.contains(element)) {
-                                        selectedEntries - element
-                                    } else {
-                                        selectedEntries + element
-                                    }
+                    docTypeConfigs[selectedDocumentType]?.let { config ->
+                        for (element in config.claimNames) {
+                            multipleChoiceButton(
+                                config.translator(
+                                    NormalizedJsonPath(NormalizedJsonPathSegment.NameSegment(element))
+                                )?.let { stringResource(it) } ?: element,
+                                selectedEntries.contains(element),
+                                selectedEntries.contains(element),
+                                listSpacingModifier
+                            ) {
+                                selectedEntries = if (selectedEntries.contains(element)) {
+                                    selectedEntries - element
+                                } else {
+                                    selectedEntries + element
                                 }
                             }
                         }
-                        SelectableDocType.PID -> {
-                            for (element in EuPidScheme.claimNames) {
-                                multipleChoiceButton(
-                                    EuPidCredentialAttributeTranslator.translate(
-                                        NormalizedJsonPath(NormalizedJsonPathSegment.NameSegment(element))
-                                    )?.let { stringResource(it) } ?: element,
-                                    selectedEntries.contains(element),
-                                    selectedEntries.contains(element),
-                                    listSpacingModifier
-                                ) {
-                                    selectedEntries = if (selectedEntries.contains(element)) {
-                                        selectedEntries - element
-                                    } else {
-                                        selectedEntries + element
-                                    }
-                                }
-                            }
-                        }
-                        else -> { }
                     }
                 }
             }

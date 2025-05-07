@@ -1,5 +1,6 @@
 package ui.viewmodels.iso
 
+import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.iso.transfer.DeviceEngagementMethods
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants.MDOC_PREFIX
@@ -8,10 +9,13 @@ import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.lib.iso.DeviceResponse
 import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
+import data.credentials.EuPidCredentialAttributeTranslator
+import data.credentials.MobileDrivingLicenceCredentialAttributeTranslator
 import data.document.RequestDocument
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import org.jetbrains.compose.resources.StringResource
 import ui.viewmodels.iso.SelectableAge.OVER_12
 import ui.viewmodels.iso.SelectableAge.OVER_14
 import ui.viewmodels.iso.SelectableAge.OVER_16
@@ -39,6 +43,23 @@ class VerifierViewModel(
     private val _requestDocument = MutableStateFlow<RequestDocument?>(null)
 
     val selectableDocTypes = listOf<String>(SelectableDocType.MDL, SelectableDocType.PID)
+
+    val docTypeConfigs = mapOf(
+        SelectableDocType.MDL to DocTypeConfig(
+            namespace = MobileDrivingLicenceScheme.isoNamespace,
+            docType = MobileDrivingLicenceScheme.isoDocType,
+            claimNames = MobileDrivingLicenceScheme.claimNames,
+            preselection = ::getMdlPreselection,
+            translator = { path -> MobileDrivingLicenceCredentialAttributeTranslator.translate(path) }
+        ),
+        SelectableDocType.PID to DocTypeConfig(
+            namespace = EuPidScheme.isoNamespace,
+            docType = EuPidScheme.isoDocType,
+            claimNames = EuPidScheme.claimNames,
+            preselection = ::getPidPreselection,
+            translator = { path -> EuPidCredentialAttributeTranslator.translate(path) }
+        )
+    )
 
     private val _deviceResponse = MutableStateFlow<DeviceResponse?>(null)
     val deviceResponse: StateFlow<DeviceResponse?> = _deviceResponse
@@ -188,7 +209,7 @@ fun getPidPreselection(): Set<String> {
 }
 
 fun getAgeVerificationRequestDocument(age: Int): RequestDocument {
-    val elementName = when(age) {
+    val elementName = when (age) {
         OVER_12 -> MobileDrivingLicenceDataElements.AGE_OVER_12
         OVER_14 -> MobileDrivingLicenceDataElements.AGE_OVER_14
         OVER_16 -> MobileDrivingLicenceDataElements.AGE_OVER_16
@@ -221,6 +242,14 @@ object SelectableDocType {
     val MDL = MobileDrivingLicenceScheme.isoDocType
     val PID = EuPidScheme.isoDocType
 }
+
+data class DocTypeConfig(
+    val namespace: String,
+    val docType: String,
+    val claimNames: Collection<String>,
+    val preselection: () -> Set<String>,
+    val translator: (NormalizedJsonPath) -> StringResource?
+)
 
 object SelectableAge {
     const val OVER_12 = 12
