@@ -16,8 +16,6 @@ import at.asitplus.wallet.app.data.CachingStatusListTokenResolver
 import at.asitplus.wallet.app.data.SimpleBootstrappingBulkStore
 import at.asitplus.wallet.app.data.SimpleCacheStoreWrapper
 import at.asitplus.wallet.app.data.SimpleMutableMapStore
-import at.asitplus.wallet.app.common.dcapi.data.DCAPIRequest
-import at.asitplus.wallet.app.common.dcapi.data.preview.PreviewDCAPIRequest
 import at.asitplus.wallet.lib.dcapi.request.DCAPIRequest
 import at.asitplus.wallet.lib.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.wallet.lib.agent.HolderAgent
