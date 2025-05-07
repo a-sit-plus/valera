@@ -8,6 +8,7 @@ import at.asitplus.wallet.lib.iso.DeviceResponse
 import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants.MDOC_PREFIX
+import at.asitplus.wallet.app.common.iso.transfer.ReaderCertificateManager
 import data.document.RequestDocument
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,8 +25,10 @@ class VerifierViewModel(
     val navigateToHomeScreen: () -> Unit,
     val onClickSettings: () -> Unit
 ) {
+    private val readerCertificateManager by lazy { ReaderCertificateManager() }
+
     private val transferManager: TransferManager by lazy {
-        TransferManager(walletMain.scope) { message -> } // TODO: handle update messages - or change this to debugging infos & error handling?
+        TransferManager(walletMain.scope, readerCertificateManager) { message -> } // TODO: handle update messages - or change this to debugging infos & error handling?
     }
 
     private val _verifierState = MutableStateFlow(VerifierState.INIT)
