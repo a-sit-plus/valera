@@ -394,10 +394,13 @@ private fun WalletNavHost(
                     val apiRequestSerialized = route.oid4vpDCAPIRequestSerialized
                     val dcApiRequest =
                         apiRequestSerialized?.let { vckJsonSerializer.decodeFromString<Oid4vpDCAPIRequest>(it) }
+                    val spLocation =
+                        if (route.recipientLocation != "" || dcApiRequest?.callingOrigin == null) route.recipientLocation else dcApiRequest.callingOrigin
+                            ?: ""
 
                     DefaultAuthenticationViewModel(
-                        spName = null,
-                        spLocation = route.recipientLocation,
+                        spName = dcApiRequest?.callingPackageName,
+                        spLocation = spLocation,
                         spImage = null,
                         authenticationRequest = request,
                         preparationState = preparationState,
