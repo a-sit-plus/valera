@@ -140,11 +140,6 @@ class InstrumentedTestsSuite : FunSpec({
                 }
 
                 waitUntil {
-                    onNodeWithTag(NavigatorTestTags.loadingTestTag)
-                        .isNotDisplayed()
-                }
-
-                waitUntil {
                     onNodeWithTag(OnboardingWrapperTestTags.onboardingStartScreen)
                         .isDisplayed()
                 }
@@ -166,11 +161,6 @@ class InstrumentedTestsSuite : FunSpec({
                     }
                 }
 
-                waitUntil {
-                    onNodeWithTag(NavigatorTestTags.loadingTestTag)
-                        .isNotDisplayed()
-                }
-
                 onNodeWithTag(OnboardingWrapperTestTags.onboardingStartScreen)
                     .assertIsDisplayed()
 
@@ -187,11 +177,6 @@ class InstrumentedTestsSuite : FunSpec({
                         val walletMain = createWalletMain(platformAdapter)
                         App(walletMain)
                     }
-                }
-
-                waitUntil {
-                    onNodeWithTag(NavigatorTestTags.loadingTestTag)
-                        .isNotDisplayed()
                 }
 
                 waitUntil {
