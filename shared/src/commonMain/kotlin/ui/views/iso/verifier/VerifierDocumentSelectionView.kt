@@ -7,8 +7,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -34,18 +34,20 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_check_age
 import at.asitplus.valera.resources.button_label_check_custom
+import at.asitplus.valera.resources.button_label_check_identity
 import at.asitplus.valera.resources.button_label_check_license
 import at.asitplus.valera.resources.button_label_check_over_age
-import at.asitplus.valera.resources.credential_scheme_icon_label_eu_pid
 import at.asitplus.valera.resources.heading_label_select_data_retrieval_screen
 import at.asitplus.valera.resources.section_heading_request_custom
-import at.asitplus.valera.resources.section_heading_request_eausweise
 import at.asitplus.valera.resources.section_heading_request_engagement_method
-import at.asitplus.valera.resources.section_heading_request_license
+import at.asitplus.valera.resources.section_heading_request_mdl
+import at.asitplus.valera.resources.section_heading_request_pid
+import at.asitplus.valera.resources.text_label_all_attributes
+import at.asitplus.valera.resources.text_label_mandatory_attributes
 import at.asitplus.wallet.app.common.iso.transfer.DeviceEngagementMethods
+import data.document.SelectableAges
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
-import ui.viewmodels.iso.SelectableAge
 import ui.viewmodels.iso.VerifierViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,22 +56,25 @@ fun VerifierDocumentSelectionView(
     vm: VerifierViewModel,
     bottomBar: @Composable () -> Unit
 ) {
-    val showDropDown = remember { mutableStateOf(false) }
     val listSpacingModifier = Modifier.padding(top = 8.dp)
+    val layoutSpacingModifier = Modifier.padding(top = 24.dp)
+    val showDropDown = remember { mutableStateOf(false) }
+
     val engagementMethods = DeviceEngagementMethods.entries
     var selectedEngagementMethod by remember { mutableStateOf(DeviceEngagementMethods.NFC) }
 
     Scaffold(
         topBar = {
-            TopAppBar(title = {
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        stringResource(Res.string.heading_label_select_data_retrieval_screen),
-                        modifier = Modifier.weight(1f),
-                        style = MaterialTheme.typography.headlineLarge
-                    )
-                }
-            },
+            TopAppBar(
+                title = {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            stringResource(Res.string.heading_label_select_data_retrieval_screen),
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.headlineLarge
+                        )
+                    }
+                },
                 actions = {
                     Logo(onClick = vm.onClickLogo)
                     Column(modifier = Modifier.clickable(onClick = vm.onClickSettings)) {
@@ -79,7 +84,8 @@ fun VerifierDocumentSelectionView(
                         )
                     }
                     Spacer(Modifier.width(15.dp))
-                })
+                }
+            )
         },
         bottomBar = { bottomBar() }
     ) { scaffoldPadding ->
@@ -88,18 +94,15 @@ fun VerifierDocumentSelectionView(
                 modifier = Modifier.padding(end = 16.dp, start = 16.dp, bottom = 16.dp)
                     .verticalScroll(rememberScrollState())
             ) {
-                val layoutSpacingModifier = Modifier.padding(top = 24.dp)
                 Column(
-                    modifier = Modifier.wrapContentHeight(),
+                    modifier = layoutSpacingModifier,
                     horizontalAlignment = Alignment.Start
                 ) {
-                    Column(modifier = layoutSpacingModifier) {
-                        Text(
-                            text = stringResource(Res.string.section_heading_request_engagement_method),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                    for (engagementMethod in engagementMethods) {
+                    Text(
+                        text = stringResource(Res.string.section_heading_request_engagement_method),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    engagementMethods.forEach { engagementMethod ->
                         singleChoiceButton(
                             engagementMethod.friendlyName,
                             selectedEngagementMethod.friendlyName,
@@ -117,7 +120,7 @@ fun VerifierDocumentSelectionView(
                 }
                 Column(modifier = layoutSpacingModifier) {
                     Text(
-                        text = stringResource(Res.string.section_heading_request_eausweise),
+                        text = stringResource(Res.string.section_heading_request_mdl),
                         style = MaterialTheme.typography.titleMedium
                     )
                     TextIconButtonListItem(
@@ -128,7 +131,20 @@ fun VerifierDocumentSelectionView(
                             )
                         },
                         label = stringResource(Res.string.button_label_check_license),
-                        onClick = { vm.onClickPredefinedMdl(selectedEngagementMethod) },
+                        subLabel = stringResource(Res.string.text_label_mandatory_attributes),
+                        onClick = { vm.onClickPredefinedMdlMandatoryAttributes(selectedEngagementMethod) },
+                        modifier = listSpacingModifier.fillMaxWidth()
+                    )
+                    TextIconButtonListItem(
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Outlined.CreditCard,
+                                contentDescription = null
+                            )
+                        },
+                        label = stringResource(Res.string.button_label_check_license),
+                        subLabel = stringResource(Res.string.text_label_all_attributes),
+                        onClick = { vm.onClickPredefinedMdlFullAttributes(selectedEngagementMethod) },
                         modifier = listSpacingModifier.fillMaxWidth()
                     )
                     TextIconButtonListItem(
@@ -144,9 +160,8 @@ fun VerifierDocumentSelectionView(
                     )
                     if (showDropDown.value) {
                         Column {
-                            for (age in SelectableAge.values) {
+                            SelectableAges.values.forEach { age ->
                                 TextIconButtonListItem(
-                                    icon = {},
                                     label = stringResource(Res.string.button_label_check_over_age, age),
                                     onClick = { vm.onClickPredefinedAge(age, selectedEngagementMethod) },
                                     modifier = listSpacingModifier.fillMaxWidth()
@@ -157,7 +172,7 @@ fun VerifierDocumentSelectionView(
                 }
                 Column(modifier = layoutSpacingModifier) {
                     Text(
-                        text = stringResource(Res.string.section_heading_request_license),
+                        text = stringResource(Res.string.section_heading_request_pid),
                         style = MaterialTheme.typography.titleMedium
                     )
                     TextIconButtonListItem(
@@ -167,8 +182,21 @@ fun VerifierDocumentSelectionView(
                                 contentDescription = null
                             )
                         },
-                        label = stringResource(Res.string.credential_scheme_icon_label_eu_pid),
-                        onClick = { vm.onClickPredefinedPid(selectedEngagementMethod) },
+                        label = stringResource(Res.string.button_label_check_identity),
+                        subLabel = stringResource(Res.string.text_label_mandatory_attributes),
+                        onClick = { vm.onClickPredefinedPidRequiredAttributes(selectedEngagementMethod) },
+                        modifier = listSpacingModifier.fillMaxWidth()
+                    )
+                    TextIconButtonListItem(
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Person,
+                                contentDescription = null
+                            )
+                        },
+                        label = stringResource(Res.string.button_label_check_identity),
+                        subLabel = stringResource(Res.string.text_label_all_attributes),
+                        onClick = { vm.onClickPredefinedPidFullAttributes(selectedEngagementMethod) },
                         modifier = listSpacingModifier.fillMaxWidth()
                     )
                 }
@@ -196,21 +224,31 @@ fun VerifierDocumentSelectionView(
 
 @Composable
 fun TextIconButtonListItem(
-    icon: @Composable () -> Unit,
+    icon: @Composable () -> Unit = {},
     label: String,
+    subLabel: String? = null,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val gap = 16.dp
     Row(
         modifier = modifier.clickable(onClick = onClick)
-            .padding(top = 8.dp, end = 24.dp, bottom = 8.dp, start = 16.dp)
+            .padding(top = 4.dp, end = 16.dp, bottom = 4.dp, start = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         icon()
-        Spacer(modifier = Modifier.width(gap))
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyLarge
-        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Column {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyLarge
+            )
+            subLabel?.let {
+                Spacer(modifier = Modifier.size(4.dp))
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        }
     }
 }
