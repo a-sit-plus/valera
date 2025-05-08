@@ -261,7 +261,6 @@
     <string name="heading_label_authenticate_at_device_screen">Anmelden\nan Service Provider</string>
     <string name="heading_label_sign_document">Dokument signieren</string>
     <string name="heading_label_select_data_retrieval_screen">Prüfen</string>
-    <string name="heading_label_select_custom_data_retrieval_screen">Individuell</string>
     <string name="heading_label_check_scan_qr_code">QR-Code Scannen</string>
     <string name="heading_label_show_qr_code_screen">Scan mich!</string>
     <string name="heading_label_received_data">Erhaltene Daten</string>
@@ -415,7 +414,9 @@
     <string name="nfc">NFC</string>
     <string name="qr">QR-Code</string>
 
-    <!-- DocumentSelection -->
+    <!-- Verify Data Route -->
+    <string name="heading_label_select_data_retrieval_screen">Prüfen</string>
+    <string name="heading_label_select_custom_data_retrieval_screen">Individuell</string>
     <string name="section_heading_request_mdl">mDL Anfragen</string>
     <string name="section_heading_request_pid">PID Anfragen</string>
     <string name="section_heading_request_custom">Individuelle Anfragen</string>

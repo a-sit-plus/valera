@@ -260,8 +260,6 @@
     <string name="heading_label_refresh_data_screen">Load data</string>
     <string name="heading_label_authenticate_at_device_screen">Authenticate at\nrelying party</string>
     <string name="heading_label_sign_document">Sign document</string>
-    <string name="heading_label_select_data_retrieval_screen">Check</string>
-    <string name="heading_label_select_custom_data_retrieval_screen">Custom</string>
     <string name="heading_label_check_scan_qr_code">Scan QR-Code</string>
     <string name="heading_label_show_qr_code_screen">Scan me!</string>
     <string name="heading_label_received_data">Received Data</string>
@@ -406,10 +404,12 @@
     <string name="nfc">NFC</string>
     <string name="qr">QR-Code</string>
 
-    <!-- DocumentSelection -->
-    <string name="section_heading_request_mdl">mDL request</string>
-    <string name="section_heading_request_pid">PID request</string>
-    <string name="section_heading_request_custom">Custom request</string>
+    <!-- Verify Data Route -->
+    <string name="heading_label_select_data_retrieval_screen">Check</string>
+    <string name="heading_label_select_custom_data_retrieval_screen">Custom</string>
+    <string name="section_heading_request_mdl">mDL requests</string>
+    <string name="section_heading_request_pid">PID requests</string>
+    <string name="section_heading_request_custom">Custom requests</string>
     <string name="section_heading_select_document_type">Select document type:</string>
     <string name="section_heading_selected_namespace">Namespace: %1$s</string>
     <string name="section_heading_select_requested_data_entries">Select data entries:</string>
