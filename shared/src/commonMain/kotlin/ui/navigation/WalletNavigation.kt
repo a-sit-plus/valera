@@ -113,7 +113,7 @@ import ui.views.OnboardingInformationView
 import ui.views.OnboardingStartView
 import ui.views.PreAuthQrCodeScannerScreen
 import ui.views.PresentDataView
-import ui.views.PresentationView
+import ui.views.presentation.PresentationView
 import ui.views.SelectIssuingServerView
 import ui.views.SettingsView
 import ui.views.SigningQtspSelectionView
