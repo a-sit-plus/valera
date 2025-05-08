@@ -51,10 +51,10 @@ if (File("../vck/signum").isDirectory && File("../vck/signum/build.gradle.kts").
     }
 }
 
-if (File("../identity-credential/multipaz").isDirectory && (File("../identity-credential/multipaz/build.gradle.kts").exists())) {
-    logger.warn("Detected Multipaz in ${File("../identity-credential").absolutePath}.")
+if (File("./identity-credential/multipaz").isDirectory && (File("./identity-credential/multipaz/build.gradle.kts").exists())) {
+    logger.warn("Detected Multipaz in ${File("./identity-credential").absolutePath}.")
     logger.warn("Including Multipaz as composite build.")
-    includeBuild("../identity-credential") {
+    includeBuild("./identity-credential") {
         dependencySubstitution {
             substitute(module("org.multipaz:multipaz")).using(project(":multipaz"))
         }
