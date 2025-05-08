@@ -44,6 +44,8 @@ import ui.viewmodels.authentication.AuthenticationSelectionPresentationExchangeV
 @Composable
 fun AuthenticationSelectionPresentationExchangeView(
     vm: AuthenticationSelectionPresentationExchangeViewModel,
+    onClickLogo: () -> Unit,
+    onClickSettings: () -> Unit,
     onError: (Throwable) -> Unit,
 ) {
     val iterableRequests = vm.iterableRequests
@@ -53,38 +55,39 @@ fun AuthenticationSelectionPresentationExchangeView(
         val currentRequest = vm.iterableRequests[vm.requestIterator.value]
 
         AuthenticationSelectionViewScaffold(
-            onClickLogo = vm.onClickLogo,
-            onClickSettings = vm.onClickSettings,
+            onClickLogo = onClickLogo,
+            onClickSettings = onClickSettings,
             onNavigateUp = vm.onBack,
-            onNext = vm.onNext
+            onNext = vm.onNext,
         ) {
             LinearProgressIndicator(
                 progress = { ((1.0f / vm.requests.size) * (vm.requestIterator.value + 1)) },
                 modifier = Modifier.fillMaxWidth(),
-                drawStopIndicator = { })
+                drawStopIndicator = { },
+            )
             Column(
                 modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState())
                     .padding(16.dp),
             ) {
-                    val requestId = currentRequest.first
-                    val matchingCredentials = currentRequest.second
+                val requestId = currentRequest.first
+                val matchingCredentials = currentRequest.second
 
-                    val attributeSelection = vm.attributeSelection[requestId]
-                        ?: return@Column onError(Throwable(stringResource(Res.string.error_credential_selection_error_invalid_request_id)))
-                    val credentialSelection = vm.credentialSelection[requestId]
-                        ?: return@Column onError(Throwable(stringResource(Res.string.error_credential_selection_error_invalid_request_id)))
+                val attributeSelection = vm.attributeSelection[requestId]
+                    ?: return@Column onError(Throwable(stringResource(Res.string.error_credential_selection_error_invalid_request_id)))
+                val credentialSelection = vm.credentialSelection[requestId]
+                    ?: return@Column onError(Throwable(stringResource(Res.string.error_credential_selection_error_invalid_request_id)))
 
-                    CredentialSelectionGroup(
-                        matchingCredentials = matchingCredentials,
-                        attributeSelection = attributeSelection,
-                        credentialSelection = credentialSelection,
-                        imageDecoder = { byteArray ->
-                            vm.walletMain.platformAdapter.decodeImage(byteArray)
-                        },
-                        checkRevocationStatus = {
-                            vm.walletMain.checkRevocationStatus(it)
-                        },
-                    )
+                CredentialSelectionGroup(
+                    matchingCredentials = matchingCredentials,
+                    attributeSelection = attributeSelection,
+                    credentialSelection = credentialSelection,
+                    imageDecoder = { byteArray ->
+                        vm.walletMain.platformAdapter.decodeImage(byteArray)
+                    },
+                    checkRevocationStatus = {
+                        vm.walletMain.checkRevocationStatus(it)
+                    },
+                )
             }
         }
     }
