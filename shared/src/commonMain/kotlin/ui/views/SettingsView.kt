@@ -67,6 +67,7 @@ import at.asitplus.wallet.app.common.presentation.TransferSettings.Companion.tra
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
+import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.SettingsViewModel
 
@@ -92,10 +93,9 @@ fun SettingsView(
             TopAppBar(
                 title = {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Text(
+                        ScreenHeading(
                             stringResource(Res.string.heading_label_settings_screen),
-                            modifier = Modifier.weight(1f),
-                            style = MaterialTheme.typography.headlineLarge
+                            Modifier.weight(1f)
                         )
                     }
                 },

@@ -44,6 +44,7 @@ import org.jetbrains.compose.resources.stringResource
 import org.multipaz.compose.permissions.rememberBluetoothPermissionState
 import org.multipaz.util.toBase64Url
 import ui.composables.Logo
+import ui.composables.ScreenHeading
 import ui.composables.TextIconButton
 import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.authentication.PresentationStateModel
@@ -65,10 +66,9 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
             TopAppBar(
                 title = {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Text(
+                        ScreenHeading(
                             stringResource(Res.string.heading_label_show_qr_code_screen),
-                            modifier = Modifier.weight(1f),
-                            style = MaterialTheme.typography.headlineLarge
+                            Modifier.weight(1f),
                         )
                     }
                 },

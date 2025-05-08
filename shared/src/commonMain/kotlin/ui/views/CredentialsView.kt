@@ -35,6 +35,7 @@ import org.jetbrains.compose.resources.stringResource
 import ui.composables.CustomFloatingActionMenu
 import ui.composables.FloatingActionButtonHeightSpacer
 import ui.composables.Logo
+import ui.composables.ScreenHeading
 import ui.composables.credentials.CredentialCard
 import ui.viewmodels.CredentialsViewModel
 
@@ -71,10 +72,9 @@ fun CredentialsView(
             TopAppBar(
                 title = {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Text(
+                        ScreenHeading(
                             stringResource(Res.string.heading_label_my_data_screen),
-                            modifier = Modifier.weight(1f),
-                            style = MaterialTheme.typography.headlineLarge,
+                            Modifier.weight(1f),
                         )
                     }
                 },
