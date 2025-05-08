@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="23727" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="01J-lp-oVM">
-    <device id="retina6_9" orientation="portrait" appearance="light"/>
+    <device id="retina6_9" orientation="landscape" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23721"/>
@@ -13,14 +13,17 @@
             <objects>
                 <viewController id="01J-lp-oVM" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="Ze5-6b-2t3">
-                        <rect key="frame" x="0.0" y="0.0" width="440" height="956"/>
+                        <rect key="frame" x="0.0" y="0.0" width="956" height="440"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="techdemo" translatesAutoresizingMaskIntoConstraints="NO" id="9rt-PF-u4M">
-                                <rect key="frame" x="120" y="840" width="200" height="28"/>
+                                <rect key="frame" x="338" y="181" width="280" height="334"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="280" id="mER-BZ-l1d"/>
+                                </constraints>
                             </imageView>
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="icon" translatesAutoresizingMaskIntoConstraints="NO" id="XdF-nr-l70">
-                                <rect key="frame" x="120" y="378" width="200" height="200"/>
+                                <rect key="frame" x="378" y="120" width="200" height="200"/>
                                 <rect key="contentStretch" x="1" y="1" width="1" height="1"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="200" id="MM0-gp-h0K"/>
@@ -32,7 +35,7 @@
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
                             <constraint firstItem="XdF-nr-l70" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="EmS-ol-tBc"/>
-                            <constraint firstItem="9rt-PF-u4M" firstAttribute="bottom" secondItem="Bcu-3y-fUS" secondAttribute="bottom" constant="-20" id="fUe-Kt-dPW"/>
+                            <constraint firstItem="9rt-PF-u4M" firstAttribute="bottom" secondItem="Bcu-3y-fUS" secondAttribute="bottom" constant="130" id="fUe-Kt-dPW"/>
                             <constraint firstItem="XdF-nr-l70" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="jdf-W9-CBg"/>
                             <constraint firstItem="9rt-PF-u4M" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="ldc-Qf-NSq"/>
                         </constraints>
@@ -45,6 +48,6 @@
     </scenes>
     <resources>
         <image name="icon" width="1194" height="1194"/>
-        <image name="techdemo" width="200" height="28"/>
+        <image name="techdemo" width="834" height="334"/>
     </resources>
 </document>
