@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -58,8 +57,10 @@ fun VerifierDocumentSelectionView(
     vm: VerifierViewModel,
     bottomBar: @Composable () -> Unit
 ) {
-    val showDropDown = remember { mutableStateOf(false) }
     val listSpacingModifier = Modifier.padding(top = 8.dp)
+    val layoutSpacingModifier = Modifier.padding(top = 24.dp)
+    val showDropDown = remember { mutableStateOf(false) }
+
     val engagementMethods = DeviceEngagementMethods.entries
     var selectedEngagementMethod by remember { mutableStateOf(DeviceEngagementMethods.NFC) }
 
@@ -93,18 +94,15 @@ fun VerifierDocumentSelectionView(
                 modifier = Modifier.padding(end = 16.dp, start = 16.dp, bottom = 16.dp)
                     .verticalScroll(rememberScrollState())
             ) {
-                val layoutSpacingModifier = Modifier.padding(top = 24.dp)
                 Column(
-                    modifier = Modifier.wrapContentHeight(),
+                    modifier = layoutSpacingModifier,
                     horizontalAlignment = Alignment.Start
                 ) {
-                    Column(modifier = layoutSpacingModifier) {
-                        Text(
-                            text = stringResource(Res.string.section_heading_request_engagement_method),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                    for (engagementMethod in engagementMethods) {
+                    Text(
+                        text = stringResource(Res.string.section_heading_request_engagement_method),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    engagementMethods.forEach { engagementMethod ->
                         singleChoiceButton(
                             engagementMethod.friendlyName,
                             selectedEngagementMethod.friendlyName,
@@ -162,9 +160,8 @@ fun VerifierDocumentSelectionView(
                     )
                     if (showDropDown.value) {
                         Column {
-                            for (age in SelectableAges.values) {
+                            SelectableAges.values.forEach { age ->
                                 TextIconButtonListItem(
-                                    icon = {},
                                     label = stringResource(Res.string.button_label_check_over_age, age),
                                     onClick = { vm.onClickPredefinedAge(age, selectedEngagementMethod) },
                                     modifier = listSpacingModifier.fillMaxWidth()
@@ -227,7 +224,7 @@ fun VerifierDocumentSelectionView(
 
 @Composable
 fun TextIconButtonListItem(
-    icon: @Composable () -> Unit,
+    icon: @Composable () -> Unit = {},
     label: String,
     subLabel: String? = null,
     onClick: () -> Unit,

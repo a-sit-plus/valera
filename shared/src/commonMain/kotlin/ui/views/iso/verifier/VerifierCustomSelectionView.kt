@@ -55,7 +55,7 @@ import ui.viewmodels.iso.VerifierViewModel
 @Composable
 fun VerifierCustomSelectionView(vm: VerifierViewModel) {
     val listSpacingModifier = Modifier.padding(top = 8.dp)
-    val sectionSpacingModifier = Modifier.padding(top = 16.dp)
+    val layoutSpacingModifier = Modifier.padding(top = 24.dp)
 
     var selectedDocumentType by remember { mutableStateOf(SelectableDocTypes.MDL) }
     var selectedEntries by remember { mutableStateOf(getPreselection(SelectableDocTypes.MDL)) }
@@ -114,7 +114,7 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                     .verticalScroll(rememberScrollState())
             ) {
                 // Document selection
-                Column(modifier = sectionSpacingModifier) {
+                Column(modifier = layoutSpacingModifier) {
                     Text(
                         text = stringResource(Res.string.section_heading_select_document_type),
                         style = MaterialTheme.typography.titleMedium
@@ -127,7 +127,7 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                     }
                 }
                 // Namespace info
-                Column(modifier = sectionSpacingModifier) {
+                Column(modifier = layoutSpacingModifier) {
                     Text(
                         text = stringResource(
                             Res.string.section_heading_selected_namespace,
@@ -137,7 +137,7 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                     )
                 }
                 // Attribute selection
-                Column(modifier = sectionSpacingModifier) {
+                Column(modifier = layoutSpacingModifier) {
                     Text(
                         text = stringResource(Res.string.section_heading_select_requested_data_entries),
                         style = MaterialTheme.typography.titleMedium
