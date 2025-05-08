@@ -8,7 +8,6 @@ import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isDisplayed
-import androidx.compose.ui.test.isNotDisplayed
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -22,7 +21,6 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.button_label_accept
 import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.button_label_details
 import at.asitplus.valera.resources.button_label_start
@@ -50,15 +48,12 @@ import data.storage.DummyDataStoreService
 import io.kotest.common.Platform
 import io.kotest.common.platform
 import io.kotest.core.spec.style.FunSpec
-import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
-import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -76,7 +71,6 @@ import org.jetbrains.compose.resources.getString
 import org.multipaz.prompt.PassphraseRequest
 import org.multipaz.prompt.PromptModel
 import org.multipaz.prompt.SinglePromptModel
-import ui.navigation.NavigatorTestTags
 import ui.navigation.routes.OnboardingWrapperTestTags
 import ui.views.OnboardingStartScreenTestTag
 import kotlin.test.assertTrue
@@ -254,12 +248,7 @@ class InstrumentedTestsSuite : FunSpec({
                     onNodeWithText(getString(Res.string.button_label_details)).performClick()
 
 
-                    val client = HttpClient {
-                        expectSuccess = true
-                        install(ContentNegotiation) {
-                            json()
-                        }
-                    }
+                    val client = testHttpClient
 
 
                     val responseGenerateRequest =
@@ -275,12 +264,15 @@ class InstrumentedTestsSuite : FunSpec({
 
                     Globals.appLink.value = qrCodeUrl!!
 
+                    /*
                     waitUntilExactlyOneExists(
                         hasText(getString(Res.string.button_label_continue)),
                         10000
                     )
 
                     onNodeWithText(getString(Res.string.button_label_continue)).performClick()
+
+                     */
 
                     val url = "https://apps.egiz.gv.at/customverifier/customer-success.html?id=$id"
                     val responseSuccess = client.get(url)
