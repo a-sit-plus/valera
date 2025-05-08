@@ -3,10 +3,10 @@ package ui.viewmodels.iso
 import androidx.compose.runtime.MutableState
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
-import at.asitplus.wallet.app.common.presentation.TransferSettings.Companion.transferSettings
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.io.bytestring.ByteString
 import org.multipaz.cbor.Simple
@@ -53,7 +53,7 @@ class ShowQrCodeViewModel(
             val connectionMethods = mutableListOf<MdocConnectionMethod>()
             val bleUuid = UUID.randomUUID()
 
-            if (transferSettings.presentmentBleCentralClientModeEnabled.value) {
+            if (walletMain.walletConfig.presentmentBleCentralClientModeEnabled.first()) {
                 connectionMethods.add(
                     MdocConnectionMethodBle(
                         supportsPeripheralServerMode = false,
@@ -63,7 +63,7 @@ class ShowQrCodeViewModel(
                     )
                 )
             }
-            if (transferSettings.presentmentBlePeripheralServerModeEnabled.value) {
+            if (walletMain.walletConfig.presentmentBlePeripheralServerModeEnabled.first()) {
                 connectionMethods.add(
                     MdocConnectionMethodBle(
                         supportsPeripheralServerMode = true,
@@ -73,7 +73,7 @@ class ShowQrCodeViewModel(
                     )
                 )
             }
-            if (transferSettings.presentmentNfcDataTransferEnabled.value) {
+            if (walletMain.walletConfig.presentmentNfcDataTransferEnabled.first()) {
                 connectionMethods.add(
                     MdocConnectionMethodNfc(
                         commandDataFieldMaxLength = 0xffff,

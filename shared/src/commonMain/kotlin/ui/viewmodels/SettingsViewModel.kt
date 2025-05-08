@@ -2,19 +2,23 @@ package ui.viewmodels
 
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.error_feature_not_yet_available
+import at.asitplus.wallet.app.common.WalletConfig
 import at.asitplus.wallet.app.common.WalletMain
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.getString
 
-class SettingsViewModel (walletMain: WalletMain,
-                         val onClickShareLogFile: () -> Unit,
-                         val onClickClearLogFile: () -> Unit,
-                         val onClickResetApp: () -> Unit,
-                         val onClickLogo: () -> Unit,
-                         val onClickBack: () -> Unit,
-                         val onClickSettings: () -> Unit) {
+class SettingsViewModel(
+    walletMain: WalletMain,
+    val onClickShareLogFile: () -> Unit,
+    val onClickClearLogFile: () -> Unit,
+    val onClickResetApp: () -> Unit,
+    val onClickLogo: () -> Unit,
+    val onClickBack: () -> Unit,
+    val onClickSettings: () -> Unit
+) {
     val buildType = walletMain.buildContext.buildType
     val version = walletMain.buildContext.versionName
+    val config: WalletConfig = walletMain.walletConfig
 
     val onClickFAQs: () -> Unit = {
         runBlocking {

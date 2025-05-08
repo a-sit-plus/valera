@@ -7,7 +7,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Class to hand over to services like ProvisioningService so we can always retrieve the current config (e.g. url to Issuing Service)
@@ -28,26 +29,55 @@ class WalletConfig(
     }
 
     val isConditionsAccepted: Flow<Boolean> = config.map { it.isConditionsAccepted }
+    val presentmentUseNegotiatedHandover: Flow<Boolean> = config.map { it.presentmentUseNegotiatedHandover }
+    val presentmentBleCentralClientModeEnabled: Flow<Boolean> = config.map { it.presentmentBleCentralClientModeEnabled }
+    val presentmentBlePeripheralServerModeEnabled: Flow<Boolean> =
+        config.map { it.presentmentBlePeripheralServerModeEnabled }
+    val presentmentNfcDataTransferEnabled: Flow<Boolean> = config.map { it.presentmentNfcDataTransferEnabled }
+    val readerBleL2CapEnabled: Flow<Boolean> = config.map { it.readerBleL2CapEnabled }
+    val presentmentAllowMultipleRequests: Flow<Boolean> = config.map { it.presentmentAllowMultipleRequests }
+    val readerAutomaticallySelectTransport: Flow<Boolean> = config.map { it.readerAutomaticallySelectTransport }
+    val connectionTimeout: Flow<Duration> = config.map { it.connectionTimeout }
 
     fun set(
         host: String? = null,
         isConditionsAccepted: Boolean? = null,
-    ) {
-        try {
-            runBlocking {
-                val newConfig = ConfigData(
-                    host = host ?: this@WalletConfig.host.first(),
-                    isConditionsAccepted = isConditionsAccepted ?: this@WalletConfig.isConditionsAccepted.first(),
-                )
+        presentmentUseNegotiatedHandover: Boolean? = null,
+        presentmentBleCentralClientModeEnabled: Boolean? = null,
+        presentmentBlePeripheralServerModeEnabled: Boolean? = null,
+        presentmentNfcDataTransferEnabled: Boolean? = null,
+        readerBleL2CapEnabled: Boolean? = null,
+        presentmentAllowMultipleRequests: Boolean? = null,
+        readerAutomaticallySelectTransport: Boolean? = null,
+        connectionTimeout: Duration? = null,
+    ) = runCatching {
+        runBlocking {
+            val newConfig = ConfigData(
+                host = host ?: this@WalletConfig.host.first(),
+                isConditionsAccepted = isConditionsAccepted ?: this@WalletConfig.isConditionsAccepted.first(),
+                presentmentUseNegotiatedHandover = presentmentUseNegotiatedHandover
+                    ?: this@WalletConfig.presentmentUseNegotiatedHandover.first(),
+                presentmentBleCentralClientModeEnabled = presentmentBleCentralClientModeEnabled
+                    ?: this@WalletConfig.presentmentBleCentralClientModeEnabled.first(),
+                presentmentBlePeripheralServerModeEnabled = presentmentBlePeripheralServerModeEnabled
+                    ?: this@WalletConfig.presentmentBlePeripheralServerModeEnabled.first(),
+                presentmentNfcDataTransferEnabled = presentmentNfcDataTransferEnabled
+                    ?: this@WalletConfig.presentmentNfcDataTransferEnabled.first(),
+                readerBleL2CapEnabled = readerBleL2CapEnabled ?: this@WalletConfig.readerBleL2CapEnabled.first(),
+                presentmentAllowMultipleRequests = presentmentAllowMultipleRequests
+                    ?: this@WalletConfig.presentmentAllowMultipleRequests.first(),
+                readerAutomaticallySelectTransport = readerAutomaticallySelectTransport
+                    ?: this@WalletConfig.readerAutomaticallySelectTransport.first(),
+                connectionTimeout = connectionTimeout ?: this@WalletConfig.connectionTimeout.first(),
+            )
 
-                dataStoreService.setPreference(
-                    vckJsonSerializer.encodeToString(newConfig),
-                    Configuration.DATASTORE_KEY_CONFIG
-                )
-            }
-        } catch (e: Throwable) {
-            errorService.emit(e)
+            dataStoreService.setPreference(
+                vckJsonSerializer.encodeToString(newConfig),
+                Configuration.DATASTORE_KEY_CONFIG
+            )
         }
+    }.onFailure {
+        errorService.emit(it)
     }
 
     suspend fun reset() {
@@ -62,6 +92,14 @@ class WalletConfig(
 private data class ConfigData(
     val host: String,
     val isConditionsAccepted: Boolean = false,
+    val presentmentUseNegotiatedHandover: Boolean = true,
+    val presentmentBleCentralClientModeEnabled: Boolean = true,
+    val presentmentBlePeripheralServerModeEnabled: Boolean = true,
+    val presentmentNfcDataTransferEnabled: Boolean = false,
+    val readerBleL2CapEnabled: Boolean = true,
+    val presentmentAllowMultipleRequests: Boolean = true,
+    val readerAutomaticallySelectTransport: Boolean = true,
+    val connectionTimeout: Duration = 15.seconds,
 )
 
 private val ConfigDataDefaults = ConfigData(

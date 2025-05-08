@@ -2,9 +2,11 @@ package at.asitplus.wallet.app.common.presentation
 
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.serialization.Serializable
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
+@Serializable
 @ConsistentCopyVisibility
 data class TransferSettings private constructor(
     val presentmentNegotiatedHandoverPreferredOrder: List<String> = listOf(
@@ -22,8 +24,8 @@ data class TransferSettings private constructor(
     val connectionTimeout: Duration = 15.seconds
 ) {
 
-    fun isConnectionMethodEnabled(prefix: String): Boolean {
-        return if (prefix.startsWith(BLE_CENTRAL_CLIENT_MODE)) {
+    fun isConnectionMethodEnabled(prefix: String): Boolean =
+        if (prefix.startsWith(BLE_CENTRAL_CLIENT_MODE)) {
             presentmentBleCentralClientModeEnabled.value
         } else if (prefix.startsWith(BLE_PERIPHERAL_SERVER_MODE)) {
             presentmentBlePeripheralServerModeEnabled.value
@@ -33,7 +35,6 @@ data class TransferSettings private constructor(
             Napier.w("Connection method $prefix is unknown")
             false
         }
-    }
 
     companion object {
         private const val BLE_CENTRAL_CLIENT_MODE = "ble:central_client_mode:"

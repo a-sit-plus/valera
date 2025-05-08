@@ -25,7 +25,7 @@ class VerifierViewModel(
     val onClickSettings: () -> Unit
 ) {
     private val transferManager: TransferManager by lazy {
-        TransferManager(walletMain.scope) { message -> } // TODO: handle update messages
+        TransferManager(walletMain.walletConfig, walletMain.scope) { message -> } // TODO: handle update messages
     }
 
     private val _verifierState = MutableStateFlow(VerifierState.INIT)
