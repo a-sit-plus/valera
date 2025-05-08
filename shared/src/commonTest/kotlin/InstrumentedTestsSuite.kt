@@ -130,9 +130,13 @@ class InstrumentedTestsSuite : FunSpec({
         test("App should start correctly") {
             runComposeUiTest {
                 setContent {
-                    val platformAdapter = getPlatformAdapter()
-                    val walletMain = createWalletMain(platformAdapter)
-                    App(walletMain)
+                    CompositionLocalProvider(
+                        LocalLifecycleOwner provides TestLifecycleOwner()
+                    ) {
+                        val platformAdapter = getPlatformAdapter()
+                        val walletMain = createWalletMain(platformAdapter)
+                        App(walletMain)
+                    }
                 }
 
                 waitUntil {
@@ -153,9 +157,13 @@ class InstrumentedTestsSuite : FunSpec({
         test("Test 2: App should display onboarding screen") {
             runComposeUiTest {
                 setContent {
-                    val platformAdapter = getPlatformAdapter()
-                    val walletMain = createWalletMain(platformAdapter)
-                    App(walletMain)
+                    CompositionLocalProvider(
+                        LocalLifecycleOwner provides TestLifecycleOwner()
+                    ) {
+                        val platformAdapter = getPlatformAdapter()
+                        val walletMain = createWalletMain(platformAdapter)
+                        App(walletMain)
+                    }
                 }
 
                 waitUntil {
@@ -172,9 +180,13 @@ class InstrumentedTestsSuite : FunSpec({
         test("Test 3: App should show onboarding start button") {
             runComposeUiTest {
                 setContent {
-                    val platformAdapter = getPlatformAdapter()
-                    val walletMain = createWalletMain(platformAdapter)
-                    App(walletMain)
+                    CompositionLocalProvider(
+                        LocalLifecycleOwner provides TestLifecycleOwner()
+                    ) {
+                        val platformAdapter = getPlatformAdapter()
+                        val walletMain = createWalletMain(platformAdapter)
+                        App(walletMain)
+                    }
                 }
 
                 waitUntil {
@@ -199,10 +211,13 @@ class InstrumentedTestsSuite : FunSpec({
             runComposeUiTest {
                 lateinit var walletMain: WalletMain
                 setContent {
-                    CompositionLocalProvider(LocalLifecycleOwner provides lifecycleOwner) {
+                    CompositionLocalProvider(
+                        LocalLifecycleOwner provides TestLifecycleOwner()
+                    ) {
                         val platformAdapter = getPlatformAdapter()
                         walletMain = createWalletMain(platformAdapter)
                         App(walletMain)
+                    }
 
                         val keyMaterial = EphemeralKeyWithoutCert()
                         val issuer = IssuerAgent(
@@ -224,7 +239,6 @@ class InstrumentedTestsSuite : FunSpec({
                                 ).getOrThrow().toStoreCredentialInput()
                             )
                         }
-                    }
                 }
                 runBlocking {
                     waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_start)))
