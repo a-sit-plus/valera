@@ -3,6 +3,7 @@ package data.credentials
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
+import at.asitplus.wallet.ehic.EhicScheme
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
 import at.asitplus.wallet.healthid.HealthIdScheme
@@ -36,6 +37,7 @@ interface CredentialAttributeCategorization {
             is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialAttributeCategorization
             is CompanyRegistrationScheme -> CompanyRegistrationCredentialAttributeCategorization
             is HealthIdScheme -> HealthIdCredentialAttributeCategorization
+            is EhicScheme -> EhicCredentialAttributeCategorization
             is TaxIdScheme -> TaxIdCredentialAttributeCategorization
             is TaxId2025Scheme -> TaxIdCredentialAttributeCategorization
             else -> EmptyCredentialAttributeCategorization

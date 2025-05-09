@@ -11,6 +11,7 @@ import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.openid.third_party.at.asitplus.jsonpath.core.plus
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.agent.representation
+import at.asitplus.wallet.ehic.EhicScheme
 import at.asitplus.wallet.healthid.HealthIdScheme
 import at.asitplus.wallet.lib.agent.PresentationExchangeCredentialDisclosure
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
@@ -77,6 +78,7 @@ class AuthenticationSelectionPresentationExchangeViewModel(
                     null
                 } else when (credential.scheme) {
                     is HealthIdScheme,
+                    is EhicScheme,
                     is PowerOfRepresentationScheme,
                     is TaxId2025Scheme,
                     is TaxIdScheme -> {
