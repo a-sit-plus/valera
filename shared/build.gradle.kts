@@ -3,9 +3,11 @@ import at.asitplus.gradle.kmmresult
 import at.asitplus.gradle.ktor
 import at.asitplus.gradle.napier
 import at.asitplus.gradle.serialization
+import com.android.build.gradle.internal.tasks.factory.dependsOn
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
 import org.jetbrains.kotlin.gradle.plugin.extraProperties
+import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest
 
 val vckVersion = vckCatalog.vck.get().version
 
@@ -159,6 +161,21 @@ exportXCFramework(
     binaryOption("bundleId", "at.asitplus.wallet.shared")
     linkerOpts("-ld_classic")
     freeCompilerArgs += listOf("-Xoverride-konan-properties=minVersion.ios=15.0;minVersionSinceXcode15.ios=15.0")
+}
+
+tasks.register("iosBootSimulator"){
+    exec {
+        isIgnoreExitValue = true
+        runCatching {
+            commandLine("xcrun", "simctl", "boot", "iPhone 16")
+        }
+    }
+}
+
+tasks.named("iosSimulatorArm64Test", KotlinNativeSimulatorTest::class.java).configure {
+    dependsOn("iosBootSimulator")
+    standalone.set(false)
+    device.set("iPhone 16")
 }
 
 repositories {
