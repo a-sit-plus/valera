@@ -114,7 +114,7 @@ class WalletMain(
                     // requires status list configuration settings for further changes
                     300.seconds
                 },
-                emitFilteredElement = {
+                onEntryFiltered = {
                     // Let's not remove anything for now
                 },
             ),

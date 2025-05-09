@@ -11,7 +11,7 @@ data class SimpleCacheStoreWrapper<Key : Any, Value : Any>(
     val store: SimpleBulkStore<Key, CacheStoreEntry<Value>>,
     val clock: Clock,
     val currentCacheDuration: () -> Duration,
-    val emitFilteredElement: (Key) -> Unit,
+    val onEntryFiltered: (Key) -> Unit,
 ) : SimpleBulkStore<Key, Value> by TransformingSimpleBulkStore<Key, Value, Key, CacheStoreEntry<Value>>(
     simpleStore = store,
     keyMapping = Bijection.identity(),
@@ -26,7 +26,7 @@ data class SimpleCacheStoreWrapper<Key : Any, Value : Any>(
     exportEntry = { (key, value) ->
         (value.createdTime + currentCacheDuration() > clock.now()).also {
             if(!it) {
-                emitFilteredElement(key)
+                onEntryFiltered(key)
             }
         }
     }
