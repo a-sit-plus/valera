@@ -30,6 +30,7 @@ import at.asitplus.valera.resources.snackbar_reset_app_successfully
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import at.asitplus.wallet.app.common.decodeImage
+import at.asitplus.wallet.lib.data.dif.ConstraintFieldsEvaluationException
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import io.github.aakira.napier.Napier
@@ -221,11 +222,21 @@ fun WalletNavigation(walletMain: WalletMain) {
             }
         }
         this.launch {
-            walletMain.errorService.error.collect { (message, cause) ->
-                navigate(ErrorRoute(message, cause))
+            walletMain.errorService.error.collect { (throwable) ->
+                navigate(
+                    ErrorRoute(
+                        throwable.enrichMessage(),
+                        throwable.cause?.message ?: throwable.cause?.toString()
+                    )
+                )
             }
         }
     }
+}
+
+private fun Throwable.enrichMessage() = when (this) {
+    is ConstraintFieldsEvaluationException -> "$message ${constraintFieldExceptions.keys}"
+    else -> message ?: toString()
 }
 
 @Composable
@@ -308,7 +319,7 @@ private fun WalletNavHost(
                 },
                 onNavigateToShowQrCodeView = { navigate(ShowQrCodeRoute) },
                 onClickLogo = onClickLogo,
-                onClickSettings = {navigate(SettingsRoute)},
+                onClickSettings = { navigate(SettingsRoute) },
                 bottomBar = {
                     BottomBar(
                         navigate = navigate,
@@ -338,7 +349,7 @@ private fun WalletNavHost(
                     walletMain = walletMain,
                     navigateUp = { navigateBack() },
                     onClickLogo = onClickLogo,
-                    onClickSettings =  {navigate(SettingsRoute)},
+                    onClickSettings = { navigate(SettingsRoute) },
                     onNavigateToPresentmentScreen = {
                         Globals.presentationStateModel.value = it
                         navigate(LocalPresentationAuthenticationConsentRoute("QR"))
@@ -355,7 +366,7 @@ private fun WalletNavHost(
                         onClickLogo = onClickLogo,
                         walletMain = walletMain,
                         navigateToHomeScreen = { popBackStack(HomeScreenRoute) },
-                        onClickSettings = {navigate(SettingsRoute)}
+                        onClickSettings = { navigate(SettingsRoute) }
                     )
                 },
                 onError = onError,
@@ -455,7 +466,7 @@ private fun WalletNavHost(
                             navigateToHomeScreen = { popBackStack(HomeScreenRoute) },
                             walletMain = walletMain,
                             onClickLogo = onClickLogo,
-                            onClickSettings = { navigate(SettingsRoute)}
+                            onClickSettings = { navigate(SettingsRoute) }
                         )
                     } ?: throw IllegalStateException("No presentation view model set")
                 } catch (e: Throwable) {

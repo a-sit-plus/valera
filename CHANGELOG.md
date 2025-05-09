@@ -1,5 +1,8 @@
 # Release 5.6.1
- * tbd
+ * Upgrade to VC—K 5.6.1
+ * mDL: Fix german localization for some claims
+ * PID: Support presenting all claims
+ * Improve error messages
 
 # Release 5.6.0
  * Upgrade to VC-K 5.6.0
