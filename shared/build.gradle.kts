@@ -6,6 +6,7 @@ import at.asitplus.gradle.serialization
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
 import org.jetbrains.kotlin.gradle.plugin.extraProperties
+import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest
 
 val vckVersion = vckCatalog.vck.get().version
 
@@ -159,6 +160,11 @@ exportXCFramework(
     binaryOption("bundleId", "at.asitplus.wallet.shared")
     linkerOpts("-ld_classic")
     freeCompilerArgs += listOf("-Xoverride-konan-properties=minVersion.ios=15.0;minVersionSinceXcode15.ios=15.0")
+}
+
+tasks.named("iosSimulatorArm64Test", KotlinNativeSimulatorTest::class.java).configure {
+    standalone.set(false)
+    device.set("iPhone 16")
 }
 
 repositories {

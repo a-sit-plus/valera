@@ -30,6 +30,10 @@ jobs:
           name: Wallet Tests on iOS
           path: test-ios.xml
           reporter: java-junit
+      - name: Build shared tests
+        run: ./gradlew :shared:linkDebugTestIosSimulatorArm64
+      - name: Boot iOS Simulator
+        run: xcrun simctl boot "iPhone 16"
       - name: Run shared tests
         run: ./gradlew :shared:iosSimulatorArm64Test
       - name: Test Report
