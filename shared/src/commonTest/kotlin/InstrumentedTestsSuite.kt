@@ -256,7 +256,6 @@ class InstrumentedTestsSuite : FunSpec({
 
                     Globals.appLink.value = qrCodeUrl!!
 
-                    /*
                     waitUntilExactlyOneExists(
                         hasText(getString(Res.string.button_label_continue)),
                         10000
@@ -264,7 +263,6 @@ class InstrumentedTestsSuite : FunSpec({
 
                     onNodeWithText(getString(Res.string.button_label_continue)).performClick()
 
-                     */
 
                     val url = "https://apps.egiz.gv.at/customverifier/customer-success.html?id=$id"
                     val responseSuccess = testHttpClient.get(url)
