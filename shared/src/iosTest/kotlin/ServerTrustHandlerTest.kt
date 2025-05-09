@@ -30,9 +30,23 @@ import platform.Security.kSecTrustResultProceed
 import platform.Security.kSecTrustResultUnspecified
 import platform.darwin.NSInteger
 
+/**
+ * A handler for testing with self-signed certificates on iOS.
+ * It is used to suppress DarwinHttpRequestException when connecting to apps.egiz.gv.at.
+ * SECURITY WARNING:
+ * Method trustIsValid() always returns true, effectively accepting any certificate.
+ * This is intentional for testing purposes but is unsafe for production use.
+ *
+ * @see <a href="https://alistairsykes.medium.com/how-to-trust-all-ssl-certificates-with-kmm-and-ktor-8f686aec0d09">Trust all ssl certificates</a>
+ */
 @OptIn(ExperimentalForeignApi::class)
 class ServerTrustHandlerTest {
 
+    /**
+     * Handles the server trust challenge during an HTTPS connection.
+     * This method evaluates the server's certificate and decides whether to accept or reject it.
+     * For testing purpose, it will accept any certificate.
+     */
     fun handleChallenge(
         session: NSURLSession,
         task: NSURLSessionTask,
@@ -64,7 +78,11 @@ class ServerTrustHandlerTest {
     }
 
 
-
+    /**
+     * Evaluates the trust of a server certificate.
+     *
+     * @return Always returns true, accepting any certificate
+     */
     private fun SecTrustRef.trustIsValid(): Boolean {
         var isValid = false
 

@@ -127,9 +127,7 @@ class InstrumentedTestsSuite : FunSpec({
                     CompositionLocalProvider(
                         LocalLifecycleOwner provides TestLifecycleOwner()
                     ) {
-                        val platformAdapter = getPlatformAdapter()
-                        val walletMain = createWalletMain(platformAdapter)
-                        App(walletMain)
+                        App(createWalletMain(getPlatformAdapter()))
                     }
                 }
 
@@ -149,9 +147,7 @@ class InstrumentedTestsSuite : FunSpec({
                     CompositionLocalProvider(
                         LocalLifecycleOwner provides TestLifecycleOwner()
                     ) {
-                        val platformAdapter = getPlatformAdapter()
-                        val walletMain = createWalletMain(platformAdapter)
-                        App(walletMain)
+                        App(createWalletMain(getPlatformAdapter()))
                     }
                 }
 
@@ -167,9 +163,7 @@ class InstrumentedTestsSuite : FunSpec({
                     CompositionLocalProvider(
                         LocalLifecycleOwner provides TestLifecycleOwner()
                     ) {
-                        val platformAdapter = getPlatformAdapter()
-                        val walletMain = createWalletMain(platformAdapter)
-                        App(walletMain)
+                        App(createWalletMain(getPlatformAdapter()))
                     }
                 }
 
@@ -248,11 +242,9 @@ class InstrumentedTestsSuite : FunSpec({
                     onNodeWithText(getString(Res.string.button_label_details)).performClick()
 
 
-                    val client = testHttpClient
-
 
                     val responseGenerateRequest =
-                        client.post("https://apps.egiz.gv.at/customverifier/transaction/create") {
+                        testHttpClient.post("https://apps.egiz.gv.at/customverifier/transaction/create") {
                             contentType(ContentType.Application.Json)
                             setBody(request)
                         }.body<JsonObject>()
@@ -275,7 +267,7 @@ class InstrumentedTestsSuite : FunSpec({
                      */
 
                     val url = "https://apps.egiz.gv.at/customverifier/customer-success.html?id=$id"
-                    val responseSuccess = client.get(url)
+                    val responseSuccess = testHttpClient.get(url)
                     assertTrue { responseSuccess.status.value in 200..299 }
                 }
             }
