@@ -36,6 +36,7 @@ import at.asitplus.valera.resources.section_heading_present_data_title
 import at.asitplus.valera.resources.section_heading_present_data_to_other_citizen_subtitle
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
+import ui.composables.ScreenHeading
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,10 +51,9 @@ fun PresentDataView(
         topBar = {
             TopAppBar(title = {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text(
+                    ScreenHeading(
                         stringResource(Res.string.heading_label_show_data),
-                        modifier = Modifier.weight(1f),
-                        style = MaterialTheme.typography.headlineLarge
+                        Modifier.weight(1f)
                     )
                 }
             },

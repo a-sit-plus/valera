@@ -40,6 +40,7 @@ import at.asitplus.valera.resources.info_text_error_occurred
 import at.asitplus.valera.resources.info_text_to_start_screen
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
+import ui.composables.ScreenHeading
 import ui.composables.TextIconButton
 import ui.viewmodels.ErrorViewModel
 
@@ -55,11 +56,7 @@ fun ErrorView(
             TopAppBar(
                 title = {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            stringResource(Res.string.heading_label_error_screen),
-                            modifier = Modifier.weight(1f),
-                            style = MaterialTheme.typography.headlineLarge,
-                        )
+                        ScreenHeading(stringResource(Res.string.heading_label_error_screen), Modifier.weight(1f))
                     }
                 },
                 actions = {

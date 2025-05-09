@@ -66,6 +66,7 @@ import ui.composables.DataDisplaySection
 import ui.composables.LabeledText
 import ui.composables.Logo
 import ui.composables.PresentationRequestPreview
+import ui.composables.ScreenHeading
 import ui.composables.buttons.CancelButton
 import ui.composables.buttons.ContinueButton
 import ui.composables.buttons.NavigateUpButton
@@ -142,11 +143,7 @@ fun AuthenticationConsentView(
                 } else {
                     stringResource(Res.string.heading_label_authenticate_at_device_screen)
                 }
-                Text(
-                    title,
-                    style = MaterialTheme.typography.headlineLarge,
-                    modifier = paddingModifier,
-                )
+                ScreenHeading(title, paddingModifier)
 
                 Column(
                     modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState()),

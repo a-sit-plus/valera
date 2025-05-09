@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import ui.composables.Logo
+import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,14 +40,11 @@ fun GenericQrCodeScannerView(
                 title = {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                title,
-                                style = MaterialTheme.typography.headlineLarge,
-                            )
+                            ScreenHeading(title)
                             if (subTitle != null) {
                                 Text(
                                     subTitle,
-                                    style = MaterialTheme.typography.bodyLarge,
+                                    style = MaterialTheme.typography.headlineSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.tertiary,
                                 )

@@ -45,6 +45,7 @@ import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.credentials.MobileDrivingLicenceCredentialAttributeTranslator
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
+import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.iso.VerifierViewModel
 import ui.viewmodels.iso.getMdlPreselection
@@ -60,10 +61,9 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
             TopAppBar(
                 title = {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Text(
+                        ScreenHeading(
                             stringResource(Res.string.heading_label_select_custom_data_retrieval_screen),
-                            modifier = Modifier.weight(1f),
-                            style = MaterialTheme.typography.headlineLarge
+                            Modifier.weight(1f),
                         )
                     }
                 },

@@ -45,6 +45,7 @@ import at.asitplus.valera.resources.section_heading_request_license
 import at.asitplus.wallet.app.common.iso.transfer.DeviceEngagementMethods
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
+import ui.composables.ScreenHeading
 import ui.viewmodels.iso.SelectableAge
 import ui.viewmodels.iso.VerifierViewModel
 
@@ -61,15 +62,15 @@ fun VerifierDocumentSelectionView(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = {
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        stringResource(Res.string.heading_label_select_data_retrieval_screen),
-                        modifier = Modifier.weight(1f),
-                        style = MaterialTheme.typography.headlineLarge
-                    )
-                }
-            },
+            TopAppBar(
+                title = {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        ScreenHeading(
+                            stringResource(Res.string.heading_label_select_data_retrieval_screen),
+                            Modifier.weight(1f)
+                        )
+                    }
+                },
                 actions = {
                     Logo(onClick = vm.onClickLogo)
                     Column(modifier = Modifier.clickable(onClick = vm.onClickSettings)) {

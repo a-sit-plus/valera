@@ -44,6 +44,7 @@ import at.asitplus.wallet.taxid.TaxId2025Scheme
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.CredentialCardActionMenu
 import ui.composables.Logo
+import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.CertificateOfResidenceCredentialView
 import ui.composables.credentials.CompanyRegistrationCredentialView
@@ -110,10 +111,9 @@ fun CredentialDetailsScaffold(
                 },
                 title = {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Text(
+                        ScreenHeading(
                             stringResource(Res.string.heading_label_credential_details_screen),
-                            modifier = Modifier.weight(1f),
-                            style = MaterialTheme.typography.headlineLarge
+                            Modifier.weight(1f),
                         )
                     }
                 },
