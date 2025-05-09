@@ -50,6 +50,7 @@ kotlin {
             api(libs.credential.companyregistration)
             api(libs.credential.healthid)
             api(libs.credential.taxid)
+            api(libs.credential.ehic)
             api(napier())
             implementation(serialization("json"))
             implementation(ktor("client-core"))
@@ -164,4 +165,5 @@ exportXCFramework(
 repositories {
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
     maven("https://oss.sonatype.org/content/repositories/snapshots/")
+    mavenLocal()
 }

@@ -39,6 +39,7 @@ fun AttributeRepresentation(attribute: Attribute) {
         is Attribute.IntegerAttribute -> AttributeRepresentation(attribute.value.toString())
         is Attribute.LongAttribute -> AttributeRepresentation(attribute.value.toString())
         is Attribute.UnsignedIntegerAttribute -> AttributeRepresentation(attribute.value.toString())
+        is Attribute.IssuingAuthorityAttribute -> AttributeRepresentation(attribute.value.toString())
         // TODO Nice representation for driving privileges
         is Attribute.DrivingPrivilegeAttribute -> AttributeRepresentation(attribute.value)
         is Attribute.AddressAttribute -> AttributeRepresentation(attribute.value)
