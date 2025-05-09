@@ -1,0 +1,33 @@
+package at.asitplus.wallet.app.data
+
+import kotlinx.datetime.Clock
+import kotlin.time.Duration
+
+/**
+ * Returns `nuLL` for expired values and emits them.
+ * Does not actually remove elements from the underlying store.
+ */
+data class SimpleCacheStoreWrapper<Key : Any, Value : Any>(
+    val store: SimpleBulkStore<Key, CacheStoreEntry<Value>>,
+    val clock: Clock,
+    val currentCacheDuration: () -> Duration,
+    val emitFilteredElement: (Key) -> Unit,
+) : SimpleBulkStore<Key, Value> by TransformingSimpleBulkStore<Key, Value, Key, CacheStoreEntry<Value>>(
+    simpleStore = store,
+    keyMapping = Bijection.identity(),
+    valueMapping = object : Bijection<Value, CacheStoreEntry<Value>> {
+        override fun forwards(domainElement: Value) = CacheStoreEntry(
+            data = domainElement,
+            createdTime = clock.now(),
+        )
+
+        override fun backwards(codomainElement: CacheStoreEntry<Value>) = codomainElement.data
+    },
+    exportEntry = { (key, value) ->
+        (value.createdTime + currentCacheDuration() > clock.now()).also {
+            if(!it) {
+                emitFilteredElement(key)
+            }
+        }
+    }
+)
