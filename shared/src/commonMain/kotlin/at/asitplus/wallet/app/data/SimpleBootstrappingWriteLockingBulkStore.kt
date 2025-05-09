@@ -9,7 +9,7 @@ import kotlinx.coroutines.sync.withLock
 /**
  * Does not support concurrent write access
  */
-data class SimpleBootstrappingLockingWriteBulkStore<Key: Any, Value: Any>(
+data class SimpleBootstrappingWriteLockingBulkStore<Key: Any, Value: Any>(
     val simpleStore: SimpleStore<Key, Value>,
     val mutex: Mutex = Mutex(),
 ): SimpleBulkStore<Key, Value> {

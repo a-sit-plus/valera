@@ -12,7 +12,7 @@ import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import at.asitplus.wallet.app.data.CacheStoreEntry
 import at.asitplus.wallet.app.data.CachingStatusListTokenResolver
-import at.asitplus.wallet.app.data.SimpleBootstrappingLockingWriteBulkStore
+import at.asitplus.wallet.app.data.SimpleBootstrappingWriteLockingBulkStore
 import at.asitplus.wallet.app.data.SimpleCacheStoreWrapper
 import at.asitplus.wallet.app.data.SimpleMutableMapStore
 import at.asitplus.wallet.lib.agent.HolderAgent
@@ -103,7 +103,7 @@ class WalletMain(
         walletConfig = WalletConfig(dataStoreService = this.dataStoreService, errorService = errorService)
         subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
 
-        val statusListTokenCache = SimpleBootstrappingLockingWriteBulkStore(
+        val statusListTokenCache = SimpleBootstrappingWriteLockingBulkStore(
             SimpleMutableMapStore<UniformResourceIdentifier, CacheStoreEntry<StatusListToken>>(),
         )
         val statusListTokenResolver = CachingStatusListTokenResolver(
