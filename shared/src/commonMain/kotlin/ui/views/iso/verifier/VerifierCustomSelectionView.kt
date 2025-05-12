@@ -41,9 +41,9 @@ import at.asitplus.valera.resources.heading_label_select_custom_data_retrieval_s
 import at.asitplus.valera.resources.section_heading_select_document_type
 import at.asitplus.valera.resources.section_heading_select_requested_data_entries
 import at.asitplus.valera.resources.section_heading_selected_namespace
+import data.document.RequestDocumentBuilder.buildRequestDocument
 import data.document.RequestDocumentBuilder.docTypeConfigs
 import data.document.RequestDocumentBuilder.getPreselection
-import data.document.RequestDocumentBuilder.itemsToRequestDocument
 import data.document.SelectableDocTypes
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
@@ -95,10 +95,10 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                     },
                     onClick = {
                         docTypeConfigs[selectedDocumentType]?.let { config ->
-                            val items = itemsToRequestDocument(
+                            val items = buildRequestDocument(
                                 docType = config.docType,
                                 namespace = config.namespace,
-                                entries = selectedEntries
+                                attributes = selectedEntries
                             )
                             vm.onReceiveCustomSelection(items, vm.selectedEngagementMethod.value)
                         }

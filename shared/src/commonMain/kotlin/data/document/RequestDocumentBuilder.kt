@@ -29,61 +29,50 @@ object RequestDocumentBuilder {
     fun getPreselection(docType: String): Set<String> =
         docTypeConfigs[docType]?.preselection?.invoke() ?: emptySet()
 
-    fun itemsToRequestDocument(docType: String, namespace: String, entries: Set<String>) =
-        RequestDocument(
-            docType = docType,
-            itemsToRequest = mapOf(namespace to entries.associateWith { false })
-        )
-
-    fun getMdlMandatoryAttributesRequestDocument() = RequestDocument(
-        docType = MobileDrivingLicenceScheme.isoDocType,
-        itemsToRequest = mapOf(
-            MobileDrivingLicenceScheme.isoNamespace to
-                    MobileDrivingLicenceDataElements.MANDATORY_ELEMENTS.associateWith { false }
-        )
+    fun buildRequestDocument(
+        docType: String,
+        namespace: String,
+        attributes: Collection<String>
+    ) = RequestDocument(
+        docType = docType,
+        itemsToRequest = mapOf(namespace to attributes.associateWith { false })
     )
 
-    fun getMdlFullAttributesRequestDocument() = RequestDocument(
-        docType = MobileDrivingLicenceScheme.isoDocType,
-        itemsToRequest = mapOf(
-            MobileDrivingLicenceScheme.isoNamespace to
-                    MobileDrivingLicenceDataElements.ALL_ELEMENTS.associateWith { false }
-        )
+    fun getMdlMandatoryAttributesRequestDocument() = buildRequestDocument(
+        MobileDrivingLicenceScheme.isoDocType,
+        MobileDrivingLicenceScheme.isoNamespace,
+        MobileDrivingLicenceDataElements.MANDATORY_ELEMENTS
     )
 
-    fun getPidRequiredAttributesRequestDocument() = RequestDocument(
-        docType = EuPidScheme.isoDocType,
-        itemsToRequest = mapOf(
-            EuPidScheme.isoNamespace to EuPidScheme.requiredClaimNames.associateWith { false }
-        )
+    fun getMdlFullAttributesRequestDocument() = buildRequestDocument(
+        MobileDrivingLicenceScheme.isoDocType,
+        MobileDrivingLicenceScheme.isoNamespace,
+        MobileDrivingLicenceDataElements.ALL_ELEMENTS
     )
 
-    fun getPidFullAttributesRequestDocument() = RequestDocument(
-        docType = EuPidScheme.isoDocType,
-        itemsToRequest = mapOf(
-            EuPidScheme.isoNamespace to EuPidScheme.claimNames.associateWith { false }
-        )
+    fun getPidRequiredAttributesRequestDocument() = buildRequestDocument(
+        EuPidScheme.isoDocType,
+        EuPidScheme.isoNamespace,
+        EuPidScheme.requiredClaimNames
     )
 
-    fun getAgeVerificationRequestDocumentMdl(age: Int): RequestDocument {
-        return RequestDocument(
-            docType = MobileDrivingLicenceScheme.isoDocType,
-            itemsToRequest = mapOf(
-                MobileDrivingLicenceScheme.isoNamespace to
-                        mapOf(SelectableAge.fromValue(age)?.mdlElement!! to false)
-            )
-        )
-    }
+    fun getPidFullAttributesRequestDocument() = buildRequestDocument(
+        EuPidScheme.isoDocType,
+        EuPidScheme.isoNamespace,
+        EuPidScheme.claimNames
+    )
 
-    fun getAgeVerificationRequestDocumentPid(age: Int): RequestDocument {
-        return RequestDocument(
-            docType = EuPidScheme.isoDocType,
-            itemsToRequest = mapOf(
-                EuPidScheme.isoNamespace to
-                        mapOf(SelectableAge.fromValue(age)?.pidElement!! to false)
-            )
-        )
-    }
+    fun getAgeVerificationRequestDocumentMdl(age: Int) = buildRequestDocument(
+        MobileDrivingLicenceScheme.isoDocType,
+        MobileDrivingLicenceScheme.isoNamespace,
+        listOf(SelectableAge.fromValue(age)!!.mdlElement!!)
+    )
+
+    fun getAgeVerificationRequestDocumentPid(age: Int) = buildRequestDocument(
+        EuPidScheme.isoDocType,
+        EuPidScheme.isoNamespace,
+        listOf(SelectableAge.fromValue(age)!!.pidElement!!)
+    )
 }
 
 object SelectableDocTypes {
