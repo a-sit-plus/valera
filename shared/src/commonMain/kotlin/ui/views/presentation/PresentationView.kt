@@ -108,32 +108,32 @@ fun PresentationView(
         PresentationStateModel.State.WAITING_FOR_DOCUMENT_SELECTION -> {
             when (presentationViewModel.viewState) {
                 AuthenticationViewState.Consent -> {
-                    val viewModel = AuthenticationConsentViewModel(
-                        spName = presentationViewModel.spName,
-                        spLocation = presentationViewModel.spLocation,
-                        spImage = presentationViewModel.spImage,
-                        transactionData = presentationViewModel.transactionData,
-                        navigateUp = presentationViewModel.navigateUp,
-                        buttonConsent = {
-                            CoroutineScope(Dispatchers.IO).launch {
-                                presentationViewModel.onConsent()
-                            }
-                        },
-                        walletMain = presentationViewModel.walletMain,
-                        presentationRequest = presentationViewModel.presentationRequest,
-                        onClickLogo = presentationViewModel.onClickLogo,
-                        onClickSettings = presentationViewModel.onClickSettings
-                    )
                     AuthenticationConsentView(
-                        viewModel,
-                        onError = onError,
+                        vm = AuthenticationConsentViewModel(
+                            spName = presentationViewModel.spName,
+                            spLocation = presentationViewModel.spLocation,
+                            spImage = presentationViewModel.spImage,
+                            transactionData = presentationViewModel.transactionData,
+                            navigateUp = presentationViewModel.navigateUp,
+                            buttonConsent = {
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    presentationViewModel.onConsent()
+                                }
+                            },
+                            walletMain = presentationViewModel.walletMain,
+                            presentationRequest = presentationViewModel.presentationRequest,
+                            onClickLogo = presentationViewModel.onClickLogo,
+                            onClickSettings = presentationViewModel.onClickSettings
+                        ),
+                        onError = onError
                     )
                 }
 
                 AuthenticationViewState.NoMatchingCredential -> {
-                    val viewModel =
-                        AuthenticationNoCredentialViewModel(navigateToHomeScreen = presentationViewModel.navigateToHomeScreen)
-                    AuthenticationNoCredentialView(vm = viewModel)
+                    AuthenticationNoCredentialView(AuthenticationNoCredentialViewModel(
+                            navigateToHomeScreen = presentationViewModel.navigateToHomeScreen
+                        )
+                    )
                 }
 
                 AuthenticationViewState.Selection -> {
@@ -155,17 +155,16 @@ fun PresentationView(
                         }
 
                         is PresentationExchangeMatchingResult -> {
-                            val viewModel = AuthenticationSelectionPresentationExchangeViewModel(
-                                walletMain = presentationViewModel.walletMain,
-                                confirmSelections = { selections ->
-                                    presentationViewModel.confirmSelection(selections)
-                                },
-                                navigateUp = { presentationViewModel.viewState = AuthenticationViewState.Consent },
-                                credentialMatchingResult = matching,
-                                navigateToHomeScreen = presentationViewModel.navigateToHomeScreen
-                            )
                             AuthenticationSelectionPresentationExchangeView(
-                                vm = viewModel,
+                                vm = AuthenticationSelectionPresentationExchangeViewModel(
+                                    walletMain = presentationViewModel.walletMain,
+                                    confirmSelections = { selections ->
+                                        presentationViewModel.confirmSelection(selections)
+                                    },
+                                    navigateUp = { presentationViewModel.viewState = AuthenticationViewState.Consent },
+                                    credentialMatchingResult = matching,
+                                    navigateToHomeScreen = presentationViewModel.navigateToHomeScreen
+                                ),
                                 onError = onError,
                                 onClickLogo = presentationViewModel.onClickLogo,
                                 onClickSettings = presentationViewModel.onClickSettings,
