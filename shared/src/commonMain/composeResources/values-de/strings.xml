@@ -273,6 +273,7 @@
     <string name="heading_label_select_vda">VDA auswählen</string>
     <string name="heading_label_sign">Signieren</string>
     <string name="heading_label_tech_demo">Tech Demo</string>
+    <string name="heading_label_result">Ergebnis</string>
 
     <string name="biometric_authentication_prompt_for_data_transmission_consent_title">Biometrische Authentifizierung</string>
     <string name="biometric_authentication_prompt_for_data_transmission_consent_subtitle">Daten vorzeigen</string>

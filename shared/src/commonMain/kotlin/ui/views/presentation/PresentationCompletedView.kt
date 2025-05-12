@@ -21,6 +21,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.heading_label_result
 import at.asitplus.valera.resources.icon_presentation_error
 import at.asitplus.valera.resources.icon_presentation_success
 import at.asitplus.valera.resources.presentation_canceled
@@ -41,7 +42,7 @@ fun PresentationCompletedView(error: Throwable?) {
                 title = {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "Result",
+                            text = stringResource(Res.string.heading_label_result),
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.headlineMedium,
                         )
