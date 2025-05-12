@@ -111,7 +111,10 @@ class WalletMain(
                 store = statusListTokenCache,
                 clock = Clock.System,
                 getCachingDuration = { (key, value) ->
-                    value.payload.timeToLive?.duration?.also {
+                    listOfNotNull(
+                        value.payload.expirationTime?.let { it - Clock.System.now() },
+                        value.payload.timeToLive?.duration
+                    ).minOrNull()?.also {
                         Napier.d("Entry specific caching duration is used: $it")
                     } ?: 300.seconds
                 },
