@@ -13,7 +13,16 @@ data class SimpleCacheStoreWrapper<Key : Any, Value : Any>(
     val currentCacheDuration: () -> Duration,
     val onEntryFiltered: (Key) -> Unit,
 ) : SimpleBulkStore<Key, Value> by TransformingSimpleBulkStore<Key, Value, Key, CacheStoreEntry<Value>>(
-    simpleStore = store,
+    simpleStore = FilteringSimpleBulkStore(
+        store,
+        filter = { (key, value) ->
+            (value.createdTime + currentCacheDuration() > clock.now()).also {
+                if(!it) {
+                    onEntryFiltered(key)
+                }
+            }
+        }
+    ),
     keyMapping = Bijection.identity(),
     valueMapping = object : Bijection<Value, CacheStoreEntry<Value>> {
         override fun forwards(domainElement: Value) = CacheStoreEntry(
@@ -23,11 +32,4 @@ data class SimpleCacheStoreWrapper<Key : Any, Value : Any>(
 
         override fun backwards(codomainElement: CacheStoreEntry<Value>) = codomainElement.data
     },
-    exportEntry = { (key, value) ->
-        (value.createdTime + currentCacheDuration() > clock.now()).also {
-            if(!it) {
-                onEntryFiltered(key)
-            }
-        }
-    }
 )
