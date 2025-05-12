@@ -5,12 +5,13 @@ import at.asitplus.wallet.app.common.iso.transfer.DeviceEngagementMethods
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants.MDOC_PREFIX
 import at.asitplus.wallet.app.common.iso.transfer.TransferManager
 import at.asitplus.wallet.lib.iso.DeviceResponse
-import data.document.RequestDocumentBuilder.getAgeVerificationRequestDocument
+import data.document.RequestDocument
+import data.document.RequestDocumentBuilder.getAgeVerificationRequestDocumentMdl
+import data.document.RequestDocumentBuilder.getAgeVerificationRequestDocumentPid
 import data.document.RequestDocumentBuilder.getMdlFullAttributesRequestDocument
 import data.document.RequestDocumentBuilder.getMdlMandatoryAttributesRequestDocument
 import data.document.RequestDocumentBuilder.getPidFullAttributesRequestDocument
 import data.document.RequestDocumentBuilder.getPidRequiredAttributesRequestDocument
-import data.document.RequestDocument
 import data.document.SelectableDocTypes
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -85,6 +86,11 @@ class VerifierViewModel(
         setStateToEngagement(selectedEngagementMethod)
     }
 
+    fun onClickPredefinedAgeMdl(age: Int, selectedEngagementMethod: DeviceEngagementMethods) {
+        _requestDocument.value = getAgeVerificationRequestDocumentMdl(age)
+        setStateToEngagement(selectedEngagementMethod)
+    }
+
     fun onClickPredefinedPidRequiredAttributes(selectedEngagementMethod: DeviceEngagementMethods) {
         _requestDocument.value = getPidRequiredAttributesRequestDocument()
         setStateToEngagement(selectedEngagementMethod)
@@ -95,8 +101,8 @@ class VerifierViewModel(
         setStateToEngagement(selectedEngagementMethod)
     }
 
-    fun onClickPredefinedAge(age: Int, selectedEngagementMethod: DeviceEngagementMethods) {
-        _requestDocument.value = getAgeVerificationRequestDocument(age)
+    fun onClickPredefinedAgePid(age: Int, selectedEngagementMethod: DeviceEngagementMethods) {
+        _requestDocument.value = getAgeVerificationRequestDocumentPid(age)
         setStateToEngagement(selectedEngagementMethod)
     }
 

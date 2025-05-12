@@ -45,7 +45,7 @@ import at.asitplus.valera.resources.section_heading_request_pid
 import at.asitplus.valera.resources.text_label_all_attributes
 import at.asitplus.valera.resources.text_label_mandatory_attributes
 import at.asitplus.wallet.app.common.iso.transfer.DeviceEngagementMethods
-import data.document.SelectableAges
+import data.document.SelectableAge
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.ScreenHeading
@@ -59,7 +59,8 @@ fun VerifierDocumentSelectionView(
 ) {
     val listSpacingModifier = Modifier.padding(top = 8.dp)
     val layoutSpacingModifier = Modifier.padding(top = 24.dp)
-    val showDropDown = remember { mutableStateOf(false) }
+    val showDropDownMdlAge = remember { mutableStateOf(false) }
+    val showDropDownPidAge = remember { mutableStateOf(false) }
 
     val engagementMethods = DeviceEngagementMethods.entries
     var selectedEngagementMethod by remember { mutableStateOf(DeviceEngagementMethods.NFC) }
@@ -132,7 +133,9 @@ fun VerifierDocumentSelectionView(
                         },
                         label = stringResource(Res.string.button_label_check_license),
                         subLabel = stringResource(Res.string.text_label_mandatory_attributes),
-                        onClick = { vm.onClickPredefinedMdlMandatoryAttributes(selectedEngagementMethod) },
+                        onClick = {
+                            vm.onClickPredefinedMdlMandatoryAttributes(selectedEngagementMethod)
+                        },
                         modifier = listSpacingModifier.fillMaxWidth()
                     )
                     TextIconButtonListItem(
@@ -155,15 +158,17 @@ fun VerifierDocumentSelectionView(
                             )
                         },
                         label = stringResource(Res.string.button_label_check_age),
-                        onClick = { showDropDown.value = !showDropDown.value },
+                        onClick = { showDropDownMdlAge.value = !showDropDownMdlAge.value },
                         modifier = listSpacingModifier.fillMaxWidth(),
                     )
-                    if (showDropDown.value) {
+                    if (showDropDownMdlAge.value) {
                         Column {
-                            SelectableAges.values.forEach { age ->
+                            SelectableAge.valuesList.forEach { age ->
                                 TextIconButtonListItem(
                                     label = stringResource(Res.string.button_label_check_over_age, age),
-                                    onClick = { vm.onClickPredefinedAge(age, selectedEngagementMethod) },
+                                    onClick = {
+                                        vm.onClickPredefinedAgeMdl(age, selectedEngagementMethod)
+                                    },
                                     modifier = listSpacingModifier.fillMaxWidth()
                                 )
                             }
@@ -184,7 +189,9 @@ fun VerifierDocumentSelectionView(
                         },
                         label = stringResource(Res.string.button_label_check_identity),
                         subLabel = stringResource(Res.string.text_label_mandatory_attributes),
-                        onClick = { vm.onClickPredefinedPidRequiredAttributes(selectedEngagementMethod) },
+                        onClick = {
+                            vm.onClickPredefinedPidRequiredAttributes(selectedEngagementMethod)
+                        },
                         modifier = listSpacingModifier.fillMaxWidth()
                     )
                     TextIconButtonListItem(
@@ -199,6 +206,30 @@ fun VerifierDocumentSelectionView(
                         onClick = { vm.onClickPredefinedPidFullAttributes(selectedEngagementMethod) },
                         modifier = listSpacingModifier.fillMaxWidth()
                     )
+                    TextIconButtonListItem(
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Cake,
+                                contentDescription = null
+                            )
+                        },
+                        label = stringResource(Res.string.button_label_check_age),
+                        onClick = { showDropDownPidAge.value = !showDropDownPidAge.value },
+                        modifier = listSpacingModifier.fillMaxWidth(),
+                    )
+                    if (showDropDownPidAge.value) {
+                        Column {
+                            SelectableAge.valuesList.forEach { age ->
+                                TextIconButtonListItem(
+                                    label = stringResource(Res.string.button_label_check_over_age, age),
+                                    onClick = {
+                                        vm.onClickPredefinedAgePid(age, selectedEngagementMethod)
+                                    },
+                                    modifier = listSpacingModifier.fillMaxWidth()
+                                )
+                            }
+                        }
+                    }
                 }
                 Column(modifier = layoutSpacingModifier) {
                     Text(

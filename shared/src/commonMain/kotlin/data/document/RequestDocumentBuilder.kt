@@ -65,19 +65,22 @@ object RequestDocumentBuilder {
         )
     )
 
-    fun getAgeVerificationRequestDocument(age: Int): RequestDocument {
-        val elementName = when (age) {
-            SelectableAges.OVER_12 -> MobileDrivingLicenceDataElements.AGE_OVER_12
-            SelectableAges.OVER_14 -> MobileDrivingLicenceDataElements.AGE_OVER_14
-            SelectableAges.OVER_16 -> MobileDrivingLicenceDataElements.AGE_OVER_16
-            SelectableAges.OVER_18 -> MobileDrivingLicenceDataElements.AGE_OVER_18
-            SelectableAges.OVER_21 -> MobileDrivingLicenceDataElements.AGE_OVER_21
-            else -> MobileDrivingLicenceDataElements.AGE_OVER_18
-        }
+    fun getAgeVerificationRequestDocumentMdl(age: Int): RequestDocument {
         return RequestDocument(
             docType = MobileDrivingLicenceScheme.isoDocType,
             itemsToRequest = mapOf(
-                MobileDrivingLicenceScheme.isoNamespace to mapOf(elementName to false)
+                MobileDrivingLicenceScheme.isoNamespace to
+                        mapOf(SelectableAge.fromValue(age)?.mdlElement!! to false)
+            )
+        )
+    }
+
+    fun getAgeVerificationRequestDocumentPid(age: Int): RequestDocument {
+        return RequestDocument(
+            docType = EuPidScheme.isoDocType,
+            itemsToRequest = mapOf(
+                EuPidScheme.isoNamespace to
+                        mapOf(SelectableAge.fromValue(age)?.pidElement!! to false)
             )
         )
     }
@@ -96,13 +99,25 @@ data class DocTypeConfig(
     val translator: (NormalizedJsonPath) -> StringResource?
 )
 
-// At the moment only used for mDL
-object SelectableAges {
-    const val OVER_12 = 12
-    const val OVER_14 = 14
-    const val OVER_16 = 16
-    const val OVER_18 = 18
-    const val OVER_21 = 21
+enum class SelectableAge(
+    val value: Int,
+    val mdlElement: String?,
+    val pidElement: String?
+) {
+    OVER_12(12, MobileDrivingLicenceDataElements.AGE_OVER_12, EuPidScheme.Attributes.AGE_OVER_12),
+    OVER_13(13, MobileDrivingLicenceDataElements.AGE_OVER_13, EuPidScheme.Attributes.AGE_OVER_13),
+    OVER_14(14, MobileDrivingLicenceDataElements.AGE_OVER_14, EuPidScheme.Attributes.AGE_OVER_14),
+    OVER_16(16, MobileDrivingLicenceDataElements.AGE_OVER_16, EuPidScheme.Attributes.AGE_OVER_16),
+    OVER_18(18, MobileDrivingLicenceDataElements.AGE_OVER_18, EuPidScheme.Attributes.AGE_OVER_18),
+    OVER_21(21, MobileDrivingLicenceDataElements.AGE_OVER_21, EuPidScheme.Attributes.AGE_OVER_21),
+    OVER_25(25, MobileDrivingLicenceDataElements.AGE_OVER_18, EuPidScheme.Attributes.AGE_OVER_18),
+    OVER_60(60, MobileDrivingLicenceDataElements.AGE_OVER_18, EuPidScheme.Attributes.AGE_OVER_18),
+    OVER_62(62, MobileDrivingLicenceDataElements.AGE_OVER_18, EuPidScheme.Attributes.AGE_OVER_18),
+    OVER_65(65, MobileDrivingLicenceDataElements.AGE_OVER_18, EuPidScheme.Attributes.AGE_OVER_18),
+    OVER_68(68, MobileDrivingLicenceDataElements.AGE_OVER_18, EuPidScheme.Attributes.AGE_OVER_18);
 
-    val values = listOf(OVER_12, OVER_14, OVER_16, OVER_18, OVER_21)
+    companion object {
+        val valuesList = entries.map { it.value }
+        fun fromValue(value: Int) = entries.find { it.value == value }
+    }
 }
