@@ -1,50 +1,35 @@
-package ui.views
+package ui.views.presentation
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.icon_presentation_error
-import at.asitplus.valera.resources.icon_presentation_success
-import at.asitplus.valera.resources.presentation_canceled
 import at.asitplus.valera.resources.presentation_connecting_to_verifier
-import at.asitplus.valera.resources.presentation_error
 import at.asitplus.valera.resources.presentation_initialised
 import at.asitplus.valera.resources.presentation_missing_permission
 import at.asitplus.valera.resources.presentation_permission_required
-import at.asitplus.valera.resources.presentation_success
-import at.asitplus.valera.resources.presentation_timeout
 import at.asitplus.valera.resources.presentation_waiting_for_request
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
-import at.asitplus.wallet.app.common.presentation.PresentmentCanceled
-import at.asitplus.wallet.app.common.presentation.PresentmentTimeout
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.multipaz.compose.permissions.rememberBluetoothPermissionState
 import ui.viewmodels.authentication.AuthenticationConsentViewModel
@@ -55,6 +40,7 @@ import ui.viewmodels.authentication.DCQLMatchingResult
 import ui.viewmodels.authentication.PresentationExchangeMatchingResult
 import ui.viewmodels.authentication.PresentationStateModel
 import ui.viewmodels.authentication.PresentationViewModel
+import ui.views.LoadingView
 import ui.views.authentication.AuthenticationConsentView
 import ui.views.authentication.AuthenticationNoCredentialView
 import ui.views.authentication.AuthenticationSelectionPresentationExchangeView
@@ -94,9 +80,7 @@ fun PresentationView(
     // all BLE and NFC resources.
     //
     DisposableEffect(presentationStateModel) {
-        onDispose {
-            presentationStateModel.reset()
-        }
+        onDispose { presentationStateModel.reset() }
     }
 
     val state = presentationStateModel.state.collectAsState().value
@@ -104,8 +88,7 @@ fun PresentationView(
         PresentationStateModel.State.IDLE,
         PresentationStateModel.State.NO_PERMISSION,
         PresentationStateModel.State.INITIALISING,
-        PresentationStateModel.State.CONNECTING -> {
-        }
+        PresentationStateModel.State.CONNECTING -> {}
 
         PresentationStateModel.State.CHECK_PERMISSIONS -> {
             if (blePermissionState.isGranted) {
@@ -125,32 +108,32 @@ fun PresentationView(
         PresentationStateModel.State.WAITING_FOR_DOCUMENT_SELECTION -> {
             when (presentationViewModel.viewState) {
                 AuthenticationViewState.Consent -> {
-                    val viewModel = AuthenticationConsentViewModel(
-                        spName = presentationViewModel.spName,
-                        spLocation = presentationViewModel.spLocation,
-                        spImage = presentationViewModel.spImage,
-                        transactionData = presentationViewModel.transactionData,
-                        navigateUp = presentationViewModel.navigateUp,
-                        buttonConsent = {
-                            CoroutineScope(Dispatchers.IO).launch {
-                                presentationViewModel.onConsent()
-                            }
-                        },
-                        walletMain = presentationViewModel.walletMain,
-                        presentationRequest = presentationViewModel.presentationRequest,
-                        onClickLogo = presentationViewModel.onClickLogo,
-                        onClickSettings = presentationViewModel.onClickSettings
-                    )
                     AuthenticationConsentView(
-                        viewModel,
-                        onError = onError,
+                        vm = AuthenticationConsentViewModel(
+                            spName = presentationViewModel.spName,
+                            spLocation = presentationViewModel.spLocation,
+                            spImage = presentationViewModel.spImage,
+                            transactionData = presentationViewModel.transactionData,
+                            navigateUp = presentationViewModel.navigateUp,
+                            buttonConsent = {
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    presentationViewModel.onConsent()
+                                }
+                            },
+                            walletMain = presentationViewModel.walletMain,
+                            presentationRequest = presentationViewModel.presentationRequest,
+                            onClickLogo = presentationViewModel.onClickLogo,
+                            onClickSettings = presentationViewModel.onClickSettings
+                        ),
+                        onError = onError
                     )
                 }
 
                 AuthenticationViewState.NoMatchingCredential -> {
-                    val viewModel =
-                        AuthenticationNoCredentialViewModel(navigateToHomeScreen = presentationViewModel.navigateToHomeScreen)
-                    AuthenticationNoCredentialView(vm = viewModel)
+                    AuthenticationNoCredentialView(AuthenticationNoCredentialViewModel(
+                            navigateToHomeScreen = presentationViewModel.navigateToHomeScreen
+                        )
+                    )
                 }
 
                 AuthenticationViewState.Selection -> {
@@ -172,17 +155,16 @@ fun PresentationView(
                         }
 
                         is PresentationExchangeMatchingResult -> {
-                            val viewModel = AuthenticationSelectionPresentationExchangeViewModel(
-                                walletMain = presentationViewModel.walletMain,
-                                confirmSelections = { selections ->
-                                    presentationViewModel.confirmSelection(selections)
-                                },
-                                navigateUp = { presentationViewModel.viewState = AuthenticationViewState.Consent },
-                                credentialMatchingResult = matching,
-                                navigateToHomeScreen = presentationViewModel.navigateToHomeScreen
-                            )
                             AuthenticationSelectionPresentationExchangeView(
-                                vm = viewModel,
+                                vm = AuthenticationSelectionPresentationExchangeViewModel(
+                                    walletMain = presentationViewModel.walletMain,
+                                    confirmSelections = { selections ->
+                                        presentationViewModel.confirmSelection(selections)
+                                    },
+                                    navigateUp = { presentationViewModel.viewState = AuthenticationViewState.Consent },
+                                    credentialMatchingResult = matching,
+                                    navigateToHomeScreen = presentationViewModel.navigateToHomeScreen
+                                ),
                                 onError = onError,
                                 onClickLogo = presentationViewModel.onClickLogo,
                                 onClickSettings = presentationViewModel.onClickSettings,
@@ -227,20 +209,9 @@ fun PresentationView(
                     }
                 )
 
-                PresentationStateModel.State.COMPLETED -> {
-                    when (presentationStateModel.error) {
-                        null -> showPresentationSuccess()
-
-                        is PresentmentCanceled ->
-                            showPresentationFailure(stringResource(Res.string.presentation_canceled))
-
-                        is PresentmentTimeout ->
-                            showPresentationFailure(stringResource(Res.string.presentation_timeout))
-
-                        else ->
-                            showPresentationFailure(stringResource(Res.string.presentation_error))
-                    }
-                }
+                PresentationStateModel.State.COMPLETED -> PresentationCompletedView(
+                    presentationStateModel.error
+                )
 
                 PresentationStateModel.State.WAITING_FOR_DOCUMENT_SELECTION ->
                     throw IllegalStateException("should not be reachable")
@@ -290,44 +261,4 @@ fun PresentationView(
             )
         }
     }
-}
-
-@Composable
-fun showPresentationSuccess() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        showImageAndText(
-            painterResource(Res.drawable.icon_presentation_success),
-            stringResource(Res.string.presentation_success)
-        )
-    }
-}
-
-@Composable
-fun showPresentationFailure(text: String) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        showImageAndText(painterResource(Res.drawable.icon_presentation_error), text)
-    }
-}
-
-@Composable
-fun showImageAndText(painter: Painter, text: String) {
-    Image(
-        modifier = Modifier.size(200.dp).fillMaxSize().padding(10.dp),
-        painter = painter,
-        contentDescription = null,
-        contentScale = ContentScale.Fit,
-    )
-    Text(
-        text = text,
-        style = MaterialTheme.typography.bodyLarge,
-        fontWeight = FontWeight.Normal
-    )
 }
