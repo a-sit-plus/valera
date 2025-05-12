@@ -51,11 +51,6 @@
     <string name="button_label_show_technical_details">Technische Details einblenden</string>
     <string name="button_label_hide_technical_details">Technische Details ausblenden</string>
     <string name="button_label_sign">Signieren</string>
-    <string name="button_label_check_identity">Identität Prüfen</string>
-    <string name="button_label_check_license">Führerschein Prüfen</string>
-    <string name="button_label_check_age">Alter Prüfen</string>
-    <string name="button_label_check_custom">Individuelle Anfrage</string>
-    <string name="button_label_check_over_age">Über %1$s</string>
 
     <string name="switch_label_use_negotiated_handover">Negotiated Handover</string>
     <string name="switch_label_use_ble_central_client_mode">BLE Central Client Mode</string>
@@ -265,8 +260,6 @@
     <string name="heading_label_refresh_data_screen">Daten laden</string>
     <string name="heading_label_authenticate_at_device_screen">Anmelden\nan Service Provider</string>
     <string name="heading_label_sign_document">Dokument signieren</string>
-    <string name="heading_label_select_data_retrieval_screen">Prüfen</string>
-    <string name="heading_label_select_custom_data_retrieval_screen">Individuelle Anfrage</string>
     <string name="heading_label_check_scan_qr_code">QR-Code Scannen</string>
     <string name="heading_label_show_qr_code_screen">Scan mich!</string>
     <string name="heading_label_received_data">Erhaltene Daten</string>
@@ -385,12 +378,6 @@
     <string name="section_heading_missing_data">Neue Daten laden</string>
     <string name="section_heading_available_data">Bestehende Daten aktualisieren</string>
     <string name="section_heading_transaction_data">Transaktion</string>
-    <string name="section_heading_request_eausweise">eAusweise Anfragen</string>
-    <string name="section_heading_request_license">Andere Anfragen</string>
-    <string name="section_heading_request_custom">Individuelle Anfragen</string>
-    <string name="section_heading_select_document_type">Wähle ein Dokument Typ:</string>
-    <string name="section_heading_selected_namespace">Namespace: </string>
-    <string name="section_heading_select_requested_data_entries">Wähle anzufordernde Daten</string>
 
     <string name="onboarding_section_load_data_icon_text">2</string>
     <string name="onboarding_section_load_data_title">Daten in die App laden</string>
@@ -425,4 +412,21 @@
     <string name="section_heading_request_engagement_method">Verbindungsaufbau via</string>
     <string name="nfc">NFC</string>
     <string name="qr">QR-Code</string>
+
+    <!-- Verify Data Route -->
+    <string name="heading_label_select_data_retrieval_screen">Prüfen</string>
+    <string name="heading_label_select_custom_data_retrieval_screen">Individuell</string>
+    <string name="section_heading_request_mdl">mDL Anfragen</string>
+    <string name="section_heading_request_pid">PID Anfragen</string>
+    <string name="section_heading_request_custom">Individuelle Anfragen</string>
+    <string name="section_heading_select_document_type">Dokument Typ</string>
+    <string name="section_heading_selected_namespace">Namespace: %1$s</string>
+    <string name="section_heading_select_requested_data_entries">Angefragte Daten</string>
+    <string name="button_label_check_identity">Identität Prüfen</string>
+    <string name="button_label_check_license">Führerschein Prüfen</string>
+    <string name="button_label_check_age">Alter Prüfen</string>
+    <string name="button_label_check_custom">Individuelle Anfrage</string>
+    <string name="button_label_check_over_age">Über %1$s</string>
+    <string name="text_label_all_attributes">Alle Attribute</string>
+    <string name="text_label_mandatory_attributes">Notwendige Attribute</string>
 </resources>

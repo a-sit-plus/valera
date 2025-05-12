@@ -51,11 +51,6 @@
     <string name="button_label_show_technical_details">Show technical details</string>
     <string name="button_label_hide_technical_details">Hide technical details</string>
     <string name="button_label_sign">Sign</string>
-    <string name="button_label_check_identity">Check Identity</string>
-    <string name="button_label_check_license">Check License</string>
-    <string name="button_label_check_age">Check Age</string>
-    <string name="button_label_check_custom">Custom Request</string>
-    <string name="button_label_check_over_age">Over %1$s</string>
 
     <string name="switch_label_use_negotiated_handover">Negotiated Handover</string>
     <string name="switch_label_use_ble_central_client_mode">BLE Central Client Mode</string>
@@ -265,8 +260,6 @@
     <string name="heading_label_refresh_data_screen">Load data</string>
     <string name="heading_label_authenticate_at_device_screen">Authenticate at\nrelying party</string>
     <string name="heading_label_sign_document">Sign document</string>
-    <string name="heading_label_select_data_retrieval_screen">Check</string>
-    <string name="heading_label_select_custom_data_retrieval_screen">Custom Request</string>
     <string name="heading_label_check_scan_qr_code">Scan QR-Code</string>
     <string name="heading_label_show_qr_code_screen">Scan me!</string>
     <string name="heading_label_received_data">Received Data</string>
@@ -385,12 +378,6 @@
     <string name="section_heading_missing_data">Load new data</string>
     <string name="section_heading_available_data">Refresh existing data</string>
     <string name="section_heading_transaction_data">Transaction</string>
-    <string name="section_heading_request_eausweise">eAusweise request</string>
-    <string name="section_heading_request_license">Other request</string>
-    <string name="section_heading_request_custom">Custom request</string>
-    <string name="section_heading_select_document_type">Select document type:</string>
-    <string name="section_heading_selected_namespace">Namespace: </string>
-    <string name="section_heading_select_requested_data_entries">Select data entries:</string>
 
     <string name="onboarding_section_load_data_icon_text">2</string>
     <string name="onboarding_section_load_data_title">Load data into the app</string>
@@ -416,4 +403,21 @@
     <string name="section_heading_request_engagement_method">Device Engagement Method</string>
     <string name="nfc">NFC</string>
     <string name="qr">QR-Code</string>
+
+    <!-- Verify Data Route -->
+    <string name="heading_label_select_data_retrieval_screen">Check</string>
+    <string name="heading_label_select_custom_data_retrieval_screen">Custom</string>
+    <string name="section_heading_request_mdl">mDL requests</string>
+    <string name="section_heading_request_pid">PID requests</string>
+    <string name="section_heading_request_custom">Custom requests</string>
+    <string name="section_heading_select_document_type">Select document type</string>
+    <string name="section_heading_selected_namespace">Namespace: %1$s</string>
+    <string name="section_heading_select_requested_data_entries">Select data entries</string>
+    <string name="button_label_check_identity">Check Identity</string>
+    <string name="button_label_check_license">Check License</string>
+    <string name="button_label_check_age">Check Age</string>
+    <string name="button_label_check_custom">Custom Request</string>
+    <string name="button_label_check_over_age">Over %1$s</string>
+    <string name="text_label_all_attributes">All Attributes</string>
+    <string name="text_label_mandatory_attributes">Mandatory Attributes</string>
 </resources>
