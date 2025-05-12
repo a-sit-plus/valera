@@ -25,10 +25,8 @@ data class FilteringSimpleBulkStore<Key : Any, Value : Any>(
     ).applyFilter()
 
     override suspend fun put(entries: Map<Key, Value>): Map<Key, Value?> = mutex.withLock {
-        simpleStore.put(
-            entries
-        ).applyFilter()
-    }
+        simpleStore.put(entries)
+    }.applyFilter()
 
     override suspend fun getOrPut(defaultValues: Map<Key, suspend () -> Value>): Map<Key, Value> = mutex.withLock {
         val available = getInsecure(defaultValues.keys)
@@ -78,24 +76,12 @@ data class FilteringSimpleBulkStore<Key : Any, Value : Any>(
 
     override suspend fun removeAllEntries() = simpleStore.removeAllEntries()
 
-    @JvmName("applyFilterWithNullValues")
     private fun Map<Key, Value?>.applyFilter() = mapValues { (key, value) ->
         value?.let {
             if (filter(key to value)) {
-                null
-            } else {
                 value
-            }
-        }
-    }
-
-    @JvmName("applyFilterWithoutNullValues")
-    private fun Map<Key, Value>.applyFilter() = mapValues { (key, value) ->
-        value.let {
-            if (filter(key to value)) {
-                null
             } else {
-                value
+                null
             }
         }
     }

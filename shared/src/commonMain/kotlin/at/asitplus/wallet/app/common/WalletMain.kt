@@ -110,12 +110,13 @@ class WalletMain(
             store = SimpleCacheStoreWrapper(
                 store = statusListTokenCache,
                 clock = Clock.System,
-                currentCacheDuration = {
-                    // requires status list configuration settings for further changes
-                    300.seconds
+                getCachingDuration = { (key, value) ->
+                    value.payload.timeToLive?.duration?.also {
+                        Napier.d("Entry specific caching duration is used: $it")
+                    } ?: 300.seconds
                 },
                 onEntryFiltered = {
-                    // Let's not remove anything for now, token status list urls do not change between fetches
+                    // Let's not remove anything for now, token status list urls do not change between fetches anyway
                 },
             ),
             statusListTokenResolver = {

@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app.data
 
+import io.github.aakira.napier.Napier
 import kotlinx.datetime.Clock
 import kotlin.time.Duration
 
@@ -10,13 +11,17 @@ import kotlin.time.Duration
 data class SimpleCacheStoreWrapper<Key : Any, Value : Any>(
     val store: SimpleBulkStore<Key, CacheStoreEntry<Value>>,
     val clock: Clock,
-    val currentCacheDuration: () -> Duration,
+    val getCachingDuration: (Pair<Key, Value>) -> Duration,
     val onEntryFiltered: (Key) -> Unit,
 ) : SimpleBulkStore<Key, Value> by TransformingSimpleBulkStore<Key, Value, Key, CacheStoreEntry<Value>>(
     simpleStore = FilteringSimpleBulkStore(
         store,
-        filter = { (key, value) ->
-            (value.createdTime + currentCacheDuration() > clock.now()).also {
+        filter = { entry ->
+            val (key, value) = entry
+            val cachingDuration = getCachingDuration(key to value.data)
+            val now = clock.now()
+            (value.createdTime + cachingDuration > now).also {
+                Napier.d("Reuse cached value for $key ($cachingDuration + ${value.createdTime} > $now): $it")
                 if(!it) {
                     onEntryFiltered(key)
                 }
