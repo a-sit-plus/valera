@@ -410,9 +410,9 @@
     <string name="section_heading_request_mdl">mDL requests</string>
     <string name="section_heading_request_pid">PID requests</string>
     <string name="section_heading_request_custom">Custom requests</string>
-    <string name="section_heading_select_document_type">Select document type:</string>
+    <string name="section_heading_select_document_type">Select document type</string>
     <string name="section_heading_selected_namespace">Namespace: %1$s</string>
-    <string name="section_heading_select_requested_data_entries">Select data entries:</string>
+    <string name="section_heading_select_requested_data_entries">Select data entries</string>
     <string name="button_label_check_identity">Check Identity</string>
     <string name="button_label_check_license">Check License</string>
     <string name="button_label_check_age">Check Age</string>
