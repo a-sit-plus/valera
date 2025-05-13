@@ -25,6 +25,8 @@ import at.asitplus.valera.resources.presentation_permission_required
 import at.asitplus.valera.resources.presentation_waiting_for_request
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
+import at.asitplus.wallet.lib.openid.DCQLMatchingResult
+import at.asitplus.wallet.lib.openid.PresentationExchangeMatchingResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -36,8 +38,6 @@ import ui.viewmodels.authentication.AuthenticationConsentViewModel
 import ui.viewmodels.authentication.AuthenticationNoCredentialViewModel
 import ui.viewmodels.authentication.AuthenticationSelectionPresentationExchangeViewModel
 import ui.viewmodels.authentication.AuthenticationViewState
-import ui.viewmodels.authentication.DCQLMatchingResult
-import ui.viewmodels.authentication.PresentationExchangeMatchingResult
 import ui.viewmodels.authentication.PresentationStateModel
 import ui.viewmodels.authentication.PresentationViewModel
 import ui.views.LoadingView
