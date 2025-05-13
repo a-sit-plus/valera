@@ -6,6 +6,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
+import ui.composables.CredentialFreshnessSummary
 import ui.viewmodels.authentication.AuthenticationConsentViewModel
 import ui.viewmodels.authentication.AuthenticationNoCredentialViewModel
 import ui.viewmodels.authentication.AuthenticationSelectionDCQLView
@@ -60,8 +61,11 @@ fun AuthenticationView(
                         onClickSettings = vm.onClickSettings,
                         confirmSelection = { vm.confirmSelection(it) },
                         matchingResult = matching,
-                        checkRevocationStatus = {
-                            vm.walletMain.checkRevocationStatus(it)
+                        checkCredentialFreshness = {
+                            CredentialFreshnessSummary(
+                                timelinessValidationSummary = vm.walletMain.credentialValidator.checkTimeliness(it),
+                                tokenStatus = vm.walletMain.credentialValidator.checkRevocationStatus(it),
+                            )
                         },
                         decodeToBitmap = { byteArray ->
                             vm.walletMain.platformAdapter.decodeImage(byteArray)

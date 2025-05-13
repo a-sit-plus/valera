@@ -43,6 +43,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.getString
 import ui.composables.BottomBar
+import ui.composables.CredentialFreshnessSummary
 import ui.composables.NavigationData
 import ui.navigation.routes.AddCredentialPreAuthnRoute
 import ui.navigation.routes.AddCredentialRoute
@@ -296,6 +297,12 @@ private fun WalletNavHost(
                         },
                         onClickLogo = onClickLogo,
                         onClickSettings = { navigate(SettingsRoute) }
+                    )
+                },
+                checkCredentialFreshness = {
+                    CredentialFreshnessSummary(
+                        tokenStatus = walletMain.checkRevocationStatus(it),
+                        timelinessValidationSummary = walletMain.credentialValidator.checkTimeliness(it),
                     )
                 },
                 bottomBar = {

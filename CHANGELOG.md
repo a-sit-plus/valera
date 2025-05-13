@@ -1,3 +1,7 @@
+# Release 5.7.0
+ * Upgrade to VC—K 5.7.0-SNAPSHOT
+ * Show Credential Freshness
+
 # Release 5.6.1
  * Upgrade to VC—K 5.6.1
  * mDL: Fix german localization for some claims

@@ -289,8 +289,10 @@
     <string name="prompt_select_credential">Welches Credential soll verwendet werden?</string>
     <string name="prompt_select_attribute">Welche Attribute sollen übermittelt werden?</string>
 
-    <string name="error_credential_selection_error_invalid_request_id">Keine Auswahl mit requestId</string>
     <string name="error_credential_status_invalid">UNGÜLTIG</string>
+    <string name="error_credential_timeliness_expired">ABGELAUFEN</string>
+    <string name="error_credential_timeliness_not_yet_valid">NOCH NICHT GÜLTIG</string>
+    <string name="error_credential_selection_error_invalid_request_id">Keine Auswahl mit requestId</string>
     <string name="error_credential_scheme_not_supported">Credential Schema wird nicht unterstützt</string>
     <string name="error_feature_not_yet_available">Implementation unvollständig</string>
     <string name="error_authentication_at_sp_failed">Anmeldung fehlgeschlagen</string>

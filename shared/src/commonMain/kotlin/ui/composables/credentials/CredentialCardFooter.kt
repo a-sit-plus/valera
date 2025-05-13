@@ -7,18 +7,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.error_credential_status_invalid
-import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatus
-import org.jetbrains.compose.resources.stringResource
-import ui.composables.BigErrorText
+import ui.composables.CredentialFreshnessSummary
 import ui.composables.buttons.DetailsButton
 
 
 @Composable
 fun ColumnScope.CredentialCardFooter(
-    isTokenStatusEvaluated: Boolean,
-    tokenStatus: TokenStatus?,
+    credentialFreshnessSummary: CredentialFreshnessSummary?,
     onOpenDetails: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
@@ -29,8 +24,8 @@ fun ColumnScope.CredentialCardFooter(
             modifier = modifier,
         ) {
             Box {
-                when {
-                    tokenStatus?.isInvalid == true -> BigErrorText(stringResource(Res.string.error_credential_status_invalid))
+                credentialFreshnessSummary?.let {
+                    MainCredentialIssue(credentialFreshnessSummary)
                 }
             }
             DetailsButton(

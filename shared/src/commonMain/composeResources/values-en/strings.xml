@@ -291,6 +291,8 @@
     <string name="prompt_select_attribute">Which attributes should be transmitted?</string>
 
     <string name="error_credential_status_invalid">INVALID</string>
+    <string name="error_credential_timeliness_expired">EXPIRED</string>
+    <string name="error_credential_timeliness_not_yet_valid">NOT YET VALID</string>
     <string name="error_credential_scheme_not_supported">Unsupported credential scheme</string>
     <string name="error_feature_not_yet_available">Incomplete Implementation</string>
     <string name="error_authentication_at_sp_failed">Authentication failed</string>
