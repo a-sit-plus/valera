@@ -28,6 +28,7 @@ import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.iso.sha256
 import at.asitplus.wallet.lib.iso.wrapInCborTag
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
+import at.asitplus.wallet.lib.oidvci.OAuth2Error
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
@@ -55,7 +56,10 @@ class PresentationService(
         requestUri: String,
         dcApiRequest: Oid4vpDCAPIRequest?
     ) = presentationService.parseAuthenticationRequestParameters(requestUri, dcApiRequest)
-
+    suspend fun createErrorResponse(
+        error: OAuth2Error,
+        request: RequestParametersFrom<AuthenticationRequestParameters>
+    ) = presentationService.createAuthnErrorResponse(error, request)
     suspend fun startAuthorizationResponsePreparation(
         request: RequestParametersFrom<AuthenticationRequestParameters>
     ) = presentationService.startAuthorizationResponsePreparation(request)

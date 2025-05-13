@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
 import at.asitplus.catchingUnwrapped
+import at.asitplus.openid.OpenIdConstants.Errors.INVALID_REQUEST
 import at.asitplus.openid.TransactionDataBase64Url
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_subtitle
@@ -16,6 +17,7 @@ import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.data.third_party.at.asitplus.oidc.dcql.toDefaultSubmission
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
+import at.asitplus.wallet.lib.oidvci.OAuth2Error
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 
@@ -43,6 +45,7 @@ abstract class AuthenticationViewModel(
     suspend fun onConsent() {
         matchingCredentials = findMatchingCredentials().getOrElse {
             viewState = AuthenticationViewState.NoMatchingCredential
+            createErrorResponse(error = INVALID_REQUEST, errorDescription = "NoMatchingCredential")
             return
         }
 
@@ -66,7 +69,19 @@ abstract class AuthenticationViewModel(
                     viewState = AuthenticationViewState.Selection
                 } else {
                     viewState = AuthenticationViewState.NoMatchingCredential
+                    createErrorResponse(error = INVALID_REQUEST, errorDescription = "NoMatchingCredential")
                 }
+            }
+        }
+    }
+
+    suspend fun createErrorResponse(error: String, errorDescription: String) {
+        when (this) {
+            is DefaultAuthenticationViewModel -> {
+                val request = this.authenticationRequest
+                val error =
+                    OAuth2Error(error = error, errorDescription = errorDescription, state = request.parameters.state)
+                walletMain.presentationService.createErrorResponse(error, request)
             }
         }
     }
@@ -74,7 +89,7 @@ abstract class AuthenticationViewModel(
     fun confirmSelection(credentialPresentationSubmissions: CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>?) {
         walletMain.scope.launch {
             finalizeAuthorization(
-                when(credentialPresentationSubmissions) {
+                when (credentialPresentationSubmissions) {
                     is DCQLCredentialSubmissions -> CredentialPresentation.DCQLPresentation(
                         presentationRequest = presentationRequest as CredentialPresentationRequest.DCQLRequest,
                         credentialQuerySubmissions = credentialPresentationSubmissions.credentialQuerySubmissions
@@ -85,7 +100,7 @@ abstract class AuthenticationViewModel(
                         inputDescriptorSubmissions = credentialPresentationSubmissions.inputDescriptorSubmissions
                     )
 
-                    null -> when(val it = presentationRequest) {
+                    null -> when (val it = presentationRequest) {
                         is CredentialPresentationRequest.DCQLRequest -> CredentialPresentation.DCQLPresentation(
                             presentationRequest = it,
                             credentialQuerySubmissions = null
