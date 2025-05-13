@@ -1,5 +1,3 @@
 package at.asitplus.wallet.app.data
 
-class SimpleBulkStoreImplementationException : Throwable {
-    constructor(throwable: Throwable): super(throwable)
-}
+class SimpleBulkStoreImplementationException(throwable: Throwable) : Throwable(throwable)
