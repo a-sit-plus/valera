@@ -2,23 +2,22 @@ package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
-import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.DOCUMENT_NUMBER
-import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.EXPIRY_DATE
-import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.ISSUANCE_DATE
-import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.ISSUING_AUTHORITY
-import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.ISSUING_COUNTRY
-import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.ehic.EhicScheme
+import at.asitplus.wallet.ehic.EhicScheme.Attributes.DOCUMENT_NUMBER
+import at.asitplus.wallet.ehic.EhicScheme.Attributes.EXPIRY_DATE
+import at.asitplus.wallet.ehic.EhicScheme.Attributes.ISSUANCE_DATE
 import at.asitplus.wallet.ehic.EhicScheme.Attributes.ISSUING_AUTHORITY_ID
 import at.asitplus.wallet.ehic.EhicScheme.Attributes.ISSUING_AUTHORITY_NAME
+import at.asitplus.wallet.ehic.EhicScheme.Attributes.ISSUING_COUNTRY
 import at.asitplus.wallet.ehic.EhicScheme.Attributes.IssuingAuthority.ID
 import at.asitplus.wallet.ehic.EhicScheme.Attributes.IssuingAuthority.NAME
+import at.asitplus.wallet.ehic.EhicScheme.Attributes.PREFIX_ISSUING_AUTHORITY
 import at.asitplus.wallet.ehic.EhicScheme.Attributes.SOCIAL_SECURITY_NUMBER
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import data.Attribute
-import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDate
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
@@ -62,8 +61,8 @@ sealed class EhicCredentialAdapter : CredentialAdapter() {
     abstract val issuingAuthorityId: String?
     abstract val issuingAuthorityName: String?
     abstract val documentNumber: String?
-    abstract val issuanceDate: Instant?
-    abstract val expiryDate: Instant?
+    abstract val issuanceDate: LocalDate?
+    abstract val expiryDate: LocalDate?
 
     companion object {
         fun createFromStoreEntry(storeEntry: SubjectCredentialStore.StoreEntry): EhicCredentialAdapter {
@@ -86,7 +85,7 @@ private class EhicCredentialSdJwtAdapter(
     private val attributes: Map<String, JsonPrimitive>,
 ) : EhicCredentialAdapter() {
     override val scheme: ConstantIndex.CredentialScheme
-        get() = CertificateOfResidenceScheme
+        get() = EhicScheme
 
     override val representation: CredentialRepresentation
         get() = CredentialRepresentation.SD_JWT
@@ -95,7 +94,7 @@ private class EhicCredentialSdJwtAdapter(
         get() = attributes[DOCUMENT_NUMBER]?.contentOrNull
 
     override val issuingAuthority: String?
-        get() = attributes[ISSUING_AUTHORITY]?.contentOrNull
+        get() = attributes[PREFIX_ISSUING_AUTHORITY]?.contentOrNull
 
     override val issuingAuthorityId: String?
         get() = attributes[ID]?.contentOrNull
@@ -106,11 +105,11 @@ private class EhicCredentialSdJwtAdapter(
     override val socialSecurityNumber: String?
         get() = attributes[SOCIAL_SECURITY_NUMBER]?.contentOrNull
 
-    override val issuanceDate: Instant?
-        get() = attributes[ISSUANCE_DATE]?.contentOrNull?.toInstantOrNull()
+    override val issuanceDate: LocalDate?
+        get() = attributes[ISSUANCE_DATE]?.contentOrNull?.toLocalDateOrNull()
 
-    override val expiryDate: Instant?
-        get() = attributes[EXPIRY_DATE]?.contentOrNull?.toInstantOrNull()
+    override val expiryDate: LocalDate?
+        get() = attributes[EXPIRY_DATE]?.contentOrNull?.toLocalDateOrNull()
 
     override val issuingCountry: String?
         get() = attributes[ISSUING_COUNTRY]?.contentOrNull
@@ -121,7 +120,7 @@ private class EhicComplexCredentialSdJwtAdapter(
     private val attributes: JsonObject,
 ) : EhicCredentialAdapter() {
     override val scheme: ConstantIndex.CredentialScheme
-        get() = CertificateOfResidenceScheme
+        get() = EhicScheme
 
     override val representation: CredentialRepresentation
         get() = CredentialRepresentation.SD_JWT
@@ -130,26 +129,26 @@ private class EhicComplexCredentialSdJwtAdapter(
         get() = (attributes[DOCUMENT_NUMBER] as? JsonPrimitive?)?.contentOrNull
 
     override val issuingAuthority: String?
-        get() = (attributes[ISSUING_AUTHORITY] as? JsonPrimitive?)?.contentOrNull
+        get() = (attributes[PREFIX_ISSUING_AUTHORITY] as? JsonPrimitive?)?.contentOrNull
 
     override val issuingAuthorityId: String?
-        get() = (attributes[ISSUING_AUTHORITY] as? JsonObject?)?.let {
+        get() = (attributes[PREFIX_ISSUING_AUTHORITY] as? JsonObject?)?.let {
             (it[ID] as? JsonPrimitive?)?.contentOrNull
         } ?: (attributes[ISSUING_AUTHORITY_ID] as? JsonPrimitive?)?.contentOrNull
 
     override val issuingAuthorityName: String?
-        get() = (attributes[ISSUING_AUTHORITY] as? JsonObject?)?.let {
+        get() = (attributes[PREFIX_ISSUING_AUTHORITY] as? JsonObject?)?.let {
             (it[NAME] as? JsonPrimitive?)?.contentOrNull
         } ?: (attributes[ISSUING_AUTHORITY_NAME] as? JsonPrimitive?)?.contentOrNull
 
     override val socialSecurityNumber: String?
         get() = (attributes[SOCIAL_SECURITY_NUMBER] as JsonPrimitive?)?.contentOrNull
 
-    override val issuanceDate: Instant?
-        get() = (attributes[ISSUANCE_DATE] as? JsonPrimitive?)?.contentOrNull?.toInstantOrNull()
+    override val issuanceDate: LocalDate?
+        get() = (attributes[ISSUANCE_DATE] as? JsonPrimitive?)?.contentOrNull?.toLocalDateOrNull()
 
-    override val expiryDate: Instant?
-        get() = (attributes[EXPIRY_DATE] as? JsonPrimitive?)?.contentOrNull?.toInstantOrNull()
+    override val expiryDate: LocalDate?
+        get() = (attributes[EXPIRY_DATE] as? JsonPrimitive?)?.contentOrNull?.toLocalDateOrNull()
 
     override val issuingCountry: String?
         get() = (attributes[ISSUING_COUNTRY] as? JsonPrimitive?)?.contentOrNull
