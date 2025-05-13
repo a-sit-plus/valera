@@ -11,6 +11,7 @@ import androidx.credentials.DigitalCredential
 import androidx.credentials.ExperimentalDigitalCredentialApi
 import androidx.credentials.GetCredentialResponse
 import androidx.credentials.provider.PendingIntentHandler
+import com.google.android.gms.identitycredentials.IntentHelper
 import io.github.aakira.napier.Napier
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.multipaz.context.initializeApplication
@@ -37,7 +38,7 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
     @OptIn(ExperimentalDigitalCredentialApi::class)
     fun sendCredentialResponseToDCAPIInvoker(resultJson: String) {
         val resultData = Intent()
-        /*val bundle = Bundle().apply {
+        val bundle = Bundle().apply {
             putByteArray("identityToken", resultJson.toByteArray())
         }
 
@@ -45,11 +46,11 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
 
         IntentHelper.setGetCredentialResponse(
             resultData,
-            GetCredentialResponse(credentialResponse)
+            com. google. android. gms. identitycredentials. GetCredentialResponse(credentialResponse)
         )
-        */
 
-        val credential = try {
+
+        /*val credential = try {
             DigitalCredential(resultJson)
         } catch (e: IllegalArgumentException) {
             val bundle = Bundle().apply {
@@ -63,7 +64,7 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
             GetCredentialResponse(
                 credential
             )
-        )
+        )*/
         setResult(RESULT_OK, resultData)
         finish()
     }

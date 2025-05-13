@@ -16,6 +16,7 @@ import androidx.credentials.provider.PendingIntentHandler
 import androidx.credentials.registry.provider.selectedEntryId
 import at.asitplus.KmmResult
 import at.asitplus.catching
+import at.asitplus.openid.OpenIdConstants.DC_API_OID4VP_PROTOCOL_IDENTIFIER
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialList
 import at.asitplus.wallet.app.android.AndroidKeyMaterial
 import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
@@ -244,7 +245,7 @@ class AndroidPlatformAdapter(
                         docType,
                     )
                 }
-                protocol.startsWith("openid4vp") -> {
+                protocol.startsWith(DC_API_OID4VP_PROTOCOL_IDENTIFIER) -> {
                     Napier.d("Using protocol $protocol, got request $request for credential ID $credentialId")
                     Oid4vpDCAPIRequest(
                         protocol, parsedRequest, credentialId, callingPackageName, callingOrigin

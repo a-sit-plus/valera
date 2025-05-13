@@ -1,9 +1,11 @@
 package ui.viewmodels.intents
 
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.app.common.dcapi.data.ErrorResponse
 import at.asitplus.wallet.lib.dcapi.request.Oid4vpDCAPIRequest
 import at.asitplus.wallet.lib.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.wallet.app.common.domain.BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase
+import at.asitplus.wallet.lib.oidvci.OAuth2Exception
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
@@ -21,6 +23,11 @@ class DCAPIAuthorizationIntentViewModel(
             presentationService = walletMain.presentationService,
         )
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, error ->
+        val response = when (error) {
+            is OAuth2Exception -> error.serialize()
+            else -> ErrorResponse("unsupported_response_type").serialize() // TODO Not sure what to return in this case
+        }
+        walletMain.platformAdapter.prepareDCAPICredentialResponse(response)
         onFailure(error)
     }
 
@@ -28,7 +35,6 @@ class DCAPIAuthorizationIntentViewModel(
         val dcApiRequest = walletMain.platformAdapter.getCurrentDCAPIData().getOrThrow()
         val consentPageBuilder =
             BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase()
-
 
         when (dcApiRequest) {
             is PreviewDCAPIRequest -> {
