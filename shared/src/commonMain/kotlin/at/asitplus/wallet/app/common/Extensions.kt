@@ -22,7 +22,6 @@ import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
 import at.asitplus.wallet.healthid.HealthIdScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
-import at.asitplus.wallet.lib.agent.validation.CredentialFreshnessSummary
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
@@ -30,21 +29,19 @@ import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.ISO_MD
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.PLAIN_JWT
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.SD_JWT
 import at.asitplus.wallet.lib.data.dif.PresentationExchangeInputEvaluator
-import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatusValidationResult
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.oidvci.toFormat
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationDataElements
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
-import at.asitplus.wallet.taxid.TaxIdScheme
 import at.asitplus.wallet.taxid.TaxId2025Scheme
+import at.asitplus.wallet.taxid.TaxIdScheme
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.put
-import ui.composables.CredentialStatusState
 
 fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, ConstantIndex.CredentialScheme, Map<NormalizedJsonPath, Boolean>> {
     @Suppress("DEPRECATION")
@@ -306,9 +303,3 @@ fun ConstantIndex.CredentialScheme.toJsonElement(
         }
     }
 }
-
-fun CredentialStatusState.Success.isInvalid(): Boolean =
-    freshness?.tokenStatusValidationResult is TokenStatusValidationResult.Invalid
-
-fun CredentialFreshnessSummary.isInvalid(): Boolean =
-    (tokenStatusValidationResult is TokenStatusValidationResult.Invalid)

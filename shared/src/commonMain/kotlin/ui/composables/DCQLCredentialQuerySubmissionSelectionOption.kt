@@ -24,9 +24,7 @@ import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getL
 import at.asitplus.wallet.app.common.thirdParty.kotlinx.serialization.json.leafNodeList
 import at.asitplus.wallet.lib.agent.SdJwtValidator
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.agent.validation.CredentialFreshnessSummary
 import at.asitplus.wallet.lib.data.CredentialToJsonConverter.toJsonElement
-import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatus
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.jws.SdJwtSigned
 import data.Attribute
@@ -45,16 +43,16 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
     isSelected: Boolean,
     onToggleSelection: () -> Unit,
     option: DCQLCredentialSubmissionOption<SubjectCredentialStore.StoreEntry>,
-    checkFreshness: suspend (SubjectCredentialStore.StoreEntry) -> CredentialFreshnessSummary?,
+    checkCredentialFreshness: suspend (SubjectCredentialStore.StoreEntry) -> CredentialFreshnessSummaryModel,
     decodeToBitmap: (ByteArray) -> ImageBitmap?,
     modifier: Modifier = Modifier,
 ) {
-    val credentialStatusState by produceState(
-        CredentialStatusState.Loading as CredentialStatusState,
+    val credentialFreshnessValidationState by produceState(
+        CredentialFreshnessValidationState.Loading as CredentialFreshnessValidationState,
         option.credential
     ) {
-        value = CredentialStatusState.Loading
-        value = CredentialStatusState.Success(checkFreshness(option.credential))
+        value = CredentialFreshnessValidationState.Loading
+        value = CredentialFreshnessValidationState.Done(checkCredentialFreshness(option.credential))
     }
 
 
@@ -105,13 +103,13 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
     }
 
     CredentialSelectionCardLayout(
-        credentialStatusState = credentialStatusState,
+        credentialFreshnessValidationState = credentialFreshnessValidationState,
         onClick = onToggleSelection,
         isSelected = isSelected,
         modifier = modifier,
     ) {
         CredentialSelectionCardHeader(
-            credentialStatusState = credentialStatusState,
+            credentialFreshnessValidationState = credentialFreshnessValidationState,
             credential = credential,
             modifier = Modifier.fillMaxWidth()
         )

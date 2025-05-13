@@ -14,13 +14,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import at.asitplus.wallet.app.common.isInvalid
-import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatusValidationResult
-import ui.composables.CredentialStatusState
+import ui.composables.CredentialFreshnessValidationState
 
 @Composable
 fun CredentialSelectionCardLayout(
-    credentialStatusState: CredentialStatusState,
+    credentialFreshnessValidationState: CredentialFreshnessValidationState,
     onClick: () -> Unit,
     modifier: Modifier,
     isSelected: Boolean,
@@ -30,36 +28,36 @@ fun CredentialSelectionCardLayout(
     val borderStroke: MutableState<BorderStroke?> = mutableStateOf(null)
 
     if (isSelected) {
-        containerColor.value = when (credentialStatusState) {
-            CredentialStatusState.Loading -> MaterialTheme.colorScheme.primaryContainer
-            is CredentialStatusState.Success -> if (credentialStatusState.isInvalid()) {
-                MaterialTheme.colorScheme.errorContainer
-            } else {
+        containerColor.value = when (credentialFreshnessValidationState) {
+            CredentialFreshnessValidationState.Loading -> MaterialTheme.colorScheme.primaryContainer
+            is CredentialFreshnessValidationState.Done -> if (credentialFreshnessValidationState.credentialFreshnessSummaryModel.isNotBad) {
                 MaterialTheme.colorScheme.primaryContainer
+            } else {
+                MaterialTheme.colorScheme.errorContainer
             }
         }
 
         val width = 2.dp
-        borderStroke.value = when (credentialStatusState) {
-            CredentialStatusState.Loading -> BorderStroke(
+        borderStroke.value = when (credentialFreshnessValidationState) {
+            CredentialFreshnessValidationState.Loading -> BorderStroke(
                 width = width,
-                color = MaterialTheme.colorScheme.inversePrimary
+                color = MaterialTheme.colorScheme.inversePrimary,
             )
 
-            is CredentialStatusState.Success -> if (credentialStatusState.isInvalid()) {
-                BorderStroke(width = width, color = MaterialTheme.colorScheme.error)
-            } else {
+            is CredentialFreshnessValidationState.Done -> if (credentialFreshnessValidationState.credentialFreshnessSummaryModel.isNotBad) {
                 BorderStroke(width = width, color = MaterialTheme.colorScheme.inversePrimary)
+            } else {
+                BorderStroke(width = width, color = MaterialTheme.colorScheme.error)
             }
         }
 
     } else {
-        containerColor.value = when (credentialStatusState) {
-            CredentialStatusState.Loading -> Color.Unspecified
-            is CredentialStatusState.Success -> if (credentialStatusState.isInvalid()) {
-                MaterialTheme.colorScheme.errorContainer
-            } else {
+        containerColor.value = when (credentialFreshnessValidationState) {
+            CredentialFreshnessValidationState.Loading -> Color.Unspecified
+            is CredentialFreshnessValidationState.Done -> if (credentialFreshnessValidationState.credentialFreshnessSummaryModel.isNotBad) {
                 Color.Unspecified
+            } else {
+                MaterialTheme.colorScheme.errorContainer
             }
         }
         borderStroke.value = null
