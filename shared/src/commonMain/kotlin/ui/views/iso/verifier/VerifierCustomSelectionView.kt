@@ -57,8 +57,8 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
     val listSpacingModifier = Modifier.padding(top = 8.dp)
     val layoutSpacingModifier = Modifier.padding(top = 24.dp)
 
-    var selectedDocumentType by remember { mutableStateOf(SelectableDocTypes.MDL) }
-    var selectedEntries by remember { mutableStateOf(getPreselection(SelectableDocTypes.MDL)) }
+    var selectedDocumentType by remember { mutableStateOf(SelectableDocTypes.docTypes.first()) }
+    var selectedEntries by remember { mutableStateOf(getPreselection(SelectableDocTypes.docTypes.first())) }
 
     Scaffold(
         topBar = {
@@ -96,9 +96,8 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                     onClick = {
                         docTypeConfigs[selectedDocumentType]?.let { config ->
                             val items = buildRequestDocument(
-                                docType = config.docType,
-                                namespace = config.namespace,
-                                attributes = selectedEntries
+                                scheme = config.scheme,
+                                subSet = selectedEntries
                             )
                             vm.onReceiveCustomSelection(items, vm.selectedEngagementMethod.value)
                         }
@@ -119,7 +118,7 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                         text = stringResource(Res.string.section_heading_select_document_type),
                         style = MaterialTheme.typography.titleMedium
                     )
-                    for (docType in vm.selectableDocTypes) {
+                    for (docType in SelectableDocTypes.docTypes) {
                         singleChoiceButton(docType, selectedDocumentType, listSpacingModifier) {
                             selectedDocumentType = docType
                             selectedEntries = docTypeConfigs[docType]?.preselection?.invoke() ?: emptySet()
@@ -131,7 +130,7 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                     Text(
                         text = stringResource(
                             Res.string.section_heading_selected_namespace,
-                            docTypeConfigs[selectedDocumentType]?.namespace ?: ""
+                            docTypeConfigs[selectedDocumentType]?.scheme?.isoNamespace!!
                         ),
                         style = MaterialTheme.typography.titleMedium
                     )
