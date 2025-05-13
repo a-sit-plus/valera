@@ -8,5 +8,5 @@ data class CredentialFreshnessSummary(
     val timelinessValidationSummary: CredentialTimelinessValidationSummary,
     val tokenStatus: KmmResult<TokenStatus>?,
 ) {
-    val isGood = timelinessValidationSummary.isSuccess && (tokenStatus?.getOrNull()?.isInvalid != true)
+    val isNotBad = timelinessValidationSummary.isSuccess && (tokenStatus?.getOrNull()?.isInvalid != true)
 }

@@ -21,7 +21,7 @@ fun CredentialCard(
 ) {
     CredentialCardLayout(
         colors = when {
-            credentialFreshnessSummary?.isGood == false -> CardDefaults.elevatedCardColors(
+            credentialFreshnessSummary?.isNotBad == false -> CardDefaults.elevatedCardColors(
                 containerColor = MaterialTheme.colorScheme.errorContainer,
                 contentColor = MaterialTheme.colorScheme.onErrorContainer,
             )

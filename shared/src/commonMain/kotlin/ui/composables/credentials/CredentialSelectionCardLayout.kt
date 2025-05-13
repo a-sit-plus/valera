@@ -30,7 +30,7 @@ fun CredentialSelectionCardLayout(
     if (isSelected) {
         containerColor.value = when (credentialFreshnessValidationState) {
             CredentialFreshnessValidationState.Loading -> MaterialTheme.colorScheme.primaryContainer
-            is CredentialFreshnessValidationState.Done -> if(credentialFreshnessValidationState.credentialFreshnessSummary.isGood) {
+            is CredentialFreshnessValidationState.Done -> if(credentialFreshnessValidationState.credentialFreshnessSummary.isNotBad) {
                 MaterialTheme.colorScheme.primaryContainer
             } else {
                 MaterialTheme.colorScheme.errorContainer
@@ -40,7 +40,7 @@ fun CredentialSelectionCardLayout(
         val width = 2.dp
         borderStroke.value = when (credentialFreshnessValidationState) {
             CredentialFreshnessValidationState.Loading -> BorderStroke(width = width, color = MaterialTheme.colorScheme.inversePrimary)
-            is CredentialFreshnessValidationState.Done -> if(credentialFreshnessValidationState.credentialFreshnessSummary.isGood) {
+            is CredentialFreshnessValidationState.Done -> if(credentialFreshnessValidationState.credentialFreshnessSummary.isNotBad) {
                 BorderStroke(width = width, color = MaterialTheme.colorScheme.inversePrimary)
             } else {
                 BorderStroke(width = width, color = MaterialTheme.colorScheme.error)
@@ -50,7 +50,7 @@ fun CredentialSelectionCardLayout(
     } else {
         containerColor.value = when (credentialFreshnessValidationState) {
             CredentialFreshnessValidationState.Loading -> Color.Unspecified
-            is CredentialFreshnessValidationState.Done -> if(credentialFreshnessValidationState.credentialFreshnessSummary.isGood) {
+            is CredentialFreshnessValidationState.Done -> if(credentialFreshnessValidationState.credentialFreshnessSummary.isNotBad) {
                 Color.Unspecified
             } else {
                 MaterialTheme.colorScheme.errorContainer

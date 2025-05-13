@@ -117,7 +117,7 @@ fun CredentialsView(
 
                 is CredentialState.Success -> {
                     val credentials = credentialsStatusDelegate.credentials.sortedBy { (id, credential) ->
-                        if(credentialTimelinessesState.credentialFreshnessSummaries[id]?.isGood == true) {
+                        if(credentialTimelinessesState.credentialFreshnessSummaries[id]?.isNotBad == true) {
                             0
                         } else {
                             1
