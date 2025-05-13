@@ -11,8 +11,8 @@ data class CachingStatusListTokenResolver(
     val store: SimpleStore<UniformResourceIdentifier, StatusListToken>,
     val statusListTokenResolver: StatusListTokenResolver,
 ) : StatusListTokenResolver {
-    override suspend fun invoke(uniformResourceIdentifier: UniformResourceIdentifier) =
-        store.getOrPut(uniformResourceIdentifier) {
-            statusListTokenResolver(uniformResourceIdentifier)
+    override suspend fun invoke(statusListUrl: UniformResourceIdentifier) =
+        store.getOrPut(statusListUrl) {
+            statusListTokenResolver(statusListUrl)
         }
 }
