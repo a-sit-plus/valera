@@ -10,12 +10,18 @@ import at.asitplus.valera.resources.snackbar_update_action
 import at.asitplus.valera.resources.snackbar_update_hint
 import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
+import at.asitplus.wallet.app.data.CacheStoreEntry
+import at.asitplus.wallet.app.data.CachingStatusListTokenResolver
+import at.asitplus.wallet.app.data.SimpleBootstrappingBulkStore
+import at.asitplus.wallet.app.data.SimpleCacheStoreWrapper
+import at.asitplus.wallet.app.data.SimpleMutableMapStore
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.data.StatusListToken
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.MediaTypes
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.StatusListTokenPayload
+import at.asitplus.wallet.lib.data.rfc3986.UniformResourceIdentifier
 import at.asitplus.wallet.lib.jws.VerifyJwsObject
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import at.asitplus.wallet.lib.rqes.Initializer.initRqesModule
@@ -45,6 +51,7 @@ import net.swiftzer.semver.SemVer
 import org.jetbrains.compose.resources.getString
 import org.multipaz.prompt.PromptModel
 import ui.navigation.IntentService
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Main class to hold all services needed in the Compose App.
@@ -96,9 +103,26 @@ class WalletMain(
         walletConfig = WalletConfig(dataStoreService = this.dataStoreService, errorService = errorService)
         subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
 
-        httpService = HttpService(buildContext)
-        credentialValidator = Validator(
-            resolveStatusListToken = {
+        val statusListTokenCache = SimpleBootstrappingBulkStore(
+            SimpleMutableMapStore<UniformResourceIdentifier, CacheStoreEntry<StatusListToken>>(),
+        )
+        val statusListTokenResolver = CachingStatusListTokenResolver(
+            store = SimpleCacheStoreWrapper(
+                store = statusListTokenCache,
+                clock = Clock.System,
+                getCachingDuration = { (key, value) ->
+                    listOfNotNull(
+                        value.payload.expirationTime?.let { it - Clock.System.now() },
+                        value.payload.timeToLive?.duration
+                    ).minOrNull()?.also {
+                        Napier.d("Entry specific caching duration is used: $it")
+                    } ?: 300.seconds
+                },
+                onEntryFiltered = {
+                    // Let's not remove anything for now, token status list urls do not change between fetches anyway
+                },
+            ),
+            statusListTokenResolver = {
                 val httpResponse = httpService.buildHttpClient().get(it.string) {
                     headers.set(HttpHeaders.Accept, MediaTypes.Application.STATUSLIST_JWT)
                 }
@@ -110,6 +134,11 @@ class WalletMain(
                     resolvedAt = Clock.System.now(),
                 )
             },
+        )
+
+        httpService = HttpService(buildContext)
+        credentialValidator = Validator(
+            resolveStatusListToken = statusListTokenResolver,
             verifyJwsObject = VerifyJwsObject(publicKeyLookup = issuerKeyLookup())
         )
         holderAgent = HolderAgent(

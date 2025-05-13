@@ -3,6 +3,7 @@
  * mDL: Fix german localization for some claims
  * PID: Support presenting all claims
  * Improve error messages
+ * Add: Caching of status list tokens
 
 # Release 5.6.0
  * Upgrade to VC-K 5.6.0
