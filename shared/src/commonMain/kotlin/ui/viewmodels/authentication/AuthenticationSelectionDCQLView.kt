@@ -22,6 +22,7 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.error_complex_dcql_query
 import at.asitplus.valera.resources.error_unsatisfiable_dcql_query
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.openid.DCQLMatchingResult
 import org.jetbrains.compose.resources.stringResource
 import ui.models.CredentialFreshnessSummaryUiModel
 import ui.composables.DCQLCredentialQuerySubmissionSelection

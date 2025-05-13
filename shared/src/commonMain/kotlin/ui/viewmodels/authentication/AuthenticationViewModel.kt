@@ -16,6 +16,9 @@ import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.extensions.toDefaultSubmission
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
+import at.asitplus.wallet.lib.openid.CredentialMatchingResult
+import at.asitplus.wallet.lib.openid.DCQLMatchingResult
+import at.asitplus.wallet.lib.openid.PresentationExchangeMatchingResult
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 
@@ -38,7 +41,7 @@ abstract class AuthenticationViewModel(
     lateinit var matchingCredentials: CredentialMatchingResult<SubjectCredentialStore.StoreEntry>
     lateinit var defaultCredentialSelection: Map<String, SubjectCredentialStore.StoreEntry>
 
-    abstract suspend fun findMatchingCredentials(): KmmResult<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>>
+    abstract suspend fun findMatchingCredentials(): Result<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>>
 
     suspend fun onConsent() {
         matchingCredentials = findMatchingCredentials().getOrElse {

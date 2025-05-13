@@ -25,7 +25,6 @@ import at.asitplus.wallet.lib.cbor.CoseHeaderNone
 import at.asitplus.wallet.lib.cbor.SignCose
 import at.asitplus.wallet.lib.cbor.SignCoseDetached
 import at.asitplus.wallet.lib.data.CredentialPresentation
-import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.iso.sha256
 import at.asitplus.iso.wrapInCborTag
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
@@ -35,8 +34,6 @@ import io.ktor.client.HttpClient
 import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
 import kotlinx.serialization.builtins.ByteArraySerializer
 import kotlinx.serialization.encodeToByteArray
-import ui.viewmodels.authentication.DCQLMatchingResult
-import ui.viewmodels.authentication.PresentationExchangeMatchingResult
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 class PresentationService(
@@ -65,31 +62,7 @@ class PresentationService(
         presentationService.startAuthorizationResponsePreparation(request).getOrThrow()
 
     suspend fun getMatchingCredentials(preparationState: AuthorizationResponsePreparationState) =
-        catching {
-            when (val it = preparationState.credentialPresentationRequest) {
-                is CredentialPresentationRequest.DCQLRequest -> {
-                    val dcqlQueryResult = holderAgent.matchDCQLQueryAgainstCredentialStore(
-                        it.dcqlQuery,
-                        preparationState.oid4vpDCAPIRequest?.credentialId
-                    ).getOrThrow()
-                    DCQLMatchingResult(
-                        presentationRequest = it,
-                        dcqlQueryResult
-                    )
-                }
-
-                is CredentialPresentationRequest.PresentationExchangeRequest -> PresentationExchangeMatchingResult(
-                    presentationRequest = it,
-                    matchingInputDescriptorCredentials = holderAgent.matchInputDescriptorsAgainstCredentialStore(
-                        inputDescriptors = it.presentationDefinition.inputDescriptors,
-                        fallbackFormatHolder = it.fallbackFormatHolder,
-                        filterById = preparationState.oid4vpDCAPIRequest?.credentialId
-                    ).getOrThrow()
-                )
-
-                null -> TODO()
-            }
-        }
+        presentationService.getMatchingCredentials(preparationState)
 
     suspend fun finalizeAuthorizationResponse(
         request: RequestParametersFrom<AuthenticationRequestParameters>,

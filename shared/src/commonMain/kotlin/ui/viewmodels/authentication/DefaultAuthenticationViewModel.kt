@@ -16,6 +16,7 @@ import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
+import at.asitplus.wallet.lib.openid.CredentialMatchingResult
 
 
 class DefaultAuthenticationViewModel(
@@ -51,12 +52,10 @@ class DefaultAuthenticationViewModel(
             ?.inputDescriptors?.filterIsInstance<QesInputDescriptor>()
             ?.firstOrNull()?.transactionData?.firstOrNull()
 
-    override suspend fun findMatchingCredentials(): KmmResult<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>> =
-        catching {
-            return walletMain.presentationService.getMatchingCredentials(
-                preparationState = preparationState
-            )
-        }
+    override suspend fun findMatchingCredentials(): Result<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>> =
+        walletMain.presentationService.getMatchingCredentials(
+            preparationState = preparationState
+        )
 
     override suspend fun finalizationMethod(credentialPresentation: CredentialPresentation): OpenId4VpWallet.AuthenticationSuccess {
         val authenticationResult = walletMain.presentationService.finalizeAuthorizationResponse(
