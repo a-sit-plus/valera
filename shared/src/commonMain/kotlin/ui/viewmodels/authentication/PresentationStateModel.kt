@@ -141,7 +141,7 @@ class PresentationStateModel(private var _presentmentScope: CoroutineScope) {
         _error = null
         _dismissible.value = true
         _numRequestsServed.value = 0
-        _presentmentScope?.coroutineContext?.cancelChildren(CancellationException("PresentationModel reset"))
+        _presentmentScope?.cancel(CancellationException("PresentationModel reset"))
         _state.value = State.IDLE
     }
 
