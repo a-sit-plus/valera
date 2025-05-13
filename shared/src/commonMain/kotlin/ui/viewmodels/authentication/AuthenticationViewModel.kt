@@ -16,6 +16,7 @@ import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.data.third_party.at.asitplus.oidc.dcql.toDefaultSubmission
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
+import at.asitplus.wallet.lib.oidvci.OAuth2Error
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 
@@ -42,7 +43,8 @@ abstract class AuthenticationViewModel(
 
     suspend fun onConsent() {
         matchingCredentials = findMatchingCredentials().getOrElse {
-            viewState = AuthenticationViewState.NoMatchingCredential
+            sendError()
+            //viewState = AuthenticationViewState.NoMatchingCredential
             return
         }
 
@@ -65,8 +67,22 @@ abstract class AuthenticationViewModel(
                 } else if (matching.matchingInputDescriptorCredentials.values.find { it.isEmpty() } == null) {
                     viewState = AuthenticationViewState.Selection
                 } else {
-                    viewState = AuthenticationViewState.NoMatchingCredential
+                    //viewState = AuthenticationViewState.NoMatchingCredential
+                    sendError()
                 }
+            }
+        }
+    }
+
+    suspend fun sendError() {
+        when(this) {
+            is DefaultAuthenticationViewModel -> {
+                val request = this.authenticationRequest
+                val error = OAuth2Error(error = "invalid_request", errorDescription = "123", state = request.parameters.state)
+                walletMain.presentationService.createErrorResponse(error, request)
+            }
+            else -> {
+
             }
         }
     }

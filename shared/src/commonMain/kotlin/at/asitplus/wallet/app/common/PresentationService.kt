@@ -22,6 +22,7 @@ import at.asitplus.wallet.lib.iso.DeviceAuthentication
 import at.asitplus.wallet.lib.iso.SessionTranscript
 import at.asitplus.wallet.lib.iso.wrapInCborTag
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
+import at.asitplus.wallet.lib.oidvci.OAuth2Error
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
@@ -42,6 +43,11 @@ class PresentationService(
         keyMaterial = keyMaterial,
         holderAgent = holderAgent
     )
+
+    suspend fun createErrorResponse(oAuth2Error: OAuth2Error, request: RequestParametersFrom<AuthenticationRequestParameters>) {
+        presentationService.createErrorResponse(oAuth2Error, request)
+    }
+
 
     suspend fun parseAuthenticationRequestParameters(requestUri: String) =
         presentationService.parseAuthenticationRequestParameters(requestUri)

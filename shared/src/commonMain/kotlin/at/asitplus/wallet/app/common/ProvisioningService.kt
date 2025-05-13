@@ -104,6 +104,10 @@ class ProvisioningService(
         )
     }
 
+    suspend fun sendError() {
+        openId4VciClient.oid4vciService
+    }
+
 
     /**
      * Called after getting the redirect back from ID Austria to the Issuing Service
