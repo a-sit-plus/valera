@@ -15,8 +15,22 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.data.third_party.at.asitplus.oidc.dcql.toDefaultSubmission
+import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
+import data.storage.PersistentCookieStorage
+import io.github.aakira.napier.Napier
+import io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
+import io.ktor.client.request.forms.FormDataContent
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType.Application.FormUrlEncoded
+import io.ktor.http.Parameters
+import io.ktor.http.contentType
+import io.ktor.utils.io.InternalAPI
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonObject
 import org.jetbrains.compose.resources.getString
 
 abstract class AuthenticationViewModel(
@@ -65,10 +79,39 @@ abstract class AuthenticationViewModel(
                 } else if (matching.matchingInputDescriptorCredentials.values.find { it.isEmpty() } == null) {
                     viewState = AuthenticationViewState.Selection
                 } else {
-                    viewState = AuthenticationViewState.NoMatchingCredential
+                    //viewState = AuthenticationViewState.NoMatchingCredential
+                    sendError()
                 }
             }
         }
+    }
+
+    @OptIn(InternalAPI::class)
+    suspend fun sendError() {
+        val cookieStorage = AcceptAllCookiesStorage()
+        val client = walletMain.httpService.buildHttpClient(cookieStorage)
+        when (this){
+            is DefaultAuthenticationViewModel -> {
+                val state = this.authenticationRequest.parameters.state!!
+                val nonce = this.authenticationRequest.parameters.nonce!!
+                this.authenticationRequest.parameters.responseUrl?.let {
+                    val response = client.post(it) {
+                        contentType(FormUrlEncoded)
+                        body = FormDataContent(Parameters.build {
+                            append("error", "invalid_request")
+                            append("error_description", "unsupported client_id_prefix")
+                            append("state", state)
+                        })
+                    }
+                    Napier.e(response.toString())
+                }
+
+            }
+            else -> {
+
+            }
+        }
+
     }
 
     fun confirmSelection(credentialPresentationSubmissions: CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>?) {
@@ -125,3 +168,6 @@ enum class AuthenticationViewState {
     NoMatchingCredential,
     Selection
 }
+
+@Serializable
+data class err (val error: String, val error_description: String, val state: String)
