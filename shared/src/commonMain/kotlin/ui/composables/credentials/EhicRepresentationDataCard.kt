@@ -38,13 +38,21 @@ fun EhicRepresentationDataCardContent(
         modifier = modifier,
     ) {
         val spacingModifier = Modifier.padding(bottom = 4.dp)
-//        credentialAdapter.oneTimeToken?.let {
-//            AttributeRepresentation(it, modifier = spacingModifier)
-//        }
-//        credentialAdapter.affiliationCountry?.let {
-//            AttributeRepresentation(it, modifier = spacingModifier)
-//        }
-        //TODO WIP
+        credentialAdapter.socialSecurityNumber?.let {
+            AttributeRepresentation(it, modifier = spacingModifier)
+        }
+        credentialAdapter.issuingAuthority?.let {
+            AttributeRepresentation(it, modifier = spacingModifier)
+        }
+        credentialAdapter.issuingCountry?.let {
+            AttributeRepresentation(it, modifier = spacingModifier)
+        }
+        credentialAdapter.documentNumber?.let {
+            AttributeRepresentation(it, modifier = spacingModifier)
+        }
+        credentialAdapter.issuanceDate?.let {
+            AttributeRepresentation(it, modifier = spacingModifier)
+        }
         credentialAdapter.expiryDate?.let{
             AttributeRepresentation(it)
         }
