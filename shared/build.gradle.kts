@@ -152,6 +152,7 @@ exportXCFramework(
         libs.credential.certificateofresidence,
         libs.credential.companyregistration,
         libs.credential.healthid,
+        libs.credential.ehic,
         libs.credential.taxid,
         kmmresult(),
         napier()
@@ -165,5 +166,4 @@ exportXCFramework(
 repositories {
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
     maven("https://oss.sonatype.org/content/repositories/snapshots/")
-    mavenLocal()
 }

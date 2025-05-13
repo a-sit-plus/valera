@@ -11,8 +11,8 @@ import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.ehic.EhicScheme
 import at.asitplus.wallet.ehic.EhicScheme.Attributes.ISSUING_AUTHORITY_ID
 import at.asitplus.wallet.ehic.EhicScheme.Attributes.ISSUING_AUTHORITY_NAME
-import at.asitplus.wallet.ehic.EhicScheme.Attributes.IssuingAuthority.id
-import at.asitplus.wallet.ehic.EhicScheme.Attributes.IssuingAuthority.name
+import at.asitplus.wallet.ehic.EhicScheme.Attributes.IssuingAuthority.ID
+import at.asitplus.wallet.ehic.EhicScheme.Attributes.IssuingAuthority.NAME
 import at.asitplus.wallet.ehic.EhicScheme.Attributes.SOCIAL_SECURITY_NUMBER
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
@@ -34,13 +34,14 @@ sealed class EhicCredentialAdapter : CredentialAdapter() {
                         PREFIX_ISSUING_AUTHORITY -> when (val second =
                             path.segments.drop(1).firstOrNull()) {
                             is NormalizedJsonPathSegment.NameSegment -> when (second.memberName) {
-                                id -> Attribute.fromValue(issuingAuthorityId)
-                                name -> Attribute.fromValue(issuingAuthorityName)
+                                ID -> Attribute.fromValue(issuingAuthorityId)
+                                NAME -> Attribute.fromValue(issuingAuthorityName)
                                 else -> null
                             }
 
                             else -> Attribute.fromValue(issuingAuthority)
                         }
+
                         ISSUING_AUTHORITY_ID -> Attribute.fromValue(issuingAuthorityId)
                         ISSUING_AUTHORITY_NAME -> Attribute.fromValue(issuingAuthorityName)
 
@@ -97,10 +98,10 @@ private class EhicCredentialSdJwtAdapter(
         get() = attributes[ISSUING_AUTHORITY]?.contentOrNull
 
     override val issuingAuthorityId: String?
-        get() = attributes[id]?.contentOrNull
+        get() = attributes[ID]?.contentOrNull
 
     override val issuingAuthorityName: String?
-        get() = attributes[name]?.contentOrNull
+        get() = attributes[NAME]?.contentOrNull
 
     override val socialSecurityNumber: String?
         get() = attributes[SOCIAL_SECURITY_NUMBER]?.contentOrNull
@@ -133,12 +134,12 @@ private class EhicComplexCredentialSdJwtAdapter(
 
     override val issuingAuthorityId: String?
         get() = (attributes[ISSUING_AUTHORITY] as? JsonObject?)?.let {
-            (it[id] as? JsonPrimitive?)?.contentOrNull
+            (it[ID] as? JsonPrimitive?)?.contentOrNull
         } ?: (attributes[ISSUING_AUTHORITY_ID] as? JsonPrimitive?)?.contentOrNull
 
     override val issuingAuthorityName: String?
         get() = (attributes[ISSUING_AUTHORITY] as? JsonObject?)?.let {
-            (it[name] as? JsonPrimitive?)?.contentOrNull
+            (it[NAME] as? JsonPrimitive?)?.contentOrNull
         } ?: (attributes[ISSUING_AUTHORITY_NAME] as? JsonPrimitive?)?.contentOrNull
 
     override val socialSecurityNumber: String?
