@@ -4,6 +4,7 @@
  * PID: Support presenting all claims
  * Improve error messages
  * Add: Caching of status list tokens
+ * Proximity: Persist transfer settings
 
 # Release 5.6.0
  * Upgrade to VC-K 5.6.0
