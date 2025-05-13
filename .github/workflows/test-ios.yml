@@ -37,5 +37,5 @@ jobs:
         if: success() || failure()
         with:
           name: Shared tests
-          path: shared/build/outputs/**/TEST*.xml
+          path: shared/build/test-results/**/TEST*.xml
           reporter: java-junit
