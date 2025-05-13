@@ -123,16 +123,18 @@ class WalletMain(
                 },
             ),
             statusListTokenResolver = {
-                val httpResponse = httpService.buildHttpClient().get(it.string) {
-                    headers.set(HttpHeaders.Accept, MediaTypes.Application.STATUSLIST_JWT)
-                }
-                StatusListToken.StatusListJwt(
-                    JwsSigned.deserialize<StatusListTokenPayload>(
-                        StatusListTokenPayload.serializer(),
-                        httpResponse.bodyAsText()
-                    ).getOrThrow(),
-                    resolvedAt = Clock.System.now(),
-                )
+                CoroutineScope(Dispatchers.IO).async {
+                    val httpResponse = httpService.buildHttpClient().get(it.string) {
+                        headers.set(HttpHeaders.Accept, MediaTypes.Application.STATUSLIST_JWT)
+                    }
+                    StatusListToken.StatusListJwt(
+                        JwsSigned.deserialize<StatusListTokenPayload>(
+                            StatusListTokenPayload.serializer(),
+                            httpResponse.bodyAsText()
+                        ).getOrThrow(),
+                        resolvedAt = Clock.System.now(),
+                    )
+                }.await()
             },
         )
 
@@ -281,7 +283,7 @@ class WalletMain(
         is SubjectCredentialStore.StoreEntry.Iso -> credentialValidator.checkRevocationStatus(it.issuerSigned)
         is SubjectCredentialStore.StoreEntry.SdJwt -> credentialValidator.checkRevocationStatus(it.sdJwt)
         is SubjectCredentialStore.StoreEntry.Vc -> credentialValidator.checkRevocationStatus(it.vc)
-    }?.getOrNull()
+    }
 }
 
 fun PlatformAdapter.decodeImage(image: ByteArray): ImageBitmap {

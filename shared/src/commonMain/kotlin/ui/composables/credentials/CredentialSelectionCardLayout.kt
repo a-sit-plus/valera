@@ -30,7 +30,7 @@ fun CredentialSelectionCardLayout(
     if (isSelected) {
         containerColor.value = when (credentialStatusState) {
             CredentialStatusState.Loading -> MaterialTheme.colorScheme.primaryContainer
-            is CredentialStatusState.Success -> if(credentialStatusState.tokenStatus?.isInvalid == true) {
+            is CredentialStatusState.Success -> if(credentialStatusState.tokenStatus.getOrNull()?.isInvalid == true) {
                 MaterialTheme.colorScheme.errorContainer
             } else {
                 MaterialTheme.colorScheme.primaryContainer
@@ -40,7 +40,7 @@ fun CredentialSelectionCardLayout(
         val width = 2.dp
         borderStroke.value = when (credentialStatusState) {
             CredentialStatusState.Loading -> BorderStroke(width = width, color = MaterialTheme.colorScheme.inversePrimary)
-            is CredentialStatusState.Success -> if(credentialStatusState.tokenStatus?.isInvalid == true) {
+            is CredentialStatusState.Success -> if(credentialStatusState.tokenStatus.getOrNull()?.isInvalid == true) {
                 BorderStroke(width = width, color = MaterialTheme.colorScheme.error)
             } else {
                 BorderStroke(width = width, color = MaterialTheme.colorScheme.inversePrimary)
@@ -50,7 +50,7 @@ fun CredentialSelectionCardLayout(
     } else {
         containerColor.value = when (credentialStatusState) {
             CredentialStatusState.Loading -> Color.Unspecified
-            is CredentialStatusState.Success -> if(credentialStatusState.tokenStatus?.isInvalid == true) {
+            is CredentialStatusState.Success -> if(credentialStatusState.tokenStatus.getOrNull()?.isInvalid == true) {
                 MaterialTheme.colorScheme.errorContainer
             } else {
                 Color.Unspecified
