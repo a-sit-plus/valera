@@ -22,7 +22,6 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.button_label_accept
 import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.button_label_details
 import at.asitplus.valera.resources.button_label_start
@@ -37,15 +36,12 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.ClaimToBeIssued
 import at.asitplus.wallet.lib.agent.CredentialToBeIssued
-import at.asitplus.wallet.lib.agent.DefaultCryptoService
 import at.asitplus.wallet.lib.agent.EphemeralKeyWithSelfSignedCert
 import at.asitplus.wallet.lib.agent.EphemeralKeyWithoutCert
 import at.asitplus.wallet.lib.agent.IssuerAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.agent.toStoreCredentialInput
-import at.asitplus.wallet.lib.cbor.DefaultCoseService
-import at.asitplus.wallet.lib.jws.DefaultJwsService
 import data.storage.DummyDataStoreService
 import io.kotest.common.Platform
 import io.kotest.common.platform
@@ -106,7 +102,7 @@ class InstrumentedTestsSuite : FunSpec({
     }
 
     context("Starting App Tests") {
-        test("Using collectAsStateWithLifecycle properly updates state to assert") {
+        test("Using collectAsState properly updates state to assert") {
             runComposeUiTest {
                 val dummyDataStoreService = DummyDataStoreService()
                 val preferenceKey = "test"
@@ -209,8 +205,6 @@ class InstrumentedTestsSuite : FunSpec({
                             validator = Validator(),
                             keyMaterial = keyMaterial,
                             statusListBaseUrl = "https://wallet.a-sit.at/m6/credentials/status",
-                            jwsService = DefaultJwsService(DefaultCryptoService(keyMaterial)),
-                            coseService = DefaultCoseService(DefaultCryptoService(keyMaterial)),
                         )
                         runBlocking {
                             walletMain.holderAgent.storeCredential(
