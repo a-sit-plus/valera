@@ -17,20 +17,10 @@ fun MainCredentialIssue(credentialFreshnessSummary: CredentialFreshnessSummary) 
             BigErrorText(stringResource(Res.string.error_credential_status_invalid))
         }
 
-        !credentialFreshnessSummary.timelinessValidationSummary.isSuccess -> {
-            val isExpired = when (val it = credentialFreshnessSummary.timelinessValidationSummary) {
-                is CredentialTimelinessValidationSummary.Mdoc -> it.details.msoTimelinessValidationSummary?.mdocExpiredError != null
-                is CredentialTimelinessValidationSummary.SdJwt -> it.details.jwsExpiredError != null
-                is CredentialTimelinessValidationSummary.VcJws -> it.details.jwsExpiredError != null || it.details.credentialExpiredError != null
-            }
-            val isNotYetValid = when (val it = credentialFreshnessSummary.timelinessValidationSummary) {
-                is CredentialTimelinessValidationSummary.Mdoc -> it.details.msoTimelinessValidationSummary?.mdocNotYetValidError != null
-                is CredentialTimelinessValidationSummary.SdJwt -> it.details.jwsNotYetValidError != null
-                is CredentialTimelinessValidationSummary.VcJws -> it.details.jwsNotYetValidError != null || it.details.credentialNotYetValidError != null
-            }
-            if (isExpired) {
+        !credentialFreshnessSummary.timelinessIndicator.isTimely -> {
+            if (credentialFreshnessSummary.timelinessIndicator.isExpired) {
                 BigErrorText(stringResource(Res.string.error_credential_timeliness_expired))
-            } else if (isNotYetValid) {
+            } else if (credentialFreshnessSummary.timelinessIndicator.isNotYetValid) {
                 BigErrorText(stringResource(Res.string.error_credential_timeliness_not_yet_valid))
             }
         }
