@@ -123,18 +123,16 @@ class WalletMain(
                 },
             ),
             statusListTokenResolver = {
-                CoroutineScope(Dispatchers.IO).async {
-                    val httpResponse = httpService.buildHttpClient().get(it.string) {
-                        headers.set(HttpHeaders.Accept, MediaTypes.Application.STATUSLIST_JWT)
-                    }
-                    StatusListToken.StatusListJwt(
-                        JwsSigned.deserialize<StatusListTokenPayload>(
-                            StatusListTokenPayload.serializer(),
-                            httpResponse.bodyAsText()
-                        ).getOrThrow(),
-                        resolvedAt = Clock.System.now(),
-                    )
-                }.await()
+                val httpResponse = httpService.buildHttpClient().get(it.string) {
+                    headers.set(HttpHeaders.Accept, MediaTypes.Application.STATUSLIST_JWT)
+                }
+                StatusListToken.StatusListJwt(
+                    JwsSigned.deserialize<StatusListTokenPayload>(
+                        StatusListTokenPayload.serializer(),
+                        httpResponse.bodyAsText()
+                    ).getOrThrow(),
+                    resolvedAt = Clock.System.now(),
+                )
             },
         )
 
