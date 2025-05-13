@@ -19,6 +19,7 @@ import at.asitplus.catching
 import at.asitplus.dcapi.request.DCAPIRequest
 import at.asitplus.dcapi.request.Oid4vpDCAPIRequest
 import at.asitplus.dcapi.request.PreviewDCAPIRequest
+import at.asitplus.openid.OpenIdConstants.DC_API_OID4VP_PROTOCOL_IDENTIFIER
 import at.asitplus.wallet.app.android.AndroidKeyMaterial
 import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
 import at.asitplus.wallet.app.android.dcapi.IdentityCredentialHelper
@@ -244,12 +245,14 @@ public class AndroidPlatformAdapter(
                         docType,
                     )
                 }
-                protocol.startsWith("openid4vp") -> {
+
+                protocol.startsWith(DC_API_OID4VP_PROTOCOL_IDENTIFIER) -> {
                     Napier.d("Using protocol $protocol, got request $request for credential ID $credentialId")
                     Oid4vpDCAPIRequest(
                         protocol, parsedRequest, credentialId, callingPackageName, callingOrigin
                     )
                 }
+
                 else -> {
                     Napier.e("Protocol type $protocol not supported")
                     throw IllegalArgumentException("Protocol type $protocol not supported")
@@ -265,7 +268,10 @@ public class AndroidPlatformAdapter(
     ) {
         val readerPublicKey = EcPublicKeyDoubleCoordinate.fromUncompressedPointEncoding(
             EcCurve.P256,
-            Base64.decode(dcApiRequestPreview.readerPublicKeyBase64, Base64.NO_WRAP or Base64.URL_SAFE)
+            Base64.decode(
+                dcApiRequestPreview.readerPublicKeyBase64,
+                Base64.NO_WRAP or Base64.URL_SAFE
+            )
         )
         // Generate the Session Transcript
         val encodedSessionTranscript = if (dcApiRequestPreview.callingOrigin == null) {

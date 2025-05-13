@@ -118,8 +118,8 @@ class PresentationService(
 
         val deviceResponse = when (val firstResult = presentation.presentationResults[0]) {
             is CreatePresentationResult.DeviceResponse -> firstResult.deviceResponse
-            is CreatePresentationResult.SdJwt -> TODO("Credential type not yet supported for API use case")
-            is CreatePresentationResult.Signed -> TODO("Credential type not yet supported for API use case")
+            is CreatePresentationResult.SdJwt -> TODO("Credential type not yet supported for preview protocol")
+            is CreatePresentationResult.Signed -> TODO("Credential type not yet supported for preview protocol")
         }
 
         platformAdapter.prepareDCAPICredentialResponse(coseCompliantSerializer.encodeToByteArray(deviceResponse), dcApiRequestPreview)
