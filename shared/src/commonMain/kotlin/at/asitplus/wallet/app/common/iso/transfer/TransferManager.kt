@@ -4,13 +4,14 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_nfc_mdoc_reader
-import at.asitplus.wallet.app.common.presentation.TransferSettings.Companion.transferSettings
+import at.asitplus.wallet.app.common.WalletConfig
 import data.document.RequestDocument
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.datetime.LocalDate
@@ -53,6 +54,7 @@ import org.multipaz.util.fromBase64Url
 
 // based on identity-credential[https://github.com/openwallet-foundation-labs/identity-credential] implementation
 class TransferManager(
+    private val config: WalletConfig,
     private val scope: CoroutineScope,
     private val updateProgress: (String) -> Unit,
 ) {
@@ -194,7 +196,7 @@ class TransferManager(
             try {
                 val negotiatedHandoverConnectionMethods = mutableListOf<MdocConnectionMethod>()
                 val bleUuid = UUID.randomUUID()
-                if (transferSettings.presentmentBleCentralClientModeEnabled.value) {
+                if (config.presentmentBleCentralClientModeEnabled.first()) {
                     negotiatedHandoverConnectionMethods.add(
                         MdocConnectionMethodBle(
                             supportsPeripheralServerMode = false,
@@ -204,7 +206,7 @@ class TransferManager(
                         )
                     )
                 }
-                if (transferSettings.presentmentBlePeripheralServerModeEnabled.value) {
+                if (config.presentmentBlePeripheralServerModeEnabled.first()) {
                     negotiatedHandoverConnectionMethods.add(
                         MdocConnectionMethodBle(
                             supportsPeripheralServerMode = true,
@@ -214,7 +216,7 @@ class TransferManager(
                         )
                     )
                 }
-                if (transferSettings.presentmentNfcDataTransferEnabled.value) {
+                if (config.presentmentNfcDataTransferEnabled.first()) {
                     negotiatedHandoverConnectionMethods.add(
                         MdocConnectionMethodNfc(
                             commandDataFieldMaxLength = 0xffff,
@@ -226,10 +228,10 @@ class TransferManager(
                 scanNfcMdocReader(
                     message = getString(Res.string.info_text_nfc_mdoc_reader),
                     options = MdocTransportOptions(
-                        bleUseL2CAP = transferSettings.readerBleL2CapEnabled.value
+                        bleUseL2CAP = config.readerBleL2CapEnabled.first()
                     ),
                     selectConnectionMethod = { connectionMethods ->
-                        if (transferSettings.readerAutomaticallySelectTransport) {
+                        if (config.readerAutomaticallySelectTransport.first()) {
                             updateProgress("Auto-selected first from $connectionMethods")
                             connectionMethods[0]
                         } else {
@@ -247,7 +249,7 @@ class TransferManager(
                             handover = handover,
                             updateNfcDialogMessage = updateMessage,
                             selectConnectionMethod = { connectionMethods ->
-                                if (transferSettings.readerAutomaticallySelectTransport) {
+                                if (config.readerAutomaticallySelectTransport.first()) {
                                     updateProgress("Auto-selected first from $connectionMethods")
                                     connectionMethods[0]
                                 } else {
@@ -298,7 +300,7 @@ class TransferManager(
                 handover = Simple.NULL,
                 updateNfcDialogMessage = updateProgress,
                 selectConnectionMethod = { connectionMethods ->
-                    if (transferSettings.readerAutomaticallySelectTransport) {
+                    if (config.readerAutomaticallySelectTransport.first()) {
                         updateProgress("Auto-selected first from $connectionMethods")
                         connectionMethods[0]
                     } else {
@@ -351,7 +353,7 @@ class TransferManager(
             val transport = MdocTransportFactory.Default.createTransport(
                 connectionMethod,
                 MdocRole.MDOC_READER,
-                MdocTransportOptions(bleUseL2CAP = transferSettings.readerBleL2CapEnabled.value)
+                MdocTransportOptions(bleUseL2CAP = config.readerBleL2CapEnabled.first())
             )
             if (transport is NfcTransportMdocReader) {
                 scanNfcTag(
@@ -457,7 +459,7 @@ class TransferManager(
                     transport.close()
                     break
                 }
-                if (!transferSettings.presentmentAllowMultipleRequests) {
+                if (!config.presentmentAllowMultipleRequests.first()) {
                     updateProgress("Response received, closing connection")
                     Napier.i(
                         "Holder did not indicate they are closing the connection. " +

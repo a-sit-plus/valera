@@ -63,7 +63,6 @@ import at.asitplus.valera.resources.switch_label_use_negotiated_handover
 import at.asitplus.valera.resources.switch_label_use_nfc_data_transfer
 import at.asitplus.valera.resources.text_label_build
 import at.asitplus.valera.resources.warning
-import at.asitplus.wallet.app.common.presentation.TransferSettings.Companion.transferSettings
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
@@ -221,45 +220,32 @@ fun SettingsView(
                         SettingSwitch(
                             label = stringResource(Res.string.switch_label_use_negotiated_handover),
                             modifier = listSpacingModifier.fillMaxWidth(),
-                            isChecked = transferSettings.presentmentUseNegotiatedHandover.collectAsState().value,
-                            onCheckedChange = { checked ->
-                                println("checked = ${checked}")
-                                transferSettings.presentmentUseNegotiatedHandover.value = checked
-                            }
+                            isChecked = vm.config.presentmentUseNegotiatedHandover.collectAsState(true).value,
+                            onCheckedChange = { vm.config.set(presentmentUseNegotiatedHandover = it) }
                         )
                         SettingSwitch(
                             label = stringResource(Res.string.switch_label_use_ble_central_client_mode),
                             modifier = listSpacingModifier.fillMaxWidth(),
-                            isChecked = transferSettings.presentmentBleCentralClientModeEnabled.collectAsState().value,
-                            onCheckedChange = { checked ->
-                                transferSettings.presentmentBleCentralClientModeEnabled.value =
-                                    checked
-                            }
+                            isChecked = vm.config.presentmentBleCentralClientModeEnabled.collectAsState(true).value,
+                            onCheckedChange = { vm.config.set(presentmentBleCentralClientModeEnabled = it) }
                         )
                         SettingSwitch(
                             label = stringResource(Res.string.switch_label_use_ble_peripheral_server_mode),
                             modifier = listSpacingModifier.fillMaxWidth(),
-                            isChecked = transferSettings.presentmentBlePeripheralServerModeEnabled.collectAsState().value,
-                            onCheckedChange = { checked ->
-                                transferSettings.presentmentBlePeripheralServerModeEnabled.value =
-                                    checked
-                            }
+                            isChecked = vm.config.presentmentBlePeripheralServerModeEnabled.collectAsState(true).value,
+                            onCheckedChange = { vm.config.set(presentmentBlePeripheralServerModeEnabled = it) }
                         )
                         SettingSwitch(
                             label = stringResource(Res.string.switch_label_use_nfc_data_transfer),
                             modifier = listSpacingModifier.fillMaxWidth(),
-                            isChecked = transferSettings.presentmentNfcDataTransferEnabled.collectAsState().value,
-                            onCheckedChange = { checked ->
-                                transferSettings.presentmentNfcDataTransferEnabled.value = checked
-                            }
+                            isChecked = vm.config.presentmentNfcDataTransferEnabled.collectAsState(false).value,
+                            onCheckedChange = { vm.config.set(presentmentNfcDataTransferEnabled = it) }
                         )
                         SettingSwitch(
                             label = stringResource(Res.string.switch_label_blel2cap_enabled),
                             modifier = listSpacingModifier.fillMaxWidth(),
-                            isChecked = transferSettings.readerBleL2CapEnabled.collectAsState().value,
-                            onCheckedChange = { checked ->
-                                transferSettings.readerBleL2CapEnabled.value = checked
-                            }
+                            isChecked = vm.config.readerBleL2CapEnabled.collectAsState(true).value,
+                            onCheckedChange = { vm.config.set(readerBleL2CapEnabled = it) }
                         )
                     }
                 }
