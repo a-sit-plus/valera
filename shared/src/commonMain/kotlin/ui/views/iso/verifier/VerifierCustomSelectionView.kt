@@ -142,7 +142,7 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                         style = MaterialTheme.typography.titleMedium
                     )
                     docTypeConfigs[selectedDocumentType]?.let { config ->
-                        for (element in config.claimNames) {
+                        for (element in config.scheme.claimNames) {
                             multipleChoiceButton(
                                 config.translator(
                                     NormalizedJsonPath(NormalizedJsonPathSegment.NameSegment(element))

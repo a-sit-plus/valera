@@ -36,7 +36,6 @@ object RequestDocumentBuilder {
         val preselection = preselectionMapping[scheme::class] ?: { scheme.claimNames.toSet() }
         scheme.isoDocType!! to DocTypeConfig(
             scheme = scheme,
-            claimNames = scheme.claimNames,
             preselection = preselection,
             translator = translator
         )
@@ -87,7 +86,6 @@ object SelectableDocTypes {
 
 data class DocTypeConfig(
     val scheme: CredentialScheme,
-    val claimNames: Collection<String>,
     val preselection: () -> Set<String>,
     val translator: (NormalizedJsonPath) -> StringResource?
 )
