@@ -28,7 +28,6 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_received_data
 import at.asitplus.valera.resources.section_heading_document_type
 import at.asitplus.wallet.eupid.EuPidScheme
-import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialScheme
 import at.asitplus.wallet.lib.iso.IssuerSignedItem
 import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
@@ -117,14 +116,12 @@ fun imageAttributesForScheme(scheme: CredentialScheme?): Set<String> = when (sch
         MobileDrivingLicenceDataElements.SIGNATURE_USUAL_MARK
     )
     is EuPidScheme -> setOf(EuPidScheme.Attributes.PORTRAIT)
-    is IdAustriaScheme -> setOf(IdAustriaScheme.Attributes.PORTRAIT)
     else -> emptySet()
 }
 
 fun imageSizeForElementIdentifier(elementIdentifier: String): Dp = when (elementIdentifier) {
     MobileDrivingLicenceDataElements.PORTRAIT,
-    EuPidScheme.Attributes.PORTRAIT,
-    IdAustriaScheme.Attributes.PORTRAIT -> 200.dp
+    EuPidScheme.Attributes.PORTRAIT -> 200.dp
     MobileDrivingLicenceDataElements.SIGNATURE_USUAL_MARK -> 40.dp
     else -> 0.dp
 }

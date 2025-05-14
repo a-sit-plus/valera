@@ -3,13 +3,11 @@ package data.document
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.healthid.HealthIdScheme
-import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialScheme
 import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.credentials.EuPidCredentialAttributeTranslator
 import data.credentials.HealthIdCredentialAttributeTranslator
-import data.credentials.IdAustriaCredentialAttributeTranslator
 import data.credentials.MobileDrivingLicenceCredentialAttributeTranslator
 import org.jetbrains.compose.resources.StringResource
 import kotlin.reflect.KClass
@@ -18,22 +16,19 @@ object RequestDocumentBuilder {
     val schemes: List<CredentialScheme> = listOf(
         MobileDrivingLicenceScheme,
         EuPidScheme,
-        HealthIdScheme,
-        IdAustriaScheme
+        HealthIdScheme
     )
 
     private val translatorMapping: Map<KClass<out CredentialScheme>, (NormalizedJsonPath) -> StringResource?> = mapOf(
         MobileDrivingLicenceScheme::class to { path -> MobileDrivingLicenceCredentialAttributeTranslator.translate(path) },
         EuPidScheme::class to { path -> EuPidCredentialAttributeTranslator.translate(path) },
         HealthIdScheme::class to { path -> HealthIdCredentialAttributeTranslator.translate(path) },
-        IdAustriaScheme::class to { path -> IdAustriaCredentialAttributeTranslator.translate(path) }
     )
 
     private val preselectionMapping: Map<KClass<out CredentialScheme>, () -> Set<String>> = mapOf(
         MobileDrivingLicenceScheme::class to { MobileDrivingLicenceDataElements.MANDATORY_ELEMENTS.toSet() },
         EuPidScheme::class to { EuPidScheme.requiredClaimNames.toSet() },
         HealthIdScheme::class to { HealthIdSchemeRequiredClaimNames.getAttributes().toSet() },
-        IdAustriaScheme::class to { IdAustriaScheme.claimNames.toSet() }
     )
 
     val docTypeConfigs: Map<String, DocTypeConfig> = schemes.associate { scheme ->
