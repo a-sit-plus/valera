@@ -118,7 +118,7 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                         text = stringResource(Res.string.section_heading_select_document_type),
                         style = MaterialTheme.typography.titleMedium
                     )
-                    for (docType in SelectableDocTypes.docTypes) {
+                    SelectableDocTypes.docTypes.forEach { docType ->
                         singleChoiceButton(docType, selectedDocumentType, listSpacingModifier) {
                             selectedDocumentType = docType
                             selectedEntries = docTypeConfigs[docType]?.preselection?.invoke() ?: emptySet()
@@ -142,7 +142,7 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                         style = MaterialTheme.typography.titleMedium
                     )
                     docTypeConfigs[selectedDocumentType]?.let { config ->
-                        for (element in config.scheme.claimNames) {
+                        config.scheme.claimNames.forEach { element ->
                             multipleChoiceButton(
                                 config.translator(
                                     NormalizedJsonPath(NormalizedJsonPathSegment.NameSegment(element))
@@ -180,10 +180,7 @@ fun singleChoiceButton(
             role = Role.RadioButton
         )
     ) {
-        RadioButton(
-            selected = (current == selectedOption),
-            onClick = null
-        )
+        RadioButton(selected = (current == selectedOption), onClick = null)
         icon?.invoke()
         Spacer(modifier = Modifier.width(16.dp))
         Text(text = current)
@@ -205,10 +202,7 @@ private fun multipleChoiceButton(
             role = Role.Checkbox
         )
     ) {
-        Checkbox(
-            checked = contains,
-            onCheckedChange = null
-        )
+        Checkbox(checked = contains, onCheckedChange = null)
         Text(text = current)
     }
 }
