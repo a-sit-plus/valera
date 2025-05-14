@@ -165,10 +165,12 @@ exportXCFramework(
 }
 
 tasks.register("iosBootSimulator"){
-    exec {
-        isIgnoreExitValue = true
-        runCatching {
-            commandLine("xcrun", "simctl", "boot", "iPhone 16")
+    doLast {
+        exec {
+            isIgnoreExitValue = true
+            runCatching {
+                commandLine("xcrun", "simctl", "boot", "iPhone 16")
+            }
         }
     }
 }
