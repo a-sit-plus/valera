@@ -4,6 +4,9 @@ import androidx.compose.runtime.MutableState
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
@@ -31,7 +34,9 @@ class ShowQrCodeViewModel(
     val onNavigateToPresentmentScreen: (PresentationStateModel) -> Unit,
 ) {
     var hasBeenCalledHack: Boolean = false
-    val presentationStateModel: PresentationStateModel by lazy { PresentationStateModel(walletMain.scope) }
+    private val coroutineScope =
+        CoroutineScope(Dispatchers.Default + CoroutineName("ShowQrCodeViewModel") + walletMain.coroutineExceptionHandler)
+    val presentationStateModel: PresentationStateModel by lazy { PresentationStateModel(coroutineScope) }
 
 
     private val _showQrCodeState = MutableStateFlow(ShowQrCodeState.INIT)

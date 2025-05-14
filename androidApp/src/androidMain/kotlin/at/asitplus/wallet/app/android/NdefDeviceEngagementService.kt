@@ -163,7 +163,7 @@ class NdefDeviceEngagementService : HostApduService() {
                     }
                 }
             }
-            Napier.i("NdefDeviceEngagementService: Using method ${connectionMethods.first()}")
+            Napier.i("NdefDeviceEngagementService: Fallback, using method ${connectionMethods.first()}")
             return connectionMethods.first()
         }
 
@@ -206,12 +206,14 @@ class NdefDeviceEngagementService : HostApduService() {
                     )
                 )
             }
+            require(staticHandoverConnectionMethods.isNotEmpty()) { "At least one connection method required" }
         }
 
         engagement = MdocNfcEngagementHelper(
             eDeviceKey = ephemeralDeviceKey.publicKey,
             onHandoverComplete = { connectionMethods, encodedDeviceEngagement, handover ->
                 vibrateSuccess()
+                Napier.d("NdefDeviceEngagementService: Waiting for start")
                 presentationStateModel.start(connectionMethods.any { it is MdocConnectionMethodBle })
 
                 val duration = Clock.System.now() - timeStarted
@@ -301,7 +303,7 @@ class NdefDeviceEngagementService : HostApduService() {
         started = false
         // If the reader hasn't connected by the time NFC interaction ends, make sure we only
         // wait for a limited amount of time.
-        disableEngagementJob = CoroutineScope(Dispatchers.IO).launch {
+        disableEngagementJob = CoroutineScope(Dispatchers.IO + CoroutineName("NdefDeviceEngagementService: onDeactivated")).launch {
             try {
                 presentationStateModel.waitForConnectionUsingMainTransport(walletConfig.connectionTimeout.first())
                 Napier.d("NdefDeviceEngagementService: Main transport connected")
