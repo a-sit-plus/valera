@@ -34,14 +34,7 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import kotlinx.datetime.Clock
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -93,6 +86,7 @@ class WalletMain(
         at.asitplus.wallet.healthid.Initializer.initWithVCK()
         at.asitplus.wallet.taxid.Initializer.initWithVCK()
         at.asitplus.wallet.taxid.Initializer2025.initWithVCK()
+        at.asitplus.wallet.ehic.Initializer.initWithVCK()
         initRqesModule()
         Napier.takeLogarithm()
         Napier.base(AntilogAdapter(platformAdapter, "", buildContext.buildType))

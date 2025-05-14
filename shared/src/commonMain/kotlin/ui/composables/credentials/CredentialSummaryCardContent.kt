@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
+import at.asitplus.wallet.ehic.EhicScheme
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
 import at.asitplus.wallet.healthid.HealthIdScheme
@@ -28,6 +29,7 @@ fun CredentialSummaryCardContent(
         is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialSummaryCardContent(credential)
         is CompanyRegistrationScheme -> CompanyRegistrationCredentialSummaryCardContent(credential)
         is HealthIdScheme -> HealthIdSummaryCardContent(credential)
+        is EhicScheme -> EhicSummaryCardContent(credential)
         is TaxIdScheme -> TaxIdCredentialSummaryCardContent(credential)
         is TaxId2025Scheme -> TaxIdCredentialSummaryCardContent(credential)
         else -> GenericCredentialSummaryCardContent(credential)

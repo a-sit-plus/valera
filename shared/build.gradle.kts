@@ -52,6 +52,7 @@ kotlin {
             api(libs.credential.companyregistration)
             api(libs.credential.healthid)
             api(libs.credential.taxid)
+            api(libs.credential.ehic)
             api(napier())
             implementation(serialization("json"))
             implementation(ktor("client-core"))
@@ -154,6 +155,7 @@ exportXCFramework(
         libs.credential.certificateofresidence,
         libs.credential.companyregistration,
         libs.credential.healthid,
+        libs.credential.ehic,
         libs.credential.taxid,
         kmmresult(),
         napier()

@@ -32,6 +32,7 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_credential_details_screen
 import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
+import at.asitplus.wallet.ehic.EhicScheme
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
 import at.asitplus.wallet.healthid.HealthIdScheme
@@ -46,15 +47,7 @@ import ui.composables.CredentialCardActionMenu
 import ui.composables.Logo
 import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
-import ui.composables.credentials.CertificateOfResidenceCredentialView
-import ui.composables.credentials.CompanyRegistrationCredentialView
-import ui.composables.credentials.EuPidCredentialView
-import ui.composables.credentials.GenericCredentialSummaryCardContent
-import ui.composables.credentials.HealthIdView
-import ui.composables.credentials.IdAustriaCredentialView
-import ui.composables.credentials.MobileDrivingLicenceCredentialView
-import ui.composables.credentials.PowerOfRepresentationCredentialView
-import ui.composables.credentials.TaxIdCredentialView
+import ui.composables.credentials.*
 import ui.viewmodels.CredentialDetailsViewModel
 
 @Composable
@@ -157,6 +150,7 @@ fun CredentialDetailsSummaryView(
             is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialView(storeEntry)
             is CompanyRegistrationScheme -> CompanyRegistrationCredentialView(storeEntry)
             is HealthIdScheme -> HealthIdView(storeEntry)
+            is EhicScheme -> EhicView(storeEntry)
             is TaxIdScheme -> TaxIdCredentialView(storeEntry)
             is TaxId2025Scheme -> TaxIdCredentialView(storeEntry)
             else -> {}

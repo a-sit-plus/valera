@@ -5,17 +5,14 @@ import at.asitplus.wallet.companyregistration.Address
 import at.asitplus.wallet.companyregistration.Branch
 import at.asitplus.wallet.companyregistration.CompanyActivity
 import at.asitplus.wallet.companyregistration.ContactData
+import at.asitplus.wallet.ehic.IssuingAuthority
 import at.asitplus.wallet.eupid.IsoIec5218Gender
 import at.asitplus.wallet.mdl.DrivingPrivilege
 import at.asitplus.wallet.mdl.IsoSexEnum
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
-import kotlinx.serialization.json.JsonNull
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.booleanOrNull
-import kotlinx.serialization.json.double
-import kotlinx.serialization.json.longOrNull
+import kotlinx.serialization.json.*
 
 sealed interface Attribute {
     companion object {
@@ -46,6 +43,7 @@ sealed interface Attribute {
             is ContactData -> ContactDataAttribute(it)
             is Address -> AddressAttribute(it)
             is Branch -> BranchAttribute(it)
+            is IssuingAuthority -> IssuingAuthorityAttribute(it)
             else -> throw IllegalArgumentException("Unexpected attribute value type: ${value::class}, $value")
         }
 
@@ -75,4 +73,5 @@ sealed interface Attribute {
     data class ContactDataAttribute(val value: ContactData) : Attribute
     data class AddressAttribute(val value: Address) : Attribute
     data class BranchAttribute(val value: Branch) : Attribute
+    data class IssuingAuthorityAttribute(val value: IssuingAuthority) : Attribute
 }

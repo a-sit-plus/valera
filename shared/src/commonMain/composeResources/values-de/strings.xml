@@ -178,6 +178,9 @@
     <string name="attribute_friendly_name_pid_id">PID ID</string>
     <string name="attribute_friendly_name_verification_status">Verifizierungsstatus</string>
 
+    <string name="attribute_friendly_name_issuing_authority_id">Ausstellende Behörde: ID</string>
+    <string name="attribute_friendly_name_issuing_authority_name">Ausstellende Behörde: Name</string>
+
     <string name="credential_representation_format_label_plain_jwt">Plain JWT</string>
     <string name="credential_representation_format_label_sd_jwt">SD-JWT</string>
     <string name="credential_representation_format_label_mso_mdoc">ISO mDoc</string>
@@ -206,6 +209,7 @@
     <string name="credential_scheme_label_tax_id">Tax ID</string>
     <string name="credential_scheme_label_tax_id_2025">Tax ID (2025)</string>
     <string name="credential_scheme_icon_label_tax_id">TAX</string>
+    <string name="credential_scheme_label_ehic">Europäische Krankenversicherungskarte</string>
 
     <string name="navigation_button_label_show_data">Vorzeigen</string>
     <string name="navigation_button_label_my_data">Daten</string>

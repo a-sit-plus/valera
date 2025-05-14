@@ -13,6 +13,7 @@ powerofrepresentation = "1.2.0"
 certificateofresidence = "2.1.2"
 companyregistration = "1.1.0"
 healthid = "2.0.0"
+ehic = "1.0.0"
 taxid = "1.1.1"
 atomicfu = "0.27.0"
 compose-plugin = "1.7.3"
@@ -33,6 +34,7 @@ credential-companyregistration = { module = "at.asitplus.wallet:company-registra
 credential-mdl = { group = "at.asitplus.wallet", name = "mobiledrivinglicence", version.ref = "mdl" }
 credential-healthid = { module = "at.asitplus.wallet:healthid", version.ref = "healthid" }
 credential-taxid = { group = "at.asitplus.wallet", name = "taxid", version.ref = "taxid" }
+credential-ehic = { group = "at.asitplus.wallet", name = "ehic", version.ref = "ehic"}
 datastore-core-okio = { module = "androidx.datastore:datastore-core-okio", version.ref = "datastore-preferences-core" }
 datastore-preferences-core = { module = "androidx.datastore:datastore-preferences-core", version.ref = "datastore-preferences-core" }
 navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigation-compose" }
