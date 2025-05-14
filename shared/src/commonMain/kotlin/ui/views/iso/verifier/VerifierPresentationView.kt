@@ -73,7 +73,7 @@ fun VerifierPresentationView(vm: VerifierViewModel) {
                 vm.deviceResponse.value!!.documents!!.forEach {
                     val docType = it.docType
                     Text(
-                        text = "DocType: $docType",
+                        text = stringResource(Res.string.section_heading_document_type, docType),
                         style = MaterialTheme.typography.labelLarge
                     )
                     Spacer(modifier = Modifier.size(4.dp))

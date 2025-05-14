@@ -419,6 +419,7 @@
     <string name="section_heading_select_document_type">Select document type</string>
     <string name="section_heading_selected_namespace">Namespace: %1$s</string>
     <string name="section_heading_select_requested_data_entries">Select data entries</string>
+    <string name="section_heading_document_type">Document type: %1$s</string>
     <string name="button_label_check_identity">Check Identity</string>
     <string name="button_label_check_license">Check License</string>
     <string name="button_label_check_age">Check Age</string>
