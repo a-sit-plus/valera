@@ -14,7 +14,7 @@ import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatus
 @Composable
 fun DCQLCredentialQuerySubmissionSelection(
     selectionOptions: List<DCQLCredentialSubmissionOption<SubjectCredentialStore.StoreEntry>>,
-    checkRevocationStatus: suspend (SubjectCredentialStore.StoreEntry) -> TokenStatus?,
+    checkCredentialFreshness: suspend (SubjectCredentialStore.StoreEntry) -> CredentialFreshnessSummary,
     currentlySelectedOptionIndex: Int?,
     onChangeSelection: (Int?) -> Unit,
     decodeToBitmap: (ByteArray) -> ImageBitmap?,
@@ -27,7 +27,7 @@ fun DCQLCredentialQuerySubmissionSelection(
         selectionOptions.forEachIndexed { index, option ->
             val isSelected = index == currentlySelectedOptionIndex
             DCQLCredentialQuerySubmissionSelectionOption(
-                checkRevocationStatus = checkRevocationStatus,
+                checkCredentialFreshness = checkCredentialFreshness,
                 isSelected = isSelected,
                 onToggleSelection = { onChangeSelection(if (isSelected) null else index) },
                 decodeToBitmap = decodeToBitmap,

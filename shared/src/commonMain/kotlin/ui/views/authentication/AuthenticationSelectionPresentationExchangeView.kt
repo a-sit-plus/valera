@@ -36,6 +36,7 @@ import at.asitplus.valera.resources.heading_label_navigate_back
 import at.asitplus.valera.resources.prompt_select_credential
 import at.asitplus.wallet.app.common.decodeImage
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.CredentialFreshnessSummary
 import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.CredentialSelectionGroup
@@ -84,8 +85,11 @@ fun AuthenticationSelectionPresentationExchangeView(
                     imageDecoder = { byteArray ->
                         vm.walletMain.platformAdapter.decodeImage(byteArray)
                     },
-                    checkRevocationStatus = {
-                        vm.walletMain.checkRevocationStatus(it)
+                    checkCredentialFreshness = {
+                        CredentialFreshnessSummary(
+                            timelinessValidationSummary = vm.walletMain.credentialValidator.checkTimeliness(it),
+                            tokenStatus = vm.walletMain.checkRevocationStatus(it),
+                        )
                     },
                 )
             }

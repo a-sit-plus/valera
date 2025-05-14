@@ -6,6 +6,7 @@ import at.asitplus.rqes.SignHashResponseParameters
 import at.asitplus.rqes.collection_entries.OAuthDocumentDigest
 import at.asitplus.signum.indispensable.X509SignatureAlgorithm
 import at.asitplus.signum.indispensable.asn1.ObjectIdentifier
+import at.asitplus.signum.indispensable.asn1.ObjectIdentifierStringSerializer
 import at.asitplus.signum.indispensable.io.ByteArrayBase64Serializer
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.rqes.RqesOpenId4VpHolder
@@ -58,6 +59,7 @@ data class DataToBeSigned(
     val document: ByteArray,
 
     @SerialName("signingAlgorithmOid")
+    @Serializable(with = ObjectIdentifierStringSerializer::class)
     val signingAlgorithmOid: ObjectIdentifier? = null,
 
     @SerialName("signingAlgorithParams")

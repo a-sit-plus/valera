@@ -275,7 +275,7 @@ class WalletMain(
         is SubjectCredentialStore.StoreEntry.Iso -> credentialValidator.checkRevocationStatus(it.issuerSigned)
         is SubjectCredentialStore.StoreEntry.SdJwt -> credentialValidator.checkRevocationStatus(it.sdJwt)
         is SubjectCredentialStore.StoreEntry.Vc -> credentialValidator.checkRevocationStatus(it.vc)
-    }?.getOrNull()
+    }
 }
 
 fun PlatformAdapter.decodeImage(image: ByteArray): ImageBitmap {
