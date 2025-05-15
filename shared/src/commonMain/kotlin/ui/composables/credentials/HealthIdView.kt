@@ -11,11 +11,14 @@ import data.credentials.HealthIdCredentialAdapter
 
 @Composable
 fun HealthIdView(
-    credential: SubjectCredentialStore.StoreEntry,
+    credential: SubjectCredentialStore.StoreEntry? = null,
+    credentialAdapter: HealthIdCredentialAdapter? = null,
     modifier: Modifier = Modifier,
 ) {
-    val credentialAdapter = remember {
-        HealthIdCredentialAdapter.createFromStoreEntry(credential)
+    val credentialAdapter = remember(credential) {
+        credentialAdapter ?: credential?.let {
+            HealthIdCredentialAdapter.createFromStoreEntry(credential)
+        } ?: throw IllegalArgumentException("Either credential or credentialAdapter must be provided.")
     }
 
     Column(modifier = modifier) {
