@@ -6,9 +6,13 @@ import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
 import androidx.core.content.ContextCompat
+import at.asitplus.wallet.app.common.DummyPlatformAdapter
+import at.asitplus.wallet.app.common.ErrorService
+import at.asitplus.wallet.app.common.WalletConfig
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
 import at.asitplus.wallet.app.common.presentation.PresentmentTimeout
-import at.asitplus.wallet.app.common.presentation.TransferSettings.Companion.transferSettings
+import data.storage.RealDataStoreService
+import data.storage.getDataStore
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
@@ -17,9 +21,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 import kotlinx.io.bytestring.ByteString
 import org.multipaz.cbor.DataItem
@@ -51,14 +55,15 @@ class NdefDeviceEngagementService : HostApduService() {
         private var engagement: MdocNfcEngagementHelper? = null
         private var disableEngagementJob: Job? = null
         private var listenForCancellationFromUiJob: Job? = null
-
+        private lateinit var walletConfig: WalletConfig
 
         // TODO use error service to show error to user, but how to get it from here?
         private val coroutineExceptionHandler = CoroutineExceptionHandler { _, error ->
             Napier.e("FAILURE IN COROUTINE", error)
         }
 
-        private val coroutineScope = CoroutineScope(Dispatchers.Default + CoroutineName("NdefDeviceEngagementService") + coroutineExceptionHandler)
+        private val coroutineScope =
+            CoroutineScope(Dispatchers.Default + CoroutineName("NdefDeviceEngagementService") + coroutineExceptionHandler)
 
         val presentationStateModel: PresentationStateModel by lazy {
             PresentationStateModel(coroutineScope)
@@ -90,6 +95,10 @@ class NdefDeviceEngagementService : HostApduService() {
     override fun onCreate() {
         super.onCreate()
         initializeApplication(applicationContext)
+        walletConfig = WalletConfig(
+            dataStoreService = RealDataStoreService(getDataStore(applicationContext), DummyPlatformAdapter()),
+            errorService = ErrorService()
+        )
 
         commandApduListenJob = CoroutineScope(Dispatchers.IO).launch {
             while (true) {
@@ -105,7 +114,7 @@ class NdefDeviceEngagementService : HostApduService() {
     private var started = false
 
 
-    private fun startEngagement() {
+    private suspend fun startEngagement() {
         Napier.i("NdefDeviceEngagementService: startNdefEngagement")
 
         disableEngagementJob?.cancel()
@@ -142,11 +151,13 @@ class NdefDeviceEngagementService : HostApduService() {
         intent.action = PRESENTATION_REQUESTED_INTENT
         applicationContext.startActivity(intent)
 
-        fun negotiatedHandoverPicker(connectionMethods: List<MdocConnectionMethod>): MdocConnectionMethod {
+        suspend fun negotiatedHandoverPicker(connectionMethods: List<MdocConnectionMethod>): MdocConnectionMethod {
             Napier.i("NdefDeviceEngagementService: Negotiated Handover available methods: $connectionMethods")
-            for (prefix in transferSettings.presentmentNegotiatedHandoverPreferredOrder) {
+            for (prefix in walletConfig.presentmentNegotiatedHandoverPreferredOrder) {
                 for (connectionMethod in connectionMethods) {
-                    if (connectionMethod.toString().startsWith(prefix) && transferSettings.isConnectionMethodEnabled(prefix)) {
+                    if (connectionMethod.toString().startsWith(prefix)
+                        && walletConfig.isConnectionMethodEnabled(prefix = prefix)
+                    ) {
                         Napier.i("NdefDeviceEngagementService: Using method $connectionMethod")
                         return connectionMethod
                     }
@@ -157,17 +168,17 @@ class NdefDeviceEngagementService : HostApduService() {
         }
 
         val negotiatedHandoverPicker: ((connectionMethods: List<MdocConnectionMethod>) -> MdocConnectionMethod)? =
-            if (transferSettings.presentmentUseNegotiatedHandover.value) {
-                { connectionMethods -> negotiatedHandoverPicker(connectionMethods) }
+            if (walletConfig.presentmentUseNegotiatedHandover.first()) {
+                { connectionMethods -> runBlocking { negotiatedHandoverPicker(connectionMethods) } }
             } else {
                 null
             }
 
         var staticHandoverConnectionMethods: List<MdocConnectionMethod>? = null
-        if (!transferSettings.presentmentUseNegotiatedHandover.value) {
+        if (!walletConfig.presentmentUseNegotiatedHandover.first()) {
             staticHandoverConnectionMethods = mutableListOf()
             val bleUuid = UUID.randomUUID()
-            if (transferSettings.presentmentBleCentralClientModeEnabled.value) {
+            if (walletConfig.presentmentBleCentralClientModeEnabled.first()) {
                 staticHandoverConnectionMethods.add(
                     MdocConnectionMethodBle(
                         supportsPeripheralServerMode = false,
@@ -177,7 +188,7 @@ class NdefDeviceEngagementService : HostApduService() {
                     )
                 )
             }
-            if (transferSettings.presentmentBlePeripheralServerModeEnabled.value) {
+            if (walletConfig.presentmentBlePeripheralServerModeEnabled.first()) {
                 staticHandoverConnectionMethods.add(
                     MdocConnectionMethodBle(
                         supportsPeripheralServerMode = true,
@@ -187,7 +198,7 @@ class NdefDeviceEngagementService : HostApduService() {
                     )
                 )
             }
-            if (transferSettings.presentmentNfcDataTransferEnabled.value) {
+            if (walletConfig.presentmentNfcDataTransferEnabled.first()) {
                 staticHandoverConnectionMethods.add(
                     MdocConnectionMethodNfc(
                         commandDataFieldMaxLength = 0xffff,
@@ -236,7 +247,7 @@ class NdefDeviceEngagementService : HostApduService() {
                 role = MdocRole.MDOC,
                 transportFactory = MdocTransportFactory.Default,
                 options = MdocTransportOptions(
-                    bleUseL2CAP = transferSettings.readerBleL2CapEnabled.value
+                    bleUseL2CAP = walletConfig.readerBleL2CapEnabled.first()
                 ),
                 eSenderKey = eDeviceKey.publicKey,
                 onConnectionMethodsReady = {}
@@ -248,7 +259,7 @@ class NdefDeviceEngagementService : HostApduService() {
                     encodedDeviceEngagement = encodedDeviceEngagement,
                     handover = handover,
                     engagementDuration = engagementDuration,
-                    allowMultipleRequests = transferSettings.presentmentAllowMultipleRequests
+                    allowMultipleRequests = walletConfig.presentmentAllowMultipleRequests.first()
                 )
             )
             disableEngagementJob?.cancel()
@@ -292,10 +303,11 @@ class NdefDeviceEngagementService : HostApduService() {
         // wait for a limited amount of time.
         disableEngagementJob = CoroutineScope(Dispatchers.IO).launch {
             try {
-                presentationStateModel.waitForConnectionUsingMainTransport(transferSettings.connectionTimeout)
+                presentationStateModel.waitForConnectionUsingMainTransport(walletConfig.connectionTimeout.first())
                 Napier.d("NdefDeviceEngagementService: Main transport connected")
             } catch (timeoutExc: TimeoutCancellationException) {
-                val message = "NdefDeviceEngagementService: Reader didn't connect in ${transferSettings.connectionTimeout}, closing"
+                val message =
+                    "NdefDeviceEngagementService: Reader didn't connect in ${walletConfig.connectionTimeout.first()}, closing"
                 Napier.w(message)
                 presentationStateModel.setCompleted(PresentmentTimeout(message))
             }

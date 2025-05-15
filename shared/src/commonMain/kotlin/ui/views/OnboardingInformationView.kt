@@ -27,6 +27,7 @@ import at.asitplus.valera.resources.info_text_demonstrator
 import at.asitplus.valera.resources.info_text_non_productive
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
+import ui.composables.ScreenHeading
 import ui.composables.buttons.ContinueButton
 
 
@@ -41,10 +42,9 @@ fun OnboardingInformationView(
             TopAppBar(
                 title = {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = stringResource(Res.string.heading_label_tech_demo),
-                            modifier = Modifier.weight(1f),
-                            style = MaterialTheme.typography.headlineLarge,
+                        ScreenHeading(
+                            stringResource(Res.string.heading_label_tech_demo),
+                            Modifier.weight(1f),
                         )
                     }
                 },

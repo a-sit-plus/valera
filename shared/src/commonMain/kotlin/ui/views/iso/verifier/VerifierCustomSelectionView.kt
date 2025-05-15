@@ -41,29 +41,33 @@ import at.asitplus.valera.resources.heading_label_select_custom_data_retrieval_s
 import at.asitplus.valera.resources.section_heading_select_document_type
 import at.asitplus.valera.resources.section_heading_select_requested_data_entries
 import at.asitplus.valera.resources.section_heading_selected_namespace
-import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
-import data.credentials.MobileDrivingLicenceCredentialAttributeTranslator
+import data.document.RequestDocumentBuilder.buildRequestDocument
+import data.document.RequestDocumentBuilder.docTypeConfigs
+import data.document.RequestDocumentBuilder.getPreselection
+import data.document.SelectableDocTypes
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
+import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.iso.VerifierViewModel
-import ui.viewmodels.iso.getMdlPreselection
-import ui.viewmodels.iso.itemsToRequestDocument
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VerifierCustomSelectionView(vm: VerifierViewModel) {
-    var selectedEntries by remember { mutableStateOf(getMdlPreselection()) }
+    val listSpacingModifier = Modifier.padding(top = 8.dp)
+    val layoutSpacingModifier = Modifier.padding(top = 24.dp)
+
+    var selectedDocumentType by remember { mutableStateOf(SelectableDocTypes.MDL) }
+    var selectedEntries by remember { mutableStateOf(getPreselection(SelectableDocTypes.MDL)) }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Text(
+                        ScreenHeading(
                             stringResource(Res.string.heading_label_select_custom_data_retrieval_screen),
-                            modifier = Modifier.weight(1f),
-                            style = MaterialTheme.typography.headlineLarge
+                            Modifier.weight(1f),
                         )
                     }
                 },
@@ -72,7 +76,7 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                     Column(modifier = Modifier.clickable(onClick = vm.onClickSettings)) {
                         Icon(
                             imageVector = Icons.Outlined.Settings,
-                            contentDescription = null,
+                            contentDescription = null
                         )
                     }
                     Spacer(Modifier.width(15.dp))
@@ -89,63 +93,70 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                             contentDescription = null
                         )
                     },
-                    label = {},
                     onClick = {
-                        vm.onReceiveCustomSelection(
-                            itemsToRequestDocument(
-                                docType = MobileDrivingLicenceScheme.isoDocType,
-                                namespace = MobileDrivingLicenceScheme.isoNamespace,
-                                entries = selectedEntries
-                            ),
-                            vm.selectedEngagementMethod.value
-                        )
+                        docTypeConfigs[selectedDocumentType]?.let { config ->
+                            val items = buildRequestDocument(
+                                docType = config.docType,
+                                namespace = config.namespace,
+                                attributes = selectedEntries
+                            )
+                            vm.onReceiveCustomSelection(items, vm.selectedEngagementMethod.value)
+                        }
                     },
-                    selected = false,
+                    selected = false
                 )
             }
-        },
+        }
     ) { scaffoldPadding ->
         Box(modifier = Modifier.padding(scaffoldPadding)) {
             Column(
                 modifier = Modifier.padding(end = 16.dp, start = 16.dp, bottom = 16.dp)
                     .verticalScroll(rememberScrollState())
             ) {
-                val layoutSpacingModifier = Modifier.padding(top = 24.dp)
+                // Document selection
                 Column(modifier = layoutSpacingModifier) {
                     Text(
                         text = stringResource(Res.string.section_heading_select_document_type),
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleMedium
                     )
-                    Text(
-                        text = MobileDrivingLicenceScheme.isoDocType,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                    for (docType in vm.selectableDocTypes) {
+                        singleChoiceButton(docType, selectedDocumentType, listSpacingModifier) {
+                            selectedDocumentType = docType
+                            selectedEntries = docTypeConfigs[docType]?.preselection?.invoke() ?: emptySet()
+                        }
+                    }
                 }
+                // Namespace info
                 Column(modifier = layoutSpacingModifier) {
                     Text(
-                        text = stringResource(Res.string.section_heading_selected_namespace) + MobileDrivingLicenceScheme.isoNamespace,
-                        style = MaterialTheme.typography.titleMedium,
+                        text = stringResource(
+                            Res.string.section_heading_selected_namespace,
+                            docTypeConfigs[selectedDocumentType]?.namespace ?: ""
+                        ),
+                        style = MaterialTheme.typography.titleMedium
                     )
                 }
+                // Attribute selection
                 Column(modifier = layoutSpacingModifier) {
-                    val listSpacingModifier = Modifier.padding(top = 8.dp)
                     Text(
                         text = stringResource(Res.string.section_heading_select_requested_data_entries),
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleMedium
                     )
-                    for (element in MobileDrivingLicenceScheme.claimNames) {
-                        multipleChoiceButton(
-                            MobileDrivingLicenceCredentialAttributeTranslator.translate(
-                                NormalizedJsonPath(NormalizedJsonPathSegment.NameSegment(element))
-                            )?.let { stringResource(it) } ?: element,
-                            selectedEntries.contains(element),
-                            selectedEntries.contains(element),
-                            listSpacingModifier
-                        ) {
-                            selectedEntries = if (selectedEntries.contains(element)) {
-                                selectedEntries - element
-                            } else {
-                                selectedEntries + element
+                    docTypeConfigs[selectedDocumentType]?.let { config ->
+                        for (element in config.claimNames) {
+                            multipleChoiceButton(
+                                config.translator(
+                                    NormalizedJsonPath(NormalizedJsonPathSegment.NameSegment(element))
+                                )?.let { stringResource(it) } ?: element,
+                                selectedEntries.contains(element),
+                                selectedEntries.contains(element),
+                                listSpacingModifier
+                            ) {
+                                selectedEntries = if (selectedEntries.contains(element)) {
+                                    selectedEntries - element
+                                } else {
+                                    selectedEntries + element
+                                }
                             }
                         }
                     }
@@ -170,14 +181,13 @@ fun singleChoiceButton(
             role = Role.RadioButton
         )
     ) {
-        val gap = 16.dp
         RadioButton(
             selected = (current == selectedOption),
             onClick = null
         )
         icon?.invoke()
-        Spacer(modifier = Modifier.width(gap))
-        Text(text = (current))
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(text = current)
     }
 }
 
@@ -187,7 +197,7 @@ private fun multipleChoiceButton(
     value: Boolean,
     contains: Boolean,
     modifier: Modifier = Modifier,
-    onValueChange: (Boolean) -> Unit,
+    onValueChange: (Boolean) -> Unit
 ) {
     Row(
         modifier = modifier.toggleable(

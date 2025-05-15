@@ -36,6 +36,7 @@ import at.asitplus.valera.resources.heading_label_log_screen
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
+import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.buttons.ShareButton
 import ui.viewmodels.LogViewModel
@@ -53,10 +54,9 @@ fun LogView(
             TopAppBar(
                 title = {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Text(
+                        ScreenHeading(
                             stringResource(Res.string.heading_label_log_screen),
-                            modifier = Modifier.weight(1f),
-                            style = MaterialTheme.typography.headlineLarge,
+                            Modifier.weight(1f)
                         )
                     }
                 },

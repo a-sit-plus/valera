@@ -51,11 +51,6 @@
     <string name="button_label_show_technical_details">Show technical details</string>
     <string name="button_label_hide_technical_details">Hide technical details</string>
     <string name="button_label_sign">Sign</string>
-    <string name="button_label_check_identity">Check Identity</string>
-    <string name="button_label_check_license">Check License</string>
-    <string name="button_label_check_age">Check Age</string>
-    <string name="button_label_check_custom">Custom Request</string>
-    <string name="button_label_check_over_age">Over %1$s</string>
 
     <string name="switch_label_use_negotiated_handover">Negotiated Handover</string>
     <string name="switch_label_use_ble_central_client_mode">BLE Central Client Mode</string>
@@ -183,6 +178,10 @@
     <string name="attribute_friendly_name_pid_id">PID ID</string>
     <string name="attribute_friendly_name_verification_status">Verification status</string>
 
+    <string name="attribute_friendly_name_issuing_authority_id">Issuing Authority: ID</string>
+    <string name="attribute_friendly_name_issuing_authority_name">Issuing Authority: Name</string>
+    <string name="attribute_friendly_name_social_security_number">Social Security Number</string>
+
     <string name="credential_representation_format_label_plain_jwt">Plain JWT</string>
     <string name="credential_representation_format_label_sd_jwt">SD-JWT</string>
     <string name="credential_representation_format_label_mso_mdoc">ISO mDoc</string>
@@ -211,6 +210,7 @@
     <string name="credential_scheme_label_tax_id">Tax ID</string>
     <string name="credential_scheme_label_tax_id_2025">Tax ID (2025)</string>
     <string name="credential_scheme_icon_label_tax_id">TAX</string>
+    <string name="credential_scheme_label_ehic">European Health Insurance Card</string>
 
     <string name="navigation_button_label_show_data">Present</string>
     <string name="navigation_button_label_my_data">Data</string>
@@ -265,11 +265,10 @@
     <string name="heading_label_refresh_data_screen">Load data</string>
     <string name="heading_label_authenticate_at_device_screen">Authenticate at\nrelying party</string>
     <string name="heading_label_sign_document">Sign document</string>
-    <string name="heading_label_select_data_retrieval_screen">Check</string>
-    <string name="heading_label_select_custom_data_retrieval_screen">Custom Request</string>
     <string name="heading_label_check_scan_qr_code">Scan QR-Code</string>
     <string name="heading_label_show_qr_code_screen">Scan me!</string>
     <string name="heading_label_received_data">Received Data</string>
+    <string name="heading_label_result">Result</string>
 
     <string name="heading_label_select_vda">Select VDA</string>
     <string name="heading_label_sign">Sign</string>
@@ -353,7 +352,7 @@
     <string name="section_heading_present_data_to_executive_subtitle">Executive</string>
     <string name="section_heading_present_data_to_other_citizen_subtitle">other Citizen</string>
     <string name="section_heading_actions">Actions</string>
-    <string name="section_heading_transfer_options">Transfer Settings (temporary)</string>
+    <string name="section_heading_transfer_options">Transfer Settings</string>
     <string name="section_heading_information">Information</string>
     <string name="section_heading_requested_data">Requested Data</string>
     <string name="section_heading_data_recipient">Recipient</string>
@@ -384,12 +383,6 @@
     <string name="section_heading_missing_data">Load new data</string>
     <string name="section_heading_available_data">Refresh existing data</string>
     <string name="section_heading_transaction_data">Transaction</string>
-    <string name="section_heading_request_eausweise">eAusweise request</string>
-    <string name="section_heading_request_license">Other request</string>
-    <string name="section_heading_request_custom">Custom request</string>
-    <string name="section_heading_select_document_type">Select document type:</string>
-    <string name="section_heading_selected_namespace">Namespace: </string>
-    <string name="section_heading_select_requested_data_entries">Select data entries:</string>
 
     <string name="onboarding_section_load_data_icon_text">2</string>
     <string name="onboarding_section_load_data_title">Load data into the app</string>
@@ -415,4 +408,21 @@
     <string name="section_heading_request_engagement_method">Device Engagement Method</string>
     <string name="nfc">NFC</string>
     <string name="qr">QR-Code</string>
+
+    <!-- Verify Data Route -->
+    <string name="heading_label_select_data_retrieval_screen">Check</string>
+    <string name="heading_label_select_custom_data_retrieval_screen">Custom</string>
+    <string name="section_heading_request_mdl">mDL requests</string>
+    <string name="section_heading_request_pid">PID requests</string>
+    <string name="section_heading_request_custom">Custom requests</string>
+    <string name="section_heading_select_document_type">Select document type</string>
+    <string name="section_heading_selected_namespace">Namespace: %1$s</string>
+    <string name="section_heading_select_requested_data_entries">Select data entries</string>
+    <string name="button_label_check_identity">Check Identity</string>
+    <string name="button_label_check_license">Check License</string>
+    <string name="button_label_check_age">Check Age</string>
+    <string name="button_label_check_custom">Custom Request</string>
+    <string name="button_label_check_over_age">Over %1$s</string>
+    <string name="text_label_all_attributes">All Attributes</string>
+    <string name="text_label_mandatory_attributes">Mandatory Attributes</string>
 </resources>

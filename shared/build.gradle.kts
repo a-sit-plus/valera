@@ -3,9 +3,11 @@ import at.asitplus.gradle.kmmresult
 import at.asitplus.gradle.ktor
 import at.asitplus.gradle.napier
 import at.asitplus.gradle.serialization
+import com.android.build.gradle.internal.tasks.factory.dependsOn
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
 import org.jetbrains.kotlin.gradle.plugin.extraProperties
+import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest
 
 val vckVersion = vckCatalog.vck.get().version
 
@@ -50,6 +52,7 @@ kotlin {
             api(libs.credential.companyregistration)
             api(libs.credential.healthid)
             api(libs.credential.taxid)
+            api(libs.credential.ehic)
             api(napier())
             implementation(serialization("json"))
             implementation(ktor("client-core"))
@@ -88,7 +91,8 @@ kotlin {
             implementation("com.google.mlkit:barcode-scanning:17.2.0")
             implementation(libs.play.services.identity.credentials)
             implementation(libs.multipaz.android.legacy)
-            implementation(libs.core.splashscreen)        }
+            implementation(libs.core.splashscreen)
+        }
 
         androidInstrumentedTest.dependencies {
             implementation("androidx.compose.ui:ui-test-junit4")
@@ -151,6 +155,7 @@ exportXCFramework(
         libs.credential.certificateofresidence,
         libs.credential.companyregistration,
         libs.credential.healthid,
+        libs.credential.ehic,
         libs.credential.taxid,
         kmmresult(),
         napier()
@@ -159,6 +164,23 @@ exportXCFramework(
     binaryOption("bundleId", "at.asitplus.wallet.shared")
     linkerOpts("-ld_classic")
     freeCompilerArgs += listOf("-Xoverride-konan-properties=minVersion.ios=15.0;minVersionSinceXcode15.ios=15.0")
+}
+
+tasks.register("iosBootSimulator"){
+    doLast {
+        exec {
+            isIgnoreExitValue = true
+            runCatching {
+                commandLine("xcrun", "simctl", "boot", "iPhone 16")
+            }
+        }
+    }
+}
+
+tasks.named("iosSimulatorArm64Test", KotlinNativeSimulatorTest::class.java).configure {
+    dependsOn("iosBootSimulator")
+    standalone.set(false)
+    device.set("iPhone 16")
 }
 
 repositories {

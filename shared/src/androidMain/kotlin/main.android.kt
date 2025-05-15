@@ -82,7 +82,7 @@ fun MainView(
     )
 }
 
-class AndroidPlatformAdapter(
+public class AndroidPlatformAdapter(
     private val context: Context,
     private val sendCredentialResponseToDCAPIInvoker: (String) -> Unit,
 ) : PlatformAdapter {

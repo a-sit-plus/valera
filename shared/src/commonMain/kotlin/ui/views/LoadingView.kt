@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_loading_screen
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,10 +30,7 @@ fun LoadingView(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = stringResource(Res.string.heading_label_loading_screen),
-                        style = MaterialTheme.typography.headlineLarge,
-                    )
+                    ScreenHeading(stringResource(Res.string.heading_label_loading_screen))
                 },
                 navigationIcon = {
                     navigateUp?.let { NavigateUpButton(onClick = navigateUp) }
