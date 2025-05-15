@@ -17,7 +17,6 @@ import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -33,12 +32,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_retry
-import at.asitplus.valera.resources.error_bluetooth_unavailable
+import at.asitplus.valera.resources.error_bluetooth_and_nfc_unavailable
 import at.asitplus.valera.resources.error_missing_permissions
 import at.asitplus.valera.resources.heading_label_show_qr_code_screen
 import at.asitplus.valera.resources.info_text_qr_code_loading
-import at.asitplus.wallet.app.common.iso.transfer.BluetoothInfo
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants.MDOC_PREFIX
+import at.asitplus.wallet.app.common.iso.transfer.isAnyTransferMethodAvailable
 import io.github.alexzhirkevich.qrose.options.QrBrush
 import io.github.alexzhirkevich.qrose.options.QrColors
 import io.github.alexzhirkevich.qrose.options.solid
@@ -62,7 +61,6 @@ import ui.views.LoadingViewBody
 fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
     val blePermissionState = rememberBluetoothPermissionState()
     val showQrCode = remember { mutableStateOf<ByteString?>(null) }
-    val isBluetoothEnabled = BluetoothInfo().isBluetoothEnabled()
     val presentationStateModel = remember { vm.presentationStateModel }
     val showQrCodeState by vm.showQrCodeState.collectAsState()
 
@@ -98,8 +96,8 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
             ) {
                 when (showQrCodeState) {
                     ShowQrCodeState.INIT -> {
-                        if (!isBluetoothEnabled) {
-                            vm.setState(ShowQrCodeState.BLUETOOTH_DISABLED)
+                        if (!isAnyTransferMethodAvailable()) {
+                            vm.setState(ShowQrCodeState.NO_TRANSFER_METHOD_AVAILABLE)
                         } else if (showQrCode.value != null && presentationStateModel.state.collectAsState().value != PresentationStateModel.State.PROCESSING) {
                             vm.setState(ShowQrCodeState.SHOW_QR_CODE)
                         } else if (!blePermissionState.isGranted) {
@@ -109,9 +107,9 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
                         }
                     }
 
-                    ShowQrCodeState.BLUETOOTH_DISABLED -> {
+                    ShowQrCodeState.NO_TRANSFER_METHOD_AVAILABLE -> {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(stringResource(Res.string.error_bluetooth_unavailable))
+                            Text(stringResource(Res.string.error_bluetooth_and_nfc_unavailable))
                             TextIconButton(
                                 icon = { Icons.Default.Repeat },
                                 text = { Text(stringResource(Res.string.button_label_retry)) },
