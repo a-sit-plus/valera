@@ -83,7 +83,7 @@ fun VerifierPresentationView(vm: VerifierViewModel) {
                         namespace.value.entries.sortedBy {
                             it.value.elementIdentifier
                         }.forEach { entry ->
-                            showEntry(entry, RequestDocumentBuilder.docTypeConfigs[docType]!!)
+                            showEntry(entry, RequestDocumentBuilder.getDocTypeConfig(docType)!!)
                             Spacer(modifier = Modifier.size(4.dp))
                         }
                     }

@@ -31,7 +31,7 @@ object RequestDocumentBuilder {
         HealthIdScheme::class to { HealthIdSchemeRequiredClaimNames.getAttributes().toSet() },
     )
 
-    val docTypeConfigs: Map<String, DocTypeConfig> = schemes.associate { scheme ->
+    private val docTypeConfigs: Map<String, DocTypeConfig> = schemes.associate { scheme ->
         val translator = translatorMapping[scheme::class] ?: { _: NormalizedJsonPath -> null }
         val preselection = preselectionMapping[scheme::class] ?: { scheme.claimNames.toSet() }
         scheme.isoDocType!! to DocTypeConfig(
@@ -40,6 +40,8 @@ object RequestDocumentBuilder {
             translator = translator
         )
     }
+
+    fun getDocTypeConfig(docType: String): DocTypeConfig? = docTypeConfigs[docType]
 
     fun getPreselection(docType: String): Set<String> =
         docTypeConfigs[docType]?.preselection?.invoke() ?: emptySet()
