@@ -4,15 +4,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.error_bluetooth_and_nfc_unavailable
 import at.asitplus.valera.resources.info_text_waiting_for_response
-import at.asitplus.wallet.app.common.iso.transfer.BluetoothInfo
+import at.asitplus.wallet.app.common.iso.transfer.isAnyTransferMethodAvailable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 import org.multipaz.compose.permissions.rememberBluetoothPermissionState
 import ui.viewmodels.iso.VerifierState
 import ui.viewmodels.iso.VerifierViewModel
-import org.jetbrains.compose.resources.stringResource
 import ui.views.LoadingView
 
 @Composable
@@ -23,10 +24,8 @@ fun VerifierView(
 ) {
     val verifierState by vm.verifierState.collectAsState()
 
-    val isBluetoothEnabled = BluetoothInfo().isBluetoothEnabled()
-    if (!isBluetoothEnabled) {
-        // TODO if bluetooth is not available, NFC data transfer should still work
-        //vm.handleError(stringResource(Res.string.error_bluetooth_unavailable))
+    if (!isAnyTransferMethodAvailable()) {
+        vm.handleError(stringResource(Res.string.error_bluetooth_and_nfc_unavailable))
     }
 
     val blePermissionState = rememberBluetoothPermissionState()

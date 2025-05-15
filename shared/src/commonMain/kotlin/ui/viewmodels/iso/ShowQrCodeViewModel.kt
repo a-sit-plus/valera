@@ -126,7 +126,7 @@ class ShowQrCodeViewModel(
 
 enum class ShowQrCodeState {
     INIT,
-    BLUETOOTH_DISABLED,
+    NO_TRANSFER_METHOD_AVAILABLE,
     MISSING_PERMISSION,
     CREATE_ENGAGEMENT,
     SHOW_QR_CODE,
