@@ -183,7 +183,7 @@ fun singleChoiceButton(
     ) {
         RadioButton(selected = (current == selectedOption), onClick = null)
         icon?.invoke()
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(8.dp))
         Text(text = current)
     }
 }
@@ -204,6 +204,7 @@ private fun multipleChoiceButton(
         )
     ) {
         Checkbox(checked = contains, onCheckedChange = null)
+        Spacer(modifier = Modifier.width(8.dp))
         Text(text = current)
     }
 }
