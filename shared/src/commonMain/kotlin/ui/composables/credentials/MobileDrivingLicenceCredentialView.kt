@@ -12,20 +12,21 @@ import data.credentials.MobileDrivingLicenceCredentialAdapter
 
 @Composable
 fun MobileDrivingLicenceCredentialView(
-    credential: SubjectCredentialStore.StoreEntry? = null,
-    credentialAdapter: MobileDrivingLicenceCredentialAdapter? = null,
+    credential: SubjectCredentialStore.StoreEntry,
     decodeImage: (ByteArray) -> ImageBitmap,
     modifier: Modifier = Modifier,
 ) {
-    val credentialAdapter = remember(credential, credentialAdapter) {
-        credentialAdapter ?: credential?.let {
-            MobileDrivingLicenceCredentialAdapter.createFromStoreEntry(
-                storeEntry = it,
-                decodePortrait = decodeImage,
-            )
-        } ?: throw IllegalArgumentException("Either credential or credentialAdapter must be provided.")
+    val credentialAdapter = remember {
+        MobileDrivingLicenceCredentialAdapter.createFromStoreEntry(credential, decodeImage)
     }
+    MobileDrivingLicenceCredentialViewFromAdapter(credentialAdapter, modifier)
+}
 
+@Composable
+fun MobileDrivingLicenceCredentialViewFromAdapter(
+    credentialAdapter: MobileDrivingLicenceCredentialAdapter,
+    modifier: Modifier = Modifier
+) {
     Column(modifier = modifier) {
         val spacingModifier = Modifier.padding(bottom = 16.dp)
         MobileDrivingLicenceCredentialIdentityDataCard(

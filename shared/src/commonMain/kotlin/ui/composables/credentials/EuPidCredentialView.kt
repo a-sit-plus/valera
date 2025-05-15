@@ -12,20 +12,21 @@ import data.credentials.EuPidCredentialAdapter
 
 @Composable
 fun EuPidCredentialView(
-    credential: SubjectCredentialStore.StoreEntry? = null,
-    credentialAdapter: EuPidCredentialAdapter? = null,
+    credential: SubjectCredentialStore.StoreEntry,
     decodeImage: (ByteArray) -> ImageBitmap,
     modifier: Modifier = Modifier,
 ) {
-    val credentialAdapter = remember(credential, credentialAdapter) {
-        credentialAdapter ?: credential?.let {
-            EuPidCredentialAdapter.createFromStoreEntry(
-                storeEntry = it,
-                decodePortrait = decodeImage,
-            )
-        } ?: throw IllegalArgumentException("Either credential or credentialAdapter must be provided.")
+    val credentialAdapter = remember {
+        EuPidCredentialAdapter.createFromStoreEntry(credential, decodeImage)
     }
+    EuPidCredentialViewFromAdapter(credentialAdapter, modifier)
+}
 
+@Composable
+fun EuPidCredentialViewFromAdapter(
+    credentialAdapter: EuPidCredentialAdapter,
+    modifier: Modifier = Modifier
+) {
     Column(modifier = modifier) {
         val spacingModifier = Modifier.padding(bottom = 16.dp)
         EuPidCredentialIdentityDataCard(credentialAdapter, spacingModifier)

@@ -25,18 +25,19 @@ import at.asitplus.valera.resources.section_heading_document_type
 import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.healthid.HealthIdScheme
+import at.asitplus.wallet.lib.data.ConstantIndex.CredentialScheme
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
-import data.credentials.EuPidCredentialAdapter
-import data.credentials.HealthIdCredentialAdapter
-import data.credentials.MobileDrivingLicenceCredentialAdapter
+import data.credentials.EuPidCredentialIsoMdocAdapter
+import data.credentials.HealthIdCredentialIsoMdocAdapter
+import data.credentials.MobileDrivingLicenceCredentialIsoMdocAdapter
 import data.document.RequestDocumentBuilder
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
-import ui.composables.credentials.EuPidCredentialView
-import ui.composables.credentials.HealthIdView
-import ui.composables.credentials.MobileDrivingLicenceCredentialView
+import ui.composables.credentials.EuPidCredentialViewFromAdapter
+import ui.composables.credentials.HealthIdViewFromAdapter
+import ui.composables.credentials.MobileDrivingLicenceCredentialViewFromAdapter
 import ui.viewmodels.iso.VerifierViewModel
 import kotlin.io.encoding.ExperimentalEncodingApi
 
@@ -79,40 +80,43 @@ fun VerifierPresentationView(vm: VerifierViewModel) {
                         style = MaterialTheme.typography.labelLarge
                     )
                     Spacer(modifier = Modifier.size(4.dp))
-                    doc.issuerSigned.namespaces?.forEach { namespace ->
 
-                        val sortedEntries = namespace.value.entries
+                    doc.issuerSigned.namespaces?.forEach { (namespaceKey, entries) ->
+                        val sortedEntries = entries.entries
                             .sortedBy { it.value.elementIdentifier }
                             .associate { it.value.elementIdentifier to it.value.elementValue }
 
-                        val namespaces = mapOf(namespace.key to sortedEntries)
+                        val namespaces = mapOf(namespaceKey to sortedEntries)
+                        val credentialScheme =
+                            RequestDocumentBuilder.getDocTypeConfig(docType)?.scheme
 
-                        val credentialScheme = RequestDocumentBuilder.getDocTypeConfig(docType)?.scheme
-
-                        val credentialAdapter = RequestDocumentBuilder.createAdapterForScheme(
-                            credentialScheme, namespaces, imageDecoder
-                        )
-
-                        when (credentialScheme) {
-                            is EuPidScheme -> EuPidCredentialView(
-                                credentialAdapter = credentialAdapter as EuPidCredentialAdapter,
-                                decodeImage = imageDecoder
-                            )
-
-                            is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialView(
-                                credentialAdapter = credentialAdapter as MobileDrivingLicenceCredentialAdapter,
-                                decodeImage = imageDecoder
-                            )
-
-                            is HealthIdScheme -> HealthIdView(
-                                credentialAdapter = credentialAdapter as HealthIdCredentialAdapter
-                            )
-
-                            else -> {}
+                        credentialScheme?.let { scheme ->
+                            createViewForScheme(scheme, namespaces, imageDecoder)
                         }
                     }
                 }
             }
         }
+    }
+}
+
+
+@Composable
+fun createViewForScheme(
+    scheme: CredentialScheme?,
+    namespaces: Map<String, Map<String, Any>>,
+    decodeImage: (ByteArray) -> ImageBitmap?
+) {
+    when (scheme) {
+        is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialViewFromAdapter(
+            MobileDrivingLicenceCredentialIsoMdocAdapter(namespaces, decodeImage)
+        )
+        is EuPidScheme -> EuPidCredentialViewFromAdapter(
+            EuPidCredentialIsoMdocAdapter(namespaces, decodeImage, scheme)
+        )
+        is HealthIdScheme -> HealthIdViewFromAdapter(
+            HealthIdCredentialIsoMdocAdapter(namespaces)
+        )
+        else -> throw IllegalArgumentException("Unsupported scheme: $scheme")
     }
 }
