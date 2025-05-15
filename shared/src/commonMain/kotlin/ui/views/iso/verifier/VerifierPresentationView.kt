@@ -46,7 +46,7 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 )
 @Composable
 fun VerifierPresentationView(vm: VerifierViewModel) {
-    val imageDecoder: (ByteArray) -> ImageBitmap = { byteArray ->
+    val decodeImage: (ByteArray) -> ImageBitmap = { byteArray ->
         vm.walletMain.platformAdapter.decodeImage(byteArray)
     }
 
@@ -80,19 +80,13 @@ fun VerifierPresentationView(vm: VerifierViewModel) {
                         style = MaterialTheme.typography.labelLarge
                     )
                     Spacer(modifier = Modifier.size(4.dp))
-
                     doc.issuerSigned.namespaces?.forEach { (namespaceKey, entries) ->
                         val sortedEntries = entries.entries
                             .sortedBy { it.value.elementIdentifier }
                             .associate { it.value.elementIdentifier to it.value.elementValue }
-
                         val namespaces = mapOf(namespaceKey to sortedEntries)
-                        val credentialScheme =
-                            RequestDocumentBuilder.getDocTypeConfig(docType)?.scheme
-
-                        credentialScheme?.let { scheme ->
-                            createViewForScheme(scheme, namespaces, imageDecoder)
-                        }
+                        val scheme = RequestDocumentBuilder.getDocTypeConfig(docType)?.scheme
+                        IsoMdocCredentialViewForScheme(scheme, namespaces, decodeImage)
                     }
                 }
             }
@@ -100,9 +94,8 @@ fun VerifierPresentationView(vm: VerifierViewModel) {
     }
 }
 
-
 @Composable
-fun createViewForScheme(
+fun IsoMdocCredentialViewForScheme(
     scheme: CredentialScheme?,
     namespaces: Map<String, Map<String, Any>>,
     decodeImage: (ByteArray) -> ImageBitmap?
