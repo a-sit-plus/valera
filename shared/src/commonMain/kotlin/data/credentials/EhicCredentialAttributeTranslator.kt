@@ -15,6 +15,8 @@ object EhicCredentialAttributeTranslator : CredentialAttributeTranslator {
                 is NormalizedJsonPathSegment.NameSegment -> when (first.memberName) {
                     ISSUING_COUNTRY -> Res.string.attribute_friendly_name_issuing_country
                     SOCIAL_SECURITY_NUMBER -> Res.string.attribute_friendly_name_social_security_number
+                    ISSUING_AUTHORITY_ID -> Res.string.attribute_friendly_name_issuing_authority_id
+                    ISSUING_AUTHORITY_NAME -> Res.string.attribute_friendly_name_issuing_authority_name
                     PREFIX_ISSUING_AUTHORITY -> when (val second =
                         attributeName.segments.drop(1).firstOrNull()) {
                         is NormalizedJsonPathSegment.NameSegment -> when (second.memberName) {

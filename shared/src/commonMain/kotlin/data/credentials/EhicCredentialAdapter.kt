@@ -40,10 +40,8 @@ sealed class EhicCredentialAdapter : CredentialAdapter() {
 
                             else -> Attribute.fromValue(issuingAuthority)
                         }
-
                         ISSUING_AUTHORITY_ID -> Attribute.fromValue(issuingAuthorityId)
                         ISSUING_AUTHORITY_NAME -> Attribute.fromValue(issuingAuthorityName)
-
                         DOCUMENT_NUMBER -> Attribute.fromValue(documentNumber)
                         ISSUANCE_DATE -> Attribute.fromValue(issuanceDate)
                         EXPIRY_DATE -> Attribute.fromValue(expiryDate)
@@ -97,10 +95,10 @@ private class EhicCredentialSdJwtAdapter(
         get() = attributes[PREFIX_ISSUING_AUTHORITY]?.contentOrNull
 
     override val issuingAuthorityId: String?
-        get() = attributes[ID]?.contentOrNull
+        get() = attributes[ISSUING_AUTHORITY_ID]?.contentOrNull
 
     override val issuingAuthorityName: String?
-        get() = attributes[NAME]?.contentOrNull
+        get() = attributes[ISSUING_AUTHORITY_NAME]?.contentOrNull
 
     override val socialSecurityNumber: String?
         get() = attributes[SOCIAL_SECURITY_NUMBER]?.contentOrNull
