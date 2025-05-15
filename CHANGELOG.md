@@ -1,5 +1,5 @@
 # Release 5.6.2
- * tbd
+ * Issuing: Handle errors on parsing credential offers
 
 # Release 5.6.1
  * Upgrade to VC—K 5.6.2 (sending `state` parameter even with `direct_post.jwt` to verifiers)

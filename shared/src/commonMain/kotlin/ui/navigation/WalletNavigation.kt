@@ -524,33 +524,34 @@ private fun WalletNavHost(
         }
 
         composable<LoadCredentialRoute> { backStackEntry ->
-            val vm = remember {
-                try {
-                    LoadCredentialViewModel(
-                        walletMain = walletMain,
-                        navigateUp = navigateBack,
-                        hostString = backStackEntry.toRoute<LoadCredentialRoute>().host,
-                        onSubmit = { credentialIdentifierInfo, _ ->
-                            popBackStack(HomeScreenRoute)
-                            walletMain.scope.launch {
-                                walletMain.startProvisioning(
-                                    host = backStackEntry.toRoute<LoadCredentialRoute>().host,
-                                    credentialIdentifierInfo = credentialIdentifierInfo,
-                                ) {
+            remember {
+                runBlocking {
+                    runCatching {
+                        LoadCredentialViewModel.init(
+                            walletMain = walletMain,
+                            navigateUp = navigateBack,
+                            hostString = backStackEntry.toRoute<LoadCredentialRoute>().host,
+                            onSubmit = { credentialIdentifierInfo, _ ->
+                                popBackStack(HomeScreenRoute)
+                                walletMain.scope.launch {
+                                    walletMain.startProvisioning(
+                                        host = backStackEntry.toRoute<LoadCredentialRoute>().host,
+                                        credentialIdentifierInfo = credentialIdentifierInfo,
+                                    ) {
+                                    }
                                 }
-                            }
 
-                        },
-                        onClickLogo = onClickLogo,
-                        onClickSettings = { navigate(SettingsRoute) }
-                    )
-                } catch (e: Throwable) {
-                    popBackStack(HomeScreenRoute)
-                    walletMain.errorService.emit(e)
-                    null
+                            },
+                            onClickLogo = onClickLogo,
+                            onClickSettings = { navigate(SettingsRoute) }
+                        )
+                    }.getOrElse {
+                        popBackStack(HomeScreenRoute)
+                        walletMain.errorService.emit(it)
+                        null
+                    }
                 }
-            }
-            if (vm != null) {
+            }?.let { vm ->
                 LoadCredentialView(vm)
             }
         }
@@ -558,33 +559,43 @@ private fun WalletNavHost(
         composable<AddCredentialPreAuthnRoute> { backStackEntry ->
             val offer =
                 Json.decodeFromString<CredentialOffer>(backStackEntry.toRoute<AddCredentialPreAuthnRoute>().credentialOfferSerialized)
-            LoadCredentialView(remember {
-                LoadCredentialViewModel(
-                    walletMain = walletMain,
-                    navigateUp = navigateBack,
-                    offer = offer,
-                    onSubmit = { credentialIdentifierInfo, transactionCode ->
+            remember {
+                runBlocking {
+                    runCatching {
+                        LoadCredentialViewModel.init(
+                            walletMain = walletMain,
+                            navigateUp = navigateBack,
+                            offer = offer,
+                            onSubmit = { credentialIdentifierInfo, transactionCode ->
+                                popBackStack(HomeScreenRoute)
+                                navigate(LoadingRoute)
+                                walletMain.scope.launch {
+                                    try {
+                                        walletMain.provisioningService.loadCredentialWithOffer(
+                                            credentialOffer = offer,
+                                            credentialIdentifierInfo = credentialIdentifierInfo,
+                                            transactionCode = transactionCode?.ifEmpty { null }
+                                                ?.ifBlank { null },
+                                        )
+                                        popBackStack(HomeScreenRoute)
+                                    } catch (e: Throwable) {
+                                        popBackStack(HomeScreenRoute)
+                                        walletMain.errorService.emit(e)
+                                    }
+                                }
+                            },
+                            onClickLogo = onClickLogo,
+                            onClickSettings = { navigate(SettingsRoute) }
+                        )
+                    }.getOrElse {
                         popBackStack(HomeScreenRoute)
-                        navigate(LoadingRoute)
-                        walletMain.scope.launch {
-                            try {
-                                walletMain.provisioningService.loadCredentialWithOffer(
-                                    credentialOffer = offer,
-                                    credentialIdentifierInfo = credentialIdentifierInfo,
-                                    transactionCode = transactionCode?.ifEmpty { null }
-                                        ?.ifBlank { null },
-                                )
-                                popBackStack(HomeScreenRoute)
-                            } catch (e: Throwable) {
-                                popBackStack(HomeScreenRoute)
-                                walletMain.errorService.emit(e)
-                            }
-                        }
-                    },
-                    onClickLogo = onClickLogo,
-                    onClickSettings = { navigate(SettingsRoute) }
-                )
-            })
+                        walletMain.errorService.emit(it)
+                        null
+                    }
+                }
+            }?.let { vm ->
+                LoadCredentialView(vm)
+            }
         }
 
         composable<CredentialDetailsRoute> { backStackEntry ->

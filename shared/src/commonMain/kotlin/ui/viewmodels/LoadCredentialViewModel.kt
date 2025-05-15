@@ -6,6 +6,8 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
@@ -14,58 +16,57 @@ import kotlinx.coroutines.withContext
  */
 typealias CredentialSelection = (CredentialIdentifierInfo, String?) -> Unit
 
-class LoadCredentialViewModel {
-    val walletMain: WalletMain
-    val onSubmit: CredentialSelection
-    val navigateUp: () -> Unit
-    val hostString: String
-    val credentialIdentifiers: Collection<CredentialIdentifierInfo>
-    val transactionCodeRequirements: CredentialOfferGrantsPreAuthCodeTransactionCode?
-    val onClickLogo: () -> Unit
-    val onClickSettings: () -> Unit
+class LoadCredentialViewModel(
+    val walletMain: WalletMain,
+    val onSubmit: CredentialSelection,
+    val navigateUp: () -> Unit,
+    val hostString: String,
+    val credentialIdentifiers: Collection<CredentialIdentifierInfo>,
+    val transactionCodeRequirements: CredentialOfferGrantsPreAuthCodeTransactionCode?,
+    val onClickLogo: () -> Unit,
+    val onClickSettings: () -> Unit,
+) {
 
-    constructor(
-        walletMain: WalletMain,
-        onSubmit: CredentialSelection,
-        navigateUp: () -> Unit,
-        hostString: String,
-        onClickLogo: () -> Unit,
-        onClickSettings: () -> Unit
-    ) {
-        this.walletMain = walletMain
-        this.onSubmit = onSubmit
-        this.navigateUp = navigateUp
-        this.hostString = hostString
-        this.transactionCodeRequirements = null
-        this.onClickLogo = onClickLogo
-        this.onClickSettings = onClickSettings
-        credentialIdentifiers = runBlocking {
-            withContext(Dispatchers.IO) {
+    companion object {
+        suspend fun init(
+            walletMain: WalletMain,
+            onSubmit: CredentialSelection,
+            navigateUp: () -> Unit,
+            hostString: String,
+            onClickLogo: () -> Unit,
+            onClickSettings: () -> Unit
+        ) = LoadCredentialViewModel(
+            walletMain = walletMain,
+            onSubmit = onSubmit,
+            navigateUp = navigateUp,
+            hostString = hostString,
+            transactionCodeRequirements = null,
+            onClickLogo = onClickLogo,
+            onClickSettings = onClickSettings,
+            credentialIdentifiers = walletMain.scope.async {
                 walletMain.provisioningService.loadCredentialMetadata(hostString)
-            }
-        }
-    }
+            }.await()
+        )
 
-    constructor(
-        walletMain: WalletMain,
-        offer: CredentialOffer,
-        onSubmit: CredentialSelection,
-        navigateUp: () -> Unit,
-        onClickLogo: () -> Unit,
-        onClickSettings: () -> Unit
-    ) {
-        this.walletMain = walletMain
-        this.onSubmit = onSubmit
-        this.navigateUp = navigateUp
-        this.hostString = offer.credentialIssuer
-        this.transactionCodeRequirements = offer.grants?.preAuthorizedCode?.transactionCode
-        this.onClickLogo = onClickLogo
-        this.onClickSettings = onClickSettings
-        credentialIdentifiers = runBlocking {
-            withContext(Dispatchers.IO) {
-                walletMain.provisioningService.loadCredentialMetadata(hostString)
+        suspend fun init(
+            walletMain: WalletMain,
+            offer: CredentialOffer,
+            onSubmit: CredentialSelection,
+            navigateUp: () -> Unit,
+            onClickLogo: () -> Unit,
+            onClickSettings: () -> Unit
+        ) = LoadCredentialViewModel(
+            walletMain = walletMain,
+            onSubmit = onSubmit,
+            navigateUp = navigateUp,
+            hostString = offer.credentialIssuer,
+            transactionCodeRequirements = offer.grants?.preAuthorizedCode?.transactionCode,
+            onClickLogo = onClickLogo,
+            onClickSettings = onClickSettings,
+            credentialIdentifiers = walletMain.scope.async {
+                walletMain.provisioningService.loadCredentialMetadata(offer.credentialIssuer)
                     .filter { it.credentialIdentifier in offer.configurationIds }
-            }
-        }
+            }.await()
+        )
     }
 }
