@@ -325,6 +325,7 @@
     <string name="error_missing_permissions">Permission Denied</string>
     <string name="error_missing_value">Error no value given</string>
     <string name="error_bluetooth_unavailable">Bluetooth is not available</string>
+    <string name="error_bluetooth_and_nfc_unavailable">Neither Bluetooth nor NFC is available</string>
     <string name="error_no_requests">No requests found</string>
 
     <string name="info_text_show_data_situation">In which Situation do you want to present your data?</string>
