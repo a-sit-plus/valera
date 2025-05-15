@@ -324,7 +324,7 @@ private class MobileDrivingLicenceCredentialSdJwtAdapter(
         get() = attributes[MobileDrivingLicenceDataElements.UN_DISTINGUISHING_SIGN]?.contentOrNull
 }
 
-private class MobileDrivingLicenceCredentialIsoMdocAdapter(
+class MobileDrivingLicenceCredentialIsoMdocAdapter(
     namespaces: Map<String, Map<String, Any>>?,
     decodePortrait: (ByteArray) -> ImageBitmap?,
 ) : MobileDrivingLicenceCredentialAdapter(decodePortrait) {
