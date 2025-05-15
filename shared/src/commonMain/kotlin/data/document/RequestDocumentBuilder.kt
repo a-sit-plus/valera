@@ -1,14 +1,19 @@
 package data.document
 
+import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.healthid.HealthIdScheme
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialScheme
 import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
+import data.credentials.CredentialAdapter
 import data.credentials.EuPidCredentialAttributeTranslator
+import data.credentials.EuPidCredentialIsoMdocAdapter
 import data.credentials.HealthIdCredentialAttributeTranslator
+import data.credentials.HealthIdCredentialIsoMdocAdapter
 import data.credentials.MobileDrivingLicenceCredentialAttributeTranslator
+import data.credentials.MobileDrivingLicenceCredentialIsoMdocAdapter
 import org.jetbrains.compose.resources.StringResource
 import kotlin.reflect.KClass
 
@@ -80,6 +85,19 @@ object RequestDocumentBuilder {
     fun getHealthIdRequiredAttributesRequestDocument() = buildRequestDocument(
         HealthIdScheme, HealthIdSchemeRequiredClaimNames.getAttributes()
     )
+
+    fun createAdapterForScheme(
+        scheme: CredentialScheme?,
+        namespaces: Map<String, Map<String, Any>>,
+        decodeImage: (ByteArray) -> ImageBitmap?
+    ): CredentialAdapter = when (scheme) {
+        is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialIsoMdocAdapter(
+            namespaces, decodeImage
+        )
+        is EuPidScheme -> EuPidCredentialIsoMdocAdapter(namespaces, decodeImage, scheme)
+        is HealthIdScheme -> HealthIdCredentialIsoMdocAdapter(namespaces)
+        else -> throw IllegalArgumentException("Unsupported scheme: $scheme")
+    }
 }
 
 object SelectableDocTypes {
