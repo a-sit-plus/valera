@@ -24,6 +24,7 @@ import at.asitplus.wallet.app.common.thirdParty.at.asitplus.jsonpath.core.plus
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
+import kotlinx.serialization.json.JsonPrimitive
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.LabeledCheckbox
 import ui.composables.LabeledTextCheckbox
@@ -38,15 +39,19 @@ fun AttributeSelectionGroup(
     val attributeSelectionList: List<AttributeSelectionElement> =
         credential.value.mapNotNull { constraint ->
             val path = constraint.value.firstOrNull()?.normalizedJsonPath ?: return@mapNotNull null
-            val memberName =
-                (path.segments.last() as NormalizedJsonPathSegment.NameSegment).memberName
+            val memberName = (path.segments.last() as NormalizedJsonPathSegment.NameSegment).memberName
             val optional = constraint.key.optional
-            val value = constraint.value.first().value.toString()
+            val value = constraint.value.first().value.let {
+                when (it) {
+                    is JsonPrimitive -> it.content
+                    else -> it.toString()
+                }
+            }
 
             val enabled = when (storeEntry) {
-                is SubjectCredentialStore.StoreEntry.SdJwt -> {
-                    storeEntry.disclosures.values.firstOrNull { it?.claimName == memberName } != null && optional == true
-                }
+                is SubjectCredentialStore.StoreEntry.SdJwt ->
+                    storeEntry.disclosures.values.firstOrNull { it?.claimName == memberName } != null
+                            && optional == true
 
                 else -> optional == true
             }
