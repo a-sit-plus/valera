@@ -10,6 +10,7 @@ import at.asitplus.valera.resources.attribute_friendly_name_e_prescription_code
 import at.asitplus.valera.resources.attribute_friendly_name_expiry_date
 import at.asitplus.valera.resources.attribute_friendly_name_health_insurance_id
 import at.asitplus.valera.resources.attribute_friendly_name_issue_date
+import at.asitplus.valera.resources.attribute_friendly_name_issuing_authority
 import at.asitplus.valera.resources.attribute_friendly_name_issuing_country
 import at.asitplus.valera.resources.attribute_friendly_name_issuing_jurisdiction
 import at.asitplus.valera.resources.attribute_friendly_name_one_time_token
@@ -31,6 +32,7 @@ object HealthIdCredentialAttributeTranslator : CredentialAttributeTranslator {
                 Attributes.AFFILIATION_COUNTRY -> Res.string.attribute_friendly_name_affiliation_country
                 Attributes.ISSUE_DATE -> Res.string.attribute_friendly_name_issue_date
                 Attributes.EXPIRY_DATE -> Res.string.attribute_friendly_name_expiry_date
+                Attributes.ISSUING_AUTHORITY -> Res.string.attribute_friendly_name_issuing_authority
                 Attributes.DOCUMENT_NUMBER -> Res.string.attribute_friendly_name_document_number
                 Attributes.ADMINISTRATIVE_NUMBER -> Res.string.attribute_friendly_name_administrative_number
                 Attributes.ISSUING_COUNTRY -> Res.string.attribute_friendly_name_issuing_country

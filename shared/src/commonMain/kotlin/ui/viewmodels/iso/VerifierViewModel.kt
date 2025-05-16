@@ -6,13 +6,7 @@ import at.asitplus.wallet.app.common.iso.transfer.MdocConstants.MDOC_PREFIX
 import at.asitplus.wallet.app.common.iso.transfer.TransferManager
 import at.asitplus.wallet.lib.iso.DeviceResponse
 import data.document.RequestDocument
-import data.document.RequestDocumentBuilder.getAgeVerificationRequestDocumentMdl
-import data.document.RequestDocumentBuilder.getAgeVerificationRequestDocumentPid
-import data.document.RequestDocumentBuilder.getMdlFullAttributesRequestDocument
-import data.document.RequestDocumentBuilder.getMdlMandatoryAttributesRequestDocument
-import data.document.RequestDocumentBuilder.getPidFullAttributesRequestDocument
-import data.document.RequestDocumentBuilder.getPidRequiredAttributesRequestDocument
-import data.document.SelectableDocTypes
+import data.document.RequestDocumentBuilder
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -36,8 +30,6 @@ class VerifierViewModel(
     }
 
     private val _requestDocument = MutableStateFlow<RequestDocument?>(null)
-
-    val selectableDocTypes = listOf<String>(SelectableDocTypes.MDL, SelectableDocTypes.PID)
 
     private val _deviceResponse = MutableStateFlow<DeviceResponse?>(null)
     val deviceResponse: StateFlow<DeviceResponse?> = _deviceResponse
@@ -77,32 +69,37 @@ class VerifierViewModel(
     }
 
     fun onClickPredefinedMdlMandatoryAttributes(selectedEngagementMethod: DeviceEngagementMethods) {
-        _requestDocument.value = getMdlMandatoryAttributesRequestDocument()
+        _requestDocument.value = RequestDocumentBuilder.getMdlMandatoryAttributesRequestDocument()
         setStateToEngagement(selectedEngagementMethod)
     }
 
     fun onClickPredefinedMdlFullAttributes(selectedEngagementMethod: DeviceEngagementMethods) {
-        _requestDocument.value = getMdlFullAttributesRequestDocument()
+        _requestDocument.value = RequestDocumentBuilder.getMdlFullAttributesRequestDocument()
         setStateToEngagement(selectedEngagementMethod)
     }
 
     fun onClickPredefinedAgeMdl(age: Int, selectedEngagementMethod: DeviceEngagementMethods) {
-        _requestDocument.value = getAgeVerificationRequestDocumentMdl(age)
+        _requestDocument.value = RequestDocumentBuilder.getAgeVerificationRequestDocumentMdl(age)
         setStateToEngagement(selectedEngagementMethod)
     }
 
     fun onClickPredefinedPidRequiredAttributes(selectedEngagementMethod: DeviceEngagementMethods) {
-        _requestDocument.value = getPidRequiredAttributesRequestDocument()
+        _requestDocument.value = RequestDocumentBuilder.getPidRequiredAttributesRequestDocument()
         setStateToEngagement(selectedEngagementMethod)
     }
 
     fun onClickPredefinedPidFullAttributes(selectedEngagementMethod: DeviceEngagementMethods) {
-        _requestDocument.value = getPidFullAttributesRequestDocument()
+        _requestDocument.value = RequestDocumentBuilder.getPidFullAttributesRequestDocument()
         setStateToEngagement(selectedEngagementMethod)
     }
 
     fun onClickPredefinedAgePid(age: Int, selectedEngagementMethod: DeviceEngagementMethods) {
-        _requestDocument.value = getAgeVerificationRequestDocumentPid(age)
+        _requestDocument.value = RequestDocumentBuilder.getAgeVerificationRequestDocumentPid(age)
+        setStateToEngagement(selectedEngagementMethod)
+    }
+
+    fun onClickPredefinedHidRequiredAttributes(selectedEngagementMethod: DeviceEngagementMethods) {
+        _requestDocument.value = RequestDocumentBuilder.getHealthIdRequiredAttributesRequestDocument()
         setStateToEngagement(selectedEngagementMethod)
     }
 

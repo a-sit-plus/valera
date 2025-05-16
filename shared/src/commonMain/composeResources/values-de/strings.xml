@@ -422,15 +422,18 @@
     <string name="heading_label_select_custom_data_retrieval_screen">Individuell</string>
     <string name="section_heading_request_mdl">mDL Anfragen</string>
     <string name="section_heading_request_pid">PID Anfragen</string>
-    <string name="section_heading_request_custom">Individuelle Anfragen</string>
+    <string name="section_heading_request_hid">HealthID Anfrage</string>
+    <string name="section_heading_request_custom">Individuelle Anfrage</string>
     <string name="section_heading_select_document_type">Dokument Typ</string>
     <string name="section_heading_selected_namespace">Namespace: %1$s</string>
     <string name="section_heading_select_requested_data_entries">Angefragte Daten</string>
+    <string name="section_heading_document_type">Dokument Typ: %1$s</string>
     <string name="button_label_check_identity">Identität Prüfen</string>
     <string name="button_label_check_license">Führerschein Prüfen</string>
     <string name="button_label_check_age">Alter Prüfen</string>
     <string name="button_label_check_custom">Individuelle Anfrage</string>
     <string name="button_label_check_over_age">Über %1$s</string>
+    <string name="button_label_check_health_id">HealthID Prüfen</string>
     <string name="text_label_all_attributes">Alle Attribute</string>
     <string name="text_label_mandatory_attributes">Notwendige Attribute</string>
 </resources>

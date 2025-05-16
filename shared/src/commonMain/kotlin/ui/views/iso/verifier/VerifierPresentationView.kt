@@ -26,12 +26,14 @@ import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_received_data
+import at.asitplus.valera.resources.section_heading_document_type
 import at.asitplus.wallet.eupid.EuPidScheme
+import at.asitplus.wallet.lib.data.ConstantIndex.CredentialScheme
 import at.asitplus.wallet.lib.iso.IssuerSignedItem
 import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
-import data.credentials.EuPidCredentialAttributeTranslator
-import data.credentials.MobileDrivingLicenceCredentialAttributeTranslator
+import data.document.DocTypeConfig
+import data.document.RequestDocumentBuilder
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.decodeToImageBitmap
 import org.jetbrains.compose.resources.stringResource
@@ -70,22 +72,20 @@ fun VerifierPresentationView(vm: VerifierViewModel) {
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.Start
             ) {
-                vm.deviceResponse.value!!.documents!!.forEach {
-                    val docType = it.docType
+                vm.deviceResponse.value!!.documents!!.forEach { doc ->
+                    val docType = doc.docType
                     Text(
-                        text = "DocType: $docType",
+                        text = stringResource(Res.string.section_heading_document_type, docType),
                         style = MaterialTheme.typography.labelLarge
                     )
                     Spacer(modifier = Modifier.size(4.dp))
-                    it.issuerSigned.namespaces?.forEach { namespace ->
-                        namespace.value.entries.sortedBy { it.value.elementIdentifier }
-                            .forEach { entry ->
-                                when (docType) {
-                                    MobileDrivingLicenceScheme.isoDocType -> showMdlEntry(entry)
-                                    EuPidScheme.isoDocType -> showPidEntry(entry)
-                                }
-                                Spacer(modifier = Modifier.size(4.dp))
-                            }
+                    doc.issuerSigned.namespaces?.forEach { namespace ->
+                        namespace.value.entries.sortedBy {
+                            it.value.elementIdentifier
+                        }.forEach { entry ->
+                            showEntry(entry, RequestDocumentBuilder.getDocTypeConfig(docType)!!)
+                            Spacer(modifier = Modifier.size(4.dp))
+                        }
                     }
                 }
             }
@@ -93,49 +93,44 @@ fun VerifierPresentationView(vm: VerifierViewModel) {
     }
 }
 
-@OptIn(ExperimentalEncodingApi::class, ExperimentalResourceApi::class)
+@OptIn(ExperimentalEncodingApi::class)
 @Composable
-fun showMdlEntry(entry: ByteStringWrapper<IssuerSignedItem>) {
+fun showEntry(entry: ByteStringWrapper<IssuerSignedItem>, config: DocTypeConfig) {
     val elementIdentifier = entry.value.elementIdentifier
-    val label = MobileDrivingLicenceCredentialAttributeTranslator.translate(
+    val label = config.translator.invoke(
         NormalizedJsonPath(NormalizedJsonPathSegment.NameSegment(elementIdentifier))
     )?.let { stringResource(it) } ?: elementIdentifier
-    if (elementIdentifier == MobileDrivingLicenceDataElements.PORTRAIT ||
-        elementIdentifier == MobileDrivingLicenceDataElements.SIGNATURE_USUAL_MARK
-    ) {
-        val size = when (elementIdentifier) {
-            MobileDrivingLicenceDataElements.PORTRAIT -> 200.dp
-            MobileDrivingLicenceDataElements.SIGNATURE_USUAL_MARK -> 40.dp
-            else -> 0.dp
-        }
-        val imageAsByteArray = when (val value = entry.value.elementValue) {
-            is ByteArray -> value
-            is String -> Base64.decode(value)
-            else -> null
-        }
-        showImageLabeledContent(imageAsByteArray, size, label)
+
+    if (elementIdentifier in imageAttributesForScheme(config.scheme)) {
+        val size = imageSizeForElementIdentifier(elementIdentifier)
+        val imageBytes = decodeImageValue(entry.value.elementValue)
+        showImageLabeledContent(imageBytes, size, label)
     } else {
         showLabeledContent(entry, label)
     }
 }
 
-@OptIn(ExperimentalEncodingApi::class, ExperimentalResourceApi::class)
-@Composable
-fun showPidEntry(entry: ByteStringWrapper<IssuerSignedItem>) {
-    val elementIdentifier = entry.value.elementIdentifier
-    val label = EuPidCredentialAttributeTranslator.translate(
-        NormalizedJsonPath(NormalizedJsonPathSegment.NameSegment(elementIdentifier))
-    )?.let { stringResource(it) } ?: elementIdentifier
-    if (elementIdentifier == EuPidScheme.Attributes.PORTRAIT) {
-        val imageAsByteArray = when (val value = entry.value.elementValue) {
-            is ByteArray -> value
-            is String -> Base64.decode(value)
-            else -> null
-        }
-        showImageLabeledContent(imageAsByteArray, 200.dp, label)
-    } else {
-        showLabeledContent(entry, label)
-    }
+fun imageAttributesForScheme(scheme: CredentialScheme?): Set<String> = when (scheme) {
+    is MobileDrivingLicenceScheme -> setOf(
+        MobileDrivingLicenceDataElements.PORTRAIT,
+        MobileDrivingLicenceDataElements.SIGNATURE_USUAL_MARK
+    )
+    is EuPidScheme -> setOf(EuPidScheme.Attributes.PORTRAIT)
+    else -> emptySet()
+}
+
+fun imageSizeForElementIdentifier(elementIdentifier: String): Dp = when (elementIdentifier) {
+    MobileDrivingLicenceDataElements.PORTRAIT,
+    EuPidScheme.Attributes.PORTRAIT -> 200.dp
+    MobileDrivingLicenceDataElements.SIGNATURE_USUAL_MARK -> 40.dp
+    else -> 0.dp
+}
+
+@OptIn(ExperimentalEncodingApi::class)
+fun decodeImageValue(value: Any?): ByteArray? = when (value) {
+    is ByteArray -> value
+    is String -> Base64.decode(value)
+    else -> null
 }
 
 @OptIn(ExperimentalResourceApi::class)

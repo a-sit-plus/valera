@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material.icons.outlined.Cake
 import androidx.compose.material.icons.outlined.CreditCard
+import androidx.compose.material.icons.outlined.HealthAndSafety
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -34,12 +35,14 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_check_age
 import at.asitplus.valera.resources.button_label_check_custom
+import at.asitplus.valera.resources.button_label_check_health_id
 import at.asitplus.valera.resources.button_label_check_identity
 import at.asitplus.valera.resources.button_label_check_license
 import at.asitplus.valera.resources.button_label_check_over_age
 import at.asitplus.valera.resources.heading_label_select_data_retrieval_screen
 import at.asitplus.valera.resources.section_heading_request_custom
 import at.asitplus.valera.resources.section_heading_request_engagement_method
+import at.asitplus.valera.resources.section_heading_request_hid
 import at.asitplus.valera.resources.section_heading_request_mdl
 import at.asitplus.valera.resources.section_heading_request_pid
 import at.asitplus.valera.resources.text_label_all_attributes
@@ -95,6 +98,7 @@ fun VerifierDocumentSelectionView(
                 modifier = Modifier.padding(end = 16.dp, start = 16.dp, bottom = 16.dp)
                     .verticalScroll(rememberScrollState())
             ) {
+                // Engagement methods
                 Column(
                     modifier = layoutSpacingModifier,
                     horizontalAlignment = Alignment.Start
@@ -119,6 +123,7 @@ fun VerifierDocumentSelectionView(
                         }
                     }
                 }
+                // MDL requests
                 Column(modifier = layoutSpacingModifier) {
                     Text(
                         text = stringResource(Res.string.section_heading_request_mdl),
@@ -133,9 +138,7 @@ fun VerifierDocumentSelectionView(
                         },
                         label = stringResource(Res.string.button_label_check_license),
                         subLabel = stringResource(Res.string.text_label_mandatory_attributes),
-                        onClick = {
-                            vm.onClickPredefinedMdlMandatoryAttributes(selectedEngagementMethod)
-                        },
+                        onClick = { vm.onClickPredefinedMdlMandatoryAttributes(selectedEngagementMethod) },
                         modifier = listSpacingModifier.fillMaxWidth()
                     )
                     TextIconButtonListItem(
@@ -166,15 +169,14 @@ fun VerifierDocumentSelectionView(
                             SelectableAge.valuesList.forEach { age ->
                                 TextIconButtonListItem(
                                     label = stringResource(Res.string.button_label_check_over_age, age),
-                                    onClick = {
-                                        vm.onClickPredefinedAgeMdl(age, selectedEngagementMethod)
-                                    },
+                                    onClick = { vm.onClickPredefinedAgeMdl(age, selectedEngagementMethod) },
                                     modifier = listSpacingModifier.fillMaxWidth()
                                 )
                             }
                         }
                     }
                 }
+                // PID requests
                 Column(modifier = layoutSpacingModifier) {
                     Text(
                         text = stringResource(Res.string.section_heading_request_pid),
@@ -189,9 +191,7 @@ fun VerifierDocumentSelectionView(
                         },
                         label = stringResource(Res.string.button_label_check_identity),
                         subLabel = stringResource(Res.string.text_label_mandatory_attributes),
-                        onClick = {
-                            vm.onClickPredefinedPidRequiredAttributes(selectedEngagementMethod)
-                        },
+                        onClick = { vm.onClickPredefinedPidRequiredAttributes(selectedEngagementMethod) },
                         modifier = listSpacingModifier.fillMaxWidth()
                     )
                     TextIconButtonListItem(
@@ -222,15 +222,33 @@ fun VerifierDocumentSelectionView(
                             SelectableAge.valuesList.forEach { age ->
                                 TextIconButtonListItem(
                                     label = stringResource(Res.string.button_label_check_over_age, age),
-                                    onClick = {
-                                        vm.onClickPredefinedAgePid(age, selectedEngagementMethod)
-                                    },
+                                    onClick = { vm.onClickPredefinedAgePid(age, selectedEngagementMethod) },
                                     modifier = listSpacingModifier.fillMaxWidth()
                                 )
                             }
                         }
                     }
                 }
+                // HealthID request
+                Column(modifier = layoutSpacingModifier) {
+                    Text(
+                        text = stringResource(Res.string.section_heading_request_hid),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    TextIconButtonListItem(
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Outlined.HealthAndSafety,
+                                contentDescription = null
+                            )
+                        },
+                        label = stringResource(Res.string.button_label_check_health_id),
+                        subLabel = stringResource(Res.string.text_label_mandatory_attributes),
+                        onClick = { vm.onClickPredefinedHidRequiredAttributes(selectedEngagementMethod) },
+                        modifier = listSpacingModifier.fillMaxWidth()
+                    )
+                }
+                // Custom request
                 Column(modifier = layoutSpacingModifier) {
                     Text(
                         text = stringResource(Res.string.section_heading_request_custom),
