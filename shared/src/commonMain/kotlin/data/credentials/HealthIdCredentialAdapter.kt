@@ -166,7 +166,7 @@ private class HealthIdComplexCredentialSdJwtAdapter(
         get() = (attributes[Attributes.ISSUING_JURISDICTION] as? JsonPrimitive?)?.contentOrNull
 }
 
-private class HealthIdCredentialIsoMdocAdapter(
+class HealthIdCredentialIsoMdocAdapter(
     namespaces: Map<String, Map<String, Any>>?,
 ) : HealthIdCredentialAdapter() {
     override val scheme: ConstantIndex.CredentialScheme
