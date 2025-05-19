@@ -47,8 +47,10 @@ class PresentationService(
     suspend fun parseAuthenticationRequestParameters(requestUri: String) =
         presentationService.parseAuthenticationRequestParameters(requestUri)
 
-    suspend fun startAuthorizationResponsePreparation(request: RequestParametersFrom<AuthenticationRequestParameters>) =
-        presentationService.startAuthorizationResponsePreparation(request)
+    suspend fun startAuthorizationResponsePreparation(
+        request: RequestParametersFrom<AuthenticationRequestParameters>,
+        incomingDcApiRequest: Oid4vpDCAPIRequest?
+    ) = presentationService.startAuthorizationResponsePreparation(request, incomingDcApiRequest)
 
     suspend fun getPreparationState(request: RequestParametersFrom<AuthenticationRequestParameters>) =
         presentationService.startAuthorizationResponsePreparation(request).getOrThrow()

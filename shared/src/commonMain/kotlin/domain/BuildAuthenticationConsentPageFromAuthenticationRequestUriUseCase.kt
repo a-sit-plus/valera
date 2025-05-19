@@ -10,13 +10,13 @@ import ui.navigation.routes.AuthenticationViewRoute
 class BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
     val presentationService: PresentationService,
 ) {
-    suspend operator fun invoke(requestUri: String, incomingRequest: Oid4vpDCAPIRequest? = null): KmmResult<AuthenticationViewRoute> {
+    suspend operator fun invoke(requestUri: String, incomingDcApiRequest: Oid4vpDCAPIRequest? = null): KmmResult<AuthenticationViewRoute> {
         val request = presentationService.parseAuthenticationRequestParameters(requestUri).getOrElse {
             Napier.d("authenticationRequestParameters: $it")
             return KmmResult.failure(it)
         }
 
-        val preparationState = presentationService.startAuthorizationResponsePreparation(request).getOrElse {
+        val preparationState = presentationService.startAuthorizationResponsePreparation(request, incomingDcApiRequest).getOrElse {
             Napier.e("Failure", it)
             return KmmResult.failure(it)
         }
@@ -28,7 +28,7 @@ class BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
                 authorizationPreparationStateSerialized = vckJsonSerializer.encodeToString(preparationState),
                 recipientLocation = request.parameters.clientId ?: "",
                 isCrossDeviceFlow = false,
-                oid4vpDCAPIRequestSerialized = incomingRequest?.let {
+                oid4vpDCAPIRequestSerialized = incomingDcApiRequest?.let {
                     vckJsonSerializer.encodeToString(it)
                 }
             )
