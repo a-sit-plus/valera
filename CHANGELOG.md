@@ -1,3 +1,6 @@
+# Release 5.6.3
+ * tbd
+
 # Release 5.6.2
  * Issuing: Handle errors on parsing credential offers
  * Proximity: Support requesting credentials aside from PID, mDL
