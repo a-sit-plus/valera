@@ -1,8 +1,10 @@
 # Release 5.6.2
  * Issuing: Handle errors on parsing credential offers
+ * Proximity: Support requesting credentials aside from PID, mDL
+ * Upgrade to VC-K 5.6.3 (improving OpenID4VCI interop)
 
 # Release 5.6.1
- * Upgrade to VC—K 5.6.2 (sending `state` parameter even with `direct_post.jwt` to verifiers)
+ * Upgrade to VC-K 5.6.2 (sending `state` parameter even with `direct_post.jwt` to verifiers)
  * mDL: Fix german localization for some claims
  * PID: Support presenting all claims
  * Improve error messages
