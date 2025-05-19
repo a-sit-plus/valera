@@ -7,6 +7,7 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.domain.BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase
 import at.asitplus.wallet.lib.oidvci.OAuth2Exception
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -22,7 +23,12 @@ class DCAPIAuthorizationIntentViewModel(
         BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
             presentationService = walletMain.presentationService,
         )
+
+    private val buildAuthenticationConsentPageFromPreviewRequest =
+        BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase()
+
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, error ->
+        Napier.w("Exception occurred during DC API invocation", error)
         val response = when (error) {
             is OAuth2Exception -> error.serialize()
             else -> TODO() // TODO Not sure what to return in this case
@@ -33,28 +39,17 @@ class DCAPIAuthorizationIntentViewModel(
 
     fun process() = walletMain.scope.launch(Dispatchers.Default + coroutineExceptionHandler) {
         val dcApiRequest = walletMain.platformAdapter.getCurrentDCAPIData().getOrThrow()
-        val consentPageBuilder =
-            BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase()
 
-        when (dcApiRequest) {
-            is PreviewDCAPIRequest -> {
-                consentPageBuilder(dcApiRequest).unwrap().onSuccess {
-                    onSuccess(it)
-                }.onFailure {
-                    onFailure(it)
-                }
-            }
-            is Oid4vpDCAPIRequest -> {
-                buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(dcApiRequest.request, dcApiRequest).unwrap()
-                    .onSuccess {
-                        onSuccess(it)
-                    }.onFailure {
-                        onFailure(it)
-                    }
-            }
+        val successRoute = when (dcApiRequest) {
+            is PreviewDCAPIRequest -> 
+                buildAuthenticationConsentPageFromPreviewRequest(dcApiRequest)
+            
+            is Oid4vpDCAPIRequest ->
+                buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(dcApiRequest.request, dcApiRequest)
 
             is IsoMdocRequest -> TODO()
-        }
+        }.getOrThrow()
 
+        onSuccess(successRoute)
     }
 }
