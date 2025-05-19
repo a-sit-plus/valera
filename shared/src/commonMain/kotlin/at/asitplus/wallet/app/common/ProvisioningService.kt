@@ -44,15 +44,6 @@ class ProvisioningService(
 
     private val redirectUrl = "asitplus-wallet://wallet.a-sit.at/app/callback/provisioning"
     private val clientId = "https://wallet.a-sit.at/app"
-    private val clientAttestationJwt = runBlocking {
-        BuildClientAttestationJwt(
-            SignJwt(keyMaterial, JwsHeaderCertOrJwk()),
-            clientId = clientId,
-            issuer = "https://example.com",
-            lifetime = 60.minutes,
-            clientKey = keyMaterial.jsonWebKey
-        ).serialize()
-    }
 
     private val openId4VciClient = OpenId4VciClient(
         openUrlExternally = {
@@ -79,7 +70,15 @@ class ProvisioningService(
                         .also { dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT) }
                 }
         },
-        loadClientAttestationJwt = { clientAttestationJwt },
+        loadClientAttestationJwt = {
+            BuildClientAttestationJwt(
+                SignJwt(keyMaterial, JwsHeaderCertOrJwk()),
+                clientId = clientId,
+                issuer = "https://example.com",
+                lifetime = 60.minutes,
+                clientKey = keyMaterial.jsonWebKey
+            ).serialize()
+        },
         signClientAttestationPop = SignJwt(keyMaterial, JwsHeaderNone()),
         oid4vciService = WalletService(clientId, redirectUrl, keyMaterial),
         storeCredential = { cred ->
