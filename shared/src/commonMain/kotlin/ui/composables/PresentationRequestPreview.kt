@@ -56,12 +56,12 @@ fun DcqlRequestPreview(
     presentationRequest: CredentialPresentationRequest.DCQLRequest,
     onError: (Throwable) -> Unit,
 ) {
-    if(presentationRequest.dcqlQuery.requestedCredentialSetQueries.size != 1) {
+    if (presentationRequest.dcqlQuery.requestedCredentialSetQueries.size != 1) {
         return onError(UnsupportedOperationException(stringResource(Res.string.error_complex_dcql_query)))
     }
     val credentialSetQuery = presentationRequest.dcqlQuery.requestedCredentialSetQueries.first()
 
-    if(credentialSetQuery.options.size != 1) {
+    if (credentialSetQuery.options.size != 1) {
         return onError(UnsupportedOperationException(stringResource(Res.string.error_complex_dcql_query)))
     }
     val requestedCredentialCombination = credentialSetQuery.options.first()
@@ -70,7 +70,7 @@ fun DcqlRequestPreview(
         val credentialQuery = presentationRequest.dcqlQuery.credentials.find {
             it.id == credentialQueryIdentifier
         }
-        if(credentialQuery == null) {
+        if (credentialQuery == null) {
             return onError(IllegalArgumentException(stringResource(Res.string.error_invalid_dcql_query)))
         }
 
@@ -99,10 +99,11 @@ fun RequestedCredentialPreview(
     val schemeName = scheme.uiLabel()
     val format = representation.name
     val list = attributes.mapNotNull { attribute ->
-        val resource =
-            scheme.getLocalization(NormalizedJsonPath(attribute.key.segments.last())) ?: return@mapNotNull null
-        val text =
-            catchingUnwrapped { stringResource(resource) }.getOrElse { attribute.key.toString() }
+        val path = NormalizedJsonPath(attribute.key.segments.last())
+        val resource = scheme.getLocalization(path)
+            ?: return@mapNotNull null
+        val text = catchingUnwrapped { stringResource(resource) }
+            .getOrElse { attribute.key.toString() }
         text to attribute.value
     }.toMap()
     ConsentAttributesSection(

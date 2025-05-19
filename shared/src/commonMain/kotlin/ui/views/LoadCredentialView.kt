@@ -83,7 +83,7 @@ fun LoadCredentialView(
             onChangeTransactionCode = { transactionCode = it },
             onSubmit = { vm.onSubmit(credentialIdentifierInfo, transactionCode.text) },
             modifier = Modifier.padding(scaffoldPadding),
-            availableIdentifiers = runBlocking { vm.credentialIdentifiers },
+            availableIdentifiers = vm.credentialIdentifiers,
             showTransactionCode = vm.transactionCodeRequirements != null,
         )
     }

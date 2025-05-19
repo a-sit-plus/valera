@@ -17,7 +17,14 @@ fun HealthIdView(
     val credentialAdapter = remember {
         HealthIdCredentialAdapter.createFromStoreEntry(credential)
     }
+    HealthIdViewFromAdapter(credentialAdapter, modifier)
+}
 
+@Composable
+fun HealthIdViewFromAdapter(
+    credentialAdapter: HealthIdCredentialAdapter,
+    modifier: Modifier = Modifier
+) {
     Column(modifier = modifier) {
         val spacingModifier = Modifier.padding(bottom = 16.dp)
         HealthIdRepresentationDataCard(

@@ -622,7 +622,7 @@ private class EuPidCredentialSdJwtAdapter(
         get() = attributes[Attributes.PORTRAIT_CAPTURE_DATE]?.contentOrNull?.toLocalDateOrNull()
 }
 
-private class EuPidCredentialIsoMdocAdapter(
+class EuPidCredentialIsoMdocAdapter(
     namespaces: Map<String, Map<String, Any>>?,
     decodePortrait: (ByteArray) -> ImageBitmap?,
     override val scheme: ConstantIndex.CredentialScheme

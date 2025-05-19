@@ -41,9 +41,7 @@ import at.asitplus.valera.resources.heading_label_select_custom_data_retrieval_s
 import at.asitplus.valera.resources.section_heading_select_document_type
 import at.asitplus.valera.resources.section_heading_select_requested_data_entries
 import at.asitplus.valera.resources.section_heading_selected_namespace
-import data.document.RequestDocumentBuilder.buildRequestDocument
-import data.document.RequestDocumentBuilder.docTypeConfigs
-import data.document.RequestDocumentBuilder.getPreselection
+import data.document.RequestDocumentBuilder
 import data.document.SelectableDocTypes
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
@@ -57,8 +55,10 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
     val listSpacingModifier = Modifier.padding(top = 8.dp)
     val layoutSpacingModifier = Modifier.padding(top = 24.dp)
 
-    var selectedDocumentType by remember { mutableStateOf(SelectableDocTypes.MDL) }
-    var selectedEntries by remember { mutableStateOf(getPreselection(SelectableDocTypes.MDL)) }
+    var selectedDocumentType by remember { mutableStateOf(SelectableDocTypes.docTypes.first()) }
+    var selectedEntries by remember {
+        mutableStateOf(RequestDocumentBuilder.getPreselection(SelectableDocTypes.docTypes.first()))
+    }
 
     Scaffold(
         topBar = {
@@ -94,11 +94,10 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                         )
                     },
                     onClick = {
-                        docTypeConfigs[selectedDocumentType]?.let { config ->
-                            val items = buildRequestDocument(
-                                docType = config.docType,
-                                namespace = config.namespace,
-                                attributes = selectedEntries
+                        RequestDocumentBuilder.getDocTypeConfig(selectedDocumentType)?.let { config ->
+                            val items = RequestDocumentBuilder.buildRequestDocument(
+                                scheme = config.scheme,
+                                subSet = selectedEntries
                             )
                             vm.onReceiveCustomSelection(items, vm.selectedEngagementMethod.value)
                         }
@@ -119,19 +118,20 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                         text = stringResource(Res.string.section_heading_select_document_type),
                         style = MaterialTheme.typography.titleMedium
                     )
-                    for (docType in vm.selectableDocTypes) {
+                    SelectableDocTypes.docTypes.forEach { docType ->
                         singleChoiceButton(docType, selectedDocumentType, listSpacingModifier) {
                             selectedDocumentType = docType
-                            selectedEntries = docTypeConfigs[docType]?.preselection?.invoke() ?: emptySet()
+                            selectedEntries = RequestDocumentBuilder.getPreselection(docType)
                         }
                     }
                 }
+                val docTypeConfig = RequestDocumentBuilder.getDocTypeConfig(selectedDocumentType)
                 // Namespace info
                 Column(modifier = layoutSpacingModifier) {
                     Text(
                         text = stringResource(
                             Res.string.section_heading_selected_namespace,
-                            docTypeConfigs[selectedDocumentType]?.namespace ?: ""
+                            docTypeConfig?.scheme?.isoNamespace!!
                         ),
                         style = MaterialTheme.typography.titleMedium
                     )
@@ -142,8 +142,8 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                         text = stringResource(Res.string.section_heading_select_requested_data_entries),
                         style = MaterialTheme.typography.titleMedium
                     )
-                    docTypeConfigs[selectedDocumentType]?.let { config ->
-                        for (element in config.claimNames) {
+                    docTypeConfig?.let { config ->
+                        config.scheme.claimNames.forEach { element ->
                             multipleChoiceButton(
                                 config.translator(
                                     NormalizedJsonPath(NormalizedJsonPathSegment.NameSegment(element))
@@ -181,12 +181,9 @@ fun singleChoiceButton(
             role = Role.RadioButton
         )
     ) {
-        RadioButton(
-            selected = (current == selectedOption),
-            onClick = null
-        )
+        RadioButton(selected = (current == selectedOption), onClick = null)
         icon?.invoke()
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(8.dp))
         Text(text = current)
     }
 }
@@ -206,10 +203,8 @@ private fun multipleChoiceButton(
             role = Role.Checkbox
         )
     ) {
-        Checkbox(
-            checked = contains,
-            onCheckedChange = null
-        )
+        Checkbox(checked = contains, onCheckedChange = null)
+        Spacer(modifier = Modifier.width(8.dp))
         Text(text = current)
     }
 }

@@ -1,6 +1,5 @@
 package ui.views.iso.verifier
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,28 +17,28 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
-import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
-import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_received_data
+import at.asitplus.valera.resources.section_heading_document_type
+import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.eupid.EuPidScheme
-import at.asitplus.wallet.lib.iso.IssuerSignedItem
-import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
+import at.asitplus.wallet.healthid.HealthIdScheme
+import at.asitplus.wallet.lib.data.ConstantIndex.CredentialScheme
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
-import data.credentials.EuPidCredentialAttributeTranslator
-import data.credentials.MobileDrivingLicenceCredentialAttributeTranslator
+import data.credentials.EuPidCredentialIsoMdocAdapter
+import data.credentials.HealthIdCredentialIsoMdocAdapter
+import data.credentials.MobileDrivingLicenceCredentialIsoMdocAdapter
+import data.document.RequestDocumentBuilder
 import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.decodeToImageBitmap
 import org.jetbrains.compose.resources.stringResource
-import ui.composables.LabeledContent
 import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
+import ui.composables.credentials.EuPidCredentialViewFromAdapter
+import ui.composables.credentials.HealthIdViewFromAdapter
+import ui.composables.credentials.MobileDrivingLicenceCredentialViewFromAdapter
 import ui.viewmodels.iso.VerifierViewModel
-import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 @OptIn(
@@ -47,6 +46,10 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 )
 @Composable
 fun VerifierPresentationView(vm: VerifierViewModel) {
+    val decodeImage: (ByteArray) -> ImageBitmap = { byteArray ->
+        vm.walletMain.platformAdapter.decodeImage(byteArray)
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -70,22 +73,20 @@ fun VerifierPresentationView(vm: VerifierViewModel) {
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.Start
             ) {
-                vm.deviceResponse.value!!.documents!!.forEach {
-                    val docType = it.docType
+                vm.deviceResponse.value!!.documents!!.forEach { doc ->
+                    val docType = doc.docType
                     Text(
-                        text = "DocType: $docType",
+                        text = stringResource(Res.string.section_heading_document_type, docType),
                         style = MaterialTheme.typography.labelLarge
                     )
                     Spacer(modifier = Modifier.size(4.dp))
-                    it.issuerSigned.namespaces?.forEach { namespace ->
-                        namespace.value.entries.sortedBy { it.value.elementIdentifier }
-                            .forEach { entry ->
-                                when (docType) {
-                                    MobileDrivingLicenceScheme.isoDocType -> showMdlEntry(entry)
-                                    EuPidScheme.isoDocType -> showPidEntry(entry)
-                                }
-                                Spacer(modifier = Modifier.size(4.dp))
-                            }
+                    doc.issuerSigned.namespaces?.forEach { (namespaceKey, entries) ->
+                        val sortedEntries = entries.entries
+                            .sortedBy { it.value.elementIdentifier }
+                            .associate { it.value.elementIdentifier to it.value.elementValue }
+                        val namespaces = mapOf(namespaceKey to sortedEntries)
+                        val scheme = RequestDocumentBuilder.getDocTypeConfig(docType)?.scheme
+                        IsoMdocCredentialViewForScheme(scheme, namespaces, decodeImage)
                     }
                 }
             }
@@ -93,84 +94,22 @@ fun VerifierPresentationView(vm: VerifierViewModel) {
     }
 }
 
-@OptIn(ExperimentalEncodingApi::class, ExperimentalResourceApi::class)
 @Composable
-fun showMdlEntry(entry: ByteStringWrapper<IssuerSignedItem>) {
-    val elementIdentifier = entry.value.elementIdentifier
-    val label = MobileDrivingLicenceCredentialAttributeTranslator.translate(
-        NormalizedJsonPath(NormalizedJsonPathSegment.NameSegment(elementIdentifier))
-    )?.let { stringResource(it) } ?: elementIdentifier
-    if (elementIdentifier == MobileDrivingLicenceDataElements.PORTRAIT ||
-        elementIdentifier == MobileDrivingLicenceDataElements.SIGNATURE_USUAL_MARK
-    ) {
-        val size = when (elementIdentifier) {
-            MobileDrivingLicenceDataElements.PORTRAIT -> 200.dp
-            MobileDrivingLicenceDataElements.SIGNATURE_USUAL_MARK -> 40.dp
-            else -> 0.dp
-        }
-        val imageAsByteArray = when (val value = entry.value.elementValue) {
-            is ByteArray -> value
-            is String -> Base64.decode(value)
-            else -> null
-        }
-        showImageLabeledContent(imageAsByteArray, size, label)
-    } else {
-        showLabeledContent(entry, label)
-    }
-}
-
-@OptIn(ExperimentalEncodingApi::class, ExperimentalResourceApi::class)
-@Composable
-fun showPidEntry(entry: ByteStringWrapper<IssuerSignedItem>) {
-    val elementIdentifier = entry.value.elementIdentifier
-    val label = EuPidCredentialAttributeTranslator.translate(
-        NormalizedJsonPath(NormalizedJsonPathSegment.NameSegment(elementIdentifier))
-    )?.let { stringResource(it) } ?: elementIdentifier
-    if (elementIdentifier == EuPidScheme.Attributes.PORTRAIT) {
-        val imageAsByteArray = when (val value = entry.value.elementValue) {
-            is ByteArray -> value
-            is String -> Base64.decode(value)
-            else -> null
-        }
-        showImageLabeledContent(imageAsByteArray, 200.dp, label)
-    } else {
-        showLabeledContent(entry, label)
-    }
-}
-
-@OptIn(ExperimentalResourceApi::class)
-@Composable
-fun showImageLabeledContent(imageAsByteArray: ByteArray?, size: Dp, label: String) {
-    imageAsByteArray?.let {
-        LabeledContent(
-            content = {
-                Image(
-                    bitmap = it.decodeToImageBitmap(),
-                    contentDescription = null,
-                    modifier = Modifier.size(size)
-                )
-            },
-            label = label
+fun IsoMdocCredentialViewForScheme(
+    scheme: CredentialScheme?,
+    namespaces: Map<String, Map<String, Any>>,
+    decodeImage: (ByteArray) -> ImageBitmap?
+) {
+    when (scheme) {
+        is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialViewFromAdapter(
+            MobileDrivingLicenceCredentialIsoMdocAdapter(namespaces, decodeImage)
         )
+        is EuPidScheme -> EuPidCredentialViewFromAdapter(
+            EuPidCredentialIsoMdocAdapter(namespaces, decodeImage, scheme)
+        )
+        is HealthIdScheme -> HealthIdViewFromAdapter(
+            HealthIdCredentialIsoMdocAdapter(namespaces)
+        )
+        else -> throw IllegalArgumentException("Unsupported scheme: $scheme")
     }
-}
-
-@Composable
-fun showLabeledContent(entry: ByteStringWrapper<IssuerSignedItem>, label: String) {
-    LabeledContent(
-        content = {
-            Text(
-                text = entry.value.elementValue.prettyToString(),
-                overflow = TextOverflow.Clip,
-                modifier = Modifier.fillMaxWidth(),
-                style = MaterialTheme.typography.bodyMedium
-            )
-        },
-        label = label
-    )
-}
-
-private fun Any.prettyToString() = when (this) {
-    is Array<*> -> contentToString()
-    else -> toString()
 }
