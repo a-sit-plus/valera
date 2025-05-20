@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_nfc_mdoc_reader
 import at.asitplus.wallet.app.common.WalletConfig
+import at.asitplus.wallet.app.data.SettingsRepository
 import data.document.RequestDocument
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CancellableContinuation
@@ -54,7 +55,7 @@ import org.multipaz.util.fromBase64Url
 
 // based on identity-credential[https://github.com/openwallet-foundation-labs/identity-credential] implementation
 class TransferManager(
-    private val config: WalletConfig,
+    private val config: SettingsRepository,
     private val scope: CoroutineScope,
     private val updateProgress: (String) -> Unit,
 ) {

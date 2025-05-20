@@ -4,6 +4,7 @@ import androidx.compose.runtime.MutableState
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants
+import at.asitplus.wallet.app.data.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
@@ -29,6 +30,7 @@ class ShowQrCodeViewModel(
     val onClickLogo: () -> Unit,
     val onClickSettings: () -> Unit,
     val onNavigateToPresentmentScreen: (PresentationStateModel) -> Unit,
+    val settingsRepository: SettingsRepository,
 ) {
     var hasBeenCalledHack: Boolean = false
     val presentationStateModel: PresentationStateModel by lazy { PresentationStateModel(walletMain.scope) }
@@ -53,7 +55,7 @@ class ShowQrCodeViewModel(
             val connectionMethods = mutableListOf<MdocConnectionMethod>()
             val bleUuid = UUID.randomUUID()
 
-            if (walletMain.walletConfig.presentmentBleCentralClientModeEnabled.first()) {
+            if (settingsRepository.presentmentBleCentralClientModeEnabled.first()) {
                 connectionMethods.add(
                     MdocConnectionMethodBle(
                         supportsPeripheralServerMode = false,
@@ -63,7 +65,7 @@ class ShowQrCodeViewModel(
                     )
                 )
             }
-            if (walletMain.walletConfig.presentmentBlePeripheralServerModeEnabled.first()) {
+            if (settingsRepository.presentmentBlePeripheralServerModeEnabled.first()) {
                 connectionMethods.add(
                     MdocConnectionMethodBle(
                         supportsPeripheralServerMode = true,
@@ -73,7 +75,7 @@ class ShowQrCodeViewModel(
                     )
                 )
             }
-            if (walletMain.walletConfig.presentmentNfcDataTransferEnabled.first()) {
+            if (settingsRepository.presentmentNfcDataTransferEnabled.first()) {
                 connectionMethods.add(
                     MdocConnectionMethodNfc(
                         commandDataFieldMaxLength = 0xffff,

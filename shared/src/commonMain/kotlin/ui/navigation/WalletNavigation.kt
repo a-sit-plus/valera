@@ -12,6 +12,7 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -25,11 +26,13 @@ import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.error_feature_not_yet_available
 import at.asitplus.valera.resources.snackbar_clear_log_successfully
 import at.asitplus.valera.resources.snackbar_reset_app_successfully
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import at.asitplus.wallet.app.common.decodeImage
+import at.asitplus.wallet.app.data.SettingsRepository
 import at.asitplus.wallet.lib.data.dif.ConstraintFieldsEvaluationException
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
@@ -37,11 +40,11 @@ import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combineTransform
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.getString
+import org.koin.compose.koinInject
 import ui.composables.BottomBar
 import ui.composables.NavigationData
 import ui.navigation.routes.AddCredentialPreAuthnRoute
@@ -84,7 +87,6 @@ import ui.viewmodels.ErrorViewModel
 import ui.viewmodels.LoadCredentialViewModel
 import ui.viewmodels.LogViewModel
 import ui.viewmodels.PreAuthQrCodeScannerViewModel
-import ui.viewmodels.SettingsViewModel
 import ui.viewmodels.SigningQtspSelectionViewModel
 import ui.viewmodels.SigningViewModel
 import ui.viewmodels.authentication.AuthenticationQrCodeScannerViewModel
@@ -138,7 +140,10 @@ internal object NavigatorTestTags {
 }
 
 @Composable
-fun WalletNavigation(walletMain: WalletMain) {
+fun WalletNavigation(
+    walletMain: WalletMain,
+    settingsRepository: SettingsRepository = koinInject(),
+) {
     val navController: NavHostController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -167,7 +172,7 @@ fun WalletNavigation(walletMain: WalletMain) {
         walletMain.platformAdapter.openUrl("https://wallet.a-sit.at/")
     }
 
-    val isConditionsAccepted = walletMain.walletConfig.isConditionsAccepted.collectAsState(null)
+    val isConditionsAccepted = settingsRepository.isConditionsAccepted.collectAsState(null)
 
     val startDestination = when (isConditionsAccepted.value) {
         true -> HomeScreenRoute
@@ -249,7 +254,9 @@ private fun WalletNavHost(
     popBackStack: (Route) -> Unit,
     onClickLogo: () -> Unit,
     onError: (Throwable) -> Unit,
+    settingsRepository: SettingsRepository = koinInject(),
 ) {
+    val currentHost by settingsRepository.host.collectAsState("")
     NavHost(
         navController = navController,
         startDestination = startDestination,
@@ -267,7 +274,7 @@ private fun WalletNavHost(
         }
         composable<OnboardingInformationRoute> {
             OnboardingInformationView(
-                onClickContinue = { walletMain.walletConfig.set(isConditionsAccepted = true) },
+                onClickContinue = { settingsRepository.set(isConditionsAccepted = true) },
                 onClickLogo = onClickLogo
             )
         }
@@ -353,7 +360,8 @@ private fun WalletNavHost(
                     onNavigateToPresentmentScreen = {
                         Globals.presentationStateModel.value = it
                         navigate(LocalPresentationAuthenticationConsentRoute("QR"))
-                    }
+                    },
+                    settingsRepository = settingsRepository,
                 )
             })
         }
@@ -366,7 +374,8 @@ private fun WalletNavHost(
                         onClickLogo = onClickLogo,
                         walletMain = walletMain,
                         navigateToHomeScreen = { popBackStack(HomeScreenRoute) },
-                        onClickSettings = { navigate(SettingsRoute) }
+                        onClickSettings = { navigate(SettingsRoute) },
+                        settingsRepository = settingsRepository,
                     )
                 },
                 onError = onError,
@@ -513,7 +522,7 @@ private fun WalletNavHost(
                 AddCredentialViewModel(
                     walletMain = walletMain,
                     navigateUp = navigateBack,
-                    hostString = runBlocking { walletMain.walletConfig.host.first() },
+                    hostString = currentHost,
                     onSubmitServer = { host ->
                         navigate(LoadCredentialRoute(host))
                     },
@@ -612,32 +621,44 @@ private fun WalletNavHost(
 
         composable<SettingsRoute> { backStackEntry ->
             SettingsView(
-                vm = remember {
-                    SettingsViewModel(
-                        onClickShareLogFile = {
-                            navigate(LogRoute)
-                        },
-                        onClickResetApp = {
-                            val resetMessage = runBlocking {
-                                walletMain.resetApp()
-                                getString(Res.string.snackbar_reset_app_successfully)
-                            }
-                            walletMain.snackbarService.showSnackbar(resetMessage)
-                            navController.popBackStack(route = HomeScreenRoute, inclusive = false)
-                        },
-                        onClickClearLogFile = {
-                            val clearMessage = runBlocking {
-                                walletMain.clearLog()
-                                getString(Res.string.snackbar_clear_log_successfully)
-                            }
-                            walletMain.snackbarService.showSnackbar(clearMessage)
-                        },
-                        walletMain = walletMain,
-                        onClickLogo = onClickLogo,
-                        onClickSettings = { popBackStack(HomeScreenRoute) },
-                        onClickBack = navigateBack
-                    )
-                }
+                buildType = walletMain.buildContext.buildType,
+                version = walletMain.buildContext.versionName,
+                onClickShareLogFile = {
+                    navigate(LogRoute)
+                },
+                onClickResetApp = {
+                    val resetMessage = runBlocking {
+                        walletMain.resetApp()
+                        getString(Res.string.snackbar_reset_app_successfully)
+                    }
+                    walletMain.snackbarService.showSnackbar(resetMessage)
+                    navController.popBackStack(route = HomeScreenRoute, inclusive = false)
+                },
+                onClickClearLogFile = {
+                    val clearMessage = runBlocking {
+                        walletMain.clearLog()
+                        getString(Res.string.snackbar_clear_log_successfully)
+                    }
+                    walletMain.snackbarService.showSnackbar(clearMessage)
+                },
+                onClickLogo = onClickLogo,
+                onClickSettings = { popBackStack(HomeScreenRoute) },
+                onClickBack = navigateBack,
+                onClickFAQs = {
+                    walletMain.scope.launch {
+                        walletMain.snackbarService.showSnackbar(getString(Res.string.error_feature_not_yet_available))
+                    }
+                },
+                onClickDataProtectionPolicy = {
+                    walletMain.scope.launch {
+                        walletMain.snackbarService.showSnackbar(getString(Res.string.error_feature_not_yet_available))
+                    }
+                },
+                onClickLicenses = {
+                    walletMain.scope.launch {
+                        walletMain.snackbarService.showSnackbar(getString(Res.string.error_feature_not_yet_available))
+                    }
+                },
             )
         }
 

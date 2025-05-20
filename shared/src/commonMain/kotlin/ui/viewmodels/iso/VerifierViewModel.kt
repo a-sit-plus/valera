@@ -4,6 +4,7 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.iso.transfer.DeviceEngagementMethods
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants.MDOC_PREFIX
 import at.asitplus.wallet.app.common.iso.transfer.TransferManager
+import at.asitplus.wallet.app.data.SettingsRepository
 import at.asitplus.wallet.lib.iso.DeviceResponse
 import data.document.RequestDocument
 import data.document.RequestDocumentBuilder
@@ -16,10 +17,11 @@ class VerifierViewModel(
     val onClickLogo: () -> Unit,
     val walletMain: WalletMain,
     val navigateToHomeScreen: () -> Unit,
-    val onClickSettings: () -> Unit
+    val onClickSettings: () -> Unit,
+    val settingsRepository: SettingsRepository,
 ) {
     private val transferManager: TransferManager by lazy {
-        TransferManager(walletMain.walletConfig, walletMain.scope) { message -> } // TODO: handle update messages
+        TransferManager(settingsRepository, walletMain.scope) { message -> } // TODO: handle update messages
     }
 
     private val _verifierState = MutableStateFlow(VerifierState.INIT)
