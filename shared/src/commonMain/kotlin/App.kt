@@ -50,7 +50,7 @@ fun App(walletMain: WalletMain) {
 
     WalletTheme {
         KoinApplication({
-            appModule(walletMain)
+            modules(appModule(walletMain))
         }) {
             WalletNavigation(walletMain)
         }

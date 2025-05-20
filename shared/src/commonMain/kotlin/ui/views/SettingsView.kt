@@ -64,14 +64,15 @@ import at.asitplus.valera.resources.switch_label_use_nfc_data_transfer
 import at.asitplus.valera.resources.text_label_build
 import at.asitplus.valera.resources.warning
 import at.asitplus.wallet.app.common.BuildType
-import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.data.SettingsRepository
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 import ui.composables.Logo
 import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
+import ui.viewmodels.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,7 +88,7 @@ fun SettingsView(
     onClickFAQs: () -> Unit,
     onClickDataProtectionPolicy: () -> Unit,
     onClickLicenses: () -> Unit,
-    settingsRepository: SettingsRepository = koinInject(),
+    settingsViewModel: SettingsViewModel = koinViewModel(),
 ) {
     val showAlert = remember { mutableStateOf(false) }
     if (showAlert.value) {
@@ -234,32 +235,32 @@ fun SettingsView(
                         SettingSwitch(
                             label = stringResource(Res.string.switch_label_use_negotiated_handover),
                             modifier = listSpacingModifier.fillMaxWidth(),
-                            isChecked = settingsRepository.presentmentUseNegotiatedHandover.collectAsState(true).value,
-                            onCheckedChange = { settingsRepository.set(presentmentUseNegotiatedHandover = it) }
+                            isChecked = settingsViewModel.presentmentUseNegotiatedHandover.collectAsState(true).value,
+                            onCheckedChange = { settingsViewModel.set(presentmentUseNegotiatedHandover = it) }
                         )
                         SettingSwitch(
                             label = stringResource(Res.string.switch_label_use_ble_central_client_mode),
                             modifier = listSpacingModifier.fillMaxWidth(),
-                            isChecked = settingsRepository.presentmentBleCentralClientModeEnabled.collectAsState(true).value,
-                            onCheckedChange = { settingsRepository.set(presentmentBleCentralClientModeEnabled = it) }
+                            isChecked = settingsViewModel.presentmentBleCentralClientModeEnabled.collectAsState(true).value,
+                            onCheckedChange = { settingsViewModel.set(presentmentBleCentralClientModeEnabled = it) }
                         )
                         SettingSwitch(
                             label = stringResource(Res.string.switch_label_use_ble_peripheral_server_mode),
                             modifier = listSpacingModifier.fillMaxWidth(),
-                            isChecked = settingsRepository.presentmentBlePeripheralServerModeEnabled.collectAsState(true).value,
-                            onCheckedChange = { settingsRepository.set(presentmentBlePeripheralServerModeEnabled = it) }
+                            isChecked = settingsViewModel.presentmentBlePeripheralServerModeEnabled.collectAsState(true).value,
+                            onCheckedChange = { settingsViewModel.set(presentmentBlePeripheralServerModeEnabled = it) }
                         )
                         SettingSwitch(
                             label = stringResource(Res.string.switch_label_use_nfc_data_transfer),
                             modifier = listSpacingModifier.fillMaxWidth(),
-                            isChecked = settingsRepository.presentmentNfcDataTransferEnabled.collectAsState(false).value,
-                            onCheckedChange = { settingsRepository.set(presentmentNfcDataTransferEnabled = it) }
+                            isChecked = settingsViewModel.presentmentNfcDataTransferEnabled.collectAsState(false).value,
+                            onCheckedChange = { settingsViewModel.set(presentmentNfcDataTransferEnabled = it) }
                         )
                         SettingSwitch(
                             label = stringResource(Res.string.switch_label_blel2cap_enabled),
                             modifier = listSpacingModifier.fillMaxWidth(),
-                            isChecked = settingsRepository.readerBleL2CapEnabled.collectAsState(true).value,
-                            onCheckedChange = { settingsRepository.set(readerBleL2CapEnabled = it) }
+                            isChecked = settingsViewModel.readerBleL2CapEnabled.collectAsState(true).value,
+                            onCheckedChange = { settingsViewModel.set(readerBleL2CapEnabled = it) }
                         )
                     }
                 }

@@ -45,6 +45,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.getString
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 import ui.composables.BottomBar
 import ui.composables.NavigationData
 import ui.navigation.routes.AddCredentialPreAuthnRoute
@@ -87,6 +88,7 @@ import ui.viewmodels.ErrorViewModel
 import ui.viewmodels.LoadCredentialViewModel
 import ui.viewmodels.LogViewModel
 import ui.viewmodels.PreAuthQrCodeScannerViewModel
+import ui.viewmodels.SettingsViewModel
 import ui.viewmodels.SigningQtspSelectionViewModel
 import ui.viewmodels.SigningViewModel
 import ui.viewmodels.authentication.AuthenticationQrCodeScannerViewModel
@@ -254,9 +256,9 @@ private fun WalletNavHost(
     popBackStack: (Route) -> Unit,
     onClickLogo: () -> Unit,
     onError: (Throwable) -> Unit,
-    settingsRepository: SettingsRepository = koinInject(),
+    settingsViewModel: SettingsViewModel = koinViewModel(),
 ) {
-    val currentHost by settingsRepository.host.collectAsState("")
+    val currentHost by settingsViewModel.host.collectAsState("")
     NavHost(
         navController = navController,
         startDestination = startDestination,
@@ -274,7 +276,7 @@ private fun WalletNavHost(
         }
         composable<OnboardingInformationRoute> {
             OnboardingInformationView(
-                onClickContinue = { settingsRepository.set(isConditionsAccepted = true) },
+                onClickContinue = { settingsViewModel.set(isConditionsAccepted = true) },
                 onClickLogo = onClickLogo
             )
         }
@@ -361,7 +363,7 @@ private fun WalletNavHost(
                         Globals.presentationStateModel.value = it
                         navigate(LocalPresentationAuthenticationConsentRoute("QR"))
                     },
-                    settingsRepository = settingsRepository,
+                    settingsRepository = settingsViewModel,
                 )
             })
         }
@@ -375,7 +377,7 @@ private fun WalletNavHost(
                         walletMain = walletMain,
                         navigateToHomeScreen = { popBackStack(HomeScreenRoute) },
                         onClickSettings = { navigate(SettingsRoute) },
-                        settingsRepository = settingsRepository,
+                        settingsRepository = settingsViewModel,
                     )
                 },
                 onError = onError,
