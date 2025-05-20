@@ -66,7 +66,7 @@ class WalletMain(
     lateinit var presentationService: PresentationService
     lateinit var signingService: SigningService
     lateinit var dcApiService: DCAPIService
-    lateinit var intentService: IntentService
+    val intentService = IntentService(platformAdapter)
     val errorService = ErrorService()
     val snackbarService = SnackbarService()
     private val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
@@ -139,9 +139,6 @@ class WalletMain(
             keyMaterial = keyMaterial,
             subjectCredentialStore = subjectCredentialStore,
             validator = credentialValidator,
-        )
-        intentService = IntentService(
-            platformAdapter
         )
         httpService = HttpService(buildContext)
         provisioningService = ProvisioningService(
