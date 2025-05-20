@@ -23,10 +23,10 @@ import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import ui.navigation.IntentService
 import kotlin.time.Duration.Companion.minutes
+
 
 class ProvisioningService(
     val intentService: IntentService,
@@ -44,14 +44,16 @@ class ProvisioningService(
 
     private val redirectUrl = "asitplus-wallet://wallet.a-sit.at/app/callback/provisioning"
     private val clientId = "https://wallet.a-sit.at/app"
-    private val clientAttestationJwt = runBlocking {
-        BuildClientAttestationJwt(
-            SignJwt(keyMaterial, JwsHeaderCertOrJwk()),
-            clientId = clientId,
-            issuer = "https://example.com",
-            lifetime = 60.minutes,
-            clientKey = keyMaterial.jsonWebKey
-        ).serialize()
+
+    private var clientAttestationJwt = null as String?
+    suspend fun clientAttestationJwt() = clientAttestationJwt ?: BuildClientAttestationJwt(
+        SignJwt(keyMaterial, JwsHeaderCertOrJwk()),
+        clientId = clientId,
+        issuer = "https://example.com",
+        lifetime = 60.minutes,
+        clientKey = keyMaterial.jsonWebKey
+    ).serialize().also {
+        clientAttestationJwt = it
     }
 
     private val openId4VciClient = OpenId4VciClient(
@@ -79,7 +81,7 @@ class ProvisioningService(
                         .also { dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT) }
                 }
         },
-        loadClientAttestationJwt = { clientAttestationJwt },
+        loadClientAttestationJwt = { clientAttestationJwt() },
         signClientAttestationPop = SignJwt(keyMaterial, JwsHeaderNone()),
         oid4vciService = WalletService(clientId, redirectUrl, keyMaterial),
         storeCredential = { cred ->

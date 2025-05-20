@@ -64,10 +64,8 @@ import at.asitplus.valera.resources.switch_label_use_nfc_data_transfer
 import at.asitplus.valera.resources.text_label_build
 import at.asitplus.valera.resources.warning
 import at.asitplus.wallet.app.common.BuildType
-import at.asitplus.wallet.app.data.SettingsRepository
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import ui.composables.Logo
 import ui.composables.ScreenHeading

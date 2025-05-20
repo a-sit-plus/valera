@@ -32,7 +32,6 @@ import at.asitplus.valera.resources.snackbar_reset_app_successfully
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import at.asitplus.wallet.app.common.decodeImage
-import at.asitplus.wallet.app.data.SettingsRepository
 import at.asitplus.wallet.lib.data.dif.ConstraintFieldsEvaluationException
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
@@ -144,7 +143,7 @@ internal object NavigatorTestTags {
 @Composable
 fun WalletNavigation(
     walletMain: WalletMain,
-    settingsRepository: SettingsRepository = koinInject(),
+    settingsViewModel: SettingsViewModel = koinViewModel(),
 ) {
     val navController: NavHostController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -174,7 +173,7 @@ fun WalletNavigation(
         walletMain.platformAdapter.openUrl("https://wallet.a-sit.at/")
     }
 
-    val isConditionsAccepted = settingsRepository.isConditionsAccepted.collectAsState(null)
+    val isConditionsAccepted = settingsViewModel.isConditionsAccepted.collectAsState(null)
 
     val startDestination = when (isConditionsAccepted.value) {
         true -> HomeScreenRoute
@@ -363,7 +362,7 @@ private fun WalletNavHost(
                         Globals.presentationStateModel.value = it
                         navigate(LocalPresentationAuthenticationConsentRoute("QR"))
                     },
-                    settingsRepository = settingsViewModel,
+                    settingsViewModel = settingsViewModel,
                 )
             })
         }
@@ -377,7 +376,7 @@ private fun WalletNavHost(
                         walletMain = walletMain,
                         navigateToHomeScreen = { popBackStack(HomeScreenRoute) },
                         onClickSettings = { navigate(SettingsRoute) },
-                        settingsRepository = settingsViewModel,
+                        settingsViewModel = settingsViewModel,
                     )
                 },
                 onError = onError,

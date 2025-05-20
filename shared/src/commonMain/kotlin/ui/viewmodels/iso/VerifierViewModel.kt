@@ -4,13 +4,13 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.iso.transfer.DeviceEngagementMethods
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants.MDOC_PREFIX
 import at.asitplus.wallet.app.common.iso.transfer.TransferManager
-import at.asitplus.wallet.app.data.SettingsRepository
 import at.asitplus.wallet.lib.iso.DeviceResponse
 import data.document.RequestDocument
 import data.document.RequestDocumentBuilder
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import ui.viewmodels.SettingsViewModel
 
 class VerifierViewModel(
     val navigateUp: () -> Unit,
@@ -18,10 +18,10 @@ class VerifierViewModel(
     val walletMain: WalletMain,
     val navigateToHomeScreen: () -> Unit,
     val onClickSettings: () -> Unit,
-    val settingsRepository: SettingsRepository,
+    val settingsViewModel: SettingsViewModel,
 ) {
     private val transferManager: TransferManager by lazy {
-        TransferManager(settingsRepository, walletMain.scope) { message -> } // TODO: handle update messages
+        TransferManager(settingsViewModel, walletMain.scope) { message -> } // TODO: handle update messages
     }
 
     private val _verifierState = MutableStateFlow(VerifierState.INIT)
