@@ -143,7 +143,7 @@ internal object NavigatorTestTags {
 @Composable
 fun WalletNavigation(
     walletMain: WalletMain,
-    settingsViewModel: SettingsViewModel = koinViewModel(),
+    settingsViewModel: SettingsViewModel = koinInject(),
 ) {
     val navController: NavHostController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -255,7 +255,7 @@ private fun WalletNavHost(
     popBackStack: (Route) -> Unit,
     onClickLogo: () -> Unit,
     onError: (Throwable) -> Unit,
-    settingsViewModel: SettingsViewModel = koinViewModel(),
+    settingsViewModel: SettingsViewModel = koinInject(),
 ) {
     val currentHost by settingsViewModel.host.collectAsState("")
     NavHost(
@@ -628,19 +628,19 @@ private fun WalletNavHost(
                     navigate(LogRoute)
                 },
                 onClickResetApp = {
-                    val resetMessage = runBlocking {
+                    walletMain.scope.launch {
                         walletMain.resetApp()
-                        getString(Res.string.snackbar_reset_app_successfully)
+                        val resetMessage = getString(Res.string.snackbar_reset_app_successfully)
+                        walletMain.snackbarService.showSnackbar(resetMessage)
+                        navController.popBackStack(route = HomeScreenRoute, inclusive = false)
                     }
-                    walletMain.snackbarService.showSnackbar(resetMessage)
-                    navController.popBackStack(route = HomeScreenRoute, inclusive = false)
                 },
                 onClickClearLogFile = {
-                    val clearMessage = runBlocking {
+                    walletMain.scope.launch {
                         walletMain.clearLog()
-                        getString(Res.string.snackbar_clear_log_successfully)
+                        val clearMessage = getString(Res.string.snackbar_clear_log_successfully)
+                        walletMain.snackbarService.showSnackbar(clearMessage)
                     }
-                    walletMain.snackbarService.showSnackbar(clearMessage)
                 },
                 onClickLogo = onClickLogo,
                 onClickSettings = { popBackStack(HomeScreenRoute) },

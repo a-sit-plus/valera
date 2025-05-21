@@ -2,7 +2,7 @@ package di
 
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.data.SettingsRepository
-import org.koin.core.module.dsl.viewModelOf
+import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 import ui.viewmodels.SettingsViewModel
 
@@ -11,5 +11,7 @@ fun appModule(walletMain: WalletMain) = module {
     single<SettingsRepository> {
         walletMain.walletConfig
     }
-    viewModelOf(::SettingsViewModel)
+
+    // TODO: replace with viewModelOf as soon as we figure out how to set LocalViewModelStoreOwner in instrumented tests
+    singleOf(::SettingsViewModel)
 }
