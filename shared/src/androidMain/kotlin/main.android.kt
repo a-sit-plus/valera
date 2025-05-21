@@ -5,12 +5,19 @@ import android.util.Base64
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
+import androidx.credentials.ExperimentalDigitalCredentialApi
+import androidx.credentials.GetDigitalCredentialOption
+import androidx.credentials.provider.PendingIntentHandler
+import androidx.credentials.registry.provider.selectedEntryId
+import at.asitplus.KmmResult
+import at.asitplus.catching
+import at.asitplus.openid.OpenIdConstants.DC_API_OID4VP_PROTOCOL_IDENTIFIER
+import at.asitplus.wallet.app.common.dcapi.data.export.CredentialList
 import at.asitplus.wallet.app.android.AndroidKeyMaterial
 import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
 import at.asitplus.wallet.app.android.dcapi.IdentityCredentialHelper
@@ -18,17 +25,20 @@ import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
-import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
-import at.asitplus.wallet.app.common.dcapi.ResponseJSON
+import at.asitplus.wallet.lib.dcapi.request.DCAPIRequest
+import at.asitplus.wallet.lib.dcapi.request.Oid4vpDCAPIRequest
+import at.asitplus.wallet.lib.dcapi.request.PreviewDCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.data.preview.ResponseJSON
 import com.android.identity.android.mdoc.util.CredmanUtil
 import com.google.android.gms.identitycredentials.IdentityCredentialManager
-import com.google.android.gms.identitycredentials.IntentHelper
 import data.storage.RealDataStoreService
 import data.storage.getDataStore
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.tasks.await
 import org.json.JSONObject
 import org.multipaz.compose.prompt.PromptDialogs
 import org.multipaz.crypto.Algorithm
@@ -59,10 +69,9 @@ actual fun getColorScheme(): ColorScheme {
 @Composable
 fun MainView(
     buildContext: BuildContext,
-    sendCredentialResponseToDCAPIInvokerMethod: (String) -> Unit
 ) {
     val promptModel = AndroidPromptModel()
-    val platformAdapter = AndroidPlatformAdapter(LocalContext.current, sendCredentialResponseToDCAPIInvokerMethod)
+    val platformAdapter = AndroidPlatformAdapter(LocalContext.current)
     val dataStoreService = RealDataStoreService(
         getDataStore(LocalContext.current),
         platformAdapter
@@ -83,8 +92,7 @@ fun MainView(
 }
 
 public class AndroidPlatformAdapter(
-    private val context: Context,
-    private val sendCredentialResponseToDCAPIInvoker: (String) -> Unit,
+    private val context: Context
 ) : PlatformAdapter {
 
     override fun openUrl(url: String) {
@@ -148,95 +156,129 @@ public class AndroidPlatformAdapter(
         context.startActivity(Intent.createChooser(intent, null))
     }
 
-    override fun registerWithDigitalCredentialsAPI(entries: CredentialsContainer) {
-        val registry = IdentityCredentialHelper(entries, this)
-        val client = IdentityCredentialManager.Companion.getClient(context)
-        client.registerCredentials(registry.toRegistrationRequest(context))
-            .addOnSuccessListener { Napier.i("DCAPI: Credential Manager registration succeeded") }
-            .addOnFailureListener { Napier.w("DCAPI: Credential Manager registration failed", it) }
-    }
+    override fun registerWithDigitalCredentialsAPI(entries: CredentialList, scope: CoroutineScope) {
+        scope.launch(Dispatchers.Default) {
+            catching {
+                //val registry = IdentityCredentialHelper(entries, this@AndroidPlatformAdapter)
+                val client = IdentityCredentialManager.Companion.getClient(context)
+                val credentialsListCbor = entries.serialize()
 
-    override fun getCurrentDCAPIData(): DCAPIRequest? {
-        return (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.intent?.let {
-            // Adapted from https://github.com/openwallet-foundation-labs/identity-credential/blob/d7a37a5c672ed6fe1d863cbaeb1a998314d19fc5/wallet/src/main/java/com/android/identity_credential/wallet/credman/CredmanPresentationActivity.kt#L74
-            val cmrequest = IntentHelper.extractGetCredentialRequest(it) ?: return null
-            val credentialId = it.getLongExtra(IntentHelper.EXTRA_CREDENTIAL_ID, -1).toInt()
-
-            // This call is currently broken, have to extract this info manually for now
-            //val callingAppInfo = extractCallingAppInfo(intent)
-            val callingPackageName =
-                it.getStringExtra("androidx.identitycredentials.extra.CALLING_PACKAGE_NAME") // IntentHelper.EXTRA_CALLING_PACKAGE_NAME produces InterpreterMethodNotFoundError
-            val callingOrigin =
-                it.getStringExtra("androidx.identitycredentials.extra.ORIGIN") // IntentHelper.EXTRA_ORIGIN produces InterpreterMethodNotFoundError
-
-            if (callingPackageName == null && callingOrigin == null) {
-                Napier.w("Neither calling package name nor origin known")
-                return null
-            }
-
-            val requestedData = mutableMapOf<String, MutableList<Pair<String, Boolean>>>()
-
-            val json = JSONObject(cmrequest.credentialOptions[0].requestMatcher)
-            val provider = json.getJSONArray("providers").getJSONObject(0)
-
-            val protocol = provider.getString("protocol")
-            val request = provider.getString("request")
-
-            if (protocol == "preview") {
-                // Extract params from the preview protocol request
-                val previewRequest = JSONObject(request)
-                val selector = previewRequest.getJSONObject("selector")
-                val nonceBase64 = previewRequest.getString("nonce")
-                val readerPublicKeyBase64 = previewRequest.getString("readerPublicKey")
-                val docType = selector.getString("doctype")
-
-                // Convert nonce and publicKey
-                val nonce = Base64.decode(nonceBase64, Base64.NO_WRAP or Base64.URL_SAFE)
-
-                // Match all the requested fields
-                val fields = selector.getJSONArray("fields")
-                for (n in 0 until fields.length()) {
-                    val field = fields.getJSONObject(n)
-                    val name = field.getString("name")
-                    val namespace = field.getString("namespace")
-                    val intentToRetain = field.getBoolean("intentToRetain")
-                    requestedData.getOrPut(namespace) { mutableListOf() }.add(Pair(name, intentToRetain))
-                }
-
-                DCAPIRequest(
-                    request,
-                    requestedData,
-                    credentialId,
-                    callingPackageName,
-                    callingOrigin,
-                    nonce,
-                    readerPublicKeyBase64,
-                    docType
-                )
-            } else {
-                Napier.w("Protocol type not supported")
-                null
-            }
+                client.registerCredentials(
+                    IdentityCredentialHelper.toRegistrationRequest(
+                        context,
+                        credentialsListCbor
+                    )
+                ).await()
+            }.onSuccess { Napier.i("DCAPI: Credential Manager registration succeeded") }
+                .onFailure { Napier.w("DCAPI: Credential Manager registration failed", it) }
         }
     }
 
+    @OptIn(ExperimentalDigitalCredentialApi::class)
+    override fun getCurrentDCAPIData(): KmmResult<DCAPIRequest> = catching {
+        (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.let { (intent, _) ->
+            // Adapted from https://github.com/openwallet-foundation-labs/identity-credential/blob/d7a37a5c672ed6fe1d863cbaeb1a998314d19fc5/wallet/src/main/java/com/android/identity_credential/wallet/credman/CredmanPresentationActivity.kt#L74
+            val request = PendingIntentHandler.retrieveProviderGetCredentialRequest(intent)
+            val credentialId = request!!.selectedEntryId!!.toInt()
+
+            val privilegedUserAgents =
+                context.assets.open("privileged_apps.json").use { stream ->
+                    val data = ByteArray(stream.available()).apply { stream.read(this) }
+                    data.decodeToString()
+                }
+
+            val callingAppInfo = request.callingAppInfo
+            val callingPackageName = callingAppInfo.packageName
+            val callingOrigin = callingAppInfo.getOrigin(privilegedUserAgents)
+                ?: throw IllegalArgumentException("Origin unknown")
+            val option = request.credentialOptions[0] as GetDigitalCredentialOption
+            val json = JSONObject(option.requestJson)
+            val provider = json.getJSONArray("providers").getJSONObject(0)
+
+
+            //val cmrequest = IntentHelper.extractGetCredentialRequest(it) ?: return null
+            //val credentialId = it.getStringExtra(IntentHelper.EXTRA_CREDENTIAL_ID)?.toInt() ?: -1
+
+            // This call is currently broken, have to extract this info manually for now
+            //val callingAppInfo = extractCallingAppInfo(intent)
+            //val callingPackageName = it.getStringExtra("androidx.identitycredentials.extra.CALLING_PACKAGE_NAME") // IntentHelper.EXTRA_CALLING_PACKAGE_NAME produces InterpreterMethodNotFoundError
+            //val callingOrigin = it.getStringExtra("androidx.identitycredentials.extra.ORIGIN") // IntentHelper.EXTRA_ORIGIN produces InterpreterMethodNotFoundError
+
+            //val json = JSONObject(cmrequest.credentialOptions[0].requestMatcher)
+            //val provider = json.getJSONArray("providers").getJSONObject(0)
+
+            val protocol = provider.getString("protocol")
+            val parsedRequest = provider.getString("request")
+
+            when {
+                protocol == "preview" -> {
+                    // Extract params from the preview protocol request
+                    val requestedData = mutableMapOf<String, MutableList<Pair<String, Boolean>>>()
+                    val previewRequest = JSONObject(parsedRequest)
+                    val selector = previewRequest.getJSONObject("selector")
+                    val nonceBase64 = previewRequest.getString("nonce")
+                    val readerPublicKeyBase64 = previewRequest.getString("readerPublicKey")
+                    val docType = selector.getString("doctype")
+
+                    // Convert nonce and publicKey
+                    val nonce = Base64.decode(nonceBase64, Base64.NO_WRAP or Base64.URL_SAFE)
+
+                    // Match all the requested fields
+                    val fields = selector.getJSONArray("fields")
+                    for (n in 0 until fields.length()) {
+                        val field = fields.getJSONObject(n)
+                        val name = field.getString("name")
+                        val namespace = field.getString("namespace")
+                        val intentToRetain = field.getBoolean("intentToRetain")
+                        requestedData.getOrPut(namespace) { mutableListOf() }
+                            .add(Pair(name, intentToRetain))
+                    }
+
+                    PreviewDCAPIRequest(
+                        parsedRequest,
+                        requestedData,
+                        credentialId,
+                        callingPackageName,
+                        callingOrigin,
+                        nonce,
+                        readerPublicKeyBase64,
+                        docType,
+                    )
+                }
+                protocol.startsWith(DC_API_OID4VP_PROTOCOL_IDENTIFIER) -> {
+                    Napier.d("Using protocol $protocol, got request $request for credential ID $credentialId")
+                    Oid4vpDCAPIRequest(
+                        protocol, parsedRequest, credentialId, callingPackageName, callingOrigin
+                    )
+                }
+                else -> {
+                    Napier.e("Protocol type $protocol not supported")
+                    throw IllegalArgumentException("Protocol type $protocol not supported")
+                }
+            }
+        } ?: throw IllegalStateException("DCAPIInvocationData not set")
+    }
+
     @OptIn(ExperimentalEncodingApi::class)
-    override fun prepareDCAPICredentialResponse(responseJson: ByteArray, dcApiRequest: DCAPIRequest) {
+    override fun prepareDCAPICredentialResponse(
+        responseJson: ByteArray,
+        dcApiRequestPreview: PreviewDCAPIRequest
+    ) {
         val readerPublicKey = EcPublicKeyDoubleCoordinate.fromUncompressedPointEncoding(
             EcCurve.P256,
-            Base64.decode(dcApiRequest.readerPublicKeyBase64, Base64.NO_WRAP or Base64.URL_SAFE)
+            Base64.decode(dcApiRequestPreview.readerPublicKeyBase64, Base64.NO_WRAP or Base64.URL_SAFE)
         )
         // Generate the Session Transcript
-        val encodedSessionTranscript = if (dcApiRequest.callingOrigin == null) {
+        val encodedSessionTranscript = if (dcApiRequestPreview.callingOrigin == null) {
             CredmanUtil.generateAndroidSessionTranscript(
-                dcApiRequest.nonce,
-                dcApiRequest.callingPackageName!!,
+                dcApiRequestPreview.nonce,
+                dcApiRequestPreview.callingPackageName!!,
                 Crypto.digest(Algorithm.SHA256, readerPublicKey.asUncompressedPointEncoding)
             )
         } else {
             CredmanUtil.generateBrowserSessionTranscript(
-                dcApiRequest.nonce,
-                dcApiRequest.callingOrigin,
+                dcApiRequestPreview.nonce,
+                dcApiRequestPreview.callingOrigin!!,
                 Crypto.digest(Algorithm.SHA256, readerPublicKey.asUncompressedPointEncoding)
             )
         }
@@ -250,8 +292,18 @@ public class AndroidPlatformAdapter(
         val encodedCredentialDocument =
             CredmanUtil.generateCredentialDocument(cipherText, encapsulatedPublicKey)
 
-        val response = ResponseJSON(kotlin.io.encoding.Base64.UrlSafe.encode(encodedCredentialDocument))
-        sendCredentialResponseToDCAPIInvoker(response.serialize())
+        val response =
+            ResponseJSON(kotlin.io.encoding.Base64.UrlSafe.encode(encodedCredentialDocument))
+        (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
+            sendCredentialResponseToInvoker(response.serialize())
+        } ?: throw IllegalStateException("Callback for response not found")
+    }
+
+    override fun prepareDCAPICredentialResponse(response: String) {
+        (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
+            Napier.d("Returning response $response to digital credentials API invoker")
+            sendCredentialResponseToInvoker(response)
+        } ?: throw IllegalStateException("Callback for response not found")
     }
 }
 

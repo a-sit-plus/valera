@@ -1,6 +1,7 @@
 package at.asitplus.wallet.app.common
 
 import androidx.compose.ui.graphics.ImageBitmap
+import at.asitplus.KmmResult
 import at.asitplus.catchingUnwrapped
 import at.asitplus.signum.indispensable.josef.JsonWebKey
 import at.asitplus.signum.indispensable.josef.JsonWebKeySet
@@ -8,13 +9,15 @@ import at.asitplus.signum.indispensable.josef.JwsSigned
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_update_action
 import at.asitplus.valera.resources.snackbar_update_hint
-import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
-import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.data.export.CredentialList
+import at.asitplus.wallet.app.common.dcapi.DCAPIExportService
 import at.asitplus.wallet.app.data.CacheStoreEntry
 import at.asitplus.wallet.app.data.CachingStatusListTokenResolver
 import at.asitplus.wallet.app.data.SimpleBootstrappingBulkStore
 import at.asitplus.wallet.app.data.SimpleCacheStoreWrapper
 import at.asitplus.wallet.app.data.SimpleMutableMapStore
+import at.asitplus.wallet.lib.dcapi.request.DCAPIRequest
+import at.asitplus.wallet.lib.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.agent.Validator
@@ -35,6 +38,8 @@ import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.datetime.Clock
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -65,7 +70,7 @@ class WalletMain(
     lateinit var httpService: HttpService
     lateinit var presentationService: PresentationService
     lateinit var signingService: SigningService
-    lateinit var dcApiService: DCAPIService
+    lateinit var dcApiExportService: DCAPIExportService
     lateinit var intentService: IntentService
     val errorService = ErrorService()
     val snackbarService = SnackbarService()
@@ -167,7 +172,8 @@ class WalletMain(
             httpService
         )
 
-        this.dcApiService = DCAPIService(platformAdapter)
+        this.dcApiExportService = DCAPIExportService(platformAdapter, scope)
+        startListeningForNewCredentialsDCAPI()
     }
 
     private fun issuerKeyLookup(): (JwsSigned<*>) -> Set<JsonWebKey>? = { jws ->
@@ -226,16 +232,14 @@ class WalletMain(
         }
     }
 
-    fun updateDigitalCredentialsAPIIntegration() {
-        scope.launch {
-            try {
-                Napier.d("Updating digital credentials integration")
-                subjectCredentialStore.observeStoreContainer().collect { container ->
-                    dcApiService.registerCredentialWithSystem(container)
-                }
-            } catch (e: Throwable) {
-                Napier.w("Could not update credentials with system", e)
-            }
+    private fun startListeningForNewCredentialsDCAPI() {
+        try {
+            Napier.d("DC API: Starting to observe credentials")
+            subjectCredentialStore.observeStoreContainer().onEach { storeContainer ->
+                dcApiExportService.registerCredentialWithSystem(storeContainer)
+            }.launchIn(CoroutineScope(Dispatchers.IO))
+        } catch (e: Throwable) {
+            Napier.w("DC API: Could not update credentials with system", e)
         }
     }
 
@@ -292,12 +296,6 @@ interface PlatformAdapter {
     fun openUrl(url: String)
 
     /**
-     * Converts an image from ByteArray to ImageBitmap
-     * @param image the image as ByteArray
-     * @return returns the image as an ImageBitmap
-     */
-
-    /**
      * Writes an user defined string to a file in a specific folder
      * @param text is the content of the new file or the content which gets append to an existing file
      * @param fileName the name of the file
@@ -328,18 +326,20 @@ interface PlatformAdapter {
     /**
      * Registers credentials with the digital credentials browser API
      * @param entries credentials to add
+     * @param scope CoroutineScope for registering credentials
      */
-    fun registerWithDigitalCredentialsAPI(entries: CredentialsContainer)
+    fun registerWithDigitalCredentialsAPI(entries: CredentialList, scope: CoroutineScope)
 
     /**
      * Retrieves request from the digital credentials browser API
      */
-    fun getCurrentDCAPIData(): DCAPIRequest?
+    fun getCurrentDCAPIData(): KmmResult<DCAPIRequest>
 
     /**
      * Prepares the credential response and sends it back to the invoking application
      */
-    fun prepareDCAPICredentialResponse(responseJson: ByteArray, dcApiRequest: DCAPIRequest)
+    fun prepareDCAPICredentialResponse(responseJson: ByteArray, dcApiRequestPreview: PreviewDCAPIRequest)
+    fun prepareDCAPICredentialResponse(responseJson: String)
 
 }
 
@@ -360,17 +360,20 @@ class DummyPlatformAdapter : PlatformAdapter {
     override fun shareLog() {
     }
 
-    override fun registerWithDigitalCredentialsAPI(entries: CredentialsContainer) {
+    override fun registerWithDigitalCredentialsAPI(entries: CredentialList, scope: CoroutineScope) {
     }
 
-    override fun getCurrentDCAPIData(): DCAPIRequest? {
-        return null
+    override fun getCurrentDCAPIData(): KmmResult<DCAPIRequest> {
+        return KmmResult.failure(IllegalStateException("Using dummy platform adapter"))
     }
 
     override fun prepareDCAPICredentialResponse(
         responseJson: ByteArray,
-        dcApiRequest: DCAPIRequest
+        dcApiRequestPreview: PreviewDCAPIRequest
     ) {
+    }
+
+    override fun prepareDCAPICredentialResponse(responseJson: String) {
     }
 
 }

@@ -6,8 +6,11 @@ import android.nfc.NfcAdapter
 import android.nfc.cardemulation.CardEmulation
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.gms.identitycredentials.GetCredentialResponse
-import com.google.android.gms.identitycredentials.IntentHelper
+import androidx.credentials.CustomCredential
+import androidx.credentials.DigitalCredential
+import androidx.credentials.ExperimentalDigitalCredentialApi
+import androidx.credentials.GetCredentialResponse
+import androidx.credentials.provider.PendingIntentHandler
 import io.github.aakira.napier.Napier
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.multipaz.context.initializeApplication
@@ -20,10 +23,10 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         populateLink(intent)
-        initIdentityLibraries()
+        initMultipaz()
     }
 
-    private fun initIdentityLibraries() {
+    private fun initMultipaz() {
         // required for identity.Crypto classes
         Security.removeProvider("BC")
         Security.addProvider(BouncyCastleProvider())
@@ -31,16 +34,39 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
         initializeApplication(this.applicationContext)
     }
 
+    @OptIn(ExperimentalDigitalCredentialApi::class)
     fun sendCredentialResponseToDCAPIInvoker(resultJson: String) {
         val resultData = Intent()
-        val bundle = Bundle().apply {
+
+        // Google GMS credentials library
+        /*val bundle = Bundle().apply {
             putByteArray("identityToken", resultJson.toByteArray())
         }
+
         val credentialResponse = com.google.android.gms.identitycredentials.Credential("type", bundle)
 
         IntentHelper.setGetCredentialResponse(
             resultData,
-            GetCredentialResponse(credentialResponse)
+            com.google.android.gms.identitycredentials.GetCredentialResponse(credentialResponse)
+        )*/
+
+        val credential = try {
+            DigitalCredential(resultJson)
+        } catch (e: IllegalArgumentException) {
+            /* TODO check with SP that supports exceptions whether this works
+              * otherwise try with the Google GMS library (see above)
+            */
+            val bundle = Bundle().apply {
+                putByteArray("identityToken", resultJson.toByteArray())
+            }
+            CustomCredential("type", bundle)
+        }
+
+        PendingIntentHandler.setGetCredentialResponse(
+            resultData,
+            GetCredentialResponse(
+                credential
+            )
         )
         setResult(RESULT_OK, resultData)
         finish()
@@ -64,7 +90,7 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
         NfcAdapter.getDefaultAdapter(this)?.let {
             val cardEmulation = CardEmulation.getInstance(it)
             if (!cardEmulation.unsetPreferredService(this)) {
-                Napier.w("CardEmulation.unsetPreferredService() return false")
+                Napier.w("CardEmulation.unsetPreferredService() returned false")
             }
         }
     }

@@ -1,7 +1,16 @@
 package ui.viewmodels.intents
 
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.app.common.dcapi.data.ErrorResponse
+import at.asitplus.wallet.lib.dcapi.request.Oid4vpDCAPIRequest
+import at.asitplus.wallet.lib.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.wallet.app.common.domain.BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase
+import at.asitplus.wallet.lib.oidvci.OAuth2Exception
+import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
+import io.github.aakira.napier.Napier
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import ui.navigation.routes.Route
 
 class DCAPIAuthorizationIntentViewModel(
@@ -10,16 +19,40 @@ class DCAPIAuthorizationIntentViewModel(
     val onSuccess: (Route) -> Unit,
     val onFailure: (Throwable) -> Unit
 ) {
+    private val buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase =
+        BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
+            presentationService = walletMain.presentationService,
+        )
 
-    fun process() {
-        val dcApiRequest = walletMain.platformAdapter.getCurrentDCAPIData()
-        val consentPageBuilder =
-            BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase()
+    private val buildAuthenticationConsentPageFromPreviewRequest =
+        BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase()
 
-        consentPageBuilder(dcApiRequest).unwrap().onSuccess {
-            onSuccess(it)
-        }.onFailure {
-            onFailure(it)
+    private val coroutineExceptionHandler = CoroutineExceptionHandler { _, error ->
+        Napier.w("Exception occurred during DC API invocation", error)
+        val response = when (error) {
+            is OAuth2Exception -> error.serialize()
+            else -> ErrorResponse("unsupported_response_type").serialize() // TODO Not sure what to return in this case
         }
+        walletMain.platformAdapter.prepareDCAPICredentialResponse(response)
+        onFailure(error)
+    }
+
+    fun process() = walletMain.scope.launch(Dispatchers.Default + coroutineExceptionHandler) {
+        val dcApiRequest = walletMain.platformAdapter.getCurrentDCAPIData().getOrThrow()
+
+        val successRoute = when (dcApiRequest) {
+            is PreviewDCAPIRequest -> {
+                buildAuthenticationConsentPageFromPreviewRequest(dcApiRequest)
+            }
+
+            is Oid4vpDCAPIRequest -> {
+                buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
+                    dcApiRequest.request,
+                    dcApiRequest
+                )
+            }
+        }.getOrThrow()
+
+        onSuccess(successRoute)
     }
 }

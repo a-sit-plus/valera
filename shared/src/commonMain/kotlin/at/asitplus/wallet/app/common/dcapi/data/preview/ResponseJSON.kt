@@ -1,9 +1,8 @@
-package at.asitplus.wallet.app.common.dcapi
+package at.asitplus.wallet.app.common.dcapi.data.preview
 
 import at.asitplus.catching
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 
 @Serializable
 data class ResponseJSON(val token: String) {

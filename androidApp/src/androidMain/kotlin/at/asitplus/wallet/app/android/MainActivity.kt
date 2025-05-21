@@ -27,16 +27,21 @@ class MainActivity : AbstractWalletActivity() {
                     versionCode = BuildConfig.VERSION_CODE,
                     versionName = BuildConfig.VERSION_NAME,
                     osVersion = "Android ${Build.VERSION.RELEASE}"
-                ),
-                ::sendCredentialResponseToDCAPIInvoker
+                )
             )
         }
     }
 
     override fun populateLink(intent: Intent) {
         when (intent.action) {
+            "androidx.credentials.registry.provider.action.GET_CREDENTIAL" -> {
+                Globals.dcapiInvocationData.value =
+                    DCAPIInvocationData(intent, ::sendCredentialResponseToDCAPIInvoker)
+                Globals.appLink.value = intent.action
+            }
             IntentHelper.ACTION_GET_CREDENTIAL -> {
-                Globals.dcapiInvocationData.value = DCAPIInvocationData(intent)
+                Globals.dcapiInvocationData.value =
+                    DCAPIInvocationData(intent, ::sendCredentialResponseToDCAPIInvoker)
                 Globals.appLink.value = intent.action
             }
             PRESENTATION_REQUESTED_INTENT -> {

@@ -6,8 +6,9 @@ import at.asitplus.openid.RelyingPartyMetadata
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
-import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
-import at.asitplus.wallet.app.common.dcapi.PreviewRequest
+import at.asitplus.wallet.lib.dcapi.request.PreviewDCAPIRequest
+import at.asitplus.wallet.app.common.dcapi.data.preview.PreviewRequest
+import at.asitplus.wallet.lib.dcapi.request.Oid4vpDCAPIRequest
 import at.asitplus.wallet.lib.agent.CreatePresentationResult
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.PresentationException
@@ -46,24 +47,31 @@ class PresentationService(
     suspend fun parseAuthenticationRequestParameters(requestUri: String) =
         presentationService.parseAuthenticationRequestParameters(requestUri)
 
-    suspend fun startAuthorizationResponsePreparation(request: RequestParametersFrom<AuthenticationRequestParameters>) =
-        presentationService.startAuthorizationResponsePreparation(request)
+    suspend fun startAuthorizationResponsePreparation(
+        request: RequestParametersFrom<AuthenticationRequestParameters>,
+        incomingDcApiRequest: Oid4vpDCAPIRequest?
+    ) = presentationService.startAuthorizationResponsePreparation(request, incomingDcApiRequest)
 
     suspend fun getPreparationState(request: RequestParametersFrom<AuthenticationRequestParameters>) =
         presentationService.startAuthorizationResponsePreparation(request).getOrThrow()
 
-    suspend fun getMatchingCredentials(preparationState: AuthorizationResponsePreparationState) = catching {
+    suspend fun getMatchingCredentials(preparationState: AuthorizationResponsePreparationState, oid4vpDCAPIRequest: Oid4vpDCAPIRequest?) = catching {
         when (val it = preparationState.credentialPresentationRequest) {
-            is CredentialPresentationRequest.DCQLRequest -> DCQLMatchingResult(
-                presentationRequest = it,
-                holderAgent.matchDCQLQueryAgainstCredentialStore(it.dcqlQuery).getOrThrow()
-            )
+            is CredentialPresentationRequest.DCQLRequest -> {
+                val dcqlQueryResult =
+                    holderAgent.matchDCQLQueryAgainstCredentialStore(it.dcqlQuery, oid4vpDCAPIRequest?.credentialId).getOrThrow()
+                DCQLMatchingResult(
+                    presentationRequest = it,
+                    dcqlQueryResult
+                )
+            }
 
             is CredentialPresentationRequest.PresentationExchangeRequest -> PresentationExchangeMatchingResult(
                 presentationRequest = it,
-                holderAgent.matchInputDescriptorsAgainstCredentialStore(
+                matchingInputDescriptorCredentials = holderAgent.matchInputDescriptorsAgainstCredentialStore(
                     inputDescriptors = it.presentationDefinition.inputDescriptors,
                     fallbackFormatHolder = it.fallbackFormatHolder,
+                    filterById = oid4vpDCAPIRequest?.credentialId
                 ).getOrThrow()
             )
 
@@ -75,23 +83,25 @@ class PresentationService(
         request: RequestParametersFrom<AuthenticationRequestParameters>,
         clientMetadata: RelyingPartyMetadata?,
         credentialPresentation: CredentialPresentation,
+        dcApiRequest: Oid4vpDCAPIRequest?,
     ) = presentationService.finalizeAuthorizationResponseReturningUrl(
         request = request,
         clientMetadata = clientMetadata,
         credentialPresentation = credentialPresentation,
+        dcApiRequest = dcApiRequest
     ).getOrThrow()
 
     suspend fun finalizeDCAPIPreviewPresentation(
         credentialPresentation: CredentialPresentation.PresentationExchangePresentation,
-        dcApiRequest: DCAPIRequest
+        dcApiRequestPreview: PreviewDCAPIRequest
     ): OpenId4VpWallet.AuthenticationSuccess {
         Napier.d("Finalizing DCAPI response")
-        val previewRequest = PreviewRequest.deserialize(dcApiRequest.request).getOrThrow()
+        val previewRequest = PreviewRequest.deserialize(dcApiRequestPreview.request).getOrThrow()
 
         val presentationResult = holderAgent.createPresentation(
             request = PresentationRequestParameters(
                 nonce = previewRequest.nonce,
-                audience = dcApiRequest.callingOrigin ?: dcApiRequest.callingPackageName!!,
+                audience = dcApiRequestPreview.callingOrigin ?: dcApiRequestPreview.callingPackageName!!,
                 calcIsoDeviceSignature = { docType, deviceNameSpaceBytes ->
                     // TODO sign data
                     SignCose.invoke<ByteArray>(keyMaterial, CoseHeaderNone(), CoseHeaderNone())
@@ -110,13 +120,17 @@ class PresentationService(
 
         val deviceResponse = when (val firstResult = presentation.presentationResults[0]) {
             is CreatePresentationResult.DeviceResponse -> firstResult.deviceResponse
-            is CreatePresentationResult.SdJwt -> TODO("Credential type not yet supported for API use case")
-            is CreatePresentationResult.Signed -> TODO("Credential type not yet supported for API use case")
+            is CreatePresentationResult.SdJwt -> TODO("Credential type not yet supported for preview protocol")
+            is CreatePresentationResult.Signed -> TODO("Credential type not yet supported for preview protocol")
         }
 
-        platformAdapter.prepareDCAPICredentialResponse(deviceResponse.serialize(), dcApiRequest)
+        platformAdapter.prepareDCAPICredentialResponse(deviceResponse.serialize(), dcApiRequestPreview)
 
         return OpenId4VpWallet.AuthenticationSuccess()
+    }
+
+    suspend fun finalizeDCAPIPresentation(response: String) {
+        platformAdapter.prepareDCAPICredentialResponse(response)
     }
 
     @OptIn(ExperimentalStdlibApi::class)
