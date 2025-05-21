@@ -73,8 +73,8 @@ class SigningService(
     lateinit var rqesWalletService: RqesOpenId4VpHolder
 
     private lateinit var signatureRequestParameter: SignatureRequestParameters
-    private lateinit var document: ByteArray
-    private lateinit var documentWithLabel: DocumentWithLabel
+    private lateinit var document: MutableMap<Int, ByteArray>
+    private lateinit var documentWithLabel: MutableMap<Int, DocumentWithLabel>
     private lateinit var dtbsrAuthenticationDetails: AuthorizationDetails
     private lateinit var transactionTokens: List<String>
     private lateinit var serviceToken: TokenResponseParameters
@@ -259,11 +259,18 @@ class SigningService(
         this.signatureRequestParameter =
             JwsSigned.deserialize(SignatureRequestParameters.serializer(), jwt, vckJsonSerializer).getOrThrow().payload
 
-        this.document = client.get(this.signatureRequestParameter.documentLocations.first().uri).bodyAsBytes()
-        this.documentWithLabel = DocumentWithLabel(
-            document = this.document,
-            label = this.signatureRequestParameter.documentDigests.first().label
-        )
+        this.document = mutableMapOf()
+        this.documentWithLabel = mutableMapOf()
+
+        this.signatureRequestParameter.documentLocations.forEachIndexed { index, documentLocation ->
+            client.get(documentLocation.uri).bodyAsBytes().let {
+                this.document[index] = it
+                this.documentWithLabel[index] = DocumentWithLabel(
+                    document = it,
+                    label = this.signatureRequestParameter.documentDigests[index].label
+                )
+            }
+        }
     }
 
     suspend fun getTokenFromAuthCode(url: String): TokenResponseParameters {
@@ -368,15 +375,15 @@ class SigningService(
         val signatureAlgorithm = catchingUnwrapped { commonSigningAlgorithm.first() }.getOrNull()
             ?: throw Throwable("Unsupported pdf signing algorithm")
 
-        val dtbsr = listOf(
+        val dtbsr = this.documentWithLabel.map {
             getDTBSR(
                 client = client,
                 qtspHost = pdfSigningService,
                 signatureAlgorithm = signatureAlgorithm,
                 signingCredential = signingCredential,
-                document = this.documentWithLabel
+                document = it.value
             )
-        )
+        }
         this.transactionTokens = dtbsr.map { it.first }
 
         this.dtbsrAuthenticationDetails =
