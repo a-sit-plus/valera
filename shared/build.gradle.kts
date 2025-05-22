@@ -68,6 +68,11 @@ kotlin {
             implementation(libs.navigation.compose)
             implementation(libs.semver)
             implementation(libs.qrose)
+
+            implementation(libs.koin.core)
+            implementation(libs.koin.compose)
+            implementation(libs.koin.compose.viewmodel)
+            implementation(libs.koin.compose.viewmodel.navigation)
         }
 
         commonTest.dependencies {
@@ -75,6 +80,7 @@ kotlin {
             implementation(kotlin("test-common"))
             @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
             implementation(compose.uiTest)
+            implementation(libs.koin.test)
         }
 
         androidMain.dependencies {
