@@ -36,9 +36,13 @@ import at.asitplus.wallet.por.PowerOfRepresentationDataElements
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import at.asitplus.wallet.taxid.TaxIdScheme
 import at.asitplus.wallet.taxid.TaxId2025Scheme
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.put
 
 fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, ConstantIndex.CredentialScheme, Map<NormalizedJsonPath, Boolean>> {
     @Suppress("DEPRECATION")
@@ -166,10 +170,123 @@ fun ConstantIndex.CredentialScheme.toJsonElement(
         else -> TODO("${this::class.simpleName} not implemented in jsonElementBuilder yet")
     }
 
+    // TODO move this to credentials libraries
+    val complexElements = when (this) {
+        EuPidSdJwtScheme -> buildJsonObject {
+            put(EuPidSdJwtScheme.SdJwtAttributes.PREFIX_ADDRESS, buildJsonObject {
+                with(EuPidSdJwtScheme.SdJwtAttributes.Address) {
+                    put(FORMATTED, JsonPrimitive(""))
+                    put(COUNTRY, JsonPrimitive(""))
+                    put(REGION, JsonPrimitive(""))
+                    put(LOCALITY, JsonPrimitive(""))
+                    put(POSTAL_CODE, JsonPrimitive(""))
+                    put(STREET, JsonPrimitive(""))
+                    put(HOUSE_NUMBER, JsonPrimitive(""))
+                }
+            })
+            put(EuPidSdJwtScheme.SdJwtAttributes.PREFIX_AGE_EQUAL_OR_OVER, buildJsonObject {
+                with(EuPidSdJwtScheme.SdJwtAttributes.AgeEqualOrOver) {
+                    put(EQUAL_OR_OVER_12, JsonPrimitive(""))
+                    put(EQUAL_OR_OVER_13, JsonPrimitive(""))
+                    put(EQUAL_OR_OVER_14, JsonPrimitive(""))
+                    put(EQUAL_OR_OVER_16, JsonPrimitive(""))
+                    put(EQUAL_OR_OVER_18, JsonPrimitive(""))
+                    put(EQUAL_OR_OVER_21, JsonPrimitive(""))
+                    put(EQUAL_OR_OVER_25, JsonPrimitive(""))
+                    put(EQUAL_OR_OVER_60, JsonPrimitive(""))
+                    put(EQUAL_OR_OVER_62, JsonPrimitive(""))
+                    put(EQUAL_OR_OVER_65, JsonPrimitive(""))
+                    put(EQUAL_OR_OVER_68, JsonPrimitive(""))
+                }
+            })
+            put(EuPidSdJwtScheme.SdJwtAttributes.PREFIX_PLACE_OF_BIRTH, buildJsonObject {
+                with(EuPidSdJwtScheme.SdJwtAttributes.PlaceOfBirth) {
+                    put(COUNTRY, JsonPrimitive(""))
+                    put(REGION, JsonPrimitive(""))
+                    put(LOCALITY, JsonPrimitive(""))
+                }
+            })
+        }
+
+        is EhicScheme -> buildJsonObject {
+            put(EhicScheme.Attributes.PREFIX_ISSUING_AUTHORITY, buildJsonObject {
+                with(EhicScheme.Attributes.IssuingAuthority) {
+                    put(ID, JsonPrimitive(""))
+                    put(NAME, JsonPrimitive(""))
+                }
+            })
+        }
+
+        is CertificateOfResidenceScheme -> buildJsonObject {
+            put(CertificateOfResidenceDataElements.RESIDENCE_ADDRESS, buildJsonObject {
+                CertificateOfResidenceDataElements.Address.ALL_ELEMENTS.forEach {
+                    put(it, JsonPrimitive(""))
+                }
+            })
+        }
+
+        is CompanyRegistrationScheme -> buildJsonObject {
+            with(CompanyRegistrationDataElements) {
+                put(REGISTERED_ADDRESS, buildJsonObject {
+                    CompanyRegistrationDataElements.Address.ALL_ELEMENTS.forEach {
+                        put(it, JsonPrimitive(""))
+                    }
+                })
+                put(POSTAL_ADDRESS, buildJsonObject {
+                    CompanyRegistrationDataElements.Address.ALL_ELEMENTS.forEach {
+                        put(it, JsonPrimitive(""))
+                    }
+                })
+                put(COMPANY_ACTIVITY, buildJsonObject {
+                    CompanyRegistrationDataElements.CompanyActivity.ALL_ELEMENTS.forEach {
+                        put(it, JsonPrimitive(""))
+                    }
+                })
+                put(COMPANY_CONTACT_DATA, buildJsonObject {
+                    CompanyRegistrationDataElements.ContactData.ALL_ELEMENTS.forEach {
+                        put(it, JsonPrimitive(""))
+                    }
+                })
+                put(BRANCH, buildJsonObject {
+                    with(CompanyRegistrationDataElements.Branch) {
+                        put(NAME, JsonPrimitive(""))
+                        put(EUID, JsonPrimitive(""))
+                        put(ACTIVITY, buildJsonObject {
+                            CompanyRegistrationDataElements.CompanyActivity.ALL_ELEMENTS.forEach {
+                                put(it, JsonPrimitive(""))
+                            }
+                        })
+                        put(POSTAL_ADDRESS, buildJsonObject {
+                            CompanyRegistrationDataElements.Address.ALL_ELEMENTS.forEach {
+                                put(it, JsonPrimitive(""))
+                            }
+                        })
+                        put(REGISTERED_ADDRESS, buildJsonObject {
+                            CompanyRegistrationDataElements.Address.ALL_ELEMENTS.forEach {
+                                put(it, JsonPrimitive(""))
+                            }
+                        })
+                    }
+                })
+            }
+        }
+
+        else -> buildJsonObject { }
+    }
+
     return dataElements.associateWith { "" }.let { attributes ->
         when (representation) {
             PLAIN_JWT -> vckJsonSerializer.encodeToJsonElement(attributes + ("type" to this.vcType))
-            SD_JWT -> vckJsonSerializer.encodeToJsonElement(attributes + ("vct" to this.sdJwtType))
+            SD_JWT -> buildJsonObject {
+                attributes.forEach {
+                    put(it.key, JsonPrimitive(it.value))
+                }
+                put("vct", sdJwtType)
+                complexElements.forEach {
+                    put(it.key, it.value)
+                }
+            }
+
             ISO_MDOC -> vckJsonSerializer.encodeToJsonElement(mapOf(this.isoNamespace to attributes))
         }
     }

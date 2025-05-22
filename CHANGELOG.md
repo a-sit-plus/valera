@@ -1,5 +1,5 @@
 # Release 5.6.3
- * tbd
+ * Presentation: Improve handling queries with nested paths
 
 # Release 5.6.2
  * Issuing: Handle errors on parsing credential offers
