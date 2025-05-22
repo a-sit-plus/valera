@@ -48,7 +48,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.getString
 import org.koin.compose.koinInject
-import org.koin.compose.viewmodel.koinViewModel
 import ui.composables.BottomBar
 import ui.composables.NavigationData
 import ui.navigation.routes.AddCredentialPreAuthnRoute
@@ -815,10 +814,18 @@ private fun WalletNavHost(
                     walletMain = walletMain,
                     uri = backStackEntry.toRoute<SigningIntentRoute>().uri,
                     onSuccess = {
-                        navigateBack()
-                        val signatureRequestParameters =
-                            runBlocking { walletMain.signingService.parseSignatureRequestParameter(backStackEntry.toRoute<SigningIntentRoute>().uri) }
-                        navigate(SigningQtspSelectionRoute(vckJsonSerializer.encodeToString(signatureRequestParameters)))
+                        walletMain.scope.launch {
+                            navigateBack()
+                            val signatureRequestParameters =
+                                walletMain.signingService.parseSignatureRequestParameter(backStackEntry.toRoute<SigningIntentRoute>().uri)
+                            navigate(
+                                SigningQtspSelectionRoute(
+                                    vckJsonSerializer.encodeToString(
+                                        signatureRequestParameters
+                                    )
+                                )
+                            )
+                        }
                     },
                     onFailure = { error ->
                         walletMain.errorService.emit(error)
