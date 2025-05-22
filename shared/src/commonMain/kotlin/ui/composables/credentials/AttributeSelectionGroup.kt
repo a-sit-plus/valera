@@ -15,6 +15,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.dif.ConstraintField
+import at.asitplus.jsonpath.JsonPath
 import at.asitplus.jsonpath.core.NodeList
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
@@ -48,6 +49,7 @@ fun AttributeSelectionGroup(
                 }
             }
 
+            // TODO Check for nested elements like "address.formatted"
             val enabled = when (storeEntry) {
                 is SubjectCredentialStore.StoreEntry.SdJwt ->
                     storeEntry.disclosures.values.firstOrNull { it?.claimName == memberName } != null
@@ -60,7 +62,7 @@ fun AttributeSelectionGroup(
                 selection[memberName] = !enabled
             }
 
-            AttributeSelectionElement(memberName, value, enabled)
+            AttributeSelectionElement(memberName, path, value, enabled)
         }
 
     val allChecked = mutableStateOf(!selection.values.contains(false))
@@ -100,11 +102,9 @@ fun AttributeSelectionGroup(
             Spacer(modifier = Modifier.height(4.dp))
 
             attributeSelectionList.forEach { entry ->
-                val stringResource =
-                    format?.getLocalization(NormalizedJsonPath() + entry.memberName)
-                if (stringResource != null) {
+                format?.getLocalization(entry.jsonPath)?.let {
                     LabeledTextCheckbox(
-                        label = stringResource(stringResource),
+                        label = stringResource(it),
                         text = entry.value,
                         checked = selection[entry.memberName] ?: true,
                         onCheckedChange = { bool -> changeSelection(bool, entry.memberName) },
@@ -119,6 +119,7 @@ fun AttributeSelectionGroup(
 
 class AttributeSelectionElement(
     val memberName: String,
+    val jsonPath: NormalizedJsonPath,
     val value: String,
     val enabled: Boolean
 )

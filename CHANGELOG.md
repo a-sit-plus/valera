@@ -1,5 +1,6 @@
 # Release 5.6.3
  * Match iOS targets to 16.0
+ * Presentation: Improve handling queries with nested paths
 
 # Release 5.6.2
  * Issuing: Handle errors on parsing credential offers
