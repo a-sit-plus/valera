@@ -73,7 +73,6 @@ class SigningService(
     lateinit var rqesWalletService: RqesOpenId4VpHolder
 
     private lateinit var signatureRequestParameter: SignatureRequestParameters
-    private lateinit var document: MutableMap<Int, ByteArray>
     private lateinit var documentWithLabel: MutableMap<Int, DocumentWithLabel>
     private lateinit var dtbsrAuthenticationDetails: AuthorizationDetails
     private lateinit var transactionTokens: List<String>
@@ -259,12 +258,10 @@ class SigningService(
         this.signatureRequestParameter =
             JwsSigned.deserialize(SignatureRequestParameters.serializer(), jwt, vckJsonSerializer).getOrThrow().payload
 
-        this.document = mutableMapOf()
         this.documentWithLabel = mutableMapOf()
 
         this.signatureRequestParameter.documentLocations.forEachIndexed { index, documentLocation ->
             client.get(documentLocation.uri).bodyAsBytes().let {
-                this.document[index] = it
                 this.documentWithLabel[index] = DocumentWithLabel(
                     document = it,
                     label = this.signatureRequestParameter.documentDigests[index].label
