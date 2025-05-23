@@ -1,4 +1,4 @@
-package domain
+package at.asitplus.wallet.app.common.domain
 
 import at.asitplus.KmmResult
 import at.asitplus.wallet.app.common.PresentationService

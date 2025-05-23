@@ -4,11 +4,13 @@ import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.WalletDependencyProvider
 import at.asitplus.wallet.app.common.WalletKeyMaterial
+import at.asitplus.wallet.app.common.decodeImage
+import at.asitplus.wallet.app.common.domain.platform.ImageDecoder
 import at.asitplus.wallet.app.common.domain.platform.UrlOpener
 import at.asitplus.wallet.lib.agent.KeyMaterial
-import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
+import io.github.aakira.napier.Napier
 import org.koin.dsl.binds
 import org.koin.dsl.module
 import org.multipaz.prompt.PromptModel
@@ -18,26 +20,37 @@ fun platformModule(appDependencyProvider: WalletDependencyProvider) = module {
         appDependencyProvider.keyMaterial
     } binds arrayOf(KeyMaterial::class)
 
-    factory<DataStoreService> {
+    single<DataStoreService> {
         appDependencyProvider.dataStoreService
     }
-    factory<PlatformAdapter> {
+    single<PlatformAdapter> {
         appDependencyProvider.platformAdapter
     }
-    factory<PersistentSubjectCredentialStore> {
+    single<PersistentSubjectCredentialStore> {
         appDependencyProvider.subjectCredentialStore
-    } binds arrayOf(SubjectCredentialStore::class)
+    }
 
-    factory<BuildContext> {
+    single<BuildContext> {
         appDependencyProvider.buildContext
     }
-    factory<PromptModel> {
+    single<PromptModel> {
         appDependencyProvider.promptModel
     }
 
     factory<UrlOpener> {
         UrlOpener {
             appDependencyProvider.platformAdapter.openUrl(it)
+        }
+    }
+    factory<ImageDecoder> {
+        ImageDecoder {
+            try {
+                appDependencyProvider.platformAdapter.decodeImage(it)
+            } catch (throwable: Throwable) {
+                // TODO: should this be emitted to the error service?
+                Napier.w("Failed Operation: decodeImage")
+                null
+            }
         }
     }
 }

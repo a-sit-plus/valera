@@ -1,6 +1,5 @@
 package ui.viewmodels.authentication
 
-import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
 import at.asitplus.catching
 import at.asitplus.openid.AuthenticationRequestParameters
@@ -14,27 +13,11 @@ import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 
 
 class DefaultAuthenticationViewModel(
-    spName: String?,
-    spLocation: String,
-    spImage: ImageBitmap?,
     val authenticationRequest: RequestParametersFrom<AuthenticationRequestParameters>,
     val preparationState: AuthorizationResponsePreparationState,
-    navigateUp: () -> Unit,
-    navigateToAuthenticationSuccessPage: (redirectUrl: String?) -> Unit,
-    navigateToHomeScreen: () -> Unit,
-    walletMain: WalletMain,
-    onClickLogo: () -> Unit,
-    onClickSettings: () -> Unit
+    walletMain: WalletMain
 ) : AuthenticationViewModel(
-    spName,
-    spLocation,
-    spImage,
-    navigateUp,
-    navigateToAuthenticationSuccessPage,
-    navigateToHomeScreen,
-    walletMain,
-    onClickLogo,
-    onClickSettings
+    walletMain
 ) {
     override val presentationRequest: CredentialPresentationRequest
         get() = preparationState.credentialPresentationRequest

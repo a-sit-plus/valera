@@ -1,6 +1,5 @@
 package ui.viewmodels.authentication
 
-import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
 import at.asitplus.catching
 import at.asitplus.dif.Constraint
@@ -11,7 +10,6 @@ import at.asitplus.dif.FormatHolder
 import at.asitplus.dif.PresentationDefinition
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
-import at.asitplus.openid.TransactionDataBase64Url
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
@@ -22,23 +20,9 @@ import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 
 class PresentationViewModel(
     val presentationStateModel: PresentationStateModel,
-    navigateUp: () -> Unit,
-    onAuthenticationSuccess: (redirectUrl: String?) -> Unit,
-    navigateToHomeScreen: () -> Unit,
-    walletMain: WalletMain,
-    spImage: ImageBitmap? = null,
-    onClickLogo: () -> Unit,
-    onClickSettings: () -> Unit
+    walletMain: WalletMain
 ) : AuthenticationViewModel(
-    spName = null,
-    spLocation = "Local Presentation",
-    spImage,
-    navigateUp,
-    onAuthenticationSuccess,
-    navigateToHomeScreen,
-    walletMain,
-    onClickLogo,
-    onClickSettings
+    walletMain
 ) {
     private var descriptors: List<DifInputDescriptor> = listOf()
     private var finishFunction: ((ByteArray) -> Unit)? = null
@@ -104,7 +88,7 @@ class PresentationViewModel(
                     else -> throw IllegalArgumentException()
                 },
                 it,
-                spName,
+                null,
                 sessionTranscript!!
             )
             OpenId4VpWallet.AuthenticationSuccess(null)

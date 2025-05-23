@@ -58,7 +58,10 @@ import ui.viewmodels.iso.VerifierViewModel
 @Composable
 fun VerifierDocumentSelectionView(
     vm: VerifierViewModel,
-    bottomBar: @Composable () -> Unit
+    bottomBar: @Composable () -> Unit,
+    onClickLogo: () -> Unit,
+    onClickSettings: () -> Unit,
+    navigateToCustomSelectionView: (DeviceEngagementMethods) -> Unit,
 ) {
     val listSpacingModifier = Modifier.padding(top = 8.dp)
     val layoutSpacingModifier = Modifier.padding(top = 24.dp)
@@ -80,8 +83,8 @@ fun VerifierDocumentSelectionView(
                     }
                 },
                 actions = {
-                    Logo(onClick = vm.onClickLogo)
-                    Column(modifier = Modifier.clickable(onClick = vm.onClickSettings)) {
+                    Logo(onClick = onClickLogo)
+                    Column(modifier = Modifier.clickable(onClick = onClickSettings)) {
                         Icon(
                             imageVector = Icons.Outlined.Settings,
                             contentDescription = null,
@@ -262,7 +265,7 @@ fun VerifierDocumentSelectionView(
                             )
                         },
                         label = stringResource(Res.string.button_label_check_custom),
-                        onClick = { vm.navigateToCustomSelectionView(selectedEngagementMethod) },
+                        onClick = { navigateToCustomSelectionView(selectedEngagementMethod) },
                         modifier = listSpacingModifier.fillMaxWidth()
                     )
                 }

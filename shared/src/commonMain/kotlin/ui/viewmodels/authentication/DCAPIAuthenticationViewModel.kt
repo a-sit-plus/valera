@@ -1,6 +1,5 @@
 package ui.viewmodels.authentication
 
-import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
 import at.asitplus.catching
 import at.asitplus.dif.Constraint
@@ -20,24 +19,10 @@ import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.credentials.CredentialAdapter
 
 class DCAPIAuthenticationViewModel(
-    spImage: ImageBitmap? = null,
-    navigateUp: () -> Unit,
-    navigateToAuthenticationSuccessPage: (redirectUrl: String?) -> Unit,
-    navigateToHomeScreen: () -> Unit,
-    walletMain: WalletMain,
     val dcApiRequest: DCAPIRequest,
-    onClickLogo: () -> Unit,
-    onClickSettings: () -> Unit,
+    walletMain: WalletMain,
 ) : AuthenticationViewModel(
-    spName = dcApiRequest.callingPackageName,
-    spLocation = dcApiRequest.callingOrigin ?: dcApiRequest.callingPackageName!!,
-    spImage,
-    navigateUp,
-    navigateToAuthenticationSuccessPage,
-    navigateToHomeScreen,
-    walletMain,
-    onClickLogo,
-    onClickSettings
+    walletMain
 ) {
     override val presentationRequest: CredentialPresentationRequest.PresentationExchangeRequest
         get() = CredentialPresentationRequest.PresentationExchangeRequest(
