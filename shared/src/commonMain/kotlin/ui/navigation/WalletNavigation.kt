@@ -343,19 +343,15 @@ private fun WalletNavHost(
         }
 
         composable<ShowQrCodeRoute> {
-            ShowQrCodeView(remember {
-                ShowQrCodeViewModel(
-                    walletMain = walletMain,
-                    navigateUp = { navigateBack() },
-                    onClickLogo = onClickLogo,
-                    onClickSettings = { navigate(SettingsRoute) },
-                    onNavigateToPresentmentScreen = {
-                        Globals.presentationStateModel.value = it
-                        navigate(LocalPresentationAuthenticationConsentRoute("QR"))
-                    },
-                    settingsViewModel = settingsViewModel,
-                )
-            })
+            ShowQrCodeView(
+                navigateUp = { navigateBack() },
+                onClickLogo = onClickLogo,
+                onClickSettings = { navigate(SettingsRoute) },
+                onNavigateToPresentmentScreen = {
+                    Globals.presentationStateModel.value = it
+                    navigate(LocalPresentationAuthenticationConsentRoute("QR"))
+                },
+            )
         }
 
         composable<VerifyDataRoute> {
