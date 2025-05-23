@@ -4,6 +4,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_nfc_mdoc_reader
+import at.asitplus.wallet.app.common.data.SettingsRepository
 import data.document.RequestDocument
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CancellableContinuation
@@ -54,11 +55,10 @@ import ui.viewmodels.SettingsViewModel
 
 // based on identity-credential[https://github.com/openwallet-foundation-labs/identity-credential] implementation
 class TransferManager(
-    private val config: SettingsViewModel,
+    private val config: SettingsRepository,
     private val scope: CoroutineScope,
     private val updateProgress: (String) -> Unit,
 ) {
-
     // TODO: Add and update states to communicate with the verifier (connected, disconnected, error?)
     enum class State {
         IDLE,

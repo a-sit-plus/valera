@@ -9,7 +9,6 @@ import at.asitplus.jsonpath.core.NodeListEntry
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.openid.third_party.at.asitplus.jsonpath.core.plus
-import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.agent.representation
 import at.asitplus.wallet.ehic.EhicScheme
 import at.asitplus.wallet.healthid.HealthIdScheme
@@ -23,12 +22,8 @@ import at.asitplus.wallet.taxid.TaxIdScheme
 import io.github.aakira.napier.Napier
 import kotlinx.serialization.json.jsonObject
 
-class AuthenticationSelectionPresentationExchangeViewModel(
-    val walletMain: WalletMain,
+class PresentationExchangeSubmissionBuilder(
     val credentialMatchingResult: PresentationExchangeMatchingResult<SubjectCredentialStore.StoreEntry>,
-    val confirmSelections: (CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>) -> Unit,
-    val navigateUp: () -> Unit,
-    val navigateToHomeScreen: () -> Unit,
 ) {
     val requests: Map<String, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, List<NodeListEntry>>>> =
         credentialMatchingResult.matchingInputDescriptorCredentials
@@ -48,15 +43,9 @@ class AuthenticationSelectionPresentationExchangeViewModel(
         }
     }
 
-    val onBack = {
-        if (requestIterator.value > 0) {
-            requestIterator.value -= 1
-        } else {
-            navigateUp()
-        }
-    }
-
-    val onNext = {
+    fun onNext(
+        onComplete: (CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>) -> Unit,
+    ) {
         if (requestIterator.value < requests.size - 1) {
             requestIterator.value += 1
         } else {
@@ -106,7 +95,7 @@ class AuthenticationSelectionPresentationExchangeViewModel(
                 )
             }.toMap()
             Napier.d("Presenting Selection: $submission")
-            confirmSelections(PresentationExchangeCredentialSubmissions(submission))
+            onComplete(PresentationExchangeCredentialSubmissions(submission))
         }
     }
 }

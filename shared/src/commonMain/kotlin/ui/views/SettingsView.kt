@@ -67,6 +67,7 @@ import at.asitplus.wallet.app.common.BuildType
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 import ui.composables.Logo
 import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
@@ -86,7 +87,7 @@ fun SettingsView(
     onClickFAQs: () -> Unit,
     onClickDataProtectionPolicy: () -> Unit,
     onClickLicenses: () -> Unit,
-    settingsViewModel: SettingsViewModel = koinInject(),
+    settingsViewModel: SettingsViewModel = koinViewModel(),
 ) {
     val showAlert = remember { mutableStateOf(false) }
     if (showAlert.value) {
