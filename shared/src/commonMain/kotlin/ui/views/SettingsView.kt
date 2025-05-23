@@ -63,8 +63,10 @@ import at.asitplus.valera.resources.switch_label_use_negotiated_handover
 import at.asitplus.valera.resources.switch_label_use_nfc_data_transfer
 import at.asitplus.valera.resources.text_label_build
 import at.asitplus.valera.resources.warning
+import at.asitplus.wallet.app.common.BuildType
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 import ui.composables.Logo
 import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
@@ -73,13 +75,24 @@ import ui.viewmodels.SettingsViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsView(
-    vm: SettingsViewModel,
+    buildType: BuildType,
+    version: String,
+    onClickShareLogFile: () -> Unit,
+    onClickClearLogFile: () -> Unit,
+    onClickResetApp: () -> Unit,
+    onClickLogo: () -> Unit,
+    onClickBack: () -> Unit,
+    onClickSettings: () -> Unit,
+    onClickFAQs: () -> Unit,
+    onClickDataProtectionPolicy: () -> Unit,
+    onClickLicenses: () -> Unit,
+    settingsViewModel: SettingsViewModel = koinInject(),
 ) {
     val showAlert = remember { mutableStateOf(false) }
     if (showAlert.value) {
         ResetAlert(
             onConfirm = {
-                vm.onClickResetApp()
+                onClickResetApp()
                 showAlert.value = false
             },
             onDismiss = { showAlert.value = false },
@@ -99,8 +112,8 @@ fun SettingsView(
                     }
                 },
                 actions = {
-                    Logo(onClick = vm.onClickLogo)
-                    Column(modifier = Modifier.clickable(onClick = vm.onClickSettings)) {
+                    Logo(onClick = onClickLogo)
+                    Column(modifier = Modifier.clickable(onClick = onClickSettings)) {
                         Icon(
                             imageVector = Icons.Outlined.Settings,
                             contentDescription = null,
@@ -109,7 +122,7 @@ fun SettingsView(
                     Spacer(Modifier.width(15.dp))
                 },
                 navigationIcon = {
-                    NavigateUpButton(vm.onClickBack)
+                    NavigateUpButton(onClickBack)
                 },
             )
         }
@@ -137,7 +150,7 @@ fun SettingsView(
                                 )
                             },
                             label = stringResource(Res.string.button_label_faq),
-                            onClick = vm.onClickFAQs,
+                            onClick = onClickFAQs,
                             modifier = listSpacingModifier.fillMaxWidth(),
                         )
                         TextIconButtonListItem(
@@ -148,7 +161,7 @@ fun SettingsView(
                                 )
                             },
                             label = stringResource(Res.string.button_label_data_protection_policy),
-                            onClick = vm.onClickDataProtectionPolicy,
+                            onClick = onClickDataProtectionPolicy,
                             modifier = listSpacingModifier.fillMaxWidth(),
                         )
                         TextIconButtonListItem(
@@ -159,7 +172,7 @@ fun SettingsView(
                                 )
                             },
                             label = stringResource(Res.string.button_label_licenses),
-                            onClick = vm.onClickLicenses,
+                            onClick = onClickLicenses,
                             modifier = listSpacingModifier.fillMaxWidth(),
                         )
                     }
@@ -180,7 +193,7 @@ fun SettingsView(
                                 )
                             },
                             label = stringResource(Res.string.button_label_share_log_file),
-                            onClick = vm.onClickShareLogFile,
+                            onClick = onClickShareLogFile,
                             modifier = listSpacingModifier.fillMaxWidth(),
                         )
                         TextIconButtonListItem(
@@ -191,7 +204,7 @@ fun SettingsView(
                                 )
                             },
                             label = stringResource(Res.string.button_label_clear_log),
-                            onClick = vm.onClickClearLogFile,
+                            onClick = onClickClearLogFile,
                             modifier = listSpacingModifier.fillMaxWidth(),
                         )
                         TextIconButtonListItem(
@@ -220,32 +233,32 @@ fun SettingsView(
                         SettingSwitch(
                             label = stringResource(Res.string.switch_label_use_negotiated_handover),
                             modifier = listSpacingModifier.fillMaxWidth(),
-                            isChecked = vm.config.presentmentUseNegotiatedHandover.collectAsState(true).value,
-                            onCheckedChange = { vm.config.set(presentmentUseNegotiatedHandover = it) }
+                            isChecked = settingsViewModel.presentmentUseNegotiatedHandover.collectAsState(true).value,
+                            onCheckedChange = { settingsViewModel.set(presentmentUseNegotiatedHandover = it) }
                         )
                         SettingSwitch(
                             label = stringResource(Res.string.switch_label_use_ble_central_client_mode),
                             modifier = listSpacingModifier.fillMaxWidth(),
-                            isChecked = vm.config.presentmentBleCentralClientModeEnabled.collectAsState(true).value,
-                            onCheckedChange = { vm.config.set(presentmentBleCentralClientModeEnabled = it) }
+                            isChecked = settingsViewModel.presentmentBleCentralClientModeEnabled.collectAsState(true).value,
+                            onCheckedChange = { settingsViewModel.set(presentmentBleCentralClientModeEnabled = it) }
                         )
                         SettingSwitch(
                             label = stringResource(Res.string.switch_label_use_ble_peripheral_server_mode),
                             modifier = listSpacingModifier.fillMaxWidth(),
-                            isChecked = vm.config.presentmentBlePeripheralServerModeEnabled.collectAsState(true).value,
-                            onCheckedChange = { vm.config.set(presentmentBlePeripheralServerModeEnabled = it) }
+                            isChecked = settingsViewModel.presentmentBlePeripheralServerModeEnabled.collectAsState(true).value,
+                            onCheckedChange = { settingsViewModel.set(presentmentBlePeripheralServerModeEnabled = it) }
                         )
                         SettingSwitch(
                             label = stringResource(Res.string.switch_label_use_nfc_data_transfer),
                             modifier = listSpacingModifier.fillMaxWidth(),
-                            isChecked = vm.config.presentmentNfcDataTransferEnabled.collectAsState(false).value,
-                            onCheckedChange = { vm.config.set(presentmentNfcDataTransferEnabled = it) }
+                            isChecked = settingsViewModel.presentmentNfcDataTransferEnabled.collectAsState(false).value,
+                            onCheckedChange = { settingsViewModel.set(presentmentNfcDataTransferEnabled = it) }
                         )
                         SettingSwitch(
                             label = stringResource(Res.string.switch_label_blel2cap_enabled),
                             modifier = listSpacingModifier.fillMaxWidth(),
-                            isChecked = vm.config.readerBleL2CapEnabled.collectAsState(true).value,
-                            onCheckedChange = { vm.config.set(readerBleL2CapEnabled = it) }
+                            isChecked = settingsViewModel.readerBleL2CapEnabled.collectAsState(true).value,
+                            onCheckedChange = { settingsViewModel.set(readerBleL2CapEnabled = it) }
                         )
                     }
                 }
@@ -286,7 +299,7 @@ fun SettingsView(
                         modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
                             .fillMaxSize()
                     ) {
-                        Text("${stringResource(Res.string.text_label_build)}: ${vm.version}-${vm.buildType}")
+                        Text("${stringResource(Res.string.text_label_build)}: ${version}-${buildType}")
                     }
                 }
             }

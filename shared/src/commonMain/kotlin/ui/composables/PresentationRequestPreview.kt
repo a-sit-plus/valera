@@ -99,8 +99,7 @@ fun RequestedCredentialPreview(
     val schemeName = scheme.uiLabel()
     val format = representation.name
     val list = attributes.mapNotNull { attribute ->
-        val path = NormalizedJsonPath(attribute.key.segments.last())
-        val resource = scheme.getLocalization(path)
+        val resource = scheme.getLocalization(attribute.key)
             ?: return@mapNotNull null
         val text = catchingUnwrapped { stringResource(resource) }
             .getOrElse { attribute.key.toString() }

@@ -59,61 +59,67 @@ import org.jetbrains.compose.resources.StringResource
 
 
 object EuPidCredentialAttributeTranslator : CredentialAttributeTranslator {
+
     override fun translate(attributeName: NormalizedJsonPath): StringResource? =
         withIsoNames(attributeName) ?: withSdJwtNames(attributeName)
 
-    private fun withIsoNames(attributeName: NormalizedJsonPath) = with(EuPidScheme.Attributes) {
-        when (val first = attributeName.segments.firstOrNull()) {
-            is NormalizedJsonPathSegment.NameSegment -> when (first.memberName) {
-                FAMILY_NAME -> Res.string.attribute_friendly_name_lastname
-                GIVEN_NAME -> Res.string.attribute_friendly_name_firstname
-                BIRTH_DATE -> Res.string.attribute_friendly_name_date_of_birth
-                PORTRAIT -> Res.string.attribute_friendly_name_portrait
-                AGE_OVER_12 -> Res.string.attribute_friendly_name_age_at_least_12
-                AGE_OVER_13 -> Res.string.attribute_friendly_name_age_at_least_13
-                AGE_OVER_14 -> Res.string.attribute_friendly_name_age_at_least_14
-                AGE_OVER_16 -> Res.string.attribute_friendly_name_age_at_least_16
-                AGE_OVER_18 -> Res.string.attribute_friendly_name_age_at_least_18
-                AGE_OVER_21 -> Res.string.attribute_friendly_name_age_at_least_21
-                AGE_OVER_25 -> Res.string.attribute_friendly_name_age_at_least_25
-                AGE_OVER_60 -> Res.string.attribute_friendly_name_age_at_least_60
-                AGE_OVER_62 -> Res.string.attribute_friendly_name_age_at_least_62
-                AGE_OVER_65 -> Res.string.attribute_friendly_name_age_at_least_65
-                AGE_OVER_68 -> Res.string.attribute_friendly_name_age_at_least_68
-                AGE_IN_YEARS -> Res.string.attribute_friendly_name_age_in_years
-                AGE_BIRTH_YEAR -> Res.string.attribute_friendly_name_age_birth_year
-                FAMILY_NAME_BIRTH -> Res.string.attribute_friendly_name_family_name_birth
-                GIVEN_NAME_BIRTH -> Res.string.attribute_friendly_name_given_name_birth
-                BIRTH_PLACE -> Res.string.attribute_friendly_name_birth_place
-                BIRTH_COUNTRY -> Res.string.attribute_friendly_name_birth_country
-                BIRTH_STATE -> Res.string.attribute_friendly_name_birth_state
-                BIRTH_CITY -> Res.string.attribute_friendly_name_birth_city
-                RESIDENT_ADDRESS -> Res.string.attribute_friendly_name_main_address
-                RESIDENT_COUNTRY -> Res.string.attribute_friendly_name_main_residence_country
-                RESIDENT_STATE -> Res.string.attribute_friendly_name_main_residence_state
-                RESIDENT_CITY -> Res.string.attribute_friendly_name_main_residence_city
-                RESIDENT_POSTAL_CODE -> Res.string.attribute_friendly_name_main_residence_postal_code
-                RESIDENT_STREET -> Res.string.attribute_friendly_name_main_residence_street
-                RESIDENT_HOUSE_NUMBER -> Res.string.attribute_friendly_name_main_residence_house_number
-                GENDER -> Res.string.attribute_friendly_name_sex
-                SEX -> Res.string.attribute_friendly_name_sex
-                NATIONALITY -> Res.string.attribute_friendly_name_nationality
-                ISSUANCE_DATE -> Res.string.attribute_friendly_name_issue_date
-                EXPIRY_DATE -> Res.string.attribute_friendly_name_expiry_date
-                ISSUING_AUTHORITY -> Res.string.attribute_friendly_name_issuing_authority
-                DOCUMENT_NUMBER -> Res.string.attribute_friendly_name_document_number
-                ADMINISTRATIVE_NUMBER -> Res.string.attribute_friendly_name_administrative_number
-                ISSUING_COUNTRY -> Res.string.attribute_friendly_name_issuing_country
-                ISSUING_JURISDICTION -> Res.string.attribute_friendly_name_issuing_jurisdiction
-                PERSONAL_ADMINISTRATIVE_NUMBER -> Res.string.attribute_friendly_name_personal_administrative_number
-                EMAIL_ADDRESS -> Res.string.attribute_friendly_name_email_address
-                MOBILE_PHONE_NUMBER -> Res.string.attribute_friendly_name_mobile_phone_number
-                TRUST_ANCHOR -> Res.string.attribute_friendly_name_trust_anchor
-                LOCATION_STATUS -> Res.string.attribute_friendly_name_location_status
-                PORTRAIT_CAPTURE_DATE -> Res.string.attribute_friendly_name_portrait_capture_date
-                else -> null
-            }
+    private fun withIsoNames(attributeName: NormalizedJsonPath): StringResource? =
+        attributeName.segments.firstOrNull()?.memberName()?.let { getFromIsoName(it) }
+            ?: attributeName.segments.lastOrNull()?.memberName()?.let { getFromIsoName(it) }
 
+    private fun NormalizedJsonPathSegment.memberName() = when(this) {
+        is NormalizedJsonPathSegment.NameSegment -> this.memberName
+        else -> null
+    }
+
+    private fun getFromIsoName(claimName: String): StringResource? = with(EuPidScheme.Attributes) {
+        when (claimName) {
+            FAMILY_NAME -> Res.string.attribute_friendly_name_lastname
+            GIVEN_NAME -> Res.string.attribute_friendly_name_firstname
+            BIRTH_DATE -> Res.string.attribute_friendly_name_date_of_birth
+            PORTRAIT -> Res.string.attribute_friendly_name_portrait
+            AGE_OVER_12 -> Res.string.attribute_friendly_name_age_at_least_12
+            AGE_OVER_13 -> Res.string.attribute_friendly_name_age_at_least_13
+            AGE_OVER_14 -> Res.string.attribute_friendly_name_age_at_least_14
+            AGE_OVER_16 -> Res.string.attribute_friendly_name_age_at_least_16
+            AGE_OVER_18 -> Res.string.attribute_friendly_name_age_at_least_18
+            AGE_OVER_21 -> Res.string.attribute_friendly_name_age_at_least_21
+            AGE_OVER_25 -> Res.string.attribute_friendly_name_age_at_least_25
+            AGE_OVER_60 -> Res.string.attribute_friendly_name_age_at_least_60
+            AGE_OVER_62 -> Res.string.attribute_friendly_name_age_at_least_62
+            AGE_OVER_65 -> Res.string.attribute_friendly_name_age_at_least_65
+            AGE_OVER_68 -> Res.string.attribute_friendly_name_age_at_least_68
+            AGE_IN_YEARS -> Res.string.attribute_friendly_name_age_in_years
+            AGE_BIRTH_YEAR -> Res.string.attribute_friendly_name_age_birth_year
+            FAMILY_NAME_BIRTH -> Res.string.attribute_friendly_name_family_name_birth
+            GIVEN_NAME_BIRTH -> Res.string.attribute_friendly_name_given_name_birth
+            BIRTH_PLACE -> Res.string.attribute_friendly_name_birth_place
+            BIRTH_COUNTRY -> Res.string.attribute_friendly_name_birth_country
+            BIRTH_STATE -> Res.string.attribute_friendly_name_birth_state
+            BIRTH_CITY -> Res.string.attribute_friendly_name_birth_city
+            RESIDENT_ADDRESS -> Res.string.attribute_friendly_name_main_address
+            RESIDENT_COUNTRY -> Res.string.attribute_friendly_name_main_residence_country
+            RESIDENT_STATE -> Res.string.attribute_friendly_name_main_residence_state
+            RESIDENT_CITY -> Res.string.attribute_friendly_name_main_residence_city
+            RESIDENT_POSTAL_CODE -> Res.string.attribute_friendly_name_main_residence_postal_code
+            RESIDENT_STREET -> Res.string.attribute_friendly_name_main_residence_street
+            RESIDENT_HOUSE_NUMBER -> Res.string.attribute_friendly_name_main_residence_house_number
+            GENDER -> Res.string.attribute_friendly_name_sex
+            SEX -> Res.string.attribute_friendly_name_sex
+            NATIONALITY -> Res.string.attribute_friendly_name_nationality
+            ISSUANCE_DATE -> Res.string.attribute_friendly_name_issue_date
+            EXPIRY_DATE -> Res.string.attribute_friendly_name_expiry_date
+            ISSUING_AUTHORITY -> Res.string.attribute_friendly_name_issuing_authority
+            DOCUMENT_NUMBER -> Res.string.attribute_friendly_name_document_number
+            ADMINISTRATIVE_NUMBER -> Res.string.attribute_friendly_name_administrative_number
+            ISSUING_COUNTRY -> Res.string.attribute_friendly_name_issuing_country
+            ISSUING_JURISDICTION -> Res.string.attribute_friendly_name_issuing_jurisdiction
+            PERSONAL_ADMINISTRATIVE_NUMBER -> Res.string.attribute_friendly_name_personal_administrative_number
+            EMAIL_ADDRESS -> Res.string.attribute_friendly_name_email_address
+            MOBILE_PHONE_NUMBER -> Res.string.attribute_friendly_name_mobile_phone_number
+            TRUST_ANCHOR -> Res.string.attribute_friendly_name_trust_anchor
+            LOCATION_STATUS -> Res.string.attribute_friendly_name_location_status
+            PORTRAIT_CAPTURE_DATE -> Res.string.attribute_friendly_name_portrait_capture_date
             else -> null
         }
     }

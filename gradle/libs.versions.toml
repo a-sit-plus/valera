@@ -1,6 +1,7 @@
 [versions]
 camera-camera2 = "1.4.2"
 datastore-preferences-core = "1.1.4"
+koin = "4.0.3"
 multipaz = "0.90"
 navigation-compose = "2.8.0-alpha10"
 semver = "2.0.0"
@@ -37,6 +38,11 @@ credential-taxid = { group = "at.asitplus.wallet", name = "taxid", version.ref =
 credential-ehic = { group = "at.asitplus.wallet", name = "ehic", version.ref = "ehic"}
 datastore-core-okio = { module = "androidx.datastore:datastore-core-okio", version.ref = "datastore-preferences-core" }
 datastore-preferences-core = { module = "androidx.datastore:datastore-preferences-core", version.ref = "datastore-preferences-core" }
+koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
+koin-test = { module = "io.insert-koin:koin-test", version.ref = "koin" }
+koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koin" }
+koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "koin" }
+koin-compose-viewmodel-navigation = { module = "io.insert-koin:koin-compose-viewmodel-navigation", version.ref = "koin" }
 navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigation-compose" }
 qrose = { group = "io.github.alexzhirkevich", name = "qrose", version.ref="qrose"}
 multipaz = { module = "org.multipaz:multipaz", version.ref = "multipaz" }
