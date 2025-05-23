@@ -1,4 +1,4 @@
-package at.asitplus.wallet.app.data
+package at.asitplus.wallet.app.common.data
 
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CompletionHandler
