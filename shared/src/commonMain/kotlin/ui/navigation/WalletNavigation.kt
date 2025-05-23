@@ -332,17 +332,14 @@ private fun WalletNavHost(
         }
 
         composable<AuthenticationQrCodeScannerRoute> {
-            AuthenticationQrCodeScannerView(remember {
-                AuthenticationQrCodeScannerViewModel(
-                    navigateUp = navigateBack,
-                    onSuccess = { route ->
-                        navigate(route)
-                    },
-                    walletMain = walletMain,
-                    onClickLogo = onClickLogo,
-                    onClickSettings = { navigate(SettingsRoute) }
-                )
-            })
+            AuthenticationQrCodeScannerView(
+                navigateUp = navigateBack,
+                onSuccess = { route ->
+                    navigate(route)
+                },
+                onClickLogo = onClickLogo,
+                onClickSettings = { navigate(SettingsRoute) },
+            )
         }
 
         composable<ShowQrCodeRoute> {
