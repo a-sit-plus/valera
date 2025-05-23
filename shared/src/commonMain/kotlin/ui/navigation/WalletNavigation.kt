@@ -289,31 +289,17 @@ private fun WalletNavHost(
         }
         composable<HomeScreenRoute> {
             CredentialsView(
-                vm = remember {
-                    CredentialsViewModel(
-                        walletMain,
-                        navigateToAddCredentialsPage = {
-                            navigate(AddCredentialRoute)
-                        },
-                        navigateToQrAddCredentialsPage = {
-                            navigate(PreAuthQrCodeScannerRoute)
-                        },
-                        navigateToCredentialDetailsPage = {
-                            navigate(CredentialDetailsRoute(it))
-                        },
-                        imageDecoder = {
-                            try {
-                                walletMain.platformAdapter.decodeImage(it)
-                            } catch (throwable: Throwable) {
-                                // TODO: should this be emitted to the error service?
-                                Napier.w("Failed Operation: decodeImage")
-                                null
-                            }
-                        },
-                        onClickLogo = onClickLogo,
-                        onClickSettings = { navigate(SettingsRoute) }
-                    )
+                navigateToAddCredentialsPage = {
+                    navigate(AddCredentialRoute)
                 },
+                navigateToQrAddCredentialsPage = {
+                    navigate(PreAuthQrCodeScannerRoute)
+                },
+                navigateToCredentialDetailsPage = {
+                    navigate(CredentialDetailsRoute(it))
+                },
+                onClickLogo = onClickLogo,
+                onClickSettings = { navigate(SettingsRoute) },
                 bottomBar = {
                     BottomBar(
                         navigate = { route -> navigate(route) },

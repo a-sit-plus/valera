@@ -28,10 +28,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_my_data_screen
+import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatus
 import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 import ui.composables.CustomFloatingActionMenu
 import ui.composables.FloatingActionButtonHeightSpacer
 import ui.composables.Logo
@@ -42,7 +44,13 @@ import ui.viewmodels.CredentialsViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CredentialsView(
-    vm: CredentialsViewModel,
+    navigateToAddCredentialsPage: () -> Unit,
+    navigateToQrAddCredentialsPage: () -> Unit,
+    navigateToCredentialDetailsPage: (Long) -> Unit,
+    onClickLogo: () -> Unit,
+    onClickSettings: () -> Unit,
+    walletMain: WalletMain = koinInject(),
+    vm: CredentialsViewModel = koinInject(),
     bottomBar: @Composable () -> Unit
 ) {
     val credentialsStatus by vm.storeContainer.map {
@@ -59,7 +67,7 @@ fun CredentialsView(
             is CredentialState.Success -> {
                 val credentialsWithStatus = mutableMapOf<Long, TokenStatus?>()
                 delegate.credentials.forEach { (id, credential) ->
-                    credentialsWithStatus[id] = vm.walletMain.checkRevocationStatus(credential)
+                    credentialsWithStatus[id] = walletMain.checkRevocationStatus(credential)
                     value = CredentialStatusesState.Loading(credentialsWithStatus)
                 }
                 value = CredentialStatusesState.Success(credentialsWithStatus)
@@ -79,8 +87,8 @@ fun CredentialsView(
                     }
                 },
                 actions = {
-                    Logo(onClick = vm.onClickLogo)
-                    Column(modifier = Modifier.clickable(onClick = vm.onClickSettings)) {
+                    Logo(onClick = onClickLogo)
+                    Column(modifier = Modifier.clickable(onClick = onClickSettings)) {
                         Icon(
                             imageVector = Icons.Outlined.Settings,
                             contentDescription = null,
@@ -95,8 +103,8 @@ fun CredentialsView(
                 is CredentialState.Success -> {
                     if (it.credentials.isNotEmpty()) {
                         CustomFloatingActionMenu(
-                            addCredential = vm.navigateToAddCredentialsPage,
-                            addCredentialQr = vm.navigateToQrAddCredentialsPage
+                            addCredential = navigateToAddCredentialsPage,
+                            addCredentialQr = navigateToQrAddCredentialsPage
                         )
                     }
                 }
@@ -121,7 +129,7 @@ fun CredentialsView(
                         credentialStatusesState.credentialStatuses[id]?.value ?: 256.toUByte()
                     }
                     if (credentials.isEmpty()) {
-                        NoDataLoadedView(vm.navigateToAddCredentialsPage, vm.navigateToQrAddCredentialsPage)
+                        NoDataLoadedView(navigateToAddCredentialsPage, navigateToQrAddCredentialsPage)
                     } else {
                         LazyColumn {
                             items(
@@ -147,9 +155,9 @@ fun CredentialsView(
                                             vm.removeStoreEntryById(storeEntryIdentifier)
                                         },
                                         onOpenDetails = {
-                                            vm.navigateToCredentialDetailsPage(storeEntryIdentifier)
+                                            navigateToCredentialDetailsPage(storeEntryIdentifier)
                                         },
-                                        imageDecoder = vm.imageDecoder,
+                                        imageDecoder = vm.imageDecoder::invoke,
                                         modifier = Modifier.padding(
                                             start = 16.dp,
                                             end = 16.dp,

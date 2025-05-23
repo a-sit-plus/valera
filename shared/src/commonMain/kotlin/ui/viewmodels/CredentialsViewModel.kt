@@ -1,7 +1,7 @@
 package ui.viewmodels
 
-import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.app.common.domain.platform.ImageDecoder
 import data.storage.StoreEntryId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -9,13 +9,7 @@ import kotlinx.coroutines.launch
 
 class CredentialsViewModel(
     val walletMain: WalletMain,
-    val navigateToAddCredentialsPage: () -> Unit,
-    val navigateToQrAddCredentialsPage: () -> Unit,
-    val navigateToCredentialDetailsPage: (Long) -> Unit,
-    val imageDecoder: (ByteArray) -> ImageBitmap?,
-    val onClickLogo: () -> Unit,
-    val onClickSettings: () -> Unit,
-
+    val imageDecoder: ImageDecoder,
 ) {
     val storeContainer = walletMain.subjectCredentialStore.observeStoreContainer()
 
