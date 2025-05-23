@@ -356,23 +356,16 @@ private fun WalletNavHost(
 
         composable<VerifyDataRoute> {
             VerifierView(
-                vm = remember {
-                    VerifierViewModel(
-                        navigateUp = { navigateBack() },
-                        onClickLogo = onClickLogo,
-                        walletMain = walletMain,
-                        navigateToHomeScreen = { popBackStack(HomeScreenRoute) },
-                        onClickSettings = { navigate(SettingsRoute) },
-                        settingsViewModel = settingsViewModel,
-                    )
-                },
                 onError = onError,
                 bottomBar = {
                     BottomBar(
                         navigate = navigate,
                         selected = NavigationData.VERIFY_DATA_SCREEN
                     )
-                }
+                },
+                navigateUp = { navigateBack() },
+                onClickLogo = onClickLogo,
+                onClickSettings = { navigate(SettingsRoute) },
             )
         }
 

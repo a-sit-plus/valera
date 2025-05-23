@@ -51,7 +51,12 @@ import ui.viewmodels.iso.VerifierViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun VerifierCustomSelectionView(vm: VerifierViewModel) {
+fun VerifierCustomSelectionView(
+    vm: VerifierViewModel,
+    onClickLogo: () -> Unit,
+    onClickSettings: () -> Unit,
+    navigateUp: () -> Unit,
+) {
     val listSpacingModifier = Modifier.padding(top = 8.dp)
     val layoutSpacingModifier = Modifier.padding(top = 24.dp)
 
@@ -72,8 +77,8 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                     }
                 },
                 actions = {
-                    Logo(onClick = vm.onClickLogo)
-                    Column(modifier = Modifier.clickable(onClick = vm.onClickSettings)) {
+                    Logo(onClick = onClickLogo)
+                    Column(modifier = Modifier.clickable(onClick = onClickSettings)) {
                         Icon(
                             imageVector = Icons.Outlined.Settings,
                             contentDescription = null
@@ -81,7 +86,9 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                     }
                     Spacer(Modifier.width(15.dp))
                 },
-                navigationIcon = { NavigateUpButton({ vm.navigateToVerifyDataView() }) }
+                navigationIcon = {
+                    NavigateUpButton(navigateUp)
+                }
             )
         },
         bottomBar = {
