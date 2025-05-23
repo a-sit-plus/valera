@@ -1,5 +1,7 @@
 package ui.viewmodels.iso
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.iso.transfer.DeviceEngagementMethods
@@ -12,13 +14,13 @@ import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-// TODO: it seems like this manages navigation, maybe refactor this part into a navigation graph instead?
+// TODO: from acrusage: it seems like this manages navigation, maybe refactor this part into a navigation graph instead?
 class VerifierViewModel(
     val walletMain: WalletMain,
     val settingsRepository: SettingsRepository,
-) {
+): ViewModel() {
     private val transferManager: TransferManager by lazy {
-        TransferManager(settingsRepository, walletMain.scope) { message ->
+        TransferManager(settingsRepository, viewModelScope) { message ->
             // TODO: handle update messages
         }
     }

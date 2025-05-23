@@ -26,16 +26,16 @@ import at.asitplus.valera.resources.heading_label_tech_demo
 import at.asitplus.valera.resources.info_text_demonstrator
 import at.asitplus.valera.resources.info_text_non_productive
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.viewmodel.koinViewModel
 import ui.composables.Logo
 import ui.composables.ScreenHeading
 import ui.composables.buttons.ContinueButton
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OnboardingInformationView(
-    onClickContinue: () -> Unit,
     onClickLogo: () -> Unit,
+    viewModel: OnboardingViewModel = koinViewModel(),
 ) {
     Scaffold(
         topBar = {
@@ -61,7 +61,7 @@ fun OnboardingInformationView(
                     horizontalArrangement = Arrangement.Center,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    ContinueButton(onClickContinue)
+                    ContinueButton(viewModel::acceptConditions)
                 }
             }
         }

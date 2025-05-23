@@ -15,11 +15,10 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
@@ -29,17 +28,17 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_my_data_screen
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatus
-import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 import ui.composables.CustomFloatingActionMenu
 import ui.composables.FloatingActionButtonHeightSpacer
 import ui.composables.Logo
 import ui.composables.ScreenHeading
 import ui.composables.credentials.CredentialCard
 import ui.viewmodels.CredentialsViewModel
+import ui.viewmodels.UiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,28 +49,28 @@ fun CredentialsView(
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
     walletMain: WalletMain = koinInject(),
-    vm: CredentialsViewModel = koinInject(),
+    onError: (Throwable) -> Unit,
+    vm: CredentialsViewModel = koinViewModel(),
     bottomBar: @Composable () -> Unit
 ) {
-    val credentialsStatus by vm.storeContainer.map {
-        CredentialState.Success(it.credentials)
-    }.collectAsState(
-        CredentialState.Loading
-    )
+    val storeContainer by vm.storeContainer.collectAsState()
+
     val credentialStatusesState by produceState(
         CredentialStatusesState.Loading() as CredentialStatusesState,
-        credentialsStatus
+        storeContainer
     ) {
-        when (val delegate = credentialsStatus) {
-            is CredentialState.Loading -> value = CredentialStatusesState.Loading()
-            is CredentialState.Success -> {
+        when (val delegate = storeContainer) {
+            is UiState.Success ->  {
                 val credentialsWithStatus = mutableMapOf<Long, TokenStatus?>()
-                delegate.credentials.forEach { (id, credential) ->
+                delegate.value.credentials.forEach { (id, credential) ->
                     credentialsWithStatus[id] = walletMain.checkRevocationStatus(credential)
                     value = CredentialStatusesState.Loading(credentialsWithStatus)
                 }
                 value = CredentialStatusesState.Success(credentialsWithStatus)
             }
+
+            is UiState.Loading -> value = CredentialStatusesState.Loading()
+            is UiState.Failure -> value = CredentialStatusesState.Success()
         }
     }
 
@@ -99,9 +98,9 @@ fun CredentialsView(
             )
         },
         floatingActionButton = {
-            when (val it = credentialsStatus) {
-                is CredentialState.Success -> {
-                    if (it.credentials.isNotEmpty()) {
+            when (val it = storeContainer) {
+                is UiState.Success -> {
+                    if (it.value.credentials.isNotEmpty()) {
                         CustomFloatingActionMenu(
                             addCredential = navigateToAddCredentialsPage,
                             addCredentialQr = navigateToQrAddCredentialsPage
@@ -117,15 +116,9 @@ fun CredentialsView(
         Column(
             modifier = Modifier.padding(scaffoldPadding).fillMaxSize(),
         ) {
-            when (val credentialsStatusDelegate = credentialsStatus) {
-                CredentialState.Loading -> Box(modifier = Modifier.fillMaxSize()) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
-
-                is CredentialState.Success -> {
-                    val credentials = credentialsStatusDelegate.credentials.sortedBy { (id, credential) ->
+            when (val credentialsStatusDelegate = storeContainer) {
+                is UiState.Success -> {
+                    val credentials = credentialsStatusDelegate.value.credentials.sortedBy { (id, credential) ->
                         credentialStatusesState.credentialStatuses[id]?.value ?: 256.toUByte()
                     }
                     if (credentials.isEmpty()) {
@@ -174,16 +167,24 @@ fun CredentialsView(
                         }
                     }
                 }
+
+                is UiState.Loading -> Box(modifier = Modifier.fillMaxSize()) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+
+                is UiState.Failure -> Box(modifier = Modifier.fillMaxSize()) {
+                    LaunchedEffect(Unit) {
+                        onError(credentialsStatusDelegate.throwable)
+                    }
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
             }
         }
     }
-}
-
-private sealed interface CredentialState {
-    data object Loading : CredentialState
-    data class Success(
-        val credentials: List<Pair<Long, SubjectCredentialStore.StoreEntry>>,
-    ) : CredentialState
 }
 
 private sealed interface CredentialStatusesState {

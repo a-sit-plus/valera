@@ -20,20 +20,20 @@ fun platformModule(appDependencyProvider: WalletDependencyProvider) = module {
         appDependencyProvider.keyMaterial
     } binds arrayOf(KeyMaterial::class)
 
-    factory<DataStoreService> {
+    single<DataStoreService> {
         appDependencyProvider.dataStoreService
     }
-    factory<PlatformAdapter> {
+    single<PlatformAdapter> {
         appDependencyProvider.platformAdapter
     }
-    factory<PersistentSubjectCredentialStore> {
+    single<PersistentSubjectCredentialStore> {
         appDependencyProvider.subjectCredentialStore
     } binds arrayOf(SubjectCredentialStore::class)
 
-    factory<BuildContext> {
+    single<BuildContext> {
         appDependencyProvider.buildContext
     }
-    factory<PromptModel> {
+    single<PromptModel> {
         appDependencyProvider.promptModel
     }
 

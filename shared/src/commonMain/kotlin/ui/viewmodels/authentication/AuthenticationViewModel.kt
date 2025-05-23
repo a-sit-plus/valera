@@ -3,6 +3,7 @@ package ui.viewmodels.authentication
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.viewModelScope
 import at.asitplus.KmmResult
 import at.asitplus.catchingUnwrapped
 import at.asitplus.openid.TransactionDataBase64Url
@@ -15,6 +16,9 @@ import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.data.third_party.at.asitplus.oidc.dcql.toDefaultSubmission
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 
@@ -66,7 +70,7 @@ abstract class AuthenticationViewModel(
         credentialPresentationSubmissions: CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>?,
         onAuthenticationSuccess: (OpenId4VpWallet.AuthenticationSuccess) -> Unit,
     ) {
-        walletMain.scope.launch {
+        CoroutineScope(Dispatchers.IO).launch {
             finalizeAuthorization(
                 when(credentialPresentationSubmissions) {
                     is DCQLCredentialSubmissions -> CredentialPresentation.DCQLPresentation(

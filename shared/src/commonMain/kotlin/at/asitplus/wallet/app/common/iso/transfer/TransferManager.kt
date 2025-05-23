@@ -59,7 +59,6 @@ class TransferManager(
     private val scope: CoroutineScope,
     private val updateProgress: (String) -> Unit,
 ) {
-
     // TODO: Add and update states to communicate with the verifier (connected, disconnected, error?)
     enum class State {
         IDLE,
