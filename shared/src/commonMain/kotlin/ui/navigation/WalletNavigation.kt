@@ -33,7 +33,6 @@ import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
-import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.domain.platform.UrlOpener
 import at.asitplus.wallet.lib.data.dif.ConstraintFieldsEvaluationException
 import at.asitplus.wallet.lib.data.vckJsonSerializer
@@ -47,7 +46,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.getString
 import org.koin.compose.koinInject
-import org.koin.compose.viewmodel.koinViewModel
 import ui.composables.BottomBar
 import ui.composables.NavigationData
 import ui.navigation.routes.AddCredentialPreAuthnRoute
@@ -85,7 +83,6 @@ import ui.navigation.routes.SigningServiceIntentRoute
 import ui.navigation.routes.VerifyDataRoute
 import ui.viewmodels.AddCredentialViewModel
 import ui.viewmodels.CredentialDetailsViewModel
-import ui.viewmodels.CredentialsViewModel
 import ui.viewmodels.ErrorViewModel
 import ui.viewmodels.LoadCredentialViewModel
 import ui.viewmodels.LogViewModel
@@ -93,7 +90,6 @@ import ui.viewmodels.PreAuthQrCodeScannerViewModel
 import ui.viewmodels.SettingsViewModel
 import ui.viewmodels.SigningQtspSelectionViewModel
 import ui.viewmodels.SigningViewModel
-import ui.viewmodels.authentication.AuthenticationQrCodeScannerViewModel
 import ui.viewmodels.authentication.AuthenticationSuccessViewModel
 import ui.viewmodels.authentication.DCAPIAuthenticationViewModel
 import ui.viewmodels.authentication.DefaultAuthenticationViewModel
@@ -107,8 +103,6 @@ import ui.viewmodels.intents.SigningCredentialIntentViewModel
 import ui.viewmodels.intents.SigningIntentViewModel
 import ui.viewmodels.intents.SigningPreloadIntentViewModel
 import ui.viewmodels.intents.SigningServiceIntentViewModel
-import ui.viewmodels.iso.ShowQrCodeViewModel
-import ui.viewmodels.iso.VerifierViewModel
 import ui.views.CredentialDetailsView
 import ui.views.CredentialsView
 import ui.views.ErrorView
@@ -380,21 +374,9 @@ private fun WalletNavHost(
                         vckJsonSerializer.decodeFromString(route.authorizationPreparationStateSerialized)
 
                     DefaultAuthenticationViewModel(
-                        spName = null,
-                        spLocation = route.recipientLocation,
-                        spImage = null,
                         authenticationRequest = request,
                         preparationState = preparationState,
-                        navigateUp = navigateBack,
-                        navigateToAuthenticationSuccessPage = {
-                            navigate(AuthenticationSuccessRoute(it, route.isCrossDeviceFlow))
-                        },
-                        navigateToHomeScreen = {
-                            popBackStack(HomeScreenRoute)
-                        },
-                        walletMain = walletMain,
-                        onClickLogo = onClickLogo,
-                        onClickSettings = { navigate(SettingsRoute) }
+                        walletMain = walletMain
                     )
                 } catch (e: Throwable) {
                     popBackStack(HomeScreenRoute)
@@ -405,6 +387,19 @@ private fun WalletNavHost(
 
             if (vm != null) {
                 AuthenticationView(
+                    spName = null,
+                    spLocation = route.recipientLocation,
+                    spImage = null,
+                    navigateUp = navigateBack,
+                    navigateToAuthenticationSuccessPage = {
+                        navigate(AuthenticationSuccessRoute(it, route.isCrossDeviceFlow))
+                    },
+                    navigateToHomeScreen = {
+                        popBackStack(HomeScreenRoute)
+                    },
+                    walletMain = walletMain,
+                    onClickLogo = onClickLogo,
+                    onClickSettings = { navigate(SettingsRoute) },
                     vm = vm,
                     onError = onError
                 )
@@ -412,24 +407,22 @@ private fun WalletNavHost(
         }
 
         composable<DCAPIAuthenticationConsentRoute> { backStackEntry ->
+            val route = backStackEntry.toRoute<DCAPIAuthenticationConsentRoute>()
+
+            val dcApiRequest = remember(route) {
+                try {
+                    DCAPIRequest.deserialize(route.apiRequestSerialized).getOrThrow()
+                } catch (e: Throwable) {
+                    onError(e)
+                    null
+                }
+            } ?: return@composable
+
             val vm = remember {
                 try {
-                    val dcApiRequest =
-                        DCAPIRequest.deserialize(backStackEntry.toRoute<DCAPIAuthenticationConsentRoute>().apiRequestSerialized)
-                            .getOrThrow()
-
                     DCAPIAuthenticationViewModel(
                         dcApiRequest = dcApiRequest,
-                        navigateUp = navigateBack,
-                        navigateToAuthenticationSuccessPage = {
-                            navigate(AuthenticationSuccessRoute(it, false))
-                        },
-                        walletMain = walletMain,
-                        navigateToHomeScreen = {
-                            popBackStack(HomeScreenRoute)
-                        },
-                        onClickLogo = onClickLogo,
-                        onClickSettings = { navigate(SettingsRoute) }
+                        walletMain = walletMain
                     )
                 } catch (e: Throwable) {
                     onError(e)
@@ -439,6 +432,19 @@ private fun WalletNavHost(
 
             if (vm != null) {
                 AuthenticationView(
+                    spImage = null,
+                    spName = dcApiRequest.callingPackageName,
+                    spLocation = dcApiRequest.callingOrigin ?: dcApiRequest.callingPackageName!!,
+                    navigateUp = navigateBack,
+                    navigateToAuthenticationSuccessPage = {
+                        navigate(AuthenticationSuccessRoute(it, false))
+                    },
+                    walletMain = walletMain,
+                    navigateToHomeScreen = {
+                        popBackStack(HomeScreenRoute)
+                    },
+                    onClickLogo = onClickLogo,
+                    onClickSettings = { navigate(SettingsRoute) },
                     vm = vm,
                     onError = onError,
                 )
@@ -451,12 +457,7 @@ private fun WalletNavHost(
                     Globals.presentationStateModel.value?.let {
                         PresentationViewModel(
                             presentationStateModel = it,
-                            navigateUp = { popBackStack(HomeScreenRoute) },
-                            onAuthenticationSuccess = { },
-                            navigateToHomeScreen = { popBackStack(HomeScreenRoute) },
-                            walletMain = walletMain,
-                            onClickLogo = onClickLogo,
-                            onClickSettings = { navigate(SettingsRoute) }
+                            walletMain = walletMain
                         )
                     } ?: throw IllegalStateException("No presentation view model set")
                 } catch (e: Throwable) {
@@ -469,16 +470,25 @@ private fun WalletNavHost(
             if (vm != null) {
                 Napier.d("Showing presentation view")
                 PresentationView(
-                    vm,
+                    spName = null,
+                    spLocation = "Local Presentation",
+                    spImage = null,
+                    snackbarService = walletMain.snackbarService,
                     onPresentmentComplete = {
                         popBackStack(HomeScreenRoute)
                     },
                     coroutineScope = walletMain.scope,
-                    walletMain.snackbarService,
                     onError = { e ->
                         popBackStack(HomeScreenRoute)
                         walletMain.errorService.emit(e)
-                    }
+                    },
+                    navigateUp = { popBackStack(HomeScreenRoute) },
+                    navigateToHomeScreen = { popBackStack(HomeScreenRoute) },
+                    walletMain = walletMain,
+                    onClickLogo = onClickLogo,
+                    onClickSettings = { navigate(SettingsRoute) },
+                    presentationViewModel = vm,
+                    navigateToAuthenticationSuccessPage = { /* nothing */ },
                 )
             }
         }
@@ -691,18 +701,15 @@ private fun WalletNavHost(
         }
 
         composable<AuthenticationQrCodeScannerRoute> { backStackEntry ->
-            AuthenticationQrCodeScannerView(remember {
-                AuthenticationQrCodeScannerViewModel(
-                    navigateUp = navigateBack,
-                    onSuccess = { route ->
-                        navigateBack()
-                        navigate(route)
-                    },
-                    walletMain = walletMain,
-                    onClickLogo = onClickLogo,
-                    onClickSettings = { navigate(SettingsRoute) }
-                )
-            })
+            AuthenticationQrCodeScannerView(
+                navigateUp = navigateBack,
+                onSuccess = { route ->
+                    navigateBack()
+                    navigate(route)
+                },
+                onClickLogo = onClickLogo,
+                onClickSettings = { navigate(SettingsRoute) },
+            )
         }
 
         composable<SigningRoute> { backStackEntry ->
