@@ -29,9 +29,12 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.error_feature_not_yet_available
 import at.asitplus.valera.resources.snackbar_clear_log_successfully
 import at.asitplus.valera.resources.snackbar_reset_app_successfully
+import at.asitplus.wallet.app.common.ErrorService
+import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import at.asitplus.wallet.app.common.decodeImage
+import at.asitplus.wallet.app.common.domain.platform.UrlOpener
 import at.asitplus.wallet.lib.data.dif.ConstraintFieldsEvaluationException
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
@@ -142,8 +145,11 @@ internal object NavigatorTestTags {
 
 @Composable
 fun WalletNavigation(
-    walletMain: WalletMain,
     settingsViewModel: SettingsViewModel = koinInject(),
+    intentService: IntentService = koinInject(),
+    snackbarService: SnackbarService = koinInject(),
+    errorService: ErrorService = koinInject(),
+    urlOpener: UrlOpener = koinInject(),
 ) {
     val navController: NavHostController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -170,7 +176,7 @@ fun WalletNavigation(
     }
 
     val onClickLogo = {
-        walletMain.platformAdapter.openUrl("https://wallet.a-sit.at/")
+        urlOpener("https://wallet.a-sit.at/")
     }
 
     val isConditionsAccepted = settingsViewModel.isConditionsAccepted.collectAsState(null)
@@ -190,37 +196,36 @@ fun WalletNavigation(
         WalletNavHost(
             navController,
             startDestination,
-            walletMain,
             navigate,
             navigateBack,
             popBackStack,
             onClickLogo,
             onError = { e ->
                 popBackStack(HomeScreenRoute)
-                walletMain.errorService.emit(e)
+                errorService.emit(e)
             },
         )
     }
 
     LaunchedEffect(null) {
         this.launch {
-            Globals.appLink.combineTransform(walletMain.intentService.readyForIntents) { link, ready ->
+            Globals.appLink.combineTransform(intentService.readyForIntents) { link, ready ->
                 if (ready == true && link != null) {
                     emit(link)
                 }
             }.collect { link ->
                 Napier.d("appLink.combineTransform $link")
                 catchingUnwrapped {
-                    val route = walletMain.intentService.handleIntent(link)
+                    val route = intentService.handleIntent(link)
                     navigate(route)
                 }.onFailure {
-                    walletMain.errorService.emit(it)
+                    errorService.emit(it)
                 }
                 Globals.appLink.value = null
             }
         }
         this.launch {
-            walletMain.snackbarService.message.collect { (text, actionLabel, callback) ->
+            snackbarService.message.collect { (text, actionLabel, callback) ->
                 when (snackbarHostState.showSnackbar(text, actionLabel, true)) {
                     SnackbarResult.Dismissed -> {}
                     SnackbarResult.ActionPerformed -> callback?.invoke()
@@ -228,7 +233,7 @@ fun WalletNavigation(
             }
         }
         this.launch {
-            walletMain.errorService.error.collect { (throwable) ->
+            errorService.error.collect { (throwable) ->
                 navigate(
                     ErrorRoute(
                         throwable.enrichMessage(),
@@ -249,13 +254,14 @@ private fun Throwable.enrichMessage() = when (this) {
 private fun WalletNavHost(
     navController: NavHostController,
     startDestination: Route,
-    walletMain: WalletMain,
     navigate: (Route) -> Unit,
     navigateBack: () -> Unit,
     popBackStack: (Route) -> Unit,
     onClickLogo: () -> Unit,
     onError: (Throwable) -> Unit,
+    walletMain: WalletMain = koinInject(),
     settingsViewModel: SettingsViewModel = koinInject(),
+    intentService: IntentService = koinInject(),
 ) {
     val currentHost by settingsViewModel.host.collectAsState("")
     NavHost(
@@ -315,7 +321,7 @@ private fun WalletNavHost(
             )
             LaunchedEffect(null) {
                 walletMain.scope.launch {
-                    walletMain.intentService.readyForIntents.emit(true)
+                    intentService.readyForIntents.emit(true)
                 }
             }
         }

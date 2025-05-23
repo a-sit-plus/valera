@@ -1,4 +1,3 @@
-
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
@@ -6,11 +5,14 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import at.asitplus.catchingUnwrapped
 import at.asitplus.wallet.app.common.DCAPIInvocationData
+import at.asitplus.wallet.app.common.ErrorService
+import at.asitplus.wallet.app.common.WalletDependencyProvider
 import at.asitplus.wallet.app.common.WalletMain
-import di.appModule
+import at.asitplus.wallet.app.common.di.appModule
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.koin.compose.KoinApplication
+import org.koin.compose.koinInject
 import ui.navigation.WalletNavigation
 import ui.theme.WalletTheme
 import ui.viewmodels.authentication.PresentationStateModel
@@ -25,34 +27,36 @@ object Globals {
     var dcapiInvocationData = MutableStateFlow<DCAPIInvocationData?>(null)
     var presentationStateModel = MutableStateFlow<PresentationStateModel?>(null)
 }
+
 internal object AppTestTags {
     const val rootScaffold = "rootScaffold"
 }
 
 @Composable
-fun App(walletMain: WalletMain) {
-    catchingUnwrapped {
-        walletMain.initialize()
-    }.onFailure {
-        walletMain.errorService.emit(it)
-    }
+fun App(walletDependencyProvider: WalletDependencyProvider) {
+    KoinApplication({
+        modules(appModule(walletDependencyProvider))
+    }) {
+        catchingUnwrapped {
+            val walletMain: WalletMain = koinInject()
 
-    LifecycleEventEffect(Lifecycle.Event.ON_CREATE) {
-        Napier.d("Lifecycle.Event.ON_CREATE")
-        walletMain.updateCheck()
-    }
+            LifecycleEventEffect(Lifecycle.Event.ON_CREATE) {
+                Napier.d("Lifecycle.Event.ON_CREATE")
+                walletMain.updateCheck()
+            }
 
-    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
-        Napier.d("Lifecycle.Event.ON_RESUME")
-        // TODO is this the best place to sync the credentials with the system?
-        walletMain.updateDigitalCredentialsAPIIntegration()
-    }
+            LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+                Napier.d("Lifecycle.Event.ON_RESUME")
+                // TODO is this the best place to sync the credentials with the system?
+                walletMain.updateDigitalCredentialsAPIIntegration()
+            }
+        }.onFailure {
+            val errorService: ErrorService = koinInject()
+            errorService.emit(it)
+        }
 
-    WalletTheme {
-        KoinApplication({
-            modules(appModule(walletMain))
-        }) {
-            WalletNavigation(walletMain)
+        WalletTheme {
+            WalletNavigation()
         }
     }
 }

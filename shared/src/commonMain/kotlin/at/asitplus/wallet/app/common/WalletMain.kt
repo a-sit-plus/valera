@@ -1,189 +1,57 @@
 package at.asitplus.wallet.app.common
 
 import androidx.compose.ui.graphics.ImageBitmap
-import at.asitplus.catchingUnwrapped
-import at.asitplus.signum.indispensable.josef.JsonWebKey
-import at.asitplus.signum.indispensable.josef.JsonWebKeySet
-import at.asitplus.signum.indispensable.josef.JwsSigned
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_update_action
 import at.asitplus.valera.resources.snackbar_update_hint
 import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
-import at.asitplus.wallet.app.data.CacheStoreEntry
-import at.asitplus.wallet.app.data.CachingStatusListTokenResolver
-import at.asitplus.wallet.app.data.SimpleBootstrappingBulkStore
-import at.asitplus.wallet.app.data.SimpleCacheStoreWrapper
-import at.asitplus.wallet.app.data.SimpleMutableMapStore
+import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.agent.Validator
-import at.asitplus.wallet.lib.data.StatusListToken
-import at.asitplus.wallet.lib.data.rfc.tokenStatusList.MediaTypes
-import at.asitplus.wallet.lib.data.rfc.tokenStatusList.StatusListTokenPayload
-import at.asitplus.wallet.lib.data.rfc3986.UniformResourceIdentifier
-import at.asitplus.wallet.lib.jws.VerifyJwsObject
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
-import at.asitplus.wallet.lib.rqes.Initializer.initRqesModule
-import data.storage.AntilogAdapter
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
 import getImageDecoder
 import io.github.aakira.napier.Napier
 import io.ktor.client.call.body
 import io.ktor.client.request.get
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.HttpHeaders
 import kotlinx.coroutines.*
-import kotlinx.datetime.Clock
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import net.swiftzer.semver.SemVer
 import org.jetbrains.compose.resources.getString
 import org.multipaz.prompt.PromptModel
-import ui.navigation.IntentService
-import kotlin.time.Duration.Companion.seconds
 
 /**
  * Main class to hold all services needed in the Compose App.
  */
 class WalletMain(
     val keyMaterial: WalletKeyMaterial,
-    private val dataStoreService: DataStoreService,
+    val dataStoreService: DataStoreService,
     val platformAdapter: PlatformAdapter,
-    var subjectCredentialStore: PersistentSubjectCredentialStore =
-        PersistentSubjectCredentialStore(dataStoreService),
+    var subjectCredentialStore: PersistentSubjectCredentialStore,
     val buildContext: BuildContext,
-    promptModel: PromptModel
+    val promptModel: PromptModel,
+    val credentialValidator: Validator,
+    val holderAgent: HolderAgent,
+    val provisioningService: ProvisioningService,
+    val httpService: HttpService,
+    val presentationService: PresentationService,
+    val signingService: SigningService,
+    val dcApiService: DCAPIService,
+    val errorService: ErrorService,
+    val snackbarService: SnackbarService,
+    val settingsRepository: SettingsRepository,
 ) {
-    lateinit var walletConfig: WalletConfig
-    lateinit var credentialValidator: Validator
-    lateinit var holderAgent: HolderAgent
-    lateinit var provisioningService: ProvisioningService
-    lateinit var httpService: HttpService
-    lateinit var presentationService: PresentationService
-    lateinit var signingService: SigningService
-    lateinit var dcApiService: DCAPIService
-    val intentService = IntentService(platformAdapter)
-    val errorService = ErrorService()
-    val snackbarService = SnackbarService()
     private val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, error ->
         errorService.emit(error)
     }
-    val scope = CoroutineScope(Dispatchers.Default + coroutineExceptionHandler + promptModel + CoroutineName("WalletMain"))
-
-    init {
-        at.asitplus.wallet.mdl.Initializer.initWithVCK()
-        at.asitplus.wallet.idaustria.Initializer.initWithVCK()
-        at.asitplus.wallet.eupid.Initializer.initWithVCK()
-        at.asitplus.wallet.eupidsdjwt.Initializer.initWithVCK()
-        at.asitplus.wallet.cor.Initializer.initWithVCK()
-        at.asitplus.wallet.por.Initializer.initWithVCK()
-        at.asitplus.wallet.companyregistration.Initializer.initWithVCK()
-        at.asitplus.wallet.healthid.Initializer.initWithVCK()
-        at.asitplus.wallet.taxid.Initializer.initWithVCK()
-        at.asitplus.wallet.taxid.Initializer2025.initWithVCK()
-        at.asitplus.wallet.ehic.Initializer.initWithVCK()
-        initRqesModule()
-        Napier.takeLogarithm()
-        Napier.base(AntilogAdapter(platformAdapter, "", buildContext.buildType))
-    }
-
-    @Throws(Throwable::class)
-    fun initialize() {
-        walletConfig = WalletConfig(dataStoreService = this.dataStoreService, errorService = errorService)
-        subjectCredentialStore = PersistentSubjectCredentialStore(dataStoreService)
-
-        val statusListTokenCache = SimpleBootstrappingBulkStore(
-            SimpleMutableMapStore<UniformResourceIdentifier, CacheStoreEntry<StatusListToken>>(),
-        )
-        val statusListTokenResolver = CachingStatusListTokenResolver(
-            store = SimpleCacheStoreWrapper(
-                store = statusListTokenCache,
-                clock = Clock.System,
-                getCachingDuration = { (key, value) ->
-                    listOfNotNull(
-                        value.payload.expirationTime?.let { it - Clock.System.now() },
-                        value.payload.timeToLive?.duration
-                    ).minOrNull()?.also {
-                        Napier.d("Entry specific caching duration is used: $it")
-                    } ?: 300.seconds
-                },
-                onEntryFiltered = {
-                    // Let's not remove anything for now, token status list urls do not change between fetches anyway
-                },
-            ),
-            statusListTokenResolver = {
-                val httpResponse = httpService.buildHttpClient().get(it.string) {
-                    headers.set(HttpHeaders.Accept, MediaTypes.Application.STATUSLIST_JWT)
-                }
-                StatusListToken.StatusListJwt(
-                    JwsSigned.deserialize<StatusListTokenPayload>(
-                        StatusListTokenPayload.serializer(),
-                        httpResponse.bodyAsText()
-                    ).getOrThrow(),
-                    resolvedAt = Clock.System.now(),
-                )
-            },
-        )
-
-        httpService = HttpService(buildContext)
-        credentialValidator = Validator(
-            resolveStatusListToken = statusListTokenResolver,
-            verifyJwsObject = VerifyJwsObject(publicKeyLookup = issuerKeyLookup())
-        )
-        holderAgent = HolderAgent(
-            keyMaterial = keyMaterial,
-            subjectCredentialStore = subjectCredentialStore,
-            validator = credentialValidator,
-        )
-        httpService = HttpService(buildContext)
-        provisioningService = ProvisioningService(
-            intentService,
-            dataStoreService,
-            keyMaterial,
-            holderAgent,
-            walletConfig,
-            errorService,
-            httpService
-        )
-        presentationService = PresentationService(
-            platformAdapter,
-            keyMaterial,
-            holderAgent,
-            httpService,
-        )
-        signingService = SigningService(
-            intentService,
-            dataStoreService,
-            errorService,
-            snackbarService,
-            httpService
-        )
-
-        this.dcApiService = DCAPIService(platformAdapter)
-    }
-
-    private fun issuerKeyLookup(): (JwsSigned<*>) -> Set<JsonWebKey>? = { jws ->
-        if (jws.payloadIssuer() == "https://dss.aegean.gr/rfc-issuer" && jws.header.keyId != null) {
-            loadJsonWebKeySet("https://dss.aegean.gr/.well-known/")
-                ?.keys?.firstOrNull { it.keyId == jws.header.keyId }?.let { setOf(it) }
-        } else setOf()
-    }
-
-    private fun loadJsonWebKeySet(url: String) = runBlocking {
-        CoroutineScope(Dispatchers.IO).async {
-            catchingUnwrapped {
-                httpService.buildHttpClient().get(url).body<JsonWebKeySet>()
-            }.getOrNull()
-        }.await()
-    }
-
-    private fun JwsSigned<*>.payloadIssuer() =
-        ((payload as? JsonObject?)?.get("iss") as? JsonPrimitive?)?.content
+    val scope =
+        CoroutineScope(Dispatchers.Default + coroutineExceptionHandler + promptModel + CoroutineName("WalletMain"))
 
     suspend fun resetApp() {
         dataStoreService.clearLog()
@@ -193,7 +61,8 @@ class WalletMain(
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_VCS)
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT)
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_COOKIES)
-        walletConfig.reset()
+
+        settingsRepository.reset()
     }
 
     fun getLog(): List<String> {

@@ -1,4 +1,4 @@
-package at.asitplus.wallet.app.data
+package at.asitplus.wallet.app.common.data.primitives
 
 import kotlin.jvm.JvmName
 
