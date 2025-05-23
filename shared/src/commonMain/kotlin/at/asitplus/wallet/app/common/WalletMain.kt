@@ -1,20 +1,19 @@
 package at.asitplus.wallet.app.common
 
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.lifecycle.viewModelScope
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_update_action
 import at.asitplus.valera.resources.snackbar_update_hint
+import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
-import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import data.storage.DataStoreService
-import data.storage.PersistentSubjectCredentialStore
 import data.storage.StoreContainer
+import data.storage.WalletCredentialStore
 import getImageDecoder
 import io.github.aakira.napier.Napier
 import io.ktor.client.call.body
@@ -40,7 +39,7 @@ class WalletMain(
     val keyMaterial: WalletKeyMaterial,
     val dataStoreService: DataStoreService,
     val platformAdapter: PlatformAdapter,
-    var subjectCredentialStore: PersistentSubjectCredentialStore,
+    var subjectCredentialStore: WalletCredentialStore,
     val buildContext: BuildContext,
     val promptModel: PromptModel,
     val credentialValidator: Validator,
@@ -62,7 +61,6 @@ class WalletMain(
         Dispatchers.Default + coroutineExceptionHandler + promptModel + CoroutineName("WalletMain")
     )
 
-    // TODO: Evaluate, whether this takes too much memory or if the performance improvements are worth it
     val hotStoreContainer: StateFlow<UiState<StoreContainer>> = subjectCredentialStore.observeStoreContainer().map {
         UiState.Success(it) as UiState<StoreContainer>
     }.catch {

@@ -12,23 +12,16 @@ import at.asitplus.wallet.lib.iso.IssuerSigned
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.storage.ExportableCredentialScheme.Companion.toExportableCredentialScheme
 import io.github.aakira.napier.Napier
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlin.random.Random
 
-class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) : SubjectCredentialStore {
-    init {
-        Napier.d("Init PersistentSubjectCredentialStore")
-    }
+class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) : WalletCredentialStore, SubjectCredentialStore {
     private val container = this.observeStoreContainer()
 
     private suspend fun addStoreEntry(storeEntry: SubjectCredentialStore.StoreEntry) {
@@ -126,11 +119,11 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         dataStore.setPreference(key = Configuration.DATASTORE_KEY_VCS, value = json)
     }
 
-    suspend fun reset() {
+    override suspend fun reset() {
         exportToDataStore(StoreContainer(credentials = listOf()))
     }
 
-    suspend fun removeStoreEntryById(storeEntryId: StoreEntryId) {
+    override suspend fun removeStoreEntryById(storeEntryId: StoreEntryId) {
         val newContainer = container.first().let { latestContainer ->
             latestContainer.copy(
                 credentials = latestContainer.credentials.filter {
@@ -193,7 +186,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         }
     }
 
-    fun observeStoreContainer(): Flow<StoreContainer> = dataStore.getPreference(Configuration.DATASTORE_KEY_VCS).map {
+    override fun observeStoreContainer(): Flow<StoreContainer> = dataStore.getPreference(Configuration.DATASTORE_KEY_VCS).map {
         dataStoreValueToStoreContainer(it)
     }.flowOn(Dispatchers.IO)
 }

@@ -8,7 +8,6 @@ import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.domain.platform.ImageDecoder
 import at.asitplus.wallet.app.common.domain.platform.UrlOpener
 import at.asitplus.wallet.lib.agent.KeyMaterial
-import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
 import org.koin.dsl.binds
@@ -28,7 +27,7 @@ fun platformModule(appDependencyProvider: WalletDependencyProvider) = module {
     }
     single<PersistentSubjectCredentialStore> {
         appDependencyProvider.subjectCredentialStore
-    } binds arrayOf(SubjectCredentialStore::class)
+    }
 
     single<BuildContext> {
         appDependencyProvider.buildContext
