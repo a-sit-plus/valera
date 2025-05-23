@@ -2,6 +2,7 @@ package ui.navigation.routes
 
 import data.storage.StoreEntryId
 import kotlinx.serialization.Serializable
+import ui.viewmodels.QrCodeScannerMode
 
 @Serializable
 object HomeScreenRoute : Route()
@@ -22,16 +23,10 @@ data class CredentialDetailsRoute(val storeEntryId: StoreEntryId) : Route()
 object SettingsRoute : Route()
 
 @Serializable
-object PreAuthQrCodeScannerRoute : Route()
-
-@Serializable
 object LogRoute : Route()
 
 @Serializable
-object SigningRoute : Route()
-
-@Serializable
-data class SigningQtspSelectionRoute(val url: String): Route()
+data class SigningQtspSelectionRoute(val signatureRequestParametersSerialized: String) : Route()
 
 @Serializable
 data class ErrorRoute(val message: String?, val cause: String?) : Route()
@@ -41,9 +36,6 @@ object LoadingRoute : Route()
 
 @Serializable
 object PresentDataRoute : Route()
-
-@Serializable
-object AuthenticationQrCodeScannerRoute : Route()
 
 @Serializable
 data class AuthenticationViewRoute(
@@ -101,3 +93,6 @@ data class SigningIntentRoute(val uri: String) : Route()
 
 @Serializable
 data class ErrorIntentRoute(val uri: String) : Route()
+
+@Serializable
+data class QrCodeScannerRoute(val mode: QrCodeScannerMode) : Route()
