@@ -40,6 +40,8 @@ fun VerifierView(
         }
     }
 
+
+    // TODO: this seems like a good candidate to use the navigation framework?
     when (verifierState) {
         VerifierState.INIT -> VerifierDocumentSelectionView(
             vm,
