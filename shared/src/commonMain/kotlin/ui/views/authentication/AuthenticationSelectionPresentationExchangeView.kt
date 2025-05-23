@@ -51,7 +51,7 @@ fun AuthenticationSelectionPresentationExchangeView(
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
     onError: (Throwable) -> Unit,
-    onSumbmit: (CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>) -> Unit,
+    onSubmit: (CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>) -> Unit,
     submissionBuilder: PresentationExchangeSubmissionBuilder,
     walletMain: WalletMain = koinInject(),
 ) {
@@ -73,7 +73,7 @@ fun AuthenticationSelectionPresentationExchangeView(
             },
             onNext = {
                 submissionBuilder.onNext {
-                    onSumbmit(it)
+                    onSubmit(it)
                 }
             },
         ) {

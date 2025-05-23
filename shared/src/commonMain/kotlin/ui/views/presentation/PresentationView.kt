@@ -13,9 +13,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.presentation_connecting_to_verifier
@@ -24,6 +26,7 @@ import at.asitplus.valera.resources.presentation_missing_permission
 import at.asitplus.valera.resources.presentation_permission_required
 import at.asitplus.valera.resources.presentation_waiting_for_request
 import at.asitplus.wallet.app.common.SnackbarService
+import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -34,10 +37,10 @@ import org.jetbrains.compose.resources.stringResource
 import org.multipaz.compose.permissions.rememberBluetoothPermissionState
 import ui.viewmodels.authentication.AuthenticationConsentViewModel
 import ui.viewmodels.authentication.AuthenticationNoCredentialViewModel
-import ui.viewmodels.authentication.AuthenticationSelectionPresentationExchangeViewModel
 import ui.viewmodels.authentication.AuthenticationViewState
 import ui.viewmodels.authentication.DCQLMatchingResult
 import ui.viewmodels.authentication.PresentationExchangeMatchingResult
+import ui.viewmodels.authentication.PresentationExchangeSubmissionBuilder
 import ui.viewmodels.authentication.PresentationStateModel
 import ui.viewmodels.authentication.PresentationViewModel
 import ui.views.LoadingView
@@ -63,6 +66,17 @@ import kotlin.time.Duration.Companion.seconds
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PresentationView(
+    spName: String?,
+    spLocation: String,
+    spImage: ImageBitmap?,
+
+    navigateUp: () -> Unit,
+    navigateToAuthenticationSuccessPage: (redirectUrl: String?) -> Unit,
+    navigateToHomeScreen: () -> Unit,
+    walletMain: WalletMain,
+    onClickLogo: () -> Unit,
+    onClickSettings: () -> Unit,
+
     presentationViewModel: PresentationViewModel,
     onPresentmentComplete: () -> Unit,
     coroutineScope: CoroutineScope,
@@ -70,8 +84,9 @@ fun PresentationView(
     onError: (Throwable) -> Unit
 ) {
     val presentationStateModel = presentationViewModel.presentationStateModel
-    presentationViewModel.walletMain.keyMaterial.onUnauthenticated =
-        presentationViewModel.navigateUp
+    LaunchedEffect(Unit) {
+        walletMain.keyMaterial.onUnauthenticated = navigateUp
+    }
 
     val blePermissionState = rememberBluetoothPermissionState()
 
@@ -88,7 +103,8 @@ fun PresentationView(
         PresentationStateModel.State.IDLE,
         PresentationStateModel.State.NO_PERMISSION,
         PresentationStateModel.State.INITIALISING,
-        PresentationStateModel.State.CONNECTING -> {}
+        PresentationStateModel.State.CONNECTING -> {
+        }
 
         PresentationStateModel.State.CHECK_PERMISSIONS -> {
             if (blePermissionState.isGranted) {
@@ -109,30 +125,27 @@ fun PresentationView(
             when (presentationViewModel.viewState) {
                 AuthenticationViewState.Consent -> {
                     AuthenticationConsentView(
-                        vm = AuthenticationConsentViewModel(
-                            spName = presentationViewModel.spName,
-                            spLocation = presentationViewModel.spLocation,
-                            spImage = presentationViewModel.spImage,
-                            transactionData = presentationViewModel.transactionData,
-                            navigateUp = presentationViewModel.navigateUp,
-                            buttonConsent = {
-                                CoroutineScope(Dispatchers.IO).launch {
-                                    presentationViewModel.onConsent()
-                                }
-                            },
-                            walletMain = presentationViewModel.walletMain,
-                            presentationRequest = presentationViewModel.presentationRequest,
-                            onClickLogo = presentationViewModel.onClickLogo,
-                            onClickSettings = presentationViewModel.onClickSettings
-                        ),
+                        spName = spName,
+                        spLocation = spLocation,
+                        spImage = spImage,
+                        transactionData = presentationViewModel.transactionData,
+                        navigateUp = navigateUp,
+                        consentToDataTransmission = {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                presentationViewModel.onConsent()
+                            }
+                        },
+                        walletMain = walletMain,
+                        presentationRequest = presentationViewModel.presentationRequest,
+                        onClickLogo = onClickLogo,
+                        onClickSettings = onClickSettings,
                         onError = onError
                     )
                 }
 
                 AuthenticationViewState.NoMatchingCredential -> {
-                    AuthenticationNoCredentialView(AuthenticationNoCredentialViewModel(
-                            navigateToHomeScreen = presentationViewModel.navigateToHomeScreen
-                        )
+                    AuthenticationNoCredentialView(
+                        navigateToHomeScreen = navigateToHomeScreen
                     )
                 }
 
@@ -140,11 +153,14 @@ fun PresentationView(
                     when (val matching = presentationViewModel.matchingCredentials) {
                         is DCQLMatchingResult -> {
                             AuthenticationSelectionViewScaffold(
-                                onNavigateUp = presentationViewModel.navigateUp,
-                                onClickLogo = presentationViewModel.onClickLogo,
-                                onClickSettings = presentationViewModel.onClickSettings,
+                                onNavigateUp = navigateUp,
+                                onClickLogo = onClickLogo,
+                                onClickSettings = onClickSettings,
                                 onNext = {
-                                    presentationViewModel.confirmSelection(null)
+                                    presentationViewModel.confirmSelection(null) {
+                                        navigateUp()
+                                        navigateToAuthenticationSuccessPage(it.redirectUri)
+                                    }
                                 },
                             ) {
                                 Column {
@@ -156,18 +172,22 @@ fun PresentationView(
 
                         is PresentationExchangeMatchingResult -> {
                             AuthenticationSelectionPresentationExchangeView(
-                                vm = AuthenticationSelectionPresentationExchangeViewModel(
-                                    walletMain = presentationViewModel.walletMain,
-                                    confirmSelections = { selections ->
-                                        presentationViewModel.confirmSelection(selections)
-                                    },
-                                    navigateUp = { presentationViewModel.viewState = AuthenticationViewState.Consent },
+                                navigateUp = {
+                                    presentationViewModel.viewState = AuthenticationViewState.Consent
+                                },
+                                submissionBuilder = PresentationExchangeSubmissionBuilder(
                                     credentialMatchingResult = matching,
-                                    navigateToHomeScreen = presentationViewModel.navigateToHomeScreen
                                 ),
+                                walletMain = walletMain,
                                 onError = onError,
-                                onClickLogo = presentationViewModel.onClickLogo,
-                                onClickSettings = presentationViewModel.onClickSettings,
+                                onClickLogo = onClickLogo,
+                                onClickSettings = onClickSettings,
+                                onSubmit = {
+                                    presentationViewModel.confirmSelection(it) {
+                                        navigateUp()
+                                        navigateToAuthenticationSuccessPage(it.redirectUri)
+                                    }
+                                },
                             )
                         }
                     }
