@@ -8,6 +8,7 @@ import org.koin.dsl.module
 import ui.viewmodels.CredentialsViewModel
 import ui.viewmodels.authentication.AuthenticationQrCodeScannerViewModel
 import ui.viewmodels.iso.ShowQrCodeViewModel
+import ui.viewmodels.iso.VerifierViewModel
 
 fun dataModule() = module {
     singleOf(::WalletConfig) {
@@ -16,4 +17,5 @@ fun dataModule() = module {
     singleOf(::CredentialsViewModel)
     singleOf(::AuthenticationQrCodeScannerViewModel)
     singleOf(::ShowQrCodeViewModel)
+    singleOf(::VerifierViewModel)
 }
