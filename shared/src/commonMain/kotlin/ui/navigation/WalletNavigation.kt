@@ -145,11 +145,12 @@ internal object NavigatorTestTags {
 
 @Composable
 fun WalletNavigation(
-    settingsViewModel: SettingsViewModel = koinInject(),
     intentService: IntentService = koinInject(),
     snackbarService: SnackbarService = koinInject(),
     errorService: ErrorService = koinInject(),
     urlOpener: UrlOpener = koinInject(),
+    // TODO: Replace with koinViewModel as soon as we figure out how to rectify instrumented tests
+    settingsViewModel: SettingsViewModel = koinInject(),
 ) {
     val navController: NavHostController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -260,8 +261,9 @@ private fun WalletNavHost(
     onClickLogo: () -> Unit,
     onError: (Throwable) -> Unit,
     walletMain: WalletMain = koinInject(),
-    settingsViewModel: SettingsViewModel = koinInject(),
     intentService: IntentService = koinInject(),
+    // TODO: Replace with koinViewModel as soon as we figure out how to rectify instrumented tests
+    settingsViewModel: SettingsViewModel = koinInject(),
 ) {
     val currentHost by settingsViewModel.host.collectAsState("")
     NavHost(
