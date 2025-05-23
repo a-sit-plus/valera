@@ -41,6 +41,7 @@ import kotlinx.coroutines.launch
 import kotlinx.io.bytestring.ByteString
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 import org.multipaz.compose.permissions.rememberBluetoothPermissionState
 import org.multipaz.util.toBase64Url
 import ui.composables.Logo
@@ -59,8 +60,7 @@ fun ShowQrCodeView(
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
     onNavigateToPresentmentScreen: (PresentationStateModel) -> Unit,
-    // TODO: Replace with koinViewModel as soon as we figure out how to rectify instrumented tests
-    vm: ShowQrCodeViewModel = koinInject(),
+    vm: ShowQrCodeViewModel = koinViewModel(),
 ) {
     val blePermissionState = rememberBluetoothPermissionState()
     val showQrCode = remember { mutableStateOf<ByteString?>(null) }

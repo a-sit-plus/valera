@@ -9,6 +9,7 @@ import at.asitplus.wallet.app.common.iso.transfer.BluetoothInfo
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 import org.multipaz.compose.permissions.rememberBluetoothPermissionState
 import ui.viewmodels.iso.VerifierState
 import ui.viewmodels.iso.VerifierViewModel
@@ -21,9 +22,7 @@ fun VerifierView(
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
     navigateUp: () -> Unit,
-
-    // TODO: Replace with koinViewModel as soon as we figure out how to rectify instrumented tests
-    vm: VerifierViewModel = koinInject(),
+    vm: VerifierViewModel = koinViewModel(),
 ) {
     val verifierState by vm.verifierState.collectAsState()
 
@@ -41,7 +40,7 @@ fun VerifierView(
     }
 
 
-    // TODO: this seems like a good candidate to use the navigation framework?
+    // TODO: from acrusage: this seems like a good candidate to use the navigation framework?
     when (verifierState) {
         VerifierState.INIT -> VerifierDocumentSelectionView(
             vm,

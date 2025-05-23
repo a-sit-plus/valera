@@ -1,6 +1,7 @@
 package ui.viewmodels.iso
 
 import androidx.compose.runtime.MutableState
+import androidx.lifecycle.ViewModel
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
@@ -27,7 +28,7 @@ import ui.viewmodels.authentication.PresentationStateModel
 class ShowQrCodeViewModel(
     val walletMain: WalletMain,
     val settingsRepository: SettingsRepository,
-) {
+): ViewModel() {
     var hasBeenCalledHack: Boolean = false
     val presentationStateModel: PresentationStateModel by lazy {
         PresentationStateModel(walletMain.scope)

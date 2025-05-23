@@ -8,7 +8,7 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_authenticate_at_device_subtitle
 import at.asitplus.valera.resources.heading_label_authenticate_at_device_title
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 import ui.navigation.routes.AuthenticationViewRoute
 import ui.viewmodels.authentication.AuthenticationQrCodeScannerViewModel
 import ui.views.GenericQrCodeScannerView
@@ -20,8 +20,7 @@ fun AuthenticationQrCodeScannerView(
     onSuccess: (AuthenticationViewRoute) -> Unit,
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
-    // TODO: replace with koinViewModel as soon as we figure out how to amend instrumented tests
-    vm: AuthenticationQrCodeScannerViewModel = koinInject(),
+    vm: AuthenticationQrCodeScannerViewModel = koinViewModel(),
 ) {
     var isLoading by mutableStateOf(false)
     if (isLoading) {
