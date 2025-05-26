@@ -1,5 +1,5 @@
 # Release 5.6.4
- * tbd
+ * Issuing: Fix regression not storing credentials in auth code flow
 
 # Release 5.6.3
  * Set iOS target of app to 16.0
