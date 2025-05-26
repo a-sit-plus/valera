@@ -102,7 +102,7 @@ bool Credential::matchesRequest(const Request& request) {
             }
         }
     }
-    return true;
+    return false;
 }
 
 void Credential::addCredentialToPicker(const Request& request) {
