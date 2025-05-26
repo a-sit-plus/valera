@@ -13,6 +13,7 @@ import at.asitplus.wallet.app.common.dcapi.data.export.CredentialList
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.agent.Validator
+import at.asitplus.wallet.lib.iso.EncryptionParameters
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
@@ -227,8 +228,13 @@ interface PlatformAdapter {
     /**
      * Prepares the credential response and sends it back to the invoking application
      */
-    fun prepareDCAPICredentialResponse(responseJson: ByteArray, dcApiRequestPreview: PreviewDCAPIRequest)
-    fun prepareDCAPICredentialResponse(responseJson: String)
+    fun prepareDCAPIPreviewCredentialResponse(responseJson: ByteArray, dcApiRequestPreview: PreviewDCAPIRequest)
+    fun prepareDCAPIIsoMdocCredentialResponse(
+        responseJson: ByteArray,
+        serialize: ByteArray,
+        encryptionParameters: EncryptionParameters
+    )
+    fun prepareDCAPIOid4vpCredentialResponse(responseJson: String, success: Boolean)
 
 }
 
@@ -256,13 +262,20 @@ class DummyPlatformAdapter : PlatformAdapter {
         return KmmResult.failure(IllegalStateException("Using dummy platform adapter"))
     }
 
-    override fun prepareDCAPICredentialResponse(
+    override fun prepareDCAPIPreviewCredentialResponse(
         responseJson: ByteArray,
         dcApiRequestPreview: PreviewDCAPIRequest
     ) {
     }
 
-    override fun prepareDCAPICredentialResponse(responseJson: String) {
+    override fun prepareDCAPIIsoMdocCredentialResponse(
+        responseJson: ByteArray,
+        serialize: ByteArray,
+        encryptionParameters: EncryptionParameters
+    ) {
+    }
+
+    override fun prepareDCAPIOid4vpCredentialResponse(responseJson: String, success: Boolean) {
     }
 
 }

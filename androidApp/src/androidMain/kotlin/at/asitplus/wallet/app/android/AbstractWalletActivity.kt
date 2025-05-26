@@ -10,7 +10,11 @@ import androidx.credentials.CustomCredential
 import androidx.credentials.DigitalCredential
 import androidx.credentials.ExperimentalDigitalCredentialApi
 import androidx.credentials.GetCredentialResponse
+import androidx.credentials.exceptions.GetCredentialCustomException
+import androidx.credentials.exceptions.GetCredentialException
 import androidx.credentials.provider.PendingIntentHandler
+import at.asitplus.wallet.app.common.dcapi.data.ErrorResponse
+import com.google.android.gms.identitycredentials.IntentHelper
 import io.github.aakira.napier.Napier
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.multipaz.context.initializeApplication
@@ -35,41 +39,57 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
     }
 
     @OptIn(ExperimentalDigitalCredentialApi::class)
-    fun sendCredentialResponseToDCAPIInvoker(resultJson: String) {
+    fun sendCredentialResponseToDCAPIInvoker(resultStr: String, success: Boolean) {
         val resultData = Intent()
 
         // Google GMS credentials library
-        /*val bundle = Bundle().apply {
-            putByteArray("identityToken", resultJson.toByteArray())
+        val googleResultData = Intent()
+        val bundle = Bundle().apply {
+            putByteArray("identityToken", resultStr.toByteArray())
+        }
+        val credentialResponse = com.google.android.gms.identitycredentials.Credential("type", bundle)
+        IntentHelper.setGetCredentialResponse(
+            googleResultData,
+            com.google.android.gms.identitycredentials.GetCredentialResponse(credentialResponse)
+        )
+
+        if (success) {
+            // androidx credentials library
+            val credential = try {
+                DigitalCredential(resultStr)
+            } catch (e: IllegalArgumentException) {
+                Napier.e("Failed to create response", e)
+                val errorResponse = ErrorResponse("internal error")
+                sendErrorResponse(errorResponse.serialize(), resultData)
+                return
+            }
+
+            PendingIntentHandler.setGetCredentialResponse(
+                resultData,
+                GetCredentialResponse(
+                    credential
+                )
+            )
+        } else {
+            sendErrorResponse(resultStr, resultData)
         }
 
-        val credentialResponse = com.google.android.gms.identitycredentials.Credential("type", bundle)
+        setResult(RESULT_OK, resultData)
+        //setResult(RESULT_OK, googleResultData)
+        finish()
+    }
 
-        IntentHelper.setGetCredentialResponse(
-            resultData,
-            com.google.android.gms.identitycredentials.GetCredentialResponse(credentialResponse)
-        )*/
-
-        val credential = try {
-            DigitalCredential(resultJson)
-        } catch (e: IllegalArgumentException) {
-            /* TODO check with SP that supports exceptions whether this works
+    private fun sendErrorResponse(resultStr: String, resultData: Intent) {
+        /* TODO check with SP that supports exceptions whether this works
               * otherwise try with the Google GMS library (see above)
             */
-            val bundle = Bundle().apply {
-                putByteArray("identityToken", resultJson.toByteArray())
-            }
-            CustomCredential("type", bundle)
-        }
-
-        PendingIntentHandler.setGetCredentialResponse(
+        Napier.v("Returning error response: $resultStr")
+        PendingIntentHandler.setGetCredentialException(
             resultData,
-            GetCredentialResponse(
-                credential
+            GetCredentialCustomException(
+                resultStr, resultStr
             )
         )
-        setResult(RESULT_OK, resultData)
-        finish()
     }
 
     override fun onResume() {

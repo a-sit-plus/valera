@@ -16,10 +16,17 @@ import androidx.credentials.provider.PendingIntentHandler
 import androidx.credentials.registry.provider.selectedEntryId
 import at.asitplus.KmmResult
 import at.asitplus.catching
+import at.asitplus.dcapi.DCAPIResponse
+import at.asitplus.dcapi.EncryptedResponse
+import at.asitplus.dcapi.EncryptedResponseData
 import at.asitplus.dcapi.request.DCAPIRequest
+import at.asitplus.dcapi.request.IsoMdocRequest
 import at.asitplus.dcapi.request.Oid4vpDCAPIRequest
 import at.asitplus.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.openid.OpenIdConstants.DC_API_OID4VP_PROTOCOL_IDENTIFIER
+import at.asitplus.signum.indispensable.cosef.CoseKeyParams.EcKeyParams
+import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
+import at.asitplus.signum.indispensable.io.Base64UrlStrict
 import at.asitplus.wallet.app.android.AndroidKeyMaterial
 import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
 import at.asitplus.wallet.app.android.dcapi.IdentityCredentialHelper
@@ -29,11 +36,14 @@ import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.WalletDependencyProvider
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialList
 import at.asitplus.wallet.app.common.dcapi.data.preview.ResponseJSON
+import at.asitplus.wallet.lib.data.vckJsonSerializer
+import at.asitplus.wallet.lib.iso.EncryptionParameters
 import com.android.identity.android.mdoc.util.CredmanUtil
 import com.google.android.gms.identitycredentials.IdentityCredentialManager
 import data.storage.RealDataStoreService
 import data.storage.getDataStore
 import io.github.aakira.napier.Napier
+import io.matthewnelson.encoding.core.Decoder.Companion.decodeToByteArray
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -50,6 +60,7 @@ import ui.theme.darkScheme
 import ui.theme.lightScheme
 import java.io.File
 import kotlin.io.encoding.ExperimentalEncodingApi
+import kotlinx.serialization.decodeFromByteArray
 
 
 actual fun getPlatformName(): String = "Android"
@@ -252,7 +263,22 @@ public class AndroidPlatformAdapter(
                         protocol, parsedRequest, credentialId, callingPackageName, callingOrigin
                     )
                 }
-
+                protocol == "org.iso.mdoc" -> {
+                    val request = JSONObject(parsedRequest)
+                    val deviceRequest = request.getString("deviceRequest")
+                    val encryptionInfo = request.getString("encryptionInfo")
+                    val parsedDeviceRequest = coseCompliantSerializer.decodeFromByteArray<at.asitplus.iso.DeviceRequest>(deviceRequest.decodeToByteArray(
+                        Base64UrlStrict))
+                    val parsedEncryptionInfo =coseCompliantSerializer.decodeFromByteArray<at.asitplus.iso.EncryptionInfo>(encryptionInfo.decodeToByteArray(
+                        Base64UrlStrict))
+                    IsoMdocRequest(
+                        parsedDeviceRequest,
+                        parsedEncryptionInfo,
+                        credentialId,
+                        callingPackageName,
+                        callingOrigin
+                    )
+                }
                 else -> {
                     Napier.e("Protocol type $protocol not supported")
                     throw IllegalArgumentException("Protocol type $protocol not supported")
@@ -262,7 +288,7 @@ public class AndroidPlatformAdapter(
     }
 
     @OptIn(ExperimentalEncodingApi::class)
-    override fun prepareDCAPICredentialResponse(
+    override fun prepareDCAPIPreviewCredentialResponse(
         responseJson: ByteArray,
         dcApiRequestPreview: PreviewDCAPIRequest
     ) {
@@ -300,14 +326,50 @@ public class AndroidPlatformAdapter(
         val response =
             ResponseJSON(kotlin.io.encoding.Base64.UrlSafe.encode(encodedCredentialDocument))
         (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
-            sendCredentialResponseToInvoker(response.serialize())
+            sendCredentialResponseToInvoker(response.serialize(), true)
         } ?: throw IllegalStateException("Callback for response not found")
     }
 
-    override fun prepareDCAPICredentialResponse(response: String) {
+    @OptIn(ExperimentalEncodingApi::class)
+    override fun prepareDCAPIIsoMdocCredentialResponse(
+        response: ByteArray,
+        sessionTranscript: ByteArray,
+        encryptionParameters: EncryptionParameters
+    ) {
+        (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
+            val publicKey = try {
+                val x = (encryptionParameters.recipientPublicKey.keyParams as EcKeyParams<*>).x
+                val y = (encryptionParameters.recipientPublicKey.keyParams as EcKeyParams<*>).y
+                EcPublicKeyDoubleCoordinate(EcCurve.P256, x!!, y!! as ByteArray)
+            } catch (e: Throwable) {
+                Napier.e("Could not extract public key", e)
+                throw IllegalArgumentException("Could not extract public key")
+            }
+
+            val (cipherText, encapsulatedPublicKey) = Crypto.hpkeEncrypt(
+                Algorithm.HPKE_BASE_P256_SHA256_AES128GCM,
+                publicKey,
+                response,
+                sessionTranscript
+            )
+
+            encapsulatedPublicKey as EcPublicKeyDoubleCoordinate
+            val encryptedResponseData = EncryptedResponseData(
+                enc = encapsulatedPublicKey.asUncompressedPointEncoding,
+                cipherText = cipherText
+            )
+            val encryptedResponse = EncryptedResponse("dcapi", encryptedResponseData)
+
+            val dcApiResponse = DCAPIResponse.createIsoMdocResponse(encryptedResponse)
+            Napier.d("Returning response $response to digital credentials API invoker")
+            sendCredentialResponseToInvoker(vckJsonSerializer.encodeToString(dcApiResponse), true)
+        } ?: throw IllegalStateException("Callback for response not found")
+    }
+
+    override fun prepareDCAPIOid4vpCredentialResponse(response: String, success: Boolean) {
         (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
             Napier.d("Returning response $response to digital credentials API invoker")
-            sendCredentialResponseToInvoker(response)
+            sendCredentialResponseToInvoker(response, success)
         } ?: throw IllegalStateException("Callback for response not found")
     }
 }

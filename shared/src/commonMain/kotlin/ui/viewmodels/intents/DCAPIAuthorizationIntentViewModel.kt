@@ -33,7 +33,7 @@ class DCAPIAuthorizationIntentViewModel(
             is OAuth2Exception -> error.serialize()
             else -> TODO() // TODO Not sure what to return in this case
         }
-        walletMain.platformAdapter.prepareDCAPICredentialResponse(response)
+        walletMain.platformAdapter.prepareDCAPIOid4vpCredentialResponse(response, false)
         onFailure(error)
     }
 
@@ -45,9 +45,13 @@ class DCAPIAuthorizationIntentViewModel(
                 buildAuthenticationConsentPageFromPreviewRequest(dcApiRequest)
             
             is Oid4vpDCAPIRequest ->
-                buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(dcApiRequest.request, dcApiRequest)
+                buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
+                    dcApiRequest.request,
+                    dcApiRequest
+                )
 
-            is IsoMdocRequest -> TODO()
+            is IsoMdocRequest ->
+                buildAuthenticationConsentPageFromPreviewRequest(dcApiRequest)
         }.getOrThrow()
 
         onSuccess(successRoute)

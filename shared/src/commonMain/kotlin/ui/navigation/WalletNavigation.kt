@@ -22,6 +22,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import at.asitplus.catchingUnwrapped
+import at.asitplus.dcapi.request.IsoMdocRequest
 import at.asitplus.dcapi.request.Oid4vpDCAPIRequest
 import at.asitplus.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.openid.AuthenticationRequestParameters
@@ -97,6 +98,7 @@ import ui.viewmodels.authentication.AuthenticationSuccessViewModel
 import ui.viewmodels.authentication.AuthenticationViewModel
 import ui.viewmodels.authentication.DCAPIAuthenticationViewModel
 import ui.viewmodels.authentication.DefaultAuthenticationViewModel
+import ui.viewmodels.authentication.NewDCAPIAuthenticationViewModel
 import ui.viewmodels.authentication.PresentationViewModel
 import ui.viewmodels.intents.AuthorizationIntentViewModel
 import ui.viewmodels.intents.DCAPIAuthorizationIntentViewModel
@@ -394,9 +396,7 @@ private fun WalletNavHost(
                     val apiRequestSerialized = route.oid4vpDCAPIRequestSerialized
                     val dcApiRequest =
                         apiRequestSerialized?.let { vckJsonSerializer.decodeFromString<Oid4vpDCAPIRequest>(it) }
-                    val spLocation =
-                        if (route.recipientLocation != "" || dcApiRequest?.callingOrigin == null) route.recipientLocation else dcApiRequest.callingOrigin
-                            ?: ""
+                    val spLocation = dcApiRequest?.callingOrigin ?: route.recipientLocation
 
                     DefaultAuthenticationViewModel(
                         spName = dcApiRequest?.callingPackageName,
@@ -414,7 +414,7 @@ private fun WalletNavHost(
                         walletMain = walletMain,
                         onClickLogo = onClickLogo,
                         onClickSettings = { navigate(SettingsRoute) },
-                        dcapiRequest = dcApiRequest
+                        dcApiRequest = dcApiRequest
                     )
                 } catch (e: Throwable) {
                     popBackStack(HomeScreenRoute)
@@ -442,7 +442,10 @@ private fun WalletNavHost(
                         }.getOrNull() ?:
                         runCatching {
                             vckJsonSerializer.decodeFromString<Oid4vpDCAPIRequest>(apiRequestSerialized)
-                        }.getOrNull()
+                        }.getOrNull() ?:
+                        runCatching {
+                            vckJsonSerializer.decodeFromString<IsoMdocRequest>(apiRequestSerialized)
+                        }.getOrThrow()                        
 
                     when (dcApiRequest) {
                         is PreviewDCAPIRequest -> DCAPIAuthenticationViewModel(
@@ -460,6 +463,7 @@ private fun WalletNavHost(
                         )
 
                         is Oid4vpDCAPIRequest -> {
+                            throw IllegalStateException("Handled by AuthenticationViewRoute")
                             walletMain.scope.launch(Dispatchers.IO) {
                                 val sth = walletMain.presentationService.parseAuthenticationRequestParameters(
                                     dcApiRequest.request
@@ -467,11 +471,27 @@ private fun WalletNavHost(
                             }
                             TODO()
                         }
-                        else -> TODO()
+
+                        is IsoMdocRequest -> {
+                            NewDCAPIAuthenticationViewModel(
+                                isoMdocRequest = dcApiRequest,
+                                navigateUp = navigateBack,
+                                navigateToAuthenticationSuccessPage = {
+                                    navigate(AuthenticationSuccessRoute(it, false))
+                                },
+                                walletMain = walletMain,
+                                navigateToHomeScreen = {
+                                    popBackStack(HomeScreenRoute)
+                                },
+                                onClickLogo = onClickLogo,
+                                onClickSettings = { navigate(SettingsRoute) }
+                            ).also { it.initWithDeviceRequest(dcApiRequest.deviceRequest) }
+                        }
                     }
 
 
                 } catch (e: Throwable) {
+                    Napier.e("error", e)
                     onError(e)
                     null
                 }!!
