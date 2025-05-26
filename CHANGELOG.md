@@ -1,6 +1,7 @@
 # Release 5.6.4
  * Add: Koin Dependency Injection
  * Issuing: Fix regression not storing credentials in auth code flow
+ * Presentation: Treat all requested attributes as optional by default on consent screen
 
 # Release 5.6.3
  * Set iOS target of app to 16.0
