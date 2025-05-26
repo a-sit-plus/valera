@@ -15,13 +15,11 @@ import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.dif.ConstraintField
-import at.asitplus.jsonpath.JsonPath
 import at.asitplus.jsonpath.core.NodeList
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.text_label_check_all
-import at.asitplus.wallet.app.common.thirdParty.at.asitplus.jsonpath.core.plus
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
@@ -39,9 +37,9 @@ fun AttributeSelectionGroup(
     val storeEntry = credential.key
     val attributeSelectionList: List<AttributeSelectionElement> =
         credential.value.mapNotNull { constraint ->
+            // treats all requested attributes as optional
             val path = constraint.value.firstOrNull()?.normalizedJsonPath ?: return@mapNotNull null
             val memberName = (path.segments.last() as NormalizedJsonPathSegment.NameSegment).memberName
-            val optional = constraint.key.optional
             val value = constraint.value.first().value.let {
                 when (it) {
                     is JsonPrimitive -> it.content
@@ -49,13 +47,10 @@ fun AttributeSelectionGroup(
                 }
             }
 
-            // TODO Check for nested elements like "address.formatted"
             val enabled = when (storeEntry) {
                 is SubjectCredentialStore.StoreEntry.SdJwt ->
                     storeEntry.disclosures.values.firstOrNull { it?.claimName == memberName } != null
-                            && optional == true
-
-                else -> optional == true
+                else -> true
             }
 
             if (selection[memberName] == null) {
