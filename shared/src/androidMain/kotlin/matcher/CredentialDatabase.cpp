@@ -159,36 +159,6 @@ void Credential::addCredentialToPickerWithoutRequest() {
             nullptr,
             nullptr
     );
-
-    ::AddFieldForStringIdEntry(cred_id,
-                                           strdup(title.c_str()),
-                                           strdup(title.c_str())
-                );
-
-    /*if (request.docType.size() > 0) {
-        for (const auto &requestedDataElement: request.dataElements) {
-            auto combinedName =
-                    requestedDataElement.namespaceName + "." + requestedDataElement.dataElementName;
-            auto it = dataElements.find(combinedName);
-            if (it != dataElements.end()) {
-                const auto &dataElement = it->second;
-                ::AddFieldForStringIdEntry(cred_id,
-                                           strdup(dataElement.displayName.c_str()),
-                                           strdup(dataElement.value.c_str())
-                );
-            }
-        }
-    } else if (request.vctValues.size() > 0){
-        for (const auto &requestedClaim: request.vcClaims) {
-            auto it = vcClaims.find(requestedClaim.claimName);
-            if (it != vcClaims.end()) {
-                const auto &claim = it->second;
-                ::AddFieldForStringIdEntry(cred_id,
-                                           strdup(claim.displayName.c_str()),
-                                           strdup(claim.value.c_str())
-                );
-            }
-        }
-    }*/
+    ::AddFieldForStringIdEntry(cred_id, strdup(title.c_str()), strdup(title.c_str()));
 }
 

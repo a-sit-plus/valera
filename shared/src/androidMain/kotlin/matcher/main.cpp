@@ -8,7 +8,7 @@ extern "C" {
 #include "CredentialDatabase.h"
 #include "Request.h"
 
-bool MATCH_ALL_CREDENTIALS = true;
+bool MATCH_ALL_CREDENTIALS = false;
 
 extern "C" int main() {
     CallingAppInfo* appInfo = (CallingAppInfo*) malloc(sizeof(CallingAppInfo));
@@ -24,7 +24,6 @@ extern "C" int main() {
         for (auto& credential : db->credentials) {
             credential.addCredentialToPickerWithoutRequest();
         }
-         0;
     }
 
     uint32_t requestSize;
