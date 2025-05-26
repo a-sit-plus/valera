@@ -21,25 +21,32 @@ import org.jetbrains.compose.resources.StringResource
 
 
 object HealthIdCredentialAttributeTranslator : CredentialAttributeTranslator {
-    override fun translate(attributeName: NormalizedJsonPath): StringResource? =
-        when (val first = attributeName.segments.firstOrNull()) {
-            is NormalizedJsonPathSegment.NameSegment -> when (first.memberName) {
-                Attributes.HEALTH_INSURANCE_ID -> Res.string.attribute_friendly_name_health_insurance_id
-                Attributes.PATIENT_ID -> Res.string.attribute_friendly_name_patient_id
-                Attributes.TAX_NUMBER -> Res.string.attribute_friendly_name_tax_number
-                Attributes.ONE_TIME_TOKEN -> Res.string.attribute_friendly_name_one_time_token
-                Attributes.E_PRESCRIPTION_CODE -> Res.string.attribute_friendly_name_e_prescription_code
-                Attributes.AFFILIATION_COUNTRY -> Res.string.attribute_friendly_name_affiliation_country
-                Attributes.ISSUE_DATE -> Res.string.attribute_friendly_name_issue_date
-                Attributes.EXPIRY_DATE -> Res.string.attribute_friendly_name_expiry_date
-                Attributes.ISSUING_AUTHORITY -> Res.string.attribute_friendly_name_issuing_authority
-                Attributes.DOCUMENT_NUMBER -> Res.string.attribute_friendly_name_document_number
-                Attributes.ADMINISTRATIVE_NUMBER -> Res.string.attribute_friendly_name_administrative_number
-                Attributes.ISSUING_COUNTRY -> Res.string.attribute_friendly_name_issuing_country
-                Attributes.ISSUING_JURISDICTION -> Res.string.attribute_friendly_name_issuing_jurisdiction
-                else -> null
-            }
 
+    override fun translate(attributeName: NormalizedJsonPath): StringResource? =
+        attributeName.segments.firstOrNull()?.memberName()?.let { getFromIsoName(it) }
+            ?: attributeName.segments.lastOrNull()?.memberName()?.let { getFromIsoName(it) }
+
+    private fun NormalizedJsonPathSegment.memberName() = when (this) {
+        is NormalizedJsonPathSegment.NameSegment -> this.memberName
+        else -> null
+    }
+
+    private fun getFromIsoName(claimName: String): StringResource? = with(Attributes) {
+        when (claimName) {
+            HEALTH_INSURANCE_ID -> Res.string.attribute_friendly_name_health_insurance_id
+            PATIENT_ID -> Res.string.attribute_friendly_name_patient_id
+            TAX_NUMBER -> Res.string.attribute_friendly_name_tax_number
+            ONE_TIME_TOKEN -> Res.string.attribute_friendly_name_one_time_token
+            E_PRESCRIPTION_CODE -> Res.string.attribute_friendly_name_e_prescription_code
+            AFFILIATION_COUNTRY -> Res.string.attribute_friendly_name_affiliation_country
+            ISSUE_DATE -> Res.string.attribute_friendly_name_issue_date
+            EXPIRY_DATE -> Res.string.attribute_friendly_name_expiry_date
+            ISSUING_AUTHORITY -> Res.string.attribute_friendly_name_issuing_authority
+            DOCUMENT_NUMBER -> Res.string.attribute_friendly_name_document_number
+            ADMINISTRATIVE_NUMBER -> Res.string.attribute_friendly_name_administrative_number
+            ISSUING_COUNTRY -> Res.string.attribute_friendly_name_issuing_country
+            ISSUING_JURISDICTION -> Res.string.attribute_friendly_name_issuing_jurisdiction
             else -> null
         }
+    }
 }

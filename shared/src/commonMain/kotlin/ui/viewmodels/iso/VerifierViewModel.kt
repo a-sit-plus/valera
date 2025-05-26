@@ -10,16 +10,18 @@ import data.document.RequestDocumentBuilder
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import ui.viewmodels.SettingsViewModel
 
 class VerifierViewModel(
     val navigateUp: () -> Unit,
     val onClickLogo: () -> Unit,
     val walletMain: WalletMain,
     val navigateToHomeScreen: () -> Unit,
-    val onClickSettings: () -> Unit
+    val onClickSettings: () -> Unit,
+    val settingsViewModel: SettingsViewModel,
 ) {
     private val transferManager: TransferManager by lazy {
-        TransferManager(walletMain.walletConfig, walletMain.scope) { message -> } // TODO: handle update messages
+        TransferManager(settingsViewModel, walletMain.scope) { message -> } // TODO: handle update messages
     }
 
     private val _verifierState = MutableStateFlow(VerifierState.INIT)

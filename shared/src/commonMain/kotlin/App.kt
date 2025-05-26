@@ -7,8 +7,10 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import at.asitplus.wallet.app.common.dcapi.DCAPIInvocationData
 import at.asitplus.catchingUnwrapped
 import at.asitplus.wallet.app.common.WalletMain
+import di.appModule
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
+import org.koin.compose.KoinApplication
 import ui.navigation.WalletNavigation
 import ui.theme.WalletTheme
 import ui.viewmodels.authentication.PresentationStateModel
@@ -45,7 +47,11 @@ fun App(walletMain: WalletMain) {
     }
 
     WalletTheme {
-        WalletNavigation(walletMain)
+        KoinApplication({
+            modules(appModule(walletMain))
+        }) {
+            WalletNavigation(walletMain)
+        }
     }
 }
 
