@@ -79,8 +79,8 @@ fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, Const
 
     val attributes = constraintsMap.mapNotNull {
         val path = it.value.map { it.normalizedJsonPath }.firstOrNull() ?: return@mapNotNull null
-        val optional = it.key.optional ?: false
-        path to optional
+        // treat all requested attributes as optional
+        path to true
     }.toMap()
 
     return Triple(credentialRepresentation, scheme, attributes)

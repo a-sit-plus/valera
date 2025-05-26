@@ -1,5 +1,6 @@
 # Release 5.6.4
  * Issuing: Fix regression not storing credentials in auth code flow
+ * Presentation: Treat all requested attributes as optional to let the user selectively disclose attributes
 
 # Release 5.6.3
  * Set iOS target of app to 16.0
