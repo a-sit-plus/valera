@@ -4,12 +4,16 @@ import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
 import at.asitplus.catching
 import at.asitplus.openid.AuthenticationRequestParameters
+import at.asitplus.openid.OpenIdConstants
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.rqes.QesInputDescriptor
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.lib.dcapi.request.Oid4vpDCAPIRequest
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
+import at.asitplus.wallet.lib.iso.DCAPIResponse
+import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 
 
@@ -24,7 +28,8 @@ class DefaultAuthenticationViewModel(
     navigateToHomeScreen: () -> Unit,
     walletMain: WalletMain,
     onClickLogo: () -> Unit,
-    onClickSettings: () -> Unit
+    onClickSettings: () -> Unit,
+    val dcApiRequest: Oid4vpDCAPIRequest?
 ) : AuthenticationViewModel(
     spName,
     spLocation,
@@ -47,13 +52,38 @@ class DefaultAuthenticationViewModel(
 
     override suspend fun findMatchingCredentials(): KmmResult<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>> =
         catching {
-            return walletMain.presentationService.getMatchingCredentials(preparationState = preparationState)
+            return walletMain.presentationService.getMatchingCredentials(
+                preparationState = preparationState,
+                oid4vpDCAPIRequest = dcApiRequest
+            )
         }
 
-    override suspend fun finalizationMethod(credentialPresentation: CredentialPresentation) =
-        walletMain.presentationService.finalizeAuthorizationResponse(
+    override suspend fun finalizationMethod(credentialPresentation: CredentialPresentation) : OpenId4VpWallet.AuthenticationSuccess {
+        val authenticationResult = walletMain.presentationService.finalizeAuthorizationResponse(
             request = authenticationRequest,
             clientMetadata = authenticationRequest.parameters.clientMetadata,
             credentialPresentation = credentialPresentation,
+            dcApiRequest = dcApiRequest
         )
+        return when (authenticationResult) {
+            is OpenId4VpWallet.AuthenticationForward -> {
+                val isEncryptedResponse =
+                    authenticationRequest.parameters.responseMode == OpenIdConstants.ResponseMode.DcApiJwt
+                finalizeDcApi(authenticationResult, isEncryptedResponse)
+            }
+            is OpenId4VpWallet.AuthenticationSuccess -> authenticationResult
+        }
+    }
+
+    private fun finalizeDcApi(
+        authenticationResult: OpenId4VpWallet.AuthenticationForward,
+        isEncryptedResponse: Boolean,
+    ): OpenId4VpWallet.AuthenticationSuccess {
+        authenticationResult.authenticationResponseResult.params.response?.let {
+            val response =
+                if (isEncryptedResponse) DCAPIResponse.createOid4vpResponse(it).serialize() else it
+            walletMain.presentationService.finalizeOid4vpDCAPIPresentation(response)
+        } ?: throw IllegalArgumentException("Not response has been generated")
+        return OpenId4VpWallet.AuthenticationSuccess()
+    }
 }

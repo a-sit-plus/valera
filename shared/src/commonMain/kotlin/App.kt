@@ -4,8 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import at.asitplus.wallet.app.common.dcapi.DCAPIInvocationData
 import at.asitplus.catchingUnwrapped
-import at.asitplus.wallet.app.common.DCAPIInvocationData
 import at.asitplus.wallet.app.common.WalletMain
 import di.appModule
 import io.github.aakira.napier.Napier
@@ -44,8 +44,6 @@ fun App(walletMain: WalletMain) {
 
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         Napier.d("Lifecycle.Event.ON_RESUME")
-        // TODO is this the best place to sync the credentials with the system?
-        walletMain.updateDigitalCredentialsAPIIntegration()
     }
 
     WalletTheme {
