@@ -67,14 +67,12 @@ class DefaultAuthenticationViewModel(
             credentialPresentation = credentialPresentation,
             dcApiRequest = dcApiRequest
         )
-        val isEncryptedResponse =
-            authenticationRequest.parameters.responseMode == OpenIdConstants.ResponseMode.DcApiJwt
         return when (authenticationResult) {
-            is OpenId4VpWallet.AuthenticationForward -> finalizeDcApi(
-                authenticationResult,
-                isEncryptedResponse
-            )
-
+            is OpenId4VpWallet.AuthenticationForward -> {
+                val isEncryptedResponse =
+                    authenticationRequest.parameters.responseMode == OpenIdConstants.ResponseMode.DcApiJwt
+                finalizeDcApi(authenticationResult, isEncryptedResponse)
+            }
             is OpenId4VpWallet.AuthenticationSuccess -> authenticationResult
         }
     }
