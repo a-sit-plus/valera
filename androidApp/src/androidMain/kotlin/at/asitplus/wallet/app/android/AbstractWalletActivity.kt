@@ -61,15 +61,17 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
                 Napier.e("Failed to create response", e)
                 val errorResponse = ErrorResponse("internal error")
                 sendErrorResponse(errorResponse.serialize(), resultData)
-                return
+                null
             }
 
-            PendingIntentHandler.setGetCredentialResponse(
-                resultData,
-                GetCredentialResponse(
-                    credential
+            credential?.let {
+                PendingIntentHandler.setGetCredentialResponse(
+                    resultData,
+                    GetCredentialResponse(
+                        it
+                    )
                 )
-            )
+            }
         } else {
             sendErrorResponse(resultStr, resultData)
         }
