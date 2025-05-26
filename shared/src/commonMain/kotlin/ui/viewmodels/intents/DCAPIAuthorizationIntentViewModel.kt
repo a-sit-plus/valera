@@ -5,6 +5,7 @@ import at.asitplus.wallet.app.common.dcapi.data.ErrorResponse
 import at.asitplus.wallet.lib.dcapi.request.Oid4vpDCAPIRequest
 import at.asitplus.wallet.lib.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.wallet.app.common.domain.BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase
+import at.asitplus.wallet.lib.dcapi.request.IsoMdocRequest
 import at.asitplus.wallet.lib.oidvci.OAuth2Exception
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier
@@ -33,7 +34,7 @@ class DCAPIAuthorizationIntentViewModel(
             is OAuth2Exception -> error.serialize()
             else -> ErrorResponse("unsupported_response_type").serialize() // TODO Not sure what to return in this case
         }
-        walletMain.platformAdapter.prepareDCAPICredentialResponse(response)
+        walletMain.platformAdapter.prepareDCAPIOid4vpCredentialResponse(response, false)
         onFailure(error)
     }
 
@@ -50,6 +51,10 @@ class DCAPIAuthorizationIntentViewModel(
                     dcApiRequest.request,
                     dcApiRequest
                 )
+            }
+
+            is IsoMdocRequest -> {
+                buildAuthenticationConsentPageFromPreviewRequest(dcApiRequest)
             }
         }.getOrThrow()
 

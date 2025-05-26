@@ -33,6 +33,7 @@ import at.asitplus.wallet.lib.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.lib.data.dif.ConstraintFieldsEvaluationException
 import at.asitplus.wallet.lib.data.vckJsonSerializer
+import at.asitplus.wallet.lib.dcapi.request.IsoMdocRequest
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
@@ -94,6 +95,7 @@ import ui.viewmodels.authentication.AuthenticationSuccessViewModel
 import ui.viewmodels.authentication.AuthenticationViewModel
 import ui.viewmodels.authentication.DCAPIAuthenticationViewModel
 import ui.viewmodels.authentication.DefaultAuthenticationViewModel
+import ui.viewmodels.authentication.NewDCAPIAuthenticationViewModel
 import ui.viewmodels.authentication.PresentationViewModel
 import ui.viewmodels.intents.AuthorizationIntentViewModel
 import ui.viewmodels.intents.DCAPIAuthorizationIntentViewModel
@@ -394,10 +396,8 @@ private fun WalletNavHost(
 
                     val apiRequestSerialized = route.oid4vpDCAPIRequestSerialized
                     val dcApiRequest =
-                        apiRequestSerialized?.let { Oid4vpDCAPIRequest.deserialize(it).getOrNull() }
-                    val spLocation =
-                        if (route.recipientLocation != "" || dcApiRequest?.callingOrigin == null) route.recipientLocation else dcApiRequest.callingOrigin
-                            ?: ""
+                        apiRequestSerialized?.let { Oid4vpDCAPIRequest.deserialize(apiRequestSerialized).getOrNull() }
+                    val spLocation = dcApiRequest?.callingOrigin ?: route.recipientLocation
 
                     DefaultAuthenticationViewModel(
                         spName = dcApiRequest?.callingPackageName,
@@ -415,7 +415,7 @@ private fun WalletNavHost(
                         walletMain = walletMain,
                         onClickLogo = onClickLogo,
                         onClickSettings = { navigate(SettingsRoute) },
-                        dcapiRequest = dcApiRequest
+                        dcApiRequest = dcApiRequest
                     )
                 } catch (e: Throwable) {
                     popBackStack(HomeScreenRoute)
@@ -439,7 +439,8 @@ private fun WalletNavHost(
                         backStackEntry.toRoute<DCAPIAuthenticationConsentRoute>().apiRequestSerialized
                     val dcApiRequest =
                         PreviewDCAPIRequest.deserialize(apiRequestSerialized).getOrNull()
-                            ?: Oid4vpDCAPIRequest.deserialize(apiRequestSerialized).getOrThrow()
+                            ?: Oid4vpDCAPIRequest.deserialize(apiRequestSerialized).getOrNull()
+                            ?: IsoMdocRequest.deserialize(apiRequestSerialized).getOrThrow()
 
                     when (dcApiRequest) {
                         is PreviewDCAPIRequest -> DCAPIAuthenticationViewModel(
@@ -457,6 +458,7 @@ private fun WalletNavHost(
                         )
 
                         is Oid4vpDCAPIRequest -> {
+                            throw IllegalStateException("Handled by AuthenticationViewRoute")
                             walletMain.scope.launch(Dispatchers.IO) {
                                 val sth = walletMain.presentationService.parseAuthenticationRequestParameters(
                                     dcApiRequest.request
@@ -470,10 +472,27 @@ private fun WalletNavHost(
                             }
                             TODO()
                         }
+
+                        is IsoMdocRequest -> {
+                            NewDCAPIAuthenticationViewModel(
+                                isoMdocRequest = dcApiRequest,
+                                navigateUp = navigateBack,
+                                navigateToAuthenticationSuccessPage = {
+                                    navigate(AuthenticationSuccessRoute(it, false))
+                                },
+                                walletMain = walletMain,
+                                navigateToHomeScreen = {
+                                    popBackStack(HomeScreenRoute)
+                                },
+                                onClickLogo = onClickLogo,
+                                onClickSettings = { navigate(SettingsRoute) }
+                            ).also { it.initWithDeviceRequest(dcApiRequest.parsedDeviceRequest) }
+                        }
                     }
 
 
                 } catch (e: Throwable) {
+                    Napier.e("error", e)
                     onError(e)
                     null
                 }!!

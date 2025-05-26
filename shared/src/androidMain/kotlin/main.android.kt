@@ -17,6 +17,7 @@ import androidx.credentials.registry.provider.selectedEntryId
 import at.asitplus.KmmResult
 import at.asitplus.catching
 import at.asitplus.openid.OpenIdConstants.DC_API_OID4VP_PROTOCOL_IDENTIFIER
+import at.asitplus.signum.indispensable.cosef.CoseKeyParams.EcKeyParams
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialList
 import at.asitplus.wallet.app.android.AndroidKeyMaterial
 import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
@@ -25,10 +26,17 @@ import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.lib.dcapi.request.IsoMdocRequest
 import at.asitplus.wallet.lib.dcapi.request.DCAPIRequest
 import at.asitplus.wallet.lib.dcapi.request.Oid4vpDCAPIRequest
 import at.asitplus.wallet.lib.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.wallet.app.common.dcapi.data.preview.ResponseJSON
+import at.asitplus.wallet.lib.iso.DCAPIResponse
+import at.asitplus.wallet.lib.iso.DeviceRequest
+import at.asitplus.wallet.lib.iso.EncryptedResponse
+import at.asitplus.wallet.lib.iso.EncryptedResponseData
+import at.asitplus.wallet.lib.iso.EncryptionInfo
+import at.asitplus.wallet.lib.iso.EncryptionParameters
 import com.android.identity.android.mdoc.util.CredmanUtil
 import com.google.android.gms.identitycredentials.IdentityCredentialManager
 import data.storage.RealDataStoreService
@@ -251,6 +259,20 @@ public class AndroidPlatformAdapter(
                         protocol, parsedRequest, credentialId, callingPackageName, callingOrigin
                     )
                 }
+                protocol == "org.iso.mdoc" -> {
+                    val request = JSONObject(parsedRequest)
+                    val deviceRequest = request.getString("deviceRequest")
+                    val encryptionInfo = request.getString("encryptionInfo")
+                    val parsedDeviceRequest = DeviceRequest.deserialize(deviceRequest).getOrThrow()
+                    val parsedEncryptionInfo = EncryptionInfo.deserialize(encryptionInfo).getOrThrow()
+                    IsoMdocRequest(
+                        parsedDeviceRequest,
+                        parsedEncryptionInfo,
+                        credentialId,
+                        callingPackageName,
+                        callingOrigin
+                    )
+                }
                 else -> {
                     Napier.e("Protocol type $protocol not supported")
                     throw IllegalArgumentException("Protocol type $protocol not supported")
@@ -260,7 +282,7 @@ public class AndroidPlatformAdapter(
     }
 
     @OptIn(ExperimentalEncodingApi::class)
-    override fun prepareDCAPICredentialResponse(
+    override fun prepareDCAPIPreviewCredentialResponse(
         responseJson: ByteArray,
         dcApiRequestPreview: PreviewDCAPIRequest
     ) {
@@ -295,14 +317,50 @@ public class AndroidPlatformAdapter(
         val response =
             ResponseJSON(kotlin.io.encoding.Base64.UrlSafe.encode(encodedCredentialDocument))
         (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
-            sendCredentialResponseToInvoker(response.serialize())
+            sendCredentialResponseToInvoker(response.serialize(), true)
         } ?: throw IllegalStateException("Callback for response not found")
     }
 
-    override fun prepareDCAPICredentialResponse(response: String) {
+    @OptIn(ExperimentalEncodingApi::class)
+    override fun prepareDCAPIIsoMdocCredentialResponse(
+        response: ByteArray,
+        sessionTranscript: ByteArray,
+        encryptionParameters: EncryptionParameters
+    ) {
+        (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
+            val publicKey = try {
+                val x = (encryptionParameters.recipientPublicKey.keyParams as EcKeyParams<*>).x
+                val y = (encryptionParameters.recipientPublicKey.keyParams as EcKeyParams<*>).y
+                EcPublicKeyDoubleCoordinate(EcCurve.P256, x!!, y!! as ByteArray)
+            } catch (e: Throwable) {
+                Napier.e("Could not extract public key", e)
+                throw IllegalArgumentException("Could not extract public key")
+            }
+
+            val (cipherText, encapsulatedPublicKey) = Crypto.hpkeEncrypt(
+                Algorithm.HPKE_BASE_P256_SHA256_AES128GCM,
+                publicKey,
+                response,
+                sessionTranscript
+            )
+
+            encapsulatedPublicKey as EcPublicKeyDoubleCoordinate
+            val encryptedResponseData = EncryptedResponseData(
+                enc = encapsulatedPublicKey.asUncompressedPointEncoding,
+                cipherText = cipherText
+            )
+            val encryptedResponse = EncryptedResponse("dcapi", encryptedResponseData)
+
+            val dcApiResponse = DCAPIResponse.createIsoMdocResponse(encryptedResponse)
+            Napier.d("Returning response $response to digital credentials API invoker")
+            sendCredentialResponseToInvoker(dcApiResponse.serialize(), true)
+        } ?: throw IllegalStateException("Callback for response not found")
+    }
+
+    override fun prepareDCAPIOid4vpCredentialResponse(response: String, success: Boolean) {
         (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
             Napier.d("Returning response $response to digital credentials API invoker")
-            sendCredentialResponseToInvoker(response)
+            sendCredentialResponseToInvoker(response, success)
         } ?: throw IllegalStateException("Callback for response not found")
     }
 }
