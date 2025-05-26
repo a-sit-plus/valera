@@ -1,5 +1,6 @@
 # Release 5.6.4
-* Add: Koin Dependency Injection
+ * Add: Koin Dependency Injection
+ * Issuing: Fix regression not storing credentials in auth code flow
 
 # Release 5.6.3
  * Set iOS target of app to 16.0
