@@ -33,6 +33,7 @@ import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.WalletDependencyProvider
 import at.asitplus.wallet.app.common.WalletKeyMaterial
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.ClaimToBeIssued
 import at.asitplus.wallet.lib.agent.CredentialToBeIssued
@@ -47,6 +48,7 @@ import at.asitplus.wallet.lib.agent.toStoreCredentialInput
 import at.asitplus.wallet.lib.cbor.DefaultCoseService
 import at.asitplus.wallet.lib.jws.DefaultJwsService
 import data.storage.DummyDataStoreService
+import io.github.aakira.napier.Napier
 import io.kotest.common.Platform
 import io.kotest.common.platform
 import io.kotest.core.spec.style.FunSpec
@@ -258,7 +260,6 @@ class InstrumentedTestsSuite : FunSpec({
                         }
                     }
 
-
                     val responseGenerateRequest =
                         client.post("https://apps.egiz.gv.at/customverifier/transaction/create") {
                             contentType(ContentType.Application.Json)
@@ -294,16 +295,15 @@ val request = Json.encodeToString(
         "presentation_definition",
         listOf(
             Credential(
-                "at.gv.id-austria.2023.1",
+                "eu.europa.ec.eudi.pid.1",
                 "SD_JWT",
                 listOf(
-                    IdAustriaScheme.Attributes.BPK,
-                    IdAustriaScheme.Attributes.FIRSTNAME,
-                    IdAustriaScheme.Attributes.LASTNAME,
-                    IdAustriaScheme.Attributes.DATE_OF_BIRTH,
-                    IdAustriaScheme.Attributes.PORTRAIT,
-                    IdAustriaScheme.Attributes.MAIN_ADDRESS,
-                    IdAustriaScheme.Attributes.AGE_OVER_18,
+                    EuPidScheme.Attributes.GIVEN_NAME,
+                    EuPidScheme.Attributes.FAMILY_NAME,
+                    EuPidScheme.Attributes.BIRTH_DATE,
+                    EuPidScheme.Attributes.PORTRAIT,
+                    EuPidScheme.Attributes.RESIDENT_ADDRESS,
+                    EuPidScheme.Attributes.AGE_OVER_18,
                 )
             )
         )
