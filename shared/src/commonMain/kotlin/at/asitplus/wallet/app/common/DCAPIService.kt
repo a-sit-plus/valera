@@ -30,7 +30,6 @@ class DCAPIService(val platformAdapter: PlatformAdapter) {
         val identityCredentialsEntries: List<IdentityCredentialEntry> = container.credentials.map { (_, storeEntry) ->
             val imageDecoder: (ByteArray) -> ImageBitmap = { byteArray -> platformAdapter.decodeImage(byteArray) }
             val attributeTranslator = CredentialAttributeTranslator[storeEntry.scheme]
-                ?: return
             val friendlyName = storeEntry.scheme.uiLabelNonCompose()
             val picture: ByteArray? = when (storeEntry.scheme) {
                 is IdAustriaScheme ->

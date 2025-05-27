@@ -51,15 +51,16 @@ fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, Const
         this.format?.msoMdoc != null -> ISO_MDOC
         else -> PLAIN_JWT
     }
-    val credentialIdentifiers: Collection<String> = when (credentialRepresentation) {
+    val scheme = when (credentialRepresentation) {
         PLAIN_JWT -> throw Throwable("PLAIN_JWT not implemented")
-        SD_JWT -> vctConstraint()?.filter?.referenceValues()
-        ISO_MDOC -> listOf(this.id)
-    } ?: throw Throwable("Missing Pattern")
+        SD_JWT -> vctConstraint()?.filter?.referenceValues()?.let { values ->
+            values.firstNotNullOfOrNull { AttributeIndex.resolveSdJwtAttributeType(it) }
+                ?: FallbackCredentialScheme(sdJwtType = values.first())
+        }
 
-    val scheme = AttributeIndex.schemeSet.firstOrNull {
-        it.matchAgainstIdentifier(credentialRepresentation, credentialIdentifiers)
-    } ?: throw Throwable("Missing scheme for $credentialIdentifiers")
+        ISO_MDOC -> AttributeIndex.resolveIsoDoctype(id)
+            ?: FallbackCredentialScheme(isoDocType = id, isoNamespace = id)
+    } ?: FallbackCredentialScheme()
 
     val attributes: Map<NormalizedJsonPath, Boolean> = this.constraints?.fields
         ?.mapNotNull { it.toNormalizedJsonPath() }
@@ -97,16 +98,6 @@ private fun String.unquote() = removePrefix("'").removePrefix("\"")
 
 private fun String.fallback(): List<NameSegment> = listOf(NameSegment(this))
 
-private fun ConstantIndex.CredentialScheme.matchAgainstIdentifier(
-    representation: CredentialRepresentation,
-    identifiers: Collection<String>
-) = when (representation) {
-    PLAIN_JWT -> throw Throwable("PLAIN_JWT not implemented")
-    // This is not entirely correct, but we'll try to work around incorrect definitions in our credentials
-    SD_JWT -> sdJwtType in identifiers || isoNamespace in identifiers
-    ISO_MDOC -> isoDocType in identifiers
-}
-
 private fun InputDescriptor.vctConstraint() =
     constraints?.fields?.firstOrNull { it.path.toString().contains("vct") }
 
@@ -122,6 +113,7 @@ fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, C
         else -> PLAIN_JWT
     }
 
+    // TODO Show all attributes as requested, without matching them against our supported schemes
     val scheme = when (this) {
         is DCQLIsoMdocCredentialQuery -> meta?.doctypeValue
             ?.let { AttributeIndex.resolveIsoDoctype(it) }
@@ -178,13 +170,12 @@ fun ConstantIndex.CredentialScheme.toJsonElement(
     representation: CredentialRepresentation,
 ): JsonElement {
     val dataElements = when (this) {
-        EuPidScheme -> this.claimNames + EuPidScheme.Attributes.PORTRAIT_CAPTURE_DATE
-        ConstantIndex.AtomicAttribute2023, IdAustriaScheme, EuPidSdJwtScheme, MobileDrivingLicenceScheme, HealthIdScheme, EhicScheme, TaxIdScheme, TaxId2025Scheme -> this.claimNames
         // TODO Use: this.claim names for all schemes
+        EuPidScheme -> this.claimNames + EuPidScheme.Attributes.PORTRAIT_CAPTURE_DATE
         PowerOfRepresentationScheme -> PowerOfRepresentationDataElements.ALL_ELEMENTS
         CertificateOfResidenceScheme -> CertificateOfResidenceDataElements.ALL_ELEMENTS
         CompanyRegistrationScheme -> CompanyRegistrationDataElements.ALL_ELEMENTS
-        else -> TODO("${this::class.simpleName} not implemented in jsonElementBuilder yet")
+        else -> this.claimNames
     }
 
     // TODO move this to credentials libraries
@@ -308,3 +299,4 @@ fun ConstantIndex.CredentialScheme.toJsonElement(
         }
     }
 }
+
