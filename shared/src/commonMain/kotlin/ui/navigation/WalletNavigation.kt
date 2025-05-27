@@ -283,7 +283,7 @@ private fun WalletNavHost(
                             navigate(AddCredentialRoute)
                         },
                         navigateToQrAddCredentialsPage = {
-                            navigate(QrCodeScannerRoute(QrCodeScannerMode.PROVISIONING))
+                            navigate(QrCodeScannerRoute(vckJsonSerializer.encodeToString(QrCodeScannerMode.PROVISIONING)))
                         },
                         navigateToCredentialDetailsPage = {
                             navigate(CredentialDetailsRoute(it))
@@ -318,7 +318,7 @@ private fun WalletNavHost(
         composable<PresentDataRoute> {
             PresentDataView(
                 onNavigateToAuthenticationQrCodeScannerView = {
-                    navigate(QrCodeScannerRoute(QrCodeScannerMode.AUTHENTICATION))
+                    navigate(QrCodeScannerRoute(vckJsonSerializer.encodeToString(QrCodeScannerMode.AUTHENTICATION)))
                 },
                 onNavigateToShowQrCodeView = { navigate(ShowQrCodeRoute) },
                 onClickLogo = onClickLogo,
@@ -853,7 +853,7 @@ private fun WalletNavHost(
                     walletMain = walletMain,
                     onClickLogo = onClickLogo,
                     onClickSettings = { navigate(SettingsRoute) },
-                    mode = backStackEntry.toRoute<QrCodeScannerRoute>().mode
+                    mode = vckJsonSerializer.decodeFromString(backStackEntry.toRoute<QrCodeScannerRoute>().modeSerialized)
                 )
             })
         }
