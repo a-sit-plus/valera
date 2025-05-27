@@ -19,7 +19,6 @@ import at.asitplus.openid.dcql.DCQLClaimsQueryResult
 import at.asitplus.openid.dcql.DCQLCredentialQueryMatchingResult
 import at.asitplus.openid.dcql.DCQLCredentialSubmissionOption
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.jsonpath.core.plus
-import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.agent.representation
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.app.common.thirdParty.kotlinx.serialization.json.leafNodeList
 import at.asitplus.wallet.lib.agent.SdJwtValidator
@@ -28,8 +27,6 @@ import at.asitplus.wallet.lib.data.CredentialToJsonConverter.toJsonElement
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatus
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.jws.SdJwtSigned
-import data.Attribute
-import data.credentials.CredentialAdapter
 import data.credentials.toCredentialAdapter
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.encodeToJsonElement
@@ -63,9 +60,10 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
     val matchingResult = option.matchingResult
 
     val genericAttributeList: List<Pair<NormalizedJsonPath, Any>> = when (matchingResult) {
-        DCQLCredentialQueryMatchingResult.AllClaimsMatchingResult -> credential.allClaims().leafNodeList().map {
-            it.normalizedJsonPath to it.value
-        }
+        DCQLCredentialQueryMatchingResult.AllClaimsMatchingResult -> credential.allClaims()
+            .leafNodeList().map {
+                it.normalizedJsonPath to it.value
+            }
 
         is DCQLCredentialQueryMatchingResult.ClaimsQueryResults -> matchingResult.claimsQueryResults.flatMap {
             when (it) {
@@ -80,21 +78,9 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
         }
     }
 
-    val credentialAdapter = credential.toCredentialAdapter(decodeToBitmap) ?: object : CredentialAdapter() {
-        // trying our best to map the values to attributes
-        private val mapping = genericAttributeList.toMap()
-
-        override fun getAttribute(path: NormalizedJsonPath): Attribute? {
-            return mapping[path]?.let {
-                Attribute.fromValue(it)
-            }
-        }
-
-        override val representation = credential.representation
-        override val scheme = credential.scheme!!
-    }
+    val credentialAdapter = credential.toCredentialAdapter(decodeToBitmap, genericAttributeList, credential)
     val labeledAttributes = genericAttributeList.mapNotNull { (key, value) ->
-        credentialAdapter.getAttribute(key)?.let { attribute ->
+        credentialAdapter?.getAttribute(key)?.let { attribute ->
             key.segments.lastOrNull()?.let {
                 credential.scheme?.getLocalization(NormalizedJsonPath(it))?.let {
                     stringResource(it)

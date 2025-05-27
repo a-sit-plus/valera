@@ -3,6 +3,7 @@ package at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data
 import androidx.compose.runtime.Composable
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.valera.resources.*
+import at.asitplus.wallet.app.common.FallbackCredentialScheme
 import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.ehic.EhicScheme
@@ -33,6 +34,7 @@ fun ConstantIndex.CredentialScheme?.uiLabel(): String = when (this) {
     is EhicScheme -> stringResource(Res.string.credential_scheme_label_ehic)
     is TaxIdScheme -> stringResource(Res.string.credential_scheme_label_tax_id)
     is TaxId2025Scheme -> stringResource(Res.string.credential_scheme_label_tax_id_2025)
+    is FallbackCredentialScheme -> stringResource(Res.string.credential_scheme_label_fallback)
     else -> this?.identifier ?: "unknown"
 }
 
@@ -48,6 +50,7 @@ suspend fun ConstantIndex.CredentialScheme?.uiLabelNonCompose(): String = when (
     is EhicScheme -> getString(Res.string.credential_scheme_label_ehic)
     is TaxIdScheme -> getString(Res.string.credential_scheme_label_tax_id)
     is TaxId2025Scheme -> getString(Res.string.credential_scheme_label_tax_id_2025)
+    is FallbackCredentialScheme -> getString(Res.string.credential_scheme_label_fallback)
     else -> this?.identifier ?: "unknown"
 }
 
@@ -64,6 +67,7 @@ fun ConstantIndex.CredentialScheme?.iconLabel(): String = when (this) {
     is EhicScheme -> stringResource(Res.string.credential_scheme_icon_label_ehic)
     is TaxIdScheme -> stringResource(Res.string.credential_scheme_icon_label_tax_id)
     is TaxId2025Scheme -> stringResource(Res.string.credential_scheme_icon_label_tax_id)
+    is FallbackCredentialScheme -> stringResource(Res.string.credential_scheme_icon_label_fallback)
     else -> this?.identifier ?: "unknown"
 }
 

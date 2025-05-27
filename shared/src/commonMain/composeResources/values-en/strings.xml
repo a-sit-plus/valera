@@ -212,6 +212,8 @@
     <string name="credential_scheme_icon_label_tax_id">TAX</string>
     <string name="credential_scheme_label_ehic">European Health Insurance Card</string>
     <string name="credential_scheme_icon_label_ehic">EHIC</string>
+    <string name="credential_scheme_label_fallback">Fallback</string>
+    <string name="credential_scheme_icon_label_fallback">0</string>
 
     <string name="navigation_button_label_show_data">Present</string>
     <string name="navigation_button_label_my_data">Data</string>
@@ -297,8 +299,6 @@
     <string name="prompt_select_attribute">Which attributes should be transmitted?</string>
 
     <string name="error_credential_status_invalid">INVALID</string>
-    <string name="error_credential_scheme_not_supported">Unsupported credential scheme</string>
-    <string name="error_feature_not_yet_available">Incomplete Implementation</string>
     <string name="error_authentication_at_sp_failed">Authentication failed</string>
     <string name="error_biometric_error_no_hardware">error_biometric_error_no_hardware</string>
     <string name="error_biometric_error_hardware_unavailable">BIOMETRIC_ERROR_HW_UNAVAILABLE</string>

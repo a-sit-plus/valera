@@ -211,6 +211,8 @@
     <string name="credential_scheme_icon_label_tax_id">TAX</string>
     <string name="credential_scheme_label_ehic">Europäische Krankenversicherungskarte</string>
     <string name="credential_scheme_icon_label_ehic">EHIC</string>
+    <string name="credential_scheme_label_fallback">Fallback</string>
+    <string name="credential_scheme_icon_label_fallback">0</string>
 
     <string name="navigation_button_label_show_data">Vorzeigen</string>
     <string name="navigation_button_label_my_data">Daten</string>
