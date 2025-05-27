@@ -48,7 +48,6 @@ import at.asitplus.wallet.lib.agent.toStoreCredentialInput
 import at.asitplus.wallet.lib.cbor.DefaultCoseService
 import at.asitplus.wallet.lib.jws.DefaultJwsService
 import data.storage.DummyDataStoreService
-import io.github.aakira.napier.Napier
 import io.kotest.common.Platform
 import io.kotest.common.platform
 import io.kotest.core.spec.style.FunSpec
