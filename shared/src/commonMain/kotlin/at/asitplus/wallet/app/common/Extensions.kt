@@ -1,8 +1,10 @@
 package at.asitplus.wallet.app.common
 
+import at.asitplus.dif.ConstraintField
 import at.asitplus.dif.ConstraintFilter
 import at.asitplus.dif.InputDescriptor
 import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.jsonpath.core.NormalizedJsonPathSegment.NameSegment
 import at.asitplus.openid.CredentialFormatEnum
 import at.asitplus.openid.dcql.DCQLClaimsQueryResult
 import at.asitplus.openid.dcql.DCQLCredentialClaimStructure
@@ -28,15 +30,12 @@ import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.ISO_MDOC
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.PLAIN_JWT
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.SD_JWT
-import at.asitplus.wallet.lib.data.dif.PresentationExchangeInputEvaluator
 import at.asitplus.wallet.lib.data.vckJsonSerializer
-import at.asitplus.wallet.lib.oidvci.toFormat
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationDataElements
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import at.asitplus.wallet.taxid.TaxIdScheme
 import at.asitplus.wallet.taxid.TaxId2025Scheme
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
@@ -62,29 +61,41 @@ fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, Const
         it.matchAgainstIdentifier(credentialRepresentation, credentialIdentifiers)
     } ?: throw Throwable("Missing scheme for $credentialIdentifiers")
 
-    val matchedCredentialIdentifier = when (credentialRepresentation) {
-        PLAIN_JWT -> throw Throwable("PLAIN_JWT not implemented")
-        SD_JWT -> if (scheme.sdJwtType in credentialIdentifiers) scheme.sdJwtType else scheme.isoNamespace
-        ISO_MDOC -> scheme.isoDocType
-    }
-
-    val constraintsMap = PresentationExchangeInputEvaluator.evaluateInputDescriptorAgainstCredential(
-        inputDescriptor = this,
-        credentialClaimStructure = scheme.toJsonElement(credentialRepresentation),
-        credentialFormat = credentialRepresentation.toFormat(),
-        credentialScheme = matchedCredentialIdentifier,
-        fallbackFormatHolder = this.format,
-        pathAuthorizationValidator = { true },
-    ).getOrThrow()
-
-    val attributes = constraintsMap.mapNotNull {
-        val path = it.value.map { it.normalizedJsonPath }.firstOrNull() ?: return@mapNotNull null
-        // treat all requested attributes as optional
-        path to true
-    }.toMap()
+    val attributes: Map<NormalizedJsonPath, Boolean> = this.constraints?.fields
+        ?.mapNotNull { it.toNormalizedJsonPath() }
+        ?.filterNot { (it.segments.firstOrNull() as? NameSegment)?.memberName?.equals("vct") == true }
+        ?.associateWith { true } // all claims are optional
+        ?: mapOf()
 
     return Triple(credentialRepresentation, scheme, attributes)
 }
+
+// TODO Replace with function from JSONPath
+private fun ConstraintField.toNormalizedJsonPath(): NormalizedJsonPath? =
+    path.firstOrNull()?.removePrefix("$")?.run {
+        NormalizedJsonPath(
+            if (contains("[")) {
+                segmentsByAngle()
+            } else if (contains(".")) {
+                segmentsByDot()
+            } else {
+                fallback()
+            }
+        )
+    }
+
+private fun String.segmentsByAngle() = split("[")
+    .filter { it.isNotEmpty() }
+    .map { NameSegment(it.removeSuffix("]").unquote()) }
+
+private fun String.segmentsByDot() = split(".")
+    .filter { it.isNotEmpty() }
+    .map { NameSegment(it) }
+
+private fun String.unquote() = removePrefix("'").removePrefix("\"")
+    .removeSuffix("\"").removeSuffix("'")
+
+private fun String.fallback(): List<NameSegment> = listOf(NameSegment(this))
 
 private fun ConstantIndex.CredentialScheme.matchAgainstIdentifier(
     representation: CredentialRepresentation,
@@ -96,9 +107,11 @@ private fun ConstantIndex.CredentialScheme.matchAgainstIdentifier(
     ISO_MDOC -> isoDocType in identifiers
 }
 
-private fun InputDescriptor.vctConstraint() = constraints?.fields?.firstOrNull { it.path.toString().contains("vct") }
+private fun InputDescriptor.vctConstraint() =
+    constraints?.fields?.firstOrNull { it.path.toString().contains("vct") }
 
-private fun ConstraintFilter.referenceValues() = (pattern ?: const?.content)?.let { listOf(it) } ?: enum
+private fun ConstraintFilter.referenceValues() =
+    (pattern ?: const?.content)?.let { listOf(it) } ?: enum
 
 fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, ConstantIndex.CredentialScheme, List<NormalizedJsonPath>> {
     val representation = when (format) {
@@ -110,8 +123,12 @@ fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, C
     }
 
     val scheme = when (this) {
-        is DCQLIsoMdocCredentialQuery -> meta?.doctypeValue?.let { AttributeIndex.resolveIsoDoctype(it) }
-        is DCQLSdJwtCredentialQuery -> meta?.vctValues?.firstNotNullOf { AttributeIndex.resolveSdJwtAttributeType(it) }
+        is DCQLIsoMdocCredentialQuery -> meta?.doctypeValue
+            ?.let { AttributeIndex.resolveIsoDoctype(it) }
+
+        is DCQLSdJwtCredentialQuery -> meta?.vctValues
+            ?.firstNotNullOf { AttributeIndex.resolveSdJwtAttributeType(it) }
+
         is DCQLCredentialQueryInstance -> null
     } ?: throw Throwable("Missing scheme")
 

@@ -96,17 +96,11 @@ fun RequestedCredentialPreview(
     representation: ConstantIndex.CredentialRepresentation,
     attributes: Map<NormalizedJsonPath, Boolean>,
 ) {
-    val schemeName = scheme.uiLabel()
-    val format = representation.name
-    val list = attributes.mapNotNull { attribute ->
-        val resource = scheme.getLocalization(attribute.key)
-            ?: return@mapNotNull null
-        val text = catchingUnwrapped { stringResource(resource) }
-            .getOrElse { attribute.key.toString() }
-        text to attribute.value
-    }.toMap()
     ConsentAttributesSection(
-        title = "$schemeName (${format})",
-        attributes = list
+        title = "${scheme.uiLabel()} (${representation.name})",
+        attributes = attributes.mapKeys { entry ->
+            catchingUnwrapped<String> { stringResource(scheme.getLocalization(entry.key)!!) }
+                .getOrElse { entry.key.toString() }
+        }
     )
 }
