@@ -1,5 +1,5 @@
 # Release 5.7.4 (unreleased):
-
+ * Presentation: Always show requested attributes
 
 # Release 5.7.3
  * Update to VC-K 5.8.0, fixing optional attributes during presentation

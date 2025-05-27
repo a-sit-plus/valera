@@ -17,6 +17,7 @@ import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.CredentialMatchingResult
 import at.asitplus.wallet.lib.openid.DCQLMatchingResult
 import at.asitplus.wallet.lib.openid.PresentationExchangeMatchingResult
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 
@@ -44,6 +45,7 @@ abstract class AuthenticationViewModel(
     suspend fun onConsent() {
         matchingCredentials = findMatchingCredentials().getOrElse {
             viewState = AuthenticationViewState.NoMatchingCredential
+            Napier.w("No matching credential", it)
             return
         }
 

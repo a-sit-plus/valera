@@ -30,11 +30,11 @@ data class IdentityCredentialField(
 
         suspend fun fromNamespaceAttributeMap(
             attributeMap: Map<String, Map<String, Any>>,
-            attributeTranslator: CredentialAttributeTranslator
+            attributeTranslator: CredentialAttributeTranslator?
         ): List<IdentityCredentialField> = attributeMap.flatMap { (namespace, valuePair) ->
             valuePair.map { (name, value) ->
                 val entryName = "$namespace.$name"
-                val displayName = attributeTranslator.translate(name.toJsonPath())?.let { getString(it) } ?: name
+                val displayName = attributeTranslator?.translate(name.toJsonPath())?.let { getString(it) } ?: name
                 val serializedValue = value.toString().safeSubstring(128) //TODO toString() is a hack
                 IdentityCredentialField(entryName, serializedValue, displayName, serializedValue)
             }
@@ -47,9 +47,9 @@ data class IdentityCredentialField(
         // TODO untested
         suspend fun fromAttributeMap(
             attributeMap: Map<String, JsonPrimitive>,
-            attributeTranslator: CredentialAttributeTranslator
+            attributeTranslator: CredentialAttributeTranslator?
         ): List<IdentityCredentialField> = attributeMap.map { (name, value) ->
-            val displayName = attributeTranslator.translate(name.toJsonPath())?.let { getString(it) } ?: name
+            val displayName = attributeTranslator?.translate(name.toJsonPath())?.let { getString(it) } ?: name
             val serializedValue = value.toString().safeSubstring(128) //TODO toString() is a hack
             IdentityCredentialField(name, serializedValue, displayName, serializedValue)
         }
