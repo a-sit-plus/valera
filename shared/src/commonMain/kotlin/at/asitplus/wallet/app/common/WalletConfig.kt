@@ -1,6 +1,6 @@
 package at.asitplus.wallet.app.common
 
-import at.asitplus.wallet.app.data.SettingsRepository
+import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import data.storage.DataStoreService
 import io.github.aakira.napier.Napier

@@ -8,7 +8,6 @@ import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isDisplayed
-import androidx.compose.ui.test.isNotDisplayed
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -22,7 +21,6 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.button_label_accept
 import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.button_label_details
 import at.asitplus.valera.resources.button_label_start
@@ -32,6 +30,7 @@ import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.BuildType
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
+import at.asitplus.wallet.app.common.WalletDependencyProvider
 import at.asitplus.wallet.app.common.WalletKeyMaterial
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.idaustria.IdAustriaScheme
@@ -40,6 +39,7 @@ import at.asitplus.wallet.lib.agent.CredentialToBeIssued
 import at.asitplus.wallet.lib.agent.DefaultCryptoService
 import at.asitplus.wallet.lib.agent.EphemeralKeyWithSelfSignedCert
 import at.asitplus.wallet.lib.agent.EphemeralKeyWithoutCert
+import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.IssuerAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.agent.Validator
@@ -73,10 +73,11 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.jetbrains.compose.resources.getString
+import org.koin.compose.koinInject
+import org.koin.core.context.startKoin
 import org.multipaz.prompt.PassphraseRequest
 import org.multipaz.prompt.PromptModel
 import org.multipaz.prompt.SinglePromptModel
-import ui.navigation.NavigatorTestTags
 import ui.navigation.routes.OnboardingWrapperTestTags
 import ui.views.OnboardingStartScreenTestTag
 import kotlin.test.assertTrue
@@ -133,7 +134,7 @@ class InstrumentedTestsSuite : FunSpec({
                     CompositionLocalProvider(
                         LocalLifecycleOwner provides TestLifecycleOwner()
                     ) {
-                        App(createWalletMain(getPlatformAdapter()))
+                        App(createWalletDependencyProvider(getPlatformAdapter()))
                     }
                 }
 
@@ -153,7 +154,7 @@ class InstrumentedTestsSuite : FunSpec({
                     CompositionLocalProvider(
                         LocalLifecycleOwner provides TestLifecycleOwner()
                     ) {
-                        App(createWalletMain(getPlatformAdapter()))
+                        App(createWalletDependencyProvider(getPlatformAdapter()))
                     }
                 }
 
@@ -169,7 +170,7 @@ class InstrumentedTestsSuite : FunSpec({
                     CompositionLocalProvider(
                         LocalLifecycleOwner provides TestLifecycleOwner()
                     ) {
-                        App(createWalletMain(getPlatformAdapter()))
+                        App(createWalletDependencyProvider(getPlatformAdapter()))
                     }
                 }
 
@@ -188,36 +189,38 @@ class InstrumentedTestsSuite : FunSpec({
     context("End to End Tests") {
         test("End to End Test 1: Should complete the process") {
             runComposeUiTest {
-                lateinit var walletMain: WalletMain
+                lateinit var walletMain: WalletDependencyProvider
                 setContent {
                     CompositionLocalProvider(
                         LocalLifecycleOwner provides TestLifecycleOwner()
                     ) {
                         val platformAdapter = getPlatformAdapter()
-                        walletMain = createWalletMain(platformAdapter)
+                        walletMain = createWalletDependencyProvider(platformAdapter)
                         App(walletMain)
                     }
 
-                        val keyMaterial = EphemeralKeyWithoutCert()
-                        val issuer = IssuerAgent(
-                            validator = Validator(),
-                            keyMaterial = keyMaterial,
-                            statusListBaseUrl = "https://wallet.a-sit.at/m6/credentials/status",
-                            jwsService = DefaultJwsService(DefaultCryptoService(keyMaterial)),
-                            coseService = DefaultCoseService(DefaultCryptoService(keyMaterial)),
+                    val holderAgent: HolderAgent = koinInject()
+
+                    val keyMaterial = EphemeralKeyWithoutCert()
+                    val issuer = IssuerAgent(
+                        validator = Validator(),
+                        keyMaterial = keyMaterial,
+                        statusListBaseUrl = "https://wallet.a-sit.at/m6/credentials/status",
+                        jwsService = DefaultJwsService(DefaultCryptoService(keyMaterial)),
+                        coseService = DefaultCoseService(DefaultCryptoService(keyMaterial)),
+                    )
+                    runBlocking {
+                        holderAgent.storeCredential(
+                            issuer.issueCredential(
+                                CredentialToBeIssued.VcSd(
+                                    getAttributes(),
+                                    Clock.System.now().plus(3600.minutes),
+                                    IdAustriaScheme,
+                                    walletMain.keyMaterial.keyMaterial.publicKey
+                                )
+                            ).getOrThrow().toStoreCredentialInput()
                         )
-                        runBlocking {
-                            walletMain.holderAgent.storeCredential(
-                                issuer.issueCredential(
-                                    CredentialToBeIssued.VcSd(
-                                        getAttributes(),
-                                        Clock.System.now().plus(3600.minutes),
-                                        IdAustriaScheme,
-                                        walletMain.keyMaterial.keyMaterial.publicKey
-                                    )
-                                ).getOrThrow().toStoreCredentialInput()
-                            )
-                        }
+                    }
                 }
                 runBlocking {
                     waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_start)))
@@ -344,12 +347,12 @@ private fun getAttributes(): List<ClaimToBeIssued> = listOf(
 )
 
 
-private fun createWalletMain(platformAdapter: PlatformAdapter): WalletMain {
+private fun createWalletDependencyProvider(platformAdapter: PlatformAdapter): WalletDependencyProvider {
     val dummyDataStoreService = DummyDataStoreService()
     val ks = object : KeystoreService(dummyDataStoreService) {
         override suspend fun getSigner(): KeyMaterial = EphemeralKeyWithSelfSignedCert()
     }
-    return WalletMain(
+    return WalletDependencyProvider(
         keyMaterial = ks.let { runBlocking { WalletKeyMaterial(it.getSigner()) } },
         dataStoreService = dummyDataStoreService,
         platformAdapter = platformAdapter,

@@ -1,5 +1,5 @@
 # Release 5.6.4
- * tbd
+* Add: Koin Dependency Injection
 
 # Release 5.6.3
  * Set iOS target of app to 16.0

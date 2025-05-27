@@ -1,6 +1,7 @@
 package at.asitplus.wallet.app.common
 
 import at.asitplus.openid.CredentialOffer
+import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.data.AttributeIndex
@@ -34,7 +35,7 @@ class ProvisioningService(
     private val dataStoreService: DataStoreService,
     private val keyMaterial: KeyMaterial,
     private val holderAgent: HolderAgent,
-    private val config: WalletConfig,
+    private val config: SettingsRepository,
     errorService: ErrorService,
     httpService: HttpService,
 ) {

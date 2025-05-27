@@ -1,4 +1,4 @@
-package at.asitplus.wallet.app.data
+package at.asitplus.wallet.app.common.data.primitives
 
 interface SimpleStore<Key : Any, Value : Any> {
     suspend fun get(key: Key): Value?
