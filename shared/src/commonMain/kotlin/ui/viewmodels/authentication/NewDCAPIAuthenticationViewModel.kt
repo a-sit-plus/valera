@@ -17,9 +17,7 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.iso.DeviceRequest
-import at.asitplus.wallet.lib.iso.SessionTranscript
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
-import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 
 class NewDCAPIAuthenticationViewModel(
     spImage: ImageBitmap? = null,
@@ -42,13 +40,8 @@ class NewDCAPIAuthenticationViewModel(
     onClickSettings
 ) {
     private var descriptors: List<DifInputDescriptor> = listOf()
-    private var sessionTranscript: SessionTranscript? = null
 
-    fun initWithDeviceRequest(
-        parsedRequest: DeviceRequest,
-        //finishFunction: (ByteArray) -> Unit,
-        //sessionTranscript: SessionTranscript?
-    ) {
+    fun initWithDeviceRequest(parsedRequest: DeviceRequest) {
         descriptors = parsedRequest.docRequests.map {
             val itemsRequest = it.itemsRequest.value
             DifInputDescriptor(
@@ -68,7 +61,6 @@ class NewDCAPIAuthenticationViewModel(
                 })
             )
         }
-        this.sessionTranscript = sessionTranscript
     }
 
     override val transactionData = null
@@ -103,18 +95,6 @@ class NewDCAPIAuthenticationViewModel(
                 else -> throw IllegalArgumentException()
             },
             isoMdocRequest
-            //it,
-            //spName,
-            //sessionTranscript!!
         )
     }
-    /*
-    override suspend fun finalizationMethod(credentialPresentation: CredentialPresentation) =
-        walletMain.presentationService.finalizeDCAPIIsoMdocPresentation(
-            credentialPresentation = when (credentialPresentation) {
-                is CredentialPresentation.PresentationExchangePresentation -> credentialPresentation
-                else -> throw IllegalArgumentException()
-            },
-            isoMdocRequest,
-        )*/
 }

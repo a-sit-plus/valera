@@ -52,6 +52,9 @@ class DCAPIAuthorizationIntentViewModel(
 
             is IsoMdocRequest ->
                 buildAuthenticationConsentPageFromPreviewRequest(dcApiRequest)
+
+
+            else -> throw IllegalStateException("Type of request not known")
         }.getOrThrow()
 
         onSuccess(successRoute)

@@ -60,14 +60,14 @@ class DCAPIExportService(private val platformAdapter: PlatformAdapter) {
     }
 
     private suspend fun SubjectCredentialStore.StoreEntry.Iso.toIsoEntry() = IsoEntry(
-        id = getDcApiId().hashCode().toString(),
+        id = getDcApiId(),
         docType = scheme?.isoDocType ?: "",
         isoNamespaces = toNamespaceAttributeMap()?.let {
             IsoEntry.isoNamespacesFromNamespaceAttributeMap(it, getTranslator())
         } ?: mapOf())
 
     private suspend fun SubjectCredentialStore.StoreEntry.SdJwt.toSdJwtEntry() = SdJwtEntry(
-        jwtId = getDcApiId().hashCode().toString(),
+        jwtId = getDcApiId(),
         verifiableCredentialType = sdJwt.verifiableCredentialType,
         claims = SdJwtEntry.fromAttributeMap(toAttributeMap(), getTranslator())
     )

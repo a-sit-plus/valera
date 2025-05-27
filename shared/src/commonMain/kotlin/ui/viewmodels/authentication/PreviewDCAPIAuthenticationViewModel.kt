@@ -18,7 +18,7 @@ import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 
-class DCAPIAuthenticationViewModel(
+class PreviewDCAPIAuthenticationViewModel(
     spImage: ImageBitmap? = null,
     navigateUp: () -> Unit,
     navigateToAuthenticationSuccessPage: (redirectUrl: String?) -> Unit,
