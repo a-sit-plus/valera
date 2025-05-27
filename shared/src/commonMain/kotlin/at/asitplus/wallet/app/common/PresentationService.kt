@@ -34,6 +34,8 @@ import kotlinx.serialization.builtins.ByteArraySerializer
 import kotlinx.serialization.encodeToByteArray
 import ui.viewmodels.authentication.DCQLMatchingResult
 import ui.viewmodels.authentication.PresentationExchangeMatchingResult
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.Base64.PaddingOption
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 class PresentationService(
@@ -49,22 +51,25 @@ class PresentationService(
         holderAgent = holderAgent
     )
 
-    suspend fun parseAuthenticationRequestParameters(requestUri: String) =
-        presentationService.parseAuthenticationRequestParameters(requestUri)
+    suspend fun parseAuthenticationRequestParameters(
+        requestUri: String,
+        dcApiRequest: Oid4vpDCAPIRequest?
+    ) = presentationService.parseAuthenticationRequestParameters(requestUri, dcApiRequest)
 
     suspend fun startAuthorizationResponsePreparation(
-        request: RequestParametersFrom<AuthenticationRequestParameters>,
-        incomingDcApiRequest: Oid4vpDCAPIRequest?
-    ) = presentationService.startAuthorizationResponsePreparation(request, incomingDcApiRequest)
+        request: RequestParametersFrom<AuthenticationRequestParameters>
+    ) = presentationService.startAuthorizationResponsePreparation(request)
 
     suspend fun getPreparationState(request: RequestParametersFrom<AuthenticationRequestParameters>) =
         presentationService.startAuthorizationResponsePreparation(request).getOrThrow()
 
-    suspend fun getMatchingCredentials(preparationState: AuthorizationResponsePreparationState, oid4vpDCAPIRequest: Oid4vpDCAPIRequest?) = catching {
+    suspend fun getMatchingCredentials(preparationState: AuthorizationResponsePreparationState) = catching {
         when (val it = preparationState.credentialPresentationRequest) {
             is CredentialPresentationRequest.DCQLRequest -> {
-                val dcqlQueryResult =
-                    holderAgent.matchDCQLQueryAgainstCredentialStore(it.dcqlQuery, oid4vpDCAPIRequest?.credentialId).getOrThrow()
+                val dcqlQueryResult = holderAgent.matchDCQLQueryAgainstCredentialStore(
+                    it.dcqlQuery,
+                    preparationState.oid4vpDCAPIRequest?.credentialId
+                ).getOrThrow()
                 DCQLMatchingResult(
                     presentationRequest = it,
                     dcqlQueryResult
@@ -76,7 +81,7 @@ class PresentationService(
                 matchingInputDescriptorCredentials = holderAgent.matchInputDescriptorsAgainstCredentialStore(
                     inputDescriptors = it.presentationDefinition.inputDescriptors,
                     fallbackFormatHolder = it.fallbackFormatHolder,
-                    filterById = oid4vpDCAPIRequest?.credentialId
+                    filterById = preparationState.oid4vpDCAPIRequest?.credentialId
                 ).getOrThrow()
             )
 
@@ -88,12 +93,10 @@ class PresentationService(
         request: RequestParametersFrom<AuthenticationRequestParameters>,
         clientMetadata: RelyingPartyMetadata?,
         credentialPresentation: CredentialPresentation,
-        dcApiRequest: Oid4vpDCAPIRequest?,
-    ) = presentationService.finalizeAuthorizationResponseReturningUrl(
+    ) = presentationService.finalizeAuthorizationResponse(
         request = request,
         clientMetadata = clientMetadata,
         credentialPresentation = credentialPresentation,
-        dcApiRequest = dcApiRequest
     ).getOrThrow()
 
     suspend fun finalizeDCAPIPreviewPresentation(
@@ -109,7 +112,7 @@ class PresentationService(
                 audience = dcApiRequestPreview.callingOrigin ?: dcApiRequestPreview.callingPackageName!!,
                 calcIsoDeviceSignature = { docType, deviceNameSpaceBytes ->
                     // TODO sign data
-                    SignCose.invoke<ByteArray>(keyMaterial, CoseHeaderNone(), CoseHeaderNone())
+                    SignCose<ByteArray>(keyMaterial, CoseHeaderNone(), CoseHeaderNone())
                         .invoke(null, null, docType.encodeToByteArray(), ByteArraySerializer())
                         .getOrElse { e ->
                             Napier.w("Could not create DeviceAuth for presentation", e)
@@ -141,14 +144,14 @@ class PresentationService(
         Napier.d("Finalizing DCAPI response")
 
         val hash =
-            DCAPIInfo.create(isoMdocRequest.parsedEncryptionInfo, isoMdocRequest.callingOrigin)
+            DCAPIInfo.create(isoMdocRequest.encryptionInfo, isoMdocRequest.callingOrigin)
                 .serialize().sha256()
         val handover = DCAPIHandover(type = "dcapi", hash = hash)
         val sessionTranscript = SessionTranscript.forDcApi(handover)
 
         val presentationResult = holderAgent.createPresentation(
             request = PresentationRequestParameters(
-                nonce = "", // TODO which nonce? isoMdocRequest.parsedEncryptionInfo.encryptionParameters.nonce?
+                nonce = Base64.UrlSafe.withPadding(PaddingOption.ABSENT_OPTIONAL).encode(isoMdocRequest.encryptionInfo.encryptionParameters.nonce), // TODO which nonce? isoMdocRequest.parsedEncryptionInfo.encryptionParameters.nonce?
                 audience = isoMdocRequest.callingOrigin,
                 calcIsoDeviceSignature = { docType, deviceNameSpaceBytes ->
                     val deviceAuthentication = DeviceAuthentication(
@@ -189,7 +192,7 @@ class PresentationService(
         }
         val deviceResponseSerialized = deviceResponse.serialize() // TODO HPKE encryption multiplatform
 
-        platformAdapter.prepareDCAPIIsoMdocCredentialResponse(deviceResponseSerialized, sessionTranscript.serialize(), isoMdocRequest.parsedEncryptionInfo.encryptionParameters)
+        platformAdapter.prepareDCAPIIsoMdocCredentialResponse(deviceResponseSerialized, sessionTranscript.serialize(), isoMdocRequest.encryptionInfo.encryptionParameters)
         return OpenId4VpWallet.AuthenticationSuccess()
     }
 
@@ -220,8 +223,7 @@ class PresentationService(
                         .encodeToByteArray(ByteStringWrapper(deviceAuthentication))
                         .wrapInCborTag(24)
                     Napier.d("Device authentication signature input is ${deviceAuthenticationBytes.toHexString()}")
-
-                    SignCoseDetached.invoke<ByteArray>(keyMaterial, CoseHeaderNone(), CoseHeaderNone())
+                    SignCoseDetached<ByteArray>(keyMaterial, CoseHeaderNone(), CoseHeaderNone())
                         .invoke(null, null, deviceAuthenticationBytes, ByteArraySerializer())
                         .getOrElse { e ->
                             Napier.w("Could not create DeviceAuth for presentation", e)

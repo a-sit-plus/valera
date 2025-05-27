@@ -29,7 +29,6 @@ class DefaultAuthenticationViewModel(
     walletMain: WalletMain,
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
-    val dcApiRequest: Oid4vpDCAPIRequest?
 ) : AuthenticationViewModel(
     spName,
     spLocation,
@@ -53,8 +52,7 @@ class DefaultAuthenticationViewModel(
     override suspend fun findMatchingCredentials(): KmmResult<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>> =
         catching {
             return walletMain.presentationService.getMatchingCredentials(
-                preparationState = preparationState,
-                oid4vpDCAPIRequest = dcApiRequest
+                preparationState = preparationState
             )
         }
 
@@ -63,7 +61,6 @@ class DefaultAuthenticationViewModel(
             request = authenticationRequest,
             clientMetadata = authenticationRequest.parameters.clientMetadata,
             credentialPresentation = credentialPresentation,
-            dcApiRequest = dcApiRequest
         )
         return when (authenticationResult) {
             is OpenId4VpWallet.AuthenticationForward -> {

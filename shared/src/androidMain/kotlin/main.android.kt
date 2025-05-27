@@ -27,7 +27,7 @@ import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.dcapi.request.IsoMdocRequest
-import at.asitplus.wallet.lib.dcapi.request.DCAPIRequest
+import at.asitplus.dcapi.request.DCAPIRequest
 import at.asitplus.wallet.lib.dcapi.request.Oid4vpDCAPIRequest
 import at.asitplus.wallet.lib.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.wallet.app.common.dcapi.data.preview.ResponseJSON
@@ -187,7 +187,7 @@ public class AndroidPlatformAdapter(
         (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.let { (intent, _) ->
             // Adapted from https://github.com/openwallet-foundation-labs/identity-credential/blob/d7a37a5c672ed6fe1d863cbaeb1a998314d19fc5/wallet/src/main/java/com/android/identity_credential/wallet/credman/CredmanPresentationActivity.kt#L74
             val request = PendingIntentHandler.retrieveProviderGetCredentialRequest(intent)
-            val credentialId = request!!.selectedEntryId!!.toInt()
+            val credentialId = request!!.selectedEntryId!!
 
             val privilegedUserAgents =
                 context.assets.open("privileged_apps.json").use { stream ->

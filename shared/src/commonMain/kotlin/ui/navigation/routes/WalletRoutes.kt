@@ -1,6 +1,5 @@
 package ui.navigation.routes
 
-import at.asitplus.wallet.lib.dcapi.request.Oid4vpDCAPIRequest
 import data.storage.StoreEntryId
 import kotlinx.serialization.Serializable
 

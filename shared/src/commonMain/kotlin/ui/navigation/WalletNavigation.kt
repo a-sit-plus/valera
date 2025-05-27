@@ -25,6 +25,7 @@ import at.asitplus.catchingUnwrapped
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.openid.RequestParametersFrom
+import at.asitplus.openid.setDcApiRequest
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.error_feature_not_yet_available
 import at.asitplus.valera.resources.snackbar_clear_log_successfully
@@ -40,14 +41,12 @@ import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.getString
 import org.koin.compose.koinInject
-import org.koin.compose.viewmodel.koinViewModel
 import ui.composables.BottomBar
 import ui.composables.NavigationData
 import ui.navigation.routes.AddCredentialPreAuthnRoute
@@ -96,7 +95,7 @@ import ui.viewmodels.SigningViewModel
 import ui.viewmodels.authentication.AuthenticationQrCodeScannerViewModel
 import ui.viewmodels.authentication.AuthenticationSuccessViewModel
 import ui.viewmodels.authentication.AuthenticationViewModel
-import ui.viewmodels.authentication.DCAPIAuthenticationViewModel
+import ui.viewmodels.authentication.PreviewDCAPIAuthenticationViewModel
 import ui.viewmodels.authentication.DefaultAuthenticationViewModel
 import ui.viewmodels.authentication.NewDCAPIAuthenticationViewModel
 import ui.viewmodels.authentication.PresentationViewModel
@@ -407,6 +406,8 @@ private fun WalletNavHost(
                     val apiRequestSerialized = route.oid4vpDCAPIRequestSerialized
                     val dcApiRequest =
                         apiRequestSerialized?.let { Oid4vpDCAPIRequest.deserialize(apiRequestSerialized).getOrNull() }
+                    preparationState.oid4vpDCAPIRequest = dcApiRequest
+                    request.setDcApiRequest(dcApiRequest)
                     val spLocation = dcApiRequest?.callingOrigin ?: route.recipientLocation
 
                     DefaultAuthenticationViewModel(
@@ -425,7 +426,6 @@ private fun WalletNavHost(
                         walletMain = walletMain,
                         onClickLogo = onClickLogo,
                         onClickSettings = { navigate(SettingsRoute) },
-                        dcApiRequest = dcApiRequest
                     )
                 } catch (e: Throwable) {
                     popBackStack(HomeScreenRoute)
@@ -453,7 +453,7 @@ private fun WalletNavHost(
                             ?: IsoMdocRequest.deserialize(apiRequestSerialized).getOrThrow()
 
                     when (dcApiRequest) {
-                        is PreviewDCAPIRequest -> DCAPIAuthenticationViewModel(
+                        is PreviewDCAPIRequest -> PreviewDCAPIAuthenticationViewModel(
                             dcApiRequestPreview = dcApiRequest,
                             navigateUp = navigateBack,
                             navigateToAuthenticationSuccessPage = {
@@ -466,22 +466,6 @@ private fun WalletNavHost(
                             onClickLogo = onClickLogo,
                             onClickSettings = { navigate(SettingsRoute) }
                         )
-
-                        is Oid4vpDCAPIRequest -> {
-                            throw IllegalStateException("Handled by AuthenticationViewRoute")
-                            walletMain.scope.launch(Dispatchers.IO) {
-                                val sth = walletMain.presentationService.parseAuthenticationRequestParameters(
-                                    dcApiRequest.request
-                                )
-                                    .onFailure { e -> e.printStackTrace() }
-                                println("sth = ${sth}")
-
-                            }
-                            while(true) {
-
-                            }
-                            TODO()
-                        }
 
                         is IsoMdocRequest -> {
                             NewDCAPIAuthenticationViewModel(
@@ -496,8 +480,13 @@ private fun WalletNavHost(
                                 },
                                 onClickLogo = onClickLogo,
                                 onClickSettings = { navigate(SettingsRoute) }
-                            ).also { it.initWithDeviceRequest(dcApiRequest.parsedDeviceRequest) }
+                            ).also { it.initWithDeviceRequest(dcApiRequest.deviceRequest) }
                         }
+
+                        is Oid4vpDCAPIRequest ->
+                            throw IllegalStateException("Handled by AuthenticationViewRoute")
+
+                        else -> throw IllegalStateException("Type of request not known")
                     }
 
 

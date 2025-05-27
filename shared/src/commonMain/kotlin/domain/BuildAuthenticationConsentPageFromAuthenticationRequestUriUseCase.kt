@@ -10,13 +10,16 @@ import ui.navigation.routes.AuthenticationViewRoute
 class BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
     val presentationService: PresentationService,
 ) {
-    suspend operator fun invoke(requestUri: String, incomingDcApiRequest: Oid4vpDCAPIRequest? = null): KmmResult<AuthenticationViewRoute> {
-        val request = presentationService.parseAuthenticationRequestParameters(requestUri).getOrElse {
+    suspend operator fun invoke(
+        requestUri: String,
+        incomingDcApiRequest: Oid4vpDCAPIRequest? = null
+    ): KmmResult<AuthenticationViewRoute> {
+        val request = presentationService.parseAuthenticationRequestParameters(requestUri, incomingDcApiRequest).getOrElse {
             Napier.d("authenticationRequestParameters: $it")
             return KmmResult.failure(it)
         }
 
-        val preparationState = presentationService.startAuthorizationResponsePreparation(request, incomingDcApiRequest).getOrElse {
+        val preparationState = presentationService.startAuthorizationResponsePreparation(request).getOrElse {
             Napier.e("Failure", it)
             return KmmResult.failure(it)
         }
