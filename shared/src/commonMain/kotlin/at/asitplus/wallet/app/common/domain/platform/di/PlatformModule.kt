@@ -10,6 +10,7 @@ import at.asitplus.wallet.app.common.domain.platform.UrlOpener
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
+import io.github.aakira.napier.Napier
 import org.koin.dsl.binds
 import org.koin.dsl.module
 import org.multipaz.prompt.PromptModel
@@ -43,7 +44,13 @@ fun platformModule(appDependencyProvider: WalletDependencyProvider) = module {
     }
     factory<ImageDecoder> {
         ImageDecoder {
-            appDependencyProvider.platformAdapter.decodeImage(it)
+            try {
+                appDependencyProvider.platformAdapter.decodeImage(it)
+            } catch (throwable: Throwable) {
+                // TODO: should this be emitted to the error service?
+                Napier.w("Failed Operation: decodeImage")
+                null
+            }
         }
     }
 }
