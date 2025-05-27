@@ -294,7 +294,7 @@ val request = Json.encodeToString(
         "presentation_definition",
         listOf(
             Credential(
-                "eu.europa.ec.eudi.pid.1",
+                EuPidScheme.sdJwtType,
                 "SD_JWT",
                 listOf(
                     EuPidScheme.Attributes.GIVEN_NAME,
