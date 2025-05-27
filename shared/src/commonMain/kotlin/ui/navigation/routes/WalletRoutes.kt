@@ -95,4 +95,4 @@ data class SigningIntentRoute(val uri: String) : Route()
 data class ErrorIntentRoute(val uri: String) : Route()
 
 @Serializable
-data class QrCodeScannerRoute(val mode: QrCodeScannerMode) : Route()
+data class QrCodeScannerRoute(val modeSerialized: String) : Route()

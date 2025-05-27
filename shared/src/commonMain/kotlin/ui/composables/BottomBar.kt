@@ -16,6 +16,7 @@ import at.asitplus.valera.resources.button_label_sign
 import at.asitplus.valera.resources.navigation_button_label_check
 import at.asitplus.valera.resources.navigation_button_label_my_data
 import at.asitplus.valera.resources.navigation_button_label_show_data
+import at.asitplus.wallet.lib.data.vckJsonSerializer
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import ui.navigation.routes.HomeScreenRoute
@@ -100,7 +101,7 @@ enum class NavigationData(
                 contentDescription = null,
             )
         },
-        destination = QrCodeScannerRoute(QrCodeScannerMode.SIGNING),
+        destination = QrCodeScannerRoute(vckJsonSerializer.encodeToString(QrCodeScannerMode.SIGNING)),
         isActive = {
             when (it) {
                 is QrCodeScannerRoute -> true

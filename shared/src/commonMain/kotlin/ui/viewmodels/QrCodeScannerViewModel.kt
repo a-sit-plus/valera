@@ -9,6 +9,7 @@ import at.asitplus.wallet.lib.data.vckJsonSerializer
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import ui.navigation.routes.AddCredentialPreAuthnRoute
 import ui.navigation.routes.AuthenticationViewRoute
 import ui.navigation.routes.Route
@@ -80,7 +81,8 @@ class QrCodeScannerViewModel(
     }
 }
 
-enum class QrCodeScannerMode {
+@Serializable
+enum class QrCodeScannerMode() {
     SIGNING,
     AUTHENTICATION,
     PROVISIONING
