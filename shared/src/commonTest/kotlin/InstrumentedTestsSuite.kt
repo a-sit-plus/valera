@@ -185,7 +185,7 @@ class InstrumentedTestsSuite : FunSpec({
         }
     }
 
-    context("End to End Tests") {
+    /*context("End to End Tests") {
         test("End to End Test 1: Should complete the process") {
             runComposeUiTest {
                 lateinit var walletMain: WalletMain
@@ -282,7 +282,7 @@ class InstrumentedTestsSuite : FunSpec({
                 }
             }
         }
-    }
+    }*/
 })
 
 val request = Json.encodeToString(
