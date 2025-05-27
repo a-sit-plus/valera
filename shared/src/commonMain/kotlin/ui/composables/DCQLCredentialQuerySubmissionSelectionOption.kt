@@ -28,6 +28,7 @@ import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.jws.SdJwtSigned
 import data.Attribute
 import data.credentials.CredentialAdapter
+import data.credentials.FallbackCredentialAdapter
 import data.credentials.toCredentialAdapter
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.encodeToJsonElement
@@ -78,19 +79,8 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
         }
     }
 
-    val credentialAdapter = credential.toCredentialAdapter(decodeToBitmap) ?: object : CredentialAdapter() {
-        // trying our best to map the values to attributes
-        private val mapping = genericAttributeList.toMap()
-
-        override fun getAttribute(path: NormalizedJsonPath): Attribute? {
-            return mapping[path]?.let {
-                Attribute.fromValue(it)
-            }
-        }
-
-        override val representation = credential.representation
-        override val scheme = credential.scheme!!
-    }
+    val credentialAdapter = credential.toCredentialAdapter(decodeToBitmap)
+        ?: FallbackCredentialAdapter(genericAttributeList, credential)
     val labeledAttributes = genericAttributeList.mapNotNull { (key, value) ->
         credentialAdapter.getAttribute(key)?.let { attribute ->
             key.segments.lastOrNull()?.let {
