@@ -131,6 +131,7 @@ class TransferManager(
             serial = ASN1Integer(1L),
             validFrom = certsValidFrom,
             validUntil = certsValidUntil,
+            crlUrl = "https://github.com/openwallet-foundation-labs/identity-credential/crl"
         )
     }
     private val bundledIacaKey: EcPrivateKey by lazy {
