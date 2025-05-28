@@ -26,17 +26,18 @@ import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.lib.dcapi.request.IsoMdocRequest
+import at.asitplus.dcapi.request.IsoMdocRequest
 import at.asitplus.dcapi.request.DCAPIRequest
-import at.asitplus.wallet.lib.dcapi.request.Oid4vpDCAPIRequest
-import at.asitplus.wallet.lib.dcapi.request.PreviewDCAPIRequest
+import at.asitplus.dcapi.request.Oid4vpDCAPIRequest
+import at.asitplus.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.wallet.app.common.dcapi.data.preview.ResponseJSON
 import at.asitplus.wallet.lib.iso.DCAPIResponse
-import at.asitplus.wallet.lib.iso.DeviceRequest
+import at.asitplus.iso.DeviceRequest
 import at.asitplus.wallet.lib.iso.EncryptedResponse
 import at.asitplus.wallet.lib.iso.EncryptedResponseData
-import at.asitplus.wallet.lib.iso.EncryptionInfo
-import at.asitplus.wallet.lib.iso.EncryptionParameters
+import at.asitplus.iso.EncryptionInfo
+import at.asitplus.iso.EncryptionParameters
+import at.asitplus.wallet.lib.iso.vckCborSerializer
 import com.android.identity.android.mdoc.util.CredmanUtil
 import com.google.android.gms.identitycredentials.IdentityCredentialManager
 import data.storage.RealDataStoreService
@@ -182,7 +183,7 @@ public class AndroidPlatformAdapter(
         }
     }
 
-    @OptIn(ExperimentalDigitalCredentialApi::class)
+    @OptIn(ExperimentalDigitalCredentialApi::class, ExperimentalEncodingApi::class)
     override fun getCurrentDCAPIData(): KmmResult<DCAPIRequest> = catching {
         (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.let { (intent, _) ->
             // Adapted from https://github.com/openwallet-foundation-labs/identity-credential/blob/d7a37a5c672ed6fe1d863cbaeb1a998314d19fc5/wallet/src/main/java/com/android/identity_credential/wallet/credman/CredmanPresentationActivity.kt#L74
@@ -260,11 +261,19 @@ public class AndroidPlatformAdapter(
                     )
                 }
                 protocol == "org.iso.mdoc" -> {
+                    val isoBase64Decoder =
+                        kotlin.io.encoding.Base64.UrlSafe.withPadding(kotlin.io.encoding.Base64.PaddingOption.ABSENT_OPTIONAL)
                     val request = JSONObject(parsedRequest)
                     val deviceRequest = request.getString("deviceRequest")
                     val encryptionInfo = request.getString("encryptionInfo")
-                    val parsedDeviceRequest = DeviceRequest.deserialize(deviceRequest).getOrThrow()
-                    val parsedEncryptionInfo = EncryptionInfo.deserialize(encryptionInfo).getOrThrow()
+                    val parsedDeviceRequest = vckCborSerializer.decodeFromByteArray(
+                        DeviceRequest.serializer(),
+                        isoBase64Decoder.decode(deviceRequest)
+                    )
+                    val parsedEncryptionInfo = vckCborSerializer.decodeFromByteArray(
+                        EncryptionInfo.serializer(),
+                        isoBase64Decoder.decode(encryptionInfo)
+                    )
                     IsoMdocRequest(
                         parsedDeviceRequest,
                         parsedEncryptionInfo,

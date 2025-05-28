@@ -21,7 +21,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import at.asitplus.catching
 import at.asitplus.catchingUnwrapped
+import at.asitplus.dcapi.request.DCAPIRequest
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.openid.RequestParametersFrom
@@ -31,12 +33,12 @@ import at.asitplus.valera.resources.error_feature_not_yet_available
 import at.asitplus.valera.resources.snackbar_clear_log_successfully
 import at.asitplus.valera.resources.snackbar_reset_app_successfully
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.lib.dcapi.request.Oid4vpDCAPIRequest
-import at.asitplus.wallet.lib.dcapi.request.PreviewDCAPIRequest
+import at.asitplus.dcapi.request.Oid4vpDCAPIRequest
+import at.asitplus.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.lib.data.dif.ConstraintFieldsEvaluationException
 import at.asitplus.wallet.lib.data.vckJsonSerializer
-import at.asitplus.wallet.lib.dcapi.request.IsoMdocRequest
+import at.asitplus.dcapi.request.IsoMdocRequest
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
@@ -405,7 +407,7 @@ private fun WalletNavHost(
 
                     val apiRequestSerialized = route.oid4vpDCAPIRequestSerialized
                     val dcApiRequest =
-                        apiRequestSerialized?.let { Oid4vpDCAPIRequest.deserialize(apiRequestSerialized).getOrNull() }
+                        apiRequestSerialized?.let { vckJsonSerializer.decodeFromString<Oid4vpDCAPIRequest>(apiRequestSerialized) }
                     preparationState.oid4vpDCAPIRequest = dcApiRequest
                     request.setDcApiRequest(dcApiRequest)
                     val spLocation = dcApiRequest?.callingOrigin ?: route.recipientLocation
@@ -443,14 +445,13 @@ private fun WalletNavHost(
         }
 
         composable<DCAPIAuthenticationConsentRoute> { backStackEntry ->
-            val vm : AuthenticationViewModel = remember {
+            val vm : AuthenticationViewModel? = remember {
                 try {
                     val apiRequestSerialized =
                         backStackEntry.toRoute<DCAPIAuthenticationConsentRoute>().apiRequestSerialized
-                    val dcApiRequest =
-                        PreviewDCAPIRequest.deserialize(apiRequestSerialized).getOrNull()
-                            ?: Oid4vpDCAPIRequest.deserialize(apiRequestSerialized).getOrNull()
-                            ?: IsoMdocRequest.deserialize(apiRequestSerialized).getOrThrow()
+                    val dcApiRequest : DCAPIRequest =
+                        catching { vckJsonSerializer.decodeFromString<PreviewDCAPIRequest>(apiRequestSerialized) }.getOrNull()
+                            ?: catching { vckJsonSerializer.decodeFromString<IsoMdocRequest>(apiRequestSerialized) }.getOrThrow()
 
                     when (dcApiRequest) {
                         is PreviewDCAPIRequest -> PreviewDCAPIAuthenticationViewModel(
@@ -485,8 +486,6 @@ private fun WalletNavHost(
 
                         is Oid4vpDCAPIRequest ->
                             throw IllegalStateException("Handled by AuthenticationViewRoute")
-
-                        else -> throw IllegalStateException("Type of request not known")
                     }
 
 
@@ -494,7 +493,7 @@ private fun WalletNavHost(
                     Napier.e("error", e)
                     onError(e)
                     null
-                }!!
+                }
             }
 
             if (vm != null) {

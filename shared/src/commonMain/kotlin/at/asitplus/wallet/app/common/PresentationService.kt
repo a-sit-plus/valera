@@ -6,9 +6,9 @@ import at.asitplus.openid.RelyingPartyMetadata
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
-import at.asitplus.wallet.lib.dcapi.request.PreviewDCAPIRequest
+import at.asitplus.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.wallet.app.common.dcapi.data.preview.PreviewRequest
-import at.asitplus.wallet.lib.dcapi.request.Oid4vpDCAPIRequest
+import at.asitplus.dcapi.request.Oid4vpDCAPIRequest
 import at.asitplus.wallet.lib.agent.CreatePresentationResult
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.PresentationException
@@ -19,7 +19,7 @@ import at.asitplus.wallet.lib.cbor.SignCose
 import at.asitplus.wallet.lib.cbor.SignCoseDetached
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
-import at.asitplus.wallet.lib.dcapi.request.IsoMdocRequest
+import at.asitplus.dcapi.request.IsoMdocRequest
 import at.asitplus.wallet.lib.iso.DCAPIHandover
 import at.asitplus.wallet.lib.iso.DCAPIInfo
 import at.asitplus.wallet.lib.iso.DeviceAuthentication
@@ -34,8 +34,6 @@ import kotlinx.serialization.builtins.ByteArraySerializer
 import kotlinx.serialization.encodeToByteArray
 import ui.viewmodels.authentication.DCQLMatchingResult
 import ui.viewmodels.authentication.PresentationExchangeMatchingResult
-import kotlin.io.encoding.Base64
-import kotlin.io.encoding.Base64.PaddingOption
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 class PresentationService(
@@ -151,7 +149,7 @@ class PresentationService(
 
         val presentationResult = holderAgent.createPresentation(
             request = PresentationRequestParameters(
-                nonce = Base64.UrlSafe.withPadding(PaddingOption.ABSENT_OPTIONAL).encode(isoMdocRequest.encryptionInfo.encryptionParameters.nonce), // TODO which nonce? isoMdocRequest.parsedEncryptionInfo.encryptionParameters.nonce?
+                nonce = "", // TODO which nonce? isoMdocRequest.parsedEncryptionInfo.encryptionParameters.nonce? Base64.UrlSafe.withPadding(PaddingOption.ABSENT_OPTIONAL).encode(isoMdocRequest.encryptionInfo.encryptionParameters.nonce)
                 audience = isoMdocRequest.callingOrigin,
                 calcIsoDeviceSignature = { docType, deviceNameSpaceBytes ->
                     val deviceAuthentication = DeviceAuthentication(
@@ -171,13 +169,6 @@ class PresentationService(
                             Napier.w("Could not create DeviceAuth for presentation", e)
                             throw PresentationException(e)
                         } to null
-
-                    /*SignCose<ByteArray>(keyMaterial, CoseHeaderNone(), CoseHeaderNone())
-                        .invoke(null, null, docType.encodeToByteArray(), ByteArraySerializer())
-                        .getOrElse { e ->
-                            Napier.w("Could not create DeviceAuth for presentation", e)
-                            throw PresentationException(e)
-                        } to null*/
                 },
             ),
             credentialPresentation = credentialPresentation,

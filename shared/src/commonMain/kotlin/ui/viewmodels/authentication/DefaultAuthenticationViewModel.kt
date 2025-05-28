@@ -8,7 +8,6 @@ import at.asitplus.openid.OpenIdConstants
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.rqes.QesInputDescriptor
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.lib.dcapi.request.Oid4vpDCAPIRequest
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
@@ -77,6 +76,8 @@ class DefaultAuthenticationViewModel(
         isEncryptedResponse: Boolean,
     ): OpenId4VpWallet.AuthenticationSuccess {
         authenticationResult.authenticationResponseResult.params.response?.let {
+            // TODO no response json required for non-encrypted case?
+            // at least https://digital-credentials.dev/ only works without it
             val response =
                 if (isEncryptedResponse) DCAPIResponse.createOid4vpResponse(it).serialize() else it
             walletMain.presentationService.finalizeOid4vpDCAPIPresentation(response)

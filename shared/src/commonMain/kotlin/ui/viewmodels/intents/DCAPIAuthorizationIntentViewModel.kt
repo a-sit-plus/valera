@@ -2,10 +2,10 @@ package ui.viewmodels.intents
 
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.dcapi.data.ErrorResponse
-import at.asitplus.wallet.lib.dcapi.request.Oid4vpDCAPIRequest
-import at.asitplus.wallet.lib.dcapi.request.PreviewDCAPIRequest
+import at.asitplus.dcapi.request.Oid4vpDCAPIRequest
+import at.asitplus.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.wallet.app.common.domain.BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase
-import at.asitplus.wallet.lib.dcapi.request.IsoMdocRequest
+import at.asitplus.dcapi.request.IsoMdocRequest
 import at.asitplus.wallet.lib.oidvci.OAuth2Exception
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier

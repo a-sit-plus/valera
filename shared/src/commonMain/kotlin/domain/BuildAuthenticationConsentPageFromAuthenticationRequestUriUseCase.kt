@@ -3,7 +3,7 @@ package domain
 import at.asitplus.KmmResult
 import at.asitplus.wallet.app.common.PresentationService
 import at.asitplus.wallet.lib.data.vckJsonSerializer
-import at.asitplus.wallet.lib.dcapi.request.Oid4vpDCAPIRequest
+import at.asitplus.dcapi.request.Oid4vpDCAPIRequest
 import io.github.aakira.napier.Napier
 import ui.navigation.routes.AuthenticationViewRoute
 
@@ -24,6 +24,9 @@ class BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
             return KmmResult.failure(it)
         }
 
+        val oid4vpDCAPIRequestSerialized =
+            incomingDcApiRequest?.let { vckJsonSerializer.encodeToString(it) }
+
         // TODO: extract recipient name from the metadataResponse; the data is not yet being delivered though
         return KmmResult.success(
             AuthenticationViewRoute(
@@ -31,7 +34,7 @@ class BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
                 authorizationPreparationStateSerialized = vckJsonSerializer.encodeToString(preparationState),
                 recipientLocation = request.parameters.clientId ?: "",
                 isCrossDeviceFlow = false,
-                oid4vpDCAPIRequestSerialized = incomingDcApiRequest?.serialize()
+                oid4vpDCAPIRequestSerialized = oid4vpDCAPIRequestSerialized
             )
         )
     }
