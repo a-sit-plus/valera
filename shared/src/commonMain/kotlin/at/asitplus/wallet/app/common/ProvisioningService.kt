@@ -36,7 +36,7 @@ class ProvisioningService(
     private val keyMaterial: KeyMaterial,
     private val holderAgent: HolderAgent,
     private val config: SettingsRepository,
-    errorService: ErrorService,
+    private val errorService: ErrorService,
     httpService: HttpService,
 ) {
     /** Checked by appLink handling whether to jump into [resumeWithAuthCode] */
@@ -118,7 +118,9 @@ class ProvisioningService(
                 vckJsonSerializer.decodeFromString<ProvisioningContext>(it)
                     .also { dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT) }
             }?.let {
-                openId4VciClient.resumeWithAuthCode(redirectedUrl, it).getOrThrow()
+                openId4VciClient.resumeWithAuthCode(redirectedUrl, it).getOrThrow().credentials.forEach {
+                    holderAgent.storeCredential(it)
+                }
             }
     }
 
@@ -162,11 +164,7 @@ class ProvisioningService(
             when (this) {
                 is CredentialIssuanceResult.OpenUrlForAuthnRequest -> storeContextOpenIntent()
                 is CredentialIssuanceResult.Success -> {
-                    credentials.forEach {
-                        runCatching { holderAgent.storeCredential(it) }.onFailure {
-                            Napier.w("Could not store $it", it)
-                        }
-                    }
+                    credentials.forEach { holderAgent.storeCredential(it) }
                 }
             }
         }

@@ -480,7 +480,7 @@ class MobileDrivingLicenceCredentialIsoMdocAdapter(
     @Suppress("UNCHECKED_CAST")
     override val drivingPrivileges: Array<DrivingPrivilege>?
         get() = namespace?.get(MobileDrivingLicenceDataElements.DRIVING_PRIVILEGES)
-            ?.let { it as Array<DrivingPrivilege> }
+            ?.let { it as? Array<DrivingPrivilege>? }
 
     override val undistinguishingSign: String?
         get() = namespace?.get(MobileDrivingLicenceDataElements.UN_DISTINGUISHING_SIGN) as String?
