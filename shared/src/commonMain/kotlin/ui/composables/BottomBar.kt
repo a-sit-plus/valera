@@ -101,7 +101,7 @@ enum class NavigationData(
                 contentDescription = null,
             )
         },
-        destination = QrCodeScannerRoute(vckJsonSerializer.encodeToString(QrCodeScannerMode.SIGNING)),
+        destination = QrCodeScannerRoute(QrCodeScannerMode.SIGNING),
         isActive = {
             when (it) {
                 is QrCodeScannerRoute -> true
