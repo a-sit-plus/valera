@@ -280,7 +280,7 @@ class SigningService(
             jwt,
             vckJsonSerializer
         ).getOrElse {
-            throw Throwable("SigningService: Unable to parse SignatureRequestParameters $it")
+            throw Throwable("SigningService: Unable to parse SignatureRequestParameters", it)
         }.payload
     }
 
