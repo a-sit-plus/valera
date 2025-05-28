@@ -79,6 +79,8 @@ class DefaultAuthenticationViewModel(
         isEncryptedResponse: Boolean,
     ): OpenId4VpWallet.AuthenticationSuccess {
         authenticationResult.authenticationResponseResult.params.response?.let {
+            // TODO no response json required for non-encrypted case?
+            // at least https://digital-credentials.dev/ only works without it
             val response = if (isEncryptedResponse)
                 vckJsonSerializer.encodeToString(DCAPIResponse.createOid4vpResponse(it))
             else it

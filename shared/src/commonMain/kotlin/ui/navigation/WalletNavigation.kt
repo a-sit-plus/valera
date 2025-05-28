@@ -21,7 +21,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import at.asitplus.catching
 import at.asitplus.catchingUnwrapped
+import at.asitplus.dcapi.request.DCAPIRequest
 import at.asitplus.dcapi.request.IsoMdocRequest
 import at.asitplus.dcapi.request.Oid4vpDCAPIRequest
 import at.asitplus.dcapi.request.PreviewDCAPIRequest
@@ -95,10 +97,10 @@ import ui.viewmodels.QrCodeScannerViewModel
 import ui.viewmodels.SigningQtspSelectionViewModel
 import ui.viewmodels.authentication.AuthenticationSuccessViewModel
 import ui.viewmodels.authentication.AuthenticationViewModel
-import ui.viewmodels.authentication.PreviewDCAPIAuthenticationViewModel
 import ui.viewmodels.authentication.DefaultAuthenticationViewModel
 import ui.viewmodels.authentication.NewDCAPIAuthenticationViewModel
 import ui.viewmodels.authentication.PresentationViewModel
+import ui.viewmodels.authentication.PreviewDCAPIAuthenticationViewModel
 import ui.viewmodels.intents.AuthorizationIntentViewModel
 import ui.viewmodels.intents.DCAPIAuthorizationIntentViewModel
 import ui.viewmodels.intents.ErrorIntentViewModel
@@ -395,9 +397,7 @@ private fun WalletNavHost(
                     val apiRequestSerialized = route.oid4vpDCAPIRequestSerialized
                     val dcApiRequest =
                         apiRequestSerialized?.let {
-                            vckJsonSerializer.decodeFromString<Oid4vpDCAPIRequest>(
-                                it
-                            )
+                            vckJsonSerializer.decodeFromString<Oid4vpDCAPIRequest>(it)
                         }
                     //TODOpreparationState.oid4vpDCAPIRequest = dcApiRequest
                     //TODOrequest.setDcApiRequest(dcApiRequest)
@@ -436,22 +436,21 @@ private fun WalletNavHost(
         }
 
         composable<DCAPIAuthenticationConsentRoute> { backStackEntry ->
-            val vm: AuthenticationViewModel = remember {
+            val vm: AuthenticationViewModel? = remember {
                 try {
                     val apiRequestSerialized =
                         backStackEntry.toRoute<DCAPIAuthenticationConsentRoute>().apiRequestSerialized
-                    val dcApiRequest =
-                        runCatching {
+                    val dcApiRequest: DCAPIRequest =
+                        catching {
                             vckJsonSerializer.decodeFromString<PreviewDCAPIRequest>(
                                 apiRequestSerialized
                             )
-                        }.getOrNull() ?: runCatching {
-                            vckJsonSerializer.decodeFromString<Oid4vpDCAPIRequest>(
-                                apiRequestSerialized
-                            )
-                        }.getOrNull() ?: runCatching {
-                            vckJsonSerializer.decodeFromString<IsoMdocRequest>(apiRequestSerialized)
-                        }.getOrThrow()
+                        }.getOrNull()
+                            ?: catching {
+                                vckJsonSerializer.decodeFromString<IsoMdocRequest>(
+                                    apiRequestSerialized
+                                )
+                            }.getOrThrow()
 
                     when (dcApiRequest) {
                         is PreviewDCAPIRequest -> PreviewDCAPIAuthenticationViewModel(
@@ -493,7 +492,7 @@ private fun WalletNavHost(
                     Napier.e("error", e)
                     onError(e)
                     null
-                }!!
+                }
             }
 
             if (vm != null) {

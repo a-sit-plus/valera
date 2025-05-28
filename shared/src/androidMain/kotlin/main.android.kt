@@ -23,6 +23,7 @@ import at.asitplus.dcapi.request.DCAPIRequest
 import at.asitplus.dcapi.request.IsoMdocRequest
 import at.asitplus.dcapi.request.Oid4vpDCAPIRequest
 import at.asitplus.dcapi.request.PreviewDCAPIRequest
+import at.asitplus.iso.EncryptionParameters
 import at.asitplus.openid.OpenIdConstants.DC_API_OID4VP_PROTOCOL_IDENTIFIER
 import at.asitplus.signum.indispensable.cosef.CoseKeyParams.EcKeyParams
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
@@ -37,7 +38,6 @@ import at.asitplus.wallet.app.common.WalletDependencyProvider
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialList
 import at.asitplus.wallet.app.common.dcapi.data.preview.ResponseJSON
 import at.asitplus.wallet.lib.data.vckJsonSerializer
-import at.asitplus.wallet.lib.iso.EncryptionParameters
 import com.android.identity.android.mdoc.util.CredmanUtil
 import com.google.android.gms.identitycredentials.IdentityCredentialManager
 import data.storage.RealDataStoreService
@@ -49,6 +49,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
+import kotlinx.serialization.decodeFromByteArray
 import org.json.JSONObject
 import org.multipaz.compose.prompt.PromptDialogs
 import org.multipaz.crypto.Algorithm
@@ -60,7 +61,6 @@ import ui.theme.darkScheme
 import ui.theme.lightScheme
 import java.io.File
 import kotlin.io.encoding.ExperimentalEncodingApi
-import kotlinx.serialization.decodeFromByteArray
 
 
 actual fun getPlatformName(): String = "Android"
@@ -185,7 +185,7 @@ public class AndroidPlatformAdapter(
         }
     }
 
-    @OptIn(ExperimentalDigitalCredentialApi::class)
+    @OptIn(ExperimentalDigitalCredentialApi::class, ExperimentalEncodingApi::class)
     override fun getCurrentDCAPIData(): KmmResult<DCAPIRequest> = catching {
         (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.let { (intent, _) ->
             // Adapted from https://github.com/openwallet-foundation-labs/identity-credential/blob/d7a37a5c672ed6fe1d863cbaeb1a998314d19fc5/wallet/src/main/java/com/android/identity_credential/wallet/credman/CredmanPresentationActivity.kt#L74

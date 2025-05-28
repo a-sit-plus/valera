@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
 import at.asitplus.dcapi.request.DCAPIRequest
 import at.asitplus.dcapi.request.PreviewDCAPIRequest
+import at.asitplus.iso.EncryptionParameters
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_update_action
 import at.asitplus.valera.resources.snackbar_update_hint
@@ -13,7 +14,6 @@ import at.asitplus.wallet.app.common.dcapi.data.export.CredentialList
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.agent.Validator
-import at.asitplus.wallet.lib.iso.EncryptionParameters
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
@@ -228,12 +228,17 @@ interface PlatformAdapter {
     /**
      * Prepares the credential response and sends it back to the invoking application
      */
-    fun prepareDCAPIPreviewCredentialResponse(responseJson: ByteArray, dcApiRequestPreview: PreviewDCAPIRequest)
+    fun prepareDCAPIPreviewCredentialResponse(
+        responseJson: ByteArray,
+        dcApiRequestPreview: PreviewDCAPIRequest
+    )
+
     fun prepareDCAPIIsoMdocCredentialResponse(
         responseJson: ByteArray,
         serialize: ByteArray,
         encryptionParameters: EncryptionParameters
     )
+
     fun prepareDCAPIOid4vpCredentialResponse(responseJson: String, success: Boolean)
 
 }

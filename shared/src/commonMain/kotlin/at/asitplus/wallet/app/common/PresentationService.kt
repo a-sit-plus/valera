@@ -36,8 +36,6 @@ import kotlinx.serialization.builtins.ByteArraySerializer
 import kotlinx.serialization.encodeToByteArray
 import ui.viewmodels.authentication.DCQLMatchingResult
 import ui.viewmodels.authentication.PresentationExchangeMatchingResult
-import kotlin.io.encoding.Base64
-import kotlin.io.encoding.Base64.PaddingOption
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 class PresentationService(
@@ -181,13 +179,6 @@ class PresentationService(
                             Napier.w("Could not create DeviceAuth for presentation", e)
                             throw PresentationException(e)
                         } to null
-
-                    /*SignCose<ByteArray>(keyMaterial, CoseHeaderNone(), CoseHeaderNone())
-                        .invoke(null, null, docType.encodeToByteArray(), ByteArraySerializer())
-                        .getOrElse { e ->
-                            Napier.w("Could not create DeviceAuth for presentation", e)
-                            throw PresentationException(e)
-                        } to null*/
                 },
             ),
             credentialPresentation = credentialPresentation,

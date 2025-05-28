@@ -14,26 +14,35 @@ class BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
         requestUri: String,
         incomingDcApiRequest: Oid4vpDCAPIRequest? = null
     ): KmmResult<AuthenticationViewRoute> {
-        val request = presentationService.parseAuthenticationRequestParameters(requestUri, incomingDcApiRequest).getOrElse {
+        val request = presentationService.parseAuthenticationRequestParameters(
+            requestUri,
+            incomingDcApiRequest
+        ).getOrElse {
             Napier.d("authenticationRequestParameters: $it")
             return KmmResult.failure(it)
         }
 
-        val preparationState = presentationService.startAuthorizationResponsePreparation(request).getOrElse {
-            Napier.e("Failure", it)
-            return KmmResult.failure(it)
-        }
+        val preparationState =
+            presentationService.startAuthorizationResponsePreparation(request).getOrElse {
+                Napier.e("Failure", it)
+                return KmmResult.failure(it)
+            }
+
+        val oid4vpDCAPIRequestSerialized =
+            incomingDcApiRequest?.let { vckJsonSerializer.encodeToString(it) }
 
         // TODO: extract recipient name from the metadataResponse; the data is not yet being delivered though
         return KmmResult.success(
             AuthenticationViewRoute(
-                authenticationRequestParametersFromSerialized = vckJsonSerializer.encodeToString(request),
-                authorizationPreparationStateSerialized = vckJsonSerializer.encodeToString(preparationState),
+                authenticationRequestParametersFromSerialized = vckJsonSerializer.encodeToString(
+                    request
+                ),
+                authorizationPreparationStateSerialized = vckJsonSerializer.encodeToString(
+                    preparationState
+                ),
                 recipientLocation = request.parameters.clientId ?: "",
                 isCrossDeviceFlow = false,
-                oid4vpDCAPIRequestSerialized = incomingDcApiRequest?.let {
-                    vckJsonSerializer.encodeToString(it)
-                }
+                oid4vpDCAPIRequestSerialized = oid4vpDCAPIRequestSerialized
             )
         )
     }

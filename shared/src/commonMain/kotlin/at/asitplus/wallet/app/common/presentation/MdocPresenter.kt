@@ -72,7 +72,9 @@ class MdocPresenter(
                             eReaderKeyBytes = eReaderCoseKey.getOrThrow().serialize()
                         )
                     } else {
-                        val nfcHandover = coseCompliantSerializer.decodeFromByteArray<NFCHandover>(Cbor.encode(mechanism.handover))
+                        val nfcHandover = coseCompliantSerializer.decodeFromByteArray<NFCHandover>(
+                            Cbor.encode(mechanism.handover)
+                        )
                         SessionTranscript.forNfc(
                             deviceEngagementBytes = mechanism.encodedDeviceEngagement.toByteArray(),
                             eReaderKeyBytes = eReaderCoseKey.getOrThrow().serialize(),
@@ -80,7 +82,8 @@ class MdocPresenter(
                         )
                     }
 
-                    encodedSessionTranscript = coseCompliantSerializer.encodeToByteArray(sessionTranscript)
+                    encodedSessionTranscript =
+                        coseCompliantSerializer.encodeToByteArray(sessionTranscript)
 
                     sessionEncryption = SessionEncryption(
                         MdocRole.MDOC,
@@ -103,7 +106,8 @@ class MdocPresenter(
                     encodedSessionTranscript!!,
                 ).parse()
 
-                val deviceRequest = coseCompliantSerializer.decodeFromByteArray<DeviceRequest>(encodedDeviceRequest)
+                val deviceRequest =
+                    coseCompliantSerializer.decodeFromByteArray<DeviceRequest>(encodedDeviceRequest)
 
                 presentationViewModel.initWithDeviceRequest(
                     deviceRequest,
