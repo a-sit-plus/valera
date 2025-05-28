@@ -1,5 +1,6 @@
 package ui.navigation.routes
 
+import at.asitplus.wallet.lib.data.vckJsonSerializer
 import data.storage.StoreEntryId
 import kotlinx.serialization.Serializable
 import ui.viewmodels.QrCodeScannerMode
@@ -95,4 +96,7 @@ data class SigningIntentRoute(val uri: String) : Route()
 data class ErrorIntentRoute(val uri: String) : Route()
 
 @Serializable
-data class QrCodeScannerRoute(val modeSerialized: String) : Route()
+data class QrCodeScannerRoute(val modeSerialized: String) : Route() {
+    constructor(mode: QrCodeScannerMode) : this(vckJsonSerializer.encodeToString(mode)) {
+    }
+}
