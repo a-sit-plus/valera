@@ -1,40 +1,36 @@
 package ui.viewmodels.authentication
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.WalletMain
-import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
+import at.asitplus.wallet.app.common.domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import ui.navigation.routes.AuthenticationViewRoute
 
 class AuthenticationQrCodeScannerViewModel(
-    val navigateUp: (() -> Unit)?,
-    val onSuccess: (AuthenticationViewRoute) -> Unit,
     val walletMain: WalletMain,
-    val onClickLogo: () -> Unit,
-    val onClickSettings: () -> Unit
-) {
-    var isLoading by mutableStateOf(false)
-    private val buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase =
-        BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
-            presentationService = walletMain.presentationService,
-        )
-
-    fun onScan(link: String) {
+    val errorService: ErrorService,
+    private val buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase: BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
+): ViewModel() {
+    fun onScan(
+        link: String,
+        onSuccess: (AuthenticationViewRoute) -> Unit,
+        onFailure: (Throwable) -> Unit,
+    ) {
         Napier.d("onScan: $link")
 
-        isLoading = true
         val coroutineExceptionHandler = CoroutineExceptionHandler { _, error ->
-            isLoading = false
-            walletMain.errorService.emit(error)
+            errorService.emit(error)
+            onFailure(error)
         }
 
-        CoroutineScope(Dispatchers.Main).launch(coroutineExceptionHandler) {
+        viewModelScope.launch(coroutineExceptionHandler) {
             val authenticationConsentPage =
                 buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(link).getOrThrow()
                     .let {
@@ -46,7 +42,6 @@ class AuthenticationQrCodeScannerViewModel(
                         )
                     }
 
-            isLoading = false
             onSuccess(authenticationConsentPage)
         }
     }

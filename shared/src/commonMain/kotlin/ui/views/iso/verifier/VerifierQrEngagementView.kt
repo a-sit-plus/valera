@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_check_scan_qr_code
 import at.asitplus.valera.resources.info_text_missing_permission
+import at.asitplus.wallet.app.common.iso.transfer.DeviceEngagementMethods
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
@@ -28,7 +29,11 @@ import ui.views.CameraView
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun VerifierQrEngagementView(vm: VerifierViewModel) {
+fun VerifierQrEngagementView(
+    navigateUp: () -> Unit,
+    onClickLogo: () -> Unit,
+    onFoundPayload: (String) -> Unit,
+) {
 
     var hasPermissions by remember { mutableStateOf(false) }
     if (!hasPermissions) {
@@ -45,16 +50,16 @@ fun VerifierQrEngagementView(vm: VerifierViewModel) {
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.headlineMedium,
                         )
-                        Logo(onClick = vm.onClickLogo)
+                        Logo(onClick = onClickLogo)
                     }
                 },
-                navigationIcon = { NavigateUpButton(vm.navigateUp) }
+                navigationIcon = { NavigateUpButton(navigateUp) }
             )
         }
     ) {
         Column(modifier = Modifier.padding(it).fillMaxSize()) {
             CameraView(
-                onFoundPayload = vm.onFoundPayload,
+                onFoundPayload = onFoundPayload,
                 modifier = Modifier.fillMaxSize()
             )
         }

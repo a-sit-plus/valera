@@ -6,20 +6,23 @@ import androidx.compose.runtime.getValue
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_waiting_for_response
 import at.asitplus.wallet.app.common.iso.transfer.BluetoothInfo
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 import org.multipaz.compose.permissions.rememberBluetoothPermissionState
 import ui.viewmodels.iso.VerifierState
 import ui.viewmodels.iso.VerifierViewModel
-import org.jetbrains.compose.resources.stringResource
 import ui.views.LoadingView
 
 @Composable
 fun VerifierView(
-    vm: VerifierViewModel,
     onError: (Throwable) -> Unit,
-    bottomBar: @Composable () -> Unit
+    bottomBar: @Composable () -> Unit,
+    onClickLogo: () -> Unit,
+    onClickSettings: () -> Unit,
+    navigateUp: () -> Unit,
+    vm: VerifierViewModel = koinViewModel(),
 ) {
     val verifierState by vm.verifierState.collectAsState()
 
@@ -31,19 +34,42 @@ fun VerifierView(
 
     val blePermissionState = rememberBluetoothPermissionState()
     if (!blePermissionState.isGranted) {
-        CoroutineScope(Dispatchers.Main).launch {
+        vm.walletMain.scope.launch {
             blePermissionState.launchPermissionRequest()
         }
     }
 
-    when (verifierState) {
-        VerifierState.INIT -> VerifierDocumentSelectionView(vm, bottomBar)
-        VerifierState.SELECT_CUSTOM_REQUEST -> VerifierCustomSelectionView(vm)
-        VerifierState.QR_ENGAGEMENT -> VerifierQrEngagementView(vm)
-        VerifierState.WAITING_FOR_RESPONSE ->
-            LoadingView(stringResource(Res.string.info_text_waiting_for_response), vm.navigateUp)
 
-        VerifierState.PRESENTATION -> VerifierPresentationView(vm)
+    // TODO: from acrusage: this seems like a good candidate to use the navigation framework?
+    when (verifierState) {
+        VerifierState.INIT -> VerifierDocumentSelectionView(
+            vm,
+            bottomBar,
+            onClickSettings = onClickSettings,
+            onClickLogo = onClickLogo,
+            navigateToCustomSelectionView = vm::navigateToCustomSelectionView,
+        )
+        VerifierState.SELECT_CUSTOM_REQUEST -> VerifierCustomSelectionView(
+            vm,
+            onClickLogo = onClickLogo,
+            onClickSettings = onClickSettings,
+            navigateUp = vm::navigateToVerifyDataView,
+        )
+        VerifierState.QR_ENGAGEMENT -> VerifierQrEngagementView(
+            navigateUp = navigateUp,
+            onClickLogo = onClickLogo,
+            onFoundPayload = vm::onFoundPayload,
+        )
+        VerifierState.WAITING_FOR_RESPONSE -> LoadingView(
+            stringResource(Res.string.info_text_waiting_for_response),
+            navigateUp = navigateUp,
+        )
+
+        VerifierState.PRESENTATION -> VerifierPresentationView(
+            navigateUp = navigateUp,
+            onClickLogo = onClickLogo,
+            vm,
+        )
         VerifierState.ERROR -> onError(Throwable(vm.errorMessage.value))
     }
 }

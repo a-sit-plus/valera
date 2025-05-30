@@ -22,6 +22,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -30,6 +31,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_credential_details_screen
+import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.ehic.EhicScheme
@@ -42,36 +44,35 @@ import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import at.asitplus.wallet.taxid.TaxIdScheme
 import at.asitplus.wallet.taxid.TaxId2025Scheme
+import data.storage.StoreEntryId
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.viewmodel.koinViewModel
 import ui.composables.CredentialCardActionMenu
 import ui.composables.Logo
 import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.*
 import ui.viewmodels.CredentialDetailsViewModel
+import ui.viewmodels.UiState
 
 @Composable
 fun CredentialDetailsView(
-    vm: CredentialDetailsViewModel,
+    navigateUp: () -> Unit,
+    onClickLogo: () -> Unit,
+    onClickSettings: () -> Unit,
+    onError: (Throwable) -> Unit,
+    vm: CredentialDetailsViewModel = koinViewModel(),
 ) {
-    val storeEntry by vm.storeEntry.collectAsState(null)
+    val storeEntry by vm.storeEntry.collectAsState()
 
-    CredentialDetailsScaffold(
-        isStoreEntryAvailable = storeEntry != null,
-        navigateUp = vm.navigateUp,
-        onDelete = {
-            vm.deleteStoreEntry()
-            vm.navigateUp()
-        },
-        onClickLogo = vm.onClickLogo,
-        onClickSettings = vm.onClickSettings
-    ) {
-        storeEntry?.let {
-            CredentialDetailsSummaryView(
-                storeEntry = it,
-                imageDecoder = vm.imageDecoder,
-            )
-        } ?: Column(
+    when(val it = storeEntry) {
+        is UiState.Failure -> {
+            LaunchedEffect(Unit) {
+                onError(it.throwable)
+            }
+        }
+
+        is UiState.Loading -> Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
@@ -81,6 +82,26 @@ fun CredentialDetailsView(
                 trackColor = MaterialTheme.colorScheme.surfaceVariant,
                 modifier = Modifier.fillMaxSize(0.5f),
             )
+        }
+
+        is UiState.Success -> {
+            CredentialDetailsScaffold(
+                isStoreEntryAvailable = it.value != null,
+                navigateUp = navigateUp,
+                onDelete = {
+                    vm.deleteStoreEntry()
+                    navigateUp()
+                },
+                onClickLogo = onClickLogo,
+                onClickSettings = onClickSettings
+            ) {
+                it.value?.let { storeEntry ->
+                    CredentialDetailsSummaryView(
+                        storeEntry = storeEntry,
+                        imageDecoder = vm.imageDecoder,
+                    )
+                }
+            }
         }
     }
 }

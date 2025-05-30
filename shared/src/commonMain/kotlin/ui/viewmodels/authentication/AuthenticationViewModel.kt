@@ -3,7 +3,7 @@ package ui.viewmodels.authentication
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.ImageBitmap
+import androidx.lifecycle.viewModelScope
 import at.asitplus.KmmResult
 import at.asitplus.catchingUnwrapped
 import at.asitplus.openid.TransactionDataBase64Url
@@ -16,19 +16,14 @@ import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.data.third_party.at.asitplus.oidc.dcql.toDefaultSubmission
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 
 abstract class AuthenticationViewModel(
-    val spName: String?,
-    val spLocation: String,
-    val spImage: ImageBitmap?,
-    val navigateUp: () -> Unit,
-    val onAuthenticationSuccess: (redirectUrl: String?) -> Unit,
-    val navigateToHomeScreen: () -> Unit,
     val walletMain: WalletMain,
-    val onClickLogo: () -> Unit,
-    val onClickSettings: () -> Unit
 ) {
     abstract val presentationRequest: CredentialPresentationRequest
 
@@ -71,8 +66,11 @@ abstract class AuthenticationViewModel(
         }
     }
 
-    fun confirmSelection(credentialPresentationSubmissions: CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>?) {
-        walletMain.scope.launch {
+    fun confirmSelection(
+        credentialPresentationSubmissions: CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>?,
+        onAuthenticationSuccess: (OpenId4VpWallet.AuthenticationSuccess) -> Unit,
+    ) {
+        CoroutineScope(Dispatchers.IO).launch {
             finalizeAuthorization(
                 when(credentialPresentationSubmissions) {
                     is DCQLCredentialSubmissions -> CredentialPresentation.DCQLPresentation(
@@ -96,7 +94,8 @@ abstract class AuthenticationViewModel(
                             inputDescriptorSubmissions = null,
                         )
                     }
-                }
+                },
+                onSuccess = onAuthenticationSuccess,
             )
         }
     }
@@ -104,17 +103,17 @@ abstract class AuthenticationViewModel(
 
     abstract suspend fun finalizationMethod(credentialPresentation: CredentialPresentation): OpenId4VpWallet.AuthenticationSuccess
 
-    private suspend fun finalizeAuthorization(credentialPresentation: CredentialPresentation) {
+    private suspend fun finalizeAuthorization(
+        credentialPresentation: CredentialPresentation,
+        onSuccess: (OpenId4VpWallet. AuthenticationSuccess) -> Unit,
+    ) {
         catchingUnwrapped {
             walletMain.keyMaterial.promptText =
                 getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_title)
             walletMain.keyMaterial.promptSubtitle =
                 getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_subtitle)
             finalizationMethod(credentialPresentation)
-        }.onSuccess {
-            navigateUp()
-            onAuthenticationSuccess(it.redirectUri)
-        }.onFailure {
+        }.onSuccess(onSuccess).onFailure {
             walletMain.errorService.emit(it)
         }
     }

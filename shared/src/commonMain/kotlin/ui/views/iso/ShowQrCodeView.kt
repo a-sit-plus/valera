@@ -16,7 +16,6 @@ import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -41,6 +40,8 @@ import io.github.alexzhirkevich.qrose.rememberQrCodePainter
 import kotlinx.coroutines.launch
 import kotlinx.io.bytestring.ByteString
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 import org.multipaz.compose.permissions.rememberBluetoothPermissionState
 import org.multipaz.util.toBase64Url
 import ui.composables.Logo
@@ -54,11 +55,17 @@ import ui.views.LoadingViewBody
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
+fun ShowQrCodeView(
+    navigateUp: () -> Unit,
+    onClickLogo: () -> Unit,
+    onClickSettings: () -> Unit,
+    onNavigateToPresentmentScreen: (PresentationStateModel) -> Unit,
+    vm: ShowQrCodeViewModel = koinViewModel(),
+) {
     val blePermissionState = rememberBluetoothPermissionState()
     val showQrCode = remember { mutableStateOf<ByteString?>(null) }
     val isBluetoothEnabled = BluetoothInfo().isBluetoothEnabled()
-    val presentationStateModel = remember { vm.presentationStateModel }
+    val presentationStateModel = vm.presentationStateModel
     val showQrCodeState by vm.showQrCodeState.collectAsState()
 
     Scaffold(
@@ -72,10 +79,10 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
                         )
                     }
                 },
-                navigationIcon = { NavigateUpButton(vm.navigateUp) },
+                navigationIcon = { NavigateUpButton(navigateUp) },
                 actions = {
-                    Logo(onClick = vm.onClickLogo)
-                    Column(modifier = Modifier.clickable(onClick = vm.onClickSettings)) {
+                    Logo(onClick = onClickLogo)
+                    Column(modifier = Modifier.clickable(onClick = onClickSettings)) {
                         Icon(
                             imageVector = Icons.Outlined.Settings,
                             contentDescription = null,
@@ -143,7 +150,9 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
                             if (vm.hasBeenCalledHack) return@LaunchedEffect
                             vm.hasBeenCalledHack = true
                             vm.setupPresentmentModel()
-                            vm.doHolderFlow(showQrCode)
+                            vm.doHolderFlow(showQrCode) {
+                                onNavigateToPresentmentScreen(presentationStateModel)
+                            }
                         }
                     }
 

@@ -1,6 +1,9 @@
 package ui.viewmodels.iso
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.iso.transfer.DeviceEngagementMethods
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants.MDOC_PREFIX
 import at.asitplus.wallet.app.common.iso.transfer.TransferManager
@@ -10,18 +13,16 @@ import data.document.RequestDocumentBuilder
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import ui.viewmodels.SettingsViewModel
 
+// TODO: from acrusage: it seems like this manages navigation, maybe refactor this part into a navigation graph instead?
 class VerifierViewModel(
-    val navigateUp: () -> Unit,
-    val onClickLogo: () -> Unit,
     val walletMain: WalletMain,
-    val navigateToHomeScreen: () -> Unit,
-    val onClickSettings: () -> Unit,
-    val settingsViewModel: SettingsViewModel,
-) {
+    val settingsRepository: SettingsRepository,
+): ViewModel() {
     private val transferManager: TransferManager by lazy {
-        TransferManager(settingsViewModel, walletMain.scope) { message -> } // TODO: handle update messages
+        TransferManager(settingsRepository, viewModelScope) { message ->
+            // TODO: handle update messages
+        }
     }
 
     private val _verifierState = MutableStateFlow(VerifierState.INIT)
@@ -122,7 +123,7 @@ class VerifierViewModel(
         setStateToEngagement(selectedEngagementMethod)
     }
 
-    val onFoundPayload: (String) -> Unit = { payload ->
+    fun onFoundPayload(payload: String) {
         if (payload.startsWith(MDOC_PREFIX)) {
             _verifierState.value = VerifierState.WAITING_FOR_RESPONSE
             _requestDocument.value?.let { document ->

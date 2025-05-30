@@ -34,34 +34,51 @@ import at.asitplus.valera.resources.error_credential_selection_error_invalid_req
 import at.asitplus.valera.resources.error_no_requests
 import at.asitplus.valera.resources.heading_label_navigate_back
 import at.asitplus.valera.resources.prompt_select_credential
+import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.decodeImage
+import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.CredentialSelectionGroup
-import ui.viewmodels.authentication.AuthenticationSelectionPresentationExchangeViewModel
+import ui.viewmodels.authentication.PresentationExchangeSubmissionBuilder
+import ui.viewmodels.authentication.CredentialPresentationSubmissions
 
 @Composable
 fun AuthenticationSelectionPresentationExchangeView(
-    vm: AuthenticationSelectionPresentationExchangeViewModel,
+    navigateUp: () -> Unit,
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
     onError: (Throwable) -> Unit,
+    onSubmit: (CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>) -> Unit,
+    submissionBuilder: PresentationExchangeSubmissionBuilder,
+    walletMain: WalletMain = koinInject(),
 ) {
-    val iterableRequests = vm.iterableRequests
+    val iterableRequests = submissionBuilder.iterableRequests
     if (iterableRequests.isEmpty()) {
         onError(Throwable(stringResource(Res.string.error_no_requests)))
     } else {
-        val currentRequest = vm.iterableRequests[vm.requestIterator.value]
+        val currentRequest = submissionBuilder.iterableRequests[submissionBuilder.requestIterator.value]
 
         AuthenticationSelectionViewScaffold(
             onClickLogo = onClickLogo,
             onClickSettings = onClickSettings,
-            onNavigateUp = vm.onBack,
-            onNext = vm.onNext,
+            onNavigateUp = {
+                if (submissionBuilder.requestIterator.value > 0) {
+                    submissionBuilder.requestIterator.value -= 1
+                } else {
+                    navigateUp()
+                }
+            },
+            onNext = {
+                submissionBuilder.onNext {
+                    onSubmit(it)
+                }
+            },
         ) {
             LinearProgressIndicator(
-                progress = { ((1.0f / vm.requests.size) * (vm.requestIterator.value + 1)) },
+                progress = { ((1.0f / submissionBuilder.requests.size) * (submissionBuilder.requestIterator.value + 1)) },
                 modifier = Modifier.fillMaxWidth(),
                 drawStopIndicator = { },
             )
@@ -72,9 +89,9 @@ fun AuthenticationSelectionPresentationExchangeView(
                 val requestId = currentRequest.first
                 val matchingCredentials = currentRequest.second
 
-                val attributeSelection = vm.attributeSelection[requestId]
+                val attributeSelection = submissionBuilder.attributeSelection[requestId]
                     ?: return@Column onError(Throwable(stringResource(Res.string.error_credential_selection_error_invalid_request_id)))
-                val credentialSelection = vm.credentialSelection[requestId]
+                val credentialSelection = submissionBuilder.credentialSelection[requestId]
                     ?: return@Column onError(Throwable(stringResource(Res.string.error_credential_selection_error_invalid_request_id)))
 
                 CredentialSelectionGroup(
@@ -82,10 +99,10 @@ fun AuthenticationSelectionPresentationExchangeView(
                     attributeSelection = attributeSelection,
                     credentialSelection = credentialSelection,
                     imageDecoder = { byteArray ->
-                        vm.walletMain.platformAdapter.decodeImage(byteArray)
+                        walletMain.platformAdapter.decodeImage(byteArray)
                     },
                     checkRevocationStatus = {
-                        vm.walletMain.checkRevocationStatus(it)
+                        walletMain.checkRevocationStatus(it)
                     },
                 )
             }
