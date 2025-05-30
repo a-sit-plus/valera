@@ -2,6 +2,7 @@ package ui.views.iso
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,6 +29,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_retry
@@ -37,6 +39,9 @@ import at.asitplus.valera.resources.heading_label_show_qr_code_screen
 import at.asitplus.valera.resources.info_text_qr_code_loading
 import at.asitplus.wallet.app.common.iso.transfer.BluetoothInfo
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants.MDOC_PREFIX
+import io.github.alexzhirkevich.qrose.options.QrBrush
+import io.github.alexzhirkevich.qrose.options.QrColors
+import io.github.alexzhirkevich.qrose.options.solid
 import io.github.alexzhirkevich.qrose.rememberQrCodePainter
 import kotlinx.coroutines.launch
 import kotlinx.io.bytestring.ByteString
@@ -150,7 +155,12 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
                     ShowQrCodeState.SHOW_QR_CODE -> {
                         val deviceEngagementQrCode = MDOC_PREFIX + showQrCode.value!!.toByteArray().toBase64Url()
                         Image(
-                            painter = rememberQrCodePainter(deviceEngagementQrCode),
+                            painter = rememberQrCodePainter(
+                                data = deviceEngagementQrCode, colors = when (isSystemInDarkTheme()) {
+                                    true -> QrColors(dark = QrBrush.solid(Color.White))
+                                    else -> QrColors()
+                                }
+                            ),
                             contentDescription = null,
                             modifier = Modifier.fillMaxSize(0.8f)
                         )
