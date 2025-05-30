@@ -93,7 +93,7 @@ class SigningService(
         "2.16.840.1.101.3.4.3.12", //ECDSA_SHA3_512
     )
 
-    suspend fun reset(){
+    suspend fun reset() {
         dataStoreService.deletePreference(DATASTORE_SIGNING_CONFIG)
     }
 
@@ -139,10 +139,11 @@ class SigningService(
         exportToDataStore()
     }
 
-    suspend fun start(url: String) {
+    suspend fun start(signatureRequestParameters: SignatureRequestParameters) {
         rqesWalletService =
             RqesOpenId4VpHolder(redirectUrl = redirectUrl, clientId = config.getCurrent().oauth2ClientId)
-        extractSignatureRequestParameter(url)
+        this.signatureRequestParameter = signatureRequestParameters
+        prepareDocuments()
 
         if (config.hasValidCertificate()) {
             val credentialInfo = config.getCurrent().credentialInfo ?: throw Throwable("Missing credentialInfo")
@@ -210,8 +211,13 @@ class SigningService(
         }.body<QtspSignatureResponse>()
 
         val transactionTokens = this.transactionTokens
-        val signedDocuments = getFinishedDocuments(client, pdfSigningService, signatures, transactionTokens, config.getCurrent().identifier)
-
+        val signedDocuments = getFinishedDocuments(
+            client,
+            pdfSigningService,
+            signatures,
+            transactionTokens,
+            config.getCurrent().identifier
+        )
 
 
         val signedDocList = vckJsonSerializer.encodeToJsonElement(
@@ -252,16 +258,8 @@ class SigningService(
         }.buildString()
     }
 
-    suspend fun extractSignatureRequestParameter(url: String) {
-        val requestUri = URLBuilder(url).parameters["request_uri"] ?: throw Throwable("Missing request_uri")
-        val resp = client.get(requestUri)
-        val jwt = resp.bodyAsText()
-
-        this.signatureRequestParameter =
-            JwsSigned.deserialize(SignatureRequestParameters.serializer(), jwt, vckJsonSerializer).getOrThrow().payload
-
+    suspend fun prepareDocuments() {
         this.documentWithLabel = mutableMapOf()
-
         this.signatureRequestParameter.documentLocations.forEachIndexed { index, documentLocation ->
             client.get(documentLocation.uri).bodyAsBytes().let {
                 this.documentWithLabel[index] = DocumentWithLabel(
@@ -270,6 +268,20 @@ class SigningService(
                 )
             }
         }
+    }
+
+    suspend fun parseSignatureRequestParameter(url: String): SignatureRequestParameters {
+        val requestUri = URLBuilder(url).parameters["request_uri"] ?: throw Throwable("Missing request_uri")
+        val resp = client.get(requestUri)
+        val jwt = resp.bodyAsText()
+
+        return JwsSigned.deserialize(
+            SignatureRequestParameters.serializer(),
+            jwt,
+            vckJsonSerializer
+        ).getOrElse {
+            throw Throwable("SigningService: Unable to parse SignatureRequestParameters", it)
+        }.payload
     }
 
     suspend fun getTokenFromAuthCode(url: String): TokenResponseParameters {
@@ -360,8 +372,10 @@ class SigningService(
             setBody(vckJsonSerializer.encodeToString(credentialInfoRequest))
         }
         val credInfo = credentialResponse.body<CredentialInfo>()
-        return CredentialInfo(credentialId, credInfo.description, credInfo.signatureQualifier, credInfo.keyParameters,
-            credInfo.certParameters, credInfo.authParameters, credInfo.scal, credInfo.multisign)
+        return CredentialInfo(
+            credentialId, credInfo.description, credInfo.signatureQualifier, credInfo.keyParameters,
+            credInfo.certParameters, credInfo.authParameters, credInfo.scal, credInfo.multisign
+        )
 
     }
 
