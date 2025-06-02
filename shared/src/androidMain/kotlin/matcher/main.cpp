@@ -8,7 +8,7 @@ extern "C" {
 #include "CredentialDatabase.h"
 #include "Request.h"
 
-bool MATCH_ALL_CREDENTIALS = true;
+bool MATCH_ALL_CREDENTIALS = false;
 
 extern "C" int main() {
     CallingAppInfo* appInfo = (CallingAppInfo*) malloc(sizeof(CallingAppInfo));
@@ -32,7 +32,9 @@ extern "C" int main() {
     ::GetRequestBuffer(requestBlob);
     cJSON* requestJson = cJSON_Parse(requestBlob);
     cJSON *providers = cJSON_GetObjectItemCaseSensitive(requestJson, "providers");
-
+    if (providers == NULL) {
+        providers = cJSON_GetObjectItemCaseSensitive(requestJson, "requests");
+    }
 
     if (cJSON_IsArray(providers)) {
         int numProviders = cJSON_GetArraySize(providers);
@@ -44,15 +46,28 @@ extern "C" int main() {
             cJSON *protocol = cJSON_GetObjectItem(provider, "protocol");
             std::string protocolValue = std::string(cJSON_GetStringValue(protocol));
             cJSON *protocolRequest = cJSON_GetObjectItem(provider, "request");
-            const char* protocolRequestValue = cJSON_GetStringValue(protocolRequest);
-            cJSON* protocolRequestJson = cJSON_Parse(protocolRequestValue);
+
+            cJSON* protocolRequestJson;
+            if (protocolRequest == NULL) {
+                protocolRequest = cJSON_GetObjectItem(provider, "data");
+                if (cJSON_IsString(protocolRequest)) {
+                    char* protocolRequestStr = cJSON_GetStringValue(protocolRequest);
+                    protocolRequestJson = cJSON_Parse(protocolRequestStr);
+                } else {
+                    protocolRequestJson = protocolRequest;
+                }
+            } else {
+                const char* protocolRequestValue = cJSON_GetStringValue(protocolRequest);
+                protocolRequestJson = cJSON_Parse(protocolRequestValue);
+            }
+
 
             std::unique_ptr<Request> request;
             if (protocolValue == "preview") {
                 // The OG "preview" protocol.
                 //
                 request = std::move(Request::parsePreview(protocolRequestJson));
-            } else if (protocolValue.rfind("openid4vp-v1", 0) == 0) {
+            } else if (protocolValue.rfind("openid4vp", 0) == 0) {
                 // 18013-7 Annex D
                 //
                 request = std::move(Request::parseOpenID4VP(protocolRequestJson));
