@@ -30,7 +30,6 @@ import at.asitplus.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.openid.RequestParametersFrom
-import at.asitplus.rqes.SignatureRequestParameters
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.error_feature_not_yet_available
 import at.asitplus.valera.resources.snackbar_clear_log_successfully
@@ -394,13 +393,7 @@ private fun WalletNavHost(
                     val preparationState: AuthorizationResponsePreparationState =
                         vckJsonSerializer.decodeFromString(route.authorizationPreparationStateSerialized)
 
-                    val apiRequestSerialized = route.oid4vpDCAPIRequestSerialized
-                    val dcApiRequest =
-                        apiRequestSerialized?.let {
-                            vckJsonSerializer.decodeFromString<Oid4vpDCAPIRequest>(it)
-                        }
-                    //TODOpreparationState.oid4vpDCAPIRequest = dcApiRequest
-                    //TODOrequest.setDcApiRequest(dcApiRequest)
+                    val dcApiRequest = preparationState.oid4vpDCAPIRequest
                     val spLocation = dcApiRequest?.callingOrigin ?: route.recipientLocation
 
                     DefaultAuthenticationViewModel(
@@ -735,11 +728,11 @@ private fun WalletNavHost(
                     onContinue = { signatureRequestParametersSerialized ->
                         CoroutineScope(Dispatchers.Main).launch {
                             try {
-                                val signatureRequestParameters =
-                                    vckJsonSerializer.decodeFromString<SignatureRequestParameters>(
+                                walletMain.signingService.start(
+                                    vckJsonSerializer.decodeFromString(
                                         signatureRequestParametersSerialized
                                     )
-                                walletMain.signingService.start(signatureRequestParameters)
+                                )
 
                             } catch (e: Throwable) {
                                 walletMain.errorService.emit(e)
