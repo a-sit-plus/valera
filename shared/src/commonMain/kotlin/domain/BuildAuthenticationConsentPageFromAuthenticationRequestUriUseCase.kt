@@ -24,9 +24,6 @@ class BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
             return KmmResult.failure(it)
         }
 
-        val oid4vpDCAPIRequestSerialized =
-            incomingDcApiRequest?.let { vckJsonSerializer.encodeToString(it) }
-
         // TODO: extract recipient name from the metadataResponse; the data is not yet being delivered though
         return KmmResult.success(
             AuthenticationViewRoute(
@@ -34,7 +31,6 @@ class BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
                 authorizationPreparationStateSerialized = vckJsonSerializer.encodeToString(preparationState),
                 recipientLocation = request.parameters.clientId ?: "",
                 isCrossDeviceFlow = false,
-                oid4vpDCAPIRequestSerialized = oid4vpDCAPIRequestSerialized
             )
         )
     }

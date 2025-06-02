@@ -27,7 +27,6 @@ import at.asitplus.dcapi.request.DCAPIRequest
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.openid.RequestParametersFrom
-import at.asitplus.openid.setDcApiRequest
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.error_feature_not_yet_available
 import at.asitplus.valera.resources.snackbar_clear_log_successfully
@@ -405,11 +404,7 @@ private fun WalletNavHost(
                     val preparationState: AuthorizationResponsePreparationState =
                         vckJsonSerializer.decodeFromString(route.authorizationPreparationStateSerialized)
 
-                    val apiRequestSerialized = route.oid4vpDCAPIRequestSerialized
-                    val dcApiRequest =
-                        apiRequestSerialized?.let { vckJsonSerializer.decodeFromString<Oid4vpDCAPIRequest>(apiRequestSerialized) }
-                    preparationState.oid4vpDCAPIRequest = dcApiRequest
-                    request.setDcApiRequest(dcApiRequest)
+                    val dcApiRequest = preparationState.oid4vpDCAPIRequest
                     val spLocation = dcApiRequest?.callingOrigin ?: route.recipientLocation
 
                     DefaultAuthenticationViewModel(
