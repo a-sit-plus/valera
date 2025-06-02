@@ -201,7 +201,7 @@ public class AndroidPlatformAdapter(
             val callingOrigin = callingAppInfo.getOrigin(privilegedUserAgents)
                 ?: throw IllegalArgumentException("Origin unknown")
             val option = request.credentialOptions[0] as GetDigitalCredentialOption
-            val json = JSONObject(option.requestJson)
+            val requestJson = JSONObject(option.requestJson)
 
             //val cmrequest = IntentHelper.extractGetCredentialRequest(it) ?: return null
             //val credentialId = it.getStringExtra(IntentHelper.EXTRA_CREDENTIAL_ID)?.toInt() ?: -1
@@ -213,17 +213,27 @@ public class AndroidPlatformAdapter(
 
             //val json = JSONObject(cmrequest.credentialOptions[0].requestMatcher)
 
-            val parsedRequest = json.getJSONArray("requests").get(0) as JSONObject // Only one request supported for now
+            val parsedRequest = if (requestJson.has("providers")) {
+                requestJson.getJSONArray("providers").getJSONObject(0)
+            } else {
+                requestJson.getJSONArray("requests").getJSONObject(0)
+            } // Only first request supported for now
+
             val protocol = parsedRequest.getString("protocol")
+            val requestData = if (parsedRequest.has("request")) {
+                JSONObject(parsedRequest.getString("request"))
+            } else {
+                parsedRequest.getJSONObject("data")
+            }
 
             when {
                 protocol == "preview" -> {
                     // Extract params from the preview protocol request
                     val requestedData = mutableMapOf<String, MutableList<Pair<String, Boolean>>>()
                     //val previewRequest = JSONObject(parsedRequest)
-                    val selector = parsedRequest.getJSONObject("selector")
-                    val nonceBase64 = parsedRequest.getString("nonce")
-                    val readerPublicKeyBase64 = parsedRequest.getString("readerPublicKey")
+                    val selector = requestData.getJSONObject("selector")
+                    val nonceBase64 = requestData.getString("nonce")
+                    val readerPublicKeyBase64 = requestData.getString("readerPublicKey")
                     val docType = selector.getString("doctype")
 
                     // Convert nonce and publicKey
@@ -241,7 +251,7 @@ public class AndroidPlatformAdapter(
                     }
 
                     PreviewDCAPIRequest(
-                        parsedRequest.toString(),
+                        requestData.toString(),
                         requestedData,
                         credentialId,
                         callingPackageName,
@@ -253,17 +263,16 @@ public class AndroidPlatformAdapter(
                 }
                 protocol.startsWith("$DC_API_OID4VP_PROTOCOL_IDENTIFIER-v1") -> {
                     Napier.d("Using protocol $protocol, got request $request for credential ID $credentialId")
-                    val requestData = parsedRequest.getString("data")
                     Oid4vpDCAPIRequest(
-                        protocol, requestData, credentialId, callingPackageName, callingOrigin
+                        protocol, requestData.toString(), credentialId, callingPackageName, callingOrigin
                     )
                 }
                 protocol == "org.iso.mdoc" -> {
                     val isoBase64Decoder =
                         kotlin.io.encoding.Base64.UrlSafe.withPadding(kotlin.io.encoding.Base64.PaddingOption.ABSENT_OPTIONAL)
                     //val request = JSONObject(parsedRequest)
-                    val deviceRequest = parsedRequest.getString("deviceRequest")
-                    val encryptionInfo = parsedRequest.getString("encryptionInfo")
+                    val deviceRequest = requestData.getString("deviceRequest")
+                    val encryptionInfo = requestData.getString("encryptionInfo")
                     val parsedDeviceRequest = vckCborSerializer.decodeFromByteArray(
                         DeviceRequest.serializer(),
                         isoBase64Decoder.decode(deviceRequest)
