@@ -8,7 +8,7 @@ extern "C" {
 #include "CredentialDatabase.h"
 #include "Request.h"
 
-bool MATCH_ALL_CREDENTIALS = false;
+bool MATCH_ALL_CREDENTIALS = true;
 
 extern "C" int main() {
     CallingAppInfo* appInfo = (CallingAppInfo*) malloc(sizeof(CallingAppInfo));
