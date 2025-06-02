@@ -1,9 +1,8 @@
-package at.asitplus.wallet.app.data
+package at.asitplus.wallet.app.common.data.primitives
 
+import at.asitplus.wallet.app.common.domain.vck.tokenStatusList.StatusListTokenResolver
 import at.asitplus.wallet.lib.data.StatusListToken
 import at.asitplus.wallet.lib.data.rfc3986.UniformResourceIdentifier
-
-typealias StatusListTokenResolver = suspend (UniformResourceIdentifier) -> StatusListToken
 
 /**
  * This class does not care about the underlying caching rules.

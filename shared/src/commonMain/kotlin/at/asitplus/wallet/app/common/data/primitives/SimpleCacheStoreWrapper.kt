@@ -1,4 +1,4 @@
-package at.asitplus.wallet.app.data
+package at.asitplus.wallet.app.common.data.primitives
 
 import io.github.aakira.napier.Napier
 import kotlinx.datetime.Clock
@@ -22,7 +22,7 @@ data class SimpleCacheStoreWrapper<Key : Any, Value : Any>(
             val now = clock.now()
             (value.createdTime + cachingDuration > now).also {
                 Napier.d("Reuse cached value for $key ($cachingDuration + ${value.createdTime} > $now): $it")
-                if(!it) {
+                if (!it) {
                     onEntryFiltered(key)
                 }
             }

@@ -8,7 +8,6 @@ import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isDisplayed
-import androidx.compose.ui.test.isNotDisplayed
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -22,7 +21,6 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.button_label_accept
 import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.button_label_details
 import at.asitplus.valera.resources.button_label_start
@@ -32,20 +30,18 @@ import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.BuildType
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
+import at.asitplus.wallet.app.common.WalletDependencyProvider
 import at.asitplus.wallet.app.common.WalletKeyMaterial
-import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.idaustria.IdAustriaScheme
+import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.lib.agent.ClaimToBeIssued
 import at.asitplus.wallet.lib.agent.CredentialToBeIssued
-import at.asitplus.wallet.lib.agent.DefaultCryptoService
 import at.asitplus.wallet.lib.agent.EphemeralKeyWithSelfSignedCert
 import at.asitplus.wallet.lib.agent.EphemeralKeyWithoutCert
+import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.IssuerAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.agent.toStoreCredentialInput
-import at.asitplus.wallet.lib.cbor.DefaultCoseService
-import at.asitplus.wallet.lib.jws.DefaultJwsService
 import data.storage.DummyDataStoreService
 import io.kotest.common.Platform
 import io.kotest.common.platform
@@ -73,10 +69,10 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.jetbrains.compose.resources.getString
+import org.koin.compose.koinInject
 import org.multipaz.prompt.PassphraseRequest
 import org.multipaz.prompt.PromptModel
 import org.multipaz.prompt.SinglePromptModel
-import ui.navigation.NavigatorTestTags
 import ui.navigation.routes.OnboardingWrapperTestTags
 import ui.views.OnboardingStartScreenTestTag
 import kotlin.test.assertTrue
@@ -133,7 +129,7 @@ class InstrumentedTestsSuite : FunSpec({
                     CompositionLocalProvider(
                         LocalLifecycleOwner provides TestLifecycleOwner()
                     ) {
-                        App(createWalletMain(getPlatformAdapter()))
+                        App(createWalletDependencyProvider(getPlatformAdapter()))
                     }
                 }
 
@@ -153,7 +149,7 @@ class InstrumentedTestsSuite : FunSpec({
                     CompositionLocalProvider(
                         LocalLifecycleOwner provides TestLifecycleOwner()
                     ) {
-                        App(createWalletMain(getPlatformAdapter()))
+                        App(createWalletDependencyProvider(getPlatformAdapter()))
                     }
                 }
 
@@ -169,7 +165,7 @@ class InstrumentedTestsSuite : FunSpec({
                     CompositionLocalProvider(
                         LocalLifecycleOwner provides TestLifecycleOwner()
                     ) {
-                        App(createWalletMain(getPlatformAdapter()))
+                        App(createWalletDependencyProvider(getPlatformAdapter()))
                     }
                 }
 
@@ -188,36 +184,36 @@ class InstrumentedTestsSuite : FunSpec({
     context("End to End Tests") {
         test("End to End Test 1: Should complete the process") {
             runComposeUiTest {
-                lateinit var walletMain: WalletMain
+                lateinit var walletMain: WalletDependencyProvider
                 setContent {
                     CompositionLocalProvider(
                         LocalLifecycleOwner provides TestLifecycleOwner()
                     ) {
                         val platformAdapter = getPlatformAdapter()
-                        walletMain = createWalletMain(platformAdapter)
+                        walletMain = createWalletDependencyProvider(platformAdapter)
                         App(walletMain)
                     }
 
-                        val keyMaterial = EphemeralKeyWithoutCert()
-                        val issuer = IssuerAgent(
-                            validator = Validator(),
-                            keyMaterial = keyMaterial,
-                            statusListBaseUrl = "https://wallet.a-sit.at/m6/credentials/status",
-                            jwsService = DefaultJwsService(DefaultCryptoService(keyMaterial)),
-                            coseService = DefaultCoseService(DefaultCryptoService(keyMaterial)),
+                    val holderAgent: HolderAgent = koinInject()
+
+                    val keyMaterial = EphemeralKeyWithoutCert()
+                    val issuer = IssuerAgent(
+                        validator = Validator(),
+                        keyMaterial = keyMaterial,
+                        statusListBaseUrl = "https://wallet.a-sit.at/m6/credentials/status",
+                    )
+                    runBlocking {
+                        holderAgent.storeCredential(
+                            issuer.issueCredential(
+                                CredentialToBeIssued.VcSd(
+                                    getAttributes(),
+                                    Clock.System.now().plus(60.minutes),
+                                    EuPidScheme,
+                                    walletMain.keyMaterial.keyMaterial.publicKey
+                                )
+                            ).getOrThrow().toStoreCredentialInput()
                         )
-                        runBlocking {
-                            walletMain.holderAgent.storeCredential(
-                                issuer.issueCredential(
-                                    CredentialToBeIssued.VcSd(
-                                        getAttributes(),
-                                        Clock.System.now().plus(3600.minutes),
-                                        IdAustriaScheme,
-                                        walletMain.keyMaterial.keyMaterial.publicKey
-                                    )
-                                ).getOrThrow().toStoreCredentialInput()
-                            )
-                        }
+                    }
                 }
                 runBlocking {
                     waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_start)))
@@ -238,12 +234,7 @@ class InstrumentedTestsSuite : FunSpec({
                         hasText(getString(Res.string.section_heading_age_data)),
                         3000
                     )
-                    onNodeWithText("≥14").assertExists()
-                    onNodeWithText("≥16").assertExists()
                     onNodeWithText("≥18").assertExists()
-                    onNodeWithText("≥21").assertExists()
-                    onNodeWithText("Testgasse 1a-2b/Stg. 3c-4d/D6").assertExists()
-                    onNodeWithText("0088 Testort A").assertExists()
 
                     onNodeWithText(getString(Res.string.button_label_details)).performClick()
 
@@ -254,7 +245,6 @@ class InstrumentedTestsSuite : FunSpec({
                             json()
                         }
                     }
-
 
                     val responseGenerateRequest =
                         client.post("https://apps.egiz.gv.at/customverifier/transaction/create") {
@@ -291,16 +281,14 @@ val request = Json.encodeToString(
         "presentation_definition",
         listOf(
             Credential(
-                "at.gv.id-austria.2023.1",
+                EuPidScheme.sdJwtType,
                 "SD_JWT",
                 listOf(
-                    IdAustriaScheme.Attributes.BPK,
-                    IdAustriaScheme.Attributes.FIRSTNAME,
-                    IdAustriaScheme.Attributes.LASTNAME,
-                    IdAustriaScheme.Attributes.DATE_OF_BIRTH,
-                    IdAustriaScheme.Attributes.PORTRAIT,
-                    IdAustriaScheme.Attributes.MAIN_ADDRESS,
-                    IdAustriaScheme.Attributes.AGE_OVER_18,
+                    EuPidScheme.Attributes.GIVEN_NAME,
+                    EuPidScheme.Attributes.FAMILY_NAME,
+                    EuPidScheme.Attributes.BIRTH_DATE,
+                    EuPidScheme.Attributes.PORTRAIT,
+                    EuPidScheme.Attributes.AGE_OVER_18,
                 )
             )
         )
@@ -325,31 +313,23 @@ expect fun getPlatformAdapter(): PlatformAdapter
 
 
 private fun getAttributes(): List<ClaimToBeIssued> = listOf(
-    ClaimToBeIssued(IdAustriaScheme.Attributes.BPK, "XFN+436920f:L9LBxmjNPt0041j5O1+sir0HOG0="),
-    ClaimToBeIssued(IdAustriaScheme.Attributes.FIRSTNAME, "XXXÉliás"),
-    ClaimToBeIssued(IdAustriaScheme.Attributes.LASTNAME, "XXXTörőcsik"),
-    ClaimToBeIssued(IdAustriaScheme.Attributes.DATE_OF_BIRTH, "1965-10-11"),
+    ClaimToBeIssued(EuPidScheme.Attributes.GIVEN_NAME, "XXXÉliás"),
+    ClaimToBeIssued(EuPidScheme.Attributes.FAMILY_NAME, "XXXTörőcsik"),
+    ClaimToBeIssued(EuPidScheme.Attributes.BIRTH_DATE, "1965-10-11"),
     ClaimToBeIssued(
-        IdAustriaScheme.Attributes.PORTRAIT,
+        EuPidScheme.Attributes.PORTRAIT,
         "iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAIAAACRXR/mAAAAdklEQVR4nOzQMQ2AQBQEUSAowQcy0IADSnqEoQbKu/40TLLFL2YEbF523Y53CnXeV2pqSQ1lk0WSRZJFkkWSRZJFkkWSRZJFkkWSRSrKmv+npba+vqemir4liySLJIskiySLJIskiySLJIskiySLVJQ1AgAA//81XweDWRWyzwAAAABJRU5ErkJggg=="
     ),
-    ClaimToBeIssued(
-        IdAustriaScheme.Attributes.MAIN_ADDRESS,
-        "ewoiR2VtZWluZGVrZW5uemlmZmVyIjoiMDk5ODgiLAoiR2VtZWluZGViZXplaWNobnVuZyI6IlRlc3RnZW1laW5kZSIsCiJQb3N0bGVpdHphaGwiOiIwMDg4IiwKIk9ydHNjaGFmdCI6IlRlc3RvcnQgQSIsCiJTdHJhc3NlIjoiVGVzdGdhc3NlIiwKIkhhdXNudW1tZXIiOiIxYS0yYiIsCiJTdGllZ2UiOiJTdGcuIDNjLTRkIiwKIlR1ZXIiOiJENiIKfQ=="
-    ),
-    ClaimToBeIssued(IdAustriaScheme.Attributes.AGE_OVER_14, true),
-    ClaimToBeIssued(IdAustriaScheme.Attributes.AGE_OVER_16, true),
-    ClaimToBeIssued(IdAustriaScheme.Attributes.AGE_OVER_18, true),
-    ClaimToBeIssued(IdAustriaScheme.Attributes.AGE_OVER_21, true),
+    ClaimToBeIssued(EuPidScheme.Attributes.AGE_OVER_18, true),
 )
 
 
-private fun createWalletMain(platformAdapter: PlatformAdapter): WalletMain {
+private fun createWalletDependencyProvider(platformAdapter: PlatformAdapter): WalletDependencyProvider {
     val dummyDataStoreService = DummyDataStoreService()
     val ks = object : KeystoreService(dummyDataStoreService) {
         override suspend fun getSigner(): KeyMaterial = EphemeralKeyWithSelfSignedCert()
     }
-    return WalletMain(
+    return WalletDependencyProvider(
         keyMaterial = ks.let { runBlocking { WalletKeyMaterial(it.getSigner()) } },
         dataStoreService = dummyDataStoreService,
         platformAdapter = platformAdapter,

@@ -17,6 +17,7 @@ import at.asitplus.wallet.app.android.dcapi.IdentityCredentialHelper
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
+import at.asitplus.wallet.app.common.WalletDependencyProvider
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
@@ -72,7 +73,7 @@ fun MainView(
     PromptDialogs(promptModel)
 
     App(
-        WalletMain(
+        WalletDependencyProvider(
             keyMaterial = ks.let { runBlocking { AndroidKeyMaterial(it.getSigner()) } },
             dataStoreService = dataStoreService,
             platformAdapter = platformAdapter,

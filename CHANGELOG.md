@@ -1,8 +1,14 @@
+# Release 5.6.4
+ * Add: Koin Dependency Injection
+ * Issuing: Fix regression not storing credentials in auth code flow
+ * Presentation: Treat all requested attributes as optional by default on consent screen
+ * Upgrade to VC-K 5.6.5 (improving interop)
+
 # Release 5.6.3
  * Set iOS target of app to 16.0
  * Presentation: Improve handling queries with nested paths
  * Issuing: Do not use deprecated code from VC-K 5.6.3
- * Upgradle to VC-K 5.6.4 (improving OpenID4VCI interop)
+ * Upgrade to VC-K 5.6.4 (improving OpenID4VCI interop)
 
 # Release 5.6.2
  * Issuing: Handle errors on parsing credential offers

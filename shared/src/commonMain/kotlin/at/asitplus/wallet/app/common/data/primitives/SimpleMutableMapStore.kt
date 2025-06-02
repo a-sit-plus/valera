@@ -1,4 +1,4 @@
-package at.asitplus.wallet.app.data
+package at.asitplus.wallet.app.common.data.primitives
 
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock

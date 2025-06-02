@@ -1,11 +1,10 @@
-package at.asitplus.wallet.app.data
+package at.asitplus.wallet.app.common.data.primitives
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlin.jvm.JvmName
 
 data class FilteringSimpleBulkStore<Key : Any, Value : Any>(
     val simpleStore: SimpleBulkStore<Key, Value>,

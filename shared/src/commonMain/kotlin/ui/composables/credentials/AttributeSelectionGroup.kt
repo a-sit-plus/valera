@@ -48,8 +48,6 @@ fun AttributeSelectionGroup(
                     else -> it.toString()
                 }
             }
-
-            // TODO Check for nested elements like "address.formatted"
             val enabled = when (storeEntry) {
                 is SubjectCredentialStore.StoreEntry.SdJwt ->
                     storeEntry.disclosures.values.firstOrNull { it?.claimName == memberName } != null
@@ -57,11 +55,9 @@ fun AttributeSelectionGroup(
 
                 else -> optional == true
             }
-
             if (selection[memberName] == null) {
                 selection[memberName] = !enabled
             }
-
             AttributeSelectionElement(memberName, path, value, enabled)
         }
 
