@@ -265,8 +265,7 @@ public class AndroidPlatformAdapter(
                         docType,
                     )
                 }
-
-                protocol.startsWith("$DC_API_OID4VP_PROTOCOL_IDENTIFIER-v1") -> {
+                protocol.startsWith(DC_API_OID4VP_PROTOCOL_IDENTIFIER) -> {
                     Napier.d("Using protocol $protocol, got request $request for credential ID $credentialId")
                     Oid4vpDCAPIRequest(
                         protocol, requestData.toString(), credentialId, callingPackageName, callingOrigin

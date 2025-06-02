@@ -1,4 +1,5 @@
 // based on identity-credential[https://github.com/openwallet-foundation-labs/identity-credential] implementation
+// Updated to support new DC API format and OID4VP-v1 requests
 
 extern "C" {
 #include "credentialmanager.h"
