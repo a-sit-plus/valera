@@ -36,8 +36,8 @@ import at.asitplus.valera.resources.error_bluetooth_and_nfc_unavailable
 import at.asitplus.valera.resources.error_missing_permissions
 import at.asitplus.valera.resources.heading_label_show_qr_code_screen
 import at.asitplus.valera.resources.info_text_qr_code_loading
+import at.asitplus.wallet.app.common.iso.transfer.CapabilityManager
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants.MDOC_PREFIX
-import at.asitplus.wallet.app.common.iso.transfer.isAnyTransferMethodAvailable
 import io.github.alexzhirkevich.qrose.options.QrBrush
 import io.github.alexzhirkevich.qrose.options.QrColors
 import io.github.alexzhirkevich.qrose.options.solid
@@ -63,6 +63,7 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
     val showQrCode = remember { mutableStateOf<ByteString?>(null) }
     val presentationStateModel = remember { vm.presentationStateModel }
     val showQrCodeState by vm.showQrCodeState.collectAsState()
+    val capabilityManager = CapabilityManager()
 
     Scaffold(
         topBar = {
@@ -96,7 +97,7 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
             ) {
                 when (showQrCodeState) {
                     ShowQrCodeState.INIT -> {
-                        if (!isAnyTransferMethodAvailable()) {
+                        if (!capabilityManager.isAnyTransferMethodAvailable()) {
                             vm.setState(ShowQrCodeState.NO_TRANSFER_METHOD_AVAILABLE)
                         } else if (showQrCode.value != null && presentationStateModel.state.collectAsState().value != PresentationStateModel.State.PROCESSING) {
                             vm.setState(ShowQrCodeState.SHOW_QR_CODE)

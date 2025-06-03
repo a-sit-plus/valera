@@ -6,7 +6,7 @@ import androidx.compose.runtime.getValue
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.error_bluetooth_and_nfc_unavailable
 import at.asitplus.valera.resources.info_text_waiting_for_response
-import at.asitplus.wallet.app.common.iso.transfer.isAnyTransferMethodAvailable
+import at.asitplus.wallet.app.common.iso.transfer.CapabilityManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -23,8 +23,9 @@ fun VerifierView(
     bottomBar: @Composable () -> Unit
 ) {
     val verifierState by vm.verifierState.collectAsState()
+    val capabilityManager = CapabilityManager()
 
-    if (!isAnyTransferMethodAvailable()) {
+    if (!capabilityManager.isAnyTransferMethodAvailable()) {
         vm.handleError(stringResource(Res.string.error_bluetooth_and_nfc_unavailable))
     }
 
