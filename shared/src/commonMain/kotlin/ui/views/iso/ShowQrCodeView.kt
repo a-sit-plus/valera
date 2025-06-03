@@ -63,7 +63,6 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
     val showQrCode = remember { mutableStateOf<ByteString?>(null) }
     val presentationStateModel = remember { vm.presentationStateModel }
     val showQrCodeState by vm.showQrCodeState.collectAsState()
-    val capabilityManager = CapabilityManager()
 
     Scaffold(
         topBar = {
@@ -97,7 +96,7 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
             ) {
                 when (showQrCodeState) {
                     ShowQrCodeState.INIT -> {
-                        if (!capabilityManager.isAnyTransferMethodAvailable()) {
+                        if (!CapabilityManager.isAnyTransferMethodAvailable()) {
                             vm.setState(ShowQrCodeState.NO_TRANSFER_METHOD_AVAILABLE)
                         } else if (showQrCode.value != null && presentationStateModel.state.collectAsState().value != PresentationStateModel.State.PROCESSING) {
                             vm.setState(ShowQrCodeState.SHOW_QR_CODE)

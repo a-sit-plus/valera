@@ -23,9 +23,8 @@ fun VerifierView(
     bottomBar: @Composable () -> Unit
 ) {
     val verifierState by vm.verifierState.collectAsState()
-    val capabilityManager = CapabilityManager()
 
-    if (!capabilityManager.isAnyTransferMethodAvailable()) {
+    if (!CapabilityManager.isAnyTransferMethodAvailable()) {
         vm.handleError(stringResource(Res.string.error_bluetooth_and_nfc_unavailable))
     }
 

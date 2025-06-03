@@ -2,7 +2,7 @@ package at.asitplus.wallet.app.common.iso.transfer
 
 import androidx.compose.runtime.Composable
 
-class CapabilityManager() {
+object CapabilityManager {
     private val bluetoothInfo = BluetoothInfo()
     private val nfcInfo = NfcInfo()
 
