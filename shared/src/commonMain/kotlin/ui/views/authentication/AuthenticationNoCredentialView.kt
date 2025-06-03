@@ -29,7 +29,9 @@ import ui.viewmodels.authentication.AuthenticationNoCredentialViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AuthenticationNoCredentialView(vm: AuthenticationNoCredentialViewModel) {
+fun AuthenticationNoCredentialView(
+    navigateToHomeScreen: () -> Unit,
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -55,7 +57,7 @@ fun AuthenticationNoCredentialView(vm: AuthenticationNoCredentialViewModel) {
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center,
                     ) {
-                        Button(onClick = vm.navigateToHomeScreen) {
+                        Button(onClick = navigateToHomeScreen) {
                             Text(stringResource(Res.string.button_label_continue))
                         }
                     }

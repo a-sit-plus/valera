@@ -33,12 +33,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -57,8 +59,9 @@ import at.asitplus.valera.resources.heading_label_show_data_third_party
 import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_data_recipient
 import at.asitplus.valera.resources.section_heading_transaction_data
+import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.data.toTransactionData
-import at.asitplus.wallet.lib.oidvci.encodeToParameters
 import io.github.aakira.napier.Napier
 import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
 import org.jetbrains.compose.resources.stringResource
@@ -70,15 +73,25 @@ import ui.composables.ScreenHeading
 import ui.composables.buttons.CancelButton
 import ui.composables.buttons.ContinueButton
 import ui.composables.buttons.NavigateUpButton
-import ui.viewmodels.authentication.AuthenticationConsentViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthenticationConsentView(
-    vm: AuthenticationConsentViewModel,
+    spName: String?,
+    spLocation: String,
+    spImage: ImageBitmap?,
+    transactionData: TransactionDataBase64Url?,
+    navigateUp: () -> Unit,
+    consentToDataTransmission: () -> Unit,
+    walletMain: WalletMain,
+    presentationRequest: CredentialPresentationRequest,
+    onClickLogo: () -> Unit,
+    onClickSettings: () -> Unit,
     onError: (Throwable) -> Unit,
 ) {
-    vm.walletMain.keyMaterial.onUnauthenticated = vm.navigateUp
+    LaunchedEffect(Unit) {
+        walletMain.keyMaterial.onUnauthenticated = navigateUp
+    }
 
     Scaffold(
         topBar = {
@@ -93,8 +106,8 @@ fun AuthenticationConsentView(
                     }
                 },
                 actions = {
-                    Logo(onClick = vm.onClickLogo)
-                    Column(modifier = Modifier.clickable(onClick = vm.onClickSettings)) {
+                    Logo(onClick = onClickLogo)
+                    Column(modifier = Modifier.clickable(onClick = onClickSettings)) {
                         Icon(
                             imageVector = Icons.Outlined.Settings,
                             contentDescription = null,
@@ -103,7 +116,7 @@ fun AuthenticationConsentView(
                     Spacer(Modifier.width(15.dp))
                 },
                 navigationIcon = {
-                    NavigateUpButton(vm.navigateUp)
+                    NavigateUpButton(navigateUp)
                 },
             )
         },
@@ -125,9 +138,9 @@ fun AuthenticationConsentView(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center,
                     ) {
-                        CancelButton(vm.navigateUp)
+                        CancelButton(navigateUp)
                         Spacer(modifier = Modifier.width(16.dp))
-                        ContinueButton(vm.consentToDataTransmission)
+                        ContinueButton(consentToDataTransmission)
                     }
                 }
             }
@@ -138,7 +151,8 @@ fun AuthenticationConsentView(
                 modifier = Modifier.padding(horizontal = 16.dp)
             ) {
                 val paddingModifier = Modifier.padding(bottom = 32.dp)
-                val title = if (vm.spLocation == "Local Presentation") {
+                // TODO: Refactor to remove hard-coded string
+                val title = if (spLocation == "Local Presentation") {
                     stringResource(Res.string.heading_label_show_data_third_party)
                 } else {
                     stringResource(Res.string.heading_label_authenticate_at_device_screen)
@@ -148,10 +162,10 @@ fun AuthenticationConsentView(
                 Column(
                     modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState()),
                 ) {
-                    if (vm.spImage != null) {
+                    if (spImage != null) {
                         Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                             Image(
-                                bitmap = vm.spImage,
+                                bitmap = spImage,
                                 contentDescription = null,
                                 contentScale = ContentScale.Fit,
                                 modifier = paddingModifier.height(64.dp),
@@ -161,17 +175,17 @@ fun AuthenticationConsentView(
                     DataDisplaySection(
                         title = stringResource(Res.string.section_heading_data_recipient),
                         data = listOfNotNull(
-                            vm.spName?.let { stringResource(Res.string.attribute_friendly_name_data_recipient_name) to vm.spName },
-                            stringResource(Res.string.attribute_friendly_name_data_recipient_location) to vm.spLocation,
+                            spName?.let { stringResource(Res.string.attribute_friendly_name_data_recipient_name) to spName },
+                            stringResource(Res.string.attribute_friendly_name_data_recipient_location) to spLocation,
                         ),
                         modifier = paddingModifier,
                     )
 
-                    PresentationRequestPreview(vm.presentationRequest, onError = onError)
+                    PresentationRequestPreview(presentationRequest, onError = onError)
 
-                    if (vm.transactionData != null) {
+                    if (transactionData != null) {
                         Spacer(modifier = Modifier.height(32.dp))
-                        TransactionDataView(vm.transactionData)
+                        TransactionDataView(transactionData)
                     }
                 }
             }
