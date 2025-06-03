@@ -1,3 +1,6 @@
+# Release 5.7.0
+ * Update to VC-K 5.7.0, adding encryption for iOS
+
 # Release 5.6.5
  * Credentials: Safe decoding of images in credentials
  * Credentials: Update EHIC to latest schema (1.1.0)
