@@ -47,6 +47,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.getString
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 import ui.composables.BottomBar
 import ui.composables.NavigationData
 import ui.navigation.routes.AddCredentialPreAuthnRoute

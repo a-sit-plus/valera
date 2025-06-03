@@ -5,8 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import at.asitplus.catchingUnwrapped
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.app.common.domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import at.asitplus.wallet.lib.data.vckJsonSerializer
-import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable

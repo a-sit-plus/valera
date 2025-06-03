@@ -131,6 +131,8 @@ class TransferManager(
             serial = ASN1Integer(1L),
             validFrom = certsValidFrom,
             validUntil = certsValidUntil,
+            // TODO: What to put here?
+            crlUrl = "",
         )
     }
     private val bundledIacaKey: EcPrivateKey by lazy {
