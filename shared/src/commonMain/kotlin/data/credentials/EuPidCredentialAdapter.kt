@@ -446,8 +446,8 @@ private class EuPidCredentialSdJwtAdapter(
             ?: attributes[Attributes.BIRTH_DATE]?.contentOrNull?.toLocalDateOrNull()
 
     override val portraitRaw: ByteArray?
-        get() = attributes[SdJwtAttributes.PORTRAIT]?.contentOrNull?.decodeToByteArray(Base64UrlStrict)
-            ?: attributes[Attributes.PORTRAIT]?.contentOrNull?.decodeToByteArray(Base64UrlStrict)
+        get() = attributes[SdJwtAttributes.PORTRAIT]?.contentOrNull?.toBase64UrlDecodedByteArray()
+            ?: attributes[Attributes.PORTRAIT]?.contentOrNull?.toBase64UrlDecodedByteArray()
 
     override val ageAtLeast12: Boolean?
         get() = attributes[SdJwtAttributes.AGE_EQUAL_OR_OVER_12]?.booleanOrNull

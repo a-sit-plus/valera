@@ -185,7 +185,7 @@ private class IdAustriaCredentialSdJwtAdapter(
         get() = attributes[IdAustriaScheme.Attributes.DATE_OF_BIRTH]?.contentOrNull?.toLocalDateOrNull()
 
     override val portraitRaw: ByteArray?
-        get() = attributes[IdAustriaScheme.Attributes.PORTRAIT]?.contentOrNull?.decodeToByteArray(Base64UrlStrict)
+        get() = attributes[IdAustriaScheme.Attributes.PORTRAIT]?.contentOrNull?.toBase64UrlDecodedByteArray()
 
     override val ageAtLeast14: Boolean?
         get() = attributes[IdAustriaScheme.Attributes.AGE_OVER_14]?.booleanOrNull

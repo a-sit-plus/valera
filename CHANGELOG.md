@@ -1,5 +1,5 @@
 # Release 5.6.5
- * tbd
+ * Credentials: Safe decoding of images in credentials
 
 # Release 5.6.4
  * Add: Koin Dependency Injection
