@@ -48,7 +48,7 @@ fun platformModule(appDependencyProvider: WalletDependencyProvider) = module {
                 appDependencyProvider.platformAdapter.decodeImage(it)
             } catch (throwable: Throwable) {
                 // TODO: should this be emitted to the error service?
-                Napier.w("Failed Operation: decodeImage")
+                Napier.w("Failed Operation: decodeImage", throwable)
                 null
             }
         }
