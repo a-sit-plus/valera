@@ -24,7 +24,8 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: iOS-${{ hashFiles('./gradle/libs.versions.toml', './gradle.properties') }}
+            ~/.m2/repository
+          key: iOS-${{ hashFiles('./gradle/libs.versions.toml', './gradle.properties', './gradle/wrapper/gradle-wrapper.properties') }}
       - name: Run UI tests
         run: |
           xcodebuild \
