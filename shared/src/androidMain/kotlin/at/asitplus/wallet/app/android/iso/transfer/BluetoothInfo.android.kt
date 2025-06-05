@@ -6,7 +6,10 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 
 actual class BluetoothInfo {
@@ -16,28 +19,21 @@ actual class BluetoothInfo {
         val bluetoothManager = remember {
             context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
         }
-        val adapter = bluetoothManager?.adapter
-        val initialState = adapter?.isEnabled == true
-        val state = remember { mutableStateOf(initialState) }
+        val isBluetoothEnabled = remember {
+            mutableStateOf(bluetoothManager?.adapter?.isEnabled == true)
+        }
 
         DisposableEffect(Unit) {
             val receiver = object : BroadcastReceiver() {
                 override fun onReceive(ctx: Context?, intent: Intent?) {
                     if (intent?.action == BluetoothAdapter.ACTION_STATE_CHANGED) {
-                        val newState = adapter?.isEnabled == true
-                        state.value = newState
+                        isBluetoothEnabled.value = bluetoothManager?.adapter?.isEnabled == true
                     }
                 }
             }
-
-            val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
-            context.registerReceiver(receiver, filter)
-
-            onDispose {
-                context.unregisterReceiver(receiver)
-            }
+            context.registerReceiver(receiver, IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED))
+            onDispose { context.unregisterReceiver(receiver) }
         }
-
-        return state.value
+        return isBluetoothEnabled.value
     }
 }
