@@ -1,11 +1,15 @@
 package data.credentials
 
+import at.asitplus.catchingUnwrapped
 import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.signum.indispensable.io.Base64Strict
+import at.asitplus.signum.indispensable.io.Base64UrlStrict
 import at.asitplus.wallet.lib.agent.SdJwtValidator
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.jws.SdJwtSigned
 import data.Attribute
+import io.matthewnelson.encoding.core.Decoder.Companion.decodeToByteArray
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
@@ -22,10 +26,18 @@ abstract class CredentialAdapter {
     protected fun Any?.toInstantOrNull() =
         (this as? Instant?) ?: toString().let { runCatching { Instant.parse(it) }.getOrNull() }
 
-    protected fun JsonPrimitive?.toCollectionOrNull() = (this as JsonArray?)?.let { it.map { it.toString() } }
+    protected fun JsonPrimitive?.toCollectionOrNull() =
+        (this as? JsonArray)?.let { it.map { it.toString() } }
 
     protected fun Any?.toLocalDateTimeOrNull() =
-        (this as? LocalDateTime?) ?: toString().let { runCatching { LocalDateTime.parse(it) }.getOrNull() }
+        (this as? LocalDateTime?)
+            ?: toString().let { runCatching { LocalDateTime.parse(it) }.getOrNull() }
+
+    protected fun String.toBase64UrlDecodedByteArray() = catchingUnwrapped {
+        decodeToByteArray(Base64UrlStrict)
+    }.getOrNull() ?: catchingUnwrapped {
+        removePrefix("data:image/jpeg;base64,").decodeToByteArray(Base64Strict)
+    }.getOrNull()
 
     abstract val representation: ConstantIndex.CredentialRepresentation
 
@@ -54,7 +66,7 @@ abstract class CredentialAdapter {
         ): String = when (storeEntry) {
             is SubjectCredentialStore.StoreEntry.Vc -> storeEntry.vc.jwtId
             is SubjectCredentialStore.StoreEntry.SdJwt -> storeEntry.sdJwt.jwtId
-                ?: throw IllegalArgumentException("Credential does not have a jwtId")
+                ?: storeEntry.sdJwt.serialize()
 
             is SubjectCredentialStore.StoreEntry.Iso -> storeEntry.issuerSigned.issuerAuth.signature.humanReadableString // TODO probably not the best id
         }

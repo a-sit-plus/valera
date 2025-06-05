@@ -254,27 +254,27 @@ private class MobileDrivingLicenceCredentialSdJwtAdapter(
 
     override val portraitRaw: ByteArray?
         get() = attributes[MobileDrivingLicenceDataElements.PORTRAIT]?.contentOrNull
-            ?.decodeToByteArray(Base64UrlStrict)
+            ?.toBase64UrlDecodedByteArray()
 
     override val signatureRaw: ByteArray?
         get() = attributes[MobileDrivingLicenceDataElements.SIGNATURE_USUAL_MARK]?.contentOrNull
-            ?.decodeToByteArray(Base64UrlStrict)
+            ?.toBase64UrlDecodedByteArray()
 
     override val biometricTemplateFaceRaw: ByteArray?
         get() = attributes[MobileDrivingLicenceDataElements.BIOMETRIC_TEMPLATE_FACE]?.contentOrNull
-            ?.decodeToByteArray(Base64UrlStrict)
+            ?.toBase64UrlDecodedByteArray()
 
     override val biometricTemplateFingerRaw: ByteArray?
         get() = attributes[MobileDrivingLicenceDataElements.BIOMETRIC_TEMPLATE_FINGER]?.contentOrNull
-            ?.decodeToByteArray(Base64UrlStrict)
+            ?.toBase64UrlDecodedByteArray()
 
     override val biometricTemplateIrisRaw: ByteArray?
         get() = attributes[MobileDrivingLicenceDataElements.BIOMETRIC_TEMPLATE_IRIS]?.contentOrNull
-            ?.decodeToByteArray(Base64UrlStrict)
+            ?.toBase64UrlDecodedByteArray()
 
     override val biometricTemplateSignatureSignRaw: ByteArray?
         get() = attributes[MobileDrivingLicenceDataElements.BIOMETRIC_TEMPLATE_SIGNATURE_SIGN]?.contentOrNull
-            ?.decodeToByteArray(Base64UrlStrict)
+            ?.toBase64UrlDecodedByteArray()
 
     override val documentNumber: String?
         get() = attributes[MobileDrivingLicenceDataElements.DOCUMENT_NUMBER]?.contentOrNull
