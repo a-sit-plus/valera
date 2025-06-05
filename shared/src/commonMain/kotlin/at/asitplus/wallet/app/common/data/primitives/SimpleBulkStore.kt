@@ -1,4 +1,4 @@
-package at.asitplus.wallet.app.data
+package at.asitplus.wallet.app.common.data.primitives
 
 interface SimpleBulkStore<Key : Any, Value : Any> : SimpleStore<Key, Value> {
     /**

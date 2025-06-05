@@ -26,10 +26,10 @@ import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.compose.resources.getString
 
-class DCAPIExportService(private val platformAdapter: PlatformAdapter, private val scope: CoroutineScope) {
+class DCAPIExportService(private val platformAdapter: PlatformAdapter) {
     private val imageDecoder: (ByteArray) -> ImageBitmap = { byteArray -> platformAdapter.decodeImage(byteArray) }
 
-    suspend fun registerCredentialWithSystem(container: StoreContainer) {
+    suspend fun registerCredentialWithSystem(container: StoreContainer, scope: CoroutineScope) {
         Napier.d("DC API: Preparing registration of updated credentials with the system")
 
         val credentialListEntries = container.credentials.mapNotNull { (_, storeEntry) ->

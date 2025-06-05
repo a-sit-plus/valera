@@ -27,14 +27,18 @@ import at.asitplus.dcapi.request.DCAPIRequest
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.openid.RequestParametersFrom
+import at.asitplus.rqes.SignatureRequestParameters
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.error_feature_not_yet_available
 import at.asitplus.valera.resources.snackbar_clear_log_successfully
 import at.asitplus.valera.resources.snackbar_reset_app_successfully
+import at.asitplus.wallet.app.common.ErrorService
+import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.dcapi.request.Oid4vpDCAPIRequest
 import at.asitplus.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.wallet.app.common.decodeImage
+import at.asitplus.wallet.app.common.domain.platform.UrlOpener
 import at.asitplus.wallet.lib.data.dif.ConstraintFieldsEvaluationException
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.dcapi.request.IsoMdocRequest
@@ -52,7 +56,6 @@ import ui.composables.BottomBar
 import ui.composables.NavigationData
 import ui.navigation.routes.AddCredentialPreAuthnRoute
 import ui.navigation.routes.AddCredentialRoute
-import ui.navigation.routes.AuthenticationQrCodeScannerRoute
 import ui.navigation.routes.AuthenticationSuccessRoute
 import ui.navigation.routes.AuthenticationViewRoute
 import ui.navigation.routes.AuthorizationIntentRoute
@@ -69,10 +72,10 @@ import ui.navigation.routes.LogRoute
 import ui.navigation.routes.OnboardingInformationRoute
 import ui.navigation.routes.OnboardingStartRoute
 import ui.navigation.routes.OnboardingWrapperTestTags
-import ui.navigation.routes.PreAuthQrCodeScannerRoute
 import ui.navigation.routes.PresentDataRoute
 import ui.navigation.routes.PresentationIntentRoute
 import ui.navigation.routes.ProvisioningIntentRoute
+import ui.navigation.routes.QrCodeScannerRoute
 import ui.navigation.routes.Route
 import ui.navigation.routes.SettingsRoute
 import ui.navigation.routes.ShowQrCodeRoute
@@ -80,7 +83,6 @@ import ui.navigation.routes.SigningCredentialIntentRoute
 import ui.navigation.routes.SigningIntentRoute
 import ui.navigation.routes.SigningPreloadIntentRoute
 import ui.navigation.routes.SigningQtspSelectionRoute
-import ui.navigation.routes.SigningRoute
 import ui.navigation.routes.SigningServiceIntentRoute
 import ui.navigation.routes.VerifyDataRoute
 import ui.viewmodels.AddCredentialViewModel
@@ -89,11 +91,10 @@ import ui.viewmodels.CredentialsViewModel
 import ui.viewmodels.ErrorViewModel
 import ui.viewmodels.LoadCredentialViewModel
 import ui.viewmodels.LogViewModel
-import ui.viewmodels.PreAuthQrCodeScannerViewModel
+import ui.viewmodels.QrCodeScannerMode
+import ui.viewmodels.QrCodeScannerViewModel
 import ui.viewmodels.SettingsViewModel
 import ui.viewmodels.SigningQtspSelectionViewModel
-import ui.viewmodels.SigningViewModel
-import ui.viewmodels.authentication.AuthenticationQrCodeScannerViewModel
 import ui.viewmodels.authentication.AuthenticationSuccessViewModel
 import ui.viewmodels.authentication.AuthenticationViewModel
 import ui.viewmodels.authentication.PreviewDCAPIAuthenticationViewModel
@@ -119,14 +120,11 @@ import ui.views.LoadingView
 import ui.views.LogView
 import ui.views.OnboardingInformationView
 import ui.views.OnboardingStartView
-import ui.views.PreAuthQrCodeScannerScreen
 import ui.views.PresentDataView
-import ui.views.presentation.PresentationView
+import ui.views.QrCodeScannerView
 import ui.views.SelectIssuingServerView
 import ui.views.SettingsView
 import ui.views.SigningQtspSelectionView
-import ui.views.SigningView
-import ui.views.authentication.AuthenticationQrCodeScannerView
 import ui.views.authentication.AuthenticationSuccessView
 import ui.views.authentication.AuthenticationView
 import ui.views.intents.AuthorizationIntentView
@@ -140,6 +138,7 @@ import ui.views.intents.SigningPreloadIntentView
 import ui.views.intents.SigningServiceIntentView
 import ui.views.iso.ShowQrCodeView
 import ui.views.iso.verifier.VerifierView
+import ui.views.presentation.PresentationView
 
 internal object NavigatorTestTags {
     const val loadingTestTag = "loadingTestTag"
@@ -147,8 +146,11 @@ internal object NavigatorTestTags {
 
 @Composable
 fun WalletNavigation(
-    walletMain: WalletMain,
     settingsViewModel: SettingsViewModel = koinInject(),
+    intentService: IntentService = koinInject(),
+    snackbarService: SnackbarService = koinInject(),
+    errorService: ErrorService = koinInject(),
+    urlOpener: UrlOpener = koinInject(),
 ) {
     val navController: NavHostController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -175,7 +177,7 @@ fun WalletNavigation(
     }
 
     val onClickLogo = {
-        walletMain.platformAdapter.openUrl("https://wallet.a-sit.at/")
+        urlOpener("https://wallet.a-sit.at/")
     }
 
     val isConditionsAccepted = settingsViewModel.isConditionsAccepted.collectAsState(null)
@@ -195,37 +197,36 @@ fun WalletNavigation(
         WalletNavHost(
             navController,
             startDestination,
-            walletMain,
             navigate,
             navigateBack,
             popBackStack,
             onClickLogo,
             onError = { e ->
                 popBackStack(HomeScreenRoute)
-                walletMain.errorService.emit(e)
+                errorService.emit(e)
             },
         )
     }
 
     LaunchedEffect(null) {
         this.launch {
-            Globals.appLink.combineTransform(walletMain.intentService.readyForIntents) { link, ready ->
+            Globals.appLink.combineTransform(intentService.readyForIntents) { link, ready ->
                 if (ready == true && link != null) {
                     emit(link)
                 }
             }.collect { link ->
                 Napier.d("appLink.combineTransform $link")
                 catchingUnwrapped {
-                    val route = walletMain.intentService.handleIntent(link)
+                    val route = intentService.handleIntent(link)
                     navigate(route)
                 }.onFailure {
-                    walletMain.errorService.emit(it)
+                    errorService.emit(it)
                 }
                 Globals.appLink.value = null
             }
         }
         this.launch {
-            walletMain.snackbarService.message.collect { (text, actionLabel, callback) ->
+            snackbarService.message.collect { (text, actionLabel, callback) ->
                 when (snackbarHostState.showSnackbar(text, actionLabel, true)) {
                     SnackbarResult.Dismissed -> {}
                     SnackbarResult.ActionPerformed -> callback?.invoke()
@@ -233,7 +234,7 @@ fun WalletNavigation(
             }
         }
         this.launch {
-            walletMain.errorService.error.collect { (throwable) ->
+            errorService.error.collect { (throwable) ->
                 navigate(
                     ErrorRoute(
                         throwable.enrichMessage(),
@@ -254,13 +255,14 @@ private fun Throwable.enrichMessage() = when (this) {
 private fun WalletNavHost(
     navController: NavHostController,
     startDestination: Route,
-    walletMain: WalletMain,
     navigate: (Route) -> Unit,
     navigateBack: () -> Unit,
     popBackStack: (Route) -> Unit,
     onClickLogo: () -> Unit,
     onError: (Throwable) -> Unit,
+    walletMain: WalletMain = koinInject(),
     settingsViewModel: SettingsViewModel = koinInject(),
+    intentService: IntentService = koinInject(),
 ) {
     val currentHost by settingsViewModel.host.collectAsState("")
     NavHost(
@@ -293,7 +295,7 @@ private fun WalletNavHost(
                             navigate(AddCredentialRoute)
                         },
                         navigateToQrAddCredentialsPage = {
-                            navigate(PreAuthQrCodeScannerRoute)
+                            navigate(QrCodeScannerRoute(QrCodeScannerMode.PROVISIONING))
                         },
                         navigateToCredentialDetailsPage = {
                             navigate(CredentialDetailsRoute(it))
@@ -320,7 +322,7 @@ private fun WalletNavHost(
             )
             LaunchedEffect(null) {
                 walletMain.scope.launch {
-                    walletMain.intentService.readyForIntents.emit(true)
+                    intentService.readyForIntents.emit(true)
                 }
             }
         }
@@ -328,7 +330,7 @@ private fun WalletNavHost(
         composable<PresentDataRoute> {
             PresentDataView(
                 onNavigateToAuthenticationQrCodeScannerView = {
-                    navigate(AuthenticationQrCodeScannerRoute)
+                    navigate(QrCodeScannerRoute(QrCodeScannerMode.AUTHENTICATION))
                 },
                 onNavigateToShowQrCodeView = { navigate(ShowQrCodeRoute) },
                 onClickLogo = onClickLogo,
@@ -340,20 +342,6 @@ private fun WalletNavHost(
                     )
                 }
             )
-        }
-
-        composable<AuthenticationQrCodeScannerRoute> {
-            AuthenticationQrCodeScannerView(remember {
-                AuthenticationQrCodeScannerViewModel(
-                    navigateUp = navigateBack,
-                    onSuccess = { route ->
-                        navigate(route)
-                    },
-                    walletMain = walletMain,
-                    onClickLogo = onClickLogo,
-                    onClickSettings = { navigate(SettingsRoute) }
-                )
-            })
         }
 
         composable<ShowQrCodeRoute> {
@@ -697,26 +685,6 @@ private fun WalletNavHost(
             )
         }
 
-        composable<PreAuthQrCodeScannerRoute> { backStackEntry ->
-            PreAuthQrCodeScannerScreen(remember {
-                PreAuthQrCodeScannerViewModel(
-                    walletMain = walletMain,
-                    navigateUp = navigateBack,
-                    navigateToAddCredentialsPage = { offer ->
-                        navigate(
-                            AddCredentialPreAuthnRoute(
-                                Json.encodeToString(
-                                    offer
-                                )
-                            )
-                        )
-                    },
-                    onClickLogo = onClickLogo,
-                    onClickSettings = { navigate(SettingsRoute) }
-                )
-            })
-        }
-
         composable<LogRoute> { backStackEntry ->
             LogView(vm = remember {
                 LogViewModel(
@@ -744,43 +712,18 @@ private fun WalletNavHost(
             LoadingView()
         }
 
-        composable<AuthenticationQrCodeScannerRoute> { backStackEntry ->
-            AuthenticationQrCodeScannerView(remember {
-                AuthenticationQrCodeScannerViewModel(
-                    navigateUp = navigateBack,
-                    onSuccess = { route ->
-                        navigateBack()
-                        navigate(route)
-                    },
-                    walletMain = walletMain,
-                    onClickLogo = onClickLogo,
-                    onClickSettings = { navigate(SettingsRoute) }
-                )
-            })
-        }
-
-        composable<SigningRoute> { backStackEntry ->
-            SigningView(remember {
-                SigningViewModel(
-                    navigateUp = navigateBack,
-                    onQrScanned = { url ->
-                        popBackStack(HomeScreenRoute)
-                        navigate(SigningQtspSelectionRoute(url))
-                    },
-                    walletMain = walletMain,
-                    onClickLogo = onClickLogo,
-                    onClickSettings = { navigate(SettingsRoute) }
-                )
-            })
-        }
         composable<SigningQtspSelectionRoute> { backStackEntry ->
             SigningQtspSelectionView(vm = remember {
                 SigningQtspSelectionViewModel(
                     navigateUp = navigateBack,
-                    onContinue = { signRequest ->
+                    onContinue = { signatureRequestParametersSerialized ->
                         CoroutineScope(Dispatchers.Main).launch {
                             try {
-                                walletMain.signingService.start(signRequest)
+                                val signatureRequestParameters =
+                                    vckJsonSerializer.decodeFromString<SignatureRequestParameters>(
+                                        signatureRequestParametersSerialized
+                                    )
+                                walletMain.signingService.start(signatureRequestParameters)
 
                             } catch (e: Throwable) {
                                 walletMain.errorService.emit(e)
@@ -790,7 +733,7 @@ private fun WalletNavHost(
                     walletMain = walletMain,
                     onClickLogo = onClickLogo,
                     onClickSettings = { navigate(SettingsRoute) },
-                    url = backStackEntry.toRoute<SigningQtspSelectionRoute>().url
+                    signatureRequestParametersSerialized = backStackEntry.toRoute<SigningQtspSelectionRoute>().signatureRequestParametersSerialized
                 )
             })
         }
@@ -906,8 +849,18 @@ private fun WalletNavHost(
                     walletMain = walletMain,
                     uri = backStackEntry.toRoute<SigningIntentRoute>().uri,
                     onSuccess = {
-                        navigateBack()
-                        navigate(SigningQtspSelectionRoute(backStackEntry.toRoute<SigningIntentRoute>().uri))
+                        walletMain.scope.launch {
+                            navigateBack()
+                            val signatureRequestParameters =
+                                walletMain.signingService.parseSignatureRequestParameter(backStackEntry.toRoute<SigningIntentRoute>().uri)
+                            navigate(
+                                SigningQtspSelectionRoute(
+                                    vckJsonSerializer.encodeToString(
+                                        signatureRequestParameters
+                                    )
+                                )
+                            )
+                        }
                     },
                     onFailure = { error ->
                         walletMain.errorService.emit(error)
@@ -926,6 +879,24 @@ private fun WalletNavHost(
                         })
                 }
             )
+        }
+        composable<QrCodeScannerRoute> { backStackEntry ->
+            QrCodeScannerView(remember {
+                QrCodeScannerViewModel(
+                    navigateUp = navigateBack,
+                    onSuccess = { route ->
+                        navigateBack()
+                        navigate(route)
+                    },
+                    onFailure = { error ->
+                        walletMain.errorService.emit(error)
+                    },
+                    walletMain = walletMain,
+                    onClickLogo = onClickLogo,
+                    onClickSettings = { navigate(SettingsRoute) },
+                    mode = vckJsonSerializer.decodeFromString(backStackEntry.toRoute<QrCodeScannerRoute>().modeSerialized)
+                )
+            })
         }
     }
 }

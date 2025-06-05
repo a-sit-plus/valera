@@ -1,6 +1,7 @@
 package at.asitplus.wallet.app.common
 
 import at.asitplus.openid.CredentialOffer
+import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.data.AttributeIndex
@@ -34,8 +35,8 @@ class ProvisioningService(
     private val dataStoreService: DataStoreService,
     private val keyMaterial: KeyMaterial,
     private val holderAgent: HolderAgent,
-    private val config: WalletConfig,
-    errorService: ErrorService,
+    private val config: SettingsRepository,
+    private val errorService: ErrorService,
     httpService: HttpService,
 ) {
     /** Checked by appLink handling whether to jump into [resumeWithAuthCode] */
@@ -117,7 +118,9 @@ class ProvisioningService(
                 vckJsonSerializer.decodeFromString<ProvisioningContext>(it)
                     .also { dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT) }
             }?.let {
-                openId4VciClient.resumeWithAuthCode(redirectedUrl, it).getOrThrow()
+                openId4VciClient.resumeWithAuthCode(redirectedUrl, it).getOrThrow().credentials.forEach {
+                    holderAgent.storeCredential(it)
+                }
             }
     }
 
@@ -161,11 +164,7 @@ class ProvisioningService(
             when (this) {
                 is CredentialIssuanceResult.OpenUrlForAuthnRequest -> storeContextOpenIntent()
                 is CredentialIssuanceResult.Success -> {
-                    credentials.forEach {
-                        runCatching { holderAgent.storeCredential(it) }.onFailure {
-                            Napier.w("Could not store $it", it)
-                        }
-                    }
+                    credentials.forEach { holderAgent.storeCredential(it) }
                 }
             }
         }

@@ -93,7 +93,7 @@ fun SigningQtspSelectionView(
                             content = {
                                 Text(stringResource(Res.string.button_label_continue))
                             },
-                            onClick = { vm.onContinue(vm.url) },
+                            onClick = { vm.onContinue(vm.signatureRequestParametersSerialized) },
                             modifier = Modifier,
                         )
                     }
@@ -119,7 +119,7 @@ fun SigningQtspSelectionView(
                     )
                 }
                 Spacer(modifier = Modifier.height(10.dp))
-                if(vm.allowPreload()) {
+                if (vm.allowPreload()) {
                     DataDisplaySection(title = stringResource(Res.string.text_label_selected_certificate)) {
                         CertificateInfoField(
                             vm.credentialInfo.value,
@@ -185,7 +185,7 @@ fun CertificateInfoField(
             var isExpanded by rememberSaveable {
                 mutableStateOf(false)
             }
-            CertificateCard(credentialInfo, isExpanded, { isExpanded = it}, onClickDelete)
+            CertificateCard(credentialInfo, isExpanded, { isExpanded = it }, onClickDelete)
         } else {
             Text(stringResource(Res.string.text_label_no_certificate))
             OutlinedButton(onClick = onClickPreload) {
