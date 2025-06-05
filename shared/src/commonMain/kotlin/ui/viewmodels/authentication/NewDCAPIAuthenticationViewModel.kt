@@ -15,39 +15,33 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
+import at.asitplus.dcapi.request.IsoMdocRequest
 import at.asitplus.iso.DeviceRequest
-import at.asitplus.wallet.lib.iso.SessionTranscript
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 
-class PresentationViewModel(
-    val presentationStateModel: PresentationStateModel,
+class NewDCAPIAuthenticationViewModel(
+    spImage: ImageBitmap? = null,
     navigateUp: () -> Unit,
-    onAuthenticationSuccess: (redirectUrl: String?) -> Unit,
+    navigateToAuthenticationSuccessPage: (redirectUrl: String?) -> Unit,
     navigateToHomeScreen: () -> Unit,
     walletMain: WalletMain,
-    spImage: ImageBitmap? = null,
+    val isoMdocRequest: IsoMdocRequest,
     onClickLogo: () -> Unit,
-    onClickSettings: () -> Unit
+    onClickSettings: () -> Unit,
 ) : AuthenticationViewModel(
-    spName = null,
-    spLocation = "Local Presentation",
+    spName = isoMdocRequest.callingPackageName,
+    spLocation = isoMdocRequest.callingOrigin,
     spImage,
     navigateUp,
-    onAuthenticationSuccess,
+    navigateToAuthenticationSuccessPage,
     navigateToHomeScreen,
     walletMain,
     onClickLogo,
     onClickSettings
 ) {
     private var descriptors: List<DifInputDescriptor> = listOf()
-    private var finishFunction: ((ByteArray) -> Unit)? = null
-    private var sessionTranscript: SessionTranscript? = null
 
-    fun initWithDeviceRequest(
-        parsedRequest: DeviceRequest,
-        finishFunction: (ByteArray) -> Unit,
-        sessionTranscript: SessionTranscript?
-    ) {
+    fun initWithDeviceRequest(parsedRequest: DeviceRequest) {
         descriptors = parsedRequest.docRequests.map {
             val itemsRequest = it.itemsRequest.value
             DifInputDescriptor(
@@ -67,8 +61,6 @@ class PresentationViewModel(
                 })
             )
         }
-        this.finishFunction = finishFunction
-        this.sessionTranscript = sessionTranscript
     }
 
     override val transactionData = null
@@ -95,18 +87,14 @@ class PresentationViewModel(
             )
         }
 
-    override suspend fun finalizationMethod(credentialPresentation: CredentialPresentation) =
-        finishFunction?.let {
-            walletMain.presentationService.finalizeLocalPresentation(
-                credentialPresentation = when (credentialPresentation) {
-                    is CredentialPresentation.PresentationExchangePresentation -> credentialPresentation
-                    else -> throw IllegalArgumentException()
-                },
-                it,
-                spName,
-                sessionTranscript!!
-            )
-            OpenId4VpWallet.AuthenticationSuccess(null)
-        } ?: throw IllegalStateException("No finish method found")
 
+    override suspend fun finalizationMethod(credentialPresentation: CredentialPresentation): OpenId4VpWallet.AuthenticationSuccess {
+        return walletMain.presentationService.finalizeDCAPIIsoMdocPresentation(
+            credentialPresentation = when (credentialPresentation) {
+                is CredentialPresentation.PresentationExchangePresentation -> credentialPresentation
+                else -> throw IllegalArgumentException()
+            },
+            isoMdocRequest
+        )
+    }
 }

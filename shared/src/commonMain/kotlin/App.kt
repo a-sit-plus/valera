@@ -3,8 +3,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import at.asitplus.wallet.app.common.dcapi.DCAPIInvocationData
 import at.asitplus.catchingUnwrapped
-import at.asitplus.wallet.app.common.DCAPIInvocationData
 import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.WalletDependencyProvider
 import at.asitplus.wallet.app.common.WalletMain
@@ -47,8 +47,6 @@ fun App(walletDependencyProvider: WalletDependencyProvider) {
 
             LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
                 Napier.d("Lifecycle.Event.ON_RESUME")
-                // TODO is this the best place to sync the credentials with the system?
-                walletMain.updateDigitalCredentialsAPIIntegration()
             }
         }.onFailure {
             val errorService: ErrorService = koinInject()

@@ -1,15 +1,18 @@
 package at.asitplus.wallet.app.common
 
 import androidx.compose.ui.graphics.ImageBitmap
+import at.asitplus.KmmResult
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_update_action
 import at.asitplus.valera.resources.snackbar_update_hint
-import at.asitplus.wallet.app.common.dcapi.CredentialsContainer
-import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import at.asitplus.wallet.app.common.data.SettingsRepository
+import at.asitplus.wallet.app.common.dcapi.data.export.CredentialList
+import at.asitplus.wallet.app.common.dcapi.DCAPIExportService
+import at.asitplus.dcapi.request.DCAPIRequest
+import at.asitplus.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.wallet.lib.agent.HolderAgent
-import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.agent.Validator
+import at.asitplus.iso.EncryptionParameters
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
@@ -18,6 +21,8 @@ import io.github.aakira.napier.Napier
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -41,17 +46,22 @@ class WalletMain(
     val httpService: HttpService,
     val presentationService: PresentationService,
     val signingService: SigningService,
-    val dcApiService: DCAPIService,
+    val dcApiExportService: DCAPIExportService,
     val errorService: ErrorService,
     val snackbarService: SnackbarService,
     val settingsRepository: SettingsRepository,
 ) {
+
     private val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, error ->
         errorService.emit(error)
     }
     val scope =
         CoroutineScope(Dispatchers.Default + coroutineExceptionHandler + promptModel + CoroutineName("WalletMain"))
+
+    init {
+        startListeningForNewCredentialsDCAPI()
+    }
 
     suspend fun resetApp() {
         dataStoreService.clearLog()
@@ -92,16 +102,16 @@ class WalletMain(
         }
     }
 
-    fun updateDigitalCredentialsAPIIntegration() {
-        scope.launch {
-            try {
-                Napier.d("Updating digital credentials integration")
-                subjectCredentialStore.observeStoreContainer().collect { container ->
-                    dcApiService.registerCredentialWithSystem(container)
-                }
-            } catch (e: Throwable) {
-                Napier.w("Could not update credentials with system", e)
-            }
+    private fun startListeningForNewCredentialsDCAPI() {
+        try {
+            val scope =
+                CoroutineScope(Dispatchers.IO + coroutineExceptionHandler + CoroutineName("startListeningForNewCredentialsDCAPI"))
+            Napier.d("DC API: Starting to observe credentials")
+            subjectCredentialStore.observeStoreContainer().onEach { storeContainer ->
+                dcApiExportService.registerCredentialWithSystem(storeContainer, scope)
+            }.launchIn(scope)
+        } catch (e: Throwable) {
+            Napier.w("DC API: Could not update credentials with system", e)
         }
     }
 
@@ -158,12 +168,6 @@ interface PlatformAdapter {
     fun openUrl(url: String)
 
     /**
-     * Converts an image from ByteArray to ImageBitmap
-     * @param image the image as ByteArray
-     * @return returns the image as an ImageBitmap
-     */
-
-    /**
      * Writes an user defined string to a file in a specific folder
      * @param text is the content of the new file or the content which gets append to an existing file
      * @param fileName the name of the file
@@ -194,18 +198,25 @@ interface PlatformAdapter {
     /**
      * Registers credentials with the digital credentials browser API
      * @param entries credentials to add
+     * @param scope CoroutineScope for registering credentials
      */
-    fun registerWithDigitalCredentialsAPI(entries: CredentialsContainer)
+    fun registerWithDigitalCredentialsAPI(entries: CredentialList, scope: CoroutineScope)
 
     /**
      * Retrieves request from the digital credentials browser API
      */
-    fun getCurrentDCAPIData(): DCAPIRequest?
+    fun getCurrentDCAPIData(): KmmResult<DCAPIRequest>
 
     /**
      * Prepares the credential response and sends it back to the invoking application
      */
-    fun prepareDCAPICredentialResponse(responseJson: ByteArray, dcApiRequest: DCAPIRequest)
+    fun prepareDCAPIPreviewCredentialResponse(responseJson: ByteArray, dcApiRequestPreview: PreviewDCAPIRequest)
+    fun prepareDCAPIIsoMdocCredentialResponse(
+        responseJson: ByteArray,
+        serialize: ByteArray,
+        encryptionParameters: EncryptionParameters
+    )
+    fun prepareDCAPIOid4vpCredentialResponse(responseJson: String, success: Boolean)
 
 }
 
@@ -226,17 +237,27 @@ class DummyPlatformAdapter : PlatformAdapter {
     override fun shareLog() {
     }
 
-    override fun registerWithDigitalCredentialsAPI(entries: CredentialsContainer) {
+    override fun registerWithDigitalCredentialsAPI(entries: CredentialList, scope: CoroutineScope) {
     }
 
-    override fun getCurrentDCAPIData(): DCAPIRequest? {
-        return null
+    override fun getCurrentDCAPIData(): KmmResult<DCAPIRequest> {
+        return KmmResult.failure(IllegalStateException("Using dummy platform adapter"))
     }
 
-    override fun prepareDCAPICredentialResponse(
+    override fun prepareDCAPIPreviewCredentialResponse(
         responseJson: ByteArray,
-        dcApiRequest: DCAPIRequest
+        dcApiRequestPreview: PreviewDCAPIRequest
     ) {
+    }
+
+    override fun prepareDCAPIIsoMdocCredentialResponse(
+        responseJson: ByteArray,
+        serialize: ByteArray,
+        encryptionParameters: EncryptionParameters
+    ) {
+    }
+
+    override fun prepareDCAPIOid4vpCredentialResponse(responseJson: String, success: Boolean) {
     }
 
 }

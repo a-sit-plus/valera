@@ -1,9 +1,10 @@
 package at.asitplus.wallet.app.common.presentation
 
 import at.asitplus.signum.indispensable.cosef.CoseKey
-import at.asitplus.wallet.lib.iso.DeviceRequest
+import at.asitplus.iso.DeviceRequest
 import at.asitplus.wallet.lib.iso.NFCHandover
 import at.asitplus.wallet.lib.iso.SessionTranscript
+import at.asitplus.wallet.lib.iso.vckCborSerializer
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -100,7 +101,10 @@ class MdocPresenter(
                     encodedSessionTranscript!!,
                 ).parse()
 
-                val deviceRequest = DeviceRequest.deserialize(encodedDeviceRequest).getOrThrow()
+                val deviceRequest = vckCborSerializer.decodeFromByteArray(
+                    DeviceRequest.serializer(),
+                    encodedDeviceRequest
+                )
 
                 presentationViewModel.initWithDeviceRequest(
                     deviceRequest,
