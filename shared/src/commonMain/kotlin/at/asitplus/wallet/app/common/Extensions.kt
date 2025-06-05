@@ -215,6 +215,12 @@ fun ConstantIndex.CredentialScheme.toJsonElement(
                     put(NAME, JsonPrimitive(""))
                 }
             })
+            put(EhicScheme.Attributes.PREFIX_AUTHENTIC_SOURCE, buildJsonObject {
+                with(EhicScheme.Attributes.AuthenticSource) {
+                    put(ID, JsonPrimitive(""))
+                    put(NAME, JsonPrimitive(""))
+                }
+            })
         }
 
         is CertificateOfResidenceScheme -> buildJsonObject {

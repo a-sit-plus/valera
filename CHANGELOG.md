@@ -1,6 +1,7 @@
 # Release 5.6.5
  * Credentials: Safe decoding of images in credentials
  * Credentials: Update EU PID to allow for LocalDate or Instant in expiry, issuance date
+ * Credentials: Update EHIC to latest schema (1.1.0)
 
 # Release 5.6.4
  * Add: Koin Dependency Injection
