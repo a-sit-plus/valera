@@ -7,6 +7,7 @@ import at.asitplus.signum.indispensable.io.Base64UrlStrict
 import at.asitplus.wallet.lib.agent.SdJwtValidator
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
+import at.asitplus.wallet.lib.data.LocalDateOrInstant
 import at.asitplus.wallet.lib.jws.SdJwtSigned
 import data.Attribute
 import io.matthewnelson.encoding.base16.Base16
@@ -26,6 +27,18 @@ abstract class CredentialAdapter {
 
     protected fun Any?.toInstantOrNull() =
         (this as? Instant?) ?: toString().let { runCatching { Instant.parse(it) }.getOrNull() }
+
+    protected fun Any?.toLocalDateOrInstantOrNull() = (this as? LocalDateOrInstant?)
+        ?: (this as? LocalDateOrInstant.LocalDate?)
+        ?: (this as? LocalDateOrInstant.Instant?)
+        ?: toString().let {
+            runCatching { Instant.parse(it) }.getOrNull()
+                ?.let { LocalDateOrInstant.Instant(it) }
+        }
+        ?: toString().let {
+            runCatching { LocalDate.parse(it) }.getOrNull()
+                ?.let { LocalDateOrInstant.LocalDate(it) }
+        }
 
     protected fun JsonPrimitive?.toCollectionOrNull() =
         (this as? JsonArray)?.let { it.map { it.toString() } }

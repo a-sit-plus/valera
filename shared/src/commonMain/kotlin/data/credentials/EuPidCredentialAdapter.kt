@@ -17,9 +17,9 @@ import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme.SdJwtAttributes.PlaceOfBir
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
+import at.asitplus.wallet.lib.data.LocalDateOrInstant
 import data.Attribute
 import io.ktor.util.decodeBase64Bytes
-import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
@@ -28,9 +28,10 @@ import kotlinx.serialization.json.contentOrNull
 sealed class EuPidCredentialAdapter(
     private val decodePortrait: (ByteArray) -> ImageBitmap?,
 ) : CredentialAdapter() {
-    override fun getAttribute(path: NormalizedJsonPath) = path.segments.firstOrNull()?.let { first ->
-        getWithIsoNames(first) ?: getWithSdJwtNames(first, path.segments.getOrNull(1))
-    }
+    override fun getAttribute(path: NormalizedJsonPath) =
+        path.segments.firstOrNull()?.let { first ->
+            getWithIsoNames(first) ?: getWithSdJwtNames(first, path.segments.getOrNull(1))
+        }
 
     /** Claim names defined for ISO in ARF */
     private fun getWithIsoNames(first: NormalizedJsonPathSegment) = with(Attributes) {
@@ -226,8 +227,8 @@ sealed class EuPidCredentialAdapter(
     abstract val birthCountry: String?
     abstract val birthState: String?
     abstract val birthCity: String?
-    abstract val issuanceDate: Instant?
-    abstract val expiryDate: Instant?
+    abstract val issuanceDate: LocalDateOrInstant?
+    abstract val expiryDate: LocalDateOrInstant?
     abstract val issuingAuthority: String?
     abstract val documentNumber: String?
     abstract val administrativeNumber: String?
@@ -255,7 +256,11 @@ sealed class EuPidCredentialAdapter(
                         ?: throw IllegalArgumentException("storeEntry")
 
                 is SubjectCredentialStore.StoreEntry.SdJwt ->
-                    EuPidCredentialSdJwtAdapter(storeEntry.toAttributeMap(), decodePortrait, storeEntry.scheme!!)
+                    EuPidCredentialSdJwtAdapter(
+                        storeEntry.toAttributeMap(),
+                        decodePortrait,
+                        storeEntry.scheme!!
+                    )
 
                 is SubjectCredentialStore.StoreEntry.Iso ->
                     EuPidCredentialIsoMdocAdapter(
@@ -379,10 +384,10 @@ private class EuPidCredentialVcAdapter(
     override val birthCity: String?
         get() = credentialSubject.birthCity
 
-    override val issuanceDate: Instant
+    override val issuanceDate: LocalDateOrInstant
         get() = credentialSubject.issuanceDate
 
-    override val expiryDate: Instant
+    override val expiryDate: LocalDateOrInstant
         get() = credentialSubject.expiryDate
 
     override val issuingAuthority: String
@@ -570,13 +575,13 @@ private class EuPidCredentialSdJwtAdapter(
         get() = attributes[SdJwtAttributes.PLACE_OF_BIRTH_LOCALITY]?.contentOrNull
             ?: attributes[Attributes.BIRTH_CITY]?.contentOrNull
 
-    override val issuanceDate: Instant?
-        get() = attributes[SdJwtAttributes.ISSUANCE_DATE]?.contentOrNull?.toInstantOrNull()
-            ?: attributes[Attributes.ISSUANCE_DATE]?.contentOrNull?.toInstantOrNull()
+    override val issuanceDate: LocalDateOrInstant?
+        get() = attributes[SdJwtAttributes.ISSUANCE_DATE]?.contentOrNull?.toLocalDateOrInstantOrNull()
+            ?: attributes[Attributes.ISSUANCE_DATE]?.contentOrNull?.toLocalDateOrInstantOrNull()
 
-    override val expiryDate: Instant?
-        get() = attributes[SdJwtAttributes.EXPIRY_DATE]?.contentOrNull?.toInstantOrNull()
-            ?: attributes[Attributes.EXPIRY_DATE]?.contentOrNull?.toInstantOrNull()
+    override val expiryDate: LocalDateOrInstant?
+        get() = attributes[SdJwtAttributes.EXPIRY_DATE]?.contentOrNull?.toLocalDateOrInstantOrNull()
+            ?: attributes[Attributes.EXPIRY_DATE]?.contentOrNull?.toLocalDateOrInstantOrNull()
 
     override val issuingAuthority: String?
         get() = attributes[SdJwtAttributes.ISSUING_AUTHORITY]?.contentOrNull
@@ -746,13 +751,19 @@ class EuPidCredentialIsoMdocAdapter(
     override val birthCity: String?
         get() = euPidNamespace?.get(Attributes.BIRTH_CITY) as? String?
 
-    override val issuanceDate: Instant?
-        get() = euPidNamespace?.get(Attributes.ISSUANCE_DATE) as? Instant?
-            ?: euPidNamespace?.get(Attributes.ISSUANCE_DATE)?.toString()?.toInstantOrNull()
+    override val issuanceDate: LocalDateOrInstant?
+        get() = euPidNamespace?.get(Attributes.ISSUANCE_DATE) as? LocalDateOrInstant?
+            ?: euPidNamespace?.get(Attributes.ISSUANCE_DATE) as? LocalDateOrInstant.LocalDate?
+            ?: euPidNamespace?.get(Attributes.ISSUANCE_DATE) as? LocalDateOrInstant.Instant?
+            ?: euPidNamespace?.get(Attributes.ISSUANCE_DATE)?.toString()
+                ?.toLocalDateOrInstantOrNull()
 
-    override val expiryDate: Instant?
-        get() = euPidNamespace?.get(Attributes.EXPIRY_DATE) as? Instant?
-            ?: euPidNamespace?.get(Attributes.EXPIRY_DATE)?.toString()?.toInstantOrNull()
+    override val expiryDate: LocalDateOrInstant?
+        get() = euPidNamespace?.get(Attributes.EXPIRY_DATE) as? LocalDateOrInstant?
+            ?: euPidNamespace?.get(Attributes.EXPIRY_DATE) as? LocalDateOrInstant.LocalDate?
+            ?: euPidNamespace?.get(Attributes.EXPIRY_DATE) as? LocalDateOrInstant.Instant?
+            ?: euPidNamespace?.get(Attributes.EXPIRY_DATE)?.toString()
+                ?.toLocalDateOrInstantOrNull()
 
     override val issuingAuthority: String?
         get() = euPidNamespace?.get(Attributes.ISSUING_AUTHORITY) as? String?
