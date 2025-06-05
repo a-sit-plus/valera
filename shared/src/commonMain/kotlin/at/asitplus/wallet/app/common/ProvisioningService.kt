@@ -118,9 +118,12 @@ class ProvisioningService(
                 vckJsonSerializer.decodeFromString<ProvisioningContext>(it)
                     .also { dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT) }
             }?.let {
-                openId4VciClient.resumeWithAuthCode(redirectedUrl, it).getOrThrow().credentials.forEach {
-                    holderAgent.storeCredential(it)
-                }
+                openId4VciClient.resumeWithAuthCode(redirectedUrl, it).getOrThrow()
+                    .credentials.forEach {
+                        holderAgent.storeCredential(it).onFailure { ex ->
+                            Napier.e("storeCredential failed", ex)
+                        }
+                    }
             }
     }
 
@@ -164,7 +167,11 @@ class ProvisioningService(
             when (this) {
                 is CredentialIssuanceResult.OpenUrlForAuthnRequest -> storeContextOpenIntent()
                 is CredentialIssuanceResult.Success -> {
-                    credentials.forEach { holderAgent.storeCredential(it) }
+                    credentials.forEach {
+                        holderAgent.storeCredential(it).onFailure { ex ->
+                            Napier.e("storeCredential failed", ex)
+                        }
+                    }
                 }
             }
         }
