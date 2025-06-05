@@ -180,6 +180,10 @@
 
     <string name="attribute_friendly_name_issuing_authority_id">Ausstellende Behörde: ID</string>
     <string name="attribute_friendly_name_issuing_authority_name">Ausstellende Behörde: Name</string>
+    <string name="attribute_friendly_name_authentic_source">Zuständige Institution</string>
+    <string name="attribute_friendly_name_authentic_source_id">Zuständige Institution: ID</string>
+    <string name="attribute_friendly_name_authentic_source_name">Zuständige Institution: Name</string>
+    <string name="attribute_friendly_name_social_security_number">Sozialversicherungsnummer</string>
 
     <string name="credential_representation_format_label_plain_jwt">Plain JWT</string>
     <string name="credential_representation_format_label_sd_jwt">SD-JWT</string>

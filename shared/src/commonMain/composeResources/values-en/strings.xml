@@ -180,6 +180,9 @@
 
     <string name="attribute_friendly_name_issuing_authority_id">Issuing Authority: ID</string>
     <string name="attribute_friendly_name_issuing_authority_name">Issuing Authority: Name</string>
+    <string name="attribute_friendly_name_authentic_source">Authentic Source</string>
+    <string name="attribute_friendly_name_authentic_source_id">Authentic Source: ID</string>
+    <string name="attribute_friendly_name_authentic_source_name">Authentic Source: Name</string>
     <string name="attribute_friendly_name_social_security_number">Social Security Number</string>
 
     <string name="credential_representation_format_label_plain_jwt">Plain JWT</string>
