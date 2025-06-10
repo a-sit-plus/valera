@@ -24,7 +24,9 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.button_label_details
 import at.asitplus.valera.resources.button_label_start
+import at.asitplus.valera.resources.content_description_navigate_to_settings
 import at.asitplus.valera.resources.content_description_portrait
+import at.asitplus.valera.resources.heading_label_settings_screen
 import at.asitplus.valera.resources.section_heading_age_data
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.BuildType
@@ -59,6 +61,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
@@ -69,6 +72,7 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.multipaz.prompt.PassphraseRequest
 import org.multipaz.prompt.PromptModel
@@ -77,6 +81,7 @@ import ui.navigation.routes.OnboardingWrapperTestTags
 import ui.views.OnboardingStartScreenTestTag
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 
 private lateinit var lifecycleRegistry: LifecycleRegistry
@@ -102,27 +107,6 @@ class InstrumentedTestsSuite : FunSpec({
     }
 
     context("Starting App Tests") {
-        test("Using collectAsStateWithLifecycle properly updates state to assert") {
-            runComposeUiTest {
-                val dummyDataStoreService = DummyDataStoreService()
-                val preferenceKey = "test"
-                val testValue = "loaded"
-
-                setContent {
-                    val data by dummyDataStoreService.getPreference(preferenceKey).collectAsState("null")
-                    Text(data ?: "collecting state ...")
-                }
-
-                runBlocking {
-                    dummyDataStoreService.setPreference(key = preferenceKey, value = testValue)
-                }
-
-                waitUntil {
-                    onNodeWithText(testValue).isDisplayed()
-                }
-            }
-        }
-
         test("App should start correctly") {
             runComposeUiTest {
                 setContent {
@@ -177,6 +161,34 @@ class InstrumentedTestsSuite : FunSpec({
                 onNodeWithTag(OnboardingStartScreenTestTag.startButton)
                     .assertIsDisplayed()
 
+            }
+        }
+    }
+
+    test("Test 4: Navigation to screen with viewModel works") {
+        runComposeUiTest {
+            setContent {
+                CompositionLocalProvider(
+                    LocalLifecycleOwner provides TestLifecycleOwner()
+                ) {
+                    App(createWalletDependencyProvider(getPlatformAdapter()))
+                }
+            }
+
+            runBlocking {
+                waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_start)))
+                onNodeWithText(getString(Res.string.button_label_start)).performClick()
+                onNodeWithText(getString(Res.string.button_label_continue)).performClick()
+                waitUntilDoesNotExist(
+                    hasText(getString(Res.string.button_label_continue)),
+                    10000
+                )
+
+                onNodeWithContentDescription(getString(Res.string.content_description_navigate_to_settings)).performClick()
+                waitUntilExactlyOneExists(
+                    hasText(getString(Res.string.heading_label_settings_screen)),
+                    10000
+                )
             }
         }
     }
@@ -351,7 +363,7 @@ class TestLifecycleOwner : LifecycleOwner {
 
 // Based on the identity-credential sample code
 // https://github.com/openwallet-foundation-labs/identity-credential/tree/main/samples/testapp
-class TestPromptModel: PromptModel {
+class TestPromptModel : PromptModel {
     override val passphrasePromptModel = SinglePromptModel<PassphraseRequest, String?>()
     override val promptModelScope =
         CoroutineScope(Dispatchers.Default + SupervisorJob() + this)

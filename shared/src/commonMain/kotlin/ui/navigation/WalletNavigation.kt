@@ -33,6 +33,7 @@ import at.asitplus.valera.resources.snackbar_reset_app_successfully
 import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.domain.platform.UrlOpener
@@ -48,7 +49,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.getString
 import org.koin.compose.koinInject
-import org.koin.compose.viewmodel.koinViewModel
 import ui.composables.BottomBar
 import ui.composables.NavigationData
 import ui.navigation.routes.AddCredentialPreAuthnRoute
@@ -90,7 +90,6 @@ import ui.viewmodels.LoadCredentialViewModel
 import ui.viewmodels.LogViewModel
 import ui.viewmodels.QrCodeScannerMode
 import ui.viewmodels.QrCodeScannerViewModel
-import ui.viewmodels.SettingsViewModel
 import ui.viewmodels.SigningQtspSelectionViewModel
 import ui.viewmodels.authentication.AuthenticationSuccessViewModel
 import ui.viewmodels.authentication.DCAPIAuthenticationViewModel
@@ -141,7 +140,7 @@ internal object NavigatorTestTags {
 
 @Composable
 fun WalletNavigation(
-    settingsViewModel: SettingsViewModel = koinViewModel(),
+    settingsRepository: SettingsRepository = koinInject(),
     intentService: IntentService = koinInject(),
     snackbarService: SnackbarService = koinInject(),
     errorService: ErrorService = koinInject(),
@@ -175,7 +174,7 @@ fun WalletNavigation(
         urlOpener("https://wallet.a-sit.at/")
     }
 
-    val isConditionsAccepted = settingsViewModel.isConditionsAccepted.collectAsState(null)
+    val isConditionsAccepted = settingsRepository.isConditionsAccepted.collectAsState(null)
 
     val startDestination = when (isConditionsAccepted.value) {
         true -> HomeScreenRoute
@@ -256,10 +255,10 @@ private fun WalletNavHost(
     onClickLogo: () -> Unit,
     onError: (Throwable) -> Unit,
     walletMain: WalletMain = koinInject(),
-    settingsViewModel: SettingsViewModel = koinViewModel(),
     intentService: IntentService = koinInject(),
+    settingsRepository: SettingsRepository = koinInject(),
 ) {
-    val currentHost by settingsViewModel.host.collectAsState("")
+    val currentHost by settingsRepository.host.collectAsState("")
     NavHost(
         navController = navController,
         startDestination = startDestination,
@@ -277,7 +276,9 @@ private fun WalletNavHost(
         }
         composable<OnboardingInformationRoute> {
             OnboardingInformationView(
-                onClickContinue = { settingsViewModel.set(isConditionsAccepted = true) },
+                onClickContinue = {
+                    settingsRepository.set(isConditionsAccepted = true)
+                },
                 onClickLogo = onClickLogo
             )
         }
@@ -350,7 +351,7 @@ private fun WalletNavHost(
                         Globals.presentationStateModel.value = it
                         navigate(LocalPresentationAuthenticationConsentRoute("QR"))
                     },
-                    settingsViewModel = settingsViewModel,
+                    settingsRepository = settingsRepository,
                 )
             })
         }
@@ -364,7 +365,7 @@ private fun WalletNavHost(
                         walletMain = walletMain,
                         navigateToHomeScreen = { popBackStack(HomeScreenRoute) },
                         onClickSettings = { navigate(SettingsRoute) },
-                        settingsViewModel = settingsViewModel,
+                        settingsRepository = settingsRepository,
                     )
                 },
                 onError = onError,
