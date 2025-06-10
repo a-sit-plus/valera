@@ -291,6 +291,7 @@
     <string name="content_description_add_credential">Zusätzliche daten laden</string>
     <string name="content_description_show_attributes">Attribute anzeigen</string>
     <string name="content_description_hide_attributes">Attribute verbergen</string>
+    <string name="content_description_navigate_to_settings">Gehe zu Einstellungen</string>
 
     <string name="prompt_ask_load_missing_data">Sollen die fehlenden Daten nachgeladen werden?</string>
     <string name="prompt_send_above_data">Sollen diese Daten übermittelt werden?</string>
