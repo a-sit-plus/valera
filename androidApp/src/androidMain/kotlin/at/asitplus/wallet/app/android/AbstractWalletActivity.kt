@@ -67,9 +67,7 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
             credential?.let {
                 PendingIntentHandler.setGetCredentialResponse(
                     resultData,
-                    GetCredentialResponse(
-                        it
-                    )
+                    GetCredentialResponse(it)
                 )
             }
         } else {
