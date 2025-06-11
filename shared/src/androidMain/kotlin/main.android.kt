@@ -271,7 +271,7 @@ public class AndroidPlatformAdapter(
                     )
                 }
 
-                protocol == "org.iso.mdoc" -> {
+                protocol == "org.iso.mdoc" || protocol == "org-iso-mdoc"  -> {
                     val deviceRequest = parsedRequest.getString("deviceRequest")
                     val encryptionInfo = parsedRequest.getString("encryptionInfo")
                     val parsedDeviceRequest =

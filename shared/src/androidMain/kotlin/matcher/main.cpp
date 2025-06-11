@@ -72,7 +72,7 @@ extern "C" int main() {
                 // 18013-7 Annex D
                 //
                 request = std::move(Request::parseOpenID4VP(protocolRequestJson));
-            } else if (protocolValue == "org.iso.mdoc") {
+            } else if (protocolValue == "org.iso.mdoc" || protocolValue == "org-iso-mdoc") {
                 // 18013-7 Annex C
                 //
                 request = std::move(Request::parseMdocApi(protocolRequestJson));
