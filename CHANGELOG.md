@@ -1,3 +1,6 @@
+# Release 5.6.6
+ * tbd
+
 # Release 5.6.5
  * Credentials: Safe decoding of images in credentials
  * Credentials: Update EHIC to latest schema (1.1.0)
