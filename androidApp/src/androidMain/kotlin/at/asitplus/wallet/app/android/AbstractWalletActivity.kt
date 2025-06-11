@@ -42,17 +42,6 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
     fun sendCredentialResponseToDCAPIInvoker(resultStr: String, success: Boolean) {
         val resultData = Intent()
 
-        // Google GMS credentials library
-        val googleResultData = Intent()
-        val bundle = Bundle().apply {
-            putByteArray("identityToken", resultStr.toByteArray())
-        }
-        val credentialResponse = com.google.android.gms.identitycredentials.Credential("type", bundle)
-        IntentHelper.setGetCredentialResponse(
-            googleResultData,
-            com.google.android.gms.identitycredentials.GetCredentialResponse(credentialResponse)
-        )
-
         if (success) {
             // androidx credentials library
             val credential = try {
@@ -75,7 +64,6 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
         }
 
         setResult(RESULT_OK, resultData)
-        //setResult(RESULT_OK, googleResultData)
         finish()
     }
 
