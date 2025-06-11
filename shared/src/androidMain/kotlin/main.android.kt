@@ -172,7 +172,6 @@ public class AndroidPlatformAdapter(
     override fun registerWithDigitalCredentialsAPI(entries: CredentialList, scope: CoroutineScope) {
         scope.launch(Dispatchers.Default) {
             catching {
-                //val registry = IdentityCredentialHelper(entries, this@AndroidPlatformAdapter)
                 val client = IdentityCredentialManager.Companion.getClient(context)
                 val credentialsListCbor = entries.serialize()
 
