@@ -1,3 +1,0 @@
-[submodule "identity-credential"]
-	path = identity-credential
-	url = https://github.com/md4096/identity-credential

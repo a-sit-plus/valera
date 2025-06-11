@@ -1,3 +1,7 @@
+# Release 5.6.5
+ * Credentials: Safe decoding of images in credentials
+ * Credentials: Update EHIC to latest schema (1.1.0)
+
 # Release 5.6.4
  * Add: Koin Dependency Injection
  * Issuing: Fix regression not storing credentials in auth code flow

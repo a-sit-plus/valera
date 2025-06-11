@@ -14,10 +14,11 @@ class SigningQtspSelectionViewModel(
     val walletMain: WalletMain,
     val onClickLogo: () -> Unit,
     val onClickSettings: () -> Unit,
-    val url: String
+    val signatureRequestParametersSerialized: String
 ) {
     val selection = mutableStateOf(walletMain.signingService.config.current)
-    val credentialInfo = mutableStateOf(walletMain.signingService.config.getQtspByIdentifier(selection.value).credentialInfo)
+    val credentialInfo =
+        mutableStateOf(walletMain.signingService.config.getQtspByIdentifier(selection.value).credentialInfo)
     val qtspList = walletMain.signingService.config.qtsps
 
     val onClickPreload: () -> Unit = {

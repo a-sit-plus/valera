@@ -180,6 +180,9 @@
 
     <string name="attribute_friendly_name_issuing_authority_id">Issuing Authority: ID</string>
     <string name="attribute_friendly_name_issuing_authority_name">Issuing Authority: Name</string>
+    <string name="attribute_friendly_name_authentic_source">Authentic Source</string>
+    <string name="attribute_friendly_name_authentic_source_id">Authentic Source: ID</string>
+    <string name="attribute_friendly_name_authentic_source_name">Authentic Source: Name</string>
     <string name="attribute_friendly_name_social_security_number">Social Security Number</string>
 
     <string name="credential_representation_format_label_plain_jwt">Plain JWT</string>
@@ -325,6 +328,7 @@
     <string name="error_missing_permissions">Permission Denied</string>
     <string name="error_missing_value">Error no value given</string>
     <string name="error_bluetooth_unavailable">Bluetooth is not available</string>
+    <string name="error_bluetooth_and_nfc_unavailable">Neither Bluetooth nor NFC is available</string>
     <string name="error_no_requests">No requests found</string>
 
     <string name="info_text_show_data_situation">In which Situation do you want to present your data?</string>
