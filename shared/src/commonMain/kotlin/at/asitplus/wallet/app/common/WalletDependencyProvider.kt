@@ -28,6 +28,7 @@ data class WalletDependencyProvider(
         at.asitplus.wallet.taxid.Initializer.initWithVCK()
         at.asitplus.wallet.taxid.Initializer2025.initWithVCK()
         at.asitplus.wallet.ehic.Initializer.initWithVCK()
+        at.asitplus.wallet.fallbackcredential.Initializer.initWithVCK()
         Initializer.initRqesModule()
         Napier.takeLogarithm()
         Napier.base(AntilogAdapter(platformAdapter, "", buildContext.buildType))
