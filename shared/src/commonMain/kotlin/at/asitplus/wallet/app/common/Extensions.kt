@@ -116,20 +116,14 @@ fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, C
     }
 
     val scheme = when (this) {
-        is DCQLIsoMdocCredentialQuery -> meta?.doctypeValue?.let {
-            AttributeIndex.resolveIsoDoctype(
-                it
-            )
-        }
+        is DCQLIsoMdocCredentialQuery -> meta?.doctypeValue
+            ?.let { AttributeIndex.resolveIsoDoctype(it) }
 
-        is DCQLSdJwtCredentialQuery -> meta?.vctValues?.firstNotNullOf {
-            AttributeIndex.resolveSdJwtAttributeType(
-                it
-            )
-        }
+        is DCQLSdJwtCredentialQuery -> meta?.vctValues
+            ?.firstNotNullOfOrNull { AttributeIndex.resolveSdJwtAttributeType(it) }
 
         is DCQLCredentialQueryInstance -> null
-    } ?: throw Throwable("Missing scheme")
+    } ?: throw Throwable("No matching scheme for $meta")
 
     val schemeJsonElement = scheme.toJsonElement(representation)
 
