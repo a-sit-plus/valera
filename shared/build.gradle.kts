@@ -3,7 +3,7 @@ import at.asitplus.gradle.kmmresult
 import at.asitplus.gradle.ktor
 import at.asitplus.gradle.napier
 import at.asitplus.gradle.serialization
-import com.android.build.gradle.internal.tasks.factory.dependsOn
+import org.gradle.internal.os.OperatingSystem
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
 import org.jetbrains.kotlin.gradle.plugin.extraProperties
@@ -29,9 +29,11 @@ kotlin {
             sourceSetTree.set(KotlinSourceSetTree.test)
         }
     }
+
     iosX64()
     iosArm64()
     iosSimulatorArm64()
+
 
     sourceSets {
         commonMain.dependencies {
@@ -107,8 +109,6 @@ kotlin {
         }
         iosMain.dependencies { implementation(ktor("client-darwin")) }
     }
-
-
 }
 
 android {
@@ -173,7 +173,7 @@ exportXCFramework(
     freeCompilerArgs += listOf("-Xoverride-konan-properties=minVersion.ios=15.0;minVersionSinceXcode15.ios=15.0")
 }
 
-tasks.register("iosBootSimulator"){
+tasks.register("iosBootSimulator") {
     doLast {
         exec {
             isIgnoreExitValue = true

@@ -23,7 +23,7 @@ pluginManagement {
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version ("0.4.0")
 }
-
+/*
 //If we have a working composite build, use it!
 if (File("../vck/signum").isDirectory && File("../vck/signum/build.gradle.kts").exists()) {
     logger.warn("Detected VC-K in ${File("../vck").absolutePath}.")
@@ -50,7 +50,7 @@ if (File("../vck/signum").isDirectory && File("../vck/signum/build.gradle.kts").
         }
     }
 }
-
+*/
 val vckVersion :String get() = settings.extra["vck.version"].toString()
 
 dependencyResolutionManagement {

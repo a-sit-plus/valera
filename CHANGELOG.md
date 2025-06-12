@@ -1,5 +1,6 @@
 # Release 5.7.0
- * Update to VC-K 5.7.0, adding encryption for iOS
+ * Require biometric auth to use holder key
+ * Update to VC-K 5.7.0, adding encryption and key agreement for all targets
 
 # Release 5.6.5
  * Credentials: Safe decoding of images in credentials
