@@ -7,6 +7,7 @@ import com.android.build.gradle.internal.tasks.factory.dependsOn
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
 import org.jetbrains.kotlin.gradle.plugin.extraProperties
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest
 
 val vckVersion = vckCatalog.vck.get().version
@@ -107,7 +108,30 @@ kotlin {
         }
         iosMain.dependencies { implementation(ktor("client-darwin")) }
     }
+}
 
+
+fun Project.xcodeRoot(): Provider<String>  = providers.exec {
+    commandLine("xcode-select", "-p")
+}.standardOutput.asText.map { it.trim() }
+
+val developerDir = xcodeRoot()
+
+// “…/Toolchains/XcodeDefault.xctoolchain”
+val toolchainRoot = developerDir.map {
+    "$it/Toolchains/XcodeDefault.xctoolchain"
+}
+
+// Useful sub-paths
+val swiftLibIos = toolchainRoot.map { "$it/usr/lib/swift/iphoneos" }
+val swiftLibSimulator = toolchainRoot.map { "$it/usr/lib/swift/iphonesimulator" }
+val swiftBin = toolchainRoot.map { "$it/usr/bin" }          // swiftc, lldb, etc.
+
+//fix linker errors for test tasks
+kotlin.targets.withType<KotlinNativeTarget>().matching { it.name.endsWith("Test") }.configureEach {
+    binaries.all {
+        linkerOpts += listOf("-L${swiftLibIos.get()}", "-L${swiftLibSimulator.get()}")
+    }
 
 }
 
