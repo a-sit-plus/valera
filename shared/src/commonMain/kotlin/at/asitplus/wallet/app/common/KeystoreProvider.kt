@@ -3,8 +3,11 @@ package at.asitplus.wallet.app.common
 import at.asitplus.io.MultiBase
 import at.asitplus.io.multibaseDecode
 import at.asitplus.io.multibaseEncode
+import at.asitplus.signum.indispensable.ECCurve
 import at.asitplus.signum.indispensable.equalsCryptographically
 import at.asitplus.signum.indispensable.pki.X509Certificate
+import at.asitplus.signum.supreme.dsl.FeaturePreference
+import at.asitplus.signum.supreme.dsl.PREFERRED
 import at.asitplus.signum.supreme.os.SigningProvider
 import at.asitplus.signum.supreme.sign.Signer
 import at.asitplus.wallet.lib.agent.KeyMaterial
@@ -36,8 +39,30 @@ open class KeystoreService(
 
     private suspend fun initSigner(): KeyWithSelfSignedCert {
         getProvider().let { provider ->
+            provider.getSignerForKey(Configuration.KS_ALIAS_OLD).onSuccess {
+                provider.deleteSigningKey(Configuration.KS_ALIAS_OLD).getOrThrow() //well if we can't delete we're boned
+                //TODO michael: delete credentials and show update screen. (probably move this logic somewhere else)
+            }
+
             val forKey = provider.getSignerForKey(Configuration.KS_ALIAS).getOrElse {
-                provider.createSigningKey(alias = Configuration.KS_ALIAS).getOrThrow()
+                provider.createSigningKey(alias = Configuration.KS_ALIAS) {
+                    ec {
+                        curve = ECCurve.SECP_256_R_1
+                        purposes {
+                            keyAgreement = true
+                            signing = true
+                        }
+                    }
+                    hardware {
+                        backing = PREFERRED
+                        protection {
+                             factors {
+                                 biometry =true
+                             }
+                            timeout = Configuration.BIOMETRIC_TIMEOUT
+                        }
+                    }
+                }.getOrThrow()
             }
             return KeyWithPersistentSelfSignedCert(forKey)
         }
