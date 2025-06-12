@@ -14,6 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import at.asitplus.wallet.app.common.isInvalid
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatusValidationResult
 import ui.composables.CredentialStatusState
 
@@ -78,7 +79,3 @@ fun CredentialSelectionCardLayout(
         }
     }
 }
-
-// TODO more error cases
-private fun CredentialStatusState.Success.isInvalid(): Boolean =
-    freshness?.tokenStatusValidationResult is TokenStatusValidationResult.Invalid
