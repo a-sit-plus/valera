@@ -15,9 +15,7 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -30,7 +28,9 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.content_description_navigate_to_settings
 import at.asitplus.valera.resources.heading_label_my_data_screen
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.agent.validation.CredentialFreshnessSummary
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatus
+import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatusValidationResult
 import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.CustomFloatingActionMenu
@@ -51,16 +51,16 @@ fun CredentialsView(
     }.collectAsState(
         CredentialState.Loading
     )
-    val credentialStatusesState by produceState(
+    val freshnessState by produceState(
         CredentialStatusesState.Loading() as CredentialStatusesState,
         credentialsStatus
     ) {
         when (val delegate = credentialsStatus) {
             is CredentialState.Loading -> value = CredentialStatusesState.Loading()
             is CredentialState.Success -> {
-                val credentialsWithStatus = mutableMapOf<Long, TokenStatus?>()
+                val credentialsWithStatus = mutableMapOf<Long, CredentialFreshnessSummary?>()
                 delegate.credentials.forEach { (id, credential) ->
-                    credentialsWithStatus[id] = vm.walletMain.checkRevocationStatus(credential)
+                    credentialsWithStatus[id] = vm.walletMain.checkCredentialFreshness(credential)
                     value = CredentialStatusesState.Loading(credentialsWithStatus)
                 }
                 value = CredentialStatusesState.Success(credentialsWithStatus)
@@ -119,7 +119,12 @@ fun CredentialsView(
 
                 is CredentialState.Success -> {
                     val credentials = credentialsStatusDelegate.credentials.sortedBy { (id, credential) ->
-                        credentialStatusesState.credentialStatuses[id]?.value ?: 256.toUByte()
+                        when(freshnessState.freshness[id]?.tokenStatusValidationResult) {
+                            is TokenStatusValidationResult.Invalid -> TokenStatus.Invalid.value
+                            is TokenStatusValidationResult.Rejected -> TokenStatus.Invalid.value
+                            is TokenStatusValidationResult.Valid -> TokenStatus.Valid.value
+                            null -> 256.toUByte()
+                        }
                     }
                     if (credentials.isEmpty()) {
                         NoDataLoadedView(vm.navigateToAddCredentialsPage, vm.navigateToQrAddCredentialsPage)
@@ -135,15 +140,14 @@ fun CredentialsView(
                                 val storeEntryIdentifier = storeEntry.first
                                 val credential = storeEntry.second
 
-                                val isTokenStatusEvaluated =
-                                    storeEntryIdentifier in credentialStatusesState.credentialStatuses
-                                val tokenStatus = credentialStatusesState.credentialStatuses[storeEntryIdentifier]
+                                val isFreshnessEvaluated = storeEntryIdentifier in freshnessState.freshness
+                                val credentialFreshness = freshnessState.freshness[storeEntryIdentifier]
 
                                 Column {
                                     CredentialCard(
                                         credential,
-                                        isTokenStatusEvaluated = isTokenStatusEvaluated,
-                                        tokenStatus = tokenStatus,
+                                        isTokenStatusEvaluated = isFreshnessEvaluated,
+                                        credentialFreshness = credentialFreshness,
                                         onDelete = {
                                             vm.removeStoreEntryById(storeEntryIdentifier)
                                         },
@@ -180,13 +184,13 @@ private sealed interface CredentialState {
 }
 
 private sealed interface CredentialStatusesState {
-    val credentialStatuses: Map<Long, TokenStatus?>
+    val freshness: Map<Long, CredentialFreshnessSummary?>
 
     data class Loading(
-        override val credentialStatuses: Map<Long, TokenStatus?> = mapOf(),
+        override val freshness: Map<Long, CredentialFreshnessSummary?> = mapOf(),
     ) : CredentialStatusesState
 
     data class Success(
-        override val credentialStatuses: Map<Long, TokenStatus?> = mapOf(),
+        override val freshness: Map<Long, CredentialFreshnessSummary?> = mapOf(),
     ) : CredentialStatusesState
 }

@@ -22,6 +22,7 @@ import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
 import at.asitplus.wallet.healthid.HealthIdScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
+import at.asitplus.wallet.lib.agent.validation.CredentialFreshnessSummary
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
@@ -29,6 +30,7 @@ import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.ISO_MD
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.PLAIN_JWT
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.SD_JWT
 import at.asitplus.wallet.lib.data.dif.PresentationExchangeInputEvaluator
+import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatusValidationResult
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.oidvci.toFormat
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
@@ -43,6 +45,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.put
+import ui.composables.CredentialStatusState
 
 fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, ConstantIndex.CredentialScheme, Map<NormalizedJsonPath, Boolean>> {
     @Suppress("DEPRECATION")
@@ -68,14 +71,15 @@ fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, Const
         ISO_MDOC -> scheme.isoDocType
     }
 
-    val constraintsMap = PresentationExchangeInputEvaluator.evaluateInputDescriptorAgainstCredential(
-        inputDescriptor = this,
-        credentialClaimStructure = scheme.toJsonElement(credentialRepresentation),
-        credentialFormat = credentialRepresentation.toFormat(),
-        credentialScheme = matchedCredentialIdentifier,
-        fallbackFormatHolder = this.format,
-        pathAuthorizationValidator = { true },
-    ).getOrThrow()
+    val constraintsMap =
+        PresentationExchangeInputEvaluator.evaluateInputDescriptorAgainstCredential(
+            inputDescriptor = this,
+            credentialClaimStructure = scheme.toJsonElement(credentialRepresentation),
+            credentialFormat = credentialRepresentation.toFormat(),
+            credentialScheme = matchedCredentialIdentifier,
+            fallbackFormatHolder = this.format,
+            pathAuthorizationValidator = { true },
+        ).getOrThrow()
 
     val attributes = constraintsMap.mapNotNull {
         val path = it.value.map { it.normalizedJsonPath }.firstOrNull() ?: return@mapNotNull null
@@ -96,9 +100,11 @@ private fun ConstantIndex.CredentialScheme.matchAgainstIdentifier(
     ISO_MDOC -> isoDocType in identifiers
 }
 
-private fun InputDescriptor.vctConstraint() = constraints?.fields?.firstOrNull { it.path.toString().contains("vct") }
+private fun InputDescriptor.vctConstraint() =
+    constraints?.fields?.firstOrNull { it.path.toString().contains("vct") }
 
-private fun ConstraintFilter.referenceValues() = (pattern ?: const?.content)?.let { listOf(it) } ?: enum
+private fun ConstraintFilter.referenceValues() =
+    (pattern ?: const?.content)?.let { listOf(it) } ?: enum
 
 fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, ConstantIndex.CredentialScheme, List<NormalizedJsonPath>> {
     val representation = when (format) {
@@ -110,8 +116,18 @@ fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, C
     }
 
     val scheme = when (this) {
-        is DCQLIsoMdocCredentialQuery -> meta?.doctypeValue?.let { AttributeIndex.resolveIsoDoctype(it) }
-        is DCQLSdJwtCredentialQuery -> meta?.vctValues?.firstNotNullOf { AttributeIndex.resolveSdJwtAttributeType(it) }
+        is DCQLIsoMdocCredentialQuery -> meta?.doctypeValue?.let {
+            AttributeIndex.resolveIsoDoctype(
+                it
+            )
+        }
+
+        is DCQLSdJwtCredentialQuery -> meta?.vctValues?.firstNotNullOf {
+            AttributeIndex.resolveSdJwtAttributeType(
+                it
+            )
+        }
+
         is DCQLCredentialQueryInstance -> null
     } ?: throw Throwable("Missing scheme")
 
@@ -297,3 +313,9 @@ fun ConstantIndex.CredentialScheme.toJsonElement(
         }
     }
 }
+
+fun CredentialStatusState.Success.isInvalid(): Boolean =
+    freshness?.tokenStatusValidationResult is TokenStatusValidationResult.Invalid
+
+fun CredentialFreshnessSummary.isInvalid(): Boolean =
+    (tokenStatusValidationResult is TokenStatusValidationResult.Invalid)
