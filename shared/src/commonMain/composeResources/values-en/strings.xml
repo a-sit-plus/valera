@@ -292,6 +292,7 @@
     <string name="content_description_add_credential">Load more data</string>
     <string name="content_description_show_attributes">Show attributes</string>
     <string name="content_description_hide_attributes">Hide attributes</string>
+    <string name="content_description_navigate_to_settings">Go to Settings</string>
 
     <string name="prompt_ask_load_missing_data">Should the missing attributes be loaded?</string>
     <string name="prompt_send_above_data">Should this data be presented?</string>

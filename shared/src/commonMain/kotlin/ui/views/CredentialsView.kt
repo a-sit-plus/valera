@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.content_description_navigate_to_settings
 import at.asitplus.valera.resources.heading_label_my_data_screen
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatus
@@ -83,7 +84,7 @@ fun CredentialsView(
                     Column(modifier = Modifier.clickable(onClick = vm.onClickSettings)) {
                         Icon(
                             imageVector = Icons.Outlined.Settings,
-                            contentDescription = null,
+                            contentDescription = stringResource(Res.string.content_description_navigate_to_settings),
                         )
                     }
                     Spacer(Modifier.width(15.dp))
