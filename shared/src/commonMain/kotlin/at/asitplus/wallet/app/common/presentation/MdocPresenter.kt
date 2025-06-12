@@ -1,12 +1,15 @@
 package at.asitplus.wallet.app.common.presentation
 
+import at.asitplus.dcapi.NFCHandover
+import at.asitplus.iso.DeviceRequest
+import at.asitplus.iso.SessionTranscript
 import at.asitplus.signum.indispensable.cosef.CoseKey
-import at.asitplus.wallet.lib.iso.DeviceRequest
-import at.asitplus.wallet.lib.iso.NFCHandover
-import at.asitplus.wallet.lib.iso.SessionTranscript
+import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.serialization.decodeFromByteArray
+import kotlinx.serialization.encodeToByteArray
 import org.multipaz.cbor.Cbor
 import org.multipaz.cbor.Simple
 import org.multipaz.mdoc.request.DeviceRequestParser
@@ -69,15 +72,15 @@ class MdocPresenter(
                             eReaderKeyBytes = eReaderCoseKey.getOrThrow().serialize()
                         )
                     } else {
-                        val nfcHandover = NFCHandover.deserialize(Cbor.encode(mechanism.handover))
+                        val nfcHandover = coseCompliantSerializer.decodeFromByteArray<NFCHandover>(Cbor.encode(mechanism.handover))
                         SessionTranscript.forNfc(
                             deviceEngagementBytes = mechanism.encodedDeviceEngagement.toByteArray(),
                             eReaderKeyBytes = eReaderCoseKey.getOrThrow().serialize(),
-                            nfcHandover = nfcHandover.getOrThrow()
+                            nfcHandover = nfcHandover
                         )
                     }
 
-                    encodedSessionTranscript = sessionTranscript.serialize()
+                    encodedSessionTranscript = coseCompliantSerializer.encodeToByteArray(sessionTranscript)
 
                     sessionEncryption = SessionEncryption(
                         MdocRole.MDOC,
@@ -100,7 +103,7 @@ class MdocPresenter(
                     encodedSessionTranscript!!,
                 ).parse()
 
-                val deviceRequest = DeviceRequest.deserialize(encodedDeviceRequest).getOrThrow()
+                val deviceRequest = coseCompliantSerializer.decodeFromByteArray<DeviceRequest>(encodedDeviceRequest)
 
                 presentationViewModel.initWithDeviceRequest(
                     deviceRequest,

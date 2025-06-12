@@ -18,8 +18,8 @@ import at.asitplus.wallet.lib.cbor.SignCose
 import at.asitplus.wallet.lib.cbor.SignCoseDetached
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
-import at.asitplus.wallet.lib.iso.DeviceAuthentication
-import at.asitplus.wallet.lib.iso.SessionTranscript
+import at.asitplus.iso.DeviceAuthentication
+import at.asitplus.iso.SessionTranscript
 import at.asitplus.wallet.lib.iso.wrapInCborTag
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
@@ -75,7 +75,7 @@ class PresentationService(
         request: RequestParametersFrom<AuthenticationRequestParameters>,
         clientMetadata: RelyingPartyMetadata?,
         credentialPresentation: CredentialPresentation,
-    ) = presentationService.finalizeAuthorizationResponseReturningUrl(
+    ) = presentationService.finalizeAuthorizationResponse(
         request = request,
         clientMetadata = clientMetadata,
         credentialPresentation = credentialPresentation,
@@ -94,7 +94,7 @@ class PresentationService(
                 audience = dcApiRequest.callingOrigin ?: dcApiRequest.callingPackageName!!,
                 calcIsoDeviceSignature = { docType, deviceNameSpaceBytes ->
                     // TODO sign data
-                    SignCose.invoke<ByteArray>(keyMaterial, CoseHeaderNone(), CoseHeaderNone())
+                    SignCose<ByteArray>(keyMaterial, CoseHeaderNone(), CoseHeaderNone())
                         .invoke(null, null, docType.encodeToByteArray(), ByteArraySerializer())
                         .getOrElse { e ->
                             Napier.w("Could not create DeviceAuth for presentation", e)
@@ -114,7 +114,7 @@ class PresentationService(
             is CreatePresentationResult.Signed -> TODO("Credential type not yet supported for API use case")
         }
 
-        platformAdapter.prepareDCAPICredentialResponse(deviceResponse.serialize(), dcApiRequest)
+        platformAdapter.prepareDCAPICredentialResponse(coseCompliantSerializer.encodeToByteArray(deviceResponse), dcApiRequest)
 
         return OpenId4VpWallet.AuthenticationSuccess()
     }
@@ -144,7 +144,7 @@ class PresentationService(
                         .wrapInCborTag(24)
                     Napier.d("Device authentication signature input is ${deviceAuthenticationBytes.toHexString()}")
 
-                    SignCoseDetached.invoke<ByteArray>(keyMaterial, CoseHeaderNone(), CoseHeaderNone())
+                    SignCoseDetached<ByteArray>(keyMaterial, CoseHeaderNone(), CoseHeaderNone())
                         .invoke(null, null, deviceAuthenticationBytes, ByteArraySerializer())
                         .getOrElse { e ->
                             Napier.w("Could not create DeviceAuth for presentation", e)
@@ -159,7 +159,7 @@ class PresentationService(
             presentationResult.getOrThrow() as PresentationResponseParameters.PresentationExchangeParameters
 
         val deviceResponse = when (val firstResult = presentation.presentationResults[0]) {
-            is CreatePresentationResult.DeviceResponse -> firstResult.deviceResponse.serialize()
+            is CreatePresentationResult.DeviceResponse -> coseCompliantSerializer.encodeToByteArray(firstResult.deviceResponse)
             else -> throw PresentationException(IllegalStateException("Must be a device response"))
         }
 

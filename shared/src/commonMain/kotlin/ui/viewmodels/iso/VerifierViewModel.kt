@@ -1,5 +1,6 @@
 package ui.viewmodels.iso
 
+import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.iso.transfer.DeviceEngagementMethods
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants.MDOC_PREFIX
@@ -10,6 +11,7 @@ import data.document.RequestDocumentBuilder
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.serialization.decodeFromByteArray
 import ui.viewmodels.SettingsViewModel
 
 class VerifierViewModel(
@@ -66,7 +68,7 @@ class VerifierViewModel(
     }
 
     private fun handleResponse(deviceResponseBytes: ByteArray) {
-        _deviceResponse.value = DeviceResponse.deserialize(deviceResponseBytes).getOrThrow()
+        _deviceResponse.value = coseCompliantSerializer.decodeFromByteArray<DeviceResponse>(deviceResponseBytes)
         _verifierState.value = VerifierState.PRESENTATION
     }
 
