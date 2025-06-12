@@ -3,11 +3,10 @@ import at.asitplus.gradle.kmmresult
 import at.asitplus.gradle.ktor
 import at.asitplus.gradle.napier
 import at.asitplus.gradle.serialization
-import com.android.build.gradle.internal.tasks.factory.dependsOn
+import org.gradle.internal.os.OperatingSystem
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
 import org.jetbrains.kotlin.gradle.plugin.extraProperties
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest
 
 val vckVersion = vckCatalog.vck.get().version
@@ -30,9 +29,22 @@ kotlin {
             sourceSetTree.set(KotlinSourceSetTree.test)
         }
     }
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
+
+    listOf(
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach {
+        it.compilations {
+            val main by getting {
+                /*this fails on anything but macos*/
+                if (OperatingSystem.current() == OperatingSystem.MAC_OS) cinterops.forEach {
+                    it.linkerOpts("-U", "__swift_FORCE_LOAD_\$_swiftCompatibility56")
+                    it.linkerOpts("-U", "__swift_FORCE_LOAD_\$_swiftCompatibilityConcurrency")
+                }
+            }
+        }
+    }
 
     sourceSets {
         commonMain.dependencies {
@@ -110,31 +122,6 @@ kotlin {
     }
 }
 
-
-fun Project.xcodeRoot(): Provider<String>  = providers.exec {
-    commandLine("xcode-select", "-p")
-}.standardOutput.asText.map { it.trim() }
-
-val developerDir = xcodeRoot()
-
-// “…/Toolchains/XcodeDefault.xctoolchain”
-val toolchainRoot = developerDir.map {
-    "$it/Toolchains/XcodeDefault.xctoolchain"
-}
-
-// Useful sub-paths
-val swiftLibIos = toolchainRoot.map { "$it/usr/lib/swift/iphoneos" }
-val swiftLibSimulator = toolchainRoot.map { "$it/usr/lib/swift/iphonesimulator" }
-val swiftBin = toolchainRoot.map { "$it/usr/bin" }          // swiftc, lldb, etc.
-
-//fix linker errors for test tasks
-kotlin.targets.withType<KotlinNativeTarget>().matching { it.name.endsWith("Test") }.configureEach {
-    binaries.all {
-        linkerOpts += listOf("-L${swiftLibIos.get()}", "-L${swiftLibSimulator.get()}")
-    }
-
-}
-
 android {
     compileSdk = (extraProperties["android.compileSdk"] as String).toInt()
     namespace = "at.asitplus.wallet.app.common"
@@ -194,9 +181,10 @@ exportXCFramework(
 ) {
     binaryOption("bundleId", "at.asitplus.wallet.shared")
     linkerOpts("-ld_classic")
+    freeCompilerArgs += listOf("-Xoverride-konan-properties=minVersion.ios=15.0;minVersionSinceXcode15.ios=15.0")
 }
 
-tasks.register("iosBootSimulator"){
+tasks.register("iosBootSimulator") {
     doLast {
         exec {
             isIgnoreExitValue = true
