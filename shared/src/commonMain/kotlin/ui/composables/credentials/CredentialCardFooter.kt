@@ -9,16 +9,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.error_credential_status_invalid
+import at.asitplus.wallet.app.common.isInvalid
+import at.asitplus.wallet.lib.agent.validation.CredentialFreshnessSummary
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatus
+import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatusValidationResult
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.BigErrorText
+import ui.composables.CredentialStatusState
 import ui.composables.buttons.DetailsButton
 
 
 @Composable
 fun ColumnScope.CredentialCardFooter(
     isTokenStatusEvaluated: Boolean,
-    tokenStatus: TokenStatus?,
+    credentialFreshness: CredentialFreshnessSummary?,
     onOpenDetails: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
@@ -30,7 +34,7 @@ fun ColumnScope.CredentialCardFooter(
         ) {
             Box {
                 when {
-                    tokenStatus?.isInvalid == true -> BigErrorText(stringResource(Res.string.error_credential_status_invalid))
+                    credentialFreshness?.isInvalid() == true -> BigErrorText(stringResource(Res.string.error_credential_status_invalid))
                 }
             }
             DetailsButton(

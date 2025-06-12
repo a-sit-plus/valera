@@ -24,6 +24,7 @@ import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getL
 import at.asitplus.wallet.app.common.thirdParty.kotlinx.serialization.json.leafNodeList
 import at.asitplus.wallet.lib.agent.SdJwtValidator
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.agent.validation.CredentialFreshnessSummary
 import at.asitplus.wallet.lib.data.CredentialToJsonConverter.toJsonElement
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatus
 import at.asitplus.wallet.lib.data.vckJsonSerializer
@@ -44,7 +45,7 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
     isSelected: Boolean,
     onToggleSelection: () -> Unit,
     option: DCQLCredentialSubmissionOption<SubjectCredentialStore.StoreEntry>,
-    checkRevocationStatus: suspend (SubjectCredentialStore.StoreEntry) -> TokenStatus?,
+    checkFreshness: suspend (SubjectCredentialStore.StoreEntry) -> CredentialFreshnessSummary?,
     decodeToBitmap: (ByteArray) -> ImageBitmap?,
     modifier: Modifier = Modifier,
 ) {
@@ -53,9 +54,7 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
         option.credential
     ) {
         value = CredentialStatusState.Loading
-        value = CredentialStatusState.Success(
-            checkRevocationStatus(option.credential)
-        )
+        value = CredentialStatusState.Success(checkFreshness(option.credential))
     }
 
 

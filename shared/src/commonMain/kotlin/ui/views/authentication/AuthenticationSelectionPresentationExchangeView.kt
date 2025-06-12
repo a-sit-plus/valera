@@ -84,8 +84,8 @@ fun AuthenticationSelectionPresentationExchangeView(
                     imageDecoder = { byteArray ->
                         vm.walletMain.platformAdapter.decodeImage(byteArray)
                     },
-                    checkRevocationStatus = {
-                        vm.walletMain.checkRevocationStatus(it)
+                    checkFreshness = {
+                        vm.walletMain.checkCredentialFreshness(it)
                     },
                 )
             }
