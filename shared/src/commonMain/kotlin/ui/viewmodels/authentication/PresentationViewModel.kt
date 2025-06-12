@@ -15,8 +15,8 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
-import at.asitplus.wallet.lib.iso.DeviceRequest
-import at.asitplus.wallet.lib.iso.SessionTranscript
+import at.asitplus.iso.DeviceRequest
+import at.asitplus.iso.SessionTranscript
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 
 class PresentationViewModel(

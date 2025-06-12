@@ -102,7 +102,7 @@ abstract class AuthenticationViewModel(
     }
 
 
-    abstract suspend fun finalizationMethod(credentialPresentation: CredentialPresentation): OpenId4VpWallet.AuthenticationSuccess
+    abstract suspend fun finalizationMethod(credentialPresentation: CredentialPresentation): OpenId4VpWallet.AuthenticationResult
 
     private suspend fun finalizeAuthorization(credentialPresentation: CredentialPresentation) {
         catchingUnwrapped {
@@ -110,7 +110,7 @@ abstract class AuthenticationViewModel(
                 getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_title)
             walletMain.keyMaterial.promptSubtitle =
                 getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_subtitle)
-            finalizationMethod(credentialPresentation)
+            finalizationMethod(credentialPresentation) as OpenId4VpWallet.AuthenticationSuccess
         }.onSuccess {
             navigateUp()
             onAuthenticationSuccess(it.redirectUri)
