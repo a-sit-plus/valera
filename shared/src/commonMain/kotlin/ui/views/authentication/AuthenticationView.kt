@@ -60,8 +60,8 @@ fun AuthenticationView(
                         onClickSettings = vm.onClickSettings,
                         confirmSelection = { vm.confirmSelection(it) },
                         matchingResult = matching,
-                        checkRevocationStatus = {
-                            vm.walletMain.checkRevocationStatus(it)
+                        checkFreshness = {
+                            vm.walletMain.checkCredentialFreshness(it)
                         },
                         decodeToBitmap = { byteArray ->
                             vm.walletMain.platformAdapter.decodeImage(byteArray)

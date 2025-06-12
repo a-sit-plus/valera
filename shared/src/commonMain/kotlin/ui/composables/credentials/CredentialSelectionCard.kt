@@ -23,13 +23,13 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.dif.ConstraintField
 import at.asitplus.jsonpath.core.NodeList
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatus
+import at.asitplus.wallet.lib.agent.validation.CredentialFreshnessSummary
 import ui.composables.CredentialStatusState
 
 @Composable
 fun CredentialSelectionCard(
     credential: Map.Entry<SubjectCredentialStore.StoreEntry, Map<ConstraintField, NodeList>>,
-    checkRevocationStatus: suspend () -> TokenStatus?,
+    checkFreshness: suspend () -> CredentialFreshnessSummary?,
     imageDecoder: (ByteArray) -> ImageBitmap?,
     attributeSelection: SnapshotStateMap<String, Boolean>,
     credentialSelection: MutableState<SubjectCredentialStore.StoreEntry>
@@ -42,9 +42,7 @@ fun CredentialSelectionCard(
         credential.key,
     ) {
         value = CredentialStatusState.Loading
-        value = CredentialStatusState.Success(
-            checkRevocationStatus()
-        )
+        value = CredentialStatusState.Success(checkFreshness())
     }
 
     CredentialSelectionCardLayout(

@@ -11,6 +11,7 @@ import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.icon
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatus
+import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatusValidationResult
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.BigErrorText
 import ui.composables.CredentialStatusState
@@ -38,8 +39,11 @@ fun ColumnScope.CredentialSelectionCardHeader(
         actionButtons = {
             when (credentialStatusState) {
                 CredentialStatusState.Loading -> CircularProgressIndicator()
-                is CredentialStatusState.Success -> when (credentialStatusState.tokenStatus) {
-                    TokenStatus.Invalid -> BigErrorText(stringResource(Res.string.error_credential_status_invalid))
+                // TODO show more errors
+                is CredentialStatusState.Success -> when(credentialStatusState.freshness?.tokenStatusValidationResult) {
+                    is TokenStatusValidationResult.Invalid -> BigErrorText(stringResource(Res.string.error_credential_status_invalid))
+                    is TokenStatusValidationResult.Rejected -> BigErrorText(stringResource(Res.string.error_credential_status_invalid))
+                    else -> {}
                 }
             }
         }

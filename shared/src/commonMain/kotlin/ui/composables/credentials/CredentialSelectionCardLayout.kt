@@ -14,6 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatusValidationResult
 import ui.composables.CredentialStatusState
 
 @Composable
@@ -30,7 +31,7 @@ fun CredentialSelectionCardLayout(
     if (isSelected) {
         containerColor.value = when (credentialStatusState) {
             CredentialStatusState.Loading -> MaterialTheme.colorScheme.primaryContainer
-            is CredentialStatusState.Success -> if(credentialStatusState.tokenStatus?.isInvalid == true) {
+            is CredentialStatusState.Success -> if (credentialStatusState.isInvalid()) {
                 MaterialTheme.colorScheme.errorContainer
             } else {
                 MaterialTheme.colorScheme.primaryContainer
@@ -39,8 +40,12 @@ fun CredentialSelectionCardLayout(
 
         val width = 2.dp
         borderStroke.value = when (credentialStatusState) {
-            CredentialStatusState.Loading -> BorderStroke(width = width, color = MaterialTheme.colorScheme.inversePrimary)
-            is CredentialStatusState.Success -> if(credentialStatusState.tokenStatus?.isInvalid == true) {
+            CredentialStatusState.Loading -> BorderStroke(
+                width = width,
+                color = MaterialTheme.colorScheme.inversePrimary
+            )
+
+            is CredentialStatusState.Success -> if (credentialStatusState.isInvalid()) {
                 BorderStroke(width = width, color = MaterialTheme.colorScheme.error)
             } else {
                 BorderStroke(width = width, color = MaterialTheme.colorScheme.inversePrimary)
@@ -50,7 +55,7 @@ fun CredentialSelectionCardLayout(
     } else {
         containerColor.value = when (credentialStatusState) {
             CredentialStatusState.Loading -> Color.Unspecified
-            is CredentialStatusState.Success -> if(credentialStatusState.tokenStatus?.isInvalid == true) {
+            is CredentialStatusState.Success -> if (credentialStatusState.isInvalid()) {
                 MaterialTheme.colorScheme.errorContainer
             } else {
                 Color.Unspecified
@@ -73,3 +78,7 @@ fun CredentialSelectionCardLayout(
         }
     }
 }
+
+// TODO more error cases
+private fun CredentialStatusState.Success.isInvalid(): Boolean =
+    freshness?.tokenStatusValidationResult is TokenStatusValidationResult.Invalid

@@ -137,11 +137,11 @@ class WalletMain(
         }
     }
 
-    suspend fun checkRevocationStatus(storeEntry: SubjectCredentialStore.StoreEntry) = when (val it = storeEntry) {
-        is SubjectCredentialStore.StoreEntry.Iso -> credentialValidator.checkRevocationStatus(it.issuerSigned)
-        is SubjectCredentialStore.StoreEntry.SdJwt -> credentialValidator.checkRevocationStatus(it.sdJwt)
-        is SubjectCredentialStore.StoreEntry.Vc -> credentialValidator.checkRevocationStatus(it.vc)
-    }?.getOrNull()
+    suspend fun checkCredentialFreshness(storeEntry: SubjectCredentialStore.StoreEntry) =  when (val it = storeEntry) {
+        is SubjectCredentialStore.StoreEntry.Iso -> credentialValidator.checkCredentialFreshness(it.issuerSigned)
+        is SubjectCredentialStore.StoreEntry.SdJwt -> credentialValidator.checkCredentialFreshness(it.sdJwt)
+        is SubjectCredentialStore.StoreEntry.Vc -> credentialValidator.checkCredentialFreshness(it.vc)
+    }
 }
 
 fun PlatformAdapter.decodeImage(image: ByteArray): ImageBitmap {
