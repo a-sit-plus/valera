@@ -216,6 +216,8 @@ public class AndroidPlatformAdapter(
 
             //val json = JSONObject(cmrequest.credentialOptions[0].requestMatcher)
 
+            Napier.d("Got request $requestJson for credential ID $credentialId")
+
             val parsedRequest = if (requestJson.has("providers")) {
                 requestJson.getJSONArray("providers").getJSONObject(0)
             } else {
@@ -272,8 +274,8 @@ public class AndroidPlatformAdapter(
                 }
 
                 protocol == "org.iso.mdoc" || protocol == "org-iso-mdoc"  -> {
-                    val deviceRequest = parsedRequest.getString("deviceRequest")
-                    val encryptionInfo = parsedRequest.getString("encryptionInfo")
+                    val deviceRequest = requestData.getString("deviceRequest")
+                    val encryptionInfo = requestData.getString("encryptionInfo")
                     val parsedDeviceRequest =
                         coseCompliantSerializer.decodeFromByteArray<DeviceRequest>(
                             deviceRequest.decodeToByteArray(Base64UrlStrict)
