@@ -30,9 +30,9 @@ class DCAPIAuthorizationIntentViewModel(
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, error ->
         Napier.w("Exception occurred during DC API invocation", error)
         val response = when (error) {
-            is OAuth2Exception -> error.serialize()
-            else -> TODO() // TODO Not sure what to return in this case
-        }
+            is OAuth2Exception -> error
+            else -> OAuth2Exception.InvalidRequest(error.message) // TODO Not sure what to return in this case
+        }.serialize()
         walletMain.platformAdapter.prepareDCAPIOid4vpCredentialResponse(response, false)
         onFailure(error)
     }
@@ -53,8 +53,6 @@ class DCAPIAuthorizationIntentViewModel(
             is IsoMdocRequest ->
                 buildAuthenticationConsentPageFromPreviewRequest(dcApiRequest)
 
-
-            else -> throw IllegalStateException("Type of request not known")
         }.getOrThrow()
 
         onSuccess(successRoute)
