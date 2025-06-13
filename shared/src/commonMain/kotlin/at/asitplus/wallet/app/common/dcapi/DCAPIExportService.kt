@@ -12,6 +12,7 @@ import at.asitplus.wallet.app.common.dcapi.data.export.SdJwtEntry
 import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabelNonCompose
 import at.asitplus.wallet.eupid.EuPidScheme
+import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
@@ -82,6 +83,7 @@ class DCAPIExportService(private val platformAdapter: PlatformAdapter) {
         is MobileDrivingLicenceScheme ->
             MobileDrivingLicenceCredentialAdapter.createFromStoreEntry(this, imageDecoder).portraitRaw
 
+        is EuPidSdJwtScheme,
         is EuPidScheme ->
             EuPidCredentialAdapter.createFromStoreEntry(this, imageDecoder).portraitRaw
 
