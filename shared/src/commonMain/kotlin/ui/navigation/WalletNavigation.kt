@@ -35,6 +35,7 @@ import at.asitplus.valera.resources.error_feature_not_yet_available
 import at.asitplus.valera.resources.snackbar_clear_log_successfully
 import at.asitplus.valera.resources.snackbar_reset_app_successfully
 import at.asitplus.wallet.app.common.ErrorService
+import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
@@ -150,6 +151,7 @@ fun WalletNavigation(
     intentService: IntentService = koinInject(),
     snackbarService: SnackbarService = koinInject(),
     errorService: ErrorService = koinInject(),
+    walletMain: WalletMain = koinInject(),
     urlOpener: UrlOpener = koinInject(),
 ) {
     val navController: NavHostController = rememberNavController()
@@ -210,7 +212,7 @@ fun WalletNavigation(
 
     LaunchedEffect(null) {
         this.launch {
-            Globals.appLink.combineTransform(intentService.readyForIntents) { link, ready ->
+            Globals.appLink.combineTransform(walletMain.appReady) { link, ready ->
                 if (ready == true && link != null) {
                     emit(link)
                 }
@@ -234,7 +236,11 @@ fun WalletNavigation(
             }
         }
         this.launch {
-            errorService.error.collect { (throwable) ->
+            errorService.error.combineTransform(walletMain.appReady) { error, ready ->
+                if (ready == true) {
+                    emit(error)
+                }
+            }.collect { (throwable) ->
                 navigate(
                     ErrorRoute(
                         throwable.enrichMessage(),
@@ -274,6 +280,7 @@ private fun WalletNavHost(
             .fillMaxSize()
     ) {
         composable<OnboardingStartRoute> {
+            catchingUnwrapped { KeystoreService.checkKeyMaterialValid() }.onFailure { Napier.d(it) { "Deleted old Key" } }
             OnboardingStartView(
                 onClickStart = { navigate(OnboardingInformationRoute) },
                 onClickLogo = onClickLogo,
@@ -327,7 +334,12 @@ private fun WalletNavHost(
             )
             LaunchedEffect(null) {
                 walletMain.scope.launch {
-                    intentService.readyForIntents.emit(true)
+                    walletMain.appReady.emit(true)
+                }
+                walletMain.scope.launch {
+                    catchingUnwrapped { KeystoreService.checkKeyMaterialValid() }.onFailure {
+                        walletMain.errorService.emit(it)
+                    }
                 }
             }
         }
@@ -667,7 +679,7 @@ private fun WalletNavHost(
                         walletMain.resetApp()
                         val resetMessage = getString(Res.string.snackbar_reset_app_successfully)
                         walletMain.snackbarService.showSnackbar(resetMessage)
-                        navController.popBackStack(route = HomeScreenRoute, inclusive = false)
+                        popBackStack(HomeScreenRoute)
                     }
                 },
                 onClickClearLogFile = {
@@ -713,6 +725,12 @@ private fun WalletNavHost(
             ErrorView(remember {
                 ErrorViewModel(
                     resetStack = { popBackStack(HomeScreenRoute) },
+                    resetApp = { walletMain.scope.launch {
+                        walletMain.resetApp()
+                        val resetMessage = getString(Res.string.snackbar_reset_app_successfully)
+                        walletMain.snackbarService.showSnackbar(resetMessage)
+                        popBackStack(HomeScreenRoute)
+                    }},
                     message = backStackEntry.toRoute<ErrorRoute>().message,
                     cause = backStackEntry.toRoute<ErrorRoute>().cause,
                     onClickLogo = onClickLogo,
