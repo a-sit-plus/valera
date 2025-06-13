@@ -6,6 +6,7 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import at.asitplus.catchingUnwrapped
 import at.asitplus.wallet.app.common.DCAPIInvocationData
 import at.asitplus.wallet.app.common.ErrorService
+import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.WalletDependencyProvider
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.di.appModule
@@ -37,7 +38,9 @@ fun App(walletDependencyProvider: WalletDependencyProvider) {
     KoinApplication({
         modules(appModule(walletDependencyProvider))
     }) {
+        val errorService: ErrorService = koinInject()
         catchingUnwrapped {
+            KeystoreService.checkKeyMaterialValid()
             val walletMain: WalletMain = koinInject()
 
             LifecycleEventEffect(Lifecycle.Event.ON_CREATE) {
@@ -50,13 +53,13 @@ fun App(walletDependencyProvider: WalletDependencyProvider) {
                 // TODO is this the best place to sync the credentials with the system?
                 walletMain.updateDigitalCredentialsAPIIntegration()
             }
+
         }.onFailure {
-            val errorService: ErrorService = koinInject()
             errorService.emit(it)
         }
 
         WalletTheme {
-            WalletNavigation()
+            WalletNavigation(errorService=errorService)
         }
     }
 }
