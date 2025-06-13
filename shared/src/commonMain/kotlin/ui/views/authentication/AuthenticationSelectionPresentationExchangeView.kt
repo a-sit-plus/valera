@@ -39,7 +39,7 @@ import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.CredentialSelectionGroup
-import ui.composables.toCredentialFreshnessSummaryModel
+import ui.models.toCredentialFreshnessSummaryModel
 import ui.viewmodels.authentication.AuthenticationSelectionPresentationExchangeViewModel
 
 @Composable

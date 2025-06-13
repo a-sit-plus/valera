@@ -36,6 +36,8 @@ import org.jetbrains.compose.resources.stringResource
 import ui.composables.credentials.CredentialSelectionCardHeader
 import ui.composables.credentials.CredentialSelectionCardLayout
 import ui.composables.credentials.CredentialSummaryCardContent
+import ui.models.CredentialFreshnessSummaryUiModel
+import ui.models.CredentialFreshnessValidationStateUiModel
 
 
 @Composable
@@ -43,16 +45,16 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
     isSelected: Boolean,
     onToggleSelection: () -> Unit,
     option: DCQLCredentialSubmissionOption<SubjectCredentialStore.StoreEntry>,
-    checkCredentialFreshness: suspend (SubjectCredentialStore.StoreEntry) -> CredentialFreshnessSummaryModel,
+    checkCredentialFreshness: suspend (SubjectCredentialStore.StoreEntry) -> CredentialFreshnessSummaryUiModel,
     decodeToBitmap: (ByteArray) -> ImageBitmap?,
     modifier: Modifier = Modifier,
 ) {
     val credentialFreshnessValidationState by produceState(
-        CredentialFreshnessValidationState.Loading as CredentialFreshnessValidationState,
+        CredentialFreshnessValidationStateUiModel.Loading as CredentialFreshnessValidationStateUiModel,
         option.credential
     ) {
-        value = CredentialFreshnessValidationState.Loading
-        value = CredentialFreshnessValidationState.Done(checkCredentialFreshness(option.credential))
+        value = CredentialFreshnessValidationStateUiModel.Loading
+        value = CredentialFreshnessValidationStateUiModel.Done(checkCredentialFreshness(option.credential))
     }
 
 
