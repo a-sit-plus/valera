@@ -121,11 +121,11 @@ class SwiftPlatformAdapter: PlatformAdapter {
     }
 
     //TODO: implement
-    func registerWithDigitalCredentialsAPI(entries: CredentialsContainer) {
+    func registerWithDigitalCredentialsAPI(entries: CredentialsContainer, scope: CoroutineScope) {
     }
 
-    func getCurrentDCAPIData() -> DCAPIRequest? {
-        return nil
+    func getCurrentDCAPIData() -> KmmResult<DCAPIRequest> {
+        return KmmResult.failure(Throwable("Using Swift platform adapter"))
     }
 
     func prepareDCAPICredentialResponse(responseJson: KotlinByteArray, dcApiRequest: DCAPIRequest) {

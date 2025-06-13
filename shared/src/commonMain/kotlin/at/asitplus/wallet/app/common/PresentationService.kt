@@ -1,13 +1,20 @@
 package at.asitplus.wallet.app.common
 
 import at.asitplus.catching
+import at.asitplus.dcapi.DCAPIHandover
+import at.asitplus.dcapi.DCAPIInfo
+import at.asitplus.dcapi.request.IsoMdocRequest
+import at.asitplus.dcapi.request.Oid4vpDCAPIRequest
+import at.asitplus.dcapi.request.PreviewDCAPIRequest
+import at.asitplus.iso.DeviceAuthentication
+import at.asitplus.iso.SessionTranscript
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.RelyingPartyMetadata
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
-import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
-import at.asitplus.wallet.app.common.dcapi.PreviewRequest
+import at.asitplus.signum.indispensable.io.Base64UrlStrict
+import at.asitplus.wallet.app.common.dcapi.data.preview.PreviewRequest
 import at.asitplus.wallet.lib.agent.CreatePresentationResult
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.PresentationException
@@ -18,17 +25,18 @@ import at.asitplus.wallet.lib.cbor.SignCose
 import at.asitplus.wallet.lib.cbor.SignCoseDetached
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
-import at.asitplus.iso.DeviceAuthentication
-import at.asitplus.iso.SessionTranscript
+import at.asitplus.wallet.lib.iso.sha256
 import at.asitplus.wallet.lib.iso.wrapInCborTag
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
+import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
 import kotlinx.serialization.builtins.ByteArraySerializer
 import kotlinx.serialization.encodeToByteArray
 import ui.viewmodels.authentication.DCQLMatchingResult
 import ui.viewmodels.authentication.PresentationExchangeMatchingResult
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 class PresentationService(
     val platformAdapter: PlatformAdapter,
@@ -43,33 +51,44 @@ class PresentationService(
         holderAgent = holderAgent
     )
 
-    suspend fun parseAuthenticationRequestParameters(requestUri: String) =
-        presentationService.parseAuthenticationRequestParameters(requestUri)
+    suspend fun parseAuthenticationRequestParameters(
+        requestUri: String,
+        dcApiRequest: Oid4vpDCAPIRequest?
+    ) = presentationService.parseAuthenticationRequestParameters(requestUri, dcApiRequest)
 
-    suspend fun startAuthorizationResponsePreparation(request: RequestParametersFrom<AuthenticationRequestParameters>) =
-        presentationService.startAuthorizationResponsePreparation(request)
+    suspend fun startAuthorizationResponsePreparation(
+        request: RequestParametersFrom<AuthenticationRequestParameters>
+    ) = presentationService.startAuthorizationResponsePreparation(request)
 
     suspend fun getPreparationState(request: RequestParametersFrom<AuthenticationRequestParameters>) =
         presentationService.startAuthorizationResponsePreparation(request).getOrThrow()
 
-    suspend fun getMatchingCredentials(preparationState: AuthorizationResponsePreparationState) = catching {
-        when (val it = preparationState.credentialPresentationRequest) {
-            is CredentialPresentationRequest.DCQLRequest -> DCQLMatchingResult(
-                presentationRequest = it,
-                holderAgent.matchDCQLQueryAgainstCredentialStore(it.dcqlQuery).getOrThrow()
-            )
+    suspend fun getMatchingCredentials(preparationState: AuthorizationResponsePreparationState) =
+        catching {
+            when (val it = preparationState.credentialPresentationRequest) {
+                is CredentialPresentationRequest.DCQLRequest -> {
+                    val dcqlQueryResult = holderAgent.matchDCQLQueryAgainstCredentialStore(
+                        it.dcqlQuery,
+                        preparationState.oid4vpDCAPIRequest?.credentialId
+                    ).getOrThrow()
+                    DCQLMatchingResult(
+                        presentationRequest = it,
+                        dcqlQueryResult
+                    )
+                }
 
-            is CredentialPresentationRequest.PresentationExchangeRequest -> PresentationExchangeMatchingResult(
-                presentationRequest = it,
-                holderAgent.matchInputDescriptorsAgainstCredentialStore(
-                    inputDescriptors = it.presentationDefinition.inputDescriptors,
-                    fallbackFormatHolder = it.fallbackFormatHolder,
-                ).getOrThrow()
-            )
+                is CredentialPresentationRequest.PresentationExchangeRequest -> PresentationExchangeMatchingResult(
+                    presentationRequest = it,
+                    matchingInputDescriptorCredentials = holderAgent.matchInputDescriptorsAgainstCredentialStore(
+                        inputDescriptors = it.presentationDefinition.inputDescriptors,
+                        fallbackFormatHolder = it.fallbackFormatHolder,
+                        filterById = preparationState.oid4vpDCAPIRequest?.credentialId
+                    ).getOrThrow()
+                )
 
-            null -> TODO()
+                null -> TODO()
+            }
         }
-    }
 
     suspend fun finalizeAuthorizationResponse(
         request: RequestParametersFrom<AuthenticationRequestParameters>,
@@ -83,15 +102,16 @@ class PresentationService(
 
     suspend fun finalizeDCAPIPreviewPresentation(
         credentialPresentation: CredentialPresentation.PresentationExchangePresentation,
-        dcApiRequest: DCAPIRequest
+        dcApiRequestPreview: PreviewDCAPIRequest
     ): OpenId4VpWallet.AuthenticationSuccess {
         Napier.d("Finalizing DCAPI response")
-        val previewRequest = PreviewRequest.deserialize(dcApiRequest.request).getOrThrow()
+        val previewRequest = PreviewRequest.deserialize(dcApiRequestPreview.request).getOrThrow()
 
         val presentationResult = holderAgent.createPresentation(
             request = PresentationRequestParameters(
                 nonce = previewRequest.nonce,
-                audience = dcApiRequest.callingOrigin ?: dcApiRequest.callingPackageName!!,
+                audience = dcApiRequestPreview.callingOrigin
+                    ?: dcApiRequestPreview.callingPackageName!!,
                 calcIsoDeviceSignature = { docType, deviceNameSpaceBytes ->
                     // TODO sign data
                     SignCose<ByteArray>(keyMaterial, CoseHeaderNone(), CoseHeaderNone())
@@ -110,14 +130,80 @@ class PresentationService(
 
         val deviceResponse = when (val firstResult = presentation.presentationResults[0]) {
             is CreatePresentationResult.DeviceResponse -> firstResult.deviceResponse
-            is CreatePresentationResult.SdJwt -> TODO("Credential type not yet supported for API use case")
-            is CreatePresentationResult.Signed -> TODO("Credential type not yet supported for API use case")
+            else -> throw PresentationException(IllegalStateException("Must be a device response"))
         }
 
-        platformAdapter.prepareDCAPICredentialResponse(coseCompliantSerializer.encodeToByteArray(deviceResponse), dcApiRequest)
+        platformAdapter.prepareDCAPIPreviewCredentialResponse(
+            coseCompliantSerializer.encodeToByteArray(
+                deviceResponse
+            ), dcApiRequestPreview
+        )
 
         return OpenId4VpWallet.AuthenticationSuccess()
     }
+
+    @OptIn(ExperimentalEncodingApi::class, ExperimentalStdlibApi::class)
+    suspend fun finalizeDCAPIIsoMdocPresentation(
+        credentialPresentation: CredentialPresentation.PresentationExchangePresentation,
+        isoMdocRequest: IsoMdocRequest
+    ): OpenId4VpWallet.AuthenticationSuccess {
+        Napier.d("Finalizing DCAPI response")
+
+        val hash = coseCompliantSerializer.encodeToByteArray(
+            DCAPIInfo(isoMdocRequest.encryptionInfo, isoMdocRequest.callingOrigin)
+        ).sha256()
+        val handover = DCAPIHandover(type = "dcapi", hash = hash)
+        val sessionTranscript = SessionTranscript.forDcApi(handover)
+
+        val presentationResult = holderAgent.createPresentation(
+            request = PresentationRequestParameters(
+                // TODO which nonce? isoMdocRequest.parsedEncryptionInfo.encryptionParameters.nonce?
+                nonce = isoMdocRequest.encryptionInfo.encryptionParameters.nonce
+                    .encodeToString(Base64UrlStrict),
+                audience = isoMdocRequest.callingOrigin,
+                calcIsoDeviceSignature = { docType, deviceNameSpaceBytes ->
+                    val deviceAuthentication = DeviceAuthentication(
+                        type = "DeviceAuthentication",
+                        sessionTranscript = sessionTranscript,
+                        docType = docType,
+                        namespaces = deviceNameSpaceBytes
+                    )
+
+                    val deviceAuthenticationBytes = coseCompliantSerializer
+                        .encodeToByteArray(ByteStringWrapper(deviceAuthentication))
+                        .wrapInCborTag(24)
+                    Napier.d("Device authentication signature input is ${deviceAuthenticationBytes.toHexString()}")
+                    SignCoseDetached<ByteArray>(keyMaterial, CoseHeaderNone(), CoseHeaderNone())
+                        .invoke(null, null, deviceAuthenticationBytes, ByteArraySerializer())
+                        .getOrElse { e ->
+                            Napier.w("Could not create DeviceAuth for presentation", e)
+                            throw PresentationException(e)
+                        } to null
+                },
+            ),
+            credentialPresentation = credentialPresentation,
+        )
+
+        val presentation =
+            presentationResult.getOrThrow() as PresentationResponseParameters.PresentationExchangeParameters
+
+        val deviceResponse = when (val firstResult = presentation.presentationResults[0]) {
+            is CreatePresentationResult.DeviceResponse -> firstResult.deviceResponse
+            else -> throw PresentationException(IllegalStateException("Must be a device response"))
+        }
+        val deviceResponseSerialized =
+            coseCompliantSerializer.encodeToByteArray(deviceResponse) // TODO HPKE encryption multiplatform
+
+        platformAdapter.prepareDCAPIIsoMdocCredentialResponse(
+            deviceResponseSerialized,
+            coseCompliantSerializer.encodeToByteArray(sessionTranscript),
+            isoMdocRequest.encryptionInfo.encryptionParameters
+        )
+        return OpenId4VpWallet.AuthenticationSuccess()
+    }
+
+    fun finalizeOid4vpDCAPIPresentation(response: String) =
+        platformAdapter.prepareDCAPIOid4vpCredentialResponse(response, true)
 
     @OptIn(ExperimentalStdlibApi::class)
     suspend fun finalizeLocalPresentation(
@@ -143,7 +229,6 @@ class PresentationService(
                         .encodeToByteArray(ByteStringWrapper(deviceAuthentication))
                         .wrapInCborTag(24)
                     Napier.d("Device authentication signature input is ${deviceAuthenticationBytes.toHexString()}")
-
                     SignCoseDetached<ByteArray>(keyMaterial, CoseHeaderNone(), CoseHeaderNone())
                         .invoke(null, null, deviceAuthenticationBytes, ByteArraySerializer())
                         .getOrElse { e ->
@@ -159,7 +244,10 @@ class PresentationService(
             presentationResult.getOrThrow() as PresentationResponseParameters.PresentationExchangeParameters
 
         val deviceResponse = when (val firstResult = presentation.presentationResults[0]) {
-            is CreatePresentationResult.DeviceResponse -> coseCompliantSerializer.encodeToByteArray(firstResult.deviceResponse)
+            is CreatePresentationResult.DeviceResponse -> coseCompliantSerializer.encodeToByteArray(
+                firstResult.deviceResponse
+            )
+
             else -> throw PresentationException(IllegalStateException("Must be a device response"))
         }
 
