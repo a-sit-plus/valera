@@ -1,5 +1,6 @@
 package ui.viewmodels
 
+import AppResetRequiredException
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_error_action_reset_app
 import at.asitplus.valera.resources.info_text_error_action_start_screen
@@ -21,8 +22,8 @@ class ErrorViewModel(
     var textCause: String?
 
     init {
-        when(message) {
-            "ResetAppException" -> {
+        when(cause) {
+            AppResetRequiredException.toString() -> {
                 onClickButton = resetApp
                 actionDescription = Res.string.info_text_error_action_reset_app
                 textCause = runBlocking { getString(Res.string.info_text_error_cause_reset_app) }
