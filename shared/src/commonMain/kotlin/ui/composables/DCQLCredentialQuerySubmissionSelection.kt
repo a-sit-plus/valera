@@ -8,12 +8,13 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import at.asitplus.openid.dcql.DCQLCredentialSubmissionOption
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import ui.models.CredentialFreshnessSummaryUiModel
 
 
 @Composable
 fun DCQLCredentialQuerySubmissionSelection(
     selectionOptions: List<DCQLCredentialSubmissionOption<SubjectCredentialStore.StoreEntry>>,
-    checkCredentialFreshness: suspend (SubjectCredentialStore.StoreEntry) -> CredentialFreshnessSummaryModel,
+    checkCredentialFreshness: suspend (SubjectCredentialStore.StoreEntry) -> CredentialFreshnessSummaryUiModel,
     currentlySelectedOptionIndex: Int?,
     onChangeSelection: (Int?) -> Unit,
     decodeToBitmap: (ByteArray) -> ImageBitmap?,

@@ -1,6 +1,6 @@
-package ui.composables
+package ui.models
 
-interface TimelinessIndicator {
+interface TimelinessIndicatorUiModel {
     val isExpired: Boolean
     val isNotYetValid: Boolean
     val isTimely: Boolean

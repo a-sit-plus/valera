@@ -7,19 +7,19 @@ import at.asitplus.valera.resources.error_credential_timeliness_expired
 import at.asitplus.valera.resources.error_credential_timeliness_not_yet_valid
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.BigErrorText
-import ui.composables.CredentialFreshnessSummaryModel
+import ui.models.CredentialFreshnessSummaryUiModel
 
 @Composable
-fun MainCredentialIssue(credentialFreshnessSummaryModel: CredentialFreshnessSummaryModel) {
+fun MainCredentialIssue(credentialFreshnessSummary: CredentialFreshnessSummaryUiModel) {
     when {
-        credentialFreshnessSummaryModel.tokenStatus?.getOrNull()?.isInvalid == true -> {
+        credentialFreshnessSummary.tokenStatus?.getOrNull()?.isInvalid == true -> {
             BigErrorText(stringResource(Res.string.error_credential_status_invalid))
         }
 
-        !credentialFreshnessSummaryModel.timelinessIndicator.isTimely -> {
-            if (credentialFreshnessSummaryModel.timelinessIndicator.isExpired) {
+        !credentialFreshnessSummary.timelinessIndicator.isTimely -> {
+            if (credentialFreshnessSummary.timelinessIndicator.isExpired) {
                 BigErrorText(stringResource(Res.string.error_credential_timeliness_expired))
-            } else if (credentialFreshnessSummaryModel.timelinessIndicator.isNotYetValid) {
+            } else if (credentialFreshnessSummary.timelinessIndicator.isNotYetValid) {
                 BigErrorText(stringResource(Res.string.error_credential_timeliness_not_yet_valid))
             }
         }

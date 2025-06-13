@@ -30,7 +30,7 @@ import at.asitplus.valera.resources.heading_label_my_data_screen
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.stringResource
-import ui.composables.CredentialFreshnessSummaryModel
+import ui.models.CredentialFreshnessSummaryUiModel
 import ui.composables.CustomFloatingActionMenu
 import ui.composables.FloatingActionButtonHeightSpacer
 import ui.composables.Logo
@@ -42,7 +42,7 @@ import ui.viewmodels.CredentialsViewModel
 @Composable
 fun CredentialsView(
     vm: CredentialsViewModel,
-    checkCredentialFreshness: suspend (SubjectCredentialStore.StoreEntry) -> CredentialFreshnessSummaryModel,
+    checkCredentialFreshness: suspend (SubjectCredentialStore.StoreEntry) -> CredentialFreshnessSummaryUiModel,
     bottomBar: @Composable () -> Unit
 ) {
     val credentialsStatus by vm.storeContainer.map {
@@ -57,7 +57,7 @@ fun CredentialsView(
         when (val delegate = credentialsStatus) {
             is CredentialState.Loading -> value = CredentialStatusesState.Loading()
             is CredentialState.Success -> {
-                val credentialsWithStatus = mutableMapOf<Long, CredentialFreshnessSummaryModel>()
+                val credentialsWithStatus = mutableMapOf<Long, CredentialFreshnessSummaryUiModel>()
                 delegate.credentials.forEach { (id, credential) ->
                     credentialsWithStatus[id] = checkCredentialFreshness(credential)
                     value = CredentialStatusesState.Loading(credentialsWithStatus)
@@ -185,13 +185,13 @@ private sealed interface CredentialState {
 }
 
 private sealed interface CredentialStatusesState {
-    val credentialFreshnessSummaries: Map<Long, CredentialFreshnessSummaryModel>
+    val credentialFreshnessSummaries: Map<Long, CredentialFreshnessSummaryUiModel>
 
     data class Loading(
-        override val credentialFreshnessSummaries: Map<Long, CredentialFreshnessSummaryModel> = mapOf(),
+        override val credentialFreshnessSummaries: Map<Long, CredentialFreshnessSummaryUiModel> = mapOf(),
     ) : CredentialStatusesState
 
     data class Success(
-        override val credentialFreshnessSummaries: Map<Long, CredentialFreshnessSummaryModel> = mapOf(),
+        override val credentialFreshnessSummaries: Map<Long, CredentialFreshnessSummaryUiModel> = mapOf(),
     ) : CredentialStatusesState
 }

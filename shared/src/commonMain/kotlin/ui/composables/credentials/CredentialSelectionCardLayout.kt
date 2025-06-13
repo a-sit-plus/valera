@@ -14,11 +14,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import ui.composables.CredentialFreshnessValidationState
+import ui.models.CredentialFreshnessValidationStateUiModel
 
 @Composable
 fun CredentialSelectionCardLayout(
-    credentialFreshnessValidationState: CredentialFreshnessValidationState,
+    credentialFreshnessValidationState: CredentialFreshnessValidationStateUiModel,
     onClick: () -> Unit,
     modifier: Modifier,
     isSelected: Boolean,
@@ -29,8 +29,8 @@ fun CredentialSelectionCardLayout(
 
     if (isSelected) {
         containerColor.value = when (credentialFreshnessValidationState) {
-            CredentialFreshnessValidationState.Loading -> MaterialTheme.colorScheme.primaryContainer
-            is CredentialFreshnessValidationState.Done -> if (credentialFreshnessValidationState.credentialFreshnessSummaryModel.isNotBad) {
+            CredentialFreshnessValidationStateUiModel.Loading -> MaterialTheme.colorScheme.primaryContainer
+            is CredentialFreshnessValidationStateUiModel.Done -> if (credentialFreshnessValidationState.credentialFreshnessSummary.isNotBad) {
                 MaterialTheme.colorScheme.primaryContainer
             } else {
                 MaterialTheme.colorScheme.errorContainer
@@ -39,12 +39,12 @@ fun CredentialSelectionCardLayout(
 
         val width = 2.dp
         borderStroke.value = when (credentialFreshnessValidationState) {
-            CredentialFreshnessValidationState.Loading -> BorderStroke(
+            CredentialFreshnessValidationStateUiModel.Loading -> BorderStroke(
                 width = width,
                 color = MaterialTheme.colorScheme.inversePrimary,
             )
 
-            is CredentialFreshnessValidationState.Done -> if (credentialFreshnessValidationState.credentialFreshnessSummaryModel.isNotBad) {
+            is CredentialFreshnessValidationStateUiModel.Done -> if (credentialFreshnessValidationState.credentialFreshnessSummary.isNotBad) {
                 BorderStroke(width = width, color = MaterialTheme.colorScheme.inversePrimary)
             } else {
                 BorderStroke(width = width, color = MaterialTheme.colorScheme.error)
@@ -53,8 +53,8 @@ fun CredentialSelectionCardLayout(
 
     } else {
         containerColor.value = when (credentialFreshnessValidationState) {
-            CredentialFreshnessValidationState.Loading -> Color.Unspecified
-            is CredentialFreshnessValidationState.Done -> if (credentialFreshnessValidationState.credentialFreshnessSummaryModel.isNotBad) {
+            CredentialFreshnessValidationStateUiModel.Loading -> Color.Unspecified
+            is CredentialFreshnessValidationStateUiModel.Done -> if (credentialFreshnessValidationState.credentialFreshnessSummary.isNotBad) {
                 Color.Unspecified
             } else {
                 MaterialTheme.colorScheme.errorContainer

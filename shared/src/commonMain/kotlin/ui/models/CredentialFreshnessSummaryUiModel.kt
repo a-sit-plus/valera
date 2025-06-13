@@ -1,4 +1,4 @@
-package ui.composables
+package ui.models
 
 import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.validation.CredentialFreshnessSummary
@@ -6,15 +6,15 @@ import at.asitplus.wallet.lib.agent.validation.CredentialTimelinessValidationSum
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatus
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatusValidationResult
 
-data class CredentialFreshnessSummaryModel(
-    val timelinessIndicator: TimelinessIndicator,
+data class CredentialFreshnessSummaryUiModel(
+    val timelinessIndicator: TimelinessIndicatorUiModel,
     val tokenStatus: KmmResult<TokenStatus>?,
 ) {
     constructor(
         timelinessValidationSummary: CredentialTimelinessValidationSummary,
         tokenStatus: KmmResult<TokenStatus>?,
     ) : this(
-        timelinessIndicator = object : TimelinessIndicator {
+        timelinessIndicator = object : TimelinessIndicatorUiModel {
             override val isExpired = when (val it = timelinessValidationSummary) {
                 is CredentialTimelinessValidationSummary.Mdoc -> it.details.msoTimelinessValidationSummary?.mdocExpiredError != null
                 is CredentialTimelinessValidationSummary.SdJwt -> it.details.jwsExpiredError != null
@@ -33,8 +33,8 @@ data class CredentialFreshnessSummaryModel(
     val isNotBad = timelinessIndicator.isTimely && (tokenStatus?.getOrNull()?.isInvalid != true)
 }
 
-fun CredentialFreshnessSummary.toCredentialFreshnessSummaryModel(): CredentialFreshnessSummaryModel {
-    return CredentialFreshnessSummaryModel(
+fun CredentialFreshnessSummary.toCredentialFreshnessSummaryModel(): CredentialFreshnessSummaryUiModel {
+    return CredentialFreshnessSummaryUiModel(
         timelinessValidationSummary = timelinessValidationSummary,
         tokenStatus = when (val it = tokenStatusValidationResult) {
             is TokenStatusValidationResult.Invalid -> KmmResult.success(it.tokenStatus)

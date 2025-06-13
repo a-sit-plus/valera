@@ -23,7 +23,7 @@ import at.asitplus.valera.resources.error_complex_dcql_query
 import at.asitplus.valera.resources.error_unsatisfiable_dcql_query
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import org.jetbrains.compose.resources.stringResource
-import ui.composables.CredentialFreshnessSummaryModel
+import ui.models.CredentialFreshnessSummaryUiModel
 import ui.composables.DCQLCredentialQuerySubmissionSelection
 import ui.state.savers.rememberMutableStateListOf
 import ui.views.authentication.AuthenticationSelectionViewScaffold
@@ -36,7 +36,7 @@ fun AuthenticationSelectionDCQLView(
     onClickSettings: () -> Unit,
     confirmSelection: (CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>?) -> Unit,
     matchingResult: DCQLMatchingResult<SubjectCredentialStore.StoreEntry>,
-    checkCredentialFreshness: suspend (SubjectCredentialStore.StoreEntry) -> CredentialFreshnessSummaryModel,
+    checkCredentialFreshness: suspend (SubjectCredentialStore.StoreEntry) -> CredentialFreshnessSummaryUiModel,
     decodeToBitmap: (ByteArray) -> ImageBitmap?,
     onError: (Throwable) -> Unit,
     modifier: Modifier = Modifier,
@@ -75,7 +75,7 @@ fun AuthenticationSelectionDCQLView(
     decodeToBitmap: (ByteArray) -> ImageBitmap?,
     confirmSelection: (CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>?) -> Unit,
     credentialQueryOptions: Map<DCQLCredentialQueryIdentifier, List<DCQLCredentialSubmissionOption<SubjectCredentialStore.StoreEntry>>>,
-    checkCredentialFreshness: suspend (SubjectCredentialStore.StoreEntry) -> CredentialFreshnessSummaryModel,
+    checkCredentialFreshness: suspend (SubjectCredentialStore.StoreEntry) -> CredentialFreshnessSummaryUiModel,
     onError: (Throwable) -> Unit,
     modifier: Modifier = Modifier,
 ) {
