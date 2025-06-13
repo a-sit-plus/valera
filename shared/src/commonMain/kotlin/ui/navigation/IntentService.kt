@@ -21,7 +21,6 @@ const val GET_CREDENTIAL_INTENT = "androidx.credentials.registry.provider.action
 class IntentService(
     val platformAdapter: PlatformAdapter
 ) {
-    val readyForIntents = MutableStateFlow<Boolean?>(null)
     var redirectUri: String? = null
     var intentType: IntentType? = null
 
