@@ -83,9 +83,7 @@ fun DcqlRequestPreview(
         RequestedCredentialPreview(
             scheme = scheme,
             representation = representation,
-            attributes = attributePaths.associateWith {
-                false
-            },
+            attributes = attributePaths.associateWith { false },
         )
     }
 }

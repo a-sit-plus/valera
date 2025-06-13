@@ -102,6 +102,7 @@ private fun InputDescriptor.vctConstraint() =
 private fun ConstraintFilter.referenceValues() =
     (pattern ?: const?.content)?.let { listOf(it) } ?: enum
 
+@Throws(Throwable::class)
 fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, ConstantIndex.CredentialScheme, List<NormalizedJsonPath>> {
     val representation = when (format) {
         CredentialFormatEnum.VC_SD_JWT,
@@ -146,7 +147,7 @@ fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, C
         sdJwtCredentialTypeExtractor = {
             scheme.sdJwtType ?: throw IllegalArgumentException("Credential is not an SD-JWT")
         },
-    ).getOrNull() ?: throw Throwable("Unable to evaluate credential matching result.")
+    ).getOrThrow()
 
     val normalizedJsonPaths = when (match) {
         DCQLCredentialQueryMatchingResult.AllClaimsMatchingResult -> schemeJsonElement.normalizedJsonPaths()
@@ -154,9 +155,7 @@ fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, C
         is DCQLCredentialQueryMatchingResult.ClaimsQueryResults -> match.claimsQueryResults.flatMap {
             when (it) {
                 is DCQLClaimsQueryResult.IsoMdocResult -> listOf(NormalizedJsonPath() + it.namespace + it.claimName)
-                is DCQLClaimsQueryResult.JsonResult -> it.nodeList.map {
-                    it.normalizedJsonPath
-                }
+                is DCQLClaimsQueryResult.JsonResult -> it.nodeList.map { it.normalizedJsonPath }
             }
         }
     }
