@@ -51,7 +51,11 @@ class WalletMain(
         errorService.emit(error)
     }
     val scope =
-        CoroutineScope(Dispatchers.Default + coroutineExceptionHandler + promptModel + CoroutineName("WalletMain"))
+        CoroutineScope(
+            Dispatchers.Default + coroutineExceptionHandler + promptModel + CoroutineName(
+                "WalletMain"
+            )
+        )
 
     suspend fun resetApp() {
         dataStoreService.clearLog()
@@ -111,7 +115,7 @@ class WalletMain(
                 val httpClient = httpService.buildHttpClient()
                 val host = "https://wallet.a-sit.at/"
                 val url = "${host}check.json"
-                Napier.d("Getting check.json from $url")
+                Napier.d("Performing update check with $url")
                 val json = httpClient.get(url).body<JsonObject>()
                 json["apps"]?.jsonObject?.get(buildContext.packageName)?.let {
                     (it as? JsonObject)?.get("latestVersion")?.jsonPrimitive?.content?.let {
@@ -120,11 +124,8 @@ class WalletMain(
                         Napier.d("Version is $currentVersion, latest is $latestVersion")
                         if (latestVersion > currentVersion) {
                             snackbarService.showSnackbar(
-                                getString(
-                                    Res.string.snackbar_update_hint,
-                                    host,
-                                    latestVersion
-                                ), getString(Res.string.snackbar_update_action)
+                                getString(Res.string.snackbar_update_hint, latestVersion),
+                                getString(Res.string.snackbar_update_action)
                             ) {
                                 platformAdapter.openUrl(host)
                             }
@@ -137,11 +138,20 @@ class WalletMain(
         }
     }
 
-    suspend fun checkCredentialFreshness(storeEntry: SubjectCredentialStore.StoreEntry) =  when (val it = storeEntry) {
-        is SubjectCredentialStore.StoreEntry.Iso -> credentialValidator.checkCredentialFreshness(it.issuerSigned)
-        is SubjectCredentialStore.StoreEntry.SdJwt -> credentialValidator.checkCredentialFreshness(it.sdJwt)
-        is SubjectCredentialStore.StoreEntry.Vc -> credentialValidator.checkCredentialFreshness(it.vc)
-    }
+    suspend fun checkCredentialFreshness(storeEntry: SubjectCredentialStore.StoreEntry) =
+        when (val it = storeEntry) {
+            is SubjectCredentialStore.StoreEntry.Iso -> credentialValidator.checkCredentialFreshness(
+                it.issuerSigned
+            )
+
+            is SubjectCredentialStore.StoreEntry.SdJwt -> credentialValidator.checkCredentialFreshness(
+                it.sdJwt
+            )
+
+            is SubjectCredentialStore.StoreEntry.Vc -> credentialValidator.checkCredentialFreshness(
+                it.vc
+            )
+        }
 }
 
 fun PlatformAdapter.decodeImage(image: ByteArray): ImageBitmap {
