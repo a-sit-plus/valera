@@ -38,7 +38,6 @@ import at.asitplus.wallet.por.PowerOfRepresentationDataElements
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import at.asitplus.wallet.taxid.TaxIdScheme
 import at.asitplus.wallet.taxid.TaxId2025Scheme
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject

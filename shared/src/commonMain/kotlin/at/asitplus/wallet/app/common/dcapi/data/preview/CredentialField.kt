@@ -1,8 +1,7 @@
-package at.asitplus.wallet.app.common.dcapi
+package at.asitplus.wallet.app.common.dcapi.data.preview
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-
 
 // Format as defined in the documentation https://digitalcredentials.dev/docs/wallets/android
 // and sample code: https://github.com/openwallet-foundation-labs/identity-credential/tree/main/wallet/src/main/java/com/android/identity_credential/wallet/credman

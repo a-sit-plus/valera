@@ -3,34 +3,34 @@ package ui.viewmodels.authentication
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
 import at.asitplus.catching
+import at.asitplus.dcapi.request.IsoMdocRequest
 import at.asitplus.dif.Constraint
 import at.asitplus.dif.ConstraintField
 import at.asitplus.dif.DifInputDescriptor
 import at.asitplus.dif.FormatContainerJwt
 import at.asitplus.dif.FormatHolder
 import at.asitplus.dif.PresentationDefinition
+import at.asitplus.iso.DeviceRequest
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.app.common.dcapi.DCAPIRequest
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
-import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
-import data.credentials.CredentialAdapter
+import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 
-class DCAPIAuthenticationViewModel(
+class NewDCAPIAuthenticationViewModel(
     spImage: ImageBitmap? = null,
     navigateUp: () -> Unit,
     navigateToAuthenticationSuccessPage: (redirectUrl: String?) -> Unit,
     navigateToHomeScreen: () -> Unit,
     walletMain: WalletMain,
-    val dcApiRequest: DCAPIRequest,
+    val isoMdocRequest: IsoMdocRequest,
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
 ) : AuthenticationViewModel(
-    spName = dcApiRequest.callingPackageName,
-    spLocation = dcApiRequest.callingOrigin ?: dcApiRequest.callingPackageName!!,
+    spName = isoMdocRequest.callingPackageName,
+    spLocation = isoMdocRequest.callingOrigin,
     spImage,
     navigateUp,
     navigateToAuthenticationSuccessPage,
@@ -39,32 +39,38 @@ class DCAPIAuthenticationViewModel(
     onClickLogo,
     onClickSettings
 ) {
+    private var descriptors: List<DifInputDescriptor> = listOf()
+
+    fun initWithDeviceRequest(parsedRequest: DeviceRequest) {
+        descriptors = parsedRequest.docRequests.map {
+            val itemsRequest = it.itemsRequest.value
+            DifInputDescriptor(
+                id = itemsRequest.docType,
+                format = FormatHolder(msoMdoc = FormatContainerJwt()),
+                constraints = Constraint(fields = itemsRequest.namespaces.flatMap { requestedNamespace ->
+                    requestedNamespace.value.entries.map { requestedAttribute ->
+                        ConstraintField(
+                            path = listOf(
+                                NormalizedJsonPath(
+                                    NormalizedJsonPathSegment.NameSegment(requestedNamespace.key),
+                                    NormalizedJsonPathSegment.NameSegment(requestedAttribute.key),
+                                ).toString()
+                            ), intentToRetain = requestedAttribute.value
+                        )
+                    }
+                })
+            )
+        }
+    }
+
+    override val transactionData = null
+
     override val presentationRequest: CredentialPresentationRequest.PresentationExchangeRequest
         get() = CredentialPresentationRequest.PresentationExchangeRequest(
             presentationDefinition = PresentationDefinition(
-                inputDescriptors = dcApiRequest.requestedData.mapNotNull {
-                    DifInputDescriptor(
-                        id = MobileDrivingLicenceScheme.isoDocType,
-                        format = FormatHolder(msoMdoc = FormatContainerJwt()),
-                        constraints = Constraint(
-                            fields = it.value.map { requestedAttribute ->
-                                ConstraintField(
-                                    path = listOf(
-                                        NormalizedJsonPath(
-                                            NormalizedJsonPathSegment.NameSegment(it.key),
-                                            NormalizedJsonPathSegment.NameSegment(requestedAttribute.first),
-                                        ).toString()
-                                    ),
-                                    intentToRetain = requestedAttribute.second,
-                                )
-                            },
-                        )
-                    )
-                }
+                inputDescriptors = descriptors
             )
         )
-
-    override val transactionData = null
 
     override suspend fun findMatchingCredentials(): KmmResult<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>> =
         catching {
@@ -77,20 +83,18 @@ class DCAPIAuthenticationViewModel(
                 matchingInputDescriptorCredentials = walletMain.holderAgent.matchInputDescriptorsAgainstCredentialStore(
                     inputDescriptors = presentationRequest.presentationDefinition.inputDescriptors,
                     fallbackFormatHolder = null,
-                ).getOrThrow().map { (key, value) ->
-                    key to value.filter { (cred, _) ->
-                        CredentialAdapter.getId(cred).hashCode() == dcApiRequest.credentialId
-                    }
-                }.toMap()
+                ).getOrThrow()
             )
         }
 
-    override suspend fun finalizationMethod(credentialPresentation: CredentialPresentation) =
-        walletMain.presentationService.finalizeDCAPIPreviewPresentation(
+
+    override suspend fun finalizationMethod(credentialPresentation: CredentialPresentation): OpenId4VpWallet.AuthenticationSuccess {
+        return walletMain.presentationService.finalizeDCAPIIsoMdocPresentation(
             credentialPresentation = when (credentialPresentation) {
                 is CredentialPresentation.PresentationExchangePresentation -> credentialPresentation
                 else -> throw IllegalArgumentException()
             },
-            dcApiRequest,
+            isoMdocRequest
         )
+    }
 }
