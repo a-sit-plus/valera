@@ -39,6 +39,7 @@ import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.CredentialSelectionGroup
+import ui.models.toCredentialFreshnessSummaryModel
 import ui.viewmodels.authentication.AuthenticationSelectionPresentationExchangeViewModel
 
 @Composable
@@ -84,8 +85,8 @@ fun AuthenticationSelectionPresentationExchangeView(
                     imageDecoder = { byteArray ->
                         vm.walletMain.platformAdapter.decodeImage(byteArray)
                     },
-                    checkFreshness = {
-                        vm.walletMain.checkCredentialFreshness(it)
+                    checkCredentialFreshness = {
+                        vm.walletMain.checkCredentialFreshness(it).toCredentialFreshnessSummaryModel()
                     },
                 )
             }
