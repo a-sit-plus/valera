@@ -713,6 +713,7 @@ private fun WalletNavHost(
             ErrorView(remember {
                 ErrorViewModel(
                     resetStack = { popBackStack(HomeScreenRoute) },
+                    resetApp = { walletMain.scope.launch { walletMain.resetApp() }},
                     message = backStackEntry.toRoute<ErrorRoute>().message,
                     cause = backStackEntry.toRoute<ErrorRoute>().cause,
                     onClickLogo = onClickLogo,
