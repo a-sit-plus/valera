@@ -26,6 +26,7 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -57,6 +58,8 @@ class WalletMain(
     val snackbarService: SnackbarService,
     val settingsRepository: SettingsRepository,
 ) {
+    val appReady = MutableStateFlow<Boolean?>(null)
+
     private val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, error ->
         errorService.emit(error)

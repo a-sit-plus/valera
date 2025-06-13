@@ -1,12 +1,12 @@
 package at.asitplus.wallet.app.common
 
+import AppResetRequiredException
 import at.asitplus.io.MultiBase
 import at.asitplus.io.multibaseDecode
 import at.asitplus.io.multibaseEncode
 import at.asitplus.signum.indispensable.ECCurve
 import at.asitplus.signum.indispensable.equalsCryptographically
 import at.asitplus.signum.indispensable.pki.X509Certificate
-import at.asitplus.signum.supreme.dsl.FeaturePreference
 import at.asitplus.signum.supreme.dsl.PREFERRED
 import at.asitplus.signum.supreme.os.SigningProvider
 import at.asitplus.signum.supreme.sign.Signer
@@ -27,6 +27,8 @@ open class KeystoreService(
     private val dataStoreService: DataStoreService
 ) {
     private val sMut = Mutex()
+
+    @Throws(Throwable::class)
     open suspend fun getSigner(): KeyMaterial {
         var signer: KeyMaterial? = null
         Napier.d("getSigner")
@@ -37,13 +39,9 @@ open class KeystoreService(
         return signer!!
     }
 
+    @Throws(Throwable::class)
     private suspend fun initSigner(): KeyWithSelfSignedCert {
         getProvider().let { provider ->
-            provider.getSignerForKey(Configuration.KS_ALIAS_OLD).onSuccess {
-                provider.deleteSigningKey(Configuration.KS_ALIAS_OLD).getOrThrow() //well if we can't delete we're boned
-                //TODO michael: delete credentials and show update screen. (probably move this logic somewhere else)
-            }
-
             val forKey = provider.getSignerForKey(Configuration.KS_ALIAS).getOrElse {
                 provider.createSigningKey(alias = Configuration.KS_ALIAS) {
                     ec {
@@ -56,9 +54,9 @@ open class KeystoreService(
                     hardware {
                         backing = PREFERRED
                         protection {
-                             factors {
-                                 biometry =true
-                             }
+                            factors {
+                                biometry = true
+                            }
                             timeout = Configuration.BIOMETRIC_TIMEOUT
                         }
                     }
@@ -116,7 +114,24 @@ open class KeystoreService(
     }
 
 
+    companion object {
+        @Throws(AppResetRequiredException::class)
+        fun checkKeyMaterialValid() {
+            getProvider().let { provider ->
+                runBlocking {
+                    provider.getSignerForKey(Configuration.KS_ALIAS_OLD).onSuccess {
+                        provider.deleteSigningKey(Configuration.KS_ALIAS_OLD)
+                            .getOrThrow() //well if we can't delete we're boned
+                        throw AppResetRequiredException
+                    }
+                }
+            }
+
+        }
+    }
+
     //TMP for iOS
+    @Throws(Throwable::class)
     fun getSignerBlocking() = runBlocking { getSigner() }
 }
 

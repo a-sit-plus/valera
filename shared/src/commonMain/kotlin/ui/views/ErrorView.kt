@@ -37,7 +37,6 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_ok
 import at.asitplus.valera.resources.heading_label_error_screen
 import at.asitplus.valera.resources.info_text_error_occurred
-import at.asitplus.valera.resources.info_text_to_start_screen
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.ScreenHeading
@@ -88,7 +87,7 @@ fun ErrorView(
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     Text(
-                        text = stringResource(Res.string.info_text_to_start_screen),
+                        text = stringResource(vm.actionDescription),
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     Row(
@@ -101,9 +100,7 @@ fun ErrorView(
                             text = {
                                 Text(stringResource(Res.string.button_label_ok))
                             },
-                            onClick = {
-                                vm.resetStack()
-                            },
+                            onClick = vm.onClickButton,
                         )
                     }
                 }
@@ -143,14 +140,14 @@ fun ErrorView(
                     )
                 }
                 Spacer(modifier = Modifier.size(5.dp))
-                vm.cause?.let {
+                vm.textCause?.let {
                     Text("Cause:", fontWeight = FontWeight.Bold)
                     Column(
                         modifier = Modifier.heightIn(max = 150.dp)
                             .background(color = MaterialTheme.colorScheme.tertiaryContainer)
                     ) {
                         Text(
-                            vm.cause,
+                            it,
                             modifier = Modifier.padding(
                                 top = 5.dp,
                                 bottom = 5.dp,
