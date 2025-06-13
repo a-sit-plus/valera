@@ -13,7 +13,7 @@
     <string name="snackbar_credential_loaded_successfully">Daten wurden erfolgreich geladen</string>
     <string name="snackbar_reset_app_successfully">App erfolgreich zurückgesetzt</string>
     <string name="snackbar_clear_log_successfully">Log erfolgreich gelöscht</string>
-    <string name="snackbar_update_hint">App version ist nicht aktuell. Bitte %1$s öffnen um auf %2$s zu aktualisieren.</string>
+    <string name="snackbar_update_hint">App ist nicht aktuell. Bitte auf %1$s aktualisieren.</string>
     <string name="snackbar_update_action">Öffnen</string>
     <string name="snackbar_sign_successful">Signatur erfolgreich</string>
 
