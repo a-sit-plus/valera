@@ -23,13 +23,13 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.dif.ConstraintField
 import at.asitplus.jsonpath.core.NodeList
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.agent.validation.CredentialFreshnessSummary
-import ui.composables.CredentialStatusState
+import ui.models.CredentialFreshnessValidationStateUiModel
+import ui.models.CredentialFreshnessSummaryUiModel
 
 @Composable
 fun CredentialSelectionCard(
     credential: Map.Entry<SubjectCredentialStore.StoreEntry, Map<ConstraintField, NodeList>>,
-    checkFreshness: suspend () -> CredentialFreshnessSummary?,
+    checkCredentialFreshness: suspend () -> CredentialFreshnessSummaryUiModel,
     imageDecoder: (ByteArray) -> ImageBitmap?,
     attributeSelection: SnapshotStateMap<String, Boolean>,
     credentialSelection: MutableState<SubjectCredentialStore.StoreEntry>
@@ -37,12 +37,12 @@ fun CredentialSelectionCard(
     val selected = remember { mutableStateOf(false) }
     selected.value = credentialSelection.value == credential.key
 
-    val credentialStatusState by produceState(
-        CredentialStatusState.Loading as CredentialStatusState,
+    val credentialFreshnessValidationState by produceState(
+        CredentialFreshnessValidationStateUiModel.Loading as CredentialFreshnessValidationStateUiModel,
         credential.key,
     ) {
-        value = CredentialStatusState.Loading
-        value = CredentialStatusState.Success(checkFreshness())
+        value = CredentialFreshnessValidationStateUiModel.Loading
+        value = CredentialFreshnessValidationStateUiModel.Done(checkCredentialFreshness())
     }
 
     CredentialSelectionCardLayout(
@@ -52,10 +52,10 @@ fun CredentialSelectionCard(
         },
         modifier = Modifier,
         isSelected = selected.value,
-        credentialStatusState = credentialStatusState
+        credentialFreshnessValidationState = credentialFreshnessValidationState
     ) {
         CredentialSelectionCardHeader(
-            credentialStatusState = credentialStatusState,
+            credentialFreshnessValidationState = credentialFreshnessValidationState,
             credential = credential.key,
             modifier = Modifier.fillMaxWidth()
         )

@@ -54,6 +54,7 @@ import org.jetbrains.compose.resources.getString
 import org.koin.compose.koinInject
 import ui.composables.BottomBar
 import ui.composables.NavigationData
+import ui.models.toCredentialFreshnessSummaryModel
 import ui.navigation.routes.AddCredentialPreAuthnRoute
 import ui.navigation.routes.AddCredentialRoute
 import ui.navigation.routes.AuthenticationSuccessRoute
@@ -313,6 +314,9 @@ private fun WalletNavHost(
                         onClickLogo = onClickLogo,
                         onClickSettings = { navigate(SettingsRoute) }
                     )
+                },
+                checkCredentialFreshness = {
+                    walletMain.checkCredentialFreshness(it).toCredentialFreshnessSummaryModel()
                 },
                 bottomBar = {
                     BottomBar(
