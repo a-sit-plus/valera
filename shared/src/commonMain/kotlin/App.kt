@@ -52,9 +52,12 @@ fun App(walletDependencyProvider: WalletDependencyProvider) {
                 Napier.d("Lifecycle.Event.ON_RESUME")
             }
 
-            WalletTheme {
-                WalletNavigation()
-            }
+        }.onFailure {
+            errorService.emit(it)
+        }
+
+        WalletTheme {
+            WalletNavigation()
         }
     }
 }
