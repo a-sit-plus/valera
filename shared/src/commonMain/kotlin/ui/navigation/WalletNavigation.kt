@@ -668,7 +668,7 @@ private fun WalletNavHost(
                         walletMain.resetApp()
                         val resetMessage = getString(Res.string.snackbar_reset_app_successfully)
                         walletMain.snackbarService.showSnackbar(resetMessage)
-                        navController.popBackStack(route = HomeScreenRoute, inclusive = false)
+                        popBackStack(HomeScreenRoute)
                     }
                 },
                 onClickClearLogFile = {
