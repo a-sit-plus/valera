@@ -336,8 +336,8 @@
 
     <string name="info_text_show_data_situation">In which Situation do you want to present your data?</string>
     <string name="info_text_error_occurred">An error occurred.</string>
-    <string name="info_text_error_action_start_screen">You get redirected to the start screen.</string>
-    <string name="info_text_error_action_reset_app">You get redirected to the initialization screen.</string>
+    <string name="info_text_error_action_start_screen">You will be redirected to the start screen.</string>
+    <string name="info_text_error_action_reset_app">You will be redirected to the initialization screen.</string>
     <string name="info_text_error_cause_reset_app">Due to breaking changes the App needs a reset.</string>
     <string name="info_text_data_items_missing">missing</string>
     <string name="info_text_authentication_success">The authentication has been carried out successfully.</string>
