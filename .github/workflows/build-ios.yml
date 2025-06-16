@@ -3,6 +3,7 @@ on: workflow_dispatch
 jobs:
   build:
     runs-on: macos-15
+    timeout-minutes: 60
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -15,6 +16,16 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+      - name: Cache gradle
+        uses: actions/cache@v4
+        env:
+          cache-name: cache-gradle
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.m2/repository
+          key: iOS-${{ hashFiles('./gradle/libs.versions.toml', './gradle.properties', './gradle/wrapper/gradle-wrapper.properties') }}
       - name: Prepare files from secrets
         run: |
           echo "${{ secrets.APPLE_CERT_CONTENT }}" > iosApp/cert.b64
