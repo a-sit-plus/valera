@@ -1,4 +1,4 @@
-name: Test iOS implementation
+name: Build and test iOS
 on: [push]
 jobs:
   build:
@@ -16,7 +16,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-      - name: Cache gradle
+      - name: Cache gradle files
         uses: actions/cache@v4
         env:
           cache-name: cache-gradle
@@ -42,15 +42,15 @@ jobs:
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
           APPLE_CERT_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
           CI: true
-      - name: Upload logs
+      - name: Upload logs (Build iOS App)
         uses: actions/upload-artifact@v4
         if: success() || failure()
         with:
           name: xcode.log
           path: "/Users/runner/Library/Logs/gym/Wallet-iosApp.log"
-      - name: Run shared tests
+      - name: Test KMP on iOS
         run: ./gradlew :shared:iosSimulatorArm64Test
-      - name: Test Report
+      - name: Test Report from KMP on iOS
         uses: dorny/test-reporter@v1
         if: success() || failure()
         with:
