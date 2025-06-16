@@ -119,9 +119,6 @@ open class KeystoreService(
         fun checkKeyMaterialValid() {
             getProvider().let { provider ->
                 runBlocking {
-                    //TODO: remove this line
-                    provider.createSigningKey(Configuration.KS_ALIAS_OLD).getOrThrow()
-                    //this is the real logic
                     provider.getSignerForKey(Configuration.KS_ALIAS_OLD).onSuccess {
                         provider.deleteSigningKey(Configuration.KS_ALIAS_OLD)
                             .getOrThrow() //well if we can't delete we're boned
