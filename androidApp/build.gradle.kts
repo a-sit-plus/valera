@@ -66,6 +66,10 @@ android {
     packaging {
         resources.excludes += ("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
     }
+    // post_permissions for mulitpaz
+    lint {
+        baseline = file("lint-baseline.xml")
+    }
 }
 dependencies {
     implementation(libs.core.splashscreen)

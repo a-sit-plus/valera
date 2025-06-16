@@ -24,6 +24,7 @@ core-splashscreen = "1.0.1"
 play-services-identity-credentials = "16.0.0-alpha06"
 androidx-credentials = "1.6.0-alpha02"
 androidx-credentials-registry-provider = "1.0.0-alpha01"
+kmmresult = "1.9.2"
 
 [libraries]
 androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camera-camera2" }
