@@ -22,7 +22,7 @@ class ErrorViewModel(
     var textCause: String?
 
     init {
-        when(cause) {
+        when(message) {
             AppResetRequiredException.toString() -> {
                 onClickButton = resetApp
                 actionDescription = Res.string.info_text_error_action_reset_app
