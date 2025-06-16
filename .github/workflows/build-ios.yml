@@ -1,5 +1,5 @@
-name: Publish iOS App
-on: workflow_dispatch
+name: Build iOS
+on: [push]
 jobs:
   build:
     runs-on: macos-15
@@ -16,7 +16,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-      - name: Cache gradle
+      - name: Cache gradle files
         uses: actions/cache@v4
         env:
           cache-name: cache-gradle
@@ -30,8 +30,8 @@ jobs:
         run: |
           echo "${{ secrets.APPLE_CERT_CONTENT }}" > iosApp/cert.b64
           base64 -d -i iosApp/cert.b64 > iosApp/cert.p12
-      - name: Upload to testflight
-        run: fastlane deploy
+      - name: Build iOS App
+        run: fastlane build
         working-directory: iosApp
         env:
           FASTLANE_OPT_OUT_USAGE: true
@@ -42,7 +42,7 @@ jobs:
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
           APPLE_CERT_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
           CI: true
-      - name: Upload logs
+      - name: Upload logs (Build iOS App)
         uses: actions/upload-artifact@v4
         if: success() || failure()
         with:

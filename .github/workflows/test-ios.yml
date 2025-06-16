@@ -1,4 +1,4 @@
-name: Build and test iOS
+name: Test iOS
 on: [push]
 jobs:
   build:
@@ -26,28 +26,6 @@ jobs:
             ~/.gradle/wrapper
             ~/.m2/repository
           key: iOS-${{ hashFiles('./gradle/libs.versions.toml', './gradle.properties', './gradle/wrapper/gradle-wrapper.properties') }}
-      - name: Prepare files from secrets
-        run: |
-          echo "${{ secrets.APPLE_CERT_CONTENT }}" > iosApp/cert.b64
-          base64 -d -i iosApp/cert.b64 > iosApp/cert.p12
-      - name: Build iOS App
-        run: fastlane build
-        working-directory: iosApp
-        env:
-          FASTLANE_OPT_OUT_USAGE: true
-          FASTLANE_XCODE_LIST_TIMEOUT: 120
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
-          APPLE_API_KEY_CONTENT: ${{ secrets.APPLE_API_KEY_CONTENT }}
-          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
-          APPLE_CERT_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
-          CI: true
-      - name: Upload logs (Build iOS App)
-        uses: actions/upload-artifact@v4
-        if: success() || failure()
-        with:
-          name: xcode.log
-          path: "/Users/runner/Library/Logs/gym/Wallet-iosApp.log"
       - name: Test KMP on iOS
         run: ./gradlew :shared:iosSimulatorArm64Test
       - name: Test Report from KMP on iOS
