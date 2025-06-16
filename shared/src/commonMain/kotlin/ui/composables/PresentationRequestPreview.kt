@@ -99,12 +99,10 @@ fun RequestedCredentialPreview(
     val schemeName = scheme.uiLabel()
     val format = representation.name
     val list = attributes.mapNotNull { attribute ->
-        val resource = scheme.getLocalization(attribute.key)
-            ?: attribute.key.toString()
         val text = catchingUnwrapped {
-            scheme.getLocalization(attribute.key)?.let {
-                stringResource(it)
-            } ?: attribute.key.toString()
+            scheme.getLocalization(attribute.key)
+                ?.let { stringResource(it) }
+                ?: attribute.key.toString()
         }.getOrElse { attribute.key.toString() }
         text to attribute.value
     }.toMap()
