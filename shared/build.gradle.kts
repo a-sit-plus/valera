@@ -57,6 +57,7 @@ kotlin {
             api(libs.credential.taxid)
             api(libs.credential.ehic)
             api(napier())
+            api(kmmresult())
             implementation(serialization("json"))
             implementation(ktor("client-core"))
             implementation(ktor("client-cio"))
