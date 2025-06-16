@@ -119,16 +119,26 @@ class SwiftPlatformAdapter: PlatformAdapter {
             }
         }
     }
-
-    //TODO: implement
-    func registerWithDigitalCredentialsAPI(entries: CredentialsContainer, scope: CoroutineScope) {
+    
+    func registerWithDigitalCredentialsAPI(entries: CredentialList, scope: any Kotlinx_coroutines_coreCoroutineScope) {
+        // TODO: Implement
     }
-
-    func getCurrentDCAPIData() -> KmmResult<DCAPIRequest> {
-        return KmmResult.failure(Throwable("Using Swift platform adapter"))
+    
+    func getCurrentDCAPIData() -> KmmResult<Openid_data_classesDCAPIRequest> {
+        return KmmResult(failure: KotlinThrowable(message: "Using Swift platform adapter"))
     }
-
-    func prepareDCAPICredentialResponse(responseJson: KotlinByteArray, dcApiRequest: DCAPIRequest) {
+    
+    func prepareDCAPIIsoMdocCredentialResponse(responseJson: KotlinByteArray, serialize: KotlinByteArray, encryptionParameters: Openid_data_classesEncryptionParameters) {
+        // TODO: Implement
     }
+    
+    func prepareDCAPIOid4vpCredentialResponse(responseJson: String, success: Bool) {
+        // TODO: Implement
+    }
+    
+    func prepareDCAPIPreviewCredentialResponse(responseJson: KotlinByteArray, dcApiRequestPreview: Openid_data_classesPreviewDCAPIRequest) {
+        // TODO: Implement
+    }
+    
 }
 
