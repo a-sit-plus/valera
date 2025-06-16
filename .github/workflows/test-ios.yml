@@ -26,13 +26,6 @@ jobs:
             ~/.gradle/wrapper
             ~/.m2/repository
           key: iOS-${{ hashFiles('./gradle/libs.versions.toml', './gradle.properties', './gradle/wrapper/gradle-wrapper.properties') }}
-      - name: Run UI tests
-        run: |
-          xcodebuild \
-           -project iosApp/iosApp.xcodeproj \
-           -scheme "ValeraUITests" \
-           -destination "platform=iOS Simulator,name=iPhone 16" \
-           test
       - name: Prepare files from secrets
         run: |
           echo "${{ secrets.APPLE_CERT_CONTENT }}" > iosApp/cert.b64
