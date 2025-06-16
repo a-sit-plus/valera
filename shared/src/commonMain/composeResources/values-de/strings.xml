@@ -338,7 +338,7 @@
     <string name="info_text_error_occurred">Es ist ein Fehler aufgetreten.</string>
     <string name="info_text_error_action_start_screen">Sie werden zur Startseite weitergeleitet.</string>
     <string name="info_text_error_action_reset_app">Sie werden zur Erstkonfiguration weitergeleitet.</string>
-    <string name="info_text_error_cause_reset_app">Aufgrund signifikanter Änderungen, muss die App zurückgesetzt werden.</string>
+    <string name="info_text_error_cause_reset_app">Aufgrund technischer Verbesserungen muss die App zurückgesetzt werden.</string>
     <string name="info_text_data_items_missing">fehlend</string>
     <string name="info_text_authentication_success">Die Anmeldung wurde erfolgreich durchgeführt.</string>
     <string name="info_text_no_credentials_available">Es sind noch keine Daten verfügbar.</string>
