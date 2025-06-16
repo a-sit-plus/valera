@@ -6,8 +6,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 
-class ErrorService {
-    val error = MutableSharedFlow<ErrorFlowData>()
+class ErrorService() {
+    val error = MutableSharedFlow<ErrorFlowData>(replay = 1)
     private val scope = CoroutineScope(Dispatchers.Default)
 
     fun emit(e: Throwable) = scope.launch {
