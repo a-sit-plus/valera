@@ -107,6 +107,27 @@ class InstrumentedTestsSuite : FunSpec({
     }
 
     context("Starting App Tests") {
+        test("Using collectAsState properly updates state to assert") {
+            runComposeUiTest {
+                val dummyDataStoreService = DummyDataStoreService()
+                val preferenceKey = "test"
+                val testValue = "loaded"
+
+                setContent {
+                    val data by dummyDataStoreService.getPreference(preferenceKey).collectAsState("null")
+                    Text(data ?: "collecting state ...")
+                }
+
+                runBlocking {
+                    dummyDataStoreService.setPreference(key = preferenceKey, value = testValue)
+                }
+
+                waitUntil {
+                    onNodeWithText(testValue).isDisplayed()
+                }
+            }
+        }
+
         test("App should start correctly") {
             runComposeUiTest {
                 setContent {

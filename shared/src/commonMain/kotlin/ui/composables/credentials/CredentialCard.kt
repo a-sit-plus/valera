@@ -6,23 +6,21 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
-import at.asitplus.wallet.app.common.isInvalid
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.agent.validation.CredentialFreshnessSummary
-import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatus
+import ui.models.CredentialFreshnessSummaryUiModel
 
 @Composable
 fun CredentialCard(
     credential: SubjectCredentialStore.StoreEntry,
     isTokenStatusEvaluated: Boolean,
-    credentialFreshness: CredentialFreshnessSummary?,
+    credentialFreshnessSummaryModel: CredentialFreshnessSummaryUiModel?,
     imageDecoder: (ByteArray) -> ImageBitmap?,
     onDelete: () -> Unit,
     onOpenDetails: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     CredentialCardLayout(
-        colors = if (credentialFreshness?.isInvalid() == true) {
+        colors = if (credentialFreshnessSummaryModel?.isNotBad == false) {
             CardDefaults.elevatedCardColors(
                 containerColor = MaterialTheme.colorScheme.errorContainer,
                 contentColor = MaterialTheme.colorScheme.onErrorContainer,
@@ -42,8 +40,7 @@ fun CredentialCard(
             decodeToBitmap = imageDecoder,
         )
         CredentialCardFooter(
-            isTokenStatusEvaluated = isTokenStatusEvaluated,
-            credentialFreshness = credentialFreshness,
+            credentialFreshnessSummaryModel = credentialFreshnessSummaryModel,
             onOpenDetails,
             modifier = Modifier.fillMaxWidth(),
         )
