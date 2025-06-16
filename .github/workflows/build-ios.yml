@@ -1,4 +1,4 @@
-name: Build iOS App
+name: Publish iOS App
 on: workflow_dispatch
 jobs:
   build:
