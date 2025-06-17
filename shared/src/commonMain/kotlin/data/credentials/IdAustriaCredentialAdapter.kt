@@ -3,7 +3,6 @@ package data.credentials
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
-import at.asitplus.signum.indispensable.io.Base64UrlStrict
 import at.asitplus.wallet.idaustria.IdAustriaCredential
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
@@ -13,7 +12,6 @@ import data.Attribute
 import io.github.aakira.napier.Napier
 import io.ktor.util.decodeBase64Bytes
 import io.ktor.util.decodeBase64String
-import io.matthewnelson.encoding.core.Decoder.Companion.decodeToByteArray
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
@@ -185,7 +183,7 @@ private class IdAustriaCredentialSdJwtAdapter(
         get() = attributes[IdAustriaScheme.Attributes.DATE_OF_BIRTH]?.contentOrNull?.toLocalDateOrNull()
 
     override val portraitRaw: ByteArray?
-        get() = attributes[IdAustriaScheme.Attributes.PORTRAIT]?.contentOrNull?.toBase64UrlDecodedByteArray()
+        get() = attributes[IdAustriaScheme.Attributes.PORTRAIT]?.contentOrNull?.decodeFromPortraitString()
 
     override val ageAtLeast14: Boolean?
         get() = attributes[IdAustriaScheme.Attributes.AGE_OVER_14]?.booleanOrNull
