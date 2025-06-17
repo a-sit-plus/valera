@@ -9,6 +9,7 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.jws.SdJwtSigned
 import data.Attribute
+import io.matthewnelson.encoding.base16.Base16
 import io.matthewnelson.encoding.core.Decoder.Companion.decodeToByteArray
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
@@ -33,9 +34,12 @@ abstract class CredentialAdapter {
         (this as? LocalDateTime?)
             ?: toString().let { runCatching { LocalDateTime.parse(it) }.getOrNull() }
 
-    protected fun String.toBase64UrlDecodedByteArray() = catchingUnwrapped {
+    protected fun String.decodeFromPortraitString() = catchingUnwrapped {
+        decodeToByteArray(Base16) // e.g. from demo.wallet-gw.namirial.com
+    }.getOrNull() ?: catchingUnwrapped {
         decodeToByteArray(Base64UrlStrict)
     }.getOrNull() ?: catchingUnwrapped {
+        // e.g. from demo-issuer.wwwallet.org/
         removePrefix("data:image/jpeg;base64,").decodeToByteArray(Base64Strict)
     }.getOrNull()
 

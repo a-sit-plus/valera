@@ -5,7 +5,6 @@ package data.credentials
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
-import at.asitplus.signum.indispensable.io.Base64UrlStrict
 import at.asitplus.wallet.eupid.EuPidCredential
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.eupid.EuPidScheme.Attributes
@@ -20,7 +19,6 @@ import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import data.Attribute
 import io.ktor.util.decodeBase64Bytes
-import io.matthewnelson.encoding.core.Decoder.Companion.decodeToByteArray
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.json.JsonPrimitive
@@ -446,8 +444,8 @@ private class EuPidCredentialSdJwtAdapter(
             ?: attributes[Attributes.BIRTH_DATE]?.contentOrNull?.toLocalDateOrNull()
 
     override val portraitRaw: ByteArray?
-        get() = attributes[SdJwtAttributes.PORTRAIT]?.contentOrNull?.toBase64UrlDecodedByteArray()
-            ?: attributes[Attributes.PORTRAIT]?.contentOrNull?.toBase64UrlDecodedByteArray()
+        get() = attributes[SdJwtAttributes.PORTRAIT]?.contentOrNull?.decodeFromPortraitString()
+            ?: attributes[Attributes.PORTRAIT]?.contentOrNull?.decodeFromPortraitString()
 
     override val ageAtLeast12: Boolean?
         get() = attributes[SdJwtAttributes.AGE_EQUAL_OR_OVER_12]?.booleanOrNull
