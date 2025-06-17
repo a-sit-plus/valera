@@ -1,5 +1,5 @@
-name: Build Android App
-on: [push]
+name: Publish Android App
+on: workflow_dispatch
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -27,3 +27,15 @@ jobs:
         env:
           ANDROID_CERT_PASSWORD: ${{ secrets.ANDROID_CERT_PASSWORD }}
           CI: true
+      - name: Upload apk debug
+        uses: actions/upload-artifact@v4
+        with:
+          name: Wallet App Android (debug)
+          path: |
+            androidApp/build/outputs/apk/debug/*.apk
+      - name: Upload apk release
+        uses: actions/upload-artifact@v4
+        with:
+          name: Wallet App Android (release)
+          path: |
+            androidApp/build/outputs/apk/release/*.apk

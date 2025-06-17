@@ -1,4 +1,4 @@
-name: Test shared implementation
+name: Build and test Android
 on: [push]
 jobs:
   build:
@@ -13,7 +13,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-      - name: Cache gradle
+      - name: Cache gradle files
         uses: actions/cache@v4
         env:
           cache-name: cache-gradle
@@ -28,7 +28,7 @@ jobs:
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-      - name: Run Instrumented Tests
+      - name: Test KMP on Android
         uses: ReactiveCircus/android-emulator-runner@v2
         env:
           ANDROID_CERT_PASSWORD: ${{ secrets.ANDROID_CERT_PASSWORD }}
@@ -38,10 +38,10 @@ jobs:
           target: google_apis
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           script: ./gradlew connectedAndroidTest
-      - name: Test Report
+      - name: Test Report from KMP on Android
         uses: dorny/test-reporter@v1
         if: success() || failure()
         with:
-          name: Shared tests
+          name: KMP on Android
           path: shared/build/outputs/androidTest-results/connected/**/TEST*.xml
           reporter: java-junit
