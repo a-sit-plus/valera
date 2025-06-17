@@ -128,6 +128,16 @@ open class KeystoreService(
             }
 
         }
+
+        //TODO: just for migration testing
+        fun tmpGenerateOldKey() {
+            getProvider().let { provider ->
+                runBlocking {
+                    provider.createSigningKey(alias = Configuration.KS_ALIAS_OLD)
+                }
+            }
+
+        }
     }
 
     //TMP for iOS

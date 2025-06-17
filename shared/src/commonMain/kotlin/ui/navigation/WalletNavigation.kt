@@ -280,7 +280,7 @@ private fun WalletNavHost(
             .fillMaxSize()
     ) {
         composable<OnboardingStartRoute> {
-            catchingUnwrapped { KeystoreService.checkKeyMaterialValid() }
+            catchingUnwrapped { KeystoreService.checkKeyMaterialValid() }.onFailure { Napier.d(it) { "Deleted old Key" } }
             OnboardingStartView(
                 onClickStart = { navigate(OnboardingInformationRoute) },
                 onClickLogo = onClickLogo,

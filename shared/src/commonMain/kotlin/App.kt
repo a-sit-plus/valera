@@ -38,8 +38,8 @@ fun App(walletDependencyProvider: WalletDependencyProvider) {
     KoinApplication({
         modules(appModule(walletDependencyProvider))
     }) {
-        val walletMain: WalletMain = koinInject()
         catchingUnwrapped {
+            val walletMain: WalletMain = koinInject()
 
             LifecycleEventEffect(Lifecycle.Event.ON_CREATE) {
                 Napier.d("Lifecycle.Event.ON_CREATE")
@@ -51,7 +51,8 @@ fun App(walletDependencyProvider: WalletDependencyProvider) {
             }
 
         }.onFailure {
-            walletMain.errorService.emit(it)
+            val errorService: ErrorService = koinInject()
+            errorService.emit(it)
         }
 
         WalletTheme {
