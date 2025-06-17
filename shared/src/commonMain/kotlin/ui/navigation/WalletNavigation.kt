@@ -280,6 +280,7 @@ private fun WalletNavHost(
             .fillMaxSize()
     ) {
         composable<OnboardingStartRoute> {
+            catchingUnwrapped { KeystoreService.checkKeyMaterialValid() }
             OnboardingStartView(
                 onClickStart = { navigate(OnboardingInformationRoute) },
                 onClickLogo = onClickLogo,
@@ -334,6 +335,11 @@ private fun WalletNavHost(
             LaunchedEffect(null) {
                 walletMain.scope.launch {
                     walletMain.appReady.emit(true)
+                }
+                walletMain.scope.launch {
+                    catchingUnwrapped { KeystoreService.checkKeyMaterialValid() }.onFailure {
+                        walletMain.errorService.emit(it)
+                    }
                 }
             }
         }
