@@ -235,7 +235,11 @@ fun WalletNavigation(
             }
         }
         this.launch {
-            errorService.error.collect { (throwable) ->
+            errorService.error.combineTransform(intentService.readyForIntents) { error, ready ->
+                if (ready == true) {
+                    emit(error)
+                }
+            }.collect { (throwable) ->
                 navigate(
                     ErrorRoute(
                         throwable.enrichMessage(),
