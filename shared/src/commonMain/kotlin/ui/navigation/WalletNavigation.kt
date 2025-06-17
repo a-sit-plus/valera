@@ -151,6 +151,7 @@ fun WalletNavigation(
     intentService: IntentService = koinInject(),
     snackbarService: SnackbarService = koinInject(),
     errorService: ErrorService = koinInject(),
+    walletMain: WalletMain = koinInject(),
     urlOpener: UrlOpener = koinInject(),
 ) {
     val navController: NavHostController = rememberNavController()
@@ -211,7 +212,7 @@ fun WalletNavigation(
 
     LaunchedEffect(null) {
         this.launch {
-            Globals.appLink.combineTransform(intentService.readyForIntents) { link, ready ->
+            Globals.appLink.combineTransform(walletMain.appReady) { link, ready ->
                 if (ready == true && link != null) {
                     emit(link)
                 }
@@ -235,7 +236,7 @@ fun WalletNavigation(
             }
         }
         this.launch {
-            errorService.error.combineTransform(intentService.readyForIntents) { error, ready ->
+            errorService.error.combineTransform(walletMain.appReady) { error, ready ->
                 if (ready == true) {
                     emit(error)
                 }
@@ -332,7 +333,7 @@ private fun WalletNavHost(
             )
             LaunchedEffect(null) {
                 walletMain.scope.launch {
-                    intentService.readyForIntents.emit(true)
+                    walletMain.appReady.emit(true)
                 }
             }
         }
