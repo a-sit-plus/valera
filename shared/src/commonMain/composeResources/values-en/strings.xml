@@ -333,6 +333,8 @@
     <string name="error_bluetooth_unavailable">Bluetooth is not available</string>
     <string name="error_bluetooth_and_nfc_unavailable">Neither Bluetooth nor NFC is available</string>
     <string name="error_no_requests">No requests found</string>
+    <string name="error_clearing_log_failed">Deleting log failed.</string>
+    <string name="error_resetting_app_failed">Resetting the app failed.</string>
 
     <string name="info_text_show_data_situation">In which Situation do you want to present your data?</string>
     <string name="info_text_error_occurred">An error occurred.</string>

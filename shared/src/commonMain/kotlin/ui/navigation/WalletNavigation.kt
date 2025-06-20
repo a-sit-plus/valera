@@ -647,39 +647,12 @@ private fun WalletNavHost(
                 onClickShareLogFile = {
                     navigate(LogRoute)
                 },
-                onClickResetApp = {
-                    walletMain.scope.launch {
-                        walletMain.resetApp()
-                        val resetMessage = getString(Res.string.snackbar_reset_app_successfully)
-                        walletMain.snackbarService.showSnackbar(resetMessage)
-                        popBackStack(HomeScreenRoute)
-                    }
-                },
-                onClickClearLogFile = {
-                    walletMain.scope.launch {
-                        walletMain.clearLog()
-                        val clearMessage = getString(Res.string.snackbar_clear_log_successfully)
-                        walletMain.snackbarService.showSnackbar(clearMessage)
-                    }
-                },
                 onClickLogo = onClickLogo,
                 onClickSettings = { popBackStack(HomeScreenRoute) },
                 onClickBack = navigateBack,
-                onClickFAQs = {
-                    walletMain.scope.launch {
-                        walletMain.snackbarService.showSnackbar(getString(Res.string.error_feature_not_yet_available))
-                    }
-                },
-                onClickDataProtectionPolicy = {
-                    walletMain.scope.launch {
-                        walletMain.snackbarService.showSnackbar(getString(Res.string.error_feature_not_yet_available))
-                    }
-                },
-                onClickLicenses = {
-                    walletMain.scope.launch {
-                        walletMain.snackbarService.showSnackbar(getString(Res.string.error_feature_not_yet_available))
-                    }
-                },
+                onClickFAQs = null,
+                onClickDataProtectionPolicy = null,
+                onClickLicenses = null,
             )
         }
 
