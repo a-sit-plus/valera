@@ -4,6 +4,8 @@ import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.WalletDependencyProvider
 import at.asitplus.wallet.app.common.WalletKeyMaterial
+import at.asitplus.wallet.app.common.decodeImage
+import at.asitplus.wallet.app.common.domain.platform.ImageDecoder
 import at.asitplus.wallet.app.common.domain.platform.UrlOpener
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
@@ -38,6 +40,12 @@ fun platformModule(appDependencyProvider: WalletDependencyProvider) = module {
     factory<UrlOpener> {
         UrlOpener {
             appDependencyProvider.platformAdapter.openUrl(it)
+        }
+    }
+
+    factory<ImageDecoder> {
+        ImageDecoder {
+            appDependencyProvider.platformAdapter.decodeImage(it)
         }
     }
 }
