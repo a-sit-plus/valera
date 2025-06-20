@@ -39,7 +39,6 @@ import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
-import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.domain.platform.UrlOpener
 import at.asitplus.wallet.lib.data.dif.ConstraintFieldsEvaluationException
 import at.asitplus.wallet.lib.data.vckJsonSerializer
@@ -55,7 +54,6 @@ import org.jetbrains.compose.resources.getString
 import org.koin.compose.koinInject
 import ui.composables.BottomBar
 import ui.composables.NavigationData
-import ui.models.toCredentialFreshnessSummaryModel
 import ui.navigation.routes.AddCredentialPreAuthnRoute
 import ui.navigation.routes.AddCredentialRoute
 import ui.navigation.routes.AuthenticationSuccessRoute
@@ -89,7 +87,6 @@ import ui.navigation.routes.SigningServiceIntentRoute
 import ui.navigation.routes.VerifyDataRoute
 import ui.viewmodels.AddCredentialViewModel
 import ui.viewmodels.CredentialDetailsViewModel
-import ui.viewmodels.CredentialsViewModel
 import ui.viewmodels.ErrorViewModel
 import ui.viewmodels.LoadCredentialViewModel
 import ui.viewmodels.LogViewModel
@@ -297,34 +294,17 @@ private fun WalletNavHost(
         }
         composable<HomeScreenRoute> {
             CredentialsView(
-                vm = remember {
-                    CredentialsViewModel(
-                        walletMain,
-                        navigateToAddCredentialsPage = {
-                            navigate(AddCredentialRoute)
-                        },
-                        navigateToQrAddCredentialsPage = {
-                            navigate(QrCodeScannerRoute(QrCodeScannerMode.PROVISIONING))
-                        },
-                        navigateToCredentialDetailsPage = {
-                            navigate(CredentialDetailsRoute(it))
-                        },
-                        imageDecoder = {
-                            try {
-                                walletMain.platformAdapter.decodeImage(it)
-                            } catch (throwable: Throwable) {
-                                // TODO: should this be emitted to the error service?
-                                Napier.w("Failed Operation: decodeImage")
-                                null
-                            }
-                        },
-                        onClickLogo = onClickLogo,
-                        onClickSettings = { navigate(SettingsRoute) }
-                    )
+                navigateToAddCredentialsPage = {
+                    navigate(AddCredentialRoute)
                 },
-                checkCredentialFreshness = {
-                    walletMain.checkCredentialFreshness(it).toCredentialFreshnessSummaryModel()
+                navigateToQrAddCredentialsPage = {
+                    navigate(QrCodeScannerRoute(QrCodeScannerMode.PROVISIONING))
                 },
+                navigateToCredentialDetailsPage = {
+                    navigate(CredentialDetailsRoute(it))
+                },
+                onClickLogo = onClickLogo,
+                onClickSettings = { navigate(SettingsRoute) },
                 bottomBar = {
                     BottomBar(
                         navigate = { route -> navigate(route) },

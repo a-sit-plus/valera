@@ -20,52 +20,36 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.content_description_navigate_to_settings
 import at.asitplus.valera.resources.heading_label_my_data_screen
-import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.stringResource
-import ui.models.CredentialFreshnessSummaryUiModel
+import org.koin.compose.viewmodel.koinViewModel
 import ui.composables.CustomFloatingActionMenu
 import ui.composables.FloatingActionButtonHeightSpacer
 import ui.composables.Logo
 import ui.composables.ScreenHeading
 import ui.composables.credentials.CredentialCard
+import ui.models.CredentialFreshnessSummaryUiModel
+import ui.viewmodels.CredentialStateModel
 import ui.viewmodels.CredentialsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CredentialsView(
-    vm: CredentialsViewModel,
-    checkCredentialFreshness: suspend (SubjectCredentialStore.StoreEntry) -> CredentialFreshnessSummaryUiModel,
+    navigateToAddCredentialsPage: () -> Unit,
+    navigateToQrAddCredentialsPage: () -> Unit,
+    navigateToCredentialDetailsPage: (Long) -> Unit,
+    onClickLogo: () -> Unit,
+    onClickSettings: () -> Unit,
+    vm: CredentialsViewModel = koinViewModel(),
     bottomBar: @Composable () -> Unit
 ) {
-    val credentialsStatus by vm.storeContainer.map {
-        CredentialState.Success(it.credentials)
-    }.collectAsState(
-        CredentialState.Loading
-    )
-    val credentialTimelinessesState by produceState(
-        CredentialStatusesState.Loading() as CredentialStatusesState,
-        credentialsStatus
-    ) {
-        when (val delegate = credentialsStatus) {
-            is CredentialState.Loading -> value = CredentialStatusesState.Loading()
-            is CredentialState.Success -> {
-                val credentialsWithStatus = mutableMapOf<Long, CredentialFreshnessSummaryUiModel>()
-                delegate.credentials.forEach { (id, credential) ->
-                    credentialsWithStatus[id] = checkCredentialFreshness(credential)
-                    value = CredentialStatusesState.Loading(credentialsWithStatus)
-                }
-                value = CredentialStatusesState.Success(credentialsWithStatus)
-            }
-        }
-    }
+    val credentialsStatus by vm.storeContainer.collectAsState()
+    val credentialTimelinessesStates by vm.credentialTimelinessesStates.collectAsState()
 
     Scaffold(
         topBar = {
@@ -79,8 +63,8 @@ fun CredentialsView(
                     }
                 },
                 actions = {
-                    Logo(onClick = vm.onClickLogo)
-                    Column(modifier = Modifier.clickable(onClick = vm.onClickSettings)) {
+                    Logo(onClick = onClickLogo)
+                    Column(modifier = Modifier.clickable(onClick = onClickSettings)) {
                         Icon(
                             imageVector = Icons.Outlined.Settings,
                             contentDescription = stringResource(Res.string.content_description_navigate_to_settings),
@@ -92,11 +76,11 @@ fun CredentialsView(
         },
         floatingActionButton = {
             when (val it = credentialsStatus) {
-                is CredentialState.Success -> {
+                is CredentialStateModel.Success -> {
                     if (it.credentials.isNotEmpty()) {
                         CustomFloatingActionMenu(
-                            addCredential = vm.navigateToAddCredentialsPage,
-                            addCredentialQr = vm.navigateToQrAddCredentialsPage
+                            addCredential = navigateToAddCredentialsPage,
+                            addCredentialQr = navigateToQrAddCredentialsPage
                         )
                     }
                 }
@@ -110,22 +94,22 @@ fun CredentialsView(
             modifier = Modifier.padding(scaffoldPadding).fillMaxSize(),
         ) {
             when (val credentialsStatusDelegate = credentialsStatus) {
-                CredentialState.Loading -> Box(modifier = Modifier.fillMaxSize()) {
+                CredentialStateModel.Loading -> Box(modifier = Modifier.fillMaxSize()) {
                     CircularProgressIndicator(
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
 
-                is CredentialState.Success -> {
-                    val credentials = credentialsStatusDelegate.credentials.sortedBy { (id, credential) ->
-                        if(credentialTimelinessesState.credentialFreshnessSummaries[id]?.isNotBad == true) {
+                is CredentialStateModel.Success -> {
+                    val credentials = credentialsStatusDelegate.credentials.sortedBy { (id, _) ->
+                        if (credentialTimelinessesStates[id]?.isNotBad == true) {
                             0
                         } else {
                             1
                         }
                     }
                     if (credentials.isEmpty()) {
-                        NoDataLoadedView(vm.navigateToAddCredentialsPage, vm.navigateToQrAddCredentialsPage)
+                        NoDataLoadedView(navigateToAddCredentialsPage, navigateToQrAddCredentialsPage)
                     } else {
                         LazyColumn {
                             items(
@@ -138,10 +122,8 @@ fun CredentialsView(
                                 val storeEntryIdentifier = storeEntry.first
                                 val credential = storeEntry.second
 
-                                val isTokenStatusEvaluated =
-                                    storeEntryIdentifier in credentialTimelinessesState.credentialFreshnessSummaries
-                                val credentialFreshnessSummary =
-                                    credentialTimelinessesState.credentialFreshnessSummaries[storeEntryIdentifier]
+                                val isTokenStatusEvaluated = storeEntryIdentifier in credentialTimelinessesStates
+                                val credentialFreshnessSummary = credentialTimelinessesStates[storeEntryIdentifier]
 
                                 Column {
                                     CredentialCard(
@@ -153,9 +135,9 @@ fun CredentialsView(
                                             vm.removeStoreEntryById(storeEntryIdentifier)
                                         },
                                         onOpenDetails = {
-                                            vm.navigateToCredentialDetailsPage(storeEntryIdentifier)
+                                            navigateToCredentialDetailsPage(storeEntryIdentifier)
                                         },
-                                        imageDecoder = vm.imageDecoder,
+                                        imageDecoder = vm::decodeImage,
                                         modifier = Modifier.padding(
                                             start = 16.dp,
                                             end = 16.dp,
@@ -175,13 +157,6 @@ fun CredentialsView(
             }
         }
     }
-}
-
-private sealed interface CredentialState {
-    data object Loading : CredentialState
-    data class Success(
-        val credentials: List<Pair<Long, SubjectCredentialStore.StoreEntry>>,
-    ) : CredentialState
 }
 
 private sealed interface CredentialStatusesState {
