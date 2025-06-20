@@ -141,16 +141,18 @@ fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, C
         claims = delegate.claims?.let {
             DCQLClaimsQueryList(
                 it.map { claimsQueryDelegate ->
-                    when(claimsQueryDelegate) {
+                    when (claimsQueryDelegate) {
                         is DCQLJsonClaimsQuery -> DCQLJsonClaimsQuery(
                             id = claimsQueryDelegate.id,
                             path = claimsQueryDelegate.path,
                         )
+
                         is DCQLIsoMdocClaimsQuery -> DCQLIsoMdocClaimsQuery(
                             id = claimsQueryDelegate.id,
                             claimName = claimsQueryDelegate.claimName,
                             namespace = claimsQueryDelegate.namespace,
                         )
+
                         else -> throw IllegalStateException("Claims query type not supported")
                     }
                 }.toNonEmptyList()
@@ -329,7 +331,7 @@ fun ConstantIndex.CredentialScheme.toJsonElement(
         when (representation) {
             PLAIN_JWT -> vckJsonSerializer.encodeToJsonElement(attributes + ("type" to this.vcType))
             SD_JWT -> buildJsonObject {
-                addRepresentationSpecificDummyMetadata(representation)
+                addSdJwtDummyMetadata()
                 attributes.forEach {
                     put(it.key, JsonPrimitive(it.value))
                 }
@@ -344,19 +346,12 @@ fun ConstantIndex.CredentialScheme.toJsonElement(
     }
 }
 
-private fun JsonObjectBuilder.addRepresentationSpecificDummyMetadata(representation: CredentialRepresentation) {
-    when (representation) {
-        PLAIN_JWT -> TODO()
-        SD_JWT -> {
-            put("iss", "")
-            put("sub", "")
-            put("nbf", 0)
-            put("iat", 0)
-            put("exp", 0)
-            put("cnf", buildJsonObject {  })
-            put("status", buildJsonObject {  })
-        }
-
-        ISO_MDOC -> TODO()
-    }
+private fun JsonObjectBuilder.addSdJwtDummyMetadata() {
+    put("iss", "")
+    put("sub", "")
+    put("nbf", 0)
+    put("iat", 0)
+    put("exp", 0)
+    put("cnf", buildJsonObject { })
+    put("status", buildJsonObject { })
 }
