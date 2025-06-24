@@ -50,7 +50,9 @@ fun PresentationExchangeRequestPreview(
             RequestedCredentialPreview(
                 scheme = scheme,
                 representation = representation,
-                attributes = attributes
+                attributes = attributes.mapKeys {
+                    it.key as? NormalizedJsonPath
+                }
             )
         }.onFailure {
             onError(it)
