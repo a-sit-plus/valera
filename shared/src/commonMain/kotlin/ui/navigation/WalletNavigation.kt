@@ -531,18 +531,11 @@ private fun WalletNavHost(
         }
 
         composable<AuthenticationSuccessRoute> { backStackEntry ->
-            val route = backStackEntry.toRoute<AuthenticationSuccessRoute>()
-            AuthenticationSuccessView(vm = remember {
-                AuthenticationSuccessViewModel(
-                    navigateUp = navigateBack,
-                    onClickLogo = onClickLogo,
-                    isCrossDeviceFlow = route.isCrossDeviceFlow,
-                    openRedirectUrl = route.redirectUrl?.let {
-                        { walletMain.platformAdapter.openUrl(it) }
-                    },
-                    onClickSettings = { navigate(SettingsRoute) }
-                )
-            })
+            AuthenticationSuccessView(
+                navigateUp = navigateBack,
+                onClickLogo = onClickLogo,
+                onClickSettings = { navigate(SettingsRoute) },
+            )
         }
 
         composable<AddCredentialRoute> { backStackEntry ->
@@ -705,12 +698,14 @@ private fun WalletNavHost(
             ErrorView(remember {
                 ErrorViewModel(
                     resetStack = { popBackStack(HomeScreenRoute) },
-                    resetApp = { walletMain.scope.launch {
-                        walletMain.resetApp()
-                        val resetMessage = getString(Res.string.snackbar_reset_app_successfully)
-                        walletMain.snackbarService.showSnackbar(resetMessage)
-                        popBackStack(HomeScreenRoute)
-                    }},
+                    resetApp = {
+                        walletMain.scope.launch {
+                            walletMain.resetApp()
+                            val resetMessage = getString(Res.string.snackbar_reset_app_successfully)
+                            walletMain.snackbarService.showSnackbar(resetMessage)
+                            popBackStack(HomeScreenRoute)
+                        }
+                    },
                     message = backStackEntry.toRoute<ErrorRoute>().message,
                     cause = backStackEntry.toRoute<ErrorRoute>().cause,
                     onClickLogo = onClickLogo,
