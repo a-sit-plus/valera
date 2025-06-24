@@ -16,7 +16,7 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import data.storage.DataStoreService
-import data.storage.PersistentSubjectCredentialStore
+import data.storage.WalletSubjectCredentialStore
 import getImageDecoder
 import io.github.aakira.napier.Napier
 import io.ktor.client.call.body
@@ -44,7 +44,7 @@ class WalletMain(
     val keyMaterial: WalletKeyMaterial,
     val dataStoreService: DataStoreService,
     val platformAdapter: PlatformAdapter,
-    var subjectCredentialStore: PersistentSubjectCredentialStore,
+    var subjectCredentialStore: WalletSubjectCredentialStore,
     val buildContext: BuildContext,
     val promptModel: PromptModel,
     val credentialValidator: Validator,
