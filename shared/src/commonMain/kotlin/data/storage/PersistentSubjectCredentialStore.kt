@@ -18,8 +18,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
 import kotlin.random.Random
 
-class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) :
-    SubjectCredentialStore {
+class PersistentSubjectCredentialStore(
+    private val dataStore: DataStoreService
+) : SubjectCredentialStore, WalletSubjectCredentialStore {
     private val container = this.observeStoreContainer()
 
     private suspend fun addStoreEntry(storeEntry: SubjectCredentialStore.StoreEntry) {
@@ -117,11 +118,11 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         dataStore.setPreference(key = Configuration.DATASTORE_KEY_VCS, value = json)
     }
 
-    suspend fun reset() {
+    override suspend fun reset() {
         exportToDataStore(StoreContainer(credentials = listOf()))
     }
 
-    suspend fun removeStoreEntryById(storeEntryId: StoreEntryId) {
+    override suspend fun removeStoreEntryById(storeEntryId: StoreEntryId) {
         val newContainer = container.first().let { latestContainer ->
             latestContainer.copy(
                 credentials = latestContainer.credentials.filter {
@@ -184,7 +185,7 @@ class PersistentSubjectCredentialStore(private val dataStore: DataStoreService) 
         }
     }
 
-    fun observeStoreContainer(): Flow<StoreContainer> {
+    override fun observeStoreContainer(): Flow<StoreContainer> {
         return dataStore.getPreference(Configuration.DATASTORE_KEY_VCS).map {
             dataStoreValueToStoreContainer(it)
         }

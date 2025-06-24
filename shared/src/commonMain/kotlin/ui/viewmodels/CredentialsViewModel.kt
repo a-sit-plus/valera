@@ -4,8 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.domain.platform.ImageDecoder
-import data.storage.PersistentSubjectCredentialStore
 import data.storage.StoreEntryId
+import data.storage.WalletSubjectCredentialStore
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,7 +20,7 @@ import ui.models.toCredentialFreshnessSummaryModel
 class CredentialsViewModel(
     private val walletMain: WalletMain,
     private val imageDecoder: ImageDecoder,
-    private val subjectCredentialStore: PersistentSubjectCredentialStore,
+    private val subjectCredentialStore: WalletSubjectCredentialStore,
 ) : ViewModel() {
     val storeContainer = subjectCredentialStore.observeStoreContainer().map {
         CredentialStateModel.Success(it.credentials)
