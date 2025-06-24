@@ -333,6 +333,8 @@
     <string name="error_bluetooth_unavailable">Bluetooth ist nicht verfügbar</string>
     <string name="error_bluetooth_and_nfc_unavailable">Weder Bluetooth noch NFC ist verfügbar</string>
     <string name="error_no_requests">Es sind keine Anfragen vorhanden</string>
+    <string name="error_clearing_log_failed">Log konnte nicht gelöscht werden.</string>
+    <string name="error_resetting_app_failed">App konnte nicht zurückgesetzt werden.</string>
 
     <string name="info_text_show_data_situation">In welcher Situation möchten Sie Ihre Daten vorzeigen?</string>
     <string name="info_text_error_occurred">Es ist ein Fehler aufgetreten.</string>
