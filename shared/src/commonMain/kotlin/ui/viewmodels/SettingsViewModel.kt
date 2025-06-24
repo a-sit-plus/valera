@@ -153,34 +153,4 @@ class SettingsViewModel(
             completionHandler(throwable)
         }
     }
-
-    /*
-
-                            isChecked = settingsViewModel.presentmentUseNegotiatedHandover.collectAsState(true).value,
-                            onCheckedChange = { settingsViewModel.set( = it) }
-                        )
-                        SettingSwitch(
-                            label = stringResource(Res.string.switch_label_use_ble_central_client_mode),
-                            modifier = listSpacingModifier.fillMaxWidth(),
-                            isChecked = settingsViewModel.presentmentBleCentralClientModeEnabled.collectAsState(true).value,
-                            onCheckedChange = { settingsViewModel.set( = it) }
-                        )
-                        SettingSwitch(
-                            label = stringResource(Res.string.switch_label_use_ble_peripheral_server_mode),
-                            modifier = listSpacingModifier.fillMaxWidth(),
-                            isChecked = settingsViewModel.presentmentBlePeripheralServerModeEnabled.collectAsState(true).value,
-                            onCheckedChange = { settingsViewModel.set(presentmentBlePeripheralServerModeEnabled = it) }
-                        )
-                        SettingSwitch(
-                            label = stringResource(Res.string.switch_label_use_nfc_data_transfer),
-                            modifier = listSpacingModifier.fillMaxWidth(),
-                            isChecked = settingsViewModel.presentmentNfcDataTransferEnabled.collectAsState(false).value,
-                            onCheckedChange = { settingsViewModel.set(presentmentNfcDataTransferEnabled = it) }
-                        )
-                        SettingSwitch(
-                            label = stringResource(Res.string.switch_label_blel2cap_enabled),
-                            modifier = listSpacingModifier.fillMaxWidth(),
-                            isChecked = settingsViewModel.readerBleL2CapEnabled.collectAsState(true).value,
-                            onCheckedChange = { settingsViewModel.set( = it) }
-     */
 }
