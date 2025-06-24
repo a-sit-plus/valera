@@ -1,10 +1,12 @@
 package ui.viewmodels.iso
 
 import androidx.compose.runtime.MutableState
+import androidx.lifecycle.ViewModel
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants
+import kotlinx.coroutines.CompletionHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
@@ -26,13 +28,10 @@ import ui.viewmodels.authentication.PresentationStateModel
 
 class ShowQrCodeViewModel(
     val walletMain: WalletMain,
-    val navigateUp: () -> Unit,
-    val onClickLogo: () -> Unit,
-    val onClickSettings: () -> Unit,
-    val onNavigateToPresentmentScreen: (PresentationStateModel) -> Unit,
     val settingsRepository: SettingsRepository,
-) {
+) : ViewModel() {
     var hasBeenCalledHack: Boolean = false
+
     val presentationStateModel: PresentationStateModel by lazy { PresentationStateModel(walletMain.scope) }
 
 
@@ -50,8 +49,11 @@ class ShowQrCodeViewModel(
         presentationStateModel.setPermissionState(true)
     }
 
-    fun doHolderFlow(showQrCode: MutableState<ByteString?>) {
-        presentationStateModel.presentmentScope.launch {
+    fun doHolderFlow(
+        showQrCode: MutableState<ByteString?>,
+        completionHandler: CompletionHandler = {}
+    ) = presentationStateModel.presentmentScope.launch {
+        try {
             val connectionMethods = mutableListOf<MdocConnectionMethod>()
             val bleUuid = UUID.randomUUID()
 
@@ -117,12 +119,10 @@ class ShowQrCodeViewModel(
             )
             setState(ShowQrCodeState.FINISHED)
             showQrCode.value = null
-            navigateToPresentmentScreen()
+            completionHandler(null)
+        } catch (throwable: Throwable) {
+            completionHandler(throwable)
         }
-    }
-
-    fun navigateToPresentmentScreen() {
-        onNavigateToPresentmentScreen(presentationStateModel)
     }
 }
 
