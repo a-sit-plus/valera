@@ -54,7 +54,9 @@ fun PresentationExchangeRequestPreview(
             RequestedCredentialPreview(
                 scheme = scheme,
                 representation = representation,
-                attributes = attributes
+                attributes = attributes.mapKeys {
+                    it.key as? NormalizedJsonPath
+                }
             )
             Spacer(modifier = Modifier.height(16.dp))
         }.onFailure {
