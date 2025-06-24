@@ -1,0 +1,29 @@
+name: Build Android App
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Cache gradle files
+        uses: actions/cache@v4
+        env:
+          cache-name: cache-gradle
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.m2/repository
+          key: Android-${{ hashFiles('./gradle/libs.versions.toml', './gradle.properties', './gradle/wrapper/gradle-wrapper.properties') }}
+      - name: Build apk
+        run: ./gradlew :androidApp:assemble
+        env:
+          ANDROID_CERT_PASSWORD: ${{ secrets.ANDROID_CERT_PASSWORD }}
+          CI: true
