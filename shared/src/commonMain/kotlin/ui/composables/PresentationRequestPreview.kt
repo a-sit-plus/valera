@@ -3,6 +3,7 @@ package ui.composables
 import androidx.compose.runtime.Composable
 import at.asitplus.catchingUnwrapped
 import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.error_complex_dcql_query
 import at.asitplus.valera.resources.error_invalid_dcql_query
@@ -11,7 +12,13 @@ import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getL
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
+import data.credentials.MdocClaimReference
+import data.credentials.SdJwtClaimReference
 import org.jetbrains.compose.resources.stringResource
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.jsonpath.core.plus
+import data.credentials.JwtClaimDefinition
+import data.credentials.JwtClaimDefinitionTranslator
+import org.jetbrains.compose.resources.StringResource
 
 @Composable
 fun PresentationRequestPreview(
@@ -83,7 +90,13 @@ fun DcqlRequestPreview(
         RequestedCredentialPreview(
             scheme = scheme,
             representation = representation,
-            attributes = attributePaths.associateWith { false },
+            attributes = attributePaths?.map {
+                when (it) {
+                    is MdocClaimReference -> NormalizedJsonPath() + it.namespace + it.claimName
+                    is SdJwtClaimReference -> it.normalizedJsonPath
+                    null -> null
+                }
+            }?.associateWith { false },
         )
     }
 }
@@ -92,20 +105,38 @@ fun DcqlRequestPreview(
 fun RequestedCredentialPreview(
     scheme: ConstantIndex.CredentialScheme,
     representation: ConstantIndex.CredentialRepresentation,
-    attributes: Map<NormalizedJsonPath, Boolean>,
+//    attributes: Map<SingleClaimReference?, Boolean>?,
+    attributes: Map<NormalizedJsonPath?, Boolean>?,
 ) {
     val schemeName = scheme.uiLabel()
     val format = representation.name
-    val list = attributes.mapNotNull { attribute ->
-        val text = catchingUnwrapped {
-            scheme.getLocalization(attribute.key)
-                ?.let { stringResource(it) }
-                ?: attribute.key.toString()
-        }.getOrElse { attribute.key.toString() }
-        text to attribute.value
-    }.toMap()
+    val localizations = attributes?.let { claimReferences ->
+        val otherClaims = claimReferences.count {
+            it.key == null
+        }
+        val singleClaimReferences = claimReferences.filter {
+            it.key != null
+        }.mapKeys {
+            it.key!!
+        }
+        otherClaims to singleClaimReferences.mapKeys { (path, _) ->
+            catchingUnwrapped {
+                (scheme.getLocalization(path) ?: representation.getMetadataLocalization(path))
+                    ?.let { stringResource(it) }
+                    ?: path.toString()
+            }.getOrElse { path.toString() }
+        }
+    }
     ConsentAttributesSection(
         title = "$schemeName (${format})",
-        attributes = list
+        attributes = localizations
     )
+}
+
+private fun ConstantIndex.CredentialRepresentation.getMetadataLocalization(path: NormalizedJsonPath): StringResource? {
+    val firstSegment = path.segments.firstOrNull()?.let {
+        it as? NormalizedJsonPathSegment.NameSegment
+    } ?: return null
+    val jwtClaimDefinition = JwtClaimDefinition.valueOfClaimNameOrNull(firstSegment.memberName) ?: return null
+    return JwtClaimDefinitionTranslator().translate(jwtClaimDefinition)
 }
