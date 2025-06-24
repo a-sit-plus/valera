@@ -45,6 +45,7 @@ import io.github.alexzhirkevich.qrose.rememberQrCodePainter
 import kotlinx.coroutines.launch
 import kotlinx.io.bytestring.ByteString
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.viewmodel.koinViewModel
 import org.multipaz.compose.permissions.rememberBluetoothPermissionState
 import org.multipaz.util.toBase64Url
 import ui.composables.Logo
@@ -58,7 +59,13 @@ import ui.views.LoadingViewBody
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
+fun ShowQrCodeView(
+    navigateUp: () -> Unit,
+    onNavigateToPresentmentScreen: (PresentationStateModel) -> Unit,
+    onClickLogo: () -> Unit,
+    onClickSettings: () -> Unit,
+    vm: ShowQrCodeViewModel = koinViewModel(),
+) {
     val blePermissionState = rememberBluetoothPermissionState()
     val showQrCode = remember { mutableStateOf<ByteString?>(null) }
     val presentationStateModel = remember { vm.presentationStateModel }
@@ -75,10 +82,10 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
                         )
                     }
                 },
-                navigationIcon = { NavigateUpButton(vm.navigateUp) },
+                navigationIcon = { NavigateUpButton(navigateUp) },
                 actions = {
-                    Logo(onClick = vm.onClickLogo)
-                    Column(modifier = Modifier.clickable(onClick = vm.onClickSettings)) {
+                    Logo(onClick = onClickLogo)
+                    Column(modifier = Modifier.clickable(onClick = onClickSettings)) {
                         Icon(
                             imageVector = Icons.Outlined.Settings,
                             contentDescription = null,
@@ -146,7 +153,11 @@ fun ShowQrCodeView(vm: ShowQrCodeViewModel) {
                             if (vm.hasBeenCalledHack) return@LaunchedEffect
                             vm.hasBeenCalledHack = true
                             vm.setupPresentmentModel()
-                            vm.doHolderFlow(showQrCode)
+                            vm.doHolderFlow(showQrCode) {
+                                if(it == null) {
+                                    onNavigateToPresentmentScreen(vm.presentationStateModel)
+                                }
+                            }
                         }
                     }
 

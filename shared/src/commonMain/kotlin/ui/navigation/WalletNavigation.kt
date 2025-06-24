@@ -108,7 +108,6 @@ import ui.viewmodels.intents.SigningCredentialIntentViewModel
 import ui.viewmodels.intents.SigningIntentViewModel
 import ui.viewmodels.intents.SigningPreloadIntentViewModel
 import ui.viewmodels.intents.SigningServiceIntentViewModel
-import ui.viewmodels.iso.ShowQrCodeViewModel
 import ui.viewmodels.iso.VerifierViewModel
 import ui.views.CredentialDetailsView
 import ui.views.CredentialsView
@@ -342,19 +341,15 @@ private fun WalletNavHost(
         }
 
         composable<ShowQrCodeRoute> {
-            ShowQrCodeView(remember {
-                ShowQrCodeViewModel(
-                    walletMain = walletMain,
-                    navigateUp = { navigateBack() },
-                    onClickLogo = onClickLogo,
-                    onClickSettings = { navigate(SettingsRoute) },
-                    onNavigateToPresentmentScreen = {
-                        Globals.presentationStateModel.value = it
-                        navigate(LocalPresentationAuthenticationConsentRoute("QR"))
-                    },
-                    settingsRepository = settingsRepository,
-                )
-            })
+            ShowQrCodeView(
+                navigateUp = { navigateBack() },
+                onClickLogo = onClickLogo,
+                onClickSettings = { navigate(SettingsRoute) },
+                onNavigateToPresentmentScreen = {
+                    Globals.presentationStateModel.value = it
+                    navigate(LocalPresentationAuthenticationConsentRoute("QR"))
+                },
+            )
         }
 
         composable<VerifyDataRoute> {
