@@ -132,7 +132,7 @@ fun ShowQrCodeView(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(stringResource(Res.string.error_missing_permissions))
-                            vm.walletMain.scope.launch {
+                            LaunchedEffect(Unit) {
                                 blePermissionState.launchPermissionRequest()
                             }
                             TextIconButton(
