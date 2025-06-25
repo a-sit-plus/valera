@@ -47,4 +47,4 @@ jobs:
         if: success() || failure()
         with:
           name: xcode.log
-          path: "/Users/runner/Library/Logs/gym/Wallet-iosApp.log"
+          path: "/Users/runner/Library/Logs/gym/Valera-iosApp.log"
