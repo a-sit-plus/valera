@@ -30,6 +30,7 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_authentication_success
 import at.asitplus.valera.resources.info_text_authentication_success
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.viewmodel.koinViewModel
 import ui.composables.Logo
 import ui.composables.buttons.ConcludeButton
 import ui.composables.buttons.NavigateUpButton
@@ -39,7 +40,10 @@ import ui.viewmodels.authentication.AuthenticationSuccessViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthenticationSuccessView(
-    vm: AuthenticationSuccessViewModel
+    navigateUp: () -> Unit,
+    onClickLogo: () -> Unit,
+    onClickSettings: () -> Unit,
+    vm: AuthenticationSuccessViewModel = koinViewModel(),
 ) {
     Scaffold(
         topBar = {
@@ -54,8 +58,8 @@ fun AuthenticationSuccessView(
                     }
                 },
                 actions = {
-                    Logo(onClick = vm.onClickLogo)
-                    Column(modifier = Modifier.clickable(onClick = vm.onClickSettings)) {
+                    Logo(onClick = onClickLogo)
+                    Column(modifier = Modifier.clickable(onClick = onClickSettings)) {
                         Icon(
                             imageVector = Icons.Outlined.Settings,
                             contentDescription = null,
@@ -64,7 +68,7 @@ fun AuthenticationSuccessView(
                     Spacer(Modifier.width(15.dp))
                 },
                 navigationIcon = {
-                    NavigateUpButton(vm.navigateUp)
+                    NavigateUpButton(navigateUp)
                 },
             )
         },
@@ -78,12 +82,13 @@ fun AuthenticationSuccessView(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly,
                 ) {
-                    val openRedirectUrl = vm.openRedirectUrl
-                    if (vm.isCrossDeviceFlow || openRedirectUrl == null) {
-                        ConcludeButton(vm.navigateUp)
+                    if (vm.isCrossDeviceFlow || vm.redirectUrl == null) {
+                        ConcludeButton(navigateUp)
                     }
-                    if (openRedirectUrl != null) {
-                        OpenUrlButton(openRedirectUrl)
+                    if (vm.redirectUrl != null) {
+                        OpenUrlButton({
+                            vm.openRedirectUrl(vm.redirectUrl)
+                        })
                     }
                 }
             }

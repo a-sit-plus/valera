@@ -148,6 +148,7 @@ fun PresentationView(
                                 },
                             ) {
                                 Column {
+                                    // TODO: make string resources
                                     Text("Implementation of DCQL Query Credential Selection is in progress.")
                                     Text("Click continue to submit the credentials that are selected by default.")
                                 }

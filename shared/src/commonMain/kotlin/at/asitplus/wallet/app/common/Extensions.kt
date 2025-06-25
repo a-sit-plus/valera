@@ -1,15 +1,23 @@
 package at.asitplus.wallet.app.common
 
+import at.asitplus.data.NonEmptyList.Companion.toNonEmptyList
 import at.asitplus.dif.ConstraintFilter
 import at.asitplus.dif.InputDescriptor
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.openid.CredentialFormatEnum
+import at.asitplus.openid.dcql.DCQLClaimsPathPointer
+import at.asitplus.openid.dcql.DCQLClaimsQuery
+import at.asitplus.openid.dcql.DCQLClaimsQueryIdentifier
+import at.asitplus.openid.dcql.DCQLClaimsQueryList
 import at.asitplus.openid.dcql.DCQLClaimsQueryResult
 import at.asitplus.openid.dcql.DCQLCredentialClaimStructure
 import at.asitplus.openid.dcql.DCQLCredentialQuery
 import at.asitplus.openid.dcql.DCQLCredentialQueryInstance
 import at.asitplus.openid.dcql.DCQLCredentialQueryMatchingResult
+import at.asitplus.openid.dcql.DCQLExpectedClaimValue
+import at.asitplus.openid.dcql.DCQLIsoMdocClaimsQuery
 import at.asitplus.openid.dcql.DCQLIsoMdocCredentialQuery
+import at.asitplus.openid.dcql.DCQLJsonClaimsQuery
 import at.asitplus.openid.dcql.DCQLSdJwtCredentialQuery
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.jsonpath.core.plus
 import at.asitplus.wallet.app.common.thirdParty.kotlinx.serialization.json.normalizedJsonPaths
@@ -37,6 +45,7 @@ import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import at.asitplus.wallet.taxid.TaxId2025Scheme
 import at.asitplus.wallet.taxid.TaxIdScheme
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObjectBuilder
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.encodeToJsonElement
@@ -102,6 +111,7 @@ private fun InputDescriptor.vctConstraint() =
 private fun ConstraintFilter.referenceValues() =
     (pattern ?: const?.content)?.let { listOf(it) } ?: enum
 
+@Throws(Throwable::class)
 fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, ConstantIndex.CredentialScheme, List<NormalizedJsonPath>> {
     val representation = when (format) {
         CredentialFormatEnum.VC_SD_JWT,
@@ -123,13 +133,44 @@ fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, C
 
     val schemeJsonElement = scheme.toJsonElement(representation)
 
-    val match = executeCredentialQueryAgainstCredential(
+    // ignore claims value queries for consent screen
+    val delegate = this
+    val dummyCredentialMatcher = DCQLCredentialQueryInstance(
+        id = delegate.id,
+        format = delegate.format,
+        meta = delegate.meta,
+        claims = delegate.claims?.let {
+            DCQLClaimsQueryList(
+                it.map { claimsQueryDelegate ->
+                    when (claimsQueryDelegate) {
+                        is DCQLJsonClaimsQuery -> DCQLJsonClaimsQuery(
+                            id = claimsQueryDelegate.id,
+                            path = claimsQueryDelegate.path,
+                        )
+
+                        is DCQLIsoMdocClaimsQuery -> DCQLIsoMdocClaimsQuery(
+                            id = claimsQueryDelegate.id,
+                            claimName = claimsQueryDelegate.claimName,
+                            namespace = claimsQueryDelegate.namespace,
+                        )
+
+                        else -> throw IllegalStateException("Claims query type not supported")
+                    }
+                }.toNonEmptyList()
+            )
+        },
+        claimSets = null,
+    )
+
+    val match = dummyCredentialMatcher.executeCredentialQueryAgainstCredential(
         credential = scheme,
         credentialFormatExtractor = { format },
         credentialClaimStructureExtractor = {
             when (representation) {
                 PLAIN_JWT,
-                SD_JWT -> DCQLCredentialClaimStructure.JsonBasedStructure(schemeJsonElement)
+                SD_JWT -> DCQLCredentialClaimStructure.JsonBasedStructure(
+                    schemeJsonElement
+                )
 
                 ISO_MDOC -> schemeJsonElement.let {
                     DCQLCredentialClaimStructure.IsoMdocStructure(
@@ -141,12 +182,12 @@ fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, C
             }
         },
         mdocCredentialDoctypeExtractor = {
-            scheme.isoDocType ?: throw IllegalArgumentException("Credential is not an MDOC")
+            it.isoDocType ?: throw IllegalArgumentException("Credential is not an MDOC")
         },
         sdJwtCredentialTypeExtractor = {
-            scheme.sdJwtType ?: throw IllegalArgumentException("Credential is not an SD-JWT")
+            it.sdJwtType ?: throw IllegalArgumentException("Credential is not an SD-JWT")
         },
-    ).getOrNull() ?: throw Throwable("Unable to evaluate credential matching result.")
+    ).getOrThrow()
 
     val normalizedJsonPaths = when (match) {
         DCQLCredentialQueryMatchingResult.AllClaimsMatchingResult -> schemeJsonElement.normalizedJsonPaths()
@@ -154,9 +195,7 @@ fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, C
         is DCQLCredentialQueryMatchingResult.ClaimsQueryResults -> match.claimsQueryResults.flatMap {
             when (it) {
                 is DCQLClaimsQueryResult.IsoMdocResult -> listOf(NormalizedJsonPath() + it.namespace + it.claimName)
-                is DCQLClaimsQueryResult.JsonResult -> it.nodeList.map {
-                    it.normalizedJsonPath
-                }
+                is DCQLClaimsQueryResult.JsonResult -> it.nodeList.map { it.normalizedJsonPath }
             }
         }
     }
@@ -283,13 +322,15 @@ fun ConstantIndex.CredentialScheme.toJsonElement(
             }
         }
 
-        else -> buildJsonObject { }
+        else -> buildJsonObject {
+        }
     }
 
     return dataElements.associateWith { "" }.let { attributes ->
         when (representation) {
             PLAIN_JWT -> vckJsonSerializer.encodeToJsonElement(attributes + ("type" to this.vcType))
             SD_JWT -> buildJsonObject {
+                addSdJwtDummyMetadata()
                 attributes.forEach {
                     put(it.key, JsonPrimitive(it.value))
                 }
@@ -302,4 +343,14 @@ fun ConstantIndex.CredentialScheme.toJsonElement(
             ISO_MDOC -> vckJsonSerializer.encodeToJsonElement(mapOf(this.isoNamespace to attributes))
         }
     }
+}
+
+private fun JsonObjectBuilder.addSdJwtDummyMetadata() {
+    put("iss", "")
+    put("sub", "")
+    put("nbf", 0)
+    put("iat", 0)
+    put("exp", 0)
+    put("cnf", buildJsonObject { })
+    put("status", buildJsonObject { })
 }

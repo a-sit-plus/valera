@@ -13,6 +13,7 @@ import at.asitplus.wallet.companyregistration.Address
 import at.asitplus.wallet.companyregistration.Branch
 import at.asitplus.wallet.companyregistration.CompanyActivity
 import at.asitplus.wallet.companyregistration.ContactData
+import at.asitplus.wallet.lib.data.LocalDateOrInstant
 import at.asitplus.wallet.mdl.DrivingPrivilege
 import at.asitplus.wallet.mdl.IsoSexEnum
 import data.Attribute
@@ -212,6 +213,20 @@ fun AttributeRepresentation(
 ) {
     AttributeRepresentation(
         value.toLocalDateTime(TimeZone.currentSystemDefault()),
+        modifier = modifier
+    )
+}
+
+@Composable
+fun AttributeRepresentation(
+    value: LocalDateOrInstant,
+    modifier: Modifier = Modifier,
+) {
+    AttributeRepresentation(
+        when (value) {
+            is LocalDateOrInstant.LocalDate -> value.value
+            is LocalDateOrInstant.Instant -> value.value.toLocalDateTime(TimeZone.currentSystemDefault()).date
+        },
         modifier = modifier
     )
 }

@@ -32,8 +32,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -48,6 +51,9 @@ import at.asitplus.valera.resources.button_label_faq
 import at.asitplus.valera.resources.button_label_licenses
 import at.asitplus.valera.resources.button_label_reset_app
 import at.asitplus.valera.resources.button_label_share_log_file
+import at.asitplus.valera.resources.error_clearing_log_failed
+import at.asitplus.valera.resources.error_feature_not_yet_available
+import at.asitplus.valera.resources.error_resetting_app_failed
 import at.asitplus.valera.resources.eu_normal_reproduction_low_resolution
 import at.asitplus.valera.resources.heading_label_settings_screen
 import at.asitplus.valera.resources.info_text_co_founded_by_eu
@@ -64,13 +70,17 @@ import at.asitplus.valera.resources.switch_label_use_nfc_data_transfer
 import at.asitplus.valera.resources.text_label_build
 import at.asitplus.valera.resources.warning
 import at.asitplus.wallet.app.common.BuildType
+import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import ui.composables.CircularProgressIndicatorOverlay
+import ui.composables.DelayedComposable
 import ui.composables.Logo
 import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.SettingsViewModel
+import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -78,25 +88,35 @@ fun SettingsView(
     buildType: BuildType,
     version: String,
     onClickShareLogFile: () -> Unit,
-    onClickClearLogFile: () -> Unit,
-    onClickResetApp: () -> Unit,
     onClickLogo: () -> Unit,
     onClickBack: () -> Unit,
     onClickSettings: () -> Unit,
-    onClickFAQs: () -> Unit,
-    onClickDataProtectionPolicy: () -> Unit,
-    onClickLicenses: () -> Unit,
+    onClickFAQs: (() -> Unit)?,
+    onClickDataProtectionPolicy: (() -> Unit)?,
+    onClickLicenses: (() -> Unit)?,
     settingsViewModel: SettingsViewModel = koinViewModel(),
 ) {
-    val showAlert = remember { mutableStateOf(false) }
-    if (showAlert.value) {
+    var isLoading by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var showResetAlert by remember { mutableStateOf(false) }
+    if (showResetAlert) {
         ResetAlert(
             onConfirm = {
-                onClickResetApp()
-                showAlert.value = false
+                showResetAlert = false
+                isLoading = true
+                settingsViewModel.onClickResetApp {
+                    isLoading = false
+                    if (it != null) {
+                        settingsViewModel.showGlobalSnackbar {
+                            getString(Res.string.error_resetting_app_failed)
+                        }
+                    }
+                }
             },
-            onDismiss = { showAlert.value = false },
-            onDismissRequest = { showAlert.value = false },
+            onDismiss = { showResetAlert = false },
+            onDismissRequest = { showResetAlert = false },
         )
     }
 
@@ -127,6 +147,11 @@ fun SettingsView(
             )
         }
     ) { scaffoldPadding ->
+        if(isLoading) {
+            DelayedComposable(1.seconds) {
+                CircularProgressIndicatorOverlay()
+            }
+        }
         Box(modifier = Modifier.padding(scaffoldPadding)) {
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                 Column(
@@ -150,7 +175,11 @@ fun SettingsView(
                                 )
                             },
                             label = stringResource(Res.string.button_label_faq),
-                            onClick = onClickFAQs,
+                            onClick = {
+                                onClickFAQs?.invoke() ?: settingsViewModel.showGlobalSnackbar {
+                                    getString(Res.string.error_feature_not_yet_available)
+                                }
+                            },
                             modifier = listSpacingModifier.fillMaxWidth(),
                         )
                         TextIconButtonListItem(
@@ -161,7 +190,11 @@ fun SettingsView(
                                 )
                             },
                             label = stringResource(Res.string.button_label_data_protection_policy),
-                            onClick = onClickDataProtectionPolicy,
+                            onClick = {
+                                onClickDataProtectionPolicy?.invoke() ?: settingsViewModel.showGlobalSnackbar {
+                                    getString(Res.string.error_feature_not_yet_available)
+                                }
+                            },
                             modifier = listSpacingModifier.fillMaxWidth(),
                         )
                         TextIconButtonListItem(
@@ -172,7 +205,11 @@ fun SettingsView(
                                 )
                             },
                             label = stringResource(Res.string.button_label_licenses),
-                            onClick = onClickLicenses,
+                            onClick = {
+                                onClickLicenses?.invoke() ?: settingsViewModel.showGlobalSnackbar {
+                                    getString(Res.string.error_feature_not_yet_available)
+                                }
+                            },
                             modifier = listSpacingModifier.fillMaxWidth(),
                         )
                     }
@@ -204,7 +241,15 @@ fun SettingsView(
                                 )
                             },
                             label = stringResource(Res.string.button_label_clear_log),
-                            onClick = onClickClearLogFile,
+                            onClick = {
+                                settingsViewModel.onClickClearLogFile {
+                                    if (it != null) {
+                                        settingsViewModel.showGlobalSnackbar {
+                                            getString(Res.string.error_clearing_log_failed)
+                                        }
+                                    }
+                                }
+                            },
                             modifier = listSpacingModifier.fillMaxWidth(),
                         )
                         TextIconButtonListItem(
@@ -216,7 +261,7 @@ fun SettingsView(
                             },
                             label = stringResource(Res.string.button_label_reset_app),
                             onClick = {
-                                showAlert.value = true
+                                showResetAlert = true
                             },
                             modifier = listSpacingModifier.fillMaxWidth(),
                         )
@@ -233,32 +278,32 @@ fun SettingsView(
                         SettingSwitch(
                             label = stringResource(Res.string.switch_label_use_negotiated_handover),
                             modifier = listSpacingModifier.fillMaxWidth(),
-                            isChecked = settingsViewModel.presentmentUseNegotiatedHandover.collectAsState(true).value,
-                            onCheckedChange = { settingsViewModel.set(presentmentUseNegotiatedHandover = it) }
+                            isChecked = settingsViewModel.presentmentUseNegotiatedHandover.collectAsState().value,
+                            onCheckedChange = { settingsViewModel.setPresentmentUseNegotiatedHandover(it) }
                         )
                         SettingSwitch(
                             label = stringResource(Res.string.switch_label_use_ble_central_client_mode),
                             modifier = listSpacingModifier.fillMaxWidth(),
-                            isChecked = settingsViewModel.presentmentBleCentralClientModeEnabled.collectAsState(true).value,
-                            onCheckedChange = { settingsViewModel.set(presentmentBleCentralClientModeEnabled = it) }
+                            isChecked = settingsViewModel.presentmentBleCentralClientModeEnabled.collectAsState().value,
+                            onCheckedChange = { settingsViewModel.setPresentmentBleCentralClientModeEnabled(it) }
                         )
                         SettingSwitch(
                             label = stringResource(Res.string.switch_label_use_ble_peripheral_server_mode),
                             modifier = listSpacingModifier.fillMaxWidth(),
-                            isChecked = settingsViewModel.presentmentBlePeripheralServerModeEnabled.collectAsState(true).value,
-                            onCheckedChange = { settingsViewModel.set(presentmentBlePeripheralServerModeEnabled = it) }
+                            isChecked = settingsViewModel.presentmentBlePeripheralServerModeEnabled.collectAsState().value,
+                            onCheckedChange = { settingsViewModel.setPresentmentBlePeripheralServerModeEnabled(it) }
                         )
                         SettingSwitch(
                             label = stringResource(Res.string.switch_label_use_nfc_data_transfer),
                             modifier = listSpacingModifier.fillMaxWidth(),
-                            isChecked = settingsViewModel.presentmentNfcDataTransferEnabled.collectAsState(false).value,
-                            onCheckedChange = { settingsViewModel.set(presentmentNfcDataTransferEnabled = it) }
+                            isChecked = settingsViewModel.presentmentNfcDataTransferEnabled.collectAsState().value,
+                            onCheckedChange = { settingsViewModel.setPresentmentNfcDataTransferEnabled(it) }
                         )
                         SettingSwitch(
                             label = stringResource(Res.string.switch_label_blel2cap_enabled),
                             modifier = listSpacingModifier.fillMaxWidth(),
-                            isChecked = settingsViewModel.readerBleL2CapEnabled.collectAsState(true).value,
-                            onCheckedChange = { settingsViewModel.set(readerBleL2CapEnabled = it) }
+                            isChecked = settingsViewModel.readerBleL2CapEnabled.collectAsState().value,
+                            onCheckedChange = { settingsViewModel.setReaderBleL2CapEnabled(it) }
                         )
                     }
                 }

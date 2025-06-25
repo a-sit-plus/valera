@@ -38,7 +38,6 @@ internal object OnboardingStartScreenTestTag {
     const val startButton = "startButton"
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OnboardingStartView(
     onClickStart: () -> Unit,

@@ -39,7 +39,6 @@ import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
-import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.domain.platform.UrlOpener
 import at.asitplus.wallet.lib.data.dif.ConstraintFieldsEvaluationException
 import at.asitplus.wallet.lib.data.vckJsonSerializer
@@ -89,7 +88,6 @@ import ui.navigation.routes.SigningServiceIntentRoute
 import ui.navigation.routes.VerifyDataRoute
 import ui.viewmodels.AddCredentialViewModel
 import ui.viewmodels.CredentialDetailsViewModel
-import ui.viewmodels.CredentialsViewModel
 import ui.viewmodels.ErrorViewModel
 import ui.viewmodels.LoadCredentialViewModel
 import ui.viewmodels.LogViewModel
@@ -111,7 +109,6 @@ import ui.viewmodels.intents.SigningCredentialIntentViewModel
 import ui.viewmodels.intents.SigningIntentViewModel
 import ui.viewmodels.intents.SigningPreloadIntentViewModel
 import ui.viewmodels.intents.SigningServiceIntentViewModel
-import ui.viewmodels.iso.ShowQrCodeViewModel
 import ui.viewmodels.iso.VerifierViewModel
 import ui.views.CredentialDetailsView
 import ui.views.CredentialsView
@@ -297,34 +294,17 @@ private fun WalletNavHost(
         }
         composable<HomeScreenRoute> {
             CredentialsView(
-                vm = remember {
-                    CredentialsViewModel(
-                        walletMain,
-                        navigateToAddCredentialsPage = {
-                            navigate(AddCredentialRoute)
-                        },
-                        navigateToQrAddCredentialsPage = {
-                            navigate(QrCodeScannerRoute(QrCodeScannerMode.PROVISIONING))
-                        },
-                        navigateToCredentialDetailsPage = {
-                            navigate(CredentialDetailsRoute(it))
-                        },
-                        imageDecoder = {
-                            try {
-                                walletMain.platformAdapter.decodeImage(it)
-                            } catch (throwable: Throwable) {
-                                // TODO: should this be emitted to the error service?
-                                Napier.w("Failed Operation: decodeImage")
-                                null
-                            }
-                        },
-                        onClickLogo = onClickLogo,
-                        onClickSettings = { navigate(SettingsRoute) }
-                    )
+                navigateToAddCredentialsPage = {
+                    navigate(AddCredentialRoute)
                 },
-                checkCredentialFreshness = {
-                    walletMain.checkCredentialFreshness(it).toCredentialFreshnessSummaryModel()
+                navigateToQrAddCredentialsPage = {
+                    navigate(QrCodeScannerRoute(QrCodeScannerMode.PROVISIONING))
                 },
+                navigateToCredentialDetailsPage = {
+                    navigate(CredentialDetailsRoute(it))
+                },
+                onClickLogo = onClickLogo,
+                onClickSettings = { navigate(SettingsRoute) },
                 bottomBar = {
                     BottomBar(
                         navigate = { route -> navigate(route) },
@@ -362,19 +342,15 @@ private fun WalletNavHost(
         }
 
         composable<ShowQrCodeRoute> {
-            ShowQrCodeView(remember {
-                ShowQrCodeViewModel(
-                    walletMain = walletMain,
-                    navigateUp = { navigateBack() },
-                    onClickLogo = onClickLogo,
-                    onClickSettings = { navigate(SettingsRoute) },
-                    onNavigateToPresentmentScreen = {
-                        Globals.presentationStateModel.value = it
-                        navigate(LocalPresentationAuthenticationConsentRoute("QR"))
-                    },
-                    settingsRepository = settingsRepository,
-                )
-            })
+            ShowQrCodeView(
+                navigateUp = { navigateBack() },
+                onClickLogo = onClickLogo,
+                onClickSettings = { navigate(SettingsRoute) },
+                onNavigateToPresentmentScreen = {
+                    Globals.presentationStateModel.value = it
+                    navigate(LocalPresentationAuthenticationConsentRoute("QR"))
+                },
+            )
         }
 
         composable<VerifyDataRoute> {
@@ -551,18 +527,11 @@ private fun WalletNavHost(
         }
 
         composable<AuthenticationSuccessRoute> { backStackEntry ->
-            val route = backStackEntry.toRoute<AuthenticationSuccessRoute>()
-            AuthenticationSuccessView(vm = remember {
-                AuthenticationSuccessViewModel(
-                    navigateUp = navigateBack,
-                    onClickLogo = onClickLogo,
-                    isCrossDeviceFlow = route.isCrossDeviceFlow,
-                    openRedirectUrl = route.redirectUrl?.let {
-                        { walletMain.platformAdapter.openUrl(it) }
-                    },
-                    onClickSettings = { navigate(SettingsRoute) }
-                )
-            })
+            AuthenticationSuccessView(
+                navigateUp = navigateBack,
+                onClickLogo = onClickLogo,
+                onClickSettings = { navigate(SettingsRoute) },
+            )
         }
 
         composable<AddCredentialRoute> { backStackEntry ->
@@ -674,39 +643,12 @@ private fun WalletNavHost(
                 onClickShareLogFile = {
                     navigate(LogRoute)
                 },
-                onClickResetApp = {
-                    walletMain.scope.launch {
-                        walletMain.resetApp()
-                        val resetMessage = getString(Res.string.snackbar_reset_app_successfully)
-                        walletMain.snackbarService.showSnackbar(resetMessage)
-                        popBackStack(HomeScreenRoute)
-                    }
-                },
-                onClickClearLogFile = {
-                    walletMain.scope.launch {
-                        walletMain.clearLog()
-                        val clearMessage = getString(Res.string.snackbar_clear_log_successfully)
-                        walletMain.snackbarService.showSnackbar(clearMessage)
-                    }
-                },
                 onClickLogo = onClickLogo,
                 onClickSettings = { popBackStack(HomeScreenRoute) },
                 onClickBack = navigateBack,
-                onClickFAQs = {
-                    walletMain.scope.launch {
-                        walletMain.snackbarService.showSnackbar(getString(Res.string.error_feature_not_yet_available))
-                    }
-                },
-                onClickDataProtectionPolicy = {
-                    walletMain.scope.launch {
-                        walletMain.snackbarService.showSnackbar(getString(Res.string.error_feature_not_yet_available))
-                    }
-                },
-                onClickLicenses = {
-                    walletMain.scope.launch {
-                        walletMain.snackbarService.showSnackbar(getString(Res.string.error_feature_not_yet_available))
-                    }
-                },
+                onClickFAQs = null,
+                onClickDataProtectionPolicy = null,
+                onClickLicenses = null,
             )
         }
 
@@ -725,12 +667,14 @@ private fun WalletNavHost(
             ErrorView(remember {
                 ErrorViewModel(
                     resetStack = { popBackStack(HomeScreenRoute) },
-                    resetApp = { walletMain.scope.launch {
-                        walletMain.resetApp()
-                        val resetMessage = getString(Res.string.snackbar_reset_app_successfully)
-                        walletMain.snackbarService.showSnackbar(resetMessage)
-                        popBackStack(HomeScreenRoute)
-                    }},
+                    resetApp = {
+                        walletMain.scope.launch {
+                            walletMain.resetApp()
+                            val resetMessage = getString(Res.string.snackbar_reset_app_successfully)
+                            walletMain.snackbarService.showSnackbar(resetMessage)
+                            popBackStack(HomeScreenRoute)
+                        }
+                    },
                     message = backStackEntry.toRoute<ErrorRoute>().message,
                     cause = backStackEntry.toRoute<ErrorRoute>().cause,
                     onClickLogo = onClickLogo,

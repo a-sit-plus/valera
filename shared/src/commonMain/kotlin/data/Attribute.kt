@@ -7,6 +7,7 @@ import at.asitplus.wallet.companyregistration.CompanyActivity
 import at.asitplus.wallet.companyregistration.ContactData
 import at.asitplus.wallet.ehic.IssuingAuthority
 import at.asitplus.wallet.eupid.IsoIec5218Gender
+import at.asitplus.wallet.lib.data.LocalDateOrInstant
 import at.asitplus.wallet.mdl.DrivingPrivilege
 import at.asitplus.wallet.mdl.IsoSexEnum
 import kotlinx.datetime.Instant
@@ -37,6 +38,8 @@ sealed interface Attribute {
             is LocalDate -> DateAttribute(it)
             is LocalDateTime -> DateTimeAttribute(it)
             is Instant -> InstantAttribute(it)
+            is LocalDateOrInstant.LocalDate -> DateAttribute(it.value)
+            is LocalDateOrInstant.Instant -> InstantAttribute(it.value)
             is ImageBitmap -> ImageAttribute(it)
             is Long -> LongAttribute(it)
             is CompanyActivity -> CompanyActivityAttribute(it)
