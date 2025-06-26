@@ -16,7 +16,6 @@ kotlin {
             implementation(libs.androidx.credentials.registry.provider)
 
             implementation(libs.multipaz)
-            implementation(libs.multipaz.android.legacy)
             implementation(libs.datastore.preferences.core)
         }
     }
