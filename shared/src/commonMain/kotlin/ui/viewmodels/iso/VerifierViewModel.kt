@@ -1,5 +1,6 @@
 package ui.viewmodels.iso
 
+import at.asitplus.KmmResult
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
@@ -46,7 +47,7 @@ class VerifierViewModel(
         setVerifierState(VerifierState.ERROR)
     }
 
-    private val _selectedEngagementMethod = MutableStateFlow<DeviceEngagementMethods>(
+    private val _selectedEngagementMethod = MutableStateFlow(
         DeviceEngagementMethods.NFC
     )
 
@@ -67,9 +68,14 @@ class VerifierViewModel(
         }
     }
 
-    private fun handleResponse(deviceResponseBytes: ByteArray) {
-        _deviceResponse.value = coseCompliantSerializer.decodeFromByteArray<DeviceResponse>(deviceResponseBytes)
-        _verifierState.value = VerifierState.PRESENTATION
+    private fun handleResponse(result: KmmResult<ByteArray>) {
+        result.onSuccess { deviceResponseBytes ->
+            _deviceResponse.value = coseCompliantSerializer.decodeFromByteArray<DeviceResponse>(deviceResponseBytes)
+            _verifierState.value = VerifierState.PRESENTATION
+        }.onFailure { error ->
+            handleError(error.message ?: "Unknown error")
+        }
+
     }
 
     fun onClickPredefinedMdlMandatoryAttributes(selectedEngagementMethod: DeviceEngagementMethods) {
@@ -131,7 +137,7 @@ class VerifierViewModel(
                 transferManager.doQrFlow(
                     payload.removePrefix(MDOC_PREFIX),
                     document,
-                    { message -> } // TODO: handle update messages
+                    { message -> Napier.d("Transfer message: $message") } // TODO: handle update messages
                 ) { deviceResponseBytes ->
                     handleResponse(deviceResponseBytes)
                 }

@@ -2,6 +2,7 @@ package at.asitplus.wallet.app.common.iso.transfer
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import at.asitplus.KmmResult
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_nfc_mdoc_reader
 import at.asitplus.wallet.app.common.data.SettingsRepository
@@ -156,7 +157,7 @@ class TransferManager(
 
     fun startNfcEngagement(
         documentRequest: RequestDocument,
-        setDeviceResponseBytes: (ByteArray) -> Unit
+        setDeviceResponseBytes: (KmmResult<ByteArray>) -> Unit
     ) {
         readerMostRecentDeviceResponse.value = null
 
@@ -236,6 +237,7 @@ class TransferManager(
                 // TODO: Add populate error to verifier
                 Napier.e("NFC engagement failed", e)
                 updateProgress("NFC engagement failed with $e")
+                setDeviceResponseBytes(KmmResult.failure(e))
             }
         }
     }
@@ -259,7 +261,7 @@ class TransferManager(
         qrCode: String,
         documentRequest: RequestDocument,
         updateProgress: (String) -> Unit,
-        setDeviceResponseBytes: (ByteArray) -> Unit
+        setDeviceResponseBytes: (KmmResult<ByteArray>) -> Unit
     ) = scope.launch {
         try {
             doReaderFlow(
@@ -283,8 +285,8 @@ class TransferManager(
             )
         } catch (error: Throwable) {
             Napier.e("Caught exception", error)
-            error.printStackTrace()
             updateProgress("Error: ${error.message}")
+            setDeviceResponseBytes(KmmResult.failure(error))
         }
     }
 
@@ -295,7 +297,7 @@ class TransferManager(
         updateNfcDialogMessage: ((message: String) -> Unit)?,
         selectConnectionMethod: suspend (connectionMethods: List<MdocConnectionMethod>) -> MdocConnectionMethod?,
         documentRequest: RequestDocument,
-        setDeviceResponseBytes: (ByteArray) -> Unit
+        setDeviceResponseBytes: (KmmResult<ByteArray>) -> Unit
     ) {
         val deviceEngagement = EngagementParser(encodedDeviceEngagement.toByteArray()).parse()
         val eDeviceKey = deviceEngagement.eSenderKey
@@ -364,7 +366,7 @@ class TransferManager(
         eDeviceKey: EcPublicKey,
         eReaderKey: EcPrivateKey,
         documentRequest: RequestDocument,
-        setDeviceResponseBytes: (ByteArray) -> Unit
+        setDeviceResponseBytes: (KmmResult<ByteArray>) -> Unit
     ) {
         if (updateNfcDialogMessage != null) {
             updateNfcDialogMessage("Transferring data, don't move your phone")
@@ -416,7 +418,7 @@ class TransferManager(
                 Napier.i("Holder sent ${message?.size} bytes status $status")
                 if (message != null) {
                     readerMostRecentDeviceResponse.value = message
-                    setDeviceResponseBytes(message)
+                    setDeviceResponseBytes(KmmResult.success(message))
                     _state.value = State.DATA_RECEIVED
                 }
                 if (status == Constants.SESSION_DATA_STATUS_SESSION_TERMINATION) {
