@@ -249,6 +249,10 @@
     <string name="text_label_certificate">Zertifikat</string>
     <string name="text_label_vda">VDA</string>
     <string name="text_label_no_certificate">Keine Daten verfügbar</string>
+    <string name="text_label_status_uri">Status URI</string>
+    <string name="text_label_status_idx">Status Index</string>
+    <string name="text_label_vcType">VcType</string>
+    <string name="text_label_docType">DocType</string>
 
     <string name="heading_label_authenticate_at_device_title">Anmelden</string>
     <string name="heading_label_authenticate_at_device_subtitle">an Service Provider</string>
@@ -395,6 +399,8 @@
     <string name="section_heading_missing_data">Neue Daten laden</string>
     <string name="section_heading_available_data">Bestehende Daten aktualisieren</string>
     <string name="section_heading_transaction_data">Transaktion</string>
+    <string name="section_heading_technical_data">Technische Daten</string>
+    <string name="section_heading_technical_data_icon_text">T</string>
 
     <string name="onboarding_section_load_data_icon_text">2</string>
     <string name="onboarding_section_load_data_title">Daten in die App laden</string>
