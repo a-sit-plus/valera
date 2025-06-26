@@ -1,5 +1,5 @@
 # Release 5.7.2 (unreleased)
- * tbd
+ * Proximity: Use fixed IACA key and certificate for reader authentication
 
 # Release 5.7.1
  * Update to VC-K 5.7.1, fixing JWS certificate encoding
