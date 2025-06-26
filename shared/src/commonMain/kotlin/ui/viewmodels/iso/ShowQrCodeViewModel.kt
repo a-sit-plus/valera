@@ -7,6 +7,10 @@ import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants
 import kotlinx.coroutines.CompletionHandler
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
@@ -22,9 +26,11 @@ import org.multipaz.mdoc.engagement.EngagementGenerator
 import org.multipaz.mdoc.role.MdocRole
 import org.multipaz.mdoc.transport.MdocTransportFactory
 import org.multipaz.mdoc.transport.MdocTransportOptions
-import org.multipaz.mdoc.transport.advertiseAndWait
+import org.multipaz.mdoc.transport.advertise
+import org.multipaz.mdoc.transport.waitForConnection
 import org.multipaz.util.UUID
 import ui.viewmodels.authentication.PresentationStateModel
+import kotlin.lazy
 
 class ShowQrCodeViewModel(
     val walletMain: WalletMain,
@@ -32,7 +38,8 @@ class ShowQrCodeViewModel(
 ) : ViewModel() {
     var hasBeenCalledHack: Boolean = false
 
-    val presentationStateModel: PresentationStateModel by lazy { PresentationStateModel(walletMain.scope) }
+    val presentationScope by lazy { CoroutineScope(Dispatchers.IO + CoroutineName("QR code presentation scope") + walletMain.coroutineExceptionHandler) }
+    val presentationStateModel by lazy { PresentationStateModel(presentationScope) }
 
 
     private val _showQrCodeState = MutableStateFlow(ShowQrCodeState.INIT)
