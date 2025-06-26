@@ -89,22 +89,29 @@ class ShowQrCodeViewModel(
             val ephemeralDeviceKey = Crypto.createEcPrivateKey(EcCurve.P256)
             lateinit var encodedDeviceEngagement: ByteString
 
-            val transport = connectionMethods.advertiseAndWait(
+            // First advertise the connection methods
+            val advertisedTransports = connectionMethods.advertise(
                 role = MdocRole.MDOC,
                 transportFactory = MdocTransportFactory.Default,
-                options = MdocTransportOptions(true),
+                options = MdocTransportOptions(
+                    bleUseL2CAP = settingsRepository.readerBleL2CapEnabled.first()
+                )
+            )
+
+            // Generate engagement
+            val engagementGenerator = EngagementGenerator(
                 eSenderKey = ephemeralDeviceKey.publicKey,
-                onConnectionMethodsReady = { advertisedConnectionMethods ->
-                    val engagementGenerator = EngagementGenerator(
-                        eSenderKey = ephemeralDeviceKey.publicKey,
-                        version = MdocConstants.VERSION
-                    )
-                    engagementGenerator.addConnectionMethods(advertisedConnectionMethods)
-                    val encodedDeviceEngagementByteArray = engagementGenerator.generate()
-                    encodedDeviceEngagement = ByteString(encodedDeviceEngagementByteArray)
-                    showQrCode.value = encodedDeviceEngagement
-                    setState(ShowQrCodeState.SHOW_QR_CODE)
-                }
+                version = MdocConstants.VERSION
+            )
+            engagementGenerator.addConnectionMethods(connectionMethods)
+            val encodedDeviceEngagementByteArray = engagementGenerator.generate()
+            encodedDeviceEngagement = ByteString(encodedDeviceEngagementByteArray)
+            showQrCode.value = encodedDeviceEngagement
+            setState(ShowQrCodeState.SHOW_QR_CODE)
+
+            // Then wait for connection
+            val transport = advertisedTransports.waitForConnection(
+                eSenderKey = ephemeralDeviceKey.publicKey
             )
 
             presentationStateModel.setMechanism(
