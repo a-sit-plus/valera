@@ -38,7 +38,8 @@ import org.multipaz.mdoc.nfc.MdocNfcEngagementHelper
 import org.multipaz.mdoc.role.MdocRole
 import org.multipaz.mdoc.transport.MdocTransportFactory
 import org.multipaz.mdoc.transport.MdocTransportOptions
-import org.multipaz.mdoc.transport.advertiseAndWait
+import org.multipaz.mdoc.transport.advertise
+import org.multipaz.mdoc.transport.waitForConnection
 import org.multipaz.nfc.CommandApdu
 import org.multipaz.nfc.ResponseApdu
 import org.multipaz.util.UUID
@@ -163,7 +164,7 @@ class NdefDeviceEngagementService : HostApduService() {
                     }
                 }
             }
-            Napier.i("NdefDeviceEngagementService: Using method ${connectionMethods.first()}")
+            Napier.i("NdefDeviceEngagementService: Fallback, using method ${connectionMethods.first()}")
             return connectionMethods.first()
         }
 
@@ -212,6 +213,7 @@ class NdefDeviceEngagementService : HostApduService() {
             eDeviceKey = ephemeralDeviceKey.publicKey,
             onHandoverComplete = { connectionMethods, encodedDeviceEngagement, handover ->
                 vibrateSuccess()
+                Napier.d("NdefDeviceEngagementService: Waiting for start")
                 presentationStateModel.start(connectionMethods.any { it is MdocConnectionMethodBle })
 
                 val duration = Clock.System.now() - timeStarted
@@ -243,14 +245,19 @@ class NdefDeviceEngagementService : HostApduService() {
     ) {
         presentationStateModel.presentmentScope.launch {
             presentationStateModel.state.first { it != PresentationStateModel.State.IDLE && it != PresentationStateModel.State.NO_PERMISSION && it != PresentationStateModel.State.CHECK_PERMISSIONS }
-            val transport = connectionMethods.advertiseAndWait(
+
+            // First advertise the connection methods
+            val advertisedTransports = connectionMethods.advertise(
                 role = MdocRole.MDOC,
                 transportFactory = MdocTransportFactory.Default,
                 options = MdocTransportOptions(
                     bleUseL2CAP = walletConfig.readerBleL2CapEnabled.first()
-                ),
-                eSenderKey = eDeviceKey.publicKey,
-                onConnectionMethodsReady = {}
+                )
+            )
+
+            // Then wait for connection
+            val transport = advertisedTransports.waitForConnection(
+                eSenderKey = eDeviceKey.publicKey
             )
             presentationStateModel.setMechanism(
                 MdocPresentmentMechanism(
@@ -301,7 +308,7 @@ class NdefDeviceEngagementService : HostApduService() {
         started = false
         // If the reader hasn't connected by the time NFC interaction ends, make sure we only
         // wait for a limited amount of time.
-        disableEngagementJob = CoroutineScope(Dispatchers.IO).launch {
+        disableEngagementJob = CoroutineScope(Dispatchers.IO + CoroutineName("NdefDeviceEngagementService: onDeactivated")).launch {
             try {
                 presentationStateModel.waitForConnectionUsingMainTransport(walletConfig.connectionTimeout.first())
                 Napier.d("NdefDeviceEngagementService: Main transport connected")
