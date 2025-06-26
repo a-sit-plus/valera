@@ -17,6 +17,8 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.atTime
+import kotlinx.datetime.toInstant
 import kotlinx.io.bytestring.ByteString
 import org.jetbrains.compose.resources.getString
 import org.multipaz.asn1.ASN1Integer
@@ -102,38 +104,44 @@ class TransferManager(
         EcPrivateKey.fromPem(
             """
                     -----BEGIN PRIVATE KEY-----
-                    MIG2AgEAMBAGByqGSM49AgEGBSuBBAAiBIGeMIGbAgEBBDCcRuzXW3pW2h9W8pu5
-                    /CSR6JSnfnZVATq+408WPoNC3LzXqJEQSMzPsI9U1q+wZ2yhZANiAAT5APJ7vSbY
-                    7SWU9cyNWPFVnPebmTpqBP7CKH4vv1vuPKpSX32xt5SenFosP5yYHccre3CQDt+Z
-                    UlKhsFz70IOGSHebHqf5igflG6VpJZOFYF8zJGOx9U4OSiwcsIOds9U=
+                    MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgC42H+ZfAyMq4i3Na
+                    bUrYsgtqflPxsgheWe8eygZ0Xl+gCgYIKoZIzj0DAQehRANCAAQmm+pmyUxx/x2e
+                    D131E8HhvNkhsfYQXzefZlxgLXQPqCOxO+VPOXVOKL0dUy+kHyT5IP/NOAh038co
+                    AVOgGPT4
                     -----END PRIVATE KEY-----
                 """.trimIndent().trim(),
             EcPublicKey.fromPem(
                 """
                     -----BEGIN PUBLIC KEY-----
-                    MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAE+QDye70m2O0llPXMjVjxVZz3m5k6agT+
-                    wih+L79b7jyqUl99sbeUnpxaLD+cmB3HK3twkA7fmVJSobBc+9CDhkh3mx6n+YoH
-                    5RulaSWThWBfMyRjsfVODkosHLCDnbPV
+                    MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEJpvqZslMcf8dng9d9RPB4bzZIbH2
+                    EF83n2ZcYC10D6gjsTvlTzl1Tii9HVMvpB8k+SD/zTgIdN/HKAFToBj0+A==
                     -----END PUBLIC KEY-----
                     """.trimIndent().trim(),
-                EcCurve.P384
+                EcCurve.P256
             )
         )
     }
 
     private val readerRootCert: X509Cert by lazy {
-        MdocUtil.generateReaderRootCertificate(
-            readerRootKey = readerRootKey,
-            subject = X500Name.fromName("CN=OWF IC TestApp Reader Root"),
-            serial = ASN1Integer(1L),
-            validFrom = certsValidFrom,
-            validUntil = certsValidUntil,
-            crlUrl = "https://github.com/openwallet-foundation-labs/identity-credential/crl"
+        X509Cert.fromPem(
+            """
+                -----BEGIN CERTIFICATE-----
+                MIICJzCCAc6gAwIBAgIUSvMftn/oM3etHjE7hdIBl6tWMV8wCgYIKoZIzj0EAwIw
+                MzELMAkGA1UEBhMCQVQxDjAMBgNVBAoMBUEtU0lUMRQwEgYDVQQDDAtWYWxlcmEg
+                SUFDQTAeFw0yNTA2MjYwODI0MDJaFw0yNjA2MjYwODI0MDJaMDMxCzAJBgNVBAYT
+                AkFUMQ4wDAYDVQQKDAVBLVNJVDEUMBIGA1UEAwwLVmFsZXJhIElBQ0EwWTATBgcq
+                hkjOPQIBBggqhkjOPQMBBwNCAAQmm+pmyUxx/x2eD131E8HhvNkhsfYQXzefZlxg
+                LXQPqCOxO+VPOXVOKL0dUy+kHyT5IP/NOAh038coAVOgGPT4o4G/MIG8MBIGA1Ud
+                EwEB/wQIMAYBAf8CAQAwDgYDVR0PAQH/BAQDAgEGMCIGA1UdEgQbMBmGF2h0dHBz
+                Oi8vd2FsbGV0LmEtc2l0LmF0MDIGA1UdHwQrMCkwJ6AloCOGIWh0dHBzOi8vd2Fs
+                bGV0LmEtc2l0LmF0L2NybC8xLmNybDAfBgNVHSMEGDAWgBSDGoj0XuXE3qEVTmPv
+                KSvIvR36ijAdBgNVHQ4EFgQUgxqI9F7lxN6hFU5j7ykryL0d+oowCgYIKoZIzj0E
+                AwIDRwAwRAIgS9XcYA4Be5gDIdHmMOgJ3AeS44gT4bgVgsg/D5+WXS8CIAxJgi3n
+                hGrVMj9SszehLorR2rR5FO5RZgITAaOIGSNP
+                -----END CERTIFICATE-----
+            """.trimIndent().trim()
         )
     }
-
-    private val certsValidFrom = LocalDate.parse("2024-12-01").atStartOfDayIn(TimeZone.UTC)
-    private val certsValidUntil = LocalDate.parse("2026-12-01").atStartOfDayIn(TimeZone.UTC)
 
     private val readerKey: EcPrivateKey = Crypto.createEcPrivateKey(EcCurve.P256)
     private val readerCert: X509Cert = MdocUtil.generateReaderCertificate(
@@ -142,8 +150,8 @@ class TransferManager(
         readerKey = readerKey.publicKey,
         subject = X500Name.fromName("CN=Valera Reader Cert"),
         serial = ASN1Integer(1L),
-        validFrom = certsValidFrom,
-        validUntil = certsValidUntil,
+        validFrom = LocalDate.parse("2025-06-26").atTime(10, 0).toInstant(TimeZone.UTC),
+        validUntil = LocalDate.parse("2026-06-26").atStartOfDayIn(TimeZone.UTC),
     )
 
     fun startNfcEngagement(
