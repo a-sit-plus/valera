@@ -130,6 +130,11 @@ class MdocPresenter(
 
                 numRequestsServed.value += 1
                 if (!mechanism.allowMultipleRequests) {
+                    // Wait for transport to be closed as sendMessage does not block as advertised in its description
+                    transport.state.first {
+                        it == MdocTransport.State.CLOSED ||
+                                it == MdocTransport.State.FAILED
+                    }
                     Napier.i("Response sent, closing connection")
                     stateModel.setCompleted()
                     break
