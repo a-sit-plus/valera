@@ -136,6 +136,7 @@ class NdefDeviceEngagementService : HostApduService() {
             presentationStateModel.state
                 .collect { state ->
                     if (state == PresentationStateModel.State.COMPLETED) {
+                        engagement = null
                         disableEngagementJob?.cancel()
                         disableEngagementJob = null
                     }
@@ -273,6 +274,7 @@ class NdefDeviceEngagementService : HostApduService() {
             disableEngagementJob = null
             listenForCancellationFromUiJob?.cancel()
             listenForCancellationFromUiJob = null
+            engagement = null
         }
     }
 
@@ -312,7 +314,7 @@ class NdefDeviceEngagementService : HostApduService() {
             try {
                 presentationStateModel.waitForConnectionUsingMainTransport(walletConfig.connectionTimeout.first())
                 Napier.d("NdefDeviceEngagementService: Main transport connected")
-            } catch (timeoutExc: TimeoutCancellationException) {
+            } catch (_: TimeoutCancellationException) {
                 val message =
                     "NdefDeviceEngagementService: Reader didn't connect in ${walletConfig.connectionTimeout.first()}, closing"
                 Napier.w(message)
