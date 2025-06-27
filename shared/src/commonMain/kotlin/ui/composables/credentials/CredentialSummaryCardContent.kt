@@ -32,6 +32,6 @@ fun CredentialSummaryCardContent(
         is EhicScheme -> EhicSummaryCardContent(credential)
         is TaxIdScheme -> TaxIdCredentialSummaryCardContent(credential)
         is TaxId2025Scheme -> TaxIdCredentialSummaryCardContent(credential)
-        else -> GenericCredentialSummaryCardContent(credential)
+        else -> {}
     }
 }
