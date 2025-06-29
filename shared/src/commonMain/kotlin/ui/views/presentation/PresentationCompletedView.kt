@@ -57,21 +57,21 @@ fun PresentationCompletedView(error: Throwable?) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             when (error) {
-                null -> showPresentationSuccess()
-                else -> showPresentationFailure(error)
+                null -> ShowPresentationSuccess()
+                else -> ShowPresentationFailure(error)
             }
         }
     }
 }
 
 @Composable
-fun showPresentationSuccess() {
+fun ShowPresentationSuccess() {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        showImageAndText(
+        ShowImageAndText(
             painterResource(Res.drawable.icon_presentation_success),
             stringResource(Res.string.presentation_success)
         )
@@ -79,7 +79,7 @@ fun showPresentationSuccess() {
 }
 
 @Composable
-fun showPresentationFailure(error: Throwable) {
+fun ShowPresentationFailure(error: Throwable) {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
@@ -90,12 +90,12 @@ fun showPresentationFailure(error: Throwable) {
             is PresentmentTimeout -> stringResource(Res.string.presentation_timeout)
             else -> stringResource(Res.string.presentation_error)
         }
-        showImageAndText(painterResource(Res.drawable.icon_presentation_error), text)
+        ShowImageAndText(painterResource(Res.drawable.icon_presentation_error), text)
     }
 }
 
 @Composable
-fun showImageAndText(painter: Painter, text: String) {
+fun ShowImageAndText(painter: Painter, text: String) {
     Image(
         modifier = Modifier.size(200.dp).fillMaxSize().padding(10.dp),
         painter = painter,

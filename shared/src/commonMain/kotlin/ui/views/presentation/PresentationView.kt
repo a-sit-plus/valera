@@ -54,8 +54,7 @@ import kotlin.time.Duration.Companion.seconds
  * A composable used for credential presentment.
  *
  * Applications should embed this composable wherever credential presentment is required. It communicates with the
- * verifier using [MdocPresentmentMechanism] and [PresentationStateModel] and gets application-specific data sources and
- * policy using [PresentmentSource].
+ * verifier using [MdocPresentmentMechanism] and [PresentationStateModel].
  *
  * @param presentationViewModel the [PresentationViewModel] to use.
  * @param onPresentmentComplete called when the presentment is complete.

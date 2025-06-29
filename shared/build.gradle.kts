@@ -65,7 +65,7 @@ kotlin {
             implementation(ktor("serialization-kotlinx-json"))
             implementation(libs.datastore.preferences.core)
             implementation(libs.datastore.core.okio)
-            implementation(libs.multipaz)
+            implementation(libs.multipaz) // This is the library bringing in Bouncy Castle
             implementation(libs.multipaz.compose)
             implementation(libs.multipaz.doctypes)
             implementation(libs.navigation.compose)
@@ -101,7 +101,10 @@ kotlin {
 
             implementation(libs.kotlinx.coroutines.play.services)
             implementation(libs.play.services.identity.credentials)
-            implementation(libs.multipaz.android.legacy)
+            implementation("org.multipaz:multipaz-android-legacy:0.92.0") {
+                exclude(group = "org.bouncycastle", module = "bcpkix-jdk18on")
+            }
+            implementation("org.bouncycastle:bcpkix-jdk18on:1.79")
             implementation(libs.core.splashscreen)
 
             implementation(libs.androidx.credentials)

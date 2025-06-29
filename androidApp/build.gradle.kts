@@ -16,7 +16,6 @@ kotlin {
             implementation(libs.androidx.credentials.registry.provider)
 
             implementation(libs.multipaz)
-            implementation(libs.multipaz.android.legacy)
             implementation(libs.datastore.preferences.core)
         }
     }
@@ -31,18 +30,7 @@ android {
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
 
     signingConfigs {
-        getByName("debug") {
-            storeFile = file("keystore.p12")
-            storePassword = apkSignerPassword
-            keyAlias = "key0"
-            keyPassword = apkSignerPassword
-        }
-        create("release") {
-            storeFile = file("keystore.p12")
-            storePassword = apkSignerPassword
-            keyAlias = "key0"
-            keyPassword = apkSignerPassword
-        }
+
     }
     defaultConfig {
         applicationId = "at.asitplus.wallet.app.android"
@@ -56,10 +44,6 @@ android {
     buildTypes {
         getByName("debug") {
             isDebuggable = true
-            signingConfig = signingConfigs.getByName("debug")
-        }
-        getByName("release") {
-            signingConfig = signingConfigs.getByName("release")
         }
     }
 
