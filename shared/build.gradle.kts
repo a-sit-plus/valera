@@ -101,10 +101,10 @@ kotlin {
 
             implementation(libs.kotlinx.coroutines.play.services)
             implementation(libs.play.services.identity.credentials)
+            // bcpkix-jdk18on is included in signum which enforces to a specific version
             implementation("org.multipaz:multipaz-android-legacy:0.92.0") {
                 exclude(group = "org.bouncycastle", module = "bcpkix-jdk18on")
             }
-            implementation("org.bouncycastle:bcpkix-jdk18on:1.79")
             implementation(libs.core.splashscreen)
 
             implementation(libs.androidx.credentials)
