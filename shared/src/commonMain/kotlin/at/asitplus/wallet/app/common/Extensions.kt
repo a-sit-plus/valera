@@ -152,6 +152,7 @@ fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, C
                             id = claimsQueryDelegate.id,
                             claimName = claimsQueryDelegate.claimName,
                             namespace = claimsQueryDelegate.namespace,
+                            path = claimsQueryDelegate.path,
                         )
 
                         else -> throw IllegalStateException("Claims query type not supported")
