@@ -39,7 +39,7 @@ class DCAPIExportService(private val platformAdapter: PlatformAdapter) {
 
         val credentialList = CredentialList(credentialListEntries)
         platformAdapter.registerWithDigitalCredentialsAPI(credentialList, scope)
-        Napier.d("DC API: Registered ${credentialList.entries.size} credentials with the system")
+        Napier.d("DC API: Registering ${credentialList.entries.size} credentials with the system")
     }
 
     private suspend fun SubjectCredentialStore.StoreEntry.toCredentialEntry() = when (this) {
