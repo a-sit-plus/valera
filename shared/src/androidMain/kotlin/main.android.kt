@@ -181,8 +181,8 @@ public class AndroidPlatformAdapter(
                         credentialsListCbor
                     )
                 ).await()
-            }.onSuccess { Napier.i("DCAPI: Credential Manager registration succeeded") }
-                .onFailure { Napier.w("DCAPI: Credential Manager registration failed", it) }
+            }.onSuccess { Napier.i("DC API: Credential Manager registration succeeded") }
+                .onFailure { Napier.w("DC API: Credential Manager registration failed", it) }
         }
     }
 
