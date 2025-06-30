@@ -123,7 +123,7 @@ private data class ConfigData(
     val presentmentUseNegotiatedHandover: Boolean = true,
     val presentmentBleCentralClientModeEnabled: Boolean = true,
     val presentmentBlePeripheralServerModeEnabled: Boolean = true,
-    val presentmentNfcDataTransferEnabled: Boolean = true,
+    val presentmentNfcDataTransferEnabled: Boolean = false,
     val readerBleL2CapEnabled: Boolean = true,
     val presentmentAllowMultipleRequests: Boolean = false,
     val readerAutomaticallySelectTransport: Boolean = true,
