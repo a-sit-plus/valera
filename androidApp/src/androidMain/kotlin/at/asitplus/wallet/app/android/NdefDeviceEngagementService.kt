@@ -114,7 +114,6 @@ class NdefDeviceEngagementService : HostApduService() {
 
     private var started = false
 
-
     private suspend fun startEngagement() {
         Napier.i("NdefDeviceEngagementService: startNdefEngagement")
 
