@@ -30,6 +30,9 @@ import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.ehic.EhicScheme
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
+import at.asitplus.wallet.fallbackCredential.isoMdocFallbackCredentialScheme.IsoMdocFallbackCredentialScheme
+import at.asitplus.wallet.fallbackCredential.sdJwtFallbackCredentialScheme.SdJwtFallbackCredentialScheme
+import at.asitplus.wallet.fallbackCredential.vcFallbackCredentialScheme.VcFallbackCredentialScheme
 import at.asitplus.wallet.healthid.HealthIdScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.AttributeIndex
@@ -57,6 +60,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.put
+import ui.views.iso.verifier.IsoMdocCredentialViewForScheme
 
 fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, ConstantIndex.CredentialScheme, Map<NormalizedJsonPath, Boolean>> {
     @Suppress("DEPRECATION")
@@ -75,7 +79,11 @@ fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, Const
     // TODO: How to properly handle the case with multiple applicable schemes?
     val scheme = AttributeIndex.schemeSet.firstOrNull {
         it.matchAgainstIdentifier(credentialRepresentation, credentialIdentifiers)
-    } ?: throw Throwable("Missing scheme for $credentialIdentifiers")
+    } ?: when(credentialRepresentation) {
+            PLAIN_JWT -> VcFallbackCredentialScheme(vcType = credentialIdentifiers.first())
+            SD_JWT -> SdJwtFallbackCredentialScheme(sdJwtType = credentialIdentifiers.first())
+            ISO_MDOC -> IsoMdocFallbackCredentialScheme(isoDocType = credentialIdentifiers.first())
+        }
 
     val matchedCredentialIdentifier = when (credentialRepresentation) {
         PLAIN_JWT -> throw Throwable("PLAIN_JWT not implemented")
@@ -175,6 +183,9 @@ fun ConstantIndex.CredentialScheme.toJsonElement(
         PowerOfRepresentationScheme -> PowerOfRepresentationDataElements.ALL_ELEMENTS
         CertificateOfResidenceScheme -> CertificateOfResidenceDataElements.ALL_ELEMENTS
         CompanyRegistrationScheme -> CompanyRegistrationDataElements.ALL_ELEMENTS
+        is VcFallbackCredentialScheme -> this.claimNames
+        is SdJwtFallbackCredentialScheme -> this.claimNames
+        is IsoMdocFallbackCredentialScheme -> this.claimNames
         else -> TODO("${this::class.simpleName} not implemented in jsonElementBuilder yet")
     }
 
