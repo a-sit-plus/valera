@@ -128,6 +128,19 @@ open class KeystoreService(
             }
 
         }
+
+        fun clearKeyMaterial() {
+            getProvider().let { provider ->
+                runBlocking {
+                    provider.getSignerForKey(Configuration.KS_ALIAS_OLD).onSuccess {
+                        provider.deleteSigningKey(Configuration.KS_ALIAS_OLD)
+                    }
+                    provider.getSignerForKey(Configuration.KS_ALIAS).onSuccess {
+                        provider.deleteSigningKey(Configuration.KS_ALIAS)
+                    }
+                }
+            }
+        }
     }
 
     //TMP for iOS
