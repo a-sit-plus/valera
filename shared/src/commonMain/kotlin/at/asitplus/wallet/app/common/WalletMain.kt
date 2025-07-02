@@ -83,6 +83,7 @@ class WalletMain(
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_VCS)
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT)
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_COOKIES)
+        KeystoreService.clearKeyMaterial()
 
         settingsRepository.reset()
     }
