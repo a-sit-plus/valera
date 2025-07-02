@@ -1,7 +1,6 @@
 package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.companyregistration.Address
 import at.asitplus.wallet.companyregistration.Branch
 import at.asitplus.wallet.companyregistration.CompanyActivity
@@ -31,28 +30,28 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.decodeFromJsonElement
 
 sealed class CompanyRegistrationCredentialAdapter : CredentialAdapter() {
-
-    override fun getAttribute(path: NormalizedJsonPath) = path.segments.firstOrNull()?.let { first ->
-        when (first) {
-            is NormalizedJsonPathSegment.NameSegment -> when (first.memberName) {
-                COMPANY_NAME -> Attribute.fromValue(companyName)
-                COMPANY_TYPE -> Attribute.fromValue(companyType)
-                COMPANY_STATUS -> Attribute.fromValue(companyStatus)
-                COMPANY_ACTIVITY -> Attribute.fromValue(companyActivity)
-                REGISTRATION_DATE -> Attribute.fromValue(registrationDate)
-                COMPANY_END_DATE -> Attribute.fromValue(companyEndDate)
-                COMPANY_EUID -> Attribute.fromValue(companyEuid)
-                VAT_NUMBER -> Attribute.fromValue(vatNumber)
-                COMPANY_CONTACT_DATA -> Attribute.fromValue(contactData)
-                REGISTERED_ADDRESS -> Attribute.fromValue(registeredAddress)
-                POSTAL_ADDRESS -> Attribute.fromValue(postalAddress)
-                BRANCH -> Attribute.fromValue(branch)
-                else -> null
-            }
-
-            else -> null
-        }
+    private fun CompanyRegistrationCredentialClaimDefinition.toAttribute() = when (this) {
+        CompanyRegistrationCredentialClaimDefinition.COMPANY_NAME -> Attribute.fromValue(companyName)
+        CompanyRegistrationCredentialClaimDefinition.COMPANY_TYPE -> Attribute.fromValue(companyType)
+        CompanyRegistrationCredentialClaimDefinition.COMPANY_STATUS -> Attribute.fromValue(companyStatus)
+        CompanyRegistrationCredentialClaimDefinition.COMPANY_ACTIVITY -> Attribute.fromValue(companyActivity)
+        CompanyRegistrationCredentialClaimDefinition.REGISTRATION_DATE -> Attribute.fromValue(registrationDate)
+        CompanyRegistrationCredentialClaimDefinition.COMPANY_END_DATE -> Attribute.fromValue(companyEndDate)
+        CompanyRegistrationCredentialClaimDefinition.COMPANY_EUID -> Attribute.fromValue(companyEuid)
+        CompanyRegistrationCredentialClaimDefinition.VAT_NUMBER -> Attribute.fromValue(vatNumber)
+        CompanyRegistrationCredentialClaimDefinition.COMPANY_CONTACT_DATA -> Attribute.fromValue(contactData)
+        CompanyRegistrationCredentialClaimDefinition.REGISTERED_ADDRESS -> Attribute.fromValue(registeredAddress)
+        CompanyRegistrationCredentialClaimDefinition.POSTAL_ADDRESS -> Attribute.fromValue(postalAddress)
+        CompanyRegistrationCredentialClaimDefinition.BRANCH -> Attribute.fromValue(branch)
     }
+
+    fun getAttribute(claimDefinition: CompanyRegistrationCredentialClaimDefinition) = claimDefinition.toAttribute()
+
+    override fun getAttribute(
+        path: NormalizedJsonPath,
+    ) = CompanyRegistrationCredentialClaimDefinitionResolver().resolveOrNull(
+        SdJwtClaimReference(path)
+    )?.toAttribute()
 
     abstract val companyName: String?
     abstract val companyType: String?
