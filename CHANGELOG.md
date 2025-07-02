@@ -1,3 +1,6 @@
+# Release 5.7.3
+ * Use KoinIsolatedContext in hopes of fixing Digital Credential API crashes
+
 # Release 5.7.2 
  * Proximity: Use fixed IACA key and certificate for reader authentication
  * Credentials: Show technical metadata (validity, status)

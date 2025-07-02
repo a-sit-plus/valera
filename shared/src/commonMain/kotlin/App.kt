@@ -13,7 +13,10 @@ import at.asitplus.wallet.app.common.di.appModule
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.koin.compose.KoinApplication
+import org.koin.compose.KoinIsolatedContext
 import org.koin.compose.koinInject
+import org.koin.core.KoinApplication
+import org.koin.dsl.koinApplication
 import ui.navigation.WalletNavigation
 import ui.theme.WalletTheme
 import ui.viewmodels.authentication.PresentationStateModel
@@ -35,9 +38,13 @@ internal object AppTestTags {
 
 @Composable
 fun App(walletDependencyProvider: WalletDependencyProvider) {
-    KoinApplication({
+    KoinIsolatedContext(context = koinApplication {
+        // declare used modules
         modules(appModule(walletDependencyProvider))
     }) {
+//    KoinApplication({
+//        modules(appModule(walletDependencyProvider))
+//    }) {
         catchingUnwrapped {
             val walletMain: WalletMain = koinInject()
 
