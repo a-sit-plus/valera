@@ -2,6 +2,7 @@ package at.asitplus.wallet.app.common
 
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
+import at.asitplus.catchingUnwrapped
 import at.asitplus.dcapi.request.DCAPIRequest
 import at.asitplus.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.iso.EncryptionParameters
@@ -163,9 +164,13 @@ class WalletMain(
     }
 }
 
-fun PlatformAdapter.decodeImage(image: ByteArray): ImageBitmap {
-    return getImageDecoder((image))
-}
+fun PlatformAdapter.decodeImage(image: ByteArray) = catchingUnwrapped {
+        getImageDecoder((image))
+    }.getOrElse {
+        Napier.e("decodeImage: Error during decode $it")
+        ImageBitmap(1,1)
+    }
+
 
 /**
  * Adapter to call back to native code without the need for service objects
