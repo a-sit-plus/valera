@@ -61,7 +61,7 @@ fun GenericCredentialSummaryCardContent(
 ) {
 
     var showContent by remember {
-        mutableStateOf(credential.scheme?.schemaUri == "https://wallet.a-sit.at/schemas/1.0.0/unknown.json")
+        mutableStateOf(credential.scheme?.schemaUri?.contains("unknown") ?: false)
     }
 
 
