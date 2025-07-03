@@ -16,7 +16,7 @@ class CredentialDetailsViewModel(
     val onClickLogo: () -> Unit,
     val onClickSettings: () -> Unit
 ) {
-    val imageDecoder: (ByteArray) -> ImageBitmap = { byteArray -> walletMain.platformAdapter.decodeImage(byteArray)}
+    val imageDecoder: (ByteArray) -> Result<ImageBitmap> = { walletMain.platformAdapter.decodeImage(it) }
 
     val storeEntry = walletMain.subjectCredentialStore.observeStoreContainer().map { container ->
         container.credentials.find {

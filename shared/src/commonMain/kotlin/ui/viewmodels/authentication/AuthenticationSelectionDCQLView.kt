@@ -37,7 +37,7 @@ fun AuthenticationSelectionDCQLView(
     confirmSelection: (CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>?) -> Unit,
     matchingResult: DCQLMatchingResult<SubjectCredentialStore.StoreEntry>,
     checkCredentialFreshness: suspend (SubjectCredentialStore.StoreEntry) -> CredentialFreshnessSummaryUiModel,
-    decodeToBitmap: (ByteArray) -> ImageBitmap?,
+    decodeToBitmap: (ByteArray) -> Result<ImageBitmap>,
     onError: (Throwable) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -72,7 +72,7 @@ fun AuthenticationSelectionDCQLView(
     navigateUp: () -> Unit,
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
-    decodeToBitmap: (ByteArray) -> ImageBitmap?,
+    decodeToBitmap: (ByteArray) -> Result<ImageBitmap>,
     confirmSelection: (CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>?) -> Unit,
     credentialQueryOptions: Map<DCQLCredentialQueryIdentifier, List<DCQLCredentialSubmissionOption<SubjectCredentialStore.StoreEntry>>>,
     checkCredentialFreshness: suspend (SubjectCredentialStore.StoreEntry) -> CredentialFreshnessSummaryUiModel,

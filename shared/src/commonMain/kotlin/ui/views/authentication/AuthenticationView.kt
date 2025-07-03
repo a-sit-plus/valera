@@ -64,9 +64,7 @@ fun AuthenticationView(
                         checkCredentialFreshness = {
                             vm.walletMain.checkCredentialFreshness(it).toCredentialFreshnessSummaryModel()
                         },
-                        decodeToBitmap = { byteArray ->
-                            vm.walletMain.platformAdapter.decodeImage(byteArray)
-                        },
+                        decodeToBitmap = { vm.walletMain.platformAdapter.decodeImage(it) },
                         onError = onError,
                     )
                 }

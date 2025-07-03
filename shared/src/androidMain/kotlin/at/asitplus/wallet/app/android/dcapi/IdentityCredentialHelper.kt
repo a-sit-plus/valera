@@ -72,7 +72,7 @@ class IdentityCredentialHelper(
             }
 
         private fun getIconBytes(image: ByteArray?, androidPlatformAdapter: AndroidPlatformAdapter): ByteArrayOutputStream {
-            val icon = image?.let { androidPlatformAdapter.decodeImage(it).asAndroidBitmap() }
+            val icon = image?.let { androidPlatformAdapter.decodeImage(it).getOrNull()?.asAndroidBitmap() }
             val scaledIcon = icon?.scale(128, 128)
             val stream = ByteArrayOutputStream()
             scaledIcon?.compress(Bitmap.CompressFormat.PNG, 100, stream)

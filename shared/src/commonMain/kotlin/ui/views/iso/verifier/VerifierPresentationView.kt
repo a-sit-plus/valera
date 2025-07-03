@@ -46,9 +46,7 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 )
 @Composable
 fun VerifierPresentationView(vm: VerifierViewModel) {
-    val decodeImage: (ByteArray) -> ImageBitmap = { byteArray ->
-        vm.walletMain.platformAdapter.decodeImage(byteArray)
-    }
+    val decodeImage: (ByteArray) -> Result<ImageBitmap> = { vm.walletMain.platformAdapter.decodeImage(it) }
 
     Scaffold(
         topBar = {
@@ -98,7 +96,7 @@ fun VerifierPresentationView(vm: VerifierViewModel) {
 fun IsoMdocCredentialViewForScheme(
     scheme: CredentialScheme?,
     namespaces: Map<String, Map<String, Any>>,
-    decodeImage: (ByteArray) -> ImageBitmap?
+    decodeImage: (ByteArray) -> Result<ImageBitmap>
 ) {
     when (scheme) {
         is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialViewFromAdapter(

@@ -46,7 +46,7 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
     onToggleSelection: () -> Unit,
     option: DCQLCredentialSubmissionOption<SubjectCredentialStore.StoreEntry>,
     checkCredentialFreshness: suspend (SubjectCredentialStore.StoreEntry) -> CredentialFreshnessSummaryUiModel,
-    decodeToBitmap: (ByteArray) -> ImageBitmap?,
+    decodeToBitmap: (ByteArray) -> Result<ImageBitmap>,
     modifier: Modifier = Modifier,
 ) {
     val credentialFreshnessValidationState by produceState(

@@ -18,7 +18,7 @@ fun CredentialSelectionGroup(
     matchingCredentials: Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, List<NodeListEntry>>>,
     attributeSelection: SnapshotStateMap<String, Boolean>,
     credentialSelection: MutableState<SubjectCredentialStore.StoreEntry>,
-    imageDecoder: (ByteArray) -> ImageBitmap?,
+    imageDecoder: (ByteArray) -> Result<ImageBitmap>,
     checkCredentialFreshness: suspend (SubjectCredentialStore.StoreEntry) -> CredentialFreshnessSummaryUiModel,
 ) {
     matchingCredentials.forEach { credential ->

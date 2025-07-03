@@ -10,7 +10,7 @@ import data.credentials.MobileDrivingLicenceCredentialAdapter
 @Composable
 fun MobileDrivingLicenceCredentialSummaryCardContent(
     credential: SubjectCredentialStore.StoreEntry,
-    decodeToBitmap: (ByteArray) -> ImageBitmap?,
+    decodeToBitmap: (ByteArray) -> Result<ImageBitmap>,
     modifier: Modifier = Modifier,
 ) {
     val credentialAdapter = remember {

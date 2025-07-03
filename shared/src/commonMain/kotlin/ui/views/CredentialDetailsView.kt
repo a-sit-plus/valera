@@ -138,7 +138,7 @@ fun CredentialDetailsScaffold(
 @Composable
 fun CredentialDetailsSummaryView(
     storeEntry: SubjectCredentialStore.StoreEntry,
-    imageDecoder: (ByteArray) -> ImageBitmap,
+    imageDecoder: (ByteArray) -> Result<ImageBitmap>,
 ) {
     Column(modifier = Modifier.padding(horizontal = 8.dp)) {
         when (storeEntry.scheme) {

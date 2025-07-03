@@ -19,7 +19,7 @@ import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
 
 sealed class IdAustriaCredentialAdapter(
-    private val decodePortrait: (ByteArray) -> ImageBitmap?,
+    private val decodePortrait: (ByteArray) -> Result<ImageBitmap>,
 ) : CredentialAdapter() {
     override fun getAttribute(path: NormalizedJsonPath) = path.segments.firstOrNull()?.let { first ->
         with(IdAustriaScheme.Attributes) {
@@ -72,7 +72,7 @@ sealed class IdAustriaCredentialAdapter(
     val portraitBitmap: ImageBitmap? by lazy {
 
         kotlin.runCatching {
-            portraitRaw?.let(decodePortrait)
+            portraitRaw?.let(decodePortrait)?.getOrNull()
         }.onFailure { Napier.e(throwable = it) { "Error decoding image" } }.getOrNull()
     }
     abstract val ageAtLeast14: Boolean?
@@ -89,7 +89,7 @@ sealed class IdAustriaCredentialAdapter(
     companion object {
         fun createFromStoreEntry(
             storeEntry: SubjectCredentialStore.StoreEntry,
-            decodeImage: (ByteArray) -> ImageBitmap?,
+            decodeImage: (ByteArray) -> Result<ImageBitmap>,
         ): IdAustriaCredentialAdapter {
             if (storeEntry.scheme !is IdAustriaScheme) {
                 throw IllegalArgumentException("credential")
@@ -121,7 +121,7 @@ sealed class IdAustriaCredentialAdapter(
 
 private class IdAustriaCredentialVcAdapter(
     val credentialSubject: IdAustriaCredential,
-    decodeImage: (ByteArray) -> ImageBitmap?,
+    decodeImage: (ByteArray) -> Result<ImageBitmap>,
 ) : IdAustriaCredentialAdapter(decodeImage) {
     override val scheme: ConstantIndex.CredentialScheme
         get() = IdAustriaScheme
@@ -162,7 +162,7 @@ private class IdAustriaCredentialVcAdapter(
 
 private class IdAustriaCredentialSdJwtAdapter(
     private val attributes: Map<String, JsonPrimitive>,
-    decodeImage: (ByteArray) -> ImageBitmap?,
+    decodeImage: (ByteArray) -> Result<ImageBitmap>,
 ) : IdAustriaCredentialAdapter(decodeImage) {
     override val scheme: ConstantIndex.CredentialScheme
         get() = IdAustriaScheme
@@ -203,7 +203,7 @@ private class IdAustriaCredentialSdJwtAdapter(
 
 private class IdAustriaCredentialIsoMdocAdapter(
     namespaces: Map<String, Map<String, Any>>?,
-    decodeImage: (ByteArray) -> ImageBitmap?,
+    decodeImage: (ByteArray) -> Result<ImageBitmap>,
 ) : IdAustriaCredentialAdapter(decodeImage) {
     override val scheme: ConstantIndex.CredentialScheme
         get() = IdAustriaScheme

@@ -13,7 +13,7 @@ import data.credentials.EuPidCredentialAdapter
 @Composable
 fun EuPidCredentialView(
     credential: SubjectCredentialStore.StoreEntry,
-    decodeImage: (ByteArray) -> ImageBitmap,
+    decodeImage: (ByteArray) -> Result<ImageBitmap>,
     modifier: Modifier = Modifier,
 ) {
     val credentialAdapter = remember {

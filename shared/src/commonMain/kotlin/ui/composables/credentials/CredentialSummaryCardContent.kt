@@ -18,7 +18,7 @@ import at.asitplus.wallet.taxid.TaxIdScheme
 @Composable
 fun CredentialSummaryCardContent(
     credential: SubjectCredentialStore.StoreEntry,
-    decodeToBitmap: (ByteArray) -> ImageBitmap?,
+    decodeToBitmap: (ByteArray) -> Result<ImageBitmap>,
 ) {
     when (credential.scheme) {
         is IdAustriaScheme -> IdAustriaCredentialSummaryCardContent(credential, decodeToBitmap)

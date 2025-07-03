@@ -6,6 +6,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
+import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import ui.models.CredentialFreshnessSummaryUiModel
 
@@ -14,7 +15,7 @@ fun CredentialCard(
     credential: SubjectCredentialStore.StoreEntry,
     isTokenStatusEvaluated: Boolean,
     credentialFreshnessSummaryModel: CredentialFreshnessSummaryUiModel?,
-    imageDecoder: (ByteArray) -> ImageBitmap?,
+    imageDecoder: (ByteArray) -> Result<ImageBitmap>,
     onDelete: () -> Unit,
     onOpenDetails: (() -> Unit)?,
     modifier: Modifier = Modifier,
