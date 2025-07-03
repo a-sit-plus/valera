@@ -30,7 +30,7 @@ import ui.models.CredentialFreshnessSummaryUiModel
 fun CredentialSelectionCard(
     credential: Map.Entry<SubjectCredentialStore.StoreEntry, Map<ConstraintField, NodeList>>,
     checkCredentialFreshness: suspend () -> CredentialFreshnessSummaryUiModel,
-    imageDecoder: (ByteArray) -> ImageBitmap?,
+    imageDecoder: (ByteArray) -> Result<ImageBitmap>,
     attributeSelection: SnapshotStateMap<String, Boolean>,
     credentialSelection: MutableState<SubjectCredentialStore.StoreEntry>
 ) {

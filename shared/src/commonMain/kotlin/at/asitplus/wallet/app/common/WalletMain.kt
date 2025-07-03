@@ -166,9 +166,6 @@ class WalletMain(
 
 fun PlatformAdapter.decodeImage(image: ByteArray) = catchingUnwrapped {
         getImageDecoder((image))
-    }.getOrElse {
-        Napier.e("decodeImage: Error during decode $it")
-        ImageBitmap(1,1)
     }
 
 

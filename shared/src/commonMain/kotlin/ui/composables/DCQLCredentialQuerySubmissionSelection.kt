@@ -17,7 +17,7 @@ fun DCQLCredentialQuerySubmissionSelection(
     checkCredentialFreshness: suspend (SubjectCredentialStore.StoreEntry) -> CredentialFreshnessSummaryUiModel,
     currentlySelectedOptionIndex: Int?,
     onChangeSelection: (Int?) -> Unit,
-    decodeToBitmap: (ByteArray) -> ImageBitmap?,
+    decodeToBitmap: (ByteArray) -> Result<ImageBitmap>,
     modifier: Modifier = Modifier,
 ) {
     Column(

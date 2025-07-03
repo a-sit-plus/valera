@@ -19,7 +19,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SubjectCredentialStore.StoreEntry.toCredentialAdapter(
-    decodeImage: (ByteArray) -> ImageBitmap?,
+    decodeImage: (ByteArray) -> Result<ImageBitmap>,
 ): CredentialAdapter? = when (scheme) {
     is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialAdapter.createFromStoreEntry(this)
     is CompanyRegistrationScheme -> CompanyRegistrationCredentialAdapter.createFromStoreEntry(this)

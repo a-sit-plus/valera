@@ -49,13 +49,7 @@ class CredentialsViewModel(
         initialValue = mutableMapOf()
     )
 
-    fun decodeImage(byteArray: ByteArray) = try {
-        imageDecoder(byteArray)
-    } catch (throwable: Throwable) {
-        // TODO: should this be emitted to the error service?
-        Napier.w("Failed Operation: decodeImage")
-        null
-    }
+    fun decodeImage(byteArray: ByteArray) = imageDecoder(byteArray)
 
     fun removeStoreEntryById(storeEntryId: StoreEntryId) = viewModelScope.launch {
         subjectCredentialStore.removeStoreEntryById(storeEntryId)

@@ -82,9 +82,7 @@ fun AuthenticationSelectionPresentationExchangeView(
                     matchingCredentials = matchingCredentials,
                     attributeSelection = attributeSelection,
                     credentialSelection = credentialSelection,
-                    imageDecoder = { byteArray ->
-                        vm.walletMain.platformAdapter.decodeImage(byteArray)
-                    },
+                    imageDecoder = { vm.walletMain.platformAdapter.decodeImage(it) },
                     checkCredentialFreshness = {
                         vm.walletMain.checkCredentialFreshness(it).toCredentialFreshnessSummaryModel()
                     },
