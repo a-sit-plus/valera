@@ -38,7 +38,6 @@ class PersistentSubjectCredentialStore(
         vcSerialized,
         vc,
         scheme.schemaUri,
-        scheme.vcType
     ).also {
         addStoreEntry(it)
     }
@@ -54,7 +53,6 @@ class PersistentSubjectCredentialStore(
         vc,
         disclosures,
         scheme.schemaUri,
-        scheme.sdJwtType
     ).also {
         addStoreEntry(it)
     }
@@ -65,7 +63,6 @@ class PersistentSubjectCredentialStore(
     ) = SubjectCredentialStore.StoreEntry.Iso(
         issuerSigned,
         scheme.schemaUri,
-        scheme.isoDocType
     ).also {
         addStoreEntry(it)
     }
@@ -93,7 +90,6 @@ class PersistentSubjectCredentialStore(
                     ExportableStoreEntry.Iso(
                         issuerSigned = storeEntry.issuerSigned,
                         exportableCredentialScheme = storeEntry.scheme!!.toExportableCredentialScheme(),
-                        isoDocType = storeEntry.isoDocType
                     )
                 }
 
@@ -103,7 +99,6 @@ class PersistentSubjectCredentialStore(
                         sdJwt = storeEntry.sdJwt,
                         disclosures = storeEntry.disclosures,
                         exportableCredentialScheme = storeEntry.scheme!!.toExportableCredentialScheme(),
-                        sdJwtType = storeEntry.sdJwtType
                     )
                 }
 
@@ -112,7 +107,6 @@ class PersistentSubjectCredentialStore(
                         vcSerialized = storeEntry.vcSerialized,
                         vc = storeEntry.vc,
                         exportableCredentialScheme = storeEntry.scheme!!.toExportableCredentialScheme(),
-                        vcType = storeEntry.vcType
                     )
                 }
             }
@@ -166,7 +160,6 @@ class PersistentSubjectCredentialStore(
                         SubjectCredentialStore.StoreEntry.Iso(
                             storeEntry.issuerSigned,
                             storeEntry.exportableCredentialScheme.toScheme().schemaUri,
-                            storeEntry.isoDocType
                         )
                     }
 
@@ -176,7 +169,6 @@ class PersistentSubjectCredentialStore(
                             storeEntry.sdJwt,
                             storeEntry.disclosures,
                             storeEntry.exportableCredentialScheme.toScheme().schemaUri,
-                            storeEntry.sdJwtType
                         )
                     }
 
@@ -185,7 +177,6 @@ class PersistentSubjectCredentialStore(
                             storeEntry.vcSerialized,
                             storeEntry.vc,
                             storeEntry.exportableCredentialScheme.toScheme().schemaUri,
-                            storeEntry.vcType
                         )
                     }
                 }
@@ -229,7 +220,6 @@ private sealed interface ExportableStoreEntry {
     data class Vc(
         val vcSerialized: String,
         val vc: VerifiableCredentialJws,
-        val vcType: String? = null,
         override val exportableCredentialScheme: ExportableCredentialScheme
     ) : ExportableStoreEntry
 
@@ -241,14 +231,12 @@ private sealed interface ExportableStoreEntry {
          * Map of original serialized disclosure item to parsed item
          */
         val disclosures: Map<String, SelectiveDisclosureItem?>,
-        val sdJwtType: String? = null,
         override val exportableCredentialScheme: ExportableCredentialScheme
     ) : ExportableStoreEntry
 
     @Serializable
     data class Iso(
         val issuerSigned: IssuerSigned,
-        val isoDocType: String? = null,
         override val exportableCredentialScheme: ExportableCredentialScheme
     ) : ExportableStoreEntry
 }
