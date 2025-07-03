@@ -167,9 +167,7 @@ fun ConstantIndex.CredentialScheme.toJsonElement(
         PowerOfRepresentationScheme -> PowerOfRepresentationDataElements.ALL_ELEMENTS
         CertificateOfResidenceScheme -> CertificateOfResidenceDataElements.ALL_ELEMENTS
         CompanyRegistrationScheme -> CompanyRegistrationDataElements.ALL_ELEMENTS
-        is VcFallbackCredentialScheme -> this.claimNames
-        is SdJwtFallbackCredentialScheme -> this.claimNames
-        is IsoMdocFallbackCredentialScheme -> this.claimNames
+        is VcFallbackCredentialScheme, is SdJwtFallbackCredentialScheme, is IsoMdocFallbackCredentialScheme -> this.claimNames
         else -> TODO("${this::class.simpleName} not implemented in jsonElementBuilder yet")
     }
 
