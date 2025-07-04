@@ -422,6 +422,13 @@
     <string name="presentation_permission_required">Checking if required permissions are set…</string>
     <string name="presentation_initialised">Presentation initialising…</string>
 
+    <string name="jwt_claim_label_aud">Audience</string>
+    <string name="jwt_claim_label_iss">Issuer</string>
+    <string name="jwt_claim_label_sub">Subject</string>
+    <string name="jwt_claim_label_exp">Expiration Time</string>
+    <string name="jwt_claim_label_nbf">Not Before TIme</string>
+    <string name="jwt_claim_label_iat">Issued At</string>
+
     <!-- DeviceEngagementMethods -->
     <string name="section_heading_request_engagement_method">Device Engagement Method</string>
     <string name="nfc">NFC</string>
