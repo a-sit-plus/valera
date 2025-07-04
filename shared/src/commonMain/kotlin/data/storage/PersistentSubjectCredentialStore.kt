@@ -62,7 +62,7 @@ class PersistentSubjectCredentialStore(
         scheme: ConstantIndex.CredentialScheme,
     ) = SubjectCredentialStore.StoreEntry.Iso(
         issuerSigned,
-        scheme.schemaUri
+        scheme.schemaUri,
     ).also {
         addStoreEntry(it)
     }
@@ -89,7 +89,7 @@ class PersistentSubjectCredentialStore(
                 is SubjectCredentialStore.StoreEntry.Iso -> {
                     ExportableStoreEntry.Iso(
                         issuerSigned = storeEntry.issuerSigned,
-                        exportableCredentialScheme = storeEntry.scheme!!.toExportableCredentialScheme()
+                        exportableCredentialScheme = storeEntry.scheme!!.toExportableCredentialScheme(),
                     )
                 }
 
@@ -98,7 +98,7 @@ class PersistentSubjectCredentialStore(
                         vcSerialized = storeEntry.vcSerialized,
                         sdJwt = storeEntry.sdJwt,
                         disclosures = storeEntry.disclosures,
-                        exportableCredentialScheme = storeEntry.scheme!!.toExportableCredentialScheme()
+                        exportableCredentialScheme = storeEntry.scheme!!.toExportableCredentialScheme(),
                     )
                 }
 
@@ -168,7 +168,7 @@ class PersistentSubjectCredentialStore(
                             storeEntry.vcSerialized,
                             storeEntry.sdJwt,
                             storeEntry.disclosures,
-                            storeEntry.exportableCredentialScheme.toScheme().schemaUri
+                            storeEntry.exportableCredentialScheme.toScheme().schemaUri,
                         )
                     }
 
@@ -176,7 +176,7 @@ class PersistentSubjectCredentialStore(
                         SubjectCredentialStore.StoreEntry.Vc(
                             storeEntry.vcSerialized,
                             storeEntry.vc,
-                            storeEntry.exportableCredentialScheme.toScheme().schemaUri
+                            storeEntry.exportableCredentialScheme.toScheme().schemaUri,
                         )
                     }
                 }
@@ -242,7 +242,7 @@ private sealed interface ExportableStoreEntry {
 }
 
 enum class ExportableCredentialScheme {
-    AtomicAttribute2023, IdAustriaScheme, MobileDrivingLicence2023, EuPidScheme, EuPidSdJwtScheme, PowerOfRepresentationScheme, CertificateOfResidenceScheme, CompanyRegistrationScheme, HealthIdScheme, EhicScheme, TaxIdScheme, TaxId2025Scheme;
+    AtomicAttribute2023, IdAustriaScheme, MobileDrivingLicence2023, EuPidScheme, EuPidSdJwtScheme, PowerOfRepresentationScheme, CertificateOfResidenceScheme, CompanyRegistrationScheme, HealthIdScheme, EhicScheme, TaxIdScheme, TaxId2025Scheme, VcFallbackCredentialScheme, SdJwtFallbackCredentialScheme, IsoMdocFallbackCredentialScheme;
 
     fun toScheme() = when (this) {
         AtomicAttribute2023 -> ConstantIndex.AtomicAttribute2023
@@ -257,6 +257,9 @@ enum class ExportableCredentialScheme {
         EhicScheme -> at.asitplus.wallet.ehic.EhicScheme
         TaxIdScheme -> at.asitplus.wallet.taxid.TaxIdScheme
         TaxId2025Scheme -> at.asitplus.wallet.taxid.TaxId2025Scheme
+        VcFallbackCredentialScheme -> at.asitplus.wallet.fallbackCredential.vcFallbackCredentialScheme.VcFallbackCredentialScheme
+        SdJwtFallbackCredentialScheme -> at.asitplus.wallet.fallbackCredential.sdJwtFallbackCredentialScheme.SdJwtFallbackCredentialScheme
+        IsoMdocFallbackCredentialScheme -> at.asitplus.wallet.fallbackCredential.isoMdocFallbackCredentialScheme.IsoMdocFallbackCredentialScheme
     }
 
     companion object {
@@ -273,6 +276,9 @@ enum class ExportableCredentialScheme {
             at.asitplus.wallet.ehic.EhicScheme -> EhicScheme
             at.asitplus.wallet.taxid.TaxIdScheme -> TaxIdScheme
             at.asitplus.wallet.taxid.TaxId2025Scheme -> TaxId2025Scheme
+            at.asitplus.wallet.fallbackCredential.vcFallbackCredentialScheme.VcFallbackCredentialScheme -> VcFallbackCredentialScheme
+            at.asitplus.wallet.fallbackCredential.sdJwtFallbackCredentialScheme.SdJwtFallbackCredentialScheme -> SdJwtFallbackCredentialScheme
+            at.asitplus.wallet.fallbackCredential.isoMdocFallbackCredentialScheme.IsoMdocFallbackCredentialScheme -> IsoMdocFallbackCredentialScheme
             else -> throw Exception("Unknown CredentialScheme")
         }
     }

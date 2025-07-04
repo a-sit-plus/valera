@@ -1,20 +1,18 @@
 package at.asitplus.wallet.app.common
 
 import at.asitplus.data.NonEmptyList.Companion.toNonEmptyList
+import at.asitplus.dif.ConstraintField
 import at.asitplus.dif.ConstraintFilter
 import at.asitplus.dif.InputDescriptor
 import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.jsonpath.core.NormalizedJsonPathSegment.NameSegment
 import at.asitplus.openid.CredentialFormatEnum
-import at.asitplus.openid.dcql.DCQLClaimsPathPointer
-import at.asitplus.openid.dcql.DCQLClaimsQuery
-import at.asitplus.openid.dcql.DCQLClaimsQueryIdentifier
 import at.asitplus.openid.dcql.DCQLClaimsQueryList
 import at.asitplus.openid.dcql.DCQLClaimsQueryResult
 import at.asitplus.openid.dcql.DCQLCredentialClaimStructure
 import at.asitplus.openid.dcql.DCQLCredentialQuery
 import at.asitplus.openid.dcql.DCQLCredentialQueryInstance
 import at.asitplus.openid.dcql.DCQLCredentialQueryMatchingResult
-import at.asitplus.openid.dcql.DCQLExpectedClaimValue
 import at.asitplus.openid.dcql.DCQLIsoMdocClaimsQuery
 import at.asitplus.openid.dcql.DCQLIsoMdocCredentialQuery
 import at.asitplus.openid.dcql.DCQLJsonClaimsQuery
@@ -28,6 +26,9 @@ import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.ehic.EhicScheme
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
+import at.asitplus.wallet.fallbackCredential.isoMdocFallbackCredentialScheme.IsoMdocFallbackCredentialScheme
+import at.asitplus.wallet.fallbackCredential.sdJwtFallbackCredentialScheme.SdJwtFallbackCredentialScheme
+import at.asitplus.wallet.fallbackCredential.vcFallbackCredentialScheme.VcFallbackCredentialScheme
 import at.asitplus.wallet.healthid.HealthIdScheme
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.AttributeIndex
@@ -68,7 +69,11 @@ fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, Const
 
     val scheme = AttributeIndex.schemeSet.firstOrNull {
         it.matchAgainstIdentifier(credentialRepresentation, credentialIdentifiers)
-    } ?: throw Throwable("Missing scheme for $credentialIdentifiers")
+    } ?: when(credentialRepresentation) {
+            PLAIN_JWT -> VcFallbackCredentialScheme(vcType = credentialIdentifiers.first())
+            SD_JWT -> SdJwtFallbackCredentialScheme(sdJwtType = credentialIdentifiers.first())
+            ISO_MDOC -> IsoMdocFallbackCredentialScheme(isoDocType = credentialIdentifiers.first())
+        }
 
     val matchedCredentialIdentifier = when (credentialRepresentation) {
         PLAIN_JWT -> throw Throwable("PLAIN_JWT not implemented")
@@ -76,10 +81,17 @@ fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, Const
         ISO_MDOC -> scheme.isoDocType
     }
 
+    val dataElements = when(scheme) {
+        is IsoMdocFallbackCredentialScheme, is SdJwtFallbackCredentialScheme -> {
+            this.constraints?.fields?.map { (it.toNormalizedJsonPath()?.segments?.last() as NameSegment).memberName }
+        }
+        else -> { null }
+    }
+
     val constraintsMap =
         PresentationExchangeInputEvaluator.evaluateInputDescriptorAgainstCredential(
             inputDescriptor = this,
-            credentialClaimStructure = scheme.toJsonElement(credentialRepresentation),
+            credentialClaimStructure = scheme.toJsonElement(credentialRepresentation, dataElements),
             credentialFormat = credentialRepresentation.toFormat(),
             credentialScheme = matchedCredentialIdentifier,
             fallbackFormatHolder = this.format,
@@ -205,14 +217,16 @@ fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, C
 
 fun ConstantIndex.CredentialScheme.toJsonElement(
     representation: CredentialRepresentation,
+    elements: Collection<String>? = null
 ): JsonElement {
-    val dataElements = when (this) {
+    val dataElements = elements ?: when (this) {
         EuPidScheme -> this.claimNames + EuPidScheme.Attributes.PORTRAIT_CAPTURE_DATE
         ConstantIndex.AtomicAttribute2023, IdAustriaScheme, EuPidSdJwtScheme, MobileDrivingLicenceScheme, HealthIdScheme, EhicScheme, TaxIdScheme, TaxId2025Scheme -> this.claimNames
         // TODO Use: this.claim names for all schemes
         PowerOfRepresentationScheme -> PowerOfRepresentationDataElements.ALL_ELEMENTS
         CertificateOfResidenceScheme -> CertificateOfResidenceDataElements.ALL_ELEMENTS
         CompanyRegistrationScheme -> CompanyRegistrationDataElements.ALL_ELEMENTS
+        is VcFallbackCredentialScheme, is SdJwtFallbackCredentialScheme, is IsoMdocFallbackCredentialScheme -> this.claimNames
         else -> TODO("${this::class.simpleName} not implemented in jsonElementBuilder yet")
     }
 
@@ -355,3 +369,30 @@ private fun JsonObjectBuilder.addSdJwtDummyMetadata() {
     put("cnf", buildJsonObject { })
     put("status", buildJsonObject { })
 }
+
+// TODO Replace with function from JSONPath
+private fun ConstraintField.toNormalizedJsonPath(): NormalizedJsonPath? =
+    path.firstOrNull()?.removePrefix("$")?.run {
+        NormalizedJsonPath(
+            if (contains("[")) {
+                segmentsByAngle()
+            } else if (contains(".")) {
+                segmentsByDot()
+            } else {
+                fallback()
+            }
+        )
+    }
+
+private fun String.segmentsByAngle() = split("[")
+    .filter { it.isNotEmpty() }
+    .map { NameSegment(it.removeSuffix("]").unquote()) }
+
+private fun String.segmentsByDot() = split(".")
+    .filter { it.isNotEmpty() }
+    .map { NameSegment(it) }
+
+private fun String.unquote() = removePrefix("'").removePrefix("\"")
+    .removeSuffix("\"").removeSuffix("'")
+
+private fun String.fallback(): List<NameSegment> = listOf(NameSegment(this))
