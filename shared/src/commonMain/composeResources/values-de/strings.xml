@@ -431,7 +431,7 @@
     <string name="presentation_permission_required">Überprüfen, ob benötigte Berechtigungen gesetzt wurden…</string>
     <string name="presentation_initialised">Initialisiere…</string>
 
-    <string name="jwt_claim_label_aud">Publikum</string>
+    <string name="jwt_claim_label_aud">Empfänger</string>
     <string name="jwt_claim_label_iss">Aussteller</string>
     <string name="jwt_claim_label_sub">Subjekt</string>
     <string name="jwt_claim_label_exp">Gültig bis</string>
