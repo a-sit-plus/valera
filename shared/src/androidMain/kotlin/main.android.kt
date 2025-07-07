@@ -32,7 +32,7 @@ import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.signum.indispensable.io.Base64UrlStrict
 import at.asitplus.wallet.app.android.AndroidKeyMaterial
 import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
-import at.asitplus.wallet.app.android.dcapi.IdentityCredentialHelper
+import at.asitplus.wallet.app.android.dcapi.DCAPIAndroidExporter
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
@@ -174,13 +174,10 @@ public class AndroidPlatformAdapter(
             catching {
                 val client = IdentityCredentialManager.Companion.getClient(context)
                 val credentialsListCbor = entries.serialize()
+                val exporter = DCAPIAndroidExporter(context)
+                val registrationRequest = exporter.createRegistrationRequest(credentialsListCbor)
 
-                client.registerCredentials(
-                    IdentityCredentialHelper.toRegistrationRequest(
-                        context,
-                        credentialsListCbor
-                    )
-                ).await()
+                client.registerCredentials(registrationRequest).await()
             }.onSuccess { Napier.i("DC API: Credential Manager registration succeeded") }
                 .onFailure { Napier.w("DC API: Credential Manager registration failed", it) }
         }
@@ -267,7 +264,7 @@ public class AndroidPlatformAdapter(
                     )
                 }
                 protocol.startsWith(DC_API_OID4VP_PROTOCOL_IDENTIFIER) -> {
-                    Napier.d("Using protocol $protocol, got request $request for credential ID $credentialId")
+                    Napier.d("Using protocol $protocol, got request $requestData for credential ID $credentialId")
                     Oid4vpDCAPIRequest(
                         protocol, requestData.toString(), credentialId, callingPackageName, callingOrigin
                     )
