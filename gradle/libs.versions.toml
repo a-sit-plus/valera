@@ -21,8 +21,8 @@ compose-plugin = "1.7.3"
 qrose = "1.0.1"
 core-splashscreen = "1.0.1"
 # Test if DC API is still working after upgrading the following libraries
-play-services-identity-credentials = "16.0.0-alpha06"
-androidx-credentials = "1.6.0-alpha02"
+play-services-identity-credentials = "16.0.0-alpha08"
+androidx-credentials = "1.6.0-alpha03"
 androidx-credentials-registry-provider = "1.0.0-alpha01"
 ###
 kmmresult = "1.9.3"
