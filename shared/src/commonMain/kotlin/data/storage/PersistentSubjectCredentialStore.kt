@@ -276,9 +276,9 @@ enum class ExportableCredentialScheme {
             at.asitplus.wallet.ehic.EhicScheme -> EhicScheme
             at.asitplus.wallet.taxid.TaxIdScheme -> TaxIdScheme
             at.asitplus.wallet.taxid.TaxId2025Scheme -> TaxId2025Scheme
-            at.asitplus.wallet.fallbackCredential.vcFallbackCredentialScheme.VcFallbackCredentialScheme -> VcFallbackCredentialScheme
-            at.asitplus.wallet.fallbackCredential.sdJwtFallbackCredentialScheme.SdJwtFallbackCredentialScheme -> SdJwtFallbackCredentialScheme
-            at.asitplus.wallet.fallbackCredential.isoMdocFallbackCredentialScheme.IsoMdocFallbackCredentialScheme -> IsoMdocFallbackCredentialScheme
+            is at.asitplus.wallet.fallbackCredential.vcFallbackCredentialScheme.VcFallbackCredentialScheme -> VcFallbackCredentialScheme
+            is at.asitplus.wallet.fallbackCredential.sdJwtFallbackCredentialScheme.SdJwtFallbackCredentialScheme -> SdJwtFallbackCredentialScheme
+            is at.asitplus.wallet.fallbackCredential.isoMdocFallbackCredentialScheme.IsoMdocFallbackCredentialScheme -> IsoMdocFallbackCredentialScheme
             else -> throw Exception("Unknown CredentialScheme")
         }
     }
