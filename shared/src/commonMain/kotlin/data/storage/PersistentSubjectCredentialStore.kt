@@ -257,9 +257,9 @@ enum class ExportableCredentialScheme {
         EhicScheme -> at.asitplus.wallet.ehic.EhicScheme
         TaxIdScheme -> at.asitplus.wallet.taxid.TaxIdScheme
         TaxId2025Scheme -> at.asitplus.wallet.taxid.TaxId2025Scheme
-        VcFallbackCredentialScheme -> at.asitplus.wallet.fallbackCredential.vcFallbackCredentialScheme.VcFallbackCredentialScheme
-        SdJwtFallbackCredentialScheme -> at.asitplus.wallet.fallbackCredential.sdJwtFallbackCredentialScheme.SdJwtFallbackCredentialScheme
-        IsoMdocFallbackCredentialScheme -> at.asitplus.wallet.fallbackCredential.isoMdocFallbackCredentialScheme.IsoMdocFallbackCredentialScheme
+        VcFallbackCredentialScheme -> at.asitplus.wallet.lib.data.VcFallbackCredentialScheme
+        SdJwtFallbackCredentialScheme -> at.asitplus.wallet.lib.data.SdJwtFallbackCredentialScheme
+        IsoMdocFallbackCredentialScheme -> at.asitplus.wallet.lib.data.IsoMdocFallbackCredentialScheme
     }
 
     companion object {
@@ -276,9 +276,9 @@ enum class ExportableCredentialScheme {
             at.asitplus.wallet.ehic.EhicScheme -> EhicScheme
             at.asitplus.wallet.taxid.TaxIdScheme -> TaxIdScheme
             at.asitplus.wallet.taxid.TaxId2025Scheme -> TaxId2025Scheme
-            is at.asitplus.wallet.fallbackCredential.vcFallbackCredentialScheme.VcFallbackCredentialScheme -> VcFallbackCredentialScheme
-            is at.asitplus.wallet.fallbackCredential.sdJwtFallbackCredentialScheme.SdJwtFallbackCredentialScheme -> SdJwtFallbackCredentialScheme
-            is at.asitplus.wallet.fallbackCredential.isoMdocFallbackCredentialScheme.IsoMdocFallbackCredentialScheme -> IsoMdocFallbackCredentialScheme
+            is at.asitplus.wallet.lib.data.VcFallbackCredentialScheme -> VcFallbackCredentialScheme
+            is at.asitplus.wallet.lib.data.SdJwtFallbackCredentialScheme -> SdJwtFallbackCredentialScheme
+            is at.asitplus.wallet.lib.data.IsoMdocFallbackCredentialScheme -> IsoMdocFallbackCredentialScheme
             else -> throw Exception("Unknown CredentialScheme")
         }
     }
