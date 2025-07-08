@@ -37,7 +37,7 @@ what an [EU digital identity wallet](https://github.com/eu-digital-identity-wall
 
 ## Features
 
-Currently, Valera can be used to fetch credentials from [wallet.a-sit.at](https://wallet.a-sit.at/m5/) to in various formats
+Currently, Valera can be used to fetch credentials from [wallet.a-sit.at](https://wallet.a-sit.at/m5/) in various formats
 even beyond what is targeted by the upcoming EUDIW.
 <br>
 To explore verifiable presentation in all its glory (and technical details), check out our [demo service provider](https://apps.egiz.gv.at/customverifier/#),
