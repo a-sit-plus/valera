@@ -533,7 +533,7 @@ private fun WalletNavHost(
             )
         }
 
-        composable<AddCredentialRoute> { backStackEntry ->
+        composable<AddCredentialRoute> {
             SelectIssuingServerView(
                 navigateUp = navigateBack,
                 onClickLogo = onClickLogo,
