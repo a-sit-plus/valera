@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.text_label_all_attributes
 import at.asitplus.valera.resources.text_label_optional
 import org.jetbrains.compose.resources.stringResource
 
@@ -31,8 +32,8 @@ fun ConsentAttributesSection(
             color = MaterialTheme.colorScheme.secondary,
             fontWeight = FontWeight.SemiBold,
         )
-        attributes?.let { (otherClaims, attributes) ->
-            Column(modifier = Modifier.padding(start = 32.dp)) {
+        Column(modifier = Modifier.padding(start = 32.dp)) {
+            attributes?.let { (otherClaims, attributes) ->
                 attributes.forEach {
                     Text(
                         when (it.value) {
@@ -42,10 +43,9 @@ fun ConsentAttributesSection(
                     )
                 }
                 // TODO: do we want to show how many non-single claim queries exist?
+            } ?: run {
+                Text(stringResource(Res.string.text_label_all_attributes))
             }
-        } ?: run {
-            // TODO: what to show in case *all* attributes are requested?
-            //  It may be misleading to show attributes here that are not actually requested in the next screen?
         }
     }
 }
