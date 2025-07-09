@@ -66,7 +66,7 @@ fun VerifierDocumentSelectionView(
     val showDropDownPidAge = remember { mutableStateOf(false) }
 
     val engagementMethods = DeviceEngagementMethods.entries
-    var selectedEngagementMethod by remember { mutableStateOf(DeviceEngagementMethods.NFC) }
+    var selectedEngagementMethod by remember { mutableStateOf(DeviceEngagementMethods.QR_CODE) }
 
     Scaffold(
         topBar = {
