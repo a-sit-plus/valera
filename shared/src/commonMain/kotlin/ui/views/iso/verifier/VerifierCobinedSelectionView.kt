@@ -46,7 +46,7 @@ import ui.viewmodels.iso.VerifierViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun VerifierCustomSelectionView(vm: VerifierViewModel) {
+fun VerifierCombinedSelectionView(vm: VerifierViewModel) {
     val listSpacingModifier = Modifier.padding(top = 8.dp)
     val layoutSpacingModifier = Modifier.padding(top = 24.dp)
 

@@ -118,6 +118,11 @@ class VerifierViewModel(
         _verifierState.value = VerifierState.SELECT_CUSTOM_REQUEST
     }
 
+    fun navigateToCombinedSelectionView(selectedEngagementMethod: DeviceEngagementMethods) {
+        _selectedEngagementMethod.value = selectedEngagementMethod
+        _verifierState.value = VerifierState.SELECT_COMBINED_REQUEST
+    }
+
     fun navigateToVerifyDataView() {
         _verifierState.value = VerifierState.INIT
     }
@@ -153,6 +158,7 @@ class VerifierViewModel(
 enum class VerifierState {
     INIT,
     SELECT_CUSTOM_REQUEST,
+    SELECT_COMBINED_REQUEST,
     QR_ENGAGEMENT,
     WAITING_FOR_RESPONSE,
     PRESENTATION,
