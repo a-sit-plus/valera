@@ -244,6 +244,7 @@
     <string name="text_label_valid_from">Gültig von</string>
     <string name="text_label_valid_to">Gültig bis</string>
     <string name="text_label_optional">Optional</string>
+    <string name="text_label_all_claims_requested">Alle Attribute</string>
     <string name="text_label_check_all">Alle auswählen</string>
     <string name="text_label_powered_by">POWERED BY</string>
     <string name="text_label_certificate">Zertifikat</string>
