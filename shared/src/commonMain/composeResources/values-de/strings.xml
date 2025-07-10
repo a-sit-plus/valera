@@ -244,6 +244,7 @@
     <string name="text_label_valid_from">Gültig von</string>
     <string name="text_label_valid_to">Gültig bis</string>
     <string name="text_label_optional">Optional</string>
+    <string name="text_label_all_claims_requested">Alle Attribute</string>
     <string name="text_label_check_all">Alle auswählen</string>
     <string name="text_label_powered_by">POWERED BY</string>
     <string name="text_label_certificate">Zertifikat</string>
@@ -430,6 +431,13 @@
     <string name="presentation_missing_permission">Ohne Berechtigung kann die Überprüfung nicht abgeschlossen werden.</string>
     <string name="presentation_permission_required">Überprüfen, ob benötigte Berechtigungen gesetzt wurden…</string>
     <string name="presentation_initialised">Initialisiere…</string>
+
+    <string name="jwt_claim_label_aud">Empfänger</string>
+    <string name="jwt_claim_label_iss">Aussteller</string>
+    <string name="jwt_claim_label_sub">Subjekt</string>
+    <string name="jwt_claim_label_exp">Gültig bis</string>
+    <string name="jwt_claim_label_nbf">Gültig ab</string>
+    <string name="jwt_claim_label_iat">Ausgestellt</string>
 
     <!-- DeviceEngagementMethods -->
     <string name="section_heading_request_engagement_method">Verbindungsaufbau via</string>
