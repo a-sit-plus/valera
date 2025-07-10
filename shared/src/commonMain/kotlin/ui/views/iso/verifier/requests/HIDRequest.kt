@@ -13,16 +13,15 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_check_health_id
 import at.asitplus.valera.resources.section_heading_request_hid
 import at.asitplus.valera.resources.text_label_mandatory_attributes
-import at.asitplus.wallet.app.common.iso.transfer.DeviceEngagementMethods
+import data.document.SelectableRequest
+import data.document.SelectableRequestType
 import org.jetbrains.compose.resources.stringResource
-import ui.viewmodels.iso.VerifierViewModel
 
 @Composable
 fun HIDRequest(
     layoutSpacingModifier: Modifier,
-    vm: VerifierViewModel,
-    selectedEngagementMethod: DeviceEngagementMethods,
-    listSpacingModifier: Modifier
+    listSpacingModifier: Modifier,
+    onRequestSelected: (SelectableRequest) -> Unit
 ) {
     Column(modifier = layoutSpacingModifier) {
         Text(
@@ -30,15 +29,10 @@ fun HIDRequest(
             style = MaterialTheme.typography.titleMedium
         )
         RequestItem(
-            icon = {
-                Icon(
-                    imageVector = Icons.Outlined.HealthAndSafety,
-                    contentDescription = null
-                )
-            },
+            icon = { Icon(imageVector = Icons.Outlined.HealthAndSafety, contentDescription = null) },
             label = stringResource(Res.string.button_label_check_health_id),
             subLabel = stringResource(Res.string.text_label_mandatory_attributes),
-            onClick = { vm.onClickPredefinedHidRequiredAttributes(selectedEngagementMethod) },
+            onClick = { onRequestSelected(SelectableRequest(SelectableRequestType.HIID)) },
             modifier = listSpacingModifier.fillMaxWidth()
         )
     }
