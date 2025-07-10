@@ -430,6 +430,7 @@
     <!-- Verify Data Route -->
     <string name="heading_label_select_data_retrieval_screen">Check</string>
     <string name="heading_label_select_custom_data_retrieval_screen">Custom</string>
+    <string name="heading_label_select_combined_data_retrieval_screen">Combined</string>
     <string name="section_heading_request_mdl">mDL requests</string>
     <string name="section_heading_request_pid">PID requests</string>
     <string name="section_heading_request_hid">HealthID request</string>
@@ -446,6 +447,9 @@
     <string name="button_label_check_custom">Custom Request</string>
     <string name="button_label_check_over_age">Over %1$s</string>
     <string name="button_label_check_health_id">Check HealthID</string>
+    <string name="button_add_request">Add request</string>
     <string name="text_label_all_attributes">All Attributes</string>
     <string name="text_label_mandatory_attributes">Mandatory Attributes</string>
+    <string name="text_label_requests">Requests</string>
+    <string name="info_text_no_requests">No requests</string>
 </resources>

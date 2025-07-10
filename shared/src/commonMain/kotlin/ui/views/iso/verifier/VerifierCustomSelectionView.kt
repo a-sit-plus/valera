@@ -94,7 +94,7 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                                 scheme = config.scheme,
                                 subSet = selectedEntries
                             )
-                            vm.onReceiveCustomSelection(items, vm.selectedEngagementMethod.value)
+                            vm.onReceiveCustomSelection(items)
                         }
                     },
                     selected = false
