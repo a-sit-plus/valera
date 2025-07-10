@@ -10,6 +10,7 @@ import at.asitplus.wallet.app.common.iso.transfer.TransferManager
 import at.asitplus.wallet.lib.iso.DeviceResponse
 import data.document.RequestDocument
 import data.document.RequestDocumentBuilder
+import data.document.RequestDocumentList
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,7 +35,7 @@ class VerifierViewModel(
         _verifierState.value = newVerifierState
     }
 
-    private val _requestDocument = MutableStateFlow<RequestDocument?>(null)
+    private val _requestDocumentList = RequestDocumentList()
 
     private val _deviceResponse = MutableStateFlow<DeviceResponse?>(null)
     val deviceResponse: StateFlow<DeviceResponse?> = _deviceResponse
@@ -61,8 +62,8 @@ class VerifierViewModel(
     }
 
     private fun doNfcEngagement() {
-        _requestDocument.value?.let { document ->
-            transferManager.startNfcEngagement(document) { deviceResponseBytes ->
+        _requestDocumentList.let { requestDocumentList ->
+            transferManager.startNfcEngagement(requestDocumentList) { deviceResponseBytes ->
                 handleResponse(deviceResponseBytes)
             }
         }
@@ -79,37 +80,51 @@ class VerifierViewModel(
     }
 
     fun onClickPredefinedMdlMandatoryAttributes(selectedEngagementMethod: DeviceEngagementMethods) {
-        _requestDocument.value = RequestDocumentBuilder.getMdlMandatoryAttributesRequestDocument()
+        _requestDocumentList.addRequestDocument(
+            RequestDocumentBuilder.getMdlMandatoryAttributesRequestDocument()
+        )
         setStateToEngagement(selectedEngagementMethod)
     }
 
     fun onClickPredefinedMdlFullAttributes(selectedEngagementMethod: DeviceEngagementMethods) {
-        _requestDocument.value = RequestDocumentBuilder.getMdlFullAttributesRequestDocument()
+        _requestDocumentList.addRequestDocument(
+            RequestDocumentBuilder.getMdlFullAttributesRequestDocument()
+        )
         setStateToEngagement(selectedEngagementMethod)
     }
 
     fun onClickPredefinedAgeMdl(age: Int, selectedEngagementMethod: DeviceEngagementMethods) {
-        _requestDocument.value = RequestDocumentBuilder.getAgeVerificationRequestDocumentMdl(age)
+        _requestDocumentList.addRequestDocument(
+            RequestDocumentBuilder.getAgeVerificationRequestDocumentMdl(age)
+        )
         setStateToEngagement(selectedEngagementMethod)
     }
 
     fun onClickPredefinedPidRequiredAttributes(selectedEngagementMethod: DeviceEngagementMethods) {
-        _requestDocument.value = RequestDocumentBuilder.getPidRequiredAttributesRequestDocument()
+        _requestDocumentList.addRequestDocument(
+            RequestDocumentBuilder.getPidRequiredAttributesRequestDocument()
+        )
         setStateToEngagement(selectedEngagementMethod)
     }
 
     fun onClickPredefinedPidFullAttributes(selectedEngagementMethod: DeviceEngagementMethods) {
-        _requestDocument.value = RequestDocumentBuilder.getPidFullAttributesRequestDocument()
+        _requestDocumentList.addRequestDocument(
+            RequestDocumentBuilder.getPidFullAttributesRequestDocument()
+        )
         setStateToEngagement(selectedEngagementMethod)
     }
 
     fun onClickPredefinedAgePid(age: Int, selectedEngagementMethod: DeviceEngagementMethods) {
-        _requestDocument.value = RequestDocumentBuilder.getAgeVerificationRequestDocumentPid(age)
+        _requestDocumentList.addRequestDocument(
+            RequestDocumentBuilder.getAgeVerificationRequestDocumentPid(age)
+        )
         setStateToEngagement(selectedEngagementMethod)
     }
 
     fun onClickPredefinedHidRequiredAttributes(selectedEngagementMethod: DeviceEngagementMethods) {
-        _requestDocument.value = RequestDocumentBuilder.getHealthIdRequiredAttributesRequestDocument()
+        _requestDocumentList.addRequestDocument(
+            RequestDocumentBuilder.getHealthIdRequiredAttributesRequestDocument()
+        )
         setStateToEngagement(selectedEngagementMethod)
     }
 
@@ -131,17 +146,17 @@ class VerifierViewModel(
         customSelectionDocument: RequestDocument,
         selectedEngagementMethod: DeviceEngagementMethods
     ) {
-        _requestDocument.value = customSelectionDocument
+        _requestDocumentList.addRequestDocument(customSelectionDocument)
         setStateToEngagement(selectedEngagementMethod)
     }
 
     val onFoundPayload: (String) -> Unit = { payload ->
         if (payload.startsWith(MDOC_PREFIX)) {
             _verifierState.value = VerifierState.WAITING_FOR_RESPONSE
-            _requestDocument.value?.let { document ->
+            _requestDocumentList.let { requestDocumentList ->
                 transferManager.doQrFlow(
                     payload.removePrefix(MDOC_PREFIX),
-                    document,
+                    requestDocumentList,
                     { message -> Napier.d("Transfer message: $message") } // TODO: handle update messages
                 ) { deviceResponseBytes ->
                     handleResponse(deviceResponseBytes)
