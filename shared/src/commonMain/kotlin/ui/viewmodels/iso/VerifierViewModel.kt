@@ -32,27 +32,20 @@ class VerifierViewModel(
     private val _verifierState = MutableStateFlow(VerifierState.INIT)
     val verifierState: StateFlow<VerifierState> = _verifierState
 
-    fun setVerifierState(newVerifierState: VerifierState) {
-        _verifierState.value = newVerifierState
-    }
-
     private val _requestDocumentList = RequestDocumentList()
 
     private val _deviceResponse = MutableStateFlow<DeviceResponse?>(null)
     val deviceResponse: StateFlow<DeviceResponse?> = _deviceResponse
 
-    private val _errorMessage = MutableStateFlow<String>("")
+    private val _errorMessage = MutableStateFlow("")
     val errorMessage: StateFlow<String> = _errorMessage
 
     fun handleError(errorMessage: String) {
         _errorMessage.value = errorMessage
-        setVerifierState(VerifierState.ERROR)
+        _verifierState.value = VerifierState.ERROR
     }
 
-    private val _selectedEngagementMethod = MutableStateFlow(
-        DeviceEngagementMethods.NFC
-    )
-
+    private val _selectedEngagementMethod = MutableStateFlow(DeviceEngagementMethods.QR_CODE)
     val selectedEngagementMethod: StateFlow<DeviceEngagementMethods> = _selectedEngagementMethod
 
     private fun setStateToEngagement(selectedEngagementMethod: DeviceEngagementMethods) {
@@ -83,7 +76,9 @@ class VerifierViewModel(
         selectedEngagementMethod: DeviceEngagementMethods,
         request: SelectableRequest
     ) {
-        _requestDocumentList.addRequestDocument(RequestDocumentBuilder.buildRequestDocument(request))
+        _requestDocumentList.addRequestDocument(
+            RequestDocumentBuilder.buildRequestDocument(request)
+        )
         setStateToEngagement(selectedEngagementMethod)
     }
 
@@ -101,12 +96,18 @@ class VerifierViewModel(
         _verifierState.value = VerifierState.INIT
     }
 
-    fun onReceiveCustomSelection(
-        customSelectionDocument: RequestDocument,
-        selectedEngagementMethod: DeviceEngagementMethods
-    ) {
+    fun onReceiveCombinedSelection(requestSelectionList:  List<SelectableRequest>) {
+        requestSelectionList.forEach { request ->
+            _requestDocumentList.addRequestDocument(
+                RequestDocumentBuilder.buildRequestDocument(request)
+            )
+        }
+        setStateToEngagement(selectedEngagementMethod.value)
+    }
+
+    fun onReceiveCustomSelection(customSelectionDocument: RequestDocument) {
         _requestDocumentList.addRequestDocument(customSelectionDocument)
-        setStateToEngagement(selectedEngagementMethod)
+        setStateToEngagement(selectedEngagementMethod.value)
     }
 
     val onFoundPayload: (String) -> Unit = { payload ->
