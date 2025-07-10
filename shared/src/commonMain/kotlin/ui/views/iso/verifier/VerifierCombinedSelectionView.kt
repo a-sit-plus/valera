@@ -58,8 +58,7 @@ fun VerifierCombinedSelectionView(vm: VerifierViewModel) {
 
     var showAddButton by remember { mutableStateOf(true) }
     var showRequestTypes by remember { mutableStateOf(false) }
-
-    val requestDocumentSelection = remember { mutableStateListOf<SelectableRequest>() }
+    val selectedRequests = remember { mutableStateListOf<SelectableRequest>() }
 
     Scaffold(
         topBar = {
@@ -91,7 +90,7 @@ fun VerifierCombinedSelectionView(vm: VerifierViewModel) {
                             contentDescription = null
                         )
                     },
-                    onClick = { vm.onReceiveCombinedSelection(requestDocumentSelection) },
+                    onClick = { vm.onReceiveCombinedSelection(selectedRequests) },
                     selected = false
                 )
             }
@@ -107,8 +106,8 @@ fun VerifierCombinedSelectionView(vm: VerifierViewModel) {
                         text = stringResource(Res.string.text_label_requests),
                         style = MaterialTheme.typography.titleMedium
                     )
-                    if (requestDocumentSelection.isNotEmpty()) {
-                        requestDocumentSelection.forEach { requestDocument ->
+                    if (selectedRequests.isNotEmpty()) {
+                        selectedRequests.forEach { requestDocument ->
                             Text(
                                 text = requestDocument.type.toString(),
                                 style = MaterialTheme.typography.bodyMedium
@@ -150,17 +149,17 @@ fun VerifierCombinedSelectionView(vm: VerifierViewModel) {
                             text = {
                                 Column {
                                     MDLRequests(layoutSpacingModifier, listSpacingModifier) { request ->
-                                        requestDocumentSelection.add(request)
+                                        selectedRequests.add(request)
                                         showRequestTypes = false
                                         showAddButton = true
                                     }
                                     PIDRequests(layoutSpacingModifier, listSpacingModifier) { request ->
-                                        requestDocumentSelection.add(request)
+                                        selectedRequests.add(request)
                                         showRequestTypes = false
                                         showAddButton = true
                                     }
                                     HIDRequest(layoutSpacingModifier, listSpacingModifier) { request ->
-                                        requestDocumentSelection.add(request)
+                                        selectedRequests.add(request)
                                         showRequestTypes = false
                                         showAddButton = true
                                     }
