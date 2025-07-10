@@ -11,6 +11,7 @@ import at.asitplus.wallet.lib.iso.DeviceResponse
 import data.document.RequestDocument
 import data.document.RequestDocumentBuilder
 import data.document.RequestDocumentList
+import data.document.SelectableRequest
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -76,55 +77,13 @@ class VerifierViewModel(
         }.onFailure { error ->
             handleError(error.message ?: "Unknown error")
         }
-
     }
 
-    fun onClickPredefinedMdlMandatoryAttributes(selectedEngagementMethod: DeviceEngagementMethods) {
-        _requestDocumentList.addRequestDocument(
-            RequestDocumentBuilder.getMdlMandatoryAttributesRequestDocument()
-        )
-        setStateToEngagement(selectedEngagementMethod)
-    }
-
-    fun onClickPredefinedMdlFullAttributes(selectedEngagementMethod: DeviceEngagementMethods) {
-        _requestDocumentList.addRequestDocument(
-            RequestDocumentBuilder.getMdlFullAttributesRequestDocument()
-        )
-        setStateToEngagement(selectedEngagementMethod)
-    }
-
-    fun onClickPredefinedAgeMdl(age: Int, selectedEngagementMethod: DeviceEngagementMethods) {
-        _requestDocumentList.addRequestDocument(
-            RequestDocumentBuilder.getAgeVerificationRequestDocumentMdl(age)
-        )
-        setStateToEngagement(selectedEngagementMethod)
-    }
-
-    fun onClickPredefinedPidRequiredAttributes(selectedEngagementMethod: DeviceEngagementMethods) {
-        _requestDocumentList.addRequestDocument(
-            RequestDocumentBuilder.getPidRequiredAttributesRequestDocument()
-        )
-        setStateToEngagement(selectedEngagementMethod)
-    }
-
-    fun onClickPredefinedPidFullAttributes(selectedEngagementMethod: DeviceEngagementMethods) {
-        _requestDocumentList.addRequestDocument(
-            RequestDocumentBuilder.getPidFullAttributesRequestDocument()
-        )
-        setStateToEngagement(selectedEngagementMethod)
-    }
-
-    fun onClickPredefinedAgePid(age: Int, selectedEngagementMethod: DeviceEngagementMethods) {
-        _requestDocumentList.addRequestDocument(
-            RequestDocumentBuilder.getAgeVerificationRequestDocumentPid(age)
-        )
-        setStateToEngagement(selectedEngagementMethod)
-    }
-
-    fun onClickPredefinedHidRequiredAttributes(selectedEngagementMethod: DeviceEngagementMethods) {
-        _requestDocumentList.addRequestDocument(
-            RequestDocumentBuilder.getHealthIdRequiredAttributesRequestDocument()
-        )
+    fun onRequestSelected(
+        selectedEngagementMethod: DeviceEngagementMethods,
+        request: SelectableRequest
+    ) {
+        _requestDocumentList.addRequestDocument(RequestDocumentBuilder.buildRequestDocument(request))
         setStateToEngagement(selectedEngagementMethod)
     }
 

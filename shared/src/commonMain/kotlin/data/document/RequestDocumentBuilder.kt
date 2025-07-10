@@ -57,29 +57,33 @@ object RequestDocumentBuilder {
         )
     }
 
-    fun getMdlFullAttributesRequestDocument() = buildRequestDocument(MobileDrivingLicenceScheme)
-
-    fun getMdlMandatoryAttributesRequestDocument() = buildRequestDocument(
-        MobileDrivingLicenceScheme, MobileDrivingLicenceDataElements.MANDATORY_ELEMENTS
-    )
-
-    fun getAgeVerificationRequestDocumentMdl(age: Int) = buildRequestDocument(
-        MobileDrivingLicenceScheme, listOf(SelectableAge.fromValue(age)!!.mdlElement!!)
-    )
-
-    fun getPidFullAttributesRequestDocument() = buildRequestDocument(EuPidScheme)
-
-    fun getPidRequiredAttributesRequestDocument() = buildRequestDocument(
-        EuPidScheme, EuPidScheme.requiredClaimNames
-    )
-
-    fun getAgeVerificationRequestDocumentPid(age: Int) = buildRequestDocument(
-        EuPidScheme, listOf(SelectableAge.fromValue(age)!!.pidElement!!)
-    )
-
-    fun getHealthIdRequiredAttributesRequestDocument() = buildRequestDocument(
-        HealthIdScheme, HealthIdSchemeRequiredClaimNames.getAttributes()
-    )
+    fun buildRequestDocument(
+        selectableRequest: SelectableRequest
+    ): RequestDocument {
+        return when(selectableRequest.type) {
+            SelectableRequestType.MDL_MANDATORY -> buildRequestDocument(
+                MobileDrivingLicenceScheme, MobileDrivingLicenceDataElements.MANDATORY_ELEMENTS
+            )
+            SelectableRequestType.MDL_FULL -> buildRequestDocument(MobileDrivingLicenceScheme)
+            SelectableRequestType.MDL_AGE_VERIFICATION -> buildRequestDocument(
+                MobileDrivingLicenceScheme, listOf(
+                    SelectableAge.fromValue(selectableRequest.age!!)!!.mdlElement!!
+                )
+            )
+            SelectableRequestType.PID_MANDATORY -> buildRequestDocument(
+                EuPidScheme, EuPidScheme.requiredClaimNames
+            )
+            SelectableRequestType.PID_FULL -> buildRequestDocument(EuPidScheme)
+            SelectableRequestType.PID_AGE_VERIFICATION ->  buildRequestDocument(
+                EuPidScheme, listOf(
+                    SelectableAge.fromValue(selectableRequest.age!!)!!.pidElement!!
+                )
+            )
+            SelectableRequestType.HIID -> buildRequestDocument(
+                HealthIdScheme, HealthIdSchemeRequiredClaimNames.getAttributes()
+            )
+        }
+    }
 }
 
 object SelectableDocTypes {
@@ -123,3 +127,18 @@ object HealthIdSchemeRequiredClaimNames {
         )
     }
 }
+
+enum class SelectableRequestType {
+    MDL_MANDATORY,
+    MDL_FULL,
+    MDL_AGE_VERIFICATION,
+    PID_MANDATORY,
+    PID_FULL,
+    PID_AGE_VERIFICATION,
+    HIID
+}
+
+data class SelectableRequest(
+    val type: SelectableRequestType,
+    val age: Int? = null
+)
