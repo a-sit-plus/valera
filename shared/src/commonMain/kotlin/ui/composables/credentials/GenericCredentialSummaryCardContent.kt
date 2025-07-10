@@ -60,7 +60,10 @@ fun GenericCredentialSummaryCardContent(
     modifier: Modifier = Modifier,
 ) {
 
-    var showContent by remember { mutableStateOf(false) }
+    var showContent by remember {
+        mutableStateOf(credential.scheme?.schemaUri?.contains("unknown") ?: false)
+    }
+
 
     val density = LocalDensity.current
     AnimatedVisibility(
