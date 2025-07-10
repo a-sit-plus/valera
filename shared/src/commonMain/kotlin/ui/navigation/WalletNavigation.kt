@@ -533,19 +533,15 @@ private fun WalletNavHost(
             )
         }
 
-        composable<AddCredentialRoute> { backStackEntry ->
-            SelectIssuingServerView(remember {
-                AddCredentialViewModel(
-                    walletMain = walletMain,
-                    navigateUp = navigateBack,
-                    hostString = currentHost,
-                    onSubmitServer = { host ->
-                        navigate(LoadCredentialRoute(host))
-                    },
-                    onClickLogo = onClickLogo,
-                    onClickSettings = { navigate(SettingsRoute) }
-                )
-            })
+        composable<AddCredentialRoute> {
+            SelectIssuingServerView(
+                navigateUp = navigateBack,
+                onClickLogo = onClickLogo,
+                onClickSettings = { navigate(SettingsRoute) },
+                onNavigateToLoadCredentialRoute = { host ->
+                    navigate(LoadCredentialRoute(host))
+                },
+            )
         }
 
         composable<LoadCredentialRoute> { backStackEntry ->
