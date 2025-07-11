@@ -8,7 +8,6 @@ import at.asitplus.wallet.app.common.iso.transfer.DeviceEngagementMethods
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants.MDOC_PREFIX
 import at.asitplus.wallet.app.common.iso.transfer.TransferManager
 import at.asitplus.wallet.lib.iso.DeviceResponse
-import data.document.RequestDocument
 import data.document.RequestDocumentBuilder
 import data.document.RequestDocumentList
 import data.document.SelectableRequest
@@ -105,8 +104,17 @@ class VerifierViewModel(
         setStateToEngagement(selectedEngagementMethod.value)
     }
 
-    fun onReceiveCustomSelection(customSelectionDocument: RequestDocument) {
-        _requestDocumentList.addRequestDocument(customSelectionDocument)
+    fun onReceiveCustomSelection(
+        selectedDocumentType: String,
+        selectedEntries: Collection<String>
+    ) {
+        val config = RequestDocumentBuilder.getDocTypeConfig(selectedDocumentType) ?: return
+        _requestDocumentList.addRequestDocument(
+            RequestDocumentBuilder.buildRequestDocument(
+                scheme = config.scheme,
+                subSet = selectedEntries
+            )
+        )
         setStateToEngagement(selectedEngagementMethod.value)
     }
 

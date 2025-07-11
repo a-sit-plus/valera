@@ -36,6 +36,7 @@ import at.asitplus.valera.resources.section_heading_request_combined
 import at.asitplus.valera.resources.section_heading_request_custom
 import at.asitplus.valera.resources.section_heading_request_engagement_method
 import at.asitplus.wallet.app.common.iso.transfer.DeviceEngagementMethods
+import data.document.SelectableRequest
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.ScreenHeading
@@ -87,7 +88,6 @@ fun VerifierDocumentSelectionView(
                 modifier = Modifier.padding(end = 16.dp, start = 16.dp, bottom = 16.dp)
                     .verticalScroll(rememberScrollState())
             ) {
-                // Engagement methods
                 Column(
                     modifier = layoutSpacingModifier,
                     horizontalAlignment = Alignment.Start
@@ -112,14 +112,13 @@ fun VerifierDocumentSelectionView(
                         }
                     }
                 }
-                MDLRequests(layoutSpacingModifier, listSpacingModifier) { request ->
+                val handleRequest: (SelectableRequest) -> Unit = { request ->
                     vm.onRequestSelected(selectedEngagementMethod, request)
                 }
-                PIDRequests(layoutSpacingModifier, listSpacingModifier) { request ->
-                    vm.onRequestSelected(selectedEngagementMethod, request)
-                }
-                HIDRequest(layoutSpacingModifier, listSpacingModifier) { request ->
-                    vm.onRequestSelected(selectedEngagementMethod, request)
+                Column {
+                    MDLRequests(layoutSpacingModifier, listSpacingModifier, handleRequest)
+                    PIDRequests(layoutSpacingModifier, listSpacingModifier, handleRequest)
+                    HIDRequest(layoutSpacingModifier, listSpacingModifier, handleRequest)
                 }
                 Column(modifier = layoutSpacingModifier) {
                     Text(
