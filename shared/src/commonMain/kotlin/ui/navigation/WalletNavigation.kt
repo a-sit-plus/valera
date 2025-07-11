@@ -232,9 +232,9 @@ fun WalletNavigation(
                 if (ready == true) {
                     emit(error)
                 }
-            }.collect { (throwableId) ->
+            }.collect {
                 navigate(
-                    ErrorRoute(throwableId)
+                    ErrorRoute
                 )
             }
         }
@@ -651,11 +651,9 @@ private fun WalletNavHost(
         }
 
         composable<ErrorRoute> { backStackEntry ->
-            catchingUnwrapped {
-                val throwableId = backStackEntry.toRoute<ErrorRoute>().throwableId
-                remember { walletMain.errorService.get(throwableId) }
-                    ?: throw Throwable("No throwable with id $throwableId")
-            }.onSuccess{ throwable ->
+            val throwable = walletMain.errorService.getCurrentError()
+
+            if (throwable != null) {
                 ErrorView(remember {
                     ErrorViewModel(
                         resetStack = { popBackStack(HomeScreenRoute) },
@@ -672,9 +670,8 @@ private fun WalletNavHost(
                         onClickSettings = { navigate(SettingsRoute) }
                     )
                 })
-            }.onFailure {
+            } else {
                 popBackStack(HomeScreenRoute)
-                walletMain.errorService.emit(it)
             }
         }
 
