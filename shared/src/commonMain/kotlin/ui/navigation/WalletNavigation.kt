@@ -648,23 +648,27 @@ private fun WalletNavHost(
 
         composable<ErrorRoute> { backStackEntry ->
             val errorFlowData by walletMain.errorService.error.collectAsState(null)
-            errorFlowData?.throwable?.let {
-                ErrorView(remember {
-                    ErrorViewModel(
-                        resetStack = { popBackStack(HomeScreenRoute) },
-                        resetApp = {
-                            walletMain.scope.launch {
-                                walletMain.resetApp()
-                                val resetMessage = getString(Res.string.snackbar_reset_app_successfully)
-                                walletMain.snackbarService.showSnackbar(resetMessage)
-                                popBackStack(HomeScreenRoute)
-                            }
-                        },
-                        throwable = it,
-                        onClickLogo = onClickLogo,
-                        onClickSettings = { navigate(SettingsRoute) }
-                    )
-                })
+
+            val vm = catchingUnwrapped {
+                ErrorViewModel(
+                    resetStack = { popBackStack(HomeScreenRoute) },
+                    resetApp = {
+                        walletMain.scope.launch {
+                            walletMain.resetApp()
+                            val resetMessage = getString(Res.string.snackbar_reset_app_successfully)
+                            walletMain.snackbarService.showSnackbar(resetMessage)
+                            popBackStack(HomeScreenRoute)
+                        }
+                    },
+                    throwable = errorFlowData?.throwable ?: throw Throwable("Throwable null"),
+                    onClickLogo = onClickLogo,
+                    onClickSettings = { navigate(SettingsRoute) }
+                )
+            }
+            vm.onSuccess {
+                ErrorView(remember { it })
+            }.onFailure {
+                popBackStack(HomeScreenRoute)
             }
         }
 
