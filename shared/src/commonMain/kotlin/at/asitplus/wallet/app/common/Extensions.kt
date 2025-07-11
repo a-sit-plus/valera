@@ -36,6 +36,7 @@ import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.ISO_MDOC
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.PLAIN_JWT
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.SD_JWT
+import at.asitplus.wallet.lib.data.dif.ConstraintFieldsEvaluationException
 import at.asitplus.wallet.lib.data.dif.PresentationExchangeInputEvaluator
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.oidvci.toFormat
@@ -354,4 +355,9 @@ private fun JsonObjectBuilder.addSdJwtDummyMetadata() {
     put("exp", 0)
     put("cnf", buildJsonObject { })
     put("status", buildJsonObject { })
+}
+
+fun Throwable.enrichMessage() = when (this) {
+    is ConstraintFieldsEvaluationException -> "$message ${constraintFieldExceptions.keys}"
+    else -> message ?: toString()
 }

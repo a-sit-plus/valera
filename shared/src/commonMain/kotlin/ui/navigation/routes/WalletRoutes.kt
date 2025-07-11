@@ -30,7 +30,7 @@ object LogRoute : Route()
 data class SigningQtspSelectionRoute(val signatureRequestParametersSerialized: String) : Route()
 
 @Serializable
-data class ErrorRoute(val message: String?, val cause: String?) : Route()
+data class ErrorRoute(val throwableId: String) : Route()
 
 @Serializable
 object LoadingRoute : Route()
