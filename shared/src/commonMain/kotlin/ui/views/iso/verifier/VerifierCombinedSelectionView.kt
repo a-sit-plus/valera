@@ -106,22 +106,21 @@ fun VerifierCombinedSelectionView(vm: VerifierViewModel) {
                         text = stringResource(Res.string.text_label_requests),
                         style = MaterialTheme.typography.titleMedium
                     )
-                    if (selectedRequests.isNotEmpty()) {
+                    if (selectedRequests.isEmpty()) {
+                        Text(
+                            text = stringResource(Res.string.info_text_no_requests),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    } else {
                         selectedRequests.forEach { requestDocument ->
                             Text(
                                 text = requestDocument.type.toString(),
                                 style = MaterialTheme.typography.bodyMedium
                             )
                         }
-                    } else {
-                        Text(
-                            text = stringResource(Res.string.info_text_no_requests),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
-
                     if(showAddButton) {
                         Button(
                             onClick = {
@@ -147,22 +146,15 @@ fun VerifierCombinedSelectionView(vm: VerifierViewModel) {
                                 Text(stringResource(Res.string.section_heading_select_document_type))
                             },
                             text = {
+                                val handleRequest: (SelectableRequest) -> Unit = { request ->
+                                    selectedRequests.add(request)
+                                    showRequestTypes = false
+                                    showAddButton = true
+                                }
                                 Column {
-                                    MDLRequests(layoutSpacingModifier, listSpacingModifier) { request ->
-                                        selectedRequests.add(request)
-                                        showRequestTypes = false
-                                        showAddButton = true
-                                    }
-                                    PIDRequests(layoutSpacingModifier, listSpacingModifier) { request ->
-                                        selectedRequests.add(request)
-                                        showRequestTypes = false
-                                        showAddButton = true
-                                    }
-                                    HIDRequest(layoutSpacingModifier, listSpacingModifier) { request ->
-                                        selectedRequests.add(request)
-                                        showRequestTypes = false
-                                        showAddButton = true
-                                    }
+                                    MDLRequests(layoutSpacingModifier, listSpacingModifier, handleRequest)
+                                    PIDRequests(layoutSpacingModifier, listSpacingModifier, handleRequest)
+                                    HIDRequest(layoutSpacingModifier, listSpacingModifier, handleRequest)
                                 }
                             }
                         )

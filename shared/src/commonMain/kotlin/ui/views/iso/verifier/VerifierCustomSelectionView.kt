@@ -88,15 +88,7 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                             contentDescription = null
                         )
                     },
-                    onClick = {
-                        RequestDocumentBuilder.getDocTypeConfig(selectedDocumentType)?.let { config ->
-                            val items = RequestDocumentBuilder.buildRequestDocument(
-                                scheme = config.scheme,
-                                subSet = selectedEntries
-                            )
-                            vm.onReceiveCustomSelection(items)
-                        }
-                    },
+                    onClick = { vm.onReceiveCustomSelection(selectedDocumentType, selectedEntries) },
                     selected = false
                 )
             }
