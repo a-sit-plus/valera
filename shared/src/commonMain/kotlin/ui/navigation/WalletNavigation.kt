@@ -31,8 +31,6 @@ import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.error_feature_not_yet_available
-import at.asitplus.valera.resources.snackbar_clear_log_successfully
 import at.asitplus.valera.resources.snackbar_reset_app_successfully
 import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.KeystoreService
@@ -40,7 +38,6 @@ import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.domain.platform.UrlOpener
-import at.asitplus.wallet.lib.data.dif.ConstraintFieldsEvaluationException
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import io.github.aakira.napier.Napier
@@ -93,7 +90,6 @@ import ui.viewmodels.LogViewModel
 import ui.viewmodels.QrCodeScannerMode
 import ui.viewmodels.QrCodeScannerViewModel
 import ui.viewmodels.SigningQtspSelectionViewModel
-import ui.viewmodels.authentication.AuthenticationSuccessViewModel
 import ui.viewmodels.authentication.AuthenticationViewModel
 import ui.viewmodels.authentication.DefaultAuthenticationViewModel
 import ui.viewmodels.authentication.NewDCAPIAuthenticationViewModel
@@ -236,21 +232,13 @@ fun WalletNavigation(
                 if (ready == true) {
                     emit(error)
                 }
-            }.collect { (throwable) ->
+            }.collect { (throwableId) ->
                 navigate(
-                    ErrorRoute(
-                        throwable.enrichMessage(),
-                        throwable.cause?.message ?: throwable.cause?.toString()
-                    )
+                    ErrorRoute(throwableId)
                 )
             }
         }
     }
-}
-
-private fun Throwable.enrichMessage() = when (this) {
-    is ConstraintFieldsEvaluationException -> "$message ${constraintFieldExceptions.keys}"
-    else -> message ?: toString()
 }
 
 @Composable
@@ -659,23 +647,27 @@ private fun WalletNavHost(
         }
 
         composable<ErrorRoute> { backStackEntry ->
-            ErrorView(remember {
-                ErrorViewModel(
-                    resetStack = { popBackStack(HomeScreenRoute) },
-                    resetApp = {
-                        walletMain.scope.launch {
-                            walletMain.resetApp()
-                            val resetMessage = getString(Res.string.snackbar_reset_app_successfully)
-                            walletMain.snackbarService.showSnackbar(resetMessage)
-                            popBackStack(HomeScreenRoute)
-                        }
-                    },
-                    message = backStackEntry.toRoute<ErrorRoute>().message,
-                    cause = backStackEntry.toRoute<ErrorRoute>().cause,
-                    onClickLogo = onClickLogo,
-                    onClickSettings = { navigate(SettingsRoute) }
-                )
-            })
+            val throwableId = backStackEntry.toRoute<ErrorRoute>().throwableId
+            val throwable = remember { walletMain.errorService.get(throwableId) }
+
+            throwable?.let { throwable ->
+                ErrorView(remember {
+                    ErrorViewModel(
+                        resetStack = { popBackStack(HomeScreenRoute) },
+                        resetApp = {
+                            walletMain.scope.launch {
+                                walletMain.resetApp()
+                                val resetMessage = getString(Res.string.snackbar_reset_app_successfully)
+                                walletMain.snackbarService.showSnackbar(resetMessage)
+                                popBackStack(HomeScreenRoute)
+                            }
+                        },
+                        throwable = throwable,
+                        onClickLogo = onClickLogo,
+                        onClickSettings = { navigate(SettingsRoute) }
+                    )
+                })
+            }
         }
 
         composable<LoadingRoute> { backStackEntry ->
