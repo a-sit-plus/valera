@@ -10,7 +10,6 @@ import data.credentials.EuPidCredentialAttributeTranslator
 import data.credentials.HealthIdCredentialAttributeTranslator
 import data.credentials.MobileDrivingLicenceCredentialAttributeTranslator
 import org.jetbrains.compose.resources.StringResource
-import kotlin.reflect.KClass
 
 object RequestDocumentBuilder {
     val schemes: List<CredentialScheme> = listOf(
@@ -19,16 +18,16 @@ object RequestDocumentBuilder {
         HealthIdScheme
     )
 
-    private val translatorMapping: Map<KClass<out CredentialScheme>, (NormalizedJsonPath) -> StringResource?> = mapOf(
-        MobileDrivingLicenceScheme::class to { path -> MobileDrivingLicenceCredentialAttributeTranslator.translate(path) },
-        EuPidScheme::class to { path -> EuPidCredentialAttributeTranslator.translate(path) },
-        HealthIdScheme::class to { path -> HealthIdCredentialAttributeTranslator.translate(path) },
+    private val translatorMapping = mapOf(
+        MobileDrivingLicenceScheme::class to MobileDrivingLicenceCredentialAttributeTranslator::translate,
+        EuPidScheme::class to EuPidCredentialAttributeTranslator::translate,
+        HealthIdScheme::class to HealthIdCredentialAttributeTranslator::translate
     )
 
-    private val preselectionMapping: Map<KClass<out CredentialScheme>, () -> Set<String>> = mapOf(
+    private val preselectionMapping = mapOf(
         MobileDrivingLicenceScheme::class to { MobileDrivingLicenceDataElements.MANDATORY_ELEMENTS.toSet() },
         EuPidScheme::class to { EuPidScheme.requiredClaimNames.toSet() },
-        HealthIdScheme::class to { HealthIdSchemeRequiredClaimNames.getAttributes().toSet() },
+        HealthIdScheme::class to { HealthIdSchemeRequiredClaimNames.attributes.toSet() }
     )
 
     private val docTypeConfigs: Map<String, DocTypeConfig> = schemes.associate { scheme ->
@@ -57,32 +56,28 @@ object RequestDocumentBuilder {
         )
     }
 
-    fun buildRequestDocument(
-        selectableRequest: SelectableRequest
-    ): RequestDocument {
-        return when(selectableRequest.type) {
-            SelectableRequestType.MDL_MANDATORY -> buildRequestDocument(
-                MobileDrivingLicenceScheme, MobileDrivingLicenceDataElements.MANDATORY_ELEMENTS
+    fun buildRequestDocument(selectableRequest: SelectableRequest) = when (selectableRequest.type) {
+        SelectableRequestType.MDL_MANDATORY -> buildRequestDocument(
+            MobileDrivingLicenceScheme, MobileDrivingLicenceDataElements.MANDATORY_ELEMENTS
+        )
+        SelectableRequestType.MDL_FULL -> buildRequestDocument(MobileDrivingLicenceScheme)
+        SelectableRequestType.MDL_AGE_VERIFICATION -> buildRequestDocument(
+            MobileDrivingLicenceScheme, listOf(
+                SelectableAge.fromValue(selectableRequest.age!!)!!.mdlElement!!
             )
-            SelectableRequestType.MDL_FULL -> buildRequestDocument(MobileDrivingLicenceScheme)
-            SelectableRequestType.MDL_AGE_VERIFICATION -> buildRequestDocument(
-                MobileDrivingLicenceScheme, listOf(
-                    SelectableAge.fromValue(selectableRequest.age!!)!!.mdlElement!!
-                )
+        )
+        SelectableRequestType.PID_MANDATORY -> buildRequestDocument(
+            EuPidScheme, EuPidScheme.requiredClaimNames
+        )
+        SelectableRequestType.PID_FULL -> buildRequestDocument(EuPidScheme)
+        SelectableRequestType.PID_AGE_VERIFICATION -> buildRequestDocument(
+            EuPidScheme, listOf(
+                SelectableAge.fromValue(selectableRequest.age!!)!!.pidElement!!
             )
-            SelectableRequestType.PID_MANDATORY -> buildRequestDocument(
-                EuPidScheme, EuPidScheme.requiredClaimNames
-            )
-            SelectableRequestType.PID_FULL -> buildRequestDocument(EuPidScheme)
-            SelectableRequestType.PID_AGE_VERIFICATION ->  buildRequestDocument(
-                EuPidScheme, listOf(
-                    SelectableAge.fromValue(selectableRequest.age!!)!!.pidElement!!
-                )
-            )
-            SelectableRequestType.HIID -> buildRequestDocument(
-                HealthIdScheme, HealthIdSchemeRequiredClaimNames.getAttributes()
-            )
-        }
+        )
+        SelectableRequestType.HIID -> buildRequestDocument(
+            HealthIdScheme, HealthIdSchemeRequiredClaimNames.attributes
+        )
     }
 }
 
@@ -116,16 +111,14 @@ enum class SelectableAge(val value: Int, val mdlElement: String?, val pidElement
 }
 
 object HealthIdSchemeRequiredClaimNames {
-    fun getAttributes(): Collection<String> {
-        return listOf(
-            HealthIdScheme.Attributes.ONE_TIME_TOKEN,
-            HealthIdScheme.Attributes.AFFILIATION_COUNTRY,
-            HealthIdScheme.Attributes.ISSUE_DATE,
-            HealthIdScheme.Attributes.EXPIRY_DATE,
-            HealthIdScheme.Attributes.ISSUING_AUTHORITY,
-            HealthIdScheme.Attributes.ISSUING_COUNTRY
-        )
-    }
+    val attributes: List<String> = listOf(
+        HealthIdScheme.Attributes.ONE_TIME_TOKEN,
+        HealthIdScheme.Attributes.AFFILIATION_COUNTRY,
+        HealthIdScheme.Attributes.ISSUE_DATE,
+        HealthIdScheme.Attributes.EXPIRY_DATE,
+        HealthIdScheme.Attributes.ISSUING_AUTHORITY,
+        HealthIdScheme.Attributes.ISSUING_COUNTRY
+    )
 }
 
 enum class SelectableRequestType {
