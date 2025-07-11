@@ -647,9 +647,8 @@ private fun WalletNavHost(
         }
 
         composable<ErrorRoute> { backStackEntry ->
-            val throwable = walletMain.errorService.getCurrentError()
-
-            if (throwable != null) {
+            val throwable by walletMain.errorService.error.collectAsState(null)
+            throwable?.throwable?.let {
                 ErrorView(remember {
                     ErrorViewModel(
                         resetStack = { popBackStack(HomeScreenRoute) },
@@ -661,13 +660,11 @@ private fun WalletNavHost(
                                 popBackStack(HomeScreenRoute)
                             }
                         },
-                        throwable = throwable,
+                        throwable = it,
                         onClickLogo = onClickLogo,
                         onClickSettings = { navigate(SettingsRoute) }
                     )
                 })
-            } else {
-                popBackStack(HomeScreenRoute)
             }
         }
 
