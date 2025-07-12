@@ -232,6 +232,7 @@ class InstrumentedTestsSuite : FunSpec({
                     ) {
                         val walletDependencyProvider =
                             catchingUnwrapped { createWalletDependencyProvider(getPlatformAdapter()) }
+                        walletMain = walletDependencyProvider.getOrThrow()
                         App(walletDependencyProvider)
                     }
 
