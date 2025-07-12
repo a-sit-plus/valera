@@ -16,6 +16,7 @@ import androidx.credentials.provider.PendingIntentHandler
 import androidx.credentials.registry.provider.selectedEntryId
 import at.asitplus.KmmResult
 import at.asitplus.catching
+import at.asitplus.catchingUnwrapped
 import at.asitplus.dcapi.DCAPIResponse
 import at.asitplus.dcapi.EncryptedResponse
 import at.asitplus.dcapi.EncryptedResponseData
@@ -93,15 +94,17 @@ fun MainView(
 
     PromptDialogs(promptModel)
 
-    App(
+    val walletDependencyProvider = catchingUnwrapped {
         WalletDependencyProvider(
-            keyMaterial = ks.let { runBlocking { AndroidKeyMaterial(it.getSigner()) } },
-            dataStoreService = dataStoreService,
-            platformAdapter = platformAdapter,
-            buildContext = buildContext,
-            promptModel = promptModel
+        keyMaterial = runBlocking { AndroidKeyMaterial(ks.getSigner()) },
+        dataStoreService = dataStoreService,
+        platformAdapter = platformAdapter,
+        buildContext = buildContext,
+        promptModel = promptModel
         )
-    )
+    }
+
+    App(walletDependencyProvider)
 }
 
 public class AndroidPlatformAdapter(
