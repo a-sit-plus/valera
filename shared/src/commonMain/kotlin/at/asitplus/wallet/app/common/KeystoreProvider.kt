@@ -1,15 +1,19 @@
 package at.asitplus.wallet.app.common
 
 import AppResetRequiredException
+import at.asitplus.KmmResult
+import at.asitplus.catchingUnwrapped
 import at.asitplus.io.MultiBase
 import at.asitplus.io.multibaseDecode
 import at.asitplus.io.multibaseEncode
-import at.asitplus.signum.indispensable.ECCurve
-import at.asitplus.signum.indispensable.equalsCryptographically
+import at.asitplus.signum.indispensable.*
 import at.asitplus.signum.indispensable.pki.X509Certificate
+import at.asitplus.signum.supreme.SignatureResult
 import at.asitplus.signum.supreme.dsl.PREFERRED
 import at.asitplus.signum.supreme.os.SigningProvider
+import at.asitplus.signum.supreme.sign.SignatureInput
 import at.asitplus.signum.supreme.sign.Signer
+import at.asitplus.wallet.lib.agent.EphemeralKeyWithoutCert
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.agent.KeyWithSelfSignedCert
 import data.storage.DataStoreService
@@ -34,7 +38,7 @@ open class KeystoreService(
         Napier.d("getSigner")
         sMut.withLock {
             if (signer == null)
-                signer = initSigner()
+                signer = catchingUnwrapped { initSigner() }.getOrElse { FallBackKeyMaterial() }
         }
         return signer!!
     }
@@ -146,6 +150,30 @@ open class KeystoreService(
     //TMP for iOS
     @Throws(Throwable::class)
     fun getSignerBlocking() = runBlocking { getSigner() }
+}
+
+class FallBackKeyMaterial(
+    override val signatureAlgorithm: SignatureAlgorithm = SignatureAlgorithm.ECDSAwithSHA256,
+    override val publicKey: CryptoPublicKey = EphemeralKeyWithoutCert().publicKey,
+    override val identifier: String = ""
+): KeyMaterial {
+    @SecretExposure
+    override fun exportPrivateKey(): KmmResult<CryptoPrivateKey.WithPublicKey<*>> {
+        throw Throwable("Not intended for usage")
+    }
+
+    override suspend fun sign(data: SignatureInput): SignatureResult<*> {
+        throw Throwable("Not intended for usage")
+    }
+
+    override fun getUnderLyingSigner(): Signer {
+        throw Throwable("Not intended for usage")
+    }
+
+    override suspend fun getCertificate(): X509Certificate? {
+        throw Throwable("Not intended for usage")
+    }
+
 }
 
 expect fun getProvider(): SigningProvider
