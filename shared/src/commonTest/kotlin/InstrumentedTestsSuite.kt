@@ -45,8 +45,8 @@ import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.agent.toStoreCredentialInput
 import data.storage.DummyDataStoreService
-import io.kotest.common.Platform
-import io.kotest.common.platform
+import io.kotest.core.Platform
+import io.kotest.core.platform
 import io.kotest.core.spec.style.FunSpec
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
