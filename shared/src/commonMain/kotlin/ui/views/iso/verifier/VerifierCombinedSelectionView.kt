@@ -41,24 +41,46 @@ import at.asitplus.valera.resources.info_text_no_requests
 import at.asitplus.valera.resources.section_heading_select_document_type
 import at.asitplus.valera.resources.text_label_requests
 import data.document.SelectableRequest
+import data.document.SelectableRequestType
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.iso.VerifierViewModel
-import ui.views.iso.verifier.requests.HIDRequest
+import ui.views.iso.verifier.requests.HIIDRequest
 import ui.views.iso.verifier.requests.MDLRequests
 import ui.views.iso.verifier.requests.PIDRequests
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VerifierCombinedSelectionView(vm: VerifierViewModel) {
-    val listSpacingModifier = Modifier.padding(top = 8.dp)
+    val listSpacingModifier = Modifier.padding(top = 8.dp).fillMaxWidth()
     val layoutSpacingModifier = Modifier.padding(top = 24.dp)
 
     var showAddButton by remember { mutableStateOf(true) }
     var showRequestTypes by remember { mutableStateOf(false) }
     val selectedRequests = remember { mutableStateListOf<SelectableRequest>() }
+
+    var isMdlSelectable by remember { mutableStateOf(true) }
+    var isPidSelectable by remember { mutableStateOf(true) }
+    var isHiidSelectable by remember { mutableStateOf(true) }
+
+    val handleRequest: (SelectableRequest) -> Unit = { request ->
+        selectedRequests.add(request)
+        when(request.type) {
+            SelectableRequestType.MDL_MANDATORY,
+            SelectableRequestType.MDL_FULL,
+            SelectableRequestType.MDL_AGE_VERIFICATION -> isMdlSelectable = false
+            SelectableRequestType.PID_MANDATORY,
+            SelectableRequestType.PID_FULL,
+            SelectableRequestType.PID_AGE_VERIFICATION -> isPidSelectable = false
+            SelectableRequestType.HIID -> isHiidSelectable = false
+        }
+        showRequestTypes = false
+        if(isMdlSelectable || isPidSelectable || isHiidSelectable) {
+            showAddButton = true
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -119,7 +141,6 @@ fun VerifierCombinedSelectionView(vm: VerifierViewModel) {
                             )
                         }
                     }
-
                     Spacer(modifier = Modifier.height(16.dp))
                     if(showAddButton) {
                         Button(
@@ -134,7 +155,6 @@ fun VerifierCombinedSelectionView(vm: VerifierViewModel) {
                             Text(stringResource(Res.string.button_add_request))
                         }
                     }
-
                     if (showRequestTypes) {
                         AlertDialog(
                             onDismissRequest = {
@@ -146,15 +166,25 @@ fun VerifierCombinedSelectionView(vm: VerifierViewModel) {
                                 Text(stringResource(Res.string.section_heading_select_document_type))
                             },
                             text = {
-                                val handleRequest: (SelectableRequest) -> Unit = { request ->
-                                    selectedRequests.add(request)
-                                    showRequestTypes = false
-                                    showAddButton = true
-                                }
                                 Column {
-                                    MDLRequests(layoutSpacingModifier, listSpacingModifier, handleRequest)
-                                    PIDRequests(layoutSpacingModifier, listSpacingModifier, handleRequest)
-                                    HIDRequest(layoutSpacingModifier, listSpacingModifier, handleRequest)
+                                    if (isMdlSelectable) {
+                                        MDLRequests(
+                                            layoutSpacingModifier,
+                                            listSpacingModifier,
+                                            handleRequest)
+                                    }
+                                    if (isPidSelectable) {
+                                        PIDRequests(
+                                            layoutSpacingModifier,
+                                            listSpacingModifier,
+                                            handleRequest)
+                                    }
+                                    if (isHiidSelectable) {
+                                        HIIDRequest(
+                                            layoutSpacingModifier,
+                                            listSpacingModifier,
+                                            handleRequest)
+                                    }
                                 }
                             }
                         )

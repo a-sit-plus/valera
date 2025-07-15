@@ -16,25 +16,22 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun RequestItem(
-    icon: @Composable () -> Unit = {},
-    label: String,
-    subLabel: String? = null,
-    onClick: () -> Unit,
+    requestItemData: RequestItemData,
     modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = modifier.clickable(onClick = onClick)
+        modifier = modifier.clickable(onClick = requestItemData.onClick)
             .padding(top = 4.dp, end = 16.dp, bottom = 4.dp, start = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        icon()
+        requestItemData.icon()
         Spacer(modifier = Modifier.width(16.dp))
         Column {
             Text(
-                text = label,
+                text = requestItemData.label,
                 style = MaterialTheme.typography.bodyLarge
             )
-            subLabel?.let {
+            requestItemData.subLabel?.let {
                 Spacer(modifier = Modifier.size(4.dp))
                 Text(
                     text = it,
@@ -44,3 +41,10 @@ fun RequestItem(
         }
     }
 }
+
+data class RequestItemData(
+    val icon: @Composable () -> Unit = {},
+    val label: String,
+    val subLabel: String? = null,
+    val onClick: () -> Unit
+)

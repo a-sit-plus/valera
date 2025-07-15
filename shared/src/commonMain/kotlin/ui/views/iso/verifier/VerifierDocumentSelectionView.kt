@@ -41,10 +41,11 @@ import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.ScreenHeading
 import ui.viewmodels.iso.VerifierViewModel
-import ui.views.iso.verifier.requests.HIDRequest
+import ui.views.iso.verifier.requests.HIIDRequest
 import ui.views.iso.verifier.requests.MDLRequests
 import ui.views.iso.verifier.requests.PIDRequests
 import ui.views.iso.verifier.requests.RequestItem
+import ui.views.iso.verifier.requests.RequestItemData
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,7 +53,7 @@ fun VerifierDocumentSelectionView(
     vm: VerifierViewModel,
     bottomBar: @Composable () -> Unit
 ) {
-    val listSpacingModifier = Modifier.padding(top = 8.dp)
+    val listSpacingModifier = Modifier.padding(top = 8.dp).fillMaxWidth()
     val layoutSpacingModifier = Modifier.padding(top = 24.dp)
 
     val engagementMethods = DeviceEngagementMethods.entries
@@ -100,7 +101,7 @@ fun VerifierDocumentSelectionView(
                         SingleChoiceButton(
                             engagementMethod.friendlyName,
                             selectedEngagementMethod.friendlyName,
-                            modifier = listSpacingModifier.fillMaxWidth(),
+                            modifier = listSpacingModifier,
                             icon = {
                                 Icon(
                                     imageVector = engagementMethod.icon,
@@ -118,7 +119,7 @@ fun VerifierDocumentSelectionView(
                 Column {
                     MDLRequests(layoutSpacingModifier, listSpacingModifier, handleRequest)
                     PIDRequests(layoutSpacingModifier, listSpacingModifier, handleRequest)
-                    HIDRequest(layoutSpacingModifier, listSpacingModifier, handleRequest)
+                    HIIDRequest(layoutSpacingModifier, listSpacingModifier, handleRequest)
                 }
                 Column(modifier = layoutSpacingModifier) {
                     Text(
@@ -126,15 +127,17 @@ fun VerifierDocumentSelectionView(
                         style = MaterialTheme.typography.titleMedium
                     )
                     RequestItem(
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Outlined.SwitchAccount,
-                                contentDescription = null
-                            )
-                        },
-                        label = stringResource(Res.string.button_label_check_combined),
-                        onClick = { vm.navigateToCombinedSelectionView(selectedEngagementMethod) },
-                        modifier = listSpacingModifier.fillMaxWidth()
+                        RequestItemData(
+                            icon = {
+                                Icon(
+                                    imageVector = Icons.Outlined.SwitchAccount,
+                                    contentDescription = null
+                                )
+                            },
+                            label = stringResource(Res.string.button_label_check_combined),
+                            onClick = { vm.navigateToCombinedSelectionView(selectedEngagementMethod) }
+                        ),
+                        modifier = listSpacingModifier
                     )
                 }
                 Column(modifier = layoutSpacingModifier) {
@@ -143,15 +146,17 @@ fun VerifierDocumentSelectionView(
                         style = MaterialTheme.typography.titleMedium
                     )
                     RequestItem(
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Outlined.Build,
-                                contentDescription = null
-                            )
-                        },
-                        label = stringResource(Res.string.button_label_check_custom),
-                        onClick = { vm.navigateToCustomSelectionView(selectedEngagementMethod) },
-                        modifier = listSpacingModifier.fillMaxWidth()
+                        RequestItemData(
+                            icon = {
+                                Icon(
+                                    imageVector = Icons.Outlined.Build,
+                                    contentDescription = null
+                                )
+                            },
+                            label = stringResource(Res.string.button_label_check_custom),
+                            onClick = { vm.navigateToCustomSelectionView(selectedEngagementMethod) }
+                        ),
+                        modifier = listSpacingModifier
                     )
                 }
             }
