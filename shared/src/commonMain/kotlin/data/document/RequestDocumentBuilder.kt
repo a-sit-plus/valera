@@ -18,6 +18,16 @@ object RequestDocumentBuilder {
         HealthIdScheme
     )
 
+    val requestTypeToScheme: Map<SelectableRequestType, CredentialScheme> = mapOf(
+        SelectableRequestType.MDL_MANDATORY to MobileDrivingLicenceScheme,
+        SelectableRequestType.MDL_FULL to MobileDrivingLicenceScheme,
+        SelectableRequestType.MDL_AGE_VERIFICATION to MobileDrivingLicenceScheme,
+        SelectableRequestType.PID_MANDATORY to EuPidScheme,
+        SelectableRequestType.PID_FULL to EuPidScheme,
+        SelectableRequestType.PID_AGE_VERIFICATION to EuPidScheme,
+        SelectableRequestType.HIID to HealthIdScheme
+    )
+
     private val translatorMapping = mapOf(
         MobileDrivingLicenceScheme::class to MobileDrivingLicenceCredentialAttributeTranslator::translate,
         EuPidScheme::class to EuPidCredentialAttributeTranslator::translate,
