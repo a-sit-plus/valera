@@ -28,7 +28,7 @@ struct ComposeView: UIViewControllerRepresentable {
 struct ContentView: View {
     var body: some View {
         ComposeView()
-                .ignoresSafeArea(.keyboard) // Compose has own keyboard handler
+                .ignoresSafeArea(.all)
                 .onOpenURL { url in
                     Globals.shared.appLink.setValue(url.absoluteString)
                 }

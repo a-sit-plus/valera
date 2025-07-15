@@ -4,11 +4,10 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import at.asitplus.catchingUnwrapped
-import at.asitplus.wallet.app.common.dcapi.DCAPIInvocationData
 import at.asitplus.wallet.app.common.ErrorService
-import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.WalletDependencyProvider
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.app.common.dcapi.DCAPIInvocationData
 import at.asitplus.wallet.app.common.di.appModule
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow

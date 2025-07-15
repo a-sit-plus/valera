@@ -4,7 +4,11 @@ import AppTestTags
 import Globals
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.safeGesturesPadding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -262,6 +266,7 @@ private fun WalletNavHost(
         exitTransition = { ExitTransition.None },
         modifier = Modifier
             .fillMaxSize()
+            .windowInsetsPadding(WindowInsets.safeDrawing)
     ) {
         composable<OnboardingStartRoute> {
             catchingUnwrapped { KeystoreService.checkKeyMaterialValid() }.onFailure { Napier.d(it) { "Deleted old Key" } }

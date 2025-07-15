@@ -18,7 +18,6 @@ class MainActivity : AbstractWalletActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
-
         setContent {
             MainView(
                 buildContext = BuildContext(
