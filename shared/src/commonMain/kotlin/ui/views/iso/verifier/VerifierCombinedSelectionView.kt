@@ -40,10 +40,19 @@ import at.asitplus.valera.resources.heading_label_select_combined_data_retrieval
 import at.asitplus.valera.resources.info_text_no_requests
 import at.asitplus.valera.resources.section_heading_select_document_type
 import at.asitplus.valera.resources.text_label_requests
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.iconLabel
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
+import at.asitplus.wallet.eupid.EuPidScheme
+import at.asitplus.wallet.healthid.HealthIdScheme
+import at.asitplus.wallet.lib.data.ConstantIndex
+import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
+import data.document.RequestDocumentBuilder
 import data.document.SelectableRequest
-import data.document.SelectableRequestType
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.LabeledText
 import ui.composables.Logo
+import ui.composables.PersonAttributeDetailCardHeading
+import ui.composables.PersonAttributeDetailCardHeadingIcon
 import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.iso.VerifierViewModel
@@ -67,14 +76,10 @@ fun VerifierCombinedSelectionView(vm: VerifierViewModel) {
 
     val handleRequest: (SelectableRequest) -> Unit = { request ->
         selectedRequests.add(request)
-        when(request.type) {
-            SelectableRequestType.MDL_MANDATORY,
-            SelectableRequestType.MDL_FULL,
-            SelectableRequestType.MDL_AGE_VERIFICATION -> isMdlSelectable = false
-            SelectableRequestType.PID_MANDATORY,
-            SelectableRequestType.PID_FULL,
-            SelectableRequestType.PID_AGE_VERIFICATION -> isPidSelectable = false
-            SelectableRequestType.HIID -> isHiidSelectable = false
+        when(RequestDocumentBuilder.requestTypeToScheme[request.type]) {
+            MobileDrivingLicenceScheme -> isMdlSelectable = false
+            EuPidScheme -> isPidSelectable = false
+            HealthIdScheme -> isHiidSelectable = false
         }
         showRequestTypes = false
         if(isMdlSelectable || isPidSelectable || isHiidSelectable) {
@@ -119,9 +124,8 @@ fun VerifierCombinedSelectionView(vm: VerifierViewModel) {
         }
     ) { scaffoldPadding ->
         Box(modifier = Modifier.padding(scaffoldPadding)) {
-            Column(
-                modifier = Modifier.padding(end = 16.dp, start = 16.dp, bottom = 16.dp)
-                    .verticalScroll(rememberScrollState())
+            Column(modifier = Modifier.padding(end = 16.dp, start = 16.dp, bottom = 16.dp)
+                .verticalScroll(rememberScrollState())
             ) {
                 Column(modifier = layoutSpacingModifier) {
                     Text(
@@ -135,9 +139,15 @@ fun VerifierCombinedSelectionView(vm: VerifierViewModel) {
                         )
                     } else {
                         selectedRequests.forEach { requestDocument ->
-                            Text(
-                                text = requestDocument.type.toString(),
-                                style = MaterialTheme.typography.bodyMedium
+                            val scheme = RequestDocumentBuilder.requestTypeToScheme[requestDocument.type]
+                            PersonAttributeDetailCardHeading(
+                                icon = { PersonAttributeDetailCardHeadingIcon(scheme.iconLabel()) },
+                                title = {
+                                    LabeledText(
+                                        label = ConstantIndex.CredentialRepresentation.ISO_MDOC.uiLabel(),
+                                        text = scheme.uiLabel()
+                                    )
+                                }
                             )
                         }
                     }
@@ -171,19 +181,22 @@ fun VerifierCombinedSelectionView(vm: VerifierViewModel) {
                                         MDLRequests(
                                             layoutSpacingModifier,
                                             listSpacingModifier,
-                                            handleRequest)
+                                            handleRequest
+                                        )
                                     }
                                     if (isPidSelectable) {
                                         PIDRequests(
                                             layoutSpacingModifier,
                                             listSpacingModifier,
-                                            handleRequest)
+                                            handleRequest
+                                        )
                                     }
                                     if (isHiidSelectable) {
                                         HIIDRequest(
                                             layoutSpacingModifier,
                                             listSpacingModifier,
-                                            handleRequest)
+                                            handleRequest
+                                        )
                                     }
                                 }
                             }
