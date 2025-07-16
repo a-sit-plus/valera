@@ -1,4 +1,5 @@
 # Release 5.7.3 (unreleased)
+ * Update to VC-K 5.7.2, fixing optional attributes during presentation
 
 # Release 5.7.2 
  * Proximity: Use fixed IACA key and certificate for reader authentication
