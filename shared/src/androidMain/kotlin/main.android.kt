@@ -22,7 +22,6 @@ import at.asitplus.dcapi.EncryptedResponseData
 import at.asitplus.dcapi.request.DCAPIRequest
 import at.asitplus.dcapi.request.IsoMdocRequest
 import at.asitplus.dcapi.request.Oid4vpDCAPIRequest
-import at.asitplus.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.iso.DeviceRequest
 import at.asitplus.iso.EncryptionInfo
 import at.asitplus.iso.EncryptionParameters
@@ -183,6 +182,7 @@ public class AndroidPlatformAdapter(
         }
     }
 
+    @Suppress("DEPRECATION")
     @OptIn(ExperimentalDigitalCredentialApi::class, ExperimentalEncodingApi::class)
     override fun getCurrentDCAPIData(): KmmResult<DCAPIRequest> = catching {
         (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.let { (intent, _) ->
@@ -252,7 +252,7 @@ public class AndroidPlatformAdapter(
                             .add(Pair(name, intentToRetain))
                     }
 
-                    PreviewDCAPIRequest(
+                    at.asitplus.dcapi.request.PreviewDCAPIRequest(
                         requestData.toString(),
                         requestedData,
                         credentialId,
@@ -298,10 +298,11 @@ public class AndroidPlatformAdapter(
         } ?: throw IllegalStateException("DCAPIInvocationData not set")
     }
 
+    @Suppress("DEPRECATION")
     @OptIn(ExperimentalEncodingApi::class)
     override fun prepareDCAPIPreviewCredentialResponse(
         responseJson: ByteArray,
-        dcApiRequestPreview: PreviewDCAPIRequest
+        dcApiRequestPreview: at.asitplus.dcapi.request.PreviewDCAPIRequest
     ) {
         val readerPublicKey = EcPublicKeyDoubleCoordinate.fromUncompressedPointEncoding(
             EcCurve.P256,
