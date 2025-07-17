@@ -16,6 +16,7 @@ import at.asitplus.wallet.lib.iso.Document
 import at.asitplus.wallet.lib.iso.MobileSecurityObject
 import data.document.RequestDocumentBuilder
 import data.document.RequestDocumentList
+import data.document.ResponseDocumentSummary
 import data.document.SelectableRequest
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
@@ -45,8 +46,8 @@ class VerifierViewModel(
     private val _responseDocumentList = mutableListOf<Document>()
     val responseDocumentList = _responseDocumentList
 
-    private val _parsedDocumentSummaryList = MutableStateFlow<List<ParsedDocumentSummary>>(emptyList())
-    val parsedDocumentSummaryList: StateFlow<List<ParsedDocumentSummary>> = _parsedDocumentSummaryList
+    private val _responseDocumentSummaryList = MutableStateFlow<List<ResponseDocumentSummary>>(emptyList())
+    val responseDocumentSummaryList: StateFlow<List<ResponseDocumentSummary>> = _responseDocumentSummaryList
 
     private val _errorMessage = MutableStateFlow("")
     val errorMessage: StateFlow<String> = _errorMessage
@@ -93,10 +94,10 @@ class VerifierViewModel(
             try {
                 when (val result = Validator().verifyDeviceResponse(deviceResponse, verifyDocument)) {
                     is VerifyPresentationResult.SuccessIso -> {
-                        val summaries = result.documents.map { doc ->
+                        val responseDocumentSummaries = result.documents.map { doc ->
                             val isTokenValid = doc.freshnessSummary.tokenStatusValidationResult is TokenStatusValidationResult.Valid
                             val isMsoTimely = doc.freshnessSummary.timelinessValidationSummary.details.msoTimelinessValidationSummary?.isTimely == true
-                            ParsedDocumentSummary(
+                            ResponseDocumentSummary(
                                 docType = doc.mso.docType,
                                 isTokenValid = isTokenValid,
                                 isMsoTimely = isMsoTimely,
@@ -105,8 +106,8 @@ class VerifierViewModel(
                                 invalidItems = doc.invalidItems.map { it.elementIdentifier }
                             )
                         }
-                        _parsedDocumentSummaryList.value = summaries
-                        summaries.forEach { Napier.d(it.toString()) }
+                        _responseDocumentSummaryList.value = responseDocumentSummaries
+                        responseDocumentSummaries.forEach { Napier.d(it.toString()) }
                         _verifierState.value = VerifierState.PRESENTATION
                     }
                     is VerifyPresentationResult.InvalidStructure,
@@ -201,29 +202,4 @@ enum class VerifierState {
     CHECK_RESPONSE,
     PRESENTATION,
     ERROR
-}
-
-data class ParsedDocumentSummary(
-    val docType: String,
-    val isTokenValid: Boolean,
-    val isMsoTimely: Boolean,
-    val isValid: Boolean,
-    val validItems: List<String>,
-    val invalidItems: List<String>
-) {
-    override fun toString(): String = buildString {
-        appendLine("ParsedDocumentSummary:")
-        appendLine("  DocType: $docType")
-        appendLine("  Token Valid: $isTokenValid")
-        appendLine("  MSO Timely: $isMsoTimely")
-        appendLine("  Valid: $isValid")
-        appendLine("  Valid Items:")
-        validItems.takeIf { it.isNotEmpty() }
-            ?.forEach { appendLine("    - $it") }
-            ?: appendLine("    (none)")
-        appendLine("  Invalid Items:")
-        invalidItems.takeIf { it.isNotEmpty() }
-            ?.forEach { appendLine("    - $it") }
-            ?: appendLine("    (none)")
-    }
 }
