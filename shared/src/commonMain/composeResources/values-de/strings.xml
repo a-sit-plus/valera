@@ -355,6 +355,7 @@
     <string name="info_text_qr_code_loading">QR-Code wird geladen</string>
     <string name="info_text_nfc_mdoc_reader">In die Nähe des Gerätes des Ausweishalters halten.</string>
     <string name="info_text_waiting_for_response">Warte auf Antwort vom Gerät des Ausweishalters</string>
+    <string name="info_text_check_response">Überprüfung der Antwort</string>
     <string name="info_text_demonstrator">Dies ist ein Demonstrator für Wallet-Technologien, der von A-SIT/A-SIT Plus entwickelt wurde, unter anderem im Zuge des large-scale Piloten POTENTIAL.</string>
     <string name="info_text_non_productive">Diese App ist nicht für den Produktiv-Einsatz bestimmt!</string>
     <string name="info_text_co_founded_by_eu">Kofinanziert von der\nEuropäischen Union</string>

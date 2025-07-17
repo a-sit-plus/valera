@@ -8,12 +8,21 @@ import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.iso.transfer.DeviceEngagementMethods
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants.MDOC_PREFIX
 import at.asitplus.wallet.app.common.iso.transfer.TransferManager
+import at.asitplus.wallet.lib.agent.Validator
+import at.asitplus.wallet.lib.agent.Verifier.VerifyPresentationResult
+import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatusValidationResult
+import at.asitplus.wallet.lib.iso.DeviceResponse
+import at.asitplus.wallet.lib.iso.Document
+import at.asitplus.wallet.lib.iso.MobileSecurityObject
 import data.document.RequestDocumentBuilder
 import data.document.RequestDocumentList
 import data.document.SelectableRequest
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromByteArray
 
 class VerifierViewModel(
@@ -33,8 +42,11 @@ class VerifierViewModel(
 
     private val _requestDocumentList = RequestDocumentList()
 
-    private val _deviceResponse = MutableStateFlow<DeviceResponse?>(null)
-    val deviceResponse: StateFlow<DeviceResponse?> = _deviceResponse
+    private val _responseDocumentList = mutableListOf<Document>()
+    val responseDocumentList = _responseDocumentList
+
+    private val _parsedDocumentSummaryList = MutableStateFlow<List<ParsedDocumentSummary>>(emptyList())
+    val parsedDocumentSummaryList: StateFlow<List<ParsedDocumentSummary>> = _parsedDocumentSummaryList
 
     private val _errorMessage = MutableStateFlow("")
     val errorMessage: StateFlow<String> = _errorMessage
@@ -64,10 +76,52 @@ class VerifierViewModel(
 
     private fun handleResponse(result: KmmResult<ByteArray>) {
         result.onSuccess { deviceResponseBytes ->
-            _deviceResponse.value = coseCompliantSerializer.decodeFromByteArray<DeviceResponse>(deviceResponseBytes)
-            _verifierState.value = VerifierState.PRESENTATION
+            val deviceResponse = coseCompliantSerializer.decodeFromByteArray<DeviceResponse>(deviceResponseBytes)
+            checkResponse(deviceResponse)
         }.onFailure { error ->
             handleError(error.message ?: "Unknown error")
+        }
+    }
+
+    private fun checkResponse(deviceResponse: DeviceResponse) {
+        _verifierState.value = VerifierState.CHECK_RESPONSE
+        val verifyDocument: suspend (MobileSecurityObject, Document) -> Boolean = { _, doc ->
+            _responseDocumentList.add(doc)
+            true
+        }
+        walletMain.scope.launch(Dispatchers.IO) {
+            try {
+                when (val result = Validator().verifyDeviceResponse(deviceResponse, verifyDocument)) {
+                    is VerifyPresentationResult.SuccessIso -> {
+                        val summaries = result.documents.map { doc ->
+                            val isTokenValid = doc.freshnessSummary.tokenStatusValidationResult is TokenStatusValidationResult.Valid
+                            val isMsoTimely = doc.freshnessSummary.timelinessValidationSummary.details.msoTimelinessValidationSummary?.isTimely == true
+                            ParsedDocumentSummary(
+                                docType = doc.mso.docType,
+                                isTokenValid = isTokenValid,
+                                isMsoTimely = isMsoTimely,
+                                isValid = doc.invalidItems.isEmpty() && isTokenValid && isMsoTimely,
+                                validItems = doc.validItems.map { it.elementIdentifier },
+                                invalidItems = doc.invalidItems.map { it.elementIdentifier }
+                            )
+                        }
+                        _parsedDocumentSummaryList.value = summaries
+                        summaries.forEach { Napier.d(it.toString()) }
+                        _verifierState.value = VerifierState.PRESENTATION
+                    }
+                    is VerifyPresentationResult.InvalidStructure,
+                    is VerifyPresentationResult.ValidationError -> {
+                        handleError("Verification failed: $result")
+                    }
+                    else -> {
+                        handleError("Unsupported verification result: ${result::class.simpleName}")
+                    }
+                }
+                _verifierState.value = VerifierState.PRESENTATION
+            } catch (e: Exception) {
+                Napier.e("Verification of response failed", e)
+                handleError(e.message ?: "Unknown error during verification")
+            }
         }
     }
 
@@ -95,7 +149,7 @@ class VerifierViewModel(
         _verifierState.value = VerifierState.INIT
     }
 
-    fun onReceiveCombinedSelection(requestSelectionList:  List<SelectableRequest>) {
+    fun onReceiveCombinedSelection(requestSelectionList: List<SelectableRequest>) {
         requestSelectionList.forEach { request ->
             _requestDocumentList.addRequestDocument(
                 RequestDocumentBuilder.buildRequestDocument(request)
@@ -144,6 +198,32 @@ enum class VerifierState {
     SELECT_COMBINED_REQUEST,
     QR_ENGAGEMENT,
     WAITING_FOR_RESPONSE,
+    CHECK_RESPONSE,
     PRESENTATION,
     ERROR
+}
+
+data class ParsedDocumentSummary(
+    val docType: String,
+    val isTokenValid: Boolean,
+    val isMsoTimely: Boolean,
+    val isValid: Boolean,
+    val validItems: List<String>,
+    val invalidItems: List<String>
+) {
+    override fun toString(): String = buildString {
+        appendLine("ParsedDocumentSummary:")
+        appendLine("  DocType: $docType")
+        appendLine("  Token Valid: $isTokenValid")
+        appendLine("  MSO Timely: $isMsoTimely")
+        appendLine("  Valid: $isValid")
+        appendLine("  Valid Items:")
+        validItems.takeIf { it.isNotEmpty() }
+            ?.forEach { appendLine("    - $it") }
+            ?: appendLine("    (none)")
+        appendLine("  Invalid Items:")
+        invalidItems.takeIf { it.isNotEmpty() }
+            ?.forEach { appendLine("    - $it") }
+            ?: appendLine("    (none)")
+    }
 }

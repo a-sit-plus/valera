@@ -75,7 +75,7 @@ fun VerifierPresentationView(vm: VerifierViewModel) {
                 modifier = Modifier.verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.Start
             ) {
-                vm.deviceResponse.value!!.documents!!.forEach { doc ->
+                vm.responseDocumentList.forEach { doc ->
                     doc.issuerSigned.namespaces?.forEach { (namespaceKey, entries) ->
                         val scheme = RequestDocumentBuilder.getDocTypeConfig(doc.docType)?.scheme
                         val sortedEntries = entries.entries
