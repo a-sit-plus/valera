@@ -146,9 +146,11 @@ fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, C
                     when (it) {
                         is DCQLClaimsPathPointerSegment.IndexSegment -> NormalizedJsonPathSegment.IndexSegment(it.index)
                         is DCQLClaimsPathPointerSegment.NameSegment -> NormalizedJsonPathSegment.NameSegment(it.name)
-                        DCQLClaimsPathPointerSegment.NullSegment -> return@associateWith null
+                        DCQLClaimsPathPointerSegment.NullSegment -> null
                     }
-                })
+                }.takeWhile {
+                    it != null
+                }.filterNotNull())
             )
 
             is DCQLIsoMdocClaimsQuery -> MdocClaimReference(
