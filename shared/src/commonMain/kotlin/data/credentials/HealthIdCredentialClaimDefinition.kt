@@ -1,0 +1,18 @@
+package data.credentials
+
+enum class HealthIdCredentialClaimDefinition {
+    HEALTH_INSURANCE_ID,
+    PATIENT_ID,
+    TAX_NUMBER,
+    ONE_TIME_TOKEN,
+    E_PRESCRIPTION_CODE,
+    AFFILIATION_COUNTRY,
+    ISSUE_DATE,
+    EXPIRY_DATE,
+    ISSUING_AUTHORITY,
+    DOCUMENT_NUMBER,
+    ADMINISTRATIVE_NUMBER,
+    ISSUING_COUNTRY,
+    ISSUING_JURISDICTION,
+    ;
+}

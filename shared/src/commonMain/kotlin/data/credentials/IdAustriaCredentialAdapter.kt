@@ -2,7 +2,6 @@ package data.credentials
 
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.idaustria.IdAustriaCredential
 import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
@@ -21,48 +20,11 @@ import kotlinx.serialization.json.contentOrNull
 sealed class IdAustriaCredentialAdapter(
     private val decodePortrait: (ByteArray) -> Result<ImageBitmap>,
 ) : CredentialAdapter() {
-    override fun getAttribute(path: NormalizedJsonPath) = path.segments.firstOrNull()?.let { first ->
-        with(IdAustriaScheme.Attributes) {
-            when (first) {
-                is NormalizedJsonPathSegment.NameSegment -> when (first.memberName) {
-                    BPK -> Attribute.fromValue(bpk)
-                    FIRSTNAME -> Attribute.fromValue(givenName)
-                    LASTNAME -> Attribute.fromValue(familyName)
-                    DATE_OF_BIRTH -> Attribute.fromValue(dateOfBirth)
-                    PORTRAIT -> Attribute.fromValue(portraitBitmap)
-                    AGE_OVER_14 -> Attribute.fromValue(ageAtLeast14)
-                    AGE_OVER_16 -> Attribute.fromValue(ageAtLeast16)
-                    AGE_OVER_18 -> Attribute.fromValue(ageAtLeast18)
-                    AGE_OVER_21 -> Attribute.fromValue(ageAtLeast21)
-                    MAIN_ADDRESS -> when (val second =
-                        path.segments.getOrNull(1)) {
-                        is NormalizedJsonPathSegment.NameSegment ->
-                            with(IdAustriaCredentialMainAddress) {
-                                when (second.memberName) {
-                                    GEMEINDEKENNZIFFER -> Attribute.fromValue(mainAddress?.municipalityCode)
-                                    GEMEINDEBEZEICHNUNG -> Attribute.fromValue(mainAddress?.municipalityName)
-                                    POSTLEITZAHL -> Attribute.fromValue(mainAddress?.postalCode)
-                                    ORTSCHAFT -> Attribute.fromValue(mainAddress?.locality)
-                                    STRASSE -> Attribute.fromValue(mainAddress?.street)
-                                    HAUSNUMMER -> Attribute.fromValue(mainAddress?.houseNumber)
-                                    STIEGE -> Attribute.fromValue(mainAddress?.stair)
-                                    TUER -> Attribute.fromValue(mainAddress?.door)
-                                    else -> null
-                                }
-                            }
-
-                        null -> Attribute.fromValue(mainAddressRaw)
-
-                        else -> null
-                    }
-
-                    else -> null
-                }
-
-                else -> null
-            }
-        }
-    }
+    override fun getAttribute(
+        path: NormalizedJsonPath
+    ) = IdAustriaCredentialSdJwtClaimDefinitionResolver().resolveOrNull(
+        path
+    )?.toAttribute()
 
     abstract val bpk: String?
     abstract val givenName: String?
@@ -70,7 +32,6 @@ sealed class IdAustriaCredentialAdapter(
     abstract val dateOfBirth: LocalDate?
     abstract val portraitRaw: ByteArray?
     val portraitBitmap: ImageBitmap? by lazy {
-
         kotlin.runCatching {
             portraitRaw?.let(decodePortrait)?.getOrNull()
         }.onFailure { Napier.e(throwable = it) { "Error decoding image" } }.getOrNull()
@@ -116,6 +77,27 @@ sealed class IdAustriaCredentialAdapter(
                 }
             }
         }
+    }
+
+    private fun IdAustriaCredentialClaimDefinition.toAttribute() = when(this) {
+        IdAustriaCredentialClaimDefinition.BPK -> Attribute.fromValue(bpk)
+        IdAustriaCredentialClaimDefinition.FIRSTNAME -> Attribute.fromValue(givenName)
+        IdAustriaCredentialClaimDefinition.LASTNAME -> Attribute.fromValue(familyName)
+        IdAustriaCredentialClaimDefinition.DATE_OF_BIRTH -> Attribute.fromValue(dateOfBirth)
+        IdAustriaCredentialClaimDefinition.PORTRAIT -> Attribute.fromValue(portraitBitmap)
+        IdAustriaCredentialClaimDefinition.AGE_OVER_14 -> Attribute.fromValue(ageAtLeast14)
+        IdAustriaCredentialClaimDefinition.AGE_OVER_16 -> Attribute.fromValue(ageAtLeast16)
+        IdAustriaCredentialClaimDefinition.AGE_OVER_18 -> Attribute.fromValue(ageAtLeast18)
+        IdAustriaCredentialClaimDefinition.AGE_OVER_21 -> Attribute.fromValue(ageAtLeast21)
+        IdAustriaCredentialClaimDefinition.MAIN_ADDRESS_CONTAINER -> Attribute.fromValue(mainAddressRaw)
+        IdAustriaCredentialClaimDefinition.MAIN_ADDRESS_GEMEINDEKENNZIFFER -> Attribute.fromValue(mainAddress?.municipalityCode)
+        IdAustriaCredentialClaimDefinition.MAIN_ADDRESS_GEMEINDEBEZEICHNUNG -> Attribute.fromValue(mainAddress?.municipalityName)
+        IdAustriaCredentialClaimDefinition.MAIN_ADDRESS_POSTLEITZAHL -> Attribute.fromValue(mainAddress?.postalCode)
+        IdAustriaCredentialClaimDefinition.MAIN_ADDRESS_ORTSCHAFT -> Attribute.fromValue(mainAddress?.locality)
+        IdAustriaCredentialClaimDefinition.MAIN_ADDRESS_STRASSE -> Attribute.fromValue(mainAddress?.street)
+        IdAustriaCredentialClaimDefinition.MAIN_ADDRESS_HAUSNUMMER -> Attribute.fromValue(mainAddress?.houseNumber)
+        IdAustriaCredentialClaimDefinition.MAIN_ADDRESS_STIEGE -> Attribute.fromValue(mainAddress?.stair)
+        IdAustriaCredentialClaimDefinition.MAIN_ADDRESS_TUER -> Attribute.fromValue(mainAddress?.door)
     }
 }
 

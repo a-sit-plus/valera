@@ -20,16 +20,17 @@ interface CredentialAttributeTranslator {
 
     companion object {
         operator fun get(scheme: ConstantIndex.CredentialScheme?) = when(scheme) {
-            is IdAustriaScheme -> IdAustriaCredentialAttributeTranslator
-            is EuPidScheme -> EuPidCredentialAttributeTranslator
-            is EuPidSdJwtScheme -> EuPidCredentialAttributeTranslator
-            is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialAttributeTranslator
-            is PowerOfRepresentationScheme -> PowerOfRepresentationCredentialAttributeTranslator
-            is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialAttributeTranslator
-            is CompanyRegistrationScheme -> CompanyRegistrationCredentialAttributeTranslator
-            is HealthIdScheme -> HealthIdCredentialAttributeTranslator
-            is EhicScheme -> EhicCredentialAttributeTranslator
-            is TaxIdScheme -> TaxIdCredentialAttributeTranslator
+            is IdAustriaScheme -> IdAustriaCredentialAttributeTranslator()
+            is EuPidScheme,
+            is EuPidSdJwtScheme -> EuPidCredentialAttributeTranslator()
+            is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialAttributeTranslator()
+            is PowerOfRepresentationScheme -> PowerOfRepresentationCredentialAttributeTranslator()
+            is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialAttributeTranslator()
+            is CompanyRegistrationScheme -> CompanyRegistrationCredentialAttributeTranslator()
+            is HealthIdScheme -> HealthIdCredentialAttributeTranslator()
+            is EhicScheme -> EhicCredentialAttributeTranslator()
+            is TaxIdScheme,
+            is TaxId2025Scheme -> TaxIdCredentialAttributeTranslator()
             else -> null
         }
     }

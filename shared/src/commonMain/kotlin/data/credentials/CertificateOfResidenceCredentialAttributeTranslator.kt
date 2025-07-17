@@ -28,10 +28,10 @@ import at.asitplus.valera.resources.attribute_friendly_name_residence_address_th
 import at.asitplus.valera.resources.attribute_friendly_name_sex
 import data.credentials.CertificateOfResidenceCredentialClaimDefinition.*
 
-object CertificateOfResidenceCredentialAttributeTranslator : CredentialAttributeTranslator {
-    fun stringResourceOf(
-        claimDefinition: CertificateOfResidenceCredentialClaimDefinition
-    ) = claimDefinition.stringResource()
+class CertificateOfResidenceCredentialAttributeTranslator : CredentialAttributeTranslator {
+    override fun translate(
+        attributeName: NormalizedJsonPath
+    ) = CertificateOfResidenceCredentialSdJwtClaimDefinitionResolver().resolveOrNull(attributeName)?.stringResource()
 
     private fun CertificateOfResidenceCredentialClaimDefinition.stringResource() = when (this) {
         ADMINISTRATIVE_NUMBER -> Res.string.attribute_friendly_name_administrative_number
@@ -59,21 +59,4 @@ object CertificateOfResidenceCredentialAttributeTranslator : CredentialAttribute
         ARRIVAL_DATE -> Res.string.attribute_friendly_name_arrival_date
         NATIONALITY -> Res.string.attribute_friendly_name_nationality
     }
-
-    override fun translate(
-        attributeName: NormalizedJsonPath,
-    ) = CertificateOfResidenceCredentialClaimDefinitionResolver().resolveOrNull(
-        SdJwtClaimReference(attributeName)
-    )?.stringResource()
-
-    fun translate(claimReference: SingleClaimReference) = when (claimReference) {
-        is MdocClaimReference -> CertificateOfResidenceCredentialMdocClaimDefinitionResolver().resolveOrNull(
-            namespace = claimReference.namespace,
-            claimName = claimReference.claimName,
-        )
-
-        is SdJwtClaimReference -> CertificateOfResidenceCredentialSdJwtClaimDefinitionResolver().resolveOrNull(
-            claimReference.normalizedJsonPath
-        )
-    }?.stringResource()
 }

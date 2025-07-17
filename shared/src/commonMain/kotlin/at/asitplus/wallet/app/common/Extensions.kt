@@ -32,8 +32,8 @@ import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationDataElements
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import at.asitplus.wallet.taxid.TaxIdScheme
+import data.credentials.JsonClaimReference
 import data.credentials.MdocClaimReference
-import data.credentials.SdJwtClaimReference
 import data.credentials.SingleClaimReference
 import kotlinx.serialization.json.*
 
@@ -126,11 +126,11 @@ fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, C
     // assuming all claims path pointers are single claim references
     val singleReferenceClaimsQueries = this.claims?.associateWith {
         when (it) {
-            is DCQLJsonClaimsQuery -> SdJwtClaimReference(
+            is DCQLJsonClaimsQuery -> JsonClaimReference(
                 NormalizedJsonPath(it.path.map {
                     when (it) {
                         is DCQLClaimsPathPointerSegment.IndexSegment -> NormalizedJsonPathSegment.IndexSegment(it.index)
-                        is DCQLClaimsPathPointerSegment.NameSegment -> NormalizedJsonPathSegment.NameSegment(it.name)
+                        is DCQLClaimsPathPointerSegment.NameSegment -> NameSegment(it.name)
                         DCQLClaimsPathPointerSegment.NullSegment -> null
                     }
                 }.takeWhile {
