@@ -13,6 +13,7 @@ import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
+import at.asitplus.wallet.taxid.TaxId2025Scheme
 import at.asitplus.wallet.taxid.TaxIdScheme
 import data.credentials.*
 import org.jetbrains.compose.resources.StringResource
@@ -68,15 +69,16 @@ fun ConstantIndex.CredentialScheme?.iconLabel(): String = when (this) {
 
 @Suppress("DEPRECATION")
 fun ConstantIndex.CredentialScheme.getLocalization(path: NormalizedJsonPath): StringResource? = when (this) {
-    is IdAustriaScheme -> { IdAustriaCredentialAttributeTranslator.translate(path) }
-    is EuPidScheme -> { EuPidCredentialAttributeTranslator.translate(path) }
-    is EuPidSdJwtScheme -> { EuPidCredentialAttributeTranslator.translate(path) }
-    is MobileDrivingLicenceScheme -> { MobileDrivingLicenceCredentialAttributeTranslator.translate(path) }
-    is PowerOfRepresentationScheme -> { PowerOfRepresentationCredentialAttributeTranslator.translate(path) }
-    is CertificateOfResidenceScheme -> { CertificateOfResidenceCredentialAttributeTranslator.translate(path) }
-    is CompanyRegistrationScheme -> { CompanyRegistrationCredentialAttributeTranslator.translate(path) }
-    is HealthIdScheme -> { HealthIdCredentialAttributeTranslator.translate(path) }
-    is EhicScheme -> { EhicCredentialAttributeTranslator.translate(path) }
-    is TaxIdScheme -> { TaxIdCredentialAttributeTranslator.translate(path) }
-    else -> { IdAustriaCredentialAttributeTranslator.translate(path) }
+    is EuPidScheme -> { EuPidCredentialAttributeTranslator().translate(path) }
+    is EuPidSdJwtScheme -> { EuPidCredentialAttributeTranslator().translate(path) }
+    is MobileDrivingLicenceScheme -> { MobileDrivingLicenceCredentialAttributeTranslator().translate(path) }
+    is PowerOfRepresentationScheme -> { PowerOfRepresentationCredentialAttributeTranslator().translate(path) }
+    is CertificateOfResidenceScheme -> { CertificateOfResidenceCredentialAttributeTranslator().translate(path) }
+    is CompanyRegistrationScheme -> { CompanyRegistrationCredentialAttributeTranslator().translate(path) }
+    is HealthIdScheme -> { HealthIdCredentialAttributeTranslator().translate(path) }
+    is EhicScheme -> { EhicCredentialAttributeTranslator().translate(path) }
+    is TaxIdScheme,
+    is TaxId2025Scheme -> { TaxIdCredentialAttributeTranslator().translate(path) }
+    is IdAustriaScheme -> { IdAustriaCredentialAttributeTranslator().translate(path) }
+    else -> { IdAustriaCredentialAttributeTranslator().translate(path) }
 }

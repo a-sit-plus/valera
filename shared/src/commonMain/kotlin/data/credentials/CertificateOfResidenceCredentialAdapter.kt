@@ -39,6 +39,50 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 
 sealed class CertificateOfResidenceCredentialAdapter : CredentialAdapter() {
+    override fun getAttribute(
+        path: NormalizedJsonPath,
+    ) = CertificateOfResidenceCredentialSdJwtClaimDefinitionResolver().resolveOrNull(path)?.toAttribute()
+
+    abstract val familyName: String?
+    abstract val givenName: String?
+    abstract val birthDate: LocalDate?
+    abstract val residenceAddress: String?
+    abstract val residenceAddressPoBox: String?
+    abstract val residenceAddressThoroughfare: String?
+    abstract val residenceAddressLocatorDesignator: String?
+    abstract val residenceAddressLocatorName: String?
+    abstract val residenceAddressPostCode: String?
+    abstract val residenceAddressPostName: String?
+    abstract val residenceAddressAdminUnitL1: String?
+    abstract val residenceAddressAdminUnitL2: String?
+    abstract val residenceAddressFullAddress: String?
+    abstract val gender: IsoIec5218Gender?
+    abstract val birthPlace: String?
+    abstract val arrivalDate: LocalDate?
+    abstract val nationality: String?
+    abstract val administrativeNumber: String?
+    abstract val issuanceDate: Instant?
+    abstract val expiryDate: Instant?
+    abstract val issuingAuthority: String?
+    abstract val documentNumber: String?
+    abstract val issuingCountry: String?
+    abstract val issuingJurisdiction: String?
+
+    companion object {
+        fun createFromStoreEntry(storeEntry: SubjectCredentialStore.StoreEntry): CertificateOfResidenceCredentialAdapter {
+            if (storeEntry.scheme !is CertificateOfResidenceScheme) {
+                throw IllegalArgumentException("credential")
+            }
+            return when (storeEntry) {
+                is SubjectCredentialStore.StoreEntry.SdJwt -> storeEntry.toComplexJson()
+                    ?.let { CertificateOfResidenceComplexCredentialSdJwtAdapter(it) }
+                    ?: CertificateOfResidenceCredentialSdJwtAdapter(storeEntry.toAttributeMap())
+
+                else -> TODO("Operation not yet supported")
+            }
+        }
+    }
+
     private fun CertificateOfResidenceCredentialClaimDefinition.toAttribute() = when (this) {
         CertificateOfResidenceCredentialClaimDefinition.ADMINISTRATIVE_NUMBER -> {
             Attribute.fromValue(administrativeNumber)
@@ -94,52 +138,6 @@ sealed class CertificateOfResidenceCredentialAdapter : CredentialAdapter() {
         CertificateOfResidenceCredentialClaimDefinition.BIRTH_PLACE -> Attribute.fromValue(birthPlace)
         CertificateOfResidenceCredentialClaimDefinition.ARRIVAL_DATE -> Attribute.fromValue(arrivalDate)
         CertificateOfResidenceCredentialClaimDefinition.NATIONALITY -> Attribute.fromValue(nationality)
-    }
-
-    override fun getAttribute(
-        path: NormalizedJsonPath,
-    ) = CertificateOfResidenceCredentialClaimDefinitionResolver().resolveOrNull(
-        SdJwtClaimReference(path)
-    )?.toAttribute()
-
-    abstract val familyName: String?
-    abstract val givenName: String?
-    abstract val birthDate: LocalDate?
-    abstract val residenceAddress: String?
-    abstract val residenceAddressPoBox: String?
-    abstract val residenceAddressThoroughfare: String?
-    abstract val residenceAddressLocatorDesignator: String?
-    abstract val residenceAddressLocatorName: String?
-    abstract val residenceAddressPostCode: String?
-    abstract val residenceAddressPostName: String?
-    abstract val residenceAddressAdminUnitL1: String?
-    abstract val residenceAddressAdminUnitL2: String?
-    abstract val residenceAddressFullAddress: String?
-    abstract val gender: IsoIec5218Gender?
-    abstract val birthPlace: String?
-    abstract val arrivalDate: LocalDate?
-    abstract val nationality: String?
-    abstract val administrativeNumber: String?
-    abstract val issuanceDate: Instant?
-    abstract val expiryDate: Instant?
-    abstract val issuingAuthority: String?
-    abstract val documentNumber: String?
-    abstract val issuingCountry: String?
-    abstract val issuingJurisdiction: String?
-
-    companion object {
-        fun createFromStoreEntry(storeEntry: SubjectCredentialStore.StoreEntry): CertificateOfResidenceCredentialAdapter {
-            if (storeEntry.scheme !is CertificateOfResidenceScheme) {
-                throw IllegalArgumentException("credential")
-            }
-            return when (storeEntry) {
-                is SubjectCredentialStore.StoreEntry.SdJwt -> storeEntry.toComplexJson()
-                    ?.let { CertificateOfResidenceComplexCredentialSdJwtAdapter(it) }
-                    ?: CertificateOfResidenceCredentialSdJwtAdapter(storeEntry.toAttributeMap())
-
-                else -> TODO("Operation not yet supported")
-            }
-        }
     }
 }
 

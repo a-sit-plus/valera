@@ -30,27 +30,10 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.decodeFromJsonElement
 
 sealed class CompanyRegistrationCredentialAdapter : CredentialAdapter() {
-    private fun CompanyRegistrationCredentialClaimDefinition.toAttribute() = when (this) {
-        CompanyRegistrationCredentialClaimDefinition.COMPANY_NAME -> Attribute.fromValue(companyName)
-        CompanyRegistrationCredentialClaimDefinition.COMPANY_TYPE -> Attribute.fromValue(companyType)
-        CompanyRegistrationCredentialClaimDefinition.COMPANY_STATUS -> Attribute.fromValue(companyStatus)
-        CompanyRegistrationCredentialClaimDefinition.COMPANY_ACTIVITY -> Attribute.fromValue(companyActivity)
-        CompanyRegistrationCredentialClaimDefinition.REGISTRATION_DATE -> Attribute.fromValue(registrationDate)
-        CompanyRegistrationCredentialClaimDefinition.COMPANY_END_DATE -> Attribute.fromValue(companyEndDate)
-        CompanyRegistrationCredentialClaimDefinition.COMPANY_EUID -> Attribute.fromValue(companyEuid)
-        CompanyRegistrationCredentialClaimDefinition.VAT_NUMBER -> Attribute.fromValue(vatNumber)
-        CompanyRegistrationCredentialClaimDefinition.COMPANY_CONTACT_DATA -> Attribute.fromValue(contactData)
-        CompanyRegistrationCredentialClaimDefinition.REGISTERED_ADDRESS -> Attribute.fromValue(registeredAddress)
-        CompanyRegistrationCredentialClaimDefinition.POSTAL_ADDRESS -> Attribute.fromValue(postalAddress)
-        CompanyRegistrationCredentialClaimDefinition.BRANCH -> Attribute.fromValue(branch)
-    }
-
-    fun getAttribute(claimDefinition: CompanyRegistrationCredentialClaimDefinition) = claimDefinition.toAttribute()
-
     override fun getAttribute(
         path: NormalizedJsonPath,
-    ) = CompanyRegistrationCredentialClaimDefinitionResolver().resolveOrNull(
-        SdJwtClaimReference(path)
+    ) = CompanyRegistrationCredentialSdJwtClaimDefinitionResolver().resolveOrNull(
+        path
     )?.toAttribute()
 
     abstract val companyName: String?
@@ -78,6 +61,21 @@ sealed class CompanyRegistrationCredentialAdapter : CredentialAdapter() {
                 is StoreEntry.Iso -> TODO("Operation not yet supported")
             }
         }
+    }
+
+    private fun CompanyRegistrationCredentialClaimDefinition.toAttribute() = when (this) {
+        CompanyRegistrationCredentialClaimDefinition.COMPANY_NAME -> Attribute.fromValue(companyName)
+        CompanyRegistrationCredentialClaimDefinition.COMPANY_TYPE -> Attribute.fromValue(companyType)
+        CompanyRegistrationCredentialClaimDefinition.COMPANY_STATUS -> Attribute.fromValue(companyStatus)
+        CompanyRegistrationCredentialClaimDefinition.COMPANY_ACTIVITY -> Attribute.fromValue(companyActivity)
+        CompanyRegistrationCredentialClaimDefinition.REGISTRATION_DATE -> Attribute.fromValue(registrationDate)
+        CompanyRegistrationCredentialClaimDefinition.COMPANY_END_DATE -> Attribute.fromValue(companyEndDate)
+        CompanyRegistrationCredentialClaimDefinition.COMPANY_EUID -> Attribute.fromValue(companyEuid)
+        CompanyRegistrationCredentialClaimDefinition.VAT_NUMBER -> Attribute.fromValue(vatNumber)
+        CompanyRegistrationCredentialClaimDefinition.COMPANY_CONTACT_DATA -> Attribute.fromValue(contactData)
+        CompanyRegistrationCredentialClaimDefinition.REGISTERED_ADDRESS -> Attribute.fromValue(registeredAddress)
+        CompanyRegistrationCredentialClaimDefinition.POSTAL_ADDRESS -> Attribute.fromValue(postalAddress)
+        CompanyRegistrationCredentialClaimDefinition.BRANCH -> Attribute.fromValue(branch)
     }
 }
 
