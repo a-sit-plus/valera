@@ -76,6 +76,7 @@ kotlin {
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
             implementation(libs.koin.compose.viewmodel.navigation)
+            api("at.asitplus.wardensupreme:client:1.0.0-SNAPSHOT")
         }
 
         commonTest.dependencies {
@@ -201,4 +202,5 @@ tasks.named("iosSimulatorArm64Test", KotlinNativeSimulatorTest::class.java).conf
 repositories {
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
     maven("https://oss.sonatype.org/content/repositories/snapshots/")
+    mavenLocal()
 }

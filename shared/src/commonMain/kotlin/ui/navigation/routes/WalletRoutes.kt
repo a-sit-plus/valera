@@ -27,6 +27,8 @@ object SettingsRoute : Route()
 object LogRoute : Route()
 
 @Serializable
+object AttestationRoute : Route()
+@Serializable
 data class SigningQtspSelectionRoute(val signatureRequestParametersSerialized: String) : Route()
 
 @Serializable

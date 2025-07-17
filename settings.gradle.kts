@@ -5,6 +5,7 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
         mavenCentral()
+        mavenLocal()
         google()
         maven("https://s01.oss.sonatype.org/content/repositories/snapshots")
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
@@ -24,6 +25,7 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version ("0.4.0")
 }
 
+/*
 if (File("../vck/signum").isDirectory && File("../vck/signum/build.gradle.kts").exists()) {
     logger.warn("Detected VC-K in ${File("../vck").absolutePath}.")
     logger.warn("Including VC-K and Signum as composite build.")
@@ -49,6 +51,7 @@ if (File("../vck/signum").isDirectory && File("../vck/signum/build.gradle.kts").
         }
     }
 }
+ */
 
 val vckVersion :String get() = settings.extra["vck.version"].toString()
 
