@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath

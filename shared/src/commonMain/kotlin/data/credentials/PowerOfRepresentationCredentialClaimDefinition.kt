@@ -1,0 +1,18 @@
+package data.credentials
+
+enum class PowerOfRepresentationCredentialClaimDefinition {
+    LEGAL_PERSON_IDENTIFIER,
+    LEGAL_NAME,
+    FULL_POWERS,
+    E_SERVICE,
+    EFFECTIVE_FROM_DATE,
+    EFFECTIVE_UNTIL_DATE,
+    ADMINISTRATIVE_NUMBER,
+    ISSUANCE_DATE,
+    EXPIRY_DATE,
+    ISSUING_AUTHORITY,
+    DOCUMENT_NUMBER,
+    ISSUING_COUNTRY,
+    ISSUING_JURISDICTION,
+    ;
+}
