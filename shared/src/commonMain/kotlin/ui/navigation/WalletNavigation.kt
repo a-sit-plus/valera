@@ -653,27 +653,28 @@ private fun WalletNavHost(
 
         composable<ErrorRoute> { backStackEntry ->
             val errorFlowData by walletMain.errorService.error.collectAsState(null)
-
-            val vm = catchingUnwrapped {
-                ErrorViewModel(
-                    resetStack = { popBackStack(HomeScreenRoute) },
-                    resetApp = {
-                        walletMain.scope.launch {
-                            walletMain.resetApp()
-                            val resetMessage = getString(Res.string.snackbar_reset_app_successfully)
-                            walletMain.snackbarService.showSnackbar(resetMessage)
-                            popBackStack(HomeScreenRoute)
-                        }
-                    },
-                    throwable = errorFlowData?.throwable ?: throw Throwable("Throwable null"),
-                    onClickLogo = onClickLogo,
-                    onClickSettings = { navigate(SettingsRoute) }
-                )
-            }
-            vm.onSuccess {
-                ErrorView(remember { it })
-            }.onFailure {
-                popBackStack(HomeScreenRoute)
+            if(errorFlowData != null) {
+                val vm = catchingUnwrapped {
+                    ErrorViewModel(
+                        resetStack = { popBackStack(HomeScreenRoute) },
+                        resetApp = {
+                            walletMain.scope.launch {
+                                walletMain.resetApp()
+                                val resetMessage = getString(Res.string.snackbar_reset_app_successfully)
+                                walletMain.snackbarService.showSnackbar(resetMessage)
+                                popBackStack(HomeScreenRoute)
+                            }
+                        },
+                        throwable = errorFlowData?.throwable ?: throw Throwable("Throwable null"),
+                        onClickLogo = onClickLogo,
+                        onClickSettings = { navigate(SettingsRoute) }
+                    )
+                }
+                vm.onSuccess {
+                    ErrorView(remember { it })
+                }.onFailure {
+                    popBackStack(HomeScreenRoute)
+                }
             }
         }
 
