@@ -1,4 +1,5 @@
 import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.Lifecycle
@@ -15,7 +16,9 @@ import org.koin.compose.KoinApplication
 import org.koin.compose.koinInject
 import ui.navigation.WalletNavigation
 import ui.theme.WalletTheme
+import ui.viewmodels.ErrorViewModel
 import ui.viewmodels.authentication.PresentationStateModel
+import ui.views.ErrorView
 
 /**
  * Global variables which help to channel information from platform-specific code
@@ -33,29 +36,35 @@ internal object AppTestTags {
 }
 
 @Composable
-fun App(walletDependencyProvider: WalletDependencyProvider) {
-    KoinApplication({
-        modules(appModule(walletDependencyProvider))
-    }) {
-        catchingUnwrapped {
-            val walletMain: WalletMain = koinInject()
+fun App(walletDependencyProvider: Result<WalletDependencyProvider>) {
+    walletDependencyProvider.onSuccess {
+        KoinApplication({
+            modules(appModule(it))
+        }) {
+            catchingUnwrapped {
+                val walletMain: WalletMain = koinInject()
 
-            LifecycleEventEffect(Lifecycle.Event.ON_CREATE) {
-                Napier.d("Lifecycle.Event.ON_CREATE")
-                walletMain.updateCheck()
+                LifecycleEventEffect(Lifecycle.Event.ON_CREATE) {
+                    Napier.d("Lifecycle.Event.ON_CREATE")
+                    walletMain.updateCheck()
+                }
+
+                LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+                    Napier.d("Lifecycle.Event.ON_RESUME")
+                }
+
+            }.onFailure {
+                val errorService: ErrorService = koinInject()
+                errorService.emit(it)
             }
 
-            LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
-                Napier.d("Lifecycle.Event.ON_RESUME")
+            WalletTheme {
+                WalletNavigation()
             }
-
-        }.onFailure {
-            val errorService: ErrorService = koinInject()
-            errorService.emit(it)
         }
-
+    }.onFailure {
         WalletTheme {
-            WalletNavigation()
+            ErrorView(vm = ErrorViewModel(resetStack = {}, resetApp =  {}, throwable =  Throwable(""), onClickLogo = {}, {}))
         }
     }
 }
