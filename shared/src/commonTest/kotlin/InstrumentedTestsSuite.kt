@@ -20,6 +20,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import at.asitplus.openid.OidcUserInfo
+import at.asitplus.openid.OidcUserInfoExtended
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.button_label_details
@@ -242,7 +244,8 @@ class InstrumentedTestsSuite : FunSpec({
                                     getAttributes(),
                                     Clock.System.now().plus(60.minutes),
                                     EuPidScheme,
-                                    walletMain.keyMaterial.keyMaterial.publicKey
+                                    walletMain.keyMaterial.keyMaterial.publicKey,
+                                    OidcUserInfoExtended(userInfo = OidcUserInfo(subject = ""))
                                 )
                             ).getOrThrow().toStoreCredentialInput()
                         )
