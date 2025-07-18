@@ -1,28 +1,13 @@
 package at.asitplus.wallet.app.common
 
-import at.asitplus.data.NonEmptyList.Companion.toNonEmptyList
+import at.asitplus.dif.ConstraintField
 import at.asitplus.dif.ConstraintFilter
 import at.asitplus.dif.InputDescriptor
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
+import at.asitplus.jsonpath.core.NormalizedJsonPathSegment.NameSegment
 import at.asitplus.openid.CredentialFormatEnum
-import at.asitplus.openid.dcql.DCQLClaimsPathPointer
-import at.asitplus.openid.dcql.DCQLClaimsPathPointerSegment
-import at.asitplus.openid.dcql.DCQLClaimsQuery
-import at.asitplus.openid.dcql.DCQLClaimsQueryIdentifier
-import at.asitplus.openid.dcql.DCQLClaimsQueryList
-import at.asitplus.openid.dcql.DCQLClaimsQueryResult
-import at.asitplus.openid.dcql.DCQLCredentialClaimStructure
-import at.asitplus.openid.dcql.DCQLCredentialQuery
-import at.asitplus.openid.dcql.DCQLCredentialQueryInstance
-import at.asitplus.openid.dcql.DCQLCredentialQueryMatchingResult
-import at.asitplus.openid.dcql.DCQLExpectedClaimValue
-import at.asitplus.openid.dcql.DCQLIsoMdocClaimsQuery
-import at.asitplus.openid.dcql.DCQLIsoMdocCredentialQuery
-import at.asitplus.openid.dcql.DCQLJsonClaimsQuery
-import at.asitplus.openid.dcql.DCQLSdJwtCredentialQuery
-import at.asitplus.wallet.app.common.thirdParty.at.asitplus.jsonpath.core.plus
-import at.asitplus.wallet.app.common.thirdParty.kotlinx.serialization.json.normalizedJsonPaths
+import at.asitplus.openid.dcql.*
 import at.asitplus.wallet.companyregistration.CompanyRegistrationDataElements
 import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
 import at.asitplus.wallet.cor.CertificateOfResidenceDataElements
@@ -35,9 +20,10 @@ import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
-import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.ISO_MDOC
-import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.PLAIN_JWT
-import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.SD_JWT
+import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.*
+import at.asitplus.wallet.lib.data.IsoMdocFallbackCredentialScheme
+import at.asitplus.wallet.lib.data.SdJwtFallbackCredentialScheme
+import at.asitplus.wallet.lib.data.VcFallbackCredentialScheme
 import at.asitplus.wallet.lib.data.dif.ConstraintFieldsEvaluationException
 import at.asitplus.wallet.lib.data.dif.PresentationExchangeInputEvaluator
 import at.asitplus.wallet.lib.data.vckJsonSerializer
@@ -50,13 +36,7 @@ import at.asitplus.wallet.taxid.TaxIdScheme
 import data.credentials.MdocClaimReference
 import data.credentials.SdJwtClaimReference
 import data.credentials.SingleClaimReference
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObjectBuilder
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.encodeToJsonElement
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.put
+import kotlinx.serialization.json.*
 
 fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, ConstantIndex.CredentialScheme, Map<NormalizedJsonPath, Boolean>> {
     @Suppress("DEPRECATION")
@@ -75,7 +55,11 @@ fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, Const
     // TODO: How to properly handle the case with multiple applicable schemes?
     val scheme = AttributeIndex.schemeSet.firstOrNull {
         it.matchAgainstIdentifier(credentialRepresentation, credentialIdentifiers)
-    } ?: throw Throwable("Missing scheme for $credentialIdentifiers")
+    } ?: when(credentialRepresentation) {
+            PLAIN_JWT -> VcFallbackCredentialScheme(vcType = credentialIdentifiers.first())
+            SD_JWT -> SdJwtFallbackCredentialScheme(sdJwtType = credentialIdentifiers.first())
+            ISO_MDOC -> IsoMdocFallbackCredentialScheme(isoDocType = credentialIdentifiers.first())
+        }
 
     val matchedCredentialIdentifier = when (credentialRepresentation) {
         PLAIN_JWT -> throw Throwable("PLAIN_JWT not implemented")
@@ -83,10 +67,17 @@ fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, Const
         ISO_MDOC -> scheme.isoDocType
     }
 
+    val dataElements = when(scheme) {
+        is IsoMdocFallbackCredentialScheme, is SdJwtFallbackCredentialScheme -> {
+            this.constraints?.fields?.map { (it.toNormalizedJsonPath()?.segments?.last() as NameSegment).memberName }
+        }
+        else -> { null }
+    }
+
     val constraintsMap =
         PresentationExchangeInputEvaluator.evaluateInputDescriptorAgainstCredential(
             inputDescriptor = this,
-            credentialClaimStructure = scheme.toJsonElement(credentialRepresentation),
+            credentialClaimStructure = scheme.toJsonElement(credentialRepresentation, dataElements),
             credentialFormat = credentialRepresentation.toFormat(),
             credentialScheme = matchedCredentialIdentifier,
             fallbackFormatHolder = this.format,
@@ -167,14 +158,16 @@ fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, C
 
 fun ConstantIndex.CredentialScheme.toJsonElement(
     representation: CredentialRepresentation,
+    elements: Collection<String>? = null
 ): JsonElement {
-    val dataElements = when (this) {
+    val dataElements = elements ?: when (this) {
         EuPidScheme -> this.claimNames + EuPidScheme.Attributes.PORTRAIT_CAPTURE_DATE
         ConstantIndex.AtomicAttribute2023, IdAustriaScheme, EuPidSdJwtScheme, MobileDrivingLicenceScheme, HealthIdScheme, EhicScheme, TaxIdScheme, TaxId2025Scheme -> this.claimNames
         // TODO Use: this.claim names for all schemes
         PowerOfRepresentationScheme -> PowerOfRepresentationDataElements.ALL_ELEMENTS
         CertificateOfResidenceScheme -> CertificateOfResidenceDataElements.ALL_ELEMENTS
         CompanyRegistrationScheme -> CompanyRegistrationDataElements.ALL_ELEMENTS
+        is VcFallbackCredentialScheme, is SdJwtFallbackCredentialScheme, is IsoMdocFallbackCredentialScheme -> this.claimNames
         else -> TODO("${this::class.simpleName} not implemented in jsonElementBuilder yet")
     }
 
@@ -322,3 +315,29 @@ fun Throwable.enrichMessage() = when (this) {
     is ConstraintFieldsEvaluationException -> "$message ${constraintFieldExceptions.keys}"
     else -> message ?: toString()
 }
+// TODO Replace with function from JSONPath
+private fun ConstraintField.toNormalizedJsonPath(): NormalizedJsonPath? =
+    path.firstOrNull()?.removePrefix("$")?.run {
+        NormalizedJsonPath(
+            if (contains("[")) {
+                segmentsByAngle()
+            } else if (contains(".")) {
+                segmentsByDot()
+            } else {
+                fallback()
+            }
+        )
+    }
+
+private fun String.segmentsByAngle() = split("[")
+    .filter { it.isNotEmpty() }
+    .map { NameSegment(it.removeSuffix("]").unquote()) }
+
+private fun String.segmentsByDot() = split(".")
+    .filter { it.isNotEmpty() }
+    .map { NameSegment(it) }
+
+private fun String.unquote() = removePrefix("'").removePrefix("\"")
+    .removeSuffix("\"").removeSuffix("'")
+
+private fun String.fallback(): List<NameSegment> = listOf(NameSegment(this))
