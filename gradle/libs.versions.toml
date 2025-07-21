@@ -26,6 +26,7 @@ androidx-credentials = "1.6.0-alpha03"
 androidx-credentials-registry-provider = "1.0.0-alpha01"
 ###
 kmmresult = "1.9.3"
+ktor = "3.2.2"
 
 [libraries]
 androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camera-camera2" }
