@@ -652,8 +652,7 @@ private fun WalletNavHost(
         }
 
         composable<ErrorRoute> { backStackEntry ->
-            val errorFlowData by walletMain.errorService.error.collectAsState(null)
-            errorFlowData?.let {
+            walletMain.errorService.error.collectAsState(null).value?.let {
                 catchingUnwrapped {
                     ErrorViewModel(
                         resetStack = { popBackStack(HomeScreenRoute) },
@@ -665,7 +664,7 @@ private fun WalletNavHost(
                                 popBackStack(HomeScreenRoute)
                             }
                         },
-                        throwable = errorFlowData?.throwable ?: throw Throwable("Throwable null"),
+                        throwable = it.throwable,
                         onClickLogo = onClickLogo,
                         onClickSettings = { navigate(SettingsRoute) }
                     )
