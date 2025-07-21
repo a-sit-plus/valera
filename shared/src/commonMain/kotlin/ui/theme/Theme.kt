@@ -4,10 +4,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import getColorScheme
-
 
 val lightScheme = lightColorScheme(
     primary = md_theme_light_primary,
@@ -86,14 +87,19 @@ val unspecified_scheme = ColorFamily(
     Color.Unspecified, Color.Unspecified, Color.Unspecified, Color.Unspecified
 )
 
+val LocalExtendedColors = staticCompositionLocalOf { lightExtendedColors }
+
 @Composable
 fun WalletTheme(
     content: @Composable () -> Unit
 ) {
     val colors = getColorScheme()
+    val extendedColors = if (colors == lightScheme) lightExtendedColors else darkExtendedColors
 
-    MaterialTheme(
-        colorScheme = colors,
-        content = content
-    )
+    CompositionLocalProvider(LocalExtendedColors provides extendedColors) {
+        MaterialTheme(
+            colorScheme = colors,
+            content = content
+        )
+    }
 }
