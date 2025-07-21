@@ -3,7 +3,7 @@ package data.document
 data class ResponseDocumentSummary(
     val docType: String,
     val isTokenValid: Boolean,
-    val isMsoTimely: Boolean,
+    val isMsoTimely: Boolean, // TODO: maybe store the whole info and make methods for getting specific infos
     val isValid: Boolean,
     val validItems: List<String>,
     val invalidItems: List<String>
@@ -24,3 +24,6 @@ data class ResponseDocumentSummary(
             ?: appendLine("    (none)")
     }
 }
+
+fun getSummaryForDocType(summaries: List<ResponseDocumentSummary>, docType: String) =
+    summaries.firstOrNull { it.docType == docType }
