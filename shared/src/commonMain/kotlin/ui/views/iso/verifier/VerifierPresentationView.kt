@@ -32,8 +32,12 @@ import data.credentials.EuPidCredentialIsoMdocAdapter
 import data.credentials.HealthIdCredentialIsoMdocAdapter
 import data.credentials.MobileDrivingLicenceCredentialIsoMdocAdapter
 import data.document.RequestDocumentBuilder
+import data.document.ResponseDocumentSummary
+import data.document.getSummaryForDocType
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.BigErrorText
+import ui.composables.BigSuccessText
 import ui.composables.LabeledText
 import ui.composables.Logo
 import ui.composables.PersonAttributeDetailCardHeading
@@ -43,6 +47,7 @@ import ui.composables.credentials.CredentialCardLayout
 import ui.composables.credentials.EuPidCredentialViewFromAdapter
 import ui.composables.credentials.HealthIdViewFromAdapter
 import ui.composables.credentials.MobileDrivingLicenceCredentialViewFromAdapter
+import ui.theme.LocalExtendedColors
 import ui.viewmodels.iso.VerifierViewModel
 import kotlin.io.encoding.ExperimentalEncodingApi
 
@@ -82,7 +87,8 @@ fun VerifierPresentationView(vm: VerifierViewModel) {
                             .sortedBy { it.value.elementIdentifier }
                             .associate { it.value.elementIdentifier to it.value.elementValue }
                         val namespaces = mapOf(namespaceKey to sortedEntries)
-                        IsoMdocCredentialViewForScheme(scheme, namespaces, decodeImage)
+                        val responseDocumentSummary = getSummaryForDocType(vm.responseDocumentSummaryList.value, doc.docType)!!
+                        IsoMdocCredentialViewForScheme(scheme, namespaces, decodeImage, responseDocumentSummary)
                     }
                 }
             }
@@ -94,13 +100,25 @@ fun VerifierPresentationView(vm: VerifierViewModel) {
 fun IsoMdocCredentialViewForScheme(
     scheme: CredentialScheme?,
     namespaces: Map<String, Map<String, Any>>,
-    decodeImage: (ByteArray) -> Result<ImageBitmap>
+    decodeImage: (ByteArray) -> Result<ImageBitmap>,
+    responseDocumentSummary: ResponseDocumentSummary
 ) {
+    val extendedColors = LocalExtendedColors.current
+    // TODO: Add other cases
+    val credentialStatusValid = responseDocumentSummary.isValid
+
     CredentialCardLayout(
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-        ),
+        colors = if (credentialStatusValid) {
+            CardDefaults.elevatedCardColors(
+                containerColor = extendedColors.successContainer,
+                contentColor = extendedColors.onSuccessContainer
+            )
+        } else {
+            CardDefaults.elevatedCardColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer,
+                contentColor = MaterialTheme.colorScheme.onErrorContainer
+            )
+        },
         modifier = Modifier.padding(end = 16.dp, start = 16.dp, bottom = 16.dp)
     ) {
         PersonAttributeDetailCardHeading(
@@ -124,5 +142,13 @@ fun IsoMdocCredentialViewForScheme(
             )
             else -> throw IllegalArgumentException("Unsupported scheme: $scheme")
         }
+
+        if (credentialStatusValid) {
+            BigSuccessText("VALID")
+        } else {
+            BigErrorText("INVALID")
+        }
+
+        // TODO: Have a look at CredentialFreshnessSummaryUiModel ?
     }
 }
