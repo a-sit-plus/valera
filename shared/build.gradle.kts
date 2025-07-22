@@ -116,9 +116,6 @@ kotlin {
             implementation("androidx.compose.ui:ui-test-manifest")
         }
         iosMain.dependencies { implementation(ktor("client-darwin")) }
-        iosSimulatorArm64Test.dependencies {
-            implementation(ktor("client-darwin"))
-        }
     }
 }
 
