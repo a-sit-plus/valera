@@ -1,3 +1,7 @@
+# Release 5.8.0
+ * Update to VC-K 5.8.0
+ * Credentials: Add FallbackCredentialScheme for unknown schemes
+
 # Release 5.7.3 (unreleased)
  * Update to VC-K 5.7.2, fixing optional attributes during presentation
 
