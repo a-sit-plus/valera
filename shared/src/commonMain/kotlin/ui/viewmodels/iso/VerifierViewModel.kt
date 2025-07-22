@@ -76,8 +76,7 @@ class VerifierViewModel(
 
     private fun handleResponse(result: KmmResult<ByteArray>) {
         result.onSuccess { deviceResponseBytes ->
-            val deviceResponse = coseCompliantSerializer.decodeFromByteArray<DeviceResponse>(deviceResponseBytes)
-            checkResponse(deviceResponse)
+            checkResponse(coseCompliantSerializer.decodeFromByteArray<DeviceResponse>(deviceResponseBytes))
         }.onFailure { error ->
             handleError(error.message ?: "Unknown error")
         }
