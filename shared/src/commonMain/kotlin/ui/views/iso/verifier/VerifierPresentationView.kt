@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_received_data
+import at.asitplus.valera.resources.info_text_credential_status_valid
 import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.iconLabel
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
@@ -36,7 +37,6 @@ import data.document.ResponseDocumentSummary
 import data.document.getSummaryForDocType
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
-import ui.composables.BigErrorText
 import ui.composables.BigSuccessText
 import ui.composables.LabeledText
 import ui.composables.Logo
@@ -46,7 +46,9 @@ import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.CredentialCardLayout
 import ui.composables.credentials.EuPidCredentialViewFromAdapter
 import ui.composables.credentials.HealthIdViewFromAdapter
+import ui.composables.credentials.MainCredentialIssue
 import ui.composables.credentials.MobileDrivingLicenceCredentialViewFromAdapter
+import ui.models.toCredentialFreshnessSummaryModel
 import ui.theme.LocalExtendedColors
 import ui.viewmodels.iso.VerifierViewModel
 import kotlin.io.encoding.ExperimentalEncodingApi
@@ -104,7 +106,6 @@ fun IsoMdocCredentialViewForScheme(
     responseDocumentSummary: ResponseDocumentSummary
 ) {
     val extendedColors = LocalExtendedColors.current
-    // TODO: Add other cases
     val credentialStatusValid = responseDocumentSummary.isValid
 
     CredentialCardLayout(
@@ -144,11 +145,11 @@ fun IsoMdocCredentialViewForScheme(
         }
 
         if (credentialStatusValid) {
-            BigSuccessText("VALID")
+            BigSuccessText(stringResource(Res.string.info_text_credential_status_valid))
         } else {
-            BigErrorText("INVALID")
+            MainCredentialIssue(
+                responseDocumentSummary.freshnessSummary.toCredentialFreshnessSummaryModel()
+            )
         }
-
-        // TODO: Have a look at CredentialFreshnessSummaryUiModel ?
     }
 }
