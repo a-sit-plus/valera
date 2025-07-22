@@ -10,7 +10,6 @@ import at.asitplus.wallet.app.common.iso.transfer.MdocConstants.MDOC_PREFIX
 import at.asitplus.wallet.app.common.iso.transfer.TransferManager
 import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.agent.Verifier.VerifyPresentationResult
-import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatusValidationResult
 import at.asitplus.wallet.lib.iso.DeviceResponse
 import at.asitplus.wallet.lib.iso.Document
 import at.asitplus.wallet.lib.iso.MobileSecurityObject
@@ -95,16 +94,7 @@ class VerifierViewModel(
                 when (val result = Validator().verifyDeviceResponse(deviceResponse, verifyDocument)) {
                     is VerifyPresentationResult.SuccessIso -> {
                         val responseDocumentSummaries = result.documents.map { doc ->
-                            val isTokenValid = doc.freshnessSummary.tokenStatusValidationResult is TokenStatusValidationResult.Valid
-                            val isMsoTimely = doc.freshnessSummary.timelinessValidationSummary.details.msoTimelinessValidationSummary?.isTimely == true
-                            ResponseDocumentSummary(
-                                docType = doc.mso.docType,
-                                isTokenValid = isTokenValid,
-                                isMsoTimely = isMsoTimely,
-                                isValid = doc.invalidItems.isEmpty() && isTokenValid && isMsoTimely,
-                                validItems = doc.validItems.map { it.elementIdentifier },
-                                invalidItems = doc.invalidItems.map { it.elementIdentifier }
-                            )
+                            ResponseDocumentSummary.fromIsoDocumentParsed(doc)
                         }
                         _responseDocumentSummaryList.value = responseDocumentSummaries
                         responseDocumentSummaries.forEach { Napier.d(it.toString()) }
@@ -165,10 +155,7 @@ class VerifierViewModel(
     ) {
         val config = RequestDocumentBuilder.getDocTypeConfig(selectedDocumentType) ?: return
         _requestDocumentList.addRequestDocument(
-            RequestDocumentBuilder.buildRequestDocument(
-                scheme = config.scheme,
-                subSet = selectedEntries
-            )
+            RequestDocumentBuilder.buildRequestDocument(config.scheme, selectedEntries)
         )
         setStateToEngagement(selectedEngagementMethod.value)
     }
