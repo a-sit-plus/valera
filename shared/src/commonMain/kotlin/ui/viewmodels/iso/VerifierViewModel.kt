@@ -102,13 +102,14 @@ class VerifierViewModel(
                     }
                     is VerifyPresentationResult.InvalidStructure,
                     is VerifyPresentationResult.ValidationError -> {
-                        handleError("Verification failed: $result")
+                        handleError("Verification failed: ${result::class.simpleName}")
+                        return@launch
                     }
                     else -> {
                         handleError("Unsupported verification result: ${result::class.simpleName}")
+                        return@launch
                     }
                 }
-                _verifierState.value = VerifierState.PRESENTATION
             } catch (e: Exception) {
                 Napier.e("Verification of response failed", e)
                 handleError(e.message ?: "Unknown error during verification")
