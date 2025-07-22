@@ -467,4 +467,5 @@
     <string name="text_label_mandatory_attributes">Notwendige Attribute</string>
     <string name="text_label_requests">Anfragen</string>
     <string name="info_text_no_requests">Keine Anfragen</string>
+    <string name="info_text_credential_status_valid">GÜLTIG</string>
 </resources>
