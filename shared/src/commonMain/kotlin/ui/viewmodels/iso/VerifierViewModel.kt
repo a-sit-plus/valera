@@ -10,6 +10,7 @@ import at.asitplus.wallet.app.common.iso.transfer.MdocConstants.MDOC_PREFIX
 import at.asitplus.wallet.app.common.iso.transfer.TransferManager
 import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.agent.Verifier.VerifyPresentationResult
+import at.asitplus.wallet.lib.agent.VerifierAgent
 import at.asitplus.wallet.lib.iso.DeviceResponse
 import at.asitplus.wallet.lib.iso.Document
 import at.asitplus.wallet.lib.iso.MobileSecurityObject
@@ -90,7 +91,8 @@ class VerifierViewModel(
         }
         walletMain.scope.launch(Dispatchers.IO) {
             try {
-                when (val result = Validator().verifyDeviceResponse(deviceResponse, verifyDocument)) {
+                val verifierAgent = VerifierAgent("Proximity Verifier", Validator())
+                when (val result = verifierAgent.verifyPresentationIsoMdoc(deviceResponse, "", verifyDocument)) {
                     is VerifyPresentationResult.SuccessIso -> {
                         val responseDocumentSummaries = result.documents.map { doc ->
                             ResponseDocumentSummary.fromIsoDocumentParsed(doc)
