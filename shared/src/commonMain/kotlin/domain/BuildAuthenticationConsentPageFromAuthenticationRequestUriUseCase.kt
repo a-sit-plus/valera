@@ -2,6 +2,8 @@ package domain
 
 import at.asitplus.KmmResult
 import at.asitplus.dcapi.request.Oid4vpDCAPIRequest
+import at.asitplus.openid.AuthenticationRequestParameters
+import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.wallet.app.common.PresentationService
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import io.github.aakira.napier.Napier
@@ -31,12 +33,8 @@ class BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
         // TODO: extract recipient name from the metadataResponse; the data is not yet being delivered though
         return KmmResult.success(
             AuthenticationViewRoute(
-                authenticationRequestParametersFromSerialized = vckJsonSerializer.encodeToString(
-                    request
-                ),
-                authorizationPreparationStateSerialized = vckJsonSerializer.encodeToString(
-                    preparationState
-                ),
+                authenticationRequest = request,
+                authorizationResponsePreparationState = preparationState,
                 recipientLocation = request.parameters.clientId ?: "",
                 isCrossDeviceFlow = false,
             )
