@@ -3,6 +3,7 @@ package ui.viewmodels.authentication
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
 import at.asitplus.catching
+import at.asitplus.catchingUnwrapped
 import at.asitplus.dif.Constraint
 import at.asitplus.dif.ConstraintField
 import at.asitplus.dif.DifInputDescriptor
@@ -18,6 +19,8 @@ import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.iso.DeviceRequest
 import at.asitplus.iso.SessionTranscript
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
+import at.asitplus.wallet.lib.openid.CredentialMatchingResult
+import at.asitplus.wallet.lib.openid.PresentationExchangeMatchingResult
 
 class PresentationViewModel(
     val presentationStateModel: PresentationStateModel,
@@ -80,8 +83,8 @@ class PresentationViewModel(
             )
         )
 
-    override suspend fun findMatchingCredentials(): KmmResult<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>> =
-        catching {
+    override suspend fun findMatchingCredentials(): Result<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>> =
+        catchingUnwrapped {
             PresentationExchangeMatchingResult(
                 presentationRequest = CredentialPresentationRequest.PresentationExchangeRequest(
                     presentationDefinition = PresentationDefinition(
