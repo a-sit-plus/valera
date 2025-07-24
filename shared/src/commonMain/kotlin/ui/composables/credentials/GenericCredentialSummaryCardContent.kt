@@ -29,23 +29,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
+import at.asitplus.iso.IssuerSignedList
+import at.asitplus.signum.indispensable.io.Base64Strict
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_hide_technical_details
 import at.asitplus.valera.resources.button_label_show_technical_details
-import at.asitplus.valera.resources.section_heading_technical_data_icon_text
 import at.asitplus.valera.resources.section_heading_technical_data
+import at.asitplus.valera.resources.section_heading_technical_data_icon_text
+import at.asitplus.valera.resources.text_label_docType
+import at.asitplus.valera.resources.text_label_status_idx
+import at.asitplus.valera.resources.text_label_status_uri
 import at.asitplus.valera.resources.text_label_valid_from
 import at.asitplus.valera.resources.text_label_valid_to
 import at.asitplus.valera.resources.text_label_vcType
-import at.asitplus.valera.resources.text_label_docType
-import at.asitplus.valera.resources.text_label_status_uri
-import at.asitplus.valera.resources.text_label_status_idx
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore.StoreEntry
 import at.asitplus.wallet.lib.data.Status
+import at.asitplus.wallet.mdl.DrivingPrivilege
 import data.credentials.CredentialAdapter.Companion.toComplexJson
+import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
 import kotlinx.datetime.Instant
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Label
 import ui.composables.LabeledContent
@@ -170,14 +174,18 @@ private fun SingleSdJwtCredentialCardContent(
 }
 
 private fun StoreEntry.SdJwt.allEntries(): Collection<Pair<String, String>> =
-    (simpleDisclosures() + complexObject()).sortedBy { it.first }.toSet()
+    (toComplexJson()?.mapWithPrefix() ?: listOf()).sortedBy { it.first }.toSet()
 
-private fun StoreEntry.SdJwt.complexObject() =
-    (toComplexJson()?.entries?.map { it.key to it.value.prettyToString() } ?: listOf())
+private fun JsonObject.mapWithPrefix(prefix: String? = null): Collection<Pair<String, String>> =
+    entries.flatMap {
+        with(it.value) {
+            when (this) {
+                is JsonObject -> mapWithPrefix("${it.key}.")
+                else -> listOf("${prefix ?: ""}${it.key}" to prettyToString())
+            }
+        }
+    }
 
-private fun StoreEntry.SdJwt.simpleDisclosures() =
-    disclosures.entries.filter { it.value?.claimName != null }
-        .map { it.value!!.claimName!! to it.value!!.claimValue.prettyToString() }
 
 @Composable
 private fun SingleIsoCredentialCardContent(
@@ -200,19 +208,36 @@ private fun SingleIsoCredentialCardContent(
             }
         }
     }
-    credential.issuerSigned.namespaces?.forEach { namespace ->
-        namespace.value.entries.sortedBy { it.value.elementIdentifier }.forEach { entry ->
-            LabeledText(
-                text = entry.value.elementValue.prettyToString()
-                    .run { slice(0..min(lastIndex, 100)) },
-                label = NormalizedJsonPath(
-                    NormalizedJsonPathSegment.NameSegment(namespace.key),
-                    NormalizedJsonPathSegment.NameSegment(entry.value.elementIdentifier),
-                ).toString(),
-            )
-        }
+    (credential.issuerSigned.namespaces?.mapIt() ?: listOf()).sortedBy { it.first }.forEach {
+        LabeledText(
+            label = it.first,
+            text = it.second.run { slice(0..min(lastIndex, 100)) },
+        )
     }
 }
+
+private fun Map<String, IssuerSignedList>.mapIt() = entries.flatMap { (nsKey, nsValue) ->
+    nsValue.entries.map { it.value }.flatMap {
+        it.elementValue.prettyToString("${nsKey}.${it.elementIdentifier}")
+    }
+}
+
+private fun Any.prettyToString(prefix: String) = when (this) {
+    is Array<*> -> this.filterNotNull().flatMapIndexed { idx, v -> v.prettyToString(prefix, idx) }
+    else -> listOf(prefix to prettyToString())
+}
+
+private fun Any.prettyToString(prefix: String, idx: Int) = when (this) {
+    is DrivingPrivilege -> this.prettyToString("$prefix[$idx]")
+    else -> listOf(prefix to this.prettyToString())
+}
+
+private fun DrivingPrivilege.prettyToString(prefix: String) = listOfNotNull(
+    "$prefix.vehicle_category_code" to vehicleCategoryCode,
+    "$prefix.issue_date" to issueDate.toString(),
+    "$prefix.expiry_date" to expiryDate.toString(),
+    codes?.let { "$prefix.codes" to it.joinToString() }
+)
 
 @Composable
 private fun TechnicalMetadataHeader() {
@@ -319,5 +344,7 @@ private fun DocType(value: String, modifier: Modifier) {
 
 private fun Any.prettyToString() = when (this) {
     is Array<*> -> contentToString()
+    is JsonPrimitive -> content
+    is ByteArray -> encodeToString(Base64Strict)
     else -> toString()
 }
