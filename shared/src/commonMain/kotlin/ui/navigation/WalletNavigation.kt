@@ -7,7 +7,6 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.safeGesturesPadding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -31,9 +30,6 @@ import at.asitplus.dcapi.request.DCAPIRequest
 import at.asitplus.dcapi.request.IsoMdocRequest
 import at.asitplus.dcapi.request.Oid4vpDCAPIRequest
 import at.asitplus.dcapi.request.PreviewDCAPIRequest
-import at.asitplus.openid.AuthenticationRequestParameters
-import at.asitplus.openid.CredentialOffer
-import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_reset_app_successfully
 import at.asitplus.wallet.app.common.ErrorService
@@ -43,14 +39,12 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.domain.platform.UrlOpener
 import at.asitplus.wallet.lib.data.vckJsonSerializer
-import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.getString
 import org.koin.compose.koinInject
 import ui.composables.BottomBar
@@ -86,7 +80,6 @@ import ui.navigation.routes.SigningPreloadIntentRoute
 import ui.navigation.routes.SigningQtspSelectionRoute
 import ui.navigation.routes.SigningServiceIntentRoute
 import ui.navigation.routes.VerifyDataRoute
-import ui.viewmodels.AddCredentialViewModel
 import ui.viewmodels.CredentialDetailsViewModel
 import ui.viewmodels.ErrorViewModel
 import ui.viewmodels.LoadCredentialViewModel
@@ -372,20 +365,15 @@ private fun WalletNavHost(
 
             val vm = remember {
                 try {
-                    val request: RequestParametersFrom<AuthenticationRequestParameters> =
-                        vckJsonSerializer.decodeFromString(route.authenticationRequestParametersFromSerialized)
-                    val preparationState: AuthorizationResponsePreparationState =
-                        vckJsonSerializer.decodeFromString(route.authorizationPreparationStateSerialized)
-
-                    val dcApiRequest = preparationState.oid4vpDCAPIRequest
+                    val dcApiRequest = route.authorizationResponsePreparationState.oid4vpDCAPIRequest
                     val spLocation = dcApiRequest?.callingOrigin ?: route.recipientLocation
 
                     DefaultAuthenticationViewModel(
                         spName = dcApiRequest?.callingPackageName,
                         spLocation = spLocation,
                         spImage = null,
-                        authenticationRequest = request,
-                        preparationState = preparationState,
+                        authenticationRequest = route.authenticationRequest,
+                        preparationState = route.authorizationResponsePreparationState,
                         navigateUp = navigateBack,
                         navigateToAuthenticationSuccessPage = {
                             navigate(AuthenticationSuccessRoute(it, route.isCrossDeviceFlow))
@@ -571,8 +559,7 @@ private fun WalletNavHost(
         }
 
         composable<AddCredentialPreAuthnRoute> { backStackEntry ->
-            val offer =
-                Json.decodeFromString<CredentialOffer>(backStackEntry.toRoute<AddCredentialPreAuthnRoute>().credentialOfferSerialized)
+            val offer = backStackEntry.toRoute<AddCredentialPreAuthnRoute>().credentialOffer
             remember {
                 runBlocking {
                     runCatching {
@@ -684,15 +671,10 @@ private fun WalletNavHost(
             SigningQtspSelectionView(vm = remember {
                 SigningQtspSelectionViewModel(
                     navigateUp = navigateBack,
-                    onContinue = { signatureRequestParametersSerialized ->
+                    onContinue = { signatureRequestParameters ->
                         CoroutineScope(Dispatchers.Main).launch {
                             try {
-                                walletMain.signingService.start(
-                                    vckJsonSerializer.decodeFromString(
-                                        signatureRequestParametersSerialized
-                                    )
-                                )
-
+                                walletMain.signingService.start(signatureRequestParameters)
                             } catch (e: Throwable) {
                                 walletMain.errorService.emit(e)
                             }
@@ -701,7 +683,7 @@ private fun WalletNavHost(
                     walletMain = walletMain,
                     onClickLogo = onClickLogo,
                     onClickSettings = { navigate(SettingsRoute) },
-                    signatureRequestParametersSerialized = backStackEntry.toRoute<SigningQtspSelectionRoute>().signatureRequestParametersSerialized
+                    signatureRequestParameters = backStackEntry.toRoute<SigningQtspSelectionRoute>().signatureRequestParameters
                 )
             })
         }
@@ -819,14 +801,10 @@ private fun WalletNavHost(
                     onSuccess = {
                         walletMain.scope.launch {
                             navigateBack()
-                            val signatureRequestParameters =
-                                walletMain.signingService.parseSignatureRequestParameter(
-                                    backStackEntry.toRoute<SigningIntentRoute>().uri
-                                )
                             navigate(
                                 SigningQtspSelectionRoute(
-                                    vckJsonSerializer.encodeToString(
-                                        signatureRequestParameters
+                                    walletMain.signingService.parseSignatureRequestParameter(
+                                        backStackEntry.toRoute<SigningIntentRoute>().uri
                                     )
                                 )
                             )
@@ -864,7 +842,7 @@ private fun WalletNavHost(
                     walletMain = walletMain,
                     onClickLogo = onClickLogo,
                     onClickSettings = { navigate(SettingsRoute) },
-                    mode = vckJsonSerializer.decodeFromString(backStackEntry.toRoute<QrCodeScannerRoute>().modeSerialized)
+                    mode = backStackEntry.toRoute<QrCodeScannerRoute>().mode
                 )
             })
         }
