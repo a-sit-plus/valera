@@ -26,9 +26,9 @@ fun GenericDataCardContent(
         attributes.mapIndexed { index, it ->
             LabeledContent(
                 label = CredentialAttributeTranslator[credentialScheme]
-                    ?.translate(it.first)?.let {
-                        stringResource(it)
-                    } ?: it.first.toString(),
+                    ?.translate(it.first)
+                    ?.let { stringResource(it) }
+                    ?: it.first.toString(),
                 content = it.second,
                 modifier = if (index == attributes.lastIndex) {
                     Modifier
