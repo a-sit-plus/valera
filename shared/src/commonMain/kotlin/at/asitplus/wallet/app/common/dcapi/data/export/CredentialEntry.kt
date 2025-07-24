@@ -1,13 +1,8 @@
 package at.asitplus.wallet.app.common.dcapi.data.export
 
-import at.asitplus.KmmResult
-import at.asitplus.catching
-import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.cbor.ByteString
-import kotlinx.serialization.decodeFromByteArray
-import kotlinx.serialization.encodeToByteArray
 
 @Serializable
 data class CredentialEntry(
@@ -24,7 +19,6 @@ data class CredentialEntry(
     val sdJwtEntry: SdJwtEntry? = null
 ) {
 
-    fun serialize(): ByteArray = coseCompliantSerializer.encodeToByteArray(this)
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || this::class != other::class) return false
@@ -50,11 +44,5 @@ data class CredentialEntry(
         result = 31 * result + (isoEntry?.hashCode() ?: 0)
         result = 31 * result + (sdJwtEntry?.hashCode() ?: 0)
         return result
-    }
-
-    companion object {
-        fun deserialize(it: ByteArray): KmmResult<CredentialEntry> = catching {
-            coseCompliantSerializer.decodeFromByteArray(it)
-        }
     }
 }

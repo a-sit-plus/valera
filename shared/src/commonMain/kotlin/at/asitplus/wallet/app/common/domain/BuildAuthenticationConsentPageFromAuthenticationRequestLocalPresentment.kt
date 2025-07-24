@@ -10,8 +10,6 @@ class BuildAuthenticationConsentPageFromAuthenticationRequestLocalPresentment {
         catching {
             require(Globals.presentationStateModel.value != null) { "No presentationStateModel set" }
             require(incomingRequest != null) { "No presentation request received" }
-            LocalPresentationAuthenticationConsentRoute(
-                incomingRequest.serialize()
-            )
+            LocalPresentationAuthenticationConsentRoute(incomingRequest)
         }
 }
