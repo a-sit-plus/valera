@@ -93,7 +93,7 @@ fun SigningQtspSelectionView(
                             content = {
                                 Text(stringResource(Res.string.button_label_continue))
                             },
-                            onClick = { vm.onContinue(vm.signatureRequestParametersSerialized) },
+                            onClick = { vm.onContinue(vm.signatureRequestParameters) },
                             modifier = Modifier,
                         )
                     }

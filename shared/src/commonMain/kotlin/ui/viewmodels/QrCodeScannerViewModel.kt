@@ -5,7 +5,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import at.asitplus.catchingUnwrapped
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.lib.data.vckJsonSerializer
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.launch
@@ -49,8 +48,7 @@ class QrCodeScannerViewModel(
     }
 
     suspend fun prepareCredential(link: String) = catchingUnwrapped {
-        val offer = walletMain.provisioningService.decodeCredentialOffer(link)
-        AddCredentialPreAuthnRoute(vckJsonSerializer.encodeToString(offer))
+        AddCredentialPreAuthnRoute(walletMain.provisioningService.decodeCredentialOffer(link))
     }.onFailure {
         Napier.w("Error parsing credential offer", it)
     }.getOrThrow()
@@ -64,8 +62,8 @@ class QrCodeScannerViewModel(
         val page =
             buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(link).getOrThrow()
         AuthenticationViewRoute(
-            authenticationRequestParametersFromSerialized = page.authenticationRequestParametersFromSerialized,
-            authorizationPreparationStateSerialized = page.authorizationPreparationStateSerialized,
+            authenticationRequest = page.authenticationRequest,
+            authorizationResponsePreparationState = page.authorizationResponsePreparationState,
             recipientLocation = page.recipientLocation,
             isCrossDeviceFlow = true
         )
@@ -73,8 +71,7 @@ class QrCodeScannerViewModel(
 
 
     suspend fun prepareSigning(link: String) = catchingUnwrapped {
-        val params = walletMain.signingService.parseSignatureRequestParameter(link)
-        SigningQtspSelectionRoute(vckJsonSerializer.encodeToString(params))
+        SigningQtspSelectionRoute(walletMain.signingService.parseSignatureRequestParameter(link))
     }.getOrThrow()
 }
 
