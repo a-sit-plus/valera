@@ -1,5 +1,6 @@
 package ui.navigation.routes
 
+import at.asitplus.wallet.app.common.presentation.PresentationRequest
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import data.storage.StoreEntryId
 import kotlinx.serialization.Serializable
@@ -54,7 +55,11 @@ data class DCAPIAuthenticationConsentRoute(
 @Serializable
 data class LocalPresentationAuthenticationConsentRoute(
     val presentationRequestSerialized: String
-) : Route()
+) : Route() {
+    constructor(presentationRequest: PresentationRequest) : this(
+        vckJsonSerializer.encodeToString(presentationRequest)
+    )
+}
 
 @Serializable
 data class AuthenticationSuccessRoute(

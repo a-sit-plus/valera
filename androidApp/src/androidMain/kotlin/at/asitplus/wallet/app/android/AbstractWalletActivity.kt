@@ -12,6 +12,7 @@ import androidx.credentials.ExperimentalDigitalCredentialApi
 import androidx.credentials.GetCredentialResponse
 import androidx.credentials.exceptions.GetCredentialCustomException
 import androidx.credentials.provider.PendingIntentHandler
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.dcapi.data.ErrorResponse
 import io.github.aakira.napier.Napier
 import org.bouncycastle.jce.provider.BouncyCastleProvider
@@ -47,8 +48,8 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
                 DigitalCredential(resultStr)
             } catch (e: IllegalArgumentException) {
                 Napier.e("Failed to create response", e)
-                val errorResponse = ErrorResponse("internal error")
-                sendErrorResponse(errorResponse.serialize(), resultData)
+                val errorResponse = joseCompliantSerializer.encodeToString(ErrorResponse("internal error"))
+                sendErrorResponse(errorResponse, resultData)
                 null
             }
 

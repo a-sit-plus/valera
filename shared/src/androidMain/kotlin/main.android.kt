@@ -29,9 +29,10 @@ import at.asitplus.openid.OpenIdConstants.DC_API_OID4VP_PROTOCOL_IDENTIFIER
 import at.asitplus.signum.indispensable.cosef.CoseKeyParams.EcKeyParams
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.signum.indispensable.io.Base64UrlStrict
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.android.AndroidKeyMaterial
-import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
 import at.asitplus.wallet.app.android.dcapi.DCAPIAndroidExporter
+import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
@@ -51,6 +52,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import kotlinx.serialization.decodeFromByteArray
+import kotlinx.serialization.encodeToByteArray
 import org.json.JSONObject
 import org.multipaz.compose.prompt.PromptDialogs
 import org.multipaz.crypto.Algorithm
@@ -172,7 +174,7 @@ public class AndroidPlatformAdapter(
         scope.launch(Dispatchers.Default) {
             catching {
                 val client = IdentityCredentialManager.Companion.getClient(context)
-                val credentialsListCbor = entries.serialize()
+                val credentialsListCbor = coseCompliantSerializer.encodeToByteArray(entries)
                 val exporter = DCAPIAndroidExporter(context)
                 val registrationRequest = exporter.createRegistrationRequest(credentialsListCbor)
 
@@ -338,7 +340,7 @@ public class AndroidPlatformAdapter(
         val response =
             ResponseJSON(kotlin.io.encoding.Base64.UrlSafe.encode(encodedCredentialDocument))
         (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
-            sendCredentialResponseToInvoker(response.serialize(), true)
+            sendCredentialResponseToInvoker(joseCompliantSerializer.encodeToString(response), true)
         } ?: throw IllegalStateException("Callback for response not found")
     }
 
