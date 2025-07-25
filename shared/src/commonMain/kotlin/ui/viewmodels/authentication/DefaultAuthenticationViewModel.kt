@@ -54,7 +54,8 @@ class DefaultAuthenticationViewModel(
 
     override suspend fun findMatchingCredentials(): Result<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>> =
         walletMain.presentationService.getMatchingCredentials(
-            preparationState = preparationState
+            preparationState = preparationState,
+            request = authenticationRequest
         )
 
     override suspend fun finalizationMethod(credentialPresentation: CredentialPresentation): OpenId4VpWallet.AuthenticationSuccess {
