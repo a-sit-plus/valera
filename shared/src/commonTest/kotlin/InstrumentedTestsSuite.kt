@@ -22,6 +22,7 @@ import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import at.asitplus.openid.OidcUserInfo
 import at.asitplus.openid.OidcUserInfoExtended
+import at.asitplus.catchingUnwrapped
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.button_label_details
@@ -136,7 +137,9 @@ class InstrumentedTestsSuite : FunSpec({
                     CompositionLocalProvider(
                         LocalLifecycleOwner provides TestLifecycleOwner()
                     ) {
-                        App(createWalletDependencyProvider(getPlatformAdapter()))
+                        val walletDependencyProvider =
+                            catchingUnwrapped { createWalletDependencyProvider(getPlatformAdapter()) }
+                        App(walletDependencyProvider)
                     }
                 }
 
@@ -156,8 +159,9 @@ class InstrumentedTestsSuite : FunSpec({
                     CompositionLocalProvider(
                         LocalLifecycleOwner provides TestLifecycleOwner()
                     ) {
-                        App(createWalletDependencyProvider(getPlatformAdapter()))
-                    }
+                        val walletDependencyProvider =
+                            catchingUnwrapped { createWalletDependencyProvider(getPlatformAdapter()) }
+                        App(walletDependencyProvider)                    }
                 }
 
                 onNodeWithTag(OnboardingWrapperTestTags.onboardingStartScreen)
@@ -172,8 +176,9 @@ class InstrumentedTestsSuite : FunSpec({
                     CompositionLocalProvider(
                         LocalLifecycleOwner provides TestLifecycleOwner()
                     ) {
-                        App(createWalletDependencyProvider(getPlatformAdapter()))
-                    }
+                        val walletDependencyProvider =
+                            catchingUnwrapped { createWalletDependencyProvider(getPlatformAdapter()) }
+                        App(walletDependencyProvider)                    }
                 }
 
                 waitUntil {
@@ -194,8 +199,9 @@ class InstrumentedTestsSuite : FunSpec({
                 CompositionLocalProvider(
                     LocalLifecycleOwner provides TestLifecycleOwner()
                 ) {
-                    App(createWalletDependencyProvider(getPlatformAdapter()))
-                }
+                    val walletDependencyProvider =
+                        catchingUnwrapped { createWalletDependencyProvider(getPlatformAdapter()) }
+                    App(walletDependencyProvider)                }
             }
 
             runBlocking {
@@ -224,9 +230,10 @@ class InstrumentedTestsSuite : FunSpec({
                     CompositionLocalProvider(
                         LocalLifecycleOwner provides TestLifecycleOwner()
                     ) {
-                        val platformAdapter = getPlatformAdapter()
-                        walletMain = createWalletDependencyProvider(platformAdapter)
-                        App(walletMain)
+                        val walletDependencyProvider =
+                            catchingUnwrapped { createWalletDependencyProvider(getPlatformAdapter()) }
+                        walletMain = walletDependencyProvider.getOrThrow()
+                        App(walletDependencyProvider)
                     }
 
                     val holderAgent: HolderAgent = koinInject()

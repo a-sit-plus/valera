@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.window.ComposeUIViewController
+import at.asitplus.catchingUnwrapped
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
@@ -45,14 +46,16 @@ fun MainViewController(
 
     return ComposeUIViewController {
         PromptDialogs(promptModel)
-        App(
+        val walletDependencyProvider = catchingUnwrapped {
             WalletDependencyProvider(
                 WalletKeyMaterial(keyMaterial = keystoreService.getSignerBlocking()),
                 dataStoreService,
                 platformAdapter,
-                buildContext =  buildContext,
+                buildContext = buildContext,
                 promptModel = promptModel
             )
-        )
+        }
+
+        App(walletDependencyProvider)
     }
 }
