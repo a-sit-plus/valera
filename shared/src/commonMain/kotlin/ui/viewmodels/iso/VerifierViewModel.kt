@@ -7,13 +7,22 @@ import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.iso.transfer.DeviceEngagementMethods
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants.MDOC_PREFIX
 import at.asitplus.wallet.app.common.iso.transfer.TransferManager
+import at.asitplus.wallet.lib.agent.Validator
+import at.asitplus.wallet.lib.agent.Verifier.VerifyPresentationResult
+import at.asitplus.wallet.lib.agent.VerifierAgent
 import at.asitplus.wallet.lib.iso.DeviceResponse
+import at.asitplus.wallet.lib.iso.Document
+import at.asitplus.wallet.lib.iso.MobileSecurityObject
 import data.document.RequestDocumentBuilder
 import data.document.RequestDocumentList
+import data.document.ResponseDocumentSummary
 import data.document.SelectableRequest
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromByteArray
 
 class VerifierViewModel(
@@ -33,8 +42,11 @@ class VerifierViewModel(
 
     private val _requestDocumentList = RequestDocumentList()
 
-    private val _deviceResponse = MutableStateFlow<DeviceResponse?>(null)
-    val deviceResponse: StateFlow<DeviceResponse?> = _deviceResponse
+    private val _responseDocumentList = mutableListOf<Document>()
+    val responseDocumentList = _responseDocumentList
+
+    private val _responseDocumentSummaryList = MutableStateFlow<List<ResponseDocumentSummary>>(emptyList())
+    val responseDocumentSummaryList: StateFlow<List<ResponseDocumentSummary>> = _responseDocumentSummaryList
 
     private val _errorMessage = MutableStateFlow("")
     val errorMessage: StateFlow<String> = _errorMessage
@@ -64,10 +76,44 @@ class VerifierViewModel(
 
     private fun handleResponse(result: KmmResult<ByteArray>) {
         result.onSuccess { deviceResponseBytes ->
-            _deviceResponse.value = coseCompliantSerializer.decodeFromByteArray<DeviceResponse>(deviceResponseBytes)
-            _verifierState.value = VerifierState.PRESENTATION
+            checkResponse(coseCompliantSerializer.decodeFromByteArray<DeviceResponse>(deviceResponseBytes))
         }.onFailure { error ->
             handleError(error.message ?: "Unknown error")
+        }
+    }
+
+    private fun checkResponse(deviceResponse: DeviceResponse) {
+        _verifierState.value = VerifierState.CHECK_RESPONSE
+        val verifyDocument: suspend (MobileSecurityObject, Document) -> Boolean = { _, doc ->
+            _responseDocumentList.add(doc)
+            true
+        }
+        walletMain.scope.launch(Dispatchers.IO) {
+            try {
+                val verifierAgent = VerifierAgent("Proximity Verifier", Validator())
+                when (val result = verifierAgent.verifyPresentationIsoMdoc(deviceResponse, "", verifyDocument)) {
+                    is VerifyPresentationResult.SuccessIso -> {
+                        val responseDocumentSummaries = result.documents.map { doc ->
+                            ResponseDocumentSummary.fromIsoDocumentParsed(doc)
+                        }
+                        _responseDocumentSummaryList.value = responseDocumentSummaries
+                        responseDocumentSummaries.forEach { Napier.d(it.toString()) }
+                        _verifierState.value = VerifierState.PRESENTATION
+                    }
+                    is VerifyPresentationResult.InvalidStructure,
+                    is VerifyPresentationResult.ValidationError -> {
+                        handleError("Verification failed: ${result::class.simpleName}")
+                        return@launch
+                    }
+                    else -> {
+                        handleError("Unsupported verification result: ${result::class.simpleName}")
+                        return@launch
+                    }
+                }
+            } catch (e: Exception) {
+                Napier.e("Verification of response failed", e)
+                handleError(e.message ?: "Unknown error during verification")
+            }
         }
     }
 
@@ -95,7 +141,7 @@ class VerifierViewModel(
         _verifierState.value = VerifierState.INIT
     }
 
-    fun onReceiveCombinedSelection(requestSelectionList:  List<SelectableRequest>) {
+    fun onReceiveCombinedSelection(requestSelectionList: List<SelectableRequest>) {
         requestSelectionList.forEach { request ->
             _requestDocumentList.addRequestDocument(
                 RequestDocumentBuilder.buildRequestDocument(request)
@@ -110,10 +156,7 @@ class VerifierViewModel(
     ) {
         val config = RequestDocumentBuilder.getDocTypeConfig(selectedDocumentType) ?: return
         _requestDocumentList.addRequestDocument(
-            RequestDocumentBuilder.buildRequestDocument(
-                scheme = config.scheme,
-                subSet = selectedEntries
-            )
+            RequestDocumentBuilder.buildRequestDocument(config.scheme, selectedEntries)
         )
         setStateToEngagement(selectedEngagementMethod.value)
     }
@@ -144,6 +187,7 @@ enum class VerifierState {
     SELECT_COMBINED_REQUEST,
     QR_ENGAGEMENT,
     WAITING_FOR_RESPONSE,
+    CHECK_RESPONSE,
     PRESENTATION,
     ERROR
 }

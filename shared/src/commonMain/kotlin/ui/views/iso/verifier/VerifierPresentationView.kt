@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_received_data
+import at.asitplus.valera.resources.info_text_credential_status_valid
 import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.iconLabel
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
@@ -32,8 +33,11 @@ import data.credentials.EuPidCredentialIsoMdocAdapter
 import data.credentials.HealthIdCredentialIsoMdocAdapter
 import data.credentials.MobileDrivingLicenceCredentialIsoMdocAdapter
 import data.document.RequestDocumentBuilder
+import data.document.ResponseDocumentSummary
+import data.document.getSummaryForDocType
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.BigSuccessText
 import ui.composables.LabeledText
 import ui.composables.Logo
 import ui.composables.PersonAttributeDetailCardHeading
@@ -42,7 +46,10 @@ import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.CredentialCardLayout
 import ui.composables.credentials.EuPidCredentialViewFromAdapter
 import ui.composables.credentials.HealthIdViewFromAdapter
+import ui.composables.credentials.MainCredentialIssue
 import ui.composables.credentials.MobileDrivingLicenceCredentialViewFromAdapter
+import ui.models.toCredentialFreshnessSummaryModel
+import ui.theme.LocalExtendedColors
 import ui.viewmodels.iso.VerifierViewModel
 import kotlin.io.encoding.ExperimentalEncodingApi
 
@@ -75,14 +82,15 @@ fun VerifierPresentationView(vm: VerifierViewModel) {
                 modifier = Modifier.verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.Start
             ) {
-                vm.deviceResponse.value!!.documents!!.forEach { doc ->
+                vm.responseDocumentList.forEach { doc ->
                     doc.issuerSigned.namespaces?.forEach { (namespaceKey, entries) ->
                         val scheme = RequestDocumentBuilder.getDocTypeConfig(doc.docType)?.scheme
                         val sortedEntries = entries.entries
                             .sortedBy { it.value.elementIdentifier }
                             .associate { it.value.elementIdentifier to it.value.elementValue }
                         val namespaces = mapOf(namespaceKey to sortedEntries)
-                        IsoMdocCredentialViewForScheme(scheme, namespaces, decodeImage)
+                        val responseDocumentSummary = getSummaryForDocType(vm.responseDocumentSummaryList.value, doc.docType)!!
+                        IsoMdocCredentialViewForScheme(scheme, namespaces, decodeImage, responseDocumentSummary)
                     }
                 }
             }
@@ -94,13 +102,24 @@ fun VerifierPresentationView(vm: VerifierViewModel) {
 fun IsoMdocCredentialViewForScheme(
     scheme: CredentialScheme?,
     namespaces: Map<String, Map<String, Any>>,
-    decodeImage: (ByteArray) -> Result<ImageBitmap>
+    decodeImage: (ByteArray) -> Result<ImageBitmap>,
+    responseDocumentSummary: ResponseDocumentSummary
 ) {
+    val extendedColors = LocalExtendedColors.current
+    val credentialStatusValid = responseDocumentSummary.isValid
+
     CredentialCardLayout(
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-        ),
+        colors = if (credentialStatusValid) {
+            CardDefaults.elevatedCardColors(
+                containerColor = extendedColors.successContainer,
+                contentColor = extendedColors.onSuccessContainer
+            )
+        } else {
+            CardDefaults.elevatedCardColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer,
+                contentColor = MaterialTheme.colorScheme.onErrorContainer
+            )
+        },
         modifier = Modifier.padding(end = 16.dp, start = 16.dp, bottom = 16.dp)
     ) {
         PersonAttributeDetailCardHeading(
@@ -123,6 +142,14 @@ fun IsoMdocCredentialViewForScheme(
                 HealthIdCredentialIsoMdocAdapter(namespaces)
             )
             else -> throw IllegalArgumentException("Unsupported scheme: $scheme")
+        }
+
+        if (credentialStatusValid) {
+            BigSuccessText(stringResource(Res.string.info_text_credential_status_valid))
+        } else {
+            MainCredentialIssue(
+                responseDocumentSummary.freshnessSummary.toCredentialFreshnessSummaryModel()
+            )
         }
     }
 }
