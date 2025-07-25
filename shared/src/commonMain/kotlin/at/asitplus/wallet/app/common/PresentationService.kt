@@ -1,6 +1,5 @@
 package at.asitplus.wallet.app.common
 
-import at.asitplus.catching
 import at.asitplus.dcapi.DCAPIHandover
 import at.asitplus.dcapi.DCAPIInfo
 import at.asitplus.dcapi.request.IsoMdocRequest

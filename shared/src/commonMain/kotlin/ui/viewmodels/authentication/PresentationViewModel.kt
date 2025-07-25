@@ -1,8 +1,6 @@
 package ui.viewmodels.authentication
 
 import androidx.compose.ui.graphics.ImageBitmap
-import at.asitplus.KmmResult
-import at.asitplus.catching
 import at.asitplus.catchingUnwrapped
 import at.asitplus.dif.Constraint
 import at.asitplus.dif.ConstraintField
