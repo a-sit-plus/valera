@@ -1,10 +1,7 @@
 package ui.viewmodels.authentication
 
 import androidx.compose.ui.graphics.ImageBitmap
-import at.asitplus.KmmResult
-import at.asitplus.catching
 import at.asitplus.dcapi.DCAPIResponse
-import at.asitplus.dcapi.request.Oid4vpDCAPIRequest
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.OpenIdConstants
 import at.asitplus.openid.RequestParametersFrom
