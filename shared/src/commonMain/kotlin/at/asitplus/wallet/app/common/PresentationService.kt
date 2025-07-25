@@ -61,8 +61,8 @@ class PresentationService(
     suspend fun getPreparationState(request: RequestParametersFrom<AuthenticationRequestParameters>) =
         presentationService.startAuthorizationResponsePreparation(request).getOrThrow()
 
-    suspend fun getMatchingCredentials(preparationState: AuthorizationResponsePreparationState) =
-        presentationService.getMatchingCredentials(preparationState)
+    suspend fun getMatchingCredentials(preparationState: AuthorizationResponsePreparationState, request: RequestParametersFrom<AuthenticationRequestParameters>) =
+        presentationService.getMatchingCredentials(preparationState, request)
 
     suspend fun finalizeAuthorizationResponse(
         request: RequestParametersFrom<AuthenticationRequestParameters>,
