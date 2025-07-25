@@ -4,7 +4,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
-import at.asitplus.KmmResult
 import at.asitplus.catchingUnwrapped
 import at.asitplus.openid.TransactionDataBase64Url
 import at.asitplus.valera.resources.Res
