@@ -80,7 +80,7 @@ open class KeystoreService(
                 _certificate?.also { return it }
                 repeat(3) {
                     (X509Certificate.load()?.let {
-                        if (it.publicKey.equalsCryptographically(signer.publicKey))
+                        if (it.decodedPublicKey.getOrNull()?.equalsCryptographically(signer.publicKey) == true)
                             return it
                         else {
                             Napier.d { "Pre-stored Certificate mismatch. deleting!" }

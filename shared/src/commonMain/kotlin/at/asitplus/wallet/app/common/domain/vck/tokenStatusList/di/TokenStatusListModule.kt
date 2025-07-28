@@ -16,7 +16,7 @@ import io.github.aakira.napier.Napier
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import org.koin.dsl.module
 import kotlin.time.Duration.Companion.seconds
 

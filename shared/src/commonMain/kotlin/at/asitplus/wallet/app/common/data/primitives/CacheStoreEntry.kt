@@ -1,6 +1,6 @@
 package at.asitplus.wallet.app.common.data.primitives
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 data class CacheStoreEntry<Data>(
     val data: Data,

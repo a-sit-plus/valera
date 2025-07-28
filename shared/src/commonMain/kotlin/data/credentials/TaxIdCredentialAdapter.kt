@@ -25,7 +25,7 @@ import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.RESIDENT_ADDRESS
 import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.TAX_NUMBER
 import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.VERIFICATION_STATUS
 import data.Attribute
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive

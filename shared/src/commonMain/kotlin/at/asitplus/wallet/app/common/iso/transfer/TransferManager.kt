@@ -19,6 +19,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.atTime
+import kotlinx.datetime.toDeprecatedInstant
 import kotlinx.datetime.toInstant
 import kotlinx.io.bytestring.ByteString
 import org.jetbrains.compose.resources.getString
@@ -151,8 +152,8 @@ class TransferManager(
         readerKey = readerKey.publicKey,
         subject = X500Name.fromName("CN=Valera Reader Cert"),
         serial = ASN1Integer(1L),
-        validFrom = LocalDate.parse("2025-06-26").atTime(10, 0).toInstant(TimeZone.UTC),
-        validUntil = LocalDate.parse("2026-06-26").atStartOfDayIn(TimeZone.UTC),
+        validFrom = LocalDate.parse("2025-06-26").atTime(10, 0).toInstant(TimeZone.UTC).toDeprecatedInstant(),
+        validUntil = LocalDate.parse("2026-06-26").atStartOfDayIn(TimeZone.UTC).toDeprecatedInstant(),
     )
 
     fun startNfcEngagement(
