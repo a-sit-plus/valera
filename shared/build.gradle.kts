@@ -1,9 +1,11 @@
 import at.asitplus.gradle.exportXCFramework
 import at.asitplus.gradle.ktor
+import at.asitplus.gradle.kmmresult
 import at.asitplus.gradle.napier
 import at.asitplus.gradle.serialization
 import org.gradle.internal.os.OperatingSystem
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
 import org.jetbrains.kotlin.gradle.plugin.extraProperties
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest
@@ -36,6 +38,9 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+
+            implementation(libs.datetime.compat)
+
             @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
             implementation(compose.components.resources)
             implementation(compose.runtime)
@@ -56,7 +61,7 @@ kotlin {
             api(libs.credential.taxid)
             api(libs.credential.ehic)
             api(napier())
-            api(libs.kmmresult)
+            api(kmmresult())
             implementation(serialization("json"))
             implementation(ktor("client-core"))
             implementation(ktor("client-cio"))
@@ -172,7 +177,7 @@ exportXCFramework(
         libs.credential.healthid,
         libs.credential.ehic,
         libs.credential.taxid,
-        libs.kmmresult,
+        kmmresult(),
         napier()
     )
 ) {
@@ -196,9 +201,4 @@ tasks.named("iosSimulatorArm64Test", KotlinNativeSimulatorTest::class.java).conf
     dependsOn("iosBootSimulator")
     standalone.set(false)
     device.set("iPhone 16")
-}
-
-repositories {
-    maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-    maven("https://oss.sonatype.org/content/repositories/snapshots/")
 }

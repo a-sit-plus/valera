@@ -1,32 +1,34 @@
 [versions]
+
+kotlin = "2.2.0"
+kotest = "6.0.0.M6"
+ksp = "2.0.2"
+compose-plugin = "1.8.2"
+
 camera-camera2 = "1.4.2"
-datastore-preferences-core = "1.1.6"
+datastore-preferences-core = "1.1.7"
 koin = "4.0.3"
 multipaz = "0.92.1"
 kotlinx-coroutines-play-services = "1.10.2"
-navigation-compose = "2.8.0-alpha10"
-semver = "2.0.0"
-mdl = "1.2.0"
-ida = "3.9.2"
-eupid = "3.1.0"
-eupid-sdjwt = "1.1.0"
-powerofrepresentation = "1.2.0"
-certificateofresidence = "2.1.2"
-companyregistration = "1.1.0"
-healthid = "2.0.0"
-ehic = "1.1.0"
-taxid = "1.1.1"
-atomicfu = "0.27.0"
-compose-plugin = "1.7.3"
+navigation-compose = "2.8.0-alpha13"
+semver = "2.1.0"
+mdl = "1.2.1-SNAPSHOT"
+ida = "3.9.3-SNAPSHOT"
+eupid = "3.1.1-SNAPSHOT"
+eupid-sdjwt = "1.1.1-SNAPSHOT"
+powerofrepresentation = "1.2.1-SNAPSHOT"
+certificateofresidence = "2.1.4-SNAPSHOT"
+companyregistration = "1.1.1-SNAPSHOT"
+healthid = "2.1.1-SNAPSHOT"
+ehic = "1.1.1-SNAPSHOT"
+taxid = "1.1.2-SNAPSHOT"
+atomicfu = "0.29.0"
 qrose = "1.0.1"
 core-splashscreen = "1.0.1"
 # Test if DC API is still working after upgrading the following libraries
 play-services-identity-credentials = "16.0.0-alpha08"
-androidx-credentials = "1.6.0-alpha03"
+androidx-credentials = "1.6.0-alpha04"
 androidx-credentials-registry-provider = "1.0.0-alpha01"
-###
-kmmresult = "1.9.3"
-ktor = "3.2.2"
 
 [libraries]
 androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camera-camera2" }
@@ -62,7 +64,9 @@ semver = { module = "net.swiftzer.semver:semver", version.ref = "semver" }
 core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "core-splashscreen" }
 androidx-credentials = { module = "androidx.credentials:credentials", version.ref="androidx-credentials" }
 androidx-credentials-registry-provider = { module = "androidx.credentials.registry:registry-provider", version.ref = "androidx-credentials-registry-provider" }
-kmmresult = { module = "at.asitplus:kmmresult", version.ref = "kmmresult" }
+
+#multipazz workaround
+datetime-compat = {module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.7.1-0.6.x-compat"}
 
 [plugins]
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }

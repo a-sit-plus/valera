@@ -1,7 +1,7 @@
 package at.asitplus.wallet.app.common.data.primitives
 
 import io.github.aakira.napier.Napier
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlin.time.Duration
 
 /**

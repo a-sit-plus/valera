@@ -14,7 +14,7 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
-import at.asitplus.wallet.lib.data.third_party.at.asitplus.oidc.dcql.toDefaultSubmission
+import at.asitplus.wallet.lib.extensions.toDefaultSubmission
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString

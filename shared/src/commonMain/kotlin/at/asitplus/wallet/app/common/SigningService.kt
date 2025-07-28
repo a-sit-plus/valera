@@ -12,6 +12,7 @@ import at.asitplus.rqes.CredentialListResponse
 import at.asitplus.rqes.QtspSignatureResponse
 import at.asitplus.rqes.SignatureRequestParameters
 import at.asitplus.rqes.enums.CertificateOptions
+import at.asitplus.signum.indispensable.Digest
 import at.asitplus.signum.indispensable.X509SignatureAlgorithm
 import at.asitplus.signum.indispensable.io.ByteArrayBase64Serializer
 import at.asitplus.signum.indispensable.josef.JwsSigned
@@ -41,7 +42,7 @@ import io.ktor.http.URLBuilder
 import io.ktor.http.contentType
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format.char
@@ -503,3 +504,10 @@ data class QtspFinalRedirect(
     val redirect_uri: String
 )
 
+
+val X509SignatureAlgorithm.digest: Digest
+    get() = when (this) {
+        is X509SignatureAlgorithm.ECDSA -> digest
+        is X509SignatureAlgorithm.RSAPSS -> digest
+        is X509SignatureAlgorithm.RSAPKCS1 -> digest
+    }
