@@ -92,17 +92,17 @@ kotlin {
         }
 
         androidMain.dependencies {
-            implementation("androidx.biometric:biometric:1.2.0-alpha05")
-            api("androidx.activity:activity-compose:1.8.1")
-            api("androidx.appcompat:appcompat:1.6.1")
-            api("androidx.core:core-ktx:1.12.0")
+            implementation(libs.androidx.biometric)
+            api(libs.androidx.activity.compose)
+            api(libs.androidx.appcompat)
+            api(libs.androidx.core.ktx)
             implementation("uk.uuid.slf4j:slf4j-android:1.7.30-0")
             implementation(ktor("client-android"))
             implementation(libs.androidx.camera.camera2)
             implementation(libs.androidx.camera.lifecycle)
             implementation(libs.androidx.camera.view)
-            implementation("com.google.accompanist:accompanist-permissions:0.30.1")
-            implementation("com.google.mlkit:barcode-scanning:17.2.0")
+            implementation(libs.accompanist.permissions)
+            implementation(libs.barcode.scanning)
 
             implementation(libs.kotlinx.coroutines.play.services)
             implementation(libs.play.services.identity.credentials)
@@ -201,4 +201,24 @@ tasks.named("iosSimulatorArm64Test", KotlinNativeSimulatorTest::class.java).conf
     dependsOn("iosBootSimulator")
     standalone.set(false)
     device.set("iPhone 16")
+}
+
+tasks.register("findDependency") {
+    group = "help"
+    description = "Lists every configuration that resolves the given module"
+    val target = project.providers.gradleProperty("module").forUseAtConfigurationTime()
+
+    doLast {
+        val wanted = target.getOrElse("").takeIf { it.isNotBlank() }
+            ?: error("Pass -Pmodule=<group:name>")
+
+        configurations
+            .filter { it.isCanBeResolved }
+            .forEach { cfg ->
+                val result = cfg.incoming.resolutionResult.allComponents
+                    .any { c -> c.moduleVersion?.let { "${it.group}:${it.name}" } == wanted }
+
+                if (result) println("${project.path}:${cfg.name}")
+            }
+    }
 }
