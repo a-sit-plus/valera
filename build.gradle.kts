@@ -26,6 +26,7 @@ plugins {
     alias(libs.plugins.jetbrainsCompose) apply false
     alias(libs.plugins.compose.compiler) version (vckOidCatalog.versions.kotlin) apply false
 }
+
 subprojects {
     afterEvaluate {
         /*help the linker (yes, this is absolutely bonkers!)*/

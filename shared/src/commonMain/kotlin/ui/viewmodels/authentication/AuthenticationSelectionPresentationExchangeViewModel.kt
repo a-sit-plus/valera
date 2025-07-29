@@ -8,7 +8,6 @@ import at.asitplus.dif.ConstraintField
 import at.asitplus.jsonpath.core.NodeListEntry
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
-import at.asitplus.openid.third_party.at.asitplus.jsonpath.core.plus
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.agent.representation
 import at.asitplus.wallet.ehic.EhicScheme
