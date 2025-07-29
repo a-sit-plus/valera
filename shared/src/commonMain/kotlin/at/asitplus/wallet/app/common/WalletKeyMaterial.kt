@@ -19,12 +19,13 @@ open class WalletKeyMaterial(val keyMaterial: KeyMaterial) :
         data: ByteArray
     ): SignatureResult<CryptoSignature.RawByteEncodable> = run {
         when (val signer = keyMaterial.getUnderLyingSigner()) {
-            is PlatformSigningProviderSigner<*, *> -> signer.sign(data) {
-                unlockPrompt {
-                    promptText?.let { message = it }
-                    promptCancelText?.let { cancelText = it }
+            is PlatformSigningProviderSigner<*, *> ->
+                signer.sign(data) {
+                    unlockPrompt {
+                        promptText?.let { message = it }
+                        promptCancelText?.let { cancelText = it }
+                    }
                 }
-            }
 
             else -> signer.sign(data)
         }.also {
