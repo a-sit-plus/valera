@@ -1,3 +1,6 @@
+package at.asitplus.wallet.app
+
+import App
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -47,8 +50,8 @@ import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.agent.toStoreCredentialInput
 import data.storage.DummyDataStoreService
-import io.kotest.common.Platform
-import io.kotest.common.platform
+import io.kotest.core.Platform
+import io.kotest.core.platform
 import io.kotest.core.spec.style.FunSpec
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -63,7 +66,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlin.time.Clock
@@ -74,7 +76,6 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.jetbrains.compose.resources.getString
-import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.multipaz.prompt.PassphraseRequest
 import org.multipaz.prompt.PromptModel
@@ -83,7 +84,6 @@ import ui.navigation.routes.OnboardingWrapperTestTags
 import ui.views.OnboardingStartScreenTestTag
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
 
 
 private lateinit var lifecycleRegistry: LifecycleRegistry
@@ -116,7 +116,8 @@ class InstrumentedTestsSuite : FunSpec({
                 val testValue = "loaded"
 
                 setContent {
-                    val data by dummyDataStoreService.getPreference(preferenceKey).collectAsState("null")
+                    val data by dummyDataStoreService.getPreference(preferenceKey)
+                        .collectAsState("null")
                     Text(data ?: "collecting state ...")
                 }
 
