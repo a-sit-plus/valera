@@ -10,6 +10,7 @@ import at.asitplus.signum.indispensable.*
 import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.signum.supreme.SignatureResult
 import at.asitplus.signum.supreme.dsl.PREFERRED
+import at.asitplus.signum.supreme.os.PlatformSigningProvider
 import at.asitplus.signum.supreme.os.SigningProvider
 import at.asitplus.signum.supreme.sign.SignatureInput
 import at.asitplus.signum.supreme.sign.Signer
@@ -38,14 +39,15 @@ open class KeystoreService(
         Napier.d("getSigner")
         sMut.withLock {
             if (signer == null)
-                signer = catchingUnwrapped { initSigner() }.getOrElse { FallBackKeyMaterial() }
+                signer = catchingUnwrapped { initSigner() }
+                    .getOrElse { FallBackKeyMaterial(it) }
         }
         return signer!!
     }
 
     @Throws(Throwable::class)
     private suspend fun initSigner(): KeyWithSelfSignedCert {
-        getProvider().let { provider ->
+        PlatformSigningProvider.let { provider ->
             val forKey = provider.getSignerForKey(Configuration.KS_ALIAS).getOrElse {
                 provider.createSigningKey(alias = Configuration.KS_ALIAS) {
                     ec {
@@ -121,7 +123,7 @@ open class KeystoreService(
     companion object {
         @Throws(AppResetRequiredException::class)
         fun checkKeyMaterialValid() {
-            getProvider().let { provider ->
+            PlatformSigningProvider.let { provider ->
                 runBlocking {
                     provider.getSignerForKey(Configuration.KS_ALIAS_OLD).onSuccess {
                         provider.deleteSigningKey(Configuration.KS_ALIAS_OLD)
@@ -134,7 +136,7 @@ open class KeystoreService(
         }
 
         fun clearKeyMaterial() {
-            getProvider().let { provider ->
+            PlatformSigningProvider.let { provider ->
                 runBlocking {
                     provider.getSignerForKey(Configuration.KS_ALIAS_OLD).onSuccess {
                         provider.deleteSigningKey(Configuration.KS_ALIAS_OLD)
@@ -153,13 +155,14 @@ open class KeystoreService(
 }
 
 class FallBackKeyMaterial(
+    val reason: Throwable,
     override val signatureAlgorithm: SignatureAlgorithm = SignatureAlgorithm.ECDSAwithSHA256,
     override val publicKey: CryptoPublicKey = EphemeralKeyWithoutCert().publicKey,
     override val identifier: String = ""
 ): KeyMaterial {
     @SecretExposure
     override fun exportPrivateKey(): KmmResult<CryptoPrivateKey.WithPublicKey<*>> {
-        throw Throwable("Not intended for usage")
+        throw NotImplementedError()
     }
 
     override suspend fun sign(data: SignatureInput): SignatureResult<*> {
@@ -175,5 +178,3 @@ class FallBackKeyMaterial(
     }
 
 }
-
-expect fun getProvider(): SigningProvider
