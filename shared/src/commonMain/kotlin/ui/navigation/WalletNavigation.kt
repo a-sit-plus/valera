@@ -12,11 +12,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.navigation.NavHostController
@@ -47,85 +43,18 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.getString
 import org.koin.compose.koinInject
+import org.koin.core.scope.Scope
 import ui.composables.BottomBar
 import ui.composables.NavigationData
-import ui.navigation.routes.AddCredentialPreAuthnRoute
-import ui.navigation.routes.AddCredentialRoute
-import ui.navigation.routes.AuthenticationSuccessRoute
-import ui.navigation.routes.AuthenticationViewRoute
-import ui.navigation.routes.AuthorizationIntentRoute
-import ui.navigation.routes.CredentialDetailsRoute
-import ui.navigation.routes.DCAPIAuthenticationConsentRoute
-import ui.navigation.routes.DCAPIAuthorizationIntentRoute
-import ui.navigation.routes.ErrorIntentRoute
-import ui.navigation.routes.ErrorRoute
-import ui.navigation.routes.HomeScreenRoute
-import ui.navigation.routes.LoadCredentialRoute
-import ui.navigation.routes.LoadingRoute
-import ui.navigation.routes.LocalPresentationAuthenticationConsentRoute
-import ui.navigation.routes.LogRoute
-import ui.navigation.routes.OnboardingInformationRoute
-import ui.navigation.routes.OnboardingStartRoute
-import ui.navigation.routes.OnboardingWrapperTestTags
-import ui.navigation.routes.PresentDataRoute
-import ui.navigation.routes.PresentationIntentRoute
-import ui.navigation.routes.ProvisioningIntentRoute
-import ui.navigation.routes.QrCodeScannerRoute
-import ui.navigation.routes.Route
-import ui.navigation.routes.SettingsRoute
-import ui.navigation.routes.ShowQrCodeRoute
-import ui.navigation.routes.SigningCredentialIntentRoute
-import ui.navigation.routes.SigningIntentRoute
-import ui.navigation.routes.SigningPreloadIntentRoute
-import ui.navigation.routes.SigningQtspSelectionRoute
-import ui.navigation.routes.SigningServiceIntentRoute
-import ui.navigation.routes.VerifyDataRoute
-import ui.viewmodels.CredentialDetailsViewModel
-import ui.viewmodels.ErrorViewModel
-import ui.viewmodels.LoadCredentialViewModel
-import ui.viewmodels.LogViewModel
-import ui.viewmodels.QrCodeScannerMode
-import ui.viewmodels.QrCodeScannerViewModel
-import ui.viewmodels.SigningQtspSelectionViewModel
-import ui.viewmodels.authentication.AuthenticationViewModel
-import ui.viewmodels.authentication.DefaultAuthenticationViewModel
-import ui.viewmodels.authentication.NewDCAPIAuthenticationViewModel
-import ui.viewmodels.authentication.PresentationViewModel
-import ui.viewmodels.authentication.PreviewDCAPIAuthenticationViewModel
-import ui.viewmodels.intents.AuthorizationIntentViewModel
-import ui.viewmodels.intents.DCAPIAuthorizationIntentViewModel
-import ui.viewmodels.intents.ErrorIntentViewModel
-import ui.viewmodels.intents.PresentationIntentViewModel
-import ui.viewmodels.intents.ProvisioningIntentViewModel
-import ui.viewmodels.intents.SigningCredentialIntentViewModel
-import ui.viewmodels.intents.SigningIntentViewModel
-import ui.viewmodels.intents.SigningPreloadIntentViewModel
-import ui.viewmodels.intents.SigningServiceIntentViewModel
+import ui.navigation.routes.*
+import ui.viewmodels.*
+import ui.viewmodels.authentication.*
+import ui.viewmodels.intents.*
 import ui.viewmodels.iso.VerifierViewModel
-import ui.views.CredentialDetailsView
-import ui.views.CredentialsView
-import ui.views.ErrorView
-import ui.views.LoadCredentialView
-import ui.views.LoadingView
-import ui.views.LogView
-import ui.views.OnboardingInformationView
-import ui.views.OnboardingStartView
-import ui.views.PresentDataView
-import ui.views.QrCodeScannerView
-import ui.views.SelectIssuingServerView
-import ui.views.SettingsView
-import ui.views.SigningQtspSelectionView
+import ui.views.*
 import ui.views.authentication.AuthenticationSuccessView
 import ui.views.authentication.AuthenticationView
-import ui.views.intents.AuthorizationIntentView
-import ui.views.intents.DCAPIAuthorizationIntentView
-import ui.views.intents.ErrorIntentView
-import ui.views.intents.PresentationIntentView
-import ui.views.intents.ProvisioningIntentView
-import ui.views.intents.SigningCredentialIntentView
-import ui.views.intents.SigningIntentView
-import ui.views.intents.SigningPreloadIntentView
-import ui.views.intents.SigningServiceIntentView
+import ui.views.intents.*
 import ui.views.iso.ShowQrCodeView
 import ui.views.iso.verifier.VerifierView
 import ui.views.presentation.PresentationView
@@ -136,11 +65,12 @@ internal object NavigatorTestTags {
 
 @Composable
 fun WalletNavigation(
+    koinScope: Scope,
     settingsRepository: SettingsRepository = koinInject(),
     intentService: IntentService = koinInject(),
     snackbarService: SnackbarService = koinInject(),
-    errorService: ErrorService = koinInject(),
-    walletMain: WalletMain = koinInject(),
+    errorService: ErrorService = koinInject(scope = koinScope),
+    walletMain: WalletMain = koinInject(scope = koinScope),
     urlOpener: UrlOpener = koinInject(),
 ) {
     val navController: NavHostController = rememberNavController()
@@ -196,6 +126,8 @@ fun WalletNavigation(
                 popBackStack(HomeScreenRoute)
                 errorService.emit(e)
             },
+            walletMain,
+            koinScope = koinScope
         )
     }
 
@@ -247,9 +179,10 @@ private fun WalletNavHost(
     popBackStack: (Route) -> Unit,
     onClickLogo: () -> Unit,
     onError: (Throwable) -> Unit,
-    walletMain: WalletMain = koinInject(),
+    walletMain: WalletMain,
     intentService: IntentService = koinInject(),
     settingsRepository: SettingsRepository = koinInject(),
+    koinScope: Scope,
 ) {
     val currentHost by settingsRepository.host.collectAsState("")
     NavHost(
@@ -295,7 +228,8 @@ private fun WalletNavHost(
                         navigate = { route -> navigate(route) },
                         selected = NavigationData.HOME_SCREEN
                     )
-                }
+                },
+                koinScope = koinScope
             )
             LaunchedEffect(null) {
                 walletMain.scope.launch {
@@ -335,6 +269,7 @@ private fun WalletNavHost(
                     Globals.presentationStateModel.value = it
                     navigate(LocalPresentationAuthenticationConsentRoute("QR"))
                 },
+                koinScope = koinScope
             )
         }
 
@@ -511,6 +446,7 @@ private fun WalletNavHost(
                 navigateUp = navigateBack,
                 onClickLogo = onClickLogo,
                 onClickSettings = { navigate(SettingsRoute) },
+                koinScope = koinScope
             )
         }
 
@@ -522,6 +458,7 @@ private fun WalletNavHost(
                 onNavigateToLoadCredentialRoute = { host ->
                     navigate(LoadCredentialRoute(host))
                 },
+                koinScope = koinScope
             )
         }
 
@@ -624,6 +561,7 @@ private fun WalletNavHost(
                 onClickFAQs = null,
                 onClickDataProtectionPolicy = null,
                 onClickLicenses = null,
+                koinScope = koinScope
             )
         }
 

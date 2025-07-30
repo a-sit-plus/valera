@@ -32,6 +32,7 @@ import at.asitplus.valera.resources.heading_label_add_credential_screen
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.scope.Scope
 import ui.composables.Logo
 import ui.composables.buttons.ContinueButton
 import ui.composables.buttons.NavigateUpButton
@@ -45,7 +46,8 @@ fun SelectIssuingServerView(
     navigateUp: () -> Unit,
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
-    vm: AddCredentialViewModel = koinViewModel(),
+    koinScope: Scope,
+    vm: AddCredentialViewModel = koinViewModel(scope = koinScope),
 ) {
     val host by vm.hostString.collectAsState()
     var hostInput by rememberSaveable(host, stateSaver = TextFieldValue.Saver) {
