@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsDisplayed
@@ -37,6 +38,7 @@ import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.BuildType
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
+import at.asitplus.wallet.app.common.SessionService
 import at.asitplus.wallet.app.common.WalletDependencyProvider
 import at.asitplus.wallet.app.common.WalletKeyMaterial
 import at.asitplus.wallet.eupid.EuPidScheme
@@ -220,17 +222,18 @@ class InstrumentedTestsSuite : FunSpec({
     context("End to End Tests") {
         test("End to End Test 1: Should complete the process") {
             runComposeUiTest {
-                lateinit var walletMain: WalletDependencyProvider
+                lateinit var walletDependencyProvider: WalletDependencyProvider
                 setContent {
                     CompositionLocalProvider(
                         LocalLifecycleOwner provides TestLifecycleOwner()
                     ) {
                         val platformAdapter = getPlatformAdapter()
-                        walletMain = createWalletDependencyProvider(platformAdapter)
-                        App(walletMain)
+                        walletDependencyProvider = createWalletDependencyProvider(platformAdapter)
+                        App(walletDependencyProvider)
                     }
+                    val sessionService: SessionService = koinInject()
+                    val holderAgent: HolderAgent = koinInject(scope = sessionService.scope.value)
 
-                    val holderAgent: HolderAgent = koinInject()
 
                     val keyMaterial = EphemeralKeyWithoutCert()
                     val issuer = IssuerAgent(
@@ -245,7 +248,7 @@ class InstrumentedTestsSuite : FunSpec({
                                     getAttributes(),
                                     Clock.System.now().plus(60.minutes),
                                     EuPidScheme,
-                                    walletMain.keyMaterial.keyMaterial.publicKey,
+                                    holderAgent.keyMaterial.publicKey,
                                     OidcUserInfoExtended(userInfo = OidcUserInfo(subject = ""))
                                 )
                             ).getOrThrow().toStoreCredentialInput()
@@ -367,7 +370,7 @@ private fun createWalletDependencyProvider(platformAdapter: PlatformAdapter): Wa
         override suspend fun getSigner(): KeyMaterial = EphemeralKeyWithSelfSignedCert()
     }
     return WalletDependencyProvider(
-        keyMaterial = ks.let { runBlocking { WalletKeyMaterial(it.getSigner()) } },
+        keystoreService = ks,
         dataStoreService = dummyDataStoreService,
         platformAdapter = platformAdapter,
         buildContext = BuildContext(
