@@ -163,15 +163,15 @@ class FallBackKeyMaterial(
     }
 
     override suspend fun sign(data: SignatureInput): SignatureResult<*> {
-        throw Throwable("Not intended for usage")
+        throw NotImplementedError()
     }
 
     override fun getUnderLyingSigner(): Signer {
-        throw Throwable("Not intended for usage")
+        throw NotImplementedError()
     }
 
     override suspend fun getCertificate(): X509Certificate? {
-        throw Throwable("Not intended for usage")
+        throw NotImplementedError()
     }
 
 }

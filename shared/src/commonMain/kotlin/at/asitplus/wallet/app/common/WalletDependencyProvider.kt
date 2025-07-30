@@ -8,7 +8,7 @@ import io.github.aakira.napier.Napier
 import org.multipaz.prompt.PromptModel
 
 data class WalletDependencyProvider(
-    val keyMaterial: WalletKeyMaterial,
+    val keystoreService: KeystoreService,
     val dataStoreService: DataStoreService,
     val platformAdapter: PlatformAdapter,
     var subjectCredentialStore: PersistentSubjectCredentialStore =

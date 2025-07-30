@@ -74,6 +74,7 @@ import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.scope.Scope
 import ui.composables.CircularProgressIndicatorOverlay
 import ui.composables.DelayedComposable
 import ui.composables.Logo
@@ -94,7 +95,8 @@ fun SettingsView(
     onClickFAQs: (() -> Unit)?,
     onClickDataProtectionPolicy: (() -> Unit)?,
     onClickLicenses: (() -> Unit)?,
-    settingsViewModel: SettingsViewModel = koinViewModel(),
+    koinScope: Scope,
+    settingsViewModel: SettingsViewModel = koinViewModel(scope = koinScope),
 ) {
     var isLoading by rememberSaveable {
         mutableStateOf(false)

@@ -31,6 +31,7 @@ import at.asitplus.valera.resources.heading_label_authentication_success
 import at.asitplus.valera.resources.info_text_authentication_success
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.scope.Scope
 import ui.composables.Logo
 import ui.composables.buttons.ConcludeButton
 import ui.composables.buttons.NavigateUpButton
@@ -43,7 +44,8 @@ fun AuthenticationSuccessView(
     navigateUp: () -> Unit,
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
-    vm: AuthenticationSuccessViewModel = koinViewModel(),
+    koinScope: Scope,
+    vm: AuthenticationSuccessViewModel = koinViewModel(scope = koinScope),
 ) {
     Scaffold(
         topBar = {

@@ -37,6 +37,7 @@ import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.WalletDependencyProvider
+import at.asitplus.wallet.app.common.WalletKeyMaterial
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialList
 import at.asitplus.wallet.app.common.dcapi.data.preview.ResponseJSON
 import at.asitplus.wallet.lib.data.vckJsonSerializer
@@ -96,7 +97,7 @@ fun MainView(
 
     App(
         WalletDependencyProvider(
-            keyMaterial = ks.let { runBlocking { AndroidKeyMaterial(it.getSigner()) } },
+            keystoreService = ks,
             dataStoreService = dataStoreService,
             platformAdapter = platformAdapter,
             buildContext = buildContext,
@@ -391,4 +392,8 @@ public class AndroidPlatformAdapter(
 actual fun getImageDecoder(image: ByteArray): ImageBitmap {
     val bitmap = BitmapFactory.decodeByteArray(image, 0, image.size)
     return bitmap.asImageBitmap()
+}
+
+actual fun getKeyMaterial(keystoreService: KeystoreService): WalletKeyMaterial {
+    return AndroidKeyMaterial(keystoreService.getSignerBlocking())
 }

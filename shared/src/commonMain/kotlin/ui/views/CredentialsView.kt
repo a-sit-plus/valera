@@ -28,6 +28,7 @@ import at.asitplus.valera.resources.content_description_navigate_to_settings
 import at.asitplus.valera.resources.heading_label_my_data_screen
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.scope.Scope
 import ui.composables.CustomFloatingActionMenu
 import ui.composables.FloatingActionButtonHeightSpacer
 import ui.composables.Logo
@@ -45,7 +46,8 @@ fun CredentialsView(
     navigateToCredentialDetailsPage: (Long) -> Unit,
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
-    vm: CredentialsViewModel = koinViewModel(),
+    koinScope: Scope,
+    vm: CredentialsViewModel = koinViewModel(scope = koinScope),
     bottomBar: @Composable () -> Unit
 ) {
     val credentialsStatus by vm.storeContainer.collectAsState()
