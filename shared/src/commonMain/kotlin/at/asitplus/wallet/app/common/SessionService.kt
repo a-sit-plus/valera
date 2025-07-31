@@ -13,21 +13,19 @@ val SESSION_NAME = "WALLET_SESSION"
  * Allows to reinitialize singleton dependencies e.g. on App reset
  */
 class SessionService(): KoinComponent {
-    private val koin = getKoin()
-
-    private val scopeId = MutableStateFlow(generateUuid())
+    private var scopeId = generateUuid()
     val scope = MutableStateFlow(initScope())
 
-
     @OptIn(ExperimentalUuidApi::class)
-    fun generateUuid() = Uuid.random().toString()
+    private fun generateUuid() = Uuid.random().toString()
+
     private fun initScope(): Scope {
-        scopeId.value = generateUuid()
-        return this.koin.createScope(scopeId.value, named(SESSION_NAME))
+        scopeId = generateUuid()
+        return getKoin().createScope(scopeId, named(SESSION_NAME))
     }
 
     fun newScope() {
-        koin.deleteScope(scopeId.value)
+        getKoin().deleteScope(scopeId)
         scope.value = initScope()
     }
 }
