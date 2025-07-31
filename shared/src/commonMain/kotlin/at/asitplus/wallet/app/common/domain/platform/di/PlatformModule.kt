@@ -14,7 +14,6 @@ import data.storage.DataStoreService
 import data.storage.HotWalletSubjectCredentialStore
 import data.storage.PersistentSubjectCredentialStore
 import data.storage.WalletSubjectCredentialStore
-import getKeyMaterial
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -26,7 +25,7 @@ import org.multipaz.prompt.PromptModel
 fun platformModule(appDependencyProvider: WalletDependencyProvider) = module {
     scope(named(SESSION_NAME)) {
         scoped<WalletKeyMaterial> {
-            getKeyMaterial(appDependencyProvider.keystoreService)
+            WalletKeyMaterial(appDependencyProvider.keystoreService.getSignerBlocking())
         } binds arrayOf(KeyMaterial::class)
     }
 
