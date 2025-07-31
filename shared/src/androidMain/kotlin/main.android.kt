@@ -30,7 +30,6 @@ import at.asitplus.signum.indispensable.cosef.CoseKeyParams.EcKeyParams
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.signum.indispensable.io.Base64UrlStrict
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
-import at.asitplus.wallet.app.android.AndroidKeyMaterial
 import at.asitplus.wallet.app.android.dcapi.DCAPIAndroidExporter
 import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
 import at.asitplus.wallet.app.common.BuildContext
@@ -392,8 +391,4 @@ public class AndroidPlatformAdapter(
 actual fun getImageDecoder(image: ByteArray): ImageBitmap {
     val bitmap = BitmapFactory.decodeByteArray(image, 0, image.size)
     return bitmap.asImageBitmap()
-}
-
-actual fun getKeyMaterial(keystoreService: KeystoreService): WalletKeyMaterial {
-    return AndroidKeyMaterial(keystoreService.getSignerBlocking())
 }

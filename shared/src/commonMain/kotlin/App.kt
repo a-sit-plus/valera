@@ -66,5 +66,3 @@ expect fun getPlatformName(): String
 expect fun getColorScheme(): ColorScheme
 
 expect fun getImageDecoder(image: ByteArray): ImageBitmap
-
-expect fun getKeyMaterial(keystoreService: KeystoreService): WalletKeyMaterial

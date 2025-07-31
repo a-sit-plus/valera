@@ -56,7 +56,3 @@ fun MainViewController(
         )
     }
 }
-
-actual fun getKeyMaterial(keystoreService: KeystoreService): WalletKeyMaterial {
-    return WalletKeyMaterial(keystoreService.getSignerBlocking())
-}
