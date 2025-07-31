@@ -18,7 +18,7 @@ import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.CredentialToJsonConverter
 import at.asitplus.wallet.lib.openid.PresentationExchangeMatchingResult
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
-import at.asitplus.wallet.taxid.TaxId2025Scheme
+import at.asitplus.wallet.taxid.TaxIdScheme
 import io.github.aakira.napier.Napier
 import kotlinx.serialization.json.jsonObject
 
@@ -79,8 +79,7 @@ class AuthenticationSelectionPresentationExchangeViewModel(
                     is HealthIdScheme,
                     is EhicScheme,
                     is PowerOfRepresentationScheme,
-                    is TaxId2025Scheme,
-                    is at.asitplus.wallet.taxid.TaxIdScheme -> {
+                    is TaxIdScheme -> {
                         val allAttributes = credential.scheme!!.claimNames.map {
                             NormalizedJsonPath() + credential.scheme!!.isoNamespace!! + it
                         }

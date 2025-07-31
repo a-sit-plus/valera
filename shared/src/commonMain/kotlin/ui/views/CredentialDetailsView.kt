@@ -40,7 +40,7 @@ import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
-import at.asitplus.wallet.taxid.TaxId2025Scheme
+import at.asitplus.wallet.taxid.TaxIdScheme
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.CredentialCardActionMenu
 import ui.composables.Logo
@@ -151,8 +151,7 @@ fun CredentialDetailsSummaryView(
             is CompanyRegistrationScheme -> CompanyRegistrationCredentialView(storeEntry)
             is HealthIdScheme -> HealthIdView(storeEntry)
             is EhicScheme -> EhicView(storeEntry)
-            is at.asitplus.wallet.taxid.TaxIdScheme -> TaxIdCredentialView(storeEntry)
-            is TaxId2025Scheme -> TaxIdCredentialView(storeEntry)
+            is TaxIdScheme -> TaxIdCredentialView(storeEntry)
             else -> {}
         }
         GenericCredentialSummaryCardContent(

@@ -5,7 +5,7 @@ import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
-import at.asitplus.wallet.taxid.TaxId2025Scheme
+import at.asitplus.wallet.taxid.TaxIdScheme
 import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.ADMINISTRATIVE_NUMBER
 import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.AFFILIATION_COUNTRY
 import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.BIRTH_DATE
@@ -83,7 +83,7 @@ sealed class TaxIdCredentialAdapter : CredentialAdapter() {
         fun createFromStoreEntry(storeEntry: SubjectCredentialStore.StoreEntry): TaxIdCredentialAdapter {
             val scheme = storeEntry.scheme
                 ?: throw IllegalArgumentException("credential scheme null: $storeEntry")
-            if (scheme !is at.asitplus.wallet.taxid.TaxIdScheme && scheme !is TaxId2025Scheme) {
+            if (scheme !is at.asitplus.wallet.taxid.TaxIdScheme && scheme !is TaxIdScheme) {
                 throw IllegalArgumentException("credential scheme unknown: $scheme")
             }
             return when (storeEntry) {
