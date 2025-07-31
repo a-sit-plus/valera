@@ -25,6 +25,7 @@ data class WalletDependencyProvider(
         at.asitplus.wallet.por.Initializer.initWithVCK()
         at.asitplus.wallet.companyregistration.Initializer.initWithVCK()
         at.asitplus.wallet.healthid.Initializer.initWithVCK()
+        @Suppress("DEPRECATION")
         at.asitplus.wallet.taxid.Initializer.initWithVCK()
         at.asitplus.wallet.taxid.Initializer2025.initWithVCK()
         at.asitplus.wallet.ehic.Initializer.initWithVCK()

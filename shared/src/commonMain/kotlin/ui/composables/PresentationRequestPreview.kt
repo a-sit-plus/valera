@@ -16,13 +16,12 @@ import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getL
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
-import data.credentials.MdocClaimReference
-import data.credentials.SdJwtClaimReference
-import org.jetbrains.compose.resources.stringResource
-import at.asitplus.wallet.app.common.thirdParty.at.asitplus.jsonpath.core.plus
 import data.credentials.JwtClaimDefinition
 import data.credentials.JwtClaimDefinitionTranslator
+import data.credentials.MdocClaimReference
+import data.credentials.SdJwtClaimReference
 import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun PresentationRequestPreview(

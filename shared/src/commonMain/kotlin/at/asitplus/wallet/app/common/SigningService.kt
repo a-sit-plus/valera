@@ -1,6 +1,5 @@
 package at.asitplus.wallet.app.common
 
-import CscAuthorizationDetails
 import at.asitplus.catchingUnwrapped
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.AuthorizationDetails
@@ -9,6 +8,7 @@ import at.asitplus.rqes.CredentialInfo
 import at.asitplus.rqes.CredentialInfoRequest
 import at.asitplus.rqes.CredentialListRequest
 import at.asitplus.rqes.CredentialListResponse
+import at.asitplus.rqes.CscAuthorizationDetails
 import at.asitplus.rqes.QtspSignatureResponse
 import at.asitplus.rqes.SignatureRequestParameters
 import at.asitplus.rqes.enums.CertificateOptions
@@ -42,7 +42,6 @@ import io.ktor.http.URLBuilder
 import io.ktor.http.contentType
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import kotlin.time.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format.char
@@ -56,6 +55,7 @@ import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import org.jetbrains.compose.resources.getString
 import ui.navigation.IntentService
+import kotlin.time.Clock
 
 class SigningService(
     val intentService: IntentService,
@@ -492,7 +492,7 @@ data class QtspConfig(
 val qesDateTime = LocalDateTime.Format {
     year()
     monthNumber()
-    dayOfMonth()
+    day()
     hour()
     minute()
     second()

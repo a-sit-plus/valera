@@ -8,7 +8,6 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
-import at.asitplus.wallet.app.common.thirdParty.at.asitplus.jsonpath.core.plus
 
 fun JsonElement.normalizedJsonPaths(): List<NormalizedJsonPath> = leafNodeList().map {
     it.normalizedJsonPath

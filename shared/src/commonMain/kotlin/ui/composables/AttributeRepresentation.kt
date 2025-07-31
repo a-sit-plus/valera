@@ -21,6 +21,7 @@ import kotlin.time.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.stringResource
 
@@ -186,7 +187,7 @@ fun AttributeRepresentation(
     modifier: Modifier = Modifier,
 ) {
     Text(
-        value.run { "$dayOfMonth.$monthNumber.$year" },
+        value.run { "$day.${month.number}.$year" },
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
         modifier = modifier,
@@ -199,7 +200,7 @@ fun AttributeRepresentation(
     modifier: Modifier = Modifier,
 ) {
     Text(
-        value.run { "$dayOfMonth.$monthNumber.$year" },
+        value.run { "$day.${month.number}.$year" },
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
         modifier = modifier,

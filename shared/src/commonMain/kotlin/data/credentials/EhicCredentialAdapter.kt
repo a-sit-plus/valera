@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
@@ -31,6 +33,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 
 sealed class EhicCredentialAdapter : CredentialAdapter() {
+    @Suppress("DEPRECATION")
     override fun getAttribute(path: NormalizedJsonPath) =
         path.segments.firstOrNull()?.let { first ->
             with(EhicScheme.Attributes) {

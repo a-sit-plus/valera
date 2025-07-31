@@ -342,14 +342,10 @@ private fun WalletNavHost(
                         backStackEntry.toRoute<DCAPIAuthenticationConsentRoute>().apiRequestSerialized
                     val dcApiRequest: DCAPIRequest =
                         catching {
-                            vckJsonSerializer.decodeFromString<PreviewDCAPIRequest>(
-                                apiRequestSerialized
-                            )
+                            vckJsonSerializer.decodeFromString<PreviewDCAPIRequest>(apiRequestSerialized)
                         }.getOrNull()
                             ?: catching {
-                                vckJsonSerializer.decodeFromString<IsoMdocRequest>(
-                                    apiRequestSerialized
-                                )
+                                vckJsonSerializer.decodeFromString<IsoMdocRequest>(apiRequestSerialized)
                             }.getOrThrow()
 
                     when (dcApiRequest) {

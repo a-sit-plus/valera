@@ -1,13 +1,13 @@
 package ui.viewmodels.iso
 
 import at.asitplus.KmmResult
+import at.asitplus.iso.DeviceResponse
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.iso.transfer.DeviceEngagementMethods
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants.MDOC_PREFIX
 import at.asitplus.wallet.app.common.iso.transfer.TransferManager
-import at.asitplus.wallet.lib.iso.DeviceResponse
 import data.document.RequestDocumentBuilder
 import data.document.RequestDocumentList
 import data.document.SelectableRequest

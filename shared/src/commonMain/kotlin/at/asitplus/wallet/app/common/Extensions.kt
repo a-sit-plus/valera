@@ -32,7 +32,6 @@ import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationDataElements
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import at.asitplus.wallet.taxid.TaxId2025Scheme
-import at.asitplus.wallet.taxid.TaxIdScheme
 import data.credentials.MdocClaimReference
 import data.credentials.SdJwtClaimReference
 import data.credentials.SingleClaimReference
@@ -160,9 +159,9 @@ fun ConstantIndex.CredentialScheme.toJsonElement(
     representation: CredentialRepresentation,
     elements: Collection<String>? = null
 ): JsonElement {
-    val dataElements = elements ?: when (this) {
+    @Suppress("DEPRECATION") val dataElements = elements ?: when (this) {
         EuPidScheme -> this.claimNames + EuPidScheme.Attributes.PORTRAIT_CAPTURE_DATE
-        ConstantIndex.AtomicAttribute2023, IdAustriaScheme, EuPidSdJwtScheme, MobileDrivingLicenceScheme, HealthIdScheme, EhicScheme, TaxIdScheme, TaxId2025Scheme -> this.claimNames
+        ConstantIndex.AtomicAttribute2023, IdAustriaScheme, EuPidSdJwtScheme, MobileDrivingLicenceScheme, HealthIdScheme, EhicScheme, at.asitplus.wallet.taxid.TaxIdScheme, TaxId2025Scheme -> this.claimNames
         // TODO Use: this.claim names for all schemes
         PowerOfRepresentationScheme -> PowerOfRepresentationDataElements.ALL_ELEMENTS
         CertificateOfResidenceScheme -> CertificateOfResidenceDataElements.ALL_ELEMENTS

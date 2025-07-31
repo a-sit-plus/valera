@@ -153,5 +153,9 @@ class MdocPresenter(
         }
 
     private fun EcPublicKey.getBytes(): ByteArray =
-        CoseKey.deserialize(Cbor.encode(toCoseKey().toDataItem())).getOrThrow().serialize()
+        coseCompliantSerializer.encodeToByteArray(
+            coseCompliantSerializer.decodeFromByteArray<CoseKey>(
+                Cbor.encode(toCoseKey().toDataItem())
+            )
+        )
 }

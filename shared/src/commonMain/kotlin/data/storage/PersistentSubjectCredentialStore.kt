@@ -1,6 +1,7 @@
 package data.storage
 
 import at.asitplus.KmmResult
+import at.asitplus.iso.IssuerSigned
 import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
@@ -8,7 +9,6 @@ import at.asitplus.wallet.lib.data.SelectiveDisclosureItem
 import at.asitplus.wallet.lib.data.VerifiableCredentialJws
 import at.asitplus.wallet.lib.data.VerifiableCredentialSdJwt
 import at.asitplus.wallet.lib.data.vckJsonSerializer
-import at.asitplus.wallet.lib.iso.IssuerSigned
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.storage.ExportableCredentialScheme.Companion.toExportableCredentialScheme
 import io.github.aakira.napier.Napier
@@ -244,6 +244,7 @@ private sealed interface ExportableStoreEntry {
 enum class ExportableCredentialScheme {
     AtomicAttribute2023, IdAustriaScheme, MobileDrivingLicence2023, EuPidScheme, EuPidSdJwtScheme, PowerOfRepresentationScheme, CertificateOfResidenceScheme, CompanyRegistrationScheme, HealthIdScheme, EhicScheme, TaxIdScheme, TaxId2025Scheme, VcFallbackCredentialScheme, SdJwtFallbackCredentialScheme, IsoMdocFallbackCredentialScheme;
 
+    @Suppress("DEPRECATION")
     fun toScheme() = when (this) {
         AtomicAttribute2023 -> ConstantIndex.AtomicAttribute2023
         MobileDrivingLicence2023 -> MobileDrivingLicenceScheme
@@ -263,6 +264,7 @@ enum class ExportableCredentialScheme {
     }
 
     companion object {
+        @Suppress("DEPRECATION")
         fun ConstantIndex.CredentialScheme.toExportableCredentialScheme() = when (this) {
             ConstantIndex.AtomicAttribute2023 -> AtomicAttribute2023
             MobileDrivingLicenceScheme -> MobileDrivingLicence2023

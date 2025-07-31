@@ -346,7 +346,7 @@ public class AndroidPlatformAdapter(
 
     @OptIn(ExperimentalEncodingApi::class)
     override fun prepareDCAPIIsoMdocCredentialResponse(
-        response: ByteArray,
+        responseJson: ByteArray,
         sessionTranscript: ByteArray,
         encryptionParameters: EncryptionParameters
     ) {
@@ -363,7 +363,7 @@ public class AndroidPlatformAdapter(
             val (cipherText, encapsulatedPublicKey) = Crypto.hpkeEncrypt(
                 Algorithm.HPKE_BASE_P256_SHA256_AES128GCM,
                 publicKey,
-                response,
+                responseJson,
                 sessionTranscript
             )
 
@@ -375,15 +375,15 @@ public class AndroidPlatformAdapter(
             val encryptedResponse = EncryptedResponse("dcapi", encryptedResponseData)
 
             val dcApiResponse = DCAPIResponse.createIsoMdocResponse(encryptedResponse)
-            Napier.d("Returning response $response to digital credentials API invoker")
+            Napier.d("Returning response $responseJson to digital credentials API invoker")
             sendCredentialResponseToInvoker(vckJsonSerializer.encodeToString(dcApiResponse), true)
         } ?: throw IllegalStateException("Callback for response not found")
     }
 
-    override fun prepareDCAPIOid4vpCredentialResponse(response: String, success: Boolean) {
+    override fun prepareDCAPIOid4vpCredentialResponse(responseJson: String, success: Boolean) {
         (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
-            Napier.d("Returning response $response to digital credentials API invoker")
-            sendCredentialResponseToInvoker(response, success)
+            Napier.d("Returning response $responseJson to digital credentials API invoker")
+            sendCredentialResponseToInvoker(responseJson, success)
         } ?: throw IllegalStateException("Callback for response not found")
     }
 }

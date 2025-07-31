@@ -225,7 +225,7 @@ interface PlatformAdapter {
 
     fun prepareDCAPIIsoMdocCredentialResponse(
         responseJson: ByteArray,
-        serialize: ByteArray,
+        sessionTranscript: ByteArray,
         encryptionParameters: EncryptionParameters
     )
 
@@ -265,7 +265,7 @@ class DummyPlatformAdapter : PlatformAdapter {
 
     override fun prepareDCAPIIsoMdocCredentialResponse(
         responseJson: ByteArray,
-        serialize: ByteArray,
+        sessionTranscript: ByteArray,
         encryptionParameters: EncryptionParameters
     ) {
     }

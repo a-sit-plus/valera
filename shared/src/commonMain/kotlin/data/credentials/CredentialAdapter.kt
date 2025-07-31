@@ -4,7 +4,7 @@ import at.asitplus.catchingUnwrapped
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.signum.indispensable.io.Base64Strict
 import at.asitplus.signum.indispensable.io.Base64UrlStrict
-import at.asitplus.wallet.lib.agent.SdJwtValidator
+import at.asitplus.wallet.lib.agent.SdJwtDecoded
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.LocalDateOrInstant
@@ -12,12 +12,12 @@ import at.asitplus.wallet.lib.jws.SdJwtSigned
 import data.Attribute
 import io.matthewnelson.encoding.base16.Base16
 import io.matthewnelson.encoding.core.Decoder.Companion.decodeToByteArray
-import kotlin.time.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
+import kotlin.time.Instant
 
 abstract class CredentialAdapter {
     abstract fun getAttribute(path: NormalizedJsonPath): Attribute?
@@ -69,7 +69,7 @@ abstract class CredentialAdapter {
                 .mapValues { it.value.jsonPrimitive }
 
         fun SubjectCredentialStore.StoreEntry.SdJwt.toComplexJson() =
-            SdJwtSigned.parse(vcSerialized)?.let { SdJwtValidator(it).reconstructedJsonObject }
+            SdJwtSigned.parse(vcSerialized)?.let { SdJwtDecoded(it).reconstructedJsonObject }
 
         fun SubjectCredentialStore.StoreEntry.Iso.toNamespaceAttributeMap() =
             issuerSigned.namespaces?.mapValues { namespace ->

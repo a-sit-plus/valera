@@ -1,7 +1,6 @@
 package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.wallet.app.common.thirdParty.at.asitplus.jsonpath.core.plus
 import at.asitplus.wallet.por.PowerOfRepresentationDataElements
 import data.PersonalDataCategory
 

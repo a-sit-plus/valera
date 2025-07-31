@@ -128,7 +128,11 @@ class SwiftPlatformAdapter: PlatformAdapter {
         return KmmResult(failure: KotlinThrowable(message: "Using Swift platform adapter"))
     }
     
-    func prepareDCAPIIsoMdocCredentialResponse(responseJson: KotlinByteArray, serialize: KotlinByteArray, encryptionParameters: Openid_data_classesEncryptionParameters) {
+    func prepareDCAPIIsoMdocCredentialResponse(
+        responseJson: KotlinByteArray,
+        sessionTranscript: KotlinByteArray,
+        encryptionParameters: Openid_data_classesEncryptionParameters
+    ) {
         // TODO: Implement
     }
     

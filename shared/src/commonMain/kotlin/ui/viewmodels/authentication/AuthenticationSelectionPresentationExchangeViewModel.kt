@@ -19,7 +19,6 @@ import at.asitplus.wallet.lib.data.CredentialToJsonConverter
 import at.asitplus.wallet.lib.openid.PresentationExchangeMatchingResult
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import at.asitplus.wallet.taxid.TaxId2025Scheme
-import at.asitplus.wallet.taxid.TaxIdScheme
 import io.github.aakira.napier.Napier
 import kotlinx.serialization.json.jsonObject
 
@@ -60,7 +59,7 @@ class AuthenticationSelectionPresentationExchangeViewModel(
         if (requestIterator.value < requests.size - 1) {
             requestIterator.value += 1
         } else {
-            val submission = requests.mapNotNull { (requestsId, matches) ->
+            @Suppress("DEPRECATION") val submission = requests.mapNotNull { (requestsId, matches) ->
                 val credential = credentialSelection[requestsId]?.value ?: return@mapNotNull null
                 val constraints = matches[credential]?.filter { it.value.isNotEmpty() } ?: return@mapNotNull null
                 val attributes = attributeSelection[requestsId] ?: return@mapNotNull null
@@ -81,7 +80,7 @@ class AuthenticationSelectionPresentationExchangeViewModel(
                     is EhicScheme,
                     is PowerOfRepresentationScheme,
                     is TaxId2025Scheme,
-                    is TaxIdScheme -> {
+                    is at.asitplus.wallet.taxid.TaxIdScheme -> {
                         val allAttributes = credential.scheme!!.claimNames.map {
                             NormalizedJsonPath() + credential.scheme!!.isoNamespace!! + it
                         }
