@@ -154,6 +154,10 @@ open class KeystoreService(
     fun getSignerBlocking() = runBlocking { getSigner() }
 }
 
+/**
+ * Fallback class if KeyMaterial initialization throws on startup.
+ * Allows to handle errors with the default navigation procedure.
+ */
 class FallBackKeyMaterial(
     val reason: Throwable,
     override val signatureAlgorithm: SignatureAlgorithm = SignatureAlgorithm.ECDSAwithSHA256,

@@ -8,6 +8,10 @@ import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 val SESSION_NAME = "WALLET_SESSION"
+/**
+ * Manages creation and deletion of Koin scopes.
+ * Allows to reinitialize singleton dependencies e.g. on App reset
+ */
 class SessionService(): KoinComponent {
     private val koin = getKoin()
 
