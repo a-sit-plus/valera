@@ -29,8 +29,7 @@ interface CredentialAttributeTranslator {
             is CompanyRegistrationScheme -> CompanyRegistrationCredentialAttributeTranslator()
             is HealthIdScheme -> HealthIdCredentialAttributeTranslator()
             is EhicScheme -> EhicCredentialAttributeTranslator()
-            is TaxIdScheme,
-            is TaxId2025Scheme -> TaxIdCredentialAttributeTranslator()
+            is TaxIdScheme -> TaxIdCredentialAttributeTranslator()
             else -> null
         }
     }
