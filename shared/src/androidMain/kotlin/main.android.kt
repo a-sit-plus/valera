@@ -65,10 +65,6 @@ import ui.theme.lightScheme
 import java.io.File
 import kotlin.io.encoding.ExperimentalEncodingApi
 
-
-actual fun getPlatformName(): String = "Android"
-
-
 // Modified from https://developer.android.com/jetpack/compose/designsystems/material3
 @Composable
 actual fun getColorScheme(): ColorScheme {

@@ -19,8 +19,6 @@ import platform.UIKit.UIViewController
 import ui.theme.darkScheme
 import ui.theme.lightScheme
 
-actual fun getPlatformName(): String = "iOS"
-
 @Composable
 actual fun getColorScheme(): ColorScheme {
     return if (isSystemInDarkTheme()) {

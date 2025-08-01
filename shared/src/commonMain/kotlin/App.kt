@@ -60,8 +60,6 @@ fun App(walletDependencyProvider: WalletDependencyProvider) {
     }
 }
 
-expect fun getPlatformName(): String
-
 @Composable
 expect fun getColorScheme(): ColorScheme
 
