@@ -29,9 +29,9 @@ object RequestDocumentBuilder {
     )
 
     private val translatorMapping = mapOf(
-        MobileDrivingLicenceScheme::class to MobileDrivingLicenceCredentialAttributeTranslator::translate,
-        EuPidScheme::class to EuPidCredentialAttributeTranslator::translate,
-        HealthIdScheme::class to HealthIdCredentialAttributeTranslator::translate
+        MobileDrivingLicenceScheme::class to MobileDrivingLicenceCredentialAttributeTranslator()::translate,
+        EuPidScheme::class to EuPidCredentialAttributeTranslator()::translate,
+        HealthIdScheme::class to HealthIdCredentialAttributeTranslator()::translate
     )
 
     private val preselectionMapping = mapOf(

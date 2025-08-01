@@ -20,76 +20,15 @@ import kotlinx.serialization.json.contentOrNull
 sealed class MobileDrivingLicenceCredentialAdapter(
     private val decodePortrait: (ByteArray) -> Result<ImageBitmap>,
 ) : CredentialAdapter() {
-    override fun getAttribute(path: NormalizedJsonPath) =
-        when (val first = path.segments.firstOrNull()) {
-            is NormalizedJsonPathSegment.NameSegment -> when (first.memberName) {
-                MobileDrivingLicenceScheme.isoNamespace -> getAttributeFromMdlNamespace(
-                    NormalizedJsonPath(path.segments.slice(1..path.segments.lastIndex))
-                )
-
-                // maybe the attribute is specified without its corresponding namespace - which is definitely the case at the moment!
-                else -> getAttributeFromMdlNamespace(path)
-            }
-
-            else -> null
-        }
-
-    private fun getAttributeFromMdlNamespace(path: NormalizedJsonPath): Attribute? =
-        with(MobileDrivingLicenceDataElements) {
-            when (val attribute = path.segments.firstOrNull()) {
-                is NormalizedJsonPathSegment.NameSegment -> when (attribute.memberName) {
-                    GIVEN_NAME -> Attribute.fromValue(givenName)
-                    FAMILY_NAME -> Attribute.fromValue(familyName)
-                    BIRTH_DATE -> Attribute.fromValue(birthDate)
-                    ISSUE_DATE -> Attribute.fromValue(issueDate)
-                    EXPIRY_DATE -> Attribute.fromValue(expiryDate)
-                    ISSUING_COUNTRY -> Attribute.fromValue(issuingCountry)
-                    ISSUING_AUTHORITY -> Attribute.fromValue(issuingAuthority)
-                    DOCUMENT_NUMBER -> Attribute.fromValue(documentNumber)
-                    PORTRAIT -> Attribute.fromValue(portraitBitmap)
-                    DRIVING_PRIVILEGES -> Attribute.fromValue(drivingPrivileges)
-                    UN_DISTINGUISHING_SIGN -> Attribute.fromValue(undistinguishingSign)
-                    ADMINISTRATIVE_NUMBER -> Attribute.fromValue(administrativeNumber)
-                    SEX -> Attribute.fromValue(sex)
-                    HEIGHT -> Attribute.fromValue(height)
-                    WEIGHT -> Attribute.fromValue(weight)
-                    EYE_COLOUR -> Attribute.fromValue(eyeColour)
-                    HAIR_COLOUR -> Attribute.fromValue(hairColour)
-                    BIRTH_PLACE -> Attribute.fromValue(birthPlace)
-                    RESIDENT_ADDRESS -> Attribute.fromValue(residentAddress)
-                    PORTRAIT_CAPTURE_DATE -> Attribute.fromValue(portraitCaptureDate)
-                    AGE_IN_YEARS -> Attribute.fromValue(ageInYears)
-                    AGE_BIRTH_YEAR -> Attribute.fromValue(ageBirthYear)
-                    AGE_OVER_12 -> Attribute.fromValue(ageAtLeast12)
-                    AGE_OVER_13 -> Attribute.fromValue(ageAtLeast13)
-                    AGE_OVER_14 -> Attribute.fromValue(ageAtLeast14)
-                    AGE_OVER_16 -> Attribute.fromValue(ageAtLeast16)
-                    AGE_OVER_18 -> Attribute.fromValue(ageAtLeast18)
-                    AGE_OVER_21 -> Attribute.fromValue(ageAtLeast21)
-                    AGE_OVER_25 -> Attribute.fromValue(ageAtLeast25)
-                    AGE_OVER_60 -> Attribute.fromValue(ageAtLeast60)
-                    AGE_OVER_62 -> Attribute.fromValue(ageAtLeast62)
-                    AGE_OVER_65 -> Attribute.fromValue(ageAtLeast65)
-                    AGE_OVER_68 -> Attribute.fromValue(ageAtLeast68)
-                    ISSUING_JURISDICTION -> Attribute.fromValue(issuingJurisdiction)
-                    NATIONALITY -> Attribute.fromValue(nationality)
-                    RESIDENT_CITY -> Attribute.fromValue(residentCity)
-                    RESIDENT_STATE -> Attribute.fromValue(residentState)
-                    RESIDENT_POSTAL_CODE -> Attribute.fromValue(residentPostalCode)
-                    RESIDENT_COUNTRY -> Attribute.fromValue(residentCountry)
-                    FAMILY_NAME_NATIONAL_CHARACTER -> Attribute.fromValue(familyNameNational)
-                    GIVEN_NAME_NATIONAL_CHARACTER -> Attribute.fromValue(givenNameNational)
-                    SIGNATURE_USUAL_MARK -> Attribute.fromValue(signatureBitmap)
-                    BIOMETRIC_TEMPLATE_FINGER -> Attribute.fromValue(biometricTemplateFinger)
-                    BIOMETRIC_TEMPLATE_FACE -> Attribute.fromValue(biometricTemplateFace)
-                    BIOMETRIC_TEMPLATE_IRIS -> Attribute.fromValue(biometricTemplateIris)
-                    BIOMETRIC_TEMPLATE_SIGNATURE_SIGN -> Attribute.fromValue(biometricTemplateSignatureSign)
-                    else -> null
-                }
-
-                else -> null
-            }
-        }
+    override fun getAttribute(path: NormalizedJsonPath) = listOfNotNull(
+        path.segments.getOrNull(1),
+        path.segments.firstOrNull(),
+    ).filterIsInstance<NormalizedJsonPathSegment.NameSegment>().firstNotNullOfOrNull {
+        MobileDrivingLicenceCredentialMdocClaimDefinitionResolver().resolveOrNull(
+            namespace = MobileDrivingLicenceScheme.isoNamespace,
+            claimName = it.memberName
+        )?.toAttribute()
+    }
 
     abstract val givenName: String?
     abstract val givenNameNational: String?
@@ -127,7 +66,9 @@ sealed class MobileDrivingLicenceCredentialAdapter(
     abstract val biometricTemplateIrisRaw: ByteArray?
     val biometricTemplateIris: ImageBitmap? by lazy { biometricTemplateIrisRaw?.let(decodePortrait)?.getOrNull() }
     abstract val biometricTemplateSignatureSignRaw: ByteArray?
-    val biometricTemplateSignatureSign: ImageBitmap? by lazy { biometricTemplateSignatureSignRaw?.let(decodePortrait)?.getOrNull() }
+    val biometricTemplateSignatureSign: ImageBitmap? by lazy {
+        biometricTemplateSignatureSignRaw?.let(decodePortrait)?.getOrNull()
+    }
     abstract val documentNumber: String?
     abstract val administrativeNumber: String?
     abstract val sex: IsoSexEnum?
@@ -162,6 +103,72 @@ sealed class MobileDrivingLicenceCredentialAdapter(
                     MobileDrivingLicenceCredentialIsoMdocAdapter(storeEntry.toNamespaceAttributeMap(), decodePortrait)
             }
         }
+    }
+
+    private fun MobileDrivingLicenceCredentialClaimDefinition.toAttribute(): Attribute? = when (this) {
+        MobileDrivingLicenceCredentialClaimDefinition.GIVEN_NAME -> Attribute.fromValue(givenName)
+        MobileDrivingLicenceCredentialClaimDefinition.FAMILY_NAME -> Attribute.fromValue(familyName)
+        MobileDrivingLicenceCredentialClaimDefinition.BIRTH_DATE -> Attribute.fromValue(birthDate)
+        MobileDrivingLicenceCredentialClaimDefinition.ISSUE_DATE -> Attribute.fromValue(issueDate)
+        MobileDrivingLicenceCredentialClaimDefinition.EXPIRY_DATE -> Attribute.fromValue(expiryDate)
+        MobileDrivingLicenceCredentialClaimDefinition.ISSUING_COUNTRY -> Attribute.fromValue(issuingCountry)
+        MobileDrivingLicenceCredentialClaimDefinition.ISSUING_AUTHORITY -> Attribute.fromValue(issuingAuthority)
+        MobileDrivingLicenceCredentialClaimDefinition.DOCUMENT_NUMBER -> Attribute.fromValue(documentNumber)
+        MobileDrivingLicenceCredentialClaimDefinition.PORTRAIT -> Attribute.fromValue(portraitBitmap)
+        MobileDrivingLicenceCredentialClaimDefinition.DRIVING_PRIVILEGES -> Attribute.fromValue(drivingPrivileges)
+        MobileDrivingLicenceCredentialClaimDefinition.UN_DISTINGUISHING_SIGN -> Attribute.fromValue(undistinguishingSign)
+        MobileDrivingLicenceCredentialClaimDefinition.ADMINISTRATIVE_NUMBER -> Attribute.fromValue(administrativeNumber)
+        MobileDrivingLicenceCredentialClaimDefinition.SEX -> Attribute.fromValue(sex)
+        MobileDrivingLicenceCredentialClaimDefinition.HEIGHT -> Attribute.fromValue(height)
+        MobileDrivingLicenceCredentialClaimDefinition.WEIGHT -> Attribute.fromValue(weight)
+        MobileDrivingLicenceCredentialClaimDefinition.EYE_COLOUR -> Attribute.fromValue(eyeColour)
+        MobileDrivingLicenceCredentialClaimDefinition.HAIR_COLOUR -> Attribute.fromValue(hairColour)
+        MobileDrivingLicenceCredentialClaimDefinition.BIRTH_PLACE -> Attribute.fromValue(birthPlace)
+        MobileDrivingLicenceCredentialClaimDefinition.RESIDENT_ADDRESS -> Attribute.fromValue(residentAddress)
+        MobileDrivingLicenceCredentialClaimDefinition.PORTRAIT_CAPTURE_DATE -> Attribute.fromValue(portraitCaptureDate)
+        MobileDrivingLicenceCredentialClaimDefinition.AGE_IN_YEARS -> Attribute.fromValue(ageInYears)
+        MobileDrivingLicenceCredentialClaimDefinition.AGE_BIRTH_YEAR -> Attribute.fromValue(ageBirthYear)
+        MobileDrivingLicenceCredentialClaimDefinition.AGE_OVER_12 -> Attribute.fromValue(ageAtLeast12)
+        MobileDrivingLicenceCredentialClaimDefinition.AGE_OVER_13 -> Attribute.fromValue(ageAtLeast13)
+        MobileDrivingLicenceCredentialClaimDefinition.AGE_OVER_14 -> Attribute.fromValue(ageAtLeast14)
+        MobileDrivingLicenceCredentialClaimDefinition.AGE_OVER_16 -> Attribute.fromValue(ageAtLeast16)
+        MobileDrivingLicenceCredentialClaimDefinition.AGE_OVER_18 -> Attribute.fromValue(ageAtLeast18)
+        MobileDrivingLicenceCredentialClaimDefinition.AGE_OVER_21 -> Attribute.fromValue(ageAtLeast21)
+        MobileDrivingLicenceCredentialClaimDefinition.AGE_OVER_25 -> Attribute.fromValue(ageAtLeast25)
+        MobileDrivingLicenceCredentialClaimDefinition.AGE_OVER_60 -> Attribute.fromValue(ageAtLeast60)
+        MobileDrivingLicenceCredentialClaimDefinition.AGE_OVER_62 -> Attribute.fromValue(ageAtLeast62)
+        MobileDrivingLicenceCredentialClaimDefinition.AGE_OVER_65 -> Attribute.fromValue(ageAtLeast65)
+        MobileDrivingLicenceCredentialClaimDefinition.AGE_OVER_68 -> Attribute.fromValue(ageAtLeast68)
+        MobileDrivingLicenceCredentialClaimDefinition.ISSUING_JURISDICTION -> Attribute.fromValue(issuingJurisdiction)
+        MobileDrivingLicenceCredentialClaimDefinition.NATIONALITY -> Attribute.fromValue(nationality)
+        MobileDrivingLicenceCredentialClaimDefinition.RESIDENT_CITY -> Attribute.fromValue(residentCity)
+        MobileDrivingLicenceCredentialClaimDefinition.RESIDENT_STATE -> Attribute.fromValue(residentState)
+        MobileDrivingLicenceCredentialClaimDefinition.RESIDENT_POSTAL_CODE -> Attribute.fromValue(residentPostalCode)
+        MobileDrivingLicenceCredentialClaimDefinition.RESIDENT_COUNTRY -> Attribute.fromValue(residentCountry)
+        MobileDrivingLicenceCredentialClaimDefinition.FAMILY_NAME_NATIONAL_CHARACTER -> Attribute.fromValue(
+            familyNameNational
+        )
+
+        MobileDrivingLicenceCredentialClaimDefinition.GIVEN_NAME_NATIONAL_CHARACTER -> Attribute.fromValue(
+            givenNameNational
+        )
+
+        MobileDrivingLicenceCredentialClaimDefinition.SIGNATURE_USUAL_MARK -> Attribute.fromValue(signatureBitmap)
+        MobileDrivingLicenceCredentialClaimDefinition.BIOMETRIC_TEMPLATE_FINGER -> Attribute.fromValue(
+            biometricTemplateFinger
+        )
+
+        MobileDrivingLicenceCredentialClaimDefinition.BIOMETRIC_TEMPLATE_FACE -> Attribute.fromValue(
+            biometricTemplateFace
+        )
+
+        MobileDrivingLicenceCredentialClaimDefinition.BIOMETRIC_TEMPLATE_IRIS -> Attribute.fromValue(
+            biometricTemplateIris
+        )
+
+        MobileDrivingLicenceCredentialClaimDefinition.BIOMETRIC_TEMPLATE_SIGNATURE_SIGN -> Attribute.fromValue(
+            biometricTemplateSignatureSign
+        )
     }
 }
 

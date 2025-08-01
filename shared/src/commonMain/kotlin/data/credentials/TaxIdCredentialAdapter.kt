@@ -1,7 +1,6 @@
 package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
@@ -31,33 +30,30 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 
 sealed class TaxIdCredentialAdapter : CredentialAdapter() {
+    override fun getAttribute(
+        path: NormalizedJsonPath
+    ) = TaxIdCredentialSdJwtClaimDefinitionResolver().resolveOrNull(
+        attributeName = path
+    )?.toAttribute()
 
-    override fun getAttribute(path: NormalizedJsonPath) = path.segments.firstOrNull()?.let { first ->
-        when (first) {
-            is NormalizedJsonPathSegment.NameSegment -> when (first.memberName) {
-                TAX_NUMBER -> Attribute.fromValue(taxNumber)
-                AFFILIATION_COUNTRY -> Attribute.fromValue(affiliationCountry)
-                REGISTERED_FAMILY_NAME -> Attribute.fromValue(registeredFamilyName)
-                REGISTERED_GIVEN_NAME -> Attribute.fromValue(registeredGivenName)
-                RESIDENT_ADDRESS -> Attribute.fromValue(residentAddress)
-                BIRTH_DATE -> Attribute.fromValue(birthDate)
-                CHURCH_TAX_ID -> Attribute.fromValue(churchTaxId)
-                IBAN -> Attribute.fromValue(iban)
-                PID_ID -> Attribute.fromValue(pidId)
-                ISSUANCE_DATE -> Attribute.fromValue(issuanceDate)
-                VERIFICATION_STATUS -> Attribute.fromValue(verificationStatus)
-                EXPIRY_DATE -> Attribute.fromValue(expiryDate)
-                ISSUING_AUTHORITY -> Attribute.fromValue(issuingAuthority)
-                DOCUMENT_NUMBER -> Attribute.fromValue(documentNumber)
-                ADMINISTRATIVE_NUMBER -> Attribute.fromValue(administrativeNumber)
-                ISSUING_COUNTRY -> Attribute.fromValue(issuingCountry)
-                ISSUING_JURISDICTION -> Attribute.fromValue(issuingJurisdiction)
-
-                else -> null
-            }
-
-            else -> null
-        }
+    private fun TaxIdCredentialClaimDefinition.toAttribute(): Attribute? = when (this) {
+        TaxIdCredentialClaimDefinition.TAX_NUMBER -> Attribute.fromValue(taxNumber)
+        TaxIdCredentialClaimDefinition.AFFILIATION_COUNTRY -> Attribute.fromValue(affiliationCountry)
+        TaxIdCredentialClaimDefinition.REGISTERED_FAMILY_NAME -> Attribute.fromValue(registeredFamilyName)
+        TaxIdCredentialClaimDefinition.REGISTERED_GIVEN_NAME -> Attribute.fromValue(registeredGivenName)
+        TaxIdCredentialClaimDefinition.RESIDENT_ADDRESS -> Attribute.fromValue(residentAddress)
+        TaxIdCredentialClaimDefinition.BIRTH_DATE -> Attribute.fromValue(birthDate)
+        TaxIdCredentialClaimDefinition.CHURCH_TAX_ID -> Attribute.fromValue(churchTaxId)
+        TaxIdCredentialClaimDefinition.IBAN -> Attribute.fromValue(iban)
+        TaxIdCredentialClaimDefinition.PID_ID -> Attribute.fromValue(pidId)
+        TaxIdCredentialClaimDefinition.ISSUANCE_DATE -> Attribute.fromValue(issuanceDate)
+        TaxIdCredentialClaimDefinition.VERIFICATION_STATUS -> Attribute.fromValue(verificationStatus)
+        TaxIdCredentialClaimDefinition.EXPIRY_DATE -> Attribute.fromValue(expiryDate)
+        TaxIdCredentialClaimDefinition.ISSUING_AUTHORITY -> Attribute.fromValue(issuingAuthority)
+        TaxIdCredentialClaimDefinition.DOCUMENT_NUMBER -> Attribute.fromValue(documentNumber)
+        TaxIdCredentialClaimDefinition.ADMINISTRATIVE_NUMBER -> Attribute.fromValue(administrativeNumber)
+        TaxIdCredentialClaimDefinition.ISSUING_COUNTRY -> Attribute.fromValue(issuingCountry)
+        TaxIdCredentialClaimDefinition.ISSUING_JURISDICTION -> Attribute.fromValue(issuingJurisdiction)
     }
 
     abstract val taxNumber: String?

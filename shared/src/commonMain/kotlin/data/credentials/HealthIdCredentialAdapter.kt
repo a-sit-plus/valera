@@ -14,27 +14,14 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 
 sealed class HealthIdCredentialAdapter : CredentialAdapter() {
-    override fun getAttribute(path: NormalizedJsonPath) = path.segments.firstOrNull()?.let { first ->
-        when (first) {
-            is NormalizedJsonPathSegment.NameSegment -> when (first.memberName) {
-                Attributes.HEALTH_INSURANCE_ID -> Attribute.fromValue(healthInsuranceId)
-                Attributes.PATIENT_ID -> Attribute.fromValue(patientId)
-                Attributes.TAX_NUMBER -> Attribute.fromValue(taxNumber)
-                Attributes.ONE_TIME_TOKEN -> Attribute.fromValue(oneTimeToken)
-                Attributes.E_PRESCRIPTION_CODE -> Attribute.fromValue(ePrescriptionCode)
-                Attributes.AFFILIATION_COUNTRY -> Attribute.fromValue(affiliationCountry)
-                Attributes.ISSUE_DATE -> Attribute.fromValue(issueDate)
-                Attributes.EXPIRY_DATE -> Attribute.fromValue(expiryDate)
-                Attributes.ISSUING_AUTHORITY -> Attribute.fromValue(issuingAuthority)
-                Attributes.DOCUMENT_NUMBER -> Attribute.fromValue(documentNumber)
-                Attributes.ADMINISTRATIVE_NUMBER -> Attribute.fromValue(administrativeNumber)
-                Attributes.ISSUING_COUNTRY -> Attribute.fromValue(issuingCountry)
-                Attributes.ISSUING_JURISDICTION -> Attribute.fromValue(issuingJurisdiction)
-                else -> null
-            }
+    override fun getAttribute(path: NormalizedJsonPath): Attribute? {
+        val claimName = (path.segments.firstOrNull() as? NormalizedJsonPathSegment.NameSegment)?.memberName
+            ?: return null
 
-            else -> null
-        }
+        return HealthIdCredentialMdocClaimDefinitionResolver().resolveOrNull(
+            namespace = HealthIdScheme.isoNamespace,
+            claimName = claimName
+        )?.toAttribute()
     }
 
     abstract val healthInsuranceId: String?
@@ -65,6 +52,22 @@ sealed class HealthIdCredentialAdapter : CredentialAdapter() {
                 is SubjectCredentialStore.StoreEntry.Iso -> HealthIdCredentialIsoMdocAdapter(storeEntry.toNamespaceAttributeMap())
             }
         }
+    }
+
+    fun HealthIdCredentialClaimDefinition.toAttribute() = when (this) {
+        HealthIdCredentialClaimDefinition.HEALTH_INSURANCE_ID -> Attribute.fromValue(healthInsuranceId)
+        HealthIdCredentialClaimDefinition.PATIENT_ID -> Attribute.fromValue(patientId)
+        HealthIdCredentialClaimDefinition.TAX_NUMBER -> Attribute.fromValue(taxNumber)
+        HealthIdCredentialClaimDefinition.ONE_TIME_TOKEN -> Attribute.fromValue(oneTimeToken)
+        HealthIdCredentialClaimDefinition.E_PRESCRIPTION_CODE -> Attribute.fromValue(ePrescriptionCode)
+        HealthIdCredentialClaimDefinition.AFFILIATION_COUNTRY -> Attribute.fromValue(affiliationCountry)
+        HealthIdCredentialClaimDefinition.ISSUE_DATE -> Attribute.fromValue(issueDate)
+        HealthIdCredentialClaimDefinition.EXPIRY_DATE -> Attribute.fromValue(expiryDate)
+        HealthIdCredentialClaimDefinition.ISSUING_AUTHORITY -> Attribute.fromValue(issuingAuthority)
+        HealthIdCredentialClaimDefinition.DOCUMENT_NUMBER -> Attribute.fromValue(documentNumber)
+        HealthIdCredentialClaimDefinition.ADMINISTRATIVE_NUMBER -> Attribute.fromValue(administrativeNumber)
+        HealthIdCredentialClaimDefinition.ISSUING_COUNTRY -> Attribute.fromValue(issuingCountry)
+        HealthIdCredentialClaimDefinition.ISSUING_JURISDICTION -> Attribute.fromValue(issuingJurisdiction)
     }
 }
 

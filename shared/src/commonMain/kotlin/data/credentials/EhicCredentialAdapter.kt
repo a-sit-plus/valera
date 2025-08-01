@@ -33,53 +33,9 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 
 sealed class EhicCredentialAdapter : CredentialAdapter() {
-    @Suppress("DEPRECATION")
-    override fun getAttribute(path: NormalizedJsonPath) =
-        path.segments.firstOrNull()?.let { first ->
-            with(EhicScheme.Attributes) {
-                when (first) {
-                    is NormalizedJsonPathSegment.NameSegment -> when (first.memberName) {
-                        ISSUING_COUNTRY -> Attribute.fromValue(issuingCountry)
-                        SOCIAL_SECURITY_NUMBER -> Attribute.fromValue(socialSecurityNumber)
-                        PERSONAL_ADMINISTRATIVE_NUMBER -> Attribute.fromValue(personalAdministrativeNumber)
-                        PREFIX_ISSUING_AUTHORITY -> when (val second =
-                            path.segments.drop(1).firstOrNull()) {
-                            is NormalizedJsonPathSegment.NameSegment -> when (second.memberName) {
-                                ID -> Attribute.fromValue(issuingAuthorityId)
-                                NAME -> Attribute.fromValue(issuingAuthorityName)
-                                else -> null
-                            }
-
-                            else -> Attribute.fromValue(issuingAuthority)
-                        }
-                        ISSUING_AUTHORITY_ID -> Attribute.fromValue(issuingAuthorityId)
-                        ISSUING_AUTHORITY_NAME -> Attribute.fromValue(issuingAuthorityName)
-                        PREFIX_AUTHENTIC_SOURCE -> when (val second =
-                            path.segments.drop(1).firstOrNull()) {
-                            is NormalizedJsonPathSegment.NameSegment -> when (second.memberName) {
-                                ID -> Attribute.fromValue(authenticSourceId)
-                                NAME -> Attribute.fromValue(authenticSourceName)
-                                else -> null
-                            }
-
-                            else -> Attribute.fromValue(authenticSource)
-                        }
-                        AUTHENTIC_SOURCE_ID -> Attribute.fromValue(authenticSourceId)
-                        AUTHENTIC_SOURCE_NAME -> Attribute.fromValue(authenticSourceName)
-                        DOCUMENT_NUMBER -> Attribute.fromValue(documentNumber)
-                        ISSUANCE_DATE -> Attribute.fromValue(issuanceDate)
-                        DATE_OF_ISSUANCE -> Attribute.fromValue(dateOfIssuance)
-                        EXPIRY_DATE -> Attribute.fromValue(expiryDate)
-                        DATE_OF_EXPIRY -> Attribute.fromValue(dateOfExpiry)
-                        STARTING_DATE -> Attribute.fromValue(startingDate)
-                        ENDING_DATE -> Attribute.fromValue(endingDate)
-                        else -> null
-                    }
-
-                    else -> null
-                }
-            }
-        }
+    override fun getAttribute(
+        path: NormalizedJsonPath
+    ) = EhicCredentialSdJwtClaimDefinitionResolver().resolveOrNull(path)?.toAttribute()
 
     abstract val issuingCountry: String?
     abstract val socialSecurityNumber: String?
@@ -112,6 +68,25 @@ sealed class EhicCredentialAdapter : CredentialAdapter() {
                 else -> TODO("Operation not yet supported")
             }
         }
+    }
+
+    private fun EhicCredentialClaimDefinition.toAttribute() = when(this) {
+        EhicCredentialClaimDefinition.ISSUING_COUNTRY -> Attribute.fromValue(issuingCountry)
+        EhicCredentialClaimDefinition.SOCIAL_SECURITY_NUMBER -> Attribute.fromValue(socialSecurityNumber)
+        EhicCredentialClaimDefinition.PERSONAL_ADMINISTRATIVE_NUMBER -> Attribute.fromValue(personalAdministrativeNumber)
+        EhicCredentialClaimDefinition.ISSUING_AUTHORITY -> Attribute.fromValue(issuingAuthority)
+        EhicCredentialClaimDefinition.ISSUING_AUTHORITY_ID -> Attribute.fromValue(issuingAuthorityId)
+        EhicCredentialClaimDefinition.ISSUING_AUTHORITY_NAME -> Attribute.fromValue(issuingAuthorityName)
+        EhicCredentialClaimDefinition.AUTHENTIC_SOURCE -> Attribute.fromValue(authenticSource)
+        EhicCredentialClaimDefinition.AUTHENTIC_SOURCE_ID -> Attribute.fromValue(authenticSourceId)
+        EhicCredentialClaimDefinition.AUTHENTIC_SOURCE_NAME -> Attribute.fromValue(authenticSourceName)
+        EhicCredentialClaimDefinition.DOCUMENT_NUMBER -> Attribute.fromValue(documentNumber)
+        EhicCredentialClaimDefinition.ISSUANCE_DATE -> Attribute.fromValue(issuanceDate)
+        EhicCredentialClaimDefinition.DATE_OF_ISSUANCE -> Attribute.fromValue(dateOfIssuance)
+        EhicCredentialClaimDefinition.EXPIRY_DATE -> Attribute.fromValue(expiryDate)
+        EhicCredentialClaimDefinition.DATE_OF_EXPIRY -> Attribute.fromValue(dateOfExpiry)
+        EhicCredentialClaimDefinition.STARTING_DATE -> Attribute.fromValue(startingDate)
+        EhicCredentialClaimDefinition.ENDING_DATE -> Attribute.fromValue(endingDate)
     }
 }
 

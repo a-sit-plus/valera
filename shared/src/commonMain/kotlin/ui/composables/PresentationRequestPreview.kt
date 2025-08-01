@@ -16,12 +16,12 @@ import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getL
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
+import data.credentials.MdocClaimReference
+import org.jetbrains.compose.resources.stringResource
+import data.credentials.JsonClaimReference
 import data.credentials.JwtClaimDefinition
 import data.credentials.JwtClaimDefinitionTranslator
-import data.credentials.MdocClaimReference
-import data.credentials.SdJwtClaimReference
 import org.jetbrains.compose.resources.StringResource
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun PresentationRequestPreview(
@@ -99,7 +99,7 @@ fun DcqlRequestPreview(
             attributes = attributePaths?.map {
                 when (it) {
                     is MdocClaimReference -> NormalizedJsonPath() + it.namespace + it.claimName
-                    is SdJwtClaimReference -> it.normalizedJsonPath
+                    is JsonClaimReference -> it.normalizedJsonPath
                     null -> null
                 }
             }?.associateWith { false },
