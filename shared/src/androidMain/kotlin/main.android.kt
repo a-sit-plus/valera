@@ -1,12 +1,9 @@
 import android.content.Context
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.util.Base64
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
@@ -386,9 +383,4 @@ public class AndroidPlatformAdapter(
             sendCredentialResponseToInvoker(responseJson, success)
         } ?: throw IllegalStateException("Callback for response not found")
     }
-}
-
-actual fun getImageDecoder(image: ByteArray): ImageBitmap {
-    val bitmap = BitmapFactory.decodeByteArray(image, 0, image.size)
-    return bitmap.asImageBitmap()
 }
