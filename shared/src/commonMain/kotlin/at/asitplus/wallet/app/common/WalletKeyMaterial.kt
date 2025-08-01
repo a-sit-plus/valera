@@ -42,6 +42,4 @@ open class WalletKeyMaterial(val keyMaterial: KeyMaterial) :
     var onSuccess: (() -> Unit)? = null
     var promptText: String? = null
     var promptCancelText: String? = null
-    var promptSubtitle: String? = null
-
 }
