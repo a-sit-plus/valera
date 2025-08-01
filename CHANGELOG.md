@@ -1,10 +1,13 @@
+# Release 5.7.4 (unreleased):
+
+
 # Release 5.7.3
  * Update to VC-K 5.8.0, fixing optional attributes during presentation
  * Credentials: Add FallbackCredentialScheme for unknown schemes
  * Improve display of complex credentials in technical detail view
  * Add SessionService to handle scoped Koin objects
  * Add FallBackKeyMaterial to catch startup exceptions
- * Remove `getMatchingCredentials` (move to vck)
+ * Remove `getMatchingCredentials` (move to VC-K)
 
 # Release 5.7.2 
  * Proximity: Use fixed IACA key and certificate for reader authentication
@@ -139,7 +142,7 @@
 
 
 # Release 5.4.2
- * Go back to vck 5.2.1 (still fixing ISO mDoc presentations)
+ * Go back to VC-K 5.2.1 (still fixing ISO mDoc presentations)
 
 # Release 5.4.1
  * Claim more custom URL schemes: `haip`, `eudi-openid4vp`, `mdoc-openid4vp`
@@ -172,32 +175,3 @@
 
 # Release 5.0.0
 * Dependency updates to VC-K 5.0.0
-
-# Release 4.2.0
-* Dependency updates to VC-K 4.2.0-SNAPSHOT
-* Remove custom crypto code and rely on Supreme Crypto Provider
-
-# Release 4.1.1:
-* handle image decoding error
-
-# Release 4.1.0:
-* improved display of credentials
-* Handle portraits encoded as actual byte arrays
-
-# Release 4.0.0:
-* Update to VcLib 4.1.1
-* Add credentials: POR, COR
-* Add FaceId support for iOS
-* Remove mutli-authorization on signing the presentation
-
-# Release 2.0.3:
- * Fix loading of SD-JWT credentials
-
-# Release 2.0.2:
- * iOS Signature
-
-# Release 2.0.1:
- * Fix serialization issues
-
-# Release 2.0.0:
- * Support vclib 3.8.1
