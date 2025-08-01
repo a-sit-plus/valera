@@ -7,7 +7,6 @@ import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.catchingUnwrapped
 import at.asitplus.openid.TransactionDataBase64Url
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_subtitle
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_title
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
@@ -110,8 +109,6 @@ abstract class AuthenticationViewModel(
         catchingUnwrapped {
             walletMain.keyMaterial.promptText =
                 getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_title)
-            walletMain.keyMaterial.promptSubtitle =
-                getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_subtitle)
             finalizationMethod(credentialPresentation) as OpenId4VpWallet.AuthenticationSuccess
         }.onSuccess {
             navigateUp()
