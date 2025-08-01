@@ -2,6 +2,7 @@ package at.asitplus.wallet.app.common.domain.platform.di
 
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.PlatformAdapter
+import at.asitplus.wallet.app.common.SESSION_NAME
 import at.asitplus.wallet.app.common.WalletDependencyProvider
 import at.asitplus.wallet.app.common.WalletKeyMaterial
 import at.asitplus.wallet.app.common.decodeImage
@@ -16,14 +17,17 @@ import data.storage.WalletSubjectCredentialStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import org.koin.core.qualifier.named
 import org.koin.dsl.binds
 import org.koin.dsl.module
 import org.multipaz.prompt.PromptModel
 
 fun platformModule(appDependencyProvider: WalletDependencyProvider) = module {
-    single<WalletKeyMaterial> {
-        appDependencyProvider.keyMaterial
-    } binds arrayOf(KeyMaterial::class)
+    scope(named(SESSION_NAME)) {
+        scoped<WalletKeyMaterial> {
+            WalletKeyMaterial(appDependencyProvider.keystoreService.getSignerBlocking())
+        } binds arrayOf(KeyMaterial::class)
+    }
 
     factory<DataStoreService> {
         appDependencyProvider.dataStoreService

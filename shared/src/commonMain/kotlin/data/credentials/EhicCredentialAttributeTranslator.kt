@@ -8,6 +8,7 @@ import at.asitplus.wallet.ehic.EhicScheme.Attributes.IssuingAuthority.ID
 import at.asitplus.wallet.ehic.EhicScheme.Attributes.IssuingAuthority.NAME
 import org.jetbrains.compose.resources.StringResource
 
+@Suppress("DEPRECATION")
 object EhicCredentialAttributeTranslator : CredentialAttributeTranslator {
     override fun translate(attributeName: NormalizedJsonPath): StringResource? =
         with(EhicScheme.Attributes) {

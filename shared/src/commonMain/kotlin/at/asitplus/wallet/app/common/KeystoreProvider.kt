@@ -1,15 +1,20 @@
 package at.asitplus.wallet.app.common
 
 import AppResetRequiredException
+import at.asitplus.KmmResult
+import at.asitplus.catchingUnwrapped
 import at.asitplus.io.MultiBase
 import at.asitplus.io.multibaseDecode
 import at.asitplus.io.multibaseEncode
-import at.asitplus.signum.indispensable.ECCurve
-import at.asitplus.signum.indispensable.equalsCryptographically
+import at.asitplus.signum.indispensable.*
 import at.asitplus.signum.indispensable.pki.X509Certificate
+import at.asitplus.signum.supreme.SignatureResult
 import at.asitplus.signum.supreme.dsl.PREFERRED
+import at.asitplus.signum.supreme.os.PlatformSigningProvider
 import at.asitplus.signum.supreme.os.SigningProvider
+import at.asitplus.signum.supreme.sign.SignatureInput
 import at.asitplus.signum.supreme.sign.Signer
+import at.asitplus.wallet.lib.agent.EphemeralKeyWithoutCert
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.agent.KeyWithSelfSignedCert
 import data.storage.DataStoreService
@@ -34,14 +39,15 @@ open class KeystoreService(
         Napier.d("getSigner")
         sMut.withLock {
             if (signer == null)
-                signer = initSigner()
+                signer = catchingUnwrapped { initSigner() }
+                    .getOrElse { FallBackKeyMaterial(it) }
         }
         return signer!!
     }
 
     @Throws(Throwable::class)
     private suspend fun initSigner(): KeyWithSelfSignedCert {
-        getProvider().let { provider ->
+        PlatformSigningProvider.let { provider ->
             val forKey = provider.getSignerForKey(Configuration.KS_ALIAS).getOrElse {
                 provider.createSigningKey(alias = Configuration.KS_ALIAS) {
                     ec {
@@ -80,7 +86,7 @@ open class KeystoreService(
                 _certificate?.also { return it }
                 repeat(3) {
                     (X509Certificate.load()?.let {
-                        if (it.publicKey.equalsCryptographically(signer.publicKey))
+                        if (it.decodedPublicKey.getOrNull()?.equalsCryptographically(signer.publicKey) == true)
                             return it
                         else {
                             Napier.d { "Pre-stored Certificate mismatch. deleting!" }
@@ -117,7 +123,7 @@ open class KeystoreService(
     companion object {
         @Throws(AppResetRequiredException::class)
         fun checkKeyMaterialValid() {
-            getProvider().let { provider ->
+            PlatformSigningProvider.let { provider ->
                 runBlocking {
                     provider.getSignerForKey(Configuration.KS_ALIAS_OLD).onSuccess {
                         provider.deleteSigningKey(Configuration.KS_ALIAS_OLD)
@@ -128,6 +134,19 @@ open class KeystoreService(
             }
 
         }
+
+        fun clearKeyMaterial() {
+            PlatformSigningProvider.let { provider ->
+                runBlocking {
+                    provider.getSignerForKey(Configuration.KS_ALIAS_OLD).onSuccess {
+                        provider.deleteSigningKey(Configuration.KS_ALIAS_OLD)
+                    }
+                    provider.getSignerForKey(Configuration.KS_ALIAS).onSuccess {
+                        provider.deleteSigningKey(Configuration.KS_ALIAS)
+                    }
+                }
+            }
+        }
     }
 
     //TMP for iOS
@@ -135,4 +154,31 @@ open class KeystoreService(
     fun getSignerBlocking() = runBlocking { getSigner() }
 }
 
-expect fun getProvider(): SigningProvider
+/**
+ * Fallback class if KeyMaterial initialization throws on startup.
+ * Allows to handle errors with the default navigation procedure.
+ */
+class FallBackKeyMaterial(
+    val reason: Throwable,
+    override val signatureAlgorithm: SignatureAlgorithm = SignatureAlgorithm.ECDSAwithSHA256,
+    override val publicKey: CryptoPublicKey = EphemeralKeyWithoutCert().publicKey,
+    override val identifier: String = ""
+): KeyMaterial {
+    @SecretExposure
+    override fun exportPrivateKey(): KmmResult<CryptoPrivateKey.WithPublicKey<*>> {
+        throw NotImplementedError()
+    }
+
+    override suspend fun sign(data: SignatureInput): SignatureResult<*> {
+        throw NotImplementedError()
+    }
+
+    override fun getUnderLyingSigner(): Signer {
+        throw NotImplementedError()
+    }
+
+    override suspend fun getCertificate(): X509Certificate? {
+        throw NotImplementedError()
+    }
+
+}

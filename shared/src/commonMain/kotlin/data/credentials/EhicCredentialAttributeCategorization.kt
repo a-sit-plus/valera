@@ -1,11 +1,11 @@
 package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.wallet.app.common.thirdParty.at.asitplus.jsonpath.core.plus
 import at.asitplus.wallet.ehic.EhicScheme
 import at.asitplus.wallet.ehic.EhicScheme.Attributes
 import data.PersonalDataCategory
 
+@Suppress("DEPRECATION")
 object EhicCredentialAttributeCategorization : CredentialAttributeCategorization.Template(
     mapOf(
         PersonalDataCategory.Metadata to listOf(

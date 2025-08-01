@@ -6,7 +6,7 @@ import at.asitplus.KmmResult
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_nfc_mdoc_reader
 import at.asitplus.wallet.app.common.data.SettingsRepository
-import data.document.RequestDocument
+import data.document.RequestDocumentList
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CoroutineScope
@@ -19,6 +19,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.atTime
+import kotlinx.datetime.toDeprecatedInstant
 import kotlinx.datetime.toInstant
 import kotlinx.io.bytestring.ByteString
 import org.jetbrains.compose.resources.getString
@@ -151,12 +152,12 @@ class TransferManager(
         readerKey = readerKey.publicKey,
         subject = X500Name.fromName("CN=Valera Reader Cert"),
         serial = ASN1Integer(1L),
-        validFrom = LocalDate.parse("2025-06-26").atTime(10, 0).toInstant(TimeZone.UTC),
-        validUntil = LocalDate.parse("2026-06-26").atStartOfDayIn(TimeZone.UTC),
+        validFrom = LocalDate.parse("2025-06-26").atTime(10, 0).toInstant(TimeZone.UTC).toDeprecatedInstant(),
+        validUntil = LocalDate.parse("2026-06-26").atStartOfDayIn(TimeZone.UTC).toDeprecatedInstant(),
     )
 
     fun startNfcEngagement(
-        documentRequest: RequestDocument,
+        documentRequestList: RequestDocumentList,
         setDeviceResponseBytes: (KmmResult<ByteArray>) -> Unit
     ) {
         readerMostRecentDeviceResponse.value = null
@@ -228,7 +229,7 @@ class TransferManager(
                                     )
                                 }
                             },
-                            documentRequest = documentRequest,
+                            documentRequestList = documentRequestList,
                             setDeviceResponseBytes = setDeviceResponseBytes
                         )
                     }
@@ -259,7 +260,7 @@ class TransferManager(
 
     fun doQrFlow(
         qrCode: String,
-        documentRequest: RequestDocument,
+        documentRequestList: RequestDocumentList,
         updateProgress: (String) -> Unit,
         setDeviceResponseBytes: (KmmResult<ByteArray>) -> Unit
     ) = scope.launch {
@@ -280,7 +281,7 @@ class TransferManager(
                         )
                     }
                 },
-                documentRequest = documentRequest,
+                documentRequestList = documentRequestList,
                 setDeviceResponseBytes = setDeviceResponseBytes
             )
         } catch (error: Throwable) {
@@ -296,7 +297,7 @@ class TransferManager(
         handover: DataItem,
         updateNfcDialogMessage: ((message: String) -> Unit)?,
         selectConnectionMethod: suspend (connectionMethods: List<MdocConnectionMethod>) -> MdocConnectionMethod?,
-        documentRequest: RequestDocument,
+        documentRequestList: RequestDocumentList,
         setDeviceResponseBytes: (KmmResult<ByteArray>) -> Unit
     ) {
         val deviceEngagement = EngagementParser(encodedDeviceEngagement.toByteArray()).parse()
@@ -337,7 +338,7 @@ class TransferManager(
                             updateNfcDialogMessage = updateNfcDialogMessage,
                             eDeviceKey = eDeviceKey,
                             eReaderKey = eReaderKey,
-                            documentRequest = documentRequest,
+                            documentRequestList = documentRequestList,
                             setDeviceResponseBytes = setDeviceResponseBytes
                         )
                     }
@@ -353,7 +354,7 @@ class TransferManager(
             updateNfcDialogMessage = updateNfcDialogMessage,
             eDeviceKey = eDeviceKey,
             eReaderKey = eReaderKey,
-            documentRequest = documentRequest,
+            documentRequestList = documentRequestList,
             setDeviceResponseBytes = setDeviceResponseBytes
         )
     }
@@ -365,7 +366,7 @@ class TransferManager(
         updateNfcDialogMessage: ((message: String) -> Unit)?,
         eDeviceKey: EcPublicKey,
         eReaderKey: EcPrivateKey,
-        documentRequest: RequestDocument,
+        documentRequestList: RequestDocumentList,
         setDeviceResponseBytes: (KmmResult<ByteArray>) -> Unit
     ) {
         if (updateNfcDialogMessage != null) {
@@ -386,15 +387,18 @@ class TransferManager(
         readerSessionEncryption.value = sessionEncryption
         this.readerSessionTranscript = encodedSessionTranscript
 
-        val encodedDeviceRequest =
-            DeviceRequestGenerator(encodedSessionTranscript).addDocumentRequest(
-                docType = documentRequest.docType,
-                itemsToRequest = documentRequest.itemsToRequest,
+        val generator = DeviceRequestGenerator(encodedSessionTranscript)
+        documentRequestList.getAll().forEach { requestDocument ->
+            generator.addDocumentRequest(
+                docType = requestDocument.docType,
+                itemsToRequest = requestDocument.itemsToRequest,
                 requestInfo = null,
                 readerKey = readerKey,
                 signatureAlgorithm = readerKey.curve.defaultSigningAlgorithm,
-                readerKeyCertificateChain = X509CertChain(listOf(readerCert, readerRootCert)),
-            ).generate()
+                readerKeyCertificateChain = X509CertChain(listOf(readerCert, readerRootCert))
+            )
+        }
+        val encodedDeviceRequest = generator.generate()
 
         try {
             transport.open(eDeviceKey)

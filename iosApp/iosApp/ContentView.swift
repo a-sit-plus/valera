@@ -28,7 +28,7 @@ struct ComposeView: UIViewControllerRepresentable {
 struct ContentView: View {
     var body: some View {
         ComposeView()
-                .ignoresSafeArea(.keyboard) // Compose has own keyboard handler
+                .ignoresSafeArea(.all)
                 .onOpenURL { url in
                     Globals.shared.appLink.setValue(url.absoluteString)
                 }
@@ -128,7 +128,11 @@ class SwiftPlatformAdapter: PlatformAdapter {
         return KmmResult(failure: KotlinThrowable(message: "Using Swift platform adapter"))
     }
     
-    func prepareDCAPIIsoMdocCredentialResponse(responseJson: KotlinByteArray, serialize: KotlinByteArray, encryptionParameters: Openid_data_classesEncryptionParameters) {
+    func prepareDCAPIIsoMdocCredentialResponse(
+        responseJson: KotlinByteArray,
+        sessionTranscript: KotlinByteArray,
+        encryptionParameters: Openid_data_classesEncryptionParameters
+    ) {
         // TODO: Implement
     }
     

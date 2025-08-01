@@ -11,10 +11,10 @@ import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
-import at.asitplus.wallet.taxid.TaxId2025Scheme
 import at.asitplus.wallet.taxid.TaxIdScheme
 import org.jetbrains.compose.resources.StringResource
 
+@Suppress("DEPRECATION")
 interface CredentialAttributeTranslator {
     fun translate(attributeName: NormalizedJsonPath): StringResource?
 
@@ -30,7 +30,6 @@ interface CredentialAttributeTranslator {
             is HealthIdScheme -> HealthIdCredentialAttributeTranslator
             is EhicScheme -> EhicCredentialAttributeTranslator
             is TaxIdScheme -> TaxIdCredentialAttributeTranslator
-            is TaxId2025Scheme -> TaxIdCredentialAttributeTranslator
             else -> null
         }
     }

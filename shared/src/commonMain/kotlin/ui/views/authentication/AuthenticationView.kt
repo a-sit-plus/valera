@@ -2,6 +2,8 @@ package ui.views.authentication
 
 import androidx.compose.runtime.Composable
 import at.asitplus.wallet.app.common.decodeImage
+import at.asitplus.wallet.lib.openid.DCQLMatchingResult
+import at.asitplus.wallet.lib.openid.PresentationExchangeMatchingResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -13,8 +15,6 @@ import ui.viewmodels.authentication.AuthenticationSelectionDCQLView
 import ui.viewmodels.authentication.AuthenticationSelectionPresentationExchangeViewModel
 import ui.viewmodels.authentication.AuthenticationViewModel
 import ui.viewmodels.authentication.AuthenticationViewState
-import ui.viewmodels.authentication.DCQLMatchingResult
-import ui.viewmodels.authentication.PresentationExchangeMatchingResult
 
 @Composable
 fun AuthenticationView(
@@ -64,9 +64,7 @@ fun AuthenticationView(
                         checkCredentialFreshness = {
                             vm.walletMain.checkCredentialFreshness(it).toCredentialFreshnessSummaryModel()
                         },
-                        decodeToBitmap = { byteArray ->
-                            vm.walletMain.platformAdapter.decodeImage(byteArray)
-                        },
+                        decodeToBitmap = { vm.walletMain.platformAdapter.decodeImage(it) },
                         onError = onError,
                     )
                 }

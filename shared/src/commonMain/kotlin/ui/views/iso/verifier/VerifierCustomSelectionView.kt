@@ -9,19 +9,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -32,7 +28,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
@@ -93,15 +88,7 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                             contentDescription = null
                         )
                     },
-                    onClick = {
-                        RequestDocumentBuilder.getDocTypeConfig(selectedDocumentType)?.let { config ->
-                            val items = RequestDocumentBuilder.buildRequestDocument(
-                                scheme = config.scheme,
-                                subSet = selectedEntries
-                            )
-                            vm.onReceiveCustomSelection(items, vm.selectedEngagementMethod.value)
-                        }
-                    },
+                    onClick = { vm.onReceiveCustomSelection(selectedDocumentType, selectedEntries) },
                     selected = false
                 )
             }
@@ -119,7 +106,7 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                         style = MaterialTheme.typography.titleMedium
                     )
                     SelectableDocTypes.docTypes.forEach { docType ->
-                        singleChoiceButton(docType, selectedDocumentType, listSpacingModifier) {
+                        SingleChoiceButton(docType, selectedDocumentType, listSpacingModifier) {
                             selectedDocumentType = docType
                             selectedEntries = RequestDocumentBuilder.getPreselection(docType)
                         }
@@ -144,7 +131,7 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                     )
                     docTypeConfig?.let { config ->
                         config.scheme.claimNames.forEach { element ->
-                            multipleChoiceButton(
+                            MultipleChoiceButton(
                                 config.translator(
                                     NormalizedJsonPath(NormalizedJsonPathSegment.NameSegment(element))
                                 )?.let { stringResource(it) } ?: element,
@@ -163,48 +150,5 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                 }
             }
         }
-    }
-}
-
-@Composable
-fun singleChoiceButton(
-    current: String,
-    selectedOption: String,
-    modifier: Modifier = Modifier,
-    icon: (@Composable () -> Unit)? = null,
-    onOptionSelected: () -> Unit,
-) {
-    Row(
-        modifier = modifier.selectable(
-            selected = (current == selectedOption),
-            onClick = onOptionSelected,
-            role = Role.RadioButton
-        )
-    ) {
-        RadioButton(selected = (current == selectedOption), onClick = null)
-        icon?.invoke()
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(text = current)
-    }
-}
-
-@Composable
-private fun multipleChoiceButton(
-    current: String,
-    value: Boolean,
-    contains: Boolean,
-    modifier: Modifier = Modifier,
-    onValueChange: (Boolean) -> Unit
-) {
-    Row(
-        modifier = modifier.toggleable(
-            value = value,
-            onValueChange = onValueChange,
-            role = Role.Checkbox
-        )
-    ) {
-        Checkbox(checked = contains, onCheckedChange = null)
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(text = current)
     }
 }

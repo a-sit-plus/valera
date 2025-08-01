@@ -1,7 +1,9 @@
+package at.asitplus.wallet.app
+
 import io.kotest.common.KotestInternal
-import io.kotest.core.test.TestResult
 import io.kotest.engine.TestEngineLauncher
 import io.kotest.engine.listener.CollectingTestEngineListener
+import io.kotest.engine.test.TestResult
 import kotlin.test.Test
 import kotlin.test.assertFalse
 
@@ -16,8 +18,8 @@ class InstrumentedTests {
         listener.tests.map { entry ->
             {
                 val testCase = entry.key
-                val descriptor = testCase.descriptor.chain().joinToString(" > ") {
-                    it.id.value
+                val descriptor = testCase.descriptor.ids().joinToString(" > ") {
+                    it.value
                 }
                 val cause = when (val value = entry.value) {
                     is TestResult.Error -> value.cause

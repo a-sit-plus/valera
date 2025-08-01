@@ -13,7 +13,7 @@ import data.credentials.IdAustriaCredentialAdapter
 @Composable
 fun IdAustriaCredentialView(
     credential: SubjectCredentialStore.StoreEntry,
-    imageDecoder: (ByteArray) -> ImageBitmap,
+    imageDecoder: (ByteArray) -> Result<ImageBitmap>,
     modifier: Modifier = Modifier,
 ) {
     val credentialAdapter = remember {

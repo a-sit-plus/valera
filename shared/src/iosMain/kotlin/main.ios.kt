@@ -47,7 +47,7 @@ fun MainViewController(
         PromptDialogs(promptModel)
         App(
             WalletDependencyProvider(
-                WalletKeyMaterial(keyMaterial = keystoreService.getSignerBlocking()),
+                keystoreService,
                 dataStoreService,
                 platformAdapter,
                 buildContext =  buildContext,

@@ -13,7 +13,7 @@ import at.asitplus.valera.resources.asp
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-internal inline fun Logo(noinline onClick: () -> Unit) {
+internal fun Logo(onClick: () -> Unit) {
     Image(
         modifier = Modifier
             .padding(start = 0.dp, end = 8.dp, top = 0.dp)

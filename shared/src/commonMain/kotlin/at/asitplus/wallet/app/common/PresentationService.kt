@@ -1,6 +1,5 @@
 package at.asitplus.wallet.app.common
 
-import at.asitplus.catching
 import at.asitplus.dcapi.DCAPIHandover
 import at.asitplus.dcapi.DCAPIInfo
 import at.asitplus.dcapi.request.IsoMdocRequest
@@ -8,12 +7,15 @@ import at.asitplus.dcapi.request.Oid4vpDCAPIRequest
 import at.asitplus.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.iso.DeviceAuthentication
 import at.asitplus.iso.SessionTranscript
+import at.asitplus.iso.sha256
+import at.asitplus.iso.wrapInCborTag
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.RelyingPartyMetadata
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.signum.indispensable.io.Base64UrlStrict
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.dcapi.data.preview.PreviewRequest
 import at.asitplus.wallet.lib.agent.CreatePresentationResult
 import at.asitplus.wallet.lib.agent.HolderAgent
@@ -25,8 +27,6 @@ import at.asitplus.wallet.lib.cbor.SignCose
 import at.asitplus.wallet.lib.cbor.SignCoseDetached
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
-import at.asitplus.wallet.lib.iso.sha256
-import at.asitplus.wallet.lib.iso.wrapInCborTag
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import io.github.aakira.napier.Napier
@@ -34,8 +34,6 @@ import io.ktor.client.HttpClient
 import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
 import kotlinx.serialization.builtins.ByteArraySerializer
 import kotlinx.serialization.encodeToByteArray
-import ui.viewmodels.authentication.DCQLMatchingResult
-import ui.viewmodels.authentication.PresentationExchangeMatchingResult
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 class PresentationService(
@@ -63,32 +61,8 @@ class PresentationService(
     suspend fun getPreparationState(request: RequestParametersFrom<AuthenticationRequestParameters>) =
         presentationService.startAuthorizationResponsePreparation(request).getOrThrow()
 
-    suspend fun getMatchingCredentials(preparationState: AuthorizationResponsePreparationState) =
-        catching {
-            when (val it = preparationState.credentialPresentationRequest) {
-                is CredentialPresentationRequest.DCQLRequest -> {
-                    val dcqlQueryResult = holderAgent.matchDCQLQueryAgainstCredentialStore(
-                        it.dcqlQuery,
-                        preparationState.oid4vpDCAPIRequest?.credentialId
-                    ).getOrThrow()
-                    DCQLMatchingResult(
-                        presentationRequest = it,
-                        dcqlQueryResult
-                    )
-                }
-
-                is CredentialPresentationRequest.PresentationExchangeRequest -> PresentationExchangeMatchingResult(
-                    presentationRequest = it,
-                    matchingInputDescriptorCredentials = holderAgent.matchInputDescriptorsAgainstCredentialStore(
-                        inputDescriptors = it.presentationDefinition.inputDescriptors,
-                        fallbackFormatHolder = it.fallbackFormatHolder,
-                        filterById = preparationState.oid4vpDCAPIRequest?.credentialId
-                    ).getOrThrow()
-                )
-
-                null -> TODO()
-            }
-        }
+    suspend fun getMatchingCredentials(preparationState: AuthorizationResponsePreparationState, request: RequestParametersFrom<AuthenticationRequestParameters>) =
+        presentationService.getMatchingCredentials(preparationState, request)
 
     suspend fun finalizeAuthorizationResponse(
         request: RequestParametersFrom<AuthenticationRequestParameters>,
@@ -105,7 +79,7 @@ class PresentationService(
         dcApiRequestPreview: PreviewDCAPIRequest
     ): OpenId4VpWallet.AuthenticationSuccess {
         Napier.d("Finalizing DCAPI response")
-        val previewRequest = PreviewRequest.deserialize(dcApiRequestPreview.request).getOrThrow()
+        val previewRequest = joseCompliantSerializer.decodeFromString<PreviewRequest>(dcApiRequestPreview.request)
 
         val presentationResult = holderAgent.createPresentation(
             request = PresentationRequestParameters(

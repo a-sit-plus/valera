@@ -8,7 +8,7 @@ import io.github.aakira.napier.Napier
 import org.multipaz.prompt.PromptModel
 
 data class WalletDependencyProvider(
-    val keyMaterial: WalletKeyMaterial,
+    val keystoreService: KeystoreService,
     val dataStoreService: DataStoreService,
     val platformAdapter: PlatformAdapter,
     var subjectCredentialStore: PersistentSubjectCredentialStore =
@@ -26,8 +26,8 @@ data class WalletDependencyProvider(
         at.asitplus.wallet.companyregistration.Initializer.initWithVCK()
         at.asitplus.wallet.healthid.Initializer.initWithVCK()
         at.asitplus.wallet.taxid.Initializer.initWithVCK()
-        at.asitplus.wallet.taxid.Initializer2025.initWithVCK()
         at.asitplus.wallet.ehic.Initializer.initWithVCK()
+
         Initializer.initRqesModule()
         Napier.takeLogarithm()
         Napier.base(AntilogAdapter(platformAdapter, "", buildContext.buildType))

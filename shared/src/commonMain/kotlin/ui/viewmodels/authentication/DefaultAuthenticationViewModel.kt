@@ -1,10 +1,7 @@
 package ui.viewmodels.authentication
 
 import androidx.compose.ui.graphics.ImageBitmap
-import at.asitplus.KmmResult
-import at.asitplus.catching
 import at.asitplus.dcapi.DCAPIResponse
-import at.asitplus.dcapi.request.Oid4vpDCAPIRequest
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.OpenIdConstants
 import at.asitplus.openid.RequestParametersFrom
@@ -16,6 +13,7 @@ import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
+import at.asitplus.wallet.lib.openid.CredentialMatchingResult
 
 
 class DefaultAuthenticationViewModel(
@@ -51,12 +49,11 @@ class DefaultAuthenticationViewModel(
             ?.inputDescriptors?.filterIsInstance<QesInputDescriptor>()
             ?.firstOrNull()?.transactionData?.firstOrNull()
 
-    override suspend fun findMatchingCredentials(): KmmResult<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>> =
-        catching {
-            return walletMain.presentationService.getMatchingCredentials(
-                preparationState = preparationState
-            )
-        }
+    override suspend fun findMatchingCredentials(): Result<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>> =
+        walletMain.presentationService.getMatchingCredentials(
+            preparationState = preparationState,
+            request = authenticationRequest
+        )
 
     override suspend fun finalizationMethod(credentialPresentation: CredentialPresentation): OpenId4VpWallet.AuthenticationSuccess {
         val authenticationResult = walletMain.presentationService.finalizeAuthorizationResponse(

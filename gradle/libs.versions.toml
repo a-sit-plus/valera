@@ -1,37 +1,54 @@
 [versions]
+
+accompanist-permissions = "0.37.3"
+activity-compose = "1.10.1"
+appcompat = "1.7.1"
+barcode-scanning = "17.3.0"
+biometric = "1.2.0-alpha05"
+core-ktx = "1.16.0"
+kotlin = "2.2.0"
+kotest = "6.0.0.M6"
+ksp = "2.0.2"
+compose-plugin = "1.8.2"
+
 camera-camera2 = "1.4.2"
-datastore-preferences-core = "1.1.6"
-koin = "4.0.3"
+datastore-preferences-core = "1.1.7"
+koin = "4.1.0"
 multipaz = "0.92.1"
 kotlinx-coroutines-play-services = "1.10.2"
-navigation-compose = "2.8.0-alpha10"
-semver = "2.0.0"
-mdl = "1.2.0"
-ida = "3.9.2"
-eupid = "3.1.0"
-eupid-sdjwt = "1.1.0"
-powerofrepresentation = "1.2.0"
-certificateofresidence = "2.1.2"
-companyregistration = "1.1.0"
-healthid = "2.0.0"
-ehic = "1.1.0"
-taxid = "1.1.1"
-atomicfu = "0.27.0"
-compose-plugin = "1.7.3"
+navigation-compose = "2.8.0-alpha13"
+semver = "2.1.0"
+
+mdl = "1.3.0"
+ida = "3.10.0"
+eupid = "3.2.0"
+eupid-sdjwt = "1.2.0"
+powerofrepresentation = "1.3.0"
+certificateofresidence = "2.2.0"
+companyregistration = "1.2.0"
+healthid = "2.2.0"
+ehic = "1.2.0"
+taxid = "1.2.0"
+
+atomicfu = "0.29.0"
 qrose = "1.0.1"
 core-splashscreen = "1.0.1"
 # Test if DC API is still working after upgrading the following libraries
-play-services-identity-credentials = "16.0.0-alpha06"
-androidx-credentials = "1.6.0-alpha02"
+play-services-identity-credentials = "16.0.0-alpha08"
+androidx-credentials = "1.6.0-alpha04"
 androidx-credentials-registry-provider = "1.0.0-alpha01"
-###
-kmmresult = "1.9.3"
 
 [libraries]
+accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist-permissions" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity-compose" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
 androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camera-camera2" }
 androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "camera-camera2" }
 androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camera-camera2" }
+androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "core-ktx" }
 atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version.ref = "atomicfu" }
+barcode-scanning = { module = "com.google.mlkit:barcode-scanning", version.ref = "barcode-scanning" }
 credential-ida = { module = "at.asitplus.wallet:idacredential", version.ref = "ida" }
 credential-eupid = { module = "at.asitplus.wallet:eupidcredential", version.ref = "eupid" }
 credential-eupid-sdjwt = { module = "at.asitplus.wallet:eupidcredential-sdjwt", version.ref = "eupid-sdjwt" }
@@ -61,7 +78,9 @@ semver = { module = "net.swiftzer.semver:semver", version.ref = "semver" }
 core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "core-splashscreen" }
 androidx-credentials = { module = "androidx.credentials:credentials", version.ref="androidx-credentials" }
 androidx-credentials-registry-provider = { module = "androidx.credentials.registry:registry-provider", version.ref = "androidx-credentials-registry-provider" }
-kmmresult = { module = "at.asitplus:kmmresult", version.ref = "kmmresult" }
+
+#multipazz workaround
+datetime-compat = {module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.7.1-0.6.x-compat"}
 
 [plugins]
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }

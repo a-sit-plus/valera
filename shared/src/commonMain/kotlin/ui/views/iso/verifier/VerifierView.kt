@@ -38,6 +38,7 @@ fun VerifierView(
     when (verifierState) {
         VerifierState.INIT -> VerifierDocumentSelectionView(vm, bottomBar)
         VerifierState.SELECT_CUSTOM_REQUEST -> VerifierCustomSelectionView(vm)
+        VerifierState.SELECT_COMBINED_REQUEST -> VerifierCombinedSelectionView(vm)
         VerifierState.QR_ENGAGEMENT -> VerifierQrEngagementView(vm)
         VerifierState.WAITING_FOR_RESPONSE ->
             LoadingView(stringResource(Res.string.info_text_waiting_for_response), vm.navigateUp)

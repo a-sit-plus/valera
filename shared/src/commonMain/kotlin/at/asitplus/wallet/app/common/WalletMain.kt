@@ -1,7 +1,7 @@
 package at.asitplus.wallet.app.common
 
-import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.KmmResult
+import at.asitplus.catchingUnwrapped
 import at.asitplus.dcapi.request.DCAPIRequest
 import at.asitplus.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.iso.EncryptionParameters
@@ -19,17 +19,12 @@ import data.storage.DataStoreService
 import data.storage.WalletSubjectCredentialStore
 import getImageDecoder
 import io.github.aakira.napier.Napier
-import io.ktor.client.call.body
-import io.ktor.client.request.get
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -44,9 +39,9 @@ class WalletMain(
     val keyMaterial: WalletKeyMaterial,
     val dataStoreService: DataStoreService,
     val platformAdapter: PlatformAdapter,
-    var subjectCredentialStore: WalletSubjectCredentialStore,
+    val subjectCredentialStore: WalletSubjectCredentialStore,
     val buildContext: BuildContext,
-    val promptModel: PromptModel,
+    promptModel: PromptModel,
     val credentialValidator: Validator,
     val holderAgent: HolderAgent,
     val provisioningService: ProvisioningService,
@@ -57,6 +52,7 @@ class WalletMain(
     val errorService: ErrorService,
     val snackbarService: SnackbarService,
     val settingsRepository: SettingsRepository,
+    val sessionService: SessionService,
 ) {
     val appReady = MutableStateFlow<Boolean?>(null)
 
@@ -83,8 +79,10 @@ class WalletMain(
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_VCS)
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT)
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_COOKIES)
+        KeystoreService.clearKeyMaterial()
 
         settingsRepository.reset()
+        sessionService.newScope()
     }
 
     fun getLog(): List<String> {
@@ -163,9 +161,10 @@ class WalletMain(
     }
 }
 
-fun PlatformAdapter.decodeImage(image: ByteArray): ImageBitmap {
-    return getImageDecoder((image))
+fun PlatformAdapter.decodeImage(image: ByteArray) = catchingUnwrapped {
+    getImageDecoder((image))
 }
+
 
 /**
  * Adapter to call back to native code without the need for service objects
@@ -226,7 +225,7 @@ interface PlatformAdapter {
 
     fun prepareDCAPIIsoMdocCredentialResponse(
         responseJson: ByteArray,
-        serialize: ByteArray,
+        sessionTranscript: ByteArray,
         encryptionParameters: EncryptionParameters
     )
 
@@ -266,7 +265,7 @@ class DummyPlatformAdapter : PlatformAdapter {
 
     override fun prepareDCAPIIsoMdocCredentialResponse(
         responseJson: ByteArray,
-        serialize: ByteArray,
+        sessionTranscript: ByteArray,
         encryptionParameters: EncryptionParameters
     ) {
     }

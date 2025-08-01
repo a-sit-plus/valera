@@ -5,16 +5,15 @@ import android.content.Intent
 import android.nfc.NfcAdapter
 import android.nfc.cardemulation.CardEmulation
 import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.credentials.CustomCredential
 import androidx.credentials.DigitalCredential
 import androidx.credentials.ExperimentalDigitalCredentialApi
 import androidx.credentials.GetCredentialResponse
 import androidx.credentials.exceptions.GetCredentialCustomException
-import androidx.credentials.exceptions.GetCredentialException
 import androidx.credentials.provider.PendingIntentHandler
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.dcapi.data.ErrorResponse
-import com.google.android.gms.identitycredentials.IntentHelper
 import io.github.aakira.napier.Napier
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.multipaz.context.initializeApplication
@@ -26,6 +25,7 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         populateLink(intent)
         initMultipaz()
     }
@@ -48,8 +48,8 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
                 DigitalCredential(resultStr)
             } catch (e: IllegalArgumentException) {
                 Napier.e("Failed to create response", e)
-                val errorResponse = ErrorResponse("internal error")
-                sendErrorResponse(errorResponse.serialize(), resultData)
+                val errorResponse = joseCompliantSerializer.encodeToString(ErrorResponse("internal error"))
+                sendErrorResponse(errorResponse, resultData)
                 null
             }
 

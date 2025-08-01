@@ -41,7 +41,6 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import at.asitplus.wallet.taxid.TaxIdScheme
-import at.asitplus.wallet.taxid.TaxId2025Scheme
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.CredentialCardActionMenu
 import ui.composables.Logo
@@ -138,9 +137,10 @@ fun CredentialDetailsScaffold(
 @Composable
 fun CredentialDetailsSummaryView(
     storeEntry: SubjectCredentialStore.StoreEntry,
-    imageDecoder: (ByteArray) -> ImageBitmap,
+    imageDecoder: (ByteArray) -> Result<ImageBitmap>,
 ) {
     Column(modifier = Modifier.padding(horizontal = 8.dp)) {
+        @Suppress("DEPRECATION")
         when (storeEntry.scheme) {
             is IdAustriaScheme -> IdAustriaCredentialView(storeEntry, imageDecoder)
             is EuPidScheme -> EuPidCredentialView(storeEntry, imageDecoder)
@@ -152,7 +152,6 @@ fun CredentialDetailsSummaryView(
             is HealthIdScheme -> HealthIdView(storeEntry)
             is EhicScheme -> EhicView(storeEntry)
             is TaxIdScheme -> TaxIdCredentialView(storeEntry)
-            is TaxId2025Scheme -> TaxIdCredentialView(storeEntry)
             else -> {}
         }
         GenericCredentialSummaryCardContent(

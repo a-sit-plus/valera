@@ -1,14 +1,12 @@
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import at.asitplus.catchingUnwrapped
+import at.asitplus.wallet.app.common.*
 import at.asitplus.wallet.app.common.dcapi.DCAPIInvocationData
-import at.asitplus.wallet.app.common.ErrorService
-import at.asitplus.wallet.app.common.KeystoreService
-import at.asitplus.wallet.app.common.WalletDependencyProvider
-import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.di.appModule
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,8 +36,9 @@ fun App(walletDependencyProvider: WalletDependencyProvider) {
     KoinApplication({
         modules(appModule(walletDependencyProvider))
     }) {
+        val koinScope = koinInject<SessionService>().scope.collectAsState().value
         catchingUnwrapped {
-            val walletMain: WalletMain = koinInject()
+            val walletMain: WalletMain = koinInject(scope = koinScope)
 
             LifecycleEventEffect(Lifecycle.Event.ON_CREATE) {
                 Napier.d("Lifecycle.Event.ON_CREATE")
@@ -51,12 +50,12 @@ fun App(walletDependencyProvider: WalletDependencyProvider) {
             }
 
         }.onFailure {
-            val errorService: ErrorService = koinInject()
+            val errorService: ErrorService = koinInject(scope = koinScope)
             errorService.emit(it)
         }
 
         WalletTheme {
-            WalletNavigation()
+            WalletNavigation(koinScope = koinScope)
         }
     }
 }

@@ -244,6 +244,7 @@
     <string name="text_label_valid_from">Valid from</string>
     <string name="text_label_valid_to">Valid to</string>
     <string name="text_label_optional">Optional</string>
+    <string name="text_label_all_claims_requested">All attributes</string>
     <string name="text_label_check_all">Check all</string>
     <string name="text_label_powered_by">POWERED BY</string>
     <string name="text_label_certificate">Certificate</string>
@@ -282,12 +283,9 @@
     <string name="heading_label_sign">Sign</string>
     <string name="heading_label_tech_demo">Tech Demo</string>
 
-    <string name="biometric_authentication_prompt_for_data_transmission_consent_title">Biometric Authentication</string>
-    <string name="biometric_authentication_prompt_for_data_transmission_consent_subtitle">Disclose data</string>
-    <string name="biometric_authentication_prompt_to_load_data_title">Biometric Authentication</string>
-    <string name="biometric_authentication_prompt_to_load_data_subtitle">Load data</string>
-    <string name="biometric_authentication_prompt_to_bind_credentials_title">Biometric Authentication</string>
-    <string name="biometric_authentication_prompt_to_bind_credentials_subtitle">Create device binding</string>
+    <string name="biometric_authentication_prompt_for_data_transmission_consent_title">Disclose data</string>
+    <string name="biometric_authentication_prompt_to_load_data_title">Load data</string>
+    <string name="biometric_authentication_prompt_to_bind_credentials_title">Create device binding</string>
 
     <string name="content_description_navigate_back">Back</string>
     <string name="content_description_delete_credential">Delete</string>
@@ -422,6 +420,13 @@
     <string name="presentation_permission_required">Checking if required permissions are set…</string>
     <string name="presentation_initialised">Presentation initialising…</string>
 
+    <string name="jwt_claim_label_aud">Audience</string>
+    <string name="jwt_claim_label_iss">Issuer</string>
+    <string name="jwt_claim_label_sub">Subject</string>
+    <string name="jwt_claim_label_exp">Expiration Time</string>
+    <string name="jwt_claim_label_nbf">Not Before TIme</string>
+    <string name="jwt_claim_label_iat">Issued At</string>
+
     <!-- DeviceEngagementMethods -->
     <string name="section_heading_request_engagement_method">Device Engagement Method</string>
     <string name="nfc">NFC</string>
@@ -430,9 +435,11 @@
     <!-- Verify Data Route -->
     <string name="heading_label_select_data_retrieval_screen">Check</string>
     <string name="heading_label_select_custom_data_retrieval_screen">Custom</string>
+    <string name="heading_label_select_combined_data_retrieval_screen">Combined</string>
     <string name="section_heading_request_mdl">mDL requests</string>
     <string name="section_heading_request_pid">PID requests</string>
     <string name="section_heading_request_hid">HealthID request</string>
+    <string name="section_heading_request_combined">Combined request</string>
     <string name="section_heading_request_custom">Custom request</string>
     <string name="section_heading_select_document_type">Select document type</string>
     <string name="section_heading_selected_namespace">Namespace: %1$s</string>
@@ -441,9 +448,13 @@
     <string name="button_label_check_identity">Check Identity</string>
     <string name="button_label_check_license">Check License</string>
     <string name="button_label_check_age">Check Age</string>
+    <string name="button_label_check_combined">Combined Request</string>
     <string name="button_label_check_custom">Custom Request</string>
     <string name="button_label_check_over_age">Over %1$s</string>
     <string name="button_label_check_health_id">Check HealthID</string>
+    <string name="button_add_request">Add request</string>
     <string name="text_label_all_attributes">All Attributes</string>
     <string name="text_label_mandatory_attributes">Mandatory Attributes</string>
+    <string name="text_label_requests">Requests</string>
+    <string name="info_text_no_requests">No requests</string>
 </resources>

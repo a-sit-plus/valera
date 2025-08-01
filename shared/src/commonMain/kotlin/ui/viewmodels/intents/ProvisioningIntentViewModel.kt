@@ -2,7 +2,6 @@ package ui.viewmodels.intents
 
 import at.asitplus.catchingUnwrapped
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.biometric_authentication_prompt_to_bind_credentials_subtitle
 import at.asitplus.valera.resources.biometric_authentication_prompt_to_bind_credentials_title
 import at.asitplus.valera.resources.snackbar_credential_loaded_successfully
 import at.asitplus.wallet.app.common.WalletMain
@@ -18,8 +17,6 @@ class ProvisioningIntentViewModel(
         catchingUnwrapped {
             walletMain.keyMaterial.promptText =
                 getString(Res.string.biometric_authentication_prompt_to_bind_credentials_title)
-            walletMain.keyMaterial.promptSubtitle =
-                getString(Res.string.biometric_authentication_prompt_to_bind_credentials_subtitle)
             walletMain.provisioningService.resumeWithAuthCode(uri)
             walletMain.snackbarService.showSnackbar(getString(Res.string.snackbar_credential_loaded_successfully))
         }.onSuccess {

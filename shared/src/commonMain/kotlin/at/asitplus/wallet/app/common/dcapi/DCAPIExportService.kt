@@ -28,7 +28,7 @@ import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.compose.resources.getString
 
 class DCAPIExportService(private val platformAdapter: PlatformAdapter) {
-    private val imageDecoder: (ByteArray) -> ImageBitmap = { byteArray -> platformAdapter.decodeImage(byteArray) }
+    private val imageDecoder: (ByteArray) -> Result<ImageBitmap> = { platformAdapter.decodeImage(it) }
 
     suspend fun registerCredentialWithSystem(container: StoreContainer, scope: CoroutineScope) {
         Napier.d("DC API: Preparing registration of updated credentials with the system")

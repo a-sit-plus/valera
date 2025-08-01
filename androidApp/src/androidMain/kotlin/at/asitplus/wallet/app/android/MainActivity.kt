@@ -18,7 +18,6 @@ class MainActivity : AbstractWalletActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
-
         setContent {
             MainView(
                 buildContext = BuildContext(
@@ -54,10 +53,8 @@ class MainActivity : AbstractWalletActivity() {
         }
     }
 
-    override fun onNewIntent(intent: Intent?) {
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        if (intent != null) {
             populateLink(intent)
-        }
     }
 }

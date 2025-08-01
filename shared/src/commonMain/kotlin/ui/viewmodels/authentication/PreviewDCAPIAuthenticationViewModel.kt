@@ -1,8 +1,8 @@
 package ui.viewmodels.authentication
 
 import androidx.compose.ui.graphics.ImageBitmap
-import at.asitplus.KmmResult
 import at.asitplus.catching
+import at.asitplus.catchingUnwrapped
 import at.asitplus.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.dif.Constraint
 import at.asitplus.dif.ConstraintField
@@ -16,6 +16,8 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
+import at.asitplus.wallet.lib.openid.CredentialMatchingResult
+import at.asitplus.wallet.lib.openid.PresentationExchangeMatchingResult
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 
 class PreviewDCAPIAuthenticationViewModel(
@@ -65,8 +67,8 @@ class PreviewDCAPIAuthenticationViewModel(
 
     override val transactionData = null
 
-    override suspend fun findMatchingCredentials(): KmmResult<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>> =
-        catching {
+    override suspend fun findMatchingCredentials(): Result<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>> =
+        catchingUnwrapped {
             PresentationExchangeMatchingResult(
                 presentationRequest = CredentialPresentationRequest.PresentationExchangeRequest(
                     presentationDefinition = PresentationDefinition(

@@ -1,6 +1,7 @@
 package data.storage
 
 import at.asitplus.KmmResult
+import at.asitplus.iso.IssuerSigned
 import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
@@ -8,7 +9,6 @@ import at.asitplus.wallet.lib.data.SelectiveDisclosureItem
 import at.asitplus.wallet.lib.data.VerifiableCredentialJws
 import at.asitplus.wallet.lib.data.VerifiableCredentialSdJwt
 import at.asitplus.wallet.lib.data.vckJsonSerializer
-import at.asitplus.wallet.lib.iso.IssuerSigned
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.storage.ExportableCredentialScheme.Companion.toExportableCredentialScheme
 import io.github.aakira.napier.Napier
@@ -62,7 +62,7 @@ class PersistentSubjectCredentialStore(
         scheme: ConstantIndex.CredentialScheme,
     ) = SubjectCredentialStore.StoreEntry.Iso(
         issuerSigned,
-        scheme.schemaUri
+        scheme.schemaUri,
     ).also {
         addStoreEntry(it)
     }
@@ -89,7 +89,7 @@ class PersistentSubjectCredentialStore(
                 is SubjectCredentialStore.StoreEntry.Iso -> {
                     ExportableStoreEntry.Iso(
                         issuerSigned = storeEntry.issuerSigned,
-                        exportableCredentialScheme = storeEntry.scheme!!.toExportableCredentialScheme()
+                        exportableCredentialScheme = storeEntry.scheme!!.toExportableCredentialScheme(),
                     )
                 }
 
@@ -98,7 +98,7 @@ class PersistentSubjectCredentialStore(
                         vcSerialized = storeEntry.vcSerialized,
                         sdJwt = storeEntry.sdJwt,
                         disclosures = storeEntry.disclosures,
-                        exportableCredentialScheme = storeEntry.scheme!!.toExportableCredentialScheme()
+                        exportableCredentialScheme = storeEntry.scheme!!.toExportableCredentialScheme(),
                     )
                 }
 
@@ -168,7 +168,7 @@ class PersistentSubjectCredentialStore(
                             storeEntry.vcSerialized,
                             storeEntry.sdJwt,
                             storeEntry.disclosures,
-                            storeEntry.exportableCredentialScheme.toScheme().schemaUri
+                            storeEntry.exportableCredentialScheme.toScheme().schemaUri,
                         )
                     }
 
@@ -176,7 +176,7 @@ class PersistentSubjectCredentialStore(
                         SubjectCredentialStore.StoreEntry.Vc(
                             storeEntry.vcSerialized,
                             storeEntry.vc,
-                            storeEntry.exportableCredentialScheme.toScheme().schemaUri
+                            storeEntry.exportableCredentialScheme.toScheme().schemaUri,
                         )
                     }
                 }
@@ -242,8 +242,9 @@ private sealed interface ExportableStoreEntry {
 }
 
 enum class ExportableCredentialScheme {
-    AtomicAttribute2023, IdAustriaScheme, MobileDrivingLicence2023, EuPidScheme, EuPidSdJwtScheme, PowerOfRepresentationScheme, CertificateOfResidenceScheme, CompanyRegistrationScheme, HealthIdScheme, EhicScheme, TaxIdScheme, TaxId2025Scheme;
+    AtomicAttribute2023, IdAustriaScheme, MobileDrivingLicence2023, EuPidScheme, EuPidSdJwtScheme, PowerOfRepresentationScheme, CertificateOfResidenceScheme, CompanyRegistrationScheme, HealthIdScheme, EhicScheme, TaxIdScheme, VcFallbackCredentialScheme, SdJwtFallbackCredentialScheme, IsoMdocFallbackCredentialScheme;
 
+    @Suppress("DEPRECATION")
     fun toScheme() = when (this) {
         AtomicAttribute2023 -> ConstantIndex.AtomicAttribute2023
         MobileDrivingLicence2023 -> MobileDrivingLicenceScheme
@@ -256,10 +257,13 @@ enum class ExportableCredentialScheme {
         HealthIdScheme -> at.asitplus.wallet.healthid.HealthIdScheme
         EhicScheme -> at.asitplus.wallet.ehic.EhicScheme
         TaxIdScheme -> at.asitplus.wallet.taxid.TaxIdScheme
-        TaxId2025Scheme -> at.asitplus.wallet.taxid.TaxId2025Scheme
+        VcFallbackCredentialScheme -> at.asitplus.wallet.lib.data.VcFallbackCredentialScheme
+        SdJwtFallbackCredentialScheme -> at.asitplus.wallet.lib.data.SdJwtFallbackCredentialScheme
+        IsoMdocFallbackCredentialScheme -> at.asitplus.wallet.lib.data.IsoMdocFallbackCredentialScheme
     }
 
     companion object {
+        @Suppress("DEPRECATION")
         fun ConstantIndex.CredentialScheme.toExportableCredentialScheme() = when (this) {
             ConstantIndex.AtomicAttribute2023 -> AtomicAttribute2023
             MobileDrivingLicenceScheme -> MobileDrivingLicence2023
@@ -272,7 +276,9 @@ enum class ExportableCredentialScheme {
             at.asitplus.wallet.healthid.HealthIdScheme -> HealthIdScheme
             at.asitplus.wallet.ehic.EhicScheme -> EhicScheme
             at.asitplus.wallet.taxid.TaxIdScheme -> TaxIdScheme
-            at.asitplus.wallet.taxid.TaxId2025Scheme -> TaxId2025Scheme
+            is at.asitplus.wallet.lib.data.VcFallbackCredentialScheme -> VcFallbackCredentialScheme
+            is at.asitplus.wallet.lib.data.SdJwtFallbackCredentialScheme -> SdJwtFallbackCredentialScheme
+            is at.asitplus.wallet.lib.data.IsoMdocFallbackCredentialScheme -> IsoMdocFallbackCredentialScheme
             else -> throw Exception("Unknown CredentialScheme")
         }
     }

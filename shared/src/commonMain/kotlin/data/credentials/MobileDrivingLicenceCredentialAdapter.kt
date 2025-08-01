@@ -18,7 +18,7 @@ import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
 
 sealed class MobileDrivingLicenceCredentialAdapter(
-    private val decodePortrait: (ByteArray) -> ImageBitmap?,
+    private val decodePortrait: (ByteArray) -> Result<ImageBitmap>,
 ) : CredentialAdapter() {
     override fun getAttribute(path: NormalizedJsonPath) =
         when (val first = path.segments.firstOrNull()) {
@@ -117,17 +117,17 @@ sealed class MobileDrivingLicenceCredentialAdapter(
     abstract val ageBirthYear: UInt?
     abstract val birthPlace: String?
     abstract val portraitRaw: ByteArray?
-    val portraitBitmap: ImageBitmap? by lazy { portraitRaw?.let(decodePortrait) }
+    val portraitBitmap: ImageBitmap? by lazy { portraitRaw?.let(decodePortrait)?.getOrNull() }
     abstract val signatureRaw: ByteArray?
-    val signatureBitmap: ImageBitmap? by lazy { signatureRaw?.let(decodePortrait) }
+    val signatureBitmap: ImageBitmap? by lazy { signatureRaw?.let(decodePortrait)?.getOrNull() }
     abstract val biometricTemplateFaceRaw: ByteArray?
-    val biometricTemplateFace: ImageBitmap? by lazy { biometricTemplateFaceRaw?.let(decodePortrait) }
+    val biometricTemplateFace: ImageBitmap? by lazy { biometricTemplateFaceRaw?.let(decodePortrait)?.getOrNull() }
     abstract val biometricTemplateFingerRaw: ByteArray?
-    val biometricTemplateFinger: ImageBitmap? by lazy { biometricTemplateFingerRaw?.let(decodePortrait) }
+    val biometricTemplateFinger: ImageBitmap? by lazy { biometricTemplateFingerRaw?.let(decodePortrait)?.getOrNull() }
     abstract val biometricTemplateIrisRaw: ByteArray?
-    val biometricTemplateIris: ImageBitmap? by lazy { biometricTemplateIrisRaw?.let(decodePortrait) }
+    val biometricTemplateIris: ImageBitmap? by lazy { biometricTemplateIrisRaw?.let(decodePortrait)?.getOrNull() }
     abstract val biometricTemplateSignatureSignRaw: ByteArray?
-    val biometricTemplateSignatureSign: ImageBitmap? by lazy { biometricTemplateSignatureSignRaw?.let(decodePortrait) }
+    val biometricTemplateSignatureSign: ImageBitmap? by lazy { biometricTemplateSignatureSignRaw?.let(decodePortrait)?.getOrNull() }
     abstract val documentNumber: String?
     abstract val administrativeNumber: String?
     abstract val sex: IsoSexEnum?
@@ -147,7 +147,7 @@ sealed class MobileDrivingLicenceCredentialAdapter(
     companion object {
         fun createFromStoreEntry(
             storeEntry: SubjectCredentialStore.StoreEntry,
-            decodePortrait: (ByteArray) -> ImageBitmap?,
+            decodePortrait: (ByteArray) -> Result<ImageBitmap>,
         ): MobileDrivingLicenceCredentialAdapter {
             if (storeEntry.scheme !is MobileDrivingLicenceScheme) {
                 throw IllegalArgumentException("credential")
@@ -167,7 +167,7 @@ sealed class MobileDrivingLicenceCredentialAdapter(
 
 private class MobileDrivingLicenceCredentialSdJwtAdapter(
     private val attributes: Map<String, JsonPrimitive>,
-    decodePortrait: (ByteArray) -> ImageBitmap?,
+    decodePortrait: (ByteArray) -> Result<ImageBitmap>,
 ) : MobileDrivingLicenceCredentialAdapter(decodePortrait) {
     override val scheme: ConstantIndex.CredentialScheme
         get() = MobileDrivingLicenceScheme
@@ -324,7 +324,7 @@ private class MobileDrivingLicenceCredentialSdJwtAdapter(
 
 class MobileDrivingLicenceCredentialIsoMdocAdapter(
     namespaces: Map<String, Map<String, Any>>?,
-    decodePortrait: (ByteArray) -> ImageBitmap?,
+    decodePortrait: (ByteArray) -> Result<ImageBitmap>,
 ) : MobileDrivingLicenceCredentialAdapter(decodePortrait) {
     override val scheme: ConstantIndex.CredentialScheme
         get() = MobileDrivingLicenceScheme

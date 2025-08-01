@@ -1,7 +1,6 @@
 package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.ADMINISTRATIVE_NUMBER
 import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.ARRIVAL_DATE
 import at.asitplus.wallet.cor.CertificateOfResidenceDataElements.Address
@@ -33,64 +32,75 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import data.Attribute
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 
 sealed class CertificateOfResidenceCredentialAdapter : CredentialAdapter() {
-    override fun getAttribute(path: NormalizedJsonPath) = path.segments.firstOrNull()?.let { first ->
-        when (first) {
-            is NormalizedJsonPathSegment.NameSegment -> when (first.memberName) {
-                ADMINISTRATIVE_NUMBER -> Attribute.fromValue(administrativeNumber)
-                ISSUANCE_DATE -> Attribute.fromValue(issuanceDate)
-                EXPIRY_DATE -> Attribute.fromValue(expiryDate)
-                ISSUING_AUTHORITY -> Attribute.fromValue(issuingAuthority)
-                DOCUMENT_NUMBER -> Attribute.fromValue(documentNumber)
-                ISSUING_COUNTRY -> Attribute.fromValue(issuingCountry)
-                ISSUING_JURISDICTION -> Attribute.fromValue(issuingJurisdiction)
-                FAMILY_NAME -> Attribute.fromValue(familyName)
-                GIVEN_NAME -> Attribute.fromValue(givenName)
-                BIRTH_DATE -> Attribute.fromValue(birthDate)
-                RESIDENCE_ADDRESS -> with(Address) {
-                    when (val second = path.segments.drop(1).firstOrNull()) {
-                        is NormalizedJsonPathSegment.NameSegment -> when (second.memberName) {
-                            PO_BOX -> Attribute.fromValue(residenceAddressPoBox)
-                            THOROUGHFARE -> Attribute.fromValue(residenceAddressThoroughfare)
-                            LOCATOR_DESIGNATOR -> Attribute.fromValue(residenceAddressLocatorDesignator)
-                            LOCATOR_NAME -> Attribute.fromValue(residenceAddressLocatorName)
-                            POST_CODE -> Attribute.fromValue(residenceAddressPostCode)
-                            POST_NAME -> Attribute.fromValue(residenceAddressPostName)
-                            ADMIN_UNIT_L_1 -> Attribute.fromValue(residenceAddressAdminUnitL1)
-                            ADMIN_UNIT_L_2 -> Attribute.fromValue(residenceAddressAdminUnitL2)
-                            FULL_ADDRESS -> Attribute.fromValue(residenceAddressFullAddress)
-                            else -> null
-                        }
-
-                        else -> Attribute.fromValue(residenceAddress)
-                    }
-                }
-
-                RESIDENCE_ADDRESS_PO_BOX -> Attribute.fromValue(residenceAddressPoBox)
-                RESIDENCE_ADDRESS_THOROUGHFARE -> Attribute.fromValue(residenceAddressThoroughfare)
-                RESIDENCE_ADDRESS_LOCATOR_DESIGNATOR -> Attribute.fromValue(residenceAddressLocatorDesignator)
-                RESIDENCE_ADDRESS_LOCATOR_NAME -> Attribute.fromValue(residenceAddressLocatorName)
-                RESIDENCE_ADDRESS_POST_CODE -> Attribute.fromValue(residenceAddressPostCode)
-                RESIDENCE_ADDRESS_POST_NAME -> Attribute.fromValue(residenceAddressPostName)
-                RESIDENCE_ADDRESS_ADMIN_UNIT_L_1 -> Attribute.fromValue(residenceAddressAdminUnitL1)
-                RESIDENCE_ADDRESS_ADMIN_UNIT_L_2 -> Attribute.fromValue(residenceAddressAdminUnitL2)
-                RESIDENCE_ADDRESS_FULL_ADDRESS -> Attribute.fromValue(residenceAddressFullAddress)
-                GENDER -> Attribute.fromValue(gender)
-                BIRTH_PLACE -> Attribute.fromValue(birthPlace)
-                ARRIVAL_DATE -> Attribute.fromValue(arrivalDate)
-                NATIONALITY -> Attribute.fromValue(nationality)
-                else -> null
-            }
-
-            else -> null
+    private fun CertificateOfResidenceCredentialClaimDefinition.toAttribute() = when (this) {
+        CertificateOfResidenceCredentialClaimDefinition.ADMINISTRATIVE_NUMBER -> {
+            Attribute.fromValue(administrativeNumber)
         }
+
+        CertificateOfResidenceCredentialClaimDefinition.ISSUANCE_DATE -> Attribute.fromValue(issuanceDate)
+        CertificateOfResidenceCredentialClaimDefinition.EXPIRY_DATE -> Attribute.fromValue(expiryDate)
+        CertificateOfResidenceCredentialClaimDefinition.ISSUING_AUTHORITY -> Attribute.fromValue(issuingAuthority)
+        CertificateOfResidenceCredentialClaimDefinition.DOCUMENT_NUMBER -> Attribute.fromValue(documentNumber)
+        CertificateOfResidenceCredentialClaimDefinition.ISSUING_COUNTRY -> Attribute.fromValue(issuingCountry)
+        CertificateOfResidenceCredentialClaimDefinition.ISSUING_JURISDICTION -> Attribute.fromValue(issuingJurisdiction)
+        CertificateOfResidenceCredentialClaimDefinition.FAMILY_NAME -> Attribute.fromValue(familyName)
+        CertificateOfResidenceCredentialClaimDefinition.GIVEN_NAME -> Attribute.fromValue(givenName)
+        CertificateOfResidenceCredentialClaimDefinition.BIRTH_DATE -> Attribute.fromValue(birthDate)
+        CertificateOfResidenceCredentialClaimDefinition.RESIDENCE_ADDRESS -> Attribute.fromValue(residenceAddress)
+        CertificateOfResidenceCredentialClaimDefinition.RESIDENCE_ADDRESS_PO_BOX -> {
+            Attribute.fromValue(residenceAddressPoBox)
+        }
+
+        CertificateOfResidenceCredentialClaimDefinition.RESIDENCE_ADDRESS_THOROUGHFARE -> {
+            Attribute.fromValue(residenceAddressThoroughfare)
+        }
+
+        CertificateOfResidenceCredentialClaimDefinition.RESIDENCE_ADDRESS_LOCATOR_DESIGNATOR -> {
+            Attribute.fromValue(residenceAddressLocatorDesignator)
+        }
+
+        CertificateOfResidenceCredentialClaimDefinition.RESIDENCE_ADDRESS_LOCATOR_NAME -> {
+            Attribute.fromValue(residenceAddressLocatorName)
+        }
+
+        CertificateOfResidenceCredentialClaimDefinition.RESIDENCE_ADDRESS_POST_CODE -> {
+            Attribute.fromValue(residenceAddressPostCode)
+        }
+
+        CertificateOfResidenceCredentialClaimDefinition.RESIDENCE_ADDRESS_POST_NAME -> {
+            Attribute.fromValue(residenceAddressPostName)
+        }
+
+        CertificateOfResidenceCredentialClaimDefinition.RESIDENCE_ADDRESS_ADMIN_UNIT_L_1 -> {
+            Attribute.fromValue(residenceAddressAdminUnitL1)
+        }
+
+        CertificateOfResidenceCredentialClaimDefinition.RESIDENCE_ADDRESS_ADMIN_UNIT_L_2 -> {
+            Attribute.fromValue(residenceAddressAdminUnitL2)
+        }
+
+        CertificateOfResidenceCredentialClaimDefinition.RESIDENCE_ADDRESS_FULL_ADDRESS -> {
+            Attribute.fromValue(residenceAddressFullAddress)
+        }
+
+        CertificateOfResidenceCredentialClaimDefinition.GENDER -> Attribute.fromValue(gender)
+        CertificateOfResidenceCredentialClaimDefinition.BIRTH_PLACE -> Attribute.fromValue(birthPlace)
+        CertificateOfResidenceCredentialClaimDefinition.ARRIVAL_DATE -> Attribute.fromValue(arrivalDate)
+        CertificateOfResidenceCredentialClaimDefinition.NATIONALITY -> Attribute.fromValue(nationality)
     }
+
+    override fun getAttribute(
+        path: NormalizedJsonPath,
+    ) = CertificateOfResidenceCredentialClaimDefinitionResolver().resolveOrNull(
+        SdJwtClaimReference(path)
+    )?.toAttribute()
 
     abstract val familyName: String?
     abstract val givenName: String?
@@ -321,3 +331,4 @@ private class CertificateOfResidenceComplexCredentialSdJwtAdapter(
     override val issuingJurisdiction: String?
         get() = (attributes[ISSUING_JURISDICTION] as? JsonPrimitive?)?.contentOrNull
 }
+

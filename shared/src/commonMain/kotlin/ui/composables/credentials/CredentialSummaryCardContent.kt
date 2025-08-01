@@ -12,14 +12,14 @@ import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
-import at.asitplus.wallet.taxid.TaxId2025Scheme
 import at.asitplus.wallet.taxid.TaxIdScheme
 
 @Composable
 fun CredentialSummaryCardContent(
     credential: SubjectCredentialStore.StoreEntry,
-    decodeToBitmap: (ByteArray) -> ImageBitmap?,
+    decodeToBitmap: (ByteArray) -> Result<ImageBitmap>,
 ) {
+    @Suppress("DEPRECATION")
     when (credential.scheme) {
         is IdAustriaScheme -> IdAustriaCredentialSummaryCardContent(credential, decodeToBitmap)
         is EuPidScheme -> EuPidCredentialSummaryCardContent(credential, decodeToBitmap)
@@ -31,7 +31,6 @@ fun CredentialSummaryCardContent(
         is HealthIdScheme -> HealthIdSummaryCardContent(credential)
         is EhicScheme -> EhicSummaryCardContent(credential)
         is TaxIdScheme -> TaxIdCredentialSummaryCardContent(credential)
-        is TaxId2025Scheme -> TaxIdCredentialSummaryCardContent(credential)
-        else -> GenericCredentialSummaryCardContent(credential)
+        else -> {}
     }
 }

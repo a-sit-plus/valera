@@ -244,6 +244,7 @@
     <string name="text_label_valid_from">Gültig von</string>
     <string name="text_label_valid_to">Gültig bis</string>
     <string name="text_label_optional">Optional</string>
+    <string name="text_label_all_claims_requested">Alle Attribute</string>
     <string name="text_label_check_all">Alle auswählen</string>
     <string name="text_label_powered_by">POWERED BY</string>
     <string name="text_label_certificate">Zertifikat</string>
@@ -281,12 +282,9 @@
     <string name="heading_label_tech_demo">Tech Demo</string>
     <string name="heading_label_result">Ergebnis</string>
 
-    <string name="biometric_authentication_prompt_for_data_transmission_consent_title">Biometrische Authentifizierung</string>
-    <string name="biometric_authentication_prompt_for_data_transmission_consent_subtitle">Daten vorzeigen</string>
-    <string name="biometric_authentication_prompt_to_load_data_title">Biometrische Authentifizierung</string>
-    <string name="biometric_authentication_prompt_to_load_data_subtitle">Daten laden</string>
-    <string name="biometric_authentication_prompt_to_bind_credentials_title">Biometrische Authentifizierung</string>
-    <string name="biometric_authentication_prompt_to_bind_credentials_subtitle">Gerätbindung erzeugen</string>
+    <string name="biometric_authentication_prompt_for_data_transmission_consent_title">Daten vorzeigen</string>
+    <string name="biometric_authentication_prompt_to_load_data_title">Daten laden</string>
+    <string name="biometric_authentication_prompt_to_bind_credentials_title">Gerätbindung erzeugen</string>
 
     <string name="content_description_navigate_back">Zurück</string>
     <string name="content_description_delete_credential">Löschen</string>
@@ -431,6 +429,13 @@
     <string name="presentation_permission_required">Überprüfen, ob benötigte Berechtigungen gesetzt wurden…</string>
     <string name="presentation_initialised">Initialisiere…</string>
 
+    <string name="jwt_claim_label_aud">Empfänger</string>
+    <string name="jwt_claim_label_iss">Aussteller</string>
+    <string name="jwt_claim_label_sub">Subjekt</string>
+    <string name="jwt_claim_label_exp">Gültig bis</string>
+    <string name="jwt_claim_label_nbf">Gültig ab</string>
+    <string name="jwt_claim_label_iat">Ausgestellt</string>
+
     <!-- DeviceEngagementMethods -->
     <string name="section_heading_request_engagement_method">Verbindungsaufbau via</string>
     <string name="nfc">NFC</string>
@@ -439,9 +444,11 @@
     <!-- Verify Data Route -->
     <string name="heading_label_select_data_retrieval_screen">Prüfen</string>
     <string name="heading_label_select_custom_data_retrieval_screen">Individuell</string>
+    <string name="heading_label_select_combined_data_retrieval_screen">Kombiniert</string>
     <string name="section_heading_request_mdl">mDL Anfragen</string>
     <string name="section_heading_request_pid">PID Anfragen</string>
     <string name="section_heading_request_hid">HealthID Anfrage</string>
+    <string name="section_heading_request_combined">Kombinierte Credential-Anfrage</string>
     <string name="section_heading_request_custom">Individuelle Anfrage</string>
     <string name="section_heading_select_document_type">Dokument Typ</string>
     <string name="section_heading_selected_namespace">Namespace: %1$s</string>
@@ -450,9 +457,13 @@
     <string name="button_label_check_identity">Identität Prüfen</string>
     <string name="button_label_check_license">Führerschein Prüfen</string>
     <string name="button_label_check_age">Alter Prüfen</string>
+    <string name="button_label_check_combined">Kombinierte Credential-Anfrage</string>
     <string name="button_label_check_custom">Individuelle Anfrage</string>
     <string name="button_label_check_over_age">Über %1$s</string>
     <string name="button_label_check_health_id">HealthID Prüfen</string>
+    <string name="button_add_request">Anfrage hinzufügen</string>
     <string name="text_label_all_attributes">Alle Attribute</string>
     <string name="text_label_mandatory_attributes">Notwendige Attribute</string>
+    <string name="text_label_requests">Anfragen</string>
+    <string name="info_text_no_requests">Keine Anfragen</string>
 </resources>

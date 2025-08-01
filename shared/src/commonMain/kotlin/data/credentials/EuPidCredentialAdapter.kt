@@ -26,7 +26,7 @@ import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
 
 sealed class EuPidCredentialAdapter(
-    private val decodePortrait: (ByteArray) -> ImageBitmap?,
+    private val decodePortrait: (ByteArray) -> Result<ImageBitmap>,
 ) : CredentialAdapter() {
     override fun getAttribute(path: NormalizedJsonPath) =
         path.segments.firstOrNull()?.let { first ->
@@ -195,7 +195,7 @@ sealed class EuPidCredentialAdapter(
     abstract val birthDate: LocalDate?
     abstract val portraitRaw: ByteArray?
     val portraitBitmap: ImageBitmap? by lazy {
-        portraitRaw?.let(decodePortrait)
+        portraitRaw?.let(decodePortrait)?.getOrNull()
     }
     abstract val ageAtLeast12: Boolean?
     abstract val ageAtLeast13: Boolean?
@@ -244,7 +244,7 @@ sealed class EuPidCredentialAdapter(
     companion object {
         fun createFromStoreEntry(
             storeEntry: SubjectCredentialStore.StoreEntry,
-            decodePortrait: (ByteArray) -> ImageBitmap?,
+            decodePortrait: (ByteArray) -> Result<ImageBitmap>,
         ): EuPidCredentialAdapter {
             if (storeEntry.scheme !is EuPidScheme && storeEntry.scheme !is EuPidSdJwtScheme) {
                 throw IllegalArgumentException("credential: ${storeEntry.scheme}")
@@ -275,7 +275,7 @@ sealed class EuPidCredentialAdapter(
 
 private class EuPidCredentialVcAdapter(
     val credentialSubject: EuPidCredential,
-    decodePortrait: (ByteArray) -> ImageBitmap?,
+    decodePortrait: (ByteArray) -> Result<ImageBitmap>,
     override val scheme: ConstantIndex.CredentialScheme
 ) : EuPidCredentialAdapter(decodePortrait) {
     override val representation: CredentialRepresentation
@@ -430,7 +430,7 @@ private class EuPidCredentialVcAdapter(
  */
 private class EuPidCredentialSdJwtAdapter(
     private val attributes: Map<String, JsonPrimitive>,
-    decodePortrait: (ByteArray) -> ImageBitmap?,
+    decodePortrait: (ByteArray) -> Result<ImageBitmap>,
     override val scheme: ConstantIndex.CredentialScheme
 ) : EuPidCredentialAdapter(decodePortrait) {
     override val representation: CredentialRepresentation
@@ -627,7 +627,7 @@ private class EuPidCredentialSdJwtAdapter(
 
 class EuPidCredentialIsoMdocAdapter(
     namespaces: Map<String, Map<String, Any>>?,
-    decodePortrait: (ByteArray) -> ImageBitmap?,
+    decodePortrait: (ByteArray) -> Result<ImageBitmap>,
     override val scheme: ConstantIndex.CredentialScheme
 ) : EuPidCredentialAdapter(decodePortrait) {
     private val euPidNamespace = namespaces?.get(EuPidScheme.isoNamespace)

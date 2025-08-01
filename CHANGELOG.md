@@ -1,3 +1,11 @@
+# Release 5.7.3
+ * Update to VC-K 5.8.0, fixing optional attributes during presentation
+ * Credentials: Add FallbackCredentialScheme for unknown schemes
+ * Improve display of complex credentials in technical detail view
+ * Add SessionService to handle scoped Koin objects
+ * Add FallBackKeyMaterial to catch startup exceptions
+ * Remove `getMatchingCredentials` (move to vck)
+
 # Release 5.7.2 
  * Proximity: Use fixed IACA key and certificate for reader authentication
  * Credentials: Show technical metadata (validity, status)

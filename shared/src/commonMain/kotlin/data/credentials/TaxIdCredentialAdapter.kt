@@ -5,7 +5,6 @@ import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
-import at.asitplus.wallet.taxid.TaxId2025Scheme
 import at.asitplus.wallet.taxid.TaxIdScheme
 import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.ADMINISTRATIVE_NUMBER
 import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.AFFILIATION_COUNTRY
@@ -25,7 +24,7 @@ import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.RESIDENT_ADDRESS
 import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.TAX_NUMBER
 import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.VERIFICATION_STATUS
 import data.Attribute
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -80,10 +79,11 @@ sealed class TaxIdCredentialAdapter : CredentialAdapter() {
     abstract val issuingJurisdiction: String?
 
     companion object {
+        @Suppress("DEPRECATION")
         fun createFromStoreEntry(storeEntry: SubjectCredentialStore.StoreEntry): TaxIdCredentialAdapter {
             val scheme = storeEntry.scheme
                 ?: throw IllegalArgumentException("credential scheme null: $storeEntry")
-            if (scheme !is TaxIdScheme && scheme !is TaxId2025Scheme) {
+            if (scheme !is at.asitplus.wallet.taxid.TaxIdScheme && scheme !is TaxIdScheme) {
                 throw IllegalArgumentException("credential scheme unknown: $scheme")
             }
             return when (storeEntry) {

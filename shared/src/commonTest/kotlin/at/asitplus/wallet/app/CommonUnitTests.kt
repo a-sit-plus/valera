@@ -1,9 +1,9 @@
-
+package at.asitplus.wallet.app
 import at.asitplus.wallet.app.common.Configuration
 import data.storage.DummyDataStoreService
-import io.kotest.common.runBlocking
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

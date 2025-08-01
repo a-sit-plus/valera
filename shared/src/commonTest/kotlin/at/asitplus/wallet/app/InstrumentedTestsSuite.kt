@@ -1,8 +1,12 @@
+package at.asitplus.wallet.app
+
+import App
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsDisplayed
@@ -20,6 +24,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import at.asitplus.openid.OidcUserInfo
+import at.asitplus.openid.OidcUserInfoExtended
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.button_label_details
@@ -32,6 +38,7 @@ import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.BuildType
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
+import at.asitplus.wallet.app.common.SessionService
 import at.asitplus.wallet.app.common.WalletDependencyProvider
 import at.asitplus.wallet.app.common.WalletKeyMaterial
 import at.asitplus.wallet.eupid.EuPidScheme
@@ -45,8 +52,8 @@ import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.agent.toStoreCredentialInput
 import data.storage.DummyDataStoreService
-import io.kotest.common.Platform
-import io.kotest.common.platform
+import io.kotest.core.Platform
+import io.kotest.core.platform
 import io.kotest.core.spec.style.FunSpec
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -61,10 +68,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -72,7 +78,6 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.jetbrains.compose.resources.getString
-import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.multipaz.prompt.PassphraseRequest
 import org.multipaz.prompt.PromptModel
@@ -81,7 +86,6 @@ import ui.navigation.routes.OnboardingWrapperTestTags
 import ui.views.OnboardingStartScreenTestTag
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
 
 
 private lateinit var lifecycleRegistry: LifecycleRegistry
@@ -114,7 +118,8 @@ class InstrumentedTestsSuite : FunSpec({
                 val testValue = "loaded"
 
                 setContent {
-                    val data by dummyDataStoreService.getPreference(preferenceKey).collectAsState("null")
+                    val data by dummyDataStoreService.getPreference(preferenceKey)
+                        .collectAsState("null")
                     Text(data ?: "collecting state ...")
                 }
 
@@ -217,17 +222,18 @@ class InstrumentedTestsSuite : FunSpec({
     context("End to End Tests") {
         test("End to End Test 1: Should complete the process") {
             runComposeUiTest {
-                lateinit var walletMain: WalletDependencyProvider
+                lateinit var walletDependencyProvider: WalletDependencyProvider
                 setContent {
                     CompositionLocalProvider(
                         LocalLifecycleOwner provides TestLifecycleOwner()
                     ) {
                         val platformAdapter = getPlatformAdapter()
-                        walletMain = createWalletDependencyProvider(platformAdapter)
-                        App(walletMain)
+                        walletDependencyProvider = createWalletDependencyProvider(platformAdapter)
+                        App(walletDependencyProvider)
                     }
+                    val sessionService: SessionService = koinInject()
+                    val holderAgent: HolderAgent = koinInject(scope = sessionService.scope.value)
 
-                    val holderAgent: HolderAgent = koinInject()
 
                     val keyMaterial = EphemeralKeyWithoutCert()
                     val issuer = IssuerAgent(
@@ -242,7 +248,8 @@ class InstrumentedTestsSuite : FunSpec({
                                     getAttributes(),
                                     Clock.System.now().plus(60.minutes),
                                     EuPidScheme,
-                                    walletMain.keyMaterial.keyMaterial.publicKey
+                                    holderAgent.keyMaterial.publicKey,
+                                    OidcUserInfoExtended(userInfo = OidcUserInfo(subject = ""))
                                 )
                             ).getOrThrow().toStoreCredentialInput()
                         )
@@ -363,7 +370,7 @@ private fun createWalletDependencyProvider(platformAdapter: PlatformAdapter): Wa
         override suspend fun getSigner(): KeyMaterial = EphemeralKeyWithSelfSignedCert()
     }
     return WalletDependencyProvider(
-        keyMaterial = ks.let { runBlocking { WalletKeyMaterial(it.getSigner()) } },
+        keystoreService = ks,
         dataStoreService = dummyDataStoreService,
         platformAdapter = platformAdapter,
         buildContext = BuildContext(
