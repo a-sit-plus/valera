@@ -1,8 +1,6 @@
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.window.ComposeUIViewController
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.KeystoreService
@@ -12,7 +10,6 @@ import at.asitplus.wallet.app.common.WalletKeyMaterial
 import at.asitplus.wallet.app.common.WalletMain
 import data.storage.RealDataStoreService
 import data.storage.createDataStore
-import org.jetbrains.skia.Image
 import org.multipaz.compose.prompt.PromptDialogs
 import org.multipaz.prompt.IosPromptModel
 import platform.UIKit.UIViewController
@@ -29,11 +26,6 @@ actual fun getColorScheme(): ColorScheme {
         lightScheme
     }
 }
-
-actual fun getImageDecoder(image: ByteArray): ImageBitmap {
-    return Image.makeFromEncoded(image).toComposeImageBitmap()
-}
-
 
 fun MainViewController(
     platformAdapter: PlatformAdapter,

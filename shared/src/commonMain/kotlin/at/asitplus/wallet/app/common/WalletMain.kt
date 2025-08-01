@@ -17,7 +17,6 @@ import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import data.storage.DataStoreService
 import data.storage.WalletSubjectCredentialStore
-import getImageDecoder
 import io.github.aakira.napier.Napier
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -29,6 +28,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import net.swiftzer.semver.SemVer
+import org.jetbrains.compose.resources.decodeToImageBitmap
 import org.jetbrains.compose.resources.getString
 import org.multipaz.prompt.PromptModel
 
@@ -163,7 +163,7 @@ class WalletMain(
 }
 
 fun PlatformAdapter.decodeImage(image: ByteArray) = catchingUnwrapped {
-    getImageDecoder((image))
+    image.decodeToImageBitmap()
 }
 
 
