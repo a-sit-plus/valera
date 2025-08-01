@@ -2,7 +2,6 @@ package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
-import at.asitplus.wallet.taxid.TaxId2025Scheme
 import at.asitplus.wallet.taxid.TaxIdScheme
 
 class TaxIdCredentialSdJwtClaimDefinitionResolver {

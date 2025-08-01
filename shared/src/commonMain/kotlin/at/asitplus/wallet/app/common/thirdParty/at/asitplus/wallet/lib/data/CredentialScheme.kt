@@ -13,7 +13,6 @@ import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
-import at.asitplus.wallet.taxid.TaxId2025Scheme
 import at.asitplus.wallet.taxid.TaxIdScheme
 import data.credentials.*
 import org.jetbrains.compose.resources.StringResource
@@ -78,7 +77,6 @@ fun ConstantIndex.CredentialScheme.getLocalization(path: NormalizedJsonPath): St
     is HealthIdScheme -> { HealthIdCredentialAttributeTranslator().translate(path) }
     is EhicScheme -> { EhicCredentialAttributeTranslator().translate(path) }
     is TaxIdScheme,
-    is TaxId2025Scheme -> { TaxIdCredentialAttributeTranslator().translate(path) }
     is IdAustriaScheme -> { IdAustriaCredentialAttributeTranslator().translate(path) }
     else -> { IdAustriaCredentialAttributeTranslator().translate(path) }
 }
