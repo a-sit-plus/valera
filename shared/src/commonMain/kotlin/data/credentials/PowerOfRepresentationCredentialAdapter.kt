@@ -1,7 +1,6 @@
 package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
@@ -27,29 +26,11 @@ import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
 
 sealed class PowerOfRepresentationCredentialAdapter : CredentialAdapter() {
-
-    override fun getAttribute(path: NormalizedJsonPath) = path.segments.firstOrNull()?.let { first ->
-        when (first) {
-            is NormalizedJsonPathSegment.NameSegment -> when (first.memberName) {
-                LEGAL_PERSON_IDENTIFIER -> Attribute.fromValue(legalPersonIdentifier)
-                LEGAL_NAME -> Attribute.fromValue(legalName)
-                FULL_POWERS -> Attribute.fromValue(fullPowers)
-                E_SERVICE -> Attribute.fromValue(eService)
-                EFFECTIVE_FROM_DATE -> Attribute.fromValue(effectiveFromDate)
-                EFFECTIVE_UNTIL_DATE -> Attribute.fromValue(effectiveUntilDate)
-                ADMINISTRATIVE_NUMBER -> Attribute.fromValue(administrativeNumber)
-                ISSUANCE_DATE -> Attribute.fromValue(issuanceDate)
-                EXPIRY_DATE -> Attribute.fromValue(expiryDate)
-                ISSUING_AUTHORITY -> Attribute.fromValue(issuingAuthority)
-                DOCUMENT_NUMBER -> Attribute.fromValue(documentNumber)
-                ISSUING_COUNTRY -> Attribute.fromValue(issuingCountry)
-                ISSUING_JURISDICTION -> Attribute.fromValue(issuingJurisdiction)
-                else -> null
-            }
-
-            else -> null
-        }
-    }
+    override fun getAttribute(
+        path: NormalizedJsonPath
+    ) = PowerOfRepresentationCredentialSdJwtClaimDefinitionResolver().resolveOrNull(
+        path
+    )?.toAttribute()
 
     abstract val legalPersonIdentifier: String?
     abstract val legalName: String?
@@ -78,6 +59,25 @@ sealed class PowerOfRepresentationCredentialAdapter : CredentialAdapter() {
                 else -> TODO("Operation not yet supported")
             }
         }
+    }
+
+    private fun PowerOfRepresentationCredentialClaimDefinition.toAttribute() = when (this) {
+        PowerOfRepresentationCredentialClaimDefinition.LEGAL_PERSON_IDENTIFIER -> Attribute.fromValue(
+            legalPersonIdentifier
+        )
+
+        PowerOfRepresentationCredentialClaimDefinition.LEGAL_NAME -> Attribute.fromValue(legalName)
+        PowerOfRepresentationCredentialClaimDefinition.FULL_POWERS -> Attribute.fromValue(fullPowers)
+        PowerOfRepresentationCredentialClaimDefinition.E_SERVICE -> Attribute.fromValue(eService)
+        PowerOfRepresentationCredentialClaimDefinition.EFFECTIVE_FROM_DATE -> Attribute.fromValue(effectiveFromDate)
+        PowerOfRepresentationCredentialClaimDefinition.EFFECTIVE_UNTIL_DATE -> Attribute.fromValue(effectiveUntilDate)
+        PowerOfRepresentationCredentialClaimDefinition.ADMINISTRATIVE_NUMBER -> Attribute.fromValue(administrativeNumber)
+        PowerOfRepresentationCredentialClaimDefinition.ISSUANCE_DATE -> Attribute.fromValue(issuanceDate)
+        PowerOfRepresentationCredentialClaimDefinition.EXPIRY_DATE -> Attribute.fromValue(expiryDate)
+        PowerOfRepresentationCredentialClaimDefinition.ISSUING_AUTHORITY -> Attribute.fromValue(issuingAuthority)
+        PowerOfRepresentationCredentialClaimDefinition.DOCUMENT_NUMBER -> Attribute.fromValue(documentNumber)
+        PowerOfRepresentationCredentialClaimDefinition.ISSUING_COUNTRY -> Attribute.fromValue(issuingCountry)
+        PowerOfRepresentationCredentialClaimDefinition.ISSUING_JURISDICTION -> Attribute.fromValue(issuingJurisdiction)
     }
 }
 

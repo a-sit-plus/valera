@@ -26,7 +26,7 @@ fun SubjectCredentialStore.StoreEntry.toCredentialAdapter(
 ): CredentialAdapter? = when (scheme) {
     is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialAdapter.createFromStoreEntry(this)
     is CompanyRegistrationScheme -> CompanyRegistrationCredentialAdapter.createFromStoreEntry(this)
-    is EuPidScheme -> EuPidCredentialAdapter.createFromStoreEntry(this, decodePortrait = decodeImage)
+    is EuPidScheme,
     is EuPidSdJwtScheme -> EuPidCredentialAdapter.createFromStoreEntry(this, decodePortrait = decodeImage)
     is HealthIdScheme -> HealthIdCredentialAdapter.createFromStoreEntry(this)
     is IdAustriaScheme -> IdAustriaCredentialAdapter.createFromStoreEntry(this, decodeImage = decodeImage)
