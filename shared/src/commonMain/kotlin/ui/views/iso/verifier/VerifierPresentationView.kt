@@ -19,6 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.error_mdl_driving_privilege_category_expired
+import at.asitplus.valera.resources.error_mdl_driving_privilege_category_not_yet_valid
 import at.asitplus.valera.resources.heading_label_received_data
 import at.asitplus.valera.resources.info_text_credential_status_valid
 import at.asitplus.wallet.app.common.decodeImage
@@ -28,14 +30,19 @@ import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.healthid.HealthIdScheme
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.IsoDocumentParsed
+import at.asitplus.wallet.mdl.DrivingPrivilege
+import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.credentials.EuPidCredentialIsoMdocAdapter
 import data.credentials.HealthIdCredentialIsoMdocAdapter
 import data.credentials.MobileDrivingLicenceCredentialIsoMdocAdapter
+import data.document.DrivingPrivilegeValidator
+import data.document.DrivingPrivilegeValidator.getDrivingPrivilegeStatus
 import data.document.RequestDocumentBuilder
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.BigSuccessText
+import ui.composables.ErrorText
 import ui.composables.LabeledText
 import ui.composables.Logo
 import ui.composables.PersonAttributeDetailCardHeading
@@ -115,8 +122,7 @@ fun IsoMdocCredentialView(
                 .sortedBy { it.value.elementIdentifier }
                 .associate { it.value.elementIdentifier to it.value.elementValue }
             val namespaces = mapOf(namespaceKey to sortedEntries)
-            val scheme =
-                RequestDocumentBuilder.getDocTypeConfig(isoDocParsed.document.docType)?.scheme
+            val scheme = RequestDocumentBuilder.getDocTypeConfig(isoDocParsed.document.docType)?.scheme
 
             PersonAttributeDetailCardHeading(
                 icon = { PersonAttributeDetailCardHeadingIcon(scheme.iconLabel()) },
@@ -129,9 +135,23 @@ fun IsoMdocCredentialView(
             )
 
             when (scheme) {
-                is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialViewFromAdapter(
-                    MobileDrivingLicenceCredentialIsoMdocAdapter(namespaces, decodeImage)
-                )
+                is MobileDrivingLicenceScheme -> {
+                    MobileDrivingLicenceCredentialViewFromAdapter(
+                        MobileDrivingLicenceCredentialIsoMdocAdapter(namespaces, decodeImage)
+                    )
+                    val namespace = namespaces[MobileDrivingLicenceScheme.isoNamespace]
+                    val drivingPrivileges = namespace?.get(MobileDrivingLicenceDataElements.DRIVING_PRIVILEGES)
+                        ?.let { it as? Array<DrivingPrivilege> }
+                    drivingPrivileges?.forEach {
+                        when(getDrivingPrivilegeStatus(it)) {
+                            DrivingPrivilegeValidator.Status.EXPIRED ->
+                                ErrorText(stringResource(Res.string.error_mdl_driving_privilege_category_expired, it.vehicleCategoryCode))
+                            DrivingPrivilegeValidator.Status.NOT_YET_VALID ->
+                                ErrorText(stringResource(Res.string.error_mdl_driving_privilege_category_not_yet_valid, it.vehicleCategoryCode))
+                            DrivingPrivilegeValidator.Status.VALID -> {}
+                        }
+                    }
+                }
                 is EuPidScheme -> EuPidCredentialViewFromAdapter(
                     EuPidCredentialIsoMdocAdapter(namespaces, decodeImage, scheme)
                 )
