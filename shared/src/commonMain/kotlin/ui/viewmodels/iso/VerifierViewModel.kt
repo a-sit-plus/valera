@@ -2,6 +2,8 @@ package ui.viewmodels.iso
 
 import at.asitplus.KmmResult
 import at.asitplus.iso.DeviceResponse
+import at.asitplus.iso.Document
+import at.asitplus.iso.MobileSecurityObject
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
@@ -11,12 +13,9 @@ import at.asitplus.wallet.app.common.iso.transfer.TransferManager
 import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.agent.Verifier.VerifyPresentationResult
 import at.asitplus.wallet.lib.agent.VerifierAgent
-import at.asitplus.wallet.lib.iso.DeviceResponse
-import at.asitplus.wallet.lib.iso.Document
-import at.asitplus.wallet.lib.iso.MobileSecurityObject
+import at.asitplus.wallet.lib.data.IsoDocumentParsed
 import data.document.RequestDocumentBuilder
 import data.document.RequestDocumentList
-import data.document.ResponseDocumentSummary
 import data.document.SelectableRequest
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
@@ -43,11 +42,8 @@ class VerifierViewModel(
 
     private val _requestDocumentList = RequestDocumentList()
 
-    private val _responseDocumentList = mutableListOf<Document>()
-    val responseDocumentList = _responseDocumentList
-
-    private val _responseDocumentSummaryList = MutableStateFlow<List<ResponseDocumentSummary>>(emptyList())
-    val responseDocumentSummaryList: StateFlow<List<ResponseDocumentSummary>> = _responseDocumentSummaryList
+    private val _responseDocumentList = mutableListOf<IsoDocumentParsed>()
+    val responseDocumentList: MutableList<IsoDocumentParsed> = _responseDocumentList
 
     private val _errorMessage = MutableStateFlow("")
     val errorMessage: StateFlow<String> = _errorMessage
@@ -86,28 +82,27 @@ class VerifierViewModel(
     private fun checkResponse(deviceResponse: DeviceResponse) {
         _verifierState.value = VerifierState.CHECK_RESPONSE
         val verifyDocument: suspend (MobileSecurityObject, Document) -> Boolean = { _, doc ->
-            _responseDocumentList.add(doc)
+            // TODO: verification of device authentication
             true
         }
         walletMain.scope.launch(Dispatchers.IO) {
             try {
                 val verifierAgent = VerifierAgent("Proximity Verifier", Validator())
-                when (val result = verifierAgent.verifyPresentationIsoMdoc(deviceResponse, "", verifyDocument)) {
+                when (val result = verifierAgent.verifyPresentationIsoMdoc(deviceResponse, verifyDocument)) {
                     is VerifyPresentationResult.SuccessIso -> {
-                        val responseDocumentSummaries = result.documents.map { doc ->
-                            ResponseDocumentSummary.fromIsoDocumentParsed(doc)
-                        }
-                        _responseDocumentSummaryList.value = responseDocumentSummaries
-                        responseDocumentSummaries.forEach { Napier.d(it.toString()) }
+                        responseDocumentList.addAll(result.documents)
                         _verifierState.value = VerifierState.PRESENTATION
                     }
-                    is VerifyPresentationResult.InvalidStructure,
+                    is VerifyPresentationResult.InvalidStructure -> {
+                        handleError("Verification failed: InvalidStructure\ninput = ${result.input}")
+                        return@launch
+                    }
                     is VerifyPresentationResult.ValidationError -> {
-                        handleError("Verification failed: ${result::class.simpleName}")
+                        handleError("Verification failed: ValidationError\n ${result.cause}")
                         return@launch
                     }
                     else -> {
-                        handleError("Unsupported verification result: ${result::class.simpleName}")
+                        handleError("Unsupported verification result")
                         return@launch
                     }
                 }
