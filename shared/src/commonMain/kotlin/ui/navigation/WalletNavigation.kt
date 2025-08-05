@@ -184,7 +184,6 @@ private fun WalletNavHost(
     settingsRepository: SettingsRepository = koinInject(),
     koinScope: Scope,
 ) {
-    val currentHost by settingsRepository.host.collectAsState("")
     NavHost(
         navController = navController,
         startDestination = startDestination,
