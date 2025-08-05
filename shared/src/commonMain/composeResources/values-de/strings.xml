@@ -468,4 +468,6 @@
     <string name="text_label_requests">Anfragen</string>
     <string name="info_text_no_requests">Keine Anfragen</string>
     <string name="info_text_credential_status_valid">GÜLTIG</string>
+    <string name="error_mdl_driving_privilege_category_expired">Der Führerschein der Kategorie %1$s ist abgelaufen</string>
+    <string name="error_mdl_driving_privilege_category_not_yet_valid">Der Führerschein der Kategorie %1$s ist noch nicht gültig</string>
 </resources>

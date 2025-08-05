@@ -459,4 +459,6 @@
     <string name="text_label_requests">Requests</string>
     <string name="info_text_no_requests">No requests</string>
     <string name="info_text_credential_status_valid">VALID</string>
+    <string name="error_mdl_driving_privilege_category_expired">The driving privilege of category %1$s is expired</string>
+    <string name="error_mdl_driving_privilege_category_not_yet_valid">The driving privilege of category %1$s is not yet valid</string>
 </resources>
