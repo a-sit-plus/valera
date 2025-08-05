@@ -27,14 +27,12 @@ import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLa
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.healthid.HealthIdScheme
 import at.asitplus.wallet.lib.data.ConstantIndex
-import at.asitplus.wallet.lib.data.ConstantIndex.CredentialScheme
+import at.asitplus.wallet.lib.data.IsoDocumentParsed
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.credentials.EuPidCredentialIsoMdocAdapter
 import data.credentials.HealthIdCredentialIsoMdocAdapter
 import data.credentials.MobileDrivingLicenceCredentialIsoMdocAdapter
 import data.document.RequestDocumentBuilder
-import data.document.ResponseDocumentSummary
-import data.document.getSummaryForDocType
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.BigSuccessText
@@ -82,16 +80,8 @@ fun VerifierPresentationView(vm: VerifierViewModel) {
                 modifier = Modifier.verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.Start
             ) {
-                vm.responseDocumentList.forEach { doc ->
-                    doc.issuerSigned.namespaces?.forEach { (namespaceKey, entries) ->
-                        val scheme = RequestDocumentBuilder.getDocTypeConfig(doc.docType)?.scheme
-                        val sortedEntries = entries.entries
-                            .sortedBy { it.value.elementIdentifier }
-                            .associate { it.value.elementIdentifier to it.value.elementValue }
-                        val namespaces = mapOf(namespaceKey to sortedEntries)
-                        val responseDocumentSummary = getSummaryForDocType(vm.responseDocumentSummaryList.value, doc.docType)!!
-                        IsoMdocCredentialViewForScheme(scheme, namespaces, decodeImage, responseDocumentSummary)
-                    }
+                vm.responseDocumentList.forEach { isoDocParsed ->
+                    IsoMdocCredentialView(isoDocParsed, decodeImage)
                 }
             }
         }
@@ -99,17 +89,15 @@ fun VerifierPresentationView(vm: VerifierViewModel) {
 }
 
 @Composable
-fun IsoMdocCredentialViewForScheme(
-    scheme: CredentialScheme?,
-    namespaces: Map<String, Map<String, Any>>,
-    decodeImage: (ByteArray) -> Result<ImageBitmap>,
-    responseDocumentSummary: ResponseDocumentSummary
+fun IsoMdocCredentialView(
+    isoDocParsed: IsoDocumentParsed,
+    decodeImage: (ByteArray) -> Result<ImageBitmap>
 ) {
-    val extendedColors = LocalExtendedColors.current
-    val credentialStatusValid = responseDocumentSummary.isValid
+    val isCredentialFresh = isoDocParsed.freshnessSummary.isFresh
 
     CredentialCardLayout(
-        colors = if (credentialStatusValid) {
+        colors = if (isCredentialFresh) {
+            val extendedColors = LocalExtendedColors.current
             CardDefaults.elevatedCardColors(
                 containerColor = extendedColors.successContainer,
                 contentColor = extendedColors.onSuccessContainer
@@ -122,33 +110,43 @@ fun IsoMdocCredentialViewForScheme(
         },
         modifier = Modifier.padding(end = 16.dp, start = 16.dp, bottom = 16.dp)
     ) {
-        PersonAttributeDetailCardHeading(
-            icon = { PersonAttributeDetailCardHeadingIcon(scheme.iconLabel()) },
-            title = {
-                LabeledText(
-                    label = ConstantIndex.CredentialRepresentation.ISO_MDOC.uiLabel(),
-                    text = scheme.uiLabel()
+        isoDocParsed.document.issuerSigned.namespaces?.forEach { (namespaceKey, entries) ->
+            val sortedEntries = entries.entries
+                .sortedBy { it.value.elementIdentifier }
+                .associate { it.value.elementIdentifier to it.value.elementValue }
+            val namespaces = mapOf(namespaceKey to sortedEntries)
+            val scheme =
+                RequestDocumentBuilder.getDocTypeConfig(isoDocParsed.document.docType)?.scheme
+
+            PersonAttributeDetailCardHeading(
+                icon = { PersonAttributeDetailCardHeadingIcon(scheme.iconLabel()) },
+                title = {
+                    LabeledText(
+                        label = ConstantIndex.CredentialRepresentation.ISO_MDOC.uiLabel(),
+                        text = scheme.uiLabel()
+                    )
+                }
+            )
+
+            when (scheme) {
+                is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialViewFromAdapter(
+                    MobileDrivingLicenceCredentialIsoMdocAdapter(namespaces, decodeImage)
                 )
+                is EuPidScheme -> EuPidCredentialViewFromAdapter(
+                    EuPidCredentialIsoMdocAdapter(namespaces, decodeImage, scheme)
+                )
+                is HealthIdScheme -> HealthIdViewFromAdapter(
+                    HealthIdCredentialIsoMdocAdapter(namespaces)
+                )
+                else -> throw IllegalArgumentException("Unsupported scheme: $scheme")
             }
-        )
-        when (scheme) {
-            is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialViewFromAdapter(
-                MobileDrivingLicenceCredentialIsoMdocAdapter(namespaces, decodeImage)
-            )
-            is EuPidScheme -> EuPidCredentialViewFromAdapter(
-                EuPidCredentialIsoMdocAdapter(namespaces, decodeImage, scheme)
-            )
-            is HealthIdScheme -> HealthIdViewFromAdapter(
-                HealthIdCredentialIsoMdocAdapter(namespaces)
-            )
-            else -> throw IllegalArgumentException("Unsupported scheme: $scheme")
         }
 
-        if (credentialStatusValid) {
+        if (isCredentialFresh) {
             BigSuccessText(stringResource(Res.string.info_text_credential_status_valid))
         } else {
             MainCredentialIssue(
-                responseDocumentSummary.freshnessSummary.toCredentialFreshnessSummaryModel()
+                isoDocParsed.freshnessSummary.toCredentialFreshnessSummaryModel()
             )
         }
     }
