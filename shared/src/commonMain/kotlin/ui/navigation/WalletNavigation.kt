@@ -180,7 +180,6 @@ private fun WalletNavHost(
     onClickLogo: () -> Unit,
     onError: (Throwable) -> Unit,
     walletMain: WalletMain,
-    intentService: IntentService = koinInject(),
     settingsRepository: SettingsRepository = koinInject(),
     koinScope: Scope,
 ) {
