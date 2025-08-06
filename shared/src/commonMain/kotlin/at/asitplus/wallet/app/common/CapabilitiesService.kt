@@ -4,7 +4,6 @@ import at.asitplus.catchingUnwrapped
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.runBlocking
 
 class CapabilitiesService(
     val keyStoreService: KeystoreService,
@@ -19,16 +18,16 @@ class CapabilitiesService(
         attestationStatus.emit(getAttestationStatus())
     }
 
-    fun getSignerStatus(): Boolean = runBlocking { keyStoreService.testSigner() }
+    suspend fun getSignerStatus() = keyStoreService.testSigner()
 
-    fun getOnlineStatus() = runBlocking {
+    suspend fun getOnlineStatus() =
         catchingUnwrapped {
             val httpClient = HttpClient()
             val host = "https://wallet.a-sit.at/"
             val url = "${host}check.json"
             httpClient.get(url)
         }.isSuccess
-    }
 
-    fun getAttestationStatus(): Boolean = runBlocking { keyStoreService.testAttestation() }
+
+    suspend fun getAttestationStatus() = keyStoreService.testAttestation()
 }
