@@ -45,6 +45,7 @@ kotlin {
             implementation(compose.components.resources)
             implementation(compose.runtime)
             implementation(compose.foundation)
+            implementation(libs.back.handler)
             implementation(compose.material3)
             implementation(compose.materialIconsExtended)
             implementation("at.asitplus.wallet:vck-rqes:$vckVersion")

@@ -13,7 +13,9 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.*
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.platform.testTag
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -169,6 +171,7 @@ fun WalletNavigation(
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun WalletNavHost(
     navController: NavHostController,
@@ -779,6 +782,14 @@ private fun WalletNavHost(
                     mode = backStackEntry.toRoute<QrCodeScannerRoute>().mode
                 )
             })
+        }
+        composable<CapabilitiesRoute> { backStackEntry ->
+            BackHandler(true) {}
+            CapabilityView(
+                koinScope = koinScope,
+                onClickLogo = onClickLogo,
+                onClickSettings = { navigate(SettingsRoute) }
+            )
         }
     }
 }

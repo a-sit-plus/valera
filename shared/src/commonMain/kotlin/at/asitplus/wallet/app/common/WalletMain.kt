@@ -53,6 +53,7 @@ class WalletMain(
     val snackbarService: SnackbarService,
     val settingsRepository: SettingsRepository,
     val sessionService: SessionService,
+    val capabilitiesService: CapabilitiesService,
 ) {
     val appReady = MutableStateFlow<Boolean?>(null)
 

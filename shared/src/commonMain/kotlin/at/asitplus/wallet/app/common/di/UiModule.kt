@@ -5,6 +5,7 @@ import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 import ui.viewmodels.AddCredentialViewModel
+import ui.viewmodels.CapabilitiesViewModel
 import ui.viewmodels.CredentialsViewModel
 import ui.viewmodels.SettingsViewModel
 import ui.viewmodels.authentication.AuthenticationSuccessViewModel
@@ -18,4 +19,5 @@ fun uiModule() = module {
     viewModelOf(::ShowQrCodeViewModel)
     viewModelOf(::AuthenticationSuccessViewModel)
     viewModelOf(::AddCredentialViewModel)
+    viewModelOf(::CapabilitiesViewModel)
 }
