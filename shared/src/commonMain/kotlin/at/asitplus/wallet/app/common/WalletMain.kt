@@ -87,6 +87,12 @@ class WalletMain(
         sessionService.newScope()
     }
 
+    fun softReset() {
+        appReady.value = false
+        KeystoreService.clearKeyMaterial()
+        sessionService.newScope()
+    }
+
     fun getLog(): List<String> {
         val rawLog = platformAdapter.readFromFile("log.txt", "logs")
         return rawLog?.split(regex = regex)?.filter { it.isNotEmpty() } ?: listOf("")
