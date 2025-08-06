@@ -16,8 +16,9 @@ import ui.navigation.IntentService
 fun appModule(appDependencyProvider: WalletDependencyProvider) = module {
     scope(named(SESSION_NAME)) {
         scopedOf(::WalletMain)
+        scopedOf(::ErrorService)
+
     }
-    singleOf(::ErrorService)
     singleOf(::IntentService)
     singleOf(::SessionService)
     includes(dataModule())
