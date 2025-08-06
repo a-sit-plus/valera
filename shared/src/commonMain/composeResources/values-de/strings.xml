@@ -471,6 +471,6 @@
     <!-- Device capabilities -->
     <string name="info_text_no_internet">Bitte prüfen Sie Ihre Internetverbindung und aktivieren Sie in den Systemeinstellungen gegebenenfalls mobile Daten oder deaktivieren Sie den Flugmodus.</string>
     <string name="info_text_no_signing">Auf diesem Gerät ist das Auslösen von Signaturen derzeit nicht möglich. Prüfen Sie in den Einstellungen, ob eine Displaysperre aktiviert und ein Fingerabdruck oder Face ID hinterlegt ist.</string>
-    <string name="info_text_no_attestation">Auf diesem Gerät ist das Attestieren nicht möglich.</string>
+    <string name="info_text_no_attestation">Die Attestierung dieses Geräts ist nicht möglich. Möglicherweise schafft ein Betriebssystem-Update Abhilfe.</string>
 
 </resources>
