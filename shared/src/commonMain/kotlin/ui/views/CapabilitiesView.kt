@@ -20,6 +20,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.capabilities_heading_attestation
+import at.asitplus.valera.resources.capabilities_heading_internet
+import at.asitplus.valera.resources.capabilities_heading_signing
 import at.asitplus.valera.resources.content_description_navigate_to_settings
 import at.asitplus.valera.resources.heading_label_capabilities
 import at.asitplus.valera.resources.info_text_no_attestation
@@ -68,17 +71,17 @@ fun CapabilityView(
                 modifier = Modifier.fillMaxWidth().padding(top = 16.dp, start = 15.dp, end = 15.dp),
             ) {
                 CapabilityCard(
-                    "Signing", vm.getSignerCheck(), stringResource(Res.string.info_text_no_signing)
+                    stringResource(Res.string.capabilities_heading_signing), vm.getSignerCheck(), stringResource(Res.string.info_text_no_signing)
                 )
                 Spacer(Modifier.height(15.dp))
                 CapabilityCard(
-                    "Attestation",
+                    stringResource(Res.string.capabilities_heading_attestation),
                     vm.getAttestationCheck(),
                     stringResource(Res.string.info_text_no_attestation)
                 )
                 Spacer(Modifier.height(15.dp))
                 CapabilityCard(
-                    "Internet", vm.isOnlineCheck(), stringResource(Res.string.info_text_no_internet)
+                    stringResource(Res.string.capabilities_heading_internet), vm.isOnlineCheck(), stringResource(Res.string.info_text_no_internet)
                 )
                 Spacer(Modifier.height(15.dp))
             }

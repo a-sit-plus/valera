@@ -464,6 +464,10 @@
     <string name="error_mdl_driving_privilege_category_not_yet_valid">The driving privilege of category %1$s is not yet valid</string>
 
     <!-- Device capabilities -->
+    <string name="capabilities_heading_signing">Signing</string>
+    <string name="capabilities_heading_attestation">Attestation</string>
+    <string name="capabilities_heading_internet">Internet</string>
+
     <string name="info_text_no_internet">Ensure that you have an active internet connection. Adjust features such as mobile data or airplane mode in your system settings accordingly.</string>
     <string name="info_text_no_signing">Signatures cannot currently be triggered on this device. Please ensure that a screen lock is set and that a fingerprint or face ID is registered.</string>
     <string name="info_text_no_attestation">This device is not capable of attestation. An operating system update may change this.</string>
