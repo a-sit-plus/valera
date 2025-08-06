@@ -15,5 +15,6 @@ object Configuration {
     const val DEBUG_DATASTORE_VALUE = "DBGVALUE"
     const val KS_ALIAS_OLD = "wallet-supreme-binding-key"
     const val KS_ALIAS = "wallet-binding-sig-enc-key"
+    const val KS_CAPABILITY_ALIAS = "wallet-capabilities-key"
     val BIOMETRIC_TIMEOUT = 15.seconds
 }

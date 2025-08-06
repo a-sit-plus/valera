@@ -278,6 +278,7 @@
     <string name="heading_label_show_qr_code_screen">Scan me!</string>
     <string name="heading_label_received_data">Received Data</string>
     <string name="heading_label_result">Result</string>
+    <string name="heading_label_capabilities">Device capabilities</string>
 
     <string name="heading_label_select_vda">Select VDA</string>
     <string name="heading_label_sign">Sign</string>
@@ -461,4 +462,10 @@
     <string name="info_text_credential_status_valid">VALID</string>
     <string name="error_mdl_driving_privilege_category_expired">The driving privilege of category %1$s is expired</string>
     <string name="error_mdl_driving_privilege_category_not_yet_valid">The driving privilege of category %1$s is not yet valid</string>
+
+    <!-- Device capabilities -->
+    <string name="info_text_no_internet">Ensure that you have an active internet connection. Adjust features such as mobile data or airplane mode in your system settings accordingly.</string>
+    <string name="info_text_no_signing">Signatures cannot currently be triggered on this device. Please ensure that a screen lock is set and that a fingerprint or face ID is registered.</string>
+    <string name="info_text_no_attestation">This device is not capable of attestation.</string>
+
 </resources>

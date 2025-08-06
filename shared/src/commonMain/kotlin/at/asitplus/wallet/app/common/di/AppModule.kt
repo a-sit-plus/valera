@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app.common.di
 
+import at.asitplus.wallet.app.common.CapabilitiesService
 import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.SESSION_NAME
 import at.asitplus.wallet.app.common.SessionService
@@ -21,6 +22,9 @@ fun appModule(appDependencyProvider: WalletDependencyProvider) = module {
     }
     singleOf(::IntentService)
     singleOf(::SessionService)
+    single<CapabilitiesService> {
+        CapabilitiesService(appDependencyProvider.keystoreService)
+    }
     includes(dataModule())
     includes(uiModule())
     includes(domainModule(appDependencyProvider))

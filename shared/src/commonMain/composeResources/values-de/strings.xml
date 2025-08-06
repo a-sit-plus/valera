@@ -281,6 +281,7 @@
     <string name="heading_label_sign">Signieren</string>
     <string name="heading_label_tech_demo">Tech Demo</string>
     <string name="heading_label_result">Ergebnis</string>
+    <string name="heading_label_capabilities">Gerätefunktionen</string>
 
     <string name="biometric_authentication_prompt_for_data_transmission_consent_title">Daten vorzeigen</string>
     <string name="biometric_authentication_prompt_to_load_data_title">Daten laden</string>
@@ -470,4 +471,10 @@
     <string name="info_text_credential_status_valid">GÜLTIG</string>
     <string name="error_mdl_driving_privilege_category_expired">Der Führerschein der Kategorie %1$s ist abgelaufen</string>
     <string name="error_mdl_driving_privilege_category_not_yet_valid">Der Führerschein der Kategorie %1$s ist noch nicht gültig</string>
+
+    <!-- Device capabilities -->
+    <string name="info_text_no_internet">Bitte prüfen Sie Ihre Internetverbindung und aktivieren Sie in den Systemeinstellungen gegebenenfalls mobile Daten oder deaktivieren Sie den Flugmodus.</string>
+    <string name="info_text_no_signing">Auf diesem Gerät ist das Auslösen von Signaturen derzeit nicht möglich. Prüfen Sie in den Einstellungen, ob eine Displaysperre aktiviert und ein Fingerabdruck oder Face ID hinterlegt ist.</string>
+    <string name="info_text_no_attestation">Auf diesem Gerät ist das Attestieren nicht möglich.</string>
+
 </resources>
