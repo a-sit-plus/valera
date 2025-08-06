@@ -788,7 +788,15 @@ private fun WalletNavHost(
             CapabilityView(
                 koinScope = koinScope,
                 onClickLogo = onClickLogo,
-                onClickSettings = { navigate(SettingsRoute) }
+                onClickSettings = { navigate(SettingsRoute) },
+                onClickContinue = {
+                    walletMain.scope.launch {
+                        walletMain.resetApp()
+                        val resetMessage = getString(Res.string.snackbar_reset_app_successfully)
+                        walletMain.snackbarService.showSnackbar(resetMessage)
+                        popBackStack(OnboardingStartRoute)
+                    }
+                }
             )
         }
     }

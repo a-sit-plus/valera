@@ -468,8 +468,9 @@
     <string name="capabilities_heading_attestation">Attestation</string>
     <string name="capabilities_heading_internet">Internet</string>
 
-    <string name="info_text_no_internet">Ensure that you have an active internet connection. Adjust features such as mobile data or airplane mode in your system settings accordingly.</string>
-    <string name="info_text_no_signing">Signatures cannot currently be triggered on this device. Please ensure that a screen lock is set and that a fingerprint or face ID is registered.</string>
-    <string name="info_text_no_attestation">This device is not capable of attestation. An operating system update may change this.</string>
-
+    <string name="info_text_capabilities_no_internet">Ensure that you have an active internet connection. Adjust features such as mobile data or airplane mode in your system settings accordingly.</string>
+    <string name="info_text_capabilities_no_signing">Signatures cannot currently be triggered on this device. Please ensure that a screen lock is set and that a fingerprint or face ID is registered.</string>
+    <string name="info_text_capabilities_no_attestation">This device is not capable of attestation. An operating system update may change this.</string>
+    <string name="info_text_capabilities_missing_capabilities">Your device currently does not support all features.</string>
+    <string name="info_text_capabilities_continue">Please adjust the settings accordingly to continue.</string>
 </resources>
