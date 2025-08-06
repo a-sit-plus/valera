@@ -126,12 +126,11 @@ fun WalletNavigation(
                 popBackStack(HomeScreenRoute)
                 errorService.emit(e)
             },
-            walletMain,
             koinScope = koinScope
         )
     }
 
-    LaunchedEffect(null) {
+    LaunchedEffect(koinScope) {
         this.launch {
             Globals.appLink.combineTransform(walletMain.appReady) { link, ready ->
                 if (ready == true && link != null) {
@@ -179,10 +178,11 @@ private fun WalletNavHost(
     popBackStack: (Route) -> Unit,
     onClickLogo: () -> Unit,
     onError: (Throwable) -> Unit,
-    walletMain: WalletMain,
+    koinScope: Scope,
+    walletMain: WalletMain = koinInject(scope = koinScope),
     intentService: IntentService = koinInject(),
     settingsRepository: SettingsRepository = koinInject(),
-    koinScope: Scope,
+
 ) {
     val currentHost by settingsRepository.host.collectAsState("")
     NavHost(
@@ -231,7 +231,7 @@ private fun WalletNavHost(
                 },
                 koinScope = koinScope
             )
-            LaunchedEffect(null) {
+            LaunchedEffect(koinScope) {
                 walletMain.scope.launch {
                     walletMain.appReady.emit(true)
                 }

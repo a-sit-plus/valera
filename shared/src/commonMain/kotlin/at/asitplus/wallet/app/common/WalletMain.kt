@@ -82,6 +82,7 @@ class WalletMain(
         KeystoreService.clearKeyMaterial()
 
         settingsRepository.reset()
+        appReady.value = false
         sessionService.newScope()
     }
 
