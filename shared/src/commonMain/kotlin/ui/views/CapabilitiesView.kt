@@ -63,7 +63,7 @@ fun CapabilityView(
     val attestationStatus = vm.capabilitiesService.attestationStatus.collectAsState(null)
     val onlineStatus = vm.capabilitiesService.onlineStatus.collectAsState(null)
 
-    val workingStatus = (attestationStatus.value == true && signerStatus.value == true && onlineStatus.value == true)
+    val workingStatus = (attestationStatus.value == true && signerStatus.value == true)
 
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         runBlocking { vm.capabilitiesService.refreshStatus() }

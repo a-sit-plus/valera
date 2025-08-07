@@ -103,13 +103,7 @@ fun WalletNavigation(
         urlOpener("https://wallet.a-sit.at/")
     }
 
-    val isConditionsAccepted = settingsRepository.isConditionsAccepted.collectAsState(null)
-
-    val startDestination = when (isConditionsAccepted.value) {
-        true -> HomeScreenRoute
-        false -> OnboardingStartRoute
-        null -> LoadingRoute
-    }
+    val startDestination = InitializationRoute
 
     Scaffold(
         snackbarHost = {
@@ -197,6 +191,20 @@ private fun WalletNavHost(
             .fillMaxSize()
             .windowInsetsPadding(WindowInsets.safeDrawing)
     ) {
+        composable<InitializationRoute> {
+            InitializationView(
+                koinScope = koinScope,
+                navigateOnboarding = {
+                    navigate(OnboardingStartRoute)
+                },
+                navigateHomeScreen = {
+                    navigate(HomeScreenRoute)
+                },
+                navigateCapabilities = {
+                    navigate(CapabilitiesRoute)
+                }
+            )
+        }
         composable<OnboardingStartRoute> {
             catchingUnwrapped { KeystoreService.checkKeyMaterialValid() }.onFailure { Napier.d(it) { "Deleted old Key" } }
             OnboardingStartView(
@@ -209,6 +217,7 @@ private fun WalletNavHost(
             OnboardingInformationView(
                 onClickContinue = {
                     settingsRepository.set(isConditionsAccepted = true)
+                    navigate(InitializationRoute)
                 },
                 onClickLogo = onClickLogo
             )
@@ -560,6 +569,7 @@ private fun WalletNavHost(
                 onClickFAQs = null,
                 onClickDataProtectionPolicy = null,
                 onClickLicenses = null,
+                onReset = { popBackStack(InitializationRoute) },
                 koinScope = koinScope
             )
         }
@@ -585,7 +595,7 @@ private fun WalletNavHost(
                                 walletMain.resetApp()
                                 val resetMessage = getString(Res.string.snackbar_reset_app_successfully)
                                 walletMain.snackbarService.showSnackbar(resetMessage)
-                                popBackStack(HomeScreenRoute)
+                                popBackStack(InitializationRoute)
                             }
                         },
                         throwable = it.throwable,
@@ -792,7 +802,7 @@ private fun WalletNavHost(
                 onClickContinue = {
                     walletMain.scope.launch {
                         walletMain.softReset()
-                        popBackStack(HomeScreenRoute)
+                        popBackStack(InitializationRoute)
                     }
                 }
             )

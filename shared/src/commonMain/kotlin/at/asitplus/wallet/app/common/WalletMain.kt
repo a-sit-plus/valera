@@ -70,12 +70,16 @@ class WalletMain(
 
     init {
         startListeningForNewCredentialsDCAPI()
+        if (keyMaterial.keyMaterial is FallBackKeyMaterial) {
+            Napier.e("FallBackKeyMaterial: ${keyMaterial.keyMaterial.reason}")
+        }
     }
 
     suspend fun resetApp() {
         dataStoreService.clearLog()
         subjectCredentialStore.reset()
         signingService.reset()
+        capabilitiesService.reset()
 
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_VCS)
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT)
