@@ -355,6 +355,7 @@
     <string name="info_text_qr_code_loading">Loading QR Code</string>
     <string name="info_text_nfc_mdoc_reader">Hold near credential holder's phone.</string>
     <string name="info_text_waiting_for_response">Waiting for response of holder device</string>
+    <string name="info_text_check_response">Check response</string>
     <string name="info_text_demonstrator">This is a demonstrator for wallet technologies which has been produced by A-SIT/A-SIT Plus in the context of the large scale pilot POTENTIAL.</string>
     <string name="info_text_non_productive">This app is not intended for production use!</string>
     <string name="info_text_co_founded_by_eu">Co‑Funded by the \nEuropean Union</string>
@@ -457,4 +458,7 @@
     <string name="text_label_mandatory_attributes">Mandatory Attributes</string>
     <string name="text_label_requests">Requests</string>
     <string name="info_text_no_requests">No requests</string>
+    <string name="info_text_credential_status_valid">VALID</string>
+    <string name="error_mdl_driving_privilege_category_expired">The driving privilege of category %1$s is expired</string>
+    <string name="error_mdl_driving_privilege_category_not_yet_valid">The driving privilege of category %1$s is not yet valid</string>
 </resources>
