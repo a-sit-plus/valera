@@ -11,6 +11,7 @@ object Configuration {
     const val DATASTORE_KEY_PROVISIONING_CONTEXT = "provisioning_context"
     const val DATASTORE_KEY_COOKIES = "cookies"
     const val DATASTORE_SIGNING_CONFIG = "signingConfig"
+    const val DATASTORE_CAPABILITIES_ATTESTATION = "capabilitiesAttestation"
     const val DEBUG_DATASTORE_KEY = "DBGKEY"
     const val DEBUG_DATASTORE_VALUE = "DBGVALUE"
     const val KS_ALIAS_OLD = "wallet-supreme-binding-key"

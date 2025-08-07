@@ -7,6 +7,7 @@ import org.koin.dsl.module
 import ui.viewmodels.AddCredentialViewModel
 import ui.viewmodels.CapabilitiesViewModel
 import ui.viewmodels.CredentialsViewModel
+import ui.viewmodels.InitializationViewModel
 import ui.viewmodels.SettingsViewModel
 import ui.viewmodels.authentication.AuthenticationSuccessViewModel
 import ui.viewmodels.iso.ShowQrCodeViewModel
@@ -20,4 +21,5 @@ fun uiModule() = module {
     viewModelOf(::AuthenticationSuccessViewModel)
     viewModelOf(::AddCredentialViewModel)
     viewModelOf(::CapabilitiesViewModel)
+    viewModelOf(::InitializationViewModel)
 }

@@ -48,10 +48,6 @@ fun App(walletDependencyProvider: WalletDependencyProvider) {
             LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
                 Napier.d("Lifecycle.Event.ON_RESUME")
             }
-            if (walletMain.keyMaterial.keyMaterial is FallBackKeyMaterial) {
-                throw(walletMain.keyMaterial.keyMaterial.reason)
-            }
-
         }.onFailure {
             val errorService: ErrorService = koinInject(scope = koinScope)
             errorService.emit(it)
