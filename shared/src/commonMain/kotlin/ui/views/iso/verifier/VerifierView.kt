@@ -26,7 +26,8 @@ fun VerifierView(
     val verifierState by vm.verifierState.collectAsState()
 
     if (!CapabilityManager.isAnyTransferMethodAvailable()) {
-        vm.handleError(stringResource(Res.string.error_bluetooth_and_nfc_unavailable))
+        // TODO: by improving the capability checks, introduce specific Exception class like InsufficientCapabilityException
+        onError(Throwable(stringResource(Res.string.error_bluetooth_and_nfc_unavailable)))
     }
 
     val blePermissionState = rememberBluetoothPermissionState()
@@ -46,6 +47,6 @@ fun VerifierView(
         VerifierState.CHECK_RESPONSE ->
             LoadingView(stringResource(Res.string.info_text_check_response), vm.navigateUp)
         VerifierState.PRESENTATION -> VerifierPresentationView(vm)
-        VerifierState.ERROR -> onError(Throwable(vm.errorMessage.value))
+        VerifierState.ERROR -> onError(vm.throwable.value!!)
     }
 }
