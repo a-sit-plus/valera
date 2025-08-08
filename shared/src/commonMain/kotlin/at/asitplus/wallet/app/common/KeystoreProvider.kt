@@ -74,7 +74,7 @@ open class KeystoreService(
     @Throws(Throwable::class)
     private suspend fun initSigner(): KeyWithSelfSignedCert = initSigner(Configuration.KS_ALIAS)
 
-    suspend fun testSigner(): Boolean = catchingUnwrapped {
+    open suspend fun testSigner(): Boolean = catchingUnwrapped {
         PlatformSigningProvider.deleteSigningKey(Configuration.KS_CAPABILITY_ALIAS)
         initSigner(Configuration.KS_CAPABILITY_ALIAS)
     }.isSuccess
