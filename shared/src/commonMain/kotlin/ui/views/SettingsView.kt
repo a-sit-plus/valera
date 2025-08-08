@@ -96,6 +96,7 @@ fun SettingsView(
     onClickDataProtectionPolicy: (() -> Unit)?,
     onClickLicenses: (() -> Unit)?,
     koinScope: Scope,
+    onReset: () -> Unit,
     settingsViewModel: SettingsViewModel = koinViewModel(scope = koinScope),
 ) {
     var isLoading by rememberSaveable {
@@ -109,6 +110,7 @@ fun SettingsView(
                 showResetAlert = false
                 isLoading = true
                 settingsViewModel.onClickResetApp {
+                    onReset()
                     isLoading = false
                     if (it != null) {
                         settingsViewModel.showGlobalSnackbar {

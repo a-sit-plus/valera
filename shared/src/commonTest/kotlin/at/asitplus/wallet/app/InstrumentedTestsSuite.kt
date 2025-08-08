@@ -10,6 +10,7 @@ import androidx.compose.runtime.key
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isDisplayed
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -143,7 +144,7 @@ class InstrumentedTestsSuite : FunSpec({
                     }
                 }
 
-                waitUntil {
+                waitUntil(timeoutMillis = 2000) {
                     onNodeWithTag(OnboardingWrapperTestTags.onboardingStartScreen)
                         .isDisplayed()
                 }
@@ -162,6 +163,10 @@ class InstrumentedTestsSuite : FunSpec({
                         App(createWalletDependencyProvider(getPlatformAdapter()))
                     }
                 }
+                waitUntil(timeoutMillis = 2000) {
+                    onNodeWithTag(OnboardingWrapperTestTags.onboardingStartScreen)
+                        .isDisplayed()
+                }
 
                 onNodeWithTag(OnboardingWrapperTestTags.onboardingStartScreen)
                     .assertIsDisplayed()
@@ -179,7 +184,7 @@ class InstrumentedTestsSuite : FunSpec({
                     }
                 }
 
-                waitUntil {
+                waitUntil(timeoutMillis = 2000) {
                     onNodeWithTag(OnboardingWrapperTestTags.onboardingStartScreen)
                         .isDisplayed()
                 }
@@ -204,9 +209,10 @@ class InstrumentedTestsSuite : FunSpec({
             runBlocking {
                 waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_start)))
                 onNodeWithText(getString(Res.string.button_label_start)).performClick()
+                waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_continue)))
                 onNodeWithText(getString(Res.string.button_label_continue)).performClick()
-                waitUntilDoesNotExist(
-                    hasText(getString(Res.string.button_label_continue)),
+                waitUntilExactlyOneExists(
+                    hasContentDescription(getString(Res.string.content_description_navigate_to_settings)),
                     10000
                 )
 
@@ -258,10 +264,11 @@ class InstrumentedTestsSuite : FunSpec({
                 runBlocking {
                     waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_start)))
                     onNodeWithText(getString(Res.string.button_label_start)).performClick()
+                    waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_continue)))
                     onNodeWithText(getString(Res.string.button_label_continue)).performClick()
-                    waitUntilDoesNotExist(
-                        hasText(getString(Res.string.button_label_continue)),
-                        10000
+                    waitUntilExactlyOneExists(
+                        hasContentDescription(getString(Res.string.content_description_portrait)),
+                        20000
                     )
 
                     onNodeWithContentDescription(getString(Res.string.content_description_portrait))
@@ -368,6 +375,7 @@ private fun createWalletDependencyProvider(platformAdapter: PlatformAdapter): Wa
     val dummyDataStoreService = DummyDataStoreService()
     val ks = object : KeystoreService(dummyDataStoreService) {
         override suspend fun getSigner(): KeyMaterial = EphemeralKeyWithSelfSignedCert()
+        override suspend fun testSigner(): Boolean = true
     }
     return WalletDependencyProvider(
         keystoreService = ks,

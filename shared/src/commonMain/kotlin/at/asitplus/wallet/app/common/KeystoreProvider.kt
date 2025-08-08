@@ -11,7 +11,6 @@ import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.signum.supreme.SignatureResult
 import at.asitplus.signum.supreme.dsl.PREFERRED
 import at.asitplus.signum.supreme.os.PlatformSigningProvider
-import at.asitplus.signum.supreme.os.SigningProvider
 import at.asitplus.signum.supreme.sign.SignatureInput
 import at.asitplus.signum.supreme.sign.Signer
 import at.asitplus.wallet.lib.agent.EphemeralKeyWithoutCert
@@ -46,10 +45,10 @@ open class KeystoreService(
     }
 
     @Throws(Throwable::class)
-    private suspend fun initSigner(): KeyWithSelfSignedCert {
+    private suspend fun initSigner(alias: String): KeyWithSelfSignedCert {
         PlatformSigningProvider.let { provider ->
-            val forKey = provider.getSignerForKey(Configuration.KS_ALIAS).getOrElse {
-                provider.createSigningKey(alias = Configuration.KS_ALIAS) {
+            val forKey = provider.getSignerForKey(alias).getOrElse {
+                provider.createSigningKey(alias = alias) {
                     ec {
                         curve = ECCurve.SECP_256_R_1
                         purposes {
@@ -70,9 +69,27 @@ open class KeystoreService(
             }
             return KeyWithPersistentSelfSignedCert(forKey)
         }
-
     }
 
+    @Throws(Throwable::class)
+    private suspend fun initSigner(): KeyWithSelfSignedCert = initSigner(Configuration.KS_ALIAS)
+
+    open suspend fun testSigner(): Boolean = catchingUnwrapped {
+        PlatformSigningProvider.deleteSigningKey(Configuration.KS_CAPABILITY_ALIAS)
+        initSigner(Configuration.KS_CAPABILITY_ALIAS)
+    }.isSuccess
+
+    suspend fun testAttestation() = catchingUnwrapped {
+        PlatformSigningProvider.deleteSigningKey(Configuration.KS_CAPABILITY_ALIAS)
+        PlatformSigningProvider.createSigningKey(Configuration.KS_CAPABILITY_ALIAS) {
+            ec {}
+            hardware {
+                attestation {
+                    this.challenge = "CHALLENGE".encodeToByteArray()
+                }
+            }
+        }.getOrThrow()
+    }.isSuccess
 
     inner class KeyWithPersistentSelfSignedCert(private val signer: Signer) :
         KeyWithSelfSignedCert(listOf()), Signer by signer {
