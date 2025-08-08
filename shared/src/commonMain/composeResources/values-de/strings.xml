@@ -480,7 +480,7 @@
     <string name="info_text_capabilities_no_internet">Bitte prüfen Sie Ihre Internetverbindung und aktivieren Sie in den Systemeinstellungen gegebenenfalls mobile Daten oder deaktivieren Sie den Flugmodus.</string>
     <string name="info_text_capabilities_no_signing">Auf diesem Gerät ist das Auslösen von Signaturen derzeit nicht möglich. Prüfen Sie in den Einstellungen, ob eine Displaysperre aktiviert und ein Fingerabdruck oder Face ID hinterlegt ist.</string>
     <string name="info_text_capabilities_no_attestation">Die Attestierung dieses Geräts ist nicht möglich. Möglicherweise schafft ein Betriebssystem-Update Abhilfe.</string>
-    <string name="info_text_capabilities_no_attestation_ios">In manchen Fällen ist der Attestation Service von Apple nicht erreichbar.</string>
+    <string name="info_text_capabilities_no_attestation_ios">In manchen Fällen ist der Attestation Service von Apple nicht erreichbar. Netzwerkprobleme (z.b. aufgrund einer VPN Verbindung) könnten die Ursache sein.</string>
 
     <string name="info_text_capabilities_missing_capabilities">Ihr Gerät unterstützt zur Zeit nicht alle Funktionen.</string>
     <string name="info_text_capabilities_continue">Passen Sie die Einstellungen an um fortzufahren.</string>
