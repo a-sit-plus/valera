@@ -38,8 +38,10 @@ import at.asitplus.valera.resources.heading_label_capabilities
 import at.asitplus.valera.resources.info_text_capabilities_continue
 import at.asitplus.valera.resources.info_text_capabilities_missing_capabilities
 import at.asitplus.valera.resources.info_text_capabilities_no_attestation
+import at.asitplus.valera.resources.info_text_capabilities_no_attestation_ios
 import at.asitplus.valera.resources.info_text_capabilities_no_internet
 import at.asitplus.valera.resources.info_text_capabilities_no_signing
+import getPlatformName
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -69,64 +71,59 @@ fun CapabilityView(
         runBlocking { vm.capabilitiesService.refreshStatus() }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = {
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    ScreenHeading(
-                        stringResource(Res.string.heading_label_capabilities),
-                        Modifier.weight(1f),
-                    )
-                }
-            }, actions = {
-                Logo(onClick = onClickLogo)
-                Column(modifier = Modifier.clickable(onClick = onClickSettings)) {
-                    Icon(
-                        imageVector = Icons.Outlined.Settings,
-                        contentDescription = stringResource(Res.string.content_description_navigate_to_settings),
-                    )
-                }
-                Spacer(Modifier.width(15.dp))
-            })
-        },
-        bottomBar = {
-            Surface(
-                color = MaterialTheme.colorScheme.surfaceColorAtElevation(
-                    BottomAppBarDefaults.ContainerElevation
+    Scaffold(topBar = {
+        TopAppBar(title = {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                ScreenHeading(
+                    stringResource(Res.string.heading_label_capabilities),
+                    Modifier.weight(1f),
                 )
+            }
+        }, actions = {
+            Logo(onClick = onClickLogo)
+            Column(modifier = Modifier.clickable(onClick = onClickSettings)) {
+                Icon(
+                    imageVector = Icons.Outlined.Settings,
+                    contentDescription = stringResource(Res.string.content_description_navigate_to_settings),
+                )
+            }
+            Spacer(Modifier.width(15.dp))
+        })
+    }, bottomBar = {
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceColorAtElevation(
+                BottomAppBarDefaults.ContainerElevation
+            )
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceEvenly,
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.SpaceEvenly,
-                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                if (!workingStatus) {
+                    Text(
+                        text = stringResource(Res.string.info_text_capabilities_missing_capabilities),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Text(
+                        text = stringResource(Res.string.info_text_capabilities_continue),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
                 ) {
-                    if (!workingStatus) {
-                        Text(
-                            text = stringResource(Res.string.info_text_capabilities_missing_capabilities),
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                        Text(
-                            text = stringResource(Res.string.info_text_capabilities_continue),
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                    }
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
-                    ) {
-                        TextIconButton(
-                            icon = {},
-                            text = {
-                                Text(stringResource(Res.string.button_label_continue))
-                            },
-                            onClick = onClickContinue,
-                            enabled = workingStatus
-                        )
-                    }
+                    TextIconButton(
+                        icon = {}, text = {
+                            Text(stringResource(Res.string.button_label_continue))
+                        }, onClick = onClickContinue, enabled = workingStatus
+                    )
                 }
             }
-        }) { scaffoldPadding ->
+        }
+    }) { scaffoldPadding ->
         Column(
             modifier = Modifier.padding(scaffoldPadding).fillMaxSize(),
         ) {
@@ -142,10 +139,19 @@ fun CapabilityView(
                 }
                 Spacer(Modifier.height(15.dp))
                 attestationStatus.value?.let {
+                    val info = when (getPlatformName()) {
+                        "iOS" -> {
+                            stringResource(Res.string.info_text_capabilities_no_attestation)+
+                                    " " +
+                                    stringResource(Res.string.info_text_capabilities_no_attestation_ios)
+                        }
+
+                        else -> {
+                            stringResource(Res.string.info_text_capabilities_no_attestation)
+                        }
+                    }
                     CapabilityCard(
-                        stringResource(Res.string.capabilities_heading_attestation),
-                        it,
-                        stringResource(Res.string.info_text_capabilities_no_attestation)
+                        stringResource(Res.string.capabilities_heading_attestation), it, info
                     )
                 }
 
