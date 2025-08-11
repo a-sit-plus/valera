@@ -7,17 +7,19 @@ object CapabilityManager {
     private val nfcInfo = NfcInfo()
 
     @Composable
-    fun isBluetoothEnabled(): Boolean {
-        return bluetoothInfo.isBluetoothEnabled()
-    }
+    fun isBluetoothEnabled(): Boolean = bluetoothInfo.isBluetoothEnabled()
 
     @Composable
-    fun isNfcEnabled(): Boolean {
-        return nfcInfo.isNfcEnabled()
-    }
+    fun isNfcEnabled(): Boolean = nfcInfo.isNfcEnabled()
 
     @Composable
-    fun isAnyTransferMethodAvailable(): Boolean {
-        return (isBluetoothEnabled() || isNfcEnabled())
+    fun isAnyTransferMethodAvailable(): Boolean = isBluetoothEnabled() || isNfcEnabled()
+
+    @Composable
+    fun isTransferMethodAvailableForCurrentSettings(
+        isBleSettingOn: Boolean,
+        isNfcSettingOn: Boolean
+    ): Boolean {
+        return (isBleSettingOn && isBluetoothEnabled()) || (isNfcSettingOn && isNfcEnabled())
     }
 }
