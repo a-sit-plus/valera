@@ -269,6 +269,7 @@ private fun WalletNavHost(
                     Globals.presentationStateModel.value = it
                     navigate(LocalPresentationAuthenticationConsentRoute("QR"))
                 },
+                onError = onError,
                 koinScope = koinScope
             )
         }
