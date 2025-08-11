@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_retry
 import at.asitplus.valera.resources.error_bluetooth_and_nfc_unavailable
@@ -42,7 +43,6 @@ import io.github.alexzhirkevich.qrose.options.QrBrush
 import io.github.alexzhirkevich.qrose.options.QrColors
 import io.github.alexzhirkevich.qrose.options.solid
 import io.github.alexzhirkevich.qrose.rememberQrCodePainter
-import kotlinx.coroutines.launch
 import kotlinx.io.bytestring.ByteString
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -65,13 +65,28 @@ fun ShowQrCodeView(
     onNavigateToPresentmentScreen: (PresentationStateModel) -> Unit,
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
+    onError: (Throwable) -> Unit,
     koinScope: Scope,
     vm: ShowQrCodeViewModel = koinViewModel(scope = koinScope),
 ) {
+
+
     val blePermissionState = rememberBluetoothPermissionState()
     val showQrCode = remember { mutableStateOf<ByteString?>(null) }
     val presentationStateModel = remember { vm.presentationStateModel }
     val showQrCodeState by vm.showQrCodeState.collectAsState()
+
+    val bleCentral by vm.bleCentral.collectAsStateWithLifecycle()
+    val blePeripheral by vm.blePeripheral.collectAsStateWithLifecycle()
+    val nfcSetting by vm.nfcSetting.collectAsStateWithLifecycle()
+
+    val bleSettingOn = bleCentral || blePeripheral
+    val nfcSettingOn = nfcSetting
+
+    val bleRequired = bleSettingOn && !nfcSettingOn
+
+    val isBleEnabled = CapabilityManager.isBluetoothEnabled()
+    val isNfcEnabled = CapabilityManager.isNfcEnabled()
 
     Scaffold(
         topBar = {
@@ -105,7 +120,11 @@ fun ShowQrCodeView(
             ) {
                 when (showQrCodeState) {
                     ShowQrCodeState.INIT -> {
-                        if (!CapabilityManager.isAnyTransferMethodAvailable()) {
+                        val isTransferMethodAvailableForCurrentSettings =
+                            CapabilityManager.isTransferMethodAvailableForCurrentSettings(
+                            bleSettingOn, nfcSettingOn
+                        )
+                        if (!isTransferMethodAvailableForCurrentSettings) {
                             vm.setState(ShowQrCodeState.NO_TRANSFER_METHOD_AVAILABLE)
                         } else if (showQrCode.value != null && presentationStateModel.state.collectAsState().value != PresentationStateModel.State.PROCESSING) {
                             vm.setState(ShowQrCodeState.SHOW_QR_CODE)
@@ -127,6 +146,7 @@ fun ShowQrCodeView(
                         }
                     }
 
+                    // Missing BLUETOOTH PERMISSION only !!
                     ShowQrCodeState.MISSING_PERMISSION -> {
                         Column(
                             modifier = Modifier.fillMaxSize(),
@@ -154,10 +174,12 @@ fun ShowQrCodeView(
                         LaunchedEffect(showQrCode.value) {
                             if (vm.hasBeenCalledHack) return@LaunchedEffect
                             vm.hasBeenCalledHack = true
-                            vm.setupPresentmentModel()
-                            vm.doHolderFlow(showQrCode) {
-                                if(it == null) {
+                            vm.setupPresentmentModel(blePermissionState, bleRequired)
+                            vm.doHolderFlow(showQrCode, isBleEnabled, isNfcEnabled) {
+                                if (it == null) {
                                     onNavigateToPresentmentScreen(vm.presentationStateModel)
+                                } else {
+                                    onError(it)
                                 }
                             }
                         }

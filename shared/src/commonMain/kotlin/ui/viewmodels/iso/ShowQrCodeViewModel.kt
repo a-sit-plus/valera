@@ -2,21 +2,25 @@ package ui.viewmodels.iso
 
 import androidx.compose.runtime.MutableState
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
-import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants
+import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
 import kotlinx.coroutines.CompletionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.io.bytestring.ByteString
 import org.multipaz.cbor.Simple
+import org.multipaz.compose.permissions.PermissionState
 import org.multipaz.crypto.Crypto
 import org.multipaz.crypto.EcCurve
 import org.multipaz.mdoc.connectionmethod.MdocConnectionMethod
@@ -30,7 +34,6 @@ import org.multipaz.mdoc.transport.advertise
 import org.multipaz.mdoc.transport.waitForConnection
 import org.multipaz.util.UUID
 import ui.viewmodels.authentication.PresentationStateModel
-import kotlin.lazy
 
 class ShowQrCodeViewModel(
     val walletMain: WalletMain,
@@ -38,9 +41,20 @@ class ShowQrCodeViewModel(
 ) : ViewModel() {
     var hasBeenCalledHack: Boolean = false
 
+    val bleCentral: StateFlow<Boolean> =
+        settingsRepository.presentmentBleCentralClientModeEnabled
+            .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    val blePeripheral: StateFlow<Boolean> =
+        settingsRepository.presentmentBlePeripheralServerModeEnabled
+            .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    val nfcSetting: StateFlow<Boolean> =
+        settingsRepository.presentmentNfcDataTransferEnabled
+            .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
     val presentationScope by lazy { CoroutineScope(Dispatchers.IO + CoroutineName("QR code presentation scope") + walletMain.coroutineExceptionHandler) }
     val presentationStateModel by lazy { PresentationStateModel(presentationScope) }
-
 
     private val _showQrCodeState = MutableStateFlow(ShowQrCodeState.INIT)
     val showQrCodeState: StateFlow<ShowQrCodeState> = _showQrCodeState
@@ -49,48 +63,60 @@ class ShowQrCodeViewModel(
         _showQrCodeState.value = newState
     }
 
-    fun setupPresentmentModel() {
+    fun setupPresentmentModel(
+        blePermissionState: PermissionState,
+        isBluetoothRequired: Boolean
+    ) {
         presentationStateModel.reset()
         presentationStateModel.init()
-        presentationStateModel.start(needBluetooth = true)
-        presentationStateModel.setPermissionState(true)
+        presentationStateModel.start(isBluetoothRequired)
+        if (isBluetoothRequired) {
+            presentationStateModel.setPermissionState(blePermissionState.isGranted)
+        }
     }
 
     fun doHolderFlow(
         showQrCode: MutableState<ByteString?>,
+        isBleEnabled: Boolean,
+        isNfcEnabled: Boolean,
         completionHandler: CompletionHandler = {}
     ) = presentationStateModel.presentmentScope.launch {
         try {
             val connectionMethods = mutableListOf<MdocConnectionMethod>()
             val bleUuid = UUID.randomUUID()
 
-            if (settingsRepository.presentmentBleCentralClientModeEnabled.first()) {
-                connectionMethods.add(
-                    MdocConnectionMethodBle(
-                        supportsPeripheralServerMode = false,
-                        supportsCentralClientMode = true,
-                        peripheralServerModeUuid = null,
-                        centralClientModeUuid = bleUuid,
+            if (isBleEnabled) {
+                if (settingsRepository.presentmentBleCentralClientModeEnabled.first()) {
+                    connectionMethods.add(
+                        MdocConnectionMethodBle(
+                            supportsPeripheralServerMode = false,
+                            supportsCentralClientMode = true,
+                            peripheralServerModeUuid = null,
+                            centralClientModeUuid = bleUuid,
+                        )
                     )
-                )
+                }
+                if (settingsRepository.presentmentBlePeripheralServerModeEnabled.first()) {
+                    connectionMethods.add(
+                        MdocConnectionMethodBle(
+                            supportsPeripheralServerMode = true,
+                            supportsCentralClientMode = false,
+                            peripheralServerModeUuid = bleUuid,
+                            centralClientModeUuid = null,
+                        )
+                    )
+                }
             }
-            if (settingsRepository.presentmentBlePeripheralServerModeEnabled.first()) {
-                connectionMethods.add(
-                    MdocConnectionMethodBle(
-                        supportsPeripheralServerMode = true,
-                        supportsCentralClientMode = false,
-                        peripheralServerModeUuid = bleUuid,
-                        centralClientModeUuid = null,
+
+            if (isNfcEnabled) {
+                if (settingsRepository.presentmentNfcDataTransferEnabled.first()) {
+                    connectionMethods.add(
+                        MdocConnectionMethodNfc(
+                            commandDataFieldMaxLength = 0xffff,
+                            responseDataFieldMaxLength = 0x10000
+                        )
                     )
-                )
-            }
-            if (settingsRepository.presentmentNfcDataTransferEnabled.first()) {
-                connectionMethods.add(
-                    MdocConnectionMethodNfc(
-                        commandDataFieldMaxLength = 0xffff,
-                        responseDataFieldMaxLength = 0x10000
-                    )
-                )
+                }
             }
 
             val ephemeralDeviceKey = Crypto.createEcPrivateKey(EcCurve.P256)
