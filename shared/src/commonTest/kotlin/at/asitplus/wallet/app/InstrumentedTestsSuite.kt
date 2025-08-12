@@ -25,6 +25,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import at.asitplus.catchingUnwrapped
 import at.asitplus.openid.OidcUserInfo
 import at.asitplus.openid.OidcUserInfoExtended
 import at.asitplus.valera.resources.Res
@@ -375,7 +376,7 @@ private fun createWalletDependencyProvider(platformAdapter: PlatformAdapter): Wa
     val dummyDataStoreService = DummyDataStoreService()
     val ks = object : KeystoreService(dummyDataStoreService) {
         override suspend fun getSigner(): KeyMaterial = EphemeralKeyWithSelfSignedCert()
-        override suspend fun testSigner(): Boolean = true
+        override suspend fun testSigner() = catchingUnwrapped { getSigner() }.isSuccess
     }
     return WalletDependencyProvider(
         keystoreService = ks,
