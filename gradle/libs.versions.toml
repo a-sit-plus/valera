@@ -78,6 +78,7 @@ semver = { module = "net.swiftzer.semver:semver", version.ref = "semver" }
 core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "core-splashscreen" }
 androidx-credentials = { module = "androidx.credentials:credentials", version.ref="androidx-credentials" }
 androidx-credentials-registry-provider = { module = "androidx.credentials.registry:registry-provider", version.ref = "androidx-credentials-registry-provider" }
+back-handler = { module = "org.jetbrains.compose.ui:ui-backhandler", version.ref = "compose-plugin" }
 
 #multipazz workaround
 datetime-compat = {module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.7.1-0.6.x-compat"}
