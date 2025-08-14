@@ -3,6 +3,7 @@ package at.asitplus.wallet.app.common.data
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CompletionHandler
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlin.time.Duration
 
@@ -50,6 +51,14 @@ interface SettingsRepository {
             Napier.w("Connection method $prefix is unknown")
             false
         }
+
+    suspend fun awaitPresentmentSettingsFirst() {
+        combine(
+            presentmentBleCentralClientModeEnabled,
+            presentmentBlePeripheralServerModeEnabled,
+            presentmentNfcDataTransferEnabled
+        ) { _, _, _ -> }.first()
+    }
 
     suspend fun reset()
 

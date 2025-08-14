@@ -30,12 +30,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_retry
 import at.asitplus.valera.resources.error_bluetooth_and_nfc_unavailable
 import at.asitplus.valera.resources.error_missing_permissions
 import at.asitplus.valera.resources.heading_label_show_qr_code_screen
 import at.asitplus.valera.resources.info_text_qr_code_loading
+import at.asitplus.valera.resources.info_text_transfer_settings_loading
 import at.asitplus.wallet.app.common.iso.transfer.MdocHelper
 import at.asitplus.wallet.app.common.iso.transfer.rememberTransferSettingsState
 import io.github.aakira.napier.Napier
@@ -43,8 +45,6 @@ import io.github.alexzhirkevich.qrose.options.QrBrush
 import io.github.alexzhirkevich.qrose.options.QrColors
 import io.github.alexzhirkevich.qrose.options.solid
 import io.github.alexzhirkevich.qrose.rememberQrCodePainter
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.io.bytestring.ByteString
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -58,6 +58,7 @@ import ui.viewmodels.authentication.PresentationStateModel
 import ui.viewmodels.iso.ShowQrCodeState
 import ui.viewmodels.iso.ShowQrCodeViewModel
 import ui.views.LoadingViewBody
+import kotlin.coroutines.cancellation.CancellationException
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -70,12 +71,23 @@ fun ShowQrCodeView(
     koinScope: Scope,
     vm: ShowQrCodeViewModel = koinViewModel(scope = koinScope),
 ) {
-    val transferSettingsState = rememberTransferSettingsState(vm.settingsRepository)
+    val TAG = "ShowQrCodeView"
 
+    LaunchedEffect(vm) { vm.initSettings() }
+
+    val settingsReady by vm.settingsReady.collectAsStateWithLifecycle()
+    val transferSettingsState = rememberTransferSettingsState(vm.settingsRepository)
     val blePermissionState = rememberBluetoothPermissionState()
+
     val showQrCode = remember { mutableStateOf<ByteString?>(null) }
     val presentationStateModel = remember { vm.presentationStateModel }
     val showQrCodeState by vm.showQrCodeState.collectAsState()
+
+    LaunchedEffect( transferSettingsState.bleSettingOn, transferSettingsState.nfcSettingOn) {
+        showQrCode.value = null
+        vm.hasBeenCalledHack = false
+        vm.setState(ShowQrCodeState.INIT)
+    }
 
     Scaffold(
         topBar = {
@@ -109,17 +121,24 @@ fun ShowQrCodeView(
             ) {
                 when (showQrCodeState) {
                     ShowQrCodeState.INIT -> {
-                        if (!transferSettingsState.isInitialized) {
-                            LoadingViewBody(scaffoldPadding, stringResource(Res.string.info_text_qr_code_loading))
+                        if (!settingsReady) {
+                            Napier.i("Loading transfer settings", tag = TAG)
+                            LoadingViewBody(scaffoldPadding, stringResource(Res.string.info_text_transfer_settings_loading))
                         } else {
                             if (!transferSettingsState.transferMethodAvailableForCurrentSettings) {
                                 vm.setState(ShowQrCodeState.NO_TRANSFER_METHOD_AVAILABLE)
+                                return@Box
                             } else if (showQrCode.value != null && presentationStateModel.state.collectAsState().value != PresentationStateModel.State.PROCESSING) {
                                 vm.setState(ShowQrCodeState.SHOW_QR_CODE)
+                                return@Box
                             } else if (transferSettingsState.missingRequiredBlePermission) {
                                 vm.setState(ShowQrCodeState.MISSING_PERMISSION)
-                                // TODO: add case for missing nfc permisison
-                            } else  { vm.setState(ShowQrCodeState.CREATE_ENGAGEMENT) }
+                                return@Box
+                                // TODO: add case for missing nfc permission
+                            } else {
+                                vm.setState(ShowQrCodeState.CREATE_ENGAGEMENT)
+                                return@Box
+                            }
                         }
                     }
 
@@ -155,12 +174,9 @@ fun ShowQrCodeView(
                     }
 
                     ShowQrCodeState.CREATE_ENGAGEMENT -> {
-                        LoadingViewBody(
-                            scaffoldPadding,
-                            stringResource(Res.string.info_text_qr_code_loading)
-                        )
-                        Napier.d("CREATE_ENGAGEMENT: showQrCode.value = ${showQrCode.value}")
-                        LaunchedEffect(showQrCode.value) {
+                        Napier.i("Loading QR Code", tag = TAG)
+                        LoadingViewBody(scaffoldPadding, stringResource(Res.string.info_text_qr_code_loading))
+                        LaunchedEffect(showQrCodeState) {
                             if (vm.hasBeenCalledHack) return@LaunchedEffect
                             vm.hasBeenCalledHack = true
                             vm.setupPresentmentModel(
@@ -171,25 +187,25 @@ fun ShowQrCodeView(
                                 showQrCode,
                                 transferSettingsState.isBleEnabled,
                                 transferSettingsState.isNfcEnabled
-                            ) {
-                                if (it == null) {
-                                    onNavigateToPresentmentScreen(vm.presentationStateModel)
-                                } else {
-                                    onError(it)
+                            ) { error ->
+                                when {
+                                    error == null -> onNavigateToPresentmentScreen(vm.presentationStateModel)
+                                    error is CancellationException && error.message?.contains("PresentationModel reset") == true -> {
+                                        Napier.i("PresentationModel reset\nThis may happen when changing transfer settings after the presentation state model has been setup", tag = TAG)
+                                    }
+                                    else -> onError(error)
                                 }
+
                             }
                         }
                     }
 
                     ShowQrCodeState.SHOW_QR_CODE -> {
-                        Napier.d("SHOW_QR_CODE: showQrCode.value = ${showQrCode.value}")
-
                         val qrBytes = showQrCode.value
                         if (qrBytes == null) {
                             LaunchedEffect(vm.presentationStateModel.presentmentScope) {
                                 vm.setState(ShowQrCodeState.INIT)
                             }
-                            LoadingViewBody(scaffoldPadding, stringResource(Res.string.info_text_qr_code_loading))
                             return@Box
                         }
                         Image(

@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.io.bytestring.ByteString
@@ -42,10 +43,23 @@ class ShowQrCodeViewModel(
     val presentationScope by lazy { CoroutineScope(Dispatchers.IO + CoroutineName("QR code presentation scope") + walletMain.coroutineExceptionHandler) }
     val presentationStateModel by lazy { PresentationStateModel(presentationScope) }
 
+    private val _settingsReady = MutableStateFlow(false)
+    val settingsReady = _settingsReady.asStateFlow()
+
+    fun initSettings(force: Boolean = false) {
+        if (!force && _settingsReady.value) return
+        presentationScope.launch {
+            _settingsReady.value = false
+            settingsRepository.awaitPresentmentSettingsFirst()
+            _settingsReady.value = true
+        }
+    }
+
     private val _showQrCodeState = MutableStateFlow(ShowQrCodeState.INIT)
     val showQrCodeState: StateFlow<ShowQrCodeState> = _showQrCodeState
 
     fun setState(newState: ShowQrCodeState) {
+        if (_showQrCodeState.value == newState) return
         Napier.d("Change state from ${_showQrCodeState.value} to $newState", tag = "ShowQrCodeViewModel")
         _showQrCodeState.value = newState
     }
