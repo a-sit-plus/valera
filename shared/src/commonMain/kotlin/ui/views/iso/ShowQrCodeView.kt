@@ -30,25 +30,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_retry
 import at.asitplus.valera.resources.error_bluetooth_and_nfc_unavailable
 import at.asitplus.valera.resources.error_missing_permissions
 import at.asitplus.valera.resources.heading_label_show_qr_code_screen
 import at.asitplus.valera.resources.info_text_qr_code_loading
-import at.asitplus.wallet.app.common.iso.transfer.CapabilityManager
-import at.asitplus.wallet.app.common.iso.transfer.MdocConstants.MDOC_PREFIX
+import at.asitplus.wallet.app.common.iso.transfer.MdocHelper
+import at.asitplus.wallet.app.common.iso.transfer.rememberTransferSettingsState
+import io.github.aakira.napier.Napier
 import io.github.alexzhirkevich.qrose.options.QrBrush
 import io.github.alexzhirkevich.qrose.options.QrColors
 import io.github.alexzhirkevich.qrose.options.solid
 import io.github.alexzhirkevich.qrose.rememberQrCodePainter
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.io.bytestring.ByteString
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.scope.Scope
 import org.multipaz.compose.permissions.rememberBluetoothPermissionState
-import org.multipaz.util.toBase64Url
 import ui.composables.Logo
 import ui.composables.ScreenHeading
 import ui.composables.TextIconButton
@@ -69,24 +70,12 @@ fun ShowQrCodeView(
     koinScope: Scope,
     vm: ShowQrCodeViewModel = koinViewModel(scope = koinScope),
 ) {
-
+    val transferSettingsState = rememberTransferSettingsState(vm.settingsRepository)
 
     val blePermissionState = rememberBluetoothPermissionState()
     val showQrCode = remember { mutableStateOf<ByteString?>(null) }
     val presentationStateModel = remember { vm.presentationStateModel }
     val showQrCodeState by vm.showQrCodeState.collectAsState()
-
-    val bleCentral by vm.bleCentral.collectAsStateWithLifecycle()
-    val blePeripheral by vm.blePeripheral.collectAsStateWithLifecycle()
-    val nfcSetting by vm.nfcSetting.collectAsStateWithLifecycle()
-
-    val bleSettingOn = bleCentral || blePeripheral
-    val nfcSettingOn = nfcSetting
-
-    val bleRequired = bleSettingOn && !nfcSettingOn
-
-    val isBleEnabled = CapabilityManager.isBluetoothEnabled()
-    val isNfcEnabled = CapabilityManager.isNfcEnabled()
 
     Scaffold(
         topBar = {
@@ -120,18 +109,17 @@ fun ShowQrCodeView(
             ) {
                 when (showQrCodeState) {
                     ShowQrCodeState.INIT -> {
-                        val isTransferMethodAvailableForCurrentSettings =
-                            CapabilityManager.isTransferMethodAvailableForCurrentSettings(
-                            bleSettingOn, nfcSettingOn
-                        )
-                        if (!isTransferMethodAvailableForCurrentSettings) {
-                            vm.setState(ShowQrCodeState.NO_TRANSFER_METHOD_AVAILABLE)
-                        } else if (showQrCode.value != null && presentationStateModel.state.collectAsState().value != PresentationStateModel.State.PROCESSING) {
-                            vm.setState(ShowQrCodeState.SHOW_QR_CODE)
-                        } else if (!blePermissionState.isGranted) {
-                            vm.setState(ShowQrCodeState.MISSING_PERMISSION)
-                        } else if (blePermissionState.isGranted) {
-                            vm.setState(ShowQrCodeState.CREATE_ENGAGEMENT)
+                        if (!transferSettingsState.isInitialized) {
+                            LoadingViewBody(scaffoldPadding, stringResource(Res.string.info_text_qr_code_loading))
+                        } else {
+                            if (!transferSettingsState.transferMethodAvailableForCurrentSettings) {
+                                vm.setState(ShowQrCodeState.NO_TRANSFER_METHOD_AVAILABLE)
+                            } else if (showQrCode.value != null && presentationStateModel.state.collectAsState().value != PresentationStateModel.State.PROCESSING) {
+                                vm.setState(ShowQrCodeState.SHOW_QR_CODE)
+                            } else if (transferSettingsState.missingRequiredBlePermission) {
+                                vm.setState(ShowQrCodeState.MISSING_PERMISSION)
+                                // TODO: add case for missing nfc permisison
+                            } else  { vm.setState(ShowQrCodeState.CREATE_ENGAGEMENT) }
                         }
                     }
 
@@ -146,7 +134,7 @@ fun ShowQrCodeView(
                         }
                     }
 
-                    // Missing BLUETOOTH PERMISSION only !!
+                    // TODO: add handling for missing nfc permission
                     ShowQrCodeState.MISSING_PERMISSION -> {
                         Column(
                             modifier = Modifier.fillMaxSize(),
@@ -171,11 +159,19 @@ fun ShowQrCodeView(
                             scaffoldPadding,
                             stringResource(Res.string.info_text_qr_code_loading)
                         )
+                        Napier.d("CREATE_ENGAGEMENT: showQrCode.value = ${showQrCode.value}")
                         LaunchedEffect(showQrCode.value) {
                             if (vm.hasBeenCalledHack) return@LaunchedEffect
                             vm.hasBeenCalledHack = true
-                            vm.setupPresentmentModel(blePermissionState, bleRequired)
-                            vm.doHolderFlow(showQrCode, isBleEnabled, isNfcEnabled) {
+                            vm.setupPresentmentModel(
+                                blePermissionState,
+                                transferSettingsState.bleRequired
+                            )
+                            vm.doHolderFlow(
+                                showQrCode,
+                                transferSettingsState.isBleEnabled,
+                                transferSettingsState.isNfcEnabled
+                            ) {
                                 if (it == null) {
                                     onNavigateToPresentmentScreen(vm.presentationStateModel)
                                 } else {
@@ -186,20 +182,31 @@ fun ShowQrCodeView(
                     }
 
                     ShowQrCodeState.SHOW_QR_CODE -> {
-                        val deviceEngagementQrCode = MDOC_PREFIX + showQrCode.value!!.toByteArray().toBase64Url()
+                        Napier.d("SHOW_QR_CODE: showQrCode.value = ${showQrCode.value}")
+
+                        val qrBytes = showQrCode.value
+                        if (qrBytes == null) {
+                            LaunchedEffect(vm.presentationStateModel.presentmentScope) {
+                                vm.setState(ShowQrCodeState.INIT)
+                            }
+                            LoadingViewBody(scaffoldPadding, stringResource(Res.string.info_text_qr_code_loading))
+                            return@Box
+                        }
                         Image(
                             painter = rememberQrCodePainter(
-                                data = deviceEngagementQrCode, colors = when (isSystemInDarkTheme()) {
-                                    true -> QrColors(dark = QrBrush.solid(Color.White))
-                                    else -> QrColors()
-                                }
+                                data = MdocHelper.buildDeviceEngagementQrCode(qrBytes),
+                                colors = if (isSystemInDarkTheme()) {
+                                    QrColors(dark = QrBrush.solid(Color.White))
+                                } else QrColors()
                             ),
                             contentDescription = null,
                             modifier = Modifier.fillMaxSize(0.8f)
                         )
                     }
 
-                    ShowQrCodeState.FINISHED -> { LoadingViewBody(scaffoldPadding) }
+                    ShowQrCodeState.FINISHED -> {
+                        LoadingViewBody(scaffoldPadding)
+                    }
                 }
             }
         }
