@@ -174,8 +174,11 @@ fun ShowQrCodeView(
                     }
 
                     ShowQrCodeState.CREATE_ENGAGEMENT -> {
-                        Napier.i("Loading QR Code", tag = TAG)
-                        LoadingViewBody(scaffoldPadding, stringResource(Res.string.info_text_qr_code_loading))
+                        Napier.i("Create Engagement", tag = TAG)
+                        LoadingViewBody(
+                            scaffoldPadding,
+                            stringResource(Res.string.info_text_qr_code_loading)
+                        )
                         LaunchedEffect(showQrCodeState) {
                             if (vm.hasBeenCalledHack) return@LaunchedEffect
                             vm.hasBeenCalledHack = true
@@ -195,7 +198,6 @@ fun ShowQrCodeView(
                                     }
                                     else -> onError(error)
                                 }
-
                             }
                         }
                     }
@@ -220,9 +222,7 @@ fun ShowQrCodeView(
                         )
                     }
 
-                    ShowQrCodeState.FINISHED -> {
-                        LoadingViewBody(scaffoldPadding)
-                    }
+                    ShowQrCodeState.FINISHED -> { LoadingViewBody(scaffoldPadding) }
                 }
             }
         }
