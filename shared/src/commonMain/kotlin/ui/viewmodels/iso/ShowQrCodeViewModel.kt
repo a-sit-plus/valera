@@ -2,21 +2,19 @@ package ui.viewmodels.iso
 
 import androidx.compose.runtime.MutableState
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CompletionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.io.bytestring.ByteString
 import org.multipaz.cbor.Simple
@@ -41,18 +39,6 @@ class ShowQrCodeViewModel(
 ) : ViewModel() {
     var hasBeenCalledHack: Boolean = false
 
-    val bleCentral: StateFlow<Boolean> =
-        settingsRepository.presentmentBleCentralClientModeEnabled
-            .stateIn(viewModelScope, SharingStarted.Eagerly, false)
-
-    val blePeripheral: StateFlow<Boolean> =
-        settingsRepository.presentmentBlePeripheralServerModeEnabled
-            .stateIn(viewModelScope, SharingStarted.Eagerly, false)
-
-    val nfcSetting: StateFlow<Boolean> =
-        settingsRepository.presentmentNfcDataTransferEnabled
-            .stateIn(viewModelScope, SharingStarted.Eagerly, false)
-
     val presentationScope by lazy { CoroutineScope(Dispatchers.IO + CoroutineName("QR code presentation scope") + walletMain.coroutineExceptionHandler) }
     val presentationStateModel by lazy { PresentationStateModel(presentationScope) }
 
@@ -60,6 +46,7 @@ class ShowQrCodeViewModel(
     val showQrCodeState: StateFlow<ShowQrCodeState> = _showQrCodeState
 
     fun setState(newState: ShowQrCodeState) {
+        Napier.d("Change state from ${_showQrCodeState.value} to $newState", tag = "ShowQrCodeViewModel")
         _showQrCodeState.value = newState
     }
 
