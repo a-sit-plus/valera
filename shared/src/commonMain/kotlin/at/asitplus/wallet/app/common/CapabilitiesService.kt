@@ -36,10 +36,7 @@ class CapabilitiesService(
     private suspend fun getSignerStatus() = keyStoreService.testSigner()
 
     private suspend fun getOnlineStatus() = catchingUnwrapped {
-        val httpClient = HttpClient()
-        val host = "https://wallet.a-sit.at/"
-        val url = "${host}check.json"
-        httpClient.get(url)
+        HttpClient().get("https://wallet.a-sit.at/check.json")
     }.isSuccess
 
 
