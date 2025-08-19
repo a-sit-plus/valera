@@ -469,7 +469,7 @@
     <string name="info_text_no_requests">Keine Anfragen</string>
 
     <!-- Device capabilities -->
-    <string name="capabilities_heading_signing">Signierung</string>
+    <string name="capabilities_heading_signing">Signatur</string>
     <string name="capabilities_heading_attestation">Attestierung</string>
     <string name="capabilities_heading_internet">Internet</string>
 
