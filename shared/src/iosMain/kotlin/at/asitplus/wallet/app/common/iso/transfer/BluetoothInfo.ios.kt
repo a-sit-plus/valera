@@ -9,4 +9,8 @@ actual class BluetoothInfo {
         // for now return true so that Bluetooth can be used if it's enabled
         return true
     }
+
+    actual fun openSettings(platformContext: PlatformContext) {
+
+    }
 }

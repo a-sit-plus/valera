@@ -51,6 +51,8 @@
     <string name="button_label_show_technical_details">Show technical details</string>
     <string name="button_label_hide_technical_details">Hide technical details</string>
     <string name="button_label_sign">Sign</string>
+    <string name="button_label_go_to_app_settings">App settings</string>
+    <string name="button_label_go_to_device_settings">Device settings</string>
 
     <string name="switch_label_use_negotiated_handover">Negotiated Handover</string>
     <string name="switch_label_use_ble_central_client_mode">BLE Central Client Mode</string>
@@ -335,8 +337,6 @@
     <string name="error_qr_code_scanning_client_id_not_in_redirect_uris">Client id not in client metadata redirect uris</string>
     <string name="error_missing_permissions">Permission Denied</string>
     <string name="error_missing_value">Error no value given</string>
-    <string name="error_bluetooth_unavailable">Bluetooth is not available</string>
-    <string name="error_bluetooth_and_nfc_unavailable">Neither Bluetooth nor NFC is available</string>
     <string name="error_no_requests">No requests found</string>
     <string name="error_clearing_log_failed">Deleting log failed.</string>
     <string name="error_resetting_app_failed">Resetting the app failed.</string>
@@ -364,6 +364,8 @@
     <string name="info_text_non_productive">This app is not intended for production use!</string>
     <string name="info_text_co_founded_by_eu">Co‑Funded by the \nEuropean Union</string>
     <string name="info_text_received_funding_from_eu">This project has received funding from the European Union’s Digital Europe Programme (DIGITAL), Project 101102655 — POTENTIAL.</string>
+    <string name="info_text_no_transfer_method_selected">No transfer method has been selected. Please open the settings and choose at least one.</string>
+    <string name="info_text_no_transfer_method_available_for_selection">None of the selected transfer methods are available. Please open the device settings and enable the required transfer method, or select a different one in the app settings.</string>
 
     <string name="section_heading_authenticate_at_device_title">Authenticate</string>
     <string name="section_heading_authenticate_at_device_subtitle">at relying party</string>

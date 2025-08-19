@@ -51,6 +51,8 @@
     <string name="button_label_show_technical_details">Technische Details einblenden</string>
     <string name="button_label_hide_technical_details">Technische Details ausblenden</string>
     <string name="button_label_sign">Signieren</string>
+    <string name="button_label_go_to_app_settings">App-Einstellungen</string>
+    <string name="button_label_go_to_device_settings">Geräteeinstellungen</string>
 
     <string name="switch_label_use_negotiated_handover">Negotiated Handover</string>
     <string name="switch_label_use_ble_central_client_mode">BLE Central Client Mode</string>
@@ -335,8 +337,6 @@
     <string name="error_qr_code_scanning_client_id_not_in_redirect_uris">Client-ID ist nicht in den Metadaten unter `redirect_uris` enthalten.</string>
     <string name="error_missing_permissions">Fehlende Erlaubnis</string>
     <string name="error_missing_value">Fehler es sind keine Daten gegeben</string>
-    <string name="error_bluetooth_unavailable">Bluetooth ist nicht verfügbar</string>
-    <string name="error_bluetooth_and_nfc_unavailable">Weder Bluetooth noch NFC ist verfügbar</string>
     <string name="error_no_requests">Es sind keine Anfragen vorhanden</string>
     <string name="error_clearing_log_failed">Log konnte nicht gelöscht werden.</string>
     <string name="error_resetting_app_failed">App konnte nicht zurückgesetzt werden.</string>
@@ -364,6 +364,8 @@
     <string name="info_text_non_productive">Diese App ist nicht für den Produktiv-Einsatz bestimmt!</string>
     <string name="info_text_co_founded_by_eu">Kofinanziert von der\nEuropäischen Union</string>
     <string name="info_text_received_funding_from_eu">Dieses Projekt wurde kofinanziert vom Programm „Digitales Europa“ (DIGITAL), Project 101102655 — POTENTIAL.</string>
+    <string name="info_text_no_transfer_method_selected">Es wurde keine Übertragungsmethode ausgewählt. Bitte öffnen Sie die Einstellungen und wählen Sie mindestens eine aus.</string>
+    <string name="info_text_no_transfer_method_available_for_selection">Keine der ausgewählten Übertragungsmethoden ist verfügbar. Bitte öffnen Sie die Geräteeinstellungen und aktivieren Sie die benötigte Übertragungsmethode oder wählen Sie in den Einstellungen eine andere aus.</string>
 
     <string name="section_heading_authenticate_at_device_title">Anmelden</string>
     <string name="section_heading_authenticate_at_device_subtitle">an Service Provider</string>
