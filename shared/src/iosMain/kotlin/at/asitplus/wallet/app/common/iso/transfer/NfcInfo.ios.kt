@@ -9,4 +9,8 @@ actual class NfcInfo {
         // for now return true so that NFC can be used if it's enabled
         return true
     }
+
+    actual fun openSettings(platformContext: PlatformContext) {
+    // TODO add implementation
+    }
 }
