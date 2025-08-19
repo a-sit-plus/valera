@@ -473,7 +473,7 @@
     <string name="error_mdl_driving_privilege_category_not_yet_valid">Der Führerschein der Kategorie %1$s ist noch nicht gültig</string>
 
     <!-- Device capabilities -->
-    <string name="capabilities_heading_signing">Signierung</string>
+    <string name="capabilities_heading_signing">Signatur</string>
     <string name="capabilities_heading_attestation">Attestierung</string>
     <string name="capabilities_heading_internet">Internet</string>
 
