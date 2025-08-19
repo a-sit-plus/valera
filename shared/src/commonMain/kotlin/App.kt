@@ -48,7 +48,6 @@ fun App(walletDependencyProvider: WalletDependencyProvider) {
             LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
                 Napier.d("Lifecycle.Event.ON_RESUME")
             }
-
         }.onFailure {
             val errorService: ErrorService = koinInject(scope = koinScope)
             errorService.emit(it)
