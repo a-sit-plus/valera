@@ -10,10 +10,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.outlined.Repeat
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -29,16 +30,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.button_label_go_to_app_settings
+import at.asitplus.valera.resources.button_label_go_to_device_settings
 import at.asitplus.valera.resources.button_label_retry
-import at.asitplus.valera.resources.error_bluetooth_and_nfc_unavailable
 import at.asitplus.valera.resources.error_missing_permissions
 import at.asitplus.valera.resources.heading_label_show_qr_code_screen
+import at.asitplus.valera.resources.info_text_no_transfer_method_available_for_selection
+import at.asitplus.valera.resources.info_text_no_transfer_method_selected
 import at.asitplus.valera.resources.info_text_qr_code_loading
 import at.asitplus.valera.resources.info_text_transfer_settings_loading
+import at.asitplus.wallet.app.common.iso.transfer.CapabilityManager
 import at.asitplus.wallet.app.common.iso.transfer.MdocHelper
+import at.asitplus.wallet.app.common.iso.transfer.rememberPlatformContext
 import at.asitplus.wallet.app.common.iso.transfer.rememberTransferSettingsState
 import io.github.aakira.napier.Napier
 import io.github.alexzhirkevich.qrose.options.QrBrush
@@ -76,17 +83,48 @@ fun ShowQrCodeView(
     LaunchedEffect(vm) { vm.initSettings() }
 
     val settingsReady by vm.settingsReady.collectAsStateWithLifecycle()
-    val transferSettingsState = rememberTransferSettingsState(vm.settingsRepository)
+    val capabilityManager = CapabilityManager()
+    val transferSettingsState = rememberTransferSettingsState(vm.settingsRepository, capabilityManager)
     val blePermissionState = rememberBluetoothPermissionState()
+    val platformContext = rememberPlatformContext()
 
     val showQrCode = remember { mutableStateOf<ByteString?>(null) }
     val presentationStateModel = remember { vm.presentationStateModel }
+    val presentationState by presentationStateModel.state.collectAsStateWithLifecycle()
     val showQrCodeState by vm.showQrCodeState.collectAsState()
 
-    LaunchedEffect( transferSettingsState.bleSettingOn, transferSettingsState.nfcSettingOn) {
+    LaunchedEffect(
+        transferSettingsState.bleSettingOn,
+        transferSettingsState.nfcSettingOn,
+        transferSettingsState.isBleEnabled,
+        transferSettingsState.isNfcEnabled
+    ) {
         showQrCode.value = null
         vm.hasBeenCalledHack = false
         vm.setState(ShowQrCodeState.INIT)
+    }
+
+    LaunchedEffect(
+        settingsReady,
+        transferSettingsState.isAnyTransferMethodSettingOn,
+        transferSettingsState.transferMethodAvailableForCurrentSettings,
+        transferSettingsState.missingRequiredBlePermission,
+        showQrCode.value,
+        presentationState
+    ) {
+        if (!settingsReady) return@LaunchedEffect
+        val next = when {
+            !transferSettingsState.isAnyTransferMethodSettingOn -> ShowQrCodeState.NO_TRANSFER_METHOD_SELECTED
+
+            !transferSettingsState.transferMethodAvailableForCurrentSettings -> ShowQrCodeState.NO_TRANSFER_METHOD_AVAILABLE_FOR_SELECTION
+
+            transferSettingsState.missingRequiredBlePermission -> ShowQrCodeState.MISSING_PERMISSION // TODO: add NFC permission
+
+            showQrCode.value != null && presentationState != PresentationStateModel.State.PROCESSING -> ShowQrCodeState.SHOW_QR_CODE
+
+            else -> ShowQrCodeState.CREATE_ENGAGEMENT
+        }
+        if (showQrCodeState != next) vm.setState(next)
     }
 
     Scaffold(
@@ -123,33 +161,74 @@ fun ShowQrCodeView(
                     ShowQrCodeState.INIT -> {
                         if (!settingsReady) {
                             Napier.i("Loading transfer settings", tag = TAG)
-                            LoadingViewBody(scaffoldPadding, stringResource(Res.string.info_text_transfer_settings_loading))
-                        } else {
-                            if (!transferSettingsState.transferMethodAvailableForCurrentSettings) {
-                                vm.setState(ShowQrCodeState.NO_TRANSFER_METHOD_AVAILABLE)
-                                return@Box
-                            } else if (showQrCode.value != null && presentationStateModel.state.collectAsState().value != PresentationStateModel.State.PROCESSING) {
-                                vm.setState(ShowQrCodeState.SHOW_QR_CODE)
-                                return@Box
-                            } else if (transferSettingsState.missingRequiredBlePermission) {
-                                vm.setState(ShowQrCodeState.MISSING_PERMISSION)
-                                return@Box
-                                // TODO: add case for missing nfc permission
-                            } else {
-                                vm.setState(ShowQrCodeState.CREATE_ENGAGEMENT)
-                                return@Box
-                            }
+                            LoadingViewBody(
+                                scaffoldPadding,
+                                stringResource(Res.string.info_text_transfer_settings_loading)
+                            )
+                        } else LoadingViewBody(scaffoldPadding)
+                    }
+
+                    ShowQrCodeState.NO_TRANSFER_METHOD_SELECTED -> {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = stringResource(Res.string.info_text_no_transfer_method_selected),
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            TextIconButton(
+                                icon = {
+                                Icon(
+                                    imageVector = Icons.Outlined.Settings,
+                                    contentDescription = null
+                                )
+                            }, text = {
+                                Text(stringResource(Res.string.button_label_go_to_app_settings))
+                            }, onClick = onClickSettings
+                            )
                         }
                     }
 
-                    ShowQrCodeState.NO_TRANSFER_METHOD_AVAILABLE -> {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(stringResource(Res.string.error_bluetooth_and_nfc_unavailable))
-                            TextIconButton(
-                                icon = { Icons.Default.Repeat },
-                                text = { Text(stringResource(Res.string.button_label_retry)) },
-                                onClick = { vm.setState(ShowQrCodeState.INIT) }
+                    ShowQrCodeState.NO_TRANSFER_METHOD_AVAILABLE_FOR_SELECTION -> {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = stringResource(Res.string.info_text_no_transfer_method_available_for_selection),
+                                textAlign = TextAlign.Center
                             )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            TextIconButton(
+                                icon = {
+                                Icon(
+                                    imageVector = Icons.Outlined.Settings,
+                                    contentDescription = null
+                                )
+                            }, text = {
+                                Text(stringResource(Res.string.button_label_go_to_app_settings))
+                            }, onClick = onClickSettings
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            TextIconButton(
+                                icon = {
+                                Icon(
+                                    imageVector = Icons.Outlined.Settings,
+                                    contentDescription = null
+                                )
+                            },
+                                text = { Text(stringResource(Res.string.button_label_go_to_device_settings)) },
+                                onClick = {
+                                    if (transferSettingsState.nfcRequired) {
+                                        capabilityManager.goToNfcSettings(platformContext)
+                                    } else {
+                                        capabilityManager.goToBluetoothSettings(platformContext)
+                                    }
+                                })
                         }
                     }
 
@@ -165,10 +244,14 @@ fun ShowQrCodeView(
                                 blePermissionState.launchPermissionRequest()
                             }
                             TextIconButton(
-                                icon = { Icons.Default.Repeat },
+                                icon = {
+                                Icon(
+                                    imageVector = Icons.Outlined.Repeat,
+                                    contentDescription = null
+                                )
+                            },
                                 text = { Text(stringResource(Res.string.button_label_retry)) },
-                                onClick = { vm.setState(ShowQrCodeState.INIT) }
-                            )
+                                onClick = { vm.setState(ShowQrCodeState.INIT) })
                             // TODO handle case when user needs to go to settings application to grant permission
                         }
                     }

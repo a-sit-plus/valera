@@ -2,7 +2,7 @@ package at.asitplus.wallet.app.common.iso.transfer
 
 import androidx.compose.runtime.Composable
 
-object CapabilityManager {
+class CapabilityManager {
     private val bluetoothInfo = BluetoothInfo()
     private val nfcInfo = NfcInfo()
 
@@ -22,4 +22,9 @@ object CapabilityManager {
     ): Boolean {
         return (isBleSettingOn && isBluetoothEnabled()) || (isNfcSettingOn && isNfcEnabled())
     }
+
+    fun goToBluetoothSettings(platformContext: PlatformContext) =
+        bluetoothInfo.openSettings(platformContext)
+
+    fun goToNfcSettings(platformContext: PlatformContext) = nfcInfo.openSettings(platformContext)
 }

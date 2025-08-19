@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.error_bluetooth_and_nfc_unavailable
 import at.asitplus.valera.resources.info_text_check_response
 import at.asitplus.valera.resources.info_text_waiting_for_response
 import at.asitplus.wallet.app.common.iso.transfer.CapabilityManager
@@ -24,10 +23,11 @@ fun VerifierView(
     bottomBar: @Composable () -> Unit
 ) {
     val verifierState by vm.verifierState.collectAsState()
+    val capabilityManager = CapabilityManager()
 
-    if (!CapabilityManager.isAnyTransferMethodAvailable()) {
-        // TODO: by improving the capability checks, introduce specific Exception class like InsufficientCapabilityException
-        onError(Throwable(stringResource(Res.string.error_bluetooth_and_nfc_unavailable)))
+    if (!capabilityManager.isAnyTransferMethodAvailable()) {
+        // TODO: change handling -> see ShowQrCodeView
+        onError(Throwable("No transfer method available"))
     }
 
     val blePermissionState = rememberBluetoothPermissionState()
