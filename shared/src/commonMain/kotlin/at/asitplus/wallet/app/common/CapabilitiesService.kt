@@ -43,9 +43,7 @@ class CapabilitiesService(
     private suspend fun getAttestationStatus() = getAttestationPreference().onSuccess { capability ->
             capability
         }.onFailure {
-            val capability = keyStoreService.testAttestation()
-            setAttestationPreference(capability)
-            capability
+            keyStoreService.testAttestation().also { setAttestationPreference(it) }
         }.getOrElse { true }
 
 
