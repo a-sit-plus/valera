@@ -76,7 +76,7 @@ fun ConstantIndex.CredentialScheme.getLocalization(path: NormalizedJsonPath): St
     is CompanyRegistrationScheme -> { CompanyRegistrationCredentialAttributeTranslator().translate(path) }
     is HealthIdScheme -> { HealthIdCredentialAttributeTranslator().translate(path) }
     is EhicScheme -> { EhicCredentialAttributeTranslator().translate(path) }
-    is TaxIdScheme,
+    is TaxIdScheme -> TaxIdCredentialAttributeTranslator().translate(path)
     is IdAustriaScheme -> { IdAustriaCredentialAttributeTranslator().translate(path) }
     else -> { IdAustriaCredentialAttributeTranslator().translate(path) }
 }
