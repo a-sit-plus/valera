@@ -335,7 +335,6 @@
     <string name="error_qr_code_scanning_invalid_metadata_jws_object">Invalid metadataJws</string>
     <string name="error_qr_code_scanning_invalid_metadata_jws_object_signature">Invalid metadataJws signature</string>
     <string name="error_qr_code_scanning_client_id_not_in_redirect_uris">Client id not in client metadata redirect uris</string>
-    <string name="error_missing_permissions">Permission Denied</string>
     <string name="error_missing_value">Error no value given</string>
     <string name="error_no_requests">No requests found</string>
     <string name="error_clearing_log_failed">Deleting log failed.</string>
@@ -366,6 +365,7 @@
     <string name="info_text_received_funding_from_eu">This project has received funding from the European Union’s Digital Europe Programme (DIGITAL), Project 101102655 — POTENTIAL.</string>
     <string name="info_text_no_transfer_method_selected">No transfer method has been selected. Please open the settings and choose at least one.</string>
     <string name="info_text_no_transfer_method_available_for_selection">None of the selected transfer methods are available. Please open the device settings and enable the required transfer method, or select a different one in the app settings.</string>
+    <string name="info_text_missing_permission_bluetooth">Bluetooth permission required. Open the app's settings and grant this permission.</string>
 
     <string name="section_heading_authenticate_at_device_title">Authenticate</string>
     <string name="section_heading_authenticate_at_device_subtitle">at relying party</string>

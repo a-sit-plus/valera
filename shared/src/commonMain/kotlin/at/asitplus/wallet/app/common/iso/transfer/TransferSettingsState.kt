@@ -14,10 +14,10 @@ data class TransferSettingsState(
     val nfcRequired: Boolean,
     val isBleEnabled: Boolean,
     val isNfcEnabled: Boolean,
-    val missingRequiredBlePermission: Boolean,
     val transferMethodAvailableForCurrentSettings: Boolean,
-    val isAnyTransferMethodSettingOn: Boolean
-)
+    val isAnyTransferMethodSettingOn: Boolean,
+    val missingRequiredBlePermission: Boolean
+    )
 
 @Composable
 fun rememberTransferSettingsState(
@@ -26,16 +26,15 @@ fun rememberTransferSettingsState(
 ): TransferSettingsState {
     val blePermissionState = rememberBluetoothPermissionState()
 
-    val bleCentral = settingsRepository.presentmentBleCentralClientModeEnabled
+    val bleCentralClientModeEnabled = settingsRepository.presentmentBleCentralClientModeEnabled
         .collectAsStateWithLifecycle(initialValue = false).value
-    val blePeripheral = settingsRepository.presentmentBlePeripheralServerModeEnabled
+    val blePeripheralServerModeEnabled = settingsRepository.presentmentBlePeripheralServerModeEnabled
         .collectAsStateWithLifecycle(initialValue = false).value
-    val nfcSetting = settingsRepository.presentmentNfcDataTransferEnabled
+    val nfcDataTransferEnabled = settingsRepository.presentmentNfcDataTransferEnabled
         .collectAsStateWithLifecycle(initialValue = false).value
 
-    val bleSettingOn = bleCentral || blePeripheral
-    val nfcSettingOn = nfcSetting
-    val isAnyTransferMethodSettingOn = bleSettingOn || nfcSettingOn
+    val bleSettingOn = bleCentralClientModeEnabled || blePeripheralServerModeEnabled
+    val nfcSettingOn = nfcDataTransferEnabled
 
     val bleRequired = bleSettingOn && !nfcSettingOn
     val nfcRequired = nfcSettingOn && !bleSettingOn
@@ -43,12 +42,14 @@ fun rememberTransferSettingsState(
     val isBleEnabled = capabilityManager.isBluetoothEnabled()
     val isNfcEnabled = capabilityManager.isNfcEnabled()
 
-    val missingRequiredBlePermission = bleRequired && !blePermissionState.isGranted
     val transferMethodAvailableForCurrentSettings =
         capabilityManager.isTransferMethodAvailableForCurrentSettings(
             isBleSettingOn = bleSettingOn,
             isNfcSettingOn = nfcSettingOn
         )
+    val isAnyTransferMethodSettingOn = bleSettingOn || nfcSettingOn
+
+    val missingRequiredBlePermission = bleRequired && !blePermissionState.isGranted
 
     return TransferSettingsState(
         bleSettingOn,
@@ -57,8 +58,8 @@ fun rememberTransferSettingsState(
         nfcRequired,
         isBleEnabled,
         isNfcEnabled,
-        missingRequiredBlePermission,
         transferMethodAvailableForCurrentSettings,
-        isAnyTransferMethodSettingOn
+        isAnyTransferMethodSettingOn,
+        missingRequiredBlePermission
     )
 }
