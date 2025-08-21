@@ -1,16 +1,14 @@
-package ui.views.iso
+package ui.views.iso.holder
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
@@ -18,7 +16,6 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,16 +26,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.button_label_go_to_app_settings
-import at.asitplus.valera.resources.button_label_go_to_device_settings
 import at.asitplus.valera.resources.heading_label_show_qr_code_screen
-import at.asitplus.valera.resources.info_text_missing_permission_bluetooth
-import at.asitplus.valera.resources.info_text_no_transfer_method_available_for_selection
-import at.asitplus.valera.resources.info_text_no_transfer_method_selected
 import at.asitplus.valera.resources.info_text_qr_code_loading
 import at.asitplus.valera.resources.info_text_transfer_settings_loading
 import at.asitplus.wallet.app.common.iso.transfer.CapabilityManager
@@ -58,12 +49,14 @@ import org.koin.core.scope.Scope
 import org.multipaz.compose.permissions.rememberBluetoothPermissionState
 import ui.composables.Logo
 import ui.composables.ScreenHeading
-import ui.composables.TextIconButton
 import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.authentication.PresentationStateModel
 import ui.viewmodels.iso.ShowQrCodeState
 import ui.viewmodels.iso.ShowQrCodeViewModel
 import ui.views.LoadingViewBody
+import ui.views.iso.common.MissingBluetoothPermissionView
+import ui.views.iso.common.NoTransferMethodAvailableView
+import ui.views.iso.common.NoTransferMethodSelectedView
 import kotlin.coroutines.cancellation.CancellationException
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -164,67 +157,20 @@ fun ShowQrCodeView(
                     }
 
                     ShowQrCodeState.NO_TRANSFER_METHOD_SELECTED -> {
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = stringResource(Res.string.info_text_no_transfer_method_selected),
-                                textAlign = TextAlign.Center
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            TextIconButton(
-                                icon = {
-                                Icon(
-                                    imageVector = Icons.Outlined.Settings,
-                                    contentDescription = null
-                                )
-                            }, text = {
-                                Text(stringResource(Res.string.button_label_go_to_app_settings))
-                            }, onClick = onClickSettings
-                            )
-                        }
+                        NoTransferMethodSelectedView(onClickSettings = onClickSettings)
                     }
 
                     ShowQrCodeState.NO_TRANSFER_METHOD_AVAILABLE_FOR_SELECTION -> {
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = stringResource(Res.string.info_text_no_transfer_method_available_for_selection),
-                                textAlign = TextAlign.Center
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            TextIconButton(
-                                icon = {
-                                Icon(
-                                    imageVector = Icons.Outlined.Settings,
-                                    contentDescription = null
-                                )
-                            }, text = {
-                                Text(stringResource(Res.string.button_label_go_to_app_settings))
-                            }, onClick = onClickSettings
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            TextIconButton(
-                                icon = {
-                                Icon(
-                                    imageVector = Icons.Outlined.Settings,
-                                    contentDescription = null
-                                )
-                            },
-                                text = { Text(stringResource(Res.string.button_label_go_to_device_settings)) },
-                                onClick = {
-                                    if (transferSettingsState.nfcRequired) {
-                                        capabilityManager.goToNfcSettings(platformContext)
-                                    } else {
-                                        capabilityManager.goToBluetoothSettings(platformContext)
-                                    }
-                                })
-                        }
+                        NoTransferMethodAvailableView(
+                            onClickSettings = onClickSettings,
+                            onOpenDeviceSettings = {
+                                if (transferSettingsState.nfcRequired) {
+                                    capabilityManager.goToNfcSettings(platformContext)
+                                } else {
+                                    capabilityManager.goToBluetoothSettings(platformContext)
+                                }
+                            }
+                        )
                     }
 
                     ShowQrCodeState.MISSING_PERMISSION -> {
@@ -232,29 +178,9 @@ fun ShowQrCodeView(
                             blePermissionState.launchPermissionRequest()
                         }
 
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = stringResource(Res.string.info_text_missing_permission_bluetooth),
-                                textAlign = TextAlign.Center
-                            )
-                            Spacer(Modifier.height(8.dp))
-                            TextIconButton(
-                                icon = {
-                                    Icon(
-                                        imageVector = Icons.Outlined.Settings,
-                                        contentDescription = null
-                                    )
-                                },
-                                text = {
-                                    Text(text = stringResource(Res.string.button_label_go_to_app_settings))
-                                },
-                                onClick = { openAppSettings(platformContext) }
-                            )
-                        }
+                        MissingBluetoothPermissionView(
+                            onOpenAppPermissionSettings = { openAppSettings(platformContext) }
+                        )
                     }
 
                     ShowQrCodeState.CREATE_ENGAGEMENT -> {
@@ -289,9 +215,6 @@ fun ShowQrCodeView(
                     ShowQrCodeState.SHOW_QR_CODE -> {
                         val qrBytes = showQrCode.value
                         if (qrBytes == null) {
-                            LaunchedEffect(vm.presentationStateModel.presentmentScope) {
-                                vm.setState(ShowQrCodeState.INIT)
-                            }
                             return@Box
                         }
                         Image(
