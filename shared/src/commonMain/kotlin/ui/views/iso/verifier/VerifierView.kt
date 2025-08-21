@@ -25,6 +25,9 @@ fun VerifierView(
     val verifierState by vm.verifierState.collectAsState()
     val capabilityManager = CapabilityManager()
 
+    // TODO: add handling like ShowQrCodeView
+    // TODO: catch error if holder does not support the required transfer methods
+
     if (!capabilityManager.isAnyTransferMethodAvailable()) {
         // TODO: change handling -> see ShowQrCodeView
         onError(Throwable("No transfer method available"))

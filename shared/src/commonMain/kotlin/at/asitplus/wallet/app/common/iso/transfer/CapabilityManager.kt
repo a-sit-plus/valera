@@ -9,8 +9,12 @@ class CapabilityManager {
     @Composable
     fun isBluetoothEnabled(): Boolean = bluetoothInfo.isBluetoothEnabled()
 
+    fun goToBluetoothSettings(platformContext: PlatformContext) = bluetoothInfo.openSettings(platformContext)
+
     @Composable
     fun isNfcEnabled(): Boolean = nfcInfo.isNfcEnabled()
+
+    fun goToNfcSettings(platformContext: PlatformContext) = nfcInfo.openSettings(platformContext)
 
     @Composable
     fun isAnyTransferMethodAvailable(): Boolean = isBluetoothEnabled() || isNfcEnabled()
@@ -22,9 +26,4 @@ class CapabilityManager {
     ): Boolean {
         return (isBleSettingOn && isBluetoothEnabled()) || (isNfcSettingOn && isNfcEnabled())
     }
-
-    fun goToBluetoothSettings(platformContext: PlatformContext) =
-        bluetoothInfo.openSettings(platformContext)
-
-    fun goToNfcSettings(platformContext: PlatformContext) = nfcInfo.openSettings(platformContext)
 }
