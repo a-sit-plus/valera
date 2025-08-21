@@ -55,7 +55,7 @@ import ui.views.*
 import ui.views.authentication.AuthenticationSuccessView
 import ui.views.authentication.AuthenticationView
 import ui.views.intents.*
-import ui.views.iso.ShowQrCodeView
+import ui.views.iso.holder.ShowQrCodeView
 import ui.views.iso.verifier.VerifierView
 import ui.views.presentation.PresentationView
 
