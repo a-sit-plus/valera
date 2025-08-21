@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Repeat
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -36,15 +35,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_go_to_app_settings
 import at.asitplus.valera.resources.button_label_go_to_device_settings
-import at.asitplus.valera.resources.button_label_retry
-import at.asitplus.valera.resources.error_missing_permissions
 import at.asitplus.valera.resources.heading_label_show_qr_code_screen
+import at.asitplus.valera.resources.info_text_missing_permission_bluetooth
 import at.asitplus.valera.resources.info_text_no_transfer_method_available_for_selection
 import at.asitplus.valera.resources.info_text_no_transfer_method_selected
 import at.asitplus.valera.resources.info_text_qr_code_loading
 import at.asitplus.valera.resources.info_text_transfer_settings_loading
 import at.asitplus.wallet.app.common.iso.transfer.CapabilityManager
 import at.asitplus.wallet.app.common.iso.transfer.MdocHelper
+import at.asitplus.wallet.app.common.iso.transfer.openAppSettings
 import at.asitplus.wallet.app.common.iso.transfer.rememberPlatformContext
 import at.asitplus.wallet.app.common.iso.transfer.rememberTransferSettingsState
 import io.github.aakira.napier.Napier
@@ -115,13 +114,9 @@ fun ShowQrCodeView(
         if (!settingsReady) return@LaunchedEffect
         val next = when {
             !transferSettingsState.isAnyTransferMethodSettingOn -> ShowQrCodeState.NO_TRANSFER_METHOD_SELECTED
-
             !transferSettingsState.transferMethodAvailableForCurrentSettings -> ShowQrCodeState.NO_TRANSFER_METHOD_AVAILABLE_FOR_SELECTION
-
-            transferSettingsState.missingRequiredBlePermission -> ShowQrCodeState.MISSING_PERMISSION // TODO: add NFC permission
-
+            transferSettingsState.missingRequiredBlePermission -> ShowQrCodeState.MISSING_PERMISSION
             showQrCode.value != null && presentationState != PresentationStateModel.State.PROCESSING -> ShowQrCodeState.SHOW_QR_CODE
-
             else -> ShowQrCodeState.CREATE_ENGAGEMENT
         }
         if (showQrCodeState != next) vm.setState(next)
@@ -232,27 +227,33 @@ fun ShowQrCodeView(
                         }
                     }
 
-                    // TODO: add handling for missing nfc permission
                     ShowQrCodeState.MISSING_PERMISSION -> {
+                        LaunchedEffect(showQrCodeState) {
+                            blePermissionState.launchPermissionRequest()
+                        }
+
                         Column(
                             modifier = Modifier.fillMaxSize(),
                             verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text(stringResource(Res.string.error_missing_permissions))
-                            LaunchedEffect(Unit) {
-                                blePermissionState.launchPermissionRequest()
-                            }
+                            Text(
+                                text = stringResource(Res.string.info_text_missing_permission_bluetooth),
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(Modifier.height(8.dp))
                             TextIconButton(
                                 icon = {
-                                Icon(
-                                    imageVector = Icons.Outlined.Repeat,
-                                    contentDescription = null
-                                )
-                            },
-                                text = { Text(stringResource(Res.string.button_label_retry)) },
-                                onClick = { vm.setState(ShowQrCodeState.INIT) })
-                            // TODO handle case when user needs to go to settings application to grant permission
+                                    Icon(
+                                        imageVector = Icons.Outlined.Settings,
+                                        contentDescription = null
+                                    )
+                                },
+                                text = {
+                                    Text(text = stringResource(Res.string.button_label_go_to_app_settings))
+                                },
+                                onClick = { openAppSettings(platformContext) }
+                            )
                         }
                     }
 
