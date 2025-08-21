@@ -74,16 +74,19 @@ fun ShowQrCodeView(
 
     LaunchedEffect(vm) { vm.initSettings() }
 
-    val settingsReady by vm.settingsReady.collectAsStateWithLifecycle()
-    val capabilityManager = CapabilityManager()
-    val transferSettingsState = rememberTransferSettingsState(vm.settingsRepository, capabilityManager)
-    val blePermissionState = rememberBluetoothPermissionState()
     val platformContext = rememberPlatformContext()
+    val capabilityManager = remember { CapabilityManager() }
+    val transferSettingsState =
+        rememberTransferSettingsState(vm.settingsRepository, capabilityManager)
 
-    val showQrCode = remember { mutableStateOf<ByteString?>(null) }
-    val presentationStateModel = remember { vm.presentationStateModel }
-    val presentationState by presentationStateModel.state.collectAsStateWithLifecycle()
+    val settingsReady by vm.settingsReady.collectAsStateWithLifecycle()
     val showQrCodeState by vm.showQrCodeState.collectAsState()
+    val presentationState by remember(vm.presentationStateModel) {
+        vm.presentationStateModel.state
+    }.collectAsStateWithLifecycle()
+
+    val blePermissionState = rememberBluetoothPermissionState()
+    val showQrCode = remember { mutableStateOf<ByteString?>(null) }
 
     LaunchedEffect(
         transferSettingsState.bleSettingOn,
@@ -156,11 +159,10 @@ fun ShowQrCodeView(
                         } else LoadingViewBody(scaffoldPadding)
                     }
 
-                    ShowQrCodeState.NO_TRANSFER_METHOD_SELECTED -> {
+                    ShowQrCodeState.NO_TRANSFER_METHOD_SELECTED ->
                         NoTransferMethodSelectedView(onClickSettings = onClickSettings)
-                    }
 
-                    ShowQrCodeState.NO_TRANSFER_METHOD_AVAILABLE_FOR_SELECTION -> {
+                    ShowQrCodeState.NO_TRANSFER_METHOD_AVAILABLE_FOR_SELECTION ->
                         NoTransferMethodAvailableView(
                             onClickSettings = onClickSettings,
                             onOpenDeviceSettings = {
@@ -171,7 +173,6 @@ fun ShowQrCodeView(
                                 }
                             }
                         )
-                    }
 
                     ShowQrCodeState.MISSING_PERMISSION -> {
                         LaunchedEffect(showQrCodeState) {
@@ -212,26 +213,26 @@ fun ShowQrCodeView(
                         }
                     }
 
-                    ShowQrCodeState.SHOW_QR_CODE -> {
-                        val qrBytes = showQrCode.value
-                        if (qrBytes == null) {
-                            return@Box
-                        }
-                        Image(
-                            painter = rememberQrCodePainter(
-                                data = MdocHelper.buildDeviceEngagementQrCode(qrBytes),
-                                colors = if (isSystemInDarkTheme()) {
-                                    QrColors(dark = QrBrush.solid(Color.White))
-                                } else QrColors()
-                            ),
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize(0.8f)
-                        )
-                    }
+                    ShowQrCodeState.SHOW_QR_CODE -> QrCodeView(showQrCode.value)
 
-                    ShowQrCodeState.FINISHED -> { LoadingViewBody(scaffoldPadding) }
+                    ShowQrCodeState.FINISHED -> LoadingViewBody(scaffoldPadding)
                 }
             }
         }
     }
+}
+
+@Composable
+private fun QrCodeView(bytes: ByteString?) {
+    val data = bytes ?: return
+    Image(
+        painter = rememberQrCodePainter(
+            data = MdocHelper.buildDeviceEngagementQrCode(data),
+            colors = if (isSystemInDarkTheme()) {
+                QrColors(dark = QrBrush.solid(Color.White))
+            } else QrColors()
+        ),
+        contentDescription = null,
+        modifier = Modifier.fillMaxSize(0.8f)
+    )
 }
