@@ -1,4 +1,4 @@
-package at.asitplus.wallet.app.common.iso.transfer
+package at.asitplus.wallet.app.common.iso.transfer.capability
 
 import android.content.Intent
 import android.net.Uri

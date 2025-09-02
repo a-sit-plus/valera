@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants
+import at.asitplus.wallet.app.common.iso.transfer.capability.ShowQrCodeState
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CompletionHandler
@@ -46,16 +47,15 @@ class ShowQrCodeViewModel(
     private val _settingsReady = MutableStateFlow(false)
     val settingsReady = _settingsReady.asStateFlow()
 
-    fun initSettings(force: Boolean = false) {
-        if (!force && _settingsReady.value) return
+    fun initSettings() {
+        if (_settingsReady.value) return
         presentationScope.launch {
-            _settingsReady.value = false
             settingsRepository.awaitPresentmentSettingsFirst()
             _settingsReady.value = true
         }
     }
 
-    private val _showQrCodeState = MutableStateFlow(ShowQrCodeState.INIT)
+    private val _showQrCodeState = MutableStateFlow<ShowQrCodeState>(ShowQrCodeState.Init)
     val showQrCodeState: StateFlow<ShowQrCodeState> = _showQrCodeState
 
     fun setState(newState: ShowQrCodeState) {
@@ -141,7 +141,7 @@ class ShowQrCodeViewModel(
             val encodedDeviceEngagementByteArray = engagementGenerator.generate()
             encodedDeviceEngagement = ByteString(encodedDeviceEngagementByteArray)
             showQrCode.value = encodedDeviceEngagement
-            setState(ShowQrCodeState.SHOW_QR_CODE)
+            setState(ShowQrCodeState.ShowQrCode)
 
             // Then wait for connection
             val transport = advertisedTransports.waitForConnection(
@@ -158,21 +158,11 @@ class ShowQrCodeViewModel(
                     allowMultipleRequests = false
                 )
             )
-            setState(ShowQrCodeState.FINISHED)
+            setState(ShowQrCodeState.Finished)
             showQrCode.value = null
             completionHandler(null)
         } catch (throwable: Throwable) {
             completionHandler(throwable)
         }
     }
-}
-
-enum class ShowQrCodeState {
-    INIT,
-    NO_TRANSFER_METHOD_SELECTED,
-    NO_TRANSFER_METHOD_AVAILABLE_FOR_SELECTION,
-    MISSING_PERMISSION,
-    CREATE_ENGAGEMENT,
-    SHOW_QR_CODE,
-    FINISHED
 }
