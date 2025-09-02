@@ -1,4 +1,4 @@
-package at.asitplus.wallet.app.common.iso.transfer
+package at.asitplus.wallet.app.common.iso.transfer.capability
 
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager

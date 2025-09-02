@@ -32,11 +32,12 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_show_qr_code_screen
 import at.asitplus.valera.resources.info_text_qr_code_loading
 import at.asitplus.valera.resources.info_text_transfer_settings_loading
-import at.asitplus.wallet.app.common.iso.transfer.CapabilityManager
 import at.asitplus.wallet.app.common.iso.transfer.MdocHelper
-import at.asitplus.wallet.app.common.iso.transfer.openAppSettings
-import at.asitplus.wallet.app.common.iso.transfer.rememberPlatformContext
-import at.asitplus.wallet.app.common.iso.transfer.rememberTransferSettingsState
+import at.asitplus.wallet.app.common.iso.transfer.capability.CapabilityManager
+import at.asitplus.wallet.app.common.iso.transfer.capability.PreconditionState
+import at.asitplus.wallet.app.common.iso.transfer.capability.ShowQrCodeState
+import at.asitplus.wallet.app.common.iso.transfer.capability.rememberPlatformContext
+import at.asitplus.wallet.app.common.iso.transfer.capability.rememberTransferSettingsState
 import io.github.aakira.napier.Napier
 import io.github.alexzhirkevich.qrose.options.QrBrush
 import io.github.alexzhirkevich.qrose.options.QrColors
@@ -51,12 +52,9 @@ import ui.composables.Logo
 import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.authentication.PresentationStateModel
-import ui.viewmodels.iso.ShowQrCodeState
 import ui.viewmodels.iso.ShowQrCodeViewModel
 import ui.views.LoadingViewBody
-import ui.views.iso.common.MissingBluetoothPermissionView
-import ui.views.iso.common.NoTransferMethodAvailableView
-import ui.views.iso.common.NoTransferMethodSelectedView
+import ui.views.iso.common.MissingPreconditionViewBody
 import kotlin.coroutines.cancellation.CancellationException
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -96,7 +94,7 @@ fun ShowQrCodeView(
     ) {
         showQrCode.value = null
         vm.hasBeenCalledHack = false
-        vm.setState(ShowQrCodeState.INIT)
+        vm.setState(ShowQrCodeState.Init)
     }
 
     LaunchedEffect(
@@ -109,11 +107,19 @@ fun ShowQrCodeView(
     ) {
         if (!settingsReady) return@LaunchedEffect
         val next = when {
-            !transferSettingsState.isAnyTransferMethodSettingOn -> ShowQrCodeState.NO_TRANSFER_METHOD_SELECTED
-            !transferSettingsState.transferMethodAvailableForCurrentSettings -> ShowQrCodeState.NO_TRANSFER_METHOD_AVAILABLE_FOR_SELECTION
-            transferSettingsState.missingRequiredBlePermission -> ShowQrCodeState.MISSING_PERMISSION
-            showQrCode.value != null && presentationState != PresentationStateModel.State.PROCESSING -> ShowQrCodeState.SHOW_QR_CODE
-            else -> ShowQrCodeState.CREATE_ENGAGEMENT
+            !transferSettingsState.isAnyTransferMethodSettingOn ->
+                ShowQrCodeState.MissingPrecondition(PreconditionState.NO_TRANSFER_METHOD_SELECTED)
+
+            !transferSettingsState.transferMethodAvailableForCurrentSettings ->
+                ShowQrCodeState.MissingPrecondition(PreconditionState.NO_TRANSFER_METHOD_AVAILABLE_FOR_SELECTION)
+
+            transferSettingsState.missingRequiredBlePermission ->
+                ShowQrCodeState.MissingPrecondition(PreconditionState.MISSING_PERMISSION)
+
+            showQrCode.value != null && presentationState != PresentationStateModel.State.PROCESSING ->
+                ShowQrCodeState.ShowQrCode
+
+            else -> ShowQrCodeState.CreateEngagement
         }
         if (showQrCodeState != next) vm.setState(next)
     }
@@ -148,8 +154,8 @@ fun ShowQrCodeView(
                 modifier = Modifier.fillMaxSize().padding(16.dp),
                 contentAlignment = Alignment.Center
             ) {
-                when (showQrCodeState) {
-                    ShowQrCodeState.INIT -> {
+                when (val state = showQrCodeState) {
+                    is ShowQrCodeState.Init -> {
                         if (!settingsReady) {
                             Napier.i("Loading transfer settings", tag = TAG)
                             LoadingViewBody(
@@ -159,32 +165,16 @@ fun ShowQrCodeView(
                         } else LoadingViewBody(scaffoldPadding)
                     }
 
-                    ShowQrCodeState.NO_TRANSFER_METHOD_SELECTED ->
-                        NoTransferMethodSelectedView(onClickSettings = onClickSettings)
+                    is ShowQrCodeState.MissingPrecondition -> MissingPreconditionViewBody(
+                        reason = state.reason,
+                        transferSettingsState = transferSettingsState,
+                        capabilityManager = capabilityManager,
+                        platformContext = platformContext,
+                        blePermissionState = blePermissionState,
+                        onClickSettings = onClickSettings
+                    )
 
-                    ShowQrCodeState.NO_TRANSFER_METHOD_AVAILABLE_FOR_SELECTION ->
-                        NoTransferMethodAvailableView(
-                            onClickSettings = onClickSettings,
-                            onOpenDeviceSettings = {
-                                if (transferSettingsState.nfcRequired) {
-                                    capabilityManager.goToNfcSettings(platformContext)
-                                } else {
-                                    capabilityManager.goToBluetoothSettings(platformContext)
-                                }
-                            }
-                        )
-
-                    ShowQrCodeState.MISSING_PERMISSION -> {
-                        LaunchedEffect(showQrCodeState) {
-                            blePermissionState.launchPermissionRequest()
-                        }
-
-                        MissingBluetoothPermissionView(
-                            onOpenAppPermissionSettings = { openAppSettings(platformContext) }
-                        )
-                    }
-
-                    ShowQrCodeState.CREATE_ENGAGEMENT -> {
+                    is ShowQrCodeState.CreateEngagement -> {
                         Napier.i("Create Engagement", tag = TAG)
                         LoadingViewBody(
                             scaffoldPadding,
@@ -213,9 +203,9 @@ fun ShowQrCodeView(
                         }
                     }
 
-                    ShowQrCodeState.SHOW_QR_CODE -> QrCodeView(showQrCode.value)
+                    is ShowQrCodeState.ShowQrCode -> QrCodeView(showQrCode.value)
 
-                    ShowQrCodeState.FINISHED -> LoadingViewBody(scaffoldPadding)
+                    is ShowQrCodeState.Finished -> LoadingViewBody(scaffoldPadding)
                 }
             }
         }

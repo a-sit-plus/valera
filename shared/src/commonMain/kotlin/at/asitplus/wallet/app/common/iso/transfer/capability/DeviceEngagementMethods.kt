@@ -1,4 +1,4 @@
-package at.asitplus.wallet.app.common.iso.transfer
+package at.asitplus.wallet.app.common.iso.transfer.capability
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -8,8 +8,9 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.getString
 import androidx.compose.material.icons.outlined.QrCode
 import androidx.compose.material.icons.outlined.Nfc
+import at.asitplus.valera.resources.Res
 
 enum class DeviceEngagementMethods(val friendlyName: String, val icon: ImageVector) {
-    NFC(runBlocking { getString(at.asitplus.valera.resources.Res.string.nfc) }, Icons.Outlined.Nfc),
-    QR_CODE(runBlocking { getString(at.asitplus.valera.resources.Res.string.qr) }, Icons.Outlined.QrCode)
+    NFC(runBlocking { getString(Res.string.nfc) }, Icons.Outlined.Nfc),
+    QR_CODE(runBlocking { getString(Res.string.qr) }, Icons.Outlined.QrCode)
 }

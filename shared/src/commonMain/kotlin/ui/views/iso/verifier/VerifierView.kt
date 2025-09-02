@@ -1,55 +1,106 @@
 package ui.views.iso.verifier
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_check_response
+import at.asitplus.valera.resources.info_text_transfer_settings_loading
 import at.asitplus.valera.resources.info_text_waiting_for_response
-import at.asitplus.wallet.app.common.iso.transfer.CapabilityManager
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import at.asitplus.wallet.app.common.iso.transfer.capability.CapabilityManager
+import at.asitplus.wallet.app.common.iso.transfer.capability.PreconditionState
+import at.asitplus.wallet.app.common.iso.transfer.capability.VerifierState
+import at.asitplus.wallet.app.common.iso.transfer.capability.rememberPlatformContext
+import at.asitplus.wallet.app.common.iso.transfer.capability.rememberTransferSettingsState
+import io.github.aakira.napier.Napier
 import org.jetbrains.compose.resources.stringResource
 import org.multipaz.compose.permissions.rememberBluetoothPermissionState
-import ui.viewmodels.iso.VerifierState
 import ui.viewmodels.iso.VerifierViewModel
 import ui.views.LoadingView
+import ui.views.iso.common.MissingPreconditionView
 
 @Composable
 fun VerifierView(
+    // TODO: unify handling for callbacks (vs. ShowQrCodeView)
     vm: VerifierViewModel,
     onError: (Throwable) -> Unit,
     bottomBar: @Composable () -> Unit
 ) {
+    LaunchedEffect(vm) { vm.initSettings() }
+
+    val platformContext = rememberPlatformContext()
+    val capabilityManager = remember { CapabilityManager() }
+    val transferSettingsState =
+        rememberTransferSettingsState(vm.settingsRepository, capabilityManager)
+
+    val settingsReady by vm.settingsReady.collectAsStateWithLifecycle()
+    val hasResumed by vm.hasResumed.collectAsStateWithLifecycle()
     val verifierState by vm.verifierState.collectAsState()
-    val capabilityManager = CapabilityManager()
-
-    // TODO: add handling like ShowQrCodeView
-    // TODO: catch error if holder does not support the required transfer methods
-
-    if (!capabilityManager.isAnyTransferMethodAvailable()) {
-        // TODO: change handling -> see ShowQrCodeView
-        onError(Throwable("No transfer method available"))
-    }
 
     val blePermissionState = rememberBluetoothPermissionState()
-    if (!blePermissionState.isGranted) {
-        CoroutineScope(Dispatchers.Main).launch {
-            blePermissionState.launchPermissionRequest()
+
+    LaunchedEffect(
+        settingsReady,
+        hasResumed,
+        transferSettingsState.isAnyTransferMethodSettingOn,
+        transferSettingsState.transferMethodAvailableForCurrentSettings,
+        transferSettingsState.missingRequiredBlePermission
+    ) {
+        if (!settingsReady) return@LaunchedEffect
+        val next = when {
+            !transferSettingsState.isAnyTransferMethodSettingOn ->
+                VerifierState.MissingPrecondition(PreconditionState.NO_TRANSFER_METHOD_SELECTED)
+
+            !transferSettingsState.transferMethodAvailableForCurrentSettings ->
+                VerifierState.MissingPrecondition(PreconditionState.NO_TRANSFER_METHOD_AVAILABLE_FOR_SELECTION)
+
+            transferSettingsState.missingRequiredBlePermission ->
+                VerifierState.MissingPrecondition(PreconditionState.MISSING_PERMISSION)
+
+            else -> VerifierState.SelectDocument
         }
+        if (hasResumed) vm.resetResume()
+        if (verifierState != next) vm.setState(next)
     }
 
-    when (verifierState) {
-        VerifierState.INIT -> VerifierDocumentSelectionView(vm, bottomBar)
-        VerifierState.SELECT_CUSTOM_REQUEST -> VerifierCustomSelectionView(vm)
-        VerifierState.SELECT_COMBINED_REQUEST -> VerifierCombinedSelectionView(vm)
-        VerifierState.QR_ENGAGEMENT -> VerifierQrEngagementView(vm)
-        VerifierState.WAITING_FOR_RESPONSE ->
-            LoadingView(stringResource(Res.string.info_text_waiting_for_response), vm.navigateUp)
-        VerifierState.CHECK_RESPONSE ->
-            LoadingView(stringResource(Res.string.info_text_check_response), vm.navigateUp)
-        VerifierState.PRESENTATION -> VerifierPresentationView(vm)
-        VerifierState.ERROR -> onError(vm.throwable.value!!)
+    when (val state = verifierState) {
+        is VerifierState.Init -> {
+            if (!settingsReady) {
+                Napier.i("Loading transfer settings", tag = "VerifierView")
+                LoadingView(stringResource(Res.string.info_text_transfer_settings_loading))
+            } else {
+                LoadingView()
+            }
+        }
+
+        is VerifierState.SelectDocument -> VerifierDocumentSelectionView(vm, bottomBar)
+        is VerifierState.SelectCustomRequest -> VerifierCustomSelectionView(vm)
+        is VerifierState.SelectCombinedRequest -> VerifierCombinedSelectionView(vm)
+        is VerifierState.QrEngagement -> VerifierQrEngagementView(vm)
+        is VerifierState.WaitingForResponse ->
+            LoadingView(
+                customLabel = stringResource(Res.string.info_text_waiting_for_response),
+                navigateUp = vm.onResume
+            )
+        is VerifierState.CheckResponse ->
+            LoadingView(
+                customLabel = stringResource(Res.string.info_text_check_response),
+                navigateUp = vm.onResume
+            )
+        is VerifierState.Presentation -> VerifierPresentationView(vm)
+        is VerifierState.Error -> onError(vm.throwable.value!!)
+        is VerifierState.MissingPrecondition -> MissingPreconditionView(
+            reason = state.reason,
+            transferSettingsState = transferSettingsState,
+            capabilityManager = capabilityManager,
+            platformContext = platformContext,
+            blePermissionState = blePermissionState,
+            onClickSettings = vm.onClickSettings,
+            navigateUp = vm.navigateUp,
+            onClickLogo = vm.onClickLogo,
+        )
     }
 }

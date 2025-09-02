@@ -76,7 +76,7 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                     }
                     Spacer(Modifier.width(15.dp))
                 },
-                navigationIcon = { NavigateUpButton({ vm.navigateToVerifyDataView() }) }
+                navigationIcon = { NavigateUpButton({ vm.onResume() }) }
             )
         },
         bottomBar = {

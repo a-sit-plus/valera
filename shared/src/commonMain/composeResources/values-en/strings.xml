@@ -282,11 +282,11 @@
     <string name="heading_label_check_scan_qr_code">Scan QR-Code</string>
     <string name="heading_label_show_qr_code_screen">Scan me!</string>
     <string name="heading_label_received_data">Received Data</string>
-    <string name="heading_label_result">Result</string>
-
     <string name="heading_label_select_vda">Select VDA</string>
     <string name="heading_label_sign">Sign</string>
     <string name="heading_label_tech_demo">Tech Demo</string>
+    <string name="heading_label_result">Result</string>
+    <string name="heading_label_missing_precondition">Missing Precondition</string>
 
     <string name="biometric_authentication_prompt_for_data_transmission_consent_title">Disclose data</string>
     <string name="biometric_authentication_prompt_to_load_data_title">Load data</string>
