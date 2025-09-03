@@ -1,6 +1,5 @@
 package ui.viewmodels.iso
 
-import androidx.lifecycle.ViewModel
 import at.asitplus.KmmResult
 import at.asitplus.iso.DeviceResponse
 import at.asitplus.iso.Document
@@ -33,35 +32,19 @@ import kotlinx.serialization.decodeFromByteArray
 class VerifierViewModel(
     val navigateUp: () -> Unit,
     val onClickLogo: () -> Unit,
-    val walletMain: WalletMain,
     val navigateToHomeScreen: () -> Unit,
     val onClickSettings: () -> Unit,
-    val settingsRepository: SettingsRepository,
-) : ViewModel() {
+    walletMain: WalletMain,
+    settingsRepository: SettingsRepository
+) : TransferViewModel(walletMain, settingsRepository) {
     private val _hasResumed = MutableStateFlow(false)
     val hasResumed = _hasResumed.asStateFlow()
 
-    val onResume: () -> Unit = {
-        _hasResumed.value = true
-    }
-
-    fun resetResume() {
-        _hasResumed.value = false
-    }
+    val onResume: () -> Unit = { _hasResumed.value = true }
+    fun resetResume() { _hasResumed.value = false }
 
     private val transferManager: TransferManager by lazy {
         TransferManager(settingsRepository, walletMain.scope) { message -> } // TODO: handle update messages
-    }
-
-    private val _settingsReady = MutableStateFlow(false)
-    val settingsReady = _settingsReady.asStateFlow()
-
-    fun initSettings() {
-        if (_settingsReady.value) return
-        walletMain.scope.launch {
-            settingsRepository.awaitPresentmentSettingsFirst()
-            _settingsReady.value = true
-        }
     }
 
     private val _verifierState = MutableStateFlow<VerifierState>(VerifierState.Init)
