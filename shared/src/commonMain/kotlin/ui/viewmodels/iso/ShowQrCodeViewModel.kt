@@ -1,7 +1,6 @@
 package ui.viewmodels.iso
 
 import androidx.compose.runtime.MutableState
-import androidx.lifecycle.ViewModel
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants
@@ -15,7 +14,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.io.bytestring.ByteString
@@ -36,23 +34,19 @@ import org.multipaz.util.UUID
 import ui.viewmodels.authentication.PresentationStateModel
 
 class ShowQrCodeViewModel(
-    val walletMain: WalletMain,
-    val settingsRepository: SettingsRepository,
-) : ViewModel() {
+    walletMain: WalletMain,
+    settingsRepository: SettingsRepository
+) : TransferViewModel(walletMain, settingsRepository) {
     var hasBeenCalledHack: Boolean = false
 
-    val presentationScope by lazy { CoroutineScope(Dispatchers.IO + CoroutineName("QR code presentation scope") + walletMain.coroutineExceptionHandler) }
-    val presentationStateModel by lazy { PresentationStateModel(presentationScope) }
-
-    private val _settingsReady = MutableStateFlow(false)
-    val settingsReady = _settingsReady.asStateFlow()
-
-    fun initSettings() {
-        if (_settingsReady.value) return
-        presentationScope.launch {
-            settingsRepository.awaitPresentmentSettingsFirst()
-            _settingsReady.value = true
-        }
+    val presentationScope by lazy {
+        CoroutineScope(Dispatchers.IO +
+                CoroutineName("QR code presentation scope") +
+                walletMain.coroutineExceptionHandler
+        )
+    }
+    val presentationStateModel by lazy {
+        PresentationStateModel(presentationScope)
     }
 
     private val _showQrCodeState = MutableStateFlow<ShowQrCodeState>(ShowQrCodeState.Init)
@@ -60,7 +54,9 @@ class ShowQrCodeViewModel(
 
     fun setState(newState: ShowQrCodeState) {
         if (_showQrCodeState.value == newState) return
-        Napier.d("Change state from ${_showQrCodeState.value} to $newState", tag = "ShowQrCodeViewModel")
+        Napier.d("Change state from ${_showQrCodeState.value} to $newState",
+            tag = "ShowQrCodeViewModel"
+        )
         _showQrCodeState.value = newState
     }
 
