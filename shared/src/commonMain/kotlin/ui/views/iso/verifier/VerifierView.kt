@@ -12,6 +12,7 @@ import at.asitplus.valera.resources.info_text_transfer_settings_loading
 import at.asitplus.valera.resources.info_text_waiting_for_response
 import at.asitplus.wallet.app.common.iso.transfer.capability.CapabilityManager
 import at.asitplus.wallet.app.common.iso.transfer.capability.PreconditionState
+import at.asitplus.wallet.app.common.iso.transfer.capability.TransferPrecondition
 import at.asitplus.wallet.app.common.iso.transfer.capability.VerifierState
 import at.asitplus.wallet.app.common.iso.transfer.capability.rememberPlatformContext
 import at.asitplus.wallet.app.common.iso.transfer.capability.rememberTransferSettingsState
@@ -24,7 +25,6 @@ import ui.views.iso.common.MissingPreconditionView
 
 @Composable
 fun VerifierView(
-    // TODO: unify handling for callbacks (vs. ShowQrCodeView)
     vm: VerifierViewModel,
     onError: (Throwable) -> Unit,
     bottomBar: @Composable () -> Unit
@@ -42,25 +42,16 @@ fun VerifierView(
 
     val blePermissionState = rememberBluetoothPermissionState()
 
-    LaunchedEffect(
-        settingsReady,
-        hasResumed,
-        transferSettingsState.isAnyTransferMethodSettingOn,
-        transferSettingsState.transferMethodAvailableForCurrentSettings,
-        transferSettingsState.missingRequiredBlePermission
-    ) {
+    LaunchedEffect(settingsReady, hasResumed) {
         if (!settingsReady) return@LaunchedEffect
-        val next = when {
-            !transferSettingsState.isAnyTransferMethodSettingOn ->
+        val next = when (transferSettingsState.precondition) {
+            TransferPrecondition.Ok -> VerifierState.SelectDocument
+            TransferPrecondition.NoTransferMethodSelected ->
                 VerifierState.MissingPrecondition(PreconditionState.NO_TRANSFER_METHOD_SELECTED)
-
-            !transferSettingsState.transferMethodAvailableForCurrentSettings ->
+            TransferPrecondition.NoTransferMethodAvailable ->
                 VerifierState.MissingPrecondition(PreconditionState.NO_TRANSFER_METHOD_AVAILABLE_FOR_SELECTION)
-
-            transferSettingsState.missingRequiredBlePermission ->
+            TransferPrecondition.MissingPermission ->
                 VerifierState.MissingPrecondition(PreconditionState.MISSING_PERMISSION)
-
-            else -> VerifierState.SelectDocument
         }
         if (hasResumed) vm.resetResume()
         if (verifierState != next) vm.setState(next)

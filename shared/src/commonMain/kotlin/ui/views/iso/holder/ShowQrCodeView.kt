@@ -36,6 +36,7 @@ import at.asitplus.wallet.app.common.iso.transfer.MdocHelper
 import at.asitplus.wallet.app.common.iso.transfer.capability.CapabilityManager
 import at.asitplus.wallet.app.common.iso.transfer.capability.PreconditionState
 import at.asitplus.wallet.app.common.iso.transfer.capability.ShowQrCodeState
+import at.asitplus.wallet.app.common.iso.transfer.capability.TransferPrecondition
 import at.asitplus.wallet.app.common.iso.transfer.capability.rememberPlatformContext
 import at.asitplus.wallet.app.common.iso.transfer.capability.rememberTransferSettingsState
 import io.github.aakira.napier.Napier
@@ -97,29 +98,20 @@ fun ShowQrCodeView(
         vm.setState(ShowQrCodeState.Init)
     }
 
-    LaunchedEffect(
-        settingsReady,
-        transferSettingsState.isAnyTransferMethodSettingOn,
-        transferSettingsState.transferMethodAvailableForCurrentSettings,
-        transferSettingsState.missingRequiredBlePermission,
-        showQrCode.value,
-        presentationState
-    ) {
+    LaunchedEffect(settingsReady, showQrCode.value, presentationState) {
         if (!settingsReady) return@LaunchedEffect
-        val next = when {
-            !transferSettingsState.isAnyTransferMethodSettingOn ->
+        val next = when (transferSettingsState.precondition) {
+            TransferPrecondition.Ok -> when {
+                showQrCode.value != null && presentationState != PresentationStateModel.State.PROCESSING ->
+                    ShowQrCodeState.ShowQrCode
+                else -> ShowQrCodeState.CreateEngagement
+            }
+            TransferPrecondition.NoTransferMethodSelected ->
                 ShowQrCodeState.MissingPrecondition(PreconditionState.NO_TRANSFER_METHOD_SELECTED)
-
-            !transferSettingsState.transferMethodAvailableForCurrentSettings ->
+            TransferPrecondition.NoTransferMethodAvailable ->
                 ShowQrCodeState.MissingPrecondition(PreconditionState.NO_TRANSFER_METHOD_AVAILABLE_FOR_SELECTION)
-
-            transferSettingsState.missingRequiredBlePermission ->
+            TransferPrecondition.MissingPermission ->
                 ShowQrCodeState.MissingPrecondition(PreconditionState.MISSING_PERMISSION)
-
-            showQrCode.value != null && presentationState != PresentationStateModel.State.PROCESSING ->
-                ShowQrCodeState.ShowQrCode
-
-            else -> ShowQrCodeState.CreateEngagement
         }
         if (showQrCodeState != next) vm.setState(next)
     }
@@ -204,7 +196,6 @@ fun ShowQrCodeView(
                     }
 
                     is ShowQrCodeState.ShowQrCode -> QrCodeView(showQrCode.value)
-
                     is ShowQrCodeState.Finished -> LoadingViewBody(scaffoldPadding)
                 }
             }
