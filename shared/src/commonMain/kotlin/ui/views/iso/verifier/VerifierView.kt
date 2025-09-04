@@ -10,7 +10,7 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_check_response
 import at.asitplus.valera.resources.info_text_transfer_settings_loading
 import at.asitplus.valera.resources.info_text_waiting_for_response
-import at.asitplus.wallet.app.common.iso.transfer.capability.CapabilityManager
+import at.asitplus.wallet.app.common.iso.transfer.capability.DeviceTransferMethodManager
 import at.asitplus.wallet.app.common.iso.transfer.capability.PreconditionState
 import at.asitplus.wallet.app.common.iso.transfer.capability.TransferPrecondition
 import at.asitplus.wallet.app.common.iso.transfer.capability.VerifierState
@@ -32,9 +32,9 @@ fun VerifierView(
     LaunchedEffect(vm) { vm.initSettings() }
 
     val platformContext = rememberPlatformContext()
-    val capabilityManager = remember { CapabilityManager() }
+    val deviceTransferMethodManager = remember { DeviceTransferMethodManager() }
     val transferSettingsState =
-        rememberTransferSettingsState(vm.settingsRepository, capabilityManager)
+        rememberTransferSettingsState(vm.settingsRepository, deviceTransferMethodManager)
 
     val settingsReady by vm.settingsReady.collectAsStateWithLifecycle()
     val hasResumed by vm.hasResumed.collectAsStateWithLifecycle()
@@ -88,7 +88,7 @@ fun VerifierView(
         is VerifierState.MissingPrecondition -> MissingPreconditionView(
             reason = state.reason,
             transferSettingsState = transferSettingsState,
-            capabilityManager = capabilityManager,
+            deviceTransferMethodManager = deviceTransferMethodManager,
             platformContext = platformContext,
             blePermissionState = blePermissionState,
             onClickSettings = vm.onClickSettings,
