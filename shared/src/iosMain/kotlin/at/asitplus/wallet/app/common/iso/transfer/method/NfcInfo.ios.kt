@@ -13,6 +13,6 @@ actual class NfcInfo {
     actual fun openNfcSettings(platformContext: PlatformContext) {
         // On iOS, there is no direct way to open Nfc settings
         // TODO: check this implementation
-        openAppSettings(platformContext)
+        AppSettings().open(platformContext)
     }
 }
