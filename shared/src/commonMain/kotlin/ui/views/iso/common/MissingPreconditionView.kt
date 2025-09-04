@@ -22,11 +22,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_missing_precondition
-import at.asitplus.wallet.app.common.iso.transfer.capability.DeviceTransferMethodManager
-import at.asitplus.wallet.app.common.iso.transfer.capability.PlatformContext
-import at.asitplus.wallet.app.common.iso.transfer.capability.PreconditionState
-import at.asitplus.wallet.app.common.iso.transfer.capability.TransferSettingsState
-import at.asitplus.wallet.app.common.iso.transfer.capability.openAppSettings
+import at.asitplus.wallet.app.common.iso.transfer.method.DeviceTransferMethodManager
+import at.asitplus.wallet.app.common.iso.transfer.method.PlatformContext
+import at.asitplus.wallet.app.common.iso.transfer.method.openAppSettings
+import at.asitplus.wallet.app.common.iso.transfer.state.PreconditionState
+import at.asitplus.wallet.app.common.iso.transfer.state.TransferSettingsState
 import org.jetbrains.compose.resources.stringResource
 import org.multipaz.compose.permissions.PermissionState
 import ui.composables.Logo

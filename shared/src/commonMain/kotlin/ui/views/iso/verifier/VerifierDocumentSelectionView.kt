@@ -35,7 +35,7 @@ import at.asitplus.valera.resources.heading_label_select_data_retrieval_screen
 import at.asitplus.valera.resources.section_heading_request_combined
 import at.asitplus.valera.resources.section_heading_request_custom
 import at.asitplus.valera.resources.section_heading_request_engagement_method
-import at.asitplus.wallet.app.common.iso.transfer.capability.DeviceEngagementMethods
+import at.asitplus.wallet.app.common.iso.transfer.method.DeviceEngagementMethods
 import data.document.SelectableRequest
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
