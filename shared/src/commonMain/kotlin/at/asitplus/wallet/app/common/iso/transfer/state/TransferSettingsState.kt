@@ -36,7 +36,7 @@ data class TransferSettingsState(
         get() = when {
             !isAnySettingOn -> TransferPrecondition.NoTransferMethodSelected
             !transferMethodAvailable -> TransferPrecondition.NoTransferMethodAvailable
-            ble.settingOn && !ble.permissionGranted -> TransferPrecondition.MissingPermission
+            ble.required && !ble.permissionGranted -> TransferPrecondition.MissingPermission
             else -> TransferPrecondition.Ok
         }
 }
