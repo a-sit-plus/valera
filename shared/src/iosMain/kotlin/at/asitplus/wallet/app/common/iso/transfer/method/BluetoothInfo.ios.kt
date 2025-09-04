@@ -15,6 +15,6 @@ actual class BluetoothInfo {
     actual fun openBluetoothSettings(platformContext: PlatformContext) {
         // On iOS, there is no direct way to open Bluetooth settings
         // TODO: check this implementation
-        openAppSettings(platformContext)
+        AppSettings().open(platformContext)
     }
 }
