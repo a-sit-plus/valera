@@ -105,7 +105,7 @@ fun MissingPreconditionViewBody(
             NoTransferMethodAvailableView(
                 onClickSettings = onClickSettings,
                 onOpenDeviceSettings = {
-                    if (transferSettingsState.nfcRequired) {
+                    if (transferSettingsState.nfc.required) {
                         capabilityManager.goToNfcSettings(platformContext)
                     } else {
                         capabilityManager.goToBluetoothSettings(platformContext)

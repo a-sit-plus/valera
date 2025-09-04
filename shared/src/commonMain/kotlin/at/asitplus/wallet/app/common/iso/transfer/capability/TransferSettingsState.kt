@@ -14,22 +14,28 @@ sealed interface TransferPrecondition {
 }
 
 @Stable
+data class ChannelState(
+    val settingOn: Boolean,
+    val enabled: Boolean,
+    val required: Boolean,
+    val permissionGranted: Boolean = true
+)
+
+@Stable
 data class TransferSettingsState(
-    val bleSettingOn: Boolean,
-    val nfcSettingOn: Boolean,
-    val bleRequired: Boolean,
-    val nfcRequired: Boolean,
-    val isBleEnabled: Boolean,
-    val isNfcEnabled: Boolean,
-    val transferMethodAvailableForCurrentSettings: Boolean,
-    val isAnyTransferMethodSettingOn: Boolean,
-    val missingRequiredBlePermission: Boolean,
+    val ble: ChannelState,
+    val nfc: ChannelState,
 ) {
+    val isAnySettingOn: Boolean get() = ble.settingOn || nfc.settingOn
+
+    val transferMethodAvailable: Boolean get() =
+        (ble.settingOn && ble.enabled) || (nfc.settingOn && nfc.enabled)
+
     val precondition: TransferPrecondition
         get() = when {
-            !isAnyTransferMethodSettingOn -> TransferPrecondition.NoTransferMethodSelected
-            !transferMethodAvailableForCurrentSettings -> TransferPrecondition.NoTransferMethodAvailable
-            missingRequiredBlePermission -> TransferPrecondition.MissingPermission
+            !isAnySettingOn -> TransferPrecondition.NoTransferMethodSelected
+            !transferMethodAvailable -> TransferPrecondition.NoTransferMethodAvailable
+            ble.settingOn && !ble.permissionGranted -> TransferPrecondition.MissingPermission
             else -> TransferPrecondition.Ok
         }
 }
@@ -45,36 +51,23 @@ fun rememberTransferSettingsState(
         .collectAsStateWithLifecycle(initialValue = false).value
     val blePeripheralServerModeEnabled = settingsRepository.presentmentBlePeripheralServerModeEnabled
         .collectAsStateWithLifecycle(initialValue = false).value
-    val nfcDataTransferEnabled = settingsRepository.presentmentNfcDataTransferEnabled
+    val nfcSettingOn = settingsRepository.presentmentNfcDataTransferEnabled
         .collectAsStateWithLifecycle(initialValue = false).value
 
     val bleSettingOn = bleCentralClientModeEnabled || blePeripheralServerModeEnabled
-    val nfcSettingOn = nfcDataTransferEnabled
 
-    val bleRequired = bleSettingOn && !nfcSettingOn
-    val nfcRequired = nfcSettingOn && !bleSettingOn
-
-    val isBleEnabled = capabilityManager.isBluetoothEnabled()
-    val isNfcEnabled = capabilityManager.isNfcEnabled()
-
-    val transferMethodAvailableForCurrentSettings =
-        capabilityManager.isTransferMethodAvailableForCurrentSettings(
-            isBleSettingOn = bleSettingOn,
-            isNfcSettingOn = nfcSettingOn
-        )
-    val isAnyTransferMethodSettingOn = bleSettingOn || nfcSettingOn
-
-    val missingRequiredBlePermission = bleRequired && !blePermissionState.isGranted
-
-    return TransferSettingsState(
-        bleSettingOn,
-        nfcSettingOn,
-        bleRequired,
-        nfcRequired,
-        isBleEnabled,
-        isNfcEnabled,
-        transferMethodAvailableForCurrentSettings,
-        isAnyTransferMethodSettingOn,
-        missingRequiredBlePermission
+    val ble = ChannelState(
+        settingOn = bleSettingOn,
+        enabled = capabilityManager.isBluetoothEnabled(),
+        required = bleSettingOn && !nfcSettingOn,
+        permissionGranted = blePermissionState.isGranted
     )
+
+    val nfc = ChannelState(
+        settingOn = nfcSettingOn,
+        required = nfcSettingOn && !bleSettingOn,
+        enabled = capabilityManager.isNfcEnabled()
+    )
+
+    return TransferSettingsState(ble, nfc)
 }

@@ -67,7 +67,7 @@ fun ShowQrCodeView(
     onClickSettings: () -> Unit,
     onError: (Throwable) -> Unit,
     koinScope: Scope,
-    vm: ShowQrCodeViewModel = koinViewModel(scope = koinScope),
+    vm: ShowQrCodeViewModel = koinViewModel(scope = koinScope)
 ) {
     val TAG = "ShowQrCodeView"
 
@@ -87,18 +87,19 @@ fun ShowQrCodeView(
     val blePermissionState = rememberBluetoothPermissionState()
     val showQrCode = remember { mutableStateOf<ByteString?>(null) }
 
-    LaunchedEffect(
-        transferSettingsState.bleSettingOn,
-        transferSettingsState.nfcSettingOn,
-        transferSettingsState.isBleEnabled,
-        transferSettingsState.isNfcEnabled
-    ) {
+    LaunchedEffect(transferSettingsState.ble, transferSettingsState.nfc) {
         showQrCode.value = null
         vm.hasBeenCalledHack = false
         vm.setState(ShowQrCodeState.Init)
     }
 
-    LaunchedEffect(settingsReady, showQrCode.value, presentationState) {
+    LaunchedEffect(
+        transferSettingsState.ble,
+        transferSettingsState.nfc,
+        settingsReady,
+        showQrCode.value,
+        presentationState
+    ) {
         if (!settingsReady) return@LaunchedEffect
         val next = when (transferSettingsState.precondition) {
             TransferPrecondition.Ok -> when {
@@ -147,15 +148,16 @@ fun ShowQrCodeView(
                 contentAlignment = Alignment.Center
             ) {
                 when (val state = showQrCodeState) {
-                    is ShowQrCodeState.Init -> {
+                    is ShowQrCodeState.Init ->
                         if (!settingsReady) {
                             Napier.i("Loading transfer settings", tag = TAG)
                             LoadingViewBody(
                                 scaffoldPadding,
                                 stringResource(Res.string.info_text_transfer_settings_loading)
                             )
-                        } else LoadingViewBody(scaffoldPadding)
-                    }
+                        } else {
+                            LoadingViewBody(scaffoldPadding)
+                        }
 
                     is ShowQrCodeState.MissingPrecondition -> MissingPreconditionViewBody(
                         reason = state.reason,
@@ -177,20 +179,14 @@ fun ShowQrCodeView(
                             vm.hasBeenCalledHack = true
                             vm.setupPresentmentModel(
                                 blePermissionState,
-                                transferSettingsState.bleRequired
+                                transferSettingsState.ble.required
                             )
                             vm.doHolderFlow(
                                 showQrCode,
-                                transferSettingsState.isBleEnabled,
-                                transferSettingsState.isNfcEnabled
+                                transferSettingsState.ble.enabled,
+                                transferSettingsState.nfc.enabled
                             ) { error ->
-                                when {
-                                    error == null -> onNavigateToPresentmentScreen(vm.presentationStateModel)
-                                    error is CancellationException && error.message?.contains("PresentationModel reset") == true -> {
-                                        Napier.i("PresentationModel reset\nThis may happen when changing transfer settings after the presentation state model has been setup", tag = TAG)
-                                    }
-                                    else -> onError(error)
-                                }
+                                handleError(error, vm, onNavigateToPresentmentScreen, onError)
                             }
                         }
                     }
@@ -200,6 +196,25 @@ fun ShowQrCodeView(
                 }
             }
         }
+    }
+}
+
+private fun handleError(
+    error: Throwable?,
+    vm: ShowQrCodeViewModel,
+    onNavigateToPresentmentScreen: (PresentationStateModel) -> Unit,
+    onError: (Throwable) -> Unit
+) {
+    when {
+        error == null -> onNavigateToPresentmentScreen(vm.presentationStateModel)
+        error is CancellationException &&
+                error.message?.contains("PresentationModel reset") == true -> {
+            Napier.i(
+                "PresentationModel reset — may happen when changing transfer settings after setup",
+                tag = "ShowQrCodeView"
+            )
+        }
+        else -> onError(error)
     }
 }
 
