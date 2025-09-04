@@ -48,7 +48,9 @@ fun VerifierQrEngagementView(vm: VerifierViewModel) {
                         Logo(onClick = vm.onClickLogo)
                     }
                 },
-                navigationIcon = { NavigateUpButton(vm.navigateUp) }
+                navigationIcon = {
+                    NavigateUpButton(onClick = vm.onResume)
+                }
             )
         }
     ) {
