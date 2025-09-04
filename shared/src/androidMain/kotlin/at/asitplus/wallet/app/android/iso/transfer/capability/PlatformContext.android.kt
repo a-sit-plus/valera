@@ -1,4 +1,4 @@
-package at.asitplus.wallet.app.common.iso.transfer.capability
+package at.asitplus.wallet.app.common.iso.transfer.method
 
 import android.content.Context
 import androidx.compose.runtime.Composable

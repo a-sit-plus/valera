@@ -9,8 +9,8 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants.MDOC_PREFIX
 import at.asitplus.wallet.app.common.iso.transfer.TransferManager
-import at.asitplus.wallet.app.common.iso.transfer.capability.DeviceEngagementMethods
-import at.asitplus.wallet.app.common.iso.transfer.capability.VerifierState
+import at.asitplus.wallet.app.common.iso.transfer.method.DeviceEngagementMethods
+import at.asitplus.wallet.app.common.iso.transfer.state.VerifierState
 import at.asitplus.wallet.app.common.iso.verifier.DeviceResponseException
 import at.asitplus.wallet.app.common.iso.verifier.VerifyResponseException
 import at.asitplus.wallet.lib.agent.ValidatorVcJws

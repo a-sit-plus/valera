@@ -1,4 +1,4 @@
-package at.asitplus.wallet.app.common.iso.transfer.capability
+package at.asitplus.wallet.app.common.iso.transfer.state
 
 sealed class ShowQrCodeState {
     object Init : ShowQrCodeState()

@@ -1,9 +1,10 @@
-package at.asitplus.wallet.app.common.iso.transfer.capability
+package at.asitplus.wallet.app.common.iso.transfer.state
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import at.asitplus.wallet.app.common.data.SettingsRepository
+import at.asitplus.wallet.app.common.iso.transfer.method.DeviceTransferMethodManager
 import org.multipaz.compose.permissions.rememberBluetoothPermissionState
 
 sealed interface TransferPrecondition {

@@ -4,7 +4,7 @@ import androidx.compose.runtime.MutableState
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants
-import at.asitplus.wallet.app.common.iso.transfer.capability.ShowQrCodeState
+import at.asitplus.wallet.app.common.iso.transfer.state.ShowQrCodeState
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CompletionHandler
