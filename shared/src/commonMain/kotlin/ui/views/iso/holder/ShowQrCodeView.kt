@@ -33,7 +33,7 @@ import at.asitplus.valera.resources.heading_label_show_qr_code_screen
 import at.asitplus.valera.resources.info_text_qr_code_loading
 import at.asitplus.valera.resources.info_text_transfer_settings_loading
 import at.asitplus.wallet.app.common.iso.transfer.MdocHelper
-import at.asitplus.wallet.app.common.iso.transfer.capability.CapabilityManager
+import at.asitplus.wallet.app.common.iso.transfer.capability.DeviceTransferMethodManager
 import at.asitplus.wallet.app.common.iso.transfer.capability.PreconditionState
 import at.asitplus.wallet.app.common.iso.transfer.capability.ShowQrCodeState
 import at.asitplus.wallet.app.common.iso.transfer.capability.TransferPrecondition
@@ -74,9 +74,9 @@ fun ShowQrCodeView(
     LaunchedEffect(vm) { vm.initSettings() }
 
     val platformContext = rememberPlatformContext()
-    val capabilityManager = remember { CapabilityManager() }
+    val deviceTransferMethodManager = remember { DeviceTransferMethodManager() }
     val transferSettingsState =
-        rememberTransferSettingsState(vm.settingsRepository, capabilityManager)
+        rememberTransferSettingsState(vm.settingsRepository, deviceTransferMethodManager)
 
     val settingsReady by vm.settingsReady.collectAsStateWithLifecycle()
     val showQrCodeState by vm.showQrCodeState.collectAsState()
@@ -162,7 +162,7 @@ fun ShowQrCodeView(
                     is ShowQrCodeState.MissingPrecondition -> MissingPreconditionViewBody(
                         reason = state.reason,
                         transferSettingsState = transferSettingsState,
-                        capabilityManager = capabilityManager,
+                        deviceTransferMethodManager = deviceTransferMethodManager,
                         platformContext = platformContext,
                         blePermissionState = blePermissionState,
                         onClickSettings = onClickSettings

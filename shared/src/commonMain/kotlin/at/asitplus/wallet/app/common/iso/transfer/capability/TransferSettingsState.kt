@@ -43,7 +43,7 @@ data class TransferSettingsState(
 @Composable
 fun rememberTransferSettingsState(
     settingsRepository: SettingsRepository,
-    capabilityManager: CapabilityManager
+    deviceTransferMethodManager: DeviceTransferMethodManager
 ): TransferSettingsState {
     val blePermissionState = rememberBluetoothPermissionState()
 
@@ -58,7 +58,7 @@ fun rememberTransferSettingsState(
 
     val ble = ChannelState(
         settingOn = bleSettingOn,
-        enabled = capabilityManager.isBluetoothEnabled(),
+        enabled = deviceTransferMethodManager.isBluetoothEnabled(),
         required = bleSettingOn && !nfcSettingOn,
         permissionGranted = blePermissionState.isGranted
     )
@@ -66,7 +66,7 @@ fun rememberTransferSettingsState(
     val nfc = ChannelState(
         settingOn = nfcSettingOn,
         required = nfcSettingOn && !bleSettingOn,
-        enabled = capabilityManager.isNfcEnabled()
+        enabled = deviceTransferMethodManager.isNfcEnabled()
     )
 
     return TransferSettingsState(ble, nfc)

@@ -22,7 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_missing_precondition
-import at.asitplus.wallet.app.common.iso.transfer.capability.CapabilityManager
+import at.asitplus.wallet.app.common.iso.transfer.capability.DeviceTransferMethodManager
 import at.asitplus.wallet.app.common.iso.transfer.capability.PlatformContext
 import at.asitplus.wallet.app.common.iso.transfer.capability.PreconditionState
 import at.asitplus.wallet.app.common.iso.transfer.capability.TransferSettingsState
@@ -38,7 +38,7 @@ import ui.composables.buttons.NavigateUpButton
 fun MissingPreconditionView(
     reason: PreconditionState,
     transferSettingsState: TransferSettingsState,
-    capabilityManager: CapabilityManager,
+    deviceTransferMethodManager: DeviceTransferMethodManager,
     platformContext: PlatformContext,
     blePermissionState: PermissionState,
     onClickSettings: () -> Unit,
@@ -78,7 +78,7 @@ fun MissingPreconditionView(
                 MissingPreconditionViewBody(
                     reason = reason,
                     transferSettingsState = transferSettingsState,
-                    capabilityManager = capabilityManager,
+                    deviceTransferMethodManager = deviceTransferMethodManager,
                     platformContext = platformContext,
                     blePermissionState = blePermissionState,
                     onClickSettings = onClickSettings
@@ -92,7 +92,7 @@ fun MissingPreconditionView(
 fun MissingPreconditionViewBody(
     reason: PreconditionState,
     transferSettingsState: TransferSettingsState,
-    capabilityManager: CapabilityManager,
+    deviceTransferMethodManager: DeviceTransferMethodManager,
     platformContext: PlatformContext,
     blePermissionState: PermissionState,
     onClickSettings: () -> Unit
@@ -106,9 +106,9 @@ fun MissingPreconditionViewBody(
                 onClickSettings = onClickSettings,
                 onOpenDeviceSettings = {
                     if (transferSettingsState.nfc.required) {
-                        capabilityManager.goToNfcSettings(platformContext)
+                        deviceTransferMethodManager.goToNfcSettings(platformContext)
                     } else {
-                        capabilityManager.goToBluetoothSettings(platformContext)
+                        deviceTransferMethodManager.goToBluetoothSettings(platformContext)
                     }
                 }
             )
