@@ -39,10 +39,14 @@ fun VerifierView(
     val settingsReady by vm.settingsReady.collectAsStateWithLifecycle()
     val hasResumed by vm.hasResumed.collectAsStateWithLifecycle()
     val verifierState by vm.verifierState.collectAsState()
-
     val blePermissionState = rememberBluetoothPermissionState()
 
-    LaunchedEffect(settingsReady, hasResumed) {
+    LaunchedEffect(
+        transferSettingsState.ble,
+        transferSettingsState.nfc,
+        settingsReady,
+        hasResumed
+    ) {
         if (!settingsReady) return@LaunchedEffect
         val next = when (transferSettingsState.precondition) {
             TransferPrecondition.Ok -> VerifierState.SelectDocument
@@ -58,29 +62,27 @@ fun VerifierView(
     }
 
     when (val state = verifierState) {
-        is VerifierState.Init -> {
+        is VerifierState.Init ->
             if (!settingsReady) {
                 Napier.i("Loading transfer settings", tag = "VerifierView")
-                LoadingView(stringResource(Res.string.info_text_transfer_settings_loading))
+                LoadingView(
+                    stringResource(Res.string.info_text_transfer_settings_loading)
+                )
             } else {
                 LoadingView()
             }
-        }
-
         is VerifierState.SelectDocument -> VerifierDocumentSelectionView(vm, bottomBar)
         is VerifierState.SelectCustomRequest -> VerifierCustomSelectionView(vm)
         is VerifierState.SelectCombinedRequest -> VerifierCombinedSelectionView(vm)
         is VerifierState.QrEngagement -> VerifierQrEngagementView(vm)
-        is VerifierState.WaitingForResponse ->
-            LoadingView(
-                customLabel = stringResource(Res.string.info_text_waiting_for_response),
-                navigateUp = vm.onResume
-            )
-        is VerifierState.CheckResponse ->
-            LoadingView(
-                customLabel = stringResource(Res.string.info_text_check_response),
-                navigateUp = vm.onResume
-            )
+        is VerifierState.WaitingForResponse -> LoadingView(
+            customLabel = stringResource(Res.string.info_text_waiting_for_response),
+            navigateUp = vm.onResume
+        )
+        is VerifierState.CheckResponse -> LoadingView(
+            customLabel = stringResource(Res.string.info_text_check_response),
+            navigateUp = vm.onResume
+        )
         is VerifierState.Presentation -> VerifierPresentationView(vm)
         is VerifierState.Error -> onError(vm.throwable.value!!)
         is VerifierState.MissingPrecondition -> MissingPreconditionView(
