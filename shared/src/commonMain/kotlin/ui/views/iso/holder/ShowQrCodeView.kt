@@ -32,7 +32,7 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_show_qr_code_screen
 import at.asitplus.valera.resources.info_text_qr_code_loading
 import at.asitplus.valera.resources.info_text_transfer_settings_loading
-import at.asitplus.wallet.app.common.iso.transfer.MdocHelper
+import at.asitplus.wallet.app.common.iso.transfer.MdocConstants
 import at.asitplus.wallet.app.common.iso.transfer.method.DeviceTransferMethodManager
 import at.asitplus.wallet.app.common.iso.transfer.method.rememberPlatformContext
 import at.asitplus.wallet.app.common.iso.transfer.state.PreconditionState
@@ -49,6 +49,7 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.scope.Scope
 import org.multipaz.compose.permissions.rememberBluetoothPermissionState
+import org.multipaz.util.toBase64Url
 import ui.composables.Logo
 import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
@@ -223,7 +224,7 @@ private fun QrCodeView(bytes: ByteString?) {
     val data = bytes ?: return
     Image(
         painter = rememberQrCodePainter(
-            data = MdocHelper.buildDeviceEngagementQrCode(data),
+            data = MdocConstants.MDOC_PREFIX + data.toByteArray().toBase64Url(),
             colors = if (isSystemInDarkTheme()) {
                 QrColors(dark = QrBrush.solid(Color.White))
             } else QrColors()
