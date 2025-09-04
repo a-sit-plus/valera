@@ -1,16 +1,18 @@
 package at.asitplus.wallet.app.common.iso.transfer.capability
 
 import androidx.compose.runtime.Composable
+import platform.CoreNFC.NFCNDEFReaderSession
 
 actual class NfcInfo {
     @Composable
     actual fun isNfcEnabled(): Boolean {
-        // TODO add check if nfc is enabled (if that's even possible on iOS)
-        // for now return true so that NFC can be used if it's enabled
-        return true
+        // TODO: check this implementation
+        return NFCNDEFReaderSession.readingAvailable
     }
 
-    actual fun openSettings(platformContext: PlatformContext) {
-    // TODO add implementation
+    actual fun openNfcSettings(platformContext: PlatformContext) {
+        // On iOS, there is no direct way to open Nfc settings
+        // TODO: check this implementation
+        openAppSettings(platformContext)
     }
 }
