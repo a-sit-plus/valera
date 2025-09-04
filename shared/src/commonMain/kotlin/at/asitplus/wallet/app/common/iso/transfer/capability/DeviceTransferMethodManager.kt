@@ -10,9 +10,9 @@ class DeviceTransferMethodManager {
 
     @Composable
     fun isBluetoothEnabled(): Boolean = bluetoothInfo.isBluetoothEnabled()
-    fun goToBluetoothSettings(platformContext: PlatformContext) = bluetoothInfo.openSettings(platformContext)
+    fun goToBluetoothSettings(platformContext: PlatformContext) = bluetoothInfo.openBluetoothSettings(platformContext)
 
     @Composable
     fun isNfcEnabled(): Boolean = nfcInfo.isNfcEnabled()
-    fun goToNfcSettings(platformContext: PlatformContext) = nfcInfo.openSettings(platformContext)
+    fun goToNfcSettings(platformContext: PlatformContext) = nfcInfo.openNfcSettings(platformContext)
 }

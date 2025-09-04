@@ -38,7 +38,7 @@ actual class BluetoothInfo {
         return isBluetoothEnabled.value
     }
 
-    actual fun openSettings(platformContext: PlatformContext) {
+    actual fun openBluetoothSettings(platformContext: PlatformContext) {
         runCatching {
             platformContext.context.startActivity(
                 Intent(Settings.ACTION_BLUETOOTH_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

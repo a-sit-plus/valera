@@ -5,5 +5,5 @@ import androidx.compose.runtime.Composable
 expect class BluetoothInfo() {
     @Composable
     fun isBluetoothEnabled(): Boolean
-    fun openSettings(platformContext: PlatformContext)
+    fun openBluetoothSettings(platformContext: PlatformContext)
 }

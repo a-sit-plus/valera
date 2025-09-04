@@ -23,8 +23,7 @@ actual class NfcInfo {
             val receiver = object : BroadcastReceiver() {
                 override fun onReceive(ctx: Context?, intent: Intent?) {
                     if (intent?.action == NfcAdapter.ACTION_ADAPTER_STATE_CHANGED) {
-                        val currentAdapter = NfcAdapter.getDefaultAdapter(context)
-                        isNfcEnabled.value = currentAdapter?.isEnabled == true
+                        isNfcEnabled.value = nfcAdapter?.isEnabled == true
                     }
                 }
             }
@@ -35,7 +34,7 @@ actual class NfcInfo {
         return isNfcEnabled.value
     }
 
-    actual fun openSettings(platformContext: PlatformContext) {
+    actual fun openNfcSettings(platformContext: PlatformContext) {
         runCatching {
             platformContext.context.startActivity(
                 Intent(Settings.ACTION_NFC_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
