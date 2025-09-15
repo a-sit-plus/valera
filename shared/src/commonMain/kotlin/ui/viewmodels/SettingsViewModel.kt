@@ -52,6 +52,7 @@ class SettingsViewModel(
         }
     }
 
+    // TODO: move this to a service that can be used for verifier and holder
     val presentmentUseNegotiatedHandover = settingsRepository.presentmentUseNegotiatedHandover.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
