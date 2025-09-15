@@ -5,6 +5,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.error_bluetooth_and_nfc_unavailable
+import at.asitplus.valera.resources.heading_label_check_scan_qr_code
 import at.asitplus.valera.resources.info_text_check_response
 import at.asitplus.valera.resources.info_text_waiting_for_response
 import at.asitplus.wallet.app.common.iso.transfer.CapabilityManager
@@ -15,6 +16,7 @@ import org.jetbrains.compose.resources.stringResource
 import org.multipaz.compose.permissions.rememberBluetoothPermissionState
 import ui.viewmodels.iso.VerifierState
 import ui.viewmodels.iso.VerifierViewModel
+import ui.views.GenericQrCodeScannerView
 import ui.views.LoadingView
 
 @Composable
@@ -41,11 +43,20 @@ fun VerifierView(
         VerifierState.INIT -> VerifierDocumentSelectionView(vm, bottomBar)
         VerifierState.SELECT_CUSTOM_REQUEST -> VerifierCustomSelectionView(vm)
         VerifierState.SELECT_COMBINED_REQUEST -> VerifierCombinedSelectionView(vm)
-        VerifierState.QR_ENGAGEMENT -> VerifierQrEngagementView(vm)
-        VerifierState.WAITING_FOR_RESPONSE ->
-            LoadingView(stringResource(Res.string.info_text_waiting_for_response), vm.navigateUp)
-        VerifierState.CHECK_RESPONSE ->
-            LoadingView(stringResource(Res.string.info_text_check_response), vm.navigateUp)
+        VerifierState.QR_ENGAGEMENT -> GenericQrCodeScannerView(
+            title = stringResource(Res.string.heading_label_check_scan_qr_code),
+            subTitle = null,
+            navigateUp = vm.navigateUp,
+            onFoundQrCode = vm.onFoundPayload,
+            onClickLogo = vm.onClickLogo,
+            onClickSettings = vm.onClickSettings
+        )
+        VerifierState.WAITING_FOR_RESPONSE -> LoadingView(
+            stringResource(Res.string.info_text_waiting_for_response), vm.navigateUp
+        )
+        VerifierState.CHECK_RESPONSE -> LoadingView(
+            stringResource(Res.string.info_text_check_response), vm.navigateUp
+        )
         VerifierState.PRESENTATION -> VerifierPresentationView(vm)
         VerifierState.ERROR -> onError(vm.throwable.value!!)
     }
