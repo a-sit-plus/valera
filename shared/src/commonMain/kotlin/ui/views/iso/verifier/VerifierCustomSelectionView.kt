@@ -32,7 +32,8 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.heading_label_select_custom_data_retrieval_screen
+import at.asitplus.valera.resources.heading_label_select_data_retrieval_screen
+import at.asitplus.valera.resources.heading_subtitle_select_custom_data_retrieval_screen
 import at.asitplus.valera.resources.section_heading_select_document_type
 import at.asitplus.valera.resources.section_heading_select_requested_data_entries
 import at.asitplus.valera.resources.section_heading_selected_namespace
@@ -41,6 +42,7 @@ import data.document.SelectableDocTypes
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.ScreenHeading
+import ui.composables.ScreenHeadingSubtitle
 import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.iso.VerifierViewModel
 
@@ -60,10 +62,14 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
             TopAppBar(
                 title = {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        ScreenHeading(
-                            stringResource(Res.string.heading_label_select_custom_data_retrieval_screen),
-                            Modifier.weight(1f),
-                        )
+                        Column(modifier = Modifier.weight(1f)) {
+                            ScreenHeading(
+                                stringResource(Res.string.heading_label_select_data_retrieval_screen)
+                            )
+                            ScreenHeadingSubtitle(
+                                stringResource(Res.string.heading_subtitle_select_custom_data_retrieval_screen)
+                            )
+                        }
                     }
                 },
                 actions = {

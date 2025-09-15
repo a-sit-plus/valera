@@ -36,7 +36,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_add_request
-import at.asitplus.valera.resources.heading_label_select_combined_data_retrieval_screen
+import at.asitplus.valera.resources.heading_label_select_data_retrieval_screen
+import at.asitplus.valera.resources.heading_subtitle_select_combined_data_retrieval_screen
 import at.asitplus.valera.resources.info_text_no_requests
 import at.asitplus.valera.resources.section_heading_select_document_type
 import at.asitplus.valera.resources.text_label_requests
@@ -54,6 +55,7 @@ import ui.composables.Logo
 import ui.composables.PersonAttributeDetailCardHeading
 import ui.composables.PersonAttributeDetailCardHeadingIcon
 import ui.composables.ScreenHeading
+import ui.composables.ScreenHeadingSubtitle
 import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.iso.VerifierViewModel
 import ui.views.iso.verifier.requests.HIIDRequest
@@ -92,10 +94,14 @@ fun VerifierCombinedSelectionView(vm: VerifierViewModel) {
             TopAppBar(
                 title = {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        ScreenHeading(
-                            stringResource(Res.string.heading_label_select_combined_data_retrieval_screen),
-                            Modifier.weight(1f),
+                        Column(modifier = Modifier.weight(1f)) {
+                            ScreenHeading(
+                                stringResource(Res.string.heading_label_select_data_retrieval_screen)
                         )
+                            ScreenHeadingSubtitle(
+                                stringResource(Res.string.heading_subtitle_select_combined_data_retrieval_screen)
+                            )
+                        }
                     }
                 },
                 actions = {

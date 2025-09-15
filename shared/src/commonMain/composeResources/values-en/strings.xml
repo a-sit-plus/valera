@@ -434,9 +434,10 @@
     <string name="qr">QR-Code</string>
 
     <!-- Verify Data Route -->
-    <string name="heading_label_select_data_retrieval_screen">Check</string>
-    <string name="heading_label_select_custom_data_retrieval_screen">Custom</string>
-    <string name="heading_label_select_combined_data_retrieval_screen">Combined</string>
+    <string name="heading_label_verifier_screen">Check</string>
+    <string name="heading_label_select_data_retrieval_screen">Request</string>
+    <string name="heading_subtitle_select_custom_data_retrieval_screen">Custom</string>
+    <string name="heading_subtitle_select_combined_data_retrieval_screen">Combined</string>
     <string name="section_heading_request_mdl">mDL requests</string>
     <string name="section_heading_request_pid">PID requests</string>
     <string name="section_heading_request_hid">HealthID request</string>
