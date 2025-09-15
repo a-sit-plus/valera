@@ -42,7 +42,7 @@ import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
-import ui.viewmodels.iso.VerifierViewModel
+import ui.viewmodels.iso.verifier.VerifierViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

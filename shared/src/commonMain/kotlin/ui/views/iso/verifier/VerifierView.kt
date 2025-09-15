@@ -19,7 +19,7 @@ import at.asitplus.wallet.app.common.iso.transfer.state.rememberTransferSettings
 import io.github.aakira.napier.Napier
 import org.jetbrains.compose.resources.stringResource
 import org.multipaz.compose.permissions.rememberBluetoothPermissionState
-import ui.viewmodels.iso.VerifierViewModel
+import ui.viewmodels.iso.verifier.VerifierViewModel
 import ui.views.LoadingView
 import ui.views.iso.common.MissingPreconditionView
 

@@ -23,7 +23,7 @@ import at.asitplus.valera.resources.info_text_missing_permission
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
-import ui.viewmodels.iso.VerifierViewModel
+import ui.viewmodels.iso.verifier.VerifierViewModel
 import ui.views.CameraView
 
 @OptIn(ExperimentalMaterial3Api::class)

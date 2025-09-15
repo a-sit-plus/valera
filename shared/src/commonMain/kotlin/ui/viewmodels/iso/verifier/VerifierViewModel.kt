@@ -1,4 +1,4 @@
-package ui.viewmodels.iso
+package ui.viewmodels.iso.verifier
 
 import at.asitplus.KmmResult
 import at.asitplus.iso.DeviceResponse
@@ -7,14 +7,14 @@ import at.asitplus.iso.MobileSecurityObject
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
-import at.asitplus.wallet.app.common.iso.transfer.MdocConstants.MDOC_PREFIX
+import at.asitplus.wallet.app.common.iso.transfer.MdocConstants
 import at.asitplus.wallet.app.common.iso.transfer.TransferManager
 import at.asitplus.wallet.app.common.iso.transfer.method.DeviceEngagementMethods
 import at.asitplus.wallet.app.common.iso.transfer.state.VerifierState
 import at.asitplus.wallet.app.common.iso.verifier.DeviceResponseException
 import at.asitplus.wallet.app.common.iso.verifier.VerifyResponseException
 import at.asitplus.wallet.lib.agent.Validator
-import at.asitplus.wallet.lib.agent.Verifier.VerifyPresentationResult
+import at.asitplus.wallet.lib.agent.Verifier
 import at.asitplus.wallet.lib.agent.VerifierAgent
 import at.asitplus.wallet.lib.data.IsoDocumentParsed
 import data.document.RequestDocumentBuilder
@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromByteArray
+import ui.viewmodels.iso.common.TransferViewModel
 
 class VerifierViewModel(
     val navigateUp: () -> Unit,
@@ -44,7 +45,10 @@ class VerifierViewModel(
     fun resetResume() { _hasResumed.value = false }
 
     private val transferManager: TransferManager by lazy {
-        TransferManager(settingsRepository, walletMain.scope) { message -> } // TODO: handle update messages
+        TransferManager(
+            settingsRepository,
+            walletMain.scope
+        ) { message -> } // TODO: handle update messages
     }
 
     private val _verifierState = MutableStateFlow<VerifierState>(VerifierState.Init)
@@ -94,7 +98,13 @@ class VerifierViewModel(
                 val deviceResponse = coseCompliantSerializer.decodeFromByteArray<DeviceResponse>(deviceResponseBytes)
                 checkResponse(deviceResponse)
             } catch (e: Exception) {
-                handleError(DeviceResponseException("Failed to decode DeviceResponse", e, deviceResponseBytes))
+                handleError(
+                    DeviceResponseException(
+                        "Failed to decode DeviceResponse",
+                        e,
+                        deviceResponseBytes
+                    )
+                )
             }
         }.onFailure { handleError(it) }
     }
@@ -109,16 +119,21 @@ class VerifierViewModel(
             try {
                 val verifierAgent = VerifierAgent("Proximity Verifier", Validator())
                 when (val result = verifierAgent.verifyPresentationIsoMdoc(deviceResponse, verifyDocument)) {
-                    is VerifyPresentationResult.SuccessIso -> {
+                    is Verifier.VerifyPresentationResult.SuccessIso -> {
                         responseDocumentList.addAll(result.documents)
                         setState(VerifierState.Presentation)
                     }
-                    is VerifyPresentationResult.InvalidStructure -> {
+                    is Verifier.VerifyPresentationResult.InvalidStructure -> {
                         handleError(VerifyResponseException("Verification failed: InvalidStructure\ninput = ${result.input}"))
                         return@launch
                     }
-                    is VerifyPresentationResult.ValidationError -> {
-                        handleError(VerifyResponseException("Verification failed: ValidationError", result.cause))
+                    is Verifier.VerifyPresentationResult.ValidationError -> {
+                        handleError(
+                            VerifyResponseException(
+                                "Verification failed: ValidationError",
+                                result.cause
+                            )
+                        )
                         return@launch
                     }
                     else -> {
@@ -173,11 +188,11 @@ class VerifierViewModel(
     }
 
     val onFoundPayload: (String) -> Unit = { payload ->
-        if (payload.startsWith(MDOC_PREFIX)) {
+        if (payload.startsWith(MdocConstants.MDOC_PREFIX)) {
             setState(VerifierState.WaitingForResponse)
             _requestDocumentList.let { requestDocumentList ->
                 transferManager.doQrFlow(
-                    payload.removePrefix(MDOC_PREFIX),
+                    payload.removePrefix(MdocConstants.MDOC_PREFIX),
                     requestDocumentList,
                     { message -> Napier.d("Transfer message: $message") } // TODO: handle update messages
                 ) { deviceResponseBytes ->
@@ -185,7 +200,7 @@ class VerifierViewModel(
                 }
             }
         } else {
-            handleError(IllegalArgumentException("Invalid QR-Code:\nQR-Code does not start with \"$MDOC_PREFIX\""))
+            handleError(IllegalArgumentException("Invalid QR-Code:\nQR-Code does not start with \"${MdocConstants.MDOC_PREFIX}\""))
         }
     }
 }

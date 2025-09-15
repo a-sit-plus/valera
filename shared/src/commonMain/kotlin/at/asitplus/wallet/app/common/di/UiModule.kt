@@ -8,7 +8,7 @@ import ui.viewmodels.AddCredentialViewModel
 import ui.viewmodels.CredentialsViewModel
 import ui.viewmodels.SettingsViewModel
 import ui.viewmodels.authentication.AuthenticationSuccessViewModel
-import ui.viewmodels.iso.ShowQrCodeViewModel
+import ui.viewmodels.iso.holder.ShowQrCodeViewModel
 
 fun uiModule() = module {
     singleOf(::SnackbarService)
