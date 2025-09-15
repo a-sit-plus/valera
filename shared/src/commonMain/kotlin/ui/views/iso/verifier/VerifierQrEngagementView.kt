@@ -28,7 +28,10 @@ import ui.views.CameraView
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun VerifierQrEngagementView(vm: VerifierViewModel) {
+fun VerifierQrEngagementView(
+    onClickLogo: () -> Unit,
+    vm: VerifierViewModel
+) {
 
     var hasPermissions by remember { mutableStateOf(false) }
     if (!hasPermissions) {
@@ -45,7 +48,7 @@ fun VerifierQrEngagementView(vm: VerifierViewModel) {
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.headlineMedium,
                         )
-                        Logo(onClick = vm.onClickLogo)
+                        Logo(onClick = onClickLogo)
                     }
                 },
                 navigationIcon = {

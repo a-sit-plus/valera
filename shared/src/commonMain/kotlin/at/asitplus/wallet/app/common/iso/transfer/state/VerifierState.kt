@@ -2,6 +2,8 @@ package at.asitplus.wallet.app.common.iso.transfer.state
 
 sealed class VerifierState {
     object Init : VerifierState()
+    object Settings : VerifierState()
+    object CheckSettings : VerifierState()
     object SelectDocument : VerifierState()
     object SelectCustomRequest : VerifierState()
     object SelectCombinedRequest : VerifierState()
