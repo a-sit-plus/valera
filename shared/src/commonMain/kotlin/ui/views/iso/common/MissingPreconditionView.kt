@@ -80,7 +80,7 @@ fun MissingPreconditionView(
                     deviceTransferMethodManager = deviceTransferMethodManager,
                     platformContext = platformContext,
                     blePermissionState = blePermissionState,
-                    onClickSettings = onClickSettings
+                    onClickSettings = navigateUp
                 )
             }
         }

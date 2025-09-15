@@ -64,7 +64,11 @@ import ui.views.iso.verifier.requests.PIDRequests
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun VerifierCombinedSelectionView(vm: VerifierViewModel) {
+fun VerifierCombinedSelectionView(
+    onClickLogo: () -> Unit,
+    onClickSettings: () -> Unit,
+    vm: VerifierViewModel
+) {
     val listSpacingModifier = Modifier.padding(top = 8.dp).fillMaxWidth()
     val layoutSpacingModifier = Modifier.padding(top = 24.dp)
 
@@ -103,8 +107,8 @@ fun VerifierCombinedSelectionView(vm: VerifierViewModel) {
                     }
                 },
                 actions = {
-                    Logo(onClick = vm.onClickLogo)
-                    Column(modifier = Modifier.clickable(onClick = vm.onClickSettings)) {
+                    Logo(onClick = onClickLogo)
+                    Column(modifier = Modifier.clickable(onClick = onClickSettings)) {
                         Icon(imageVector = Icons.Outlined.Settings, contentDescription = null)
                     }
                     Spacer(Modifier.width(15.dp))

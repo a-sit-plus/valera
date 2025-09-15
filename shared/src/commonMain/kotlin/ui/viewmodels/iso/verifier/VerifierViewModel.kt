@@ -25,30 +25,23 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromByteArray
 import ui.viewmodels.iso.common.TransferViewModel
 
 class VerifierViewModel(
-    val navigateUp: () -> Unit,
-    val onClickLogo: () -> Unit,
-    val navigateToHomeScreen: () -> Unit,
-    val onClickSettings: () -> Unit,
     walletMain: WalletMain,
     settingsRepository: SettingsRepository
 ) : TransferViewModel(walletMain, settingsRepository) {
-    private val _hasResumed = MutableStateFlow(false)
-    val hasResumed = _hasResumed.asStateFlow()
 
-    val onResume: () -> Unit = { _hasResumed.value = true }
-    fun resetResume() { _hasResumed.value = false }
+    val onResume: () -> Unit = { setState(VerifierState.Settings) }
+    val onConsentSettings: () -> Unit = { setState(VerifierState.CheckSettings) }
 
     private val transferManager: TransferManager by lazy {
         TransferManager(settingsRepository, walletMain.scope) { message -> } // TODO: handle update messages
     }
 
-    private val _verifierState = MutableStateFlow<VerifierState>(VerifierState.Init)
+    private val _verifierState = MutableStateFlow<VerifierState>(VerifierState.Settings)
     val verifierState: StateFlow<VerifierState> = _verifierState
 
     fun setState(newState: VerifierState) {
@@ -72,6 +65,11 @@ class VerifierViewModel(
 
     private val _selectedEngagementMethod = MutableStateFlow(DeviceEngagementMethods.QR_CODE)
     val selectedEngagementMethod: StateFlow<DeviceEngagementMethods> = _selectedEngagementMethod
+
+    fun setEngagementMethod(method: DeviceEngagementMethods) {
+        if(_selectedEngagementMethod.value == method) return
+        _selectedEngagementMethod.value = method
+    }
 
     private fun setStateToEngagement(selectedEngagementMethod: DeviceEngagementMethods) {
         when (selectedEngagementMethod) {
@@ -129,23 +127,18 @@ class VerifierViewModel(
         }
     }
 
-    fun onRequestSelected(
-        selectedEngagementMethod: DeviceEngagementMethods,
-        request: SelectableRequest
-    ) {
+    fun onRequestSelected(request: SelectableRequest) {
         _requestDocumentList.addRequestDocument(
             RequestDocumentBuilder.buildRequestDocument(request)
         )
-        setStateToEngagement(selectedEngagementMethod)
+        setStateToEngagement(_selectedEngagementMethod.value)
     }
 
-    fun navigateToCustomSelectionView(selectedEngagementMethod: DeviceEngagementMethods) {
-        _selectedEngagementMethod.value = selectedEngagementMethod
+    fun navigateToCustomSelectionView() {
         setState(VerifierState.SelectCustomRequest)
     }
 
-    fun navigateToCombinedSelectionView(selectedEngagementMethod: DeviceEngagementMethods) {
-        _selectedEngagementMethod.value = selectedEngagementMethod
+    fun navigateToCombinedSelectionView() {
         setState(VerifierState.SelectCombinedRequest)
     }
 
@@ -155,7 +148,7 @@ class VerifierViewModel(
                 RequestDocumentBuilder.buildRequestDocument(request)
             )
         }
-        setStateToEngagement(selectedEngagementMethod.value)
+        setStateToEngagement(_selectedEngagementMethod.value)
     }
 
     fun onReceiveCustomSelection(
@@ -166,7 +159,7 @@ class VerifierViewModel(
         _requestDocumentList.addRequestDocument(
             RequestDocumentBuilder.buildRequestDocument(config.scheme, selectedEntries)
         )
-        setStateToEngagement(selectedEngagementMethod.value)
+        setStateToEngagement(_selectedEngagementMethod.value)
     }
 
     val onFoundPayload: (String) -> Unit = { payload ->

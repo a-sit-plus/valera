@@ -48,7 +48,11 @@ import ui.views.iso.common.SingleChoiceButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun VerifierCustomSelectionView(vm: VerifierViewModel) {
+fun VerifierCustomSelectionView(
+    onClickLogo: () -> Unit,
+    onClickSettings: () -> Unit,
+    vm: VerifierViewModel
+) {
     val listSpacingModifier = Modifier.padding(top = 8.dp)
     val layoutSpacingModifier = Modifier.padding(top = 24.dp)
 
@@ -69,8 +73,8 @@ fun VerifierCustomSelectionView(vm: VerifierViewModel) {
                     }
                 },
                 actions = {
-                    Logo(onClick = vm.onClickLogo)
-                    Column(modifier = Modifier.clickable(onClick = vm.onClickSettings)) {
+                    Logo(onClick = onClickLogo)
+                    Column(modifier = Modifier.clickable(onClick = onClickSettings)) {
                         Icon(
                             imageVector = Icons.Outlined.Settings,
                             contentDescription = null

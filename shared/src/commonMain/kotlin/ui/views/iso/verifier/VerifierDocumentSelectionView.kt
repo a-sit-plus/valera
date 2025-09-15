@@ -21,10 +21,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -34,12 +30,11 @@ import at.asitplus.valera.resources.button_label_check_custom
 import at.asitplus.valera.resources.heading_label_select_data_retrieval_screen
 import at.asitplus.valera.resources.section_heading_request_combined
 import at.asitplus.valera.resources.section_heading_request_custom
-import at.asitplus.valera.resources.section_heading_request_engagement_method
-import at.asitplus.wallet.app.common.iso.transfer.method.DeviceEngagementMethods
 import data.document.SelectableRequest
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.ScreenHeading
+import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.iso.verifier.VerifierViewModel
 import ui.views.iso.common.SingleChoiceButton
 import ui.views.iso.verifier.requests.AVRequests
@@ -52,14 +47,13 @@ import ui.views.iso.verifier.requests.RequestItemData
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VerifierDocumentSelectionView(
+    onClickLogo: () -> Unit,
+    onClickSettings: () -> Unit,
     vm: VerifierViewModel,
     bottomBar: @Composable () -> Unit
 ) {
     val listSpacingModifier = Modifier.padding(top = 8.dp).fillMaxWidth()
     val layoutSpacingModifier = Modifier.padding(top = 24.dp)
-
-    val engagementMethods = DeviceEngagementMethods.entries
-    var selectedEngagementMethod by remember { mutableStateOf(DeviceEngagementMethods.QR_CODE) }
 
     Scaffold(
         topBar = {
@@ -73,15 +67,16 @@ fun VerifierDocumentSelectionView(
                     }
                 },
                 actions = {
-                    Logo(onClick = vm.onClickLogo)
-                    Column(modifier = Modifier.clickable(onClick = vm.onClickSettings)) {
+                    Logo(onClick = onClickLogo)
+                    Column(modifier = Modifier.clickable(onClick = onClickSettings)) {
                         Icon(
                             imageVector = Icons.Outlined.Settings,
                             contentDescription = null,
                         )
                     }
                     Spacer(Modifier.width(15.dp))
-                }
+                },
+                navigationIcon = { NavigateUpButton({ vm.onResume() }) }
             )
         },
         bottomBar = { bottomBar() }
@@ -91,35 +86,11 @@ fun VerifierDocumentSelectionView(
                 modifier = Modifier.padding(end = 16.dp, start = 16.dp, bottom = 16.dp)
                     .verticalScroll(rememberScrollState())
             ) {
-                Column(
-                    modifier = layoutSpacingModifier,
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    Text(
-                        text = stringResource(Res.string.section_heading_request_engagement_method),
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    engagementMethods.forEach { engagementMethod ->
-                        SingleChoiceButton(
-                            engagementMethod.friendlyName,
-                            selectedEngagementMethod.friendlyName,
-                            modifier = listSpacingModifier,
-                            icon = {
-                                Icon(
-                                    imageVector = engagementMethod.icon,
-                                    contentDescription = null
-                                )
-                            }
-                        ) {
-                            selectedEngagementMethod = engagementMethod
-                        }
-                    }
-                }
                 val handleRequest: (SelectableRequest) -> Unit = { request ->
-                    vm.onRequestSelected(selectedEngagementMethod, request)
+                    vm.onRequestSelected(request)
                 }
                 Column {
-                    MDLRequests(layoutSpacingModifier, listSpacingModifier, handleRequest)
+                    MDLRequests(Modifier, listSpacingModifier, handleRequest)
                     PIDRequests(layoutSpacingModifier, listSpacingModifier, handleRequest)
                     AVRequests(layoutSpacingModifier, listSpacingModifier, handleRequest)
                     HIIDRequest(layoutSpacingModifier, listSpacingModifier, handleRequest)
@@ -138,7 +109,7 @@ fun VerifierDocumentSelectionView(
                                 )
                             },
                             label = stringResource(Res.string.button_label_check_combined),
-                            onClick = { vm.navigateToCombinedSelectionView(selectedEngagementMethod) }
+                            onClick = { vm.navigateToCombinedSelectionView() }
                         ),
                         modifier = listSpacingModifier
                     )
@@ -157,7 +128,7 @@ fun VerifierDocumentSelectionView(
                                 )
                             },
                             label = stringResource(Res.string.button_label_check_custom),
-                            onClick = { vm.navigateToCustomSelectionView(selectedEngagementMethod) }
+                            onClick = { vm.navigateToCustomSelectionView() }
                         ),
                         modifier = listSpacingModifier
                     )

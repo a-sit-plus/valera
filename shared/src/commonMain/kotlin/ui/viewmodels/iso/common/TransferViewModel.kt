@@ -23,4 +23,5 @@ abstract class TransferViewModel(
             _settingsReady.value = true
         }
     }
+    // TODO: merge with TransferOptionsViewModel
 }
