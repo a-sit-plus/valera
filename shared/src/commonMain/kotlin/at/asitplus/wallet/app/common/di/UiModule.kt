@@ -9,11 +9,13 @@ import ui.viewmodels.CredentialsViewModel
 import ui.viewmodels.SettingsViewModel
 import ui.viewmodels.authentication.AuthenticationSuccessViewModel
 import ui.viewmodels.iso.holder.ShowQrCodeViewModel
+import ui.viewmodels.iso.common.TransferOptionsViewModel
 
 fun uiModule() = module {
     singleOf(::SnackbarService)
 
     viewModelOf(::SettingsViewModel)
+    viewModelOf(::TransferOptionsViewModel)
     viewModelOf(::CredentialsViewModel)
     viewModelOf(::ShowQrCodeViewModel)
     viewModelOf(::AuthenticationSuccessViewModel)
