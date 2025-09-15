@@ -50,7 +50,7 @@ import ui.navigation.routes.*
 import ui.viewmodels.*
 import ui.viewmodels.authentication.*
 import ui.viewmodels.intents.*
-import ui.viewmodels.iso.VerifierViewModel
+import ui.viewmodels.iso.verifier.VerifierViewModel
 import ui.views.*
 import ui.views.authentication.AuthenticationSuccessView
 import ui.views.authentication.AuthenticationView

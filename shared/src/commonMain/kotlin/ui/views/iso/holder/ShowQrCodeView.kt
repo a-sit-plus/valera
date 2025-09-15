@@ -54,7 +54,7 @@ import ui.composables.Logo
 import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.authentication.PresentationStateModel
-import ui.viewmodels.iso.ShowQrCodeViewModel
+import ui.viewmodels.iso.holder.ShowQrCodeViewModel
 import ui.views.LoadingViewBody
 import ui.views.iso.common.MissingPreconditionViewBody
 import kotlin.coroutines.cancellation.CancellationException

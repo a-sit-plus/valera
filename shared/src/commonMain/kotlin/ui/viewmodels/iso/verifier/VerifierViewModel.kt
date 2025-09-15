@@ -1,4 +1,4 @@
-package ui.viewmodels.iso
+package ui.viewmodels.iso.verifier
 
 import at.asitplus.KmmResult
 import at.asitplus.iso.DeviceResponse
@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromByteArray
+import ui.viewmodels.iso.common.TransferViewModel
 
 class VerifierViewModel(
     val navigateUp: () -> Unit,

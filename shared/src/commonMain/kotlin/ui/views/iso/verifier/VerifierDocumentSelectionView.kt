@@ -40,7 +40,7 @@ import data.document.SelectableRequest
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.ScreenHeading
-import ui.viewmodels.iso.VerifierViewModel
+import ui.viewmodels.iso.verifier.VerifierViewModel
 import ui.views.iso.verifier.requests.AVRequests
 import ui.views.iso.verifier.requests.HIIDRequest
 import ui.views.iso.verifier.requests.MDLRequests

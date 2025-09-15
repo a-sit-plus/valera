@@ -1,4 +1,4 @@
-package ui.viewmodels.iso
+package ui.viewmodels.iso.holder
 
 import androidx.compose.runtime.MutableState
 import at.asitplus.wallet.app.common.WalletMain
@@ -32,6 +32,7 @@ import org.multipaz.mdoc.transport.advertise
 import org.multipaz.mdoc.transport.waitForConnection
 import org.multipaz.util.UUID
 import ui.viewmodels.authentication.PresentationStateModel
+import ui.viewmodels.iso.common.TransferViewModel
 
 class ShowQrCodeViewModel(
     walletMain: WalletMain,
@@ -40,9 +41,10 @@ class ShowQrCodeViewModel(
     var hasBeenCalledHack: Boolean = false
 
     val presentationScope by lazy {
-        CoroutineScope(Dispatchers.IO +
-                CoroutineName("QR code presentation scope") +
-                walletMain.coroutineExceptionHandler
+        CoroutineScope(
+            Dispatchers.IO +
+                    CoroutineName("QR code presentation scope") +
+                    walletMain.coroutineExceptionHandler
         )
     }
     val presentationStateModel by lazy {
@@ -80,7 +82,7 @@ class ShowQrCodeViewModel(
     ) = presentationStateModel.presentmentScope.launch {
         try {
             val connectionMethods = mutableListOf<MdocConnectionMethod>()
-            val bleUuid = UUID.randomUUID()
+            val bleUuid = UUID.Companion.randomUUID()
 
             if (isBleEnabled) {
                 if (settingsRepository.presentmentBleCentralClientModeEnabled.first()) {
@@ -149,7 +151,7 @@ class ShowQrCodeViewModel(
                     transport = transport,
                     ephemeralDeviceKey = ephemeralDeviceKey,
                     encodedDeviceEngagement = encodedDeviceEngagement,
-                    handover = Simple.NULL,
+                    handover = Simple.Companion.NULL,
                     engagementDuration = null,
                     allowMultipleRequests = false
                 )

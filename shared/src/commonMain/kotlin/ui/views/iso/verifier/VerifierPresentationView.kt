@@ -58,7 +58,7 @@ import ui.composables.credentials.MainCredentialIssue
 import ui.composables.credentials.MobileDrivingLicenceCredentialViewFromAdapter
 import ui.models.toCredentialFreshnessSummaryModel
 import ui.theme.LocalExtendedColors
-import ui.viewmodels.iso.VerifierViewModel
+import ui.viewmodels.iso.verifier.VerifierViewModel
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 @OptIn(

@@ -56,7 +56,7 @@ import ui.composables.PersonAttributeDetailCardHeading
 import ui.composables.PersonAttributeDetailCardHeadingIcon
 import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
-import ui.viewmodels.iso.VerifierViewModel
+import ui.viewmodels.iso.verifier.VerifierViewModel
 import ui.views.iso.verifier.requests.AVRequests
 import ui.views.iso.verifier.requests.HIIDRequest
 import ui.views.iso.verifier.requests.MDLRequests

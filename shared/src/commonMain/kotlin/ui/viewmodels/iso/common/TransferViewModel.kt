@@ -1,4 +1,4 @@
-package ui.viewmodels.iso
+package ui.viewmodels.iso.common
 
 import androidx.lifecycle.ViewModel
 import at.asitplus.wallet.app.common.WalletMain
