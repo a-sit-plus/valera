@@ -156,3 +156,6 @@ data class QrCodeScannerRoute(val modeSerialized: String) : Route() {
     val mode: QrCodeScannerMode
         get() = vckJsonSerializer.decodeFromString(modeSerialized)
 }
+
+@Serializable
+object AttestationRoute : Route()

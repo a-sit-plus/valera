@@ -81,6 +81,7 @@ kotlin {
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
             implementation(libs.koin.compose.viewmodel.navigation)
+            api("at.asitplus.wardensupreme:client:1.0.0-SNAPSHOT")
         }
 
         commonTest.dependencies {
@@ -221,4 +222,8 @@ tasks.register("findDependency") {
                 if (result) println("${project.path}:${cfg.name}")
             }
     }
+}
+
+repositories {
+    mavenLocal()
 }

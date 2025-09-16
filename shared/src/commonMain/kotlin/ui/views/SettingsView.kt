@@ -2,73 +2,21 @@ package ui.views
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.SettingsBackupRestore
-import androidx.compose.material.icons.outlined.Share
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.material.icons.outlined.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.button_label_clear_log
-import at.asitplus.valera.resources.button_label_confirm
-import at.asitplus.valera.resources.button_label_data_protection_policy
-import at.asitplus.valera.resources.button_label_dismiss
-import at.asitplus.valera.resources.button_label_faq
-import at.asitplus.valera.resources.button_label_licenses
-import at.asitplus.valera.resources.button_label_reset_app
-import at.asitplus.valera.resources.button_label_share_log_file
-import at.asitplus.valera.resources.error_clearing_log_failed
-import at.asitplus.valera.resources.error_feature_not_yet_available
-import at.asitplus.valera.resources.error_resetting_app_failed
-import at.asitplus.valera.resources.eu_normal_reproduction_low_resolution
-import at.asitplus.valera.resources.heading_label_settings_screen
-import at.asitplus.valera.resources.info_text_co_founded_by_eu
-import at.asitplus.valera.resources.info_text_received_funding_from_eu
-import at.asitplus.valera.resources.reset_app_alert_text
-import at.asitplus.valera.resources.section_heading_actions
-import at.asitplus.valera.resources.section_heading_information
-import at.asitplus.valera.resources.section_heading_transfer_options
-import at.asitplus.valera.resources.switch_label_blel2cap_enabled
-import at.asitplus.valera.resources.switch_label_use_ble_central_client_mode
-import at.asitplus.valera.resources.switch_label_use_ble_peripheral_server_mode
-import at.asitplus.valera.resources.switch_label_use_negotiated_handover
-import at.asitplus.valera.resources.switch_label_use_nfc_data_transfer
-import at.asitplus.valera.resources.text_label_build
-import at.asitplus.valera.resources.warning
+import at.asitplus.valera.resources.*
 import at.asitplus.wallet.app.common.BuildType
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
@@ -97,6 +45,7 @@ fun SettingsView(
     onClickLicenses: (() -> Unit)?,
     koinScope: Scope,
     settingsViewModel: SettingsViewModel = koinViewModel(scope = koinScope),
+    onClickAttestation: () -> Unit
 ) {
     var isLoading by rememberSaveable {
         mutableStateOf(false)
@@ -267,6 +216,17 @@ fun SettingsView(
                             },
                             modifier = listSpacingModifier.fillMaxWidth(),
                         )
+                        TextIconButtonListItem(
+                            icon = {
+                                Icon(
+                                    imageVector = Icons.Outlined.Security,
+                                    contentDescription = null,
+                                )
+                            },
+                            label = "Attestation Test",
+                            onClick = onClickAttestation,
+                            modifier = listSpacingModifier.fillMaxWidth(),
+                        )
                     }
 
                     Column(
@@ -379,7 +339,7 @@ private fun SettingSwitch(
 }
 
 @Composable
-private fun TextIconButtonListItem(
+fun TextIconButtonListItem(
     icon: @Composable () -> Unit,
     label: String,
     onClick: () -> Unit,

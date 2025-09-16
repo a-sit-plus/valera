@@ -5,6 +5,7 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
         mavenCentral()
+        mavenLocal()
         google()
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
         maven("https://raw.githubusercontent.com/a-sit-plus/gradle-conventions-plugin/mvn/repo")

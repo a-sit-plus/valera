@@ -73,3 +73,7 @@ android {
 dependencies {
     implementation(libs.core.splashscreen)
 }
+
+repositories {
+    mavenLocal()
+}

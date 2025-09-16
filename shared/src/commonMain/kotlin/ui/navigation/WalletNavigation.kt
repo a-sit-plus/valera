@@ -557,7 +557,8 @@ private fun WalletNavHost(
                 onClickFAQs = null,
                 onClickDataProtectionPolicy = null,
                 onClickLicenses = null,
-                koinScope = koinScope
+                koinScope = koinScope,
+                onClickAttestation = { navigate(AttestationRoute) }
             )
         }
 
@@ -779,6 +780,21 @@ private fun WalletNavHost(
                     mode = backStackEntry.toRoute<QrCodeScannerRoute>().mode
                 )
             })
+        }
+
+        composable<AttestationRoute> {
+            AttestationDebugView(
+                onClickLogo = onClickLogo,
+                onClickBack = navigateBack,
+                onClickSettings = { navigate(SettingsRoute) },
+                onClickAttestation = {
+                    walletMain.scope.launch {
+                        catchingUnwrapped {
+                            walletMain.attestationService.start()
+                        }
+                    }
+                }
+            )
         }
     }
 }
