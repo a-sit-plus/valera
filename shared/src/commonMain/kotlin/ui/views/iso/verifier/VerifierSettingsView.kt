@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -34,11 +35,8 @@ import at.asitplus.valera.resources.heading_label_select_data_retrieval_screen
 import at.asitplus.valera.resources.info_text_transfer_settings_loading
 import at.asitplus.valera.resources.section_heading_request_engagement_method
 import at.asitplus.wallet.app.common.iso.transfer.method.DeviceEngagementMethods
-import at.asitplus.wallet.app.common.iso.transfer.state.TransferSettingsState
-import at.asitplus.wallet.app.common.iso.transfer.state.VerifierState
 import io.github.aakira.napier.Napier
 import org.jetbrains.compose.resources.stringResource
-import org.koin.core.scope.Scope
 import ui.composables.Logo
 import ui.composables.ScreenHeading
 import ui.composables.TextIconButton
@@ -53,21 +51,16 @@ fun VerifierSettingsView(
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
     bottomBar: @Composable () -> Unit,
-    koinScope: Scope,
     vm: VerifierViewModel
 ) {
-    val listSpacingModifier = Modifier.padding(top = 8.dp).fillMaxWidth()
-    val layoutSpacingModifier = Modifier.padding(top = 24.dp)
-
     val settingsReady by vm.settingsReady.collectAsStateWithLifecycle()
-
     val selectedEngagementMethod by vm.selectedEngagementMethod.collectAsState()
 
     LaunchedEffect(vm) { vm.initSettings() }
-
-    LaunchedEffect(settingsReady) {
-        if (!settingsReady) return@LaunchedEffect
-    }
+//
+//    LaunchedEffect(settingsReady) {
+//        if (!settingsReady) return@LaunchedEffect
+//    }
 
     Scaffold(
         topBar = {
@@ -110,33 +103,34 @@ fun VerifierSettingsView(
         } else {
             Box(modifier = Modifier.padding(scaffoldPadding)) {
                 Column(
-                    modifier = layoutSpacingModifier
-                        .padding(end = 16.dp, start = 16.dp, bottom = 16.dp)
+                    modifier = Modifier
+                        .padding(16.dp)
                         .verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.Start
                 ) {
-
                     Text(
                         text = stringResource(Res.string.section_heading_request_engagement_method),
                         style = MaterialTheme.typography.titleMedium
                     )
+                    Spacer(Modifier.height(8.dp))
                     DeviceEngagementMethods.entries.forEach { engagementMethod ->
                         SingleChoiceButton(
                             engagementMethod.friendlyName,
                             selectedEngagementMethod.friendlyName,
-                            modifier = listSpacingModifier,
+                            modifier = Modifier
+                                .padding(top = 8.dp)
+                                .fillMaxWidth(),
                             icon = {
-                                Icon(
-                                    imageVector = engagementMethod.icon,
-                                    contentDescription = null
-                                )
+                                Icon(engagementMethod.icon, contentDescription = null)
                             }
                         ) {
                             vm.setEngagementMethod(engagementMethod)
                         }
                     }
-                    TransferOptionsView(layoutSpacingModifier, koinScope)
+                    Spacer(Modifier.height(24.dp))
+                    TransferOptionsView( vm)
 
+                    Spacer(Modifier.height(24.dp))
                     TextIconButton(
                         icon = { Icon(Icons.AutoMirrored.Filled.ArrowForward, null) },
                         text = { Text(stringResource(Res.string.button_label_continue)) },

@@ -32,12 +32,12 @@ import org.multipaz.mdoc.transport.advertise
 import org.multipaz.mdoc.transport.waitForConnection
 import org.multipaz.util.UUID
 import ui.viewmodels.authentication.PresentationStateModel
-import ui.viewmodels.iso.common.TransferViewModel
+import ui.viewmodels.iso.common.TransferOptionsViewModel
 
 class ShowQrCodeViewModel(
     walletMain: WalletMain,
     settingsRepository: SettingsRepository
-) : TransferViewModel(walletMain, settingsRepository) {
+) : TransferOptionsViewModel(walletMain, settingsRepository) {
     var hasBeenCalledHack: Boolean = false
 
     val presentationScope by lazy {
@@ -85,7 +85,7 @@ class ShowQrCodeViewModel(
             val bleUuid = UUID.Companion.randomUUID()
 
             if (isBleEnabled) {
-                if (settingsRepository.presentmentBleCentralClientModeEnabled.first()) {
+                if (presentmentBleCentralClientModeEnabled.first()) {
                     connectionMethods.add(
                         MdocConnectionMethodBle(
                             supportsPeripheralServerMode = false,
@@ -95,7 +95,7 @@ class ShowQrCodeViewModel(
                         )
                     )
                 }
-                if (settingsRepository.presentmentBlePeripheralServerModeEnabled.first()) {
+                if (presentmentBlePeripheralServerModeEnabled.first()) {
                     connectionMethods.add(
                         MdocConnectionMethodBle(
                             supportsPeripheralServerMode = true,
@@ -108,7 +108,7 @@ class ShowQrCodeViewModel(
             }
 
             if (isNfcEnabled) {
-                if (settingsRepository.presentmentNfcDataTransferEnabled.first()) {
+                if (presentmentNfcDataTransferEnabled.first()) {
                     connectionMethods.add(
                         MdocConnectionMethodNfc(
                             commandDataFieldMaxLength = 0xffff,
@@ -126,7 +126,7 @@ class ShowQrCodeViewModel(
                 role = MdocRole.MDOC,
                 transportFactory = MdocTransportFactory.Default,
                 options = MdocTransportOptions(
-                    bleUseL2CAP = settingsRepository.readerBleL2CapEnabled.first()
+                    bleUseL2CAP = readerBleL2CapEnabled.first()
                 )
             )
 

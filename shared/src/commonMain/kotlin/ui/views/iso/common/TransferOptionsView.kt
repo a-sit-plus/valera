@@ -18,18 +18,14 @@ import at.asitplus.valera.resources.switch_label_use_ble_peripheral_server_mode
 import at.asitplus.valera.resources.switch_label_use_negotiated_handover
 import at.asitplus.valera.resources.switch_label_use_nfc_data_transfer
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.scope.Scope
 import ui.viewmodels.iso.common.TransferOptionsViewModel
 
 @Composable
 fun TransferOptionsView(
-    layoutSpacingModifier: Modifier,
-    koinScope: Scope,
-    transferOptionsViewModel: TransferOptionsViewModel = koinViewModel(scope = koinScope)
+    transferOptionsViewModel: TransferOptionsViewModel
 ) {
     Column(
-        modifier = layoutSpacingModifier
+        modifier = Modifier
     ) {
         val listSpacingModifier = Modifier
         Text(

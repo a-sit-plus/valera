@@ -41,7 +41,7 @@ fun VerifierView(
 
     when (val state = verifierState) {
         is VerifierState.Settings ->
-            VerifierSettingsView(onClickLogo, onClickSettings, bottomBar, koinScope, vm)
+            VerifierSettingsView(onClickLogo, onClickSettings, bottomBar, vm)
         is VerifierState.CheckSettings -> {
             LoadingView(
                 "Check Settings", vm.onResume
