@@ -73,7 +73,6 @@ import ui.composables.Logo
 import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.SettingsViewModel
-import ui.views.iso.common.TransferOptionsView
 import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -261,7 +260,6 @@ fun SettingsView(
                             modifier = listSpacingModifier.fillMaxWidth(),
                         )
                     }
-                    TransferOptionsView(layoutSpacingModifier, koinScope)
                 }
                 Column(
                     modifier = Modifier
