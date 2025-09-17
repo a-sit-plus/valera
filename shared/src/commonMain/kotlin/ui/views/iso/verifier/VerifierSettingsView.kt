@@ -32,10 +32,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.heading_label_select_data_retrieval_screen
+import at.asitplus.valera.resources.heading_label_settings_screen
 import at.asitplus.valera.resources.info_text_transfer_settings_loading
 import at.asitplus.valera.resources.section_heading_request_engagement_method
 import at.asitplus.wallet.app.common.iso.transfer.method.DeviceEngagementMethods
-import io.github.aakira.napier.Napier
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.ScreenHeading
@@ -57,10 +57,6 @@ fun VerifierSettingsView(
     val selectedEngagementMethod by vm.selectedEngagementMethod.collectAsState()
 
     LaunchedEffect(vm) { vm.initSettings() }
-//
-//    LaunchedEffect(settingsReady) {
-//        if (!settingsReady) return@LaunchedEffect
-//    }
 
     Scaffold(
         topBar = {
@@ -68,15 +64,13 @@ fun VerifierSettingsView(
                 title = {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Column(modifier = Modifier.weight(1f)) {
-                            ScreenHeading(
-                                stringResource(Res.string.heading_label_select_data_retrieval_screen),
-                            )
-                            // TODO: add string resource for subtitle
+                            ScreenHeading(stringResource(Res.string.heading_label_select_data_retrieval_screen))
+                            // TODO: update to subtitleView
                             Text(
-                                "Einstellungen",
+                                text = stringResource(Res.string.heading_label_settings_screen),
                                 style = MaterialTheme.typography.headlineSmall,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.tertiary,
+                                color = MaterialTheme.colorScheme.tertiary
                             )
                         }
                     }
@@ -84,10 +78,7 @@ fun VerifierSettingsView(
                 actions = {
                     Logo(onClick = onClickLogo)
                     Column(modifier = Modifier.clickable(onClick = onClickSettings)) {
-                        Icon(
-                            imageVector = Icons.Outlined.Settings,
-                            contentDescription = null,
-                        )
+                        Icon(Icons.Outlined.Settings, null)
                     }
                     Spacer(Modifier.width(15.dp))
                 }
@@ -96,37 +87,28 @@ fun VerifierSettingsView(
         bottomBar = { bottomBar() }
     ) { scaffoldPadding ->
         if (!settingsReady) {
-            Napier.i("Loading transfer settings", tag = "VerifierSettingsView")
-            LoadingView(
-                stringResource(Res.string.info_text_transfer_settings_loading)
-            )
+            LoadingView(stringResource(Res.string.info_text_transfer_settings_loading))
         } else {
             Box(modifier = Modifier.padding(scaffoldPadding)) {
                 Column(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .verticalScroll(rememberScrollState()),
+                    modifier = Modifier.padding(16.dp).verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.Start
                 ) {
                     Text(
                         text = stringResource(Res.string.section_heading_request_engagement_method),
                         style = MaterialTheme.typography.titleMedium
                     )
+
                     Spacer(Modifier.height(8.dp))
                     DeviceEngagementMethods.entries.forEach { engagementMethod ->
                         SingleChoiceButton(
-                            engagementMethod.friendlyName,
-                            selectedEngagementMethod.friendlyName,
-                            modifier = Modifier
-                                .padding(top = 8.dp)
-                                .fillMaxWidth(),
-                            icon = {
-                                Icon(engagementMethod.icon, contentDescription = null)
-                            }
-                        ) {
-                            vm.setEngagementMethod(engagementMethod)
-                        }
+                            current = engagementMethod.friendlyName,
+                            selectedOption = selectedEngagementMethod.friendlyName,
+                            modifier = Modifier.padding(top = 8.dp).fillMaxWidth(),
+                            icon = { Icon(engagementMethod.icon, null) }
+                        ) { vm.setEngagementMethod(engagementMethod) }
                     }
+
                     Spacer(Modifier.height(24.dp))
                     TransferOptionsView( vm)
 
