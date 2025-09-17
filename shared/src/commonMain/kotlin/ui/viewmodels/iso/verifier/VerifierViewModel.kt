@@ -27,12 +27,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromByteArray
-import ui.viewmodels.iso.common.TransferViewModel
+import ui.viewmodels.iso.common.TransferOptionsViewModel
 
 class VerifierViewModel(
     walletMain: WalletMain,
     settingsRepository: SettingsRepository
-) : TransferViewModel(walletMain, settingsRepository) {
+) : TransferOptionsViewModel(walletMain, settingsRepository) {
 
     val onResume: () -> Unit = { setState(VerifierState.Settings) }
     val onConsentSettings: () -> Unit = { setState(VerifierState.CheckSettings) }
