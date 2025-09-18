@@ -87,6 +87,7 @@ fun VerifierView(
             onClickSettings = onClickSettings,
             navigateUp = vm.onResume,
             onClickLogo = onClickLogo,
+            platformAdapter = vm.walletMain.platformAdapter
         )
     }
 }

@@ -12,6 +12,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import at.asitplus.wallet.app.common.PlatformAdapter
 
 actual class BluetoothInfo {
     @Composable
@@ -38,7 +39,10 @@ actual class BluetoothInfo {
         return isBluetoothEnabled.value
     }
 
-    actual fun openBluetoothSettings(platformContext: PlatformContext) {
+    actual fun openBluetoothSettings(
+        platformContext: PlatformContext,
+        platformAdapter: PlatformAdapter
+    ) {
         runCatching {
             platformContext.context.startActivity(
                 Intent(Settings.ACTION_BLUETOOTH_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

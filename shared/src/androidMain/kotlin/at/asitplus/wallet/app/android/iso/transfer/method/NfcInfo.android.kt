@@ -11,6 +11,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import at.asitplus.wallet.app.common.PlatformAdapter
 
 actual class NfcInfo {
     @Composable
@@ -34,7 +35,7 @@ actual class NfcInfo {
         return isNfcEnabled.value
     }
 
-    actual fun openNfcSettings(platformContext: PlatformContext) {
+    actual fun openNfcSettings(platformContext: PlatformContext, platformAdapter: PlatformAdapter) {
         runCatching {
             platformContext.context.startActivity(
                 Intent(Settings.ACTION_NFC_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
