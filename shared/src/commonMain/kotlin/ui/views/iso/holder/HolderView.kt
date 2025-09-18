@@ -36,7 +36,7 @@ import at.asitplus.wallet.app.common.iso.transfer.MdocConstants
 import at.asitplus.wallet.app.common.iso.transfer.method.DeviceTransferMethodManager
 import at.asitplus.wallet.app.common.iso.transfer.method.rememberPlatformContext
 import at.asitplus.wallet.app.common.iso.transfer.state.PreconditionState
-import at.asitplus.wallet.app.common.iso.transfer.state.ShowQrCodeState
+import at.asitplus.wallet.app.common.iso.transfer.state.HolderState
 import at.asitplus.wallet.app.common.iso.transfer.state.TransferPrecondition
 import at.asitplus.wallet.app.common.iso.transfer.state.rememberTransferSettingsState
 import io.github.aakira.napier.Napier
@@ -54,23 +54,24 @@ import ui.composables.Logo
 import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.authentication.PresentationStateModel
-import ui.viewmodels.iso.holder.ShowQrCodeViewModel
+import ui.viewmodels.iso.holder.HolderViewModel
 import ui.views.LoadingViewBody
 import ui.views.iso.common.MissingPreconditionViewBody
 import kotlin.coroutines.cancellation.CancellationException
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShowQrCodeView(
+fun HolderView(
     navigateUp: () -> Unit,
     onNavigateToPresentmentScreen: (PresentationStateModel) -> Unit,
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
+    bottomBar: @Composable () -> Unit,
     onError: (Throwable) -> Unit,
     koinScope: Scope,
-    vm: ShowQrCodeViewModel = koinViewModel(scope = koinScope)
+    vm: HolderViewModel = koinViewModel(scope = koinScope)
 ) {
-    val TAG = "ShowQrCodeView"
+    val TAG = "HolderView"
 
     LaunchedEffect(vm) { vm.initSettings() }
 
@@ -91,7 +92,7 @@ fun ShowQrCodeView(
     LaunchedEffect(transferSettingsState.ble, transferSettingsState.nfc) {
         showQrCode.value = null
         vm.hasBeenCalledHack = false
-        vm.setState(ShowQrCodeState.Init)
+        vm.setState(HolderState.Init)
     }
 
     LaunchedEffect(
@@ -105,15 +106,15 @@ fun ShowQrCodeView(
         val next = when (transferSettingsState.precondition) {
             TransferPrecondition.Ok -> when {
                 showQrCode.value != null && presentationState != PresentationStateModel.State.PROCESSING ->
-                    ShowQrCodeState.ShowQrCode
-                else -> ShowQrCodeState.CreateEngagement
+                    HolderState.ShowQrCode
+                else -> HolderState.CreateEngagement
             }
             TransferPrecondition.NoTransferMethodSelected ->
-                ShowQrCodeState.MissingPrecondition(PreconditionState.NO_TRANSFER_METHOD_SELECTED)
+                HolderState.MissingPrecondition(PreconditionState.NO_TRANSFER_METHOD_SELECTED)
             TransferPrecondition.NoTransferMethodAvailable ->
-                ShowQrCodeState.MissingPrecondition(PreconditionState.NO_TRANSFER_METHOD_AVAILABLE_FOR_SELECTION)
+                HolderState.MissingPrecondition(PreconditionState.NO_TRANSFER_METHOD_AVAILABLE_FOR_SELECTION)
             TransferPrecondition.MissingPermission ->
-                ShowQrCodeState.MissingPrecondition(PreconditionState.MISSING_PERMISSION)
+                HolderState.MissingPrecondition(PreconditionState.MISSING_PERMISSION)
         }
         if (showQrCodeState != next) vm.setState(next)
     }
@@ -149,7 +150,7 @@ fun ShowQrCodeView(
                 contentAlignment = Alignment.Center
             ) {
                 when (val state = showQrCodeState) {
-                    is ShowQrCodeState.Init ->
+                    is HolderState.Init ->
                         if (!settingsReady) {
                             Napier.i("Loading transfer settings", tag = TAG)
                             LoadingViewBody(
@@ -160,7 +161,12 @@ fun ShowQrCodeView(
                             LoadingViewBody(scaffoldPadding)
                         }
 
-                    is ShowQrCodeState.MissingPrecondition -> MissingPreconditionViewBody(
+                    is HolderState.Settings ->
+                        HolderSettingsView(onClickLogo, onClickSettings, bottomBar, vm)
+
+                    is HolderState.CheckSettings -> {}
+
+                    is HolderState.MissingPrecondition -> MissingPreconditionViewBody(
                         reason = state.reason,
                         transferSettingsState = transferSettingsState,
                         deviceTransferMethodManager = deviceTransferMethodManager,
@@ -169,7 +175,7 @@ fun ShowQrCodeView(
                         onClickSettings = onClickSettings
                     )
 
-                    is ShowQrCodeState.CreateEngagement -> {
+                    is HolderState.CreateEngagement -> {
                         Napier.i("Create Engagement", tag = TAG)
                         LoadingViewBody(
                             scaffoldPadding,
@@ -192,8 +198,8 @@ fun ShowQrCodeView(
                         }
                     }
 
-                    is ShowQrCodeState.ShowQrCode -> QrCodeView(showQrCode.value)
-                    is ShowQrCodeState.Finished -> LoadingViewBody(scaffoldPadding)
+                    is HolderState.ShowQrCode -> QrCodeView(showQrCode.value)
+                    is HolderState.Finished -> LoadingViewBody(scaffoldPadding)
                 }
             }
         }
@@ -202,7 +208,7 @@ fun ShowQrCodeView(
 
 private fun handleError(
     error: Throwable?,
-    vm: ShowQrCodeViewModel,
+    vm: HolderViewModel,
     onNavigateToPresentmentScreen: (PresentationStateModel) -> Unit,
     onError: (Throwable) -> Unit
 ) {

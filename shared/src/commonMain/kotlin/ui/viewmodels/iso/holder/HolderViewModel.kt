@@ -4,7 +4,7 @@ import androidx.compose.runtime.MutableState
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants
-import at.asitplus.wallet.app.common.iso.transfer.state.ShowQrCodeState
+import at.asitplus.wallet.app.common.iso.transfer.state.HolderState
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CompletionHandler
@@ -34,10 +34,12 @@ import org.multipaz.util.UUID
 import ui.viewmodels.authentication.PresentationStateModel
 import ui.viewmodels.iso.common.TransferOptionsViewModel
 
-class ShowQrCodeViewModel(
+class HolderViewModel(
     walletMain: WalletMain,
     settingsRepository: SettingsRepository
 ) : TransferOptionsViewModel(walletMain, settingsRepository) {
+    val onResume: () -> Unit = { setState(HolderState.Settings) }
+    val onConsentSettings: () -> Unit = { setState(HolderState.CheckSettings) }
     var hasBeenCalledHack: Boolean = false
 
     val presentationScope by lazy {
@@ -51,10 +53,10 @@ class ShowQrCodeViewModel(
         PresentationStateModel(presentationScope)
     }
 
-    private val _showQrCodeState = MutableStateFlow<ShowQrCodeState>(ShowQrCodeState.Init)
-    val showQrCodeState: StateFlow<ShowQrCodeState> = _showQrCodeState
+    private val _showQrCodeState = MutableStateFlow<HolderState>(HolderState.Init)
+    val showQrCodeState: StateFlow<HolderState> = _showQrCodeState
 
-    fun setState(newState: ShowQrCodeState) {
+    fun setState(newState: HolderState) {
         if (_showQrCodeState.value == newState) return
         Napier.d("Change state from ${_showQrCodeState.value} to $newState",
             tag = "ShowQrCodeViewModel"
@@ -139,7 +141,7 @@ class ShowQrCodeViewModel(
             val encodedDeviceEngagementByteArray = engagementGenerator.generate()
             encodedDeviceEngagement = ByteString(encodedDeviceEngagementByteArray)
             showQrCode.value = encodedDeviceEngagement
-            setState(ShowQrCodeState.ShowQrCode)
+            setState(HolderState.ShowQrCode)
 
             // Then wait for connection
             val transport = advertisedTransports.waitForConnection(
@@ -156,7 +158,7 @@ class ShowQrCodeViewModel(
                     allowMultipleRequests = false
                 )
             )
-            setState(ShowQrCodeState.Finished)
+            setState(HolderState.Finished)
             showQrCode.value = null
             completionHandler(null)
         } catch (throwable: Throwable) {
