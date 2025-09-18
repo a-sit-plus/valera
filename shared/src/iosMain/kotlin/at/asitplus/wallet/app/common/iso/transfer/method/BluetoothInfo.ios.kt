@@ -17,6 +17,6 @@ actual class BluetoothInfo {
         platformAdapter: PlatformAdapter
     ) {
         // TODO: check this implementation
-        platformAdapter.openUrl("prefs:root=Bluetooth")
+        platformAdapter.openUrl("App-prefs:")
     }
 }

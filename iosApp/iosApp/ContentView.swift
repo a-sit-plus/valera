@@ -39,8 +39,9 @@ class SwiftPlatformAdapter: PlatformAdapter {
 
     func openUrl(url: String) {
         DispatchQueue.main.async {
-            if let uri = URL(string: url) {
-                UIApplication.shared.open(uri)
+            let url = URL(string: url)
+            if let url = url {
+                UIApplication.shared.open(url, options: [:], completionHandler: nil)
             }
         }
     }
