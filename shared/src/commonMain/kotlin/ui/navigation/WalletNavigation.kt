@@ -54,7 +54,7 @@ import ui.views.*
 import ui.views.authentication.AuthenticationSuccessView
 import ui.views.authentication.AuthenticationView
 import ui.views.intents.*
-import ui.views.iso.holder.ShowQrCodeView
+import ui.views.iso.holder.HolderView
 import ui.views.iso.verifier.VerifierView
 import ui.views.presentation.PresentationView
 
@@ -260,13 +260,19 @@ private fun WalletNavHost(
         }
 
         composable<ShowQrCodeRoute> {
-            ShowQrCodeView(
+            HolderView(
                 navigateUp = { navigateBack() },
                 onClickLogo = onClickLogo,
                 onClickSettings = { navigate(SettingsRoute) },
                 onNavigateToPresentmentScreen = {
                     Globals.presentationStateModel.value = it
                     navigate(LocalPresentationAuthenticationConsentRoute("QR"))
+                },
+                bottomBar = {
+                    BottomBar(
+                        navigate = navigate,
+                        selected = NavigationData.PRESENT_DATA_SCREEN
+                    )
                 },
                 onError = onError,
                 koinScope = koinScope

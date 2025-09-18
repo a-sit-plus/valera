@@ -8,7 +8,7 @@ import ui.viewmodels.AddCredentialViewModel
 import ui.viewmodels.CredentialsViewModel
 import ui.viewmodels.SettingsViewModel
 import ui.viewmodels.authentication.AuthenticationSuccessViewModel
-import ui.viewmodels.iso.holder.ShowQrCodeViewModel
+import ui.viewmodels.iso.holder.HolderViewModel
 import ui.viewmodels.iso.common.TransferOptionsViewModel
 import ui.viewmodels.iso.verifier.VerifierViewModel
 
@@ -18,7 +18,7 @@ fun uiModule() = module {
     viewModelOf(::SettingsViewModel)
     viewModelOf(::CredentialsViewModel)
     viewModelOf(::TransferOptionsViewModel)
-    viewModelOf(::ShowQrCodeViewModel)
+    viewModelOf(::HolderViewModel)
     viewModelOf(::VerifierViewModel)
     viewModelOf(::AuthenticationSuccessViewModel)
     viewModelOf(::AddCredentialViewModel)
