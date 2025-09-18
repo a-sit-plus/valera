@@ -172,7 +172,8 @@ fun HolderView(
                         deviceTransferMethodManager = deviceTransferMethodManager,
                         platformContext = platformContext,
                         blePermissionState = blePermissionState,
-                        onClickSettings = onClickSettings
+                        onClickSettings = onClickSettings,
+                        platformAdapter = vm.walletMain.platformAdapter
                     )
 
                     is HolderState.CreateEngagement -> {

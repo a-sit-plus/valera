@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_missing_precondition
+import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.iso.transfer.method.DeviceTransferMethodManager
 import at.asitplus.wallet.app.common.iso.transfer.method.PlatformContext
 import at.asitplus.wallet.app.common.iso.transfer.state.PreconditionState
@@ -42,7 +43,8 @@ fun MissingPreconditionView(
     blePermissionState: PermissionState,
     onClickSettings: () -> Unit,
     navigateUp: (() -> Unit),
-    onClickLogo: (() -> Unit)
+    onClickLogo: (() -> Unit),
+    platformAdapter: PlatformAdapter
 ) {
     Scaffold(
         topBar = {
@@ -80,7 +82,8 @@ fun MissingPreconditionView(
                     deviceTransferMethodManager = deviceTransferMethodManager,
                     platformContext = platformContext,
                     blePermissionState = blePermissionState,
-                    onClickSettings = navigateUp
+                    onClickSettings = navigateUp,
+                    platformAdapter = platformAdapter
                 )
             }
         }
@@ -94,7 +97,8 @@ fun MissingPreconditionViewBody(
     deviceTransferMethodManager: DeviceTransferMethodManager,
     platformContext: PlatformContext,
     blePermissionState: PermissionState,
-    onClickSettings: () -> Unit
+    onClickSettings: () -> Unit,
+    platformAdapter: PlatformAdapter
 ) {
     when (reason) {
         PreconditionState.NO_TRANSFER_METHOD_SELECTED ->
@@ -105,9 +109,15 @@ fun MissingPreconditionViewBody(
                 onClickSettings = onClickSettings,
                 onOpenDeviceSettings = {
                     if (transferSettingsState.nfc.required) {
-                        deviceTransferMethodManager.goToNfcSettings(platformContext)
+                        deviceTransferMethodManager.goToNfcSettings(
+                            platformContext,
+                            platformAdapter
+                        )
                     } else {
-                        deviceTransferMethodManager.goToBluetoothSettings(platformContext)
+                        deviceTransferMethodManager.goToBluetoothSettings(
+                            platformContext,
+                            platformAdapter
+                        )
                     }
                 }
             )
@@ -118,7 +128,7 @@ fun MissingPreconditionViewBody(
             }
             MissingBluetoothPermissionView(
                 onOpenAppPermissionSettings = {
-                    deviceTransferMethodManager.openAppSettings(platformContext)
+                    deviceTransferMethodManager.openAppSettings(platformContext, platformAdapter)
                 }
             )
         }

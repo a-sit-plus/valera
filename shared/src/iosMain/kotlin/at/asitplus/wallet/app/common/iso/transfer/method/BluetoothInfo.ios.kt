@@ -1,6 +1,7 @@
 package at.asitplus.wallet.app.common.iso.transfer.method
 
 import androidx.compose.runtime.Composable
+import at.asitplus.wallet.app.common.PlatformAdapter
 import platform.CoreBluetooth.CBCentralManager
 import platform.CoreBluetooth.CBManagerStatePoweredOn
 
@@ -8,13 +9,14 @@ actual class BluetoothInfo {
     private val centralManager = CBCentralManager(null, null)
     @Composable
     actual fun isBluetoothEnabled(): Boolean {
-        // TODO: check this implementation
         return centralManager.state == CBManagerStatePoweredOn
     }
 
-    actual fun openBluetoothSettings(platformContext: PlatformContext) {
-        // On iOS, there is no direct way to open Bluetooth settings
+    actual fun openBluetoothSettings(
+        platformContext: PlatformContext,
+        platformAdapter: PlatformAdapter
+    ) {
         // TODO: check this implementation
-        AppSettings().open(platformContext)
+        platformAdapter.openUrl("prefs:root=Bluetooth")
     }
 }
