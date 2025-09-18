@@ -76,7 +76,9 @@ fun HolderView(
     LaunchedEffect(vm) { vm.initSettings() }
 
     val platformContext = rememberPlatformContext()
-    val deviceTransferMethodManager = remember { DeviceTransferMethodManager() }
+    val deviceTransferMethodManager = remember {
+        DeviceTransferMethodManager(platformContext, vm.walletMain.platformAdapter)
+    }
     val transferSettingsState =
         rememberTransferSettingsState(vm.settingsRepository, deviceTransferMethodManager)
 
@@ -170,10 +172,8 @@ fun HolderView(
                         reason = state.reason,
                         transferSettingsState = transferSettingsState,
                         deviceTransferMethodManager = deviceTransferMethodManager,
-                        platformContext = platformContext,
                         blePermissionState = blePermissionState,
                         onClickSettings = onClickSettings,
-                        platformAdapter = vm.walletMain.platformAdapter
                     )
 
                     is HolderState.CreateEngagement -> {

@@ -1,38 +1,14 @@
 package at.asitplus.wallet.app.common.iso.transfer.method
 
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.nfc.NfcAdapter
 import android.provider.Settings
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
 import at.asitplus.wallet.app.common.PlatformAdapter
 
 actual class NfcInfo {
-    @Composable
-    actual fun isNfcEnabled(): Boolean {
-        val context = LocalContext.current
-        val nfcAdapter = remember { NfcAdapter.getDefaultAdapter(context) }
-        val isNfcEnabled = remember { mutableStateOf(nfcAdapter?.isEnabled == true) }
-
-        DisposableEffect(context) {
-            val receiver = object : BroadcastReceiver() {
-                override fun onReceive(ctx: Context?, intent: Intent?) {
-                    if (intent?.action == NfcAdapter.ACTION_ADAPTER_STATE_CHANGED) {
-                        isNfcEnabled.value = nfcAdapter?.isEnabled == true
-                    }
-                }
-            }
-            val filter = IntentFilter(NfcAdapter.ACTION_ADAPTER_STATE_CHANGED)
-            context.registerReceiver(receiver, filter)
-            onDispose { context.unregisterReceiver(receiver) }
-        }
-        return isNfcEnabled.value
+    actual fun isNfcEnabled(platformContext: PlatformContext): Boolean {
+        val nfcAdapter = NfcAdapter.getDefaultAdapter(platformContext.context)
+        return nfcAdapter?.isEnabled == true
     }
 
     actual fun openNfcSettings(platformContext: PlatformContext, platformAdapter: PlatformAdapter) {
