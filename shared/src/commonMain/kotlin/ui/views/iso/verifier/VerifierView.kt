@@ -32,7 +32,9 @@ fun VerifierView(
     vm: VerifierViewModel = koinViewModel(scope = koinScope)
 ) {
     val platformContext = rememberPlatformContext()
-    val deviceTransferMethodManager = remember { DeviceTransferMethodManager() }
+    val deviceTransferMethodManager = remember {
+        DeviceTransferMethodManager(platformContext, vm.walletMain.platformAdapter)
+    }
     val transferSettingsState =
         rememberTransferSettingsState(vm.settingsRepository, deviceTransferMethodManager)
 
@@ -82,12 +84,10 @@ fun VerifierView(
             reason = state.reason,
             transferSettingsState = transferSettingsState,
             deviceTransferMethodManager = deviceTransferMethodManager,
-            platformContext = platformContext,
             blePermissionState = blePermissionState,
             onClickSettings = onClickSettings,
             navigateUp = vm.onResume,
             onClickLogo = onClickLogo,
-            platformAdapter = vm.walletMain.platformAdapter
         )
     }
 }

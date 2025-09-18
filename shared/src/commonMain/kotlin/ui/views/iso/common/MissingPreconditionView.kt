@@ -22,9 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_missing_precondition
-import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.iso.transfer.method.DeviceTransferMethodManager
-import at.asitplus.wallet.app.common.iso.transfer.method.PlatformContext
 import at.asitplus.wallet.app.common.iso.transfer.state.PreconditionState
 import at.asitplus.wallet.app.common.iso.transfer.state.TransferSettingsState
 import org.jetbrains.compose.resources.stringResource
@@ -39,12 +37,10 @@ fun MissingPreconditionView(
     reason: PreconditionState,
     transferSettingsState: TransferSettingsState,
     deviceTransferMethodManager: DeviceTransferMethodManager,
-    platformContext: PlatformContext,
     blePermissionState: PermissionState,
     onClickSettings: () -> Unit,
     navigateUp: (() -> Unit),
     onClickLogo: (() -> Unit),
-    platformAdapter: PlatformAdapter
 ) {
     Scaffold(
         topBar = {
@@ -80,10 +76,8 @@ fun MissingPreconditionView(
                     reason = reason,
                     transferSettingsState = transferSettingsState,
                     deviceTransferMethodManager = deviceTransferMethodManager,
-                    platformContext = platformContext,
                     blePermissionState = blePermissionState,
                     onClickSettings = navigateUp,
-                    platformAdapter = platformAdapter
                 )
             }
         }
@@ -95,10 +89,8 @@ fun MissingPreconditionViewBody(
     reason: PreconditionState,
     transferSettingsState: TransferSettingsState,
     deviceTransferMethodManager: DeviceTransferMethodManager,
-    platformContext: PlatformContext,
     blePermissionState: PermissionState,
     onClickSettings: () -> Unit,
-    platformAdapter: PlatformAdapter
 ) {
     when (reason) {
         PreconditionState.NO_TRANSFER_METHOD_SELECTED ->
@@ -109,15 +101,9 @@ fun MissingPreconditionViewBody(
                 onClickSettings = onClickSettings,
                 onOpenDeviceSettings = {
                     if (transferSettingsState.nfc.required) {
-                        deviceTransferMethodManager.goToNfcSettings(
-                            platformContext,
-                            platformAdapter
-                        )
+                        deviceTransferMethodManager.goToNfcSettings()
                     } else {
-                        deviceTransferMethodManager.goToBluetoothSettings(
-                            platformContext,
-                            platformAdapter
-                        )
+                        deviceTransferMethodManager.goToBluetoothSettings()
                     }
                 }
             )
@@ -128,7 +114,7 @@ fun MissingPreconditionViewBody(
             }
             MissingBluetoothPermissionView(
                 onOpenAppPermissionSettings = {
-                    deviceTransferMethodManager.openAppSettings(platformContext, platformAdapter)
+                    deviceTransferMethodManager.openAppSettings()
                 }
             )
         }

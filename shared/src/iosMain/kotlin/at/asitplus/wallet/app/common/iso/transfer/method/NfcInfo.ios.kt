@@ -1,12 +1,10 @@
 package at.asitplus.wallet.app.common.iso.transfer.method
 
-import androidx.compose.runtime.Composable
 import at.asitplus.wallet.app.common.PlatformAdapter
 import platform.CoreNFC.NFCNDEFReaderSession
 
 actual class NfcInfo {
-    @Composable
-    actual fun isNfcEnabled(): Boolean {
+    actual fun isNfcEnabled(platformContext: PlatformContext): Boolean {
         return NFCNDEFReaderSession.readingAvailable
     }
 

@@ -1,25 +1,23 @@
 package at.asitplus.wallet.app.common.iso.transfer.method
 
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import at.asitplus.wallet.app.common.PlatformAdapter
 
 @Stable
-class DeviceTransferMethodManager {
+class DeviceTransferMethodManager(
+    val platformContext: PlatformContext,
+    val platformAdapter: PlatformAdapter
+) {
     private val bluetoothInfo = BluetoothInfo()
     private val nfcInfo = NfcInfo()
     private val appSettings = AppSettings()
 
-    @Composable
-    fun isBluetoothEnabled(): Boolean = bluetoothInfo.isBluetoothEnabled()
-    fun goToBluetoothSettings(platformContext: PlatformContext, platformAdapter: PlatformAdapter) =
+    fun isBluetoothEnabled(): Boolean = bluetoothInfo.isBluetoothEnabled(platformContext)
+    fun goToBluetoothSettings() =
         bluetoothInfo.openBluetoothSettings(platformContext, platformAdapter)
 
-    @Composable
-    fun isNfcEnabled(): Boolean = nfcInfo.isNfcEnabled()
-    fun goToNfcSettings(platformContext: PlatformContext, platformAdapter: PlatformAdapter) =
-        nfcInfo.openNfcSettings(platformContext, platformAdapter)
+    fun isNfcEnabled(): Boolean = nfcInfo.isNfcEnabled(platformContext)
+    fun goToNfcSettings() = nfcInfo.openNfcSettings(platformContext, platformAdapter)
 
-    fun openAppSettings(platformContext: PlatformContext, platformAdapter: PlatformAdapter) =
-        appSettings.open(platformContext, platformAdapter)
+    fun openAppSettings() = appSettings.open(platformContext, platformAdapter)
 }
