@@ -55,14 +55,18 @@ import ui.composables.credentials.MainCredentialIssue
 import ui.composables.credentials.MobileDrivingLicenceCredentialViewFromAdapter
 import ui.models.toCredentialFreshnessSummaryModel
 import ui.theme.LocalExtendedColors
-import ui.viewmodels.iso.VerifierViewModel
+import ui.viewmodels.iso.verifier.VerifierViewModel
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 @OptIn(
     ExperimentalMaterial3Api::class, ExperimentalEncodingApi::class, ExperimentalResourceApi::class
 )
 @Composable
-fun VerifierPresentationView(vm: VerifierViewModel) {
+fun VerifierPresentationView(
+    navigateUp: () -> Unit,
+    onClickLogo: () -> Unit,
+    vm: VerifierViewModel
+) {
     val decodeImage: (ByteArray) -> Result<ImageBitmap> = { vm.walletMain.platformAdapter.decodeImage(it) }
 
     Scaffold(
@@ -75,10 +79,10 @@ fun VerifierPresentationView(vm: VerifierViewModel) {
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.headlineMedium,
                         )
-                        Logo(onClick = vm.onClickLogo)
+                        Logo(onClick = onClickLogo)
                     }
                 },
-                navigationIcon = { NavigateUpButton(vm.navigateUp) }
+                navigationIcon = { NavigateUpButton(navigateUp) }
             )
         }
     ) { scaffoldPadding ->

@@ -1,4 +1,4 @@
-package ui.viewmodels.iso
+package ui.viewmodels.iso.verifier
 
 import at.asitplus.KmmResult
 import at.asitplus.iso.DeviceResponse
@@ -7,13 +7,14 @@ import at.asitplus.iso.MobileSecurityObject
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
-import at.asitplus.wallet.app.common.iso.transfer.DeviceEngagementMethods
-import at.asitplus.wallet.app.common.iso.transfer.MdocConstants.MDOC_PREFIX
+import at.asitplus.wallet.app.common.iso.transfer.MdocConstants
 import at.asitplus.wallet.app.common.iso.transfer.TransferManager
+import at.asitplus.wallet.app.common.iso.transfer.method.DeviceEngagementMethods
+import at.asitplus.wallet.app.common.iso.transfer.state.VerifierState
 import at.asitplus.wallet.app.common.iso.verifier.DeviceResponseException
 import at.asitplus.wallet.app.common.iso.verifier.VerifyResponseException
 import at.asitplus.wallet.lib.agent.Validator
-import at.asitplus.wallet.lib.agent.Verifier.VerifyPresentationResult
+import at.asitplus.wallet.lib.agent.Verifier
 import at.asitplus.wallet.lib.agent.VerifierAgent
 import at.asitplus.wallet.lib.data.IsoDocumentParsed
 import data.document.RequestDocumentBuilder
@@ -26,21 +27,31 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromByteArray
+import ui.viewmodels.iso.common.TransferOptionsViewModel
 
 class VerifierViewModel(
-    val navigateUp: () -> Unit,
-    val onClickLogo: () -> Unit,
-    val walletMain: WalletMain,
-    val navigateToHomeScreen: () -> Unit,
-    val onClickSettings: () -> Unit,
-    val settingsRepository: SettingsRepository,
-) {
+    walletMain: WalletMain,
+    settingsRepository: SettingsRepository
+) : TransferOptionsViewModel(walletMain, settingsRepository) {
+
+    val onResume: () -> Unit = { setState(VerifierState.Settings) }
+    val onConsentSettings: () -> Unit = { setState(VerifierState.CheckSettings) }
+
     private val transferManager: TransferManager by lazy {
-        TransferManager(settingsRepository, walletMain.scope) { message -> } // TODO: handle update messages
+        TransferManager(
+            settingsRepository,
+            walletMain.scope
+        ) { message -> } // TODO: handle update messages
     }
 
-    private val _verifierState = MutableStateFlow(VerifierState.INIT)
+    private val _verifierState = MutableStateFlow<VerifierState>(VerifierState.Settings)
     val verifierState: StateFlow<VerifierState> = _verifierState
+
+    fun setState(newState: VerifierState) {
+        if (_verifierState.value == newState) return
+        Napier.d("Change state from ${_verifierState.value} to $newState", tag = "VerifierViewModel")
+        _verifierState.value = newState
+    }
 
     private val _requestDocumentList = RequestDocumentList()
 
@@ -52,16 +63,21 @@ class VerifierViewModel(
 
     private fun handleError(throwable: Throwable) {
         _throwable.value = throwable
-        _verifierState.value = VerifierState.ERROR
+        setState(VerifierState.Error)
     }
 
     private val _selectedEngagementMethod = MutableStateFlow(DeviceEngagementMethods.QR_CODE)
     val selectedEngagementMethod: StateFlow<DeviceEngagementMethods> = _selectedEngagementMethod
 
+    fun setEngagementMethod(method: DeviceEngagementMethods) {
+        if(_selectedEngagementMethod.value == method) return
+        _selectedEngagementMethod.value = method
+    }
+
     private fun setStateToEngagement(selectedEngagementMethod: DeviceEngagementMethods) {
         when (selectedEngagementMethod) {
             DeviceEngagementMethods.NFC -> doNfcEngagement()
-            DeviceEngagementMethods.QR_CODE -> _verifierState.value = VerifierState.QR_ENGAGEMENT
+            DeviceEngagementMethods.QR_CODE -> setState(VerifierState.QrEngagement)
         }
     }
 
@@ -80,13 +96,19 @@ class VerifierViewModel(
                 val deviceResponse = coseCompliantSerializer.decodeFromByteArray<DeviceResponse>(deviceResponseBytes)
                 checkResponse(deviceResponse)
             } catch (e: Exception) {
-                handleError(DeviceResponseException("Failed to decode DeviceResponse", e, deviceResponseBytes))
+                handleError(
+                    DeviceResponseException(
+                        "Failed to decode DeviceResponse",
+                        e,
+                        deviceResponseBytes
+                    )
+                )
             }
         }.onFailure { handleError(it) }
     }
 
     private fun checkResponse(deviceResponse: DeviceResponse) {
-        _verifierState.value = VerifierState.CHECK_RESPONSE
+        setState(VerifierState.CheckResponse)
         val verifyDocument: suspend (MobileSecurityObject, Document) -> Boolean = { _, doc ->
             // TODO: verification of device authentication
             true
@@ -95,16 +117,21 @@ class VerifierViewModel(
             try {
                 val verifierAgent = VerifierAgent("Proximity Verifier", Validator())
                 when (val result = verifierAgent.verifyPresentationIsoMdoc(deviceResponse, verifyDocument)) {
-                    is VerifyPresentationResult.SuccessIso -> {
-                        responseDocumentList.addAll(result.documents)
-                        _verifierState.value = VerifierState.PRESENTATION
+                    is Verifier.VerifyPresentationResult.SuccessIso -> {
+                        _responseDocumentList.addAll(result.documents)
+                        setState(VerifierState.Presentation)
                     }
-                    is VerifyPresentationResult.InvalidStructure -> {
+                    is Verifier.VerifyPresentationResult.InvalidStructure -> {
                         handleError(VerifyResponseException("Verification failed: InvalidStructure\ninput = ${result.input}"))
                         return@launch
                     }
-                    is VerifyPresentationResult.ValidationError -> {
-                        handleError(VerifyResponseException("Verification failed: ValidationError", result.cause))
+                    is Verifier.VerifyPresentationResult.ValidationError -> {
+                        handleError(
+                            VerifyResponseException(
+                                "Verification failed: ValidationError",
+                                result.cause
+                            )
+                        )
                         return@launch
                     }
                     else -> {
@@ -118,28 +145,19 @@ class VerifierViewModel(
         }
     }
 
-    fun onRequestSelected(
-        selectedEngagementMethod: DeviceEngagementMethods,
-        request: SelectableRequest
-    ) {
+    fun onRequestSelected(request: SelectableRequest) {
         _requestDocumentList.addRequestDocument(
             RequestDocumentBuilder.buildRequestDocument(request)
         )
-        setStateToEngagement(selectedEngagementMethod)
+        setStateToEngagement(_selectedEngagementMethod.value)
     }
 
-    fun navigateToCustomSelectionView(selectedEngagementMethod: DeviceEngagementMethods) {
-        _selectedEngagementMethod.value = selectedEngagementMethod
-        _verifierState.value = VerifierState.SELECT_CUSTOM_REQUEST
+    fun navigateToCustomSelectionView() {
+        setState(VerifierState.SelectCustomRequest)
     }
 
-    fun navigateToCombinedSelectionView(selectedEngagementMethod: DeviceEngagementMethods) {
-        _selectedEngagementMethod.value = selectedEngagementMethod
-        _verifierState.value = VerifierState.SELECT_COMBINED_REQUEST
-    }
-
-    fun navigateToVerifyDataView() {
-        _verifierState.value = VerifierState.INIT
+    fun navigateToCombinedSelectionView() {
+        setState(VerifierState.SelectCombinedRequest)
     }
 
     fun onReceiveCombinedSelection(requestSelectionList: List<SelectableRequest>) {
@@ -148,7 +166,7 @@ class VerifierViewModel(
                 RequestDocumentBuilder.buildRequestDocument(request)
             )
         }
-        setStateToEngagement(selectedEngagementMethod.value)
+        setStateToEngagement(_selectedEngagementMethod.value)
     }
 
     fun onReceiveCustomSelection(
@@ -159,15 +177,15 @@ class VerifierViewModel(
         _requestDocumentList.addRequestDocument(
             RequestDocumentBuilder.buildRequestDocument(config.scheme, selectedEntries)
         )
-        setStateToEngagement(selectedEngagementMethod.value)
+        setStateToEngagement(_selectedEngagementMethod.value)
     }
 
     val onFoundPayload: (String) -> Unit = { payload ->
-        if (payload.startsWith(MDOC_PREFIX)) {
-            _verifierState.value = VerifierState.WAITING_FOR_RESPONSE
+        if (payload.startsWith(MdocConstants.MDOC_PREFIX)) {
+            setState(VerifierState.WaitingForResponse)
             _requestDocumentList.let { requestDocumentList ->
                 transferManager.doQrFlow(
-                    payload.removePrefix(MDOC_PREFIX),
+                    payload.removePrefix(MdocConstants.MDOC_PREFIX),
                     requestDocumentList,
                     { message -> Napier.d("Transfer message: $message") } // TODO: handle update messages
                 ) { deviceResponseBytes ->
@@ -175,18 +193,7 @@ class VerifierViewModel(
                 }
             }
         } else {
-            handleError(IllegalArgumentException("Invalid QR-Code:\nQR-Code does not start with \"$MDOC_PREFIX\""))
+            handleError(IllegalArgumentException("Invalid QR-Code:\nQR-Code does not start with \"${MdocConstants.MDOC_PREFIX}\""))
         }
     }
-}
-
-enum class VerifierState {
-    INIT,
-    SELECT_CUSTOM_REQUEST,
-    SELECT_COMBINED_REQUEST,
-    QR_ENGAGEMENT,
-    WAITING_FOR_RESPONSE,
-    CHECK_RESPONSE,
-    PRESENTATION,
-    ERROR
 }

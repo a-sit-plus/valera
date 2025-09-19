@@ -1,4 +1,4 @@
-package ui.views.iso.verifier
+package ui.views.iso.common
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer

@@ -1,11 +1,12 @@
-package ui.viewmodels.iso
+package ui.viewmodels.iso.holder
 
 import androidx.compose.runtime.MutableState
-import androidx.lifecycle.ViewModel
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
-import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants
+import at.asitplus.wallet.app.common.iso.transfer.state.HolderState
+import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CompletionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.io.bytestring.ByteString
 import org.multipaz.cbor.Simple
+import org.multipaz.compose.permissions.PermissionState
 import org.multipaz.crypto.Crypto
 import org.multipaz.crypto.EcCurve
 import org.multipaz.mdoc.connectionmethod.MdocConnectionMethod
@@ -30,67 +32,92 @@ import org.multipaz.mdoc.transport.advertise
 import org.multipaz.mdoc.transport.waitForConnection
 import org.multipaz.util.UUID
 import ui.viewmodels.authentication.PresentationStateModel
-import kotlin.lazy
+import ui.viewmodels.iso.common.TransferOptionsViewModel
 
-class ShowQrCodeViewModel(
-    val walletMain: WalletMain,
-    val settingsRepository: SettingsRepository,
-) : ViewModel() {
+class HolderViewModel(
+    walletMain: WalletMain,
+    settingsRepository: SettingsRepository
+) : TransferOptionsViewModel(walletMain, settingsRepository) {
+    val onResume: () -> Unit = { setState(HolderState.Settings) }
+    val onConsentSettings: () -> Unit = { setState(HolderState.CheckSettings) }
     var hasBeenCalledHack: Boolean = false
 
-    val presentationScope by lazy { CoroutineScope(Dispatchers.IO + CoroutineName("QR code presentation scope") + walletMain.coroutineExceptionHandler) }
-    val presentationStateModel by lazy { PresentationStateModel(presentationScope) }
+    val presentationScope by lazy {
+        CoroutineScope(
+            Dispatchers.IO +
+                    CoroutineName("QR code presentation scope") +
+                    walletMain.coroutineExceptionHandler
+        )
+    }
+    val presentationStateModel by lazy {
+        PresentationStateModel(presentationScope)
+    }
 
+    private val _showQrCodeState = MutableStateFlow<HolderState>(HolderState.Init)
+    val showQrCodeState: StateFlow<HolderState> = _showQrCodeState
 
-    private val _showQrCodeState = MutableStateFlow(ShowQrCodeState.INIT)
-    val showQrCodeState: StateFlow<ShowQrCodeState> = _showQrCodeState
-
-    fun setState(newState: ShowQrCodeState) {
+    fun setState(newState: HolderState) {
+        if (_showQrCodeState.value == newState) return
+        Napier.d("Change state from ${_showQrCodeState.value} to $newState",
+            tag = "ShowQrCodeViewModel"
+        )
         _showQrCodeState.value = newState
     }
 
-    fun setupPresentmentModel() {
+    fun setupPresentmentModel(
+        blePermissionState: PermissionState,
+        isBluetoothRequired: Boolean
+    ) {
         presentationStateModel.reset()
         presentationStateModel.init()
-        presentationStateModel.start(needBluetooth = true)
-        presentationStateModel.setPermissionState(true)
+        presentationStateModel.start(isBluetoothRequired)
+        if (isBluetoothRequired) {
+            presentationStateModel.setPermissionState(blePermissionState.isGranted)
+        }
     }
 
     fun doHolderFlow(
         showQrCode: MutableState<ByteString?>,
+        isBleEnabled: Boolean,
+        isNfcEnabled: Boolean,
         completionHandler: CompletionHandler = {}
     ) = presentationStateModel.presentmentScope.launch {
         try {
             val connectionMethods = mutableListOf<MdocConnectionMethod>()
-            val bleUuid = UUID.randomUUID()
+            val bleUuid = UUID.Companion.randomUUID()
 
-            if (settingsRepository.presentmentBleCentralClientModeEnabled.first()) {
-                connectionMethods.add(
-                    MdocConnectionMethodBle(
-                        supportsPeripheralServerMode = false,
-                        supportsCentralClientMode = true,
-                        peripheralServerModeUuid = null,
-                        centralClientModeUuid = bleUuid,
+            if (isBleEnabled) {
+                if (presentmentBleCentralClientModeEnabled.first()) {
+                    connectionMethods.add(
+                        MdocConnectionMethodBle(
+                            supportsPeripheralServerMode = false,
+                            supportsCentralClientMode = true,
+                            peripheralServerModeUuid = null,
+                            centralClientModeUuid = bleUuid,
+                        )
                     )
-                )
+                }
+                if (presentmentBlePeripheralServerModeEnabled.first()) {
+                    connectionMethods.add(
+                        MdocConnectionMethodBle(
+                            supportsPeripheralServerMode = true,
+                            supportsCentralClientMode = false,
+                            peripheralServerModeUuid = bleUuid,
+                            centralClientModeUuid = null,
+                        )
+                    )
+                }
             }
-            if (settingsRepository.presentmentBlePeripheralServerModeEnabled.first()) {
-                connectionMethods.add(
-                    MdocConnectionMethodBle(
-                        supportsPeripheralServerMode = true,
-                        supportsCentralClientMode = false,
-                        peripheralServerModeUuid = bleUuid,
-                        centralClientModeUuid = null,
+
+            if (isNfcEnabled) {
+                if (presentmentNfcDataTransferEnabled.first()) {
+                    connectionMethods.add(
+                        MdocConnectionMethodNfc(
+                            commandDataFieldMaxLength = 0xffff,
+                            responseDataFieldMaxLength = 0x10000
+                        )
                     )
-                )
-            }
-            if (settingsRepository.presentmentNfcDataTransferEnabled.first()) {
-                connectionMethods.add(
-                    MdocConnectionMethodNfc(
-                        commandDataFieldMaxLength = 0xffff,
-                        responseDataFieldMaxLength = 0x10000
-                    )
-                )
+                }
             }
 
             val ephemeralDeviceKey = Crypto.createEcPrivateKey(EcCurve.P256)
@@ -101,7 +128,7 @@ class ShowQrCodeViewModel(
                 role = MdocRole.MDOC,
                 transportFactory = MdocTransportFactory.Default,
                 options = MdocTransportOptions(
-                    bleUseL2CAP = settingsRepository.readerBleL2CapEnabled.first()
+                    bleUseL2CAP = readerBleL2CapEnabled.first()
                 )
             )
 
@@ -114,7 +141,7 @@ class ShowQrCodeViewModel(
             val encodedDeviceEngagementByteArray = engagementGenerator.generate()
             encodedDeviceEngagement = ByteString(encodedDeviceEngagementByteArray)
             showQrCode.value = encodedDeviceEngagement
-            setState(ShowQrCodeState.SHOW_QR_CODE)
+            setState(HolderState.ShowQrCode)
 
             // Then wait for connection
             val transport = advertisedTransports.waitForConnection(
@@ -126,25 +153,16 @@ class ShowQrCodeViewModel(
                     transport = transport,
                     ephemeralDeviceKey = ephemeralDeviceKey,
                     encodedDeviceEngagement = encodedDeviceEngagement,
-                    handover = Simple.NULL,
+                    handover = Simple.Companion.NULL,
                     engagementDuration = null,
                     allowMultipleRequests = false
                 )
             )
-            setState(ShowQrCodeState.FINISHED)
+            setState(HolderState.Finished)
             showQrCode.value = null
             completionHandler(null)
         } catch (throwable: Throwable) {
             completionHandler(throwable)
         }
     }
-}
-
-enum class ShowQrCodeState {
-    INIT,
-    NO_TRANSFER_METHOD_AVAILABLE,
-    MISSING_PERMISSION,
-    CREATE_ENGAGEMENT,
-    SHOW_QR_CODE,
-    FINISHED
 }
