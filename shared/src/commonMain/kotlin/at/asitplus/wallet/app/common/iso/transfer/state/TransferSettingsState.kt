@@ -2,9 +2,11 @@ package at.asitplus.wallet.app.common.iso.transfer.state
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.iso.transfer.method.DeviceTransferMethodManager
+import at.asitplus.wallet.app.common.iso.transfer.method.rememberBluetoothEnabledState
 import org.multipaz.compose.permissions.rememberBluetoothPermissionState
 
 sealed interface TransferPrecondition {
@@ -46,8 +48,6 @@ fun rememberTransferSettingsState(
     settingsRepository: SettingsRepository,
     deviceTransferMethodManager: DeviceTransferMethodManager
 ): TransferSettingsState {
-    val blePermissionState = rememberBluetoothPermissionState()
-
     val bleCentralClientModeEnabled = settingsRepository.presentmentBleCentralClientModeEnabled
         .collectAsStateWithLifecycle(initialValue = false).value
     val blePeripheralServerModeEnabled = settingsRepository.presentmentBlePeripheralServerModeEnabled
@@ -57,17 +57,21 @@ fun rememberTransferSettingsState(
 
     val bleSettingOn = bleCentralClientModeEnabled || blePeripheralServerModeEnabled
 
+    val bluetoothPermissionState = rememberBluetoothPermissionState()
+    val bluetoothEnabledState = rememberBluetoothEnabledState()
+    val isNfcEnabled = deviceTransferMethodManager.isNfcEnabled.collectAsState()
+
     val ble = ChannelState(
         settingOn = bleSettingOn,
-        enabled = deviceTransferMethodManager.isBluetoothEnabled(),
+        enabled = bluetoothEnabledState.isEnabled,
         required = bleSettingOn && !nfcSettingOn,
-        permissionGranted = blePermissionState.isGranted
+        permissionGranted = bluetoothPermissionState.isGranted
     )
 
     val nfc = ChannelState(
         settingOn = nfcSettingOn,
         required = nfcSettingOn && !bleSettingOn,
-        enabled = deviceTransferMethodManager.isNfcEnabled()
+        enabled = isNfcEnabled.value
     )
 
     return TransferSettingsState(ble, nfc)

@@ -1,6 +1,7 @@
 package ui.views.iso.verifier
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -8,6 +9,7 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_check_response
 import at.asitplus.valera.resources.info_text_waiting_for_response
 import at.asitplus.wallet.app.common.iso.transfer.method.DeviceTransferMethodManager
+import at.asitplus.wallet.app.common.iso.transfer.method.rememberBluetoothEnabledState
 import at.asitplus.wallet.app.common.iso.transfer.method.rememberPlatformContext
 import at.asitplus.wallet.app.common.iso.transfer.state.PreconditionState
 import at.asitplus.wallet.app.common.iso.transfer.state.TransferPrecondition
@@ -39,7 +41,8 @@ fun VerifierView(
         rememberTransferSettingsState(vm.settingsRepository, deviceTransferMethodManager)
 
     val verifierState by vm.verifierState.collectAsState()
-    val blePermissionState = rememberBluetoothPermissionState()
+    val bluetoothPermissionState = rememberBluetoothPermissionState()
+    val bluetoothEnabledState = rememberBluetoothEnabledState()
 
     when (val state = verifierState) {
         is VerifierState.Settings ->
@@ -48,18 +51,20 @@ fun VerifierView(
             LoadingView(
                 "Check Settings", vm.onResume
             )
-            val next = when (transferSettingsState.precondition) {
-                TransferPrecondition.Ok -> VerifierState.SelectDocument
-                TransferPrecondition.NoTransferMethodSelected ->
-                    VerifierState.MissingPrecondition(PreconditionState.NO_TRANSFER_METHOD_SELECTED)
+            LaunchedEffect(transferSettingsState) {
+                val next = when (transferSettingsState.precondition) {
+                    TransferPrecondition.Ok -> VerifierState.SelectDocument
+                    TransferPrecondition.NoTransferMethodSelected ->
+                        VerifierState.MissingPrecondition(PreconditionState.NO_TRANSFER_METHOD_SELECTED)
 
-                TransferPrecondition.NoTransferMethodAvailable ->
-                    VerifierState.MissingPrecondition(PreconditionState.NO_TRANSFER_METHOD_AVAILABLE_FOR_SELECTION)
+                    TransferPrecondition.NoTransferMethodAvailable ->
+                        VerifierState.MissingPrecondition(PreconditionState.NO_TRANSFER_METHOD_AVAILABLE_FOR_SELECTION)
 
-                TransferPrecondition.MissingPermission ->
-                    VerifierState.MissingPrecondition(PreconditionState.MISSING_PERMISSION)
+                    TransferPrecondition.MissingPermission ->
+                        VerifierState.MissingPrecondition(PreconditionState.MISSING_PERMISSION)
+                }
+                if (verifierState != next) vm.setState(next)
             }
-            if (verifierState != next) vm.setState(next)
         }
         is VerifierState.Init -> LoadingView()
         is VerifierState.SelectDocument ->
@@ -84,7 +89,8 @@ fun VerifierView(
             reason = state.reason,
             transferSettingsState = transferSettingsState,
             deviceTransferMethodManager = deviceTransferMethodManager,
-            blePermissionState = blePermissionState,
+            bluetoothPermissionState = bluetoothPermissionState,
+            bluetoothEnabledState = bluetoothEnabledState,
             onClickSettings = onClickSettings,
             navigateUp = vm.onResume,
             onClickLogo = onClickLogo,
