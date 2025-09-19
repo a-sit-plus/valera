@@ -7,14 +7,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.button_label_go_to_app_settings
+import at.asitplus.valera.resources.button_label_back_to_settings
 import at.asitplus.valera.resources.info_text_no_transfer_method_selected
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.TextIconButton
 
 @Composable
 fun NoTransferMethodSelectedView(
-    onClickSettings: () -> Unit,
+    onClickBackToSettings: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     CenteredInfoText(
@@ -23,8 +23,8 @@ fun NoTransferMethodSelectedView(
     ) {
         TextIconButton(
             icon = { Icon(Icons.Outlined.Settings, contentDescription = null) },
-            text = { Text(stringResource(Res.string.button_label_go_to_app_settings)) },
-            onClick = onClickSettings
+            text = { Text(stringResource(Res.string.button_label_back_to_settings)) },
+            onClick = onClickBackToSettings
         )
     }
 }

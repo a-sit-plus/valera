@@ -17,14 +17,17 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_missing_precondition
+import at.asitplus.wallet.app.common.iso.transfer.method.BluetoothEnabledState
 import at.asitplus.wallet.app.common.iso.transfer.method.DeviceTransferMethodManager
 import at.asitplus.wallet.app.common.iso.transfer.state.PreconditionState
 import at.asitplus.wallet.app.common.iso.transfer.state.TransferSettingsState
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.multipaz.compose.permissions.PermissionState
 import ui.composables.Logo
@@ -37,10 +40,11 @@ fun MissingPreconditionView(
     reason: PreconditionState,
     transferSettingsState: TransferSettingsState,
     deviceTransferMethodManager: DeviceTransferMethodManager,
-    blePermissionState: PermissionState,
+    bluetoothPermissionState: PermissionState,
+    bluetoothEnabledState: BluetoothEnabledState,
     onClickSettings: () -> Unit,
     navigateUp: (() -> Unit),
-    onClickLogo: (() -> Unit),
+    onClickLogo: (() -> Unit)
 ) {
     Scaffold(
         topBar = {
@@ -76,8 +80,9 @@ fun MissingPreconditionView(
                     reason = reason,
                     transferSettingsState = transferSettingsState,
                     deviceTransferMethodManager = deviceTransferMethodManager,
-                    blePermissionState = blePermissionState,
-                    onClickSettings = navigateUp,
+                    bluetoothPermissionState = bluetoothPermissionState,
+                    bluetoothEnabledState = bluetoothEnabledState,
+                    onClickBackToSettings = navigateUp,
                 )
             }
         }
@@ -89,28 +94,33 @@ fun MissingPreconditionViewBody(
     reason: PreconditionState,
     transferSettingsState: TransferSettingsState,
     deviceTransferMethodManager: DeviceTransferMethodManager,
-    blePermissionState: PermissionState,
-    onClickSettings: () -> Unit,
+    bluetoothPermissionState: PermissionState,
+    bluetoothEnabledState: BluetoothEnabledState,
+    onClickBackToSettings: () -> Unit
 ) {
+    val coroutineScope = rememberCoroutineScope()
+
     when (reason) {
         PreconditionState.NO_TRANSFER_METHOD_SELECTED ->
-            NoTransferMethodSelectedView(onClickSettings = onClickSettings)
+            NoTransferMethodSelectedView(onClickBackToSettings = onClickBackToSettings)
 
         PreconditionState.NO_TRANSFER_METHOD_AVAILABLE_FOR_SELECTION ->
             NoTransferMethodAvailableView(
-                onClickSettings = onClickSettings,
+                onClickBackToSettings = onClickBackToSettings,
                 onOpenDeviceSettings = {
                     if (transferSettingsState.nfc.required) {
                         deviceTransferMethodManager.goToNfcSettings()
                     } else {
-                        deviceTransferMethodManager.goToBluetoothSettings()
+                        coroutineScope.launch {
+                            bluetoothEnabledState.enable()
+                        }
                     }
                 }
             )
 
         PreconditionState.MISSING_PERMISSION -> {
             LaunchedEffect(reason) {
-                blePermissionState.launchPermissionRequest()
+                bluetoothPermissionState.launchPermissionRequest()
             }
             MissingBluetoothPermissionView(
                 onOpenAppPermissionSettings = {

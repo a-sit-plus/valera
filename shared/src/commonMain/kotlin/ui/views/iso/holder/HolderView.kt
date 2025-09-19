@@ -34,6 +34,7 @@ import at.asitplus.valera.resources.info_text_qr_code_loading
 import at.asitplus.valera.resources.info_text_transfer_settings_loading
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants
 import at.asitplus.wallet.app.common.iso.transfer.method.DeviceTransferMethodManager
+import at.asitplus.wallet.app.common.iso.transfer.method.rememberBluetoothEnabledState
 import at.asitplus.wallet.app.common.iso.transfer.method.rememberPlatformContext
 import at.asitplus.wallet.app.common.iso.transfer.state.PreconditionState
 import at.asitplus.wallet.app.common.iso.transfer.state.HolderState
@@ -88,7 +89,8 @@ fun HolderView(
         vm.presentationStateModel.state
     }.collectAsStateWithLifecycle()
 
-    val blePermissionState = rememberBluetoothPermissionState()
+    val bluetoothPermissionState = rememberBluetoothPermissionState()
+    val bluetoothEnabledState = rememberBluetoothEnabledState()
     val showQrCode = remember { mutableStateOf<ByteString?>(null) }
 
     LaunchedEffect(transferSettingsState.ble, transferSettingsState.nfc) {
@@ -172,8 +174,9 @@ fun HolderView(
                         reason = state.reason,
                         transferSettingsState = transferSettingsState,
                         deviceTransferMethodManager = deviceTransferMethodManager,
-                        blePermissionState = blePermissionState,
-                        onClickSettings = onClickSettings,
+                        bluetoothPermissionState = bluetoothPermissionState,
+                        bluetoothEnabledState = bluetoothEnabledState,
+                        onClickBackToSettings = onClickSettings,
                     )
 
                     is HolderState.CreateEngagement -> {
@@ -186,7 +189,7 @@ fun HolderView(
                             if (vm.hasBeenCalledHack) return@LaunchedEffect
                             vm.hasBeenCalledHack = true
                             vm.setupPresentmentModel(
-                                blePermissionState,
+                                bluetoothPermissionState,
                                 transferSettingsState.ble.required
                             )
                             vm.doHolderFlow(

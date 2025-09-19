@@ -52,6 +52,7 @@
     <string name="button_label_hide_technical_details">Technische Details ausblenden</string>
     <string name="button_label_sign">Signieren</string>
     <string name="button_label_go_to_app_settings">App-Einstellungen</string>
+    <string name="button_label_back_to_settings">Zurück zu den Einstellungen</string>
     <string name="button_label_go_to_device_settings">Geräteeinstellungen</string>
 
     <string name="switch_label_use_negotiated_handover">Negotiated Handover</string>

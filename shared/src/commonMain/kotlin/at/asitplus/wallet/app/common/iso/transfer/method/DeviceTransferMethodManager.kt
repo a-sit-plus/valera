@@ -8,16 +8,16 @@ class DeviceTransferMethodManager(
     val platformContext: PlatformContext,
     val platformAdapter: PlatformAdapter
 ) {
-    private val bluetoothInfo = BluetoothInfo()
-    private val nfcInfo = NfcInfo()
-    private val appSettings = AppSettings()
+//    private val bluetoothInfo = BluetoothInfo(platformContext, platformAdapter)
+    private val nfcInfo = NfcInfo(platformContext, platformAdapter)
+    private val appSettings = AppSettings(platformContext, platformAdapter)
 
-    fun isBluetoothEnabled(): Boolean = bluetoothInfo.isBluetoothEnabled(platformContext)
-    fun goToBluetoothSettings() =
-        bluetoothInfo.openBluetoothSettings(platformContext, platformAdapter)
+//    val isBluetoothEnabled = bluetoothInfo.isBluetoothEnabled
+//    fun goToBluetoothSettings() = bluetoothInfo.openBluetoothSettings()
 
-    fun isNfcEnabled(): Boolean = nfcInfo.isNfcEnabled(platformContext)
-    fun goToNfcSettings() = nfcInfo.openNfcSettings(platformContext, platformAdapter)
 
-    fun openAppSettings() = appSettings.open(platformContext, platformAdapter)
+    val isNfcEnabled = nfcInfo.isNfcEnabled
+    fun goToNfcSettings() = nfcInfo.openNfcSettings()
+
+    fun openAppSettings() = appSettings.open()
 }
