@@ -10,12 +10,8 @@ internal actual class NfcInfo actual constructor(
     platformContext: PlatformContext,
     val platformAdapter: PlatformAdapter
 ) {
-    private val _isNfcEnabled = MutableStateFlow(false)
+    private val _isNfcEnabled = MutableStateFlow(NFCNDEFReaderSession.readingAvailable)
     actual val isNfcEnabled: StateFlow<Boolean> = _isNfcEnabled
-
-    init {
-        _isNfcEnabled.value = NFCNDEFReaderSession.readingAvailable
-    }
 
     actual fun openNfcSettings() {
         Napier.w("NFC unavailable: This should not happen on iOS", tag = "NfcInfo")

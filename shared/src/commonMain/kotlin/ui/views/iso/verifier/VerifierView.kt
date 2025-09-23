@@ -9,7 +9,6 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_check_response
 import at.asitplus.valera.resources.info_text_waiting_for_response
 import at.asitplus.wallet.app.common.iso.transfer.method.DeviceTransferMethodManager
-import at.asitplus.wallet.app.common.iso.transfer.method.rememberBluetoothEnabledState
 import at.asitplus.wallet.app.common.iso.transfer.method.rememberPlatformContext
 import at.asitplus.wallet.app.common.iso.transfer.state.PreconditionState
 import at.asitplus.wallet.app.common.iso.transfer.state.TransferPrecondition
@@ -37,35 +36,35 @@ fun VerifierView(
     val deviceTransferMethodManager = remember {
         DeviceTransferMethodManager(platformContext, vm.walletMain.platformAdapter)
     }
-    val transferSettingsState =
-        rememberTransferSettingsState(vm.settingsRepository, deviceTransferMethodManager)
+    val bluetoothPermissionState = rememberBluetoothPermissionState()
+    val transferSettingsState = rememberTransferSettingsState(
+        vm.settingsRepository,
+        deviceTransferMethodManager,
+        bluetoothPermissionState
+    )
 
     val verifierState by vm.verifierState.collectAsState()
-    val bluetoothPermissionState = rememberBluetoothPermissionState()
-    val bluetoothEnabledState = rememberBluetoothEnabledState()
+
+    if (verifierState !is VerifierState.Settings) {
+        LaunchedEffect(transferSettingsState) {
+            val next = when (transferSettingsState.precondition) {
+                TransferPrecondition.Ok -> VerifierState.SelectDocument
+                TransferPrecondition.NoTransferMethodSelected ->
+                    VerifierState.MissingPrecondition(PreconditionState.NO_TRANSFER_METHOD_SELECTED)
+                TransferPrecondition.NoTransferMethodAvailable ->
+                    VerifierState.MissingPrecondition(PreconditionState.NO_TRANSFER_METHOD_AVAILABLE_FOR_SELECTION)
+                TransferPrecondition.MissingPermission ->
+                    VerifierState.MissingPrecondition(PreconditionState.MISSING_PERMISSION)
+            }
+            if (verifierState != next) vm.setState(next)
+        }
+    }
 
     when (val state = verifierState) {
         is VerifierState.Settings ->
             VerifierSettingsView(onClickLogo, onClickSettings, bottomBar, vm)
-        is VerifierState.CheckSettings -> {
-            LoadingView(
-                "Check Settings", vm.onResume
-            )
-            LaunchedEffect(transferSettingsState) {
-                val next = when (transferSettingsState.precondition) {
-                    TransferPrecondition.Ok -> VerifierState.SelectDocument
-                    TransferPrecondition.NoTransferMethodSelected ->
-                        VerifierState.MissingPrecondition(PreconditionState.NO_TRANSFER_METHOD_SELECTED)
-
-                    TransferPrecondition.NoTransferMethodAvailable ->
-                        VerifierState.MissingPrecondition(PreconditionState.NO_TRANSFER_METHOD_AVAILABLE_FOR_SELECTION)
-
-                    TransferPrecondition.MissingPermission ->
-                        VerifierState.MissingPrecondition(PreconditionState.MISSING_PERMISSION)
-                }
-                if (verifierState != next) vm.setState(next)
-            }
-        }
+        is VerifierState.CheckSettings ->
+            LoadingView("Check Settings", vm.onResume)
         is VerifierState.Init -> LoadingView()
         is VerifierState.SelectDocument ->
             VerifierDocumentSelectionView(onClickLogo, onClickSettings, vm, bottomBar)
@@ -90,10 +89,9 @@ fun VerifierView(
             transferSettingsState = transferSettingsState,
             deviceTransferMethodManager = deviceTransferMethodManager,
             bluetoothPermissionState = bluetoothPermissionState,
-            bluetoothEnabledState = bluetoothEnabledState,
             onClickSettings = onClickSettings,
             navigateUp = vm.onResume,
-            onClickLogo = onClickLogo,
+            onClickLogo = onClickLogo
         )
     }
 }

@@ -34,10 +34,9 @@ import at.asitplus.valera.resources.info_text_qr_code_loading
 import at.asitplus.valera.resources.info_text_transfer_settings_loading
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants
 import at.asitplus.wallet.app.common.iso.transfer.method.DeviceTransferMethodManager
-import at.asitplus.wallet.app.common.iso.transfer.method.rememberBluetoothEnabledState
 import at.asitplus.wallet.app.common.iso.transfer.method.rememberPlatformContext
-import at.asitplus.wallet.app.common.iso.transfer.state.PreconditionState
 import at.asitplus.wallet.app.common.iso.transfer.state.HolderState
+import at.asitplus.wallet.app.common.iso.transfer.state.PreconditionState
 import at.asitplus.wallet.app.common.iso.transfer.state.TransferPrecondition
 import at.asitplus.wallet.app.common.iso.transfer.state.rememberTransferSettingsState
 import io.github.aakira.napier.Napier
@@ -80,8 +79,12 @@ fun HolderView(
     val deviceTransferMethodManager = remember {
         DeviceTransferMethodManager(platformContext, vm.walletMain.platformAdapter)
     }
-    val transferSettingsState =
-        rememberTransferSettingsState(vm.settingsRepository, deviceTransferMethodManager)
+    val bluetoothPermissionState = rememberBluetoothPermissionState()
+    val transferSettingsState = rememberTransferSettingsState(
+        vm.settingsRepository,
+        deviceTransferMethodManager,
+        bluetoothPermissionState
+    )
 
     val settingsReady by vm.settingsReady.collectAsStateWithLifecycle()
     val showQrCodeState by vm.showQrCodeState.collectAsState()
@@ -89,8 +92,6 @@ fun HolderView(
         vm.presentationStateModel.state
     }.collectAsStateWithLifecycle()
 
-    val bluetoothPermissionState = rememberBluetoothPermissionState()
-    val bluetoothEnabledState = rememberBluetoothEnabledState()
     val showQrCode = remember { mutableStateOf<ByteString?>(null) }
 
     LaunchedEffect(transferSettingsState.ble, transferSettingsState.nfc) {
@@ -175,8 +176,7 @@ fun HolderView(
                         transferSettingsState = transferSettingsState,
                         deviceTransferMethodManager = deviceTransferMethodManager,
                         bluetoothPermissionState = bluetoothPermissionState,
-                        bluetoothEnabledState = bluetoothEnabledState,
-                        onClickBackToSettings = onClickSettings,
+                        onClickBackToSettings = onClickSettings
                     )
 
                     is HolderState.CreateEngagement -> {

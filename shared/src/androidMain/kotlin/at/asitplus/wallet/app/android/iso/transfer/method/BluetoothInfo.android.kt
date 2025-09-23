@@ -15,25 +15,27 @@ internal actual class BluetoothInfo actual constructor(
     val platformContext: PlatformContext,
     platformAdapter: PlatformAdapter
 ) {
-    private val _isBluetoothEnabled = MutableStateFlow(false)
+    private val _isBluetoothEnabled = MutableStateFlow(checkBluetoothEnabled())
     actual val isBluetoothEnabled: StateFlow<Boolean> = _isBluetoothEnabled
 
-    init {
-        _isBluetoothEnabled.value = checkBluetooth()
-
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(ctx: Context?, intent: Intent?) {
-                if (intent?.action == BluetoothAdapter.ACTION_STATE_CHANGED) {
-                    _isBluetoothEnabled.value = checkBluetooth()
-                }
-            }
-        }
-        platformContext.context.registerReceiver(receiver, IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED))
+    private fun checkBluetoothEnabled(): Boolean {
+        val manager = platformContext.context
+            .getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
+        return manager?.adapter?.isEnabled == true
     }
 
-    private fun checkBluetooth(): Boolean {
-        val bluetoothManager = platformContext.context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
-        return bluetoothManager?.adapter?.isEnabled == true
+    private val receiver = object : BroadcastReceiver() {
+        override fun onReceive(ctx: Context?, intent: Intent?) {
+            if (intent?.action == BluetoothAdapter.ACTION_STATE_CHANGED) {
+                _isBluetoothEnabled.value = checkBluetoothEnabled()
+            }
+        }
+    }
+
+    init {
+        platformContext.context.registerReceiver(
+            receiver, IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
+        )
     }
 
     actual fun openBluetoothSettings() {

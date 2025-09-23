@@ -11,28 +11,29 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 actual class NfcInfo actual constructor(
-    val platformContext: PlatformContext,
-    platformAdapter: PlatformAdapter
+    private val platformContext: PlatformContext,
+    private val platformAdapter: PlatformAdapter
 ) {
-    private val _isNfcEnabled = MutableStateFlow(false)
+    private val _isNfcEnabled = MutableStateFlow(checkNfcEnabled())
     actual val isNfcEnabled: StateFlow<Boolean> = _isNfcEnabled
 
-    init {
-        _isNfcEnabled.value = checkNfc()
+    private fun checkNfcEnabled(): Boolean {
+        val adapter = NfcAdapter.getDefaultAdapter(platformContext.context)
+        return adapter?.isEnabled == true
+    }
 
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(ctx: Context?, intent: Intent?) {
-                if (intent?.action == NfcAdapter.ACTION_ADAPTER_STATE_CHANGED) {
-                    _isNfcEnabled.value = checkNfc()
-                }
+    private val receiver = object : BroadcastReceiver() {
+        override fun onReceive(ctx: Context?, intent: Intent?) {
+            if (intent?.action == NfcAdapter.ACTION_ADAPTER_STATE_CHANGED) {
+                _isNfcEnabled.value = checkNfcEnabled()
             }
         }
-        platformContext.context.registerReceiver(receiver, IntentFilter(NfcAdapter.ACTION_ADAPTER_STATE_CHANGED))
     }
-    
-    private fun checkNfc(): Boolean {
-        val nfcAdapter = NfcAdapter.getDefaultAdapter(platformContext.context)
-        return nfcAdapter?.isEnabled == true
+
+    init {
+        platformContext.context.registerReceiver(
+            receiver, IntentFilter(NfcAdapter.ACTION_ADAPTER_STATE_CHANGED)
+        )
     }
 
     actual fun openNfcSettings() {

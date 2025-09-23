@@ -2,12 +2,11 @@ package at.asitplus.wallet.app.common.iso.transfer.state
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.iso.transfer.method.DeviceTransferMethodManager
-import at.asitplus.wallet.app.common.iso.transfer.method.rememberBluetoothEnabledState
-import org.multipaz.compose.permissions.rememberBluetoothPermissionState
+import org.multipaz.compose.permissions.PermissionState
 
 sealed interface TransferPrecondition {
     data object Ok : TransferPrecondition
@@ -31,13 +30,13 @@ data class TransferSettingsState(
 ) {
     val isAnySettingOn: Boolean get() = ble.settingOn || nfc.settingOn
 
-    val transferMethodAvailable: Boolean get() =
+    val isAnyTransferMethodAvailable: Boolean get() =
         (ble.settingOn && ble.enabled) || (nfc.settingOn && nfc.enabled)
 
     val precondition: TransferPrecondition
         get() = when {
             !isAnySettingOn -> TransferPrecondition.NoTransferMethodSelected
-            !transferMethodAvailable -> TransferPrecondition.NoTransferMethodAvailable
+            !isAnyTransferMethodAvailable -> TransferPrecondition.NoTransferMethodAvailable
             ble.required && !ble.permissionGranted -> TransferPrecondition.MissingPermission
             else -> TransferPrecondition.Ok
         }
@@ -46,7 +45,8 @@ data class TransferSettingsState(
 @Composable
 fun rememberTransferSettingsState(
     settingsRepository: SettingsRepository,
-    deviceTransferMethodManager: DeviceTransferMethodManager
+    deviceTransferMethodManager: DeviceTransferMethodManager,
+    bluetoothPermissionState: PermissionState
 ): TransferSettingsState {
     val bleCentralClientModeEnabled = settingsRepository.presentmentBleCentralClientModeEnabled
         .collectAsStateWithLifecycle(initialValue = false).value
@@ -54,16 +54,14 @@ fun rememberTransferSettingsState(
         .collectAsStateWithLifecycle(initialValue = false).value
     val nfcSettingOn = settingsRepository.presentmentNfcDataTransferEnabled
         .collectAsStateWithLifecycle(initialValue = false).value
-
     val bleSettingOn = bleCentralClientModeEnabled || blePeripheralServerModeEnabled
 
-    val bluetoothPermissionState = rememberBluetoothPermissionState()
-    val bluetoothEnabledState = rememberBluetoothEnabledState()
-    val isNfcEnabled = deviceTransferMethodManager.isNfcEnabled.collectAsState()
+    val bleEnabled by deviceTransferMethodManager.isBluetoothEnabled.collectAsStateWithLifecycle()
+    val nfcEnabled by deviceTransferMethodManager.isNfcEnabled.collectAsStateWithLifecycle()
 
     val ble = ChannelState(
         settingOn = bleSettingOn,
-        enabled = bluetoothEnabledState.isEnabled,
+        enabled = bleEnabled,
         required = bleSettingOn && !nfcSettingOn,
         permissionGranted = bluetoothPermissionState.isGranted
     )
@@ -71,7 +69,7 @@ fun rememberTransferSettingsState(
     val nfc = ChannelState(
         settingOn = nfcSettingOn,
         required = nfcSettingOn && !bleSettingOn,
-        enabled = isNfcEnabled.value
+        enabled = nfcEnabled
     )
 
     return TransferSettingsState(ble, nfc)
