@@ -247,7 +247,7 @@ private fun WalletNavHost(
                 onNavigateToAuthenticationQrCodeScannerView = {
                     navigate(QrCodeScannerRoute(QrCodeScannerMode.AUTHENTICATION))
                 },
-                onNavigateToShowQrCodeView = { navigate(ShowQrCodeRoute) },
+                onNavigateToProximityHolderView = { navigate(ProximityHolderRoute) },
                 onClickLogo = onClickLogo,
                 onClickSettings = { navigate(SettingsRoute) },
                 bottomBar = {
@@ -259,9 +259,9 @@ private fun WalletNavHost(
             )
         }
 
-        composable<ShowQrCodeRoute> {
+        composable<ProximityHolderRoute> {
             HolderView(
-                navigateUp = { navigateBack() },
+                navigateUp = { navigate(PresentDataRoute) },
                 onClickLogo = onClickLogo,
                 onClickSettings = { navigate(SettingsRoute) },
                 onNavigateToPresentmentScreen = {
@@ -279,7 +279,7 @@ private fun WalletNavHost(
             )
         }
 
-        composable<VerifyDataRoute> {
+        composable<ProximityVerifierRoute> {
             VerifierView(
                 navigateUp = { navigateBack() },
                 onClickLogo = onClickLogo,

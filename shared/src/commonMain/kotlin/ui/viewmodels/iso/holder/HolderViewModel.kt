@@ -44,8 +44,7 @@ class HolderViewModel(
 
     val presentationScope by lazy {
         CoroutineScope(
-            Dispatchers.IO +
-                    CoroutineName("QR code presentation scope") +
+            Dispatchers.IO + CoroutineName("QR code presentation scope") +
                     walletMain.coroutineExceptionHandler
         )
     }
@@ -53,15 +52,13 @@ class HolderViewModel(
         PresentationStateModel(presentationScope)
     }
 
-    private val _showQrCodeState = MutableStateFlow<HolderState>(HolderState.Init)
-    val showQrCodeState: StateFlow<HolderState> = _showQrCodeState
+    private val _holderState = MutableStateFlow<HolderState>(HolderState.Settings)
+    val holderState: StateFlow<HolderState> = _holderState
 
     fun setState(newState: HolderState) {
-        if (_showQrCodeState.value == newState) return
-        Napier.d("Change state from ${_showQrCodeState.value} to $newState",
-            tag = "ShowQrCodeViewModel"
-        )
-        _showQrCodeState.value = newState
+        if (_holderState.value == newState) return
+        Napier.d("Change state from ${_holderState.value} to $newState", tag = "HolderViewModel")
+        _holderState.value = newState
     }
 
     fun setupPresentmentModel(

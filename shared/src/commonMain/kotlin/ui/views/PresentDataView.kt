@@ -42,7 +42,7 @@ import ui.composables.ScreenHeading
 @Composable
 fun PresentDataView(
     onNavigateToAuthenticationQrCodeScannerView: () -> Unit,
-    onNavigateToShowQrCodeView: () -> Unit,
+    onNavigateToProximityHolderView: () -> Unit,
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
     bottomBar: @Composable () -> Unit
@@ -91,7 +91,7 @@ fun PresentDataView(
                         stringResource(Res.string.section_heading_present_data_title),
                         stringResource(Res.string.section_heading_present_data_to_other_citizen_subtitle),
                         stringResource(Res.string.button_label_present_data),
-                        onNavigateToShowQrCodeView
+                        onNavigateToProximityHolderView
                     )
                 }
             }

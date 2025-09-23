@@ -40,7 +40,8 @@ fun MissingPreconditionView(
     bluetoothPermissionState: PermissionState,
     onClickSettings: () -> Unit,
     navigateUp: (() -> Unit),
-    onClickLogo: (() -> Unit)
+    onClickLogo: (() -> Unit),
+    onClickBackToSettings: (() -> Unit)
 ) {
     Scaffold(
         topBar = {
@@ -72,51 +73,32 @@ fun MissingPreconditionView(
                 modifier = Modifier.fillMaxSize().padding(16.dp),
                 contentAlignment = Alignment.Center
             ) {
-                MissingPreconditionViewBody(
-                    reason = reason,
-                    transferSettingsState = transferSettingsState,
-                    deviceTransferMethodManager = deviceTransferMethodManager,
-                    bluetoothPermissionState = bluetoothPermissionState,
-                    onClickBackToSettings = navigateUp,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun MissingPreconditionViewBody(
-    reason: PreconditionState,
-    transferSettingsState: TransferSettingsState,
-    deviceTransferMethodManager: DeviceTransferMethodManager,
-    bluetoothPermissionState: PermissionState,
-    onClickBackToSettings: () -> Unit
-) {
-    when (reason) {
-        PreconditionState.NO_TRANSFER_METHOD_SELECTED ->
-            NoTransferMethodSelectedView(onClickBackToSettings = onClickBackToSettings)
-
-        PreconditionState.NO_TRANSFER_METHOD_AVAILABLE_FOR_SELECTION ->
-            NoTransferMethodAvailableView(
-                onClickBackToSettings = onClickBackToSettings,
-                onOpenDeviceSettings = {
-                    if (transferSettingsState.nfc.required) {
-                        deviceTransferMethodManager.goToNfcSettings()
-                    } else {
-                        deviceTransferMethodManager.goToBluetoothSettings()
+                when (reason) {
+                    PreconditionState.NO_TRANSFER_METHOD_SELECTED ->
+                        NoTransferMethodSelectedView(onClickBackToSettings = onClickBackToSettings)
+                    PreconditionState.NO_TRANSFER_METHOD_AVAILABLE_FOR_SELECTION ->
+                        NoTransferMethodAvailableView(
+                            onClickBackToSettings = onClickBackToSettings,
+                            onOpenDeviceSettings = {
+                                if (transferSettingsState.nfc.required) {
+                                    deviceTransferMethodManager.goToNfcSettings()
+                                } else {
+                                    deviceTransferMethodManager.goToBluetoothSettings()
+                                }
+                            }
+                        )
+                    PreconditionState.MISSING_PERMISSION -> {
+                        LaunchedEffect(reason) {
+                            bluetoothPermissionState.launchPermissionRequest()
+                        }
+                        MissingBluetoothPermissionView(
+                            onOpenAppPermissionSettings = {
+                                deviceTransferMethodManager.openAppSettings()
+                            }
+                        )
                     }
                 }
-            )
-
-        PreconditionState.MISSING_PERMISSION -> {
-            LaunchedEffect(reason) {
-                bluetoothPermissionState.launchPermissionRequest()
             }
-            MissingBluetoothPermissionView(
-                onOpenAppPermissionSettings = {
-                    deviceTransferMethodManager.openAppSettings()
-                }
-            )
         }
     }
 }

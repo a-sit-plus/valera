@@ -33,11 +33,11 @@ import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.heading_label_settings_screen
 import at.asitplus.valera.resources.heading_label_show_data
 import at.asitplus.valera.resources.info_text_transfer_settings_loading
-import at.asitplus.valera.resources.section_heading_request_engagement_method
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.ScreenHeading
 import ui.composables.TextIconButton
+import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.iso.holder.HolderViewModel
 import ui.views.LoadingView
 import ui.views.iso.common.TransferOptionsView
@@ -45,6 +45,7 @@ import ui.views.iso.common.TransferOptionsView
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HolderSettingsView(
+    navigateUp: () ->Unit,
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
     bottomBar: @Composable () -> Unit,
@@ -61,7 +62,6 @@ fun HolderSettingsView(
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Column(modifier = Modifier.weight(1f)) {
                             ScreenHeading(stringResource(Res.string.heading_label_show_data))
-                            // TODO: update to subtitleView
                             Text(
                                 text = stringResource(Res.string.heading_label_settings_screen),
                                 style = MaterialTheme.typography.headlineSmall,
@@ -77,7 +77,8 @@ fun HolderSettingsView(
                         Icon(Icons.Outlined.Settings, null)
                     }
                     Spacer(Modifier.width(15.dp))
-                }
+                },
+                navigationIcon = { NavigateUpButton(navigateUp) }
             )
         },
         bottomBar = { bottomBar() }
@@ -90,12 +91,6 @@ fun HolderSettingsView(
                     modifier = Modifier.padding(16.dp).verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.Start
                 ) {
-                    Text(
-                        text = stringResource(Res.string.section_heading_request_engagement_method),
-                        style = MaterialTheme.typography.titleMedium
-                    )
-
-                    Spacer(Modifier.height(24.dp))
                     TransferOptionsView( vm)
 
                     Spacer(Modifier.height(24.dp))

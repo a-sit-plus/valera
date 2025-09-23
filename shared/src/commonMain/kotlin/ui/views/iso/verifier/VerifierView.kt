@@ -7,6 +7,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_check_response
+import at.asitplus.valera.resources.info_text_check_settings
 import at.asitplus.valera.resources.info_text_waiting_for_response
 import at.asitplus.wallet.app.common.iso.transfer.method.DeviceTransferMethodManager
 import at.asitplus.wallet.app.common.iso.transfer.method.rememberPlatformContext
@@ -63,9 +64,10 @@ fun VerifierView(
     when (val state = verifierState) {
         is VerifierState.Settings ->
             VerifierSettingsView(onClickLogo, onClickSettings, bottomBar, vm)
-        is VerifierState.CheckSettings ->
-            LoadingView("Check Settings", vm.onResume)
-        is VerifierState.Init -> LoadingView()
+        is VerifierState.CheckSettings -> LoadingView(
+            customLabel = stringResource(Res.string.info_text_check_settings),
+            navigateUp = vm.onResume
+        )
         is VerifierState.SelectDocument ->
             VerifierDocumentSelectionView(onClickLogo, onClickSettings, vm, bottomBar)
         is VerifierState.SelectCustomRequest ->
@@ -91,7 +93,8 @@ fun VerifierView(
             bluetoothPermissionState = bluetoothPermissionState,
             onClickSettings = onClickSettings,
             navigateUp = vm.onResume,
-            onClickLogo = onClickLogo
+            onClickLogo = onClickLogo,
+            onClickBackToSettings = vm.onResume
         )
     }
 }

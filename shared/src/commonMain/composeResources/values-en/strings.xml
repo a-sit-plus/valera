@@ -357,6 +357,7 @@
     <string name="info_text_missing_permission">Permission missing</string>
     <string name="info_text_qr_code_loading">Loading QR Code</string>
     <string name="info_text_transfer_settings_loading">Loading transfer settings</string>
+    <string name="info_text_check_settings">Check settings</string>
     <string name="info_text_nfc_mdoc_reader">Hold near credential holder's phone.</string>
     <string name="info_text_waiting_for_response">Waiting for response of holder device</string>
     <string name="info_text_check_response">Check response</string>
