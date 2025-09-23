@@ -51,7 +51,7 @@ actual class BluetoothEnabledState internal constructor(
             CBManagerStatePoweredOff -> {
                 // On iOS, we can't programmatically enable Bluetooth
                 // Direct the user to Settings
-                val settingsUrl = NSURL.URLWithString(UIApplicationOpenSettingsURLString)
+                val settingsUrl = NSURL.URLWithString("App-prefs:")
                 if (settingsUrl != null && UIApplication.sharedApplication.canOpenURL(settingsUrl)) {
                     UIApplication.sharedApplication.openURL(settingsUrl, mapOf<Any?, Any?>(), null)
                 }
