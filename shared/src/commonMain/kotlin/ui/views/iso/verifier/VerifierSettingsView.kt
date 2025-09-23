@@ -1,10 +1,12 @@
 package ui.views.iso.verifier
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -14,6 +16,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -36,7 +39,10 @@ import at.asitplus.valera.resources.heading_label_settings_screen
 import at.asitplus.valera.resources.info_text_transfer_settings_loading
 import at.asitplus.valera.resources.section_heading_request_engagement_method
 import at.asitplus.wallet.app.common.iso.transfer.method.DeviceEngagementMethods
+import at.asitplus.wallet.app.common.iso.transfer.method.rememberBluetoothEnabledState
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
+import org.multipaz.compose.permissions.rememberBluetoothPermissionState
 import ui.composables.Logo
 import ui.composables.ScreenHeading
 import ui.composables.TextIconButton
@@ -57,6 +63,9 @@ fun VerifierSettingsView(
     val selectedEngagementMethod by vm.selectedEngagementMethod.collectAsState()
 
     LaunchedEffect(vm) { vm.initSettings() }
+
+    val blePermissionState = rememberBluetoothPermissionState()
+    val bleEnabledState = rememberBluetoothEnabledState()
 
     Scaffold(
         topBar = {
@@ -85,7 +94,39 @@ fun VerifierSettingsView(
         },
         bottomBar = { bottomBar() }
     ) { scaffoldPadding ->
-        if (!settingsReady) {
+        if (!blePermissionState.isGranted) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Button(
+                    onClick = {
+                        vm.walletMain.scope.launch {
+                            blePermissionState.launchPermissionRequest()
+                        }
+                    }
+                ) {
+                    Text("Request BLE permissions")
+                }
+            }
+        }  else if (!bleEnabledState.isEnabled) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Button(
+                    onClick = {
+                        vm.walletMain.scope.launch {
+                            bleEnabledState.enable()
+                        }
+                    }
+                ) {
+                    Text("Enable Bluetooth")
+                }
+            }
+        } else if (!settingsReady) {
             LoadingView(stringResource(Res.string.info_text_transfer_settings_loading))
         } else {
             Box(modifier = Modifier.padding(scaffoldPadding)) {
