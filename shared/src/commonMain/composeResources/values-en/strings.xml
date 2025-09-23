@@ -365,9 +365,10 @@
     <string name="info_text_non_productive">This app is not intended for production use!</string>
     <string name="info_text_co_founded_by_eu">Co‑Funded by the \nEuropean Union</string>
     <string name="info_text_received_funding_from_eu">This project has received funding from the European Union’s Digital Europe Programme (DIGITAL), Project 101102655 — POTENTIAL.</string>
-    <string name="info_text_no_transfer_method_selected">No transfer method has been selected. Please open the settings and choose at least one.</string>
-    <string name="info_text_no_transfer_method_available_for_selection">None of the selected transfer methods are available. Please open the device settings and enable the required transfer method, or select a different one in the app settings.</string>
-    <string name="info_text_missing_permission_bluetooth">Bluetooth permission required. Open the app's settings and grant this permission.</string>
+    <string name="info_text_nfc_engagement_not_available">NFC is necessary for the current chosen device engagement method.\n\nPlease enable NFC on the device or choose another method.</string>
+    <string name="info_text_no_transfer_method_selected">No transfer method has been selected.\n\nPlease open the settings and choose at least one.</string>
+    <string name="info_text_no_transfer_method_available_for_selection">None of the selected transfer methods are available.\n\nPlease open the device settings and enable the required transfer method, or select a different one.</string>
+    <string name="info_text_missing_permission_bluetooth">Bluetooth permission required.\n\nOpen the app's settings and grant this permission.</string>
 
     <string name="section_heading_authenticate_at_device_title">Authenticate</string>
     <string name="section_heading_authenticate_at_device_subtitle">at relying party</string>

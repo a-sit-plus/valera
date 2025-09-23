@@ -65,7 +65,6 @@ fun VerifierSettingsView(
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Column(modifier = Modifier.weight(1f)) {
                             ScreenHeading(stringResource(Res.string.heading_label_select_data_retrieval_screen))
-                            // TODO: update to subtitleView
                             Text(
                                 text = stringResource(Res.string.heading_label_settings_screen),
                                 style = MaterialTheme.typography.headlineSmall,
@@ -98,7 +97,6 @@ fun VerifierSettingsView(
                         text = stringResource(Res.string.section_heading_request_engagement_method),
                         style = MaterialTheme.typography.titleMedium
                     )
-
                     Spacer(Modifier.height(8.dp))
                     DeviceEngagementMethods.entries.forEach { engagementMethod ->
                         SingleChoiceButton(
