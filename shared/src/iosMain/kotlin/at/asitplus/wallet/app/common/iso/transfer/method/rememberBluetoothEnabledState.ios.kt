@@ -1,6 +1,8 @@
 package at.asitplus.wallet.app.common.iso.transfer.method
 
-//package org.multipaz.compose.permissions
+// This is copied from Multipaz repository until there is a release including this
+// org.multipaz.compose.permissions
+// https://github.com/openwallet-foundation/multipaz/blob/main/multipaz-compose/src/iosMain/kotlin/org/multipaz/compose/permissions/rememberBluetoothEnabledState.ios.kt
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -20,7 +22,6 @@ import platform.CoreBluetooth.CBManagerStateUnknown
 import platform.CoreBluetooth.CBManagerStateUnsupported
 import platform.Foundation.NSURL
 import platform.UIKit.UIApplication
-import platform.UIKit.UIApplicationOpenSettingsURLString
 import platform.darwin.NSObject
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -51,6 +52,7 @@ actual class BluetoothEnabledState internal constructor(
             CBManagerStatePoweredOff -> {
                 // On iOS, we can't programmatically enable Bluetooth
                 // Direct the user to Settings
+                // Note: changed URLString to "App-prefs:" since UIApplicationOpenSettingsURLString is for app specific settings (permissions -> may use this for jumps to give permissions)
                 val settingsUrl = NSURL.URLWithString("App-prefs:")
                 if (settingsUrl != null && UIApplication.sharedApplication.canOpenURL(settingsUrl)) {
                     UIApplication.sharedApplication.openURL(settingsUrl, mapOf<Any?, Any?>(), null)
@@ -84,8 +86,9 @@ actual class BluetoothEnabledState internal constructor(
                                     continuation.resume(Unit)
                                     // try to open settings
                                     scope.launch {
+                                        // Note: changed URLString (as above)
                                         val settingsUrl =
-                                            NSURL.URLWithString(UIApplicationOpenSettingsURLString)
+                                            NSURL.URLWithString("App-prefs:")
                                         if (settingsUrl != null && UIApplication.sharedApplication.canOpenURL(
                                                 settingsUrl
                                             )

@@ -1,6 +1,8 @@
 package at.asitplus.wallet.app.common.iso.transfer.method
 
-//package org.multipaz.compose.permissions
+// This is copied from Multipaz repository until there is a release including this
+// org.multipaz.compose.permissions
+// https://github.com/openwallet-foundation/multipaz/blob/main/multipaz-compose/src/androidMain/kotlin/org/multipaz/compose/permissions/rememberBluetoothEnabledState.android.kt
 
 import android.bluetooth.BluetoothAdapter
 import android.content.BroadcastReceiver
