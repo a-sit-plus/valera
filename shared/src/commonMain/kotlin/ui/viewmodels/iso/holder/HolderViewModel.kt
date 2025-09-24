@@ -1,6 +1,5 @@
 package ui.viewmodels.iso.holder
 
-import androidx.compose.runtime.MutableState
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants
@@ -14,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.io.bytestring.ByteString
@@ -38,6 +38,9 @@ class HolderViewModel(
     walletMain: WalletMain,
     settingsRepository: SettingsRepository
 ) : TransferOptionsViewModel(walletMain, settingsRepository) {
+    private val _qrCode = MutableStateFlow<ByteString?>(null)
+    val qrCode: StateFlow<ByteString?> = _qrCode.asStateFlow()
+
     val onResume: () -> Unit = { setState(HolderState.Settings) }
     val onConsentSettings: () -> Unit = { setState(HolderState.CheckSettings) }
     var hasBeenCalledHack: Boolean = false
@@ -74,7 +77,6 @@ class HolderViewModel(
     }
 
     fun doHolderFlow(
-        showQrCode: MutableState<ByteString?>,
         isBleEnabled: Boolean,
         isNfcEnabled: Boolean,
         completionHandler: CompletionHandler = {}
@@ -137,7 +139,7 @@ class HolderViewModel(
             engagementGenerator.addConnectionMethods(connectionMethods)
             val encodedDeviceEngagementByteArray = engagementGenerator.generate()
             encodedDeviceEngagement = ByteString(encodedDeviceEngagementByteArray)
-            showQrCode.value = encodedDeviceEngagement
+            _qrCode.value = encodedDeviceEngagement
             setState(HolderState.ShowQrCode)
 
             // Then wait for connection
@@ -156,7 +158,7 @@ class HolderViewModel(
                 )
             )
             setState(HolderState.Finished)
-            showQrCode.value = null
+            _qrCode.value = null
             completionHandler(null)
         } catch (throwable: Throwable) {
             completionHandler(throwable)

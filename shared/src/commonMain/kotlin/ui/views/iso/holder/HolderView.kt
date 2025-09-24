@@ -5,7 +5,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import at.asitplus.valera.resources.Res
@@ -20,7 +19,6 @@ import at.asitplus.wallet.app.common.iso.transfer.state.evaluateTransferPrecondi
 import at.asitplus.wallet.app.common.iso.transfer.state.rememberTransferSettingsState
 import at.asitplus.wallet.app.common.iso.transfer.state.toEnum
 import io.github.aakira.napier.Napier
-import kotlinx.io.bytestring.ByteString
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.scope.Scope
@@ -60,10 +58,7 @@ fun HolderView(
         vm.presentationStateModel.state
     }.collectAsStateWithLifecycle()
 
-    val showQrCode = remember { mutableStateOf<ByteString?>(null) }
-
     LaunchedEffect(transferSettingsState) {
-//        showQrCode.value = null
         vm.hasBeenCalledHack = false
         vm.setState(HolderState.Settings)
     }
@@ -74,7 +69,7 @@ fun HolderView(
             bluetoothEnabledState.isEnabled,
             bluetoothPermissionState.isGranted,
             settingsReady,
-            showQrCode.value,
+            vm.qrCode.value,
             presentationState
         ) {
             if (!settingsReady) return@LaunchedEffect
@@ -88,7 +83,7 @@ fun HolderView(
                 )
             ) {
                 TransferPrecondition.Ok -> when {
-                    showQrCode.value != null && presentationState != PresentationStateModel.State.PROCESSING ->
+                    vm.qrCode.value != null && presentationState != PresentationStateModel.State.PROCESSING ->
                         HolderState.ShowQrCode
                     else -> HolderState.CreateEngagement
                 }
@@ -133,7 +128,6 @@ fun HolderView(
                     transferSettingsState.ble.required
                 )
                 vm.doHolderFlow(
-                    showQrCode,
                     bluetoothEnabledState.isEnabled,
                     true
                 ) { error ->
@@ -143,14 +137,11 @@ fun HolderView(
         }
 
         is HolderState.ShowQrCode -> HolderShowQrCodeView(
-            bytes = showQrCode.value,
             onClickLogo = onClickLogo,
-            onClickSettings = onClickSettings,
             vm = vm,
-            bottomBar = bottomBar,
             onError = onError
         )
-        is HolderState.Finished -> LoadingView() // TODO: add finished screen ?
+        is HolderState.Finished -> LoadingView()
     }
 }
 
