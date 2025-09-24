@@ -33,10 +33,6 @@ class VerifierViewModel(
     walletMain: WalletMain,
     settingsRepository: SettingsRepository
 ) : TransferOptionsViewModel(walletMain, settingsRepository) {
-
-    val onResume: () -> Unit = { setState(VerifierState.Settings) }
-    val onConsentSettings: () -> Unit = { setState(VerifierState.CheckSettings) }
-
     private val transferManager: TransferManager by lazy {
         TransferManager(settingsRepository, walletMain.scope) { message -> } // TODO: handle update messages
     }
@@ -54,6 +50,13 @@ class VerifierViewModel(
 
     private val _responseDocumentList = mutableListOf<IsoDocumentParsed>()
     val responseDocumentList: MutableList<IsoDocumentParsed> = _responseDocumentList
+
+    val onResume: () -> Unit = {
+        setState(VerifierState.Settings)
+        _requestDocumentList.clear()
+    }
+
+    val onConsentSettings: () -> Unit = { setState(VerifierState.CheckSettings) }
 
     private val _throwable = MutableStateFlow<Throwable?>(null)
     val throwable: StateFlow<Throwable?> = _throwable
