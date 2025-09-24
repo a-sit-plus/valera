@@ -94,39 +94,39 @@ fun VerifierSettingsView(
         },
         bottomBar = { bottomBar() }
     ) { scaffoldPadding ->
-        if (!blePermissionState.isGranted) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Button(
-                    onClick = {
-                        vm.walletMain.scope.launch {
-                            blePermissionState.launchPermissionRequest()
-                        }
-                    }
-                ) {
-                    Text("Request BLE permissions")
-                }
-            }
-        }  else if (!bleEnabledState.isEnabled) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Button(
-                    onClick = {
-                        vm.walletMain.scope.launch {
-                            bleEnabledState.enable()
-                        }
-                    }
-                ) {
-                    Text("Enable Bluetooth")
-                }
-            }
-        } else if (!settingsReady) {
+//        if (!blePermissionState.isGranted) {
+//            Column(
+//                modifier = Modifier.fillMaxSize(),
+//                verticalArrangement = Arrangement.Center,
+//                horizontalAlignment = Alignment.CenterHorizontally
+//            ) {
+//                Button(
+//                    onClick = {
+//                        vm.walletMain.scope.launch {
+//                            blePermissionState.launchPermissionRequest()
+//                        }
+//                    }
+//                ) {
+//                    Text("Request BLE permissions")
+//                }
+//            }
+//        }  else if (!bleEnabledState.isEnabled) {
+//            Column(
+//                modifier = Modifier.fillMaxSize(),
+//                verticalArrangement = Arrangement.Center,
+//                horizontalAlignment = Alignment.CenterHorizontally
+//            ) {
+//                Button(
+//                    onClick = {
+//                        vm.walletMain.scope.launch {
+//                            bleEnabledState.enable()
+//                        }
+//                    }
+//                ) {
+//                    Text("Enable Bluetooth")
+//                }
+//            }
+        if (!settingsReady) {
             LoadingView(stringResource(Res.string.info_text_transfer_settings_loading))
         } else {
             Box(modifier = Modifier.padding(scaffoldPadding)) {

@@ -97,6 +97,12 @@ fun MissingPreconditionView(
                             }
                         )
                     }
+                    PreconditionState.NFC_ENGAGEMENT_NOT_AVAILABLE ->
+                        NfcEngagementNotAvailable(
+                            onClickBackToSettings = onClickBackToSettings,
+                            onOpenDeviceSettings = { deviceTransferMethodManager.goToNfcSettings() }
+                        )
+                    PreconditionState.OK -> { } // This should not happen
                 }
             }
         }

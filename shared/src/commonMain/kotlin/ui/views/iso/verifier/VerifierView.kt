@@ -9,12 +9,15 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_check_response
 import at.asitplus.valera.resources.info_text_check_settings
 import at.asitplus.valera.resources.info_text_waiting_for_response
+import at.asitplus.wallet.app.common.iso.transfer.method.DeviceEngagementMethods
 import at.asitplus.wallet.app.common.iso.transfer.method.DeviceTransferMethodManager
+import at.asitplus.wallet.app.common.iso.transfer.method.rememberBluetoothEnabledState
 import at.asitplus.wallet.app.common.iso.transfer.method.rememberPlatformContext
-import at.asitplus.wallet.app.common.iso.transfer.state.PreconditionState
 import at.asitplus.wallet.app.common.iso.transfer.state.TransferPrecondition
 import at.asitplus.wallet.app.common.iso.transfer.state.VerifierState
+import at.asitplus.wallet.app.common.iso.transfer.state.evaluateTransferPrecondition
 import at.asitplus.wallet.app.common.iso.transfer.state.rememberTransferSettingsState
+import at.asitplus.wallet.app.common.iso.transfer.state.toEnum
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.scope.Scope
@@ -38,24 +41,28 @@ fun VerifierView(
         DeviceTransferMethodManager(platformContext, vm.walletMain.platformAdapter)
     }
     val bluetoothPermissionState = rememberBluetoothPermissionState()
-    val transferSettingsState = rememberTransferSettingsState(
-        vm.settingsRepository,
-        deviceTransferMethodManager,
-        bluetoothPermissionState
-    )
+    val bluetoothEnabledState = rememberBluetoothEnabledState()
+    val transferSettingsState = rememberTransferSettingsState(vm.settingsRepository)
 
     val verifierState by vm.verifierState.collectAsState()
 
     if (verifierState !is VerifierState.Settings) {
-        LaunchedEffect(transferSettingsState) {
-            val next = when (transferSettingsState.precondition) {
+        LaunchedEffect(
+            transferSettingsState,
+            bluetoothEnabledState.isEnabled,
+            bluetoothPermissionState.isGranted,
+        ) {
+            val next = when (
+                val transferPrecondition = evaluateTransferPrecondition(
+                    transferSettingsState =transferSettingsState,
+                    bleEnabled = bluetoothEnabledState.isEnabled,
+                    blePermissionGranted = bluetoothPermissionState.isGranted,
+                    nfcEnabled = true,
+                    nfcEngagementSelected = vm.selectedEngagementMethod.value == DeviceEngagementMethods.NFC
+                )
+            ) {
                 TransferPrecondition.Ok -> VerifierState.SelectDocument
-                TransferPrecondition.NoTransferMethodSelected ->
-                    VerifierState.MissingPrecondition(PreconditionState.NO_TRANSFER_METHOD_SELECTED)
-                TransferPrecondition.NoTransferMethodAvailable ->
-                    VerifierState.MissingPrecondition(PreconditionState.NO_TRANSFER_METHOD_AVAILABLE_FOR_SELECTION)
-                TransferPrecondition.MissingPermission ->
-                    VerifierState.MissingPrecondition(PreconditionState.MISSING_PERMISSION)
+                else -> VerifierState.MissingPrecondition(transferPrecondition.toEnum())
             }
             if (verifierState != next) vm.setState(next)
         }

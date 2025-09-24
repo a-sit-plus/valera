@@ -12,11 +12,13 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_check_settings
 import at.asitplus.valera.resources.info_text_qr_code_loading
 import at.asitplus.wallet.app.common.iso.transfer.method.DeviceTransferMethodManager
+import at.asitplus.wallet.app.common.iso.transfer.method.rememberBluetoothEnabledState
 import at.asitplus.wallet.app.common.iso.transfer.method.rememberPlatformContext
 import at.asitplus.wallet.app.common.iso.transfer.state.HolderState
-import at.asitplus.wallet.app.common.iso.transfer.state.PreconditionState
 import at.asitplus.wallet.app.common.iso.transfer.state.TransferPrecondition
+import at.asitplus.wallet.app.common.iso.transfer.state.evaluateTransferPrecondition
 import at.asitplus.wallet.app.common.iso.transfer.state.rememberTransferSettingsState
+import at.asitplus.wallet.app.common.iso.transfer.state.toEnum
 import io.github.aakira.napier.Napier
 import kotlinx.io.bytestring.ByteString
 import org.jetbrains.compose.resources.stringResource
@@ -47,12 +49,10 @@ fun HolderView(
     val deviceTransferMethodManager = remember {
         DeviceTransferMethodManager(platformContext, vm.walletMain.platformAdapter)
     }
+
     val bluetoothPermissionState = rememberBluetoothPermissionState()
-    val transferSettingsState = rememberTransferSettingsState(
-        vm.settingsRepository,
-        deviceTransferMethodManager,
-        bluetoothPermissionState
-    )
+    val bluetoothEnabledState = rememberBluetoothEnabledState()
+    val transferSettingsState = rememberTransferSettingsState(vm.settingsRepository)
 
     val settingsReady by vm.settingsReady.collectAsStateWithLifecycle()
     val holderState by vm.holderState.collectAsState()
@@ -71,23 +71,28 @@ fun HolderView(
     if (holderState !is HolderState.Settings) {
         LaunchedEffect(
             transferSettingsState,
+            bluetoothEnabledState.isEnabled,
+            bluetoothPermissionState.isGranted,
             settingsReady,
             showQrCode.value,
             presentationState
         ) {
             if (!settingsReady) return@LaunchedEffect
-            val next = when (transferSettingsState.precondition) {
+            val next = when (
+                val transferPrecondition = evaluateTransferPrecondition(
+                    transferSettingsState =transferSettingsState,
+                    bleEnabled = bluetoothEnabledState.isEnabled,
+                    blePermissionGranted = bluetoothPermissionState.isGranted,
+                    nfcEnabled = true,
+                    nfcEngagementSelected = false
+                )
+            ) {
                 TransferPrecondition.Ok -> when {
                     showQrCode.value != null && presentationState != PresentationStateModel.State.PROCESSING ->
                         HolderState.ShowQrCode
                     else -> HolderState.CreateEngagement
                 }
-                TransferPrecondition.NoTransferMethodSelected ->
-                    HolderState.MissingPrecondition(PreconditionState.NO_TRANSFER_METHOD_SELECTED)
-                TransferPrecondition.NoTransferMethodAvailable ->
-                    HolderState.MissingPrecondition(PreconditionState.NO_TRANSFER_METHOD_AVAILABLE_FOR_SELECTION)
-                TransferPrecondition.MissingPermission ->
-                    HolderState.MissingPrecondition(PreconditionState.MISSING_PERMISSION)
+                else -> HolderState.MissingPrecondition(transferPrecondition.toEnum())
             }
             if (holderState != next) vm.setState(next)
         }
@@ -129,8 +134,8 @@ fun HolderView(
                 )
                 vm.doHolderFlow(
                     showQrCode,
-                    transferSettingsState.ble.enabled,
-                    transferSettingsState.nfc.enabled
+                    bluetoothEnabledState.isEnabled,
+                    true
                 ) { error ->
                     handleError(error, vm, onNavigateToPresentmentScreen, onError)
                 }
