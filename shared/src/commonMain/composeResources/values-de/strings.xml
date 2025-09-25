@@ -51,9 +51,10 @@
     <string name="button_label_show_technical_details">Technische Details einblenden</string>
     <string name="button_label_hide_technical_details">Technische Details ausblenden</string>
     <string name="button_label_sign">Signieren</string>
-    <string name="button_label_go_to_app_settings">App-Einstellungen</string>
+    <string name="button_label_open_app_settings">App-Einstellungen öffnen</string>
     <string name="button_label_back_to_settings">Zurück zu den Einstellungen</string>
-    <string name="button_label_go_to_device_settings">Geräteeinstellungen</string>
+    <string name="button_label_open_device_settings">Geräteeinstellungen öffnen</string>
+    <string name="button_label_enable_bluetooth">Bluetooth aktivieren</string>
 
     <string name="switch_label_use_negotiated_handover">Negotiated Handover</string>
     <string name="switch_label_use_ble_central_client_mode">BLE Central Client Mode</string>

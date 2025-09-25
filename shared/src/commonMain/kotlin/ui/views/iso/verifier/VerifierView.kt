@@ -4,15 +4,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_check_response
 import at.asitplus.valera.resources.info_text_check_settings
 import at.asitplus.valera.resources.info_text_waiting_for_response
 import at.asitplus.wallet.app.common.iso.transfer.method.DeviceEngagementMethods
-import at.asitplus.wallet.app.common.iso.transfer.method.DeviceTransferMethodManager
+import at.asitplus.wallet.app.common.iso.transfer.method.rememberAppSettings
 import at.asitplus.wallet.app.common.iso.transfer.method.rememberBluetoothEnabledState
-import at.asitplus.wallet.app.common.iso.transfer.method.rememberPlatformContext
+import at.asitplus.wallet.app.common.iso.transfer.method.rememberNfcEnabledState
 import at.asitplus.wallet.app.common.iso.transfer.state.TransferPrecondition
 import at.asitplus.wallet.app.common.iso.transfer.state.VerifierState
 import at.asitplus.wallet.app.common.iso.transfer.state.evaluateTransferPrecondition
@@ -36,13 +35,11 @@ fun VerifierView(
     koinScope: Scope,
     vm: VerifierViewModel = koinViewModel(scope = koinScope)
 ) {
-    val platformContext = rememberPlatformContext()
-    val deviceTransferMethodManager = remember {
-        DeviceTransferMethodManager(platformContext, vm.walletMain.platformAdapter)
-    }
     val bluetoothPermissionState = rememberBluetoothPermissionState()
     val bluetoothEnabledState = rememberBluetoothEnabledState()
+    val nfcEnabledState = rememberNfcEnabledState()
     val transferSettingsState = rememberTransferSettingsState(vm.settingsRepository)
+    val appSettings = rememberAppSettings()
 
     val verifierState by vm.verifierState.collectAsState()
 
@@ -51,14 +48,16 @@ fun VerifierView(
             transferSettingsState,
             bluetoothEnabledState.isEnabled,
             bluetoothPermissionState.isGranted,
+            nfcEnabledState.isEnabled
         ) {
             val next = when (
                 val transferPrecondition = evaluateTransferPrecondition(
                     transferSettingsState =transferSettingsState,
                     bleEnabled = bluetoothEnabledState.isEnabled,
                     blePermissionGranted = bluetoothPermissionState.isGranted,
-                    nfcEnabled = true,
-                    nfcEngagementSelected = vm.selectedEngagementMethod.value == DeviceEngagementMethods.NFC
+                    nfcEnabled = nfcEnabledState.isEnabled,
+                    nfcEngagementSelected =
+                        vm.selectedEngagementMethod.value == DeviceEngagementMethods.NFC
                 )
             ) {
                 TransferPrecondition.Ok -> VerifierState.SelectDocument
@@ -95,13 +94,14 @@ fun VerifierView(
         is VerifierState.Error -> onError(vm.throwable.value!!)
         is VerifierState.MissingPrecondition -> MissingPreconditionView(
             reason = state.reason,
-            transferSettingsState = transferSettingsState,
-            deviceTransferMethodManager = deviceTransferMethodManager,
             bluetoothPermissionState = bluetoothPermissionState,
+            bluetoothEnabledState = bluetoothEnabledState,
+            nfcEnabledState = nfcEnabledState,
             onClickSettings = onClickSettings,
             navigateUp = vm.onResume,
             onClickLogo = onClickLogo,
-            onClickBackToSettings = vm.onResume
+            onClickBackToSettings = vm.onResume,
+            onOpenAppSettings = { appSettings.open() }
         )
     }
 }

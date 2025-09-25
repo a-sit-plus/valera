@@ -11,20 +11,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_back_to_settings
-import at.asitplus.valera.resources.button_label_open_device_settings
-import at.asitplus.valera.resources.info_text_nfc_engagement_not_available
-
+import at.asitplus.valera.resources.button_label_enable_bluetooth
+import at.asitplus.valera.resources.info_text_no_transfer_method_available_for_selection
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.TextIconButton
 
 @Composable
-fun NfcEngagementNotAvailable(
+fun BleSelectedButNotEnabledView(
     onClickBackToSettings: () -> Unit,
-    onOpenDeviceSettings: () -> Unit,
+    onEnableBluetooth: () -> Unit,
     modifier: Modifier = Modifier
-) {
+    ) {
     CenteredInfoText(
-        message = stringResource(Res.string.info_text_nfc_engagement_not_available),
+        message = stringResource(Res.string.info_text_no_transfer_method_available_for_selection),
         modifier = modifier
     ) {
         TextIconButton(
@@ -35,8 +34,8 @@ fun NfcEngagementNotAvailable(
         Spacer(Modifier.height(8.dp))
         TextIconButton(
             icon = { Icon(Icons.Outlined.Settings, contentDescription = null) },
-            text = { Text(stringResource(Res.string.button_label_open_device_settings)) },
-            onClick = onOpenDeviceSettings
+            text = { Text(stringResource(Res.string.button_label_enable_bluetooth)) },
+            onClick = onEnableBluetooth
         )
     }
 }

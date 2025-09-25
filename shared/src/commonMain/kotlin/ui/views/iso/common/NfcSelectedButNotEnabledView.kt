@@ -11,17 +11,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_back_to_settings
-import at.asitplus.valera.resources.button_label_go_to_device_settings
+import at.asitplus.valera.resources.button_label_open_device_settings
 import at.asitplus.valera.resources.info_text_no_transfer_method_available_for_selection
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.TextIconButton
 
 @Composable
-fun NoTransferMethodAvailableView(
+fun NfcSelectedButNotEnabledView(
     onClickBackToSettings: () -> Unit,
     onOpenDeviceSettings: () -> Unit,
     modifier: Modifier = Modifier
-) {
+    ) {
     CenteredInfoText(
         message = stringResource(Res.string.info_text_no_transfer_method_available_for_selection),
         modifier = modifier
@@ -34,7 +34,7 @@ fun NoTransferMethodAvailableView(
         Spacer(Modifier.height(8.dp))
         TextIconButton(
             icon = { Icon(Icons.Outlined.Settings, contentDescription = null) },
-            text = { Text(stringResource(Res.string.button_label_go_to_device_settings)) },
+            text = { Text(stringResource(Res.string.button_label_open_device_settings)) },
             onClick = onOpenDeviceSettings
         )
     }

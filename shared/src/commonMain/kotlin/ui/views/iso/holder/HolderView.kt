@@ -10,9 +10,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_check_settings
 import at.asitplus.valera.resources.info_text_qr_code_loading
-import at.asitplus.wallet.app.common.iso.transfer.method.DeviceTransferMethodManager
+import at.asitplus.wallet.app.common.iso.transfer.method.rememberAppSettings
 import at.asitplus.wallet.app.common.iso.transfer.method.rememberBluetoothEnabledState
-import at.asitplus.wallet.app.common.iso.transfer.method.rememberPlatformContext
+import at.asitplus.wallet.app.common.iso.transfer.method.rememberNfcEnabledState
 import at.asitplus.wallet.app.common.iso.transfer.state.HolderState
 import at.asitplus.wallet.app.common.iso.transfer.state.TransferPrecondition
 import at.asitplus.wallet.app.common.iso.transfer.state.evaluateTransferPrecondition
@@ -43,14 +43,11 @@ fun HolderView(
 ) {
     val TAG = "HolderView"
 
-    val platformContext = rememberPlatformContext()
-    val deviceTransferMethodManager = remember {
-        DeviceTransferMethodManager(platformContext, vm.walletMain.platformAdapter)
-    }
-
     val bluetoothPermissionState = rememberBluetoothPermissionState()
     val bluetoothEnabledState = rememberBluetoothEnabledState()
+    val nfcEnabledState = rememberNfcEnabledState()
     val transferSettingsState = rememberTransferSettingsState(vm.settingsRepository)
+    val appSettings = rememberAppSettings()
 
     val settingsReady by vm.settingsReady.collectAsStateWithLifecycle()
     val holderState by vm.holderState.collectAsState()
@@ -68,6 +65,7 @@ fun HolderView(
             transferSettingsState,
             bluetoothEnabledState.isEnabled,
             bluetoothPermissionState.isGranted,
+            nfcEnabledState.isEnabled,
             settingsReady,
             vm.qrCode.value,
             presentationState
@@ -78,8 +76,7 @@ fun HolderView(
                     transferSettingsState =transferSettingsState,
                     bleEnabled = bluetoothEnabledState.isEnabled,
                     blePermissionGranted = bluetoothPermissionState.isGranted,
-                    nfcEnabled = true,
-                    nfcEngagementSelected = false
+                    nfcEnabled = nfcEnabledState.isEnabled
                 )
             ) {
                 TransferPrecondition.Ok -> when {
@@ -105,13 +102,14 @@ fun HolderView(
 
         is HolderState.MissingPrecondition -> MissingPreconditionView(
             reason = state.reason,
-            transferSettingsState = transferSettingsState,
-            deviceTransferMethodManager = deviceTransferMethodManager,
             bluetoothPermissionState = bluetoothPermissionState,
+            bluetoothEnabledState = bluetoothEnabledState,
+            nfcEnabledState = nfcEnabledState,
             onClickSettings = onClickSettings,
             navigateUp = vm.onResume,
             onClickLogo = onClickLogo,
-            onClickBackToSettings = vm.onResume
+            onClickBackToSettings = vm.onResume,
+            onOpenAppSettings = { appSettings.open() }
         )
 
         is HolderState.CreateEngagement -> {

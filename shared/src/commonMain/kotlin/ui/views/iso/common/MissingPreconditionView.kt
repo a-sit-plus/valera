@@ -22,9 +22,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_missing_precondition
-import at.asitplus.wallet.app.common.iso.transfer.method.DeviceTransferMethodManager
+import at.asitplus.wallet.app.common.iso.transfer.method.BluetoothEnabledState
+import at.asitplus.wallet.app.common.iso.transfer.method.NfcEnabledState
 import at.asitplus.wallet.app.common.iso.transfer.state.PreconditionState
-import at.asitplus.wallet.app.common.iso.transfer.state.TransferSettingsState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.multipaz.compose.permissions.PermissionState
 import ui.composables.Logo
@@ -35,13 +38,14 @@ import ui.composables.buttons.NavigateUpButton
 @Composable
 fun MissingPreconditionView(
     reason: PreconditionState,
-    transferSettingsState: TransferSettingsState,
-    deviceTransferMethodManager: DeviceTransferMethodManager,
     bluetoothPermissionState: PermissionState,
+    bluetoothEnabledState: BluetoothEnabledState,
+    nfcEnabledState: NfcEnabledState,
     onClickSettings: () -> Unit,
     navigateUp: (() -> Unit),
     onClickLogo: (() -> Unit),
-    onClickBackToSettings: (() -> Unit)
+    onClickBackToSettings: (() -> Unit),
+    onOpenAppSettings: (() -> Unit)
 ) {
     Scaffold(
         topBar = {
@@ -76,14 +80,21 @@ fun MissingPreconditionView(
                 when (reason) {
                     PreconditionState.NO_TRANSFER_METHOD_SELECTED ->
                         NoTransferMethodSelectedView(onClickBackToSettings = onClickBackToSettings)
-                    PreconditionState.NO_TRANSFER_METHOD_AVAILABLE_FOR_SELECTION ->
-                        NoTransferMethodAvailableView(
+                    PreconditionState.BLE_SELECTED_BUT_NOT_ENABLED ->
+                        BleSelectedButNotEnabledView(
+                            onClickBackToSettings = onClickBackToSettings,
+                            onEnableBluetooth = {
+                                CoroutineScope(Dispatchers.Main).launch {
+                                    bluetoothEnabledState.enable()
+                                }
+                            }
+                        )
+                    PreconditionState.NFC_SELECTED_BUT_NOT_ENABLED ->
+                        NfcSelectedButNotEnabledView(
                             onClickBackToSettings = onClickBackToSettings,
                             onOpenDeviceSettings = {
-                                if (transferSettingsState.nfc.required) {
-                                    deviceTransferMethodManager.goToNfcSettings()
-                                } else {
-                                    deviceTransferMethodManager.goToBluetoothSettings()
+                                CoroutineScope(Dispatchers.Main).launch {
+                                    nfcEnabledState.enable()
                                 }
                             }
                         )
@@ -92,15 +103,17 @@ fun MissingPreconditionView(
                             bluetoothPermissionState.launchPermissionRequest()
                         }
                         MissingBluetoothPermissionView(
-                            onOpenAppPermissionSettings = {
-                                deviceTransferMethodManager.openAppSettings()
-                            }
+                            onOpenAppPermissionSettings = onOpenAppSettings
                         )
                     }
                     PreconditionState.NFC_ENGAGEMENT_NOT_AVAILABLE ->
                         NfcEngagementNotAvailable(
                             onClickBackToSettings = onClickBackToSettings,
-                            onOpenDeviceSettings = { deviceTransferMethodManager.goToNfcSettings() }
+                            onOpenDeviceSettings = {
+                                CoroutineScope(Dispatchers.Main).launch {
+                                    nfcEnabledState.enable()
+                                }
+                            }
                         )
                     PreconditionState.OK -> { } // This should not happen
                 }

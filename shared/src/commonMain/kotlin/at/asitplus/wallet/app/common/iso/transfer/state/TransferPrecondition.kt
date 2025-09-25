@@ -3,7 +3,8 @@ package at.asitplus.wallet.app.common.iso.transfer.state
 sealed interface TransferPrecondition {
     data object Ok : TransferPrecondition
     data object NoTransferMethodSelected : TransferPrecondition
-    data object NoTransferMethodAvailable : TransferPrecondition
+    data object BleSelectedButNotEnabled : TransferPrecondition
+    data object NfcSelectedButNotEnabled : TransferPrecondition
     data object MissingPermission : TransferPrecondition
     data object NfcEngagementNotAvailable : TransferPrecondition
 }
@@ -11,21 +12,19 @@ sealed interface TransferPrecondition {
 enum class PreconditionState {
     OK,
     NO_TRANSFER_METHOD_SELECTED,
-    NO_TRANSFER_METHOD_AVAILABLE_FOR_SELECTION,
+    BLE_SELECTED_BUT_NOT_ENABLED,
+    NFC_SELECTED_BUT_NOT_ENABLED,
     MISSING_PERMISSION,
     NFC_ENGAGEMENT_NOT_AVAILABLE
 }
 
 fun TransferPrecondition.toEnum(): PreconditionState = when (this) {
     TransferPrecondition.Ok -> PreconditionState.OK
-    TransferPrecondition.NoTransferMethodSelected ->
-        PreconditionState.NO_TRANSFER_METHOD_SELECTED
-    TransferPrecondition.NoTransferMethodAvailable ->
-        PreconditionState.NO_TRANSFER_METHOD_AVAILABLE_FOR_SELECTION
-    TransferPrecondition.MissingPermission ->
-        PreconditionState.MISSING_PERMISSION
-    TransferPrecondition.NfcEngagementNotAvailable ->
-        PreconditionState.NFC_ENGAGEMENT_NOT_AVAILABLE
+    TransferPrecondition.NoTransferMethodSelected -> PreconditionState.NO_TRANSFER_METHOD_SELECTED
+    TransferPrecondition.BleSelectedButNotEnabled -> PreconditionState.BLE_SELECTED_BUT_NOT_ENABLED
+    TransferPrecondition.NfcSelectedButNotEnabled -> PreconditionState.NFC_SELECTED_BUT_NOT_ENABLED
+    TransferPrecondition.MissingPermission -> PreconditionState.MISSING_PERMISSION
+    TransferPrecondition.NfcEngagementNotAvailable -> PreconditionState.NFC_ENGAGEMENT_NOT_AVAILABLE
 }
 
 fun evaluateTransferPrecondition(
@@ -33,7 +32,7 @@ fun evaluateTransferPrecondition(
     bleEnabled: Boolean,
     blePermissionGranted: Boolean,
     nfcEnabled: Boolean,
-    nfcEngagementSelected: Boolean
+    nfcEngagementSelected: Boolean = false
 ): TransferPrecondition {
     return when {
         !(transferSettingsState.isAnySettingOn) -> TransferPrecondition.NoTransferMethodSelected
@@ -41,12 +40,13 @@ fun evaluateTransferPrecondition(
         transferSettingsState.ble.required && !blePermissionGranted ->
             TransferPrecondition.MissingPermission
 
-        (transferSettingsState.ble.settingOn && !bleEnabled) ||
-        (transferSettingsState.nfc.settingOn && !nfcEnabled) ->
-            TransferPrecondition.NoTransferMethodAvailable
+        transferSettingsState.ble.settingOn && !bleEnabled ->
+            TransferPrecondition.BleSelectedButNotEnabled
 
-        nfcEngagementSelected && !transferSettingsState.nfc.settingOn ->
-            TransferPrecondition.NfcEngagementNotAvailable
+        transferSettingsState.nfc.settingOn && !nfcEnabled ->
+            TransferPrecondition.NfcSelectedButNotEnabled
+
+        nfcEngagementSelected && !nfcEnabled -> TransferPrecondition.NfcEngagementNotAvailable
 
         else -> TransferPrecondition.Ok
     }
