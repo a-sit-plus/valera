@@ -8,7 +8,6 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_check_response
 import at.asitplus.valera.resources.info_text_check_settings
 import at.asitplus.valera.resources.info_text_waiting_for_response
-import at.asitplus.wallet.app.common.iso.transfer.method.DeviceEngagementMethods
 import at.asitplus.wallet.app.common.iso.transfer.method.rememberAppSettings
 import at.asitplus.wallet.app.common.iso.transfer.method.rememberBluetoothEnabledState
 import at.asitplus.wallet.app.common.iso.transfer.method.rememberNfcEnabledState
@@ -56,8 +55,7 @@ fun VerifierView(
                     bleEnabled = bluetoothEnabledState.isEnabled,
                     blePermissionGranted = bluetoothPermissionState.isGranted,
                     nfcEnabled = nfcEnabledState.isEnabled,
-                    nfcEngagementSelected =
-                        vm.selectedEngagementMethod.value == DeviceEngagementMethods.NFC
+                    engagementMethod = vm.selectedEngagementMethod.value
                 )
             ) {
                 TransferPrecondition.Ok -> VerifierState.SelectDocument

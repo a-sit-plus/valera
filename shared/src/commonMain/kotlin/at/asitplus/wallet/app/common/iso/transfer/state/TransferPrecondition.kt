@@ -1,5 +1,7 @@
 package at.asitplus.wallet.app.common.iso.transfer.state
 
+import at.asitplus.wallet.app.common.iso.transfer.method.DeviceEngagementMethods
+
 sealed interface TransferPrecondition {
     data object Ok : TransferPrecondition
     data object NoTransferMethodSelected : TransferPrecondition
@@ -32,7 +34,7 @@ fun evaluateTransferPrecondition(
     bleEnabled: Boolean,
     blePermissionGranted: Boolean,
     nfcEnabled: Boolean,
-    nfcEngagementSelected: Boolean = false
+    engagementMethod: DeviceEngagementMethods
 ): TransferPrecondition {
     return when {
         !(transferSettingsState.isAnySettingOn) -> TransferPrecondition.NoTransferMethodSelected
@@ -40,13 +42,16 @@ fun evaluateTransferPrecondition(
         transferSettingsState.ble.required && !blePermissionGranted ->
             TransferPrecondition.MissingPermission
 
-        transferSettingsState.ble.settingOn && !bleEnabled ->
+        transferSettingsState.ble.settingOn && !bleEnabled &&
+                !(transferSettingsState.nfc.settingOn && nfcEnabled) ->
             TransferPrecondition.BleSelectedButNotEnabled
 
-        transferSettingsState.nfc.settingOn && !nfcEnabled ->
+        transferSettingsState.nfc.settingOn && !nfcEnabled &&
+                !(transferSettingsState.ble.settingOn && bleEnabled) ->
             TransferPrecondition.NfcSelectedButNotEnabled
 
-        nfcEngagementSelected && !nfcEnabled -> TransferPrecondition.NfcEngagementNotAvailable
+        engagementMethod == DeviceEngagementMethods.NFC && !nfcEnabled ->
+            TransferPrecondition.NfcEngagementNotAvailable
 
         else -> TransferPrecondition.Ok
     }

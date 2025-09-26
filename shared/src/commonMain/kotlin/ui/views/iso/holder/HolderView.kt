@@ -10,6 +10,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_check_settings
 import at.asitplus.valera.resources.info_text_qr_code_loading
+import at.asitplus.wallet.app.common.iso.transfer.method.DeviceEngagementMethods
 import at.asitplus.wallet.app.common.iso.transfer.method.rememberAppSettings
 import at.asitplus.wallet.app.common.iso.transfer.method.rememberBluetoothEnabledState
 import at.asitplus.wallet.app.common.iso.transfer.method.rememberNfcEnabledState
@@ -76,7 +77,8 @@ fun HolderView(
                     transferSettingsState =transferSettingsState,
                     bleEnabled = bluetoothEnabledState.isEnabled,
                     blePermissionGranted = bluetoothPermissionState.isGranted,
-                    nfcEnabled = nfcEnabledState.isEnabled
+                    nfcEnabled = nfcEnabledState.isEnabled,
+                    engagementMethod = DeviceEngagementMethods.QR_CODE
                 )
             ) {
                 TransferPrecondition.Ok -> when {
