@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 
 actual class BluetoothEnabledState internal constructor(
     private val context: Context,
@@ -50,7 +51,7 @@ actual class BluetoothEnabledState internal constructor(
 
 @Composable
 actual fun rememberBluetoothEnabledState(): BluetoothEnabledState {
-    val context = androidx.compose.ui.platform.LocalContext.current.applicationContext
+    val context = LocalContext.current.applicationContext
     val adapter = remember { BluetoothAdapter.getDefaultAdapter() }
     val state = remember {
         BluetoothEnabledState(context, adapter)

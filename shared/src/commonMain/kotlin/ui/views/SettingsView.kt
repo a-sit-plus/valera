@@ -261,6 +261,7 @@ fun SettingsView(
                         )
                     }
                 }
+
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -327,7 +328,6 @@ private fun TextIconButtonListItem(
         )
     }
 }
-
 
 @Composable
 private fun ResetAlert(

@@ -170,7 +170,7 @@ class PresentationStateModel(private var _presentmentScope: CoroutineScope) {
      */
     suspend fun waitForConnectionUsingMainTransport(timeout: Duration) = withTimeout(timeout) {
         state.first {
-            Napier.d("waitForConnectionUsingMainTransport: Current state: ${it.name}",tag=TAG)
+            Napier.d("waitForConnectionUsingMainTransport: Current state: ${it.name}", tag=TAG)
             it != State.IDLE && it != State.INITIALISING && it != State.CHECK_PERMISSIONS
                     && it != State.NO_PERMISSION && it != State.CONNECTING
         }

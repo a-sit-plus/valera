@@ -21,6 +21,5 @@ actual class AppSettings internal constructor(
 
 @Composable
 actual fun rememberAppSettings(): AppSettings {
-    val context = LocalContext.current
-    return AppSettings(context)
+    return AppSettings(LocalContext.current)
 }
