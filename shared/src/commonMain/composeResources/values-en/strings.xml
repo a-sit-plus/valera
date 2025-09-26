@@ -56,12 +56,6 @@
     <string name="button_label_open_device_settings">Open device settings</string>
     <string name="button_label_enable_bluetooth">Enable Bluetooth</string>
 
-    <string name="switch_label_use_negotiated_handover">Negotiated Handover</string>
-    <string name="switch_label_use_ble_central_client_mode">BLE Central Client Mode</string>
-    <string name="switch_label_use_ble_peripheral_server_mode">BLE Peripheral Server Mode</string>
-    <string name="switch_label_use_nfc_data_transfer">NFC Data Transfer</string>
-    <string name="switch_label_blel2cap_enabled">Enable L2CAP</string>
-
     <string name="attribute_friendly_name_bpk">BPK</string>
     <string name="attribute_friendly_name_firstname">Given name</string>
     <string name="attribute_friendly_name_lastname">Family name</string>
@@ -377,7 +371,6 @@
     <string name="section_heading_present_data_to_executive_subtitle">Executive</string>
     <string name="section_heading_present_data_to_other_citizen_subtitle">other Citizen</string>
     <string name="section_heading_actions">Actions</string>
-    <string name="section_heading_transfer_options">Transfer Settings</string>
     <string name="section_heading_information">Information</string>
     <string name="section_heading_requested_data">Requested Data</string>
     <string name="section_heading_data_recipient">Recipient</string>
@@ -442,6 +435,17 @@
     <string name="section_heading_request_engagement_method">Device Engagement Method</string>
     <string name="nfc">NFC</string>
     <string name="qr">QR-Code</string>
+
+    <!-- Transfer options -->
+    <string name="section_heading_transfer_options">Transfer Settings</string>
+    <string name="switch_label_use_ble">Use Bluetooth</string>
+    <string name="switch_label_use_nfc">Use NFC</string>
+    <string name="switch_label_use_negotiated_handover">Negotiated Handover</string>
+    <string name="switch_label_use_ble_central_client_mode">BLE Central Client Mode</string>
+    <string name="switch_label_use_ble_peripheral_server_mode">BLE Peripheral Server Mode</string>
+    <string name="switch_label_use_nfc_data_transfer">NFC Data Transfer</string>
+    <string name="switch_label_blel2cap_enabled">Enable L2CAP</string>
+    <string name="button_label_extended_options">Extended</string>
 
     <!-- Verify Data Route -->
     <string name="heading_label_select_data_retrieval_screen">Check</string>
