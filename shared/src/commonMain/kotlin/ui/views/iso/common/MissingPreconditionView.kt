@@ -107,7 +107,7 @@ fun MissingPreconditionView(
                         )
                     }
                     PreconditionState.NFC_ENGAGEMENT_NOT_AVAILABLE ->
-                        NfcEngagementNotAvailable(
+                        NfcEngagementNotAvailableView(
                             onClickBackToSettings = onClickBackToSettings,
                             onOpenDeviceSettings = {
                                 CoroutineScope(Dispatchers.Main).launch {

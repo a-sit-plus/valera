@@ -18,7 +18,7 @@ import org.jetbrains.compose.resources.stringResource
 import ui.composables.TextIconButton
 
 @Composable
-fun NfcEngagementNotAvailable(
+fun NfcEngagementNotAvailableView(
     onClickBackToSettings: () -> Unit,
     onOpenDeviceSettings: () -> Unit,
     modifier: Modifier = Modifier
