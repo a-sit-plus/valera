@@ -22,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,6 +41,7 @@ import ui.composables.TextIconButton
 import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.iso.holder.HolderViewModel
 import ui.views.LoadingView
+import ui.views.iso.common.RequestEngagementMethodView
 import ui.views.iso.common.TransferOptionsView
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -52,6 +54,7 @@ fun HolderSettingsView(
     vm: HolderViewModel
 ) {
     val settingsReady by vm.settingsReady.collectAsStateWithLifecycle()
+    val selectedEngagementMethod by vm.selectedEngagementMethod.collectAsState()
 
     LaunchedEffect(vm) { vm.initSettings() }
 
@@ -91,6 +94,12 @@ fun HolderSettingsView(
                     modifier = Modifier.padding(16.dp).verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.Start
                 ) {
+                    RequestEngagementMethodView(
+                        selectedEngagementMethod = selectedEngagementMethod,
+                        onSelect = { vm.setEngagementMethod(it) }
+                    )
+
+                    Spacer(Modifier.height(24.dp))
                     TransferOptionsView( vm)
 
                     Spacer(Modifier.height(24.dp))

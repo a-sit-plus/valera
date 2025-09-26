@@ -283,6 +283,7 @@
     <string name="heading_label_tech_demo">Tech Demo</string>
     <string name="heading_label_result">Result</string>
     <string name="heading_label_missing_precondition">Missing Precondition</string>
+    <string name="heading_label_device_engagement">Device Engagement</string>
 
     <string name="biometric_authentication_prompt_for_data_transmission_consent_title">Disclose data</string>
     <string name="biometric_authentication_prompt_to_load_data_title">Load data</string>
@@ -364,6 +365,7 @@
     <string name="info_text_no_transfer_method_selected">No transfer method has been selected.\n\nPlease open the settings and choose at least one.</string>
     <string name="info_text_no_transfer_method_available_for_selection">None of the selected transfer methods are available.\n\nPlease open the device settings and enable the required transfer method, or select a different one.</string>
     <string name="info_text_missing_permission_bluetooth">Bluetooth permission required.\n\nOpen the app's settings and grant this permission.</string>
+    <string name="info_text_device_engagement_nfc">Hold your device close to the other person’s device to establish a connection between the devices.</string>
 
     <string name="section_heading_authenticate_at_device_title">Authenticate</string>
     <string name="section_heading_authenticate_at_device_subtitle">at relying party</string>

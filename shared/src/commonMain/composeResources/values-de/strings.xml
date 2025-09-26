@@ -283,6 +283,7 @@
     <string name="heading_label_tech_demo">Tech Demo</string>
     <string name="heading_label_result">Ergebnis</string>
     <string name="heading_label_missing_precondition">Fehlende Voraussetzung</string>
+    <string name="heading_label_device_engagement">Verbindungsaufbau</string>
 
     <string name="biometric_authentication_prompt_for_data_transmission_consent_title">Daten vorzeigen</string>
     <string name="biometric_authentication_prompt_to_load_data_title">Daten laden</string>
@@ -365,6 +366,7 @@
     <string name="info_text_no_transfer_method_selected">Es wurde keine Übertragungsmethode ausgewählt.\n\nBitte öffnen Sie die Einstellungen und wählen Sie mindestens eine aus.</string>
     <string name="info_text_no_transfer_method_available_for_selection">Keine der ausgewählten Übertragungsmethoden ist verfügbar.\n\nBitte öffnen Sie die Geräteeinstellungen und aktivieren Sie die benötigte Übertragungsmethode oder wählen Sie in den Einstellungen eine andere aus.</string>
     <string name="info_text_missing_permission_bluetooth">Bluetooth-Berechtigung erforderlich.\n\nÖffnen Sie die App-Einstellungen und erteilen Sie diese Berechtigung.</string>
+    <string name="info_text_device_engagement_nfc">Halten Sie Ihr Gerät in die Nähe des Geräts einer dritten Person, an die Sie Ihre Daten übertragen möchten.</string>
 
     <string name="section_heading_authenticate_at_device_title">Anmelden</string>
     <string name="section_heading_authenticate_at_device_subtitle">an Service Provider</string>

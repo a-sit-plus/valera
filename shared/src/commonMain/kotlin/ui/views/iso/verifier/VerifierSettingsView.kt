@@ -34,15 +34,13 @@ import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.heading_label_select_data_retrieval_screen
 import at.asitplus.valera.resources.heading_label_settings_screen
 import at.asitplus.valera.resources.info_text_transfer_settings_loading
-import at.asitplus.valera.resources.section_heading_request_engagement_method
-import at.asitplus.wallet.app.common.iso.transfer.method.DeviceEngagementMethods
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.ScreenHeading
 import ui.composables.TextIconButton
 import ui.viewmodels.iso.verifier.VerifierViewModel
 import ui.views.LoadingView
-import ui.views.iso.common.SingleChoiceButton
+import ui.views.iso.common.RequestEngagementMethodView
 import ui.views.iso.common.TransferOptionsView
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -93,22 +91,13 @@ fun VerifierSettingsView(
                     modifier = Modifier.padding(16.dp).verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.Start
                 ) {
-                    Text(
-                        text = stringResource(Res.string.section_heading_request_engagement_method),
-                        style = MaterialTheme.typography.titleMedium
+                    RequestEngagementMethodView(
+                        selectedEngagementMethod = selectedEngagementMethod,
+                        onSelect = { vm.setEngagementMethod(it) }
                     )
-                    Spacer(Modifier.height(8.dp))
-                    DeviceEngagementMethods.entries.forEach { engagementMethod ->
-                        SingleChoiceButton(
-                            current = engagementMethod.friendlyName,
-                            selectedOption = selectedEngagementMethod.friendlyName,
-                            modifier = Modifier.padding(top = 8.dp).fillMaxWidth(),
-                            icon = { Icon(engagementMethod.icon, null) }
-                        ) { vm.setEngagementMethod(engagementMethod) }
-                    }
 
                     Spacer(Modifier.height(24.dp))
-                    TransferOptionsView( vm)
+                    TransferOptionsView(vm)
 
                     Spacer(Modifier.height(24.dp))
                     TextIconButton(

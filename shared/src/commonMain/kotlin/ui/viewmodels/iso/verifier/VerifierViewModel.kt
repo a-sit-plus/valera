@@ -66,14 +66,6 @@ class VerifierViewModel(
         setState(VerifierState.Error)
     }
 
-    private val _selectedEngagementMethod = MutableStateFlow(DeviceEngagementMethods.QR_CODE)
-    val selectedEngagementMethod: StateFlow<DeviceEngagementMethods> = _selectedEngagementMethod
-
-    fun setEngagementMethod(method: DeviceEngagementMethods) {
-        if(_selectedEngagementMethod.value == method) return
-        _selectedEngagementMethod.value = method
-    }
-
     private fun setStateToEngagement(selectedEngagementMethod: DeviceEngagementMethods) {
         when (selectedEngagementMethod) {
             DeviceEngagementMethods.NFC -> doNfcEngagement()
@@ -134,7 +126,7 @@ class VerifierViewModel(
         _requestDocumentList.addRequestDocument(
             RequestDocumentBuilder.buildRequestDocument(request)
         )
-        setStateToEngagement(_selectedEngagementMethod.value)
+        setStateToEngagement(selectedEngagementMethod.value)
     }
 
     fun navigateToCustomSelectionView() {
@@ -151,7 +143,7 @@ class VerifierViewModel(
                 RequestDocumentBuilder.buildRequestDocument(request)
             )
         }
-        setStateToEngagement(_selectedEngagementMethod.value)
+        setStateToEngagement(selectedEngagementMethod.value)
     }
 
     fun onReceiveCustomSelection(
@@ -162,7 +154,7 @@ class VerifierViewModel(
         _requestDocumentList.addRequestDocument(
             RequestDocumentBuilder.buildRequestDocument(config.scheme, selectedEntries)
         )
-        setStateToEngagement(_selectedEngagementMethod.value)
+        setStateToEngagement(selectedEngagementMethod.value)
     }
 
     val onFoundPayload: (String) -> Unit = { payload ->

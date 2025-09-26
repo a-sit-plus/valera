@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
+import at.asitplus.wallet.app.common.iso.transfer.method.DeviceEngagementMethods
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -25,6 +26,14 @@ open class TransferOptionsViewModel(
             settingsRepository.awaitPresentmentSettingsFirst()
             _settingsReady.value = true
         }
+    }
+
+    private val _selectedEngagementMethod = MutableStateFlow(DeviceEngagementMethods.QR_CODE)
+    val selectedEngagementMethod: StateFlow<DeviceEngagementMethods> = _selectedEngagementMethod
+
+    fun setEngagementMethod(method: DeviceEngagementMethods) {
+        if(_selectedEngagementMethod.value == method) return
+        _selectedEngagementMethod.value = method
     }
 
     val presentmentUseNegotiatedHandover =

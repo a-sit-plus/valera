@@ -78,7 +78,7 @@ fun HolderView(
                     bleEnabled = bluetoothEnabledState.isEnabled,
                     blePermissionGranted = bluetoothPermissionState.isGranted,
                     nfcEnabled = nfcEnabledState.isEnabled,
-                    engagementMethod = DeviceEngagementMethods.QR_CODE
+                    engagementMethod = vm.selectedEngagementMethod.value
                 )
             ) {
                 TransferPrecondition.Ok -> when {
@@ -91,7 +91,6 @@ fun HolderView(
             if (holderState != next) vm.setState(next)
         }
     }
-
 
     when (val state = holderState) {
         is HolderState.Settings ->
@@ -129,18 +128,20 @@ fun HolderView(
                 )
                 vm.doHolderFlow(
                     bluetoothEnabledState.isEnabled,
-                    true
+                    nfcEnabledState.isEnabled
                 ) { error ->
                     handleError(error, vm, onNavigateToPresentmentScreen, onError)
                 }
             }
         }
 
-        is HolderState.ShowQrCode -> HolderShowQrCodeView(
-            onClickLogo = onClickLogo,
-            vm = vm,
-            onError = onError
-        )
+        is HolderState.ShowQrCode -> {
+            when (vm.selectedEngagementMethod.value) {
+                DeviceEngagementMethods.NFC -> HolderShowNfcView(onClickLogo, vm)
+                DeviceEngagementMethods.QR_CODE -> HolderShowQrCodeView(onClickLogo, vm, onError)
+            }
+        }
+
         is HolderState.Finished -> LoadingView()
     }
 }
