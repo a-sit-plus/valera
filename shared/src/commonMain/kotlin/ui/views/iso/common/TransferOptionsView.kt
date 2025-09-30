@@ -22,7 +22,8 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_extended_options
 import at.asitplus.valera.resources.section_heading_transfer_options
-import at.asitplus.valera.resources.switch_label_blel2cap_enabled
+import at.asitplus.valera.resources.switch_label_ble_use_l2cap_enabled
+import at.asitplus.valera.resources.switch_label_ble_use_l2cap_in_engagement_enabled
 import at.asitplus.valera.resources.switch_label_use_ble
 import at.asitplus.valera.resources.switch_label_use_ble_central_client_mode
 import at.asitplus.valera.resources.switch_label_use_ble_peripheral_server_mode
@@ -50,7 +51,8 @@ fun TransferOptionsView(
 
         val bleCentral = transferOptionsViewModel.presentmentBleCentralClientModeEnabled.collectAsState().value
         val blePeripheral = transferOptionsViewModel.presentmentBlePeripheralServerModeEnabled.collectAsState().value
-        val bleL2cap = transferOptionsViewModel.readerBleL2CapEnabled.collectAsState().value
+        val bleUseL2CAP = transferOptionsViewModel.bleUseL2CAPEnabled.collectAsState().value
+        val bleUseL2CAPInEngagement = transferOptionsViewModel.bleUseL2CAPInEngagementEnabled.collectAsState().value
 
         val bluetoothEnabled = bleCentral || blePeripheral
 
@@ -77,13 +79,17 @@ fun TransferOptionsView(
                     onCheckedChange = { transferOptionsViewModel.setPresentmentBlePeripheralServerModeEnabled(it) }
                 )
                 SettingSwitch(
-                    label = stringResource(Res.string.switch_label_blel2cap_enabled),
-                    isChecked = bleL2cap,
-                    onCheckedChange = { transferOptionsViewModel.setReaderBleL2CapEnabled(it) }
+                    label = stringResource(Res.string.switch_label_ble_use_l2cap_enabled),
+                    isChecked = bleUseL2CAP,
+                    onCheckedChange = { transferOptionsViewModel.setBleL2CAPEnabled(it) }
+                )
+                SettingSwitch(
+                    label = stringResource(Res.string.switch_label_ble_use_l2cap_in_engagement_enabled),
+                    isChecked = bleUseL2CAPInEngagement,
+                    onCheckedChange = { transferOptionsViewModel.setBleL2CAPInEngagementEnabled(it) }
                 )
             }
         }
-
 
         var showNfcOptions by remember { mutableStateOf(false) }
 

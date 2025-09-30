@@ -127,11 +127,13 @@ class HolderViewModel(
                 role = MdocRole.MDOC,
                 transportFactory = MdocTransportFactory.Default,
                 options = MdocTransportOptions(
-                    bleUseL2CAP = readerBleL2CapEnabled.first()
+                    bleUseL2CAP = bleUseL2CAPEnabled.first(),
+                    bleUseL2CAPInEngagement = bleUseL2CAPInEngagementEnabled.first()
                 )
             )
 
             // Generate engagement
+            // TODO remove deprecated
             val engagementGenerator = EngagementGenerator(
                 eSenderKey = ephemeralDeviceKey.publicKey,
                 version = MdocConstants.VERSION

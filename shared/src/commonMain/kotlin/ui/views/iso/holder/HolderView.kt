@@ -12,7 +12,6 @@ import at.asitplus.valera.resources.info_text_check_settings
 import at.asitplus.valera.resources.info_text_qr_code_loading
 import at.asitplus.wallet.app.common.iso.transfer.method.DeviceEngagementMethods
 import at.asitplus.wallet.app.common.iso.transfer.method.rememberAppSettings
-import at.asitplus.wallet.app.common.iso.transfer.method.rememberBluetoothEnabledState
 import at.asitplus.wallet.app.common.iso.transfer.method.rememberNfcEnabledState
 import at.asitplus.wallet.app.common.iso.transfer.state.HolderState
 import at.asitplus.wallet.app.common.iso.transfer.state.TransferPrecondition
@@ -23,6 +22,7 @@ import io.github.aakira.napier.Napier
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.scope.Scope
+import org.multipaz.compose.permissions.rememberBluetoothEnabledState
 import org.multipaz.compose.permissions.rememberBluetoothPermissionState
 import ui.viewmodels.authentication.PresentationStateModel
 import ui.viewmodels.iso.holder.HolderViewModel

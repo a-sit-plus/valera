@@ -64,7 +64,13 @@ open class TransferOptionsViewModel(
             initialValue = false
         )
 
-    val readerBleL2CapEnabled = settingsRepository.readerBleL2CapEnabled.stateIn(
+    val bleUseL2CAPEnabled = settingsRepository.bleUseL2CAPEnabled.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = true
+    )
+
+    val bleUseL2CAPInEngagementEnabled = settingsRepository.bleUseL2CAPInEngagementEnabled.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = true
@@ -85,6 +91,8 @@ open class TransferOptionsViewModel(
     fun setPresentmentNfcDataTransferEnabled(value: Boolean) =
         update { set(presentmentNfcDataTransferEnabled = value) }
 
-    fun setReaderBleL2CapEnabled(value: Boolean) =
-        update { set(readerBleL2CapEnabled = value) }
+    fun setBleL2CAPEnabled(value: Boolean) = update { set(bleUseL2CAPEnabled = value) }
+
+    fun setBleL2CAPInEngagementEnabled(value: Boolean) =
+        update { set(bleUseL2CAPInEngagementEnabled = value) }
 }

@@ -436,7 +436,8 @@
     <string name="switch_label_use_ble_central_client_mode">BLE Central Client Mode</string>
     <string name="switch_label_use_ble_peripheral_server_mode">BLE Peripheral Server Mode</string>
     <string name="switch_label_use_nfc_data_transfer">NFC Data Transfer</string>
-    <string name="switch_label_blel2cap_enabled">Enable L2CAP</string>
+    <string name="switch_label_ble_use_l2cap_enabled">Enable L2CAP</string>
+    <string name="switch_label_ble_use_l2cap_in_engagement_enabled">Enable L2CAP in engagement</string>
     <string name="button_label_extended_options">Extended</string>
     <string name="button_label_open_app_settings">Open app settings</string>
     <string name="button_label_back_to_settings">Back to Settings</string>

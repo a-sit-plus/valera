@@ -22,13 +22,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_missing_precondition
-import at.asitplus.wallet.app.common.iso.transfer.method.BluetoothEnabledState
 import at.asitplus.wallet.app.common.iso.transfer.method.NfcEnabledState
 import at.asitplus.wallet.app.common.iso.transfer.state.PreconditionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
+import org.multipaz.compose.permissions.BluetoothEnabledState
 import org.multipaz.compose.permissions.PermissionState
 import ui.composables.Logo
 import ui.composables.ScreenHeading
