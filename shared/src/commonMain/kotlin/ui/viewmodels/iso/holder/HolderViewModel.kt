@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.io.bytestring.ByteString
+import org.multipaz.cbor.Cbor
 import org.multipaz.cbor.Simple
 import org.multipaz.compose.permissions.PermissionState
 import org.multipaz.crypto.Crypto
@@ -24,7 +25,7 @@ import org.multipaz.crypto.EcCurve
 import org.multipaz.mdoc.connectionmethod.MdocConnectionMethod
 import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodBle
 import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodNfc
-import org.multipaz.mdoc.engagement.EngagementGenerator
+import org.multipaz.mdoc.engagement.buildDeviceEngagement
 import org.multipaz.mdoc.role.MdocRole
 import org.multipaz.mdoc.transport.MdocTransportFactory
 import org.multipaz.mdoc.transport.MdocTransportOptions
@@ -132,15 +133,14 @@ class HolderViewModel(
                 )
             )
 
-            // Generate engagement
-            // TODO remove deprecated
-            val engagementGenerator = EngagementGenerator(
-                eSenderKey = ephemeralDeviceKey.publicKey,
+            val deviceEngagement = buildDeviceEngagement(
+                eDeviceKey = ephemeralDeviceKey.publicKey,
                 version = MdocConstants.VERSION
-            )
-            engagementGenerator.addConnectionMethods(connectionMethods)
-            val encodedDeviceEngagementByteArray = engagementGenerator.generate()
-            encodedDeviceEngagement = ByteString(encodedDeviceEngagementByteArray)
+            ) {
+                connectionMethods.forEach(::addConnectionMethod)
+            }
+            encodedDeviceEngagement = ByteString(Cbor.encode(deviceEngagement.toDataItem()))
+
             _qrCode.value = encodedDeviceEngagement
             setState(HolderState.ShowQrCode)
 

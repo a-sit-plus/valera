@@ -29,6 +29,7 @@ import org.multipaz.cbor.DataItem
 import org.multipaz.cbor.Simple
 import org.multipaz.cbor.Tagged
 import org.multipaz.cbor.buildCborArray
+import org.multipaz.cbor.toDataItem
 import org.multipaz.crypto.Crypto
 import org.multipaz.crypto.EcCurve
 import org.multipaz.crypto.EcPrivateKey
@@ -41,7 +42,7 @@ import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodBle
 import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodNfc
 import org.multipaz.mdoc.engagement.DeviceEngagement
 import org.multipaz.mdoc.nfc.scanNfcMdocReader
-import org.multipaz.mdoc.request.DeviceRequestGenerator
+import org.multipaz.mdoc.request.buildDeviceRequest
 import org.multipaz.mdoc.role.MdocRole
 import org.multipaz.mdoc.sessionencryption.SessionEncryption
 import org.multipaz.mdoc.transport.MdocTransport
@@ -268,12 +269,15 @@ class TransferManager(
                 existingTransport = null,
                 handover = Simple.NULL,
                 selectConnectionMethod = { connectionMethods ->
-                    if (config.readerAutomaticallySelectTransport.first()) {
+                    val connectionMethod = if (connectionMethods.size == 1) {
+                        connectionMethods[0]
+                    } else if (config.readerAutomaticallySelectTransport.first()) {
                         updateProgress("Auto-selected first from $connectionMethods")
                         connectionMethods[0]
                     } else {
                         selectConnectionMethod(connectionMethods, connectionMethodPickerData)
                     }
+                    connectionMethod
                 },
                 documentRequestList = documentRequestList,
                 setDeviceResponseBytes = setDeviceResponseBytes
@@ -293,7 +297,9 @@ class TransferManager(
         documentRequestList: RequestDocumentList,
         setDeviceResponseBytes: (KmmResult<ByteArray>) -> Unit
     ) {
-        val deviceEngagement = DeviceEngagement.fromDataItem(Cbor.decode(encodedDeviceEngagement.toByteArray()))
+        val deviceEngagement = DeviceEngagement.fromDataItem(
+            Cbor.decode(encodedDeviceEngagement.toByteArray())
+        )
         val eDeviceKey = deviceEngagement.eDeviceKey
         Napier.i("Using curve ${eDeviceKey.curve.name} for session encryption", tag = TAG)
         val eReaderKey = Crypto.createEcPrivateKey(eDeviceKey.curve)
@@ -377,18 +383,21 @@ class TransferManager(
         readerSessionEncryption.value = sessionEncryption
         this.readerSessionTranscript = encodedSessionTranscript
 
-        val generator = DeviceRequestGenerator(encodedSessionTranscript)
-        documentRequestList.getAll().forEach { requestDocument ->
-            generator.addDocumentRequest(
-                docType = requestDocument.docType,
-                itemsToRequest = requestDocument.itemsToRequest,
-                requestInfo = null,
-                readerKey = readerKey,
-                signatureAlgorithm = readerKey.curve.defaultSigningAlgorithm,
-                readerKeyCertificateChain = X509CertChain(listOf(readerCert, readerRootCert))
-            )
+        val deviceRequest = buildDeviceRequest(
+            sessionTranscript = encodedSessionTranscript.toDataItem()
+        ) {
+            documentRequestList.getAll().forEach { requestDocument ->
+                addDocRequest(
+                    docType = requestDocument.docType,
+                    nameSpaces = requestDocument.itemsToRequest,
+                    docRequestInfo = null,
+                    readerKey = readerKey,
+                    signatureAlgorithm = readerKey.curve.defaultSigningAlgorithm,
+                    readerKeyCertificateChain = X509CertChain(listOf(readerCert, readerRootCert))
+                )
+            }
         }
-        val encodedDeviceRequest = generator.generate()
+        val encodedDeviceRequest = Cbor.encode(deviceRequest.toDataItem())
 
         try {
             transport.open(eDeviceKey)
