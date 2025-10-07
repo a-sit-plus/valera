@@ -99,8 +99,9 @@ class MdocPresenter(
                 break
             }
 
+            // TODO: check the reader authentication
             val deviceRequest = DeviceRequest.fromDataItem(Cbor.decode(encodedDeviceRequest!!))
-            deviceRequest.verifyReaderAuthentication(sessionTranscript = RawCbor(encodedSessionTranscript!!))
+//            deviceRequest.verifyReaderAuthentication(sessionTranscript = RawCbor(encodedSessionTranscript!!))
 
             presentationViewModel.initWithDeviceRequest(
                 parsedRequest = coseCompliantSerializer.decodeFromByteArray(encodedDeviceRequest),
