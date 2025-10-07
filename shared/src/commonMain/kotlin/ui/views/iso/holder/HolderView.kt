@@ -127,8 +127,8 @@ fun HolderView(
                     transferSettingsState.ble.required
                 )
                 vm.doHolderFlow(
-                    bluetoothEnabledState.isEnabled,
-                    nfcEnabledState.isEnabled
+                    transferSettingsState.ble.settingOn,
+                    transferSettingsState.nfc.settingOn
                 ) { error ->
                     handleError(error, vm, onNavigateToPresentmentScreen, onError)
                 }

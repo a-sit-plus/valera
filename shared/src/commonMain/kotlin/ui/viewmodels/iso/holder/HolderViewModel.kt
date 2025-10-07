@@ -78,15 +78,15 @@ class HolderViewModel(
     }
 
     fun doHolderFlow(
-        isBleEnabled: Boolean,
-        isNfcEnabled: Boolean,
+        isBleSelected: Boolean,
+        isNfcSelected: Boolean,
         completionHandler: CompletionHandler = {}
     ) = presentationStateModel.presentmentScope.launch {
         try {
             val connectionMethods = mutableListOf<MdocConnectionMethod>()
             val bleUuid = UUID.Companion.randomUUID()
 
-            if (isBleEnabled) {
+            if (isBleSelected) {
                 if (presentmentBleCentralClientModeEnabled.first()) {
                     connectionMethods.add(
                         MdocConnectionMethodBle(
@@ -109,7 +109,7 @@ class HolderViewModel(
                 }
             }
 
-            if (isNfcEnabled) {
+            if (isNfcSelected) {
                 if (presentmentNfcDataTransferEnabled.first()) {
                     connectionMethods.add(
                         MdocConnectionMethodNfc(
