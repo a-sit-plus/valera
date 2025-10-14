@@ -5,6 +5,7 @@ sealed class HolderState {
     object CheckSettings : HolderState()
     object CreateEngagement : HolderState()
     object ShowQrCode : HolderState()
+    object ShowNfcInfo : HolderState()
     object Finished : HolderState()
 
     data class MissingPrecondition(val reason: PreconditionState) : HolderState()

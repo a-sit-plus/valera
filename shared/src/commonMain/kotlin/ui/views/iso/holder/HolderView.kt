@@ -72,21 +72,26 @@ fun HolderView(
             presentationState
         ) {
             if (!settingsReady) return@LaunchedEffect
-            val next = when (
-                val transferPrecondition = evaluateTransferPrecondition(
-                    transferSettingsState =transferSettingsState,
-                    bleEnabled = bluetoothEnabledState.isEnabled,
-                    blePermissionGranted = bluetoothPermissionState.isGranted,
-                    nfcEnabled = nfcEnabledState.isEnabled,
-                    engagementMethod = vm.selectedEngagementMethod.value
-                )
-            ) {
-                TransferPrecondition.Ok -> when {
-                    vm.qrCode.value != null && presentationState != PresentationStateModel.State.PROCESSING ->
-                        HolderState.ShowQrCode
-                    else -> HolderState.CreateEngagement
+
+            val engagement = vm.selectedEngagementMethod.value
+            val precondition = evaluateTransferPrecondition(
+                transferSettingsState = transferSettingsState,
+                bleEnabled = bluetoothEnabledState.isEnabled,
+                blePermissionGranted = bluetoothPermissionState.isGranted,
+                nfcEnabled = nfcEnabledState.isEnabled,
+                engagementMethod = engagement
+            )
+
+            val next = if (precondition != TransferPrecondition.Ok) {
+                HolderState.MissingPrecondition(precondition.toEnum())
+            } else {
+                val canShowQr = vm.qrCode.value != null &&
+                        presentationState != PresentationStateModel.State.PROCESSING
+                when (engagement) {
+                    DeviceEngagementMethods.NFC -> HolderState.ShowNfcInfo
+                    DeviceEngagementMethods.QR_CODE ->
+                        if (canShowQr) HolderState.ShowQrCode else HolderState.CreateEngagement
                 }
-                else -> HolderState.MissingPrecondition(transferPrecondition.toEnum())
             }
             if (holderState != next) vm.setState(next)
         }
@@ -135,13 +140,8 @@ fun HolderView(
             }
         }
 
-        is HolderState.ShowQrCode -> {
-            when (vm.selectedEngagementMethod.value) {
-                DeviceEngagementMethods.NFC -> HolderShowNfcView(onClickLogo, vm)
-                DeviceEngagementMethods.QR_CODE -> HolderShowQrCodeView(onClickLogo, vm, onError)
-            }
-        }
-
+        is HolderState.ShowQrCode -> HolderShowQrCodeView(onClickLogo, vm, onError)
+        is HolderState.ShowNfcInfo -> HolderShowNfcView(onClickLogo, vm)
         is HolderState.Finished -> LoadingView()
     }
 }
