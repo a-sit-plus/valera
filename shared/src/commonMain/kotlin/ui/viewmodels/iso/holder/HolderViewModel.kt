@@ -39,10 +39,22 @@ class HolderViewModel(
     walletMain: WalletMain,
     settingsRepository: SettingsRepository
 ) : TransferOptionsViewModel(walletMain, settingsRepository) {
+    val TAG = "HolderViewModel"
     private val _qrCode = MutableStateFlow<ByteString?>(null)
     val qrCode: StateFlow<ByteString?> = _qrCode.asStateFlow()
 
-    val onResume: () -> Unit = { setState(HolderState.Settings) }
+    fun resetQrCode() {
+        Napier.d("Reset QR code ...", tag = TAG)
+        _qrCode.value = null
+    }
+
+    val onResume: () -> Unit = {
+        resetPresentmentModel()
+        hasBeenCalledHack = false
+        resetQrCode()
+        setState(HolderState.Settings)
+    }
+
     val onConsentSettings: () -> Unit = { setState(HolderState.CheckSettings) }
     var hasBeenCalledHack: Boolean = false
 
@@ -61,14 +73,20 @@ class HolderViewModel(
 
     fun setState(newState: HolderState) {
         if (_holderState.value == newState) return
-        Napier.d("Change state from ${_holderState.value} to $newState", tag = "HolderViewModel")
+        Napier.d("Change state from ${_holderState.value} to $newState", tag = TAG)
         _holderState.value = newState
+    }
+
+    fun resetPresentmentModel() {
+        Napier.d("Reset presentment model ...", tag = TAG)
+        presentationStateModel.reset()
     }
 
     fun setupPresentmentModel(
         blePermissionState: PermissionState,
         isBluetoothRequired: Boolean
     ) {
+        Napier.d("Setup presentment model ...", tag = TAG)
         presentationStateModel.reset()
         presentationStateModel.init()
         presentationStateModel.start(isBluetoothRequired)
@@ -82,6 +100,7 @@ class HolderViewModel(
         isNfcSelected: Boolean,
         completionHandler: CompletionHandler = {}
     ) = presentationStateModel.presentmentScope.launch {
+        Napier.d("Do Holder flow ...", tag = TAG)
         try {
             val connectionMethods = mutableListOf<MdocConnectionMethod>()
             val bleUuid = UUID.Companion.randomUUID()
@@ -119,6 +138,7 @@ class HolderViewModel(
                     )
                 }
             }
+            Napier.d("connectionMethods = $connectionMethods", tag = TAG)
 
             val ephemeralDeviceKey = Crypto.createEcPrivateKey(EcCurve.P256)
             lateinit var encodedDeviceEngagement: ByteString
@@ -132,12 +152,13 @@ class HolderViewModel(
                     bleUseL2CAPInEngagement = bleUseL2CAPInEngagementEnabled.first()
                 )
             )
+            Napier.d("advertisedTransports = $advertisedTransports", tag = TAG)
 
             val deviceEngagement = buildDeviceEngagement(
                 eDeviceKey = ephemeralDeviceKey.publicKey,
                 version = MdocConstants.VERSION
             ) {
-                connectionMethods.forEach(::addConnectionMethod)
+                connectionMethods.forEach(this::addConnectionMethod)
             }
             encodedDeviceEngagement = ByteString(Cbor.encode(deviceEngagement.toDataItem()))
 
