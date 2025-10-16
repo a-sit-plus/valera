@@ -154,7 +154,7 @@ public class AndroidPlatformAdapter(
         val file = File(folder, "log.txt")
         val fileUri = FileProvider.getUriForFile(
             context,
-            "at.asitplus.wallet.app.android.fileprovider",
+            "${context.packageName}.fileprovider",
             file
         )
 
