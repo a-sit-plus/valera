@@ -6,10 +6,10 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.credentials.registry.provider.RegistryManager
 import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.BuildType
-import com.google.android.gms.identitycredentials.IntentHelper
 import ui.navigation.PRESENTATION_REQUESTED_INTENT
 
 
@@ -33,12 +33,7 @@ class MainActivity : AbstractWalletActivity() {
 
     override fun populateLink(intent: Intent) {
         when (intent.action) {
-            "androidx.credentials.registry.provider.action.GET_CREDENTIAL" -> {
-                Globals.dcapiInvocationData.value =
-                    DCAPIInvocationData(intent, ::sendCredentialResponseToDCAPIInvoker)
-                Globals.appLink.value = intent.action
-            }
-            IntentHelper.ACTION_GET_CREDENTIAL -> {
+            RegistryManager.ACTION_GET_CREDENTIAL -> {
                 Globals.dcapiInvocationData.value =
                     DCAPIInvocationData(intent, ::sendCredentialResponseToDCAPIInvoker)
                 Globals.appLink.value = intent.action

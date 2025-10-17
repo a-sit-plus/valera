@@ -10,6 +10,7 @@ import androidx.core.net.toUri
 import androidx.credentials.ExperimentalDigitalCredentialApi
 import androidx.credentials.GetDigitalCredentialOption
 import androidx.credentials.provider.PendingIntentHandler
+import androidx.credentials.registry.provider.RegistryManager
 import androidx.credentials.registry.provider.selectedEntryId
 import at.asitplus.KmmResult
 import at.asitplus.catching
@@ -27,18 +28,16 @@ import at.asitplus.signum.indispensable.cosef.CoseKeyParams.EcKeyParams
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.signum.indispensable.io.Base64UrlStrict
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
-import at.asitplus.wallet.app.android.dcapi.DCAPIAndroidExporter
+import at.asitplus.wallet.app.android.dcapi.CustomRegistry
 import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.WalletDependencyProvider
-import at.asitplus.wallet.app.common.WalletKeyMaterial
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialList
 import at.asitplus.wallet.app.common.dcapi.data.preview.ResponseJSON
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import com.android.identity.android.mdoc.util.CredmanUtil
-import com.google.android.gms.identitycredentials.IdentityCredentialManager
 import data.storage.RealDataStoreService
 import data.storage.getDataStore
 import io.github.aakira.napier.Napier
@@ -46,8 +45,6 @@ import io.matthewnelson.encoding.core.Decoder.Companion.decodeToByteArray
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.tasks.await
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import org.json.JSONObject
@@ -170,12 +167,9 @@ public class AndroidPlatformAdapter(
     override fun registerWithDigitalCredentialsAPI(entries: CredentialList, scope: CoroutineScope) {
         scope.launch(Dispatchers.Default) {
             catching {
-                val client = IdentityCredentialManager.Companion.getClient(context)
-                val exporter = DCAPIAndroidExporter(context)
-                val registrationRequest = exporter.createRegistrationRequest(credentialsListCbor)
-
-                client.registerCredentials(registrationRequest).await()
                 val credentialsListCbor = coseCompliantSerializer.encodeToByteArray(entries.entries)
+                val customRegistry = CustomRegistry(credentialsListCbor, context)
+                RegistryManager.create(context).registerCredentials(customRegistry)
             }.onSuccess { Napier.i("DC API: Credential Manager registration succeeded") }
                 .onFailure { Napier.w("DC API: Credential Manager registration failed", it) }
         }
