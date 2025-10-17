@@ -1,3 +1,5 @@
+ * Remove DC API preview protocol
+
 # Release 5.7.4 (unreleased):
  * Presentation: Always show requested attributes
 

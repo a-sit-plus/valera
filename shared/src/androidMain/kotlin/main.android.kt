@@ -53,7 +53,7 @@ import org.multipaz.crypto.Algorithm
 import org.multipaz.crypto.Crypto
 import org.multipaz.crypto.EcCurve
 import org.multipaz.crypto.EcPublicKeyDoubleCoordinate
-import org.multipaz.prompt.AndroidPromptModel
+import org.multipaz.prompt.PromptModel
 import ui.theme.darkScheme
 import ui.theme.lightScheme
 import java.io.File
@@ -77,8 +77,8 @@ actual fun getColorScheme(): ColorScheme {
 @Composable
 fun MainView(
     buildContext: BuildContext,
+    promptModel: PromptModel
 ) {
-    val promptModel = AndroidPromptModel()
     val platformAdapter = AndroidPlatformAdapter(LocalContext.current)
     val dataStoreService = RealDataStoreService(
         getDataStore(LocalContext.current),
