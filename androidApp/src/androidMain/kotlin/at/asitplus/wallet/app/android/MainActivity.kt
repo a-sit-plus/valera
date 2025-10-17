@@ -10,6 +10,7 @@ import androidx.credentials.registry.provider.RegistryManager
 import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.BuildType
+import org.multipaz.prompt.AndroidPromptModel
 import ui.navigation.PRESENTATION_REQUESTED_INTENT
 
 
@@ -18,6 +19,7 @@ class MainActivity : AbstractWalletActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
+        val promptModel = AndroidPromptModel()
         setContent {
             MainView(
                 buildContext = BuildContext(
@@ -26,7 +28,8 @@ class MainActivity : AbstractWalletActivity() {
                     versionCode = BuildConfig.VERSION_CODE,
                     versionName = BuildConfig.VERSION_NAME,
                     osVersion = "Android ${Build.VERSION.RELEASE}"
-                )
+                ),
+                promptModel
             )
         }
     }
