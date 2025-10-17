@@ -7,7 +7,7 @@ import at.asitplus.valera.resources.app_display_name
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialEntry
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialList
-import at.asitplus.wallet.app.common.dcapi.data.export.IsoEntry
+import at.asitplus.wallet.app.common.dcapi.data.export.IsoMdocEntry
 import at.asitplus.wallet.app.common.dcapi.data.export.SdJwtEntry
 import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabelNonCompose
@@ -60,11 +60,11 @@ class DCAPIExportService(private val platformAdapter: PlatformAdapter) {
         is SubjectCredentialStore.StoreEntry.Vc -> null
     }
 
-    private suspend fun SubjectCredentialStore.StoreEntry.Iso.toIsoEntry() = IsoEntry(
+    private suspend fun SubjectCredentialStore.StoreEntry.Iso.toIsoEntry() = IsoMdocEntry(
         id = getDcApiId(),
         docType = scheme?.isoDocType ?: "",
         isoNamespaces = toNamespaceAttributeMap()?.let {
-            IsoEntry.isoNamespacesFromNamespaceAttributeMap(it, getTranslator())
+            IsoMdocEntry.isoNamespacesFromNamespaceAttributeMap(it, getTranslator())
         } ?: mapOf())
 
     private suspend fun SubjectCredentialStore.StoreEntry.SdJwt.toSdJwtEntry() = SdJwtEntry(

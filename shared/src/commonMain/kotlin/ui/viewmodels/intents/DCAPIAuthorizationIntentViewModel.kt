@@ -24,7 +24,7 @@ class DCAPIAuthorizationIntentViewModel(
             presentationService = walletMain.presentationService,
         )
 
-    private val buildAuthenticationConsentPageFromPreviewRequest =
+    private val buildAuthenticationConsentPageFromDcApiRequest =
         BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase()
 
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, error ->
@@ -41,9 +41,8 @@ class DCAPIAuthorizationIntentViewModel(
         val dcApiRequest = walletMain.platformAdapter.getCurrentDCAPIData().getOrThrow()
 
         val successRoute = when (dcApiRequest) {
-            is PreviewDCAPIRequest -> 
-                buildAuthenticationConsentPageFromPreviewRequest(dcApiRequest)
-            
+            is PreviewDCAPIRequest -> TODO("Delete line when removed from vck")
+
             is Oid4vpDCAPIRequest ->
                 buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
                     dcApiRequest.request,
@@ -51,7 +50,7 @@ class DCAPIAuthorizationIntentViewModel(
                 )
 
             is IsoMdocRequest ->
-                buildAuthenticationConsentPageFromPreviewRequest(dcApiRequest)
+                buildAuthenticationConsentPageFromDcApiRequest(dcApiRequest)
 
         }.getOrThrow()
 

@@ -3,7 +3,6 @@ package at.asitplus.wallet.app.common
 import at.asitplus.KmmResult
 import at.asitplus.catchingUnwrapped
 import at.asitplus.dcapi.request.DCAPIRequest
-import at.asitplus.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.iso.EncryptionParameters
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_update_action
@@ -216,14 +215,6 @@ interface PlatformAdapter {
      */
     fun getCurrentDCAPIData(): KmmResult<DCAPIRequest>
 
-    /**
-     * Prepares the credential response and sends it back to the invoking application
-     */
-    fun prepareDCAPIPreviewCredentialResponse(
-        responseJson: ByteArray,
-        dcApiRequestPreview: PreviewDCAPIRequest
-    )
-
     fun prepareDCAPIIsoMdocCredentialResponse(
         responseJson: ByteArray,
         sessionTranscript: ByteArray,
@@ -256,12 +247,6 @@ class DummyPlatformAdapter : PlatformAdapter {
 
     override fun getCurrentDCAPIData(): KmmResult<DCAPIRequest> {
         return KmmResult.failure(IllegalStateException("Using dummy platform adapter"))
-    }
-
-    override fun prepareDCAPIPreviewCredentialResponse(
-        responseJson: ByteArray,
-        dcApiRequestPreview: PreviewDCAPIRequest
-    ) {
     }
 
     override fun prepareDCAPIIsoMdocCredentialResponse(

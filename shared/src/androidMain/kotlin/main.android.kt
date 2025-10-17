@@ -1,6 +1,5 @@
 import android.content.Context
 import android.content.Intent
-import android.util.Base64
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
@@ -35,7 +34,6 @@ import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.WalletDependencyProvider
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialList
-import at.asitplus.wallet.app.common.dcapi.data.preview.ResponseJSON
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import com.android.identity.android.mdoc.util.CredmanUtil
 import data.storage.RealDataStoreService
@@ -222,40 +220,6 @@ public class AndroidPlatformAdapter(
             }
 
             when {
-                protocol == "preview" -> {
-                    // Extract params from the preview protocol request
-                    val requestedData = mutableMapOf<String, MutableList<Pair<String, Boolean>>>()
-                    //val previewRequest = JSONObject(parsedRequest)
-                    val selector = requestData.getJSONObject("selector")
-                    val nonceBase64 = requestData.getString("nonce")
-                    val readerPublicKeyBase64 = requestData.getString("readerPublicKey")
-                    val docType = selector.getString("doctype")
-
-                    // Convert nonce and publicKey
-                    val nonce = Base64.decode(nonceBase64, Base64.NO_WRAP or Base64.URL_SAFE)
-
-                    // Match all the requested fields
-                    val fields = selector.getJSONArray("fields")
-                    for (n in 0 until fields.length()) {
-                        val field = fields.getJSONObject(n)
-                        val name = field.getString("name")
-                        val namespace = field.getString("namespace")
-                        val intentToRetain = field.getBoolean("intentToRetain")
-                        requestedData.getOrPut(namespace) { mutableListOf() }
-                            .add(Pair(name, intentToRetain))
-                    }
-
-                    at.asitplus.dcapi.request.PreviewDCAPIRequest(
-                        requestData.toString(),
-                        requestedData,
-                        credentialId,
-                        callingPackageName,
-                        callingOrigin,
-                        nonce,
-                        readerPublicKeyBase64,
-                        docType,
-                    )
-                }
                 protocol.startsWith(DC_API_OID4VP_PROTOCOL_IDENTIFIER) -> {
                     Napier.d("Using protocol $protocol, got request $requestData for credential ID $credentialId")
                     Oid4vpDCAPIRequest(
@@ -289,50 +253,6 @@ public class AndroidPlatformAdapter(
                 }
             }
         } ?: throw IllegalStateException("DCAPIInvocationData not set")
-    }
-
-    @Suppress("DEPRECATION")
-    @OptIn(ExperimentalEncodingApi::class)
-    override fun prepareDCAPIPreviewCredentialResponse(
-        responseJson: ByteArray,
-        dcApiRequestPreview: at.asitplus.dcapi.request.PreviewDCAPIRequest
-    ) {
-        val readerPublicKey = EcPublicKeyDoubleCoordinate.fromUncompressedPointEncoding(
-            EcCurve.P256,
-            Base64.decode(
-                dcApiRequestPreview.readerPublicKeyBase64,
-                Base64.NO_WRAP or Base64.URL_SAFE
-            )
-        )
-        // Generate the Session Transcript
-        val encodedSessionTranscript = if (dcApiRequestPreview.callingOrigin == null) {
-            CredmanUtil.generateAndroidSessionTranscript(
-                dcApiRequestPreview.nonce,
-                dcApiRequestPreview.callingPackageName!!,
-                Crypto.digest(Algorithm.SHA256, readerPublicKey.asUncompressedPointEncoding)
-            )
-        } else {
-            CredmanUtil.generateBrowserSessionTranscript(
-                dcApiRequestPreview.nonce,
-                dcApiRequestPreview.callingOrigin!!,
-                Crypto.digest(Algorithm.SHA256, readerPublicKey.asUncompressedPointEncoding)
-            )
-        }
-
-        val (cipherText, encapsulatedPublicKey) = Crypto.hpkeEncrypt(
-            Algorithm.HPKE_BASE_P256_SHA256_AES128GCM,
-            readerPublicKey,
-            responseJson,
-            encodedSessionTranscript
-        )
-        val encodedCredentialDocument =
-            CredmanUtil.generateCredentialDocument(cipherText, encapsulatedPublicKey)
-
-        val response =
-            ResponseJSON(kotlin.io.encoding.Base64.UrlSafe.encode(encodedCredentialDocument))
-        (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
-            sendCredentialResponseToInvoker(joseCompliantSerializer.encodeToString(response), true)
-        } ?: throw IllegalStateException("Callback for response not found")
     }
 
     @OptIn(ExperimentalEncodingApi::class)
