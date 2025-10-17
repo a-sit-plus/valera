@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.window.ComposeUIViewController
 import at.asitplus.KmmResult
 import at.asitplus.dcapi.request.DCAPIRequest
-import at.asitplus.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.iso.EncryptionParameters
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.KeystoreService
@@ -207,13 +206,6 @@ class IosPlatformAdapter(
 
     override fun getCurrentDCAPIData(): KmmResult<DCAPIRequest> {
         return KmmResult.failure(Throwable("Using Swift platform adapter"))
-    }
-
-    override fun prepareDCAPIPreviewCredentialResponse(
-        responseJson: ByteArray,
-        dcApiRequestPreview: PreviewDCAPIRequest
-    ) {
-        //TODO("Not yet implemented")
     }
 
     override fun prepareDCAPIIsoMdocCredentialResponse(

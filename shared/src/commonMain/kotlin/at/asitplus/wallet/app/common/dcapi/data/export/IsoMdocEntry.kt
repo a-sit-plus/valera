@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.getString
 
 @Serializable
-data class IsoEntry(
+data class IsoMdocEntry(
     @SerialName("id")
     val id: String,
     @SerialName("docType")

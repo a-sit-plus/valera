@@ -340,28 +340,12 @@ private fun WalletNavHost(
                 try {
                     val apiRequestSerialized =
                         backStackEntry.toRoute<DCAPIAuthenticationConsentRoute>().apiRequestSerialized
-                    val dcApiRequest: DCAPIRequest =
-                        catching {
-                            vckJsonSerializer.decodeFromString<PreviewDCAPIRequest>(apiRequestSerialized)
-                        }.getOrNull()
-                            ?: catching {
-                                vckJsonSerializer.decodeFromString<IsoMdocRequest>(apiRequestSerialized)
-                            }.getOrThrow()
+                    val dcApiRequest: DCAPIRequest = catching {
+                        vckJsonSerializer.decodeFromString<IsoMdocRequest>(apiRequestSerialized)
+                    }.getOrThrow()
 
                     when (dcApiRequest) {
-                        is PreviewDCAPIRequest -> PreviewDCAPIAuthenticationViewModel(
-                            dcApiRequestPreview = dcApiRequest,
-                            navigateUp = navigateBack,
-                            navigateToAuthenticationSuccessPage = {
-                                navigate(AuthenticationSuccessRoute(it, false))
-                            },
-                            walletMain = walletMain,
-                            navigateToHomeScreen = {
-                                popBackStack(HomeScreenRoute)
-                            },
-                            onClickLogo = onClickLogo,
-                            onClickSettings = { navigate(SettingsRoute) }
-                        )
+                        is PreviewDCAPIRequest -> TODO("remove once vck is updated")
 
                         is IsoMdocRequest -> {
                             NewDCAPIAuthenticationViewModel(
