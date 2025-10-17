@@ -7,7 +7,7 @@ import org.jetbrains.compose.resources.getString
 
 @Serializable
 data class IsoMdocEntry(
-    @SerialName("id")
+    @SerialName("documentId")
     val id: String,
     @SerialName("docType")
     val docType: String,
@@ -27,7 +27,7 @@ data class IsoMdocEntry(
                             ?.let { getString(it) } ?: name
                     val previewValue =
                         value.toCustomString().safeSubstring(128)
-                    name to ExportedElements(displayName, previewValue)
+                    name to ExportedElements(displayName, previewValue, previewValue)
                 }.toMap()
             }.toMap()
         }
