@@ -171,11 +171,11 @@ public class AndroidPlatformAdapter(
         scope.launch(Dispatchers.Default) {
             catching {
                 val client = IdentityCredentialManager.Companion.getClient(context)
-                val credentialsListCbor = coseCompliantSerializer.encodeToByteArray(entries)
                 val exporter = DCAPIAndroidExporter(context)
                 val registrationRequest = exporter.createRegistrationRequest(credentialsListCbor)
 
                 client.registerCredentials(registrationRequest).await()
+                val credentialsListCbor = coseCompliantSerializer.encodeToByteArray(entries.entries)
             }.onSuccess { Napier.i("DC API: Credential Manager registration succeeded") }
                 .onFailure { Napier.w("DC API: Credential Manager registration failed", it) }
         }
