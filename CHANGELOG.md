@@ -9,6 +9,9 @@
  * Issuing: Support direct invocation from browser
  * Support URL schemes `haip-vp` and `haip-vci` from latest HAIP draft
  * Add Age Verification credential
+ * Update to multipaz 0.94.0
+ * Add ble and nfc capability checks for proximity (enabled, selected)
+ * Move transfer options selection from general settings view to proximity holder and verifier route
 
 # Release 5.7.3
  * Update to VC-K 5.8.0, fixing optional attributes during presentation
