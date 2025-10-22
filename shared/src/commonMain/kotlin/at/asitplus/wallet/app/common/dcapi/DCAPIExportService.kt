@@ -6,7 +6,7 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.app_display_name
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialEntry
-import at.asitplus.wallet.app.common.dcapi.data.export.CredentialList
+import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.app.common.dcapi.data.export.IsoMdocEntry
 import at.asitplus.wallet.app.common.dcapi.data.export.SdJwtEntry
 import at.asitplus.wallet.app.common.decodeImage
@@ -37,9 +37,9 @@ class DCAPIExportService(private val platformAdapter: PlatformAdapter) {
             catching { storeEntry.toCredentialEntry() }.getOrNull()
         }
 
-        val credentialList = CredentialList(credentialListEntries)
-        platformAdapter.registerWithDigitalCredentialsAPI(credentialList, scope)
-        Napier.d("DC API: Registering ${credentialList.entries.size} credentials with the system")
+        val credentialRegistry = CredentialRegistry.create(credentialListEntries)
+        platformAdapter.registerWithDigitalCredentialsAPI(credentialRegistry, scope)
+        Napier.d("DC API: Registering ${credentialRegistry.credentials.size} credentials with the system")
     }
 
     private suspend fun SubjectCredentialStore.StoreEntry.toCredentialEntry() = when (this) {

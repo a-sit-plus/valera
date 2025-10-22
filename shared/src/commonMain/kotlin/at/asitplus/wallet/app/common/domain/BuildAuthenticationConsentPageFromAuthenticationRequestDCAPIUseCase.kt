@@ -11,5 +11,5 @@ class BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase {
             KmmResult.success(
                 DCAPIAuthenticationConsentRoute(vckJsonSerializer.encodeToString(it))
             )
-        } ?: KmmResult.failure(Error("No DCAPI authentication request received"))
+        } ?: KmmResult.failure(Error("No DC API authentication request received"))
 }

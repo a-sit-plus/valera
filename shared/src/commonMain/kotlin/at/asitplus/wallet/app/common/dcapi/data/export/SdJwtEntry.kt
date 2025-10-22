@@ -8,7 +8,7 @@ import org.jetbrains.compose.resources.getString
 
 @Serializable
 data class SdJwtEntry(
-    @SerialName("id")
+    @SerialName("documentId")
     val jwtId: String,
     @SerialName("vct")
     val verifiableCredentialType: String,
@@ -22,7 +22,7 @@ data class SdJwtEntry(
         ): Map<String, ExportedElements> = attributeMap.map { (name, value) ->
             val displayName = attributeTranslator.translate(name.toJsonPath())?.let { getString(it) } ?: name
             val previewValue = value.toCustomString().safeSubstring(128)
-            name to ExportedElements(displayName, previewValue)
+            name to ExportedElements(displayName, previewValue, previewValue)
         }.toMap()
     }
 }

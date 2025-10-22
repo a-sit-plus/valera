@@ -7,5 +7,6 @@ import kotlinx.serialization.cbor.CborArray
 @CborArray
 data class ExportedElements(
     val elementFriendlyName: String,
-    val elementValue: String
+    val elementValue: String,
+    val rawElementValue: String
 )

@@ -9,7 +9,7 @@ import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.WalletDependencyProvider
-import at.asitplus.wallet.app.common.dcapi.data.export.CredentialList
+import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import data.storage.RealDataStoreService
 import data.storage.createDataStore
 import io.github.aakira.napier.Napier
@@ -198,7 +198,7 @@ class IosPlatformAdapter(
     }
 
     override fun registerWithDigitalCredentialsAPI(
-        entries: CredentialList,
+        entries: CredentialRegistry,
         scope: CoroutineScope
     ) {
         //TODO("Not yet implemented")

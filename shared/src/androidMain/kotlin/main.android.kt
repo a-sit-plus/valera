@@ -9,6 +9,7 @@ import androidx.core.net.toUri
 import androidx.credentials.ExperimentalDigitalCredentialApi
 import androidx.credentials.GetDigitalCredentialOption
 import androidx.credentials.provider.PendingIntentHandler
+import androidx.credentials.provider.ProviderGetCredentialRequest
 import androidx.credentials.registry.provider.RegistryManager
 import androidx.credentials.registry.provider.selectedEntryId
 import at.asitplus.KmmResult
@@ -26,16 +27,14 @@ import at.asitplus.openid.OpenIdConstants.DC_API_OID4VP_PROTOCOL_IDENTIFIER
 import at.asitplus.signum.indispensable.cosef.CoseKeyParams.EcKeyParams
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.signum.indispensable.io.Base64UrlStrict
-import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.android.dcapi.CustomRegistry
 import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.WalletDependencyProvider
-import at.asitplus.wallet.app.common.dcapi.data.export.CredentialList
+import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.lib.data.vckJsonSerializer
-import com.android.identity.android.mdoc.util.CredmanUtil
 import data.storage.RealDataStoreService
 import data.storage.getDataStore
 import io.github.aakira.napier.Napier
@@ -55,6 +54,7 @@ import org.multipaz.prompt.PromptModel
 import ui.theme.darkScheme
 import ui.theme.lightScheme
 import java.io.File
+import java.lang.IllegalStateException
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 
@@ -162,10 +162,10 @@ public class AndroidPlatformAdapter(
         context.startActivity(Intent.createChooser(intent, null))
     }
 
-    override fun registerWithDigitalCredentialsAPI(entries: CredentialList, scope: CoroutineScope) {
+    override fun registerWithDigitalCredentialsAPI(entries: CredentialRegistry, scope: CoroutineScope) {
         scope.launch(Dispatchers.Default) {
             catching {
-                val credentialsListCbor = coseCompliantSerializer.encodeToByteArray(entries.entries)
+                val credentialsListCbor = coseCompliantSerializer.encodeToByteArray(entries)
                 val customRegistry = CustomRegistry(credentialsListCbor, context)
                 RegistryManager.create(context).registerCredentials(customRegistry)
             }.onSuccess { Napier.i("DC API: Credential Manager registration succeeded") }
@@ -173,13 +173,53 @@ public class AndroidPlatformAdapter(
         }
     }
 
-    @Suppress("DEPRECATION")
+    // Source: https://github.com/openwallet-foundation/multipaz/blob/5c1845c400875edcc4620e395773d89c3f796256/multipaz-compose/src/androidMain/kotlin/org/multipaz/compose/digitalcredentials/CredentialManagerPresentmentActivity.kt#L206
+    private data class SelectionInfo(
+        val protocol: String,
+        val documentIds: List<String>
+    )
+
+    private fun getSetSelection(request: ProviderGetCredentialRequest): SelectionInfo? {
+        // TODO: replace sourceBundle peeking when we upgrade to a new Credman Jetpack..
+        val setId = request.sourceBundle!!.getString("androidx.credentials.registry.provider.extra.CREDENTIAL_SET_ID")
+            ?: return null
+        val setElementLength = request.sourceBundle!!.getInt(
+            "androidx.credentials.registry.provider.extra.CREDENTIAL_SET_ELEMENT_LENGTH", 0
+        )
+        val credIds = mutableListOf<String>()
+        for (n in 0 until setElementLength) {
+            val credId = request.sourceBundle!!.getString(
+                "androidx.credentials.registry.provider.extra.CREDENTIAL_SET_ELEMENT_ID_$n"
+            ) ?: return null
+            val splits = credId.split(" ")
+            require(splits.size == 3) { "Expected CredId $n to have three parts, got ${splits.size}" }
+            credIds.add(splits[2])
+        }
+        val splits = setId.split(" ")
+        require(splits.size == 2) { "Expected SetId to have two parts, got ${splits.size}" }
+        return SelectionInfo(
+            protocol = splits[1],
+            documentIds = credIds
+        )
+    }
+
+    private fun getSelection(request: ProviderGetCredentialRequest): SelectionInfo? {
+        val selectedEntryId = request.selectedEntryId
+            ?: throw IllegalStateException("selectedEntryId is null")
+        val splits = selectedEntryId.split(" ")
+        require(splits.size == 3) { "Expected CredId to have three parts, got ${splits.size}" }
+        return SelectionInfo(
+            protocol = splits[1],
+            documentIds = listOf(splits[2])
+        )
+    }
+
     @OptIn(ExperimentalDigitalCredentialApi::class, ExperimentalEncodingApi::class)
     override fun getCurrentDCAPIData(): KmmResult<DCAPIRequest> = catching {
         (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.let { (intent, _) ->
             // Adapted from https://github.com/openwallet-foundation-labs/identity-credential/blob/d7a37a5c672ed6fe1d863cbaeb1a998314d19fc5/wallet/src/main/java/com/android/identity_credential/wallet/credman/CredmanPresentationActivity.kt#L74
-            val request = PendingIntentHandler.retrieveProviderGetCredentialRequest(intent)
-            val credentialId = request!!.selectedEntryId!!
+            val credentialRequest = PendingIntentHandler.retrieveProviderGetCredentialRequest(intent)
+                ?: throw IllegalArgumentException("No credential request received")
 
             val privilegedUserAgents =
                 context.assets.open("privileged_apps.json").use { stream ->
@@ -187,24 +227,20 @@ public class AndroidPlatformAdapter(
                     data.decodeToString()
                 }
 
-            val callingAppInfo = request.callingAppInfo
+            val callingAppInfo = credentialRequest.callingAppInfo
             val callingPackageName = callingAppInfo.packageName
             val callingOrigin = callingAppInfo.getOrigin(privilegedUserAgents)
+                //?: getAppOrigin(callingAppInfo.signingInfoCompat.signingCertificateHistory[0].toByteArray())
                 ?: throw IllegalArgumentException("Origin unknown")
-            val option = request.credentialOptions[0] as GetDigitalCredentialOption
+            val option = credentialRequest.credentialOptions[0] as GetDigitalCredentialOption
             val requestJson = JSONObject(option.requestJson)
 
-            //val cmrequest = IntentHelper.extractGetCredentialRequest(it) ?: return null
-            //val credentialId = it.getStringExtra(IntentHelper.EXTRA_CREDENTIAL_ID)?.toInt() ?: -1
+            val selectionInfo = getSetSelection(credentialRequest)
+                ?: getSelection(credentialRequest)
+                ?:  throw IllegalStateException("Unable to get credman selection")
 
-            // This call is currently broken, have to extract this info manually for now
-            //val callingAppInfo = extractCallingAppInfo(intent)
-            //val callingPackageName = it.getStringExtra("androidx.identitycredentials.extra.CALLING_PACKAGE_NAME") // IntentHelper.EXTRA_CALLING_PACKAGE_NAME produces InterpreterMethodNotFoundError
-            //val callingOrigin = it.getStringExtra("androidx.identitycredentials.extra.ORIGIN") // IntentHelper.EXTRA_ORIGIN produces InterpreterMethodNotFoundError
+            Napier.d("Got request $requestJson for selection $selectionInfo")
 
-            //val json = JSONObject(cmrequest.credentialOptions[0].requestMatcher)
-
-            Napier.d("Got request $requestJson for credential ID $credentialId")
 
             val parsedRequest = if (requestJson.has("providers")) {
                 requestJson.getJSONArray("providers").getJSONObject(0)
@@ -218,6 +254,9 @@ public class AndroidPlatformAdapter(
             } else {
                 parsedRequest.getJSONObject("data")
             }
+
+            val credentialId = selectionInfo.documentIds[0] // selectionInfo.documentIds
+            // TODO support multiple documents, need vck composite build for it
 
             when {
                 protocol.startsWith(DC_API_OID4VP_PROTOCOL_IDENTIFIER) -> {
