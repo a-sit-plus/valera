@@ -219,7 +219,7 @@ public class AndroidPlatformAdapter(
         (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.let { (intent, _) ->
             // Adapted from https://github.com/openwallet-foundation-labs/identity-credential/blob/d7a37a5c672ed6fe1d863cbaeb1a998314d19fc5/wallet/src/main/java/com/android/identity_credential/wallet/credman/CredmanPresentationActivity.kt#L74
             val credentialRequest = PendingIntentHandler.retrieveProviderGetCredentialRequest(intent)
-                ?: throw IllegalArgumentException("No credential request received")
+                ?: throw IllegalArgumentException("DC API: No credential request received")
 
             val privilegedUserAgents =
                 context.assets.open("privileged_apps.json").use { stream ->
@@ -231,15 +231,15 @@ public class AndroidPlatformAdapter(
             val callingPackageName = callingAppInfo.packageName
             val callingOrigin = callingAppInfo.getOrigin(privilegedUserAgents)
                 //?: getAppOrigin(callingAppInfo.signingInfoCompat.signingCertificateHistory[0].toByteArray())
-                ?: throw IllegalArgumentException("Origin unknown")
+                ?: throw IllegalArgumentException("DC API: Calling app origin unknown")
             val option = credentialRequest.credentialOptions[0] as GetDigitalCredentialOption
             val requestJson = JSONObject(option.requestJson)
 
             val selectionInfo = getSetSelection(credentialRequest)
                 ?: getSelection(credentialRequest)
-                ?:  throw IllegalStateException("Unable to get credman selection")
+                ?:  throw IllegalStateException("Unable to get DC API selection")
 
-            Napier.d("Got request $requestJson for selection $selectionInfo")
+            Napier.d("DC API: Got request $requestJson for selection $selectionInfo")
 
 
             val parsedRequest = if (requestJson.has("providers")) {
@@ -287,7 +287,7 @@ public class AndroidPlatformAdapter(
                 }
 
                 else -> {
-                    Napier.e("Protocol type $protocol not supported")
+                    Napier.e("DC API: Protocol type $protocol not supported")
                     throw IllegalArgumentException("Protocol type $protocol not supported")
                 }
             }

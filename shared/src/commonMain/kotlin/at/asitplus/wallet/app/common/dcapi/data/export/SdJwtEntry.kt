@@ -21,8 +21,8 @@ data class SdJwtEntry(
             attributeTranslator: CredentialAttributeTranslator
         ): Map<String, ExportedElements> = attributeMap.map { (name, value) ->
             val displayName = attributeTranslator.translate(name.toJsonPath())?.let { getString(it) } ?: name
-            val previewValue = value.toCustomString().safeSubstring(128)
-            name to ExportedElements(displayName, previewValue, previewValue)
+            val truncatedValue = value.toCustomString().safeSubstring(128)
+            name to ExportedElements(displayName, truncatedValue, truncatedValue)
         }.toMap()
     }
 }
