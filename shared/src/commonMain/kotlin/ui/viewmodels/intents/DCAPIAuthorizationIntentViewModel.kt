@@ -2,7 +2,6 @@ package ui.viewmodels.intents
 
 import at.asitplus.dcapi.request.IsoMdocRequest
 import at.asitplus.dcapi.request.Oid4vpDCAPIRequest
-import at.asitplus.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.domain.BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase
 import at.asitplus.wallet.lib.oidvci.OAuth2Exception
@@ -19,12 +18,12 @@ class DCAPIAuthorizationIntentViewModel(
     val onSuccess: (Route) -> Unit,
     val onFailure: (Throwable) -> Unit
 ) {
-    private val buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase =
+    private val buildConsentPageFromRequestUriUseCase =
         BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
             presentationService = walletMain.presentationService,
         )
 
-    private val buildAuthenticationConsentPageFromDcApiRequest =
+    private val buildConsentPageFromDcApiRequest =
         BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase()
 
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, error ->
@@ -41,16 +40,8 @@ class DCAPIAuthorizationIntentViewModel(
         val dcApiRequest = walletMain.platformAdapter.getCurrentDCAPIData().getOrThrow()
 
         val successRoute = when (dcApiRequest) {
-            is PreviewDCAPIRequest -> TODO("Delete line when removed from vck")
-
-            is Oid4vpDCAPIRequest ->
-                buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
-                    dcApiRequest.request,
-                    dcApiRequest
-                )
-
-            is IsoMdocRequest ->
-                buildAuthenticationConsentPageFromDcApiRequest(dcApiRequest)
+            is Oid4vpDCAPIRequest -> buildConsentPageFromRequestUriUseCase(dcApiRequest.request)
+            is IsoMdocRequest -> buildConsentPageFromDcApiRequest(dcApiRequest)
 
         }.getOrThrow()
 

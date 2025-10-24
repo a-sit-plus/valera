@@ -5,6 +5,7 @@ import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
 import data.PersonalDataCategory
 
+@Suppress("DEPRECATION")
 object EuPidCredentialAttributeCategorization : CredentialAttributeCategorization.Template(
     mapOf(
         PersonalDataCategory.IdentityData to with(EuPidScheme.Attributes) {

@@ -3,14 +3,10 @@ package at.asitplus.wallet.app.common
 import at.asitplus.dcapi.DCAPIHandover
 import at.asitplus.dcapi.DCAPIInfo
 import at.asitplus.dcapi.request.IsoMdocRequest
-import at.asitplus.dcapi.request.Oid4vpDCAPIRequest
 import at.asitplus.iso.DeviceAuthentication
 import at.asitplus.iso.SessionTranscript
 import at.asitplus.iso.sha256
 import at.asitplus.iso.wrapInCborTag
-import at.asitplus.openid.AuthenticationRequestParameters
-import at.asitplus.openid.RelyingPartyMetadata
-import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.signum.indispensable.io.Base64UrlStrict
@@ -44,29 +40,19 @@ class PresentationService(
         holderAgent = holderAgent
     )
 
-    suspend fun parseAuthenticationRequestParameters(
-        requestUri: String,
-        dcApiRequest: Oid4vpDCAPIRequest?
-    ) = presentationService.parseAuthenticationRequestParameters(requestUri, dcApiRequest)
+    suspend fun startAuthorizationResponsePreparation(input: String) =
+        presentationService.startAuthorizationResponsePreparation(input)
 
-    suspend fun startAuthorizationResponsePreparation(
-        request: RequestParametersFrom<AuthenticationRequestParameters>
-    ) = presentationService.startAuthorizationResponsePreparation(request)
-
-    suspend fun getPreparationState(request: RequestParametersFrom<AuthenticationRequestParameters>) =
-        presentationService.startAuthorizationResponsePreparation(request).getOrThrow()
-
-    suspend fun getMatchingCredentials(preparationState: AuthorizationResponsePreparationState, request: RequestParametersFrom<AuthenticationRequestParameters>) =
-        presentationService.getMatchingCredentials(preparationState, request)
+    suspend fun getMatchingCredentials(
+        preparationState: AuthorizationResponsePreparationState
+    ) = presentationService.getMatchingCredentials(preparationState)
 
     suspend fun finalizeAuthorizationResponse(
-        request: RequestParametersFrom<AuthenticationRequestParameters>,
-        clientMetadata: RelyingPartyMetadata?,
         credentialPresentation: CredentialPresentation,
+        preparationState: AuthorizationResponsePreparationState,
     ) = presentationService.finalizeAuthorizationResponse(
-        request = request,
-        clientMetadata = clientMetadata,
         credentialPresentation = credentialPresentation,
+        preparationState = preparationState
     ).getOrThrow()
 
     @OptIn(ExperimentalEncodingApi::class, ExperimentalStdlibApi::class)

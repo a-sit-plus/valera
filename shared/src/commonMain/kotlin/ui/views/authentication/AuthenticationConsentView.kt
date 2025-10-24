@@ -44,9 +44,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import at.asitplus.catching
+import at.asitplus.openid.QCertCreationAcceptance
+import at.asitplus.openid.QesAuthorization
 import at.asitplus.openid.TransactionDataBase64Url
-import at.asitplus.rqes.collection_entries.QCertCreationAcceptance
-import at.asitplus.rqes.collection_entries.QesAuthorization
 import at.asitplus.signum.indispensable.io.Base64UrlStrict
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_location
@@ -58,7 +58,6 @@ import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_data_recipient
 import at.asitplus.valera.resources.section_heading_transaction_data
 import at.asitplus.wallet.lib.data.toTransactionData
-import at.asitplus.wallet.lib.oidvci.encodeToParameters
 import io.github.aakira.napier.Napier
 import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
 import org.jetbrains.compose.resources.stringResource
@@ -261,6 +260,7 @@ fun TransactionDataView(transactionData: TransactionDataBase64Url) {
                             modifier = paddingModifier,
                         )
                     }
+
                     is QesAuthorization -> {
                         parsedTransactionData.processID?.let {
                             LabeledText(
@@ -283,6 +283,10 @@ fun TransactionDataView(transactionData: TransactionDataBase64Url) {
                                 modifier = paddingModifier,
                             )
                         }
+                    }
+
+                    null -> {
+                        // can't show anything
                     }
                 }
                 parsedTransactionData?.transactionDataHashAlgorithms?.let {

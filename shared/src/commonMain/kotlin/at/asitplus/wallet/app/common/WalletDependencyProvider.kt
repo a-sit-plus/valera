@@ -1,6 +1,5 @@
 package at.asitplus.wallet.app.common
 
-import at.asitplus.wallet.lib.rqes.Initializer
 import data.storage.AntilogAdapter
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
@@ -28,7 +27,6 @@ data class WalletDependencyProvider(
         at.asitplus.wallet.taxid.Initializer.initWithVCK()
         at.asitplus.wallet.ehic.Initializer.initWithVCK()
 
-        Initializer.initRqesModule()
         Napier.takeLogarithm()
         Napier.base(AntilogAdapter(platformAdapter, "", buildContext.buildType))
     }

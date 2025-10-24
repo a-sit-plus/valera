@@ -34,7 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import at.asitplus.rqes.CredentialInfo
+import at.asitplus.csc.CredentialInfo
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.heading_label_select_vda
@@ -153,7 +153,7 @@ fun QtspSelectionField(
         OutlinedTextField(
             singleLine = true,
             readOnly = true,
-            value = qtspList.filter { it.identifier == value }.first().qtspBaseUrl,
+            value = qtspList.first { it.identifier == value }.qtspBaseUrl,
             onValueChange = {},
             enabled = enabled,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },

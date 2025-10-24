@@ -1,15 +1,14 @@
 package at.asitplus.wallet.app.common
 
-import at.asitplus.rqes.QtspSignatureResponse
-import at.asitplus.rqes.SignDocResponseParameters
-import at.asitplus.rqes.SignHashResponseParameters
-import at.asitplus.rqes.collection_entries.OAuthDocumentDigest
+import at.asitplus.csc.QtspSignatureResponse
+import at.asitplus.csc.SignHashResponseParameters
+import at.asitplus.csc.collection_entries.OAuthDocumentDigest
 import at.asitplus.signum.indispensable.X509SignatureAlgorithm
 import at.asitplus.signum.indispensable.asn1.ObjectIdentifier
 import at.asitplus.signum.indispensable.asn1.ObjectIdentifierStringSerializer
 import at.asitplus.signum.indispensable.io.ByteArrayBase64Serializer
 import at.asitplus.wallet.lib.data.vckJsonSerializer
-import at.asitplus.wallet.lib.rqes.RqesOpenId4VpHolder
+import at.asitplus.wallet.lib.rqes.RqesWalletService
 import io.ktor.client.HttpClient
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -167,7 +166,7 @@ data class DtbsrWrapper(
 internal suspend fun getDTBSR(
     client: HttpClient,
     qtspHost: String,
-    signingCredential: RqesOpenId4VpHolder.SigningCredential,
+    signingCredential: RqesWalletService.SigningCredential,
     signatureAlgorithm: X509SignatureAlgorithm,
     document: DocumentWithLabel,
 ): Pair<String, OAuthDocumentDigest> {
@@ -196,7 +195,6 @@ internal suspend fun getFinishedDocuments(
     qtspIdentifier: String,
 ): List<FinishedDocument> {
     val finishedDocuments = mutableListOf<FinishedDocument>()
-
     when (signatureResponse) {
         is SignHashResponseParameters -> {
             require(signatureResponse.signatures != null) { "Signatures are null" }
@@ -207,7 +205,7 @@ internal suspend fun getFinishedDocuments(
             for (wrappedSig in signatures) {
                 val finishedDocResponse = client.post("${qtspHost}/sca/finalize") {
                     contentType(ContentType.Application.Json)
-                    header("Wallet-QTSP-ID", qtspIdentifier) 
+                    header("Wallet-QTSP-ID", qtspIdentifier)
                     setBody(
                         vckJsonSerializer.encodeToString(
                             wrappedSig
@@ -219,7 +217,7 @@ internal suspend fun getFinishedDocuments(
             }
         }
 
-        is SignDocResponseParameters -> TODO("Not in potential test scope")
+        else -> TODO("Not in potential test scope")
     }
     return finishedDocuments
 }

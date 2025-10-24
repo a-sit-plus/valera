@@ -25,7 +25,7 @@ import at.asitplus.catchingUnwrapped
 import at.asitplus.dcapi.request.DCAPIRequest
 import at.asitplus.dcapi.request.IsoMdocRequest
 import at.asitplus.dcapi.request.Oid4vpDCAPIRequest
-import at.asitplus.dcapi.request.PreviewDCAPIRequest
+import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_reset_app_successfully
 import at.asitplus.wallet.app.common.ErrorService
@@ -183,7 +183,7 @@ private fun WalletNavHost(
     intentService: IntentService = koinInject(),
     settingsRepository: SettingsRepository = koinInject(),
 
-) {
+    ) {
     val currentHost by settingsRepository.host.collectAsState("")
     NavHost(
         navController = navController,
@@ -300,7 +300,11 @@ private fun WalletNavHost(
 
             val vm = remember {
                 try {
-                    val dcApiRequest = route.authorizationResponsePreparationState.oid4vpDCAPIRequest
+                    val dcApiRequest = when(val request = route.authorizationResponsePreparationState.request) {
+                        is RequestParametersFrom.DcApiSigned<*> -> request.dcApiRequest
+                        is RequestParametersFrom.DcApiUnsigned<*> -> request.dcApiRequest
+                        else -> null
+                    }
                     val spLocation = dcApiRequest?.callingOrigin ?: route.recipientLocation
 
                     DefaultAuthenticationViewModel(
@@ -345,29 +349,23 @@ private fun WalletNavHost(
                     }.getOrThrow()
 
                     when (dcApiRequest) {
-                        is PreviewDCAPIRequest -> TODO("remove once vck is updated")
-
-                        is IsoMdocRequest -> {
-                            NewDCAPIAuthenticationViewModel(
-                                isoMdocRequest = dcApiRequest,
-                                navigateUp = navigateBack,
-                                navigateToAuthenticationSuccessPage = {
-                                    navigate(AuthenticationSuccessRoute(it, false))
-                                },
-                                walletMain = walletMain,
-                                navigateToHomeScreen = {
-                                    popBackStack(HomeScreenRoute)
-                                },
-                                onClickLogo = onClickLogo,
-                                onClickSettings = { navigate(SettingsRoute) }
-                            ).also { it.initWithDeviceRequest(dcApiRequest.deviceRequest) }
-                        }
+                        is IsoMdocRequest -> NewDCAPIAuthenticationViewModel(
+                            isoMdocRequest = dcApiRequest,
+                            navigateUp = navigateBack,
+                            navigateToAuthenticationSuccessPage = {
+                                navigate(AuthenticationSuccessRoute(it, false))
+                            },
+                            walletMain = walletMain,
+                            navigateToHomeScreen = {
+                                popBackStack(HomeScreenRoute)
+                            },
+                            onClickLogo = onClickLogo,
+                            onClickSettings = { navigate(SettingsRoute) }
+                        ).also { it.initWithDeviceRequest(dcApiRequest.deviceRequest) }
 
                         is Oid4vpDCAPIRequest ->
                             throw IllegalStateException("Handled by AuthenticationViewRoute")
                     }
-
-
                 } catch (e: Throwable) {
                     Napier.e("error", e)
                     onError(e)

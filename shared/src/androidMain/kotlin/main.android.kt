@@ -1,3 +1,4 @@
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -23,7 +24,6 @@ import at.asitplus.dcapi.request.Oid4vpDCAPIRequest
 import at.asitplus.iso.DeviceRequest
 import at.asitplus.iso.EncryptionInfo
 import at.asitplus.iso.EncryptionParameters
-import at.asitplus.openid.OpenIdConstants.DC_API_OID4VP_PROTOCOL_IDENTIFIER
 import at.asitplus.signum.indispensable.cosef.CoseKeyParams.EcKeyParams
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.signum.indispensable.io.Base64UrlStrict
@@ -54,7 +54,6 @@ import org.multipaz.prompt.PromptModel
 import ui.theme.darkScheme
 import ui.theme.lightScheme
 import java.io.File
-import java.lang.IllegalStateException
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 
@@ -72,6 +71,7 @@ actual fun getColorScheme(): ColorScheme {
     }
 }
 
+@SuppressLint("ViewModelConstructorInComposable")
 @Composable
 fun MainView(
     buildContext: BuildContext,
@@ -125,12 +125,7 @@ public class AndroidPlatformAdapter(
         if (!folder.exists()) {
             folder.mkdir()
         }
-        val file = File(folder, fileName)
-        return if (file.exists()) {
-            file.readText()
-        } else {
-            null
-        }
+        return File(folder, fileName).takeIf { it.exists() }?.readText()
     }
 
     override fun clearFile(fileName: String, folderName: String) {
@@ -138,21 +133,13 @@ public class AndroidPlatformAdapter(
         if (!folder.exists()) {
             folder.mkdir()
         }
-        val file = File(folder, fileName)
-        if (file.exists()) {
-            file.delete()
-        }
+        File(folder, fileName).takeIf { it.exists() }?.delete()
     }
 
     override fun shareLog() {
         val folder = File(context.filesDir, "logs")
         val file = File(folder, "log.txt")
-        val fileUri = FileProvider.getUriForFile(
-            context,
-            "${context.packageName}.fileprovider",
-            file
-        )
-
+        val fileUri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
 
         val intent: Intent = Intent().apply {
             action = Intent.ACTION_SEND
@@ -230,14 +217,14 @@ public class AndroidPlatformAdapter(
             val callingAppInfo = credentialRequest.callingAppInfo
             val callingPackageName = callingAppInfo.packageName
             val callingOrigin = callingAppInfo.getOrigin(privilegedUserAgents)
-                //?: getAppOrigin(callingAppInfo.signingInfoCompat.signingCertificateHistory[0].toByteArray())
+            //?: getAppOrigin(callingAppInfo.signingInfoCompat.signingCertificateHistory[0].toByteArray())
                 ?: throw IllegalArgumentException("DC API: Calling app origin unknown")
             val option = credentialRequest.credentialOptions[0] as GetDigitalCredentialOption
             val requestJson = JSONObject(option.requestJson)
 
             val selectionInfo = getSetSelection(credentialRequest)
                 ?: getSelection(credentialRequest)
-                ?:  throw IllegalStateException("Unable to get DC API selection")
+                ?: throw IllegalStateException("Unable to get DC API selection")
 
             Napier.d("DC API: Got request $requestJson for selection $selectionInfo")
 
@@ -259,24 +246,22 @@ public class AndroidPlatformAdapter(
             // TODO support multiple documents, need vck composite build for it
 
             when {
-                protocol.startsWith(DC_API_OID4VP_PROTOCOL_IDENTIFIER) -> {
+                protocol.startsWith("openid4vp") -> {
                     Napier.d("Using protocol $protocol, got request $requestData for credential ID $credentialId")
                     Oid4vpDCAPIRequest(
                         protocol, requestData.toString(), credentialId, callingPackageName, callingOrigin
                     )
                 }
 
-                protocol == "org.iso.mdoc" || protocol == "org-iso-mdoc"  -> {
+                protocol == "org.iso.mdoc" || protocol == "org-iso-mdoc" -> {
                     val deviceRequest = requestData.getString("deviceRequest")
                     val encryptionInfo = requestData.getString("encryptionInfo")
-                    val parsedDeviceRequest =
-                        coseCompliantSerializer.decodeFromByteArray<DeviceRequest>(
-                            deviceRequest.decodeToByteArray(Base64UrlStrict)
-                        )
-                    val parsedEncryptionInfo =
-                        coseCompliantSerializer.decodeFromByteArray<EncryptionInfo>(
-                            encryptionInfo.decodeToByteArray(Base64UrlStrict)
-                        )
+                    val parsedDeviceRequest = coseCompliantSerializer.decodeFromByteArray<DeviceRequest>(
+                        deviceRequest.decodeToByteArray(Base64UrlStrict)
+                    )
+                    val parsedEncryptionInfo = coseCompliantSerializer.decodeFromByteArray<EncryptionInfo>(
+                        encryptionInfo.decodeToByteArray(Base64UrlStrict)
+                    )
                     IsoMdocRequest(
                         parsedDeviceRequest,
                         parsedEncryptionInfo,

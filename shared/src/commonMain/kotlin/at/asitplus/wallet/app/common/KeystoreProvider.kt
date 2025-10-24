@@ -6,12 +6,16 @@ import at.asitplus.catchingUnwrapped
 import at.asitplus.io.MultiBase
 import at.asitplus.io.multibaseDecode
 import at.asitplus.io.multibaseEncode
-import at.asitplus.signum.indispensable.*
+import at.asitplus.signum.indispensable.CryptoPrivateKey
+import at.asitplus.signum.indispensable.CryptoPublicKey
+import at.asitplus.signum.indispensable.ECCurve
+import at.asitplus.signum.indispensable.SecretExposure
+import at.asitplus.signum.indispensable.SignatureAlgorithm
+import at.asitplus.signum.indispensable.equalsCryptographically
 import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.signum.supreme.SignatureResult
 import at.asitplus.signum.supreme.dsl.PREFERRED
 import at.asitplus.signum.supreme.os.PlatformSigningProvider
-import at.asitplus.signum.supreme.os.SigningProvider
 import at.asitplus.signum.supreme.sign.SignatureInput
 import at.asitplus.signum.supreme.sign.Signer
 import at.asitplus.wallet.lib.agent.EphemeralKeyWithoutCert
@@ -68,16 +72,16 @@ open class KeystoreService(
                     }
                 }.getOrThrow()
             }
-            return KeyWithPersistentSelfSignedCert(forKey)
+            return KeyWithPersistentSelfSignedCert(forKey, forKey.publicKey.didEncoded, 30)
         }
-
     }
 
-
-    inner class KeyWithPersistentSelfSignedCert(private val signer: Signer) :
-        KeyWithSelfSignedCert(listOf()), Signer by signer {
+    inner class KeyWithPersistentSelfSignedCert(
+        private val signer: Signer,
+        customKeyId: String,
+        lifetimeInSeconds: Long
+    ) : KeyWithSelfSignedCert(listOf(), customKeyId, lifetimeInSeconds), Signer by signer {
         override fun getUnderLyingSigner() = signer
-
 
         private val crtMut = Mutex()
         private var _certificate: X509Certificate? = null
@@ -163,7 +167,7 @@ class FallBackKeyMaterial(
     override val signatureAlgorithm: SignatureAlgorithm = SignatureAlgorithm.ECDSAwithSHA256,
     override val publicKey: CryptoPublicKey = EphemeralKeyWithoutCert().publicKey,
     override val identifier: String = ""
-): KeyMaterial {
+) : KeyMaterial {
     @SecretExposure
     override fun exportPrivateKey(): KmmResult<CryptoPrivateKey.WithPublicKey<*>> {
         throw NotImplementedError()
