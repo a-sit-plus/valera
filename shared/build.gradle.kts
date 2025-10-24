@@ -10,7 +10,6 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
 import org.jetbrains.kotlin.gradle.plugin.extraProperties
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest
 
-val vckVersion = vckCatalog.vck.get().version
 
 plugins {
     kotlin("multiplatform")
@@ -46,8 +45,8 @@ kotlin {
             implementation(compose.foundation)
             implementation(compose.material3)
             implementation(compose.materialIconsExtended)
-            implementation("at.asitplus.wallet:vck-rqes:$vckVersion")
-            api(vckOidCatalog.vck.openid.ktor)
+            implementation(libs.vck.rqes)
+            api(libs.vck.openid.ktor)
             api(libs.atomicfu)
             api(libs.credential.mdl)
             api(libs.credential.ida)
@@ -162,9 +161,9 @@ compose.resources {
 exportXCFramework(
     name = "shared", transitiveExports = false, static = true,
     additionalExports = arrayOf(
-        vckCatalog.vck,
-        vckOidCatalog.vck.openid,
-        vckOidCatalog.vck.openid.ktor,
+        libs.vck,
+        libs.vck.openid,
+        libs.vck.openid.ktor,
         libs.credential.ida,
         libs.credential.mdl,
         libs.credential.eupid,

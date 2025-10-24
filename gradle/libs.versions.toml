@@ -1,4 +1,5 @@
 [versions]
+vck="5.9.0-SNAPSHOT"
 
 accompanist-permissions = "0.37.3"
 activity-compose = "1.10.1"
@@ -77,6 +78,11 @@ multipaz-compose = { module = "org.multipaz:multipaz-compose", version.ref = "mu
 multipaz-doctypes = { module = "org.multipaz:multipaz-doctypes", version.ref = "multipaz" }
 semver = { module = "net.swiftzer.semver:semver", version.ref = "semver" }
 core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "core-splashscreen" }
+
+vck = {group= "at.asitplus.wallet", name="vck", version.ref = "vck"}
+vck-rqes = {group= "at.asitplus.wallet", name="vck-rqes", version.ref = "vck"}
+vck-openid = {group= "at.asitplus.wallet", name="vck-openid", version.ref = "vck"}
+vck-openid-ktor = {group= "at.asitplus.wallet", name="vck-openid-ktor", version.ref = "vck"}
 
 #multipazz workaround
 datetime-compat = {module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.7.1-0.6.x-compat"}

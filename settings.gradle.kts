@@ -40,17 +40,4 @@ dependencyResolutionManagement {
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
         maven("https://central.sonatype.com/repository/maven-snapshots/")
     }
-
-    versionCatalogs {
-        create("vckOidCatalog") {
-            from("at.asitplus.wallet:vck-openid-ktor-versionCatalog:$vckVersion")
-        }
-    }
-    //because the other one does not provide the transitive VC-K dependency required for XFC export
-   versionCatalogs {
-        create("vckCatalog") {
-            from("at.asitplus.wallet:vck-versionCatalog:$vckVersion")
-        }
-    }
-
 }
