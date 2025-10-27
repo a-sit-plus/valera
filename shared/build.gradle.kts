@@ -3,31 +3,57 @@ import at.asitplus.gradle.ktor
 import at.asitplus.gradle.kmmresult
 import at.asitplus.gradle.napier
 import at.asitplus.gradle.serialization
-import org.gradle.internal.os.OperatingSystem
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.gradle.kotlin.dsl.invoke
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
-import org.jetbrains.kotlin.gradle.plugin.extraProperties
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest
 
 
 plugins {
     kotlin("multiplatform")
-    id("com.android.library")
+    id("com.android.kotlin.multiplatform.library")
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
     id("at.asitplus.gradle.conventions")
     id("kotlin-parcelize")
     kotlin("plugin.serialization")
+    id("de.infix.testBalloon")
 }
 
 kotlin {
-    androidTarget {
-        publishLibraryVariants("release")
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
-        instrumentedTestVariant {
-            sourceSetTree.set(KotlinSourceSetTree.test)
+    androidLibrary {
+        namespace = "at.asitplus.wallet.app.common"
+
+        packaging {
+            resources.excludes += ("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
+            resources.excludes.add("**/attach_hotspot_windows.dll")
+            resources.excludes.add("META-INF/licenses/**")
+            resources.excludes.add("META-INF/AL2.0")
+            resources.excludes.add("META-INF/LGPL2.1")
         }
+
+        androidResources {
+            enable = true
+        }
+
+        withHostTest {
+            isIncludeAndroidResources = true
+        }
+
+        withDeviceTestBuilder {
+            sourceSetTreeName = "test"
+        }.configure {
+            instrumentationRunnerArguments["timeout_msec"] = "2400000"
+            managedDevices {
+                localDevices {
+                    create("pixel2api35") {
+                        device = "Pixel 2"
+                        apiLevel = 35
+                        systemImageSource = "aosp-atd"
+                    }
+                }
+            }
+        }
+
     }
 
     iosX64()
@@ -121,38 +147,6 @@ kotlin {
     }
 }
 
-android {
-    compileSdk = (extraProperties["android.compileSdk"] as String).toInt()
-    namespace = "at.asitplus.wallet.app.common"
-
-    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
-    sourceSets["main"].res.srcDirs("src/androidMain/res")
-    sourceSets["main"].resources.srcDirs("src/commonMain/resources")
-
-    defaultConfig {
-        minSdk = (extraProperties["android.minSdk"] as String).toInt()
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
-
-    packaging {
-        resources.excludes += ("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
-        resources.excludes.add("**/attach_hotspot_windows.dll")
-        resources.excludes.add("META-INF/licenses/**")
-        resources.excludes.add("META-INF/AL2.0")
-        resources.excludes.add("META-INF/LGPL2.1")
-    }
-    testOptions {
-        managedDevices {
-            localDevices {
-                create("pixel2api33") {
-                    device = "Pixel 2"
-                    apiLevel = 33
-                    systemImageSource = "aosp-atd"
-                }
-            }
-        }
-    }
-}
 
 compose.resources {
     packageOfResClass = "at.asitplus.valera.resources"

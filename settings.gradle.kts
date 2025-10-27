@@ -26,7 +26,6 @@ if (vckDir.isDirectory && signumFile.exists()) {
 }
 
 dependencyResolutionManagement {
-
     repositories {
         mavenCentral()
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")

@@ -29,9 +29,12 @@ jobs:
       - name: Test KMP on iOS
         run: ./gradlew :shared:iosSimulatorArm64Test
       - name: Test Report from KMP on iOS
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v2
         if: success() || failure()
         with:
           name: Shared tests
           path: shared/build/test-results/**/TEST*.xml
           reporter: java-junit
+          list-suites: failed
+          list-tests: failed
+          use-actions-summary: true

@@ -40,7 +40,6 @@ import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.SessionService
 import at.asitplus.wallet.app.common.WalletDependencyProvider
-import at.asitplus.wallet.app.common.WalletKeyMaterial
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.lib.agent.ClaimToBeIssued
 import at.asitplus.wallet.lib.agent.CredentialToBeIssued
@@ -49,12 +48,14 @@ import at.asitplus.wallet.lib.agent.EphemeralKeyWithoutCert
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.IssuerAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
-import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.agent.toStoreCredentialInput
+import at.asitplus.wallet.lib.data.rfc3986.toUri
 import data.storage.DummyDataStoreService
-import io.kotest.core.Platform
-import io.kotest.core.platform
-import io.kotest.core.spec.style.FunSpec
+import de.infix.testBalloon.framework.TestConfig
+import de.infix.testBalloon.framework.aroundAll
+import de.infix.testBalloon.framework.testSuite
+import io.kotest.common.Platform
+import io.kotest.common.platform
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -92,23 +93,22 @@ private lateinit var lifecycleRegistry: LifecycleRegistry
 private lateinit var lifecycleOwner: TestLifecycleOwner
 
 @OptIn(ExperimentalTestApi::class)
-class InstrumentedTestsSuite : FunSpec({
-
-    beforeTest {
-        lifecycleOwner = TestLifecycleOwner()
-        lifecycleRegistry = LifecycleRegistry(lifecycleOwner)
-        //android needs main, iOS probably too, but it hangs on iOS, so we let it at least fail
-        withContext(if (platform != Platform.Native) Dispatchers.Main else Dispatchers.Unconfined) {
-            lifecycleRegistry.currentState = Lifecycle.State.CREATED
-        }
+val InstrumentedTestsSuite by testSuite(testConfig = TestConfig.aroundAll { suite ->
+    lifecycleOwner = TestLifecycleOwner()
+    lifecycleRegistry = LifecycleRegistry(lifecycleOwner)
+    //android needs main, iOS probably too, but it hangs on iOS, so we let it at least fail
+    withContext(if (platform != Platform.Native) Dispatchers.Main else Dispatchers.Unconfined) {
+        lifecycleRegistry.currentState = Lifecycle.State.CREATED
     }
 
-    afterTest {
-        //android needs main, iOS probably too, but it hangs on iOS, so we let it at least fail
-        withContext(if (platform != Platform.Native) Dispatchers.Main else Dispatchers.Unconfined) {
-            lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
-        }
+    suite()
+
+    //android needs main, iOS probably too, but it hangs on iOS, so we let it at least fail
+    withContext(if (platform != Platform.Native) Dispatchers.Main else Dispatchers.Unconfined) {
+        lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
     }
+}) {
+
 
     context("Starting App Tests") {
         test("Using collectAsState properly updates state to assert") {
@@ -237,9 +237,9 @@ class InstrumentedTestsSuite : FunSpec({
 
                     val keyMaterial = EphemeralKeyWithoutCert()
                     val issuer = IssuerAgent(
-                        validator = Validator(),
                         keyMaterial = keyMaterial,
                         statusListBaseUrl = "https://wallet.a-sit.at/m6/credentials/status",
+                        identifier = "https://issuer.example.com/".toUri(),
                     )
                     runBlocking {
                         holderAgent.storeCredential(
@@ -313,7 +313,7 @@ class InstrumentedTestsSuite : FunSpec({
             }
         }
     }
-})
+}
 
 val request = Json.encodeToString(
     RequestBody.serializer(),

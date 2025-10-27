@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.compose.compiler)
 }
 
+
 kotlin {
     androidTarget()
     sourceSets {
@@ -63,6 +64,8 @@ android {
 
     packaging {
         resources.excludes += ("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
+        resources.excludes += ("META-INF/AL2.0")
+        resources.excludes += ("META-INF/LGPL2.1")
     }
     // post_permissions for mulitpaz
     lint {
