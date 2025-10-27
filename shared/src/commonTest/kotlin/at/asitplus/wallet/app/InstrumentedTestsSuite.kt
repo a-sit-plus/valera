@@ -4,9 +4,10 @@ import App
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsDisplayed
@@ -52,10 +53,10 @@ import at.asitplus.wallet.lib.agent.toStoreCredentialInput
 import at.asitplus.wallet.lib.data.rfc3986.toUri
 import data.storage.DummyDataStoreService
 import de.infix.testBalloon.framework.TestConfig
-import de.infix.testBalloon.framework.aroundAll
+import de.infix.testBalloon.framework.TestInvocation
+import de.infix.testBalloon.framework.invocation
+import de.infix.testBalloon.framework.testScope
 import de.infix.testBalloon.framework.testSuite
-import io.kotest.common.Platform
-import io.kotest.common.platform
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -70,8 +71,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
-import kotlin.time.Clock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -86,28 +85,11 @@ import org.multipaz.prompt.SinglePromptModel
 import ui.navigation.routes.OnboardingWrapperTestTags
 import ui.views.OnboardingStartScreenTestTag
 import kotlin.test.assertTrue
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 
-
-private lateinit var lifecycleRegistry: LifecycleRegistry
-private lateinit var lifecycleOwner: TestLifecycleOwner
-
 @OptIn(ExperimentalTestApi::class)
-val InstrumentedTestsSuite by testSuite(testConfig = TestConfig.aroundAll { suite ->
-    lifecycleOwner = TestLifecycleOwner()
-    lifecycleRegistry = LifecycleRegistry(lifecycleOwner)
-    //android needs main, iOS probably too, but it hangs on iOS, so we let it at least fail
-    withContext(if (platform != Platform.Native) Dispatchers.Main else Dispatchers.Unconfined) {
-        lifecycleRegistry.currentState = Lifecycle.State.CREATED
-    }
-
-    suite()
-
-    //android needs main, iOS probably too, but it hangs on iOS, so we let it at least fail
-    withContext(if (platform != Platform.Native) Dispatchers.Main else Dispatchers.Unconfined) {
-        lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
-    }
-}) {
+val InstrumentedTestsSuite by testSuite(testConfig = TestConfig.invocation(TestInvocation.SEQUENTIAL).testScope(isEnabled = false)) {
 
 
     context("Starting App Tests") {
@@ -118,8 +100,7 @@ val InstrumentedTestsSuite by testSuite(testConfig = TestConfig.aroundAll { suit
                 val testValue = "loaded"
 
                 setContent {
-                    val data by dummyDataStoreService.getPreference(preferenceKey)
-                        .collectAsState("null")
+                    val data by dummyDataStoreService.getPreference(preferenceKey).collectAsState("null")
                     Text(data ?: "collecting state ...")
                 }
 
@@ -144,12 +125,10 @@ val InstrumentedTestsSuite by testSuite(testConfig = TestConfig.aroundAll { suit
                 }
 
                 waitUntil {
-                    onNodeWithTag(OnboardingWrapperTestTags.onboardingStartScreen)
-                        .isDisplayed()
+                    onNodeWithTag(OnboardingWrapperTestTags.onboardingStartScreen).isDisplayed()
                 }
 
-                onNodeWithTag(OnboardingStartScreenTestTag.startButton)
-                    .assertIsDisplayed()
+                onNodeWithTag(OnboardingStartScreenTestTag.startButton).assertIsDisplayed()
             }
         }
 
@@ -163,8 +142,7 @@ val InstrumentedTestsSuite by testSuite(testConfig = TestConfig.aroundAll { suit
                     }
                 }
 
-                onNodeWithTag(OnboardingWrapperTestTags.onboardingStartScreen)
-                    .assertIsDisplayed()
+                onNodeWithTag(OnboardingWrapperTestTags.onboardingStartScreen).assertIsDisplayed()
 
             }
         }
@@ -180,68 +158,83 @@ val InstrumentedTestsSuite by testSuite(testConfig = TestConfig.aroundAll { suit
                 }
 
                 waitUntil {
-                    onNodeWithTag(OnboardingWrapperTestTags.onboardingStartScreen)
-                        .isDisplayed()
+                    onNodeWithTag(OnboardingWrapperTestTags.onboardingStartScreen).isDisplayed()
                 }
 
-                onNodeWithTag(OnboardingStartScreenTestTag.startButton)
-                    .assertIsDisplayed()
+                onNodeWithTag(OnboardingStartScreenTestTag.startButton).assertIsDisplayed()
 
             }
         }
-    }
 
-    test("Test 4: Navigation to screen with viewModel works") {
-        runComposeUiTest {
-            setContent {
-                CompositionLocalProvider(
-                    LocalLifecycleOwner provides TestLifecycleOwner()
-                ) {
-                    App(createWalletDependencyProvider(getPlatformAdapter()))
-                }
-            }
 
-            runBlocking {
-                waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_start)))
-                onNodeWithText(getString(Res.string.button_label_start)).performClick()
-                onNodeWithText(getString(Res.string.button_label_continue)).performClick()
-                waitUntilDoesNotExist(
-                    hasText(getString(Res.string.button_label_continue)),
-                    10000
-                )
-
-                onNodeWithContentDescription(getString(Res.string.content_description_navigate_to_settings)).performClick()
-                waitUntilExactlyOneExists(
-                    hasText(getString(Res.string.heading_label_settings_screen)),
-                    10000
-                )
-            }
-        }
-    }
-
-    context("End to End Tests") {
-        test("End to End Test 1: Should complete the process") {
+        test("Test 4: Navigation to screen with viewModel works") {
             runComposeUiTest {
-                lateinit var walletDependencyProvider: WalletDependencyProvider
                 setContent {
                     CompositionLocalProvider(
                         LocalLifecycleOwner provides TestLifecycleOwner()
                     ) {
-                        val platformAdapter = getPlatformAdapter()
-                        walletDependencyProvider = createWalletDependencyProvider(platformAdapter)
-                        App(walletDependencyProvider)
+                        App(createWalletDependencyProvider(getPlatformAdapter()))
                     }
+                }
+
+                runBlocking {
+                    waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_start)))
+                    onNodeWithText(getString(Res.string.button_label_start)).performClick()
+                    onNodeWithText(getString(Res.string.button_label_continue)).performClick()
+                    waitUntilDoesNotExist(
+                        hasText(getString(Res.string.button_label_continue)),
+                        10000
+                    )
+
+                    onNodeWithContentDescription(getString(Res.string.content_description_navigate_to_settings)).performClick()
+                    waitUntilExactlyOneExists(
+                        hasText(getString(Res.string.heading_label_settings_screen)),
+                        10000
+                    )
+                }
+            }
+        }
+
+    }
+    context("End to End Tests") {
+        test("End to End Test 1: Should complete the process") {
+            runComposeUiTest {
+                val startText = runBlocking { getString(Res.string.button_label_start) }
+                val portraitText = runBlocking { getString(Res.string.content_description_portrait) }
+                val continueText = runBlocking { getString(Res.string.button_label_continue) }
+                val detailsText = runBlocking { getString(Res.string.button_label_details) }
+                val ageText = runBlocking { getString(Res.string.section_heading_age_data) }
+
+
+                val client = HttpClient {
+                    expectSuccess = true
+                    install(ContentNegotiation) {
+                        json()
+                    }
+                }
+
+
+                setContent {
+
+                    // A. Call all @Composable dependencies directly in the Composable context.
+                    val platformAdapter = getPlatformAdapter()
                     val sessionService: SessionService = koinInject()
                     val holderAgent: HolderAgent = koinInject(scope = sessionService.scope.value)
 
+                    // B. Create the dependency provider, remembering it against the platformAdapter
+                    //    so it's not recreated unnecessarily.
+                    val walletDependencyProvider = remember(platformAdapter) {
+                        createWalletDependencyProvider(platformAdapter)
+                    }
 
-                    val keyMaterial = EphemeralKeyWithoutCert()
-                    val issuer = IssuerAgent(
-                        keyMaterial = keyMaterial,
-                        statusListBaseUrl = "https://wallet.a-sit.at/m6/credentials/status",
-                        identifier = "https://issuer.example.com/".toUri(),
-                    )
-                    runBlocking {
+                    // C. Use LaunchedEffect for one-time, asynchronous setup tasks.
+                    //    This is the correct way to run non-UI suspend functions from a Composable.
+                    LaunchedEffect(Unit) {
+                        val issuer = IssuerAgent(
+                            keyMaterial = EphemeralKeyWithoutCert(),
+                            statusListBaseUrl = "https://wallet.a-sit.at/m6/credentials/status",
+                            identifier = "https://issuer.example.com/".toUri(),
+                        )
                         holderAgent.storeCredential(
                             issuer.issueCredential(
                                 CredentialToBeIssued.VcSd(
@@ -254,76 +247,60 @@ val InstrumentedTestsSuite by testSuite(testConfig = TestConfig.aroundAll { suit
                             ).getOrThrow().toStoreCredentialInput()
                         )
                     }
+
+                    // D. Call the main App composable.
+                    App(walletDependencyProvider)
                 }
-                runBlocking {
-                    waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_start)))
-                    onNodeWithText(getString(Res.string.button_label_start)).performClick()
-                    onNodeWithText(getString(Res.string.button_label_continue)).performClick()
-                    waitUntilDoesNotExist(
-                        hasText(getString(Res.string.button_label_continue)),
-                        10000
-                    )
-
-                    onNodeWithContentDescription(getString(Res.string.content_description_portrait))
-                        .assertHeightIsAtLeast(1.dp)
-                    onNodeWithText("XXXÉliás XXXTörőcsik").assertExists()
-                    onNodeWithText("11.10.1965").assertExists()
-
-                    onNodeWithText(getString(Res.string.button_label_details)).performClick()
-                    waitUntilExactlyOneExists(
-                        hasText(getString(Res.string.section_heading_age_data)),
-                        3000
-                    )
-                    onNodeWithText("≥18").assertExists()
-
-                    onNodeWithText(getString(Res.string.button_label_details)).performClick()
 
 
-                    val client = HttpClient {
-                        expectSuccess = true
-                        install(ContentNegotiation) {
-                            json()
-                        }
-                    }
+                waitUntilExactlyOneExists(hasText(startText))
+                onNodeWithText(startText).performClick()
+                onNodeWithText(continueText).performClick()
+                waitUntilDoesNotExist(hasText(continueText), 10000)
 
-                    val responseGenerateRequest =
-                        client.post("https://apps.egiz.gv.at/customverifier/transaction/create") {
-                            contentType(ContentType.Application.Json)
-                            setBody(request)
-                        }.body<JsonObject>()
+                onNodeWithContentDescription(portraitText).assertHeightIsAtLeast(1.dp)
+                onNodeWithText("XXXÉliás XXXTörőcsik").assertExists()
+                onNodeWithText("11.10.1965").assertExists()
 
-                    val firstProfile =
-                        responseGenerateRequest["profiles"]?.jsonArray?.first()?.jsonObject
-                    val qrCodeUrl = firstProfile?.get("url")?.jsonPrimitive?.content
-                    val id = firstProfile?.get("id")?.jsonPrimitive?.content
+                onNodeWithText(detailsText).performClick()
+                waitUntilExactlyOneExists(hasText(ageText), 3000)
+                onNodeWithText("≥18").assertExists()
 
-                    Globals.appLink.value = qrCodeUrl!!
+                onNodeWithText(detailsText).performClick()
 
-                    waitUntilExactlyOneExists(
-                        hasText(getString(Res.string.button_label_continue)),
-                        10000
-                    )
 
-                    onNodeWithText(getString(Res.string.button_label_continue)).performClick()
-
-                    val url = "https://apps.egiz.gv.at/customverifier/customer-success.html?id=$id"
-                    val responseSuccess = client.get(url)
-                    assertTrue { responseSuccess.status.value in 200..299 }
+                val responseGenerateRequest = runBlocking {
+                    client.post("https://apps.egiz.gv.at/customverifier/transaction/create") {
+                        contentType(ContentType.Application.Json)
+                        setBody(request)
+                    }.body<JsonObject>()
                 }
+
+                val firstProfile =
+                    responseGenerateRequest["profiles"]?.jsonArray?.first()?.jsonObject
+                val qrCodeUrl = firstProfile?.get("url")?.jsonPrimitive?.content
+                val id = firstProfile?.get("id")?.jsonPrimitive?.content
+
+                Globals.appLink.value = qrCodeUrl!!
+
+                waitUntilExactlyOneExists(hasText(continueText), 10000)
+
+                onNodeWithText(continueText).performClick()
+
+                val url = "https://apps.egiz.gv.at/customverifier/customer-success.html?id=$id"
+                val responseSuccess = runBlocking { client.get(url) }
+                assertTrue { responseSuccess.status.value in 200..299 }
+
             }
         }
     }
 }
 
 val request = Json.encodeToString(
-    RequestBody.serializer(),
-    RequestBody(
-        "presentation_definition",
-        listOf(
+    RequestBody.serializer(), RequestBody(
+        "presentation_definition", listOf(
             Credential(
-                EuPidScheme.sdJwtType,
-                "SD_JWT",
-                listOf(
+                EuPidScheme.sdJwtType, "SD_JWT", listOf(
                     EuPidScheme.Attributes.GIVEN_NAME,
                     EuPidScheme.Attributes.FAMILY_NAME,
                     EuPidScheme.Attributes.BIRTH_DATE,
@@ -337,15 +314,12 @@ val request = Json.encodeToString(
 
 @Serializable
 data class RequestBody(
-    val presentationMechanismIdentifier: String,
-    val credentials: List<Credential>
+    val presentationMechanismIdentifier: String, val credentials: List<Credential>
 )
 
 @Serializable
 data class Credential(
-    val credentialType: String,
-    val representation: String,
-    val attributes: List<String>
+    val credentialType: String, val representation: String, val attributes: List<String>
 )
 
 @Composable
@@ -393,8 +367,7 @@ class TestLifecycleOwner : LifecycleOwner {
 // https://github.com/openwallet-foundation-labs/identity-credential/tree/main/samples/testapp
 class TestPromptModel : PromptModel {
     override val passphrasePromptModel = SinglePromptModel<PassphraseRequest, String?>()
-    override val promptModelScope =
-        CoroutineScope(Dispatchers.Default + SupervisorJob() + this)
+    override val promptModelScope = CoroutineScope(Dispatchers.Default + SupervisorJob() + this)
 
     fun onClose() {
         promptModelScope.cancel()

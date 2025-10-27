@@ -139,7 +139,7 @@ kotlin {
             implementation(libs.androidx.registry.provider.play.services)
         }
 
-        androidInstrumentedTest.dependencies {
+        getByName("androidDeviceTest").dependencies {
             implementation("androidx.compose.ui:ui-test-junit4")
             implementation("androidx.compose.ui:ui-test-manifest")
         }
