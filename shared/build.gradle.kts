@@ -172,6 +172,8 @@ exportXCFramework(
     )
 ) {
     binaryOption("bundleId", "at.asitplus.wallet.shared")
+    linkerOpts("-ld_classic")
+    freeCompilerArgs += listOf("-Xoverride-konan-properties=minVersion.ios=18.5;minVersionSinceXcode15.ios=18.5")
 }
 
 tasks.register("iosBootSimulator") {
