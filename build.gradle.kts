@@ -1,7 +1,8 @@
 plugins {
     val kotlinVer =
         System.getenv("KOTLIN_VERSION_ENV")?.ifBlank { null } ?: libs.versions.kotlin.get()
-    val testballoonVer = System.getenv("TESTBALLOON_VERSION_OVERRIDE")?.ifBlank { null } ?: libs.versions.testballoon.get()
+    val testballoonVer =
+        System.getenv("TESTBALLOON_VERSION_OVERRIDE")?.ifBlank { null } ?: libs.versions.testballoon.get()
 
     id("at.asitplus.gradle.conventions") version "20251017"
     kotlin("multiplatform") version kotlinVer apply false

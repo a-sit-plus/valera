@@ -4,7 +4,6 @@ import at.asitplus.gradle.kmmresult
 import at.asitplus.gradle.napier
 import at.asitplus.gradle.serialization
 import org.gradle.kotlin.dsl.invoke
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest
 
 
@@ -173,8 +172,6 @@ exportXCFramework(
     )
 ) {
     binaryOption("bundleId", "at.asitplus.wallet.shared")
-    linkerOpts("-ld_classic")
-    freeCompilerArgs += listOf("-Xoverride-konan-properties=minVersion.ios=15.0;minVersionSinceXcode15.ios=15.0")
 }
 
 tasks.register("iosBootSimulator") {
