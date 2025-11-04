@@ -1,3 +1,4 @@
+import at.asitplus.gradle.envExtra
 import at.asitplus.gradle.exportXCFramework
 import at.asitplus.gradle.ktor
 import at.asitplus.gradle.kmmresult
@@ -17,6 +18,8 @@ plugins {
     kotlin("plugin.serialization")
     id("de.infix.testBalloon")
 }
+
+val disableAppleTargets by envExtra
 
 kotlin {
     androidLibrary {
@@ -55,10 +58,11 @@ kotlin {
 
     }
 
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
-
+    if ("true" != disableAppleTargets) {
+        iosX64()
+        iosArm64()
+        iosSimulatorArm64()
+    }
 
     sourceSets {
         commonMain.dependencies {
@@ -187,10 +191,12 @@ tasks.register("iosBootSimulator") {
     }
 }
 
-tasks.named("iosSimulatorArm64Test", KotlinNativeSimulatorTest::class.java).configure {
-    dependsOn("iosBootSimulator")
-    standalone.set(false)
-    device.set("iPhone 16")
+if ("true" != disableAppleTargets) {
+    tasks.named("iosSimulatorArm64Test", KotlinNativeSimulatorTest::class.java).configure {
+        dependsOn("iosBootSimulator")
+        standalone.set(false)
+        device.set("iPhone 16")
+    }
 }
 
 tasks.register("findDependency") {
