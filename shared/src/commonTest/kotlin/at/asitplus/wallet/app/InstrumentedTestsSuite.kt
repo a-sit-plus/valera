@@ -1,301 +1,61 @@
+@file:OptIn(ExperimentalTestApi::class)
 package at.asitplus.wallet.app
 
-import App
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
-import androidx.compose.ui.test.assertHeightIsAtLeast
-import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.isDisplayed
-import androidx.compose.ui.test.onNodeWithContentDescription
-import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.runComposeUiTest
-import androidx.compose.ui.test.waitUntilDoesNotExist
-import androidx.compose.ui.test.waitUntilExactlyOneExists
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import at.asitplus.openid.OidcUserInfo
-import at.asitplus.openid.OidcUserInfoExtended
-import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.button_label_continue
-import at.asitplus.valera.resources.button_label_details
-import at.asitplus.valera.resources.button_label_start
-import at.asitplus.valera.resources.content_description_navigate_to_settings
-import at.asitplus.valera.resources.content_description_portrait
-import at.asitplus.valera.resources.heading_label_settings_screen
-import at.asitplus.valera.resources.section_heading_age_data
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.BuildType
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
-import at.asitplus.wallet.app.common.SessionService
 import at.asitplus.wallet.app.common.WalletDependencyProvider
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.lib.agent.ClaimToBeIssued
-import at.asitplus.wallet.lib.agent.CredentialToBeIssued
 import at.asitplus.wallet.lib.agent.EphemeralKeyWithSelfSignedCert
-import at.asitplus.wallet.lib.agent.EphemeralKeyWithoutCert
-import at.asitplus.wallet.lib.agent.HolderAgent
-import at.asitplus.wallet.lib.agent.IssuerAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
-import at.asitplus.wallet.lib.agent.toStoreCredentialInput
-import at.asitplus.wallet.lib.data.rfc3986.toUri
 import data.storage.DummyDataStoreService
-import de.infix.testBalloon.framework.TestConfig
-import de.infix.testBalloon.framework.TestInvocation
-import de.infix.testBalloon.framework.invocation
-import de.infix.testBalloon.framework.testScope
-import de.infix.testBalloon.framework.testSuite
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.request.get
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
-import io.ktor.serialization.kotlinx.json.json
+import de.infix.testBalloon.framework.core.TestSuite
+import de.infix.testBalloon.framework.core.testSuite
+import de.infix.testBalloon.framework.shared.TestRegistering
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
-import org.jetbrains.compose.resources.getString
-import org.koin.compose.koinInject
 import org.multipaz.prompt.PassphraseRequest
 import org.multipaz.prompt.PromptModel
 import org.multipaz.prompt.SinglePromptModel
-import ui.navigation.routes.OnboardingWrapperTestTags
-import ui.views.OnboardingStartScreenTestTag
-import kotlin.test.assertTrue
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.minutes
 
-@OptIn(ExperimentalTestApi::class)
-val InstrumentedTestsSuite by testSuite(testConfig = TestConfig.invocation(TestInvocation.SEQUENTIAL).testScope(isEnabled = false)) {
-
-
-    context("Starting App Tests") {
-        test("Using collectAsState properly updates state to assert") {
-            runComposeUiTest {
-                val dummyDataStoreService = DummyDataStoreService()
-                val preferenceKey = "test"
-                val testValue = "loaded"
-
-                setContent {
-                    val data by dummyDataStoreService.getPreference(preferenceKey).collectAsState("null")
-                    Text(data ?: "collecting state ...")
-                }
-
-                runBlocking {
-                    dummyDataStoreService.setPreference(key = preferenceKey, value = testValue)
-                }
-
-                waitUntil {
-                    onNodeWithText(testValue).isDisplayed()
-                }
-            }
-        }
-
-        test("App should start correctly") {
-            runComposeUiTest {
-                setContent {
-                    CompositionLocalProvider(
-                        LocalLifecycleOwner provides TestLifecycleOwner()
-                    ) {
-                        App(createWalletDependencyProvider(getPlatformAdapter()))
-                    }
-                }
-
-                waitUntil {
-                    onNodeWithTag(OnboardingWrapperTestTags.onboardingStartScreen).isDisplayed()
-                }
-
-                onNodeWithTag(OnboardingStartScreenTestTag.startButton).assertIsDisplayed()
-            }
-        }
-
-        test("Test 2: App should display onboarding screen") {
-            runComposeUiTest {
-                setContent {
-                    CompositionLocalProvider(
-                        LocalLifecycleOwner provides TestLifecycleOwner()
-                    ) {
-                        App(createWalletDependencyProvider(getPlatformAdapter()))
-                    }
-                }
-
-                onNodeWithTag(OnboardingWrapperTestTags.onboardingStartScreen).assertIsDisplayed()
-
-            }
-        }
-
-        test("Test 3: App should show onboarding start button") {
-            runComposeUiTest {
-                setContent {
-                    CompositionLocalProvider(
-                        LocalLifecycleOwner provides TestLifecycleOwner()
-                    ) {
-                        App(createWalletDependencyProvider(getPlatformAdapter()))
-                    }
-                }
-
-                waitUntil {
-                    onNodeWithTag(OnboardingWrapperTestTags.onboardingStartScreen).isDisplayed()
-                }
-
-                onNodeWithTag(OnboardingStartScreenTestTag.startButton).assertIsDisplayed()
-
-            }
-        }
-
-
-        test("Test 4: Navigation to screen with viewModel works") {
-            runComposeUiTest {
-                setContent {
-                    CompositionLocalProvider(
-                        LocalLifecycleOwner provides TestLifecycleOwner()
-                    ) {
-                        App(createWalletDependencyProvider(getPlatformAdapter()))
-                    }
-                }
-
-                runBlocking {
-                    waitUntilExactlyOneExists(hasText(getString(Res.string.button_label_start)))
-                    onNodeWithText(getString(Res.string.button_label_start)).performClick()
-                    onNodeWithText(getString(Res.string.button_label_continue)).performClick()
-                    waitUntilDoesNotExist(
-                        hasText(getString(Res.string.button_label_continue)),
-                        10000
-                    )
-
-                    onNodeWithContentDescription(getString(Res.string.content_description_navigate_to_settings)).performClick()
-                    waitUntilExactlyOneExists(
-                        hasText(getString(Res.string.heading_label_settings_screen)),
-                        10000
-                    )
-                }
-            }
-        }
-
-    }
-    context("End to End Tests") {
-        test("End to End Test 1: Should complete the process") {
-            runComposeUiTest {
-                val startText = runBlocking { getString(Res.string.button_label_start) }
-                val portraitText = runBlocking { getString(Res.string.content_description_portrait) }
-                val continueText = runBlocking { getString(Res.string.button_label_continue) }
-                val detailsText = runBlocking { getString(Res.string.button_label_details) }
-                val ageText = runBlocking { getString(Res.string.section_heading_age_data) }
-
-
-                val client = HttpClient {
-                    expectSuccess = true
-                    install(ContentNegotiation) {
-                        json()
-                    }
-                }
-
-
-                setContent {
-
-                    // A. Call all @Composable dependencies directly in the Composable context.
-                    val platformAdapter = getPlatformAdapter()
-                    val sessionService: SessionService = koinInject()
-                    val holderAgent: HolderAgent = koinInject(scope = sessionService.scope.value)
-
-                    // B. Create the dependency provider, remembering it against the platformAdapter
-                    //    so it's not recreated unnecessarily.
-                    val walletDependencyProvider = remember(platformAdapter) {
-                        createWalletDependencyProvider(platformAdapter)
-                    }
-
-                    // C. Use LaunchedEffect for one-time, asynchronous setup tasks.
-                    //    This is the correct way to run non-UI suspend functions from a Composable.
-                    LaunchedEffect(Unit) {
-                        val issuer = IssuerAgent(
-                            keyMaterial = EphemeralKeyWithoutCert(),
-                            statusListBaseUrl = "https://wallet.a-sit.at/m6/credentials/status",
-                            identifier = "https://issuer.example.com/".toUri(),
-                        )
-                        holderAgent.storeCredential(
-                            issuer.issueCredential(
-                                CredentialToBeIssued.VcSd(
-                                    getAttributes(),
-                                    Clock.System.now().plus(60.minutes),
-                                    EuPidScheme,
-                                    holderAgent.keyMaterial.publicKey,
-                                    OidcUserInfoExtended(userInfo = OidcUserInfo(subject = ""))
-                                )
-                            ).getOrThrow().toStoreCredentialInput()
-                        )
-                    }
-
-                    // D. Call the main App composable.
-                    App(walletDependencyProvider)
-                }
-
-
-                waitUntilExactlyOneExists(hasText(startText))
-                onNodeWithText(startText).performClick()
-                onNodeWithText(continueText).performClick()
-                waitUntilDoesNotExist(hasText(continueText), 10000)
-
-                onNodeWithContentDescription(portraitText).assertHeightIsAtLeast(1.dp)
-                onNodeWithText("XXXÉliás XXXTörőcsik").assertExists()
-                onNodeWithText("11.10.1965").assertExists()
-
-                onNodeWithText(detailsText).performClick()
-                waitUntilExactlyOneExists(hasText(ageText), 3000)
-                onNodeWithText("≥18").assertExists()
-
-                onNodeWithText(detailsText).performClick()
-
-
-                val responseGenerateRequest = runBlocking {
-                    client.post("https://apps.egiz.gv.at/customverifier/transaction/create") {
-                        contentType(ContentType.Application.Json)
-                        setBody(request)
-                    }.body<JsonObject>()
-                }
-
-                val firstProfile =
-                    responseGenerateRequest["profiles"]?.jsonArray?.first()?.jsonObject
-                val qrCodeUrl = firstProfile?.get("url")?.jsonPrimitive?.content
-                val id = firstProfile?.get("id")?.jsonPrimitive?.content
-
-                Globals.appLink.value = qrCodeUrl!!
-
-                waitUntilExactlyOneExists(hasText(continueText), 10000)
-
-                onNodeWithText(continueText).performClick()
-
-                val url = "https://apps.egiz.gv.at/customverifier/customer-success.html?id=$id"
-                val responseSuccess = runBlocking { client.get(url) }
-                assertTrue { responseSuccess.status.value in 200..299 }
-
-            }
-        }
+@TestRegistering
+fun TestSuite.composeTest(
+    name: String,
+    action: ComposeUiTest.() -> Unit
+) = test(name) {
+    runComposeUiTest {
+        action()
     }
 }
 
+val ComposeMultiplatformTests by testSuite {
+    composeTest("click") {
+        setContent {
+            Button({}){
+                Text("Button")
+            }
+        }
+        onNodeWithText("Button").performClick()
+        onNodeWithText("Button").assertExists()
+    }
+}
 val request = Json.encodeToString(
     RequestBody.serializer(), RequestBody(
         "presentation_definition", listOf(

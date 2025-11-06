@@ -116,6 +116,7 @@ kotlin {
             @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
             implementation(compose.uiTest)
             implementation(libs.koin.test)
+            implementation("de.infix.testBalloon:testBalloon-framework-shared:0.7.1-K2.2.21")
         }
 
         androidMain.dependencies {
