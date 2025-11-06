@@ -5,10 +5,12 @@ package data.credentials
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.eupid.EuPidCredential
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.eupid.EuPidScheme.Attributes
 import at.asitplus.wallet.eupid.IsoIec5218Gender
+import at.asitplus.wallet.eupid.PlaceOfBirth
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme.SdJwtAttributes
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
@@ -21,13 +23,14 @@ import kotlinx.datetime.LocalDate
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.decodeFromJsonElement
 
 sealed class EuPidCredentialAdapter(
     private val decodePortrait: (ByteArray) -> Result<ImageBitmap>,
 ) : CredentialAdapter() {
-    override fun getAttribute(path: NormalizedJsonPath) = (path.segments.firstOrNull()?.let { first ->
-        getWithIsoNames(first)
-    } ?: EuPidCredentialSdJwtClaimDefinitionResolver().resolveOrNull(path))?.toAttribute()
+
+    override fun getAttribute(path: NormalizedJsonPath) =
+        (path.segments.firstOrNull()?.let { first -> getWithIsoNames(first) })?.toAttribute()
 
     /** Claim names defined for ISO in ARF */
     private fun getWithIsoNames(first: NormalizedJsonPathSegment): EuPidCredentialClaimDefinition? {
@@ -72,6 +75,7 @@ sealed class EuPidCredentialAdapter(
     abstract val ageBirthYear: UInt?
     abstract val familyNameBirth: String?
     abstract val givenNameBirth: String?
+    abstract val placeOfBirth: PlaceOfBirth?
     abstract val birthPlace: String?
     abstract val birthCountry: String?
     abstract val birthState: String?
@@ -98,25 +102,18 @@ sealed class EuPidCredentialAdapter(
             if (storeEntry.scheme !is EuPidScheme && storeEntry.scheme !is EuPidSdJwtScheme) {
                 throw IllegalArgumentException("credential: ${storeEntry.scheme}")
             }
+            val scheme = storeEntry.scheme!!
             return when (storeEntry) {
                 is SubjectCredentialStore.StoreEntry.Vc ->
                     (storeEntry.vc.vc.credentialSubject as? EuPidCredential)
-                        ?.let { EuPidCredentialVcAdapter(it, decodePortrait, storeEntry.scheme!!) }
+                        ?.let { EuPidCredentialVcAdapter(it, decodePortrait, scheme) }
                         ?: throw IllegalArgumentException("storeEntry")
 
                 is SubjectCredentialStore.StoreEntry.SdJwt ->
-                    EuPidCredentialSdJwtAdapter(
-                        storeEntry.toAttributeMap(),
-                        decodePortrait,
-                        storeEntry.scheme!!
-                    )
+                    EuPidCredentialSdJwtAdapter(storeEntry.toAttributeMap(), decodePortrait, scheme)
 
                 is SubjectCredentialStore.StoreEntry.Iso ->
-                    EuPidCredentialIsoMdocAdapter(
-                        storeEntry.toNamespaceAttributeMap(),
-                        decodePortrait,
-                        storeEntry.scheme!!
-                    )
+                    EuPidCredentialIsoMdocAdapter(storeEntry.toNamespaceAttributeMap(), decodePortrait, scheme)
             }
         }
     }
@@ -151,6 +148,7 @@ sealed class EuPidCredentialAdapter(
         EuPidCredentialClaimDefinition.AGE_BIRTH_YEAR -> Attribute.fromValue(ageBirthYear)
         EuPidCredentialClaimDefinition.FAMILY_NAME_BIRTH -> Attribute.fromValue(familyNameBirth)
         EuPidCredentialClaimDefinition.GIVEN_NAME_BIRTH -> Attribute.fromValue(givenNameBirth)
+        EuPidCredentialClaimDefinition.PLACE_OF_BIRTH -> Attribute.fromValue(placeOfBirth)
         EuPidCredentialClaimDefinition.PLACE_OF_BIRTH_CONTAINER -> null
         EuPidCredentialClaimDefinition.PLACE_OF_BIRTH_COUNTRY -> Attribute.fromValue(birthCountry)
         EuPidCredentialClaimDefinition.PLACE_OF_BIRTH_REGION -> Attribute.fromValue(birthState)
@@ -273,6 +271,9 @@ private class EuPidCredentialVcAdapter(
 
     override val givenNameBirth: String?
         get() = credentialSubject.givenNameBirth
+
+    override val placeOfBirth: PlaceOfBirth?
+        get() = credentialSubject.placeOfBirth
 
     override val birthPlace: String?
         get() = credentialSubject.birthPlace
@@ -461,6 +462,11 @@ private class EuPidCredentialSdJwtAdapter(
         get() = attributes[SdJwtAttributes.GIVEN_NAME_BIRTH]?.contentOrNull
             ?: attributes[Attributes.GIVEN_NAME_BIRTH]?.contentOrNull
 
+    override val placeOfBirth: PlaceOfBirth?
+        get() = attributes[SdJwtAttributes.PREFIX_PLACE_OF_BIRTH]?.let {
+            runCatching { joseCompliantSerializer.decodeFromJsonElement<PlaceOfBirth>(it) }.getOrNull()
+        }
+
     override val birthPlace: String?
         get() = attributes[SdJwtAttributes.PLACE_OF_BIRTH_LOCALITY]?.contentOrNull
             ?: attributes[Attributes.BIRTH_PLACE]?.contentOrNull
@@ -640,6 +646,9 @@ class EuPidCredentialIsoMdocAdapter(
 
     override val givenNameBirth: String?
         get() = euPidNamespace?.get(Attributes.GIVEN_NAME_BIRTH) as? String?
+
+    override val placeOfBirth: PlaceOfBirth?
+        get() = euPidNamespace?.get(Attributes.PLACE_OF_BIRTH) as? PlaceOfBirth?
 
     override val birthPlace: String?
         get() = euPidNamespace?.get(Attributes.BIRTH_PLACE) as? String?

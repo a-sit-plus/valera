@@ -94,6 +94,7 @@
     <string name="attribute_friendly_name_family_name_birth">Nachname (Geburt)</string>
     <string name="attribute_friendly_name_given_name_birth">Vorname (Geburt)</string>
     <string name="attribute_friendly_name_age_birth_year">Geburtsjahr</string>
+    <string name="attribute_friendly_name_place_of_birth">Geburtsort</string>
     <string name="attribute_friendly_name_birth_place">Geburtsort</string>
     <string name="attribute_friendly_name_birth_country">Geburtsland</string>
     <string name="attribute_friendly_name_birth_state">Geburtsstaat</string>

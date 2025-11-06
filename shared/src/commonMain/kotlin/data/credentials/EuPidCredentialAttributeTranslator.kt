@@ -44,6 +44,7 @@ import at.asitplus.valera.resources.attribute_friendly_name_main_residence_stree
 import at.asitplus.valera.resources.attribute_friendly_name_mobile_phone_number
 import at.asitplus.valera.resources.attribute_friendly_name_nationality
 import at.asitplus.valera.resources.attribute_friendly_name_personal_administrative_number
+import at.asitplus.valera.resources.attribute_friendly_name_place_of_birth
 import at.asitplus.valera.resources.attribute_friendly_name_portrait
 import at.asitplus.valera.resources.attribute_friendly_name_portrait_capture_date
 import at.asitplus.valera.resources.attribute_friendly_name_sex
@@ -100,6 +101,7 @@ class EuPidCredentialAttributeTranslator : CredentialAttributeTranslator {
         EuPidCredentialClaimDefinition.AGE_BIRTH_YEAR -> Res.string.attribute_friendly_name_age_birth_year
         EuPidCredentialClaimDefinition.FAMILY_NAME_BIRTH -> Res.string.attribute_friendly_name_family_name_birth
         EuPidCredentialClaimDefinition.GIVEN_NAME_BIRTH -> Res.string.attribute_friendly_name_given_name_birth
+        EuPidCredentialClaimDefinition.PLACE_OF_BIRTH -> Res.string.attribute_friendly_name_place_of_birth
         EuPidCredentialClaimDefinition.PLACE_OF_BIRTH_CONTAINER -> Res.string.attribute_friendly_name_birth_place
         EuPidCredentialClaimDefinition.PLACE_OF_BIRTH_COUNTRY -> Res.string.attribute_friendly_name_birth_country
         EuPidCredentialClaimDefinition.PLACE_OF_BIRTH_REGION -> Res.string.attribute_friendly_name_birth_state

@@ -29,6 +29,7 @@ class EuPidCredentialMdocClaimDefinitionResolver {
                 AGE_BIRTH_YEAR -> EuPidCredentialClaimDefinition.AGE_BIRTH_YEAR
                 FAMILY_NAME_BIRTH -> EuPidCredentialClaimDefinition.FAMILY_NAME_BIRTH
                 GIVEN_NAME_BIRTH -> EuPidCredentialClaimDefinition.GIVEN_NAME_BIRTH
+                PLACE_OF_BIRTH -> EuPidCredentialClaimDefinition.PLACE_OF_BIRTH
                 BIRTH_PLACE -> EuPidCredentialClaimDefinition.PLACE_OF_BIRTH_CONTAINER
                 BIRTH_COUNTRY -> EuPidCredentialClaimDefinition.PLACE_OF_BIRTH_COUNTRY
                 BIRTH_STATE -> EuPidCredentialClaimDefinition.PLACE_OF_BIRTH_REGION
