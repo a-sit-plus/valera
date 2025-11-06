@@ -7,6 +7,7 @@ import at.asitplus.wallet.companyregistration.CompanyActivity
 import at.asitplus.wallet.companyregistration.ContactData
 import at.asitplus.wallet.ehic.IssuingAuthority
 import at.asitplus.wallet.eupid.IsoIec5218Gender
+import at.asitplus.wallet.eupid.PlaceOfBirth
 import at.asitplus.wallet.lib.data.LocalDateOrInstant
 import at.asitplus.wallet.mdl.DrivingPrivilege
 import at.asitplus.wallet.mdl.IsoSexEnum
@@ -47,6 +48,7 @@ sealed interface Attribute {
             is Address -> AddressAttribute(it)
             is Branch -> BranchAttribute(it)
             is IssuingAuthority -> IssuingAuthorityAttribute(it)
+            is PlaceOfBirth -> PlaceOfBirthAttribute(it)
             else -> throw IllegalArgumentException("Unexpected attribute value type: ${value::class}, $value")
         }
 
@@ -77,4 +79,5 @@ sealed interface Attribute {
     data class AddressAttribute(val value: Address) : Attribute
     data class BranchAttribute(val value: Branch) : Attribute
     data class IssuingAuthorityAttribute(val value: IssuingAuthority) : Attribute
+    data class PlaceOfBirthAttribute(val value: PlaceOfBirth) : Attribute
 }

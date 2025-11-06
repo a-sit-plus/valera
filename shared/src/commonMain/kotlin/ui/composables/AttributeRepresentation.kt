@@ -13,6 +13,7 @@ import at.asitplus.wallet.companyregistration.Address
 import at.asitplus.wallet.companyregistration.Branch
 import at.asitplus.wallet.companyregistration.CompanyActivity
 import at.asitplus.wallet.companyregistration.ContactData
+import at.asitplus.wallet.eupid.PlaceOfBirth
 import at.asitplus.wallet.lib.data.LocalDateOrInstant
 import at.asitplus.wallet.mdl.DrivingPrivilege
 import at.asitplus.wallet.mdl.IsoSexEnum
@@ -42,7 +43,7 @@ fun AttributeRepresentation(attribute: Attribute) {
         is Attribute.LongAttribute -> AttributeRepresentation(attribute.value.toString())
         is Attribute.UnsignedIntegerAttribute -> AttributeRepresentation(attribute.value.toString())
         is Attribute.IssuingAuthorityAttribute -> AttributeRepresentation(attribute.value.toString())
-        // TODO Nice representation for driving privileges
+        is Attribute.PlaceOfBirthAttribute -> AttributeRepresentation(attribute.value)
         is Attribute.DrivingPrivilegeAttribute -> AttributeRepresentation(attribute.value)
         is Attribute.AddressAttribute -> AttributeRepresentation(attribute.value)
         is Attribute.BranchAttribute -> AttributeRepresentation(attribute.value)
@@ -97,9 +98,10 @@ fun AttributeRepresentation(
     value: Array<DrivingPrivilege>,
     modifier: Modifier = Modifier,
 ) {
-    value.forEach { privilege ->
+    value.forEach {
         Text(
-            text = "${privilege.vehicleCategoryCode} (${privilege.issueDate} | ${privilege.expiryDate})",
+            text = "${it.vehicleCategoryCode} (${it.issueDate} – ${it.expiryDate}," +
+                    " ${it.codes?.joinToString(separator = ", ")})",
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = modifier,
@@ -127,6 +129,19 @@ fun AttributeRepresentation(
 ) {
     Text(
         text = listOfNotNull(value.email, value.telephone).joinToString(", "),
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = modifier,
+    )
+}
+
+@Composable
+fun AttributeRepresentation(
+    value: PlaceOfBirth,
+    modifier: Modifier = Modifier,
+) {
+    Text(
+        text = listOfNotNull(value.country, value.region, value.locality).joinToString(", "),
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
         modifier = modifier,

@@ -41,6 +41,7 @@ object EuPidCredentialAttributeCategorization : CredentialAttributeCategorizatio
             listOf(
                 GIVEN_NAME_BIRTH,
                 FAMILY_NAME_BIRTH,
+                PLACE_OF_BIRTH,
                 BIRTH_PLACE,
                 BIRTH_CITY,
                 BIRTH_COUNTRY,
