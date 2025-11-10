@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.catching
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.app_display_name
+import at.asitplus.wallet.ageverification.AgeVerificationScheme
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialEntry
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
@@ -79,10 +80,8 @@ class DCAPIExportService(private val platformAdapter: PlatformAdapter) {
     private fun SubjectCredentialStore.StoreEntry.extractPicture() = when (scheme) {
         is IdAustriaScheme ->
             IdAustriaCredentialAdapter.createFromStoreEntry(this, imageDecoder).portraitRaw
-
         is MobileDrivingLicenceScheme ->
             MobileDrivingLicenceCredentialAdapter.createFromStoreEntry(this, imageDecoder).portraitRaw
-
         is EuPidSdJwtScheme,
         is EuPidScheme ->
             EuPidCredentialAdapter.createFromStoreEntry(this, imageDecoder).portraitRaw

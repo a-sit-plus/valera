@@ -196,7 +196,9 @@
     <string name="issuing_label_transaction_code">Transaktionscode</string>
     <string name="issuing_label_information">Es werden alle verfügbaren Daten geladen werden</string>
 
+    <string name="credential_scheme_icon_label_av">AV</string>
     <string name="credential_scheme_icon_label_mdl">mDL</string>
+    <string name="credential_scheme_label_av">AV</string>
     <string name="credential_scheme_label_mdl">mDL</string>
     <string name="credential_scheme_icon_label_eu_pid">PID</string>
     <string name="credential_scheme_label_eu_pid">PID</string>
@@ -449,6 +451,7 @@
     <string name="heading_label_select_combined_data_retrieval_screen">Kombiniert</string>
     <string name="section_heading_request_mdl">mDL Anfragen</string>
     <string name="section_heading_request_pid">PID Anfragen</string>
+    <string name="section_heading_request_av">AV Anfragen</string>
     <string name="section_heading_request_hid">HealthID Anfrage</string>
     <string name="section_heading_request_combined">Kombinierte Credential-Anfrage</string>
     <string name="section_heading_request_custom">Individuelle Anfrage</string>

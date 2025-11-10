@@ -40,6 +40,7 @@ import at.asitplus.valera.resources.heading_label_select_combined_data_retrieval
 import at.asitplus.valera.resources.info_text_no_requests
 import at.asitplus.valera.resources.section_heading_select_document_type
 import at.asitplus.valera.resources.text_label_requests
+import at.asitplus.wallet.ageverification.AgeVerificationScheme
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.iconLabel
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.eupid.EuPidScheme
@@ -56,6 +57,7 @@ import ui.composables.PersonAttributeDetailCardHeadingIcon
 import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.iso.VerifierViewModel
+import ui.views.iso.verifier.requests.AVRequests
 import ui.views.iso.verifier.requests.HIIDRequest
 import ui.views.iso.verifier.requests.MDLRequests
 import ui.views.iso.verifier.requests.PIDRequests
@@ -72,17 +74,19 @@ fun VerifierCombinedSelectionView(vm: VerifierViewModel) {
 
     var isMdlSelectable by remember { mutableStateOf(true) }
     var isPidSelectable by remember { mutableStateOf(true) }
+    var isAvSelectable by remember { mutableStateOf(true) }
     var isHiidSelectable by remember { mutableStateOf(true) }
 
     val handleRequest: (SelectableRequest) -> Unit = { request ->
         selectedRequests.add(request)
-        when(RequestDocumentBuilder.requestTypeToScheme[request.type]) {
+        when (RequestDocumentBuilder.requestTypeToScheme[request.type]) {
             MobileDrivingLicenceScheme -> isMdlSelectable = false
             EuPidScheme -> isPidSelectable = false
             HealthIdScheme -> isHiidSelectable = false
+            AgeVerificationScheme -> isAvSelectable = false
         }
         showRequestTypes = false
-        if(isMdlSelectable || isPidSelectable || isHiidSelectable) {
+        if (isMdlSelectable || isPidSelectable || isHiidSelectable || isAvSelectable) {
             showAddButton = true
         }
     }
@@ -124,8 +128,9 @@ fun VerifierCombinedSelectionView(vm: VerifierViewModel) {
         }
     ) { scaffoldPadding ->
         Box(modifier = Modifier.padding(scaffoldPadding)) {
-            Column(modifier = Modifier.padding(end = 16.dp, start = 16.dp, bottom = 16.dp)
-                .verticalScroll(rememberScrollState())
+            Column(
+                modifier = Modifier.padding(end = 16.dp, start = 16.dp, bottom = 16.dp)
+                    .verticalScroll(rememberScrollState())
             ) {
                 Column(modifier = layoutSpacingModifier) {
                     Text(
@@ -152,7 +157,7 @@ fun VerifierCombinedSelectionView(vm: VerifierViewModel) {
                         }
                     }
                     Spacer(modifier = Modifier.height(16.dp))
-                    if(showAddButton) {
+                    if (showAddButton) {
                         Button(
                             onClick = {
                                 showAddButton = false
@@ -186,6 +191,13 @@ fun VerifierCombinedSelectionView(vm: VerifierViewModel) {
                                     }
                                     if (isPidSelectable) {
                                         PIDRequests(
+                                            layoutSpacingModifier,
+                                            listSpacingModifier,
+                                            handleRequest
+                                        )
+                                    }
+                                    if (isAvSelectable) {
+                                        AVRequests(
                                             layoutSpacingModifier,
                                             listSpacingModifier,
                                             handleRequest

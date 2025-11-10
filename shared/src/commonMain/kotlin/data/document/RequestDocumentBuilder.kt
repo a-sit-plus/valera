@@ -1,11 +1,13 @@
 package data.document
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.wallet.ageverification.AgeVerificationScheme
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.healthid.HealthIdScheme
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialScheme
 import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
+import data.credentials.AgeVerificationCredentialAttributeTranslator
 import data.credentials.EuPidCredentialAttributeTranslator
 import data.credentials.HealthIdCredentialAttributeTranslator
 import data.credentials.MobileDrivingLicenceCredentialAttributeTranslator
@@ -15,7 +17,8 @@ object RequestDocumentBuilder {
     val schemes: List<CredentialScheme> = listOf(
         MobileDrivingLicenceScheme,
         EuPidScheme,
-        HealthIdScheme
+        HealthIdScheme,
+        AgeVerificationScheme
     )
 
     val requestTypeToScheme: Map<SelectableRequestType, CredentialScheme> = mapOf(
@@ -24,12 +27,13 @@ object RequestDocumentBuilder {
         SelectableRequestType.MDL_AGE_VERIFICATION to MobileDrivingLicenceScheme,
         SelectableRequestType.PID_MANDATORY to EuPidScheme,
         SelectableRequestType.PID_FULL to EuPidScheme,
-        SelectableRequestType.PID_AGE_VERIFICATION to EuPidScheme,
+        SelectableRequestType.AGE_VERIFICATION to AgeVerificationScheme,
         SelectableRequestType.HIID to HealthIdScheme
     )
 
     private val translatorMapping = mapOf(
         MobileDrivingLicenceScheme::class to MobileDrivingLicenceCredentialAttributeTranslator()::translate,
+        AgeVerificationScheme::class to AgeVerificationCredentialAttributeTranslator()::translate,
         EuPidScheme::class to EuPidCredentialAttributeTranslator()::translate,
         HealthIdScheme::class to HealthIdCredentialAttributeTranslator()::translate
     )
@@ -37,7 +41,8 @@ object RequestDocumentBuilder {
     private val preselectionMapping = mapOf(
         MobileDrivingLicenceScheme::class to { MobileDrivingLicenceDataElements.MANDATORY_ELEMENTS.toSet() },
         EuPidScheme::class to { EuPidScheme.requiredClaimNames.toSet() },
-        HealthIdScheme::class to { HealthIdSchemeRequiredClaimNames.attributes.toSet() }
+        HealthIdScheme::class to { HealthIdSchemeRequiredClaimNames.attributes.toSet() },
+        AgeVerificationScheme::class to { AgeVerificationScheme.requiredClaimNames.toSet() },
     )
 
     private val docTypeConfigs: Map<String, DocTypeConfig> = schemes.associate { scheme ->
@@ -80,9 +85,9 @@ object RequestDocumentBuilder {
             EuPidScheme, EuPidScheme.requiredClaimNames
         )
         SelectableRequestType.PID_FULL -> buildRequestDocument(EuPidScheme)
-        SelectableRequestType.PID_AGE_VERIFICATION -> buildRequestDocument(
-            EuPidScheme, listOf(
-                SelectableAge.fromValue(selectableRequest.age!!)!!.pidElement!!
+        SelectableRequestType.AGE_VERIFICATION -> buildRequestDocument(
+            AgeVerificationScheme, listOf(
+                SelectableAge.fromValue(selectableRequest.age!!)!!.avElement!!
             )
         )
         SelectableRequestType.HIID -> buildRequestDocument(
@@ -101,18 +106,18 @@ data class DocTypeConfig(
     val translator: (NormalizedJsonPath) -> StringResource?
 )
 
-enum class SelectableAge(val value: Int, val mdlElement: String?, val pidElement: String?) {
-    OVER_12(12, MobileDrivingLicenceDataElements.AGE_OVER_12, EuPidScheme.Attributes.AGE_OVER_12),
-    OVER_13(13, MobileDrivingLicenceDataElements.AGE_OVER_13, EuPidScheme.Attributes.AGE_OVER_13),
-    OVER_14(14, MobileDrivingLicenceDataElements.AGE_OVER_14, EuPidScheme.Attributes.AGE_OVER_14),
-    OVER_16(16, MobileDrivingLicenceDataElements.AGE_OVER_16, EuPidScheme.Attributes.AGE_OVER_16),
-    OVER_18(18, MobileDrivingLicenceDataElements.AGE_OVER_18, EuPidScheme.Attributes.AGE_OVER_18),
-    OVER_21(21, MobileDrivingLicenceDataElements.AGE_OVER_21, EuPidScheme.Attributes.AGE_OVER_21),
-    OVER_25(25, MobileDrivingLicenceDataElements.AGE_OVER_25, EuPidScheme.Attributes.AGE_OVER_25),
-    OVER_60(60, MobileDrivingLicenceDataElements.AGE_OVER_60, EuPidScheme.Attributes.AGE_OVER_60),
-    OVER_62(62, MobileDrivingLicenceDataElements.AGE_OVER_62, EuPidScheme.Attributes.AGE_OVER_62),
-    OVER_65(65, MobileDrivingLicenceDataElements.AGE_OVER_65, EuPidScheme.Attributes.AGE_OVER_65),
-    OVER_68(68, MobileDrivingLicenceDataElements.AGE_OVER_68, EuPidScheme.Attributes.AGE_OVER_68);
+enum class SelectableAge(val value: Int, val mdlElement: String?, val avElement: String?) {
+    OVER_12(12, MobileDrivingLicenceDataElements.AGE_OVER_12, AgeVerificationScheme.Attributes.AGE_OVER_12),
+    OVER_13(13, MobileDrivingLicenceDataElements.AGE_OVER_13, AgeVerificationScheme.Attributes.AGE_OVER_13),
+    OVER_14(14, MobileDrivingLicenceDataElements.AGE_OVER_14, AgeVerificationScheme.Attributes.AGE_OVER_14),
+    OVER_16(16, MobileDrivingLicenceDataElements.AGE_OVER_16, AgeVerificationScheme.Attributes.AGE_OVER_16),
+    OVER_18(18, MobileDrivingLicenceDataElements.AGE_OVER_18, AgeVerificationScheme.Attributes.AGE_OVER_18),
+    OVER_21(21, MobileDrivingLicenceDataElements.AGE_OVER_21, AgeVerificationScheme.Attributes.AGE_OVER_21),
+    OVER_25(25, MobileDrivingLicenceDataElements.AGE_OVER_25, AgeVerificationScheme.Attributes.AGE_OVER_25),
+    OVER_60(60, MobileDrivingLicenceDataElements.AGE_OVER_60, AgeVerificationScheme.Attributes.AGE_OVER_60),
+    OVER_62(62, MobileDrivingLicenceDataElements.AGE_OVER_62, AgeVerificationScheme.Attributes.AGE_OVER_62),
+    OVER_65(65, MobileDrivingLicenceDataElements.AGE_OVER_65, AgeVerificationScheme.Attributes.AGE_OVER_65),
+    OVER_68(68, MobileDrivingLicenceDataElements.AGE_OVER_68, AgeVerificationScheme.Attributes.AGE_OVER_68);
 
     companion object {
         val valuesList = entries.map { it.value }
@@ -137,7 +142,7 @@ enum class SelectableRequestType {
     MDL_AGE_VERIFICATION,
     PID_MANDATORY,
     PID_FULL,
-    PID_AGE_VERIFICATION,
+    AGE_VERIFICATION,
     HIID
 }
 

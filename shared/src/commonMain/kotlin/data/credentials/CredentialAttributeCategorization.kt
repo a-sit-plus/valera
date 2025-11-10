@@ -1,6 +1,7 @@
 package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.wallet.ageverification.AgeVerificationScheme
 import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.ehic.EhicScheme
@@ -14,6 +15,7 @@ import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import at.asitplus.wallet.taxid.TaxIdScheme
 import data.PersonalDataCategory
 import data.credentialsdatacard.CompanyRegistrationCredentialAttributeCategorization
+import ui.composables.credentials.AgeVerificationCredentialView
 
 /**
  * The type, `List<AttributeUnpackingInformation>`, is there to
@@ -33,6 +35,7 @@ interface CredentialAttributeCategorization {
             is EuPidScheme -> EuPidCredentialAttributeCategorization
             is EuPidSdJwtScheme -> EuPidSdJwtCredentialAttributeCategorization
             is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialAttributeCategorization
+            is AgeVerificationScheme -> AgeVerificationCredentialAttributeCategorization
             is PowerOfRepresentationScheme -> PowerOfRepresentationCredentialAttributeCategorization
             is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialAttributeCategorization
             is CompanyRegistrationScheme -> CompanyRegistrationCredentialAttributeCategorization

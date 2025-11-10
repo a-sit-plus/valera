@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.error_credential_scheme_not_supported
+import at.asitplus.wallet.ageverification.AgeVerificationScheme
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.agent.representation
 import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
@@ -31,6 +32,7 @@ fun SubjectCredentialStore.StoreEntry.toCredentialAdapter(
     is HealthIdScheme -> HealthIdCredentialAdapter.createFromStoreEntry(this)
     is IdAustriaScheme -> IdAustriaCredentialAdapter.createFromStoreEntry(this, decodeImage = decodeImage)
     is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialAdapter.createFromStoreEntry(this, decodePortrait = decodeImage)
+    is AgeVerificationScheme -> AgeVerificationCredentialAdapter.createFromStoreEntry(this)
     is PowerOfRepresentationScheme -> PowerOfRepresentationCredentialAdapter.createFromStoreEntry(this)
     is TaxIdScheme -> TaxIdCredentialAdapter.createFromStoreEntry(this)
     else -> null

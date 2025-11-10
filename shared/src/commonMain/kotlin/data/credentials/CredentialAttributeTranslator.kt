@@ -1,6 +1,7 @@
 package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.wallet.ageverification.AgeVerificationScheme
 import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.ehic.EhicScheme
@@ -24,6 +25,7 @@ interface CredentialAttributeTranslator {
             is EuPidScheme,
             is EuPidSdJwtScheme -> EuPidCredentialAttributeTranslator()
             is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialAttributeTranslator()
+            is AgeVerificationScheme -> AgeVerificationCredentialAttributeTranslator()
             is PowerOfRepresentationScheme -> PowerOfRepresentationCredentialAttributeTranslator()
             is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialAttributeTranslator()
             is CompanyRegistrationScheme -> CompanyRegistrationCredentialAttributeTranslator()

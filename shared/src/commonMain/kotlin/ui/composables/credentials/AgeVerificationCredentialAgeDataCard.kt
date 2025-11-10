@@ -12,23 +12,22 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
+import at.asitplus.wallet.ageverification.AgeVerificationScheme
 import data.PersonalDataCategory
-import data.credentials.MobileDrivingLicenceCredentialAdapter
-import ui.composables.AttributeRepresentation
+import data.credentials.AgeVerificationCredentialAdapter
 
 @Composable
-fun MobileDrivingLicenceCredentialAgeDataCard(
-    credentialAdapter: MobileDrivingLicenceCredentialAdapter,
+fun AgeVerificationCredentialAgeDataCard(
+    credentialAdapter: AgeVerificationCredentialAdapter,
     modifier: Modifier = Modifier,
 ) {
     CredentialDetailCard(
-        credentialScheme = MobileDrivingLicenceScheme,
+        credentialScheme = AgeVerificationScheme,
         personalDataCategory = PersonalDataCategory.AgeData,
         credentialAdapter = credentialAdapter,
         modifier = modifier,
     ) {
-        MobileDrivingLicenceCredentialAgeDataCardContent(
+        AgeVerificationCredentialAgeDataCardContent(
             credentialAdapter = credentialAdapter,
             modifier = Modifier.padding(start = 16.dp, end = 16.dp)
         )
@@ -37,8 +36,8 @@ fun MobileDrivingLicenceCredentialAgeDataCard(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun MobileDrivingLicenceCredentialAgeDataCardContent(
-    credentialAdapter: MobileDrivingLicenceCredentialAdapter,
+fun AgeVerificationCredentialAgeDataCardContent(
+    credentialAdapter: AgeVerificationCredentialAdapter,
     modifier: Modifier = Modifier,
 ) {
     val agesAtLeastN = listOf(
@@ -56,17 +55,6 @@ fun MobileDrivingLicenceCredentialAgeDataCardContent(
     )
 
     Column(modifier = modifier) {
-        listOfNotNull(
-            credentialAdapter.ageInYears,
-            credentialAdapter.ageBirthYear,
-        ).let {
-            AttributeRepresentation(
-                value = listOfNotNull(
-                    credentialAdapter.ageInYears,
-                    credentialAdapter.ageBirthYear,
-                ).joinToString(" | "),
-            )
-        }
         FlowRow(
             modifier = Modifier.fillMaxWidth()
         ) {

@@ -242,12 +242,13 @@ private sealed interface ExportableStoreEntry {
 }
 
 enum class ExportableCredentialScheme {
-    AtomicAttribute2023, IdAustriaScheme, MobileDrivingLicence2023, EuPidScheme, EuPidSdJwtScheme, PowerOfRepresentationScheme, CertificateOfResidenceScheme, CompanyRegistrationScheme, HealthIdScheme, EhicScheme, TaxIdScheme, VcFallbackCredentialScheme, SdJwtFallbackCredentialScheme, IsoMdocFallbackCredentialScheme;
+    AtomicAttribute2023, IdAustriaScheme, MobileDrivingLicence2023, EuPidScheme, EuPidSdJwtScheme, PowerOfRepresentationScheme, CertificateOfResidenceScheme, CompanyRegistrationScheme, HealthIdScheme, EhicScheme, TaxIdScheme, VcFallbackCredentialScheme, SdJwtFallbackCredentialScheme, IsoMdocFallbackCredentialScheme, AgeVerificationScheme;
 
     @Suppress("DEPRECATION")
     fun toScheme() = when (this) {
         AtomicAttribute2023 -> ConstantIndex.AtomicAttribute2023
         MobileDrivingLicence2023 -> MobileDrivingLicenceScheme
+        AgeVerificationScheme -> at.asitplus.wallet.ageverification.AgeVerificationScheme
         IdAustriaScheme -> at.asitplus.wallet.idaustria.IdAustriaScheme
         EuPidScheme -> at.asitplus.wallet.eupid.EuPidScheme
         EuPidSdJwtScheme -> at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
@@ -267,6 +268,7 @@ enum class ExportableCredentialScheme {
         fun ConstantIndex.CredentialScheme.toExportableCredentialScheme() = when (this) {
             ConstantIndex.AtomicAttribute2023 -> AtomicAttribute2023
             MobileDrivingLicenceScheme -> MobileDrivingLicence2023
+            at.asitplus.wallet.ageverification.AgeVerificationScheme -> AgeVerificationScheme
             at.asitplus.wallet.idaustria.IdAustriaScheme -> IdAustriaScheme
             at.asitplus.wallet.eupid.EuPidScheme -> EuPidScheme
             at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme -> EuPidSdJwtScheme

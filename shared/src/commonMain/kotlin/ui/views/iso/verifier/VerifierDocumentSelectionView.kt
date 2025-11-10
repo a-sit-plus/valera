@@ -41,6 +41,7 @@ import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.ScreenHeading
 import ui.viewmodels.iso.VerifierViewModel
+import ui.views.iso.verifier.requests.AVRequests
 import ui.views.iso.verifier.requests.HIIDRequest
 import ui.views.iso.verifier.requests.MDLRequests
 import ui.views.iso.verifier.requests.PIDRequests
@@ -119,6 +120,7 @@ fun VerifierDocumentSelectionView(
                 Column {
                     MDLRequests(layoutSpacingModifier, listSpacingModifier, handleRequest)
                     PIDRequests(layoutSpacingModifier, listSpacingModifier, handleRequest)
+                    AVRequests(layoutSpacingModifier, listSpacingModifier, handleRequest)
                     HIIDRequest(layoutSpacingModifier, listSpacingModifier, handleRequest)
                 }
                 Column(modifier = layoutSpacingModifier) {

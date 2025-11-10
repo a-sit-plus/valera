@@ -1,5 +1,6 @@
 [versions]
-vck="5.9.0"
+vck="5.10.0-SNAPSHOT"
+
 agp = "8.12.3"
 kotlin = "2.2.21"
 compose-plugin = "1.8.2"
@@ -26,6 +27,7 @@ eupid = "3.3.0"
 eupid-sdjwt = "1.3.0"
 powerofrepresentation = "1.3.0"
 certificateofresidence = "2.2.0"
+av = "1.0.0"
 companyregistration = "1.2.0"
 healthid = "2.2.0"
 ehic = "1.2.0"
@@ -55,6 +57,7 @@ androidx-registry-provider-play-services = { module = "androidx.credentials.regi
 atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version.ref = "atomicfu" }
 barcode-scanning = { module = "com.google.mlkit:barcode-scanning", version.ref = "barcode-scanning" }
 credential-ida = { module = "at.asitplus.wallet:idacredential", version.ref = "ida" }
+credential-av = { module = "at.asitplus.wallet:ageverification", version.ref = "av" }
 credential-eupid = { module = "at.asitplus.wallet:eupidcredential", version.ref = "eupid" }
 credential-eupid-sdjwt = { module = "at.asitplus.wallet:eupidcredential-sdjwt", version.ref = "eupid-sdjwt" }
 credential-powerofrepresentation = { module = "at.asitplus.wallet:powerofrepresentation", version.ref = "powerofrepresentation" }
