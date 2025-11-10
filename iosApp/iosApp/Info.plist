@@ -54,6 +54,26 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
+			<string>presentation.haipvp</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>haip-vp</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>issuance.haipvci</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>haip-vci</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
 			<string>presentation.mdoc</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
@@ -74,7 +94,7 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>presentation.mdoc</string>
+			<string>issuance.offer</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>openid-credential-offer</string>

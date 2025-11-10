@@ -7,6 +7,7 @@
  * Build: Set `disableAppleTargets=true` in `local.properties` to disable iOS targets on non-Mac hosts
  * Update PIDs to rulebook from October 2025
  * Issuing: Support direct invocation from browser
+ * Support URL schemes `haip-vp` and `haip-vci` from latest HAIP draft
 
 # Release 5.7.3
  * Update to VC-K 5.8.0, fixing optional attributes during presentation
