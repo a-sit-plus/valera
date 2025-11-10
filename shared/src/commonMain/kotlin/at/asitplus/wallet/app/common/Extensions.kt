@@ -42,7 +42,7 @@ fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, Const
     @Suppress("DEPRECATION")
     val credentialRepresentation = when {
         this.format == null -> throw IllegalStateException("Format of input descriptor must be set")
-        this.format?.sdJwt != null || this.format?.jwtSd != null -> SD_JWT
+        this.format?.sdJwt != null -> SD_JWT
         this.format?.msoMdoc != null -> ISO_MDOC
         else -> PLAIN_JWT
     }
@@ -107,20 +107,16 @@ private fun ConstraintFilter.referenceValues() =
 @Throws(Throwable::class)
 fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, ConstantIndex.CredentialScheme, Collection<SingleClaimReference?>?> {
     val representation = when (format) {
-        CredentialFormatEnum.VC_SD_JWT,
         CredentialFormatEnum.DC_SD_JWT -> SD_JWT
-
         CredentialFormatEnum.MSO_MDOC -> ISO_MDOC
         else -> PLAIN_JWT
     }
 
     val scheme = when (this) {
-        is DCQLIsoMdocCredentialQuery -> meta?.doctypeValue
-            ?.let { AttributeIndex.resolveIsoDoctype(it) }
-
-        is DCQLSdJwtCredentialQuery -> meta?.vctValues
-            ?.firstNotNullOfOrNull { AttributeIndex.resolveSdJwtAttributeType(it) }
-
+        is DCQLIsoMdocCredentialQuery -> meta.doctypeValue
+            .let { AttributeIndex.resolveIsoDoctype(it) }
+        is DCQLSdJwtCredentialQuery -> meta.vctValues
+            .firstNotNullOfOrNull { AttributeIndex.resolveSdJwtAttributeType(it) }
         is DCQLCredentialQueryInstance -> null
     } ?: throw Throwable("No matching scheme for $meta")
 

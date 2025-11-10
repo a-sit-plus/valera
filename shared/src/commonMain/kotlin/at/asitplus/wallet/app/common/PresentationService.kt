@@ -74,12 +74,12 @@ class PresentationService(
                 nonce = isoMdocRequest.encryptionInfo.encryptionParameters.nonce
                     .encodeToString(Base64UrlStrict),
                 audience = isoMdocRequest.callingOrigin,
-                calcIsoDeviceSignature = { docType, deviceNameSpaceBytes ->
+                calcIsoDeviceSignaturePlain = { input ->
                     val deviceAuthentication = DeviceAuthentication(
                         type = "DeviceAuthentication",
                         sessionTranscript = sessionTranscript,
-                        docType = docType,
-                        namespaces = deviceNameSpaceBytes
+                        docType = input.docType,
+                        namespaces = input.deviceNameSpaceBytes
                     )
 
                     val deviceAuthenticationBytes = coseCompliantSerializer
@@ -91,7 +91,7 @@ class PresentationService(
                         .getOrElse { e ->
                             Napier.w("Could not create DeviceAuth for presentation", e)
                             throw PresentationException(e)
-                        } to null
+                        }
                 },
             ),
             credentialPresentation = credentialPresentation,
@@ -131,11 +131,12 @@ class PresentationService(
             request = PresentationRequestParameters(
                 nonce = "",
                 audience = spName ?: "",
-                calcIsoDeviceSignature = { docType, deviceNameSpaceBytes ->
+                calcIsoDeviceSignaturePlain = { input ->
                     val deviceAuthentication = DeviceAuthentication(
                         type = "DeviceAuthentication",
-                        sessionTranscript = sessionTranscript, docType = docType,
-                        namespaces = deviceNameSpaceBytes
+                        sessionTranscript = sessionTranscript,
+                        docType = input.docType,
+                        namespaces = input.deviceNameSpaceBytes
                     )
 
                     val deviceAuthenticationBytes = coseCompliantSerializer
@@ -147,7 +148,7 @@ class PresentationService(
                         .getOrElse { e ->
                             Napier.w("Could not create DeviceAuth for presentation", e)
                             throw PresentationException(e)
-                        } to null
+                        }
                 },
             ),
             credentialPresentation = credentialPresentation,

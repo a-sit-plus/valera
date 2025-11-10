@@ -12,8 +12,10 @@ import at.asitplus.wallet.lib.jws.JwsHeaderNone
 import at.asitplus.wallet.lib.jws.SignJwt
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import at.asitplus.wallet.lib.ktor.openid.CredentialIssuanceResult
+import at.asitplus.wallet.lib.ktor.openid.OAuth2KtorClient
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VciClient
 import at.asitplus.wallet.lib.ktor.openid.ProvisioningContext
+import at.asitplus.wallet.lib.oauth2.OAuth2Client
 import at.asitplus.wallet.lib.oidvci.BuildClientAttestationJwt
 import at.asitplus.wallet.lib.oidvci.WalletService
 import data.storage.DataStoreService
@@ -60,9 +62,17 @@ class ProvisioningService(
         engine = HttpClient().engine,
         cookiesStorage = cookieStorage,
         httpClientConfig = httpService.loggingConfig,
-        loadClientAttestationJwt = { clientAttestationJwt() },
-        signClientAttestationPop = SignJwt(keyMaterial, JwsHeaderNone()),
-        oid4vciService = WalletService(clientId, redirectUrl, keyMaterial),
+        oauth2Client = OAuth2KtorClient(
+            engine = HttpClient().engine,
+            cookiesStorage = cookieStorage,
+            oAuth2Client = OAuth2Client(clientId = clientId, redirectUrl = redirectUrl),
+            loadClientAttestationJwt = { clientAttestationJwt() },
+            signClientAttestationPop = SignJwt(keyMaterial, JwsHeaderNone()),
+        ),
+        oid4vciService = WalletService(
+            clientId = clientId,
+            keyMaterial = keyMaterial,
+        )
     )
 
     /**

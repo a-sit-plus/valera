@@ -8,6 +8,7 @@ import at.asitplus.wallet.app.common.data.primitives.SimpleBootstrappingBulkStor
 import at.asitplus.wallet.app.common.data.primitives.SimpleCacheStoreWrapper
 import at.asitplus.wallet.app.common.data.primitives.SimpleMutableMapStore
 import at.asitplus.wallet.app.common.domain.vck.tokenStatusList.StatusListTokenResolver
+import at.asitplus.wallet.lib.data.StatusListJwt
 import at.asitplus.wallet.lib.data.StatusListToken
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.MediaTypes
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.StatusListTokenPayload
@@ -46,7 +47,7 @@ fun tokenStatusListModule() = module {
                 val httpResponse = httpService.buildHttpClient().get(it.string) {
                     headers[HttpHeaders.Accept] = MediaTypes.Application.STATUSLIST_JWT
                 }
-                StatusListToken.StatusListJwt(
+                StatusListJwt(
                     JwsSigned.deserialize<StatusListTokenPayload>(
                         StatusListTokenPayload.serializer(),
                         httpResponse.bodyAsText()
