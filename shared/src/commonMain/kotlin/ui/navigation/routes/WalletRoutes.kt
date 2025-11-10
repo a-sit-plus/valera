@@ -36,6 +36,9 @@ data class AddCredentialPreAuthnRoute(
 }
 
 @Serializable
+data class AddCredentialWithLinkRoute(val uri: String) : Route()
+
+@Serializable
 data class CredentialDetailsRoute(val storeEntryId: StoreEntryId) : Route()
 
 @Serializable
@@ -119,7 +122,10 @@ object ShowQrCodeRoute : Route()
 object VerifyDataRoute : Route()
 
 @Serializable
-data class ProvisioningIntentRoute(val uri: String) : Route()
+data class ProvisioningStartIntentRoute(val uri: String) : Route()
+
+@Serializable
+data class ProvisioningResumeIntentRoute(val uri: String) : Route()
 
 @Serializable
 data class AuthorizationIntentRoute(val uri: String) : Route()

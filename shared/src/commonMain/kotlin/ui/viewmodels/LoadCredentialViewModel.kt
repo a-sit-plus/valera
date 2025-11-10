@@ -1,20 +1,14 @@
 package ui.viewmodels
 
 import at.asitplus.openid.CredentialOffer
-import at.asitplus.openid.CredentialOfferGrantsPreAuthCodeTransactionCode
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 
 /**
  * Selected transaction identifier, requested attributes, transaction code
  */
-typealias CredentialSelection = (CredentialIdentifierInfo, String?) -> Unit
+typealias CredentialSelection = (CredentialIdentifierInfo, String?, CredentialOffer?) -> Unit
 
 class LoadCredentialViewModel(
     val walletMain: WalletMain,
@@ -22,7 +16,7 @@ class LoadCredentialViewModel(
     val navigateUp: () -> Unit,
     val hostString: String,
     val credentialIdentifiers: Collection<CredentialIdentifierInfo>,
-    val transactionCodeRequirements: CredentialOfferGrantsPreAuthCodeTransactionCode?,
+    val offer: CredentialOffer?,
     val onClickLogo: () -> Unit,
     val onClickSettings: () -> Unit,
 ) {
@@ -40,7 +34,7 @@ class LoadCredentialViewModel(
             onSubmit = onSubmit,
             navigateUp = navigateUp,
             hostString = hostString,
-            transactionCodeRequirements = null,
+            offer = null,
             onClickLogo = onClickLogo,
             onClickSettings = onClickSettings,
             credentialIdentifiers = walletMain.scope.async {
@@ -60,7 +54,7 @@ class LoadCredentialViewModel(
             onSubmit = onSubmit,
             navigateUp = navigateUp,
             hostString = offer.credentialIssuer,
-            transactionCodeRequirements = offer.grants?.preAuthorizedCode?.transactionCode,
+            offer = offer,
             onClickLogo = onClickLogo,
             onClickSettings = onClickSettings,
             credentialIdentifiers = walletMain.scope.async {
@@ -68,5 +62,30 @@ class LoadCredentialViewModel(
                     .filter { it.credentialIdentifier in offer.configurationIds }
             }.await()
         )
+        suspend fun init(
+            walletMain: WalletMain,
+            url: String,
+            onSubmit: CredentialSelection,
+            navigateUp: () -> Unit,
+            onClickLogo: () -> Unit,
+            onClickSettings: () -> Unit
+        ): LoadCredentialViewModel {
+            val offer = walletMain.scope.async {
+                walletMain.provisioningService.decodeCredentialOffer(url)
+            }.await()
+            return LoadCredentialViewModel(
+                walletMain = walletMain,
+                onSubmit = onSubmit,
+                navigateUp = navigateUp,
+                hostString = offer.credentialIssuer,
+                offer = offer,
+                onClickLogo = onClickLogo,
+                onClickSettings = onClickSettings,
+                credentialIdentifiers = walletMain.scope.async {
+                    walletMain.provisioningService.loadCredentialMetadata(offer.credentialIssuer)
+                        .filter { it.credentialIdentifier in offer.configurationIds }
+                }.await()
+            )
+        }
     }
 }

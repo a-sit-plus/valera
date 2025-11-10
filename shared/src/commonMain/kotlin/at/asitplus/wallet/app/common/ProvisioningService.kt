@@ -39,8 +39,6 @@ class ProvisioningService(
     private val errorService: ErrorService,
     httpService: HttpService,
 ) {
-    /** Checked by appLink handling whether to jump into [resumeWithAuthCode] */
-    private var redirectUri: String? = null
     private val cookieStorage = PersistentCookieStorage(dataStoreService, errorService)
     private val client = httpService.buildHttpClient(cookieStorage = cookieStorage)
 
@@ -100,7 +98,7 @@ class ProvisioningService(
         intentService.openIntent(
             url = url,
             redirectUri = redirectUrl,
-            intentType = IntentService.IntentType.ProvisioningIntent
+            intentType = IntentService.IntentType.ProvisioningResumeIntent
         )
     }
 
@@ -111,7 +109,6 @@ class ProvisioningService(
     @Throws(Throwable::class)
     suspend fun resumeWithAuthCode(redirectedUrl: String) {
         Napier.d("handleResponse with $redirectedUrl")
-        this.redirectUri = null
         dataStoreService.getPreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT)
             .firstOrNull()
             ?.let {

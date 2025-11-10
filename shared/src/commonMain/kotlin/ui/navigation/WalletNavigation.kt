@@ -300,7 +300,7 @@ private fun WalletNavHost(
 
             val vm = remember {
                 try {
-                    val dcApiRequest = when(val request = route.authorizationResponsePreparationState.request) {
+                    val dcApiRequest = when (val request = route.authorizationResponsePreparationState.request) {
                         is RequestParametersFrom.DcApiSigned<*> -> request.dcApiRequest
                         is RequestParametersFrom.DcApiUnsigned<*> -> request.dcApiRequest
                         else -> null
@@ -448,7 +448,7 @@ private fun WalletNavHost(
                             walletMain = walletMain,
                             navigateUp = navigateBack,
                             hostString = backStackEntry.toRoute<LoadCredentialRoute>().host,
-                            onSubmit = { credentialIdentifierInfo, _ ->
+                            onSubmit = { credentialIdentifierInfo, _, _ ->
                                 popBackStack(HomeScreenRoute)
                                 walletMain.scope.launch {
                                     walletMain.startProvisioning(
@@ -473,6 +473,46 @@ private fun WalletNavHost(
             }
         }
 
+        composable<AddCredentialWithLinkRoute> { backStackEntry ->
+            remember {
+                runBlocking {
+                    runCatching {
+                        LoadCredentialViewModel.init(
+                            walletMain = walletMain,
+                            navigateUp = navigateBack,
+                            url = backStackEntry.toRoute<AddCredentialWithLinkRoute>().uri,
+                            onSubmit = { credentialIdentifierInfo, transactionCode, offer ->
+                                popBackStack(HomeScreenRoute)
+                                navigate(LoadingRoute)
+                                walletMain.scope.launch {
+                                    try {
+                                        walletMain.provisioningService.loadCredentialWithOffer(
+                                            credentialOffer = offer!!,
+                                            credentialIdentifierInfo = credentialIdentifierInfo,
+                                            transactionCode = transactionCode?.ifEmpty { null }
+                                                ?.ifBlank { null },
+                                        )
+                                        popBackStack(HomeScreenRoute)
+                                    } catch (e: Throwable) {
+                                        popBackStack(HomeScreenRoute)
+                                        walletMain.errorService.emit(e)
+                                    }
+                                }
+                            },
+                            onClickLogo = onClickLogo,
+                            onClickSettings = { navigate(SettingsRoute) }
+                        )
+                    }.getOrElse {
+                        popBackStack(HomeScreenRoute)
+                        walletMain.errorService.emit(it)
+                        null
+                    }
+                }
+            }?.let { vm ->
+                LoadCredentialView(vm)
+            }
+        }
+
         composable<AddCredentialPreAuthnRoute> { backStackEntry ->
             val offer = backStackEntry.toRoute<AddCredentialPreAuthnRoute>().credentialOffer
             remember {
@@ -482,7 +522,7 @@ private fun WalletNavHost(
                             walletMain = walletMain,
                             navigateUp = navigateBack,
                             offer = offer,
-                            onSubmit = { credentialIdentifierInfo, transactionCode ->
+                            onSubmit = { credentialIdentifierInfo, transactionCode, _ ->
                                 popBackStack(HomeScreenRoute)
                                 navigate(LoadingRoute)
                                 walletMain.scope.launch {
@@ -604,11 +644,11 @@ private fun WalletNavHost(
             })
         }
 
-        composable<ProvisioningIntentRoute> { backStackEntry ->
+        composable<ProvisioningResumeIntentRoute> { backStackEntry ->
             ProvisioningIntentView(remember {
                 ProvisioningIntentViewModel(
                     walletMain = walletMain,
-                    uri = backStackEntry.toRoute<ProvisioningIntentRoute>().uri,
+                    uri = backStackEntry.toRoute<ProvisioningResumeIntentRoute>().uri,
                     onSuccess = {
                         navigateBack()
                     }, onFailure = { error ->
