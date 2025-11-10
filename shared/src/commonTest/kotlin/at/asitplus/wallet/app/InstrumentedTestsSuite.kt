@@ -24,17 +24,15 @@ import at.asitplus.openid.OidcUserInfo
 import at.asitplus.openid.OidcUserInfoExtended
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_continue
-import at.asitplus.valera.resources.button_label_details
 import at.asitplus.valera.resources.button_label_start
 import at.asitplus.valera.resources.content_description_portrait
-import at.asitplus.valera.resources.section_heading_age_data
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.BuildType
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.SessionService
 import at.asitplus.wallet.app.common.WalletDependencyProvider
-import at.asitplus.wallet.eupid.EuPidScheme
+import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
 import at.asitplus.wallet.lib.agent.ClaimToBeIssued
 import at.asitplus.wallet.lib.agent.CredentialToBeIssued
 import at.asitplus.wallet.lib.agent.EphemeralKeyWithSelfSignedCert
@@ -79,8 +77,6 @@ fun ComposeUiTest.endToEndTest() {
     val startText = runBlocking { getString(Res.string.button_label_start) }
     val portraitText = runBlocking { getString(Res.string.content_description_portrait) }
     val continueText = runBlocking { getString(Res.string.button_label_continue) }
-    val detailsText = runBlocking { getString(Res.string.button_label_details) }
-    val ageText = runBlocking { getString(Res.string.section_heading_age_data) }
 
     val client = HttpClient {
         expectSuccess = true
@@ -122,7 +118,7 @@ fun ComposeUiTest.endToEndTest() {
                     CredentialToBeIssued.VcSd(
                         getAttributes(),
                         Clock.System.now().plus(60.minutes),
-                        EuPidScheme,
+                        EuPidSdJwtScheme,
                         holderAgent.keyMaterial.publicKey,
                         OidcUserInfoExtended(userInfo = OidcUserInfo(subject = ""))
                     )
@@ -138,13 +134,6 @@ fun ComposeUiTest.endToEndTest() {
     onNodeWithContentDescription(portraitText).assertHeightIsAtLeast(1.dp)
     onNodeWithText("XXXÉliás XXXTörőcsik").assertExists()
     onNodeWithText("11.10.1965").assertExists()
-
-    onNodeWithText(detailsText).performClick()
-    waitUntilExactlyOneExists(hasText(ageText), 3000)
-    onNodeWithText("≥18").assertExists()
-
-    onNodeWithText(detailsText).performClick()
-
 
     val responseGenerateRequest = runBlocking {
         client.post("https://apps.egiz.gv.at/customverifier/transaction/create") {
@@ -172,12 +161,13 @@ val request = Json.encodeToString(
     RequestBody.serializer(), RequestBody(
         "presentation_definition", listOf(
             Credential(
-                EuPidScheme.sdJwtType, "SD_JWT", listOf(
-                    EuPidScheme.Attributes.GIVEN_NAME,
-                    EuPidScheme.Attributes.FAMILY_NAME,
-                    EuPidScheme.Attributes.BIRTH_DATE,
-                    EuPidScheme.Attributes.PORTRAIT,
-                    EuPidScheme.Attributes.AGE_OVER_18,
+                credentialType = EuPidSdJwtScheme.sdJwtType,
+                representation = "SD_JWT",
+                attributes = listOf(
+                    EuPidSdJwtScheme.SdJwtAttributes.GIVEN_NAME,
+                    EuPidSdJwtScheme.SdJwtAttributes.FAMILY_NAME,
+                    EuPidSdJwtScheme.SdJwtAttributes.BIRTH_DATE,
+                    EuPidSdJwtScheme.SdJwtAttributes.PORTRAIT,
                 )
             )
         )
@@ -199,14 +189,13 @@ expect fun getPlatformAdapter(): PlatformAdapter
 
 
 private fun getAttributes(): List<ClaimToBeIssued> = listOf(
-    ClaimToBeIssued(EuPidScheme.Attributes.GIVEN_NAME, "XXXÉliás"),
-    ClaimToBeIssued(EuPidScheme.Attributes.FAMILY_NAME, "XXXTörőcsik"),
-    ClaimToBeIssued(EuPidScheme.Attributes.BIRTH_DATE, "1965-10-11"),
+    ClaimToBeIssued(EuPidSdJwtScheme.SdJwtAttributes.GIVEN_NAME, "XXXÉliás"),
+    ClaimToBeIssued(EuPidSdJwtScheme.SdJwtAttributes.FAMILY_NAME, "XXXTörőcsik"),
+    ClaimToBeIssued(EuPidSdJwtScheme.SdJwtAttributes.BIRTH_DATE, "1965-10-11"),
     ClaimToBeIssued(
-        EuPidScheme.Attributes.PORTRAIT,
+        EuPidSdJwtScheme.SdJwtAttributes.PORTRAIT,
         "iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAIAAACRXR/mAAAAdklEQVR4nOzQMQ2AQBQEUSAowQcy0IADSnqEoQbKu/40TLLFL2YEbF523Y53CnXeV2pqSQ1lk0WSRZJFkkWSRZJFkkWSRZJFkkWSRSrKmv+npba+vqemir4liySLJIskiySLJIskiySLJIskiySLVJQ1AgAA//81XweDWRWyzwAAAABJRU5ErkJggg=="
     ),
-    ClaimToBeIssued(EuPidScheme.Attributes.AGE_OVER_18, true),
 )
 
 
