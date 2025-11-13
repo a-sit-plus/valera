@@ -139,7 +139,7 @@ private fun SubjectCredentialStore.StoreEntry.allClaims() = when (this) {
         }
     }
 
-    is SubjectCredentialStore.StoreEntry.SdJwt -> SdJwtSigned.parse(vcSerialized)
+    is SubjectCredentialStore.StoreEntry.SdJwt -> SdJwtSigned.parseCatching(vcSerialized).getOrNull()
         ?.let { SdJwtDecoded(it).reconstructedJsonObject } ?: buildJsonObject {
         disclosures.forEach { disclosure ->
             disclosure.value?.claimValue?.let { put(disclosure.key, it) }

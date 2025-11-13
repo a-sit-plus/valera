@@ -3,6 +3,7 @@ package data.credentials
 import at.asitplus.wallet.eupid.EuPidScheme
 
 class EuPidCredentialMdocClaimDefinitionResolver {
+    @Suppress("DEPRECATION")
     fun resolveOrNull(
         namespace: String,
         claimName: String,

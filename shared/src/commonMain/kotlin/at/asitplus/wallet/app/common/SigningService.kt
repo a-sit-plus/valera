@@ -1,17 +1,17 @@
 package at.asitplus.wallet.app.common
 
 import at.asitplus.catchingUnwrapped
+import at.asitplus.csc.CredentialInfo
+import at.asitplus.csc.CredentialInfoRequest
+import at.asitplus.csc.CredentialListRequest
+import at.asitplus.csc.CredentialListResponse
+import at.asitplus.csc.QtspSignatureResponse
+import at.asitplus.csc.enums.CertificateOptions
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.AuthorizationDetails
+import at.asitplus.openid.CscAuthorizationDetails
+import at.asitplus.openid.SignatureRequestParameters
 import at.asitplus.openid.TokenResponseParameters
-import at.asitplus.rqes.CredentialInfo
-import at.asitplus.rqes.CredentialInfoRequest
-import at.asitplus.rqes.CredentialListRequest
-import at.asitplus.rqes.CredentialListResponse
-import at.asitplus.rqes.CscAuthorizationDetails
-import at.asitplus.rqes.QtspSignatureResponse
-import at.asitplus.rqes.SignatureRequestParameters
-import at.asitplus.rqes.enums.CertificateOptions
 import at.asitplus.signum.indispensable.Digest
 import at.asitplus.signum.indispensable.X509SignatureAlgorithm
 import at.asitplus.signum.indispensable.io.ByteArrayBase64Serializer
@@ -23,7 +23,8 @@ import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.oauth2.OAuth2Client
 import at.asitplus.wallet.lib.oidvci.encodeToParameters
 import at.asitplus.wallet.lib.oidvci.formUrlEncode
-import at.asitplus.wallet.lib.rqes.RqesOpenId4VpHolder
+import at.asitplus.wallet.lib.rqes.RqesWalletService
+import at.asitplus.wallet.lib.rqes.toSigningCredential
 import data.storage.DataStoreService
 import data.storage.PersistentCookieStorage
 import io.github.aakira.napier.Napier
@@ -71,7 +72,7 @@ class SigningService(
     private val client = httpService.buildHttpClient(cookieStorage)
     private val redirectUrl = "asitplus-wallet://wallet.a-sit.at/app/callback/signing"
     private val pdfSigningService = "https://apps.egiz.gv.at/qtsp"
-    lateinit var rqesWalletService: RqesOpenId4VpHolder
+    lateinit var rqesWalletService: RqesWalletService
 
     private lateinit var signatureRequestParameter: SignatureRequestParameters
     private lateinit var documentWithLabel: MutableMap<Int, DocumentWithLabel>
@@ -121,8 +122,7 @@ class SigningService(
     }
 
     suspend fun preloadCertificate() {
-        rqesWalletService =
-            RqesOpenId4VpHolder(redirectUrl = redirectUrl, clientId = config.getCurrent().oauth2ClientId)
+        rqesWalletService = RqesWalletService(redirectUrl = redirectUrl, clientId = config.getCurrent().oauth2ClientId)
 
         val targetUrl = createServiceAuthRequest()
         this.state = SigningState.PreloadCredential
@@ -141,14 +141,11 @@ class SigningService(
     }
 
     suspend fun start(signatureRequestParameters: SignatureRequestParameters) {
-        rqesWalletService =
-            RqesOpenId4VpHolder(redirectUrl = redirectUrl, clientId = config.getCurrent().oauth2ClientId)
         this.signatureRequestParameter = signatureRequestParameters
         prepareDocuments()
+        rqesWalletService = RqesWalletService(redirectUrl = redirectUrl, clientId = config.getCurrent().oauth2ClientId)
 
         if (config.hasValidCertificate()) {
-            val credentialInfo = config.getCurrent().credentialInfo ?: throw Throwable("Missing credentialInfo")
-            rqesWalletService.setSigningCredential(credentialInfo)
             val targetUrl = createCredentialAuthRequest()
             this.state = SigningState.CredentialRequest
             intentService.openIntent(
@@ -175,7 +172,6 @@ class SigningService(
                 config.getCurrent().credentialInfo = credentialInfo
                 exportToDataStore()
             }
-            rqesWalletService.setSigningCredential(credentialInfo)
 
             val targetUrl = createCredentialAuthRequest()
 
@@ -189,14 +185,16 @@ class SigningService(
 
     suspend fun resumeWithCredentialAuthCode(url: String) {
         val credentialToken = getTokenFromAuthCode(url)
+        val credentialInfo = config.getCurrent().credentialInfo?.toSigningCredential() ?: throw Throwable("Missing credentialInfo")
 
         val signAlgorithm =
-            rqesWalletService.signingCredential?.supportedSigningAlgorithms?.first() ?: X509SignatureAlgorithm.RS512
+            credentialInfo.supportedSigningAlgorithms?.first() ?: X509SignatureAlgorithm.RS512
 
         val signHashRequest = rqesWalletService.createSignHashRequestParameters(
             dtbsr = (this.dtbsrAuthenticationDetails as CscAuthorizationDetails).documentDigests.map { it.hash },
             sad = credentialToken.accessToken,
-            signatureAlgorithm = signAlgorithm
+            signatureAlgorithm = signAlgorithm,
+            signingCredential = credentialInfo
         )
         val token = serviceToken ?: credentialToken
         serviceToken = null
@@ -381,7 +379,7 @@ class SigningService(
     }
 
     private suspend fun createCredentialAuthRequest(): String {
-        val signingCredential = rqesWalletService.signingCredential ?: throw Throwable("Missing signingCredential")
+        val signingCredential = config.getCurrent().credentialInfo?.toSigningCredential() ?: throw Throwable("Missing credentialInfo")
 
         val credentialSigningAlgorithms = signingCredential.supportedSigningAlgorithms
         val commonSigningAlgorithm =
@@ -402,12 +400,14 @@ class SigningService(
 
         this.dtbsrAuthenticationDetails =
             rqesWalletService.getCscAuthenticationDetails(
+                signingCredential,
                 dtbsr.map { it.second },
                 hashAlgorithm = signatureAlgorithm.digest,
                 this.signatureRequestParameter.documentLocations
             )
 
         val authRequest = rqesWalletService.createCredentialAuthenticationRequest(
+            signingCredential,
             documentDigests = dtbsr.map { it.second },
             hashAlgorithm = signatureAlgorithm.digest,
             documentLocation = this.signatureRequestParameter.documentLocations

@@ -140,6 +140,7 @@ fun IsoMdocCredentialView(
                         MobileDrivingLicenceCredentialIsoMdocAdapter(namespaces, decodeImage)
                     )
                     val namespace = namespaces[MobileDrivingLicenceScheme.isoNamespace]
+                    @Suppress("UNCHECKED_CAST")
                     val drivingPrivileges = namespace?.get(MobileDrivingLicenceDataElements.DRIVING_PRIVILEGES)
                         ?.let { it as? Array<DrivingPrivilege> }
                     drivingPrivileges?.forEach {

@@ -12,7 +12,7 @@ import at.asitplus.wallet.app.common.iso.transfer.MdocConstants.MDOC_PREFIX
 import at.asitplus.wallet.app.common.iso.transfer.TransferManager
 import at.asitplus.wallet.app.common.iso.verifier.DeviceResponseException
 import at.asitplus.wallet.app.common.iso.verifier.VerifyResponseException
-import at.asitplus.wallet.lib.agent.Validator
+import at.asitplus.wallet.lib.agent.ValidatorVcJws
 import at.asitplus.wallet.lib.agent.Verifier.VerifyPresentationResult
 import at.asitplus.wallet.lib.agent.VerifierAgent
 import at.asitplus.wallet.lib.data.IsoDocumentParsed
@@ -93,15 +93,11 @@ class VerifierViewModel(
         }
         walletMain.scope.launch(Dispatchers.IO) {
             try {
-                val verifierAgent = VerifierAgent("Proximity Verifier", Validator())
+                val verifierAgent = VerifierAgent("Proximity Verifier")
                 when (val result = verifierAgent.verifyPresentationIsoMdoc(deviceResponse, verifyDocument)) {
                     is VerifyPresentationResult.SuccessIso -> {
                         responseDocumentList.addAll(result.documents)
                         _verifierState.value = VerifierState.PRESENTATION
-                    }
-                    is VerifyPresentationResult.InvalidStructure -> {
-                        handleError(VerifyResponseException("Verification failed: InvalidStructure\ninput = ${result.input}"))
-                        return@launch
                     }
                     is VerifyPresentationResult.ValidationError -> {
                         handleError(VerifyResponseException("Verification failed: ValidationError", result.cause))

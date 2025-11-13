@@ -3,7 +3,7 @@ package ui.navigation.routes
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.openid.RequestParametersFrom
-import at.asitplus.rqes.SignatureRequestParameters
+import at.asitplus.openid.SignatureRequestParameters
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.presentation.PresentationRequest
 import at.asitplus.wallet.lib.data.vckJsonSerializer

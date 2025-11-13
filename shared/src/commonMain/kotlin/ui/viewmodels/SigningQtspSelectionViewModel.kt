@@ -1,7 +1,7 @@
 package ui.viewmodels
 
 import androidx.compose.runtime.mutableStateOf
-import at.asitplus.rqes.SignatureRequestParameters
+import at.asitplus.openid.SignatureRequestParameters
 import at.asitplus.wallet.app.common.WalletMain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

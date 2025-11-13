@@ -69,7 +69,8 @@ abstract class CredentialAdapter {
                 .mapValues { it.value.jsonPrimitive }
 
         fun SubjectCredentialStore.StoreEntry.SdJwt.toComplexJson() =
-            SdJwtSigned.parse(vcSerialized)?.let { SdJwtDecoded(it).reconstructedJsonObject }
+            SdJwtSigned.parseCatching(vcSerialized).getOrNull()
+                ?.let { SdJwtDecoded(it).reconstructedJsonObject }
 
         fun SubjectCredentialStore.StoreEntry.Iso.toNamespaceAttributeMap() =
             issuerSigned.namespaces?.mapValues { namespace ->

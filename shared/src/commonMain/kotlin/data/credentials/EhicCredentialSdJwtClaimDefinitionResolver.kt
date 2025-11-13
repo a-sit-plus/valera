@@ -5,6 +5,7 @@ import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.ehic.EhicScheme
 
 class EhicCredentialSdJwtClaimDefinitionResolver {
+    @Suppress("DEPRECATION")
     fun resolveOrNull(path: NormalizedJsonPath) = when (val first = path.segments.firstOrNull()) {
         is NormalizedJsonPathSegment.NameSegment -> when (first.memberName) {
             EhicScheme.Attributes.ISSUING_COUNTRY -> EhicCredentialClaimDefinition.ISSUING_COUNTRY

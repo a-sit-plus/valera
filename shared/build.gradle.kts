@@ -1,40 +1,68 @@
+import at.asitplus.gradle.envExtra
 import at.asitplus.gradle.exportXCFramework
 import at.asitplus.gradle.ktor
 import at.asitplus.gradle.kmmresult
 import at.asitplus.gradle.napier
 import at.asitplus.gradle.serialization
-import org.gradle.internal.os.OperatingSystem
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
-import org.jetbrains.kotlin.gradle.plugin.extraProperties
+import org.gradle.kotlin.dsl.invoke
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest
 
-val vckVersion = vckCatalog.vck.get().version
 
 plugins {
     kotlin("multiplatform")
-    id("com.android.library")
+    id("com.android.kotlin.multiplatform.library")
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
     id("at.asitplus.gradle.conventions")
     id("kotlin-parcelize")
     kotlin("plugin.serialization")
+    id("de.infix.testBalloon")
 }
 
+val disableAppleTargets by envExtra
+
 kotlin {
-    androidTarget {
-        publishLibraryVariants("release")
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
-        instrumentedTestVariant {
-            sourceSetTree.set(KotlinSourceSetTree.test)
+    androidLibrary {
+        namespace = "at.asitplus.wallet.app.common"
+
+        packaging {
+            resources.excludes += ("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
+            resources.excludes.add("**/attach_hotspot_windows.dll")
+            resources.excludes.add("META-INF/licenses/**")
+            resources.excludes.add("META-INF/AL2.0")
+            resources.excludes.add("META-INF/LGPL2.1")
         }
+
+        androidResources {
+            enable = true
+        }
+
+        withHostTest {
+            isIncludeAndroidResources = true
+        }
+
+        withDeviceTestBuilder {
+            sourceSetTreeName = "test"
+        }.configure {
+            instrumentationRunnerArguments["timeout_msec"] = "2400000"
+            managedDevices {
+                localDevices {
+                    create("pixel2api35") {
+                        device = "Pixel 2"
+                        apiLevel = 35
+                        systemImageSource = "aosp-atd"
+                    }
+                }
+            }
+        }
+
     }
 
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
-
+    if ("true" != disableAppleTargets) {
+        iosX64()
+        iosArm64()
+        iosSimulatorArm64()
+    }
 
     sourceSets {
         commonMain.dependencies {
@@ -46,8 +74,8 @@ kotlin {
             implementation(compose.foundation)
             implementation(compose.material3)
             implementation(compose.materialIconsExtended)
-            implementation("at.asitplus.wallet:vck-rqes:$vckVersion")
-            api(vckOidCatalog.vck.openid.ktor)
+            implementation(libs.vck.rqes)
+            api(libs.vck.openid.ktor)
             api(libs.atomicfu)
             api(libs.credential.mdl)
             api(libs.credential.ida)
@@ -88,6 +116,7 @@ kotlin {
             @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
             implementation(compose.uiTest)
             implementation(libs.koin.test)
+            implementation("de.infix.testBalloon:testBalloon-framework-shared:0.7.1-K2.2.21")
         }
 
         androidMain.dependencies {
@@ -114,7 +143,7 @@ kotlin {
             implementation(libs.androidx.registry.provider.play.services)
         }
 
-        androidInstrumentedTest.dependencies {
+        getByName("androidDeviceTest").dependencies {
             implementation("androidx.compose.ui:ui-test-junit4")
             implementation("androidx.compose.ui:ui-test-manifest")
         }
@@ -122,38 +151,6 @@ kotlin {
     }
 }
 
-android {
-    compileSdk = (extraProperties["android.compileSdk"] as String).toInt()
-    namespace = "at.asitplus.wallet.app.common"
-
-    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
-    sourceSets["main"].res.srcDirs("src/androidMain/res")
-    sourceSets["main"].resources.srcDirs("src/commonMain/resources")
-
-    defaultConfig {
-        minSdk = (extraProperties["android.minSdk"] as String).toInt()
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
-
-    packaging {
-        resources.excludes += ("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
-        resources.excludes.add("**/attach_hotspot_windows.dll")
-        resources.excludes.add("META-INF/licenses/**")
-        resources.excludes.add("META-INF/AL2.0")
-        resources.excludes.add("META-INF/LGPL2.1")
-    }
-    testOptions {
-        managedDevices {
-            localDevices {
-                create("pixel2api33") {
-                    device = "Pixel 2"
-                    apiLevel = 33
-                    systemImageSource = "aosp-atd"
-                }
-            }
-        }
-    }
-}
 
 compose.resources {
     packageOfResClass = "at.asitplus.valera.resources"
@@ -162,9 +159,9 @@ compose.resources {
 exportXCFramework(
     name = "shared", transitiveExports = false, static = true,
     additionalExports = arrayOf(
-        vckCatalog.vck,
-        vckOidCatalog.vck.openid,
-        vckOidCatalog.vck.openid.ktor,
+        libs.vck,
+        libs.vck.openid,
+        libs.vck.openid.ktor,
         libs.credential.ida,
         libs.credential.mdl,
         libs.credential.eupid,
@@ -181,7 +178,7 @@ exportXCFramework(
 ) {
     binaryOption("bundleId", "at.asitplus.wallet.shared")
     linkerOpts("-ld_classic")
-    freeCompilerArgs += listOf("-Xoverride-konan-properties=minVersion.ios=15.0;minVersionSinceXcode15.ios=15.0")
+    freeCompilerArgs += listOf("-Xoverride-konan-properties=minVersion.ios=18.5;minVersionSinceXcode15.ios=18.5")
 }
 
 tasks.register("iosBootSimulator") {
@@ -195,10 +192,12 @@ tasks.register("iosBootSimulator") {
     }
 }
 
-tasks.named("iosSimulatorArm64Test", KotlinNativeSimulatorTest::class.java).configure {
-    dependsOn("iosBootSimulator")
-    standalone.set(false)
-    device.set("iPhone 16")
+if ("true" != disableAppleTargets) {
+    tasks.named("iosSimulatorArm64Test", KotlinNativeSimulatorTest::class.java).configure {
+        dependsOn("iosBootSimulator")
+        standalone.set(false)
+        device.set("iPhone 16")
+    }
 }
 
 tasks.register("findDependency") {

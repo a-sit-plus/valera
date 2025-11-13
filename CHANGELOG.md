@@ -3,6 +3,8 @@
  * Presentation: Always show requested attributes
  * Remove DC API preview protocol
  * Update DC API matcher
+ * Update to vc-k 5.9.0
+ * Build: Set `disableAppleTargets=true` in `local.properties` to disable iOS targets on non-Mac hosts
 
 # Release 5.7.3
  * Update to VC-K 5.8.0, fixing optional attributes during presentation
