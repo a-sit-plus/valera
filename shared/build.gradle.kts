@@ -9,10 +9,11 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
 import org.jetbrains.kotlin.gradle.plugin.extraProperties
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest
+import org.jetbrains.kotlin.konan.target.HostManager
 
 val vckVersion = vckCatalog.vck.get().version
 
-plugins {
+ plugins {
     kotlin("multiplatform")
     id("com.android.library")
     alias(libs.plugins.jetbrainsCompose)
@@ -118,7 +119,10 @@ kotlin {
             implementation("androidx.compose.ui:ui-test-junit4")
             implementation("androidx.compose.ui:ui-test-manifest")
         }
-        iosMain.dependencies { implementation(ktor("client-darwin")) }
+        iosMain.dependencies {
+            api(project(":interop"))
+            implementation(ktor("client-darwin"))
+        }
     }
 }
 

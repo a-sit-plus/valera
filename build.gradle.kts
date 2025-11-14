@@ -46,8 +46,8 @@ subprojects {
 
             val swiftLib = "$devDir/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/"
 
-            extensions.getByType<KotlinMultiplatformExtension>().targets.withType<KotlinNativeTarget>()
-                .configureEach {
+            extensions.findByType<KotlinMultiplatformExtension>()?.targets?.withType<KotlinNativeTarget>()
+                ?.configureEach {
                     val sub = when (konanTarget.family) {
                         Family.IOS ->
                             if (konanTarget.name.contains(
