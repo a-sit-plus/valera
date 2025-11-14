@@ -67,6 +67,11 @@ import platform.darwin.dispatch_async
 import platform.darwin.dispatch_get_main_queue
 import ui.theme.darkScheme
 import ui.theme.lightScheme
+import at.asitplus.wallet.app.ios.DigitalCredentials
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 
 actual fun getPlatformName(): String = "iOS"
 
@@ -250,7 +255,32 @@ class IosPlatformAdapter(
         entries: CredentialRegistry,
         scope: CoroutineScope
     ) {
-        //TODO("Not yet implemented")
+        scope.launch(Dispatchers.Default) {
+            for (entry in entries.credentials) {
+                val id = entry.isoEntry?.id ?: entry.sdJwtEntry?.jwtId
+                val docType = entry.isoEntry?.docType ?: entry.sdJwtEntry?.verifiableCredentialType
+                if (id != null && docType != null) {
+                    storeDocumentFromSwift(id, docType)
+                }
+            }
+        }
+    }
+
+    @OptIn(ExperimentalForeignApi::class)
+    private suspend fun storeDocumentFromSwift(id: String, docType: String): Boolean = suspendCancellableCoroutine { cont ->
+        try {
+            Napier.d("storeDocumentFromSwift invoked")
+            // TODO check if doctype is supported, otherwise don't add it
+            DigitalCredentials.storeDocumentWithId(id, docType) { success ->
+                Napier.d("storeDocumentFromSwift callback with $success")
+                if (cont.isActive) cont.resume(success)
+            }
+            Napier.d("storeDocumentFromSwift got back from swift")
+
+        } catch (e: Throwable) {
+            Napier.e("Error while invoking Swift code", e)
+        }
+
     }
 
     override fun getCurrentDCAPIData(): KmmResult<DCAPIWalletRequest> {

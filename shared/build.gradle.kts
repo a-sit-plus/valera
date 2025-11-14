@@ -6,9 +6,10 @@ import at.asitplus.gradle.napier
 import at.asitplus.gradle.serialization
 import org.gradle.kotlin.dsl.invoke
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest
+import org.jetbrains.kotlin.konan.target.HostManager
 
 
-plugins {
+ plugins {
     kotlin("multiplatform")
     id("com.android.kotlin.multiplatform.library")
     alias(libs.plugins.jetbrainsCompose)
@@ -148,7 +149,10 @@ kotlin {
             implementation("androidx.compose.ui:ui-test-junit4")
             implementation("androidx.compose.ui:ui-test-manifest")
         }
-        iosMain.dependencies { implementation(ktor("client-darwin")) }
+        iosMain.dependencies {
+            api(project(":interop"))
+            implementation(ktor("client-darwin"))
+        }
     }
 }
 
