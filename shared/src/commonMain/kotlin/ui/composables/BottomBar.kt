@@ -16,14 +16,13 @@ import at.asitplus.valera.resources.button_label_sign
 import at.asitplus.valera.resources.navigation_button_label_check
 import at.asitplus.valera.resources.navigation_button_label_my_data
 import at.asitplus.valera.resources.navigation_button_label_show_data
-import at.asitplus.wallet.lib.data.vckJsonSerializer
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import ui.navigation.routes.HomeScreenRoute
 import ui.navigation.routes.PresentDataRoute
+import ui.navigation.routes.ProximityVerifierRoute
 import ui.navigation.routes.QrCodeScannerRoute
 import ui.navigation.routes.Route
-import ui.navigation.routes.VerifyDataRoute
 import ui.viewmodels.QrCodeScannerMode
 
 @Composable
@@ -90,8 +89,8 @@ enum class NavigationData(
                 contentDescription = null
             )
         },
-        destination = VerifyDataRoute,
-        isActive = { it is VerifyDataRoute }
+        destination = ProximityVerifierRoute,
+        isActive = { it is ProximityVerifierRoute }
     ),
     SIGNING_SCREEN(
         title = Res.string.button_label_sign,

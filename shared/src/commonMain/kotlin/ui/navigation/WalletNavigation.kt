@@ -50,12 +50,11 @@ import ui.navigation.routes.*
 import ui.viewmodels.*
 import ui.viewmodels.authentication.*
 import ui.viewmodels.intents.*
-import ui.viewmodels.iso.VerifierViewModel
 import ui.views.*
 import ui.views.authentication.AuthenticationSuccessView
 import ui.views.authentication.AuthenticationView
 import ui.views.intents.*
-import ui.views.iso.ShowQrCodeView
+import ui.views.iso.holder.HolderView
 import ui.views.iso.verifier.VerifierView
 import ui.views.presentation.PresentationView
 
@@ -248,7 +247,7 @@ private fun WalletNavHost(
                 onNavigateToAuthenticationQrCodeScannerView = {
                     navigate(QrCodeScannerRoute(QrCodeScannerMode.AUTHENTICATION))
                 },
-                onNavigateToShowQrCodeView = { navigate(ShowQrCodeRoute) },
+                onNavigateToProximityHolderView = { navigate(ProximityHolderRoute) },
                 onClickLogo = onClickLogo,
                 onClickSettings = { navigate(SettingsRoute) },
                 bottomBar = {
@@ -260,38 +259,39 @@ private fun WalletNavHost(
             )
         }
 
-        composable<ShowQrCodeRoute> {
-            ShowQrCodeView(
-                navigateUp = { navigateBack() },
+        composable<ProximityHolderRoute> {
+            HolderView(
+                navigateUp = { navigate(PresentDataRoute) },
                 onClickLogo = onClickLogo,
                 onClickSettings = { navigate(SettingsRoute) },
                 onNavigateToPresentmentScreen = {
                     Globals.presentationStateModel.value = it
                     navigate(LocalPresentationAuthenticationConsentRoute("QR"))
                 },
+                bottomBar = {
+                    BottomBar(
+                        navigate = navigate,
+                        selected = NavigationData.PRESENT_DATA_SCREEN
+                    )
+                },
+                onError = onError,
                 koinScope = koinScope
             )
         }
 
-        composable<VerifyDataRoute> {
+        composable<ProximityVerifierRoute> {
             VerifierView(
-                vm = remember {
-                    VerifierViewModel(
-                        navigateUp = { navigateBack() },
-                        onClickLogo = onClickLogo,
-                        walletMain = walletMain,
-                        navigateToHomeScreen = { popBackStack(HomeScreenRoute) },
-                        onClickSettings = { navigate(SettingsRoute) },
-                        settingsRepository = settingsRepository,
-                    )
-                },
+                navigateUp = { navigateBack() },
+                onClickLogo = onClickLogo,
+                onClickSettings = { navigate(SettingsRoute) },
                 onError = onError,
                 bottomBar = {
                     BottomBar(
                         navigate = navigate,
                         selected = NavigationData.VERIFY_DATA_SCREEN
                     )
-                }
+                },
+                koinScope = koinScope
             )
         }
 
@@ -602,7 +602,8 @@ private fun WalletNavHost(
                         resetApp = {
                             walletMain.scope.launch {
                                 walletMain.resetApp()
-                                val resetMessage = getString(Res.string.snackbar_reset_app_successfully)
+                                val resetMessage =
+                                    getString(Res.string.snackbar_reset_app_successfully)
                                 walletMain.snackbarService.showSnackbar(resetMessage)
                                 popBackStack(HomeScreenRoute)
                             }

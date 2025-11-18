@@ -116,10 +116,10 @@ data class AuthenticationSuccessRoute(
 ) : Route()
 
 @Serializable
-object ShowQrCodeRoute : Route()
+object ProximityHolderRoute : Route()
 
 @Serializable
-object VerifyDataRoute : Route()
+object ProximityVerifierRoute : Route()
 
 @Serializable
 data class ProvisioningStartIntentRoute(val uri: String) : Route()

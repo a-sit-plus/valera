@@ -8,4 +8,6 @@ class RequestDocumentList {
     fun addRequestDocument(requestDocument: RequestDocument) { list.add(requestDocument) }
 
     fun getAll(): List<RequestDocument> = list
+
+    fun clear() = list.clear()
 }

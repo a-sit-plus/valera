@@ -26,12 +26,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,12 +59,6 @@ import at.asitplus.valera.resources.info_text_received_funding_from_eu
 import at.asitplus.valera.resources.reset_app_alert_text
 import at.asitplus.valera.resources.section_heading_actions
 import at.asitplus.valera.resources.section_heading_information
-import at.asitplus.valera.resources.section_heading_transfer_options
-import at.asitplus.valera.resources.switch_label_blel2cap_enabled
-import at.asitplus.valera.resources.switch_label_use_ble_central_client_mode
-import at.asitplus.valera.resources.switch_label_use_ble_peripheral_server_mode
-import at.asitplus.valera.resources.switch_label_use_negotiated_handover
-import at.asitplus.valera.resources.switch_label_use_nfc_data_transfer
 import at.asitplus.valera.resources.text_label_build
 import at.asitplus.valera.resources.warning
 import at.asitplus.wallet.app.common.BuildType
@@ -268,47 +260,8 @@ fun SettingsView(
                             modifier = listSpacingModifier.fillMaxWidth(),
                         )
                     }
-
-                    Column(
-                        modifier = layoutSpacingModifier
-                    ) {
-                        val listSpacingModifier = Modifier
-                        Text(
-                            text = stringResource(Res.string.section_heading_transfer_options),
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                        SettingSwitch(
-                            label = stringResource(Res.string.switch_label_use_negotiated_handover),
-                            modifier = listSpacingModifier.fillMaxWidth(),
-                            isChecked = settingsViewModel.presentmentUseNegotiatedHandover.collectAsState().value,
-                            onCheckedChange = { settingsViewModel.setPresentmentUseNegotiatedHandover(it) }
-                        )
-                        SettingSwitch(
-                            label = stringResource(Res.string.switch_label_use_ble_central_client_mode),
-                            modifier = listSpacingModifier.fillMaxWidth(),
-                            isChecked = settingsViewModel.presentmentBleCentralClientModeEnabled.collectAsState().value,
-                            onCheckedChange = { settingsViewModel.setPresentmentBleCentralClientModeEnabled(it) }
-                        )
-                        SettingSwitch(
-                            label = stringResource(Res.string.switch_label_use_ble_peripheral_server_mode),
-                            modifier = listSpacingModifier.fillMaxWidth(),
-                            isChecked = settingsViewModel.presentmentBlePeripheralServerModeEnabled.collectAsState().value,
-                            onCheckedChange = { settingsViewModel.setPresentmentBlePeripheralServerModeEnabled(it) }
-                        )
-                        SettingSwitch(
-                            label = stringResource(Res.string.switch_label_use_nfc_data_transfer),
-                            modifier = listSpacingModifier.fillMaxWidth(),
-                            isChecked = settingsViewModel.presentmentNfcDataTransferEnabled.collectAsState().value,
-                            onCheckedChange = { settingsViewModel.setPresentmentNfcDataTransferEnabled(it) }
-                        )
-                        SettingSwitch(
-                            label = stringResource(Res.string.switch_label_blel2cap_enabled),
-                            modifier = listSpacingModifier.fillMaxWidth(),
-                            isChecked = settingsViewModel.readerBleL2CapEnabled.collectAsState().value,
-                            onCheckedChange = { settingsViewModel.setReaderBleL2CapEnabled(it) }
-                        )
-                    }
                 }
+
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -355,30 +308,6 @@ fun SettingsView(
 }
 
 @Composable
-private fun SettingSwitch(
-    label: String,
-    modifier: Modifier = Modifier,
-    isChecked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(modifier = Modifier.weight(1.0f)) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodyLarge,
-            )
-        }
-        Switch(
-            checked = isChecked,
-            onCheckedChange = onCheckedChange
-        )
-    }
-}
-
-@Composable
 private fun TextIconButtonListItem(
     icon: @Composable () -> Unit,
     label: String,
@@ -399,7 +328,6 @@ private fun TextIconButtonListItem(
         )
     }
 }
-
 
 @Composable
 private fun ResetAlert(

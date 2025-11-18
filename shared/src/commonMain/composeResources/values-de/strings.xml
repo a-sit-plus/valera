@@ -52,12 +52,6 @@
     <string name="button_label_hide_technical_details">Technische Details ausblenden</string>
     <string name="button_label_sign">Signieren</string>
 
-    <string name="switch_label_use_negotiated_handover">Negotiated Handover</string>
-    <string name="switch_label_use_ble_central_client_mode">BLE Central Client Mode</string>
-    <string name="switch_label_use_ble_peripheral_server_mode">BLE Peripheral Server Mode</string>
-    <string name="switch_label_use_nfc_data_transfer">NFC Datenübertragung</string>
-    <string name="switch_label_blel2cap_enabled">L2CAP aktiviert</string>
-
     <string name="attribute_friendly_name_bpk">BPK</string>
     <string name="attribute_friendly_name_firstname">Vorname</string>
     <string name="attribute_friendly_name_lastname">Nachname</string>
@@ -284,6 +278,7 @@
     <string name="heading_label_sign">Signieren</string>
     <string name="heading_label_tech_demo">Tech Demo</string>
     <string name="heading_label_result">Ergebnis</string>
+    <string name="heading_label_device_engagement">Verbindungsaufbau</string>
 
     <string name="biometric_authentication_prompt_for_data_transmission_consent_title">Daten vorzeigen</string>
     <string name="biometric_authentication_prompt_to_load_data_title">Daten laden</string>
@@ -333,10 +328,7 @@
     <string name="error_qr_code_scanning_invalid_metadata_jws_object">Ungültiges Metadaten-Objekt</string>
     <string name="error_qr_code_scanning_invalid_metadata_jws_object_signature">Ungültige Metadaten Signatur</string>
     <string name="error_qr_code_scanning_client_id_not_in_redirect_uris">Client-ID ist nicht in den Metadaten unter `redirect_uris` enthalten.</string>
-    <string name="error_missing_permissions">Fehlende Erlaubnis</string>
     <string name="error_missing_value">Fehler es sind keine Daten gegeben</string>
-    <string name="error_bluetooth_unavailable">Bluetooth ist nicht verfügbar</string>
-    <string name="error_bluetooth_and_nfc_unavailable">Weder Bluetooth noch NFC ist verfügbar</string>
     <string name="error_no_requests">Es sind keine Anfragen vorhanden</string>
     <string name="error_clearing_log_failed">Log konnte nicht gelöscht werden.</string>
     <string name="error_resetting_app_failed">App konnte nicht zurückgesetzt werden.</string>
@@ -363,6 +355,7 @@
     <string name="info_text_non_productive">Diese App ist nicht für den Produktiv-Einsatz bestimmt!</string>
     <string name="info_text_co_founded_by_eu">Kofinanziert von der\nEuropäischen Union</string>
     <string name="info_text_received_funding_from_eu">Dieses Projekt wurde kofinanziert vom Programm „Digitales Europa“ (DIGITAL), Project 101102655 — POTENTIAL.</string>
+    <string name="info_text_device_engagement_nfc">Halten Sie Ihr Gerät in die Nähe des Geräts einer dritten Person, an die Sie Ihre Daten übertragen möchten.</string>
 
     <string name="section_heading_authenticate_at_device_title">Anmelden</string>
     <string name="section_heading_authenticate_at_device_subtitle">an Service Provider</string>
@@ -370,7 +363,6 @@
     <string name="section_heading_present_data_to_executive_subtitle">Exekutive</string>
     <string name="section_heading_present_data_to_other_citizen_subtitle">dritte Bürger</string>
     <string name="section_heading_actions">Aktionen</string>
-    <string name="section_heading_transfer_options">Übertragungseinstellungen</string>
     <string name="section_heading_information">Information</string>
     <string name="section_heading_requested_data">Angefragte Daten</string>
     <string name="section_heading_data_recipient">Empfänger</string>
@@ -444,6 +436,29 @@
     <string name="section_heading_request_engagement_method">Verbindungsaufbau via</string>
     <string name="nfc">NFC</string>
     <string name="qr">QR-Code</string>
+
+    <!-- Transfer options -->
+    <string name="heading_label_missing_precondition">Fehlende Voraussetzung</string>
+    <string name="section_heading_transfer_options">Übertragungseinstellungen</string>
+    <string name="switch_label_use_ble">Bluetooth verwenden</string>
+    <string name="switch_label_use_nfc">NFC verwenden</string>
+    <string name="switch_label_use_negotiated_handover">Negotiated Handover</string>
+    <string name="switch_label_use_ble_central_client_mode">BLE Central Client Mode</string>
+    <string name="switch_label_use_ble_peripheral_server_mode">BLE Peripheral Server Mode</string>
+    <string name="switch_label_use_nfc_data_transfer">NFC Datenübertragung</string>
+    <string name="switch_label_ble_use_l2cap_enabled">L2CAP aktiviert</string>
+    <string name="switch_label_ble_use_l2cap_in_engagement_enabled">L2CAP für den Verbindungsaufbau aktiviert</string>
+    <string name="button_label_extended_options">Erweitert</string>
+    <string name="button_label_open_app_settings">App-Einstellungen öffnen</string>
+    <string name="button_label_back_to_settings">Zurück zu den Einstellungen</string>
+    <string name="button_label_open_device_settings">Geräteeinstellungen öffnen</string>
+    <string name="button_label_enable_bluetooth">Bluetooth aktivieren</string>
+    <string name="info_text_transfer_settings_loading">Transfer Einstellungen werden geladen</string>
+    <string name="info_text_check_settings">Überprüfe die Einstellungen</string>
+    <string name="info_text_nfc_engagement_not_available">NFC ist notwendig für die aktuell gewählte Methode für den Verbindungsaufbau.\n\nBitte aktivieren Sie NFC in den Geräteeinstellungen oder wählen eine andere Methode.</string>
+    <string name="info_text_no_transfer_method_selected">Es wurde keine Übertragungsmethode ausgewählt.\n\nBitte öffnen Sie die Einstellungen und wählen Sie mindestens eine aus.</string>
+    <string name="info_text_no_transfer_method_available_for_selection">Keine der ausgewählten Übertragungsmethoden ist verfügbar.\n\nBitte öffnen Sie die Geräteeinstellungen und aktivieren Sie die benötigte Übertragungsmethode oder wählen Sie in den Einstellungen eine andere aus.</string>
+    <string name="info_text_missing_permission_bluetooth">Bluetooth-Berechtigung erforderlich.\n\nÖffnen Sie die App-Einstellungen und erteilen Sie diese Berechtigung.</string>
 
     <!-- Verify Data Route -->
     <string name="heading_label_select_data_retrieval_screen">Prüfen</string>
