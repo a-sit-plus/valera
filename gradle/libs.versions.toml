@@ -37,6 +37,8 @@ atomicfu = "0.29.0"
 qrose = "1.0.1"
 core-splashscreen = "1.0.1"
 
+authcheckkit = "1.0.0-alpha01"
+
 # Test if DC API is still working after upgrading the following libraries
 androidx-credentials = "1.6.0-beta02"
 androidx-credentials-registry-provider = "1.0.0-alpha03"
@@ -81,6 +83,9 @@ multipaz-compose = { module = "org.multipaz:multipaz-compose", version.ref = "mu
 multipaz-doctypes = { module = "org.multipaz:multipaz-doctypes", version.ref = "multipaz" }
 semver = { module = "net.swiftzer.semver:semver", version.ref = "semver" }
 core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "core-splashscreen" }
+back-handler = { module = "org.jetbrains.compose.ui:ui-backhandler", version.ref = "compose-plugin" }
+authcheckkit = { module = "at.asitplus.authcheckkit:core", version.ref = "authcheckkit"}
+
 
 vck = {group= "at.asitplus.wallet", name="vck", version.ref = "vck"}
 vck-rqes = {group= "at.asitplus.wallet", name="vck-rqes", version.ref = "vck"}

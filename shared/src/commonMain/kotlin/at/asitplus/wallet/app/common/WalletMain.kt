@@ -57,6 +57,7 @@ class WalletMain(
     val snackbarService: SnackbarService,
     val settingsRepository: SettingsRepository,
     val sessionService: SessionService,
+    val capabilitiesService: CapabilitiesService,
 ) {
     val appReady = MutableStateFlow<Boolean?>(null)
 
@@ -73,12 +74,17 @@ class WalletMain(
 
     init {
         startListeningForNewCredentialsDCAPI()
+        if (keyMaterial.keyMaterial is FallBackKeyMaterial) {
+            Napier.e("FallBackKeyMaterial: ${keyMaterial.keyMaterial.reason}")
+        }
     }
 
     suspend fun resetApp() {
+        Napier.d("Perform full reset")
         dataStoreService.clearLog()
         subjectCredentialStore.reset()
         signingService.reset()
+        capabilitiesService.reset()
 
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_VCS)
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT)
@@ -87,6 +93,13 @@ class WalletMain(
 
         settingsRepository.reset()
         appReady.value = false
+        sessionService.newScope()
+    }
+
+    fun softReset() {
+        Napier.d("Perform soft reset")
+        appReady.value = false
+        KeystoreService.clearKeyMaterial()
         sessionService.newScope()
     }
 
@@ -228,6 +241,10 @@ interface PlatformAdapter {
 
     fun prepareDCAPIOid4vpCredentialResponse(responseJson: String, success: Boolean)
 
+    fun openDeviceSettings()
+
+    fun getCameraPermission(): Boolean?
+
 }
 
 class DummyPlatformAdapter : PlatformAdapter {
@@ -262,6 +279,13 @@ class DummyPlatformAdapter : PlatformAdapter {
     }
 
     override fun prepareDCAPIOid4vpCredentialResponse(responseJson: String, success: Boolean) {
+    }
+
+    override fun openDeviceSettings() {
+    }
+
+    override fun getCameraPermission(): Boolean? {
+        return false
     }
 
 }

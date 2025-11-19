@@ -274,6 +274,8 @@
     <string name="heading_label_check_scan_qr_code">Scan QR-Code</string>
     <string name="heading_label_show_qr_code_screen">Scan me!</string>
     <string name="heading_label_received_data">Received Data</string>
+    <string name="heading_label_capabilities">Device capabilities</string>
+
     <string name="heading_label_select_vda">Select VDA</string>
     <string name="heading_label_sign">Sign</string>
     <string name="heading_label_tech_demo">Tech Demo</string>
@@ -479,4 +481,24 @@
     <string name="info_text_credential_status_valid">VALID</string>
     <string name="error_mdl_driving_privilege_category_expired">The driving privilege of category %1$s is expired</string>
     <string name="error_mdl_driving_privilege_category_not_yet_valid">The driving privilege of category %1$s is not yet valid</string>
+
+    <!-- Device capabilities -->
+    <string name="capabilities_heading_device_lock">Screen lock</string>
+    <string name="capabilities_heading_biometry">Biometry</string>
+    <string name="capabilities_heading_signing">Signing</string>
+    <string name="capabilities_heading_attestation">Attestation</string>
+    <string name="capabilities_heading_internet">Internet</string>
+    <string name="capabilities_heading_camera">Camera</string>
+
+    <string name="info_text_capabilities_no_internet">Ensure that you have an active internet connection. Adjust features such as mobile data or airplane mode in your system settings accordingly.</string>
+    <string name="info_text_capabilities_no_device_lock_set">There is no screen lock set on this device. Please check the device settings.</string>
+    <string name="info_text_capabilities_no_biometry_enrolled">There is no fingerprint or Face ID registered on this device. Please check the device settings.</string>
+    <string name="info_text_capabilities_no_signing">Signatures cannot currently be triggered on this device. Please ensure that a screen lock is set and that a fingerprint or Face ID is registered.</string>
+    <string name="info_text_capabilities_no_attestation">This device is not capable of attestation. An operating system update may change this.</string>
+    <string name="info_text_capabilities_no_attestation_ios">In some cases, Apple’s attestation service may be unavailable. Network issues (e.g. due to VPN connection) could be the cause.</string>
+    <string name="info_text_capabilities_missing_capabilities">Your device currently does not support all features.</string>
+    <string name="info_text_capabilities_continue">Please adjust the settings accordingly to continue.</string>
+    <string name="info_text_capabilities_no_camera">Access to the camera was denied. Please adjust the settings.</string>
+
+    <string name="button_label_capabilities_settings">Device settings</string>
 </resources>

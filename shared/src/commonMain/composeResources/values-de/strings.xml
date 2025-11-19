@@ -279,6 +279,7 @@
     <string name="heading_label_tech_demo">Tech Demo</string>
     <string name="heading_label_result">Ergebnis</string>
     <string name="heading_label_device_engagement">Verbindungsaufbau</string>
+    <string name="heading_label_capabilities">Gerätefunktionen</string>
 
     <string name="biometric_authentication_prompt_for_data_transmission_consent_title">Daten vorzeigen</string>
     <string name="biometric_authentication_prompt_to_load_data_title">Daten laden</string>
@@ -489,4 +490,27 @@
     <string name="info_text_credential_status_valid">GÜLTIG</string>
     <string name="error_mdl_driving_privilege_category_expired">Der Führerschein der Kategorie %1$s ist abgelaufen</string>
     <string name="error_mdl_driving_privilege_category_not_yet_valid">Der Führerschein der Kategorie %1$s ist noch nicht gültig</string>
+
+    <!-- Device capabilities -->
+    <string name="capabilities_heading_device_lock">Displaysperre</string>
+    <string name="capabilities_heading_biometry">Biometrie</string>
+    <string name="capabilities_heading_signing">Signatur</string>
+    <string name="capabilities_heading_attestation">Attestierung</string>
+    <string name="capabilities_heading_internet">Internet</string>
+    <string name="capabilities_heading_camera">Kamera</string>
+
+    <string name="info_text_capabilities_no_internet">Bitte prüfen Sie Ihre Internetverbindung und aktivieren Sie in den Systemeinstellungen gegebenenfalls mobile Daten oder deaktivieren Sie den Flugmodus.</string>
+    <string name="info_text_capabilities_no_device_lock_set">Auf diesem Gerät ist keine Displaysperre aktiviert. Passen Sie die Geräteeinstellungen an.</string>
+    <string name="info_text_capabilities_no_biometry_enrolled">Auf diesem Gerät ist kein Fingerabdruck oder Face ID hinterlegt ist. Passen Sie die Geräteeinstellungen an.</string>
+    <string name="info_text_capabilities_no_signing">Auf diesem Gerät ist das Auslösen von Signaturen derzeit nicht möglich. Prüfen Sie in den Einstellungen, ob eine Displaysperre aktiviert und ein Fingerabdruck oder Face ID hinterlegt ist.</string>
+    <string name="info_text_capabilities_no_attestation">Die Attestierung dieses Geräts ist nicht möglich. Möglicherweise schafft ein Betriebssystem-Update Abhilfe.</string>
+    <string name="info_text_capabilities_no_attestation_ios">In manchen Fällen ist der Attestation Service von Apple nicht erreichbar. Netzwerkprobleme (z.b. aufgrund einer VPN Verbindung) könnten die Ursache sein.</string>
+    <string name="info_text_capabilities_missing_capabilities">Ihr Gerät unterstützt zur Zeit nicht alle Funktionen.</string>
+    <string name="info_text_capabilities_continue">Passen Sie die Einstellungen an um fortzufahren.</string>
+    <string name="info_text_capabilities_no_camera">Der Zugriff auf die Kamera wurde verweigert. Bitte passen Sie die Einstellungen an.</string>
+
+    <string name="button_label_capabilities_settings">Geräteeinstellungen</string>
+
+
+
 </resources>

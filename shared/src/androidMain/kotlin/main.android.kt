@@ -1,10 +1,16 @@
+import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.provider.Settings
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import androidx.credentials.ExperimentalDigitalCredentialApi
@@ -30,10 +36,14 @@ import at.asitplus.signum.indispensable.io.Base64UrlStrict
 import at.asitplus.wallet.app.android.dcapi.CustomRegistry
 import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
 import at.asitplus.wallet.app.common.BuildContext
+import at.asitplus.wallet.app.common.CapabilitiesService
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
+import at.asitplus.wallet.app.common.RealCapabilitiesService
+import at.asitplus.wallet.app.common.SESSION_NAME
 import at.asitplus.wallet.app.common.WalletDependencyProvider
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
+import at.asitplus.wallet.app.common.di.appModule
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import data.storage.RealDataStoreService
 import data.storage.getDataStore
@@ -45,6 +55,10 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import org.json.JSONObject
+import org.koin.core.module.dsl.scopedOf
+import org.koin.core.qualifier.named
+import org.koin.dsl.binds
+import org.koin.dsl.module
 import org.multipaz.compose.prompt.PromptDialogs
 import org.multipaz.crypto.Algorithm
 import org.multipaz.crypto.Crypto
@@ -86,20 +100,45 @@ fun MainView(
 
     PromptDialogs(promptModel)
 
-    App(
-        WalletDependencyProvider(
-            keystoreService = ks,
-            dataStoreService = dataStoreService,
-            platformAdapter = platformAdapter,
-            buildContext = buildContext,
-            promptModel = promptModel
-        )
+    val walletDependencyProvider = WalletDependencyProvider(
+        keystoreService = ks,
+        dataStoreService = dataStoreService,
+        platformAdapter = platformAdapter,
+        buildContext = buildContext,
+        promptModel = promptModel
     )
+
+    val capabilitiesModule = module {
+        scope(named(SESSION_NAME)) {
+            scopedOf(::RealCapabilitiesService) binds arrayOf(CapabilitiesService::class)
+        }
+    }
+    val module = appModule(walletDependencyProvider, capabilitiesModule)
+
+    App(module)
 }
 
 public class AndroidPlatformAdapter(
     private val context: Context
 ) : PlatformAdapter {
+
+    override fun getCameraPermission(): Boolean? {
+        (context as? Activity)?.let { activity ->
+            val permission = Manifest.permission.CAMERA
+            return when {
+                ContextCompat.checkSelfPermission(activity, permission) == PackageManager.PERMISSION_GRANTED -> {
+                    true
+                }
+                ActivityCompat.shouldShowRequestPermissionRationale(activity, permission) -> {
+                    false
+                }
+                else -> {
+                    null
+                }
+            }
+        }
+        return null
+    }
 
     override fun openUrl(url: String) {
         Napier.d("Open URL: ${url.toUri()}")
@@ -320,5 +359,10 @@ public class AndroidPlatformAdapter(
             Napier.d("Returning response $responseJson to digital credentials API invoker")
             sendCredentialResponseToInvoker(responseJson, success)
         } ?: throw IllegalStateException("Callback for response not found")
+    }
+
+    override fun openDeviceSettings() {
+        Napier.d("Open Device settings")
+        context.startActivity(Intent(Settings.ACTION_SETTINGS))
     }
 }
