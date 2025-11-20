@@ -30,7 +30,8 @@ sealed class EuPidCredentialAdapter(
 ) : CredentialAdapter() {
 
     override fun getAttribute(path: NormalizedJsonPath) =
-        (path.segments.firstOrNull()?.let { first -> getWithIsoNames(first) })?.toAttribute()
+        (path.segments.firstOrNull()?.let { first -> getWithIsoNames(first) }
+            ?: EuPidCredentialSdJwtClaimDefinitionResolver().resolveOrNull(path))?.toAttribute()
 
     /** Claim names defined for ISO in ARF */
     private fun getWithIsoNames(first: NormalizedJsonPathSegment): EuPidCredentialClaimDefinition? {
