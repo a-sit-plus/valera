@@ -20,6 +20,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import at.asitplus.catchingUnwrapped
 import at.asitplus.openid.OidcUserInfo
 import at.asitplus.openid.OidcUserInfoExtended
 import at.asitplus.valera.resources.Res
@@ -28,11 +29,16 @@ import at.asitplus.valera.resources.button_label_start
 import at.asitplus.valera.resources.content_description_portrait
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.BuildType
+import at.asitplus.wallet.app.common.CapabilitiesData
+import at.asitplus.wallet.app.common.CapabilitiesService
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
+import at.asitplus.wallet.app.common.SESSION_NAME
 import at.asitplus.wallet.app.common.SessionService
 import at.asitplus.wallet.app.common.WalletDependencyProvider
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
+import at.asitplus.wallet.app.common.di.appModule
+import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.lib.agent.ClaimToBeIssued
 import at.asitplus.wallet.lib.agent.CredentialToBeIssued
 import at.asitplus.wallet.lib.agent.EphemeralKeyWithSelfSignedCert
@@ -56,6 +62,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -65,9 +73,14 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.jetbrains.compose.resources.getString
 import org.koin.compose.koinInject
+import org.koin.core.module.dsl.scopedOf
+import org.koin.core.qualifier.named
+import org.koin.dsl.binds
+import org.koin.dsl.module
 import org.multipaz.prompt.PassphraseRequest
 import org.multipaz.prompt.PromptModel
 import org.multipaz.prompt.SinglePromptModel
+import ui.navigation.routes.RoutePrerequisites
 import kotlin.test.assertTrue
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
@@ -93,12 +106,19 @@ fun ComposeUiTest.endToEndTest() {
         val walletDependencyProvider = remember(platformAdapter) {
             createWalletDependencyProvider(platformAdapter)
         }
+        
+        val capabilitiesModule = module {
+            scope(named(SESSION_NAME)) {
+                scopedOf(::DummyCapabilitiesService) binds arrayOf(CapabilitiesService::class)
+            }
+        }
+        val module = appModule(walletDependencyProvider, capabilitiesModule)
 
         // B. Call the main App composable within the CompositionLocalProvider.
         CompositionLocalProvider(
             LocalLifecycleOwner provides TestLifecycleOwner()
         ) {
-            App(walletDependencyProvider)
+            App(module)
         }
 
         // C. Inject services after framework is running
@@ -203,6 +223,7 @@ private fun createWalletDependencyProvider(platformAdapter: PlatformAdapter): Wa
     val dummyDataStoreService = DummyDataStoreService()
     val ks = object : KeystoreService(dummyDataStoreService) {
         override suspend fun getSigner(): KeyMaterial = EphemeralKeyWithSelfSignedCert()
+        override suspend fun testSigner() = catchingUnwrapped { getSigner() }.isSuccess
     }
     return WalletDependencyProvider(
         keystoreService = ks,
@@ -233,4 +254,18 @@ class TestPromptModel : PromptModel {
     fun onClose() {
         promptModelScope.cancel()
     }
+}
+
+class DummyCapabilitiesService : CapabilitiesService {
+    override fun getDeviceStatus(): Flow<CapabilitiesData?> =
+        flow { emit(CapabilitiesData(true, true, true, true, true, true)) }
+
+    override suspend fun refreshStatus() {
+    }
+
+    override suspend fun reset() {
+    }
+
+    override fun evaluatePrerequisites(list: Set<RoutePrerequisites>): Flow<Boolean> = flow { emit(true) }
+
 }

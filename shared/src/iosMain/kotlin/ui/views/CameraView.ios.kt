@@ -69,6 +69,19 @@ import platform.darwin.dispatch_queue_t
 // Modified from https://github.com/JetBrains/compose-multiplatform/blob/master/examples/imageviewer/shared/src/iosMain/kotlin/example/imageviewer/view/CameraView.ios.kt
 
 @Composable
+actual fun RequestCameraPermission() {
+    LaunchedEffect(Unit) {
+        when (AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeVideo)) {
+            AVAuthorizationStatusNotDetermined -> {
+                AVCaptureDevice.requestAccessForMediaType(
+                    mediaType = AVMediaTypeVideo
+                ) {}
+            }
+        }
+    }
+}
+
+@Composable
 actual fun CameraView(
     onFoundPayload: (text: String) -> Unit,
     modifier: Modifier,

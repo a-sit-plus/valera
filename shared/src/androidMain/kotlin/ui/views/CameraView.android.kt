@@ -41,6 +41,22 @@ import kotlin.math.absoluteValue
 // Modified from https://github.com/JetBrains/compose-multiplatform/blob/master/examples/imageviewer/shared/src/androidMain/kotlin/example/imageviewer/view/CameraView.android.kt
 // Modified from https://developer.android.com/training/camerax/analyze
 
+@OptIn(ExperimentalPermissionsApi::class)
+@Composable
+actual fun RequestCameraPermission() {
+    rememberMultiplePermissionsState(
+        listOf(
+            android.Manifest.permission.CAMERA,
+        )
+    ).let { cameraPermissionState ->
+        if (!cameraPermissionState.allPermissionsGranted) {
+            LaunchedEffect(Unit) {
+                Napier.d("Get Camera Permission")
+                cameraPermissionState.launchMultiplePermissionRequest()
+            }
+        }
+    }
+}
 
 private val executor = Executors.newSingleThreadExecutor()
 

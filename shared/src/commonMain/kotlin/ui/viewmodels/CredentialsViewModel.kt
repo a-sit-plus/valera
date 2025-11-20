@@ -6,7 +6,6 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.domain.platform.ImageDecoder
 import data.storage.StoreEntryId
 import data.storage.WalletSubjectCredentialStore
-import io.github.aakira.napier.Napier
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.channelFlow

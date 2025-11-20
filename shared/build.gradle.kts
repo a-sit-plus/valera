@@ -72,6 +72,7 @@ kotlin {
             implementation(compose.components.resources)
             implementation(compose.runtime)
             implementation(compose.foundation)
+            implementation(libs.back.handler)
             implementation(compose.material3)
             implementation(compose.materialIconsExtended)
             implementation(libs.vck.rqes)
@@ -109,6 +110,7 @@ kotlin {
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
             implementation(libs.koin.compose.viewmodel.navigation)
+            implementation(libs.authcheckkit)
         }
 
         commonTest.dependencies {

@@ -12,9 +12,15 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.platform.testTag
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -39,6 +45,7 @@ import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combineTransform
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.getString
@@ -47,8 +54,12 @@ import org.koin.core.scope.Scope
 import ui.composables.BottomBar
 import ui.composables.NavigationData
 import ui.navigation.routes.*
+import ui.navigation.routes.RoutePrerequisites.CRYPTO
 import ui.viewmodels.*
-import ui.viewmodels.authentication.*
+import ui.viewmodels.authentication.AuthenticationViewModel
+import ui.viewmodels.authentication.DefaultAuthenticationViewModel
+import ui.viewmodels.authentication.NewDCAPIAuthenticationViewModel
+import ui.viewmodels.authentication.PresentationViewModel
 import ui.viewmodels.intents.*
 import ui.views.*
 import ui.views.authentication.AuthenticationSuccessView
@@ -65,7 +76,6 @@ internal object NavigatorTestTags {
 @Composable
 fun WalletNavigation(
     koinScope: Scope,
-    settingsRepository: SettingsRepository = koinInject(),
     intentService: IntentService = koinInject(),
     snackbarService: SnackbarService = koinInject(),
     errorService: ErrorService = koinInject(scope = koinScope),
@@ -74,6 +84,7 @@ fun WalletNavigation(
 ) {
     val navController: NavHostController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
+    var pendingRoute: Route? = null
 
     val navigateBack: () -> Unit = {
         CoroutineScope(Dispatchers.Main).launch {
@@ -82,10 +93,38 @@ fun WalletNavigation(
         }
     }
 
+    val navigatePending: () -> Unit = {
+        pendingRoute?.let {
+            Napier.d("Replace current with $it")
+            navController.replaceCurrent(it)
+            pendingRoute = null
+        } ?: run {
+            Napier.d("Navigate back")
+            navController.navigateUp()
+        }
+    }
+
     val navigate: (Route) -> Unit = { route ->
         CoroutineScope(Dispatchers.Main).launch {
-            Napier.d("Navigate to: $route")
-            navController.navigate(route)
+            when (route) {
+                is PrerequisiteRoute -> {
+                    when (walletMain.capabilitiesService.evaluatePrerequisites(route.prerequisites).first()) {
+                        true -> {
+                            navController.navigate(route)
+                        }
+
+                        false -> {
+                            pendingRoute = route
+                            navController.navigate(CapabilitiesRoute(route.prerequisites))
+                        }
+                    }
+                }
+
+                else -> {
+                    Napier.d("Navigate to: $route")
+                    navController.navigate(route)
+                }
+            }
         }
     }
 
@@ -100,19 +139,12 @@ fun WalletNavigation(
         urlOpener("https://wallet.a-sit.at/")
     }
 
-    val isConditionsAccepted = settingsRepository.isConditionsAccepted.collectAsState(null)
-
-    val startDestination = when (isConditionsAccepted.value) {
-        true -> HomeScreenRoute
-        false -> OnboardingStartRoute
-        null -> LoadingRoute
-    }
+    val startDestination = InitializationRoute
 
     Scaffold(
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
-        },
-        modifier = Modifier.testTag(AppTestTags.rootScaffold)
+        }, modifier = Modifier.testTag(AppTestTags.rootScaffold)
     ) { _ ->
         WalletNavHost(
             navController,
@@ -120,6 +152,7 @@ fun WalletNavigation(
             navigate,
             navigateBack,
             popBackStack,
+            navigatePending,
             onClickLogo,
             onError = { e ->
                 popBackStack(HomeScreenRoute)
@@ -168,6 +201,7 @@ fun WalletNavigation(
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun WalletNavHost(
     navController: NavHostController,
@@ -175,24 +209,28 @@ private fun WalletNavHost(
     navigate: (Route) -> Unit,
     navigateBack: () -> Unit,
     popBackStack: (Route) -> Unit,
+    navigatePending: () -> Unit,
     onClickLogo: () -> Unit,
     onError: (Throwable) -> Unit,
     koinScope: Scope,
     walletMain: WalletMain = koinInject(scope = koinScope),
-    intentService: IntentService = koinInject(),
     settingsRepository: SettingsRepository = koinInject(),
 
     ) {
-    val currentHost by settingsRepository.host.collectAsState("")
     NavHost(
         navController = navController,
         startDestination = startDestination,
         enterTransition = { EnterTransition.None },
         exitTransition = { ExitTransition.None },
-        modifier = Modifier
-            .fillMaxSize()
-            .windowInsetsPadding(WindowInsets.safeDrawing)
+        modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)
     ) {
+        composable<InitializationRoute> {
+            InitializationView(koinScope = koinScope, navigateOnboarding = {
+                navigate(OnboardingStartRoute)
+            }, navigateHomeScreen = {
+                navigate(HomeScreenRoute)
+            })
+        }
         composable<OnboardingStartRoute> {
             catchingUnwrapped { KeystoreService.checkKeyMaterialValid() }.onFailure { Napier.d(it) { "Deleted old Key" } }
             OnboardingStartView(
@@ -205,8 +243,8 @@ private fun WalletNavHost(
             OnboardingInformationView(
                 onClickContinue = {
                     settingsRepository.set(isConditionsAccepted = true)
-                },
-                onClickLogo = onClickLogo
+                    navigate(InitializationRoute)
+                }, onClickLogo = onClickLogo
             )
         }
         composable<HomeScreenRoute> {
@@ -252,11 +290,9 @@ private fun WalletNavHost(
                 onClickSettings = { navigate(SettingsRoute) },
                 bottomBar = {
                     BottomBar(
-                        navigate = navigate,
-                        selected = NavigationData.PRESENT_DATA_SCREEN
+                        navigate = navigate, selected = NavigationData.PRESENT_DATA_SCREEN
                     )
-                }
-            )
+                })
         }
 
         composable<ProximityHolderRoute> {
@@ -333,8 +369,7 @@ private fun WalletNavHost(
 
             if (vm != null) {
                 AuthenticationView(
-                    vm = vm,
-                    onError = onError
+                    vm = vm, onError = onError
                 )
             }
         }
@@ -363,8 +398,7 @@ private fun WalletNavHost(
                             onClickSettings = { navigate(SettingsRoute) }
                         ).also { it.initWithDeviceRequest(dcApiRequest.deviceRequest) }
 
-                        is Oid4vpDCAPIRequest ->
-                            throw IllegalStateException("Handled by AuthenticationViewRoute")
+                        is Oid4vpDCAPIRequest -> throw IllegalStateException("Handled by AuthenticationViewRoute")
                     }
                 } catch (e: Throwable) {
                     Napier.e("error", e)
@@ -392,8 +426,7 @@ private fun WalletNavHost(
                             navigateToHomeScreen = { popBackStack(HomeScreenRoute) },
                             walletMain = walletMain,
                             onClickLogo = onClickLogo,
-                            onClickSettings = { navigate(SettingsRoute) }
-                        )
+                            onClickSettings = { navigate(SettingsRoute) })
                     } ?: throw IllegalStateException("No presentation view model set")
                 } catch (e: Throwable) {
                     popBackStack(HomeScreenRoute)
@@ -414,8 +447,7 @@ private fun WalletNavHost(
                     onError = { e ->
                         popBackStack(HomeScreenRoute)
                         walletMain.errorService.emit(e)
-                    }
-                )
+                    })
             }
         }
 
@@ -454,14 +486,12 @@ private fun WalletNavHost(
                                     walletMain.startProvisioning(
                                         host = backStackEntry.toRoute<LoadCredentialRoute>().host,
                                         credentialIdentifierInfo = credentialIdentifierInfo,
-                                    ) {
-                                    }
+                                    ) {}
                                 }
 
                             },
                             onClickLogo = onClickLogo,
-                            onClickSettings = { navigate(SettingsRoute) }
-                        )
+                            onClickSettings = { navigate(SettingsRoute) })
                     }.getOrElse {
                         popBackStack(HomeScreenRoute)
                         walletMain.errorService.emit(it)
@@ -541,8 +571,7 @@ private fun WalletNavHost(
                                 }
                             },
                             onClickLogo = onClickLogo,
-                            onClickSettings = { navigate(SettingsRoute) }
-                        )
+                            onClickSettings = { navigate(SettingsRoute) })
                     }.getOrElse {
                         popBackStack(HomeScreenRoute)
                         walletMain.errorService.emit(it)
@@ -561,8 +590,7 @@ private fun WalletNavHost(
                     navigateUp = navigateBack,
                     walletMain = walletMain,
                     onClickLogo = onClickLogo,
-                    onClickSettings = { navigate(SettingsRoute) }
-                )
+                    onClickSettings = { navigate(SettingsRoute) })
             })
         }
 
@@ -579,6 +607,7 @@ private fun WalletNavHost(
                 onClickFAQs = null,
                 onClickDataProtectionPolicy = null,
                 onClickLicenses = null,
+                onReset = { popBackStack(InitializationRoute) },
                 koinScope = koinScope
             )
         }
@@ -589,8 +618,7 @@ private fun WalletNavHost(
                     navigateUp = navigateBack,
                     walletMain = walletMain,
                     onClickLogo = onClickLogo,
-                    onClickSettings = { navigate(SettingsRoute) }
-                )
+                    onClickSettings = { navigate(SettingsRoute) })
             })
         }
 
@@ -605,13 +633,12 @@ private fun WalletNavHost(
                                 val resetMessage =
                                     getString(Res.string.snackbar_reset_app_successfully)
                                 walletMain.snackbarService.showSnackbar(resetMessage)
-                                popBackStack(HomeScreenRoute)
+                                popBackStack(InitializationRoute)
                             }
                         },
                         throwable = it.throwable,
                         onClickLogo = onClickLogo,
-                        onClickSettings = { navigate(SettingsRoute) }
-                    )
+                        onClickSettings = { navigate(SettingsRoute) })
                 }.onSuccess {
                     ErrorView(remember { it })
                 }.onFailure {
@@ -652,7 +679,8 @@ private fun WalletNavHost(
                     uri = backStackEntry.toRoute<ProvisioningResumeIntentRoute>().uri,
                     onSuccess = {
                         navigateBack()
-                    }, onFailure = { error ->
+                    },
+                    onFailure = { error ->
                         walletMain.errorService.emit(error)
                     })
             })
@@ -717,8 +745,7 @@ private fun WalletNavHost(
                     onFailure = { error ->
                         walletMain.errorService.emit(error)
                     })
-            }
-            )
+            })
         }
 
         composable<SigningPreloadIntentRoute> { backStackEntry ->
@@ -782,8 +809,7 @@ private fun WalletNavHost(
                         onFailure = { error ->
                             walletMain.errorService.emit(error)
                         })
-                }
-            )
+                })
         }
         composable<QrCodeScannerRoute> { backStackEntry ->
             QrCodeScannerView(remember {
@@ -803,5 +829,41 @@ private fun WalletNavHost(
                 )
             })
         }
+        composable<CapabilitiesRoute> { backStackEntry ->
+            backStackEntry.toRoute<CapabilitiesRoute>().prerequisites.let { prerequisites ->
+                if (prerequisites.contains(CRYPTO)) {
+                    BackHandler(enabled = true, onBack = {})
+                } else {
+                    BackHandler(enabled = true, onBack = { popBackStack(HomeScreenRoute) })
+                }
+                CapabilityView(
+                    koinScope = koinScope,
+                    onClickLogo = onClickLogo,
+                    onClickSettings = { navigate(SettingsRoute) },
+                    onSoftReset = {
+                        walletMain.scope.launch {
+                            walletMain.softReset()
+                            popBackStack(InitializationRoute)
+                        }
+                    },
+                    onContinue = {
+                        navigatePending()
+                    },
+                    onNavigateUp = {
+                        popBackStack(HomeScreenRoute)
+                    },
+                    prerequisites = prerequisites,
+                )
+            }
+        }
+    }
+}
+
+fun NavController.replaceCurrent(route: Route) {
+    this.navigate(route) {
+        popUpTo(this@replaceCurrent.currentDestination?.id ?: return@navigate) {
+            inclusive = true
+        }
+        launchSingleTop = true
     }
 }
