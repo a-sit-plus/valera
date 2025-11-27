@@ -6,7 +6,25 @@ Development happens in branch `development`. The `main` branch always tracks the
 
 ## Local deployments
 
-To sign the Android App with the correct signer certificate (used for Key Attestation checks on the backend), add the property `android.cert.password` with the correct password to your `local.properties`. For CI deployments, see below.
+Running of the Android App requires a signer certificate to be configured. To do this you will need to generate a keystore file and add the correct keystore password to your `local.properties` file.
+
+Navigate in a temporary directory and run the following commands to generate a keystore file:
+
+```bash
+# Create the Self-Signed Certificate
+openssl req -x509 -newkey rsa:4096 -keyout private.key -out certificate.crt -days 365 -nodes
+# Convert to .p12 Format. You will be asked for a password here, remember it!
+openssl pkcs12 -export -out keystore.p12 -inkey private.key -in certificate.crt -name "key0"
+# Move to the android app directory
+mv keystore.p12 <path-to-repo>/androidApp/keystore.p12
+```
+
+Add the password property (`android.cert.password`) to the `local.properties` file in the root of the project:
+
+```txt
+sdk.dir=<path-to-android-sdk>
+android.cert.password=<your-keystore-password>
+```
 
 ## Deployments
 
