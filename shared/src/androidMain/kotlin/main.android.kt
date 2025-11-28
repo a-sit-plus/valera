@@ -24,9 +24,8 @@ import at.asitplus.catching
 import at.asitplus.dcapi.DCAPIResponse
 import at.asitplus.dcapi.EncryptedResponse
 import at.asitplus.dcapi.EncryptedResponseData
-import at.asitplus.dcapi.request.DCAPIRequest
-import at.asitplus.dcapi.request.IsoMdocRequest
-import at.asitplus.dcapi.request.Oid4vpDCAPIRequest
+import at.asitplus.dcapi.request.DCAPIWalletRequest
+import at.asitplus.dcapi.request.ExchangeProtocolIdentifier
 import at.asitplus.iso.DeviceRequest
 import at.asitplus.iso.EncryptionInfo
 import at.asitplus.iso.EncryptionParameters
@@ -241,7 +240,7 @@ public class AndroidPlatformAdapter(
     }
 
     @OptIn(ExperimentalDigitalCredentialApi::class, ExperimentalEncodingApi::class)
-    override fun getCurrentDCAPIData(): KmmResult<DCAPIRequest> = catching {
+    override fun getCurrentDCAPIData(): KmmResult<DCAPIWalletRequest> = catching {
         (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.let { (intent, _) ->
             // Adapted from https://github.com/openwallet-foundation-labs/identity-credential/blob/d7a37a5c672ed6fe1d863cbaeb1a998314d19fc5/wallet/src/main/java/com/android/identity_credential/wallet/credman/CredmanPresentationActivity.kt#L74
             val credentialRequest = PendingIntentHandler.retrieveProviderGetCredentialRequest(intent)
@@ -287,8 +286,8 @@ public class AndroidPlatformAdapter(
             when {
                 protocol.startsWith("openid4vp") -> {
                     Napier.d("Using protocol $protocol, got request $requestData for credential ID $credentialId")
-                    Oid4vpDCAPIRequest(
-                        protocol, requestData.toString(), credentialId, callingPackageName, callingOrigin
+                    DCAPIWalletRequest.Oid4Vp(
+                        ExchangeProtocolIdentifier(protocol), requestData.toString(), credentialId, callingPackageName, callingOrigin
                     )
                 }
 
@@ -301,7 +300,7 @@ public class AndroidPlatformAdapter(
                     val parsedEncryptionInfo = coseCompliantSerializer.decodeFromByteArray<EncryptionInfo>(
                         encryptionInfo.decodeToByteArray(Base64UrlStrict)
                     )
-                    IsoMdocRequest(
+                    DCAPIWalletRequest.IsoMdoc(
                         parsedDeviceRequest,
                         parsedEncryptionInfo,
                         credentialId,

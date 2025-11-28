@@ -2,7 +2,7 @@ package at.asitplus.wallet.app.common
 
 import at.asitplus.dcapi.DCAPIHandover
 import at.asitplus.dcapi.DCAPIInfo
-import at.asitplus.dcapi.request.IsoMdocRequest
+import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.iso.DeviceAuthentication
 import at.asitplus.iso.SessionTranscript
 import at.asitplus.iso.sha256
@@ -58,7 +58,7 @@ class PresentationService(
     @OptIn(ExperimentalEncodingApi::class, ExperimentalStdlibApi::class)
     suspend fun finalizeDCAPIIsoMdocPresentation(
         credentialPresentation: CredentialPresentation.PresentationExchangePresentation,
-        isoMdocRequest: IsoMdocRequest
+        isoMdocRequest: DCAPIWalletRequest.IsoMdoc
     ): OpenId4VpWallet.AuthenticationSuccess {
         Napier.d("Finalizing DCAPI response")
 

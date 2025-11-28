@@ -1,9 +1,9 @@
 package ui.viewmodels.intents
 
-import at.asitplus.dcapi.request.IsoMdocRequest
-import at.asitplus.dcapi.request.Oid4vpDCAPIRequest
+import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.domain.BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase
+import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.oidvci.OAuth2Exception
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier
@@ -40,9 +40,8 @@ class DCAPIAuthorizationIntentViewModel(
         val dcApiRequest = walletMain.platformAdapter.getCurrentDCAPIData().getOrThrow()
 
         val successRoute = when (dcApiRequest) {
-            is Oid4vpDCAPIRequest -> buildConsentPageFromRequestUriUseCase(dcApiRequest.request)
-            is IsoMdocRequest -> buildConsentPageFromDcApiRequest(dcApiRequest)
-
+            is DCAPIWalletRequest.Oid4Vp -> buildConsentPageFromRequestUriUseCase(vckJsonSerializer.encodeToString(dcApiRequest))
+            is DCAPIWalletRequest.IsoMdoc -> buildConsentPageFromDcApiRequest(dcApiRequest)
         }.getOrThrow()
 
         onSuccess(successRoute)

@@ -2,7 +2,7 @@ package ui.viewmodels.authentication
 
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.catchingUnwrapped
-import at.asitplus.dcapi.request.IsoMdocRequest
+import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.dif.Constraint
 import at.asitplus.dif.ConstraintField
 import at.asitplus.dif.DifInputDescriptor
@@ -26,7 +26,7 @@ class NewDCAPIAuthenticationViewModel(
     navigateToAuthenticationSuccessPage: (redirectUrl: String?) -> Unit,
     navigateToHomeScreen: () -> Unit,
     walletMain: WalletMain,
-    val isoMdocRequest: IsoMdocRequest,
+    val isoMdocRequest: DCAPIWalletRequest.IsoMdoc,
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
 ) : AuthenticationViewModel(
