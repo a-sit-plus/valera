@@ -13,7 +13,8 @@ data class WalletDependencyProvider(
     var subjectCredentialStore: PersistentSubjectCredentialStore =
         PersistentSubjectCredentialStore(dataStoreService),
     val buildContext: BuildContext,
-    val promptModel: PromptModel
+    val promptModel: PromptModel,
+    val shouldListen: Boolean = true
 ) {
     init {
         at.asitplus.wallet.mdl.Initializer.initWithVCK()
@@ -28,7 +29,7 @@ data class WalletDependencyProvider(
         at.asitplus.wallet.ehic.Initializer.initWithVCK()
         at.asitplus.wallet.ageverification.Initializer.initWithVCK()
 
-        Napier.takeLogarithm()
+        //Napier.takeLogarithm()
         Napier.base(AntilogAdapter(platformAdapter, "", buildContext.buildType))
     }
 }
