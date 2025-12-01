@@ -5,6 +5,11 @@ import shared
 struct ComposeView: UIViewControllerRepresentable {
     
     func makeUIViewController(context: Context) -> UIViewController {
+        //Main_iosKt.doInitLogger(isDebug: true)
+        
+        Napier.shared.base(antilog:OSLogNapierAntilog())
+        Napier.shared.log(priority: LogLevel.debug, tag: "123", throwable: nil, message: "HIER!!!!!!!!!!!!!!!!!!!!!!!!!33")
+
         #if DEBUG
         let buildType = BuildType.debug
         #else
