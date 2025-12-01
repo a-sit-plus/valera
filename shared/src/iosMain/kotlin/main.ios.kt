@@ -28,6 +28,20 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import platform.UIKit.UIViewController
+import platform.Foundation.NSData
+import kotlin.experimental.ExperimentalNativeApi
+
 
 actual fun getPlatformName(): String = "iOS"
 
@@ -40,9 +54,28 @@ actual fun getColorScheme(): ColorScheme {
     }
 }
 
+
+
+@OptIn(ExperimentalNativeApi::class)
+fun initLogger(isDebug: Boolean) {
+    setUnhandledExceptionHook { throwable ->
+        val msg = throwable.message ?: throwable.toString()
+        Napier.e(
+            message = "UNCAUGHT: $msg",
+        )
+    }
+    /*Napier.base(
+        when {
+            isDebug -> OsLogAntilog()        // use OSLog in debug too if you want
+            else -> OsLogAntilog()
+        }
+    )*/
+}
+
 fun MainViewController(
     buildContext: BuildContext,
 ): UIViewController {
+    initLogger(true)
     val iosPlatformAdapter = IosPlatformAdapter()
     val dataStoreService = RealDataStoreService(createDataStore(), iosPlatformAdapter)
     val keystoreService = KeystoreService(dataStoreService)
@@ -59,6 +92,188 @@ fun MainViewController(
                 promptModel = promptModel
             )
         )
+    }
+}
+
+/*@Composable
+private fun ComposeApp() { // This function also may be placed in commonMain source set.
+    MaterialTheme {
+        Surface {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .windowInsetsPadding(WindowInsets.systemBars)
+                    .background(Color.Green.copy(alpha = 0.3f))
+            ) {
+                Text("top", Modifier.align(Alignment.TopCenter))
+                Text("ComposeApp", Modifier.align(Alignment.Center))
+                Text("bottom", Modifier.align(Alignment.BottomCenter))
+            }
+        }
+    }
+}*/
+
+/*fun ComposeEntryPoint(): UIViewController =
+    try {
+        ComposeUIViewController {
+            ComposeApp()
+        }
+    } catch (t: Throwable) {
+        Napier.e("Failed to construct ComposeUIViewController (no-arg)", t)
+        fallbackViewController("An unexpected error occurred.")
+    }*/
+
+// Session information and callbacks bridged from the iOS ISO18013 scene
+data class MdocRequestSession(
+    val requestingWebsiteOrigin: String?,
+    val requestPayload: NSData?,
+    val requestDescription: String?,
+    val onSendResponse: (NSData) -> Unit,
+    val onCancel: () -> Unit
+)
+
+// Overload that accepts the bridged context so Kotlin can read and act
+/*fun ComposeEntryPoint(
+    requestingWebsiteOrigin: String?,
+    requestPayload: NSData?,
+    requestDescription: String?,
+    onSendResponse: (NSData) -> Unit,
+    onCancel: () -> Unit
+): UIViewController = try {
+    ComposeUIViewController {
+        val session = MdocRequestSession(
+            requestingWebsiteOrigin = requestingWebsiteOrigin,
+            requestPayload = requestPayload,
+            requestDescription = requestDescription,
+            onSendResponse = onSendResponse,
+            onCancel = onCancel
+        )
+
+        ComposeApp(session)
+    }
+} catch (t: Throwable) {
+    Napier.e("Failed to construct ComposeUIViewController (with session)", t)
+    fallbackViewController("Unable to open request UI.")
+}*/
+
+// Nullable factories so Swift can decide how to render fallback UI
+/*fun tryComposeEntryPoint(): UIViewController? = try {
+    ComposeUIViewController { ComposeApp() }
+} catch (t: Throwable) {
+    Napier.e("ComposeEntryPoint() failed", t)
+    null
+}*/
+
+fun tryComposeEntryPoint(
+    requestingWebsiteOrigin: String?,
+    requestPayload: NSData?,
+    requestDescription: String?,
+    onSendResponse: (NSData) -> Unit,
+    onCancel: () -> Unit
+): UIViewController? = try {
+    initLogger(true)
+    ComposeUIViewController {
+        val session = MdocRequestSession(
+            requestingWebsiteOrigin = requestingWebsiteOrigin,
+            requestPayload = requestPayload,
+            requestDescription = requestDescription,
+            onSendResponse = onSendResponse,
+            onCancel = onCancel
+        )
+        ComposeApp(session)
+    }
+} catch (t: Throwable) {
+    Napier.e("ComposeEntryPoint(session) failed", t)
+    null
+}
+
+/*private fun fallbackViewController(message: String): UIViewController {
+    val vc = UIViewController()
+    val label = UILabel().apply {
+        text = message
+        textAlignment = NSTextAlignmentCenter
+        // 0 means no limit
+        numberOfLines = 0L
+        textColor = UIColor.labelColor
+    }
+    vc.view.backgroundColor = UIColor.systemBackgroundColor
+    vc.view.addSubview(label)
+    label.translatesAutoresizingMaskIntoConstraints = false
+    val constraints = listOf(
+        label.centerXAnchor.constraintEqualToAnchor(vc.view.centerXAnchor),
+        label.centerYAnchor.constraintEqualToAnchor(vc.view.centerYAnchor),
+        label.leadingAnchor.constraintGreaterThanOrEqualToAnchor(vc.view.leadingAnchor, 20.0),
+        vc.view.trailingAnchor.constraintGreaterThanOrEqualToAnchor(label.trailingAnchor, 20.0)
+    )
+    constraints.forEach { it.active = true }
+    return vc
+}*/
+
+@Composable
+private fun ComposeApp(session: MdocRequestSession?) {
+    initLogger(true)
+    // Minimal surface to demonstrate reading values and invoking callbacks
+    MaterialTheme(colorScheme = if (isSystemInDarkTheme()) darkScheme else lightScheme) {
+        Surface(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .windowInsetsPadding(WindowInsets.systemBars)
+                    .background(Color(0xFF101010))
+            ) {
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("ISO 18013 Request", color = Color.White)
+                    Spacer(Modifier.height(8.dp))
+                    Text("Origin: ${session?.requestingWebsiteOrigin ?: "-"}", color = Color.White)
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        "Request: ${session?.requestDescription ?: (session?.requestPayload?.let { "${it.length} bytes" } ?: "-")}",
+                        color = Color.White
+                    )
+                    Spacer(Modifier.height(24.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        // Send a dummy response for now; host app should provide real CBOR/bytes payload from Kotlin logic
+                        Button(onClick = {
+                            // For demo, echo back an empty NSData; real implementation should construct correct payload
+                            session?.onSendResponse(NSData())
+                        }) {
+                            Text("Send Response")
+                        }
+                        Button(onClick = { session?.onCancel?.invoke() }) {
+                            Text("Cancel")
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+fun dcapiViewController(
+    buildContext: BuildContext,
+): UIViewController {
+    /*val iosPlatformAdapter = IosPlatformAdapter()
+    val dataStoreService = RealDataStoreService(createDataStore(), iosPlatformAdapter)
+    val keystoreService = KeystoreService(dataStoreService)
+    val promptModel = IosPromptModel()*/
+    initLogger(true)
+    return ComposeUIViewController {
+
+        /*App(
+            WalletDependencyProvider(
+                keystoreService,
+                dataStoreService,
+                iosPlatformAdapter,
+                buildContext = buildContext,
+                promptModel = promptModel,
+                shouldListen = false
+            )
+        )*/
     }
 }
 

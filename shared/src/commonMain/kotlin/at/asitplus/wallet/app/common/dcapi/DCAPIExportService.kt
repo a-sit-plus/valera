@@ -27,10 +27,14 @@ import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.compose.resources.getString
 
-class DCAPIExportService(private val platformAdapter: PlatformAdapter) {
+class DCAPIExportService(private val platformAdapter: PlatformAdapter, val shouldListen: Boolean) {
     private val imageDecoder: (ByteArray) -> Result<ImageBitmap> = { platformAdapter.decodeImage(it) }
 
     suspend fun registerCredentialWithSystem(container: StoreContainer, scope: CoroutineScope) {
+        if (!shouldListen) {
+            Napier.d("DC API: Not listening, skipping registration")
+            return
+        }
         Napier.d("DC API: Preparing registration of updated credentials with the system")
 
         val credentialListEntries = container.credentials.mapNotNull { (_, storeEntry) ->

@@ -16,3 +16,5 @@ iosApp/iosApp.xcodeproj/*
 !iosApp/iosApp.xcodeproj/xcshareddata
 !iosApp/iosApp.xcodeproj/project.pbxproj
 shared/shared.podspec
+## User settings
+xcuserdata/

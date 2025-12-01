@@ -11,12 +11,13 @@ import org.koin.core.module.dsl.singleOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
-fun communicationsModule() = module {
+fun communicationsModule(shouldListen: Boolean) = module {
     singleOf(::HttpService)
     scope(named(SESSION_NAME)) {
         scopedOf(::ProvisioningService)
         scopedOf(::PresentationService)
     }
     singleOf(::SigningService)
-    singleOf(::DCAPIExportService)
+    single { DCAPIExportService(get(), shouldListen) }
+    //singleOf(::DCAPIExportService)
 }
