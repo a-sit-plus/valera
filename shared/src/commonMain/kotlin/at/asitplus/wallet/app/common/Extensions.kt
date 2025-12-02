@@ -154,10 +154,6 @@ fun ConstantIndex.CredentialScheme.toJsonElement(
     val dataElements = when (this) {
         EuPidScheme -> this.claimNames + EuPidScheme.Attributes.PORTRAIT_CAPTURE_DATE
         ConstantIndex.AtomicAttribute2023, IdAustriaScheme, EuPidSdJwtScheme, MobileDrivingLicenceScheme, AgeVerificationScheme, HealthIdScheme, EhicScheme, TaxIdScheme -> this.claimNames
-        // TODO Use: this.claim names for all schemes
-        PowerOfRepresentationScheme -> PowerOfRepresentationDataElements.ALL_ELEMENTS
-        CertificateOfResidenceScheme -> CertificateOfResidenceDataElements.ALL_ELEMENTS
-        CompanyRegistrationScheme -> CompanyRegistrationDataElements.ALL_ELEMENTS
         is VcFallbackCredentialScheme, is SdJwtFallbackCredentialScheme, is IsoMdocFallbackCredentialScheme -> this.claimNames
         else -> TODO("${this::class.simpleName} not implemented in jsonElementBuilder yet")
     }
@@ -198,6 +194,7 @@ fun ConstantIndex.CredentialScheme.toJsonElement(
                     put(LOCALITY, JsonPrimitive(""))
                 }
             })
+            put(EuPidSdJwtScheme.SdJwtAttributes.NATIONALITIES, buildJsonArray {  })
         }
 
         is EhicScheme -> buildJsonObject {

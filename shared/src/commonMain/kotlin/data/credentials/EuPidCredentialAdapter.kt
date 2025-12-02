@@ -20,6 +20,8 @@ import at.asitplus.wallet.lib.data.LocalDateOrInstant
 import data.Attribute
 import io.ktor.util.decodeBase64Bytes
 import kotlinx.datetime.LocalDate
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
@@ -111,7 +113,12 @@ sealed class EuPidCredentialAdapter(
                         ?: throw IllegalArgumentException("storeEntry")
 
                 is SubjectCredentialStore.StoreEntry.SdJwt ->
-                    EuPidCredentialSdJwtAdapter(storeEntry.toAttributeMap(), decodePortrait, scheme)
+                    EuPidCredentialSdJwtAdapter(
+                        storeEntry.toAttributeMap(),
+                        storeEntry.toComplexJson(),
+                        decodePortrait,
+                        scheme
+                    )
 
                 is SubjectCredentialStore.StoreEntry.Iso ->
                     EuPidCredentialIsoMdocAdapter(storeEntry.toNamespaceAttributeMap(), decodePortrait, scheme)
@@ -334,6 +341,7 @@ private class EuPidCredentialVcAdapter(
  */
 private class EuPidCredentialSdJwtAdapter(
     private val attributes: Map<String, JsonPrimitive>,
+    private val complexJson: JsonObject?,
     decodePortrait: (ByteArray) -> Result<ImageBitmap>,
     override val scheme: ConstantIndex.CredentialScheme
 ) : EuPidCredentialAdapter(decodePortrait) {
@@ -401,37 +409,50 @@ private class EuPidCredentialSdJwtAdapter(
             ?: attributes[Attributes.AGE_OVER_68]?.booleanOrNull
 
     override val residentAddress: String?
-        get() = attributes[SdJwtAttributes.ADDRESS_FORMATTED]?.contentOrNull
+        get() = (complexJson?.get(SdJwtAttributes.PREFIX_ADDRESS) as? JsonObject?)
+            ?.get(SdJwtAttributes.Address.FORMATTED)?.content()
+            ?: attributes[SdJwtAttributes.ADDRESS_FORMATTED]?.contentOrNull
             ?: attributes[Attributes.RESIDENT_ADDRESS]?.contentOrNull
 
     override val residentStreet: String?
-        get() = attributes[SdJwtAttributes.ADDRESS_STREET]?.contentOrNull
+        get() = (complexJson?.get(SdJwtAttributes.PREFIX_ADDRESS) as? JsonObject?)
+            ?.get(SdJwtAttributes.Address.STREET)?.content()
+            ?: attributes[SdJwtAttributes.ADDRESS_STREET]?.contentOrNull
             ?: attributes[Attributes.RESIDENT_STREET]?.contentOrNull
 
     override val residentCity: String?
-        get() = attributes[SdJwtAttributes.ADDRESS_LOCALITY]?.contentOrNull
+        get() = (complexJson?.get(SdJwtAttributes.PREFIX_ADDRESS) as? JsonObject?)
+            ?.get(SdJwtAttributes.Address.LOCALITY)?.content()
+            ?: attributes[SdJwtAttributes.ADDRESS_LOCALITY]?.contentOrNull
             ?: attributes[Attributes.RESIDENT_CITY]?.contentOrNull
 
     override val residentPostalCode: String?
-        get() = attributes[SdJwtAttributes.ADDRESS_POSTAL_CODE]?.contentOrNull
+        get() = (complexJson?.get(SdJwtAttributes.PREFIX_ADDRESS) as? JsonObject?)
+            ?.get(SdJwtAttributes.Address.POSTAL_CODE)?.content()
+            ?: attributes[SdJwtAttributes.ADDRESS_POSTAL_CODE]?.contentOrNull
             ?: attributes[Attributes.RESIDENT_POSTAL_CODE]?.contentOrNull
 
     override val residentHouseNumber: String?
-        get() = attributes[SdJwtAttributes.ADDRESS_HOUSE_NUMBER]?.contentOrNull
+        get() = (complexJson?.get(SdJwtAttributes.PREFIX_ADDRESS) as? JsonObject?)
+            ?.get(SdJwtAttributes.Address.HOUSE_NUMBER)?.content()
+            ?: attributes[SdJwtAttributes.ADDRESS_HOUSE_NUMBER]?.contentOrNull
             ?: attributes[Attributes.RESIDENT_HOUSE_NUMBER]?.contentOrNull
 
     override val residentCountry: String?
-        get() = attributes[SdJwtAttributes.ADDRESS_COUNTRY]?.contentOrNull
+        get() = (complexJson?.get(SdJwtAttributes.PREFIX_ADDRESS) as? JsonObject?)
+            ?.get(SdJwtAttributes.Address.COUNTRY)?.content()
+            ?: attributes[SdJwtAttributes.ADDRESS_COUNTRY]?.contentOrNull
             ?: attributes[Attributes.RESIDENT_COUNTRY]?.contentOrNull
 
     override val residentState: String?
-        get() = attributes[SdJwtAttributes.ADDRESS_REGION]?.contentOrNull
+        get() = (complexJson?.get(SdJwtAttributes.PREFIX_ADDRESS) as? JsonObject?)
+            ?.get(SdJwtAttributes.Address.REGION)?.content()
+            ?: attributes[SdJwtAttributes.ADDRESS_REGION]?.contentOrNull
             ?: attributes[Attributes.RESIDENT_STATE]?.contentOrNull
 
     override val gender: String?
         get() = attributes[Attributes.GENDER]?.contentOrNull?.toIntOrNull()
             ?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code.toUInt() }?.name }
-
             ?: attributes[Attributes.GENDER]?.contentOrNull
 
     override val sex: String?
@@ -441,10 +462,12 @@ private class EuPidCredentialSdJwtAdapter(
                 ?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code }?.name }
 
     override val nationality: String?
-        get() = attributes[Attributes.NATIONALITY]?.contentOrNull
+        get() = complexJson?.get(SdJwtAttributes.NATIONALITIES)?.toCollectionOrNull()?.firstOrNull()
+            ?: attributes[Attributes.NATIONALITY]?.contentOrNull
 
     override val nationalities: Collection<String>?
-        get() = attributes[SdJwtAttributes.NATIONALITIES]?.toCollectionOrNull()
+        get() = complexJson?.get(SdJwtAttributes.NATIONALITIES)?.toCollectionOrNull()
+            ?: attributes[SdJwtAttributes.NATIONALITIES]?.toCollectionOrNull()
             ?: listOfNotNull(nationality).ifEmpty { null }
 
     override val ageInYears: UInt?
@@ -473,15 +496,21 @@ private class EuPidCredentialSdJwtAdapter(
             ?: attributes[Attributes.BIRTH_PLACE]?.contentOrNull
 
     override val birthCountry: String?
-        get() = attributes[SdJwtAttributes.PLACE_OF_BIRTH_COUNTRY]?.contentOrNull
+        get() = (complexJson?.get(SdJwtAttributes.PREFIX_PLACE_OF_BIRTH) as? JsonObject?)
+            ?.get(SdJwtAttributes.PlaceOfBirth.COUNTRY)?.content()
+            ?: attributes[SdJwtAttributes.PLACE_OF_BIRTH_COUNTRY]?.contentOrNull
             ?: attributes[Attributes.BIRTH_COUNTRY]?.contentOrNull
 
     override val birthState: String?
-        get() = attributes[SdJwtAttributes.PLACE_OF_BIRTH_REGION]?.contentOrNull
+        get() = (complexJson?.get(SdJwtAttributes.PREFIX_PLACE_OF_BIRTH) as? JsonObject?)
+            ?.get(SdJwtAttributes.PlaceOfBirth.REGION)?.content()
+            ?: attributes[SdJwtAttributes.PLACE_OF_BIRTH_REGION]?.contentOrNull
             ?: attributes[Attributes.BIRTH_STATE]?.contentOrNull
 
     override val birthCity: String?
-        get() = attributes[SdJwtAttributes.PLACE_OF_BIRTH_LOCALITY]?.contentOrNull
+        get() = (complexJson?.get(SdJwtAttributes.PREFIX_PLACE_OF_BIRTH) as? JsonObject?)
+            ?.get(SdJwtAttributes.PlaceOfBirth.LOCALITY)?.content()
+            ?: attributes[SdJwtAttributes.PLACE_OF_BIRTH_LOCALITY]?.contentOrNull
             ?: attributes[Attributes.BIRTH_CITY]?.contentOrNull
 
     override val issuanceDate: LocalDateOrInstant?
