@@ -5,7 +5,6 @@ import at.asitplus.dcapi.DCAPIResponse
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.OpenIdConstants
 import at.asitplus.openid.RequestParametersFrom
-import at.asitplus.rqes.QesInputDescriptor
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
@@ -45,21 +44,16 @@ class DefaultAuthenticationViewModel(
 
     @Suppress("DEPRECATION")
     override val transactionData = authenticationRequest.parameters.transactionData?.firstOrNull()
-        ?: authenticationRequest.parameters.presentationDefinition
-            ?.inputDescriptors?.filterIsInstance<QesInputDescriptor>()
-            ?.firstOrNull()?.transactionData?.firstOrNull()
 
     override suspend fun findMatchingCredentials(): Result<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>> =
         walletMain.presentationService.getMatchingCredentials(
-            preparationState = preparationState,
-            request = authenticationRequest
+            preparationState = preparationState
         )
 
     override suspend fun finalizationMethod(credentialPresentation: CredentialPresentation): OpenId4VpWallet.AuthenticationSuccess {
         val authenticationResult = walletMain.presentationService.finalizeAuthorizationResponse(
-            request = authenticationRequest,
-            clientMetadata = authenticationRequest.parameters.clientMetadata,
             credentialPresentation = credentialPresentation,
+            preparationState = preparationState
         )
         return when (authenticationResult) {
             is OpenId4VpWallet.AuthenticationForward -> {
@@ -67,6 +61,7 @@ class DefaultAuthenticationViewModel(
                     authenticationRequest.parameters.responseMode == OpenIdConstants.ResponseMode.DcApiJwt
                 finalizeDcApi(authenticationResult, isEncryptedResponse)
             }
+
             is OpenId4VpWallet.AuthenticationSuccess -> authenticationResult
         }
     }

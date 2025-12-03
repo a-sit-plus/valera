@@ -12,8 +12,10 @@ import at.asitplus.wallet.lib.jws.JwsHeaderNone
 import at.asitplus.wallet.lib.jws.SignJwt
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import at.asitplus.wallet.lib.ktor.openid.CredentialIssuanceResult
+import at.asitplus.wallet.lib.ktor.openid.OAuth2KtorClient
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VciClient
 import at.asitplus.wallet.lib.ktor.openid.ProvisioningContext
+import at.asitplus.wallet.lib.oauth2.OAuth2Client
 import at.asitplus.wallet.lib.oidvci.BuildClientAttestationJwt
 import at.asitplus.wallet.lib.oidvci.WalletService
 import data.storage.DataStoreService
@@ -39,8 +41,6 @@ class ProvisioningService(
     private val errorService: ErrorService,
     httpService: HttpService,
 ) {
-    /** Checked by appLink handling whether to jump into [resumeWithAuthCode] */
-    private var redirectUri: String? = null
     private val cookieStorage = PersistentCookieStorage(dataStoreService, errorService)
     private val client = httpService.buildHttpClient(cookieStorage = cookieStorage)
 
@@ -62,9 +62,17 @@ class ProvisioningService(
         engine = HttpClient().engine,
         cookiesStorage = cookieStorage,
         httpClientConfig = httpService.loggingConfig,
-        loadClientAttestationJwt = { clientAttestationJwt() },
-        signClientAttestationPop = SignJwt(keyMaterial, JwsHeaderNone()),
-        oid4vciService = WalletService(clientId, redirectUrl, keyMaterial),
+        oauth2Client = OAuth2KtorClient(
+            engine = HttpClient().engine,
+            cookiesStorage = cookieStorage,
+            oAuth2Client = OAuth2Client(clientId = clientId, redirectUrl = redirectUrl),
+            loadClientAttestationJwt = { clientAttestationJwt() },
+            signClientAttestationPop = SignJwt(keyMaterial, JwsHeaderNone()),
+        ),
+        oid4vciService = WalletService(
+            clientId = clientId,
+            keyMaterial = keyMaterial,
+        )
     )
 
     /**
@@ -100,7 +108,7 @@ class ProvisioningService(
         intentService.openIntent(
             url = url,
             redirectUri = redirectUrl,
-            intentType = IntentService.IntentType.ProvisioningIntent
+            intentType = IntentService.IntentType.ProvisioningResumeIntent
         )
     }
 
@@ -111,7 +119,6 @@ class ProvisioningService(
     @Throws(Throwable::class)
     suspend fun resumeWithAuthCode(redirectedUrl: String) {
         Napier.d("handleResponse with $redirectedUrl")
-        this.redirectUri = null
         dataStoreService.getPreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT)
             .firstOrNull()
             ?.let {

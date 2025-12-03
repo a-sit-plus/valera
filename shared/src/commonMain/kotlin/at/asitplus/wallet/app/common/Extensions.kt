@@ -8,6 +8,7 @@ import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment.NameSegment
 import at.asitplus.openid.CredentialFormatEnum
 import at.asitplus.openid.dcql.*
+import at.asitplus.wallet.ageverification.AgeVerificationScheme
 import at.asitplus.wallet.companyregistration.CompanyRegistrationDataElements
 import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
 import at.asitplus.wallet.cor.CertificateOfResidenceDataElements
@@ -32,8 +33,8 @@ import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationDataElements
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import at.asitplus.wallet.taxid.TaxIdScheme
+import data.credentials.JsonClaimReference
 import data.credentials.MdocClaimReference
-import data.credentials.SdJwtClaimReference
 import data.credentials.SingleClaimReference
 import kotlinx.serialization.json.*
 
@@ -41,11 +42,11 @@ fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, Const
     @Suppress("DEPRECATION")
     val credentialRepresentation = when {
         this.format == null -> throw IllegalStateException("Format of input descriptor must be set")
-        this.format?.sdJwt != null || this.format?.jwtSd != null -> SD_JWT
+        this.format?.sdJwt != null -> SD_JWT
         this.format?.msoMdoc != null -> ISO_MDOC
         else -> PLAIN_JWT
     }
-    val credentialIdentifiers: Collection<String> = when (credentialRepresentation) {
+    val credentialIdentifiers = when (credentialRepresentation) {
         PLAIN_JWT -> throw Throwable("PLAIN_JWT not implemented")
         SD_JWT -> vctConstraint()?.filter?.referenceValues()
         ISO_MDOC -> listOf(this.id)
@@ -54,11 +55,11 @@ fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, Const
     // TODO: How to properly handle the case with multiple applicable schemes?
     val scheme = AttributeIndex.schemeSet.firstOrNull {
         it.matchAgainstIdentifier(credentialRepresentation, credentialIdentifiers)
-    } ?: when(credentialRepresentation) {
-            PLAIN_JWT -> VcFallbackCredentialScheme(vcType = credentialIdentifiers.first())
-            SD_JWT -> SdJwtFallbackCredentialScheme(sdJwtType = credentialIdentifiers.first())
-            ISO_MDOC -> IsoMdocFallbackCredentialScheme(isoDocType = credentialIdentifiers.first())
-        }
+    } ?: when (credentialRepresentation) {
+        PLAIN_JWT -> VcFallbackCredentialScheme(vcType = credentialIdentifiers.first())
+        SD_JWT -> SdJwtFallbackCredentialScheme(sdJwtType = credentialIdentifiers.first())
+        ISO_MDOC -> IsoMdocFallbackCredentialScheme(isoDocType = credentialIdentifiers.first())
+    }
 
     val matchedCredentialIdentifier = when (credentialRepresentation) {
         PLAIN_JWT -> throw Throwable("PLAIN_JWT not implemented")
@@ -66,22 +67,18 @@ fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, Const
         ISO_MDOC -> scheme.isoDocType
     }
 
-    val dataElements = when(scheme) {
-        is IsoMdocFallbackCredentialScheme, is SdJwtFallbackCredentialScheme -> {
-            this.constraints?.fields?.map { (it.toNormalizedJsonPath()?.segments?.last() as NameSegment).memberName }
-        }
-        else -> { null }
+    val requestedElements = constraints?.fields?.map {
+        (it.toNormalizedJsonPath()?.segments?.last() as NameSegment).memberName
     }
 
-    val constraintsMap =
-        PresentationExchangeInputEvaluator.evaluateInputDescriptorAgainstCredential(
-            inputDescriptor = this,
-            credentialClaimStructure = scheme.toJsonElement(credentialRepresentation, dataElements),
-            credentialFormat = credentialRepresentation.toFormat(),
-            credentialScheme = matchedCredentialIdentifier,
-            fallbackFormatHolder = this.format,
-            pathAuthorizationValidator = { true },
-        ).getOrThrow()
+    val constraintsMap = PresentationExchangeInputEvaluator.evaluateInputDescriptorAgainstCredential(
+        inputDescriptor = this,
+        credentialClaimStructure = scheme.toJsonElement(credentialRepresentation, requestedElements),
+        credentialFormat = credentialRepresentation.toFormat(),
+        credentialScheme = matchedCredentialIdentifier,
+        fallbackFormatHolder = this.format,
+        pathAuthorizationValidator = { true },
+    ).getOrThrow()
 
     val attributes = constraintsMap.mapNotNull {
         val path = it.value.map { it.normalizedJsonPath }.firstOrNull() ?: return@mapNotNull null
@@ -97,8 +94,7 @@ private fun ConstantIndex.CredentialScheme.matchAgainstIdentifier(
     identifiers: Collection<String>
 ) = when (representation) {
     PLAIN_JWT -> throw Throwable("PLAIN_JWT not implemented")
-    // This is not entirely correct, but we'll try to work around incorrect definitions in our credentials
-    SD_JWT -> sdJwtType in identifiers || isoNamespace in identifiers
+    SD_JWT -> sdJwtType in identifiers
     ISO_MDOC -> isoDocType in identifiers
 }
 
@@ -111,31 +107,27 @@ private fun ConstraintFilter.referenceValues() =
 @Throws(Throwable::class)
 fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, ConstantIndex.CredentialScheme, Collection<SingleClaimReference?>?> {
     val representation = when (format) {
-        CredentialFormatEnum.VC_SD_JWT,
         CredentialFormatEnum.DC_SD_JWT -> SD_JWT
-
         CredentialFormatEnum.MSO_MDOC -> ISO_MDOC
         else -> PLAIN_JWT
     }
 
     val scheme = when (this) {
-        is DCQLIsoMdocCredentialQuery -> meta?.doctypeValue
-            ?.let { AttributeIndex.resolveIsoDoctype(it) }
-
-        is DCQLSdJwtCredentialQuery -> meta?.vctValues
-            ?.firstNotNullOfOrNull { AttributeIndex.resolveSdJwtAttributeType(it) }
-
+        is DCQLIsoMdocCredentialQuery -> meta.doctypeValue
+            .let { AttributeIndex.resolveIsoDoctype(it) }
+        is DCQLSdJwtCredentialQuery -> meta.vctValues
+            .firstNotNullOfOrNull { AttributeIndex.resolveSdJwtAttributeType(it) }
         is DCQLCredentialQueryInstance -> null
     } ?: throw Throwable("No matching scheme for $meta")
 
     // assuming all claims path pointers are single claim references
     val singleReferenceClaimsQueries = this.claims?.associateWith {
         when (it) {
-            is DCQLJsonClaimsQuery -> SdJwtClaimReference(
+            is DCQLJsonClaimsQuery -> JsonClaimReference(
                 NormalizedJsonPath(it.path.map {
                     when (it) {
                         is DCQLClaimsPathPointerSegment.IndexSegment -> NormalizedJsonPathSegment.IndexSegment(it.index)
-                        is DCQLClaimsPathPointerSegment.NameSegment -> NormalizedJsonPathSegment.NameSegment(it.name)
+                        is DCQLClaimsPathPointerSegment.NameSegment -> NameSegment(it.name)
                         DCQLClaimsPathPointerSegment.NullSegment -> null
                     }
                 }.takeWhile {
@@ -157,15 +149,11 @@ fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, C
 
 fun ConstantIndex.CredentialScheme.toJsonElement(
     representation: CredentialRepresentation,
-    elements: Collection<String>? = null
+    requestedElements: Collection<String>? = null
 ): JsonElement {
-    @Suppress("DEPRECATION") val dataElements = elements ?: when (this) {
+    val dataElements = when (this) {
         EuPidScheme -> this.claimNames + EuPidScheme.Attributes.PORTRAIT_CAPTURE_DATE
-        ConstantIndex.AtomicAttribute2023, IdAustriaScheme, EuPidSdJwtScheme, MobileDrivingLicenceScheme, HealthIdScheme, EhicScheme, TaxIdScheme -> this.claimNames
-        // TODO Use: this.claim names for all schemes
-        PowerOfRepresentationScheme -> PowerOfRepresentationDataElements.ALL_ELEMENTS
-        CertificateOfResidenceScheme -> CertificateOfResidenceDataElements.ALL_ELEMENTS
-        CompanyRegistrationScheme -> CompanyRegistrationDataElements.ALL_ELEMENTS
+        ConstantIndex.AtomicAttribute2023, IdAustriaScheme, EuPidSdJwtScheme, MobileDrivingLicenceScheme, AgeVerificationScheme, HealthIdScheme, EhicScheme, TaxIdScheme -> this.claimNames
         is VcFallbackCredentialScheme, is SdJwtFallbackCredentialScheme, is IsoMdocFallbackCredentialScheme -> this.claimNames
         else -> TODO("${this::class.simpleName} not implemented in jsonElementBuilder yet")
     }
@@ -206,6 +194,7 @@ fun ConstantIndex.CredentialScheme.toJsonElement(
                     put(LOCALITY, JsonPrimitive(""))
                 }
             })
+            put(EuPidSdJwtScheme.SdJwtAttributes.NATIONALITIES, buildJsonArray {  })
         }
 
         is EhicScheme -> buildJsonObject {
@@ -281,7 +270,7 @@ fun ConstantIndex.CredentialScheme.toJsonElement(
         }
     }
 
-    return dataElements.associateWith { "" }.let { attributes ->
+    return (dataElements + (requestedElements ?: listOf())).associateWith { "" }.let { attributes ->
         when (representation) {
             PLAIN_JWT -> vckJsonSerializer.encodeToJsonElement(attributes + ("type" to this.vcType))
             SD_JWT -> buildJsonObject {
@@ -314,6 +303,7 @@ fun Throwable.enrichMessage() = when (this) {
     is ConstraintFieldsEvaluationException -> "$message ${constraintFieldExceptions.keys}"
     else -> message ?: toString()
 }
+
 // TODO Replace with function from JSONPath
 private fun ConstraintField.toNormalizedJsonPath(): NormalizedJsonPath? =
     path.firstOrNull()?.removePrefix("$")?.run {

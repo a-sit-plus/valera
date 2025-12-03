@@ -52,12 +52,6 @@
     <string name="button_label_hide_technical_details">Hide technical details</string>
     <string name="button_label_sign">Sign</string>
 
-    <string name="switch_label_use_negotiated_handover">Negotiated Handover</string>
-    <string name="switch_label_use_ble_central_client_mode">BLE Central Client Mode</string>
-    <string name="switch_label_use_ble_peripheral_server_mode">BLE Peripheral Server Mode</string>
-    <string name="switch_label_use_nfc_data_transfer">NFC Data Transfer</string>
-    <string name="switch_label_blel2cap_enabled">Enable L2CAP</string>
-
     <string name="attribute_friendly_name_bpk">BPK</string>
     <string name="attribute_friendly_name_firstname">Given name</string>
     <string name="attribute_friendly_name_lastname">Family name</string>
@@ -94,6 +88,7 @@
     <string name="attribute_friendly_name_family_name_birth">Family name (at birth)</string>
     <string name="attribute_friendly_name_given_name_birth">Given name (at birth)</string>
     <string name="attribute_friendly_name_age_birth_year">Birth year</string>
+    <string name="attribute_friendly_name_place_of_birth">Place of Birth</string>
     <string name="attribute_friendly_name_birth_place">Birth place</string>
     <string name="attribute_friendly_name_birth_country">Birth country</string>
     <string name="attribute_friendly_name_birth_state">Birth state</string>
@@ -195,7 +190,9 @@
     <string name="issuing_label_transaction_code">Transaction code</string>
     <string name="issuing_label_information">All available data will be loaded</string>
 
+    <string name="credential_scheme_icon_label_av">AV</string>
     <string name="credential_scheme_icon_label_mdl">mDL</string>
+    <string name="credential_scheme_label_av">AV</string>
     <string name="credential_scheme_label_mdl">mDL</string>
     <string name="credential_scheme_icon_label_eu_pid">PID</string>
     <string name="credential_scheme_label_eu_pid">PID</string>
@@ -277,11 +274,13 @@
     <string name="heading_label_check_scan_qr_code">Scan QR-Code</string>
     <string name="heading_label_show_qr_code_screen">Scan me!</string>
     <string name="heading_label_received_data">Received Data</string>
-    <string name="heading_label_result">Result</string>
+    <string name="heading_label_capabilities">Device capabilities</string>
 
     <string name="heading_label_select_vda">Select VDA</string>
     <string name="heading_label_sign">Sign</string>
     <string name="heading_label_tech_demo">Tech Demo</string>
+    <string name="heading_label_result">Result</string>
+    <string name="heading_label_device_engagement">Device Engagement</string>
 
     <string name="biometric_authentication_prompt_for_data_transmission_consent_title">Disclose data</string>
     <string name="biometric_authentication_prompt_to_load_data_title">Load data</string>
@@ -330,10 +329,7 @@
     <string name="error_qr_code_scanning_invalid_metadata_jws_object">Invalid metadataJws</string>
     <string name="error_qr_code_scanning_invalid_metadata_jws_object_signature">Invalid metadataJws signature</string>
     <string name="error_qr_code_scanning_client_id_not_in_redirect_uris">Client id not in client metadata redirect uris</string>
-    <string name="error_missing_permissions">Permission Denied</string>
     <string name="error_missing_value">Error no value given</string>
-    <string name="error_bluetooth_unavailable">Bluetooth is not available</string>
-    <string name="error_bluetooth_and_nfc_unavailable">Neither Bluetooth nor NFC is available</string>
     <string name="error_no_requests">No requests found</string>
     <string name="error_clearing_log_failed">Deleting log failed.</string>
     <string name="error_resetting_app_failed">Resetting the app failed.</string>
@@ -355,10 +351,12 @@
     <string name="info_text_qr_code_loading">Loading QR Code</string>
     <string name="info_text_nfc_mdoc_reader">Hold near credential holder's phone.</string>
     <string name="info_text_waiting_for_response">Waiting for response of holder device</string>
+    <string name="info_text_check_response">Check response</string>
     <string name="info_text_demonstrator">This is a demonstrator for wallet technologies which has been produced by A-SIT/A-SIT Plus in the context of the large scale pilot POTENTIAL.</string>
     <string name="info_text_non_productive">This app is not intended for production use!</string>
     <string name="info_text_co_founded_by_eu">Co‑Funded by the \nEuropean Union</string>
     <string name="info_text_received_funding_from_eu">This project has received funding from the European Union’s Digital Europe Programme (DIGITAL), Project 101102655 — POTENTIAL.</string>
+    <string name="info_text_device_engagement_nfc">Hold your device close to the other person’s device to establish a connection between the devices.</string>
 
     <string name="section_heading_authenticate_at_device_title">Authenticate</string>
     <string name="section_heading_authenticate_at_device_subtitle">at relying party</string>
@@ -366,7 +364,6 @@
     <string name="section_heading_present_data_to_executive_subtitle">Executive</string>
     <string name="section_heading_present_data_to_other_citizen_subtitle">other Citizen</string>
     <string name="section_heading_actions">Actions</string>
-    <string name="section_heading_transfer_options">Transfer Settings</string>
     <string name="section_heading_information">Information</string>
     <string name="section_heading_requested_data">Requested Data</string>
     <string name="section_heading_data_recipient">Recipient</string>
@@ -432,12 +429,36 @@
     <string name="nfc">NFC</string>
     <string name="qr">QR-Code</string>
 
+    <!-- Transfer options -->
+    <string name="heading_label_missing_precondition">Missing Precondition</string>
+    <string name="section_heading_transfer_options">Transfer Settings</string>
+    <string name="switch_label_use_ble">Use Bluetooth</string>
+    <string name="switch_label_use_nfc">Use NFC</string>
+    <string name="switch_label_use_negotiated_handover">Negotiated Handover</string>
+    <string name="switch_label_use_ble_central_client_mode">BLE Central Client Mode</string>
+    <string name="switch_label_use_ble_peripheral_server_mode">BLE Peripheral Server Mode</string>
+    <string name="switch_label_use_nfc_data_transfer">NFC Data Transfer</string>
+    <string name="switch_label_ble_use_l2cap_enabled">Enable L2CAP</string>
+    <string name="switch_label_ble_use_l2cap_in_engagement_enabled">Enable L2CAP in engagement</string>
+    <string name="button_label_extended_options">Extended</string>
+    <string name="button_label_open_app_settings">Open app settings</string>
+    <string name="button_label_back_to_settings">Back to Settings</string>
+    <string name="button_label_open_device_settings">Open device settings</string>
+    <string name="button_label_enable_bluetooth">Enable Bluetooth</string>
+    <string name="info_text_transfer_settings_loading">Loading transfer settings</string>
+    <string name="info_text_check_settings">Check settings</string>
+    <string name="info_text_nfc_engagement_not_available">NFC is necessary for the current chosen device engagement method.\n\nPlease enable NFC on the device or choose another method.</string>
+    <string name="info_text_no_transfer_method_selected">No transfer method has been selected.\n\nPlease open the settings and choose at least one.</string>
+    <string name="info_text_no_transfer_method_available_for_selection">None of the selected transfer methods are available.\n\nPlease open the device settings and enable the required transfer method, or select a different one.</string>
+    <string name="info_text_missing_permission_bluetooth">Bluetooth permission required.\n\nOpen the app's settings and grant this permission.</string>
+
     <!-- Verify Data Route -->
     <string name="heading_label_select_data_retrieval_screen">Check</string>
     <string name="heading_label_select_custom_data_retrieval_screen">Custom</string>
     <string name="heading_label_select_combined_data_retrieval_screen">Combined</string>
     <string name="section_heading_request_mdl">mDL requests</string>
     <string name="section_heading_request_pid">PID requests</string>
+    <string name="section_heading_request_av">AV requests</string>
     <string name="section_heading_request_hid">HealthID request</string>
     <string name="section_heading_request_combined">Combined request</string>
     <string name="section_heading_request_custom">Custom request</string>
@@ -457,4 +478,27 @@
     <string name="text_label_mandatory_attributes">Mandatory Attributes</string>
     <string name="text_label_requests">Requests</string>
     <string name="info_text_no_requests">No requests</string>
+    <string name="info_text_credential_status_valid">VALID</string>
+    <string name="error_mdl_driving_privilege_category_expired">The driving privilege of category %1$s is expired</string>
+    <string name="error_mdl_driving_privilege_category_not_yet_valid">The driving privilege of category %1$s is not yet valid</string>
+
+    <!-- Device capabilities -->
+    <string name="capabilities_heading_device_lock">Screen lock</string>
+    <string name="capabilities_heading_biometry">Biometry</string>
+    <string name="capabilities_heading_signing">Signing</string>
+    <string name="capabilities_heading_attestation">Attestation</string>
+    <string name="capabilities_heading_internet">Internet</string>
+    <string name="capabilities_heading_camera">Camera</string>
+
+    <string name="info_text_capabilities_no_internet">Ensure that you have an active internet connection. Adjust features such as mobile data or airplane mode in your system settings accordingly.</string>
+    <string name="info_text_capabilities_no_device_lock_set">There is no screen lock set on this device. Please check the device settings.</string>
+    <string name="info_text_capabilities_no_biometry_enrolled">There is no fingerprint or Face ID registered on this device. Please check the device settings.</string>
+    <string name="info_text_capabilities_no_signing">Signatures cannot currently be triggered on this device. Please ensure that a screen lock is set and that a fingerprint or Face ID is registered.</string>
+    <string name="info_text_capabilities_no_attestation">This device is not capable of attestation. An operating system update may change this.</string>
+    <string name="info_text_capabilities_no_attestation_ios">In some cases, Apple’s attestation service may be unavailable. Network issues (e.g. due to VPN connection) could be the cause.</string>
+    <string name="info_text_capabilities_missing_capabilities">Your device currently does not support all features.</string>
+    <string name="info_text_capabilities_continue">Please adjust the settings accordingly to continue.</string>
+    <string name="info_text_capabilities_no_camera">Access to the camera was denied. Please adjust the settings.</string>
+
+    <string name="button_label_capabilities_settings">Device settings</string>
 </resources>

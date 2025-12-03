@@ -16,7 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import at.asitplus.rqes.CredentialInfo
+import at.asitplus.csc.CredentialInfo
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.text_label_certificate
 import at.asitplus.valera.resources.text_label_credential_id
@@ -27,8 +27,13 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 
-fun CertificateCard(credentialInfo: CredentialInfo, isExpanded: Boolean, onChangeIsExpanded: (Boolean) -> Unit, action: () -> Unit){
-    ElevatedCard(){
+fun CertificateCard(
+    credentialInfo: CredentialInfo,
+    isExpanded: Boolean,
+    onChangeIsExpanded: (Boolean) -> Unit,
+    action: () -> Unit
+) {
+    ElevatedCard() {
         Column(modifier = Modifier.padding(10.dp)) {
             CertificateCardHeading(isExpanded = isExpanded, onChangeIsExpanded = onChangeIsExpanded)
             CertificateCardContent(credentialInfo = credentialInfo, isExpanded = isExpanded, action = action)
@@ -39,8 +44,13 @@ fun CertificateCard(credentialInfo: CredentialInfo, isExpanded: Boolean, onChang
 @Composable
 fun CertificateCardHeading(
     isExpanded: Boolean,
-    onChangeIsExpanded: (Boolean) -> Unit){
-    Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 15.dp, vertical = 10.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+    onChangeIsExpanded: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 15.dp, vertical = 10.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             HeadingTextIcon(
                 text = "${stringResource(Res.string.text_label_certificate)[0]}",
@@ -65,7 +75,8 @@ fun CertificateCardHeading(
 fun CertificateCardContent(
     credentialInfo: CredentialInfo,
     isExpanded: Boolean,
-    action: () -> Unit) {
+    action: () -> Unit
+) {
     LabeledText(
         label = stringResource(Res.string.text_label_credential_id),
         text = "${credentialInfo.credentialID}",

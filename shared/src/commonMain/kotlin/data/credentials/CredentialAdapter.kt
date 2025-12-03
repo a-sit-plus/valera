@@ -15,7 +15,9 @@ import io.matthewnelson.encoding.core.Decoder.Companion.decodeToByteArray
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import kotlin.time.Instant
 
@@ -40,8 +42,14 @@ abstract class CredentialAdapter {
                 ?.let { LocalDateOrInstant.LocalDate(it) }
         }
 
+    protected fun JsonElement?.content() =
+        (this as? JsonPrimitive)?.contentOrNull ?: (this as? JsonArray)?.joinToString()
+
     protected fun JsonPrimitive?.toCollectionOrNull() =
         (this as? JsonArray)?.let { it.map { it.toString() } }
+
+    protected fun JsonElement?.toCollectionOrNull() =
+        (this as? JsonArray)?.let { it.map { it.content() ?: it.toString() } }
 
     protected fun Any?.toLocalDateTimeOrNull() =
         (this as? LocalDateTime?)
@@ -69,7 +77,8 @@ abstract class CredentialAdapter {
                 .mapValues { it.value.jsonPrimitive }
 
         fun SubjectCredentialStore.StoreEntry.SdJwt.toComplexJson() =
-            SdJwtSigned.parse(vcSerialized)?.let { SdJwtDecoded(it).reconstructedJsonObject }
+            SdJwtSigned.parseCatching(vcSerialized).getOrNull()
+                ?.let { SdJwtDecoded(it).reconstructedJsonObject }
 
         fun SubjectCredentialStore.StoreEntry.Iso.toNamespaceAttributeMap() =
             issuerSigned.namespaces?.mapValues { namespace ->

@@ -24,7 +24,6 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlin.time.Clock
 import kotlinx.io.bytestring.ByteString
 import org.multipaz.cbor.DataItem
 import org.multipaz.context.initializeApplication
@@ -45,14 +44,15 @@ import org.multipaz.nfc.ResponseApdu
 import org.multipaz.util.UUID
 import ui.navigation.PRESENTATION_REQUESTED_INTENT
 import ui.viewmodels.authentication.PresentationStateModel
+import kotlin.time.Clock
 import kotlin.time.Duration
-
 
 // Based on the identity-credential sample code
 // https://github.com/openwallet-foundation-labs/identity-credential/tree/main/samples/testapp
 
 class NdefDeviceEngagementService : HostApduService() {
     companion object {
+        val TAG = "NdefDeviceEngagementService"
         private var engagement: MdocNfcEngagementHelper? = null
         private var disableEngagementJob: Job? = null
         private var listenForCancellationFromUiJob: Job? = null
@@ -60,7 +60,7 @@ class NdefDeviceEngagementService : HostApduService() {
 
         // TODO use error service to show error to user, but how to get it from here?
         private val coroutineExceptionHandler = CoroutineExceptionHandler { _, error ->
-            Napier.e("FAILURE IN COROUTINE", error)
+            Napier.e("FAILURE IN COROUTINE", error, tag = TAG)
         }
 
         private val coroutineScope =
@@ -79,7 +79,7 @@ class NdefDeviceEngagementService : HostApduService() {
 
         val effect = VibrationEffect.createPredefined(pattern)
         vibrator?.vibrate(effect)
-    }.onFailure { e -> Napier.w("Vibrating failed", e) }
+    }.onFailure { e -> Napier.w("Vibrating failed", e, tag = TAG) }
 
     private fun vibrateError() = vibrate(VibrationEffect.EFFECT_DOUBLE_CLICK)
 
@@ -97,7 +97,10 @@ class NdefDeviceEngagementService : HostApduService() {
         super.onCreate()
         initializeApplication(applicationContext)
         walletConfig = WalletConfig(
-            dataStoreService = RealDataStoreService(getDataStore(applicationContext), DummyPlatformAdapter()),
+            dataStoreService = RealDataStoreService(
+                dataStore = getDataStore(applicationContext),
+                platformAdapter = DummyPlatformAdapter()
+            ),
             errorService = ErrorService()
         )
 
@@ -115,7 +118,7 @@ class NdefDeviceEngagementService : HostApduService() {
     private var started = false
 
     private suspend fun startEngagement() {
-        Napier.i("NdefDeviceEngagementService: startNdefEngagement")
+        Napier.i("startNdefEngagement", tag = TAG)
 
         disableEngagementJob?.cancel()
         disableEngagementJob = null
@@ -152,19 +155,17 @@ class NdefDeviceEngagementService : HostApduService() {
         intent.action = PRESENTATION_REQUESTED_INTENT
         applicationContext.startActivity(intent)
 
-        suspend fun negotiatedHandoverPicker(connectionMethods: List<MdocConnectionMethod>): MdocConnectionMethod {
-            Napier.i("NdefDeviceEngagementService: Negotiated Handover available methods: $connectionMethods")
+        fun negotiatedHandoverPicker(connectionMethods: List<MdocConnectionMethod>): MdocConnectionMethod {
+            Napier.i("Negotiated Handover available methods: $connectionMethods", tag = TAG)
             for (prefix in walletConfig.presentmentNegotiatedHandoverPreferredOrder) {
                 for (connectionMethod in connectionMethods) {
-                    if (connectionMethod.toString().startsWith(prefix)
-                        && walletConfig.isConnectionMethodEnabled(prefix = prefix)
-                    ) {
-                        Napier.i("NdefDeviceEngagementService: Using method $connectionMethod")
+                    if (connectionMethod.toString().startsWith(prefix)) {
+                        Napier.i("Using method $connectionMethod", tag = TAG)
                         return connectionMethod
                     }
                 }
             }
-            Napier.i("NdefDeviceEngagementService: Fallback, using method ${connectionMethods.first()}")
+            Napier.i("Fallback, using method ${connectionMethods.first()}", tag = TAG)
             return connectionMethods.first()
         }
 
@@ -212,7 +213,7 @@ class NdefDeviceEngagementService : HostApduService() {
         engagement = MdocNfcEngagementHelper(
             eDeviceKey = ephemeralDeviceKey.publicKey,
             onHandoverComplete = { connectionMethods, encodedDeviceEngagement, handover ->
-                Napier.d("NdefDeviceEngagementService: Waiting for start")
+                Napier.d("Waiting for start", tag = TAG)
                 vibrateSuccess()
                 presentationStateModel.start(connectionMethods.any { it is MdocConnectionMethodBle })
 
@@ -226,7 +227,7 @@ class NdefDeviceEngagementService : HostApduService() {
                 )
             },
             onError = { error ->
-                Napier.w("NdefDeviceEngagementService: Engagement failed", error)
+                Napier.w("Engagement failed", error, tag = TAG)
                 vibrateError()
                 presentationStateModel.setCompleted(error)
                 engagement = null
@@ -244,22 +245,21 @@ class NdefDeviceEngagementService : HostApduService() {
         engagementDuration: Duration,
     ) {
         presentationStateModel.presentmentScope.launch {
-            Napier.d("NdefDeviceEngagementService: Waiting for state")
+            Napier.d("Waiting for state", tag = TAG)
             presentationStateModel.state.first { it != PresentationStateModel.State.IDLE && it != PresentationStateModel.State.NO_PERMISSION && it != PresentationStateModel.State.CHECK_PERMISSIONS }
-            Napier.d("${presentationStateModel.state.value} reached, wait for connection using main transport")
+            Napier.d("${presentationStateModel.state.value} reached, wait for connection using main transport", tag = TAG)
             // First advertise the connection methods
             val advertisedTransports = connectionMethods.advertise(
                 role = MdocRole.MDOC,
                 transportFactory = MdocTransportFactory.Default,
                 options = MdocTransportOptions(
-                    bleUseL2CAP = walletConfig.readerBleL2CapEnabled.first()
+                    bleUseL2CAP = walletConfig.bleUseL2CAPEnabled.first(),
+                    bleUseL2CAPInEngagement = walletConfig.bleUseL2CAPInEngagementEnabled.first()
                 )
             )
 
             // Then wait for connection
-            val transport = advertisedTransports.waitForConnection(
-                eSenderKey = eDeviceKey.publicKey
-            )
+            val transport = advertisedTransports.waitForConnection(eDeviceKey.publicKey)
             presentationStateModel.setMechanism(
                 MdocPresentmentMechanism(
                     transport = transport,
@@ -279,7 +279,7 @@ class NdefDeviceEngagementService : HostApduService() {
     }
 
     private suspend fun processCommandApdu(commandApdu: CommandApdu): ResponseApdu? {
-        Napier.d("NdefDeviceEngagementService: processCommandApdu, started = $started")
+        Napier.d("processCommandApdu, started = $started", tag = TAG)
 
         if (!started) {
             started = true
@@ -292,7 +292,7 @@ class NdefDeviceEngagementService : HostApduService() {
                 return responseApdu
             }
         } catch (e: Throwable) {
-            Napier.e("NdefDeviceEngagementService: processCommandApdu", e)
+            Napier.e("processCommandApdu", e, tag = TAG)
             e.printStackTrace()
         }
         return null
@@ -306,26 +306,29 @@ class NdefDeviceEngagementService : HostApduService() {
     }
 
     override fun onDeactivated(reason: Int) {
-        Napier.i("NdefDeviceEngagementService: onDeactivated: reason=$reason")
+        Napier.i("onDeactivated: reason=$reason", tag = TAG)
         started = false
-        // If the reader hasn't connected by the time NFC interaction ends, make sure we only
-        // wait for a limited amount of time.
         if (engagement == null) {
             Napier.d("NdefDeviceEngagementService: Engagement is not running")
             return
         }
-        disableEngagementJob = CoroutineScope(Dispatchers.IO + CoroutineName("NdefDeviceEngagementService: onDeactivated")).launch {
-            try {
-                presentationStateModel.waitForConnectionUsingMainTransport(walletConfig.connectionTimeout.first())
-                Napier.d("NdefDeviceEngagementService: Main transport connected")
-            } catch (_: TimeoutCancellationException) {
-                val message =
-                    "NdefDeviceEngagementService: Reader didn't connect in ${walletConfig.connectionTimeout.first()}, closing"
-                Napier.w(message)
-                presentationStateModel.setCompleted(PresentmentTimeout(message))
-            }
-            engagement = null
-            disableEngagementJob = null
+
+        // If the reader hasn't connected by the time NFC interaction ends, make sure we only
+        // wait for a limited amount of time.
+        if (presentationStateModel.state.value == PresentationStateModel.State.CONNECTING) {
+            disableEngagementJob = CoroutineScope(Dispatchers.IO + CoroutineName("NdefDeviceEngagementService: onDeactivated")).launch {
+                    try {
+                        presentationStateModel.waitForConnectionUsingMainTransport(walletConfig.connectionTimeout.first())
+                        Napier.d("NdefDeviceEngagementService: Main transport connected")
+                    } catch (_: TimeoutCancellationException) {
+                        val message =
+                            "NdefDeviceEngagementService: Reader didn't connect in ${walletConfig.connectionTimeout.first()}, closing"
+                        Napier.w(message)
+                        presentationStateModel.setCompleted(PresentmentTimeout(message))
+                    }
+                    engagement = null
+                    disableEngagementJob = null
+                }
         }
     }
 }

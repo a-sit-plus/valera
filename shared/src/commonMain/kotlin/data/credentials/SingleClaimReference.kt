@@ -6,7 +6,7 @@ import kotlin.jvm.JvmInline
 sealed interface SingleClaimReference
 
 @JvmInline
-value class SdJwtClaimReference(
+value class JsonClaimReference(
     val normalizedJsonPath: NormalizedJsonPath,
 ) : SingleClaimReference
 

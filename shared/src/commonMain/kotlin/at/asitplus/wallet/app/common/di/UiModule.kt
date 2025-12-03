@@ -5,17 +5,25 @@ import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 import ui.viewmodels.AddCredentialViewModel
+import ui.viewmodels.CapabilitiesViewModel
 import ui.viewmodels.CredentialsViewModel
+import ui.viewmodels.InitializationViewModel
 import ui.viewmodels.SettingsViewModel
 import ui.viewmodels.authentication.AuthenticationSuccessViewModel
-import ui.viewmodels.iso.ShowQrCodeViewModel
+import ui.viewmodels.iso.holder.HolderViewModel
+import ui.viewmodels.iso.common.TransferOptionsViewModel
+import ui.viewmodels.iso.verifier.VerifierViewModel
 
 fun uiModule() = module {
     singleOf(::SnackbarService)
 
     viewModelOf(::SettingsViewModel)
     viewModelOf(::CredentialsViewModel)
-    viewModelOf(::ShowQrCodeViewModel)
+    viewModelOf(::TransferOptionsViewModel)
+    viewModelOf(::HolderViewModel)
+    viewModelOf(::VerifierViewModel)
     viewModelOf(::AuthenticationSuccessViewModel)
     viewModelOf(::AddCredentialViewModel)
+    viewModelOf(::CapabilitiesViewModel)
+    viewModelOf(::InitializationViewModel)
 }

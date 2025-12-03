@@ -8,7 +8,6 @@ import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
@@ -42,6 +41,10 @@ import kotlin.time.Duration.Companion.seconds
  * - Support for multiple requests if both sides keep the connection open
  */
 class PresentationStateModel(private var _presentmentScope: CoroutineScope) {
+    companion object {
+        private const val TAG = "PresentationStateModel"
+    }
+
     /**
      * Possible states that the model can be in.
      */
@@ -99,8 +102,6 @@ class PresentationStateModel(private var _presentmentScope: CoroutineScope) {
      */
     val state = _state.asStateFlow()
 
-
-
     /**
      * A [CoroutineScope] for the presentment process.
      *
@@ -111,9 +112,8 @@ class PresentationStateModel(private var _presentmentScope: CoroutineScope) {
      */
     val presentmentScope: CoroutineScope
         get() {
-            check(_presentmentScope != null)
             check(_state.value != State.IDLE && _state.value != State.COMPLETED)
-            return _presentmentScope!!
+            return _presentmentScope
         }
 
     private var _mechanism: PresentmentMechanism? = null
@@ -141,7 +141,7 @@ class PresentationStateModel(private var _presentmentScope: CoroutineScope) {
         _error = null
         _dismissible.value = true
         _numRequestsServed.value = 0
-        _presentmentScope?.coroutineContext?.cancelChildren(CancellationException("PresentationModel reset"))
+        _presentmentScope.coroutineContext.cancelChildren(CancellationException("PresentationModel reset"))
         _state.value = State.IDLE
     }
 
@@ -171,7 +171,7 @@ class PresentationStateModel(private var _presentmentScope: CoroutineScope) {
      */
     suspend fun waitForConnectionUsingMainTransport(timeout: Duration) = withTimeout(timeout) {
         state.first {
-            Napier.d("waitForConnectionUsingMainTransport: Current state: ${it.name}")
+            Napier.d("waitForConnectionUsingMainTransport: Current state: ${it.name}", tag=TAG)
             it != State.IDLE && it != State.INITIALISING && it != State.CHECK_PERMISSIONS
                     && it != State.NO_PERMISSION && it != State.CONNECTING
         }
@@ -199,7 +199,7 @@ class PresentationStateModel(private var _presentmentScope: CoroutineScope) {
     }
 
     private fun check(expectedState: State) {
-        Napier.d("State is ${_state.value}, expected: $expectedState")
+        Napier.d("State is ${_state.value}, expected: $expectedState", tag=TAG)
         check(_state.value == expectedState)
     }
 
@@ -216,7 +216,7 @@ class PresentationStateModel(private var _presentmentScope: CoroutineScope) {
         // OK, now that we got both a mechanism and a source we're off to the races and we can
         // start the presentment flow! Do this in a separate coroutine.
         //
-        _presentmentScope!!.launch {
+        _presentmentScope.launch {
             startPresentmentFlow(presentationViewModel)
         }
     }
@@ -228,7 +228,7 @@ class PresentationStateModel(private var _presentmentScope: CoroutineScope) {
      */
     fun setCompleted(error: Throwable? = null) {
         if (_state.value == State.COMPLETED) {
-            Napier.w("Already completed, ignoring second call")
+            Napier.w("Already completed, ignoring second call", tag=TAG)
             return
         }
         _mechanism?.close()
@@ -236,9 +236,9 @@ class PresentationStateModel(private var _presentmentScope: CoroutineScope) {
         _error = error
         _state.value = State.COMPLETED
         // TODO: Hack to ensure that [state] collectors (using [presentationScope]) gets called for State.COMPLETED
-        _presentmentScope?.launch {
+        _presentmentScope.launch {
             delay(1.seconds)
-            _presentmentScope?.coroutineContext?.cancelChildren(CancellationException("PresentationModel completed"))
+            _presentmentScope.coroutineContext.cancelChildren(CancellationException("PresentationModel completed"))
         }
     }
 
@@ -287,27 +287,27 @@ class PresentationStateModel(private var _presentmentScope: CoroutineScope) {
     fun dismiss(dismissType: DismissType) {
         val mdocMechanism = mechanism as? MdocPresentmentMechanism
         if (mdocMechanism != null) {
-            _presentmentScope!!.launch {
+            _presentmentScope.launch {
                 try {
                     when (dismissType) {
-                        DismissType.CLICK -> {
+                        CLICK -> {
                             mdocMechanism.transport.sendMessage(
                                 SessionEncryption.encodeStatus(Constants.SESSION_DATA_STATUS_SESSION_TERMINATION)
                             )
                             mdocMechanism.transport.close()
                         }
 
-                        DismissType.LONG_CLICK -> {
+                        LONG_CLICK -> {
                             mdocMechanism.transport.sendMessage(byteArrayOf())
                             mdocMechanism.transport.close()
                         }
 
-                        DismissType.DOUBLE_CLICK -> {
+                        DOUBLE_CLICK -> {
                             mdocMechanism.transport.close()
                         }
                     }
                 } catch (error: Throwable) {
-                    Napier.e("Caught exception closing transport", error)
+                    Napier.e("Caught exception closing transport", error, tag=TAG)
                     error.printStackTrace()
                 }
             }
@@ -318,7 +318,7 @@ class PresentationStateModel(private var _presentmentScope: CoroutineScope) {
     private suspend fun startPresentmentFlow(presentationViewModel: PresentationViewModel) {
         when (mechanism!!) {
             is MdocPresentmentMechanism -> {
-                Napier.i("Presenting an mdoc")
+                Napier.i("Presenting an mdoc", tag=TAG)
                 MdocPresenter(
                     stateModel = this,
                     presentationViewModel = presentationViewModel,

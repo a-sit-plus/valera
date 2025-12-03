@@ -2,7 +2,8 @@
 .gradle
 /.kotlin
 /local.properties
-/.idea
+/.idea/*
+!/.idea/codeStyles
 /.run
 .DS_Store
 build/
@@ -16,3 +17,4 @@ iosApp/iosApp.xcodeproj/*
 !iosApp/iosApp.xcodeproj/xcshareddata
 !iosApp/iosApp.xcodeproj/project.pbxproj
 shared/shared.podspec
+metrics/

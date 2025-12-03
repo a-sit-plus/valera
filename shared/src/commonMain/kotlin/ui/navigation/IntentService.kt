@@ -1,12 +1,13 @@
 package ui.navigation
 
 import at.asitplus.wallet.app.common.PlatformAdapter
-import kotlinx.coroutines.flow.MutableStateFlow
+import ui.navigation.routes.AddCredentialPreAuthnRoute
+import ui.navigation.routes.AddCredentialWithLinkRoute
 import ui.navigation.routes.AuthorizationIntentRoute
 import ui.navigation.routes.DCAPIAuthorizationIntentRoute
 import ui.navigation.routes.ErrorIntentRoute
 import ui.navigation.routes.PresentationIntentRoute
-import ui.navigation.routes.ProvisioningIntentRoute
+import ui.navigation.routes.ProvisioningResumeIntentRoute
 import ui.navigation.routes.Route
 import ui.navigation.routes.SigningCredentialIntentRoute
 import ui.navigation.routes.SigningIntentRoute
@@ -26,7 +27,8 @@ class IntentService(
 
     fun handleIntent(uri: String): Route =
         when (parseUrl(uri)) {
-            IntentType.ProvisioningIntent -> ProvisioningIntentRoute(uri)
+            IntentType.ProvisioningStartIntent -> AddCredentialWithLinkRoute(uri)
+            IntentType.ProvisioningResumeIntent -> ProvisioningResumeIntentRoute(uri)
             IntentType.AuthorizationIntent -> AuthorizationIntentRoute(uri)
             IntentType.DCAPIAuthorizationIntent -> DCAPIAuthorizationIntentRoute(uri)
             IntentType.PresentationIntent -> PresentationIntentRoute(uri)
@@ -45,6 +47,7 @@ class IntentService(
             equals(PRESENTATION_REQUESTED_INTENT) -> IntentType.PresentationIntent
             contains("request_uri") && contains("client_id") -> IntentType.AuthorizationIntent
             (redirectUri != null && contains(redirectUri!!) && intentType != null) -> intentType!!
+            contains("credential_offer") || contains("credential_offer_uri") -> IntentType.ProvisioningStartIntent
             else -> IntentType.AuthorizationIntent
         }
     }
@@ -57,7 +60,8 @@ class IntentService(
 
     enum class IntentType {
         ErrorIntent,
-        ProvisioningIntent,
+        ProvisioningStartIntent,
+        ProvisioningResumeIntent,
         AuthorizationIntent,
         DCAPIAuthorizationIntent,
         PresentationIntent,

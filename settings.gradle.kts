@@ -9,12 +9,6 @@ pluginManagement {
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
         maven("https://raw.githubusercontent.com/a-sit-plus/gradle-conventions-plugin/mvn/repo")
     }
-
-    plugins {
-        val agpVersion = extra["agp.version"] as String
-        id("com.android.application").version(agpVersion)
-        id("com.android.library").version(agpVersion)
-    }
 }
 
 plugins {
@@ -31,26 +25,10 @@ if (vckDir.isDirectory && signumFile.exists()) {
     includeBuild("../vck")
 }
 
-val vckVersion :String get() = settings.extra["vck.version"].toString()
-
 dependencyResolutionManagement {
-
     repositories {
         mavenCentral()
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
         maven("https://central.sonatype.com/repository/maven-snapshots/")
     }
-
-    versionCatalogs {
-        create("vckOidCatalog") {
-            from("at.asitplus.wallet:vck-openid-ktor-versionCatalog:$vckVersion")
-        }
-    }
-    //because the other one does not provide the transitive VC-K dependency required for XFC export
-   versionCatalogs {
-        create("vckCatalog") {
-            from("at.asitplus.wallet:vck-versionCatalog:$vckVersion")
-        }
-    }
-
 }

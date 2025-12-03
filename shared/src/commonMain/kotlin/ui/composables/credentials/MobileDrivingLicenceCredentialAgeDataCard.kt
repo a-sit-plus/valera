@@ -42,7 +42,17 @@ fun MobileDrivingLicenceCredentialAgeDataCardContent(
     modifier: Modifier = Modifier,
 ) {
     val agesAtLeastN = listOf(
+        12 to credentialAdapter.ageAtLeast12,
+        13 to credentialAdapter.ageAtLeast13,
+        14 to credentialAdapter.ageAtLeast14,
+        16 to credentialAdapter.ageAtLeast16,
         18 to credentialAdapter.ageAtLeast18,
+        21 to credentialAdapter.ageAtLeast21,
+        25 to credentialAdapter.ageAtLeast25,
+        60 to credentialAdapter.ageAtLeast60,
+        62 to credentialAdapter.ageAtLeast62,
+        65 to credentialAdapter.ageAtLeast65,
+        68 to credentialAdapter.ageAtLeast68,
     )
 
     Column(modifier = modifier) {

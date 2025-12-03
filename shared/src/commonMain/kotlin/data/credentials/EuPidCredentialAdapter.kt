@@ -5,15 +5,14 @@ package data.credentials
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.eupid.EuPidCredential
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.eupid.EuPidScheme.Attributes
 import at.asitplus.wallet.eupid.IsoIec5218Gender
+import at.asitplus.wallet.eupid.PlaceOfBirth
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme.SdJwtAttributes
-import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme.SdJwtAttributes.Address
-import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme.SdJwtAttributes.AgeEqualOrOver
-import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme.SdJwtAttributes.PlaceOfBirth
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
@@ -21,173 +20,29 @@ import at.asitplus.wallet.lib.data.LocalDateOrInstant
 import data.Attribute
 import io.ktor.util.decodeBase64Bytes
 import kotlinx.datetime.LocalDate
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.decodeFromJsonElement
 
 sealed class EuPidCredentialAdapter(
     private val decodePortrait: (ByteArray) -> Result<ImageBitmap>,
 ) : CredentialAdapter() {
+
     override fun getAttribute(path: NormalizedJsonPath) =
-        path.segments.firstOrNull()?.let { first ->
-            getWithIsoNames(first) ?: getWithSdJwtNames(first, path.segments.getOrNull(1))
-        }
+        (path.segments.firstOrNull()?.let { first -> getWithIsoNames(first) }
+            ?: EuPidCredentialSdJwtClaimDefinitionResolver().resolveOrNull(path))?.toAttribute()
 
     /** Claim names defined for ISO in ARF */
-    private fun getWithIsoNames(first: NormalizedJsonPathSegment) = with(Attributes) {
-        when (first) {
-            is NormalizedJsonPathSegment.NameSegment -> when (first.memberName) {
-                GIVEN_NAME -> Attribute.fromValue(givenName)
-                FAMILY_NAME -> Attribute.fromValue(familyName)
-                BIRTH_DATE -> Attribute.fromValue(birthDate)
-                AGE_OVER_12 -> Attribute.fromValue(ageAtLeast12)
-                AGE_OVER_13 -> Attribute.fromValue(ageAtLeast13)
-                AGE_OVER_14 -> Attribute.fromValue(ageAtLeast14)
-                AGE_OVER_16 -> Attribute.fromValue(ageAtLeast16)
-                AGE_OVER_18 -> Attribute.fromValue(ageAtLeast18)
-                AGE_OVER_21 -> Attribute.fromValue(ageAtLeast21)
-                AGE_OVER_25 -> Attribute.fromValue(ageAtLeast25)
-                AGE_OVER_60 -> Attribute.fromValue(ageAtLeast60)
-                AGE_OVER_62 -> Attribute.fromValue(ageAtLeast62)
-                AGE_OVER_65 -> Attribute.fromValue(ageAtLeast65)
-                AGE_OVER_68 -> Attribute.fromValue(ageAtLeast68)
-                RESIDENT_ADDRESS -> Attribute.fromValue(residentAddress)
-                RESIDENT_STREET -> Attribute.fromValue(residentStreet)
-                RESIDENT_CITY -> Attribute.fromValue(residentCity)
-                RESIDENT_POSTAL_CODE -> Attribute.fromValue(residentPostalCode)
-                RESIDENT_HOUSE_NUMBER -> Attribute.fromValue(residentHouseNumber)
-                RESIDENT_COUNTRY -> Attribute.fromValue(residentCountry)
-                RESIDENT_STATE -> Attribute.fromValue(residentState)
-                GENDER -> Attribute.fromValue(gender)
-                SEX -> Attribute.fromValue(sex)
-                NATIONALITY -> Attribute.fromValue(nationality)
-                AGE_IN_YEARS -> Attribute.fromValue(ageInYears)
-                AGE_BIRTH_YEAR -> Attribute.fromValue(ageBirthYear)
-                FAMILY_NAME_BIRTH -> Attribute.fromValue(familyNameBirth)
-                GIVEN_NAME_BIRTH -> Attribute.fromValue(givenNameBirth)
-                BIRTH_PLACE -> Attribute.fromValue(birthPlace)
-                BIRTH_COUNTRY -> Attribute.fromValue(birthCountry)
-                BIRTH_STATE -> Attribute.fromValue(birthState)
-                BIRTH_CITY -> Attribute.fromValue(birthCity)
-                ISSUANCE_DATE -> Attribute.fromValue(issuanceDate)
-                EXPIRY_DATE -> Attribute.fromValue(expiryDate)
-                ISSUING_AUTHORITY -> Attribute.fromValue(issuingAuthority)
-                DOCUMENT_NUMBER -> Attribute.fromValue(documentNumber)
-                ADMINISTRATIVE_NUMBER -> Attribute.fromValue(administrativeNumber)
-                ISSUING_COUNTRY -> Attribute.fromValue(issuingCountry)
-                ISSUING_JURISDICTION -> Attribute.fromValue(issuingJurisdiction)
-                PERSONAL_ADMINISTRATIVE_NUMBER -> Attribute.fromValue(personalAdministrativeNumber)
-                PORTRAIT -> Attribute.fromValue(portraitBitmap)
-                EMAIL_ADDRESS -> Attribute.fromValue(emailAddress)
-                MOBILE_PHONE_NUMBER -> Attribute.fromValue(mobilePhoneNumber)
-                TRUST_ANCHOR -> Attribute.fromValue(trustAnchor)
-                LOCATION_STATUS -> Attribute.fromValue(locationStatus)
-                PORTRAIT_CAPTURE_DATE -> Attribute.fromValue(portraitCaptureDate)
-                else -> null
-            }
-
-            else -> null
-        }
-    }
-
-    /** Claim names defined for SD-JWT since ARF 1.8.0 */
-    private fun getWithSdJwtNames(
-        first: NormalizedJsonPathSegment,
-        second: NormalizedJsonPathSegment?
-    ) = with(SdJwtAttributes) {
-        when (first) {
-            is NormalizedJsonPathSegment.NameSegment -> when (first.memberName) {
-                GIVEN_NAME -> Attribute.fromValue(givenName)
-                FAMILY_NAME -> Attribute.fromValue(familyName)
-                BIRTH_DATE -> Attribute.fromValue(birthDate)
-                PREFIX_AGE_EQUAL_OR_OVER -> when (second) {
-                    is NormalizedJsonPathSegment.NameSegment -> when (second.memberName) {
-                        AgeEqualOrOver.EQUAL_OR_OVER_12 -> Attribute.fromValue(ageAtLeast12)
-                        AgeEqualOrOver.EQUAL_OR_OVER_13 -> Attribute.fromValue(ageAtLeast13)
-                        AgeEqualOrOver.EQUAL_OR_OVER_14 -> Attribute.fromValue(ageAtLeast14)
-                        AgeEqualOrOver.EQUAL_OR_OVER_16 -> Attribute.fromValue(ageAtLeast16)
-                        AgeEqualOrOver.EQUAL_OR_OVER_18 -> Attribute.fromValue(ageAtLeast18)
-                        AgeEqualOrOver.EQUAL_OR_OVER_21 -> Attribute.fromValue(ageAtLeast21)
-                        AgeEqualOrOver.EQUAL_OR_OVER_25 -> Attribute.fromValue(ageAtLeast25)
-                        AgeEqualOrOver.EQUAL_OR_OVER_60 -> Attribute.fromValue(ageAtLeast60)
-                        AgeEqualOrOver.EQUAL_OR_OVER_62 -> Attribute.fromValue(ageAtLeast62)
-                        AgeEqualOrOver.EQUAL_OR_OVER_65 -> Attribute.fromValue(ageAtLeast65)
-                        AgeEqualOrOver.EQUAL_OR_OVER_68 -> Attribute.fromValue(ageAtLeast68)
-                        else -> null
-                    }
-
-                    else -> null
-                }
-
-                AGE_EQUAL_OR_OVER_12 -> Attribute.fromValue(ageAtLeast12)
-                AGE_EQUAL_OR_OVER_13 -> Attribute.fromValue(ageAtLeast13)
-                AGE_EQUAL_OR_OVER_14 -> Attribute.fromValue(ageAtLeast14)
-                AGE_EQUAL_OR_OVER_16 -> Attribute.fromValue(ageAtLeast16)
-                AGE_EQUAL_OR_OVER_18 -> Attribute.fromValue(ageAtLeast18)
-                AGE_EQUAL_OR_OVER_21 -> Attribute.fromValue(ageAtLeast21)
-                AGE_EQUAL_OR_OVER_25 -> Attribute.fromValue(ageAtLeast25)
-                AGE_EQUAL_OR_OVER_60 -> Attribute.fromValue(ageAtLeast60)
-                AGE_EQUAL_OR_OVER_62 -> Attribute.fromValue(ageAtLeast62)
-                AGE_EQUAL_OR_OVER_65 -> Attribute.fromValue(ageAtLeast65)
-                AGE_EQUAL_OR_OVER_68 -> Attribute.fromValue(ageAtLeast68)
-                PREFIX_ADDRESS -> when (second) {
-                    is NormalizedJsonPathSegment.NameSegment -> when (second.memberName) {
-                        Address.FORMATTED -> Attribute.fromValue(residentAddress)
-                        Address.STREET -> Attribute.fromValue(residentStreet)
-                        Address.LOCALITY -> Attribute.fromValue(residentCity)
-                        Address.POSTAL_CODE -> Attribute.fromValue(residentPostalCode)
-                        Address.HOUSE_NUMBER -> Attribute.fromValue(residentHouseNumber)
-                        Address.COUNTRY -> Attribute.fromValue(residentCountry)
-                        Address.REGION -> Attribute.fromValue(residentState)
-                        else -> null
-                    }
-
-                    else -> null
-                }
-
-                ADDRESS_FORMATTED -> Attribute.fromValue(residentAddress)
-                ADDRESS_STREET -> Attribute.fromValue(residentStreet)
-                ADDRESS_LOCALITY -> Attribute.fromValue(residentCity)
-                ADDRESS_POSTAL_CODE -> Attribute.fromValue(residentPostalCode)
-                ADDRESS_HOUSE_NUMBER -> Attribute.fromValue(residentHouseNumber)
-                ADDRESS_COUNTRY -> Attribute.fromValue(residentCountry)
-                ADDRESS_REGION -> Attribute.fromValue(residentState)
-                SEX -> Attribute.fromValue(sex)
-                NATIONALITIES -> Attribute.fromValue(nationalities)
-                AGE_IN_YEARS -> Attribute.fromValue(ageInYears)
-                AGE_BIRTH_YEAR -> Attribute.fromValue(ageBirthYear)
-                FAMILY_NAME_BIRTH -> Attribute.fromValue(familyNameBirth)
-                GIVEN_NAME_BIRTH -> Attribute.fromValue(givenNameBirth)
-                PREFIX_PLACE_OF_BIRTH -> when (second) {
-                    is NormalizedJsonPathSegment.NameSegment -> when (second.memberName) {
-                        PlaceOfBirth.COUNTRY -> Attribute.fromValue(birthCountry)
-                        PlaceOfBirth.REGION -> Attribute.fromValue(birthState)
-                        PlaceOfBirth.LOCALITY -> Attribute.fromValue(birthCity)
-                        else -> null
-                    }
-
-                    else -> null
-                }
-
-                PLACE_OF_BIRTH_COUNTRY -> Attribute.fromValue(birthCountry)
-                PLACE_OF_BIRTH_REGION -> Attribute.fromValue(birthState)
-                PLACE_OF_BIRTH_LOCALITY -> Attribute.fromValue(birthCity)
-                ISSUANCE_DATE -> Attribute.fromValue(issuanceDate)
-                EXPIRY_DATE -> Attribute.fromValue(expiryDate)
-                ISSUING_AUTHORITY -> Attribute.fromValue(issuingAuthority)
-                DOCUMENT_NUMBER -> Attribute.fromValue(documentNumber)
-                ISSUING_COUNTRY -> Attribute.fromValue(issuingCountry)
-                ISSUING_JURISDICTION -> Attribute.fromValue(issuingJurisdiction)
-                PERSONAL_ADMINISTRATIVE_NUMBER -> Attribute.fromValue(personalAdministrativeNumber)
-                PORTRAIT -> Attribute.fromValue(portraitBitmap)
-                EMAIL -> Attribute.fromValue(emailAddress)
-                PHONE_NUMBER -> Attribute.fromValue(mobilePhoneNumber)
-                TRUST_ANCHOR -> Attribute.fromValue(trustAnchor)
-                else -> null
-            }
-
-            else -> null
-        }
+    private fun getWithIsoNames(first: NormalizedJsonPathSegment): EuPidCredentialClaimDefinition? {
+        val claimName = (first as? NormalizedJsonPathSegment.NameSegment)?.memberName
+            ?: return null
+        return EuPidCredentialMdocClaimDefinitionResolver().resolveOrNull(
+            namespace = EuPidScheme.isoNamespace,
+            claimName = claimName
+        )
     }
 
     abstract val givenName: String?
@@ -223,6 +78,7 @@ sealed class EuPidCredentialAdapter(
     abstract val ageBirthYear: UInt?
     abstract val familyNameBirth: String?
     abstract val givenNameBirth: String?
+    abstract val placeOfBirth: PlaceOfBirth?
     abstract val birthPlace: String?
     abstract val birthCountry: String?
     abstract val birthState: String?
@@ -249,27 +105,79 @@ sealed class EuPidCredentialAdapter(
             if (storeEntry.scheme !is EuPidScheme && storeEntry.scheme !is EuPidSdJwtScheme) {
                 throw IllegalArgumentException("credential: ${storeEntry.scheme}")
             }
+            val scheme = storeEntry.scheme!!
             return when (storeEntry) {
                 is SubjectCredentialStore.StoreEntry.Vc ->
                     (storeEntry.vc.vc.credentialSubject as? EuPidCredential)
-                        ?.let { EuPidCredentialVcAdapter(it, decodePortrait, storeEntry.scheme!!) }
+                        ?.let { EuPidCredentialVcAdapter(it, decodePortrait, scheme) }
                         ?: throw IllegalArgumentException("storeEntry")
 
                 is SubjectCredentialStore.StoreEntry.SdJwt ->
                     EuPidCredentialSdJwtAdapter(
                         storeEntry.toAttributeMap(),
+                        storeEntry.toComplexJson(),
                         decodePortrait,
-                        storeEntry.scheme!!
+                        scheme
                     )
 
                 is SubjectCredentialStore.StoreEntry.Iso ->
-                    EuPidCredentialIsoMdocAdapter(
-                        storeEntry.toNamespaceAttributeMap(),
-                        decodePortrait,
-                        storeEntry.scheme!!
-                    )
+                    EuPidCredentialIsoMdocAdapter(storeEntry.toNamespaceAttributeMap(), decodePortrait, scheme)
             }
         }
+    }
+
+    private fun EuPidCredentialClaimDefinition.toAttribute() = when (this) {
+        EuPidCredentialClaimDefinition.GIVEN_NAME -> Attribute.fromValue(givenName)
+        EuPidCredentialClaimDefinition.FAMILY_NAME -> Attribute.fromValue(familyName)
+        EuPidCredentialClaimDefinition.BIRTH_DATE -> Attribute.fromValue(birthDate)
+        EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_CONTAINER -> null
+        EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_12 -> Attribute.fromValue(ageAtLeast12)
+        EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_13 -> Attribute.fromValue(ageAtLeast13)
+        EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_14 -> Attribute.fromValue(ageAtLeast14)
+        EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_16 -> Attribute.fromValue(ageAtLeast16)
+        EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_18 -> Attribute.fromValue(ageAtLeast18)
+        EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_21 -> Attribute.fromValue(ageAtLeast21)
+        EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_25 -> Attribute.fromValue(ageAtLeast25)
+        EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_60 -> Attribute.fromValue(ageAtLeast60)
+        EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_62 -> Attribute.fromValue(ageAtLeast62)
+        EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_65 -> Attribute.fromValue(ageAtLeast65)
+        EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_68 -> Attribute.fromValue(ageAtLeast68)
+        EuPidCredentialClaimDefinition.RESIDENT_ADDRESS_CONTAINER -> null
+        EuPidCredentialClaimDefinition.RESIDENT_ADDRESS_FORMATTED -> Attribute.fromValue(residentAddress)
+        EuPidCredentialClaimDefinition.RESIDENT_ADDRESS_STREET -> Attribute.fromValue(residentStreet)
+        EuPidCredentialClaimDefinition.RESIDENT_ADDRESS_LOCALITY -> Attribute.fromValue(residentCity)
+        EuPidCredentialClaimDefinition.RESIDENT_ADDRESS_POSTAL_CODE -> Attribute.fromValue(residentPostalCode)
+        EuPidCredentialClaimDefinition.RESIDENT_ADDRESS_HOUSE_NUMBER -> Attribute.fromValue(residentHouseNumber)
+        EuPidCredentialClaimDefinition.RESIDENT_ADDRESS_COUNTRY -> Attribute.fromValue(residentCountry)
+        EuPidCredentialClaimDefinition.RESIDENT_ADDRESS_REGION -> Attribute.fromValue(residentState)
+        EuPidCredentialClaimDefinition.SEX -> Attribute.fromValue(sex)
+        EuPidCredentialClaimDefinition.NATIONALITIES -> Attribute.fromValue(nationalities)
+        EuPidCredentialClaimDefinition.AGE_IN_YEARS -> Attribute.fromValue(ageInYears)
+        EuPidCredentialClaimDefinition.AGE_BIRTH_YEAR -> Attribute.fromValue(ageBirthYear)
+        EuPidCredentialClaimDefinition.FAMILY_NAME_BIRTH -> Attribute.fromValue(familyNameBirth)
+        EuPidCredentialClaimDefinition.GIVEN_NAME_BIRTH -> Attribute.fromValue(givenNameBirth)
+        EuPidCredentialClaimDefinition.PLACE_OF_BIRTH -> Attribute.fromValue(placeOfBirth)
+        EuPidCredentialClaimDefinition.PLACE_OF_BIRTH_CONTAINER -> null
+        EuPidCredentialClaimDefinition.PLACE_OF_BIRTH_COUNTRY -> Attribute.fromValue(birthCountry)
+        EuPidCredentialClaimDefinition.PLACE_OF_BIRTH_REGION -> Attribute.fromValue(birthState)
+        EuPidCredentialClaimDefinition.PLACE_OF_BIRTH_LOCALITY -> Attribute.fromValue(birthCity)
+        EuPidCredentialClaimDefinition.ISSUANCE_DATE -> Attribute.fromValue(issuanceDate)
+        EuPidCredentialClaimDefinition.EXPIRY_DATE -> Attribute.fromValue(expiryDate)
+        EuPidCredentialClaimDefinition.ISSUING_AUTHORITY -> Attribute.fromValue(issuingAuthority)
+        EuPidCredentialClaimDefinition.DOCUMENT_NUMBER -> Attribute.fromValue(documentNumber)
+        EuPidCredentialClaimDefinition.ISSUING_COUNTRY -> Attribute.fromValue(issuingCountry)
+        EuPidCredentialClaimDefinition.ISSUING_JURISDICTION -> Attribute.fromValue(issuingJurisdiction)
+        EuPidCredentialClaimDefinition.PERSONAL_ADMINISTRATIVE_NUMBER -> Attribute.fromValue(
+            personalAdministrativeNumber
+        )
+
+        EuPidCredentialClaimDefinition.PORTRAIT -> Attribute.fromValue(portraitBitmap)
+        EuPidCredentialClaimDefinition.EMAIL_ADDRESS -> Attribute.fromValue(emailAddress)
+        EuPidCredentialClaimDefinition.MOBILE_PHONE_NUMBER -> Attribute.fromValue(mobilePhoneNumber)
+        EuPidCredentialClaimDefinition.TRUST_ANCHOR -> Attribute.fromValue(trustAnchor)
+        EuPidCredentialClaimDefinition.ADMINISTRATIVE_NUMBER -> Attribute.fromValue(administrativeNumber)
+        EuPidCredentialClaimDefinition.LOCATION_STATUS -> Attribute.fromValue(locationStatus)
+        EuPidCredentialClaimDefinition.PORTRAIT_CAPTURE_DATE -> Attribute.fromValue(portraitCaptureDate)
     }
 }
 
@@ -372,6 +280,9 @@ private class EuPidCredentialVcAdapter(
     override val givenNameBirth: String?
         get() = credentialSubject.givenNameBirth
 
+    override val placeOfBirth: PlaceOfBirth?
+        get() = credentialSubject.placeOfBirth
+
     override val birthPlace: String?
         get() = credentialSubject.birthPlace
 
@@ -430,6 +341,7 @@ private class EuPidCredentialVcAdapter(
  */
 private class EuPidCredentialSdJwtAdapter(
     private val attributes: Map<String, JsonPrimitive>,
+    private val complexJson: JsonObject?,
     decodePortrait: (ByteArray) -> Result<ImageBitmap>,
     override val scheme: ConstantIndex.CredentialScheme
 ) : EuPidCredentialAdapter(decodePortrait) {
@@ -497,37 +409,50 @@ private class EuPidCredentialSdJwtAdapter(
             ?: attributes[Attributes.AGE_OVER_68]?.booleanOrNull
 
     override val residentAddress: String?
-        get() = attributes[SdJwtAttributes.ADDRESS_FORMATTED]?.contentOrNull
+        get() = (complexJson?.get(SdJwtAttributes.PREFIX_ADDRESS) as? JsonObject?)
+            ?.get(SdJwtAttributes.Address.FORMATTED)?.content()
+            ?: attributes[SdJwtAttributes.ADDRESS_FORMATTED]?.contentOrNull
             ?: attributes[Attributes.RESIDENT_ADDRESS]?.contentOrNull
 
     override val residentStreet: String?
-        get() = attributes[SdJwtAttributes.ADDRESS_STREET]?.contentOrNull
+        get() = (complexJson?.get(SdJwtAttributes.PREFIX_ADDRESS) as? JsonObject?)
+            ?.get(SdJwtAttributes.Address.STREET)?.content()
+            ?: attributes[SdJwtAttributes.ADDRESS_STREET]?.contentOrNull
             ?: attributes[Attributes.RESIDENT_STREET]?.contentOrNull
 
     override val residentCity: String?
-        get() = attributes[SdJwtAttributes.ADDRESS_LOCALITY]?.contentOrNull
+        get() = (complexJson?.get(SdJwtAttributes.PREFIX_ADDRESS) as? JsonObject?)
+            ?.get(SdJwtAttributes.Address.LOCALITY)?.content()
+            ?: attributes[SdJwtAttributes.ADDRESS_LOCALITY]?.contentOrNull
             ?: attributes[Attributes.RESIDENT_CITY]?.contentOrNull
 
     override val residentPostalCode: String?
-        get() = attributes[SdJwtAttributes.ADDRESS_POSTAL_CODE]?.contentOrNull
+        get() = (complexJson?.get(SdJwtAttributes.PREFIX_ADDRESS) as? JsonObject?)
+            ?.get(SdJwtAttributes.Address.POSTAL_CODE)?.content()
+            ?: attributes[SdJwtAttributes.ADDRESS_POSTAL_CODE]?.contentOrNull
             ?: attributes[Attributes.RESIDENT_POSTAL_CODE]?.contentOrNull
 
     override val residentHouseNumber: String?
-        get() = attributes[SdJwtAttributes.ADDRESS_HOUSE_NUMBER]?.contentOrNull
+        get() = (complexJson?.get(SdJwtAttributes.PREFIX_ADDRESS) as? JsonObject?)
+            ?.get(SdJwtAttributes.Address.HOUSE_NUMBER)?.content()
+            ?: attributes[SdJwtAttributes.ADDRESS_HOUSE_NUMBER]?.contentOrNull
             ?: attributes[Attributes.RESIDENT_HOUSE_NUMBER]?.contentOrNull
 
     override val residentCountry: String?
-        get() = attributes[SdJwtAttributes.ADDRESS_COUNTRY]?.contentOrNull
+        get() = (complexJson?.get(SdJwtAttributes.PREFIX_ADDRESS) as? JsonObject?)
+            ?.get(SdJwtAttributes.Address.COUNTRY)?.content()
+            ?: attributes[SdJwtAttributes.ADDRESS_COUNTRY]?.contentOrNull
             ?: attributes[Attributes.RESIDENT_COUNTRY]?.contentOrNull
 
     override val residentState: String?
-        get() = attributes[SdJwtAttributes.ADDRESS_REGION]?.contentOrNull
+        get() = (complexJson?.get(SdJwtAttributes.PREFIX_ADDRESS) as? JsonObject?)
+            ?.get(SdJwtAttributes.Address.REGION)?.content()
+            ?: attributes[SdJwtAttributes.ADDRESS_REGION]?.contentOrNull
             ?: attributes[Attributes.RESIDENT_STATE]?.contentOrNull
 
     override val gender: String?
         get() = attributes[Attributes.GENDER]?.contentOrNull?.toIntOrNull()
             ?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code.toUInt() }?.name }
-
             ?: attributes[Attributes.GENDER]?.contentOrNull
 
     override val sex: String?
@@ -537,10 +462,12 @@ private class EuPidCredentialSdJwtAdapter(
                 ?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code }?.name }
 
     override val nationality: String?
-        get() = attributes[Attributes.NATIONALITY]?.contentOrNull
+        get() = complexJson?.get(SdJwtAttributes.NATIONALITIES)?.toCollectionOrNull()?.firstOrNull()
+            ?: attributes[Attributes.NATIONALITY]?.contentOrNull
 
     override val nationalities: Collection<String>?
-        get() = attributes[SdJwtAttributes.NATIONALITIES]?.toCollectionOrNull()
+        get() = complexJson?.get(SdJwtAttributes.NATIONALITIES)?.toCollectionOrNull()
+            ?: attributes[SdJwtAttributes.NATIONALITIES]?.toCollectionOrNull()
             ?: listOfNotNull(nationality).ifEmpty { null }
 
     override val ageInYears: UInt?
@@ -559,20 +486,31 @@ private class EuPidCredentialSdJwtAdapter(
         get() = attributes[SdJwtAttributes.GIVEN_NAME_BIRTH]?.contentOrNull
             ?: attributes[Attributes.GIVEN_NAME_BIRTH]?.contentOrNull
 
+    override val placeOfBirth: PlaceOfBirth?
+        get() = attributes[SdJwtAttributes.PREFIX_PLACE_OF_BIRTH]?.let {
+            runCatching { joseCompliantSerializer.decodeFromJsonElement<PlaceOfBirth>(it) }.getOrNull()
+        }
+
     override val birthPlace: String?
         get() = attributes[SdJwtAttributes.PLACE_OF_BIRTH_LOCALITY]?.contentOrNull
             ?: attributes[Attributes.BIRTH_PLACE]?.contentOrNull
 
     override val birthCountry: String?
-        get() = attributes[SdJwtAttributes.PLACE_OF_BIRTH_COUNTRY]?.contentOrNull
+        get() = (complexJson?.get(SdJwtAttributes.PREFIX_PLACE_OF_BIRTH) as? JsonObject?)
+            ?.get(SdJwtAttributes.PlaceOfBirth.COUNTRY)?.content()
+            ?: attributes[SdJwtAttributes.PLACE_OF_BIRTH_COUNTRY]?.contentOrNull
             ?: attributes[Attributes.BIRTH_COUNTRY]?.contentOrNull
 
     override val birthState: String?
-        get() = attributes[SdJwtAttributes.PLACE_OF_BIRTH_REGION]?.contentOrNull
+        get() = (complexJson?.get(SdJwtAttributes.PREFIX_PLACE_OF_BIRTH) as? JsonObject?)
+            ?.get(SdJwtAttributes.PlaceOfBirth.REGION)?.content()
+            ?: attributes[SdJwtAttributes.PLACE_OF_BIRTH_REGION]?.contentOrNull
             ?: attributes[Attributes.BIRTH_STATE]?.contentOrNull
 
     override val birthCity: String?
-        get() = attributes[SdJwtAttributes.PLACE_OF_BIRTH_LOCALITY]?.contentOrNull
+        get() = (complexJson?.get(SdJwtAttributes.PREFIX_PLACE_OF_BIRTH) as? JsonObject?)
+            ?.get(SdJwtAttributes.PlaceOfBirth.LOCALITY)?.content()
+            ?: attributes[SdJwtAttributes.PLACE_OF_BIRTH_LOCALITY]?.contentOrNull
             ?: attributes[Attributes.BIRTH_CITY]?.contentOrNull
 
     override val issuanceDate: LocalDateOrInstant?
@@ -738,6 +676,9 @@ class EuPidCredentialIsoMdocAdapter(
 
     override val givenNameBirth: String?
         get() = euPidNamespace?.get(Attributes.GIVEN_NAME_BIRTH) as? String?
+
+    override val placeOfBirth: PlaceOfBirth?
+        get() = euPidNamespace?.get(Attributes.PLACE_OF_BIRTH) as? PlaceOfBirth?
 
     override val birthPlace: String?
         get() = euPidNamespace?.get(Attributes.BIRTH_PLACE) as? String?

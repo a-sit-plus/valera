@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
@@ -7,6 +5,7 @@ import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
 import data.PersonalDataCategory
 
+@Suppress("DEPRECATION")
 object EuPidCredentialAttributeCategorization : CredentialAttributeCategorization.Template(
     mapOf(
         PersonalDataCategory.IdentityData to with(EuPidScheme.Attributes) {
@@ -42,6 +41,7 @@ object EuPidCredentialAttributeCategorization : CredentialAttributeCategorizatio
             listOf(
                 GIVEN_NAME_BIRTH,
                 FAMILY_NAME_BIRTH,
+                PLACE_OF_BIRTH,
                 BIRTH_PLACE,
                 BIRTH_CITY,
                 BIRTH_COUNTRY,

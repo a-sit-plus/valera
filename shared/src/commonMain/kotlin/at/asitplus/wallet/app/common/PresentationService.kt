@@ -3,30 +3,21 @@ package at.asitplus.wallet.app.common
 import at.asitplus.dcapi.DCAPIHandover
 import at.asitplus.dcapi.DCAPIInfo
 import at.asitplus.dcapi.request.IsoMdocRequest
-import at.asitplus.dcapi.request.Oid4vpDCAPIRequest
-import at.asitplus.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.iso.DeviceAuthentication
 import at.asitplus.iso.SessionTranscript
 import at.asitplus.iso.sha256
 import at.asitplus.iso.wrapInCborTag
-import at.asitplus.openid.AuthenticationRequestParameters
-import at.asitplus.openid.RelyingPartyMetadata
-import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.signum.indispensable.io.Base64UrlStrict
-import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
-import at.asitplus.wallet.app.common.dcapi.data.preview.PreviewRequest
 import at.asitplus.wallet.lib.agent.CreatePresentationResult
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.PresentationException
 import at.asitplus.wallet.lib.agent.PresentationRequestParameters
 import at.asitplus.wallet.lib.agent.PresentationResponseParameters
 import at.asitplus.wallet.lib.cbor.CoseHeaderNone
-import at.asitplus.wallet.lib.cbor.SignCose
 import at.asitplus.wallet.lib.cbor.SignCoseDetached
 import at.asitplus.wallet.lib.data.CredentialPresentation
-import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import io.github.aakira.napier.Napier
@@ -49,72 +40,20 @@ class PresentationService(
         holderAgent = holderAgent
     )
 
-    suspend fun parseAuthenticationRequestParameters(
-        requestUri: String,
-        dcApiRequest: Oid4vpDCAPIRequest?
-    ) = presentationService.parseAuthenticationRequestParameters(requestUri, dcApiRequest)
+    suspend fun startAuthorizationResponsePreparation(input: String) =
+        presentationService.startAuthorizationResponsePreparation(input)
 
-    suspend fun startAuthorizationResponsePreparation(
-        request: RequestParametersFrom<AuthenticationRequestParameters>
-    ) = presentationService.startAuthorizationResponsePreparation(request)
-
-    suspend fun getPreparationState(request: RequestParametersFrom<AuthenticationRequestParameters>) =
-        presentationService.startAuthorizationResponsePreparation(request).getOrThrow()
-
-    suspend fun getMatchingCredentials(preparationState: AuthorizationResponsePreparationState, request: RequestParametersFrom<AuthenticationRequestParameters>) =
-        presentationService.getMatchingCredentials(preparationState, request)
+    suspend fun getMatchingCredentials(
+        preparationState: AuthorizationResponsePreparationState
+    ) = presentationService.getMatchingCredentials(preparationState)
 
     suspend fun finalizeAuthorizationResponse(
-        request: RequestParametersFrom<AuthenticationRequestParameters>,
-        clientMetadata: RelyingPartyMetadata?,
         credentialPresentation: CredentialPresentation,
+        preparationState: AuthorizationResponsePreparationState,
     ) = presentationService.finalizeAuthorizationResponse(
-        request = request,
-        clientMetadata = clientMetadata,
         credentialPresentation = credentialPresentation,
+        preparationState = preparationState
     ).getOrThrow()
-
-    suspend fun finalizeDCAPIPreviewPresentation(
-        credentialPresentation: CredentialPresentation.PresentationExchangePresentation,
-        dcApiRequestPreview: PreviewDCAPIRequest
-    ): OpenId4VpWallet.AuthenticationSuccess {
-        Napier.d("Finalizing DCAPI response")
-        val previewRequest = joseCompliantSerializer.decodeFromString<PreviewRequest>(dcApiRequestPreview.request)
-
-        val presentationResult = holderAgent.createPresentation(
-            request = PresentationRequestParameters(
-                nonce = previewRequest.nonce,
-                audience = dcApiRequestPreview.callingOrigin
-                    ?: dcApiRequestPreview.callingPackageName!!,
-                calcIsoDeviceSignature = { docType, deviceNameSpaceBytes ->
-                    // TODO sign data
-                    SignCose<ByteArray>(keyMaterial, CoseHeaderNone(), CoseHeaderNone())
-                        .invoke(null, null, docType.encodeToByteArray(), ByteArraySerializer())
-                        .getOrElse { e ->
-                            Napier.w("Could not create DeviceAuth for presentation", e)
-                            throw PresentationException(e)
-                        } to null
-                },
-            ),
-            credentialPresentation = credentialPresentation,
-        )
-
-        val presentation =
-            presentationResult.getOrThrow() as PresentationResponseParameters.PresentationExchangeParameters
-
-        val deviceResponse = when (val firstResult = presentation.presentationResults[0]) {
-            is CreatePresentationResult.DeviceResponse -> firstResult.deviceResponse
-            else -> throw PresentationException(IllegalStateException("Must be a device response"))
-        }
-
-        platformAdapter.prepareDCAPIPreviewCredentialResponse(
-            coseCompliantSerializer.encodeToByteArray(
-                deviceResponse
-            ), dcApiRequestPreview
-        )
-
-        return OpenId4VpWallet.AuthenticationSuccess()
-    }
 
     @OptIn(ExperimentalEncodingApi::class, ExperimentalStdlibApi::class)
     suspend fun finalizeDCAPIIsoMdocPresentation(
@@ -135,12 +74,12 @@ class PresentationService(
                 nonce = isoMdocRequest.encryptionInfo.encryptionParameters.nonce
                     .encodeToString(Base64UrlStrict),
                 audience = isoMdocRequest.callingOrigin,
-                calcIsoDeviceSignature = { docType, deviceNameSpaceBytes ->
+                calcIsoDeviceSignaturePlain = { input ->
                     val deviceAuthentication = DeviceAuthentication(
                         type = "DeviceAuthentication",
                         sessionTranscript = sessionTranscript,
-                        docType = docType,
-                        namespaces = deviceNameSpaceBytes
+                        docType = input.docType,
+                        namespaces = input.deviceNameSpaceBytes
                     )
 
                     val deviceAuthenticationBytes = coseCompliantSerializer
@@ -152,7 +91,7 @@ class PresentationService(
                         .getOrElse { e ->
                             Napier.w("Could not create DeviceAuth for presentation", e)
                             throw PresentationException(e)
-                        } to null
+                        }
                 },
             ),
             credentialPresentation = credentialPresentation,
@@ -192,11 +131,12 @@ class PresentationService(
             request = PresentationRequestParameters(
                 nonce = "",
                 audience = spName ?: "",
-                calcIsoDeviceSignature = { docType, deviceNameSpaceBytes ->
+                calcIsoDeviceSignaturePlain = { input ->
                     val deviceAuthentication = DeviceAuthentication(
                         type = "DeviceAuthentication",
-                        sessionTranscript = sessionTranscript, docType = docType,
-                        namespaces = deviceNameSpaceBytes
+                        sessionTranscript = sessionTranscript,
+                        docType = input.docType,
+                        namespaces = input.deviceNameSpaceBytes
                     )
 
                     val deviceAuthenticationBytes = coseCompliantSerializer
@@ -208,7 +148,7 @@ class PresentationService(
                         .getOrElse { e ->
                             Napier.w("Could not create DeviceAuth for presentation", e)
                             throw PresentationException(e)
-                        } to null
+                        }
                 },
             ),
             credentialPresentation = credentialPresentation,

@@ -17,12 +17,14 @@ import at.asitplus.valera.resources.attribute_friendly_name_vat_number
 import data.credentials.CompanyRegistrationCredentialClaimDefinition.*
 
 
-object CompanyRegistrationCredentialAttributeTranslator : CredentialAttributeTranslator {
-    fun stringResourceOf(
-        claimDefinition: CompanyRegistrationCredentialClaimDefinition
-    ) = claimDefinition.stringResource()
+class CompanyRegistrationCredentialAttributeTranslator : CredentialAttributeTranslator {
+    override fun translate(
+        attributeName: NormalizedJsonPath
+    ) = CompanyRegistrationCredentialSdJwtClaimDefinitionResolver().resolveOrNull(
+        attributeName
+    )?.stringResource()
 
-    fun CompanyRegistrationCredentialClaimDefinition.stringResource() = when (this) {
+    private fun CompanyRegistrationCredentialClaimDefinition.stringResource() = when (this) {
         COMPANY_NAME -> Res.string.attribute_friendly_name_company_name
         COMPANY_TYPE -> Res.string.attribute_friendly_name_company_type
         COMPANY_STATUS -> Res.string.attribute_friendly_name_company_status
@@ -36,21 +38,4 @@ object CompanyRegistrationCredentialAttributeTranslator : CredentialAttributeTra
         POSTAL_ADDRESS -> Res.string.attribute_friendly_name_postal_address
         BRANCH -> Res.string.attribute_friendly_name_branch
     }
-
-    fun translate(claimReference: SingleClaimReference) = when (claimReference) {
-        is MdocClaimReference -> CompanyRegistrationCredentialMdocClaimDefinitionResolver().resolveOrNull(
-            namespace = claimReference.namespace,
-            claimName = claimReference.claimName,
-        )
-
-        is SdJwtClaimReference -> CompanyRegistrationCredentialSdJwtClaimDefinitionResolver().resolveOrNull(
-            claimReference.normalizedJsonPath
-        )
-    }?.stringResource()
-
-    override fun translate(
-        attributeName: NormalizedJsonPath,
-    ) = CompanyRegistrationCredentialClaimDefinitionResolver().resolveOrNull(
-        SdJwtClaimReference(attributeName)
-    )?.stringResource()
 }

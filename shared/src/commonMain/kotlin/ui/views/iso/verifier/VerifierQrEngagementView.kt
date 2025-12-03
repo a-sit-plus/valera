@@ -23,12 +23,12 @@ import at.asitplus.valera.resources.info_text_missing_permission
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
-import ui.viewmodels.iso.VerifierViewModel
+import ui.viewmodels.iso.verifier.VerifierViewModel
 import ui.views.CameraView
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun VerifierQrEngagementView(vm: VerifierViewModel) {
+fun VerifierQrEngagementView(onClickLogo: () -> Unit, vm: VerifierViewModel) {
 
     var hasPermissions by remember { mutableStateOf(false) }
     if (!hasPermissions) {
@@ -45,10 +45,10 @@ fun VerifierQrEngagementView(vm: VerifierViewModel) {
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.headlineMedium,
                         )
-                        Logo(onClick = vm.onClickLogo)
+                        Logo(onClick = onClickLogo)
                     }
                 },
-                navigationIcon = { NavigateUpButton(vm.navigateUp) }
+                navigationIcon = { NavigateUpButton(onClick = vm.onResume) }
             )
         }
     ) {

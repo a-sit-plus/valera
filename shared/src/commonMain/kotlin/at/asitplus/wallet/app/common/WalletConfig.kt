@@ -27,17 +27,17 @@ class WalletConfig(
         }
 
     override val host: Flow<String> = config.map {
-        // Rewrite old, incompatible issuing service to new instance
-        if (it.host == "https://wallet.a-sit.at/m5") "https://wallet.a-sit.at/m6" else it.host
+        // Rewrite old issuing service to new instance
+        if (it.host == "https://wallet.a-sit.at/m6") "https://wallet.a-sit.at/m7" else it.host
     }
 
     override val isConditionsAccepted: Flow<Boolean> = config.map { it.isConditionsAccepted }
     override val presentmentUseNegotiatedHandover: Flow<Boolean> = config.map { it.presentmentUseNegotiatedHandover }
     override val presentmentBleCentralClientModeEnabled: Flow<Boolean> = config.map { it.presentmentBleCentralClientModeEnabled }
-    override val presentmentBlePeripheralServerModeEnabled: Flow<Boolean> =
-        config.map { it.presentmentBlePeripheralServerModeEnabled }
+    override val presentmentBlePeripheralServerModeEnabled: Flow<Boolean> = config.map { it.presentmentBlePeripheralServerModeEnabled }
     override val presentmentNfcDataTransferEnabled: Flow<Boolean> = config.map { it.presentmentNfcDataTransferEnabled }
-    override val readerBleL2CapEnabled: Flow<Boolean> = config.map { it.readerBleL2CapEnabled }
+    override val bleUseL2CAPEnabled: Flow<Boolean> = config.map { it.bleUseL2CAPEnabled }
+    override val bleUseL2CAPInEngagementEnabled: Flow<Boolean> = config.map { it.bleUseL2CAPInEngagementEnabled }
     override val presentmentAllowMultipleRequests: Flow<Boolean> = config.map { it.presentmentAllowMultipleRequests }
     override val readerAutomaticallySelectTransport: Flow<Boolean> = config.map { it.readerAutomaticallySelectTransport }
     override val connectionTimeout: Flow<Duration> = config.map { it.connectionTimeout }
@@ -49,7 +49,8 @@ class WalletConfig(
         presentmentBleCentralClientModeEnabled: Boolean?,
         presentmentBlePeripheralServerModeEnabled: Boolean?,
         presentmentNfcDataTransferEnabled: Boolean?,
-        readerBleL2CapEnabled: Boolean?,
+        bleUseL2CAPEnabled: Boolean?,
+        bleUseL2CAPInEngagementEnabled: Boolean?,
         presentmentAllowMultipleRequests: Boolean?,
         readerAutomaticallySelectTransport: Boolean?,
         connectionTimeout: Duration?,
@@ -58,7 +59,8 @@ class WalletConfig(
         runBlocking {
             val newConfig = ConfigData(
                 host = host ?: this@WalletConfig.host.first(),
-                isConditionsAccepted = isConditionsAccepted ?: this@WalletConfig.isConditionsAccepted.first(),
+                isConditionsAccepted = isConditionsAccepted
+                    ?: this@WalletConfig.isConditionsAccepted.first(),
                 presentmentUseNegotiatedHandover = presentmentUseNegotiatedHandover
                     ?: this@WalletConfig.presentmentUseNegotiatedHandover.first(),
                 presentmentBleCentralClientModeEnabled = presentmentBleCentralClientModeEnabled
@@ -67,7 +69,10 @@ class WalletConfig(
                     ?: this@WalletConfig.presentmentBlePeripheralServerModeEnabled.first(),
                 presentmentNfcDataTransferEnabled = presentmentNfcDataTransferEnabled
                     ?: this@WalletConfig.presentmentNfcDataTransferEnabled.first(),
-                readerBleL2CapEnabled = readerBleL2CapEnabled ?: this@WalletConfig.readerBleL2CapEnabled.first(),
+                bleUseL2CAPEnabled = bleUseL2CAPEnabled
+                    ?: this@WalletConfig.bleUseL2CAPEnabled.first(),
+                bleUseL2CAPInEngagementEnabled = bleUseL2CAPInEngagementEnabled
+                    ?: this@WalletConfig.bleUseL2CAPInEngagementEnabled.first(),
                 presentmentAllowMultipleRequests = presentmentAllowMultipleRequests
                     ?: this@WalletConfig.presentmentAllowMultipleRequests.first(),
                 readerAutomaticallySelectTransport = readerAutomaticallySelectTransport
@@ -124,13 +129,14 @@ private data class ConfigData(
     val presentmentBleCentralClientModeEnabled: Boolean = true,
     val presentmentBlePeripheralServerModeEnabled: Boolean = true,
     val presentmentNfcDataTransferEnabled: Boolean = false,
-    val readerBleL2CapEnabled: Boolean = true,
+    val bleUseL2CAPEnabled: Boolean = true,
+    val bleUseL2CAPInEngagementEnabled: Boolean = true,
     val presentmentAllowMultipleRequests: Boolean = false,
     val readerAutomaticallySelectTransport: Boolean = true,
     val connectionTimeout: Duration = 15.seconds,
 )
 
 private val ConfigDataDefaults = ConfigData(
-    host = "https://wallet.a-sit.at/m6",
+    host = "https://wallet.a-sit.at/m7",
     isConditionsAccepted = false,
 )

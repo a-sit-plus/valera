@@ -85,10 +85,9 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
+                <!-- May be used by issuing services to invoke the Wallet -->
                 <data
                     android:host="authorize"
                     android:scheme="eudi-openid4ci" />
@@ -136,7 +135,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <!-- May be used by relying parties to invoke the Wallet for authentication -->
-                <data android:scheme="openid4vp" />
+                <data android:scheme="haip-vp" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -145,17 +144,34 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <!-- May be used by relying parties to invoke the Wallet for authentication -->
+                <data android:scheme="openid4vp" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <!-- May be used by issuing services to invoke the Wallet -->
                 <data android:scheme="openid-credential-offer" />
             </intent-filter>
             <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <!-- May be used by issuing services to invoke the Wallet -->
+                <data android:scheme="haip-vci" />
+            </intent-filter>
+            <intent-filter>
                 <action android:name="androidx.credentials.registry.provider.action.GET_CREDENTIAL" />
-                <action android:name="androidx.identitycredentials.action.GET_CREDENTIALS" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="at.asitplus.wallet.app.android.fileprovider"
+            android:authorities="${applicationId}.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data

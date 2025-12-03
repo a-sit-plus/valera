@@ -9,3 +9,6 @@ expect fun CameraView(
     onFoundPayload: (text: String) -> Unit,
     modifier: Modifier = Modifier,
 )
+
+@Composable
+expect fun RequestCameraPermission()

@@ -1,4 +1,11 @@
 [versions]
+vck="5.10.0"
+
+agp = "8.12.3"
+kotlin = "2.2.21"
+compose-plugin = "1.8.2"
+koin = "4.1.0"
+testballoon = "0.7.1-K2.2.21"
 
 accompanist-permissions = "0.37.3"
 activity-compose = "1.10.1"
@@ -6,25 +13,21 @@ appcompat = "1.7.1"
 barcode-scanning = "17.3.0"
 biometric = "1.2.0-alpha05"
 core-ktx = "1.16.0"
-kotlin = "2.2.0"
-kotest = "6.0.0.M6"
-ksp = "2.0.2"
-compose-plugin = "1.8.2"
 
 camera-camera2 = "1.4.2"
 datastore-preferences-core = "1.1.7"
-koin = "4.1.0"
-multipaz = "0.92.1"
+multipaz = "0.94.0"
 kotlinx-coroutines-play-services = "1.10.2"
 navigation-compose = "2.8.0-alpha13"
 semver = "2.1.0"
 
 mdl = "1.3.0"
 ida = "3.10.0"
-eupid = "3.2.0"
-eupid-sdjwt = "1.2.0"
+eupid = "3.3.0"
+eupid-sdjwt = "1.3.0"
 powerofrepresentation = "1.3.0"
 certificateofresidence = "2.2.0"
+av = "1.0.0"
 companyregistration = "1.2.0"
 healthid = "2.2.0"
 ehic = "1.2.0"
@@ -33,10 +36,13 @@ taxid = "1.2.0"
 atomicfu = "0.29.0"
 qrose = "1.0.1"
 core-splashscreen = "1.0.1"
+
+authcheckkit = "1.0.0-alpha01"
+
 # Test if DC API is still working after upgrading the following libraries
-play-services-identity-credentials = "16.0.0-alpha08"
-androidx-credentials = "1.6.0-alpha04"
-androidx-credentials-registry-provider = "1.0.0-alpha01"
+androidx-credentials = "1.6.0-beta02"
+androidx-credentials-registry-provider = "1.0.0-alpha03"
+
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist-permissions" }
@@ -47,9 +53,13 @@ androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", versi
 androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "camera-camera2" }
 androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camera-camera2" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "core-ktx" }
+androidx-credentials = { module = "androidx.credentials:credentials", version.ref="androidx-credentials" }
+androidx-credentials-registry-provider = { module = "androidx.credentials.registry:registry-provider", version.ref = "androidx-credentials-registry-provider" }
+androidx-registry-provider-play-services = { module = "androidx.credentials.registry:registry-provider-play-services", version.ref = "androidx-credentials-registry-provider" }
 atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version.ref = "atomicfu" }
 barcode-scanning = { module = "com.google.mlkit:barcode-scanning", version.ref = "barcode-scanning" }
 credential-ida = { module = "at.asitplus.wallet:idacredential", version.ref = "ida" }
+credential-av = { module = "at.asitplus.wallet:ageverification", version.ref = "av" }
 credential-eupid = { module = "at.asitplus.wallet:eupidcredential", version.ref = "eupid" }
 credential-eupid-sdjwt = { module = "at.asitplus.wallet:eupidcredential-sdjwt", version.ref = "eupid-sdjwt" }
 credential-powerofrepresentation = { module = "at.asitplus.wallet:powerofrepresentation", version.ref = "powerofrepresentation" }
@@ -66,18 +76,20 @@ koin-test = { module = "io.insert-koin:koin-test", version.ref = "koin" }
 koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koin" }
 koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "koin" }
 koin-compose-viewmodel-navigation = { module = "io.insert-koin:koin-compose-viewmodel-navigation", version.ref = "koin" }
-kotlinx-coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "kotlinx-coroutines-play-services" }
 navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigation-compose" }
 qrose = { group = "io.github.alexzhirkevich", name = "qrose", version.ref="qrose"}
 multipaz = { module = "org.multipaz:multipaz", version.ref = "multipaz" }
-multipaz-android-legacy = { module = "org.multipaz:multipaz-android-legacy", version.ref = "multipaz" }
 multipaz-compose = { module = "org.multipaz:multipaz-compose", version.ref = "multipaz" }
 multipaz-doctypes = { module = "org.multipaz:multipaz-doctypes", version.ref = "multipaz" }
-play-services-identity-credentials = { module = "com.google.android.gms:play-services-identity-credentials", version.ref = "play-services-identity-credentials"}
 semver = { module = "net.swiftzer.semver:semver", version.ref = "semver" }
 core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "core-splashscreen" }
-androidx-credentials = { module = "androidx.credentials:credentials", version.ref="androidx-credentials" }
-androidx-credentials-registry-provider = { module = "androidx.credentials.registry:registry-provider", version.ref = "androidx-credentials-registry-provider" }
+back-handler = { module = "org.jetbrains.compose.ui:ui-backhandler", version.ref = "compose-plugin" }
+authcheckkit = { module = "at.asitplus.authcheckkit:core", version.ref = "authcheckkit"}
+
+
+vck = {group= "at.asitplus.wallet", name="vck", version.ref = "vck"}
+vck-openid = {group= "at.asitplus.wallet", name="vck-openid", version.ref = "vck"}
+vck-openid-ktor = {group= "at.asitplus.wallet", name="vck-openid-ktor", version.ref = "vck"}
 
 #multipazz workaround
 datetime-compat = {module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.7.1-0.6.x-compat"}

@@ -3,6 +3,7 @@ package at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data
 import androidx.compose.runtime.Composable
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.valera.resources.*
+import at.asitplus.wallet.ageverification.AgeVerificationScheme
 import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.ehic.EhicScheme
@@ -26,6 +27,7 @@ fun ConstantIndex.CredentialScheme?.uiLabel(): String = when (this) {
     is EuPidScheme -> stringResource(Res.string.credential_scheme_label_eu_pid)
     is EuPidSdJwtScheme -> stringResource(Res.string.credential_scheme_label_eu_pid_sdjwt)
     is MobileDrivingLicenceScheme -> stringResource(Res.string.credential_scheme_label_mdl)
+    is AgeVerificationScheme -> stringResource(Res.string.credential_scheme_label_mdl)
     is PowerOfRepresentationScheme -> stringResource(Res.string.credential_scheme_label_power_of_representation)
     is CertificateOfResidenceScheme -> stringResource(Res.string.credential_scheme_label_certificate_of_residence)
     is CompanyRegistrationScheme -> stringResource(Res.string.credential_scheme_label_company_registration)
@@ -41,6 +43,7 @@ suspend fun ConstantIndex.CredentialScheme?.uiLabelNonCompose(): String = when (
     is EuPidScheme -> getString(Res.string.credential_scheme_label_eu_pid)
     is EuPidSdJwtScheme -> getString(Res.string.credential_scheme_label_eu_pid_sdjwt)
     is MobileDrivingLicenceScheme -> getString(Res.string.credential_scheme_label_mdl)
+    is AgeVerificationScheme -> getString(Res.string.credential_scheme_label_av)
     is PowerOfRepresentationScheme -> getString(Res.string.credential_scheme_label_power_of_representation)
     is CertificateOfResidenceScheme -> getString(Res.string.credential_scheme_label_certificate_of_residence)
     is CompanyRegistrationScheme -> getString(Res.string.credential_scheme_label_company_registration)
@@ -57,6 +60,7 @@ fun ConstantIndex.CredentialScheme?.iconLabel(): String = when (this) {
     is EuPidScheme -> stringResource(Res.string.credential_scheme_icon_label_eu_pid)
     is EuPidSdJwtScheme -> stringResource(Res.string.credential_scheme_icon_label_eu_pid)
     is MobileDrivingLicenceScheme -> stringResource(Res.string.credential_scheme_icon_label_mdl)
+    is AgeVerificationScheme -> stringResource(Res.string.credential_scheme_icon_label_av)
     is PowerOfRepresentationScheme -> stringResource(Res.string.credential_scheme_icon_label_power_of_representation)
     is CertificateOfResidenceScheme -> stringResource(Res.string.credential_scheme_icon_label_certificate_of_residence)
     is CompanyRegistrationScheme -> stringResource(Res.string.credential_scheme_icon_label_company_registration)
@@ -68,15 +72,16 @@ fun ConstantIndex.CredentialScheme?.iconLabel(): String = when (this) {
 
 @Suppress("DEPRECATION")
 fun ConstantIndex.CredentialScheme.getLocalization(path: NormalizedJsonPath): StringResource? = when (this) {
-    is IdAustriaScheme -> { IdAustriaCredentialAttributeTranslator.translate(path) }
-    is EuPidScheme -> { EuPidCredentialAttributeTranslator.translate(path) }
-    is EuPidSdJwtScheme -> { EuPidCredentialAttributeTranslator.translate(path) }
-    is MobileDrivingLicenceScheme -> { MobileDrivingLicenceCredentialAttributeTranslator.translate(path) }
-    is PowerOfRepresentationScheme -> { PowerOfRepresentationCredentialAttributeTranslator.translate(path) }
-    is CertificateOfResidenceScheme -> { CertificateOfResidenceCredentialAttributeTranslator.translate(path) }
-    is CompanyRegistrationScheme -> { CompanyRegistrationCredentialAttributeTranslator.translate(path) }
-    is HealthIdScheme -> { HealthIdCredentialAttributeTranslator.translate(path) }
-    is EhicScheme -> { EhicCredentialAttributeTranslator.translate(path) }
-    is TaxIdScheme -> { TaxIdCredentialAttributeTranslator.translate(path) }
-    else -> { IdAustriaCredentialAttributeTranslator.translate(path) }
+    is IdAustriaScheme -> { IdAustriaCredentialAttributeTranslator().translate(path) }
+    is EuPidScheme -> { EuPidCredentialAttributeTranslator().translate(path) }
+    is EuPidSdJwtScheme -> { EuPidCredentialAttributeTranslator().translate(path) }
+    is MobileDrivingLicenceScheme -> { MobileDrivingLicenceCredentialAttributeTranslator().translate(path) }
+    is AgeVerificationScheme -> { AgeVerificationCredentialAttributeTranslator().translate(path) }
+    is PowerOfRepresentationScheme -> { PowerOfRepresentationCredentialAttributeTranslator().translate(path) }
+    is CertificateOfResidenceScheme -> { CertificateOfResidenceCredentialAttributeTranslator().translate(path) }
+    is CompanyRegistrationScheme -> { CompanyRegistrationCredentialAttributeTranslator().translate(path) }
+    is HealthIdScheme -> { HealthIdCredentialAttributeTranslator().translate(path) }
+    is EhicScheme -> { EhicCredentialAttributeTranslator().translate(path) }
+    is TaxIdScheme -> TaxIdCredentialAttributeTranslator().translate(path)
+    else -> { IdAustriaCredentialAttributeTranslator().translate(path) }
 }

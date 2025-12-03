@@ -3,32 +3,36 @@ package at.asitplus.wallet.app.common
 import at.asitplus.KmmResult
 import at.asitplus.catchingUnwrapped
 import at.asitplus.dcapi.request.DCAPIRequest
-import at.asitplus.dcapi.request.PreviewDCAPIRequest
 import at.asitplus.iso.EncryptionParameters
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_update_action
 import at.asitplus.valera.resources.snackbar_update_hint
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.dcapi.DCAPIExportService
-import at.asitplus.wallet.app.common.dcapi.data.export.CredentialList
+import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import data.storage.DataStoreService
 import data.storage.WalletSubjectCredentialStore
-import getImageDecoder
 import io.github.aakira.napier.Napier
-import io.ktor.client.call.*
-import io.ktor.client.request.*
-import kotlinx.coroutines.*
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import net.swiftzer.semver.SemVer
+import org.jetbrains.compose.resources.decodeToImageBitmap
 import org.jetbrains.compose.resources.getString
 import org.multipaz.prompt.PromptModel
 
@@ -53,6 +57,7 @@ class WalletMain(
     val snackbarService: SnackbarService,
     val settingsRepository: SettingsRepository,
     val sessionService: SessionService,
+    val capabilitiesService: CapabilitiesService,
 ) {
     val appReady = MutableStateFlow<Boolean?>(null)
 
@@ -69,12 +74,17 @@ class WalletMain(
 
     init {
         startListeningForNewCredentialsDCAPI()
+        if (keyMaterial.keyMaterial is FallBackKeyMaterial) {
+            Napier.e("FallBackKeyMaterial: ${keyMaterial.keyMaterial.reason}")
+        }
     }
 
     suspend fun resetApp() {
+        Napier.d("Perform full reset")
         dataStoreService.clearLog()
         subjectCredentialStore.reset()
         signingService.reset()
+        capabilitiesService.reset()
 
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_VCS)
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT)
@@ -82,6 +92,14 @@ class WalletMain(
         KeystoreService.clearKeyMaterial()
 
         settingsRepository.reset()
+        appReady.value = false
+        sessionService.newScope()
+    }
+
+    fun softReset() {
+        Napier.d("Perform soft reset")
+        appReady.value = false
+        KeystoreService.clearKeyMaterial()
         sessionService.newScope()
     }
 
@@ -162,7 +180,7 @@ class WalletMain(
 }
 
 fun PlatformAdapter.decodeImage(image: ByteArray) = catchingUnwrapped {
-    getImageDecoder((image))
+    image.decodeToImageBitmap()
 }
 
 
@@ -208,20 +226,12 @@ interface PlatformAdapter {
      * @param entries credentials to add
      * @param scope CoroutineScope for registering credentials
      */
-    fun registerWithDigitalCredentialsAPI(entries: CredentialList, scope: CoroutineScope)
+    fun registerWithDigitalCredentialsAPI(entries: CredentialRegistry, scope: CoroutineScope)
 
     /**
      * Retrieves request from the digital credentials browser API
      */
     fun getCurrentDCAPIData(): KmmResult<DCAPIRequest>
-
-    /**
-     * Prepares the credential response and sends it back to the invoking application
-     */
-    fun prepareDCAPIPreviewCredentialResponse(
-        responseJson: ByteArray,
-        dcApiRequestPreview: PreviewDCAPIRequest
-    )
 
     fun prepareDCAPIIsoMdocCredentialResponse(
         responseJson: ByteArray,
@@ -230,6 +240,10 @@ interface PlatformAdapter {
     )
 
     fun prepareDCAPIOid4vpCredentialResponse(responseJson: String, success: Boolean)
+
+    fun openDeviceSettings()
+
+    fun getCameraPermission(): Boolean?
 
 }
 
@@ -250,17 +264,11 @@ class DummyPlatformAdapter : PlatformAdapter {
     override fun shareLog() {
     }
 
-    override fun registerWithDigitalCredentialsAPI(entries: CredentialList, scope: CoroutineScope) {
+    override fun registerWithDigitalCredentialsAPI(entries: CredentialRegistry, scope: CoroutineScope) {
     }
 
     override fun getCurrentDCAPIData(): KmmResult<DCAPIRequest> {
         return KmmResult.failure(IllegalStateException("Using dummy platform adapter"))
-    }
-
-    override fun prepareDCAPIPreviewCredentialResponse(
-        responseJson: ByteArray,
-        dcApiRequestPreview: PreviewDCAPIRequest
-    ) {
     }
 
     override fun prepareDCAPIIsoMdocCredentialResponse(
@@ -271,6 +279,13 @@ class DummyPlatformAdapter : PlatformAdapter {
     }
 
     override fun prepareDCAPIOid4vpCredentialResponse(responseJson: String, success: Boolean) {
+    }
+
+    override fun openDeviceSettings() {
+    }
+
+    override fun getCameraPermission(): Boolean? {
+        return false
     }
 
 }

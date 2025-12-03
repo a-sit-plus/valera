@@ -55,6 +55,7 @@ fun EuPidCredentialBirthdataDataCardContent(
         ) {
             credentialAdapter.givenNameBirth?.let { AttributeRepresentation(it) }
             credentialAdapter.familyNameBirth?.let { AttributeRepresentation(it) }
+            credentialAdapter.placeOfBirth?.let { AttributeRepresentation(it) }
             credentialAdapter.birthPlace?.let { AttributeRepresentation(it) }
             credentialAdapter.birthCity?.let { AttributeRepresentation(it) }
             credentialAdapter.birthCountry?.let { AttributeRepresentation(it) }

@@ -1,6 +1,7 @@
 package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.wallet.ageverification.AgeVerificationScheme
 import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.ehic.EhicScheme
@@ -20,16 +21,17 @@ interface CredentialAttributeTranslator {
 
     companion object {
         operator fun get(scheme: ConstantIndex.CredentialScheme?) = when(scheme) {
-            is IdAustriaScheme -> IdAustriaCredentialAttributeTranslator
-            is EuPidScheme -> EuPidCredentialAttributeTranslator
-            is EuPidSdJwtScheme -> EuPidCredentialAttributeTranslator
-            is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialAttributeTranslator
-            is PowerOfRepresentationScheme -> PowerOfRepresentationCredentialAttributeTranslator
-            is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialAttributeTranslator
-            is CompanyRegistrationScheme -> CompanyRegistrationCredentialAttributeTranslator
-            is HealthIdScheme -> HealthIdCredentialAttributeTranslator
-            is EhicScheme -> EhicCredentialAttributeTranslator
-            is TaxIdScheme -> TaxIdCredentialAttributeTranslator
+            is IdAustriaScheme -> IdAustriaCredentialAttributeTranslator()
+            is EuPidScheme,
+            is EuPidSdJwtScheme -> EuPidCredentialAttributeTranslator()
+            is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialAttributeTranslator()
+            is AgeVerificationScheme -> AgeVerificationCredentialAttributeTranslator()
+            is PowerOfRepresentationScheme -> PowerOfRepresentationCredentialAttributeTranslator()
+            is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialAttributeTranslator()
+            is CompanyRegistrationScheme -> CompanyRegistrationCredentialAttributeTranslator()
+            is HealthIdScheme -> HealthIdCredentialAttributeTranslator()
+            is EhicScheme -> EhicCredentialAttributeTranslator()
+            is TaxIdScheme -> TaxIdCredentialAttributeTranslator()
             else -> null
         }
     }
