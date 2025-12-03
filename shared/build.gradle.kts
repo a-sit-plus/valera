@@ -75,7 +75,6 @@ kotlin {
             implementation(libs.back.handler)
             implementation(compose.material3)
             implementation(compose.materialIconsExtended)
-            implementation(libs.vck.rqes)
             api(libs.vck.openid.ktor)
             api(libs.atomicfu)
             api(libs.credential.mdl)

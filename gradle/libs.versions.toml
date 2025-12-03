@@ -1,5 +1,5 @@
 [versions]
-vck="5.10.0-SNAPSHOT"
+vck="5.10.0"
 
 agp = "8.12.3"
 kotlin = "2.2.21"
@@ -88,7 +88,6 @@ authcheckkit = { module = "at.asitplus.authcheckkit:core", version.ref = "authch
 
 
 vck = {group= "at.asitplus.wallet", name="vck", version.ref = "vck"}
-vck-rqes = {group= "at.asitplus.wallet", name="vck-rqes", version.ref = "vck"}
 vck-openid = {group= "at.asitplus.wallet", name="vck-openid", version.ref = "vck"}
 vck-openid-ktor = {group= "at.asitplus.wallet", name="vck-openid-ktor", version.ref = "vck"}
 
