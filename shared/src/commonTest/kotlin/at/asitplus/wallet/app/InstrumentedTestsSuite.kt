@@ -130,7 +130,7 @@ fun ComposeUiTest.endToEndTest() {
         LaunchedEffect(Unit) {
             val issuer = IssuerAgent(
                 keyMaterial = EphemeralKeyWithoutCert(),
-                statusListBaseUrl = "https://wallet.a-sit.at/m6/credentials/status",
+                statusListBaseUrl = "https://wallet.a-sit.at/m7/credentials/status",
                 identifier = "https://issuer.example.com/".toUri(),
             )
             holderAgent.storeCredential(
