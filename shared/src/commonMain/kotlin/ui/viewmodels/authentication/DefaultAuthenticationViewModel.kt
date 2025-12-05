@@ -1,7 +1,6 @@
 package ui.viewmodels.authentication
 
 import androidx.compose.ui.graphics.ImageBitmap
-import at.asitplus.dcapi.OpenId4VpDCAPIEncryptedResponse
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.OpenIdConstants
 import at.asitplus.openid.RequestParametersFrom
@@ -70,14 +69,11 @@ class DefaultAuthenticationViewModel(
         authenticationResult: OpenId4VpWallet.AuthenticationForward,
         isEncryptedResponse: Boolean,
     ): OpenId4VpWallet.AuthenticationSuccess {
-        authenticationResult.authenticationResponseResult.params.response?.let {
-            // TODO no response json required for non-encrypted case?
-            // at least https://digital-credentials.dev/ only works without it
-            val response = if (isEncryptedResponse)
-                vckJsonSerializer.encodeToString(OpenId4VpDCAPIEncryptedResponse(it))
-            else it
-            walletMain.presentationService.finalizeOid4vpDCAPIPresentation(response)
-        } ?: throw IllegalStateException("No response has been generated")
+        authenticationResult.authenticationResponseResult.params.let {
+            val response = it.response ?: throw IllegalStateException("No response has been generated")
+            val serializedResponse = if (isEncryptedResponse) vckJsonSerializer.encodeToString(it) else response
+            walletMain.presentationService.finalizeOid4vpDCAPIPresentation(serializedResponse)
+        }
         return OpenId4VpWallet.AuthenticationSuccess()
     }
 }
