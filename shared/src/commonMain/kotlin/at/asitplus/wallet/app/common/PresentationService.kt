@@ -131,6 +131,7 @@ class PresentationService(
             request = PresentationRequestParameters(
                 nonce = "",
                 audience = spName ?: "",
+                returnOneDeviceResponse = true,
                 calcIsoDeviceSignaturePlain = { input ->
                     val deviceAuthentication = DeviceAuthentication(
                         type = "DeviceAuthentication",

@@ -1,5 +1,8 @@
+# Release 5.7.5
+ * Update to VC-K 5.10.1
+ * Provide self-signed key attestation on issuing
 
-# Release 5.7.4:
+# Release 5.7.4
  * Presentation:
    * Support URL scheme `haip-vp` from latest HAIP draft
    * Always show requested attributes
