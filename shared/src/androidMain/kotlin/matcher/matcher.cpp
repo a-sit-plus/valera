@@ -12,6 +12,8 @@ extern "C" {
 #include "Request.h"
 #include "logger.h"
 
+auto PARSE_ALL_ISO_MDOC = false;
+
 extern "C" void matcher(void) {
     CallingAppInfo* appInfo = (CallingAppInfo*) malloc(sizeof(CallingAppInfo));
     ::GetCallingAppInfo(appInfo);
@@ -55,12 +57,24 @@ extern "C" void matcher(void) {
                 break;
 
             } else if (protocolValue == "org.iso.mdoc" || protocolValue == "org-iso-mdoc") {
-                auto request = MdocRequest::parseMdocApi(protocolValue, protocolData);
-                auto combinations = request->getCredentialCombinations(db);
-                for (auto const& combination : combinations) {
-                    combination.addToCredmanPicker(*request);
+                if (PARSE_ALL_ISO_MDOC) {
+                    auto request = MdocRequest::parseSomething(protocolValue, protocolData);
+                    auto combinations = request->combineALL(db);
+                    for (auto const& combination : combinations) {
+                        combination.addToCredmanPicker(*request);
+                    }
+                    break;
                 }
-                break;
+                else {
+                    auto request = MdocRequest::parseMdocApi(protocolValue, protocolData);
+                    auto combinations = request->getCredentialCombinations(db);
+                    for (auto const& combination : combinations) {
+                        combination.addToCredmanPicker(*request);
+                    }
+                    break;
+                }
+
+
             }
         }
     }
