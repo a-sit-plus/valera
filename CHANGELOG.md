@@ -1,4 +1,5 @@
 # Release 5.7.5 (unreleased)
+ * Update to VC-K 5.10.1
 
 # Release 5.7.4
  * Presentation:
