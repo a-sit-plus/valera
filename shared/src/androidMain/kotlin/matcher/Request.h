@@ -37,8 +37,10 @@ struct MdocRequest : public Request {
     std::vector<MdocRequestDataElement> dataElements;
 
     std::vector<Combination> getCredentialCombinations(const CredentialDatabase* db);
+    std::vector<Combination> combineALL(const CredentialDatabase* db);
 
     static std::unique_ptr<MdocRequest> parseMdocApi(const std::string& protocolName, cJSON *requestJson);
+    static std::unique_ptr<MdocRequest> parseSomething(const std::string& protocolName, cJSON* dataJson);
 };
 
 struct OpenID4VPRequest : public Request {
