@@ -1,7 +1,12 @@
 package at.asitplus.wallet.app.common
 
+import at.asitplus.catching
 import at.asitplus.openid.CredentialOffer
+import at.asitplus.openid.OpenIdConstants
+import at.asitplus.signum.indispensable.josef.KeyAttestationJwt
 import at.asitplus.wallet.app.common.data.SettingsRepository
+import at.asitplus.wallet.lib.agent.EphemeralKeyWithSelfSignedCert
+import at.asitplus.wallet.lib.agent.EphemeralKeyWithoutCert
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.data.AttributeIndex
@@ -17,6 +22,7 @@ import at.asitplus.wallet.lib.ktor.openid.OpenId4VciClient
 import at.asitplus.wallet.lib.ktor.openid.ProvisioningContext
 import at.asitplus.wallet.lib.oauth2.OAuth2Client
 import at.asitplus.wallet.lib.oidvci.BuildClientAttestationJwt
+import at.asitplus.wallet.lib.oidvci.WalletEncryptionService
 import at.asitplus.wallet.lib.oidvci.WalletService
 import data.storage.DataStoreService
 import data.storage.PersistentCookieStorage
@@ -29,6 +35,7 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 import ui.navigation.IntentService
+import kotlin.time.Clock.System
 import kotlin.time.Duration.Companion.minutes
 
 
@@ -66,12 +73,28 @@ class ProvisioningService(
             engine = HttpClient().engine,
             cookiesStorage = cookieStorage,
             oAuth2Client = OAuth2Client(clientId = clientId, redirectUrl = redirectUrl),
+            httpClientConfig = httpService.loggingConfig,
             loadClientAttestationJwt = { clientAttestationJwt() },
             signClientAttestationPop = SignJwt(keyMaterial, JwsHeaderNone()),
         ),
         oid4vciService = WalletService(
             clientId = clientId,
             keyMaterial = keyMaterial,
+            loadKeyAttestation = {
+                with(EphemeralKeyWithSelfSignedCert()) {
+                    catching {
+                        SignJwt<KeyAttestationJwt>(this, JwsHeaderCertOrJwk())(
+                            OpenIdConstants.KEY_ATTESTATION_JWT_TYPE,
+                            KeyAttestationJwt(
+                                issuedAt = System.now(),
+                                nonce = it.clientNonce,
+                                attestedKeys = setOf(keyMaterial.jsonWebKey)
+                            ),
+                            KeyAttestationJwt.serializer(),
+                        ).getOrThrow()
+                    }
+                }
+            }
         )
     )
 
