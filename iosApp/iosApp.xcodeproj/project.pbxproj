@@ -335,7 +335,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 5.7.5;
+				MARKETING_VERSION = 5.7.6;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
@@ -378,7 +378,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 5.7.5;
+				MARKETING_VERSION = 5.7.6;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
