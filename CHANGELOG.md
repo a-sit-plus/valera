@@ -1,5 +1,6 @@
-# Release 5.7.5 (unreleased)
+# Release 5.7.5
  * Update to VC-K 5.10.1
+ * Provide self-signed key attestation on issuing
 
 # Release 5.7.4
  * Presentation:
