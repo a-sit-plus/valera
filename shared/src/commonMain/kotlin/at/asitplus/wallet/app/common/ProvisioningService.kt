@@ -3,10 +3,15 @@ package at.asitplus.wallet.app.common
 import at.asitplus.catching
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.openid.OpenIdConstants
+import at.asitplus.signum.indispensable.asn1.Asn1Primitive
+import at.asitplus.signum.indispensable.asn1.Asn1String
+import at.asitplus.signum.indispensable.asn1.KnownOIDs
+import at.asitplus.signum.indispensable.asn1.commonName
 import at.asitplus.signum.indispensable.josef.KeyAttestationJwt
+import at.asitplus.signum.indispensable.pki.AttributeTypeAndValue
+import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.lib.agent.EphemeralKeyWithSelfSignedCert
-import at.asitplus.wallet.lib.agent.EphemeralKeyWithoutCert
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.data.AttributeIndex
@@ -22,7 +27,6 @@ import at.asitplus.wallet.lib.ktor.openid.OpenId4VciClient
 import at.asitplus.wallet.lib.ktor.openid.ProvisioningContext
 import at.asitplus.wallet.lib.oauth2.OAuth2Client
 import at.asitplus.wallet.lib.oidvci.BuildClientAttestationJwt
-import at.asitplus.wallet.lib.oidvci.WalletEncryptionService
 import at.asitplus.wallet.lib.oidvci.WalletService
 import data.storage.DataStoreService
 import data.storage.PersistentCookieStorage
@@ -58,7 +62,7 @@ class ProvisioningService(
     suspend fun clientAttestationJwt() = clientAttestationJwt ?: BuildClientAttestationJwt(
         SignJwt(keyMaterial, JwsHeaderCertOrJwk()),
         clientId = clientId,
-        issuer = "https://example.com",
+        issuer = keyMaterial.getCertificate()?.extractSubjectCn() ?: "https://example.com",
         lifetime = 60.minutes,
         clientKey = keyMaterial.jsonWebKey
     ).serialize().also {
@@ -206,6 +210,15 @@ class ProvisioningService(
             }
         }
     }
+
+    private fun X509Certificate.extractSubjectCn(): String? =
+        firstSubjectName()?.commonName()?.let { Asn1String.doDecode(it) }?.value
+
+    private fun X509Certificate.firstSubjectName(): List<AttributeTypeAndValue>? =
+        tbsCertificate.subjectName.firstOrNull()?.attrsAndValues
+
+    private fun List<AttributeTypeAndValue>?.commonName(): Asn1Primitive? =
+        this?.find { it.oid == KnownOIDs.commonName }?.value as? Asn1Primitive
 }
 
 val CredentialIdentifierInfo.credentialScheme: ConstantIndex.CredentialScheme?
