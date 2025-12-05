@@ -5,6 +5,7 @@ import at.asitplus.dcapi.DCAPIInfo
 import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.iso.DeviceAuthentication
 import at.asitplus.iso.SessionTranscript
+import at.asitplus.iso.serializeOrigin
 import at.asitplus.iso.sha256
 import at.asitplus.iso.wrapInCborTag
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
@@ -67,13 +68,17 @@ class PresentationService(
         ).sha256()
         val handover = DCAPIHandover(type = "dcapi", hash = hash)
         val sessionTranscript = SessionTranscript.forDcApi(handover)
+        val callingOrigin = isoMdocRequest.callingOrigin.serializeOrigin() ?:
+            throw IllegalArgumentException("Invalid calling origin")
+
+        println("isoMdocRequest.callingOrigin = ${isoMdocRequest.callingOrigin}")
 
         val presentationResult = holderAgent.createPresentation(
             request = PresentationRequestParameters(
                 // TODO which nonce? isoMdocRequest.parsedEncryptionInfo.encryptionParameters.nonce?
                 nonce = isoMdocRequest.encryptionInfo.encryptionParameters.nonce
                     .encodeToString(Base64UrlStrict),
-                audience = isoMdocRequest.callingOrigin,
+                audience = callingOrigin,
                 calcIsoDeviceSignaturePlain = { input ->
                     val deviceAuthentication = DeviceAuthentication(
                         type = "DeviceAuthentication",

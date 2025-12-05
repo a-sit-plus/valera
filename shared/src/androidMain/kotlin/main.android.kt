@@ -282,6 +282,7 @@ public class AndroidPlatformAdapter(
 
             val credentialId = selectionInfo.documentIds[0] // selectionInfo.documentIds
             // TODO support multiple documents, need vck composite build for it
+            // TODO use vck deserialization
 
             when {
                 protocol.startsWith("openid4vp") -> {
@@ -347,7 +348,7 @@ public class AndroidPlatformAdapter(
             )
             val encryptedResponse = EncryptedResponse("dcapi", encryptedResponseData)
 
-            val dcApiResponse = DCAPIResponse.createIsoMdocResponse(encryptedResponse)
+            val dcApiResponse = DCAPIResponse(encryptedResponse)
             Napier.d("Returning response $responseJson to digital credentials API invoker")
             sendCredentialResponseToInvoker(vckJsonSerializer.encodeToString(dcApiResponse), true)
         } ?: throw IllegalStateException("Callback for response not found")
