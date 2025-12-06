@@ -22,8 +22,10 @@ import androidx.credentials.registry.provider.selectedEntryId
 import at.asitplus.KmmResult
 import at.asitplus.catching
 import at.asitplus.dcapi.DCAPIResponse
+import at.asitplus.dcapi.DigitalCredentialInterface
 import at.asitplus.dcapi.EncryptedResponse
 import at.asitplus.dcapi.EncryptedResponseData
+import at.asitplus.dcapi.IsoMdocResponse
 import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.dcapi.request.ExchangeProtocolIdentifier
 import at.asitplus.dcapi.request.verifier.DigitalCredentialGetRequest
@@ -275,7 +277,6 @@ public class AndroidPlatformAdapter(
             Napier.d("DC API: Got request $requestJson for selection $selectionInfo")
 
             val credentialId = selectionInfo.documentIds[0] // selectionInfo.documentIds
-            // TODO support multiple documents
 
             when (digitalCredentialGetRequest) {
                 is DigitalCredentialGetRequest.OpenId4VpSigned -> {
@@ -338,10 +339,11 @@ public class AndroidPlatformAdapter(
                 cipherText = cipherText
             )
             val encryptedResponse = EncryptedResponse("dcapi", encryptedResponseData)
-
             val dcApiResponse = DCAPIResponse(encryptedResponse)
+            val isoMdocResponse = IsoMdocResponse(dcApiResponse)
             Napier.d("Returning response $responseJson to digital credentials API invoker")
-            sendCredentialResponseToInvoker(vckJsonSerializer.encodeToString(dcApiResponse), true)
+            val serializedResponse = vckJsonSerializer.encodeToString<DigitalCredentialInterface>(isoMdocResponse)
+            sendCredentialResponseToInvoker(serializedResponse, true)
         } ?: throw IllegalStateException("Callback for response not found")
     }
 

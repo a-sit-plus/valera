@@ -60,9 +60,11 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
                 )
             }
         } else {
+            Napier.e("Creating error response for DC API. Error: $resultStr")
             sendErrorResponse(resultStr, resultData)
         }
 
+        Napier.d("Successfully returned response to DC API invoker. Response: $resultStr")
         setResult(RESULT_OK, resultData)
         finish()
     }
