@@ -5,6 +5,7 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.domain.BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.oidvci.OAuth2Exception
+import domain.BuildAuthenticationConsentPageFromAuthenticationRequest
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -18,8 +19,8 @@ class DCAPIAuthorizationIntentViewModel(
     val onSuccess: (Route) -> Unit,
     val onFailure: (Throwable) -> Unit
 ) {
-    private val buildConsentPageFromRequestUriUseCase =
-        BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
+    private val buildConsentPageFromRequest =
+        BuildAuthenticationConsentPageFromAuthenticationRequest(
             presentationService = walletMain.presentationService,
         )
 
@@ -40,7 +41,7 @@ class DCAPIAuthorizationIntentViewModel(
         val dcApiRequest = walletMain.platformAdapter.getCurrentDCAPIData().getOrThrow()
 
         val successRoute = when (dcApiRequest) {
-            is DCAPIWalletRequest.Oid4Vp -> buildConsentPageFromRequestUriUseCase(vckJsonSerializer.encodeToString(dcApiRequest))
+            is DCAPIWalletRequest.OpenId4Vp -> buildConsentPageFromRequest(dcApiRequest)
             is DCAPIWalletRequest.IsoMdoc -> buildConsentPageFromDcApiRequest(dcApiRequest)
         }.getOrThrow()
 

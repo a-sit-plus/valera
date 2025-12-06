@@ -69,7 +69,7 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
 
     private fun sendErrorResponse(resultStr: String, resultData: Intent) {
         /* TODO check with SP that supports exceptions whether this works
-              * otherwise try with the Google GMS library (see above)
+              * otherwise try with the Google GMS library
             */
         Napier.v("Returning error response: $resultStr")
         PendingIntentHandler.setGetCredentialException(
