@@ -1,10 +1,12 @@
 package at.asitplus.wallet.app.common
 
 import at.asitplus.dcapi.DCAPIHandover
+import at.asitplus.dcapi.DCAPIHandover.Companion.TYPE_DCAPI
 import at.asitplus.dcapi.DCAPIInfo
-import at.asitplus.dcapi.request.IsoMdocRequest
+import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.iso.DeviceAuthentication
 import at.asitplus.iso.SessionTranscript
+import at.asitplus.iso.serializeOrigin
 import at.asitplus.iso.sha256
 import at.asitplus.iso.wrapInCborTag
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
@@ -43,6 +45,9 @@ class PresentationService(
     suspend fun startAuthorizationResponsePreparation(input: String) =
         presentationService.startAuthorizationResponsePreparation(input)
 
+    suspend fun startAuthorizationResponsePreparation(input: DCAPIWalletRequest.OpenId4Vp) =
+        presentationService.startAuthorizationResponsePreparation(input)
+
     suspend fun getMatchingCredentials(
         preparationState: AuthorizationResponsePreparationState
     ) = presentationService.getMatchingCredentials(preparationState)
@@ -58,25 +63,28 @@ class PresentationService(
     @OptIn(ExperimentalEncodingApi::class, ExperimentalStdlibApi::class)
     suspend fun finalizeDCAPIIsoMdocPresentation(
         credentialPresentation: CredentialPresentation.PresentationExchangePresentation,
-        isoMdocRequest: IsoMdocRequest
+        isoMdocWalletRequest: DCAPIWalletRequest.IsoMdoc
     ): OpenId4VpWallet.AuthenticationSuccess {
         Napier.d("Finalizing DCAPI response")
 
+        // TODO this code is probably duplicated in the Verifier
         val hash = coseCompliantSerializer.encodeToByteArray(
-            DCAPIInfo(isoMdocRequest.encryptionInfo, isoMdocRequest.callingOrigin)
+            DCAPIInfo(isoMdocWalletRequest.isoMdocRequest.encryptionInfo, isoMdocWalletRequest.callingOrigin)
         ).sha256()
-        val handover = DCAPIHandover(type = "dcapi", hash = hash)
+        val handover = DCAPIHandover(type = TYPE_DCAPI, hash = hash)
         val sessionTranscript = SessionTranscript.forDcApi(handover)
+        val callingOrigin = isoMdocWalletRequest.callingOrigin.serializeOrigin() ?:
+            throw IllegalArgumentException("Invalid calling origin")
 
         val presentationResult = holderAgent.createPresentation(
             request = PresentationRequestParameters(
                 // TODO which nonce? isoMdocRequest.parsedEncryptionInfo.encryptionParameters.nonce?
-                nonce = isoMdocRequest.encryptionInfo.encryptionParameters.nonce
+                nonce = isoMdocWalletRequest.isoMdocRequest.encryptionInfo.encryptionParameters.nonce
                     .encodeToString(Base64UrlStrict),
-                audience = isoMdocRequest.callingOrigin,
+                audience = callingOrigin,
                 calcIsoDeviceSignaturePlain = { input ->
                     val deviceAuthentication = DeviceAuthentication(
-                        type = "DeviceAuthentication",
+                        type = DeviceAuthentication.TYPE,
                         sessionTranscript = sessionTranscript,
                         docType = input.docType,
                         namespaces = input.deviceNameSpaceBytes
@@ -110,7 +118,7 @@ class PresentationService(
         platformAdapter.prepareDCAPIIsoMdocCredentialResponse(
             deviceResponseSerialized,
             coseCompliantSerializer.encodeToByteArray(sessionTranscript),
-            isoMdocRequest.encryptionInfo.encryptionParameters
+            isoMdocWalletRequest.isoMdocRequest.encryptionInfo.encryptionParameters
         )
         return OpenId4VpWallet.AuthenticationSuccess()
     }

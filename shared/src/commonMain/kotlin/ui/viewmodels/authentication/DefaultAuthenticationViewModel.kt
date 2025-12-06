@@ -1,9 +1,7 @@
 package ui.viewmodels.authentication
 
 import androidx.compose.ui.graphics.ImageBitmap
-import at.asitplus.dcapi.DCAPIResponse
 import at.asitplus.openid.AuthenticationRequestParameters
-import at.asitplus.openid.OpenIdConstants
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
@@ -56,28 +54,18 @@ class DefaultAuthenticationViewModel(
             preparationState = preparationState
         )
         return when (authenticationResult) {
-            is OpenId4VpWallet.AuthenticationForward -> {
-                val isEncryptedResponse =
-                    authenticationRequest.parameters.responseMode == OpenIdConstants.ResponseMode.DcApiJwt
-                finalizeDcApi(authenticationResult, isEncryptedResponse)
-            }
-
+            is OpenId4VpWallet.AuthenticationForward -> finalizeDcApi(authenticationResult)
             is OpenId4VpWallet.AuthenticationSuccess -> authenticationResult
         }
     }
 
     private fun finalizeDcApi(
         authenticationResult: OpenId4VpWallet.AuthenticationForward,
-        isEncryptedResponse: Boolean,
     ): OpenId4VpWallet.AuthenticationSuccess {
-        authenticationResult.authenticationResponseResult.params.response?.let {
-            // TODO no response json required for non-encrypted case?
-            // at least https://digital-credentials.dev/ only works without it
-            val response = if (isEncryptedResponse)
-                vckJsonSerializer.encodeToString(DCAPIResponse.createOid4vpResponse(it))
-            else it
-            walletMain.presentationService.finalizeOid4vpDCAPIPresentation(response)
-        } ?: throw IllegalArgumentException("Not response has been generated")
+        authenticationResult.authenticationResponseResult.params.let {
+            val serializedResponse = vckJsonSerializer.encodeToString(it)
+            walletMain.presentationService.finalizeOid4vpDCAPIPresentation(serializedResponse)
+        }
         return OpenId4VpWallet.AuthenticationSuccess()
     }
 }
