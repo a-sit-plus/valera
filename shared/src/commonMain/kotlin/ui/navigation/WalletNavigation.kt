@@ -410,7 +410,7 @@ private fun WalletNavHost(
                         },
                         onClickLogo = onClickLogo,
                         onClickSettings = { navigate(SettingsRoute) }
-                    ).also { it.initWithDeviceRequest(dcApiWalletRequest.deviceRequest) }
+                    ).also { it.initWithDeviceRequest(dcApiWalletRequest.isoMdocRequest.deviceRequest) }
 
                 } catch (e: Throwable) {
                     Napier.e("error", e)
