@@ -15,6 +15,8 @@
  * Add CapabilitiesService, CapabilitiesView to hint wrong settings
  * Add InitializationView
  * Add AuthCheckKit as new dependency
+ * Use vck serializers for DC API
+ * DC API: Support requests with multiple protocols
 
 # Release 5.7.3
  * Update to VC-K 5.8.0, fixing optional attributes during presentation
