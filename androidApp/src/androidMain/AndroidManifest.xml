@@ -152,6 +152,15 @@
 
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
+                <!-- May be used by relying parties to invoke the Wallet for authentication -->
+                <data android:scheme="av" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
                 <!-- May be used by issuing services to invoke the Wallet -->
                 <data android:scheme="openid-credential-offer" />
             </intent-filter>
