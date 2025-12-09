@@ -4,8 +4,9 @@ package data.credentials
 
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
+import at.asitplus.wallet.app.common.memberName
+import at.asitplus.wallet.app.common.minus
 import at.asitplus.wallet.eupid.EuPidCredential
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.eupid.EuPidScheme.Attributes
@@ -20,7 +21,6 @@ import at.asitplus.wallet.lib.data.LocalDateOrInstant
 import data.Attribute
 import io.ktor.util.decodeBase64Bytes
 import kotlinx.datetime.LocalDate
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
@@ -32,18 +32,14 @@ sealed class EuPidCredentialAdapter(
 ) : CredentialAdapter() {
 
     override fun getAttribute(path: NormalizedJsonPath) =
-        (path.segments.firstOrNull()?.let { first -> getWithIsoNames(first) }
-            ?: EuPidCredentialSdJwtClaimDefinitionResolver().resolveOrNull(path))?.toAttribute()
-
-    /** Claim names defined for ISO in ARF */
-    private fun getWithIsoNames(first: NormalizedJsonPathSegment): EuPidCredentialClaimDefinition? {
-        val claimName = (first as? NormalizedJsonPathSegment.NameSegment)?.memberName
-            ?: return null
-        return EuPidCredentialMdocClaimDefinitionResolver().resolveOrNull(
-            namespace = EuPidScheme.isoNamespace,
-            claimName = claimName
-        )
-    }
+        path.minus(EuPidScheme.isoNamespace).let {
+            it.memberName(0)?.let { claim ->
+                EuPidCredentialMdocClaimDefinitionResolver().resolveOrNull(EuPidScheme.isoNamespace, claim)
+                    ?.toAttribute()
+                    ?: EuPidCredentialSdJwtClaimDefinitionResolver().resolveOrNull(it)
+                        ?.toAttribute()
+            }
+        }
 
     abstract val givenName: String?
     abstract val familyName: String?

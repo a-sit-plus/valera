@@ -1,8 +1,9 @@
 package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.wallet.ageverification.AgeVerificationScheme
+import at.asitplus.wallet.app.common.memberName
+import at.asitplus.wallet.app.common.minus
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
@@ -11,15 +12,12 @@ import data.Attribute
 sealed class AgeVerificationCredentialAdapter(
 ) : CredentialAdapter() {
 
-    override fun getAttribute(path: NormalizedJsonPath) = listOfNotNull(
-        path.segments.getOrNull(1),
-        path.segments.firstOrNull(),
-    ).filterIsInstance<NormalizedJsonPathSegment.NameSegment>().firstNotNullOfOrNull {
-        AgeVerificationCredentialMdocClaimDefinitionResolver().resolveOrNull(
-            namespace = AgeVerificationScheme.isoNamespace,
-            claimName = it.memberName
-        )?.toAttribute()
-    }
+    override fun getAttribute(path: NormalizedJsonPath) =
+        path.minus(AgeVerificationScheme.isoNamespace).let {
+            it.memberName(0)?.let { claim ->
+                AgeVerificationCredentialMdocClaimDefinitionResolver().resolveOrNull(AgeVerificationScheme.isoNamespace, claim)?.toAttribute()
+            }
+        }
 
     abstract val ageAtLeast12: Boolean?
     abstract val ageAtLeast13: Boolean?

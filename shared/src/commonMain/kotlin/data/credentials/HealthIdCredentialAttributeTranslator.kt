@@ -1,7 +1,6 @@
 package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.attribute_friendly_name_administrative_number
 import at.asitplus.valera.resources.attribute_friendly_name_affiliation_country
@@ -16,6 +15,8 @@ import at.asitplus.valera.resources.attribute_friendly_name_issuing_jurisdiction
 import at.asitplus.valera.resources.attribute_friendly_name_one_time_token
 import at.asitplus.valera.resources.attribute_friendly_name_patient_id
 import at.asitplus.valera.resources.attribute_friendly_name_tax_number
+import at.asitplus.wallet.app.common.memberName
+import at.asitplus.wallet.app.common.minus
 import at.asitplus.wallet.healthid.HealthIdScheme
 import org.jetbrains.compose.resources.StringResource
 
@@ -23,15 +24,13 @@ import org.jetbrains.compose.resources.StringResource
 class HealthIdCredentialAttributeTranslator : CredentialAttributeTranslator {
     override fun translate(
         attributeName: NormalizedJsonPath
-    ): StringResource? = listOfNotNull(
-        attributeName.segments.firstOrNull(),
-        attributeName.segments.lastOrNull(),
-    ).filterIsInstance<NormalizedJsonPathSegment.NameSegment>().firstNotNullOfOrNull {
-        HealthIdCredentialMdocClaimDefinitionResolver().resolveOrNull(
-            namespace = HealthIdScheme.isoNamespace,
-            claimName = it.memberName
-        )
-    }?.stringResource()
+    ) =
+        attributeName.minus(HealthIdScheme.isoNamespace).let {
+            it.memberName(0)?.let { claim ->
+                HealthIdCredentialMdocClaimDefinitionResolver().resolveOrNull(HealthIdScheme.isoNamespace, claim)
+                    ?.stringResource()
+            }
+        }
 
     private fun HealthIdCredentialClaimDefinition.stringResource(): StringResource? = when (this) {
         HealthIdCredentialClaimDefinition.HEALTH_INSURANCE_ID -> Res.string.attribute_friendly_name_health_insurance_id

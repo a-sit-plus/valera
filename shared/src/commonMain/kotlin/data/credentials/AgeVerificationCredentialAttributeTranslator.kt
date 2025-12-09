@@ -1,7 +1,6 @@
 package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_12
 import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_13
@@ -15,19 +14,18 @@ import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_62
 import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_65
 import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_68
 import at.asitplus.wallet.ageverification.AgeVerificationScheme
+import at.asitplus.wallet.app.common.memberName
+import at.asitplus.wallet.app.common.minus
 import org.jetbrains.compose.resources.StringResource
 
 
 class AgeVerificationCredentialAttributeTranslator : CredentialAttributeTranslator {
-    override fun translate(attributeName: NormalizedJsonPath): StringResource? = listOfNotNull(
-        attributeName.segments.getOrNull(1),
-        attributeName.segments.firstOrNull(),
-    ).filterIsInstance<NormalizedJsonPathSegment.NameSegment>().firstNotNullOfOrNull {
-        AgeVerificationCredentialMdocClaimDefinitionResolver().resolveOrNull(
-            namespace = AgeVerificationScheme.isoNamespace,
-            claimName = it.memberName
-        )
-    }?.stringResourceOrNull()
+    override fun translate(attributeName: NormalizedJsonPath): StringResource? =
+        attributeName.minus(AgeVerificationScheme.isoNamespace).let {
+            it.memberName(0)?.let { claim ->
+                AgeVerificationCredentialMdocClaimDefinitionResolver().resolveOrNull(AgeVerificationScheme.isoNamespace, claim)?.stringResourceOrNull()
+            }
+        }
 
     private fun AgeVerificationCredentialClaimDefinition.stringResourceOrNull(): StringResource? = when (this) {
         AgeVerificationCredentialClaimDefinition.AGE_OVER_12 -> Res.string.attribute_friendly_name_age_at_least_12

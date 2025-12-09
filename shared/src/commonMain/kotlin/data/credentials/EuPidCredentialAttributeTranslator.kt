@@ -1,7 +1,6 @@
 package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.attribute_friendly_name_administrative_number
 import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_12
@@ -49,36 +48,21 @@ import at.asitplus.valera.resources.attribute_friendly_name_portrait
 import at.asitplus.valera.resources.attribute_friendly_name_portrait_capture_date
 import at.asitplus.valera.resources.attribute_friendly_name_sex
 import at.asitplus.valera.resources.attribute_friendly_name_trust_anchor
+import at.asitplus.wallet.app.common.memberName
+import at.asitplus.wallet.app.common.minus
 import at.asitplus.wallet.eupid.EuPidScheme
 import org.jetbrains.compose.resources.StringResource
 
 
 class EuPidCredentialAttributeTranslator : CredentialAttributeTranslator {
     override fun translate(attributeName: NormalizedJsonPath): StringResource? =
-        (withIsoNames(attributeName) ?: withSdJwtNames(attributeName))?.stringResourceOrNull()
-
-    private fun withIsoNames(attributeName: NormalizedJsonPath): EuPidCredentialClaimDefinition? = listOfNotNull(
-        attributeName.segments.firstOrNull(),
-        attributeName.segments.lastOrNull(),
-    ).filterIsInstance<NormalizedJsonPathSegment.NameSegment>().firstNotNullOfOrNull {
-        getFromIsoName(it.memberName)
-    }
-
-    private fun NormalizedJsonPathSegment.memberName() = when(this) {
-        is NormalizedJsonPathSegment.NameSegment -> this.memberName
-        else -> null
-    }
-
-    private fun getFromIsoName(
-        claimName: String
-    ): EuPidCredentialClaimDefinition? = EuPidCredentialMdocClaimDefinitionResolver().resolveOrNull(
-        namespace = EuPidScheme.isoNamespace,
-        claimName = claimName,
-    )
-
-    private fun withSdJwtNames(
-        attributeName: NormalizedJsonPath
-    ) = EuPidCredentialSdJwtClaimDefinitionResolver().resolveOrNull(attributeName)
+        attributeName.minus(EuPidScheme.isoNamespace).let {
+            it.memberName(0)?.let { claim ->
+                EuPidCredentialMdocClaimDefinitionResolver().resolveOrNull(EuPidScheme.isoNamespace, claim)
+                    ?.stringResourceOrNull() ?: EuPidCredentialSdJwtClaimDefinitionResolver().resolveOrNull(it)
+                    ?.stringResourceOrNull()
+            }
+        }
 
 
     private fun EuPidCredentialClaimDefinition.stringResourceOrNull() = when(this) {

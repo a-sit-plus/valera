@@ -1,7 +1,6 @@
 package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.attribute_friendly_name_administrative_number
 import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_12
@@ -49,20 +48,20 @@ import at.asitplus.valera.resources.attribute_friendly_name_portrait_capture_dat
 import at.asitplus.valera.resources.attribute_friendly_name_sex
 import at.asitplus.valera.resources.attribute_friendly_name_signature_usual_mark
 import at.asitplus.valera.resources.attribute_friendly_name_weight
+import at.asitplus.wallet.app.common.memberName
+import at.asitplus.wallet.app.common.minus
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import org.jetbrains.compose.resources.StringResource
 
 
 class MobileDrivingLicenceCredentialAttributeTranslator : CredentialAttributeTranslator {
-    override fun translate(attributeName: NormalizedJsonPath): StringResource? = listOfNotNull(
-        attributeName.segments.getOrNull(1),
-        attributeName.segments.firstOrNull(),
-    ).filterIsInstance<NormalizedJsonPathSegment.NameSegment>().firstNotNullOfOrNull {
-        MobileDrivingLicenceCredentialMdocClaimDefinitionResolver().resolveOrNull(
-            namespace = MobileDrivingLicenceScheme.isoNamespace,
-            claimName = it.memberName
-        )
-    }?.stringResourceOrNull()
+    override fun translate(attributeName: NormalizedJsonPath): StringResource? =
+        attributeName.minus(MobileDrivingLicenceScheme.isoNamespace).let {
+            it.memberName(0)?.let { claim ->
+                MobileDrivingLicenceCredentialMdocClaimDefinitionResolver().resolveOrNull(MobileDrivingLicenceScheme.isoNamespace, claim)
+                    ?.stringResourceOrNull()
+            }
+        }
 
     private fun MobileDrivingLicenceCredentialClaimDefinition.stringResourceOrNull(): StringResource? = when (this) {
         MobileDrivingLicenceCredentialClaimDefinition.FAMILY_NAME -> Res.string.attribute_friendly_name_lastname
