@@ -27,7 +27,7 @@ fun ConstantIndex.CredentialScheme?.uiLabel(): String = when (this) {
     is EuPidScheme -> stringResource(Res.string.credential_scheme_label_eu_pid)
     is EuPidSdJwtScheme -> stringResource(Res.string.credential_scheme_label_eu_pid_sdjwt)
     is MobileDrivingLicenceScheme -> stringResource(Res.string.credential_scheme_label_mdl)
-    is AgeVerificationScheme -> stringResource(Res.string.credential_scheme_label_mdl)
+    is AgeVerificationScheme -> stringResource(Res.string.credential_scheme_label_av)
     is PowerOfRepresentationScheme -> stringResource(Res.string.credential_scheme_label_power_of_representation)
     is CertificateOfResidenceScheme -> stringResource(Res.string.credential_scheme_label_certificate_of_residence)
     is CompanyRegistrationScheme -> stringResource(Res.string.credential_scheme_label_company_registration)

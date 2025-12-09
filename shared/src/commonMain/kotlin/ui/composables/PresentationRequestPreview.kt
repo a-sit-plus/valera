@@ -16,6 +16,8 @@ import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getL
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
+import at.asitplus.wallet.lib.data.CredentialPresentationRequest.DCQLRequest
+import at.asitplus.wallet.lib.data.CredentialPresentationRequest.PresentationExchangeRequest
 import data.credentials.MdocClaimReference
 import org.jetbrains.compose.resources.stringResource
 import data.credentials.JsonClaimReference
@@ -29,21 +31,14 @@ fun PresentationRequestPreview(
     onError: (Throwable) -> Unit,
 ) {
     when (presentationRequest) {
-        is CredentialPresentationRequest.DCQLRequest -> DcqlRequestPreview(
-            presentationRequest,
-            onError = onError,
-        )
-
-        is CredentialPresentationRequest.PresentationExchangeRequest -> PresentationExchangeRequestPreview(
-            presentationRequest,
-            onError = onError,
-        )
+        is DCQLRequest -> DcqlRequestPreview(presentationRequest, onError)
+        is PresentationExchangeRequest -> PresentationExchangeRequestPreview(presentationRequest, onError,)
     }
 }
 
 @Composable
 fun PresentationExchangeRequestPreview(
-    presentationRequest: CredentialPresentationRequest.PresentationExchangeRequest,
+    presentationRequest: PresentationExchangeRequest,
     onError: (Throwable) -> Unit,
 ) {
     presentationRequest.presentationDefinition.inputDescriptors.forEach { inputDescriptor ->
@@ -53,9 +48,7 @@ fun PresentationExchangeRequestPreview(
             RequestedCredentialPreview(
                 scheme = scheme,
                 representation = representation,
-                attributes = attributes.mapKeys {
-                    it.key as? NormalizedJsonPath
-                }
+                attributes = attributes.mapKeys { it.key }
             )
             Spacer(modifier = Modifier.height(16.dp))
         }.onFailure {
@@ -66,7 +59,7 @@ fun PresentationExchangeRequestPreview(
 
 @Composable
 fun DcqlRequestPreview(
-    presentationRequest: CredentialPresentationRequest.DCQLRequest,
+    presentationRequest: DCQLRequest,
     onError: (Throwable) -> Unit,
 ) {
     if (presentationRequest.dcqlQuery.requestedCredentialSetQueries.size != 1) {
@@ -111,7 +104,6 @@ fun DcqlRequestPreview(
 fun RequestedCredentialPreview(
     scheme: ConstantIndex.CredentialScheme,
     representation: ConstantIndex.CredentialRepresentation,
-//    attributes: Map<SingleClaimReference?, Boolean>?,
     attributes: Map<NormalizedJsonPath?, Boolean>?,
 ) {
     val schemeName = scheme.uiLabel()

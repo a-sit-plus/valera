@@ -192,7 +192,7 @@
 
     <string name="credential_scheme_icon_label_av">AV</string>
     <string name="credential_scheme_icon_label_mdl">mDL</string>
-    <string name="credential_scheme_label_av">AV</string>
+    <string name="credential_scheme_label_av">Age Verification</string>
     <string name="credential_scheme_label_mdl">mDL</string>
     <string name="credential_scheme_icon_label_eu_pid">PID</string>
     <string name="credential_scheme_label_eu_pid">PID</string>
