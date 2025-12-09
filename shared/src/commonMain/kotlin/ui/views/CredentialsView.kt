@@ -116,14 +116,11 @@ fun CredentialsView(
                         LazyColumn {
                             items(
                                 credentials.size,
-                                key = {
-                                    credentials[it].first
-                                }
+                                key = { credentials[it].first }
                             ) { index ->
                                 val storeEntry = credentials[index]
                                 val storeEntryIdentifier = storeEntry.first
                                 val credential = storeEntry.second
-
                                 val isTokenStatusEvaluated = storeEntryIdentifier in credentialTimelinessesStates
                                 val credentialFreshnessSummary = credentialTimelinessesStates[storeEntryIdentifier]
 

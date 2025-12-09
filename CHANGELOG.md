@@ -1,5 +1,9 @@
 # Release 5.7.6 (unreleased)
-
+ * Credentials: Fix displaying age verification credential
+ * Support URL scheme `av` for age verification
+ * Use vck serializers for DC API
+ * DC API: Support requests with multiple protocols
+ 
 # Release 5.7.5
  * Update to VC-K 5.10.1
  * Provide self-signed key attestation on issuing

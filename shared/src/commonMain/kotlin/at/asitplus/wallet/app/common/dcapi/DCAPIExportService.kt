@@ -4,7 +4,6 @@ import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.catching
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.app_display_name
-import at.asitplus.wallet.ageverification.AgeVerificationScheme
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialEntry
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry

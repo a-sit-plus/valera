@@ -22,11 +22,14 @@ import androidx.credentials.registry.provider.selectedEntryId
 import at.asitplus.KmmResult
 import at.asitplus.catching
 import at.asitplus.dcapi.DCAPIResponse
+import at.asitplus.dcapi.DigitalCredentialInterface
 import at.asitplus.dcapi.EncryptedResponse
 import at.asitplus.dcapi.EncryptedResponseData
-import at.asitplus.dcapi.request.DCAPIRequest
-import at.asitplus.dcapi.request.IsoMdocRequest
-import at.asitplus.dcapi.request.Oid4vpDCAPIRequest
+import at.asitplus.dcapi.IsoMdocResponse
+import at.asitplus.dcapi.request.DCAPIWalletRequest
+import at.asitplus.dcapi.request.ExchangeProtocolIdentifier
+import at.asitplus.dcapi.request.verifier.DigitalCredentialGetRequest
+import at.asitplus.dcapi.request.verifier.DigitalCredentialRequestOptions
 import at.asitplus.iso.DeviceRequest
 import at.asitplus.iso.EncryptionInfo
 import at.asitplus.iso.EncryptionParameters
@@ -241,7 +244,7 @@ public class AndroidPlatformAdapter(
     }
 
     @OptIn(ExperimentalDigitalCredentialApi::class, ExperimentalEncodingApi::class)
-    override fun getCurrentDCAPIData(): KmmResult<DCAPIRequest> = catching {
+    override fun getCurrentDCAPIData(): KmmResult<DCAPIWalletRequest> = catching {
         (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.let { (intent, _) ->
             // Adapted from https://github.com/openwallet-foundation-labs/identity-credential/blob/d7a37a5c672ed6fe1d863cbaeb1a998314d19fc5/wallet/src/main/java/com/android/identity_credential/wallet/credman/CredmanPresentationActivity.kt#L74
             val credentialRequest = PendingIntentHandler.retrieveProviderGetCredentialRequest(intent)
@@ -261,58 +264,47 @@ public class AndroidPlatformAdapter(
             val option = credentialRequest.credentialOptions[0] as GetDigitalCredentialOption
             val requestJson = JSONObject(option.requestJson)
 
+            val dcRequestOptions = vckJsonSerializer.decodeFromString<DigitalCredentialRequestOptions>(option.requestJson)
+
             val selectionInfo = getSetSelection(credentialRequest)
                 ?: getSelection(credentialRequest)
                 ?: throw IllegalStateException("Unable to get DC API selection")
 
+            val digitalCredentialGetRequest =
+                dcRequestOptions.requests.find { it.protocol == ExchangeProtocolIdentifier(selectionInfo.protocol) }
+                    ?: throw IllegalStateException("Unable to find suitable DC API request. Protocol may not be supported.")
+
             Napier.d("DC API: Got request $requestJson for selection $selectionInfo")
 
+            val credentialId = selectionInfo.documentIds[0]
 
-            val parsedRequest = if (requestJson.has("providers")) {
-                requestJson.getJSONArray("providers").getJSONObject(0)
-            } else {
-                requestJson.getJSONArray("requests").getJSONObject(0)
-            } // Only first request supported for now
-
-            val protocol = parsedRequest.getString("protocol")
-            val requestData = if (parsedRequest.has("request")) {
-                JSONObject(parsedRequest.getString("request"))
-            } else {
-                parsedRequest.getJSONObject("data")
-            }
-
-            val credentialId = selectionInfo.documentIds[0] // selectionInfo.documentIds
-            // TODO support multiple documents, need vck composite build for it
-
-            when {
-                protocol.startsWith("openid4vp") -> {
-                    Napier.d("Using protocol $protocol, got request $requestData for credential ID $credentialId")
-                    Oid4vpDCAPIRequest(
-                        protocol, requestData.toString(), credentialId, callingPackageName, callingOrigin
+            when (digitalCredentialGetRequest) {
+                is DigitalCredentialGetRequest.OpenId4VpSigned -> {
+                    Napier.d("Using OpenID4VP Signed, got request $digitalCredentialGetRequest for credential ID $credentialId")
+                    DCAPIWalletRequest.OpenId4VpSigned(
+                        request = digitalCredentialGetRequest.request,
+                        credentialId = credentialId,
+                        callingPackageName = callingPackageName,
+                        callingOrigin = callingOrigin
                     )
                 }
-
-                protocol == "org.iso.mdoc" || protocol == "org-iso-mdoc" -> {
-                    val deviceRequest = requestData.getString("deviceRequest")
-                    val encryptionInfo = requestData.getString("encryptionInfo")
-                    val parsedDeviceRequest = coseCompliantSerializer.decodeFromByteArray<DeviceRequest>(
-                        deviceRequest.decodeToByteArray(Base64UrlStrict)
-                    )
-                    val parsedEncryptionInfo = coseCompliantSerializer.decodeFromByteArray<EncryptionInfo>(
-                        encryptionInfo.decodeToByteArray(Base64UrlStrict)
-                    )
-                    IsoMdocRequest(
-                        parsedDeviceRequest,
-                        parsedEncryptionInfo,
-                        credentialId,
-                        callingPackageName,
-                        callingOrigin
+                is DigitalCredentialGetRequest.OpenId4VpUnsigned -> {
+                    Napier.d("Using OpenID4VP Unsigned, got request $digitalCredentialGetRequest for credential ID $credentialId")
+                    DCAPIWalletRequest.OpenId4VpUnsigned(
+                        request = digitalCredentialGetRequest.request,
+                        credentialId = credentialId,
+                        callingPackageName = callingPackageName,
+                        callingOrigin = callingOrigin
                     )
                 }
-
-                else -> {
-                    Napier.e("DC API: Protocol type $protocol not supported")
-                    throw IllegalArgumentException("Protocol type $protocol not supported")
+                is DigitalCredentialGetRequest.IsoMdoc -> {
+                    Napier.d("Using Iso 18013-7 Annex C, got request $digitalCredentialGetRequest for credential ID $credentialId")
+                    DCAPIWalletRequest.IsoMdoc(
+                        isoMdocRequest = digitalCredentialGetRequest.request,
+                        credentialId = credentialId,
+                        callingPackageName = callingPackageName,
+                        callingOrigin = callingOrigin
+                    )
                 }
             }
         } ?: throw IllegalStateException("DCAPIInvocationData not set")
@@ -347,10 +339,11 @@ public class AndroidPlatformAdapter(
                 cipherText = cipherText
             )
             val encryptedResponse = EncryptedResponse("dcapi", encryptedResponseData)
-
-            val dcApiResponse = DCAPIResponse.createIsoMdocResponse(encryptedResponse)
+            val dcApiResponse = DCAPIResponse(encryptedResponse)
+            val isoMdocResponse = IsoMdocResponse(dcApiResponse)
             Napier.d("Returning response $responseJson to digital credentials API invoker")
-            sendCredentialResponseToInvoker(vckJsonSerializer.encodeToString(dcApiResponse), true)
+            val serializedResponse = vckJsonSerializer.encodeToString<DigitalCredentialInterface>(isoMdocResponse)
+            sendCredentialResponseToInvoker(serializedResponse, true)
         } ?: throw IllegalStateException("Callback for response not found")
     }
 

@@ -28,6 +28,14 @@ std::string base64UrlDecode(const std::string& data) {
     return from_base64(s);
 }
 
+std::unique_ptr<MdocRequest> MdocRequest::parseSomething(const std::string& protocolName, cJSON* dataJson) {
+    auto dataElements = std::vector<MdocRequestDataElement>();
+    dataElements.push_back(MdocRequestDataElement("namespaceName", "dataElementName", false));
+    dataElements.push_back(MdocRequestDataElement("namespaceName2", "dataElementName2", false));
+
+    return std::unique_ptr<MdocRequest> { new MdocRequest(protocolName, "docTypeValue", dataElements) };
+}
+
 std::unique_ptr<MdocRequest> MdocRequest::parseMdocApi(const std::string& protocolName, cJSON* dataJson) {
     cJSON* deviceRequestJson = cJSON_GetObjectItem(dataJson, "deviceRequest");
     std::string deviceRequestBase64 = std::string(cJSON_GetStringValue(deviceRequestJson));
@@ -65,6 +73,37 @@ std::unique_ptr<MdocRequest> MdocRequest::parseMdocApi(const std::string& protoc
 
     return std::unique_ptr<MdocRequest> { new MdocRequest(protocolName, docTypeValue, dataElements) };
 }
+
+
+
+std::vector<Combination> MdocRequest::combineALL(const CredentialDatabase* db) {
+    std::vector<Combination> combinations;
+
+    // Since we only support a single docRequest (for now) this is easy...
+    std::vector<CredentialPresentment> matches;
+    if (!docType.empty()) {
+        for (const auto& credential : db->credentials) {
+            std::vector<Claim*> claimValues;
+                // Semantics is that we match if at least one of the requested data elements
+                // exist in the credential
+                for (const auto &requestedDataElement: dataElements) {
+                    claimValues.push_back((Claim*) &(credential.claims.begin()->second));
+                }
+                if (claimValues.size() > 0) {
+                    matches.push_back(CredentialPresentment(
+                            (Credential *) &credential,
+                            claimValues
+                    ));
+                }
+        }
+    }
+    std::vector<CombinationElement> elements;
+    elements.push_back(CombinationElement(matches));
+    combinations.push_back(Combination(0, elements));
+    return combinations;
+}
+
+
 
 std::vector<Combination> MdocRequest::getCredentialCombinations(const CredentialDatabase* db) {
     std::vector<Combination> combinations;
