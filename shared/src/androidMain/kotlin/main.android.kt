@@ -276,7 +276,7 @@ public class AndroidPlatformAdapter(
 
             Napier.d("DC API: Got request $requestJson for selection $selectionInfo")
 
-            val credentialId = selectionInfo.documentIds[0] // selectionInfo.documentIds
+            val credentialId = selectionInfo.documentIds[0]
 
             when (digitalCredentialGetRequest) {
                 is DigitalCredentialGetRequest.OpenId4VpSigned -> {
