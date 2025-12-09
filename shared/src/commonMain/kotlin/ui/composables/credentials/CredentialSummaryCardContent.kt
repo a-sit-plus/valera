@@ -26,7 +26,7 @@ fun CredentialSummaryCardContent(
         is EuPidScheme -> EuPidCredentialSummaryCardContent(credential, decodeToBitmap)
         is EuPidSdJwtScheme -> EuPidCredentialSummaryCardContent(credential, decodeToBitmap)
         is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialSummaryCardContent(credential, decodeToBitmap)
-        is AgeVerificationScheme -> AgeVerificationCredentialSummaryCardContent(credential, decodeToBitmap)
+        is AgeVerificationScheme -> AgeVerificationCredentialSummaryCardContent(credential)
         is PowerOfRepresentationScheme -> PowerOfRepresentationCredentialSummaryCardContent(credential)
         is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialSummaryCardContent(credential)
         is CompanyRegistrationScheme -> CompanyRegistrationCredentialSummaryCardContent(credential)

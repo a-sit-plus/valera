@@ -3,8 +3,6 @@ package data.credentials
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.error_credential_scheme_not_supported
 import at.asitplus.wallet.ageverification.AgeVerificationScheme
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.agent.representation
 import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
@@ -18,7 +16,6 @@ import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import at.asitplus.wallet.taxid.TaxIdScheme
 import data.Attribute
-import org.jetbrains.compose.resources.stringResource
 
 @Suppress("DEPRECATION")
 @Composable
