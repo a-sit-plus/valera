@@ -15,7 +15,6 @@ import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import at.asitplus.wallet.taxid.TaxIdScheme
 import data.PersonalDataCategory
 import data.credentialsdatacard.CompanyRegistrationCredentialAttributeCategorization
-import ui.composables.credentials.AgeVerificationCredentialView
 
 /**
  * The type, `List<AttributeUnpackingInformation>`, is there to
