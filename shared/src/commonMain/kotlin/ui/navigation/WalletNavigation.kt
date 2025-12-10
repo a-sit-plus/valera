@@ -94,13 +94,18 @@ fun WalletNavigation(
     }
 
     val navigatePending: () -> Unit = {
-        pendingRoute?.let {
-            Napier.d("Replace current with $it")
-            navController.replaceCurrent(it)
-            pendingRoute = null
-        } ?: run {
-            Napier.d("Navigate back")
-            navController.navigateUp()
+        CoroutineScope(Dispatchers.Main).launch {
+            pendingRoute?.let {
+                Napier.d("Replace current with $it")
+                navController.navigate(it) {
+                    popUpTo(navController.currentDestination?.id ?: return@navigate) { inclusive = true }
+                    launchSingleTop = true
+                }
+                pendingRoute = null
+            } ?: run {
+                Napier.d("Navigate back")
+                navController.navigateUp()
+            }
         }
     }
 
@@ -135,6 +140,16 @@ fun WalletNavigation(
         }
     }
 
+    val navigateNewGraph: (Route) -> Unit = { route ->
+        CoroutineScope(Dispatchers.Main).launch {
+            Napier.d("navigateNewGraph: $route")
+            navController.navigate(route) {
+                popUpTo(0)
+                launchSingleTop = true
+            }
+        }
+    }
+
     val onClickLogo = {
         urlOpener("https://wallet.a-sit.at/")
     }
@@ -153,6 +168,7 @@ fun WalletNavigation(
             navigateBack,
             popBackStack,
             navigatePending,
+            navigateNewGraph,
             onClickLogo,
             onError = { e ->
                 popBackStack(HomeScreenRoute)
@@ -210,6 +226,7 @@ private fun WalletNavHost(
     navigateBack: () -> Unit,
     popBackStack: (Route) -> Unit,
     navigatePending: () -> Unit,
+    navigateNewGraph: (Route) -> Unit,
     onClickLogo: () -> Unit,
     onError: (Throwable) -> Unit,
     koinScope: Scope,
@@ -226,9 +243,9 @@ private fun WalletNavHost(
     ) {
         composable<InitializationRoute> {
             InitializationView(koinScope = koinScope, navigateOnboarding = {
-                navigate(OnboardingStartRoute)
+                navigateNewGraph(OnboardingStartRoute)
             }, navigateHomeScreen = {
-                navigate(HomeScreenRoute)
+                navigateNewGraph(HomeScreenRoute)
             })
         }
         composable<OnboardingStartRoute> {
@@ -243,7 +260,7 @@ private fun WalletNavHost(
             OnboardingInformationView(
                 onClickContinue = {
                     settingsRepository.set(isConditionsAccepted = true)
-                    navigate(InitializationRoute)
+                    navigateNewGraph(InitializationRoute)
                 }, onClickLogo = onClickLogo
             )
         }
@@ -607,7 +624,7 @@ private fun WalletNavHost(
                 onClickFAQs = null,
                 onClickDataProtectionPolicy = null,
                 onClickLicenses = null,
-                onReset = { popBackStack(InitializationRoute) },
+                onReset = { navigateNewGraph(InitializationRoute) },
                 koinScope = koinScope
             )
         }
@@ -856,14 +873,5 @@ private fun WalletNavHost(
                 )
             }
         }
-    }
-}
-
-fun NavController.replaceCurrent(route: Route) {
-    this.navigate(route) {
-        popUpTo(this@replaceCurrent.currentDestination?.id ?: return@navigate) {
-            inclusive = true
-        }
-        launchSingleTop = true
     }
 }
