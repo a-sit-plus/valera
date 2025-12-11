@@ -12,7 +12,9 @@ import kotlinx.coroutines.async
 import kotlin.jvm.JvmInline
 
 @JvmInline
-value class JsonWebKeySetResolver(val httpService: HttpService) {
+value class JsonWebKeySetResolver(
+    val httpService: HttpService
+) {
     suspend operator fun invoke(url: String): JsonWebKeySet? = CoroutineScope(Dispatchers.IO).async {
         catchingUnwrapped {
             httpService.buildHttpClient().get(url).body<JsonWebKeySet>()
