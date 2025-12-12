@@ -2,7 +2,8 @@ package data.credentials
 
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
+import at.asitplus.wallet.app.common.memberName
+import at.asitplus.wallet.app.common.minus
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
@@ -20,15 +21,13 @@ import kotlinx.serialization.json.contentOrNull
 sealed class MobileDrivingLicenceCredentialAdapter(
     private val decodePortrait: (ByteArray) -> Result<ImageBitmap>,
 ) : CredentialAdapter() {
-    override fun getAttribute(path: NormalizedJsonPath) = listOfNotNull(
-        path.segments.getOrNull(1),
-        path.segments.firstOrNull(),
-    ).filterIsInstance<NormalizedJsonPathSegment.NameSegment>().firstNotNullOfOrNull {
-        MobileDrivingLicenceCredentialMdocClaimDefinitionResolver().resolveOrNull(
-            namespace = MobileDrivingLicenceScheme.isoNamespace,
-            claimName = it.memberName
-        )?.toAttribute()
-    }
+    override fun getAttribute(path: NormalizedJsonPath) =
+        path.minus(MobileDrivingLicenceScheme.isoNamespace).let {
+            it.memberName(0)?.let { claim ->
+                MobileDrivingLicenceCredentialMdocClaimDefinitionResolver().resolveOrNull(MobileDrivingLicenceScheme.isoNamespace, claim)
+                    ?.toAttribute()
+            }
+        }
 
     abstract val givenName: String?
     abstract val givenNameNational: String?

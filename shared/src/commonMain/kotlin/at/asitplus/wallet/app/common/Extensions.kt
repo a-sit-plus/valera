@@ -330,3 +330,11 @@ private fun String.unquote() = removePrefix("'").removePrefix("\"")
     .removeSuffix("\"").removeSuffix("'")
 
 private fun String.fallback(): List<NameSegment> = listOf(NameSegment(this))
+
+fun NormalizedJsonPath.memberName(id: Int) = this.segments.map { (it as NameSegment).memberName }.getOrNull(id)
+
+fun NormalizedJsonPath.minus(name: String) =
+    NormalizedJsonPath(this.segments.filter {
+        (it as NameSegment).memberName != name
+    }
+)
