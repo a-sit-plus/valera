@@ -118,6 +118,11 @@ fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, C
         is DCQLSdJwtCredentialQuery -> meta.vctValues
             .firstNotNullOfOrNull { AttributeIndex.resolveSdJwtAttributeType(it) }
         is DCQLCredentialQueryInstance -> null
+    } ?: when (this) {
+        is DCQLIsoMdocCredentialQuery -> IsoMdocFallbackCredentialScheme(isoDocType = meta.doctypeValue)
+        is DCQLSdJwtCredentialQuery -> meta.vctValues
+            .firstNotNullOfOrNull { SdJwtFallbackCredentialScheme(sdJwtType = it) }
+        is DCQLCredentialQueryInstance -> null
     } ?: throw Throwable("No matching scheme for $meta")
 
     // assuming all claims path pointers are single claim references
