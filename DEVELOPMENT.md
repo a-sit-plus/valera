@@ -6,7 +6,10 @@ Development happens in branch `development`. The `main` branch always tracks the
 
 ## Local deployments
 
-Running of the Android App requires a signer certificate to be configured. To do this you will need to generate a keystore file and add the correct keystore password to your `local.properties` file.
+Building of the Android App locally requires a signer certificate to be configured. To do this you will need to generate a keystore file and add the keystore's password to your `local.properties` file.
+
+> [!NOTE]
+> The following instructions are for fine for locally building debug APKs. Inside a CI pipeline, it is highly recommended to use CI secrets that are propagated to environment veriables!
 
 Navigate in a temporary directory and run the following commands to generate a keystore file:
 
