@@ -17,32 +17,45 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
         let buildType = BuildType.release_
         #endif
 
-        // TODO finish trying with most basic UI
         func makeUIViewController(context: Context) -> UIViewController {
             Napier.shared.base(antilog:OSLogNapierAntilog())
-            Napier.shared.log(priority: LogLevel.debug, tag: "123", throwable: nil, message: "HIER!!!!!!!!!!!!!!!!!!!!!!!!!33")
-            
+
             // Extract origin URL as String for Kotlin
             let originString: String? = requestContext.requestingWebsiteOrigin?.absoluteString
 
-            // Raw request payload is only available inside sendResponse(responseHandler:),
-            // so for now we pass nil here. We'll surface it when we get it in the response handler.
-            let requestPayload: Data? = nil
-            let requestDescription: String? = nil
+            requestContext.request.requestAuthentications.first.debugDescription
 
-            // Bridge callbacks that Kotlin can call to answer/cancel
+            Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "BLABLAB requestContext.requestingWebsiteOrigin: \(originString ?? "nil")")
+            Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "BLABLAB requestContext.request.presentmentRequests: \(requestContext.request.presentmentRequests.first.debugDescription ?? "nil")")
+            Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "BLABLAB requestContext.request.requestAuthentications: \(requestContext.request.requestAuthentications.first.debugDescription ?? "nil")")
+
+            var requestedElements: [String] = []
+            if let presentmentRequest = requestContext.request.presentmentRequests.first {
+                for docRequestSet in presentmentRequest.documentRequestSets {
+                    for docRequest in docRequestSet.requests {
+                        for (_, elements) in docRequest.namespaces {
+                            for (elementIdentifier, _) in elements {
+                                requestedElements.append(elementIdentifier)
+                            }
+                        }
+                    }
+                }
+            }
+
             let onSendResponse: (Data) -> Void = { payload in
-                // Kick off the platform flow: we provide a handler that receives the raw request,
-                // and we return an ISO18013MobileDocumentResponse built from Kotlin-provided bytes.
                 Task {
                     do {
+                        Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "BLABLAB Calling sendResponse")
                         try await requestContext.sendResponse { rawRequest in
+                            Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "BLABLAB sendResponse handler received rawRequest")
+                            Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "BLABLAB rawRequest.requestData: \(String(decoding: rawRequest.requestData, as: UTF8.self))")
                             // If Kotlin needs to see the request bytes first, we can extend the bridge to pass
                             // rawRequest.requestData to Kotlin and await a response; for now, we already have it.
                             let response = ISO18013MobileDocumentResponse(responseData: payload)
                             return response
                         }
                     } catch {
+                        Napier.shared.log(priority: LogLevel.error, tag: "DocumentProviderExtension", throwable: nil, message: "sendResponse failed: \(error)")
                         // If sending a response fails, cancel the session as a fallback
                         requestContext.cancel()
                     }
@@ -53,85 +66,27 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
                 requestContext.cancel()
             }
 
-            // Try to construct the Compose-based UI, but fall back to a Swift UI if it fails
-            /*if let vc = Main_iosKt.tryComposeEntryPoint(
+            return Main_iosKt.MdocRequestViewController(
                 requestingWebsiteOrigin: originString,
-                requestPayload: requestPayload,
-                requestDescription: requestDescription,
+                requestedElements: requestedElements,
                 onSendResponse: onSendResponse,
                 onCancel: onCancel
-            ) {
-                return vc
-            } else {
-                return makeSwiftFallbackViewController()
-            }*/
-            //Main_iosKt.doInitLogger(isDebug: true)
-
-            
-            return Main_iosKt.MainViewController(
-                buildContext: BuildContext(
-                    buildType: buildType,
-                    packageName: Bundle.main.bundleIdentifier ?? "at.asitplus.wallet.compose",
-                    versionCode: Bundle.main.infoDictionary?["CFBundleVersion"] as? Int32 ?? 1,
-                    versionName: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String  ?? "1.0.0",
-                    osVersion: "iOS " + UIDevice.current.systemVersion
-                )
             )
         }
 
         func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
         }
-
-        // MARK: - Swift fallback UI
-        private func makeSwiftFallbackViewController() -> UIViewController {
-            let vc = UIViewController()
-            vc.view.backgroundColor = .systemBackground
-
-            let label = UILabel()
-            label.text = "Unable to open request UI."
-            label.textAlignment = .center
-            label.numberOfLines = 0
-
-            let button = UIButton(type: .system)
-            button.setTitle("Close", for: .normal)
-            // Use UIAction to avoid needing an @objc selector on a struct
-            button.addAction(UIAction { _ in
-                requestContext.cancel()
-            }, for: .touchUpInside)
-
-            let stack = UIStackView(arrangedSubviews: [label, button])
-            stack.axis = .vertical
-            stack.alignment = .center
-            stack.spacing = 16
-
-            vc.view.addSubview(stack)
-            stack.translatesAutoresizingMaskIntoConstraints = false
-            NSLayoutConstraint.activate([
-                stack.centerXAnchor.constraint(equalTo: vc.view.centerXAnchor),
-                stack.centerYAnchor.constraint(equalTo: vc.view.centerYAnchor),
-                stack.leadingAnchor.constraint(greaterThanOrEqualTo: vc.view.leadingAnchor, constant: 20),
-                vc.view.trailingAnchor.constraint(greaterThanOrEqualTo: stack.trailingAnchor, constant: 20)
-            ])
-
-            return vc
-        }
-        // No @objc selector needed; handled via UIAction above.
     }
 
 
     var body: some IdentityDocumentRequestScene {
         ISO18013MobileDocumentRequestScene { context in
-            // Insert your view here
-            //Text("Hello, world!")
-            //WindowGroup {
-            // Pass the scene context down to the UIKit representable
             ComposeViewController(requestContext: context)
-            //}
         }
     }
 
     func performRegistrationUpdates() async {
-        
+
     }
 
 }
