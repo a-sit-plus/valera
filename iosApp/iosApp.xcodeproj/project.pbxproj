@@ -17,6 +17,7 @@
 		B7DE8C76E0C9345E47E4A6DA /* OsLogBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7DE85B6E71591733868E4D1 /* OsLogBridge.swift */; };
 		B7DE8F4AF477D6E8EDAC45E9 /* OSLogNapierAntilog.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7DE86B6B19B6FFB46488EE1 /* OSLogNapierAntilog.swift */; };
 		E147A2B12EB4FD5A00D88306 /* IdentityDocumentProviderExtension.appex in Embed ExtensionKit Extensions */ = {isa = PBXBuildFile; fileRef = E147A2AA2EB4FD5A00D88306 /* IdentityDocumentProviderExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		E1B7FF7A2EF07846006DA318 /* compose-resources in Resources */ = {isa = PBXBuildFile; fileRef = E1B7FF792EF07845006DA318 /* compose-resources */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -56,10 +57,11 @@
 		B7DE85B6E71591733868E4D1 /* OsLogBridge.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OsLogBridge.swift; sourceTree = "<group>"; };
 		B7DE86B6B19B6FFB46488EE1 /* OSLogNapierAntilog.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OSLogNapierAntilog.swift; sourceTree = "<group>"; };
 		E147A2AA2EB4FD5A00D88306 /* IdentityDocumentProviderExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.extensionkit-extension"; includeInIndex = 0; path = IdentityDocumentProviderExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		E1B7FF792EF07845006DA318 /* compose-resources */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "compose-resources"; path = "../build/extension_compose_resources/compose-resources"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		E1326BF82EC7761700B61537 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		E1B7FF6D2EF073D5006DA318 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -69,7 +71,18 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		E147A2AB2EB4FD5A00D88306 /* IdentityDocumentProviderExtension */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (E1326BF82EC7761700B61537 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = IdentityDocumentProviderExtension; sourceTree = "<group>"; };
+		E1B7FF692EF073D5006DA318 /* IdentityDocumentProviderExtension */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				E1B7FF6D2EF073D5006DA318 /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = IdentityDocumentProviderExtension;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -108,12 +121,13 @@
 		7555FF72242A565900829871 = {
 			isa = PBXGroup;
 			children = (
+				E1B7FF792EF07845006DA318 /* compose-resources */,
 				489754B12DBFC9BC00FACCF5 /* LaunchScreen.storyboard */,
 				AB1DB47929225F7C00F7AF9C /* Configuration */,
 				7555FF7D242A565900829871 /* iosApp */,
-				E147A2AB2EB4FD5A00D88306 /* IdentityDocumentProviderExtension */,
 				7555FF7C242A565900829871 /* Products */,
 				42799AB246E5F90AF97AA0EF /* Frameworks */,
+				E1B7FF692EF073D5006DA318 /* IdentityDocumentProviderExtension */,
 			);
 			sourceTree = "<group>";
 		};
@@ -176,6 +190,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = E147A2B62EB4FD5A00D88306 /* Build configuration list for PBXNativeTarget "IdentityDocumentProviderExtension" */;
 			buildPhases = (
+				E1B7FF572EEF0519006DA318 /* ShellScript */,
 				E147A2A62EB4FD5A00D88306 /* Sources */,
 				E147A2A72EB4FD5A00D88306 /* Frameworks */,
 				E147A2A82EB4FD5A00D88306 /* Resources */,
@@ -185,7 +200,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				E147A2AB2EB4FD5A00D88306 /* IdentityDocumentProviderExtension */,
+				E1B7FF692EF073D5006DA318 /* IdentityDocumentProviderExtension */,
 			);
 			name = IdentityDocumentProviderExtension;
 			packageProductDependencies = (
@@ -246,6 +261,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E1B7FF7A2EF07846006DA318 /* compose-resources in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -268,7 +284,24 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd \"$SRCROOT/..\"\n./gradlew :shared:embedAndSignAppleFrameworkForXcode\n";
+			shellScript = "if [ \"YES\" = \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" ]; then\n  echo \"Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \\\"YES\\\"\"\n  exit 0\nfi\ncd \"$SRCROOT/..\"\n./gradlew :shared:embedAndSignAppleFrameworkForXcode";
+		};
+		E1B7FF572EEF0519006DA318 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "#!/bin/sh\nset -e\n\n# This script prepares Compose resources in an intermediate directory.\n# Xcode will then copy them into the bundle via a folder reference.\n\n# 1. Define the intermediate output directory.\nOUTPUT_DIR=\"$SRCROOT/../build/extension_compose_resources/compose-resources\"\n\n# 2. Define the root path where KMP stores all generated resources.\nKMP_RESOURCES_ROOT=\"$SRCROOT/../shared/build/kotlin-multiplatform-resources/aggregated-resources\"\n\n# 3. Determine the correct architecture-specific source directory.\nSOURCE_RESOURCES_DIR=\"$KMP_RESOURCES_ROOT/iosArm64/composeResources\" # Default to device\nif [ \"$PLATFORM_NAME\" == \"iphonesimulator\" ]; then\n    if [ \"$ARCHS\" == \"x86_64\" ]; then\n        SOURCE_RESOURCES_DIR=\"$KMP_RESOURCES_ROOT/iosX64/composeResources\"\n    else\n        SOURCE_RESOURCES_DIR=\"$KMP_RESOURCES_ROOT/iosSimulatorArm64/composeResources\"\n    fi\nfi\n\n# 4. Sync the resources. This creates the structure \".../extension_compose_resources/composeResources\"\nif [ -d \"$SOURCE_RESOURCES_DIR\" ]; then\n  mkdir -p \"$OUTPUT_DIR\"\n  rsync -a --delete \"$SOURCE_RESOURCES_DIR\" \"$OUTPUT_DIR/\"\nelse\n  echo \"warning: Compose resources directory not found at $SOURCE_RESOURCES_DIR. Creating empty directory to avoid build errors.\"\n  mkdir -p \"$OUTPUT_DIR\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
