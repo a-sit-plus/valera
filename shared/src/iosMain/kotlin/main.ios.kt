@@ -305,24 +305,80 @@ private fun ComposeApp(session: MdocRequestSession?) {
 
 fun dcapiViewController(
     buildContext: BuildContext,
-): UIViewController {
-    /*val iosPlatformAdapter = IosPlatformAdapter()
-    val dataStoreService = RealDataStoreService(createDataStore(), iosPlatformAdapter)
-    val keystoreService = KeystoreService(dataStoreService)
-    val promptModel = IosPromptModel()*/
-    initLogger(true)
-    return ComposeUIViewController {
+@Composable
+private fun MdocRequestUI(
+    requestingWebsiteOrigin: String?,
+    requestedElements: List<String>,
+    onAccept: () -> Unit,
+    onCancel: () -> Unit
+) {
+    MaterialTheme(colorScheme = if (isSystemInDarkTheme()) darkScheme else lightScheme) {
+        Surface(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Presentation Request",
+                    style = MaterialTheme.typography.headlineMedium
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                requestingWebsiteOrigin?.let {
+                    Text("Request from:")
+                    Text(it, style = MaterialTheme.typography.bodyLarge)
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
 
-        /*App(
-            WalletDependencyProvider(
-                keystoreService,
-                dataStoreService,
-                iosPlatformAdapter,
-                buildContext = buildContext,
-                promptModel = promptModel,
-                shouldListen = false
-            )
-        )*/
+                Text("Requested Data:")
+                Spacer(modifier = Modifier.height(8.dp))
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    requestedElements.forEach { element ->
+                        Text("- $element")
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Button(onClick = onCancel) {
+                        Text("Cancel")
+                    }
+                    Button(onClick = onAccept) {
+                        Text("Accept")
+                    }
+                }
+            }
+        }
+    }
+}
+
+fun MdocRequestViewController(
+    requestingWebsiteOrigin: String?,
+    requestedElements: List<String>,
+    onSendResponse: (NSData) -> Unit,
+    onCancel: () -> Unit
+): UIViewController {
+
+    return ComposeUIViewController {
+        MdocRequestUI(
+            requestingWebsiteOrigin = requestingWebsiteOrigin,
+            requestedElements = requestedElements,
+            onAccept = {
+                // Create a dummy response for now
+                val dummyResponse = "dummy response data".encodeToByteArray().toNSData()
+                onSendResponse(dummyResponse)
+            },
+            onCancel = onCancel
+        )
     }
 }
 
