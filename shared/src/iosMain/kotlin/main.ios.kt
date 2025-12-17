@@ -118,9 +118,9 @@ fun initLogger(isDebug: Boolean) {
 
 fun MainViewController(
     buildContext: BuildContext,
+    request: NSData? = null
 ): UIViewController {
-    initLogger(true)
-    val iosPlatformAdapter = IosPlatformAdapter()
+    val iosPlatformAdapter = IosPlatformAdapter(request)
     val dataStoreService = RealDataStoreService(createDataStore(), iosPlatformAdapter)
     val keystoreService = KeystoreService(dataStoreService)
     val promptModel = IosPromptModel()
@@ -144,34 +144,6 @@ fun MainViewController(
     }
 }
 
-/*@Composable
-private fun ComposeApp() { // This function also may be placed in commonMain source set.
-    MaterialTheme {
-        Surface {
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .windowInsetsPadding(WindowInsets.systemBars)
-                    .background(Color.Green.copy(alpha = 0.3f))
-            ) {
-                Text("top", Modifier.align(Alignment.TopCenter))
-                Text("ComposeApp", Modifier.align(Alignment.Center))
-                Text("bottom", Modifier.align(Alignment.BottomCenter))
-            }
-        }
-    }
-}*/
-
-/*fun ComposeEntryPoint(): UIViewController =
-    try {
-        ComposeUIViewController {
-            ComposeApp()
-        }
-    } catch (t: Throwable) {
-        Napier.e("Failed to construct ComposeUIViewController (no-arg)", t)
-        fallbackViewController("An unexpected error occurred.")
-    }*/
-
 // Session information and callbacks bridged from the iOS ISO18013 scene
 data class MdocRequestSession(
     val requestingWebsiteOrigin: String?,
@@ -181,86 +153,8 @@ data class MdocRequestSession(
     val onCancel: () -> Unit
 )
 
-// Overload that accepts the bridged context so Kotlin can read and act
-/*fun ComposeEntryPoint(
-    requestingWebsiteOrigin: String?,
-    requestPayload: NSData?,
-    requestDescription: String?,
-    onSendResponse: (NSData) -> Unit,
-    onCancel: () -> Unit
-): UIViewController = try {
-    ComposeUIViewController {
-        val session = MdocRequestSession(
-            requestingWebsiteOrigin = requestingWebsiteOrigin,
-            requestPayload = requestPayload,
-            requestDescription = requestDescription,
-            onSendResponse = onSendResponse,
-            onCancel = onCancel
-        )
-
-        ComposeApp(session)
-    }
-} catch (t: Throwable) {
-    Napier.e("Failed to construct ComposeUIViewController (with session)", t)
-    fallbackViewController("Unable to open request UI.")
-}*/
-
-// Nullable factories so Swift can decide how to render fallback UI
-/*fun tryComposeEntryPoint(): UIViewController? = try {
-    ComposeUIViewController { ComposeApp() }
-} catch (t: Throwable) {
-    Napier.e("ComposeEntryPoint() failed", t)
-    null
-}*/
-
-fun tryComposeEntryPoint(
-    requestingWebsiteOrigin: String?,
-    requestPayload: NSData?,
-    requestDescription: String?,
-    onSendResponse: (NSData) -> Unit,
-    onCancel: () -> Unit
-): UIViewController? = try {
-    initLogger(true)
-    ComposeUIViewController {
-        val session = MdocRequestSession(
-            requestingWebsiteOrigin = requestingWebsiteOrigin,
-            requestPayload = requestPayload,
-            requestDescription = requestDescription,
-            onSendResponse = onSendResponse,
-            onCancel = onCancel
-        )
-        ComposeApp(session)
-    }
-} catch (t: Throwable) {
-    Napier.e("ComposeEntryPoint(session) failed", t)
-    null
-}
-
-/*private fun fallbackViewController(message: String): UIViewController {
-    val vc = UIViewController()
-    val label = UILabel().apply {
-        text = message
-        textAlignment = NSTextAlignmentCenter
-        // 0 means no limit
-        numberOfLines = 0L
-        textColor = UIColor.labelColor
-    }
-    vc.view.backgroundColor = UIColor.systemBackgroundColor
-    vc.view.addSubview(label)
-    label.translatesAutoresizingMaskIntoConstraints = false
-    val constraints = listOf(
-        label.centerXAnchor.constraintEqualToAnchor(vc.view.centerXAnchor),
-        label.centerYAnchor.constraintEqualToAnchor(vc.view.centerYAnchor),
-        label.leadingAnchor.constraintGreaterThanOrEqualToAnchor(vc.view.leadingAnchor, 20.0),
-        vc.view.trailingAnchor.constraintGreaterThanOrEqualToAnchor(label.trailingAnchor, 20.0)
-    )
-    constraints.forEach { it.active = true }
-    return vc
-}*/
-
 @Composable
 private fun ComposeApp(session: MdocRequestSession?) {
-    initLogger(true)
     // Minimal surface to demonstrate reading values and invoking callbacks
     MaterialTheme(colorScheme = if (isSystemInDarkTheme()) darkScheme else lightScheme) {
         Surface(modifier = Modifier.fillMaxSize()) {
@@ -303,8 +197,6 @@ private fun ComposeApp(session: MdocRequestSession?) {
     }
 }
 
-fun dcapiViewController(
-    buildContext: BuildContext,
 @Composable
 private fun MdocRequestUI(
     requestingWebsiteOrigin: String?,
@@ -383,6 +275,7 @@ fun MdocRequestViewController(
 }
 
 class IosPlatformAdapter(
+    private val request: NSData? = null
 ) : PlatformAdapter {
     override fun openUrl(url: String) {
         val url = NSURL(string = url)
