@@ -23,7 +23,6 @@ struct ComposeView: UIViewControllerRepresentable {
                 versionName: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String  ?? "1.0.0",
                 osVersion: "iOS " + UIDevice.current.systemVersion
             ),
-            request: nil,
         )
     }
 
