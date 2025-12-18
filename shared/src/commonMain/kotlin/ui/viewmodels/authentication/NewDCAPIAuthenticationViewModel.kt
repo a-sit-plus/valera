@@ -59,7 +59,7 @@ class NewDCAPIAuthenticationViewModel(
                             ), intentToRetain = requestedAttribute.value
                         )
                     }
-                })
+                }.toSet())
             )
         }
     }
