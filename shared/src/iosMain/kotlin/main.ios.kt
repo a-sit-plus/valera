@@ -5,6 +5,8 @@ import androidx.compose.ui.window.ComposeUIViewController
 import at.asitplus.KmmResult
 import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.iso.EncryptionParameters
+import at.asitplus.iso.mdoc.DeviceRequest
+import at.asitplus.iso.mdoc.SessionEncryption
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.CapabilitiesService
 import at.asitplus.wallet.app.common.KeystoreService
@@ -27,6 +29,8 @@ import kotlinx.cinterop.ptr
 import kotlinx.cinterop.usePinned
 import kotlinx.cinterop.value
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import org.koin.core.module.dsl.scopedOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.binds
@@ -82,8 +86,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import platform.UIKit.UIViewController
-import platform.Foundation.NSData
 import kotlin.experimental.ExperimentalNativeApi
 
 
@@ -98,6 +100,25 @@ actual fun getColorScheme(): ColorScheme {
     }
 }
 
+object MdocSessionManager {
+    var rawRequest: NSData? = null
+    var onFinish: ((NSData?) -> Unit)? = null
+    var callingOrigin: String? = null
+
+    fun setSession(request: NSData, origin: String?, callback: (NSData?) -> Unit) {
+        rawRequest = request
+        callingOrigin = origin
+        onFinish = callback
+        Napier.d("MdocSessionManager: Session set with request of length ${request.length} from origin $origin")
+    }
+
+    fun clearSession() {
+        rawRequest = null
+        onFinish = null
+        callingOrigin = null
+        Napier.d("MdocSessionManager: Session cleared")
+    }
+}
 
 
 @OptIn(ExperimentalNativeApi::class)
@@ -118,9 +139,8 @@ fun initLogger(isDebug: Boolean) {
 
 fun MainViewController(
     buildContext: BuildContext,
-    request: NSData? = null
 ): UIViewController {
-    val iosPlatformAdapter = IosPlatformAdapter(request)
+    val iosPlatformAdapter = IosPlatformAdapter()
     val dataStoreService = RealDataStoreService(createDataStore(), iosPlatformAdapter)
     val keystoreService = KeystoreService(dataStoreService)
     val promptModel = IosPromptModel()
@@ -265,6 +285,7 @@ fun MdocRequestViewController(
             requestingWebsiteOrigin = requestingWebsiteOrigin,
             requestedElements = requestedElements,
             onAccept = {
+                Napier.d("MdocRequestUI onAccept")
                 // Create a dummy response for now
                 val dummyResponse = "dummy response data".encodeToByteArray().toNSData()
                 onSendResponse(dummyResponse)
@@ -274,9 +295,13 @@ fun MdocRequestViewController(
     }
 }
 
-class IosPlatformAdapter(
-    private val request: NSData? = null
-) : PlatformAdapter {
+@Serializable
+private data class IosMdocRequestContainer(
+    val deviceRequest: DeviceRequest,
+    val sessionEncryption: SessionEncryption,
+)
+
+class IosPlatformAdapter: PlatformAdapter {
     override fun openUrl(url: String) {
         val url = NSURL(string = url)
         if (UIApplication.sharedApplication.canOpenURL(url)) {
@@ -448,7 +473,23 @@ class IosPlatformAdapter(
     }
 
     override fun getCurrentDCAPIData(): KmmResult<DCAPIWalletRequest> {
-        return KmmResult.failure(Throwable("Using Swift platform adapter"))
+        Napier.d("getCurrentDCAPIData called")
+        return MdocSessionManager.rawRequest?.let {
+            try {
+                val jsonString = it.toByteArray().decodeToString()
+                val requestContainer = Json.decodeFromString<IosMdocRequestContainer>(jsonString)
+                val isoMdocRequest = IsoMdocRequest(
+                    deviceRequest = requestContainer.deviceRequest,
+                    encryptionInfo = requestContainer.sessionEncryption,
+                    callingOrigin = MdocSessionManager.callingOrigin,
+                    callingPackageName = ""
+                )
+                KmmResult.success(isoMdocRequest)
+            } catch (e: Throwable) {
+                Napier.e("Error parsing mdoc request", e)
+                KmmResult.failure(e)
+            }
+        } ?: KmmResult.failure(Throwable("No request data available"))
     }
 
     override suspend fun prepareDCAPIIsoMdocCredentialResponse(
@@ -456,11 +497,13 @@ class IosPlatformAdapter(
         sessionTranscript: ByteArray,
         encryptionParameters: EncryptionParameters
     ) {
-        //TODO("Not yet implemented")
+        Napier.d("prepareDCAPIIsoMdocCredentialResponse called")
+        MdocSessionManager.onFinish?.invoke(responseJson.toNSData())
+        MdocSessionManager.clearSession()
     }
 
     override fun prepareDCAPIOid4vpCredentialResponse(responseJson: String, success: Boolean) {
-        //TODO("Not yet implemented")
+        throw IllegalStateException("OID4VP not supported on iOS")
     }
 
     override fun openDeviceSettings() {
@@ -496,5 +539,12 @@ fun ByteArray.toNSData(): NSData = memScoped {
             bytes = pinned.addressOf(0),
             length = this@toNSData.size.toULong()
         )
+    }
+}
+
+@OptIn(ExperimentalForeignApi::class)
+fun NSData.toByteArray(): ByteArray = ByteArray(this.length.toInt()).apply {
+    usePinned {
+        memcpy(it.addressOf(0), this@toByteArray.bytes, this@toByteArray.length)
     }
 }
