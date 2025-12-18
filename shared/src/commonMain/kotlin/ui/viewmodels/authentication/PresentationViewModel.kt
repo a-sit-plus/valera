@@ -65,7 +65,7 @@ class PresentationViewModel(
                             ), intentToRetain = requestedAttribute.value
                         )
                     }
-                })
+                }.toSet())
             )
         }
         this.finishFunction = finishFunction
