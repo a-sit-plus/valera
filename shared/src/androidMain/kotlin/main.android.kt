@@ -22,6 +22,7 @@ import androidx.credentials.registry.provider.selectedEntryId
 import at.asitplus.KmmResult
 import at.asitplus.catching
 import at.asitplus.dcapi.DCAPIResponse
+import at.asitplus.dcapi.DCAPIHandover.Companion.TYPE_DCAPI
 import at.asitplus.dcapi.DigitalCredentialInterface
 import at.asitplus.dcapi.EncryptedResponse
 import at.asitplus.dcapi.EncryptedResponseData
@@ -30,14 +31,11 @@ import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.dcapi.request.ExchangeProtocolIdentifier
 import at.asitplus.dcapi.request.verifier.DigitalCredentialGetRequest
 import at.asitplus.dcapi.request.verifier.DigitalCredentialRequestOptions
-import at.asitplus.iso.DeviceRequest
-import at.asitplus.iso.EncryptionInfo
 import at.asitplus.iso.EncryptionParameters
 import at.asitplus.signum.indispensable.cosef.CoseKeyParams.EcKeyParams
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
-import at.asitplus.signum.indispensable.io.Base64UrlStrict
 import at.asitplus.wallet.app.android.dcapi.CustomRegistry
-import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
+import at.asitplus.wallet.app.android.dcapi.AndroidDCAPIInvocationData
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.CapabilitiesService
 import at.asitplus.wallet.app.common.KeystoreService
@@ -51,11 +49,9 @@ import at.asitplus.wallet.lib.data.vckJsonSerializer
 import data.storage.RealDataStoreService
 import data.storage.getDataStore
 import io.github.aakira.napier.Napier
-import io.matthewnelson.encoding.core.Decoder.Companion.decodeToByteArray
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import org.json.JSONObject
 import org.koin.core.module.dsl.scopedOf
@@ -233,7 +229,7 @@ public class AndroidPlatformAdapter(
         )
     }
 
-    private fun getSelection(request: ProviderGetCredentialRequest): SelectionInfo? {
+    private fun getSelection(request: ProviderGetCredentialRequest): SelectionInfo {
         val selectedEntryId = request.selectedEntryId
             ?: throw IllegalStateException("selectedEntryId is null")
         val splits = selectedEntryId.split(" ")
@@ -246,7 +242,7 @@ public class AndroidPlatformAdapter(
 
     @OptIn(ExperimentalDigitalCredentialApi::class, ExperimentalEncodingApi::class)
     override fun getCurrentDCAPIData(): KmmResult<DCAPIWalletRequest> = catching {
-        (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.let { (intent, _) ->
+        (Globals.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { (intent, _) ->
             // Adapted from https://github.com/openwallet-foundation-labs/identity-credential/blob/d7a37a5c672ed6fe1d863cbaeb1a998314d19fc5/wallet/src/main/java/com/android/identity_credential/wallet/credman/CredmanPresentationActivity.kt#L74
             val credentialRequest = PendingIntentHandler.retrieveProviderGetCredentialRequest(intent)
                 ?: throw IllegalArgumentException("DC API: No credential request received")
@@ -269,7 +265,6 @@ public class AndroidPlatformAdapter(
 
             val selectionInfo = getSetSelection(credentialRequest)
                 ?: getSelection(credentialRequest)
-                ?: throw IllegalStateException("Unable to get DC API selection")
 
             val digitalCredentialGetRequest =
                 dcRequestOptions.requests.find { it.protocol == ExchangeProtocolIdentifier(selectionInfo.protocol) }
@@ -317,7 +312,7 @@ public class AndroidPlatformAdapter(
         sessionTranscript: ByteArray,
         encryptionParameters: EncryptionParameters
     ) {
-        (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
+        (Globals.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
             val publicKey = try {
                 val x = (encryptionParameters.recipientPublicKey.keyParams as EcKeyParams<*>).x
                 val y = (encryptionParameters.recipientPublicKey.keyParams as EcKeyParams<*>).y
@@ -339,7 +334,7 @@ public class AndroidPlatformAdapter(
                 enc = encrypter.encapsulatedKey.toByteArray(),
                 cipherText = ciphertext
             )
-            val encryptedResponse = EncryptedResponse("dcapi", encryptedResponseData)
+            val encryptedResponse = EncryptedResponse(TYPE_DCAPI, encryptedResponseData)
             val dcApiResponse = DCAPIResponse(encryptedResponse)
             val isoMdocResponse = IsoMdocResponse(dcApiResponse)
             Napier.d("Returning response $responseJson to digital credentials API invoker")
@@ -348,8 +343,8 @@ public class AndroidPlatformAdapter(
         } ?: throw IllegalStateException("Callback for response not found")
     }
 
-    override fun prepareDCAPIOid4vpCredentialResponse(responseJson: String, success: Boolean) {
-        (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
+    override fun prepareDCAPIOpenId4VpCredentialResponse(responseJson: String, success: Boolean) {
+        (Globals.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
             Napier.d("Returning response $responseJson to digital credentials API invoker")
             sendCredentialResponseToInvoker(responseJson, success)
         } ?: throw IllegalStateException("Callback for response not found")

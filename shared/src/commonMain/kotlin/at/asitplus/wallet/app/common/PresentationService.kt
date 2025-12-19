@@ -124,7 +124,7 @@ class PresentationService(
     }
 
     fun finalizeOid4vpDCAPIPresentation(response: String) =
-        platformAdapter.prepareDCAPIOid4vpCredentialResponse(response, true)
+        platformAdapter.prepareDCAPIOpenId4VpCredentialResponse(response, true)
 
     @OptIn(ExperimentalStdlibApi::class)
     suspend fun finalizeLocalPresentation(

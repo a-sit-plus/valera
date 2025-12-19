@@ -107,7 +107,8 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
                                     continuation.resume(returning: data ?? Data())
                                 }
                                 
-                                MdocSessionManager.shared.setSession(request: rawRequest.requestData, origin: originString, callback: onFinish)
+                                let invocationData = IosDCAPIInvocationData(rawRequest: (String(decoding: rawRequest.requestData, as: UTF8.self)), origin: originString, onFinish: onFinish)
+                                MdocSessionManager.shared.setSession(data: invocationData)
                                 
                                 Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "Before displaying MainViewController")
 
