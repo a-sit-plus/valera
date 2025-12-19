@@ -20,7 +20,7 @@ import ui.viewmodels.authentication.PresentationStateModel
 /**
  * Global variables which help to channel information from platform-specific code
  * to compose whenever the app gets called from native code, such as via an associated domain,
- * NFC or the DC API
+ * NFC, or the DC API
  */
 object Globals {
     var appLink = MutableStateFlow<String?>(null)

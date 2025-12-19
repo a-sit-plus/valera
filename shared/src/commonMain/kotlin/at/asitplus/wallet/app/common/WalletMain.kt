@@ -239,7 +239,7 @@ interface PlatformAdapter {
         encryptionParameters: EncryptionParameters
     )
 
-    fun prepareDCAPIOid4vpCredentialResponse(responseJson: String, success: Boolean)
+    fun prepareDCAPIOpenId4VpCredentialResponse(responseJson: String, success: Boolean)
 
     fun openDeviceSettings()
 
@@ -278,7 +278,7 @@ class DummyPlatformAdapter : PlatformAdapter {
     ) {
     }
 
-    override fun prepareDCAPIOid4vpCredentialResponse(responseJson: String, success: Boolean) {
+    override fun prepareDCAPIOpenId4VpCredentialResponse(responseJson: String, success: Boolean) {
     }
 
     override fun openDeviceSettings() {

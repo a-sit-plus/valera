@@ -7,7 +7,7 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.credentials.registry.provider.RegistryManager
-import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
+import at.asitplus.wallet.app.android.dcapi.AndroidDCAPIInvocationData
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.BuildType
 import org.multipaz.prompt.AndroidPromptModel
@@ -43,7 +43,7 @@ class MainActivity : AbstractWalletActivity() {
         when (intent.action) {
             RegistryManager.ACTION_GET_CREDENTIAL -> {
                 Globals.dcapiInvocationData.value =
-                    DCAPIInvocationData(intent, ::sendCredentialResponseToDCAPIInvoker)
+                    AndroidDCAPIInvocationData(intent, ::sendCredentialResponseToDCAPIInvoker)
                 Globals.appLink.value = intent.action
             }
             PRESENTATION_REQUESTED_INTENT -> {
