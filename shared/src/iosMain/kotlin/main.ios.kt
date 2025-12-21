@@ -257,7 +257,7 @@ class IosPlatformAdapter(
         return KmmResult.failure(Throwable("Using Swift platform adapter"))
     }
 
-    override fun prepareDCAPIIsoMdocCredentialResponse(
+    override suspend fun prepareDCAPIIsoMdocCredentialResponse(
         responseJson: ByteArray,
         sessionTranscript: ByteArray,
         encryptionParameters: EncryptionParameters
