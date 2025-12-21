@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.window.ComposeUIViewController
 import at.asitplus.KmmResult
 import at.asitplus.dcapi.request.IsoMdocRequest
-import at.asitplus.iso.EncryptionParameters
 import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.CapabilitiesService
@@ -85,11 +84,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import io.ktor.utils.io.core.toByteArray
 import ui.navigation.IOS_DC_API_CALL
 import kotlin.experimental.ExperimentalNativeApi
 
 
 actual fun getPlatformName(): String = "iOS"
+
+private val SUPPORTED_DOC_TYPES = listOf(
+    "eu.europa.ec.av.1",
+    "eu.europa.ec.eudi.pid.1",
+    "org.iso.23220.photoid.1",
+    "org.iso.23220.1.jp.mnc",
+    "org.iso.18013.5.1.mDL"
+)
 
 @Composable
 actual fun getColorScheme(): ColorScheme {
@@ -138,7 +146,7 @@ fun MainViewController(
     val iosPlatformAdapter = IosPlatformAdapter()
     val dataStoreService = RealDataStoreService(createDataStore(), iosPlatformAdapter)
     val keystoreService = KeystoreService(dataStoreService)
-    val promptModel = IosPromptModel()
+    val promptModel = IosPromptModel.Builder().apply { addCommonDialogs() }.build()
     val walletDependencyProvider = WalletDependencyProvider(
         keystoreService,
         dataStoreService,
@@ -443,11 +451,16 @@ class IosPlatformAdapter: PlatformAdapter {
             }
         }
     }
+
     @OptIn(ExperimentalForeignApi::class)
     private suspend fun storeDocumentFromSwift(id: String, docType: String): Boolean = suspendCancellableCoroutine { cont ->
         try {
             Napier.d("storeDocumentFromSwift invoked")
-            // TODO check if doctype is supported, otherwise don't add it
+            if (docType !in SUPPORTED_DOC_TYPES) {
+                Napier.w("DocType '$docType' is not supported on iOS, will not add it to Wallet")
+                if (cont.isActive) cont.resume(false)
+                return@suspendCancellableCoroutine
+            }
             DigitalCredentials.storeDocumentWithId(id, docType) { success ->
                 Napier.d("storeDocumentFromSwift callback with $success")
                 if (cont.isActive) cont.resume(success)
@@ -480,18 +493,13 @@ class IosPlatformAdapter: PlatformAdapter {
         } ?: KmmResult.failure(Throwable("No request data available"))
     }
 
-    override suspend fun prepareDCAPIIsoMdocCredentialResponse(
-        responseJson: ByteArray,
-        sessionTranscript: ByteArray,
-        encryptionParameters: EncryptionParameters
-    ) = (Globals.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let { (_, _, sendCredentialResponseToInvoker) ->
-        sendCredentialResponseToInvoker.invoke(responseJson.toNSData())
-        MdocSessionManager.clearSession()
-    } ?: throw IllegalStateException("Callback for response not found")
-
-    override fun prepareDCAPIOpenId4VpCredentialResponse(responseJson: String, success: Boolean) {
-        throw IllegalStateException("OpenID4VP not supported by iOS")
-    }
+    override fun prepareDCAPICredentialResponse(response: String, success: Boolean) =
+        (Globals.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let { (_, _, sendCredentialResponseToInvoker) ->
+            Napier.d("prepareDCAPICredentialResponse called with $response")
+            Napier.d("${response.toByteArray()}")
+            sendCredentialResponseToInvoker.invoke(response.toByteArray().toNSData()) //TODO check if toByteArray works
+            MdocSessionManager.clearSession()
+        } ?: throw IllegalStateException("Callback for response not found")
 
     override fun openDeviceSettings() {
         openUrl(UIApplicationOpenSettingsURLString)
