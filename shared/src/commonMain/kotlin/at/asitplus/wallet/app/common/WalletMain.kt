@@ -3,7 +3,6 @@ package at.asitplus.wallet.app.common
 import at.asitplus.KmmResult
 import at.asitplus.catchingUnwrapped
 import at.asitplus.dcapi.request.DCAPIWalletRequest
-import at.asitplus.iso.EncryptionParameters
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_update_action
 import at.asitplus.valera.resources.snackbar_update_hint
@@ -233,13 +232,7 @@ interface PlatformAdapter {
      */
     fun getCurrentDCAPIData(): KmmResult<DCAPIWalletRequest>
 
-    suspend fun prepareDCAPIIsoMdocCredentialResponse(
-        responseJson: ByteArray,
-        sessionTranscript: ByteArray,
-        encryptionParameters: EncryptionParameters
-    )
-
-    fun prepareDCAPIOpenId4VpCredentialResponse(responseJson: String, success: Boolean)
+    fun prepareDCAPICredentialResponse(response: String, success: Boolean)
 
     fun openDeviceSettings()
 
@@ -271,14 +264,7 @@ class DummyPlatformAdapter : PlatformAdapter {
         return KmmResult.failure(IllegalStateException("Using dummy platform adapter"))
     }
 
-    override suspend fun prepareDCAPIIsoMdocCredentialResponse(
-        responseJson: ByteArray,
-        sessionTranscript: ByteArray,
-        encryptionParameters: EncryptionParameters
-    ) {
-    }
-
-    override fun prepareDCAPIOpenId4VpCredentialResponse(responseJson: String, success: Boolean) {
+    override fun prepareDCAPICredentialResponse(response: String, success: Boolean) {
     }
 
     override fun openDeviceSettings() {

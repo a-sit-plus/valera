@@ -21,18 +21,10 @@ import androidx.credentials.registry.provider.RegistryManager
 import androidx.credentials.registry.provider.selectedEntryId
 import at.asitplus.KmmResult
 import at.asitplus.catching
-import at.asitplus.dcapi.DCAPIResponse
-import at.asitplus.dcapi.DCAPIHandover.Companion.TYPE_DCAPI
-import at.asitplus.dcapi.DigitalCredentialInterface
-import at.asitplus.dcapi.EncryptedResponse
-import at.asitplus.dcapi.EncryptedResponseData
-import at.asitplus.dcapi.IsoMdocResponse
 import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.dcapi.request.ExchangeProtocolIdentifier
 import at.asitplus.dcapi.request.verifier.DigitalCredentialGetRequest
 import at.asitplus.dcapi.request.verifier.DigitalCredentialRequestOptions
-import at.asitplus.iso.EncryptionParameters
-import at.asitplus.signum.indispensable.cosef.CoseKeyParams.EcKeyParams
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.wallet.app.android.dcapi.CustomRegistry
 import at.asitplus.wallet.app.android.dcapi.AndroidDCAPIInvocationData
@@ -59,11 +51,6 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.binds
 import org.koin.dsl.module
 import org.multipaz.compose.prompt.PromptDialogs
-import org.multipaz.crypto.Algorithm
-import org.multipaz.crypto.Crypto
-import org.multipaz.crypto.EcCurve
-import org.multipaz.crypto.EcPublicKeyDoubleCoordinate
-import org.multipaz.crypto.Hpke
 import org.multipaz.prompt.PromptModel
 import ui.theme.darkScheme
 import ui.theme.lightScheme
@@ -306,47 +293,10 @@ public class AndroidPlatformAdapter(
         } ?: throw IllegalStateException("DCAPIInvocationData not set")
     }
 
-    @OptIn(ExperimentalEncodingApi::class)
-    override suspend fun prepareDCAPIIsoMdocCredentialResponse(
-        responseJson: ByteArray,
-        sessionTranscript: ByteArray,
-        encryptionParameters: EncryptionParameters
-    ) {
+    override fun prepareDCAPICredentialResponse(response: String, success: Boolean) {
         (Globals.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
-            val publicKey = try {
-                val x = (encryptionParameters.recipientPublicKey.keyParams as EcKeyParams<*>).x
-                val y = (encryptionParameters.recipientPublicKey.keyParams as EcKeyParams<*>).y
-                EcPublicKeyDoubleCoordinate(EcCurve.P256, x!!, y!! as ByteArray)
-            } catch (e: Throwable) {
-                Napier.e("Could not extract public key", e)
-                throw IllegalArgumentException("Could not extract public key")
-            }
-            val encrypter = Hpke.getEncrypter(
-                cipherSuite = Hpke.CipherSuite.DHKEM_P256_HKDF_SHA256_HKDF_SHA256_AES_128_GCM,
-                receiverPublicKey = publicKey,
-                info = sessionTranscript
-            )
-            val ciphertext = encrypter.encrypt(
-                plaintext = responseJson,
-                aad = ByteArray(0),
-            )
-            val encryptedResponseData = EncryptedResponseData(
-                enc = encrypter.encapsulatedKey.toByteArray(),
-                cipherText = ciphertext
-            )
-            val encryptedResponse = EncryptedResponse(TYPE_DCAPI, encryptedResponseData)
-            val dcApiResponse = DCAPIResponse(encryptedResponse)
-            val isoMdocResponse = IsoMdocResponse(dcApiResponse)
-            Napier.d("Returning response $responseJson to digital credentials API invoker")
-            val serializedResponse = vckJsonSerializer.encodeToString<DigitalCredentialInterface>(isoMdocResponse)
-            sendCredentialResponseToInvoker(serializedResponse, true)
-        } ?: throw IllegalStateException("Callback for response not found")
-    }
-
-    override fun prepareDCAPIOpenId4VpCredentialResponse(responseJson: String, success: Boolean) {
-        (Globals.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
-            Napier.d("Returning response $responseJson to digital credentials API invoker")
-            sendCredentialResponseToInvoker(responseJson, success)
+            Napier.d("Returning response $response to digital credentials API invoker")
+            sendCredentialResponseToInvoker(response, success)
         } ?: throw IllegalStateException("Callback for response not found")
     }
 

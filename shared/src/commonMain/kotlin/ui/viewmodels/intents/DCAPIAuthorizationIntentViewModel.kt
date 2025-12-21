@@ -31,7 +31,7 @@ class DCAPIAuthorizationIntentViewModel(
             is OAuth2Exception -> error
             else -> OAuth2Exception.InvalidRequest(error.message) // TODO Not sure what to return in this case
         }.serialize()
-        walletMain.platformAdapter.prepareDCAPIOpenId4VpCredentialResponse(response, false)
+        walletMain.platformAdapter.prepareDCAPICredentialResponse(response, false)
         onFailure(error)
     }
 

@@ -3,12 +3,18 @@ package at.asitplus.wallet.app.common
 import at.asitplus.dcapi.DCAPIHandover
 import at.asitplus.dcapi.DCAPIHandover.Companion.TYPE_DCAPI
 import at.asitplus.dcapi.DCAPIInfo
+import at.asitplus.dcapi.DCAPIResponse
+import at.asitplus.dcapi.DigitalCredentialInterface
+import at.asitplus.dcapi.EncryptedResponse
+import at.asitplus.dcapi.EncryptedResponseData
+import at.asitplus.dcapi.IsoMdocResponse
 import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.iso.DeviceAuthentication
 import at.asitplus.iso.SessionTranscript
 import at.asitplus.iso.serializeOrigin
 import at.asitplus.iso.sha256
 import at.asitplus.iso.wrapInCborTag
+import at.asitplus.signum.indispensable.cosef.CoseKeyParams
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.signum.indispensable.io.Base64UrlStrict
@@ -20,6 +26,7 @@ import at.asitplus.wallet.lib.agent.PresentationResponseParameters
 import at.asitplus.wallet.lib.cbor.CoseHeaderNone
 import at.asitplus.wallet.lib.cbor.SignCoseDetached
 import at.asitplus.wallet.lib.data.CredentialPresentation
+import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import io.github.aakira.napier.Napier
@@ -27,6 +34,9 @@ import io.ktor.client.HttpClient
 import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
 import kotlinx.serialization.builtins.ByteArraySerializer
 import kotlinx.serialization.encodeToByteArray
+import org.multipaz.crypto.EcCurve
+import org.multipaz.crypto.EcPublicKeyDoubleCoordinate
+import org.multipaz.crypto.Hpke
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 class PresentationService(
@@ -115,16 +125,41 @@ class PresentationService(
         val deviceResponseSerialized =
             coseCompliantSerializer.encodeToByteArray(deviceResponse) // TODO HPKE encryption multiplatform
 
-        platformAdapter.prepareDCAPIIsoMdocCredentialResponse(
-            deviceResponseSerialized,
-            coseCompliantSerializer.encodeToByteArray(sessionTranscript),
-            isoMdocWalletRequest.isoMdocRequest.encryptionInfo.encryptionParameters
+        val encryptionParameters = isoMdocWalletRequest.isoMdocRequest.encryptionInfo.encryptionParameters
+
+        val publicKey = try {
+            val x = (encryptionParameters.recipientPublicKey.keyParams as CoseKeyParams.EcKeyParams<*>).x
+            val y = (encryptionParameters.recipientPublicKey.keyParams as CoseKeyParams.EcKeyParams<*>).y
+            EcPublicKeyDoubleCoordinate(EcCurve.P256, x!!, y!! as ByteArray)
+        } catch (e: Throwable) {
+            Napier.e("Could not extract public key", e)
+            throw IllegalArgumentException("Could not extract public key")
+        }
+        val encodedSessionTranscript = coseCompliantSerializer.encodeToByteArray(sessionTranscript)
+        val encrypter = Hpke.getEncrypter(
+            cipherSuite = Hpke.CipherSuite.DHKEM_P256_HKDF_SHA256_HKDF_SHA256_AES_128_GCM,
+            receiverPublicKey = publicKey,
+            info = encodedSessionTranscript
         )
+        val ciphertext = encrypter.encrypt(
+            plaintext = deviceResponseSerialized,
+            aad = ByteArray(0),
+        )
+        val encryptedResponseData = EncryptedResponseData(
+            enc = encrypter.encapsulatedKey.toByteArray(),
+            cipherText = ciphertext
+        )
+        val encryptedResponse = EncryptedResponse(TYPE_DCAPI, encryptedResponseData)
+        val dcApiResponse = DCAPIResponse(encryptedResponse)
+        val isoMdocResponse = IsoMdocResponse(dcApiResponse)
+        val serializedResponse = vckJsonSerializer.encodeToString<DigitalCredentialInterface>(isoMdocResponse)
+
+        platformAdapter.prepareDCAPICredentialResponse(serializedResponse, true)
         return OpenId4VpWallet.AuthenticationSuccess()
     }
 
     fun finalizeOid4vpDCAPIPresentation(response: String) =
-        platformAdapter.prepareDCAPIOpenId4VpCredentialResponse(response, true)
+        platformAdapter.prepareDCAPICredentialResponse(response, true)
 
     @OptIn(ExperimentalStdlibApi::class)
     suspend fun finalizeLocalPresentation(
