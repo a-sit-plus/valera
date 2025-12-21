@@ -41,7 +41,7 @@ import org.multipaz.mdoc.connectionmethod.MdocConnectionMethod
 import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodBle
 import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodNfc
 import org.multipaz.mdoc.engagement.DeviceEngagement
-import org.multipaz.mdoc.nfc.scanNfcMdocReader
+import org.multipaz.mdoc.nfc.scanMdocReader
 import org.multipaz.mdoc.request.buildDeviceRequest
 import org.multipaz.mdoc.role.MdocRole
 import org.multipaz.mdoc.sessionencryption.SessionEncryption
@@ -51,7 +51,7 @@ import org.multipaz.mdoc.transport.MdocTransportFactory
 import org.multipaz.mdoc.transport.MdocTransportOptions
 import org.multipaz.mdoc.transport.NfcTransportMdocReader
 import org.multipaz.mdoc.util.MdocUtil
-import org.multipaz.nfc.scanNfcTag
+import org.multipaz.nfc.NfcTagReader
 import org.multipaz.util.Constants
 import org.multipaz.util.UUID
 import org.multipaz.util.fromBase64Url
@@ -144,7 +144,7 @@ class TransferManager(
     }
 
     private val readerKey: EcPrivateKey = Crypto.createEcPrivateKey(EcCurve.P256)
-    private val readerCert: X509Cert = MdocUtil.generateReaderCertificate(
+    private val readerCert: X509Cert = TODO() /*MdocUtil.generateReaderCertificate(
         readerRootCert = readerRootCert,
         readerRootKey = readerRootKey,
         readerKey = readerKey.publicKey,
@@ -152,7 +152,7 @@ class TransferManager(
         serial = ASN1Integer(1L),
         validFrom = LocalDate.parse("2025-06-26").atTime(10, 0).toInstant(TimeZone.UTC),
         validUntil = LocalDate.parse("2026-06-26").atStartOfDayIn(TimeZone.UTC),
-    )
+    )*/
 
     fun startNfcEngagement(
         documentRequestList: RequestDocumentList,
@@ -192,8 +192,8 @@ class TransferManager(
                         )
                     )
                 }
-
-                val scanResult = scanNfcMdocReader(
+                TODO()
+                /*val scanResult = scanMdocReader(
                     message = getString(Res.string.info_text_nfc_mdoc_reader),
                     options = MdocTransportOptions(
                         bleUseL2CAP = config.bleUseL2CAPEnabled.first(),
@@ -232,7 +232,7 @@ class TransferManager(
                         documentRequestList = documentRequestList,
                         setDeviceResponseBytes = setDeviceResponseBytes
                     )
-                }
+                }*/
             } catch (e: Throwable) {
                 // TODO: Add populate error to verifier
                 Napier.e("NFC engagement failed", e, tag = TAG)
@@ -328,8 +328,9 @@ class TransferManager(
                     bleUseL2CAPInEngagement = config.bleUseL2CAPInEngagementEnabled.first()
                 )
             )
-            if (transport is NfcTransportMdocReader) {
-                scanNfcTag(
+            TODO()
+            /*if (transport is NfcTransportMdocReader) {
+                NfcTagReader.scan(
                     message = "QR engagement with NFC Data Transfer. Move into NFC field of the mdoc",
                     tagInteractionFunc = { tag ->
                         transport.setTag(tag)
@@ -345,7 +346,7 @@ class TransferManager(
                     }
                 )
                 return
-            }
+            }*/
             transport
         }
         doReaderFlowWithTransport(
@@ -387,14 +388,15 @@ class TransferManager(
             sessionTranscript = encodedSessionTranscript.toDataItem()
         ) {
             documentRequestList.getAll().forEach { requestDocument ->
-                addDocRequest(
+                TODO()
+                /*addDocRequest(
                     docType = requestDocument.docType,
                     nameSpaces = requestDocument.itemsToRequest,
                     docRequestInfo = null,
                     readerKey = readerKey,
                     signatureAlgorithm = readerKey.curve.defaultSigningAlgorithm,
                     readerKeyCertificateChain = X509CertChain(listOf(readerCert, readerRootCert))
-                )
+                )*/
             }
         }
         val encodedDeviceRequest = Cbor.encode(deviceRequest.toDataItem())
