@@ -67,6 +67,7 @@ import org.multipaz.crypto.Algorithm
 import org.multipaz.crypto.Crypto
 import org.multipaz.crypto.EcCurve
 import org.multipaz.crypto.EcPublicKeyDoubleCoordinate
+import org.multipaz.crypto.Hpke
 import org.multipaz.prompt.PromptModel
 import ui.theme.darkScheme
 import ui.theme.lightScheme
@@ -311,7 +312,7 @@ public class AndroidPlatformAdapter(
     }
 
     @OptIn(ExperimentalEncodingApi::class)
-    override fun prepareDCAPIIsoMdocCredentialResponse(
+    override suspend fun prepareDCAPIIsoMdocCredentialResponse(
         responseJson: ByteArray,
         sessionTranscript: ByteArray,
         encryptionParameters: EncryptionParameters
@@ -325,18 +326,18 @@ public class AndroidPlatformAdapter(
                 Napier.e("Could not extract public key", e)
                 throw IllegalArgumentException("Could not extract public key")
             }
-
-            val (cipherText, encapsulatedPublicKey) = Crypto.hpkeEncrypt(
-                Algorithm.HPKE_BASE_P256_SHA256_AES128GCM,
-                publicKey,
-                responseJson,
-                sessionTranscript
+            val encrypter = Hpke.getEncrypter(
+                cipherSuite = Hpke.CipherSuite.DHKEM_P256_HKDF_SHA256_HKDF_SHA256_AES_128_GCM,
+                receiverPublicKey = publicKey,
+                info = sessionTranscript
             )
-
-            encapsulatedPublicKey as EcPublicKeyDoubleCoordinate
+            val ciphertext = encrypter.encrypt(
+                plaintext = responseJson,
+                aad = ByteArray(0),
+            )
             val encryptedResponseData = EncryptedResponseData(
-                enc = encapsulatedPublicKey.asUncompressedPointEncoding,
-                cipherText = cipherText
+                enc = encrypter.encapsulatedKey.toByteArray(),
+                cipherText = ciphertext
             )
             val encryptedResponse = EncryptedResponse("dcapi", encryptedResponseData)
             val dcApiResponse = DCAPIResponse(encryptedResponse)

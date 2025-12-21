@@ -11,6 +11,7 @@ import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.BuildType
 import org.multipaz.prompt.AndroidPromptModel
+import org.multipaz.prompt.PromptModel
 import ui.navigation.PRESENTATION_REQUESTED_INTENT
 
 
@@ -19,7 +20,11 @@ class MainActivity : AbstractWalletActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
-        val promptModel = AndroidPromptModel()
+
+        val promptModel: PromptModel by lazy {
+            AndroidPromptModel.Builder().apply { addCommonDialogs() }.build()
+        }
+
         setContent {
             MainView(
                 buildContext = BuildContext(

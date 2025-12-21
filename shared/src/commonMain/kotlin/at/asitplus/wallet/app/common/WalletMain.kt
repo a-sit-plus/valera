@@ -233,7 +233,7 @@ interface PlatformAdapter {
      */
     fun getCurrentDCAPIData(): KmmResult<DCAPIWalletRequest>
 
-    fun prepareDCAPIIsoMdocCredentialResponse(
+    suspend fun prepareDCAPIIsoMdocCredentialResponse(
         responseJson: ByteArray,
         sessionTranscript: ByteArray,
         encryptionParameters: EncryptionParameters
@@ -271,7 +271,7 @@ class DummyPlatformAdapter : PlatformAdapter {
         return KmmResult.failure(IllegalStateException("Using dummy platform adapter"))
     }
 
-    override fun prepareDCAPIIsoMdocCredentialResponse(
+    override suspend fun prepareDCAPIIsoMdocCredentialResponse(
         responseJson: ByteArray,
         sessionTranscript: ByteArray,
         encryptionParameters: EncryptionParameters
