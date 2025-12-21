@@ -13,8 +13,6 @@
 		489754B22DBFC9BC00FACCF5 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 489754B12DBFC9BC00FACCF5 /* LaunchScreen.storyboard */; };
 		7555FF83242A565900829871 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7555FF82242A565900829871 /* ContentView.swift */; };
 		B7DE82D4C033625C80140561 /* OSLogNapierAntilog.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7DE86B6B19B6FFB46488EE1 /* OSLogNapierAntilog.swift */; };
-		B7DE88230FB516C00F2DD5CB /* OsLogBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7DE85B6E71591733868E4D1 /* OsLogBridge.swift */; };
-		B7DE8C76E0C9345E47E4A6DA /* OsLogBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7DE85B6E71591733868E4D1 /* OsLogBridge.swift */; };
 		B7DE8F4AF477D6E8EDAC45E9 /* OSLogNapierAntilog.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7DE86B6B19B6FFB46488EE1 /* OSLogNapierAntilog.swift */; };
 		E147A2B12EB4FD5A00D88306 /* IdentityDocumentProviderExtension.appex in Embed ExtensionKit Extensions */ = {isa = PBXBuildFile; fileRef = E147A2AA2EB4FD5A00D88306 /* IdentityDocumentProviderExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		E1B7FF7A2EF07846006DA318 /* compose-resources in Resources */ = {isa = PBXBuildFile; fileRef = E1B7FF792EF07845006DA318 /* compose-resources */; };
@@ -54,7 +52,6 @@
 		7555FF82242A565900829871 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		7555FF8C242A565B00829871 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AB3632DC29227652001CCB65 /* Config.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
-		B7DE85B6E71591733868E4D1 /* OsLogBridge.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OsLogBridge.swift; sourceTree = "<group>"; };
 		B7DE86B6B19B6FFB46488EE1 /* OSLogNapierAntilog.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OSLogNapierAntilog.swift; sourceTree = "<group>"; };
 		E147A2AA2EB4FD5A00D88306 /* IdentityDocumentProviderExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.extensionkit-extension"; includeInIndex = 0; path = IdentityDocumentProviderExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		E1B7FF792EF07845006DA318 /* compose-resources */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "compose-resources"; path = "../build/extension_compose_resources/compose-resources"; sourceTree = "<group>"; };
@@ -138,7 +135,6 @@
 				7555FF8C242A565B00829871 /* Info.plist */,
 				2152FB032600AC8F00CF470E /* iOSApp.swift */,
 				058557D7273AAEEB004C7B11 /* Preview Content */,
-				B7DE85B6E71591733868E4D1 /* OsLogBridge.swift */,
 				B7DE86B6B19B6FFB46488EE1 /* OSLogNapierAntilog.swift */,
 			);
 			path = iosApp;
@@ -301,7 +297,6 @@
 			files = (
 				2152FB042600AC8F00CF470E /* iOSApp.swift in Sources */,
 				7555FF83242A565900829871 /* ContentView.swift in Sources */,
-				B7DE88230FB516C00F2DD5CB /* OsLogBridge.swift in Sources */,
 				B7DE8F4AF477D6E8EDAC45E9 /* OSLogNapierAntilog.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -310,7 +305,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B7DE8C76E0C9345E47E4A6DA /* OsLogBridge.swift in Sources */,
 				B7DE82D4C033625C80140561 /* OSLogNapierAntilog.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
