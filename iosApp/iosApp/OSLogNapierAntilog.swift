@@ -60,12 +60,7 @@ final class OSLogNapierAntilog: Antilog {
             text += " | throwable=\(throwable)"
         }
 
-        //let logger1 = Logger(subsystem: "Valera", category: "debug")
-        //let value = "Hello World"
-        //logger1.info("My message: \(value, privacy: .public)")
-
         logger.log("\(text, privacy: .public)")
-        //NSLog("%{public}@", text)
     }
 }
 
