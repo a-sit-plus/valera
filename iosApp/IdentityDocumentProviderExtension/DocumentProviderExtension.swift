@@ -52,7 +52,6 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
         }
 
         func makeCoordinator() -> Coordinator {
-            Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "makeCoordinator called")
             return Coordinator()
         }
 
@@ -98,12 +97,14 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
                 Task {
                     do {
                         try await requestContext.sendResponse { rawRequest in
+                            // TODO show pre-request inside our UI so that we can use user-friendly names for the requested attributes and
+                            // TODO Compare the consistency of the parsed request on ISO18013MobileDocumentRequestContext against the received rawRequest.
                             Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "sendResponse handler started")
                             Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "rawRequest: \(String(decoding: rawRequest.requestData, as: UTF8.self))")
                             let finalResponseData = await withCheckedContinuation { continuation in
                                 Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "withCheckedContinuation started")
                                 let onFinish: (Data?) -> Void = { data in
-                                    Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "onFinish called")
+                                    Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "onFinish called \(String(decoding: data ?? Data(), as: UTF8.self))")
                                     continuation.resume(returning: data ?? Data())
                                 }
                                 
@@ -117,11 +118,9 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
                                     statefulViewController.display(viewController: mainViewController)
                                 }
                             }
-
                             
                             Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "sendResponse handler finished")
-                            let response = ISO18013MobileDocumentResponse(responseData: finalResponseData)
-                            return response
+                            return ISO18013MobileDocumentResponse(responseData: finalResponseData)
                         }
                     } catch {
                         Napier.shared.log(priority: LogLevel.error, tag: "DocumentProviderExtension", throwable: nil, message: "sendResponse failed: \(error)")

@@ -1,9 +1,6 @@
-
-// OSLogNapierAntilog.swift
-
 import Foundation
 import OSLog
-import shared   // ← replace with your KMP framework module name
+import shared
 
 /// Forwards Napier logs from Kotlin to Apple's unified logging (OSLog).
 final class OSLogNapierAntilog: Antilog {
