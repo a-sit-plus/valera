@@ -84,7 +84,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import io.ktor.utils.io.core.toByteArray
+import at.asitplus.dcapi.EncryptedResponse
+import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
+import kotlinx.serialization.encodeToByteArray
 import ui.navigation.IOS_DC_API_CALL
 import kotlin.experimental.ExperimentalNativeApi
 
@@ -493,11 +495,22 @@ class IosPlatformAdapter: PlatformAdapter {
         } ?: KmmResult.failure(Throwable("No request data available"))
     }
 
-    override fun prepareDCAPICredentialResponse(response: String, success: Boolean) =
+    override fun prepareDCAPICredentialResponse(response: String, success: Boolean) {
+        Napier.w("Got error response: $response")
+        //TODO is there a way to convey error responses via ISO18013-7?
+        // send empty response for now
+        (Globals.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let { (_, _, sendCredentialResponseToInvoker) ->
+            sendCredentialResponseToInvoker.invoke(ByteArray(0).toNSData())
+            MdocSessionManager.clearSession()
+        } ?: throw IllegalStateException("Callback for response not found")
+    }
+
+    override fun prepareIsoMdocDCAPICredentialResponse(response: EncryptedResponse, success: Boolean) =
         (Globals.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let { (_, _, sendCredentialResponseToInvoker) ->
             Napier.d("prepareDCAPICredentialResponse called with $response")
-            Napier.d("${response.toByteArray()}")
-            sendCredentialResponseToInvoker.invoke(response.toByteArray().toNSData()) //TODO check if toByteArray works
+            val encodedResponse = coseCompliantSerializer.encodeToByteArray(response)
+            Napier.d("encodedResponse: ${encodedResponse.toHexString()}")
+            sendCredentialResponseToInvoker.invoke(encodedResponse.toNSData())
             MdocSessionManager.clearSession()
         } ?: throw IllegalStateException("Callback for response not found")
 

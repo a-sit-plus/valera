@@ -3,11 +3,8 @@ package at.asitplus.wallet.app.common
 import at.asitplus.dcapi.DCAPIHandover
 import at.asitplus.dcapi.DCAPIHandover.Companion.TYPE_DCAPI
 import at.asitplus.dcapi.DCAPIInfo
-import at.asitplus.dcapi.DCAPIResponse
-import at.asitplus.dcapi.DigitalCredentialInterface
 import at.asitplus.dcapi.EncryptedResponse
 import at.asitplus.dcapi.EncryptedResponseData
-import at.asitplus.dcapi.IsoMdocResponse
 import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.iso.DeviceAuthentication
 import at.asitplus.iso.SessionTranscript
@@ -26,7 +23,6 @@ import at.asitplus.wallet.lib.agent.PresentationResponseParameters
 import at.asitplus.wallet.lib.cbor.CoseHeaderNone
 import at.asitplus.wallet.lib.cbor.SignCoseDetached
 import at.asitplus.wallet.lib.data.CredentialPresentation
-import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import io.github.aakira.napier.Napier
@@ -71,7 +67,7 @@ class PresentationService(
     ).getOrThrow()
 
     @OptIn(ExperimentalEncodingApi::class, ExperimentalStdlibApi::class)
-    suspend fun finalizeDCAPIIsoMdocPresentation(
+    suspend fun finalizeIsoMdocDCAPIPresentation(
         credentialPresentation: CredentialPresentation.PresentationExchangePresentation,
         isoMdocWalletRequest: DCAPIWalletRequest.IsoMdoc
     ): OpenId4VpWallet.AuthenticationSuccess {
@@ -150,15 +146,12 @@ class PresentationService(
             cipherText = ciphertext
         )
         val encryptedResponse = EncryptedResponse(TYPE_DCAPI, encryptedResponseData)
-        val dcApiResponse = DCAPIResponse(encryptedResponse)
-        val isoMdocResponse = IsoMdocResponse(dcApiResponse)
-        val serializedResponse = vckJsonSerializer.encodeToString<DigitalCredentialInterface>(isoMdocResponse)
 
-        platformAdapter.prepareDCAPICredentialResponse(serializedResponse, true)
+        platformAdapter.prepareIsoMdocDCAPICredentialResponse(encryptedResponse, true)
         return OpenId4VpWallet.AuthenticationSuccess()
     }
 
-    fun finalizeOid4vpDCAPIPresentation(response: String) =
+    fun finalizeOpenId4VpDCAPIPresentation(response: String) =
         platformAdapter.prepareDCAPICredentialResponse(response, true)
 
     @OptIn(ExperimentalStdlibApi::class)

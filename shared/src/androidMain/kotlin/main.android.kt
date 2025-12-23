@@ -21,6 +21,9 @@ import androidx.credentials.registry.provider.RegistryManager
 import androidx.credentials.registry.provider.selectedEntryId
 import at.asitplus.KmmResult
 import at.asitplus.catching
+import at.asitplus.dcapi.DCAPIResponse
+import at.asitplus.dcapi.EncryptedResponse
+import at.asitplus.dcapi.IsoMdocResponse
 import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.dcapi.request.ExchangeProtocolIdentifier
 import at.asitplus.dcapi.request.verifier.DigitalCredentialGetRequest
@@ -295,8 +298,18 @@ public class AndroidPlatformAdapter(
 
     override fun prepareDCAPICredentialResponse(response: String, success: Boolean) {
         (Globals.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
-            Napier.d("Returning response $response to digital credentials API invoker")
             sendCredentialResponseToInvoker(response, success)
+        } ?: throw IllegalStateException("Callback for response not found")
+    }
+
+    override fun prepareIsoMdocDCAPICredentialResponse(response: EncryptedResponse, success: Boolean) {
+        (Globals.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
+            Napier.d("Returning response $response to digital credentials API invoker")
+            val dcApiResponse = DCAPIResponse(response)
+            val isoMdocResponse = IsoMdocResponse(dcApiResponse)
+            val serializedResponse = vckJsonSerializer.encodeToString(isoMdocResponse)
+            Napier.d("Returning response $serializedResponse")
+            sendCredentialResponseToInvoker(serializedResponse, success)
         } ?: throw IllegalStateException("Callback for response not found")
     }
 
