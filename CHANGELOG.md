@@ -3,7 +3,13 @@
  * Credentials: Fix displaying age verification credential
  * Support URL scheme `av` for age verification
  * Use vck serializers for DC API
- * DC API: Support requests with multiple protocols
+ * DC API:
+   * Support requests with multiple protocols
+   * Use vck data classes to (de-)serialize received/emitted data
+   * Add preliminary support for iOS using ISO/IEC 18013-7 protocol. Known issues:
+     * iOS-specific pre-request is shown in a separate rather rudimentary UI
+     * Content in the pre-request is not yet compared with the content in the full request
+     * Sharing UI does not always open after approving the pre-request
  
 # Release 5.7.5
  * Update to VC-K 5.10.1
