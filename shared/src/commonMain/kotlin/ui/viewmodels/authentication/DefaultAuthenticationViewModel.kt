@@ -64,7 +64,7 @@ class DefaultAuthenticationViewModel(
     ): OpenId4VpWallet.AuthenticationSuccess {
         authenticationResult.authenticationResponseResult.params.let {
             val serializedResponse = vckJsonSerializer.encodeToString(it)
-            walletMain.presentationService.finalizeOid4vpDCAPIPresentation(serializedResponse)
+            walletMain.presentationService.finalizeOpenId4VpDCAPIPresentation(serializedResponse)
         }
         return OpenId4VpWallet.AuthenticationSuccess()
     }

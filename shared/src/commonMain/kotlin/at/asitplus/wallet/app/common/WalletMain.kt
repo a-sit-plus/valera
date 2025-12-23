@@ -2,6 +2,7 @@ package at.asitplus.wallet.app.common
 
 import at.asitplus.KmmResult
 import at.asitplus.catchingUnwrapped
+import at.asitplus.dcapi.EncryptedResponse
 import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_update_action
@@ -234,6 +235,8 @@ interface PlatformAdapter {
 
     fun prepareDCAPICredentialResponse(response: String, success: Boolean)
 
+    fun prepareIsoMdocDCAPICredentialResponse(response: EncryptedResponse, success: Boolean)
+
     fun openDeviceSettings()
 
     fun getCameraPermission(): Boolean?
@@ -265,6 +268,9 @@ class DummyPlatformAdapter : PlatformAdapter {
     }
 
     override fun prepareDCAPICredentialResponse(response: String, success: Boolean) {
+    }
+
+    override fun prepareIsoMdocDCAPICredentialResponse(response: EncryptedResponse, success: Boolean) {
     }
 
     override fun openDeviceSettings() {

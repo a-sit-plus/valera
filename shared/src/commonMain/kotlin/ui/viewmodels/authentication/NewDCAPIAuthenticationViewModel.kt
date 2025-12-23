@@ -67,7 +67,7 @@ class NewDCAPIAuthenticationViewModel(
 
 
     override suspend fun finalizationMethod(credentialPresentation: CredentialPresentation): OpenId4VpWallet.AuthenticationSuccess {
-        return walletMain.presentationService.finalizeDCAPIIsoMdocPresentation(
+        return walletMain.presentationService.finalizeIsoMdocDCAPIPresentation(
             credentialPresentation = when (credentialPresentation) {
                 is CredentialPresentation.PresentationExchangePresentation -> credentialPresentation
                 else -> throw IllegalArgumentException()
