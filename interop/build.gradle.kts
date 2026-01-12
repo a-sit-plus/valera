@@ -3,6 +3,8 @@ plugins {
 }
 
 kotlin {
+    val isMacHost = System.getProperty("os.name").lowercase().contains("mac")
+
     val iosTargets = listOf(iosX64(), iosArm64(), iosSimulatorArm64())
 
     iosTargets.forEach { target ->
@@ -19,20 +21,25 @@ kotlin {
                     definitionFile.set(file("${rootDir}/cinterop/DigitalCredentials-${platform}.def"))
                     includeDirs.headerFilterOnly("${rootDir}/cinterop/build/Release-${platform}/include")
 
-                    tasks[interopProcessingTaskName].apply {
-                        dependsOn(":cinterop:buildIphoneos")
-                        dependsOn(":cinterop:buildIphonesimulator")
+                    // Only make cinterop processing depend on Xcode builds when on macOS
+                    if (isMacHost) {
+                        tasks[interopProcessingTaskName].apply {
+                            dependsOn(":cinterop:buildIphoneos")
+                            dependsOn(":cinterop:buildIphonesimulator")
+                        }
                     }
                 }
             }
         }
 
-        target.binaries.all {
-            linkerOpts(
-                "-L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/${platform}/",
-                "-L${rootDir}/cinterop/build/Release-${platform}",
-                "-lDigitalCredentials"
-            )
+        if (isMacHost) {
+            target.binaries.all {
+                linkerOpts(
+                    "-L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/${platform}/",
+                    "-L${rootDir}/cinterop/build/Release-${platform}",
+                    "-lDigitalCredentials"
+                )
+            }
         }
     }
 }
