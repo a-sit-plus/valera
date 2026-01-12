@@ -1,8 +1,13 @@
 package at.asitplus.wallet.app.common
 
+import at.asitplus.dif.Constraint
 import at.asitplus.dif.ConstraintField
 import at.asitplus.dif.ConstraintFilter
+import at.asitplus.dif.DifInputDescriptor
+import at.asitplus.dif.FormatContainerJwt
+import at.asitplus.dif.FormatHolder
 import at.asitplus.dif.InputDescriptor
+import at.asitplus.iso.DocRequest
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment.NameSegment
@@ -30,8 +35,6 @@ import at.asitplus.wallet.lib.data.dif.PresentationExchangeInputEvaluator
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.oidvci.toFormat
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
-import at.asitplus.wallet.por.PowerOfRepresentationDataElements
-import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import at.asitplus.wallet.taxid.TaxIdScheme
 import data.credentials.JsonClaimReference
 import data.credentials.MdocClaimReference
@@ -322,3 +325,22 @@ fun NormalizedJsonPath.minus(name: String) =
         (it as NameSegment).memberName != name
     }
 )
+fun Array<DocRequest>.toDifInputDescriptorList() = this.map {
+    val itemsRequest = it.itemsRequest.value
+    DifInputDescriptor(
+        id = itemsRequest.docType,
+        format = FormatHolder(msoMdoc = FormatContainerJwt()),
+        constraints = Constraint(fields = itemsRequest.namespaces.flatMap { requestedNamespace ->
+            requestedNamespace.value.entries.map { requestedAttribute ->
+                ConstraintField(
+                    path = listOf(
+                        NormalizedJsonPath(
+                            NameSegment(requestedNamespace.key),
+                            NameSegment(requestedAttribute.dataElementIdentifier),
+                        ).toString()
+                    ), intentToRetain = requestedAttribute.intentToRetain
+                )
+            }
+        }.toSet())
+    )
+}
