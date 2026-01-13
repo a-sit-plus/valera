@@ -1,4 +1,5 @@
 # Release 5.7.6 (unreleased)
+ * Update to VC-K 5.11.0
  * Credentials: Fix displaying age verification credential
  * Support URL scheme `av` for age verification
 
