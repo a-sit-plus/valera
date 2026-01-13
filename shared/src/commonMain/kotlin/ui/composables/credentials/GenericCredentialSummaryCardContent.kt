@@ -43,7 +43,6 @@ import at.asitplus.valera.resources.text_label_valid_from
 import at.asitplus.valera.resources.text_label_valid_to
 import at.asitplus.valera.resources.text_label_vcType
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore.StoreEntry
-import at.asitplus.wallet.lib.data.Status
 import at.asitplus.wallet.mdl.DrivingPrivilege
 import data.credentials.CredentialAdapter.Companion.toComplexJson
 import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
@@ -127,9 +126,9 @@ private fun SingleVcCredentialCardContent(
     ElevatedCard(modifier = Modifier.padding(bottom = 16.dp)) {
         Column(modifier = Modifier.fillMaxWidth()) {
             TechnicalMetadataHeader()
-            credential.vc.vc.credentialStatus?.let {
-                StatusUri(it, modifier)
-                StatusIndex(it, modifier)
+            credential.vc.vc.credentialStatus?.statusList?.let {
+                StatusUri(modifier, it.uri.string)
+                StatusIndex(modifier, it.index)
             }
             ValidFrom(credential.vc.notBefore, modifier)
             credential.vc.expiration?.let {
@@ -152,9 +151,9 @@ private fun SingleSdJwtCredentialCardContent(
     ElevatedCard(modifier = Modifier.padding(bottom = 16.dp)) {
         Column(modifier = Modifier.fillMaxWidth()) {
             TechnicalMetadataHeader()
-            credential.sdJwt.credentialStatus?.let {
-                StatusUri(it, modifier)
-                StatusIndex(it, modifier)
+            credential.sdJwt.credentialStatus?.statusList?.let {
+                StatusUri(modifier, it.uri.string)
+                StatusIndex(modifier, it.index)
             }
             (credential.sdJwt.notBefore ?: credential.sdJwt.issuedAt)?.let {
                 ValidFrom(it, modifier)
@@ -195,9 +194,9 @@ private fun SingleIsoCredentialCardContent(
     ElevatedCard(modifier = Modifier.padding(bottom = 16.dp)) {
         Column(modifier = Modifier.fillMaxWidth()) {
             TechnicalMetadataHeader()
-            credential.issuerSigned.issuerAuth.payload?.status?.let {
-                StatusUri(it, modifier)
-                StatusIndex(it, modifier)
+            credential.issuerSigned.issuerAuth.payload?.status?.statusList?.let {
+                StatusUri(modifier, it.uri.string)
+                StatusIndex(modifier, it.index)
             }
             credential.issuerSigned.issuerAuth.payload?.validityInfo?.let {
                 ValidFrom(it.validFrom, modifier)
@@ -249,14 +248,14 @@ private fun TechnicalMetadataHeader() {
 
 @Composable
 private fun StatusIndex(
-    status: Status,
-    modifier: Modifier
+    modifier: Modifier,
+    index: ULong
 ) {
     LabeledContent(
         label = stringResource(Res.string.text_label_status_idx),
         content = {
             Text(
-                status.statusList.index.toString(),
+                index.toString(),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -267,14 +266,14 @@ private fun StatusIndex(
 
 @Composable
 private fun StatusUri(
-    status: Status,
-    modifier: Modifier
+    modifier: Modifier,
+    urlString: String
 ) {
     LabeledContent(
         label = stringResource(Res.string.text_label_status_uri),
         content = {
             Text(
-                status.statusList.uri.string,
+                urlString,
                 softWrap = true,
             )
         },
