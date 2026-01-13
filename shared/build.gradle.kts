@@ -184,14 +184,9 @@ exportXCFramework(
     freeCompilerArgs += listOf("-Xoverride-konan-properties=minVersion.ios=18.5;minVersionSinceXcode15.ios=18.5")
 }
 
-tasks.register("iosBootSimulator") {
-    doLast {
-        exec {
-            isIgnoreExitValue = true
-            runCatching {
-                commandLine("xcrun", "simctl", "boot", "iPhone 16")
-            }
-        }
+tasks.register<Exec>("iosBootSimulator") {
+    runCatching {
+        commandLine("xcrun", "simctl", "boot", "iPhone 16")
     }
 }
 
@@ -206,7 +201,7 @@ if ("true" != disableAppleTargets) {
 tasks.register("findDependency") {
     group = "help"
     description = "Lists every configuration that resolves the given module"
-    val target = project.providers.gradleProperty("module").forUseAtConfigurationTime()
+    val target = project.providers.gradleProperty("module")
 
     doLast {
         val wanted = target.getOrElse("").takeIf { it.isNotBlank() }
