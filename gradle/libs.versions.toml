@@ -1,11 +1,11 @@
 [versions]
-vck="5.10.1"
+vck="5.11.0-SNAPSHOT"
 
 agp = "8.12.3"
-kotlin = "2.2.21"
+kotlin = "2.3.0"
 compose-plugin = "1.8.2"
-koin = "4.1.0"
-testballoon = "0.7.1-K2.2.21"
+koin = "4.1.1"
+testballoon = "0.7.1-K2.3.0"
 
 accompanist-permissions = "0.37.3"
 activity-compose = "1.10.1"
