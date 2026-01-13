@@ -156,13 +156,7 @@ fun ConstantIndex.CredentialScheme.toJsonElement(
     representation: CredentialRepresentation,
     requestedElements: Collection<String>? = null
 ): JsonElement {
-    val dataElements = when (this) {
-        EuPidScheme -> this.claimNames + EuPidScheme.Attributes.PORTRAIT_CAPTURE_DATE
-        ConstantIndex.AtomicAttribute2023, IdAustriaScheme, EuPidSdJwtScheme, MobileDrivingLicenceScheme, AgeVerificationScheme, HealthIdScheme, EhicScheme, TaxIdScheme -> this.claimNames
-        is VcFallbackCredentialScheme, is SdJwtFallbackCredentialScheme, is IsoMdocFallbackCredentialScheme -> this.claimNames
-        else -> TODO("${this::class.simpleName} not implemented in jsonElementBuilder yet")
-    }
-
+    val dataElements = this.claimNames
     // TODO move this to credentials libraries
     val complexElements = when (this) {
         EuPidSdJwtScheme -> buildJsonObject {
@@ -175,21 +169,6 @@ fun ConstantIndex.CredentialScheme.toJsonElement(
                     put(POSTAL_CODE, JsonPrimitive(""))
                     put(STREET, JsonPrimitive(""))
                     put(HOUSE_NUMBER, JsonPrimitive(""))
-                }
-            })
-            put(EuPidSdJwtScheme.SdJwtAttributes.PREFIX_AGE_EQUAL_OR_OVER, buildJsonObject {
-                with(EuPidSdJwtScheme.SdJwtAttributes.AgeEqualOrOver) {
-                    put(EQUAL_OR_OVER_12, JsonPrimitive(""))
-                    put(EQUAL_OR_OVER_13, JsonPrimitive(""))
-                    put(EQUAL_OR_OVER_14, JsonPrimitive(""))
-                    put(EQUAL_OR_OVER_16, JsonPrimitive(""))
-                    put(EQUAL_OR_OVER_18, JsonPrimitive(""))
-                    put(EQUAL_OR_OVER_21, JsonPrimitive(""))
-                    put(EQUAL_OR_OVER_25, JsonPrimitive(""))
-                    put(EQUAL_OR_OVER_60, JsonPrimitive(""))
-                    put(EQUAL_OR_OVER_62, JsonPrimitive(""))
-                    put(EQUAL_OR_OVER_65, JsonPrimitive(""))
-                    put(EQUAL_OR_OVER_68, JsonPrimitive(""))
                 }
             })
             put(EuPidSdJwtScheme.SdJwtAttributes.PREFIX_PLACE_OF_BIRTH, buildJsonObject {

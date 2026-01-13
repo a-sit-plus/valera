@@ -45,9 +45,6 @@ abstract class CredentialAdapter {
     protected fun JsonElement?.content() =
         (this as? JsonPrimitive)?.contentOrNull ?: (this as? JsonArray)?.joinToString()
 
-    protected fun JsonPrimitive?.toCollectionOrNull() =
-        (this as? JsonArray)?.let { it.map { it.toString() } }
-
     protected fun JsonElement?.toCollectionOrNull() =
         (this as? JsonArray)?.let { it.map { it.content() ?: it.toString() } }
 

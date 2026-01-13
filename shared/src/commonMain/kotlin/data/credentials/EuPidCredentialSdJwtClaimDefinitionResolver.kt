@@ -15,38 +15,6 @@ class EuPidCredentialSdJwtClaimDefinitionResolver {
                 GIVEN_NAME -> EuPidCredentialClaimDefinition.GIVEN_NAME
                 BIRTH_DATE -> EuPidCredentialClaimDefinition.BIRTH_DATE
                 PORTRAIT -> EuPidCredentialClaimDefinition.PORTRAIT
-                PREFIX_AGE_EQUAL_OR_OVER -> when (val second = path.segments.getOrNull(1)) {
-                    is NormalizedJsonPathSegment.NameSegment -> when (second.memberName) {
-                        AgeEqualOrOver.EQUAL_OR_OVER_12 -> EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_12
-                        AgeEqualOrOver.EQUAL_OR_OVER_13 -> EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_13
-                        AgeEqualOrOver.EQUAL_OR_OVER_14 -> EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_14
-                        AgeEqualOrOver.EQUAL_OR_OVER_16 -> EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_16
-                        AgeEqualOrOver.EQUAL_OR_OVER_18 -> EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_18
-                        AgeEqualOrOver.EQUAL_OR_OVER_21 -> EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_21
-                        AgeEqualOrOver.EQUAL_OR_OVER_25 -> EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_25
-                        AgeEqualOrOver.EQUAL_OR_OVER_60 -> EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_60
-                        AgeEqualOrOver.EQUAL_OR_OVER_62 -> EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_62
-                        AgeEqualOrOver.EQUAL_OR_OVER_65 -> EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_65
-                        AgeEqualOrOver.EQUAL_OR_OVER_68 -> EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_68
-                        else -> null
-                    }
-                    null -> EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_CONTAINER
-                    else -> null
-                }
-                // TODO: are those deprecated? accessing without age prefix seems weird
-                AGE_EQUAL_OR_OVER_12 -> EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_12
-                AGE_EQUAL_OR_OVER_13 -> EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_13
-                AGE_EQUAL_OR_OVER_14 -> EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_14
-                AGE_EQUAL_OR_OVER_16 -> EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_16
-                AGE_EQUAL_OR_OVER_18 -> EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_18
-                AGE_EQUAL_OR_OVER_21 -> EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_21
-                AGE_EQUAL_OR_OVER_25 -> EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_25
-                AGE_EQUAL_OR_OVER_60 -> EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_60
-                AGE_EQUAL_OR_OVER_62 -> EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_62
-                AGE_EQUAL_OR_OVER_65 -> EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_65
-                AGE_EQUAL_OR_OVER_68 -> EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_68
-                AGE_IN_YEARS -> EuPidCredentialClaimDefinition.AGE_IN_YEARS
-                AGE_BIRTH_YEAR -> EuPidCredentialClaimDefinition.AGE_BIRTH_YEAR
                 FAMILY_NAME_BIRTH -> EuPidCredentialClaimDefinition.FAMILY_NAME_BIRTH
                 GIVEN_NAME_BIRTH -> EuPidCredentialClaimDefinition.GIVEN_NAME_BIRTH
                 PREFIX_PLACE_OF_BIRTH -> when (val second = path.segments.getOrNull(1)) {

@@ -93,24 +93,6 @@ object EuPidSdJwtCredentialAttributeCategorization : CredentialAttributeCategori
             ).map { NormalizedJsonPath() + it to null }
         },
 
-        PersonalDataCategory.AgeData to with(EuPidSdJwtScheme.SdJwtAttributes) {
-            listOf(
-                AGE_EQUAL_OR_OVER_12,
-                AGE_EQUAL_OR_OVER_13,
-                AGE_EQUAL_OR_OVER_14,
-                AGE_EQUAL_OR_OVER_16,
-                AGE_EQUAL_OR_OVER_18,
-                AGE_EQUAL_OR_OVER_21,
-                AGE_EQUAL_OR_OVER_25,
-                AGE_EQUAL_OR_OVER_60,
-                AGE_EQUAL_OR_OVER_62,
-                AGE_EQUAL_OR_OVER_65,
-                AGE_EQUAL_OR_OVER_68,
-                AGE_BIRTH_YEAR,
-                AGE_IN_YEARS,
-            ).map { NormalizedJsonPath() + it to null }
-        },
-
         PersonalDataCategory.BirthData to with(EuPidSdJwtScheme.SdJwtAttributes) {
             listOf(
                 GIVEN_NAME_BIRTH,

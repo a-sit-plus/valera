@@ -463,7 +463,7 @@ private class EuPidCredentialSdJwtAdapter(
 
     override val nationalities: Collection<String>?
         get() = complexJson?.get(SdJwtAttributes.NATIONALITIES)?.toCollectionOrNull()
-            ?: attributes[SdJwtAttributes.NATIONALITIES]?.toCollectionOrNull()
+            ?: attributes[SdJwtAttributes.NATIONALITIES]?.let { listOfNotNull(it.contentOrNull) }?.ifEmpty { null }
             ?: listOfNotNull(nationality).ifEmpty { null }
 
     override val ageInYears: UInt?

@@ -188,7 +188,7 @@ class SigningService(
         val credentialInfo = config.getCurrent().credentialInfo?.toSigningCredential() ?: throw Throwable("Missing credentialInfo")
 
         val signAlgorithm =
-            credentialInfo.supportedSigningAlgorithms?.first() ?: X509SignatureAlgorithm.RS512
+            credentialInfo.supportedSigningAlgorithms.first() ?: X509SignatureAlgorithm.RS512
 
         val signHashRequest = rqesWalletService.createSignHashRequestParameters(
             dtbsr = (this.dtbsrAuthenticationDetails as CscAuthorizationDetails).documentDigests.map { it.hash },
