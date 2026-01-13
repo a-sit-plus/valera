@@ -32,9 +32,10 @@ fun tokenStatusListModule() = module {
                 ),
                 clock = Clock.System,
                 getCachingDuration = { (key, value) ->
+                    val payload = value.payload.getOrNull()
                     listOfNotNull(
-                        value.payload.expirationTime?.let { it - Clock.System.now() },
-                        value.payload.timeToLive?.duration
+                        payload?.expirationTime?.let { it - Clock.System.now() },
+                        payload?.timeToLive?.duration
                     ).minOrNull()?.also {
                         Napier.d("Entry specific caching duration is used: $it")
                     } ?: 300.seconds
