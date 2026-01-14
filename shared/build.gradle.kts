@@ -55,8 +55,8 @@ kotlin {
                 }
             }
         }
-
     }
+    jvmToolchain(17)
 
     if ("true" != disableAppleTargets) {
         iosX64()
@@ -118,7 +118,7 @@ kotlin {
             @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
             implementation(compose.uiTest)
             implementation(libs.koin.test)
-            implementation("de.infix.testBalloon:testBalloon-framework-shared:0.7.1-K2.2.21")
+            implementation(libs.testballoon)
         }
 
         androidMain.dependencies {
