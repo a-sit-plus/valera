@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.konan.target.HostManager
 val disableAppleTargets by envExtra
 
 kotlin {
+    jvmToolchain(17)
     androidLibrary {
         namespace = "at.asitplus.wallet.app.common"
 
