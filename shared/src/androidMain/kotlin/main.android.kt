@@ -30,8 +30,14 @@ import at.asitplus.dcapi.request.verifier.DigitalCredentialGetRequest
 import at.asitplus.dcapi.request.verifier.DigitalCredentialRequestOptions
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.wallet.app.android.dcapi.AndroidDCAPIInvocationData
-import at.asitplus.wallet.app.android.dcapi.CustomRegistry
-import at.asitplus.wallet.app.common.*
+import at.asitplus.wallet.app.common.BuildContext
+import at.asitplus.wallet.app.common.CapabilitiesService
+import at.asitplus.wallet.app.common.IntentState
+import at.asitplus.wallet.app.common.KeystoreService
+import at.asitplus.wallet.app.common.PlatformAdapter
+import at.asitplus.wallet.app.common.RealCapabilitiesService
+import at.asitplus.wallet.app.common.SESSION_NAME
+import at.asitplus.wallet.app.common.WalletDependencyProvider
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.app.common.di.appModule
 import at.asitplus.wallet.lib.data.vckJsonSerializer
@@ -69,13 +75,39 @@ actual fun getColorScheme(): ColorScheme {
     }
 }
 
-@SuppressLint("ViewModelConstructorInComposable")
 @Composable
 fun MainView(
     buildContext: BuildContext,
-    promptModel: PromptModel
+    promptModel: PromptModel,
+    intentState: IntentState
 ) {
-    val platformAdapter = AndroidPlatformAdapter(LocalContext.current)
+    WalletRootView(
+        buildContext = buildContext,
+        promptModel = promptModel,
+        intentState = intentState
+    )
+}
+
+@Composable
+fun IntentView(
+    buildContext: BuildContext,
+    promptModel: PromptModel,
+    intentState: IntentState
+) {
+    WalletRootView(
+        buildContext = buildContext,
+        promptModel = promptModel,
+        intentState = intentState
+    )
+}
+
+@Composable
+private fun WalletRootView(
+    buildContext: BuildContext,
+    promptModel: PromptModel,
+    intentState: IntentState
+) {
+    val platformAdapter = AndroidPlatformAdapter(LocalContext.current, intentState)
     val dataStoreService = RealDataStoreService(
         getDataStore(LocalContext.current),
         platformAdapter
@@ -99,11 +131,15 @@ fun MainView(
     }
     val module = appModule(walletDependencyProvider, capabilitiesModule)
 
-    App(module)
+    App(
+        koinModule = module,
+        intentState = intentState
+    )
 }
 
 public class AndroidPlatformAdapter(
-    private val context: Context
+    private val context: Context,
+    private val intentState: IntentState
 ) : PlatformAdapter {
 
     override fun getCameraPermission(): Boolean? {
@@ -226,7 +262,7 @@ public class AndroidPlatformAdapter(
 
     @OptIn(ExperimentalDigitalCredentialApi::class, ExperimentalEncodingApi::class)
     override fun getCurrentDCAPIData(): KmmResult<DCAPIWalletRequest> = catching {
-        (Globals.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { (intent, _) ->
+        (intentState.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { (intent, _) ->
             // Adapted from https://github.com/openwallet-foundation-labs/identity-credential/blob/d7a37a5c672ed6fe1d863cbaeb1a998314d19fc5/wallet/src/main/java/com/android/identity_credential/wallet/credman/CredmanPresentationActivity.kt#L74
             val credentialRequest = PendingIntentHandler.retrieveProviderGetCredentialRequest(intent)
                 ?: throw IllegalArgumentException("DC API: No credential request received")
@@ -291,13 +327,13 @@ public class AndroidPlatformAdapter(
     }
 
     override fun prepareDCAPICredentialResponse(response: String, success: Boolean) {
-        (Globals.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
+        (intentState.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
             sendCredentialResponseToInvoker(response, success)
         } ?: throw IllegalStateException("Callback for response not found")
     }
 
     override fun prepareIsoMdocDCAPICredentialResponse(response: EncryptedResponse, success: Boolean) {
-        (Globals.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
+        (intentState.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
             Napier.d("Returning response $response to digital credentials API invoker")
             val dcApiResponse = DCAPIResponse(response)
             val isoMdocResponse = IsoMdocResponse(dcApiResponse)
@@ -310,5 +346,9 @@ public class AndroidPlatformAdapter(
     override fun openDeviceSettings() {
         Napier.d("Open Device settings")
         context.startActivity(Intent(Settings.ACTION_SETTINGS))
+    }
+
+    override fun finishApp() {
+        intentState.finishApp?.invoke()
     }
 }

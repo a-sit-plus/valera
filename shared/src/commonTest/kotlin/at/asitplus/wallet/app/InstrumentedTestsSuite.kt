@@ -1,7 +1,6 @@
 package at.asitplus.wallet.app
 
 import App
-import Globals
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -31,6 +30,7 @@ import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.BuildType
 import at.asitplus.wallet.app.common.CapabilitiesData
 import at.asitplus.wallet.app.common.CapabilitiesService
+import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.SESSION_NAME
@@ -97,6 +97,7 @@ fun ComposeUiTest.endToEndTest() {
             json()
         }
     }
+    val intentState = IntentState()
 
     setContent {
         // A. Create the dependency provider, remembering it against the platformAdapter
@@ -118,7 +119,10 @@ fun ComposeUiTest.endToEndTest() {
         CompositionLocalProvider(
             LocalLifecycleOwner provides TestLifecycleOwner()
         ) {
-            App(module)
+            App(
+                koinModule = module,
+                intentState = intentState
+            )
         }
 
         // C. Inject services after framework is running
@@ -166,7 +170,7 @@ fun ComposeUiTest.endToEndTest() {
     val qrCodeUrl = firstProfile?.get("url")?.jsonPrimitive?.content
     val id = firstProfile?.get("id")?.jsonPrimitive?.content
 
-    Globals.appLink.value = qrCodeUrl!!
+    intentState.appLink.value = qrCodeUrl!!
 
     waitUntilExactlyOneExists(hasText(continueText), 10000)
 

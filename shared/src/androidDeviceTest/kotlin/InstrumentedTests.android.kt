@@ -6,13 +6,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.runComposeUiTest
 import at.asitplus.wallet.app.common.PlatformAdapter
+import at.asitplus.wallet.app.common.IntentState
 import de.infix.testBalloon.framework.core.testSuite
 
 
 @Composable
 actual fun getPlatformAdapter(): PlatformAdapter {
     val context = LocalContext.current
-    return AndroidPlatformAdapter(context)
+    return AndroidPlatformAdapter(context, IntentState())
 }
 
 @OptIn(ExperimentalTestApi::class)

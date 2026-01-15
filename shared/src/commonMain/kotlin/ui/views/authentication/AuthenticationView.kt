@@ -30,6 +30,7 @@ fun AuthenticationView(
                 spImage = vm.spImage,
                 transactionData = vm.transactionData,
                 navigateUp = vm.navigateUp,
+                onCancel = { vm.onCancel() },
                 buttonConsent = {
                     CoroutineScope(Dispatchers.IO).launch {
                         vm.onConsent()

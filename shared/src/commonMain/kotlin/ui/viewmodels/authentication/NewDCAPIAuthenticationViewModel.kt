@@ -14,6 +14,7 @@ import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.CredentialMatchingResult
 import at.asitplus.wallet.lib.openid.PresentationExchangeMatchingResult
+import at.asitplus.wallet.lib.oidvci.OAuth2Exception
 
 class NewDCAPIAuthenticationViewModel(
     spImage: ImageBitmap? = null,
@@ -42,6 +43,11 @@ class NewDCAPIAuthenticationViewModel(
     }
 
     override val transactionData = null
+
+    override fun onCancel() {
+        val response = OAuth2Exception.InvalidRequest("User canceled").serialize()
+        walletMain.platformAdapter.prepareDCAPICredentialResponse(response, false)
+    }
 
     override val presentationRequest: CredentialPresentationRequest.PresentationExchangeRequest
         get() = CredentialPresentationRequest.PresentationExchangeRequest(
