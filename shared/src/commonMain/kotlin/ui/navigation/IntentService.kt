@@ -5,6 +5,7 @@ import ui.navigation.routes.AddCredentialPreAuthnRoute
 import ui.navigation.routes.AddCredentialWithLinkRoute
 import ui.navigation.routes.AuthorizationIntentRoute
 import ui.navigation.routes.DCAPIAuthorizationIntentRoute
+import ui.navigation.routes.DCAPICreationIntentRoute
 import ui.navigation.routes.ErrorIntentRoute
 import ui.navigation.routes.PresentationIntentRoute
 import ui.navigation.routes.ProvisioningResumeIntentRoute
@@ -18,6 +19,7 @@ const val PRESENTATION_REQUESTED_INTENT = "PRESENTATION_REQUESTED"
 const val SIGNING_REQUEST_INTENT = "createSignRequest"
 const val GET_CREDENTIALS_INTENT = "androidx.identitycredentials.action.GET_CREDENTIALS"
 const val GET_CREDENTIAL_INTENT = "androidx.credentials.registry.provider.action.GET_CREDENTIAL"
+const val CREATE_CREDENTIAL_INTENT = "androidx.credentials.registry.provider.action.CREATE_CREDENTIAL"
 const val IOS_DC_API_CALL = "IOS_DC_API_CALL"
 
 class IntentService(
@@ -32,6 +34,7 @@ class IntentService(
             IntentType.ProvisioningResumeIntent -> ProvisioningResumeIntentRoute(uri)
             IntentType.AuthorizationIntent -> AuthorizationIntentRoute(uri)
             IntentType.DCAPIAuthorizationIntent -> DCAPIAuthorizationIntentRoute(uri)
+            IntentType.DCAPICreationIntent -> DCAPICreationIntentRoute(uri)
             IntentType.PresentationIntent -> PresentationIntentRoute(uri)
             IntentType.SigningServiceIntent -> SigningServiceIntentRoute(uri)
             IntentType.SigningPreloadIntent -> SigningPreloadIntentRoute(uri)
@@ -45,6 +48,7 @@ class IntentService(
             contains("error") -> IntentType.ErrorIntent
             contains(SIGNING_REQUEST_INTENT) -> IntentType.SigningIntent
             equals(GET_CREDENTIALS_INTENT) || equals(GET_CREDENTIAL_INTENT) || equals(IOS_DC_API_CALL) -> IntentType.DCAPIAuthorizationIntent
+            equals(CREATE_CREDENTIAL_INTENT) -> IntentType.DCAPICreationIntent
             equals(PRESENTATION_REQUESTED_INTENT) -> IntentType.PresentationIntent
             contains("request_uri") && contains("client_id") -> IntentType.AuthorizationIntent
             (redirectUri != null && contains(redirectUri!!) && intentType != null) -> intentType!!
@@ -65,6 +69,7 @@ class IntentService(
         ProvisioningResumeIntent,
         AuthorizationIntent,
         DCAPIAuthorizationIntent,
+        DCAPICreationIntent,
         PresentationIntent,
         SigningServiceIntent,
         SigningCredentialIntent,
