@@ -46,6 +46,11 @@ class MainActivity : AbstractWalletActivity() {
                     AndroidDCAPIInvocationData(intent, ::sendCredentialResponseToDCAPIInvoker)
                 Globals.appLink.value = intent.action
             }
+            RegistryManager.ACTION_CREATE_CREDENTIAL -> {
+                Globals.dcapiInvocationData.value =
+                    AndroidDCAPIInvocationData(intent, ::sendCredentialCreationResponseToDCAPIInvoker)
+                Globals.appLink.value = intent.action
+            }
             PRESENTATION_REQUESTED_INTENT -> {
                 Globals.presentationStateModel.value = NdefDeviceEngagementService.presentationStateModel
                 Globals.appLink.value = PRESENTATION_REQUESTED_INTENT

@@ -7,9 +7,13 @@ import android.nfc.cardemulation.CardEmulation
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.credentials.CreateCredentialResponse
+import androidx.credentials.CreateDigitalCredentialResponse
 import androidx.credentials.DigitalCredential
 import androidx.credentials.ExperimentalDigitalCredentialApi
 import androidx.credentials.GetCredentialResponse
+import androidx.credentials.exceptions.CreateCredentialCustomException
+import androidx.credentials.exceptions.CreateCredentialException
 import androidx.credentials.exceptions.GetCredentialCustomException
 import androidx.credentials.provider.PendingIntentHandler
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
@@ -40,6 +44,7 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
 
     @OptIn(ExperimentalDigitalCredentialApi::class)
     fun sendCredentialResponseToDCAPIInvoker(resultStr: String, success: Boolean) {
+        // TODO use credentials API error types
         val resultData = Intent()
 
         if (success) {
@@ -62,6 +67,27 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
         } else {
             Napier.e("Creating error response for DC API. Error: $resultStr")
             sendErrorResponse(resultStr, resultData)
+        }
+
+        Napier.d("Successfully returned response to DC API invoker. Response: $resultStr")
+        setResult(RESULT_OK, resultData)
+        finish()
+    }
+
+    @OptIn(ExperimentalDigitalCredentialApi::class)
+    fun sendCredentialCreationResponseToDCAPIInvoker(resultStr: String, success: Boolean) {
+        // TODO use credentials API error types
+        val resultData = Intent()
+
+        if (success) {
+            PendingIntentHandler.setCreateCredentialResponse(
+                resultData, CreateDigitalCredentialResponse(resultStr)
+            )
+        } else {
+            Napier.e("Creating error response for DC API. Error: $resultStr")
+            PendingIntentHandler.setCreateCredentialException(
+                resultData, CreateCredentialCustomException(resultStr, resultStr)
+            )
         }
 
         Napier.d("Successfully returned response to DC API invoker. Response: $resultStr")

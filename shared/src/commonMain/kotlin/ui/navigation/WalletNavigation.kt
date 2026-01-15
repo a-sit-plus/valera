@@ -727,7 +727,23 @@ private fun WalletNavHost(
                         walletMain.errorService.emit(e)
                     })
             })
+        }
 
+        composable<DCAPICreationIntentRoute> { backStackEntry ->
+            // TODO implement DC API creation
+            /*DCAPICreationIntentView(remember {
+                DCAPICreationIntentViewModel(
+                    walletMain = walletMain,
+                    uri = backStackEntry.toRoute<DCAPICreationIntentRoute>().uri,
+                    onSuccess = { route ->
+                        Napier.d("valid authentication request")
+                        navigateBack()
+                        navigate(route)
+                    },
+                    onFailure = { e ->
+                        walletMain.errorService.emit(e)
+                    })
+            })*/
         }
 
         composable<PresentationIntentRoute> { backStackEntry ->
