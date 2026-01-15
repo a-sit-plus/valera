@@ -42,6 +42,10 @@ abstract class AuthenticationViewModel(
 
     abstract suspend fun findMatchingCredentials(): Result<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>>
 
+    open fun onCancel() {
+        navigateUp()
+    }
+
     suspend fun onConsent() {
         matchingCredentials = findMatchingCredentials().getOrElse {
             viewState = AuthenticationViewState.NoMatchingCredential

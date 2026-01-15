@@ -114,6 +114,7 @@ fun PresentationView(
                             spImage = presentationViewModel.spImage,
                             transactionData = presentationViewModel.transactionData,
                             navigateUp = presentationViewModel.navigateUp,
+                            onCancel = { presentationViewModel.onCancel() },
                             buttonConsent = {
                                 CoroutineScope(Dispatchers.IO).launch {
                                     presentationViewModel.onConsent()

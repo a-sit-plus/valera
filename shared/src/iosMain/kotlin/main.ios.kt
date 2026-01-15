@@ -12,8 +12,14 @@ import at.asitplus.KmmResult
 import at.asitplus.dcapi.EncryptedResponse
 import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.dcapi.request.IsoMdocRequest
-import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
-import at.asitplus.wallet.app.common.*
+import at.asitplus.wallet.app.common.BuildContext
+import at.asitplus.wallet.app.common.CapabilitiesService
+import at.asitplus.wallet.app.common.IntentState
+import at.asitplus.wallet.app.common.KeystoreService
+import at.asitplus.wallet.app.common.PlatformAdapter
+import at.asitplus.wallet.app.common.RealCapabilitiesService
+import at.asitplus.wallet.app.common.SESSION_NAME
+import at.asitplus.wallet.app.common.WalletDependencyProvider
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.app.common.di.appModule
 import at.asitplus.wallet.app.dcapi.IosDCAPIInvocationData
@@ -65,17 +71,19 @@ actual fun getColorScheme(): ColorScheme {
     }
 }
 
+private val iosIntentState = IntentState()
+
 object MdocSessionManager {
     // TODO check if correct credentials are shown without credentialId set (and check behaviour on Android, should only show the one credential selected by the user)
     fun setSession(data: IosDCAPIInvocationData) {
-        Globals.dcapiInvocationData.value = data
-        Globals.appLink.value = IOS_DC_API_CALL
+        iosIntentState.dcapiInvocationData.value = data
+        iosIntentState.appLink.value = IOS_DC_API_CALL
         Napier.d("MdocSessionManager: Session set with request of length ${data.rawRequest?.length} from origin ${data.origin}")
     }
 
     fun clearSession() {
-        Globals.dcapiInvocationData.value = null
-        Globals.appLink.value = null
+        iosIntentState.dcapiInvocationData.value = null
+        iosIntentState.appLink.value = null
         Napier.d("MdocSessionManager: Session cleared")
     }
 }
@@ -100,7 +108,7 @@ fun initLogger(isDebug: Boolean) {
 fun MainViewController(
     buildContext: BuildContext,
 ): UIViewController {
-    val iosPlatformAdapter = IosPlatformAdapter()
+    val iosPlatformAdapter = IosPlatformAdapter(iosIntentState)
     val dataStoreService = RealDataStoreService(createDataStore(), iosPlatformAdapter)
     val keystoreService = KeystoreService(dataStoreService)
     val promptModel = IosPromptModel.Builder().apply { addCommonDialogs() }.build()
@@ -120,7 +128,10 @@ fun MainViewController(
 
     return ComposeUIViewController {
         PromptDialogs(promptModel)
-        App(module)
+        App(
+            koinModule = module,
+            intentState = iosIntentState
+        )
     }
 }
 
@@ -255,7 +266,9 @@ fun MdocRequestViewController(
     }
 }
 
-class IosPlatformAdapter: PlatformAdapter {
+class IosPlatformAdapter(
+    private val intentState: IntentState
+) : PlatformAdapter {
     override fun openUrl(url: String) {
         val url = NSURL(string = url)
         if (UIApplication.sharedApplication.canOpenURL(url)) {
@@ -433,7 +446,7 @@ class IosPlatformAdapter: PlatformAdapter {
     override fun getCurrentDCAPIData(): KmmResult<DCAPIWalletRequest> {
         Napier.d("getCurrentDCAPIData called")
         // TODO update code so that getCurrentDCAPIData is invoked, i.e. open the right views
-        return (Globals.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let {
+        return (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let {
             try {
                 val isoMdocRequest = it.rawRequest?.let { request -> Json.decodeFromString<IsoMdocRequest>(request) }
                     ?: throw IllegalStateException("No request data available")
@@ -454,14 +467,14 @@ class IosPlatformAdapter: PlatformAdapter {
         Napier.w("Got error response: $response")
         //TODO is there a way to convey error responses via ISO18013-7?
         // send empty response for now
-        (Globals.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let { (_, _, sendCredentialResponseToInvoker) ->
+        (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let { (_, _, sendCredentialResponseToInvoker) ->
             sendCredentialResponseToInvoker.invoke(ByteArray(0).toNSData())
             MdocSessionManager.clearSession()
         } ?: throw IllegalStateException("Callback for response not found")
     }
 
     override fun prepareIsoMdocDCAPICredentialResponse(response: EncryptedResponse, success: Boolean) =
-        (Globals.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let { (_, _, sendCredentialResponseToInvoker) ->
+        (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let { (_, _, sendCredentialResponseToInvoker) ->
             Napier.d("prepareDCAPICredentialResponse called with $response")
             val encodedResponse = coseCompliantSerializer.encodeToByteArray(response)
             Napier.d("encodedResponse: ${encodedResponse.toHexString()}")
@@ -491,6 +504,10 @@ class IosPlatformAdapter: PlatformAdapter {
             AVAuthorizationStatusRestricted -> false
             else -> null
         }
+    }
+
+    override fun finishApp() {
+        // No-op on iOS; hosting app controls dismissal.
     }
 
 }

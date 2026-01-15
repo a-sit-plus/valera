@@ -241,6 +241,8 @@ interface PlatformAdapter {
 
     fun getCameraPermission(): Boolean?
 
+    fun finishApp()
+
 }
 
 class DummyPlatformAdapter : PlatformAdapter {
@@ -278,6 +280,9 @@ class DummyPlatformAdapter : PlatformAdapter {
 
     override fun getCameraPermission(): Boolean? {
         return false
+    }
+
+    override fun finishApp() {
     }
 
 }
