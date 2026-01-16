@@ -13,6 +13,5 @@ class ErrorHandlingOverrideException(
     val resetStackOverride: () -> Unit,
     val actionDescriptionOverride: org.jetbrains.compose.resources.StringResource,
     val onAcknowledge: (() -> Unit)?,
-    val onlyForIntentActivity: Boolean,
     override val cause: Throwable?
 ) : Throwable(message = cause?.message, cause = cause)

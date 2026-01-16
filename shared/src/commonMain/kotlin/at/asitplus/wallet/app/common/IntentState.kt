@@ -9,5 +9,4 @@ class IntentState {
     val dcapiInvocationData = MutableStateFlow<DCAPIInvocationData?>(null)
     val presentationStateModel = MutableStateFlow<PresentationStateModel?>(null)
     var finishApp: (() -> Unit)? = null
-    var isIntentActivity: Boolean = false
 }

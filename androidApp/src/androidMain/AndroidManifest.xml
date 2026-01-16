@@ -58,14 +58,6 @@
                     android:pathPrefix="/app"
                     android:scheme="asitplus-wallet" />
             </intent-filter>
-        </activity>
-        <activity
-            android:name=".IntentActivity"
-            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|mnc|colorMode|density|fontScale|fontWeightAdjustment|keyboard|layoutDirection|locale|mcc|navigation|smallestScreenSize|touchscreen|uiMode"
-            android:exported="true"
-            android:excludeFromRecents="true"
-            android:windowSoftInputMode="adjustResize"
-            android:launchMode="singleTask">
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />
