@@ -35,6 +35,7 @@ taxid = "1.2.0"
 atomicfu = "0.29.0"
 qrose = "1.0.1"
 core-splashscreen = "1.0.1"
+androidx-browser = "1.8.0"
 
 authcheckkit = "1.0.0-alpha01"
 
@@ -51,6 +52,7 @@ androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "b
 androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camera-camera2" }
 androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "camera-camera2" }
 androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camera-camera2" }
+androidx-browser = { module = "androidx.browser:browser", version.ref = "androidx-browser" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "core-ktx" }
 androidx-credentials = { module = "androidx.credentials:credentials", version.ref="androidx-credentials" }
 androidx-credentials-registry-provider = { module = "androidx.credentials.registry:registry-provider", version.ref = "androidx-credentials-registry-provider" }

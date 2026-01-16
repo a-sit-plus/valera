@@ -1,5 +1,4 @@
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -9,10 +8,12 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
+import androidx.compose.ui.graphics.toArgb
 import androidx.credentials.ExperimentalDigitalCredentialApi
 import androidx.credentials.GetDigitalCredentialOption
 import androidx.credentials.provider.PendingIntentHandler
@@ -57,6 +58,8 @@ import org.multipaz.compose.prompt.PromptDialogs
 import org.multipaz.prompt.PromptModel
 import ui.theme.darkScheme
 import ui.theme.lightScheme
+import ui.theme.md_theme_dark_primary
+import ui.theme.md_theme_light_primary
 import java.io.File
 import kotlin.io.encoding.ExperimentalEncodingApi
 
@@ -162,7 +165,14 @@ public class AndroidPlatformAdapter(
 
     override fun openUrl(url: String) {
         Napier.d("Open URL: ${url.toUri()}")
-        context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
+        val uri = url.toUri()
+        val customTabsIntent = CustomTabsIntent.Builder().build()
+        try {
+            customTabsIntent.launchUrl(context, uri)
+        } catch (e: Throwable) {
+            Napier.w("Custom tab failed, falling back to browser intent", e)
+            context.startActivity(Intent(Intent.ACTION_VIEW, uri))
+        }
     }
 
     override fun writeToFile(text: String, fileName: String, folderName: String) {

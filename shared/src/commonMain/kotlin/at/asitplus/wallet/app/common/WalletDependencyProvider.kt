@@ -29,7 +29,7 @@ data class WalletDependencyProvider(
         at.asitplus.wallet.ehic.Initializer.initWithVCK()
         at.asitplus.wallet.ageverification.Initializer.initWithVCK()
 
-        //Napier.takeLogarithm()
+        Napier.takeLogarithm()
         Napier.base(AntilogAdapter(platformAdapter, "", buildContext.buildType))
     }
 }

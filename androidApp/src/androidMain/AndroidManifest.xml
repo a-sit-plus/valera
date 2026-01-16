@@ -40,10 +40,23 @@
             android:name=".MainActivity"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|mnc|colorMode|density|fontScale|fontWeightAdjustment|keyboard|layoutDirection|locale|mcc|navigation|smallestScreenSize|touchscreen|uiMode"
             android:exported="true"
-            android:windowSoftInputMode="adjustResize">
+            android:windowSoftInputMode="adjustResize"
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <!-- Used when jumping back from browser after authenticating at the credential issuer in OID4VCI -->
+                <data
+                    android:host="wallet.a-sit.at"
+                    android:pathPrefix="/app"
+                    android:scheme="asitplus-wallet" />
             </intent-filter>
         </activity>
         <activity
@@ -51,7 +64,8 @@
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|mnc|colorMode|density|fontScale|fontWeightAdjustment|keyboard|layoutDirection|locale|mcc|navigation|smallestScreenSize|touchscreen|uiMode"
             android:exported="true"
             android:excludeFromRecents="true"
-            android:windowSoftInputMode="adjustResize">
+            android:windowSoftInputMode="adjustResize"
+            android:launchMode="singleTask">
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />
@@ -75,18 +89,6 @@
                     android:host="wallet.a-sit.at"
                     android:pathPrefix="/remote"
                     android:scheme="https" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <!-- Used when jumping back from browser after authenticating at the credential issuer in OID4VCI -->
-                <data
-                    android:host="wallet.a-sit.at"
-                    android:pathPrefix="/app"
-                    android:scheme="asitplus-wallet" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
