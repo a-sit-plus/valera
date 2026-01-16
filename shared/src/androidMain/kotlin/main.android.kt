@@ -58,8 +58,6 @@ import org.multipaz.compose.prompt.PromptDialogs
 import org.multipaz.prompt.PromptModel
 import ui.theme.darkScheme
 import ui.theme.lightScheme
-import ui.theme.md_theme_dark_primary
-import ui.theme.md_theme_light_primary
 import java.io.File
 import kotlin.io.encoding.ExperimentalEncodingApi
 
@@ -80,19 +78,6 @@ actual fun getColorScheme(): ColorScheme {
 
 @Composable
 fun MainView(
-    buildContext: BuildContext,
-    promptModel: PromptModel,
-    intentState: IntentState
-) {
-    WalletRootView(
-        buildContext = buildContext,
-        promptModel = promptModel,
-        intentState = intentState
-    )
-}
-
-@Composable
-fun IntentView(
     buildContext: BuildContext,
     promptModel: PromptModel,
     intentState: IntentState
@@ -360,7 +345,5 @@ public class AndroidPlatformAdapter(
         context.startActivity(Intent(Settings.ACTION_SETTINGS))
     }
 
-    override fun finishApp() {
-        intentState.finishApp?.invoke()
-    }
+    override fun finishApp() = intentState.finishApp.invoke()
 }

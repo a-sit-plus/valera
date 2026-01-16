@@ -194,7 +194,7 @@ interface PlatformAdapter {
     fun openUrl(url: String)
 
     /**
-     * Writes an user defined string to a file in a specific folder
+     * Writes a user defined string to a file in a specific folder
      * @param text is the content of the new file or the content which gets append to an existing file
      * @param fileName the name of the file
      * @param folderName the name of the folder in which the file resides
@@ -217,7 +217,7 @@ interface PlatformAdapter {
     fun clearFile(fileName: String, folderName: String)
 
     /**
-     * Opens the platform specific share dialog
+     * Opens the platform-specific share dialog
      */
     fun shareLog()
 

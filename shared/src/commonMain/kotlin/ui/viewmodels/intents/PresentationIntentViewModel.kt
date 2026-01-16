@@ -4,7 +4,7 @@ import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.domain.BuildAuthenticationConsentPageFromAuthenticationRequestLocalPresentment
 import at.asitplus.wallet.app.common.presentation.PresentationRequest
-import ui.navigation.PRESENTATION_REQUESTED_INTENT
+import ui.navigation.IntentService.Companion.PRESENTATION_REQUESTED_INTENT
 import ui.navigation.routes.Route
 
 class PresentationIntentViewModel(

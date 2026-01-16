@@ -1,7 +1,6 @@
 package ui.navigation
 
 import at.asitplus.wallet.app.common.PlatformAdapter
-import ui.navigation.routes.AddCredentialPreAuthnRoute
 import ui.navigation.routes.AddCredentialWithLinkRoute
 import ui.navigation.routes.AuthorizationIntentRoute
 import ui.navigation.routes.DCAPIAuthorizationIntentRoute
@@ -14,13 +13,6 @@ import ui.navigation.routes.SigningCredentialIntentRoute
 import ui.navigation.routes.SigningIntentRoute
 import ui.navigation.routes.SigningPreloadIntentRoute
 import ui.navigation.routes.SigningServiceIntentRoute
-
-const val PRESENTATION_REQUESTED_INTENT = "PRESENTATION_REQUESTED"
-const val SIGNING_REQUEST_INTENT = "createSignRequest"
-const val GET_CREDENTIALS_INTENT = "androidx.identitycredentials.action.GET_CREDENTIALS"
-const val GET_CREDENTIAL_INTENT = "androidx.credentials.registry.provider.action.GET_CREDENTIAL"
-const val CREATE_CREDENTIAL_INTENT = "androidx.credentials.registry.provider.action.CREATE_CREDENTIAL"
-const val IOS_DC_API_CALL = "IOS_DC_API_CALL"
 
 class IntentService(
     val platformAdapter: PlatformAdapter
@@ -61,6 +53,15 @@ class IntentService(
         this.redirectUri = redirectUri
         this.intentType = intentType
         platformAdapter.openUrl(url)
+    }
+
+    companion object {
+        const val PRESENTATION_REQUESTED_INTENT = "PRESENTATION_REQUESTED"
+        const val SIGNING_REQUEST_INTENT = "createSignRequest"
+        const val GET_CREDENTIALS_INTENT = "androidx.identitycredentials.action.GET_CREDENTIALS"
+        const val GET_CREDENTIAL_INTENT = "androidx.credentials.registry.provider.action.GET_CREDENTIAL"
+        const val CREATE_CREDENTIAL_INTENT = "androidx.credentials.registry.provider.action.CREATE_CREDENTIAL"
+        const val IOS_DC_API_CALL = "IOS_DC_API_CALL"
     }
 
     enum class IntentType {
