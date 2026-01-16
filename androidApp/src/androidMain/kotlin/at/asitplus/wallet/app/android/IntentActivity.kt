@@ -11,6 +11,7 @@ import at.asitplus.wallet.app.android.dcapi.AndroidDCAPIInvocationData
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.BuildType
 import at.asitplus.wallet.app.common.IntentState
+import io.github.aakira.napier.Napier
 import org.multipaz.prompt.AndroidPromptModel
 import org.multipaz.prompt.PromptModel
 import ui.navigation.PRESENTATION_REQUESTED_INTENT
@@ -21,7 +22,7 @@ class IntentActivity : AbstractWalletActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
-        intentState.finishApp = { finish() }
+        intentState.finishApp = { finish().also { Napier.v("Finish called") } }
         intentState.isIntentActivity = true
 
         val promptModel: PromptModel by lazy {
@@ -44,6 +45,7 @@ class IntentActivity : AbstractWalletActivity() {
     }
 
     override fun populateLink(intent: Intent) {
+        Napier.d("IntentActivity.populateLink url=${intent.data} action=${intent.action}")
         when (intent.action) {
             RegistryManager.ACTION_GET_CREDENTIAL -> {
                 intentState.dcapiInvocationData.value =
