@@ -175,7 +175,7 @@ fun WalletNavigation(
         }
     }
     val shouldFinishToCaller: () -> Boolean = {
-        intentState.isIntentActivity
+        intentState.dcapiInvocationData.value != null
     }
 
     val startDestination = remember(initialLink) {
@@ -230,10 +230,12 @@ fun WalletNavigation(
                     return@combineTransform
                 }
                 val isDcapiLink = link == GET_CREDENTIAL_INTENT || link == CREATE_CREDENTIAL_INTENT
-                if (isDcapiLink && intentState.dcapiInvocationData.value == null) {
-                    Napier.d("WalletNavigation appLink waiting for dcapiInvocationData")
-                    return@combineTransform
-                }
+                    val dcapiReady = intentState.dcapiInvocationData.value != null
+                    Napier.d("WalletNavigation appLink dcapiReady=$dcapiReady")
+                    if (isDcapiLink && !dcapiReady) {
+                        Napier.d("WalletNavigation appLink waiting for dcapiInvocationData")
+                        return@combineTransform
+                    }
                 Napier.d("WalletNavigation appLink emitting link=$link")
                 emit(link)
             }.collect { link ->
@@ -263,10 +265,6 @@ fun WalletNavigation(
                     emit(error)
                 }
             }.collect {
-                val override = it.throwable as? ErrorHandlingOverrideException
-                if (override != null && override.onlyForIntentActivity && !intentState.isIntentActivity) {
-                    return@collect
-                }
                 navigate(ErrorRoute)
             }
         }
@@ -729,7 +727,6 @@ private fun WalletNavHost(
                             },
                             actionDescriptionOverride = Res.string.info_text_error_action_return_to_invoker,
                             onAcknowledge = (it.throwable as? DeferredErrorActionException)?.onAcknowledge,
-                            onlyForIntentActivity = true,
                             cause = it.throwable
                         )
                     } else {
@@ -829,7 +826,6 @@ private fun WalletNavHost(
                             },
                             actionDescriptionOverride = Res.string.info_text_error_action_return_to_invoker,
                             onAcknowledge = (e as? DeferredErrorActionException)?.onAcknowledge,
-                            onlyForIntentActivity = true,
                             cause = e
                         )
                         walletMain.errorService.emit(wrapped)

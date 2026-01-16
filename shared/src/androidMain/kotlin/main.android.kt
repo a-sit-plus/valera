@@ -339,6 +339,7 @@ public class AndroidPlatformAdapter(
     override fun prepareDCAPICredentialResponse(response: String, success: Boolean) {
         (intentState.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
             sendCredentialResponseToInvoker(response, success)
+            intentState.dcapiInvocationData.value = null
         } ?: throw IllegalStateException("Callback for response not found")
     }
 
@@ -350,6 +351,7 @@ public class AndroidPlatformAdapter(
             val serializedResponse = vckJsonSerializer.encodeToString(isoMdocResponse)
             Napier.d("Returning response $serializedResponse")
             sendCredentialResponseToInvoker(serializedResponse, success)
+            intentState.dcapiInvocationData.value = null
         } ?: throw IllegalStateException("Callback for response not found")
     }
 
