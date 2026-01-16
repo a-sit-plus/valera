@@ -31,7 +31,6 @@ import at.asitplus.catchingUnwrapped
 import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.info_text_error_action_close_intent
 import at.asitplus.valera.resources.info_text_error_action_return_to_invoker
 import at.asitplus.valera.resources.snackbar_reset_app_successfully
 import at.asitplus.wallet.app.common.ErrorService
@@ -54,6 +53,8 @@ import org.koin.compose.koinInject
 import org.koin.core.scope.Scope
 import ui.composables.BottomBar
 import ui.composables.NavigationData
+import ui.navigation.IntentService.Companion.CREATE_CREDENTIAL_INTENT
+import ui.navigation.IntentService.Companion.GET_CREDENTIAL_INTENT
 import ui.navigation.routes.*
 import ui.navigation.routes.RoutePrerequisites.CRYPTO
 import ui.viewmodels.*

@@ -14,7 +14,7 @@ import at.asitplus.wallet.app.android.dcapi.AndroidDCAPIInvocationData
 import io.github.aakira.napier.Napier
 import org.multipaz.prompt.AndroidPromptModel
 import org.multipaz.prompt.PromptModel
-import ui.navigation.PRESENTATION_REQUESTED_INTENT
+import ui.navigation.IntentService.Companion.PRESENTATION_REQUESTED_INTENT
 
 
 class MainActivity : AbstractWalletActivity() {

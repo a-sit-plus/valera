@@ -8,5 +8,5 @@ class IntentState {
     val appLink = MutableStateFlow<String?>(null)
     val dcapiInvocationData = MutableStateFlow<DCAPIInvocationData?>(null)
     val presentationStateModel = MutableStateFlow<PresentationStateModel?>(null)
-    var finishApp: (() -> Unit)? = null
+    lateinit var finishApp: (() -> Unit)
 }
