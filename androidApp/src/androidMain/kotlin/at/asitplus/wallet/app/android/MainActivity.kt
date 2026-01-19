@@ -9,7 +9,6 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.credentials.registry.provider.RegistryManager
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.BuildType
-import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.android.dcapi.AndroidDCAPIInvocationData
 import io.github.aakira.napier.Napier
 import org.multipaz.prompt.AndroidPromptModel
@@ -18,7 +17,7 @@ import ui.navigation.IntentService.Companion.PRESENTATION_REQUESTED_INTENT
 
 
 class MainActivity : AbstractWalletActivity() {
-    private val intentState = IntentState()
+    private val intentState = AndroidIntentStateHolder.intentState
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
