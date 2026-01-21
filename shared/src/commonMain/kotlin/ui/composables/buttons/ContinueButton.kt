@@ -17,7 +17,7 @@ import ui.composables.TextIconButton
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun ContinueButton(
-    onClick: () -> Unit,
+    onClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     TextIconButton(
@@ -30,7 +30,8 @@ fun ContinueButton(
         text = {
             Text(stringResource(Res.string.button_label_continue))
         },
-        onClick = onClick,
+        enabled = onClick != null,
+        onClick = onClick ?: {},
         modifier = modifier,
     )
 }

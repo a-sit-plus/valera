@@ -1,4 +1,6 @@
 <resources>
+    <string name="unexpected_screen_text">Diese Ansicht sollte nie vorkommen, bitte wenden Sie sich an den App-Hersteller.</string>
+
     <string name="dictionary_yes">Ja</string>
     <string name="dictionary_no">Nein</string>
 
@@ -253,7 +255,9 @@
     <string name="text_label_status_idx">Status Index</string>
     <string name="text_label_vcType">VcType</string>
     <string name="text_label_docType">DocType</string>
+    <string name="text_label_select_no_optional_credential_set_query_option">Nichts senden</string>
 
+    <string name="heading_label_credential_selection">Welche Daten sollen präsentiert werden?</string>
     <string name="heading_label_authenticate_at_device_title">Anmelden</string>
     <string name="heading_label_authenticate_at_device_subtitle">an Service Provider</string>
     <string name="heading_label_show_data">Daten Vorzeigen</string>
@@ -488,6 +492,8 @@
     <string name="button_add_request">Anfrage hinzufügen</string>
     <string name="text_label_all_attributes">Alle Attribute</string>
     <string name="text_label_mandatory_attributes">Notwendige Attribute</string>
+    <string name="text_label_mandatory_dataset">Notwendiges Datenset</string>
+    <string name="text_label_optional_dataset">Optionales Datenset</string>
     <string name="text_label_requests">Anfragen</string>
     <string name="info_text_no_requests">Keine Anfragen</string>
     <string name="info_text_credential_status_valid">GÜLTIG</string>

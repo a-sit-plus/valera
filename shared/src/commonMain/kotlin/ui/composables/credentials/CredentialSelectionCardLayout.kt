@@ -19,7 +19,7 @@ import ui.models.CredentialFreshnessValidationStateUiModel
 @Composable
 fun CredentialSelectionCardLayout(
     credentialFreshnessValidationState: CredentialFreshnessValidationStateUiModel,
-    onClick: () -> Unit,
+    onClick: (() -> Unit)?,
     modifier: Modifier,
     isSelected: Boolean,
     content: @Composable ColumnScope.() -> Unit,
@@ -64,7 +64,8 @@ fun CredentialSelectionCardLayout(
     }
 
     Card(
-        onClick = onClick,
+        onClick = onClick ?: {},
+        enabled = onClick != null,
         modifier = modifier,
         elevation = CardDefaults.elevatedCardElevation(),
         colors = CardDefaults.elevatedCardColors(containerColor = containerColor.value),

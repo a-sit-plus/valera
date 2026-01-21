@@ -27,11 +27,12 @@ fun DCQLCredentialQuerySubmissionSelection(
         selectionOptions.forEachIndexed { index, option ->
             val isSelected = index == currentlySelectedOptionIndex
             DCQLCredentialQuerySubmissionSelectionOption(
-                checkCredentialFreshness = checkCredentialFreshness,
                 isSelected = isSelected,
                 onToggleSelection = { onChangeSelection(if (isSelected) null else index) },
-                decodeToBitmap = decodeToBitmap,
                 option = option,
+                decodeToBitmap = decodeToBitmap,
+                checkCredentialFreshness = checkCredentialFreshness,
+                allowMultiSelection = false,
             )
         }
     }

@@ -4,6 +4,8 @@ import at.asitplus.wallet.app.common.SnackbarService
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
+import ui.presentation.DCQLPresentationBuilderGraphViewModel
+import ui.presentation.DefaultPresentationGraphViewModel
 import ui.viewmodels.AddCredentialViewModel
 import ui.viewmodels.CapabilitiesViewModel
 import ui.viewmodels.CredentialsViewModel
@@ -22,8 +24,11 @@ fun uiModule() = module {
     viewModelOf(::TransferOptionsViewModel)
     viewModelOf(::HolderViewModel)
     viewModelOf(::VerifierViewModel)
+    viewModelOf(::DefaultPresentationGraphViewModel)
+    viewModelOf(::DCQLPresentationBuilderGraphViewModel)
     viewModelOf(::AuthenticationSuccessViewModel)
     viewModelOf(::AddCredentialViewModel)
     viewModelOf(::CapabilitiesViewModel)
     viewModelOf(::InitializationViewModel)
 }
+

@@ -10,7 +10,6 @@ import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import data.storage.StoreEntryId
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import ui.viewmodels.QrCodeScannerMode
 
 @Serializable
@@ -104,6 +103,31 @@ object PresentDataRoute : Route()
 
 @Serializable
 data class AuthenticationViewRoute(
+    val authenticationRequestParametersFromSerialized: String,
+    val authorizationPreparationStateSerialized: String,
+    val recipientLocation: String,
+    val isCrossDeviceFlow: Boolean,
+) : Route() {
+    constructor(
+        authenticationRequest: RequestParametersFrom<AuthenticationRequestParameters>,
+        authorizationResponsePreparationState: AuthorizationResponsePreparationState,
+        recipientLocation: String,
+        isCrossDeviceFlow: Boolean,
+    ) : this(
+        authenticationRequestParametersFromSerialized = vckJsonSerializer.encodeToString(authenticationRequest),
+        authorizationPreparationStateSerialized = vckJsonSerializer.encodeToString(authorizationResponsePreparationState),
+        recipientLocation = recipientLocation,
+        isCrossDeviceFlow
+    )
+
+    val authenticationRequest: RequestParametersFrom<AuthenticationRequestParameters>
+        get() = vckJsonSerializer.decodeFromString(authenticationRequestParametersFromSerialized)
+    val authorizationResponsePreparationState: AuthorizationResponsePreparationState
+        get() = vckJsonSerializer.decodeFromString(authorizationPreparationStateSerialized)
+}
+
+@Serializable
+data class DefaultPresentationGraphRoute(
     val authenticationRequestParametersFromSerialized: String,
     val authorizationPreparationStateSerialized: String,
     val recipientLocation: String,

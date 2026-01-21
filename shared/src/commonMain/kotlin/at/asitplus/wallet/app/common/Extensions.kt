@@ -1,6 +1,8 @@
 package at.asitplus.wallet.app.common
 
+import androidx.compose.runtime.Composable
 import at.asitplus.dif.Constraint
+import at.asitplus.catchingUnwrapped
 import at.asitplus.dif.ConstraintField
 import at.asitplus.dif.ConstraintFilter
 import at.asitplus.dif.DifInputDescriptor
@@ -12,13 +14,10 @@ import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment.NameSegment
 import at.asitplus.openid.CredentialFormatEnum
-import at.asitplus.openid.dcql.DCQLClaimsPathPointerSegment
-import at.asitplus.openid.dcql.DCQLCredentialQuery
+import at.asitplus.openid.dcql.*
 import at.asitplus.openid.dcql.DCQLJwtVcCredentialQuery
-import at.asitplus.openid.dcql.DCQLIsoMdocClaimsQuery
-import at.asitplus.openid.dcql.DCQLIsoMdocCredentialQuery
-import at.asitplus.openid.dcql.DCQLJsonClaimsQuery
-import at.asitplus.openid.dcql.DCQLSdJwtCredentialQuery
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.companyregistration.CompanyRegistrationDataElements
 import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
 import at.asitplus.wallet.cor.CertificateOfResidenceDataElements
@@ -38,15 +37,14 @@ import at.asitplus.wallet.lib.data.dif.PresentationExchangeInputEvaluator
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.oidvci.toFormat
 import data.credentials.JsonClaimReference
+import data.credentials.JwtClaimDefinition
+import data.credentials.JwtClaimDefinitionTranslator
 import data.credentials.MdocClaimReference
 import data.credentials.SingleClaimReference
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObjectBuilder
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonArray
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.encodeToJsonElement
-import kotlinx.serialization.json.put
+import kotlinx.serialization.json.*
+import org.jetbrains.compose.resources.stringResource
+import ui.presentation.DCQLCredentialQueryUiModel
+import ui.presentation.DCQLCredentialQueryUiModelAttributeLabels
 
 fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, ConstantIndex.CredentialScheme, Map<NormalizedJsonPath, Boolean>> {
     @Suppress("DEPRECATION")
@@ -114,6 +112,9 @@ private fun InputDescriptor.vctConstraint() =
 private fun ConstraintFilter.referenceValues() =
     (pattern ?: const?.content)?.let { listOf(it) } ?: enum
 
+/**
+ * assumes json claim path pointers don't contain `null`, otherwise only the prefix is shown
+ */
 @Throws(Throwable::class)
 fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, ConstantIndex.CredentialScheme, Collection<SingleClaimReference?>?> {
     val representation = when (format) {
@@ -125,6 +126,7 @@ fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, C
     val scheme = when (this) {
         is DCQLIsoMdocCredentialQuery -> meta.doctypeValue
             .let { AttributeIndex.resolveIsoDoctype(it) }
+
         is DCQLSdJwtCredentialQuery -> meta.vctValues
             .firstNotNullOfOrNull { AttributeIndex.resolveSdJwtAttributeType(it) }
         is DCQLJwtVcCredentialQuery -> meta.typeValues.list.flatten()
@@ -192,7 +194,7 @@ fun ConstantIndex.CredentialScheme.toJsonElement(
                     put(LOCALITY, JsonPrimitive(""))
                 }
             })
-            put(EuPidSdJwtScheme.SdJwtAttributes.NATIONALITIES, buildJsonArray {  })
+            put(EuPidSdJwtScheme.SdJwtAttributes.NATIONALITIES, buildJsonArray { })
         }
 
         is EhicScheme -> buildJsonObject {
@@ -354,4 +356,39 @@ fun Array<DocRequest>.toDifInputDescriptorList() = this.map {
             }
         }.toSet())
     )
+}
+
+@Composable
+fun Triple<CredentialRepresentation, ConstantIndex.CredentialScheme, Collection<SingleClaimReference?>?>.toCredentialQueryUiModel(): DCQLCredentialQueryUiModel {
+    val (representation, scheme, attributePaths) = this
+    return DCQLCredentialQueryUiModel(
+        credentialRepresentationLocalized = representation.uiLabel(),
+        credentialSchemeLocalized = scheme.uiLabel(),
+        requestedAttributesLocalized = attributePaths?.let { claimReferences ->
+            DCQLCredentialQueryUiModelAttributeLabels(
+                otherAttributes = claimReferences.count {
+                    it == null
+                },
+                attributesLocalized = claimReferences.filterNotNull().map { path ->
+                    catchingUnwrapped {
+                        (scheme.getLocalization(path) ?: representation.getMetadataLocalization(path))
+                            ?.let { stringResource(it) }
+                            ?: path.toString()
+                    }.getOrElse { path.toString() }
+                }
+            )
+        },
+    )
+}
+
+fun ConstantIndex.CredentialRepresentation.getMetadataLocalization(
+    claimReference: SingleClaimReference
+) = when (claimReference) {
+    is JsonClaimReference -> claimReference.normalizedJsonPath.segments.filterIsInstance<NameSegment>()
+        .firstOrNull()?.let {
+        val jwtClaimDefinition = JwtClaimDefinition.valueOfClaimNameOrNull(it.memberName) ?: return null
+        JwtClaimDefinitionTranslator().translate(jwtClaimDefinition)
+    }
+
+    is MdocClaimReference -> null
 }
