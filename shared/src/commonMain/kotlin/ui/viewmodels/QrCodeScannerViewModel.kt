@@ -10,7 +10,7 @@ import io.github.aakira.napier.Napier
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import ui.navigation.routes.AddCredentialPreAuthnRoute
-import ui.navigation.routes.AuthenticationViewRoute
+import ui.navigation.routes.DefaultPresentationGraphRoute
 import ui.navigation.routes.Route
 import ui.navigation.routes.SigningQtspSelectionRoute
 
@@ -61,7 +61,7 @@ class QrCodeScannerViewModel(
             )
         val page =
             buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(link).getOrThrow()
-        AuthenticationViewRoute(
+        DefaultPresentationGraphRoute(
             authenticationRequest = page.authenticationRequest,
             authorizationResponsePreparationState = page.authorizationResponsePreparationState,
             recipientLocation = page.recipientLocation,

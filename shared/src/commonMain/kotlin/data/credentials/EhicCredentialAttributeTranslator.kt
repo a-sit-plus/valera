@@ -18,6 +18,11 @@ import at.asitplus.valera.resources.attribute_friendly_name_personal_administrat
 import at.asitplus.valera.resources.attribute_friendly_name_social_security_number
 
 class EhicCredentialAttributeTranslator : CredentialAttributeTranslator {
+    override fun translateSingleClaimReference(claimReference: SingleClaimReference) = when(claimReference) {
+        is JsonClaimReference -> translate(claimReference.normalizedJsonPath)
+        is MdocClaimReference -> null
+    }
+
     override fun translate(
         attributeName: NormalizedJsonPath
     ) = EhicCredentialSdJwtClaimDefinitionResolver().resolveOrNull(attributeName)?.stringResource()

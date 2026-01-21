@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -20,7 +21,6 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.platform.testTag
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -39,6 +39,7 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.domain.platform.UrlOpener
 import at.asitplus.wallet.lib.data.vckJsonSerializer
+import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -53,8 +54,8 @@ import ui.composables.BottomBar
 import ui.composables.NavigationData
 import ui.navigation.routes.*
 import ui.navigation.routes.RoutePrerequisites.CRYPTO
+import ui.presentation.DefaultPresentationGraphView
 import ui.viewmodels.*
-import ui.viewmodels.authentication.AuthenticationViewModel
 import ui.viewmodels.authentication.DefaultAuthenticationViewModel
 import ui.viewmodels.authentication.NewDCAPIAuthenticationViewModel
 import ui.viewmodels.authentication.PresentationViewModel
@@ -71,6 +72,7 @@ internal object NavigatorTestTags {
     const val loadingTestTag = "loadingTestTag"
 }
 
+@ExperimentalMaterial3Api
 @Composable
 fun WalletNavigation(
     koinScope: Scope,
@@ -215,6 +217,7 @@ fun WalletNavigation(
     }
 }
 
+@ExperimentalMaterial3Api
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun WalletNavHost(
@@ -230,8 +233,7 @@ private fun WalletNavHost(
     koinScope: Scope,
     walletMain: WalletMain = koinInject(scope = koinScope),
     settingsRepository: SettingsRepository = koinInject(),
-
-    ) {
+) {
     NavHost(
         navController = navController,
         startDestination = startDestination,
@@ -346,6 +348,23 @@ private fun WalletNavHost(
             )
         }
 
+        composable<DefaultPresentationGraphRoute> {
+            DefaultPresentationGraphView(
+                onError = {
+                    walletMain.errorService.emit(it)
+                    popBackStack(HomeScreenRoute)
+                },
+                onClickLogo = onClickLogo,
+                onClickSettings = {
+                    navigate(SettingsRoute)
+                },
+                koinScope = koinScope,
+                onNavigateUp = {
+                    popBackStack(HomeScreenRoute)
+                },
+            )
+        }
+
         composable<AuthenticationViewRoute> { backStackEntry ->
             val route: AuthenticationViewRoute = backStackEntry.toRoute()
 
@@ -384,13 +403,14 @@ private fun WalletNavHost(
 
             if (vm != null) {
                 AuthenticationView(
-                    vm = vm, onError = onError
+                    vm = vm,
+                    onError = onError,
                 )
             }
         }
 
         composable<DCAPIAuthenticationConsentRoute> { backStackEntry ->
-            val vm: AuthenticationViewModel? = remember {
+            val vm = remember {
                 try {
                     val apiRequestSerialized =
                         backStackEntry.toRoute<DCAPIAuthenticationConsentRoute>().apiRequestSerialized
@@ -459,7 +479,8 @@ private fun WalletNavHost(
                     onError = { e ->
                         popBackStack(HomeScreenRoute)
                         walletMain.errorService.emit(e)
-                    })
+                    }
+                )
             }
         }
 
@@ -714,20 +735,22 @@ private fun WalletNavHost(
         }
 
         composable<DCAPIAuthorizationIntentRoute> { backStackEntry ->
-            DCAPIAuthorizationIntentView(remember {
-                DCAPIAuthorizationIntentViewModel(
-                    walletMain = walletMain,
-                    uri = backStackEntry.toRoute<DCAPIAuthorizationIntentRoute>().uri,
-                    onSuccess = { route ->
-                        Napier.d("valid authentication request")
-                        navigateBack()
-                        navigate(route)
-                    },
-                    onFailure = { e ->
-                        walletMain.errorService.emit(e)
-                    })
-            })
-
+            DCAPIAuthorizationIntentView(
+                remember {
+                    DCAPIAuthorizationIntentViewModel(
+                        walletMain = walletMain,
+                        uri = backStackEntry.toRoute<DCAPIAuthorizationIntentRoute>().uri,
+                        onSuccess = { route ->
+                            Napier.d("valid authentication request")
+                            navigateBack()
+                            navigate(route)
+                        },
+                        onFailure = { e ->
+                            walletMain.errorService.emit(e)
+                        },
+                    )
+                }
+            )
         }
 
         composable<PresentationIntentRoute> { backStackEntry ->

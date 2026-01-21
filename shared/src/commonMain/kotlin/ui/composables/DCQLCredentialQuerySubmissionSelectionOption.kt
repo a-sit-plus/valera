@@ -12,13 +12,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.openid.dcql.DCQLClaimsQueryResult
 import at.asitplus.openid.dcql.DCQLCredentialQueryMatchingResult
 import at.asitplus.openid.dcql.DCQLCredentialSubmissionOption
-import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.agent.representation
+import at.asitplus.wallet.app.common.domain.platform.ImageDecoder
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.app.common.thirdParty.kotlinx.serialization.json.leafNodeList
 import at.asitplus.wallet.lib.agent.SdJwtDecoded
@@ -26,28 +25,28 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialToJsonConverter.toJsonElement
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.jws.SdJwtSigned
-import data.Attribute
-import data.credentials.CredentialAdapter
 import data.credentials.FallbackCredentialAdapter
 import data.credentials.toCredentialAdapter
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.encodeToJsonElement
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 import ui.composables.credentials.CredentialSelectionCardHeader
 import ui.composables.credentials.CredentialSelectionCardLayout
 import ui.composables.credentials.CredentialSummaryCardContent
-import ui.models.CredentialFreshnessSummaryUiModel
+import ui.models.CredentialFreshnessSummaryModelEvaluator
 import ui.models.CredentialFreshnessValidationStateUiModel
 
 
 @Composable
 fun DCQLCredentialQuerySubmissionSelectionOption(
     isSelected: Boolean,
-    onToggleSelection: () -> Unit,
+    onToggleSelection: (() -> Unit)?,
     option: DCQLCredentialSubmissionOption<SubjectCredentialStore.StoreEntry>,
-    checkCredentialFreshness: suspend (SubjectCredentialStore.StoreEntry) -> CredentialFreshnessSummaryUiModel,
-    decodeToBitmap: (ByteArray) -> Result<ImageBitmap>,
     modifier: Modifier = Modifier,
+    decodeToBitmap: ImageDecoder = koinInject(),
+    checkCredentialFreshness: CredentialFreshnessSummaryModelEvaluator = koinInject(),
+    allowMultiSelection: Boolean,
 ) {
     val credentialFreshnessValidationState by produceState(
         CredentialFreshnessValidationStateUiModel.Loading as CredentialFreshnessValidationStateUiModel,
@@ -79,8 +78,9 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
         }
     }
 
-    val credentialAdapter = credential.toCredentialAdapter(decodeToBitmap)
-        ?: FallbackCredentialAdapter(genericAttributeList, credential)
+    val credentialAdapter = credential.toCredentialAdapter {
+        decodeToBitmap(it)
+    } ?: FallbackCredentialAdapter(genericAttributeList, credential)
     val labeledAttributes = genericAttributeList.mapNotNull { (key, value) ->
         credentialAdapter.getAttribute(key)?.let { attribute ->
             key.segments.lastOrNull()?.let {
@@ -95,18 +95,23 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
 
     CredentialSelectionCardLayout(
         credentialFreshnessValidationState = credentialFreshnessValidationState,
-        onClick = onToggleSelection,
+        onClick = onToggleSelection ?: {}.takeIf {
+            isSelected // make it look like it is enabled as long as it is selected
+        },
         isSelected = isSelected,
         modifier = modifier,
     ) {
         CredentialSelectionCardHeader(
             credentialFreshnessValidationState = credentialFreshnessValidationState,
             credential = credential,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            allowMultiSelection = allowMultiSelection,
         )
         CredentialSummaryCardContent(
             credential = credential,
-            decodeToBitmap = decodeToBitmap,
+            decodeToBitmap = {
+                decodeToBitmap(it)
+            },
         )
         HorizontalDivider(modifier = Modifier.fillMaxWidth())
         AnimatedVisibility(!isSelected) {

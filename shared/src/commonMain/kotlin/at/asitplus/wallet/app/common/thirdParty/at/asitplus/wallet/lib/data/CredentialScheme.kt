@@ -85,3 +85,20 @@ fun ConstantIndex.CredentialScheme.getLocalization(path: NormalizedJsonPath): St
     is TaxIdScheme -> TaxIdCredentialAttributeTranslator().translate(path)
     else -> { IdAustriaCredentialAttributeTranslator().translate(path) }
 }
+
+
+@Suppress("DEPRECATION")
+fun ConstantIndex.CredentialScheme.getLocalization(claimReference: SingleClaimReference): StringResource? = when (this) {
+    is IdAustriaScheme -> { IdAustriaCredentialAttributeTranslator().translateSingleClaimReference(claimReference) }
+    is EuPidScheme -> { EuPidCredentialAttributeTranslator().translateSingleClaimReference(claimReference) }
+    is EuPidSdJwtScheme -> { EuPidCredentialAttributeTranslator().translateSingleClaimReference(claimReference) }
+    is MobileDrivingLicenceScheme -> { MobileDrivingLicenceCredentialAttributeTranslator().translateSingleClaimReference(claimReference) }
+    is AgeVerificationScheme -> { AgeVerificationCredentialAttributeTranslator().translateSingleClaimReference(claimReference) }
+    is PowerOfRepresentationScheme -> { PowerOfRepresentationCredentialAttributeTranslator().translateSingleClaimReference(claimReference) }
+    is CertificateOfResidenceScheme -> { CertificateOfResidenceCredentialAttributeTranslator().translateSingleClaimReference(claimReference) }
+    is CompanyRegistrationScheme -> { CompanyRegistrationCredentialAttributeTranslator().translateSingleClaimReference(claimReference) }
+    is HealthIdScheme -> { HealthIdCredentialAttributeTranslator().translateSingleClaimReference(claimReference) }
+    is EhicScheme -> { EhicCredentialAttributeTranslator().translateSingleClaimReference(claimReference) }
+    is TaxIdScheme -> TaxIdCredentialAttributeTranslator().translateSingleClaimReference(claimReference)
+    else -> { IdAustriaCredentialAttributeTranslator().translateSingleClaimReference(claimReference) }
+}

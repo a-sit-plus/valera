@@ -131,7 +131,7 @@ fun RequestedCredentialPreview(
     )
 }
 
-private fun ConstantIndex.CredentialRepresentation.getMetadataLocalization(path: NormalizedJsonPath): StringResource? {
+fun ConstantIndex.CredentialRepresentation.getMetadataLocalization(path: NormalizedJsonPath): StringResource? {
     val firstSegment = path.segments.firstOrNull()?.let {
         it as? NormalizedJsonPathSegment.NameSegment
     } ?: return null

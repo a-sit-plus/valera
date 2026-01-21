@@ -47,8 +47,7 @@ fun AuthenticationView(
         }
 
         AuthenticationViewState.NoMatchingCredential -> {
-            val viewModel =
-                AuthenticationNoCredentialViewModel(navigateToHomeScreen = vm.navigateToHomeScreen)
+            val viewModel = AuthenticationNoCredentialViewModel(navigateToHomeScreen = vm.navigateToHomeScreen)
             AuthenticationNoCredentialView(vm = viewModel)
         }
 

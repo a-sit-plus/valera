@@ -16,6 +16,8 @@ import at.asitplus.wallet.lib.jws.VerifyJwsObject
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import ui.models.CredentialFreshnessSummaryModelEvaluator
+import ui.models.toCredentialFreshnessSummaryModel
 
 fun vckModule() = module {
     singleOf(::JsonWebKeySetResolver)
@@ -44,4 +46,11 @@ fun vckModule() = module {
         }
     }
     includes(tokenStatusListModule())
+
+    single<CredentialFreshnessSummaryModelEvaluator> {
+        val validator = get<Validator>()
+        CredentialFreshnessSummaryModelEvaluator {
+            validator.checkCredentialFreshness(it).toCredentialFreshnessSummaryModel()
+        }
+    }
 }

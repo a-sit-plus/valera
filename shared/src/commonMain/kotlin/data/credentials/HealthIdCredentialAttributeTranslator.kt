@@ -22,17 +22,25 @@ import org.jetbrains.compose.resources.StringResource
 
 
 class HealthIdCredentialAttributeTranslator : CredentialAttributeTranslator {
+    override fun translateSingleClaimReference(claimReference: SingleClaimReference) = when(claimReference) {
+        is JsonClaimReference -> null
+        is MdocClaimReference -> HealthIdCredentialMdocClaimDefinitionResolver().resolveOrNull(
+            namespace = claimReference.namespace,
+            claimName = claimReference.claimName
+        )?.stringResourceOrNull()
+    }
+
     override fun translate(
         attributeName: NormalizedJsonPath
     ) =
         attributeName.minus(HealthIdScheme.isoNamespace).let {
             it.memberName(0)?.let { claim ->
                 HealthIdCredentialMdocClaimDefinitionResolver().resolveOrNull(HealthIdScheme.isoNamespace, claim)
-                    ?.stringResource()
+                    ?.stringResourceOrNull()
             }
         }
 
-    private fun HealthIdCredentialClaimDefinition.stringResource(): StringResource? = when (this) {
+    private fun HealthIdCredentialClaimDefinition.stringResourceOrNull(): StringResource? = when (this) {
         HealthIdCredentialClaimDefinition.HEALTH_INSURANCE_ID -> Res.string.attribute_friendly_name_health_insurance_id
         HealthIdCredentialClaimDefinition.PATIENT_ID -> Res.string.attribute_friendly_name_patient_id
         HealthIdCredentialClaimDefinition.TAX_NUMBER -> Res.string.attribute_friendly_name_tax_number
