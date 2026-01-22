@@ -261,8 +261,8 @@ public class AndroidPlatformAdapter(
             val callingOrigin = callingAppInfo.getOrigin(privilegedUserAgents)
             //?: getAppOrigin(callingAppInfo.signingInfoCompat.signingCertificateHistory[0].toByteArray())
                 ?: throw IllegalArgumentException("DC API: Calling app origin unknown")
-            val option = credentialRequest.credentialOptions[0] as GetDigitalCredentialOption
-            val requestJson = JSONObject(option.requestJson)
+            val option = credentialRequest.credentialOptions[0] as? GetDigitalCredentialOption
+                ?: throw IllegalArgumentException("Expected GetDigitalCredentialOption object not received")
 
             val dcRequestOptions = vckJsonSerializer.decodeFromString<DigitalCredentialRequestOptions>(option.requestJson)
 
