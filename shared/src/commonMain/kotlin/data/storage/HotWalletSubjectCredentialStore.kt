@@ -2,6 +2,7 @@ package data.storage
 
 import at.asitplus.KmmResult
 import at.asitplus.iso.IssuerSigned
+import at.asitplus.wallet.lib.agent.RefreshTokenInfo
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.SelectiveDisclosureItem
@@ -53,30 +54,36 @@ class HotWalletSubjectCredentialStore(
     override suspend fun storeCredential(
         vc: VerifiableCredentialJws,
         vcSerialized: String,
-        scheme: ConstantIndex.CredentialScheme
+        scheme: ConstantIndex.CredentialScheme,
+        refreshToken: RefreshTokenInfo?
     ): SubjectCredentialStore.StoreEntry = delegate.storeCredential(
         vc = vc,
         vcSerialized = vcSerialized,
         scheme = scheme,
+        refreshToken = refreshToken,
     )
 
     override suspend fun storeCredential(
         vc: VerifiableCredentialSdJwt,
         vcSerialized: String,
         disclosures: Map<String, SelectiveDisclosureItem?>,
-        scheme: ConstantIndex.CredentialScheme
+        scheme: ConstantIndex.CredentialScheme,
+        refreshToken: RefreshTokenInfo?
     ): SubjectCredentialStore.StoreEntry = delegate.storeCredential(
         vc = vc,
         vcSerialized = vcSerialized,
         disclosures = disclosures,
         scheme = scheme,
+        refreshToken
     )
 
     override suspend fun storeCredential(
         issuerSigned: IssuerSigned,
-        scheme: ConstantIndex.CredentialScheme
+        scheme: ConstantIndex.CredentialScheme,
+        refreshToken: RefreshTokenInfo?
     ): SubjectCredentialStore.StoreEntry = delegate.storeCredential(
         issuerSigned = issuerSigned,
         scheme = scheme,
+        refreshToken = refreshToken
     )
 }

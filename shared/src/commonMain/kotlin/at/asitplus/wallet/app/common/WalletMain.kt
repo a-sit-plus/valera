@@ -24,6 +24,7 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -60,6 +61,13 @@ class WalletMain(
     val capabilitiesService: CapabilitiesService,
 ) {
     val appReady = MutableStateFlow<Boolean?>(null)
+    val manualRenewalRequest = MutableSharedFlow<CredentialIdentifierInfo>()
+
+    fun triggerManualRenewal(info: CredentialIdentifierInfo) {
+        scope.launch {
+            manualRenewalRequest.emit(info)
+        }
+    }
 
     private val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
     val coroutineExceptionHandler = CoroutineExceptionHandler { _, error ->

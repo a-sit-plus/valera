@@ -1,6 +1,7 @@
 package at.asitplus.wallet.app.common.di
 
 import at.asitplus.wallet.app.common.CapabilitiesService
+import at.asitplus.wallet.app.common.CredentialCheckManager
 import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.SESSION_NAME
@@ -20,6 +21,7 @@ fun appModule(appDependencyProvider: WalletDependencyProvider, capabilitiesModul
     scope(named(SESSION_NAME)) {
         scopedOf(::WalletMain)
         scopedOf(::ErrorService)
+        scopedOf(::CredentialCheckManager)
     }
     includes(capabilitiesModule)
 

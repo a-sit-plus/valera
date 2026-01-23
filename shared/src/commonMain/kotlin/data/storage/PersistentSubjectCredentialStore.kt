@@ -3,6 +3,7 @@ package data.storage
 import at.asitplus.KmmResult
 import at.asitplus.iso.IssuerSigned
 import at.asitplus.wallet.app.common.Configuration
+import at.asitplus.wallet.lib.agent.RefreshTokenInfo
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.SelectiveDisclosureItem
@@ -34,10 +35,12 @@ class PersistentSubjectCredentialStore(
         vc: VerifiableCredentialJws,
         vcSerialized: String,
         scheme: ConstantIndex.CredentialScheme,
+        refreshToken: RefreshTokenInfo?
     ) = SubjectCredentialStore.StoreEntry.Vc(
         vcSerialized,
         vc,
         scheme.schemaUri,
+        refreshToken,
     ).also {
         addStoreEntry(it)
     }
@@ -48,11 +51,13 @@ class PersistentSubjectCredentialStore(
         vcSerialized: String,
         disclosures: Map<String, SelectiveDisclosureItem?>,
         scheme: ConstantIndex.CredentialScheme,
+        refreshToken: RefreshTokenInfo?
     ) = SubjectCredentialStore.StoreEntry.SdJwt(
         vcSerialized,
         vc,
         disclosures,
         scheme.schemaUri,
+        refreshToken,
     ).also {
         addStoreEntry(it)
     }
@@ -60,9 +65,11 @@ class PersistentSubjectCredentialStore(
     override suspend fun storeCredential(
         issuerSigned: IssuerSigned,
         scheme: ConstantIndex.CredentialScheme,
+        refreshToken: RefreshTokenInfo?
     ) = SubjectCredentialStore.StoreEntry.Iso(
         issuerSigned,
         scheme.schemaUri,
+        refreshToken,
     ).also {
         addStoreEntry(it)
     }
