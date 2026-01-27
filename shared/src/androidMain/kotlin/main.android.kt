@@ -274,7 +274,7 @@ public class AndroidPlatformAdapter(
                 dcRequestOptions.requests.find { it.protocol == ExchangeProtocolIdentifier(selectionInfo.protocol) }
                     ?: throw IllegalStateException("Unable to find suitable DC API request. Protocol may not be supported.")
 
-            Napier.d("DC API: Got request $requestJson for selection $selectionInfo")
+            Napier.d("DC API: Got request ${option.requestJson} for selection $selectionInfo")
 
             val credentialId = selectionInfo.documentIds[0]
 
