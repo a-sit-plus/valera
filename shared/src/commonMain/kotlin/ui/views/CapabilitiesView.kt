@@ -42,7 +42,6 @@ fun CapabilityView(
     vm: CapabilitiesViewModel = koinViewModel(scope = koinScope),
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
-    onSoftReset: () -> Unit,
     onContinue: () -> Unit,
     onNavigateUp: () -> Unit,
     prerequisites: Set<RoutePrerequisites>
@@ -63,17 +62,8 @@ fun CapabilityView(
             { vm.walletMain.platformAdapter.openDeviceSettings() }
         )
 
-        if (prerequisites.contains(CRYPTO) &&
-            (!data.deviceLockStatus || !data.biometryEnrolledStatus)
-        ) {
-            vm.needReset = true
-        }
-
-        val callback = if (vm.needReset == true) onSoftReset else onContinue
-        val navigateUp = if (vm.needReset == true) null else onNavigateUp
-
         if (evaluation == true) {
-            LaunchedEffect(Unit) { callback() }
+            LaunchedEffect(Unit) { onContinue() }
         }
 
         when {
@@ -83,7 +73,7 @@ fun CapabilityView(
             }
 
             evaluation == false -> {
-                CapabilitiesCardView(statusData, onClickLogo, onClickSettings, navigateUp)
+                CapabilitiesCardView(statusData, onClickLogo, onClickSettings, onNavigateUp)
             }
 
             else -> LoadingView()
