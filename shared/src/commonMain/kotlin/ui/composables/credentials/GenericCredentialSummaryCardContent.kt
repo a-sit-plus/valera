@@ -43,6 +43,7 @@ import at.asitplus.valera.resources.text_label_valid_from
 import at.asitplus.valera.resources.text_label_valid_to
 import at.asitplus.valera.resources.text_label_vcType
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore.StoreEntry
+import at.asitplus.wallet.lib.data.rfc.tokenStatusList.StatusListInfo
 import at.asitplus.wallet.mdl.DrivingPrivilege
 import data.credentials.CredentialAdapter.Companion.toComplexJson
 import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
@@ -126,7 +127,7 @@ private fun SingleVcCredentialCardContent(
     ElevatedCard(modifier = Modifier.padding(bottom = 16.dp)) {
         Column(modifier = Modifier.fillMaxWidth()) {
             TechnicalMetadataHeader()
-            credential.vc.vc.credentialStatus?.statusList?.let {
+            (credential.vc.vc.credentialStatus as? StatusListInfo)?.let {
                 StatusUri(modifier, it.uri.string)
                 StatusIndex(modifier, it.index)
             }
@@ -151,7 +152,7 @@ private fun SingleSdJwtCredentialCardContent(
     ElevatedCard(modifier = Modifier.padding(bottom = 16.dp)) {
         Column(modifier = Modifier.fillMaxWidth()) {
             TechnicalMetadataHeader()
-            credential.sdJwt.credentialStatus?.statusList?.let {
+            (credential.sdJwt.statusElement as? StatusListInfo)?.let {
                 StatusUri(modifier, it.uri.string)
                 StatusIndex(modifier, it.index)
             }
@@ -194,7 +195,7 @@ private fun SingleIsoCredentialCardContent(
     ElevatedCard(modifier = Modifier.padding(bottom = 16.dp)) {
         Column(modifier = Modifier.fillMaxWidth()) {
             TechnicalMetadataHeader()
-            credential.issuerSigned.issuerAuth.payload?.status?.statusList?.let {
+            (credential.issuerSigned.issuerAuth.payload?.status as? StatusListInfo)?.let {
                 StatusUri(modifier, it.uri.string)
                 StatusIndex(modifier, it.index)
             }
