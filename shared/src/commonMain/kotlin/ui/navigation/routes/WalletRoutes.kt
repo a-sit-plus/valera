@@ -39,7 +39,7 @@ enum class RoutePrerequisites {
 object InitializationRoute : Route()
 
 @Serializable
-object HomeScreenRoute : PrerequisiteRoute(setOf(RoutePrerequisites.CRYPTO))
+object HomeScreenRoute : Route()
 
 @Serializable
 object AddCredentialRoute : PrerequisiteRoute(
