@@ -58,7 +58,7 @@ extern "C" void matcher(void) {
 
             } else if (protocolValue == "org.iso.mdoc" || protocolValue == "org-iso-mdoc") {
                 if (PARSE_ALL_ISO_MDOC) {
-                    auto request = MdocRequest::parseSomething(protocolValue, protocolData);
+                    auto request = MdocRequest::getDummyElements(protocolValue, protocolData);
                     auto combinations = request->combineALL(db);
                     for (auto const& combination : combinations) {
                         combination.addToCredmanPicker(*request);
