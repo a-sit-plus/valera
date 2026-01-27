@@ -28,7 +28,8 @@ std::string base64UrlDecode(const std::string& data) {
     return from_base64(s);
 }
 
-std::unique_ptr<MdocRequest> MdocRequest::parseSomething(const std::string& protocolName, cJSON* dataJson) {
+// Used for debugging only, adds dummy elements when PARSE_ALL_ISO_MDOC is true
+std::unique_ptr<MdocRequest> MdocRequest::getDummyElements(const std::string& protocolName, cJSON* dataJson) {
     auto dataElements = std::vector<MdocRequestDataElement>();
     dataElements.push_back(MdocRequestDataElement("namespaceName", "dataElementName", false));
     dataElements.push_back(MdocRequestDataElement("namespaceName2", "dataElementName2", false));
