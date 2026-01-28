@@ -14,8 +14,10 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import androidx.compose.ui.graphics.toArgb
+import androidx.credentials.CreateDigitalCredentialRequest
 import androidx.credentials.ExperimentalDigitalCredentialApi
 import androidx.credentials.GetDigitalCredentialOption
+import androidx.credentials.provider.CallingAppInfo
 import androidx.credentials.provider.PendingIntentHandler
 import androidx.credentials.provider.ProviderGetCredentialRequest
 import androidx.credentials.registry.provider.RegistryManager
@@ -39,6 +41,7 @@ import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.RealCapabilitiesService
 import at.asitplus.wallet.app.common.SESSION_NAME
 import at.asitplus.wallet.app.common.WalletDependencyProvider
+import at.asitplus.wallet.app.common.dcapi.DCAPICreationRequest
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.app.common.di.appModule
 import at.asitplus.wallet.lib.data.vckJsonSerializer
@@ -255,6 +258,27 @@ public class AndroidPlatformAdapter(
         )
     }
 
+    private data class CallingAppMetadata(
+        val packageName: String,
+        val origin: String
+    )
+
+    private fun loadPrivilegedUserAgents(): String =
+        context.assets.open("privileged_apps.json").use { stream ->
+            val data = ByteArray(stream.available()).apply { stream.read(this) }
+            data.decodeToString()
+        }
+
+    private fun resolveCallingAppMetadata(callingAppInfo: CallingAppInfo): CallingAppMetadata {
+        val privilegedUserAgents = loadPrivilegedUserAgents()
+        val callingOrigin = callingAppInfo.getOrigin(privilegedUserAgents)
+            ?: throw IllegalArgumentException("DC API: Calling app origin unknown")
+        return CallingAppMetadata(
+            packageName = callingAppInfo.packageName,
+            origin = callingOrigin
+        )
+    }
+
     @OptIn(ExperimentalDigitalCredentialApi::class, ExperimentalEncodingApi::class)
     override fun getCurrentDCAPIData(): KmmResult<DCAPIWalletRequest> = catching {
         (intentState.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { (intent, _) ->
@@ -262,17 +286,8 @@ public class AndroidPlatformAdapter(
             val credentialRequest = PendingIntentHandler.retrieveProviderGetCredentialRequest(intent)
                 ?: throw IllegalArgumentException("DC API: No credential request received")
 
-            val privilegedUserAgents =
-                context.assets.open("privileged_apps.json").use { stream ->
-                    val data = ByteArray(stream.available()).apply { stream.read(this) }
-                    data.decodeToString()
-                }
-
-            val callingAppInfo = credentialRequest.callingAppInfo
-            val callingPackageName = callingAppInfo.packageName
-            val callingOrigin = callingAppInfo.getOrigin(privilegedUserAgents)
-            //?: getAppOrigin(callingAppInfo.signingInfoCompat.signingCertificateHistory[0].toByteArray())
-                ?: throw IllegalArgumentException("DC API: Calling app origin unknown")
+            val (callingPackageName, callingOrigin) =
+                resolveCallingAppMetadata(credentialRequest.callingAppInfo)
             val option = credentialRequest.credentialOptions[0] as? GetDigitalCredentialOption
                 ?: throw IllegalArgumentException("Expected GetDigitalCredentialOption object not received")
 
@@ -321,6 +336,24 @@ public class AndroidPlatformAdapter(
         } ?: throw IllegalStateException("DCAPIInvocationData not set")
     }
 
+    @OptIn(ExperimentalDigitalCredentialApi::class)
+    override fun getCurrentDCAPICreationData(): KmmResult<DCAPICreationRequest> = catching {
+        (intentState.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { (intent, _) ->
+            val credentialRequest = PendingIntentHandler.retrieveProviderCreateCredentialRequest(intent)
+                ?: throw IllegalArgumentException("DC API: No credential create request received")
+            val (callingPackageName, callingOrigin) =
+                resolveCallingAppMetadata(credentialRequest.callingAppInfo)
+            val callingRequest = credentialRequest.callingRequest as? CreateDigitalCredentialRequest
+                ?: throw IllegalArgumentException("Expected CreateDigitalCredentialRequest object not received")
+
+            DCAPICreationRequest(
+                requestJson = callingRequest.requestJson,
+                callingPackageName = callingPackageName,
+                callingOrigin = callingOrigin
+            )
+        } ?: throw IllegalStateException("DCAPIInvocationData not set")
+    }
+
     override fun prepareDCAPICredentialResponse(response: String, success: Boolean) {
         (intentState.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
             sendCredentialResponseToInvoker(response, success)
@@ -339,6 +372,21 @@ public class AndroidPlatformAdapter(
             intentState.dcapiInvocationData.value = null
         } ?: throw IllegalStateException("Callback for response not found")
     }
+
+    override fun prepareDCAPICreationResponse(response: String, success: Boolean) {
+        (intentState.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { (intent, sendCredentialResponseToInvoker) ->
+            if (intent.action != RegistryManager.ACTION_CREATE_CREDENTIAL) {
+                throw IllegalStateException("Expected DC API create invocation")
+            }
+            sendCredentialResponseToInvoker(response, success)
+            intentState.dcapiInvocationData.value = null
+        } ?: throw IllegalStateException("Callback for response not found")
+    }
+
+    override fun hasPendingDCAPICreationRequest(): Boolean =
+        (intentState.dcapiInvocationData.value as AndroidDCAPIInvocationData?)
+            ?.intent
+            ?.action == RegistryManager.ACTION_CREATE_CREDENTIAL
 
     override fun openDeviceSettings() {
         Napier.d("Open Device settings")

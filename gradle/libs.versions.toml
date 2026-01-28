@@ -35,7 +35,7 @@ taxid = "1.2.0"
 atomicfu = "0.29.0"
 qrose = "1.0.1"
 core-splashscreen = "1.2.0"
-androidx-browser = "1.8.0"
+androidx-browser = "1.9.0"
 
 authcheckkit = "1.0.0-alpha01"
 
