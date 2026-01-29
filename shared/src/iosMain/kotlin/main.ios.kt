@@ -443,7 +443,7 @@ class IosPlatformAdapter(
 
     }
 
-    override fun getCurrentDCAPIData(): KmmResult<DCAPIWalletRequest> {
+    override fun getCurrentDCAPIVerificationData(): KmmResult<DCAPIWalletRequest> {
         Napier.d("getCurrentDCAPIData called")
         // TODO update code so that getCurrentDCAPIData is invoked, i.e. open the right views
         return (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let {

@@ -232,7 +232,7 @@ interface PlatformAdapter {
     /**
      * Retrieves request from the digital credentials browser API
      */
-    fun getCurrentDCAPIData(): KmmResult<DCAPIWalletRequest>
+    fun getCurrentDCAPIVerificationData(): KmmResult<DCAPIWalletRequest>
 
     /**
      * Retrieves creation request from the digital credentials browser API
@@ -275,7 +275,7 @@ class DummyPlatformAdapter : PlatformAdapter {
     override fun registerWithDigitalCredentialsAPI(entries: CredentialRegistry, scope: CoroutineScope) {
     }
 
-    override fun getCurrentDCAPIData(): KmmResult<DCAPIWalletRequest> {
+    override fun getCurrentDCAPIVerificationData(): KmmResult<DCAPIWalletRequest> {
         return KmmResult.failure(IllegalStateException("Using dummy platform adapter"))
     }
 

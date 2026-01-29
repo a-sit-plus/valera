@@ -278,7 +278,7 @@ public class AndroidPlatformAdapter(
     }
 
     @OptIn(ExperimentalDigitalCredentialApi::class, ExperimentalEncodingApi::class)
-    override fun getCurrentDCAPIData(): KmmResult<DCAPIWalletRequest> = catching {
+    override fun getCurrentDCAPIVerificationData(): KmmResult<DCAPIWalletRequest> = catching {
         (intentState.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { (intent, _) ->
             // Adapted from https://github.com/openwallet-foundation-labs/identity-credential/blob/d7a37a5c672ed6fe1d863cbaeb1a998314d19fc5/wallet/src/main/java/com/android/identity_credential/wallet/credman/CredmanPresentationActivity.kt#L74
             val credentialRequest = PendingIntentHandler.retrieveProviderGetCredentialRequest(intent)
@@ -364,8 +364,8 @@ public class AndroidPlatformAdapter(
             intentState.dcapiInvocationData.value = null
             Napier.d("Returning response $response to digital credentials API invoker")
             val dcApiResponse = DCAPIResponse(response)
-            //val isoMdocResponse = IsoMdocResponse(dcApiResponse)
-            // Current version of dc api library requires returning the DCAPIResponse instead of the IsoMdocResponse, otherwise there will be two data elements in the response
+            val isoMdocResponse = IsoMdocResponse(dcApiResponse)
+            // The current version of dc api library requires returning the DCAPIResponse instead of the IsoMdocResponse, otherwise there will be two data elements in the response
             val serializedResponse = vckJsonSerializer.encodeToString(dcApiResponse)
             Napier.d("Returning response $serializedResponse")
             sendCredentialResponseToInvoker(serializedResponse, success)

@@ -43,7 +43,7 @@ class DCAPIAuthorizationIntentViewModel(
     }
 
     fun process() = walletMain.scope.launch(Dispatchers.Default + coroutineExceptionHandler) {
-        val dcApiRequest = walletMain.platformAdapter.getCurrentDCAPIData().getOrThrow()
+        val dcApiRequest = walletMain.platformAdapter.getCurrentDCAPIVerificationData().getOrThrow()
 
         val successRoute = when (dcApiRequest) {
             is DCAPIWalletRequest.OpenId4Vp -> buildConsentPageFromRequest(dcApiRequest)
