@@ -13,7 +13,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
-import androidx.compose.ui.graphics.toArgb
 import androidx.credentials.CreateDigitalCredentialRequest
 import androidx.credentials.ExperimentalDigitalCredentialApi
 import androidx.credentials.GetDigitalCredentialOption
@@ -52,7 +51,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToByteArray
-import org.json.JSONObject
 import org.koin.core.module.dsl.scopedOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.binds
@@ -363,13 +361,14 @@ public class AndroidPlatformAdapter(
 
     override fun prepareIsoMdocDCAPICredentialResponse(response: EncryptedResponse, success: Boolean) {
         (intentState.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
+            intentState.dcapiInvocationData.value = null
             Napier.d("Returning response $response to digital credentials API invoker")
             val dcApiResponse = DCAPIResponse(response)
-            val isoMdocResponse = IsoMdocResponse(dcApiResponse)
-            val serializedResponse = vckJsonSerializer.encodeToString(isoMdocResponse)
+            //val isoMdocResponse = IsoMdocResponse(dcApiResponse)
+            // Current version of dc api library requires returning the DCAPIResponse instead of the IsoMdocResponse, otherwise there will be two data elements in the response
+            val serializedResponse = vckJsonSerializer.encodeToString(dcApiResponse)
             Napier.d("Returning response $serializedResponse")
             sendCredentialResponseToInvoker(serializedResponse, success)
-            intentState.dcapiInvocationData.value = null
         } ?: throw IllegalStateException("Callback for response not found")
     }
 
