@@ -36,6 +36,7 @@ import net.swiftzer.semver.SemVer
 import org.jetbrains.compose.resources.decodeToImageBitmap
 import org.jetbrains.compose.resources.getString
 import org.multipaz.prompt.PromptModel
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Main class to hold all services needed in the Compose App.
@@ -59,15 +60,9 @@ class WalletMain(
     val settingsRepository: SettingsRepository,
     val sessionService: SessionService,
     val capabilitiesService: CapabilitiesService,
+    val credentialValidityManager: CredentialCheckManager,
 ) {
     val appReady = MutableStateFlow<Boolean?>(null)
-    val manualRenewalRequest = MutableSharedFlow<CredentialIdentifierInfo>()
-
-    fun triggerManualRenewal(info: CredentialIdentifierInfo) {
-        scope.launch {
-            manualRenewalRequest.emit(info)
-        }
-    }
 
     private val regex = Regex("^(?=\\[[0-9]{2})", option = RegexOption.MULTILINE)
     val coroutineExceptionHandler = CoroutineExceptionHandler { _, error ->
@@ -82,6 +77,7 @@ class WalletMain(
 
     init {
         startListeningForNewCredentialsDCAPI()
+        credentialValidityManager.startChecking()
         if (keyMaterial.keyMaterial is FallBackKeyMaterial) {
             Napier.e("FallBackKeyMaterial: ${keyMaterial.keyMaterial.reason}")
         }

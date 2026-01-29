@@ -230,25 +230,9 @@ private fun WalletNavHost(
     onError: (Throwable) -> Unit,
     koinScope: Scope,
     walletMain: WalletMain = koinInject(scope = koinScope),
-    credentialCheckManager: CredentialCheckManager = koinInject(scope = koinScope),
     settingsRepository: SettingsRepository = koinInject(),
 
     ) {
-    LaunchedEffect(koinScope) {
-        credentialCheckManager.startChecking()
-
-        this.launch {
-            walletMain.manualRenewalRequest.collect { info ->
-                val host = info.issuerMetadata.credentialIssuer
-                walletMain.snackbarService.showSnackbar(
-                    text = "Credential renewal required",
-                    actionLabel = "Renew"
-                ) {
-                    navigate(LoadCredentialRoute(host))
-                }
-            }
-        }
-    }
 
     NavHost(
         navController = navController,
