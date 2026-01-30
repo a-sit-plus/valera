@@ -61,7 +61,6 @@ kotlin {
     jvmToolchain(17)
 
     if ("true" != disableAppleTargets) {
-        iosX64()
         iosArm64()
         iosSimulatorArm64()
     }
