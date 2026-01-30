@@ -3,6 +3,7 @@ package data.storage
 import at.asitplus.KmmResult
 import at.asitplus.iso.IssuerSigned
 import at.asitplus.wallet.app.common.Configuration
+import at.asitplus.wallet.lib.agent.CredentialRenewalInfo
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.SelectiveDisclosureItem
@@ -89,6 +90,14 @@ class PersistentSubjectCredentialStore(
         } ?: KmmResult.success(latestCredentials)
     }
 
+    override suspend fun deleteCredential(credential: SubjectCredentialStore.StoreEntry) {
+        val currentContainer = observeStoreContainer().first()
+        val id = currentContainer.credentials.find { it.second == credential }?.first
+        if (id != null) {
+            removeStoreEntryById(id)
+        }
+    }
+
     private suspend fun exportToDataStore(newContainer: StoreContainer) {
         val exportableCredentials = newContainer.credentials.map {
             val storeEntry = it.second
@@ -97,6 +106,7 @@ class PersistentSubjectCredentialStore(
                     ExportableStoreEntry.Iso(
                         issuerSigned = storeEntry.issuerSigned,
                         exportableCredentialScheme = storeEntry.scheme!!.toExportableCredentialScheme(),
+                        refreshToken = storeEntry.refreshToken
                     )
                 }
 
@@ -106,6 +116,7 @@ class PersistentSubjectCredentialStore(
                         sdJwt = storeEntry.sdJwt,
                         disclosures = storeEntry.disclosures,
                         exportableCredentialScheme = storeEntry.scheme!!.toExportableCredentialScheme(),
+                        refreshToken = storeEntry.refreshToken
                     )
                 }
 
@@ -114,6 +125,7 @@ class PersistentSubjectCredentialStore(
                         vcSerialized = storeEntry.vcSerialized,
                         vc = storeEntry.vc,
                         exportableCredentialScheme = storeEntry.scheme!!.toExportableCredentialScheme(),
+                        refreshToken = storeEntry.refreshToken
                     )
                 }
             }
@@ -167,6 +179,7 @@ class PersistentSubjectCredentialStore(
                         SubjectCredentialStore.StoreEntry.Iso(
                             storeEntry.issuerSigned,
                             storeEntry.exportableCredentialScheme.toScheme().schemaUri,
+                            storeEntry.refreshToken
                         )
                     }
 
@@ -176,6 +189,7 @@ class PersistentSubjectCredentialStore(
                             storeEntry.sdJwt,
                             storeEntry.disclosures,
                             storeEntry.exportableCredentialScheme.toScheme().schemaUri,
+                            storeEntry.refreshToken
                         )
                     }
 
@@ -184,6 +198,7 @@ class PersistentSubjectCredentialStore(
                             storeEntry.vcSerialized,
                             storeEntry.vc,
                             storeEntry.exportableCredentialScheme.toScheme().schemaUri,
+                            storeEntry.refreshToken
                         )
                     }
                 }
@@ -222,12 +237,13 @@ private data class OldExportableStoreContainer(
 @Serializable
 private sealed interface ExportableStoreEntry {
     val exportableCredentialScheme: ExportableCredentialScheme
-
+    val refreshToken: CredentialRenewalInfo?
     @Serializable
     data class Vc(
         val vcSerialized: String,
         val vc: VerifiableCredentialJws,
-        override val exportableCredentialScheme: ExportableCredentialScheme
+        override val exportableCredentialScheme: ExportableCredentialScheme,
+        override val refreshToken: CredentialRenewalInfo? = null
     ) : ExportableStoreEntry
 
     @Serializable
@@ -238,13 +254,15 @@ private sealed interface ExportableStoreEntry {
          * Map of original serialized disclosure item to parsed item
          */
         val disclosures: Map<String, SelectiveDisclosureItem?>,
-        override val exportableCredentialScheme: ExportableCredentialScheme
+        override val exportableCredentialScheme: ExportableCredentialScheme,
+        override val refreshToken: CredentialRenewalInfo? = null
     ) : ExportableStoreEntry
 
     @Serializable
     data class Iso(
         val issuerSigned: IssuerSigned,
-        override val exportableCredentialScheme: ExportableCredentialScheme
+        override val exportableCredentialScheme: ExportableCredentialScheme,
+        override val refreshToken: CredentialRenewalInfo? = null
     ) : ExportableStoreEntry
 }
 

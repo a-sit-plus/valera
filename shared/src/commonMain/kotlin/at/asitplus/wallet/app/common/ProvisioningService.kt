@@ -186,6 +186,15 @@ class ProvisioningService(
             }
     }
 
+    suspend fun refreshCredential(refreshTokenInfo: CredentialRenewalInfo, oldCredential: SubjectCredentialStore.StoreEntry) {
+        Napier.d("refreshCredential with identifier ${refreshTokenInfo.credentialIdentifier}")
+        val result = openId4VciClient.refreshCredentialReturningResult(refreshTokenInfo).getOrThrow()
+        result.credentials.forEach { credentialInput ->
+            holderAgent.storeCredential(credentialInput, result.refreshToken)
+            holderAgent.deleteCredential(oldCredential)
+        }
+    }
+
     /**
      * Decodes the content of a scanned QR code, expected to contain a [at.asitplus.openid.CredentialOffer].
      *

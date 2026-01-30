@@ -42,14 +42,14 @@ class CredentialCheckManager(
 
     private suspend fun performCheck() {
         val credentials = holderAgent.getInvalidCredentials()
-        credentials?.forEach {
-            snackbarService.showSnackbar(it.getDcApiId())
+        val valid = holderAgent.getCredentials()
+        credentials?.forEach { storeEntry ->
+            storeEntry.refreshToken?.refreshToken?.let {
+                provisioningService.refreshCredential(storeEntry.refreshToken!!, storeEntry)
+                val newValid = holderAgent.getCredentials()
+                snackbarService.showSnackbar("Credential with id ${storeEntry.refreshToken?.credentialIdentifier} has been refreshed")
+            }
         }
-//        credentials?.forEach { storeEntry ->
-//            storeEntry.refreshToken?.refreshToken?.let {
-//                provisioningService.refreshCredential(storeEntry.refreshToken!!, storeEntry)
-//            }
-//        }
     }
 
     fun stopChecking() {

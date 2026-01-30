@@ -47,6 +47,10 @@ class HotWalletSubjectCredentialStore(
         } ?: KmmResult.success(latestCredentials)
     }
 
+    override suspend fun deleteCredential(credential: SubjectCredentialStore.StoreEntry) {
+        delegate.deleteCredential(credential)
+    }
+
     override suspend fun removeStoreEntryById(
         storeEntryId: StoreEntryId,
     ) = delegate.removeStoreEntryById(storeEntryId)
