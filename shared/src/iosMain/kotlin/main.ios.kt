@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ComposeUIViewController
+import at.asitplus.catching
 import at.asitplus.KmmResult
 import at.asitplus.dcapi.EncryptedResponse
 import at.asitplus.dcapi.request.DCAPIWalletRequest
@@ -20,6 +21,7 @@ import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.RealCapabilitiesService
 import at.asitplus.wallet.app.common.SESSION_NAME
 import at.asitplus.wallet.app.common.WalletDependencyProvider
+import at.asitplus.wallet.app.common.dcapi.DCAPICreationRequest
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.app.common.di.appModule
 import at.asitplus.wallet.app.dcapi.IosDCAPIInvocationData
@@ -463,6 +465,10 @@ class IosPlatformAdapter(
         } ?: KmmResult.failure(Throwable("No request data available"))
     }
 
+    override fun getCurrentDCAPICreationData(): KmmResult<DCAPICreationRequest> = catching {
+        throw IllegalStateException("Not supported on iOS")
+    }
+
     override fun prepareDCAPICredentialResponse(response: String, success: Boolean) {
         Napier.w("Got error response: $response")
         //TODO is there a way to convey error responses via ISO18013-7?
@@ -481,6 +487,15 @@ class IosPlatformAdapter(
             sendCredentialResponseToInvoker.invoke(encodedResponse.toNSData())
             MdocSessionManager.clearSession()
         } ?: throw IllegalStateException("Callback for response not found")
+
+    override fun prepareDCAPICreationResponse(response: String, success: Boolean) {
+        Napier.w("DC API issuing not supported on iOS")
+    }
+
+    override fun hasPendingDCAPICreationRequest(): Boolean {
+        Napier.w("DC API issuing not supported on iOS")
+        return false
+    }
 
     override fun openDeviceSettings() {
         openUrl(UIApplicationOpenSettingsURLString)
