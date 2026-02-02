@@ -44,6 +44,7 @@ class DCAPICreationIntentViewModel(
         val creationOptions =
             vckJsonSerializer.decodeFromString<DigitalCredentialCreationOptions>(requestJson)
         // TODO how to handle more than one request?
+        require(creationOptions.requests.count() == 1) { "Only one request supported for now" }
         creationOptions.requests.firstOrNull()?.data
             ?: throw IllegalArgumentException("DC API: No supported issuance request found")
     }
