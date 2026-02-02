@@ -32,7 +32,7 @@ fun tokenStatusListModule() = module {
                 ),
                 clock = Clock.System,
                 getCachingDuration = { (key, value) ->
-                    val payload = value.payload.getOrNull()
+                    val payload = value.parsedPayload.getOrNull()
                     listOfNotNull(
                         payload?.expirationTime?.let { it - Clock.System.now() },
                         payload?.timeToLive?.duration

@@ -12,34 +12,41 @@ import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment.NameSegment
 import at.asitplus.openid.CredentialFormatEnum
-import at.asitplus.openid.dcql.*
-import at.asitplus.wallet.ageverification.AgeVerificationScheme
+import at.asitplus.openid.dcql.DCQLClaimsPathPointerSegment
+import at.asitplus.openid.dcql.DCQLCredentialQuery
+import at.asitplus.openid.dcql.DCQLJwtVcCredentialQuery
+import at.asitplus.openid.dcql.DCQLIsoMdocClaimsQuery
+import at.asitplus.openid.dcql.DCQLIsoMdocCredentialQuery
+import at.asitplus.openid.dcql.DCQLJsonClaimsQuery
+import at.asitplus.openid.dcql.DCQLSdJwtCredentialQuery
 import at.asitplus.wallet.companyregistration.CompanyRegistrationDataElements
 import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
 import at.asitplus.wallet.cor.CertificateOfResidenceDataElements
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.ehic.EhicScheme
-import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
-import at.asitplus.wallet.healthid.HealthIdScheme
-import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.*
 import at.asitplus.wallet.lib.data.IsoMdocFallbackCredentialScheme
 import at.asitplus.wallet.lib.data.SdJwtFallbackCredentialScheme
+import at.asitplus.wallet.lib.data.VcDataModelConstants.VERIFIABLE_CREDENTIAL
 import at.asitplus.wallet.lib.data.VcFallbackCredentialScheme
 import at.asitplus.wallet.lib.data.dif.ConstraintFieldsEvaluationException
 import at.asitplus.wallet.lib.data.dif.PresentationExchangeInputEvaluator
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.oidvci.toFormat
-import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
-import at.asitplus.wallet.taxid.TaxIdScheme
 import data.credentials.JsonClaimReference
 import data.credentials.MdocClaimReference
 import data.credentials.SingleClaimReference
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObjectBuilder
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.put
 
 fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, ConstantIndex.CredentialScheme, Map<NormalizedJsonPath, Boolean>> {
     @Suppress("DEPRECATION")
@@ -120,12 +127,16 @@ fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, C
             .let { AttributeIndex.resolveIsoDoctype(it) }
         is DCQLSdJwtCredentialQuery -> meta.vctValues
             .firstNotNullOfOrNull { AttributeIndex.resolveSdJwtAttributeType(it) }
-        is DCQLCredentialQueryInstance -> null
+        is DCQLJwtVcCredentialQuery -> meta.typeValues.list.flatten()
+            .filterNot { it == VERIFIABLE_CREDENTIAL }
+            .firstNotNullOfOrNull { AttributeIndex.resolveAttributeType(it) }
     } ?: when (this) {
         is DCQLIsoMdocCredentialQuery -> IsoMdocFallbackCredentialScheme(isoDocType = meta.doctypeValue)
         is DCQLSdJwtCredentialQuery -> meta.vctValues
             .firstNotNullOfOrNull { SdJwtFallbackCredentialScheme(sdJwtType = it) }
-        is DCQLCredentialQueryInstance -> null
+        is DCQLJwtVcCredentialQuery -> meta.typeValues.list.flatten()
+            .filterNot { it == VERIFIABLE_CREDENTIAL }
+            .firstNotNullOfOrNull { VcFallbackCredentialScheme(vcType = it) }
     } ?: throw Throwable("No matching scheme for $meta")
 
     // assuming all claims path pointers are single claim references

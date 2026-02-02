@@ -51,7 +51,7 @@ abstract class AuthenticationViewModel(
 
         when (val matching = matchingCredentials) {
             is DCQLMatchingResult -> {
-                matching.dcqlQueryResult.toDefaultSubmission()
+                matching.dcqlQueryResult.toDefaultSubmission(allowsMultiple = listOf())
                 // TODO: create default selection?
                 // matching fails if query is not satisfiable, so we know that selection is the next step
                 viewState = AuthenticationViewState.Selection
@@ -80,7 +80,7 @@ abstract class AuthenticationViewModel(
                 when(credentialPresentationSubmissions) {
                     is DCQLCredentialSubmissions -> CredentialPresentation.DCQLPresentation(
                         presentationRequest = presentationRequest as CredentialPresentationRequest.DCQLRequest,
-                        credentialQuerySubmissions = credentialPresentationSubmissions.credentialQuerySubmissions
+                        credentialQuerySubmissions = credentialPresentationSubmissions.credentialQuerySubmissions?.mapValues { listOf(it.value) }
                     )
 
                     is PresentationExchangeCredentialSubmissions -> CredentialPresentation.PresentationExchangePresentation(
